@@ -1,0 +1,5 @@
+# Maintainers review every change to the validation tooling and the model allowlist.
+/scripts/            @Bodhan-AI/cookbook-maintainers
+/tests/              @Bodhan-AI/cookbook-maintainers
+/.github/            @Bodhan-AI/cookbook-maintainers
+/examples/TEMPLATE/  @Bodhan-AI/cookbook-maintainers

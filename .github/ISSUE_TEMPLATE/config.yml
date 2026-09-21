@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Bodhan API reference
+    url: https://console.bodhan.ai/api-docs/
+    about: Endpoint, model, language and voice reference for the Bodhan API
+  - name: Security issue
+    url: https://github.com/Bodhan-AI/Bodhan-AI-Cookbook/blob/main/SECURITY.md
+    about: Please do not open a public issue for security problems — see SECURITY.md

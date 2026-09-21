@@ -1,0 +1,102 @@
+{
+  "version": "2026-09-21",
+  "source": "https://console.bodhan.ai/api-docs/",
+  "base_url": "https://api.bodhan.ai",
+  "auth": {
+    "header": "Authorization",
+    "scheme": "Bearer",
+    "env_var": "BODHAN_API_KEY"
+  },
+  "models": {
+    "indic-transcribe": {
+      "display_name": "Indic-Transcribe",
+      "capability": "speech-to-text",
+      "endpoint": "POST /v1/audio/transcriptions",
+      "content_type": "multipart/form-data",
+      "openai_compatible": true,
+      "notes": "Audio up to ~30 seconds per request. Billed per second of audio.",
+      "languages": ["as", "bhb", "bho", "bn", "brx", "doi", "en", "gu", "hi", "kn", "kok", "ks", "mai", "ml", "mni", "mr", "ne", "or", "pa", "sa", "sat", "sd", "ta", "te", "ur"]
+    },
+    "indic-translate": {
+      "display_name": "Indic-Translate",
+      "capability": "translation",
+      "endpoint": "POST /translate",
+      "content_type": "application/json",
+      "openai_compatible": false,
+      "notes": "Source language is auto-detected. Input tokens are free; output tokens are billed.",
+      "scripts": ["native", "roman", "codemix"],
+      "languages": ["as", "bn", "brx", "doi", "en", "gu", "hi", "kn", "kok", "ks", "ks-Deva", "mai", "ml", "mni", "mni-Beng", "mr", "ne", "or", "pa", "sa", "sat", "sd", "sd-Arab", "ta", "te", "ur"]
+    },
+    "indic-transliterate": {
+      "display_name": "Indic-Transliterate",
+      "capability": "transliteration",
+      "endpoint": "POST /transliterate",
+      "content_type": "application/json",
+      "openai_compatible": false,
+      "notes": "Converts between native script and roman script while preserving pronunciation.",
+      "scripts": ["roman", "native"],
+      "languages": ["as", "bn", "brx", "doi", "gu", "hi", "kn", "kok", "ks", "ks-Deva", "mai", "ml", "mni", "mni-Beng", "mr", "ne", "or", "pa", "sa", "sat", "sd", "sd-Arab", "ta", "te", "ur"]
+    },
+    "indic-speak": {
+      "display_name": "Indic-Speak",
+      "capability": "text-to-speech",
+      "endpoint": "POST /v1/audio/speech",
+      "content_type": "application/json",
+      "openai_compatible": true,
+      "notes": "Returns audio/wav (PCM16, 24 kHz, mono). Keep each request to a sentence or two (~30 seconds of speech). `instructions` is a JSON string with `lang` and optional `style`.",
+      "languages": ["as", "bn", "brx", "doi", "en", "gu", "hi", "kn", "kok", "ks", "mai", "ml", "mni", "mr", "ne", "or", "pa", "sa", "sat", "sd", "ta", "te", "ur"],
+      "voices": {
+        "as": {"female": ["Prastuti"], "male": ["Ankur"]},
+        "bn": {"female": ["Ishita"], "male": ["Sourav"]},
+        "brx": {"female": ["Gwrbw"], "male": ["Sansuma"]},
+        "doi": {"female": ["Preeti"], "male": ["Sham"]},
+        "gu": {"female": ["Dhara"], "male": ["Parth"]},
+        "hi": {"female": ["Kavya", "Suhani"], "male": ["Amit"]},
+        "kn": {"female": ["Deepika"], "male": ["Adarsh"]},
+        "kok": {"female": ["Anjali"], "male": ["Sandeep"]},
+        "ks": {"female": ["Zoon"], "male": ["Ishfaq"]},
+        "mai": {"female": ["Vaidehi"], "male": ["Madhukar"]},
+        "ml": {"female": ["Lakshmi"], "male": ["Kiran"]},
+        "mni": {"female": ["Thoibi"], "male": ["Chaoba"]},
+        "mr": {"female": ["Anagha"], "male": ["Chinmay"]},
+        "ne": {"female": ["Srijana"], "male": ["Sagar"]},
+        "or": {"female": ["Itishree"], "male": ["Akash"]},
+        "pa": {"female": ["Kaur"], "male": ["Manpreet"]},
+        "sa": {"female": ["Bharati"], "male": ["Aryaman"]},
+        "sat": {"female": ["Phulmani"], "male": ["Sibu"]},
+        "sd": {"female": ["Moomal"], "male": ["Rano"]},
+        "ta": {"female": ["Anitha"], "male": ["Arun"]},
+        "te": {"female": ["Sravani"], "male": ["Vamsi"]},
+        "ur": {"female": ["Saba"], "male": ["Zaid"]}
+      },
+      "styles": ["AIR style news", "Customer Care", "TV style news", "advertisements", "anger", "children's stories", "disgust", "educational lecture", "fear", "happy", "news", "sad", "single person narration audiobook", "surprise"]
+    },
+    "indic-ocr": {
+      "display_name": "Indic-OCR",
+      "capability": "document-ocr",
+      "endpoint": "POST /v1/chat/completions",
+      "content_type": "application/json",
+      "openai_compatible": true,
+      "notes": "Send one PNG or JPEG page as a base64 data URL in an image_url content part. Returns Markdown plus layout `blocks` with bounding boxes. Billed per page.",
+      "table_formats": ["html", "markdown"]
+    }
+  },
+  "deprecated_models": {
+    "bodhan-mt": "indic-translate",
+    "bodhan-asr": "indic-transcribe",
+    "bodhan-ocr": "indic-ocr"
+  },
+  "language_names": {
+    "as": "Assamese", "bhb": "Bhili", "bho": "Bhojpuri", "bn": "Bengali", "brx": "Bodo",
+    "doi": "Dogri", "en": "English", "gu": "Gujarati", "hi": "Hindi", "kn": "Kannada",
+    "kok": "Konkani", "ks": "Kashmiri (Perso-Arabic)", "ks-Deva": "Kashmiri (Devanagari)",
+    "mai": "Maithili", "ml": "Malayalam", "mni": "Manipuri (Meitei Mayek)",
+    "mni-Beng": "Manipuri (Bengali script)", "mr": "Marathi", "ne": "Nepali", "or": "Odia",
+    "pa": "Punjabi", "sa": "Sanskrit", "sat": "Santali", "sd": "Sindhi (Devanagari)",
+    "sd-Arab": "Sindhi (Perso-Arabic)", "ta": "Tamil", "te": "Telugu", "ur": "Urdu"
+  },
+  "errors": {
+    "format": {"error": {"message": "string", "code": "string", "request_id": "string"}},
+    "rate_limit_headers": ["x-ratelimit-limit-requests", "x-ratelimit-limit-parallel-requests"]
+  }
+}

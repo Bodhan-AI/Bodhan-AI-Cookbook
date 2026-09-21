@@ -1,0 +1,45 @@
+name: validate
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: tests, lint, rules, recipe validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # ci_validate.py diffs against the base branch
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+
+      - name: Install dev dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Unit tests
+        run: pytest tests/ -v --tb=short
+
+      - name: Lint validation scripts
+        run: ruff check scripts/ tests/
+
+      - name: Rules file is consistent
+        run: python scripts/bodhan_rules.py --check
+
+      - name: Validate changed recipes (PR)
+        if: github.event_name == 'pull_request'
+        run: python scripts/ci_validate.py --base-ref "origin/${{ github.base_ref }}"
+
+      - name: Validate every recipe (main)
+        if: github.event_name != 'pull_request'
+        run: python scripts/ci_validate.py --all
