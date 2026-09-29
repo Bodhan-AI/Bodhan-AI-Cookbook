@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12+ (API 31+) backup/transfer rules. -->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="sharedpref" path="saathi_secure_prefs.xml" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" path="saathi_secure_prefs.xml" />
+    </device-transfer>
+</data-extraction-rules>
