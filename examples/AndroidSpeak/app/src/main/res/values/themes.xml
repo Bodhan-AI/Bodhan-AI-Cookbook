@@ -1,0 +1,3 @@
+<resources>
+    <style name="Theme.Saathi" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>
