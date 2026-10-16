@@ -259,7 +259,7 @@ sequenceDiagram
   participant S as Server
   participant O as indic-ocr
   participant M as Gemma 4
-  T->>B: Upload sheet, paper, key; Evaluate
+  T->>B: Upload sheet, paper and key, then Evaluate
   B->>S: upload, then evaluate
   S->>O: each page (4 at a time)
   O-->>S: blocks
