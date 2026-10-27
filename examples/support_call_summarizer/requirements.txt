@@ -1,0 +1,2 @@
+# The backend's pinned dependencies live next to its code.
+-r backend/requirements.txt
