@@ -1,0 +1,23 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+
+# Node / web build
+node_modules/
+web/dist/
+*.tsbuildinfo
+
+# Recipe outputs and local recordings (never commit real calls)
+outputs/*
+!outputs/.gitkeep
+sample_data/*
+!sample_data/.gitkeep

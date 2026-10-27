@@ -1,0 +1,8 @@
+# Optional: local speaker diarization with NVIDIA Nemotron-3-Diarization (DIARIZATION_PROVIDER=nemotron).
+# Needs an NVIDIA GPU with CUDA; see README "Speaker diarization". Install after requirements.txt:
+#   pip install -r requirements-diarization.txt
+# The cu126 build of PyTorch works with NVIDIA drivers that support CUDA 12.6 or later (nvidia-smi shows it).
+--extra-index-url https://download.pytorch.org/whl/cu126
+torch==2.14.1+cu126
+transformers==5.21.0
+librosa==1.0.0
