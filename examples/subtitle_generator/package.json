@@ -1,0 +1,17 @@
+{
+  "name": "subtitle-generator",
+  "private": true,
+  "description": "Bodhan AI Cookbook recipe: subtitles for any video with indic-transcribe and indic-translate. The web app lives in frontend/.",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "scripts": {
+    "start": "node scripts/start.mjs",
+    "postinstall": "npm install --prefix frontend",
+    "dev": "npm run dev --prefix frontend",
+    "build": "npm run build --prefix frontend",
+    "lint": "npm run lint --prefix frontend",
+    "format": "npm run format --prefix frontend",
+    "format:check": "npm run format:check --prefix frontend"
+  }
+}

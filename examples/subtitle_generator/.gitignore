@@ -1,0 +1,33 @@
+# Secrets
+.env
+.env.*
+!.env.example
+*api-key*.txt
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Node
+node_modules/
+dist/
+
+# Recipe data: keep the folders, not the files
+sample_data/*
+!sample_data/.gitkeep
+outputs/*
+!outputs/.gitkeep
+# Job history database (created on first run)
+backend/data/
+
+# Local media and test artefacts
+*.mp4
+*.wav
+*.srt
+
+# Editor
+.vscode/
+.DS_Store
