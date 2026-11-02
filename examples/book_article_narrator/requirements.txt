@@ -1,0 +1,4 @@
+pypdf==6.21.2
+python-dotenv==1.2.4
+requests==2.34.2
+streamlit==1.66.1
