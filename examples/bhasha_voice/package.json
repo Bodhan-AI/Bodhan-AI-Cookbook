@@ -1,0 +1,34 @@
+{
+  "name": "bhasha-voice-cookbook",
+  "version": "0.1.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=22.20.0"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "predev": "npm run build:sdk",
+    "dev": "next dev --webpack",
+    "prebuild": "npm run build:sdk",
+    "build": "next build --webpack",
+    "start": "next start",
+    "build:sdk": "npm run build --workspace @bhashavoice/react",
+    "dev:sdk": "npm run dev --workspace @bhashavoice/react",
+    "pack:sdk": "npm pack --workspace @bhashavoice/react --pack-destination outputs",
+    "lint": "eslint",
+    "test": "node --experimental-vm-modules --test work/check-recorder.mjs work/check-audio-upload.mjs work/check-bodhan.mjs work/check-transcription.mjs work/check-review.mjs work/check-translation.mjs work/check-translation-hook.mjs work/check-selection.mjs work/check-microphone-activity.mjs work/check-card-motion.mjs work/check-languages.mjs"
+  },
+  "dependencies": {
+    "@bhashavoice/react": "0.1.0",
+    "next": "16.4.2",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.4.2"
+  }
+}
