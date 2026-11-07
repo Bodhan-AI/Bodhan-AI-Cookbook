@@ -1,0 +1,3 @@
+# The backend's pinned dependencies live in backend/requirements.txt.
+# This file lets `pip install -r requirements.txt` also work from the recipe root.
+-r backend/requirements.txt

@@ -1,0 +1,135 @@
+/*
+ * Bodhan design tokens, so every Bodhan AI Cookbook app looks the same (copied Oct 2026):
+ * - light mode from bodhan.ai: cream background, orange #ff6207 (also the buttons), Poppins, pill buttons, peach gradient
+ * - dark mode from console.bodhan.ai: near-black, orange #ff5500, Poppins headings with Inter text, 9 px buttons
+ * Section 1 holds the Bodhan values (prefixed `bodhan-`): copy it as-is into other recipes. Section 2 maps this
+ * app's names onto them. Light is the default; dark applies via [data-theme="dark"] on <html>.
+ * The video player keeps its own fixed dark palette in both themes.
+ */
+
+/* 1. Bodhan tokens. Light: bodhan.ai */
+:root {
+  --bodhan-brand: #ff6207; /* --primary-500 */
+  --bodhan-brand-ink: #ce3000; /* --primary-700: orange text */
+  --bodhan-brand-wash: #ffead2; /* --primary-100 */
+  --bodhan-brand-line: rgba(255, 98, 7, 0.35);
+  --bodhan-on-brand: #ffffff;
+  --bodhan-ground: #fff9f0; /* --bg-cream-50 */
+  --bodhan-surface: #ffffff;
+  --bodhan-sunken: #f8f6f1; /* --background-light */
+  --bodhan-sunken-2: #f1f0ee; /* --light-94 */
+  --bodhan-ink: #2e3238; /* --text-primary */
+  --bodhan-ink-2: #57534e; /* --text-muted */
+  --bodhan-ink-3: #78716c; /* --border-strong, used for quiet text */
+  --bodhan-rule: #ece4d8;
+  --bodhan-rule-strong: #d6cfc4;
+  --bodhan-card-border: rgba(255, 234, 210, 0.95);
+  --bodhan-ok: #15803d;
+  --bodhan-error: #b91c1c; /* --error-text */
+  --bodhan-shadow: 0 1px 2px rgba(46, 50, 56, 0.04), 0 12px 32px rgba(46, 50, 56, 0.08);
+  --bodhan-button: #ff6207; /* --primary-500 */
+  --bodhan-button-hover: #ce3000; /* --primary-700 */
+  --bodhan-on-button: #ffffff;
+  --bodhan-r-button: 999px;
+  --bodhan-r-card: 16px;
+  --bodhan-r-control: 10px;
+  --bodhan-hero: linear-gradient(135deg, #f2efe9 0%, #ffead2 55%, #ffd4b2 100%); /* --bg-gradient-* */
+  --bodhan-font-display: 'Poppins', system-ui, sans-serif;
+  --bodhan-font-text: 'Poppins', system-ui, sans-serif;
+  --bodhan-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+/* Dark: console.bodhan.ai */
+:root[data-theme='dark'] {
+  --bodhan-brand: #ff5500;
+  --bodhan-brand-ink: #ff8c42;
+  --bodhan-brand-wash: rgba(255, 85, 0, 0.09);
+  --bodhan-brand-line: rgba(255, 85, 0, 0.3);
+  --bodhan-on-brand: #ffffff;
+  --bodhan-ground: #0b0b0d;
+  --bodhan-surface: #111114; /* cards: the console's --sunken */
+  --bodhan-sunken: #111114;
+  --bodhan-sunken-2: #1a1a1e;
+  --bodhan-ink: #f4f4f5;
+  --bodhan-ink-2: #a1a1aa;
+  --bodhan-ink-3: #8f8f99;
+  --bodhan-rule: #2a2a30;
+  --bodhan-rule-strong: #3f3f46;
+  --bodhan-card-border: #2a2a30;
+  --bodhan-ok: #34d399;
+  --bodhan-error: #f87171;
+  --bodhan-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 16px 40px rgba(0, 0, 0, 0.45);
+  --bodhan-button: #ff5500;
+  --bodhan-button-hover: #ff6a1f;
+  --bodhan-on-button: #ffffff;
+  --bodhan-r-button: 9px;
+  --bodhan-r-card: 18px;
+  --bodhan-r-control: 9px;
+  --bodhan-hero:
+    radial-gradient(120% 140% at 100% 0%, rgba(255, 85, 0, 0.16) 0%, rgba(255, 85, 0, 0) 55%), #111114; /* card with an orange glow */
+  --bodhan-font-text: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* 2. This app's names, mapped onto the Bodhan tokens */
+:root {
+  --bg: var(--bodhan-ground);
+  --surface: var(--bodhan-surface);
+  --surface-2: var(--bodhan-sunken-2);
+  --border: var(--bodhan-rule);
+  --border-strong: var(--bodhan-rule-strong);
+  --card-border: var(--bodhan-card-border);
+  --text: var(--bodhan-ink);
+  --text-2: var(--bodhan-ink-2);
+  --text-3: #6b655f; /* quiet text: a shade darker than --bodhan-ink-3 so it reads on --surface-2 (4.5:1) */
+  --accent: var(--bodhan-brand); /* fills, borders, indicators */
+  --accent-text: #bd2b00; /* small orange text on --accent-soft: a shade darker than --bodhan-brand-ink for 4.5:1 */
+  --accent-heading: var(--bodhan-brand-ink); /* orange in the large headline */
+  --accent-soft: var(--bodhan-brand-wash);
+  --on-accent: var(--bodhan-on-brand);
+  --button: var(--bodhan-button);
+  --button-hover: var(--bodhan-button-hover);
+  --on-button: var(--bodhan-on-button);
+  --button-disabled: var(--bodhan-button); /* waiting for input: still Bodhan orange, label dimmed */
+  --on-button-disabled: rgba(255, 255, 255, 0.75);
+  --good: var(--bodhan-ok);
+  --good-soft: rgba(21, 128, 61, 0.08);
+  --bad: var(--bodhan-error);
+  --bad-soft: rgba(185, 28, 28, 0.07);
+  --warn: #92400e;
+  --warn-soft: rgba(245, 158, 11, 0.12);
+  --focus: var(--bodhan-brand-line);
+  --shadow: var(--bodhan-shadow);
+  /* Dropdown chevron, in each theme's secondary text colour */
+  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2357534e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  --hero-bg: var(--bodhan-hero);
+  --hero-padding: 36px 32px;
+
+  --player-bg: #0e0e0d;
+  --player-bar: #1a1a18;
+  --player-line: rgba(255, 255, 255, 0.1);
+  --player-text: #e9e8e3;
+  --player-dim: #9a988f;
+
+  --radius: var(--bodhan-r-control);
+  --radius-lg: var(--bodhan-r-card);
+  --radius-button: var(--bodhan-r-button);
+  --radius-pill: 999px;
+  --font-sans: var(--bodhan-font-text);
+  --font-display: var(--bodhan-font-display);
+  --font-mono: var(--bodhan-font-mono);
+
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --text-3: var(--bodhan-ink-3);
+  --accent-text: var(--bodhan-brand-ink);
+  --accent-heading: var(--bodhan-brand);
+  --good-soft: rgba(52, 211, 153, 0.1);
+  --bad-soft: rgba(248, 113, 113, 0.1);
+  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a1a1aa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  --warn: #fbbf24;
+  --warn-soft: rgba(251, 191, 36, 0.1);
+
+  color-scheme: dark;
+}

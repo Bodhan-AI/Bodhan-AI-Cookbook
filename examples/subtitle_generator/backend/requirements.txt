@@ -1,0 +1,19 @@
+# Install from this folder (backend/): pip install -r requirements.txt
+fastapi==0.143.0
+# Provides the `fastapi dev` / `fastapi run` commands (without fastapi[standard]'s extra packages)
+fastapi-cli==0.0.32
+uvicorn[standard]==0.54.0
+python-multipart==0.0.32
+httpx==0.28.1
+pydantic-settings==2.15.0
+# Ships a static FFmpeg binary inside the virtual environment; no system-wide install needed
+imageio-ffmpeg==0.6.0
+# Silero voice activity detection (MIT): finds where people speak. No other dependencies; model bundled
+silero-vad-lite==0.4.0
+# Job history database (SQLModel on SQLAlchemy). SQLite by default; see DATABASE_URL in .env.example
+sqlmodel==0.0.48
+# YouTube links (YOUTUBE_LINKS in .env): yt-dlp downloads the audio; yt-dlp-ejs and Deno (a JavaScript runtime, from
+# pip like FFmpeg) answer YouTube's script checks. YouTube changes often: if links stop working, pip install -U yt-dlp
+yt-dlp==2026.10.26
+yt-dlp-ejs==0.8.0
+deno==2.9.8
