@@ -1,5 +1,5 @@
 // Bodhan API client. Every network request the extension makes goes through here,
-// so wiring a new Bodhan API (OCR, Transcribe) means adding a method below.
+// so wiring another Bodhan API means adding a method below.
 // Reference: https://console.bodhan.ai/api-docs/
 //
 // Translation tries the documented POST /translate first. If it returns 404, the

@@ -1,7 +1,7 @@
 # Translate extension — Software Specification (Version 0)
 
 **Owner:** Sumit · **Status:** Version 0 · **Created:** 14 Oct 2026 · **Updated:** 10 Nov 2026
-**Bodhan models:** `indic-translate`, `indic-speak` (V0) · `indic-ocr`, `indic-transcribe`, `indic-transliterate` (roadmap)
+**Bodhan models:** `indic-translate`, `indic-speak` · possibly later: `indic-ocr`, `indic-transcribe`, `indic-transliterate`
 **Type:** Chrome/Edge extension (Manifest V3), no server · **Architecture:** [ARCHITECTURE.md](ARCHITECTURE.md)
 
 ## 1. Problem
@@ -26,8 +26,8 @@ passage in their own language usually means yet another tool.
 ## 3. Objective
 
 Bring Bodhan to any webpage: select text, see the translation in place, and optionally hear it.
-Version 0 does one job well (translation plus read-aloud) on a design that contributors can extend
-with the other Bodhan models.
+Version 0 does one job well: translation, plus read-aloud. Translation stays the focus; other Bodhan
+models can be added later if the extension grows.
 
 ## 4. Target users
 
@@ -80,18 +80,29 @@ Toolbar popup ─► type or paste ─────┤
 **In Version 0:** the features above, on Chromium browsers (Chrome, Edge), loaded unpacked by a user
 with their own Bodhan keys.
 
-**Future scope, open for contributors:**
+**Future scope, open for contributors.** Translation stays the core, so these come first, in
+priority order:
 
-| Stage | Feature | Bodhan model |
+| # | Feature | Why it matters |
 |---|---|---|
-| 1 | UI redesign of the card, popup and settings | — |
-| 2 | Right-click an image → read and translate its text | `indic-ocr` |
-| 3 | Voice typing in any text box | `indic-transcribe` |
-| 4 | Chrome Web Store release with a hosted backend, so users don't need their own keys | — |
-| — | Translate the whole page in place | `indic-translate` |
-| — | Transliterate names and addresses in forms | `indic-transliterate` |
-| — | Firefox and Safari support | — |
-| — | Keyboard shortcut, translation history | — |
+| 1 | **UI redesign** of the card, popup and settings | A clearer, more polished card is the most visible improvement. This is also the point to move to an extension framework (see [ARCHITECTURE.md § 3](ARCHITECTURE.md#3-frontend-the-extension)) |
+| 2 | **Translate the whole page** in place, with a way back to the original | The most useful step beyond single selections |
+| 3 | **Fewer requests for short paragraphs** by sending several in one request | Saves quota on lists and short-paragraph text; needs a live test that paragraph breaks come back intact |
+| 4 | **Usage counter and optional daily limit** in Settings | Lets users see and cap how much of their quota the extension uses |
+| 5 | **Translate what you type** in a text box and replace it | Brings translation to writing (replies, comments, forms), not only reading |
+| 6 | **Keyboard shortcut and accessibility**: open the card from the keyboard, full keyboard and screen-reader use | Faster for regular users and usable by everyone |
+| 7 | **Firefox support** | A small manifest change plus testing ([ARCHITECTURE.md § 3.1](ARCHITECTURE.md#31-browser-support)) |
+| 8 | **Chrome Web Store release** with a hosted backend, so users don't need their own keys | The production path ([ARCHITECTURE.md § 9](ARCHITECTURE.md#9-external-services-and-deployment)) |
+
+**Maybe later**, only if the extension grows beyond translation:
+
+| Feature | Bodhan model |
+|---|---|
+| Right-click an image → read and translate its text | `indic-ocr` |
+| Voice typing in any text box | `indic-transcribe` |
+| Transliterate names and addresses in forms | `indic-transliterate` |
+| Safari support | — |
+| Translation history | — |
 
 ## 9. Technology requirements
 

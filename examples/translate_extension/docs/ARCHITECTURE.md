@@ -59,7 +59,7 @@ language there translates into it for that translation only; only Settings chang
 |---|---|---|
 | **Browser extension** | People read on other sites; an extension brings translation to where they already are. | A website (copy and paste into another tab: the problem being solved); a bookmarklet (no background context, nowhere safe for keys). |
 | **Manifest V3, Chromium first** | The only manifest version the Chrome Web Store accepts. Chromium browsers (Chrome, Edge, Brave, Opera) cover most desktop users in India with one build. | Manifest V2 (retired); Firefox first (smaller share in India). |
-| **Plain JavaScript, no framework, no build step** | Three small screens. Anyone can load the folder directly, with no toolchain. | React with a bundler: worth it when the UI is redesigned. |
+| **Plain JavaScript, no framework, no build step** | Three small screens. Anyone can load the folder directly, with no toolchain, and every file runs as written. | An extension framework such as WXT with TypeScript and a small UI library: worth adopting with the UI redesign (roadmap item 1), when the UI grows and Firefox builds are wanted. Next.js doesn't fit: it is built around a server, and an extension is static files in the browser. |
 | **Closed Shadow DOM for the in-page UI** | Page styles can't break the card, the card can't break the page, and page scripts can't reach into it. | An iframe (heavier, awkward to position next to a selection). |
 | **Results shown with `textContent`** | API output is untrusted and must never become markup. | `innerHTML` with sanitising (more code, more risk). |
 | **Only the service worker makes requests** | Keys never enter page context; host permission exempts the worker from CORS; one place for caching and splitting. | Requests from the content script (key exposed to the page, blocked by CORS). |
@@ -86,7 +86,7 @@ this stays is an open decision (§11).
 
 | Decision | Why | Alternatives considered |
 |---|---|---|
-| **No server** | Nothing to host, run or pay for; users install one thing. No shared key exists to protect, because each user brings their own. | A local proxy that keeps keys out of the browser (§11); a hosted backend (needs hosting, sign-in and per-user limits: roadmap stage 4). |
+| **No server** | Nothing to host, run or pay for; users install one thing. No shared key exists to protect, because each user brings their own. | A local proxy that keeps keys out of the browser (§11); a hosted backend (needs hosting, sign-in and per-user limits: roadmap item 8). |
 | **Separate speech key, falling back to the translation key** | Bodhan keys work with one model each, so Listen needs its own `indic-speak` key. If Bodhan issues keys covering several models, an empty speech key will reuse the translation key with no code change. | A single key field (doesn't work with per-model keys). |
 
 ## 5. Bodhan API
@@ -139,7 +139,7 @@ shared hosted backend serving many users.
 
 - **External services:** only the Bodhan API (or another API URL the user sets). No analytics or other network calls.
 - **Deployment (Version 0):** none. Users load the `extension/` folder in Developer mode.
-- **Production path (roadmap stage 4):** publish to the Chrome Web Store with icons, a privacy policy and a listing, backed by a hosted proxy with sign-in, per-user limits and a spending cap, so users don't need their own keys. Settings already accepts another API URL and asks for permission to reach it.
+- **Production path (roadmap item 8):** publish to the Chrome Web Store with icons, a privacy policy and a listing, backed by a hosted proxy with sign-in, per-user limits and a spending cap, so users don't need their own keys. Settings already accepts another API URL and asks for permission to reach it.
 
 ## 10. Security
 
@@ -181,6 +181,6 @@ keys, and its host permission becomes `http://127.0.0.1/*`.
 
 ## 13. Extending it
 
-To add a Bodhan model (for example `indic-ocr`): add a method to `extension/src/lib/bodhan.js`, a
+To add a translation feature or another Bodhan model: add a method to `extension/src/lib/bodhan.js`, a
 message handler in `background.js`, and the UI entry point (a context menu, a card button). Add
 tests alongside the existing ones in `tests/`.

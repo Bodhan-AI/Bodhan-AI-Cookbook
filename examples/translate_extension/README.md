@@ -119,18 +119,19 @@ Open http://127.0.0.1:5173/extension/dev/harness.html and select some text, or r
 
 ## Ideas for contributors
 
-Roadmap, in order: a UI redesign, translating text in images with `indic-ocr`, voice typing with `indic-transcribe`, then a Chrome Web Store release with a hosted backend so users don't need their own keys.
+Translation is the core of this extension, so the roadmap improves translation first, in priority order:
 
-| Idea | Bodhan model | Where to start |
+| # | Idea | Where to start |
 |---|---|---|
-| UI redesign of the card, popup and settings | — | the CSS and HTML at the top of `content.js`; try it in `extension/dev/harness.html` |
-| Right-click an image → translate its text | `indic-ocr` | a context menu for images, an `ocr()` method in `bodhan.js` |
-| Voice typing in any text box | `indic-transcribe` | a mic button on focused inputs, a `transcribe()` method in `bodhan.js` |
-| Chrome Web Store release | — | icons, privacy policy, store listing, hosted backend (`docs/ARCHITECTURE.md` § 9) |
-| Transliterate names and addresses in forms | `indic-transliterate` | a second card action |
-| Translate the whole page in place | `indic-translate` | walk text nodes, batch with `translateText` |
-| Firefox support | — | `background.scripts` and `browser_specific_settings.gecko` in the manifest (`docs/ARCHITECTURE.md` § 3) |
-| Safari support | — | wrap `extension/` with `xcrun safari-web-extension-converter` on a Mac |
-| Keyboard shortcut, translation history | — | `commands` in the manifest |
+| 1 | UI redesign of the card, popup and settings (a good moment to move to an extension framework such as WXT) | the CSS and HTML at the top of `content.js`; try it in `extension/dev/harness.html` |
+| 2 | Translate the whole page in place, with a way back to the original | walk the page's text nodes and send them through `translateText` |
+| 3 | Fewer requests for short paragraphs, by sending several in one request | `chunkText` in `text.js`; first check with a live test that paragraph breaks come back intact |
+| 4 | Usage counter and optional daily limit in Settings | count requests in `background.js`, show them in `options/` |
+| 5 | Translate what you type in a text box and replace it | a card action for editable fields |
+| 6 | Keyboard shortcut and full keyboard and screen-reader use | `commands` in the manifest; focus handling in `content.js` |
+| 7 | Firefox support | `background.scripts` and `browser_specific_settings.gecko` in the manifest (`docs/ARCHITECTURE.md` § 3.1) |
+| 8 | Chrome Web Store release with a hosted backend, so users don't need their own keys | icons, privacy policy, store listing (`docs/ARCHITECTURE.md` § 9) |
+
+**Maybe later**, if the extension grows beyond translation: translating text in images (`indic-ocr`), voice typing (`indic-transcribe`), transliterating names in forms (`indic-transliterate`), Safari support, and translation history.
 
 Include tests for new logic in `extension/src/lib/`.
