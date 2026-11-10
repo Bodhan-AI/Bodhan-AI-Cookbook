@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bodhan Translate · Settings</title>
+    <link rel="stylesheet" href="../ui.css" />
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Bodhan Translate settings</h1>
+      <p class="muted">Translate any text on any webpage with Bodhan AI. Your API key is stored only on this device.</p>
+
+      <form id="form" novalidate>
+        <fieldset>
+          <legend>Bodhan API</legend>
+          <div class="check">
+            <input type="checkbox" id="mock" />
+            <label for="mock">Mock mode: fake translations, no API calls (for development without credits)</label>
+          </div>
+          <div class="field">
+            <label for="apiKey">Translation API key (indic-translate)</label>
+            <input id="apiKey" type="password" placeholder="sk-…" autocomplete="off" spellcheck="false" />
+            <p class="muted">Create keys under <b>Virtual Keys</b> in the
+              <a href="https://console.bodhan.ai/dashboard/api-keys" target="_blank" rel="noopener">Bodhan dashboard</a>.
+              Each Bodhan key works with one model, so create one for indic-translate and one for indic-speak.</p>
+          </div>
+          <div class="field">
+            <label for="speechKey">Speech API key (indic-speak), needed for Listen</label>
+            <input id="speechKey" type="password" placeholder="sk-… (a separate key made for indic-speak)" autocomplete="off" spellcheck="false" />
+            <p class="muted">Without it, translation still works; only Listen is unavailable.</p>
+          </div>
+          <div class="field">
+            <label for="baseUrl">API base URL</label>
+            <div class="inline">
+              <input id="baseUrl" type="url" placeholder="https://api.bodhan.ai" autocomplete="off" spellcheck="false" />
+              <button id="resetUrl" type="button">Reset to default</button>
+            </div>
+            <p class="muted">Leave this as is unless you use a proxy or a different Bodhan gateway.</p>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Defaults</legend>
+          <div class="pair">
+            <div class="field">
+              <label for="target">Translate to</label>
+              <select id="target"></select>
+            </div>
+            <div class="field">
+              <label for="script">Output script</label>
+              <select id="script"></select>
+            </div>
+          </div>
+          <p class="muted">Bodhan detects the source language automatically. Roman script writes the target
+            language in Latin letters (e.g. Hindi as “Shubh prabhat”); it isn't a translation into English.</p>
+          <div class="field narrow">
+            <label for="voiceGender">Listen voice</label>
+            <select id="voiceGender">
+              <option value="female">Female</option>
+              <option value="male">Male</option>
+            </select>
+          </div>
+          <div class="check">
+            <input type="checkbox" id="showBubble" />
+            <label for="showBubble">Show the अ button when I select text</label>
+          </div>
+          <div class="field narrow">
+            <label for="maxChars">Max characters per API request</label>
+            <input id="maxChars" type="number" min="500" max="5000" step="100" />
+            <p class="muted">500–5,000. Larger means fewer requests per translation (each key allows 120).</p>
+          </div>
+        </fieldset>
+
+        <div class="actions">
+          <button class="primary" type="submit" value="save">Save</button>
+          <button type="submit" value="test">Save &amp; test</button>
+          <span id="status" role="status"></span>
+        </div>
+      </form>
+    </main>
+    <script type="module" src="options.js"></script>
+  </body>
+</html>

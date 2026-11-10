@@ -1,0 +1,27 @@
+# Secrets
+.env
+.env.*
+!.env.example
+*api-key*.txt
+*.key
+*.pem
+
+# Packed extension builds
+*.crx
+*.zip
+
+# Node
+node_modules/
+
+# Recipe data: keep the folders, not the files
+sample_data/*
+!sample_data/.gitkeep
+outputs/*
+!outputs/.gitkeep
+
+# Editor / agent tooling
+.vscode/
+.idea/
+.claude/
+.agents/
+.DS_Store

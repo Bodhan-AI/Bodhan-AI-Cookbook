@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Bodhan Translate</title>
+    <link rel="stylesheet" href="../ui.css" />
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Bodhan Translate</h1>
+      <span class="badge" id="mock" hidden>mock</span>
+      <button id="settings" class="link" type="button">Settings</button>
+    </header>
+
+    <form id="form">
+      <div class="langs">
+        <label for="target">Translate to <span class="muted">(source language is detected)</span></label>
+        <select id="target"></select>
+      </div>
+      <textarea id="input" rows="5" maxlength="5000" placeholder="Type or paste text…" autofocus></textarea>
+      <div class="row">
+        <span class="muted" id="count">0 / 5000</span>
+        <button id="go" class="primary" type="submit">Translate</button>
+      </div>
+    </form>
+
+    <section id="result" hidden>
+      <div id="output" dir="auto" aria-live="polite"></div>
+      <div class="row">
+        <span class="muted" id="note"></span>
+        <span class="actions">
+          <button id="listen" type="button">Listen</button>
+          <button id="copy" type="button">Copy</button>
+        </span>
+      </div>
+    </section>
+
+    <p class="muted tip">Tip: select text on any page and click <b>अ</b>, or right-click → Translate with Bodhan.</p>
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>
