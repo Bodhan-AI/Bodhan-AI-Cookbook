@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>BoardVaani — Street Sign & Shop Board Reader (Bodhan AI)</title>
+  <meta name="description" content="100% Standalone Street Sign & Shop Board Reader powered by Bodhan AI Sovereign Indic Models" />
+  <link rel="icon" type="image/png" href="/bodhan-logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    /* Theme resolver matching console.bodhan.ai before first paint */
+    (function () {
+      var KEY = "bodhan-theme";
+      var root = document.documentElement;
+      function stored() {
+        try { var v = localStorage.getItem(KEY); return v === "light" || v === "dark" || v === "system" ? v : "system"; }
+        catch (e) { return "system"; }
+      }
+      window.__bodhanApplyTheme = function () {
+        var pref = stored();
+        var dark = pref === "dark" || (pref === "system"
+          && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        root.setAttribute("data-theme", dark ? "dark" : "light");
+        root.setAttribute("data-theme-pref", pref);
+      };
+      window.__bodhanTheme = stored;
+      window.__bodhanApplyTheme();
+    })();
+  </script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+</html>
