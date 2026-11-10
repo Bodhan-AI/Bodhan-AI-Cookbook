@@ -1,0 +1,61 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Bodhan Translate – UI harness</title>
+<style>body{font:16px Georgia,serif;max-width:640px;margin:40px auto;padding:0 16px} p{line-height:1.7}</style>
+</head><body>
+<h1>Sample article</h1>
+<p id="p1">The Bodhan AI Cookbook is a collection of open-source applications. Select any sentence on this page to translate it into an Indian language.</p>
+<p id="p2">This second paragraph is here so we can test positioning near other content on the page.</p>
+<script>
+// Stubs the chrome.* APIs the content script uses, so its UI can be developed in a
+// normal tab: from the recipe folder run `python -m http.server 5173 --bind 127.0.0.1`,
+// then open http://127.0.0.1:5173/extension/dev/harness.html
+// A 0.4 s, 24 kHz mono WAV as base64, standing in for indic-speak audio.
+function beepWav() {
+  const rate = 24000, n = rate * 0.4, buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf);
+  const w = (o, s) => [...s].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
+  w(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); w(8, 'WAVE'); w(12, 'fmt '); v.setUint32(16, 16, true);
+  v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, rate, true); v.setUint32(28, rate * 2, true);
+  v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, 'data'); v.setUint32(40, n * 2, true);
+  for (let i = 0; i < n; i++) v.setInt16(44 + i * 2, Math.sin(2 * Math.PI * 440 * i / rate) * 2000, true);
+  return btoa(String.fromCharCode(...new Uint8Array(buf)));
+}
+// Behaves like the real service worker where the card depends on it: the default language is
+// stored (change it with __harness.setDefault('ta'), as the Settings page would, which fires
+// storage.onChanged), and each translation names its language so a wrong-language result is visible.
+const harness = (window.__harness = { target: 'hi', translateCalls: [], storageListeners: [], messageListeners: [] });
+const SAMPLE = {
+  en: 'The Bodhan AI Cookbook is a collection of open-source applications.',
+  hi: 'बोधन एआई कुकबुक ओपन-सोर्स एप्लिकेशन का एक संग्रह है।',
+  ta: 'போதன் AI குக்புக் என்பது திறந்த மூல பயன்பாடுகளின் தொகுப்பாகும்.',
+  bn: 'বোধন এআই কুকবুক ওপেন-সোর্স অ্যাপ্লিকেশনের একটি সংগ্রহ।',
+};
+window.chrome = {
+  runtime: {
+    async sendMessage(m) {
+      if (m.type === 'get-config') return { ok: true, target: harness.target, mock: true, showBubble: true,
+        languages: [{code:'en',name:'English',native:'English'},{code:'hi',name:'Hindi',native:'हिन्दी'},{code:'ta',name:'Tamil',native:'தமிழ்'},{code:'bn',name:'Bengali',native:'বাংলা'}] };
+      if (m.type === 'translate') {
+        harness.translateCalls.push(m.target);
+        await new Promise(r=>setTimeout(r,200));
+        return { ok: true, text: `[${m.target}] ${SAMPLE[m.target] ?? m.text}`, truncated: false, target: m.target, mock: true };
+      }
+      if (m.type === 'speak') { await new Promise(r=>setTimeout(r,300)); window.__speakCalls = (window.__speakCalls||0) + 1; return { ok: true, audio: beepWav(), index: m.index, count: 2 }; }
+      return { ok: true };
+    },
+    onMessage: { addListener(fn) { harness.messageListeners.push(fn); } },
+  },
+  storage: { onChanged: { addListener(fn) { harness.storageListeners.push(fn); } } },
+};
+// Harness only: open the card's shadow root so tests can inspect it (the extension keeps it closed).
+// Open the card from the console with: __harness.open('some text')
+const attachShadow = Element.prototype.attachShadow;
+Element.prototype.attachShadow = function (init) { return attachShadow.call(this, { ...init, mode: 'open' }); };
+harness.open = (text) => harness.messageListeners.forEach((fn) => fn({ type: 'show-translation', text }, {}, () => {}));
+harness.card = () => document.querySelector('bodhan-translate')?.shadowRoot;
+harness.setDefault = (target) => {
+  harness.target = target;
+  harness.storageListeners.forEach((fn) => fn({ target: { newValue: target } }, 'local'));
+};
+</script>
+<script src="../src/content/content.js"></script>
+</body></html>
