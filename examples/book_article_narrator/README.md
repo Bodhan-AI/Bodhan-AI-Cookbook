@@ -15,6 +15,14 @@ Built with two Bodhan models: `indic-translate` (translation) and `indic-speak` 
 | Output | Side-by-side text, an audio player and a WAV download |
 | Specification | [SOFTWARE_SPECIFICATION.md](SOFTWARE_SPECIFICATION.md) |
 | Architecture | [ARCHITECTURE.md](ARCHITECTURE.md) |
+## Demo
+
+▶ [Watch the demo video](https://drive.google.com/file/d/13slg7QJenL5rM3-Ib0AaegCR2fqSMivg/view?usp=sharing)
+
+| | |
+| --- | --- |
+| ![Home page](docs/images/01_main.png) | ![Original and translation side by side](docs/images/02_result.png) |
+| ![PDF upload](docs/images/03_pdf.png) | ![Dark mode](docs/images/04_dark.png) |
 
 ## What it does
 
