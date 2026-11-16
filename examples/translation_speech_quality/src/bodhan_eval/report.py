@@ -4,11 +4,12 @@ from __future__ import annotations
 
 import json
 from collections import Counter
-from dataclasses import asdict, replace
+from dataclasses import asdict, dataclass, replace
+from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Any
 
-from .calibration import accepted, fit_thresholds, measure, measure_checks, ratio, split_evaluations
+from .calibration import accepted, calibration_fit, measure, measure_checks, ratio, split_evaluations
 from .providers import digest
 from .schema import Evaluation, read_jsonl
 
@@ -47,6 +48,7 @@ def row_for(result: Evaluation, thresholds: dict[str, float]) -> dict:
         "audio_sha256": result.audio_digest,
         "checks": result.checks,
         "transcript": result.transcript,
+        "annotation": {"origin": item.label_origin, "annotator": item.annotator} if item.labels is not None else None,
         "flags": [asdict(finding) for finding in findings],
         "unconfirmed": [
             asdict(finding)
@@ -59,23 +61,108 @@ def row_for(result: Evaluation, thresholds: dict[str, float]) -> dict:
     }
 
 
-def baseline_diff(rows: list[dict], baseline: Path, current_config: dict) -> tuple[str, dict]:
-    """Compare otherwise comparable rows and keep coverage changes visible."""
-    baseline_meta = json.loads((baseline / "summary.json").read_text(encoding="utf-8"))
-    baseline_config = baseline_meta.get("configuration")
-    if not isinstance(baseline_config, dict):
+def match_baseline_flags(before: dict, current: dict) -> tuple[list, list, list]:
+    """Pair defects by category and evidence on the same interval, allowing text offsets to move."""
+    old, new = before["flags"], current["flags"]
+    if not old or not new:
+        return [], old, new
+    alignments = {}
+    for field in ("translation", "transcript"):
+        left, right = before.get(field), current.get(field)
+        if isinstance(left, str) and isinstance(right, str) and left != right:
+            alignments[field] = SequenceMatcher(None, left, right, autojunk=False).get_matching_blocks()
+
+    def projected(span: dict) -> tuple[int, int] | None:
+        """Project a span into the current row only when its coordinate system can be aligned."""
+        field, start, end = span["field"], span["start"], span["end"]
+        if field == "audio_ms":
+            return (start, end) if before.get("audio_sha256") and before["audio_sha256"] == current.get("audio_sha256") else None
+        if field in ("source", "reference") or (field in ("translation", "transcript") and before.get(field) == current.get(field)):
+            return start, end
+        for old_start, new_start, size in alignments.get(field, []):
+            if old_start <= start < end <= old_start + size:
+                shift = new_start - old_start
+                return start + shift, end + shift
+        return None
+
+    # Sort by overlap first so each finding can be paired only once, with the
+    # strongest positional evidence available in both reports.
+    edges = []
+    for index, flag in enumerate(old):
+        span = flag["span"]
+        interval = projected(span)
+        if interval is None:
+            continue
+        start, end = interval
+        for other_index, other in enumerate(new):
+            other_span = other["span"]
+            if flag["category"] == other["category"] and span["field"] == other_span["field"]:
+                overlap = min(end, other_span["end"]) - max(start, other_span["start"])
+                if overlap > 0:
+                    edges.append((-overlap, index, other_index))
+    matched_old, matched_new = set(), set()
+    pairs = []
+    for _, index, other_index in sorted(edges):
+        if index not in matched_old and other_index not in matched_new:
+            matched_old.add(index)
+            matched_new.add(other_index)
+            pairs.append((old[index], new[other_index]))
+    return (
+        pairs,
+        [flag for index, flag in enumerate(old) if index not in matched_old],
+        [flag for index, flag in enumerate(new) if index not in matched_new],
+    )
+
+
+@dataclass(frozen=True)
+class Baseline:
+    """Parsed report used for comparison after the new model work finishes."""
+
+    configuration: dict
+    items: dict[tuple[str, str], dict]
+
+
+def load_baseline(path: Path) -> Baseline:
+    """Validate and load the supplied baseline before the run can spend credit."""
+    metadata = json.loads((path / "summary.json").read_text(encoding="utf-8"))
+    if not isinstance(metadata, dict) or not isinstance(metadata.get("configuration"), dict):
         raise ValueError("Baseline report is missing its configuration.")
     previous = {}
-    for line, row, error in read_jsonl(baseline / "items.jsonl"):
+    for line, row, error in read_jsonl(path / "items.jsonl"):
         if error or not isinstance(row.get("id"), str) or not isinstance(row.get("lang"), str):
             raise ValueError(f"Invalid baseline item at line {line}.")
+        if (
+            row.get("status") not in ("scored", "partial", "unscored")
+            or not isinstance(row.get("checks"), dict)
+            or any(not isinstance(check, dict) for check in row["checks"].values())
+            or not isinstance(row.get("flags"), list)
+        ):
+            raise ValueError(f"Baseline item is missing check data or flags at line {line}.")
+        for flag in row["flags"]:
+            span = flag.get("span") if isinstance(flag, dict) else None
+            if (
+                not isinstance(span, dict)
+                or not isinstance(span.get("field"), str)
+                or type(span.get("start")) is not int
+                or type(span.get("end")) is not int
+                or not 0 <= span["start"] <= span["end"]
+                or any(not isinstance(flag.get(name), str) for name in ("category", "severity", "evidence"))
+            ):
+                raise ValueError(f"Invalid baseline evidence at line {line}.")
         key = (row["id"], row["lang"])
         if key in previous:
             raise ValueError(f"Duplicate baseline item at line {line}.")
         previous[key] = row
+    return Baseline(metadata["configuration"], previous)
+
+
+def baseline_diff(rows: list[dict], baseline: Path | Baseline, current_config: dict) -> tuple[str, dict]:
+    """Compare otherwise comparable rows and keep coverage changes visible."""
+    loaded = load_baseline(baseline) if isinstance(baseline, Path) else baseline
+    previous = loaded.items.copy()
     counts: Counter[str] = Counter()
     changes = []
-    configuration_changed = baseline_config != current_config
+    configuration_changed = loaded.configuration != current_config
 
     def coverage(row: dict) -> tuple:
         """Capture comparable scoring outcomes without comparing the fresh results."""
@@ -106,24 +193,34 @@ def baseline_diff(rows: list[dict], baseline: Path, current_config: dict) -> tup
             counts["incomparable_coverage"] += 1
             changes.append(f"- Incomplete or changed check coverage for {title}")
             continue
-        old = Counter(map(flag_name, before.get("flags", [])))
-        new = Counter(map(flag_name, row["flags"]))
-        counts["persistent_flags"] += sum((new & old).values())
-        for status, delta in (("added_flags", new - old), ("resolved_flags", old - new)):
-            if delta:
-                counts[status] += sum(delta.values())
-                flags = row["flags"] if status == "added_flags" else before.get("flags", [])
-                evidence = next((f["evidence"] for f in flags if flag_name(f) in delta), "")
-                excerpt = " ".join(evidence.split())[:160]
-                label = "New" if status == "added_flags" else "Resolved"
-                changes.append(f"- {label} for {title}. {describe(delta)}. Evidence excerpt {excerpt!r}.")
+        pairs, resolved, added = match_baseline_flags(before, row)
+        if pairs:
+            counts["persistent_flags"] += len(pairs)
+        for old, new in pairs:
+            if old["severity"] != new["severity"]:
+                counts["severity_changes"] += 1
+                changes.append(f"- Severity changed for {title}. {new['category']} went from {old['severity']} to {new['severity']}.")
+        for status, flags, label in (("added_flags", added, "New"), ("resolved_flags", resolved, "Resolved")):
+            if flags:
+                counts[status] += len(flags)
+                excerpt = " ".join(flags[0]["evidence"].split())[:160]
+                changes.append(f"- {label} for {title}. {describe(Counter(map(flag_name, flags)))}. Evidence excerpt {excerpt!r}.")
     for item_id, lang in sorted(previous):
         counts["removed_items"] += 1
         changes.append(f"- Removed item {item_id} [{lang}]")
     lines = ["# Baseline comparison", ""]
     if configuration_changed:
         lines.extend(["Evaluation configuration changed. Deltas may reflect changed scoring as well as changed outputs.", ""])
-    for key in ("added_flags", "resolved_flags", "persistent_flags", "added_items", "removed_items", "changed_source_or_reference", "incomparable_coverage"):
+    for key in (
+        "added_flags",
+        "resolved_flags",
+        "persistent_flags",
+        "severity_changes",
+        "added_items",
+        "removed_items",
+        "changed_source_or_reference",
+        "incomparable_coverage",
+    ):
         lines.append(f"- {key.replace('_', ' ').capitalize()} **{counts[key]}**")
     lines.extend(["", "## Examples", "", *(changes[:40] or ["No changes in comparable findings."])])
     return "\n".join(lines) + "\n", dict(counts)
@@ -194,8 +291,8 @@ def summary_markdown(summary: dict) -> str:
             "",
             "- Confirmed and unconfirmed evidence appears in items.jsonl.",
             f"- Estimated Bodhan cost represented by successful unique requests **₹{summary['cost']['bodhan_inr']:.4f}**.",
-            f"- Judge tokens **{summary['cost']['judge_input_tokens']} input**, "
-            f"**{summary['cost']['judge_output_tokens']} output** where reported by the configured provider.",
+            f"- Judge usage **{summary['cost']['judge_calls_with_usage']} of "
+            f"{summary['cost']['calls_by_operation'].get('judge', 0)}** successful requests returned token counts.",
             "- Actual dispatch count, retry reservations, and elapsed time are in the run log.",
         ]
     )
@@ -220,11 +317,11 @@ def write_reports(
     invalid_labels: list[dict],
     output: Path,
     config: dict,
-    baseline: Path | None,
+    baseline: Path | Baseline | None,
 ) -> None:
     """Emit the assignment outputs from deterministic evidence and fitted thresholds."""
     calibration, holdout = split_evaluations(results)
-    thresholds = fit_thresholds(calibration)
+    thresholds, support = calibration_fit(calibration)
     config = {**config, "thresholds": thresholds}
     rows = [row_for(result, thresholds) for result in results]
     counts = Counter(row["status"] for row in rows)
@@ -255,6 +352,9 @@ def write_reports(
         "judge_repeat": {"compared": len(repeats), "agreements": sum(repeats), "agreement": ratio(sum(repeats), len(repeats))},
     }
     calls = {key: value for result in results for key, value in result.usage.items()}
+    judge_calls = [call for call in calls.values() if call["operation"] == "judge"]
+    reported_input = [call["input_tokens"] for call in judge_calls if call.get("input_tokens") is not None]
+    reported_output = [call["output_tokens"] for call in judge_calls if call.get("output_tokens") is not None]
     severity_order = {"critical": 0, "major": 1, "minor": 2}
     top = sorted(
         ({"id": row["id"], "lang": row["lang"], **flag} for row in rows for flag in row["flags"]),
@@ -274,8 +374,9 @@ def write_reports(
         "top_findings": top,
         "cost": {
             "bodhan_inr": sum(call.get("micro_inr", 0) for call in calls.values()) / 1_000_000,
-            "judge_input_tokens": sum(call.get("input_tokens") or 0 for call in calls.values() if call["operation"] == "judge"),
-            "judge_output_tokens": sum(call.get("output_tokens") or 0 for call in calls.values() if call["operation"] == "judge"),
+            "judge_input_tokens": sum(reported_input) if reported_input else None,
+            "judge_output_tokens": sum(reported_output) if reported_output else None,
+            "judge_calls_with_usage": sum(call.get("input_tokens") is not None and call.get("output_tokens") is not None for call in judge_calls),
             "calls_by_operation": Counter(call["operation"] for call in calls.values()),
         },
     }
@@ -289,6 +390,7 @@ def write_reports(
         output / "calibration.json",
         {
             "thresholds": thresholds,
+            "tuning_support": support,
             "invalid_rows": invalid_labels,
             "human_heldout_by_check": measure_checks([r for r in holdout if r.item.label_origin != "injected"], thresholds),
             **quality,

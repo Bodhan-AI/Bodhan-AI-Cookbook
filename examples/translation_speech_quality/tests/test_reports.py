@@ -4,10 +4,11 @@ import json
 import os
 import subprocess
 import sys
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
-from bodhan_eval.calibration import apply_external_labels, fit_thresholds, measure, split_evaluations
+from bodhan_eval.calibration import apply_external_labels, calibration_fit, fit_thresholds, measure, split_evaluations
 from bodhan_eval.report import write_reports
 from bodhan_eval.schema import Evaluation, Finding, Span, parse_item
 from bodhan_eval.text_checks import number_findings
@@ -56,8 +57,10 @@ def test_calibration_and_localization_are_independent():
     ]
     holdout = labelled_result("holdout", "Use 40 cm.", known, wrong_span, "holdout")
     calibration, test = split_evaluations([*training, holdout])
-    thresholds = fit_thresholds(calibration)
+    thresholds, support = calibration_fit(calibration)
     assert thresholds["number"] == 0.65
+    assert support["number"] == {"positive_items": 1, "negative_items": 1, "fitted": True}
+    assert not support["entity"]["fitted"]
     metrics = measure(test, thresholds)
     assert metrics["recall"] == 1
     assert metrics["localization"] == 0
@@ -84,10 +87,12 @@ def test_external_labels_preserve_the_injected_mutation(tmp_path):
         1,
     )
     labels = tmp_path / "labels.jsonl"
-    labels.write_text(json.dumps({"id": "case", "lang": "en", "labels": []}) + "\n", encoding="utf-8")
+    labels.write_text(json.dumps({"id": "case", "lang": "en", "labels": [], "annotator": "reviewer-01"}) + "\n", encoding="utf-8")
     [reviewed], problems = apply_external_labels([item], labels)
     assert not problems
     assert reviewed.labels == ()
+    assert reviewed.split == "calibration"
+    assert (reviewed.label_origin, reviewed.annotator) == ("human", "reviewer-01")
     assert reviewed.seed_labels[0].category == "number"
 
 
@@ -114,6 +119,44 @@ def test_baseline_shows_resolved_and_new_quality_findings(tmp_path):
     assert not (second / "diff.md").exists()
 
 
+def test_baseline_matches_evidence_across_runs(tmp_path):
+    """Distinguish a replacement defect from a persistent finding after an offset shift."""
+    source = "Use 5 g of salt and 20 g of sugar."
+
+    def evaluate(case_id, candidate):
+        """Build real reports from the numeric evidence for the shared source."""
+        item = parse_item({"id": case_id, "lang": "en", "source": source, "translation": candidate}, 1)
+        result = Evaluation(item, translation=candidate)
+        result.candidates.extend(number_findings(source, candidate, "source"))
+        result.record("translation_structure")
+        return result
+
+    previous = "Use 6 g of salt and 20 g of sugar."
+    base = tmp_path / "baseline"
+    current = tmp_path / "current"
+    write_reports([evaluate("replaced", previous), evaluate("shifted", previous)], [], [], base, {}, None)
+    write_reports(
+        [
+            evaluate("replaced", "Use 5 g of salt and 21 g of sugar."),
+            evaluate("shifted", "Next, use 6 g of salt and 20 g of sugar."),
+        ],
+        [],
+        [],
+        current,
+        {},
+        base,
+    )
+    counts = read_json(current / "summary.json")["baseline"]
+    assert counts == {"added_flags": 1, "resolved_flags": 1, "persistent_flags": 1}
+
+    before = evaluate("severity", previous)
+    after = evaluate("severity", previous)
+    after.candidates[0] = replace(after.candidates[0], severity="critical")
+    write_reports([before], [], [], base, {}, None)
+    write_reports([after], [], [], current, {}, base)
+    assert read_json(current / "summary.json")["baseline"] == {"persistent_flags": 1, "severity_changes": 1}
+
+
 def read_json(path):
     """Read a UTF-8 report object."""
     return json.loads(path.read_text(encoding="utf-8"))
@@ -129,6 +172,43 @@ def run_cli(cwd, dataset, output, *flags, languages="en", env=None):
         text=True,
         timeout=600,
     )
+
+
+def test_malformed_baseline_is_rejected_before_scoring(tmp_path):
+    """Reject invalid evidence without opening an output cache or evaluating rows."""
+    baseline = tmp_path / "baseline"
+    baseline.mkdir()
+    (baseline / "summary.json").write_text('{"configuration":{}}', encoding="utf-8")
+    (baseline / "items.jsonl").write_text('{"id":"lesson","lang":"hi","status":"scored","checks":{},"flags":[null]}\n', encoding="utf-8")
+    dataset = tmp_path / "dataset.jsonl"
+    dataset.write_text('{"id":"lesson","lang":"hi","source":"Read the first sentence."}\n', encoding="utf-8")
+    cache = tmp_path / "cache.sqlite"
+    out = tmp_path / "report"
+    run = run_cli(tmp_path, dataset, out, "--baseline", str(baseline), "--generate", "--cache", str(cache), languages="hi")
+    assert run.returncode == 2
+    assert "Invalid baseline evidence" in run.stderr
+    assert not cache.exists()
+    assert not (out / "items.jsonl").exists()
+
+
+@pytest.mark.parametrize("filename", ["bad\u0000.wav", "missing.wav"])
+def test_cli_keeps_rows_after_invalid_audio_path(tmp_path, filename):
+    """Preserve eligible text scoring and subsequent rows when a supplied path fails."""
+    rows = [
+        {"id": "bad-audio", "source": "Turn to page 18.", "lang": "en", "translation": "Turn to page 8.", "audio": filename},
+        {"id": "healthy", "source": "Use 10 cm.", "lang": "en", "translation": "Use 8 cm."},
+    ]
+    dataset = tmp_path / "dataset.jsonl"
+    dataset.write_text("\n".join(map(json.dumps, rows)) + "\n", encoding="utf-8")
+    env = {name: value for name, value in os.environ.items() if name not in CONFIG}
+    out = tmp_path / "results"
+    run = run_cli(tmp_path, dataset, out, "--max-cost-inr", "0", env=env)
+    assert run.returncode == 0, run.stderr
+    bad, healthy = [json.loads(line) for line in (out / "items.jsonl").read_text(encoding="utf-8").splitlines()]
+    assert bad["checks"]["audio_input"]["status"] == "error"
+    assert bad["flags"][0]["evidence"] == "8"
+    assert healthy["id"] == "healthy"
+    assert healthy["flags"][0]["evidence"] == "8 cm"
 
 
 def test_cli_ten_real_input_cases_without_credentials(tmp_path):

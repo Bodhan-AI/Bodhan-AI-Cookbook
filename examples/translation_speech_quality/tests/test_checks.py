@@ -2,11 +2,25 @@
 
 import math
 from array import array
+from dataclasses import replace
 
 import pytest
-from bodhan_eval.audio_checks import SAMPLE_RATE, Audio, chunks, decode_audio, merge_wav, pcm_wav, signal_checks, speech_findings, speech_parts
+from bodhan_eval.audio_checks import (
+    SAMPLE_RATE,
+    Audio,
+    chunks,
+    corroborate_speech,
+    decode_audio,
+    merge_wav,
+    pcm_wav,
+    signal_checks,
+    speech_findings,
+    speech_parts,
+    speech_recheck_window,
+)
+from bodhan_eval.calibration import accepted, fit_thresholds
 from bodhan_eval.demo import audio_variant, text_variant
-from bodhan_eval.judge import judge_input, parse_judgment
+from bodhan_eval.judge import judge_input, parse_judgment, verdict_signature
 from bodhan_eval.providers import CallError, encoded
 from bodhan_eval.schema import Evaluation, Span, parse_item
 from bodhan_eval.text_checks import entity_findings, format_findings, normalize_with_offsets, number_findings, script_findings
@@ -82,6 +96,35 @@ def test_speech_alignment_reports_original_text():
     assert any(flag.category == "speech_repetition" for flag in repeated)
 
 
+def test_short_speech_omission_requires_corroboration():
+    """Promote a repeatable missing sentence and suppress it if the alternate ASR recovers it."""
+    expected = "Read the first paragraph. Return to the classroom after the bell."
+    prefix = "Read the first paragraph."
+    duration = 5_000
+    _, first = speech_findings(expected, prefix, duration, script_field="source")
+    thresholds = fit_thresholds([])
+    assert accepted(first, thresholds) == []
+    seconds = speech_recheck_window(duration)
+    clip = Audio(tone(5))
+    assert len(list(chunks(clip))) == 1
+    assert len(list(chunks(clip, seconds))) > 1
+
+    updated, confirmed, recovered = corroborate_speech(expected, prefix, duration, first, script_field="source")
+    [finding] = accepted(updated, thresholds)
+    assert finding.category == "speech_omission"
+    assert finding.span.field == "source"
+    assert expected[finding.span.start : finding.span.end] == "Return to the classroom after the bell"
+    assert confirmed == ["speech_omission"] and recovered == 0
+
+    updated, confirmed, recovered = corroborate_speech(expected, expected, duration, first, script_field="source")
+    assert accepted(updated, thresholds) == []
+    assert confirmed == [] and recovered == 1
+
+    updated, confirmed, recovered = corroborate_speech(expected, "", duration, first, script_field="source")
+    assert accepted(updated, thresholds) == []
+    assert confirmed == [] and recovered == 0
+
+
 def test_judge_validation_uses_real_offsets():
     """The schema parser accepts a justified reference and rejects invalid coordinates."""
     item = parse_item({"id": "speech", "lang": "en", "source": "Keep all 18 pages."}, 1)
@@ -107,6 +150,8 @@ def test_judge_validation_uses_real_offsets():
     )
     assert not verify and rejected == 1
     assert findings[0].evidence == "8"
+    assert verdict_signature(findings) != verdict_signature([replace(findings[0], severity="minor")])
+    assert verdict_signature(findings) != verdict_signature([replace(findings[0], span=Span("translation", 8, 9))])
     with pytest.raises(CallError, match="findings schema"):
         parse_judgment(b"{}", segments)
 

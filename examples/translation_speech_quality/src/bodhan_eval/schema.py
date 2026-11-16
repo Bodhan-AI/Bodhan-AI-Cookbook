@@ -83,6 +83,7 @@ class Item:
     label_origin: str
     split: str | None
     line: int
+    annotator: str | None = None
 
     @property
     def key(self) -> tuple[str, str]:
@@ -172,6 +173,17 @@ def parse_labels(raw: Any) -> tuple[Label, ...]:
     return tuple(labels)
 
 
+def parse_annotator(row: dict[str, Any]) -> str | None:
+    """Preserve an explicit human attribution without inventing an identity."""
+    author = row.get("annotator")
+    if author is None:
+        return None
+    if not isinstance(author, str) or not author.strip():
+        raise ValueError("annotator must be a nonempty string or null")
+    author.encode("utf-8")
+    return author.strip()
+
+
 def parse_item(row: dict[str, Any], line: int) -> Item:
     """Validate the required fields and leave absent candidates as None."""
     for name in ("id", "source", "lang"):
@@ -205,6 +217,7 @@ def parse_item(row: dict[str, Any], line: int) -> Item:
         origin,
         split,
         line,
+        parse_annotator(row),
     )
 
 

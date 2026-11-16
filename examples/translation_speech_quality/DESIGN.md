@@ -30,8 +30,11 @@ flowchart TD
     C --> D
     D --> E[Check quantities, format, scripts and PCM]
     E --> F[Back-translate and back-transcribe as eligible]
-    F --> G[Validate judge evidence references]
-    G --> H{Ambiguous audio with a useful second segmentation?}
+    F --> Q{Short clip with a sustained uncertain omission?}
+    Q -->|Yes and budget allows| A1[Compare a second Bodhan transcript]
+    Q -->|Otherwise| G[Validate judge evidence references]
+    A1 --> G
+    G --> H{Judge requests an eligible second pass?}
     H -->|Judge requests and budget allows| I[Compare a second Bodhan transcript]
     H -->|Otherwise| K[Record available evidence]
     I --> K
@@ -51,15 +54,19 @@ flowchart TD
 | Audio signal | Measure duration, quiet windows, and saturation in mono PCM. | Use sample positions for audio evidence. Report decoded duration even if transcription is unavailable. |
 | Back-transcript | Compare script and transcript with character alignment. | Omissions and repetitions use sustained alignment differences. Character error rate alone remains weak evidence because the recognizer can make errors. |
 
-The judge sees existing text, not human labels. It can recommend a second segmentation only when a repeat transcription would differ from the first request. Python applies that condition. The judge has no tools and returns English rationale and evidence coordinates. The program extracts Indic excerpts from existing text.
+The judge sees only the evaluation inputs and check evidence. It returns English rationale and evidence coordinates. The program extracts Indic excerpts from existing text. A parseable verdict with usable evidence can enter the response cache.
+
+For a sustained uncertain omission on a clip of 3 to 14 seconds, the runner uses smaller ASR windows once. A recognisable second transcript must support the same missing span before the harness raises its strength. If the alternate transcript contains the missing text, it clears the finding. On longer clips the judge can request a second segmentation. All passes share the budget and provider limits.
 
 ## Calibration and reporting
 
-All rows with identical English source text stay in one split. An explicit split takes precedence for the whole group. Threshold fitting uses reviewed, non-injected calibration rows and requires positive and negative support for each tuned category. It selects among a small fixed set of ordinal evidence thresholds using F0.5 to weight precision. Unsupported categories use the documented default. Weak findings remain visible as unconfirmed evidence.
+All rows with identical English source text stay in one split. An explicit split takes precedence for the whole group. Unassigned sources in the external label file enter calibration. Threshold fitting uses reviewed, non-injected calibration rows and requires positive and negative support for each tuned category. It selects among a small fixed set of ordinal evidence thresholds using F0.5 to weight precision. The calibration report lists support behind the selected and default thresholds. Weak findings remain visible as unconfirmed evidence.
 
 The held-out report includes overall and per-language metrics. Detection matches labels and flags one to one using overlap when available, with category agreement as a possible recovery for an imprecise span. Localization then measures overlap independently. Per-category precision and recall require the correct category and overlap when the annotation supplies comparable coordinates. Missing labels and incomplete checks are visible in the denominator accounting.
 
-Uncached judge repeats measure category verdict agreement. Model cache keys include the payload and media content. The same successful result can be replayed without model cost. Canonical reports contain the represented historical usage. The run log contains active request and retry counts.
+Uncached judge repeats compare category, severity, and evidence coordinates. Model cache keys include the payload and media content. The same successful result can be replayed without model cost. Canonical reports contain the represented historical usage. The run log contains active request and retry counts.
+
+Baseline comparisons pair findings by overlapping evidence in a shared coordinate field. An unchanged passage can retain its finding when text before it moves. Severity changes appear separately. A matching category by itself does not establish a persistent defect.
 
 ## Trade-offs
 

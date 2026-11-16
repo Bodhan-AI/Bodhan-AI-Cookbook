@@ -4,11 +4,23 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from dataclasses import replace
 from pathlib import Path
 
-from .audio_checks import ASR_SECONDS, Audio, AudioError, chunks, decode_audio, merge_wav, signal_checks, speech_findings, speech_parts
-from .judge import RUBRIC, judge_input, parse_judgment, verdict_signature
+from .audio_checks import (
+    ASR_SECONDS,
+    Audio,
+    AudioError,
+    chunks,
+    corroborate_speech,
+    decode_audio,
+    merge_wav,
+    signal_checks,
+    speech_findings,
+    speech_parts,
+    speech_recheck_window,
+)
+from .calibration import DEFAULT_THRESHOLD
+from .judge import RUBRIC, Segment, judge_input, parse_judgment, verdict_signature
 from .providers import Call, CallError, Providers, digest
 from .schema import Evaluation, Finding, Item, Span
 from .text_checks import CHRF_PLUS_PLUS, entity_findings, format_findings, number_findings, script_findings
@@ -65,8 +77,13 @@ async def prepare_audio(
     expected = item.translation if item.lang != "en" else item.translation or item.source
     try:
         if item.audio is not None:
-            path = (dataset_dir / item.audio).resolve()
             result.audio_file = item.audio
+            try:
+                path = (dataset_dir / item.audio).resolve()
+            except (ValueError, RuntimeError) as error:
+                # pathlib can raise ValueError for malformed paths and RuntimeError
+                # for symlink loops on older Python versions.
+                raise AudioError("The supplied audio path could not be resolved.") from error
             result.record("audio_input", origin="supplied")
         elif generate and result.translation and result.translation.strip():
             parts = []
@@ -167,9 +184,56 @@ async def speech_checks(
     if not expected:
         result.record("speech_alignment", "unavailable", reason="The intended spoken script is unknown.")
         return
-    metrics, findings = speech_findings(expected, result.transcript, audio.duration_ms)
+    metrics, findings = speech_findings(expected, result.transcript, audio.duration_ms, script_field=speech_script_field(result))
     result.record("speech_alignment", "unavailable" if metrics.get("alignment") == "unavailable" else "ok", **metrics)
     result.candidates.extend(findings)
+
+
+def speech_script_field(result: Evaluation) -> str:
+    """Choose the text field that actually supplies the spoken script."""
+    if result.item.lang == "en" and result.item.audio is not None and not result.item.translation:
+        return "source"
+    return "translation"
+
+
+async def recheck_speech(result: Evaluation, providers: Providers, audio: Audio, expected: str, seconds: int) -> None:
+    """Request a second segmentation under the normal cache and budget policy."""
+    try:
+        second = await transcribe(result, providers, audio, seconds=seconds)
+        result.candidates, corroborated, recovered = corroborate_speech(
+            expected,
+            second,
+            audio.duration_ms,
+            result.candidates,
+            script_field=speech_script_field(result),
+        )
+        result.record("speech_recheck", corroborated=corroborated, recovered_omissions=recovered, window_seconds=seconds)
+    except CallError as error:
+        record_failure(result, "speech_recheck", error)
+
+
+async def request_judgment(
+    providers: Providers,
+    payload: str,
+    segments: dict[str, Segment],
+    *,
+    fresh: bool = False,
+) -> tuple[Call, tuple[list[Finding], bool, int]]:
+    """Validate cold verdicts before coalescing or caching them, and validate warm ones on read."""
+    parsed = None
+
+    def validate(content: bytes) -> None:
+        """Reject unusable responses while preserving usable partial verdicts."""
+        nonlocal parsed
+        verdict = parse_judgment(content, segments)
+        if verdict[2] and not verdict[0]:
+            raise CallError("invalid_judgment", "Judge supplied no verifiable evidence for its reported findings.")
+        parsed = verdict
+
+    call = await providers.judge(RUBRIC, payload, validate_verdict=validate, fresh=fresh)
+    if parsed is None:
+        validate(call.value)
+    return call, parsed
 
 
 async def judge_checks(
@@ -184,18 +248,24 @@ async def judge_checks(
     if not (result.translation and result.translation.strip()) and result.transcript is None:
         result.record("judge", "unavailable", reason="No text output or back-transcript to judge.")
         return
+    seconds = speech_recheck_window(audio.duration_ms) if audio is not None and expected and result.transcript else None
+    if (
+        seconds is not None
+        and audio.duration_ms <= 14_000
+        and any(finding.category == "speech_omission" and finding.strength < DEFAULT_THRESHOLD for finding in result.candidates)
+    ):
+        # On short clips a shifted window is cheap, and an omitted phrase can be
+        # resolved even if the external judge is unavailable.
+        await recheck_speech(result, providers, audio, expected, seconds)
     uncertain_speech = (
-        audio is not None
-        and audio.duration_ms > 14_000
-        and expected is not None
-        and result.transcript is not None
-        and any(finding.check == "transcript_alignment" for finding in result.candidates)
+        seconds is not None
+        and "speech_recheck" not in result.checks
+        and any(finding.category in ("speech_omission", "speech_repetition") for finding in result.candidates)
     )
     payload, segments = judge_input(result, back, uncertain_speech)
     try:
-        call = await providers.judge(RUBRIC, payload)
+        call, (findings, verify, rejected) = await request_judgment(providers, payload, segments)
         result.usage[call.key] = call.usage
-        findings, verify, rejected = parse_judgment(call.value, segments)
         if result.translation is None:
             rejected += len(findings)
             findings = []
@@ -205,35 +275,11 @@ async def judge_checks(
         record_failure(result, "judge", error)
         return
     if verify and uncertain_speech:
-        try:
-            second = await transcribe(result, providers, audio, seconds=14)
-            _, repeated_findings = speech_findings(expected, second, audio.duration_ms)
-            corroborated = []
-            for index, finding in enumerate(result.candidates):
-                if finding.check != "transcript_alignment":
-                    continue
-                if any(
-                    item.category == finding.category
-                    and (
-                        (item.span.field == finding.span.field == "translation" and item.span.start < finding.span.end and finding.span.start < item.span.end)
-                        or (finding.category == "speech_repetition" and item.evidence.strip() == finding.evidence.strip())
-                    )
-                    for item in repeated_findings
-                ):
-                    corroborated.append(finding.category)
-                    result.candidates[index] = replace(
-                        finding,
-                        strength=max(finding.strength, 0.87),
-                        detail=finding.detail + " Observed again after re-segmenting the audio.",
-                    )
-            result.record("speech_recheck", corroborated=sorted(set(corroborated)))
-        except CallError as error:
-            record_failure(result, "speech_recheck", error)
+        await recheck_speech(result, providers, audio, expected, seconds)
     if repeat_sample:
         try:
-            repeat = await providers.judge(RUBRIC, payload, fresh=True)
+            _, (again, _, repeat_rejected) = await request_judgment(providers, payload, segments, fresh=True)
             # Fresh repeats have their own usage in telemetry and never overwrite cached judgments.
-            again, _, repeat_rejected = parse_judgment(repeat.value, segments)
             if rejected or repeat_rejected:
                 result.record("judge_repeat", "partial", reason="At least one verdict contained invalid evidence.")
             else:

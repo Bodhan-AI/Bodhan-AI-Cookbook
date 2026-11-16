@@ -6,7 +6,7 @@ from dataclasses import replace
 from pathlib import Path
 
 from .providers import digest
-from .schema import CATEGORIES, SPEECH_CATEGORIES, Evaluation, Finding, Item, Label, Span, parse_labels, read_jsonl
+from .schema import CATEGORIES, SPEECH_CATEGORIES, Evaluation, Finding, Item, Label, Span, parse_annotator, parse_labels, read_jsonl
 
 DEFAULT_THRESHOLD = 0.72
 
@@ -17,6 +17,7 @@ def apply_external_labels(
 ) -> tuple[list[Item], list[dict]]:
     """Read external human labels by ID and language, retaining parse errors."""
     by_key = {item.key: item for item in items}
+    source_splits = explicit_source_splits(items)
     by_id: dict[str, list] = {}
     for item in items:
         by_id.setdefault(item.id, []).append(item)
@@ -37,10 +38,17 @@ def apply_external_labels(
                 if key in updated:
                     raise ValueError("duplicate calibration assignment")
                 labels = parse_labels(row.get("labels"))
-                split = row.get("split", by_key[key].split)
-                if split not in (None, "calibration", "holdout"):
+                item = by_key[key]
+                split = row.get("split")
+                if split is None:
+                    split = source_splits.get(item.source, "calibration")
+                if split not in ("calibration", "holdout"):
                     raise ValueError("unknown calibration split")
-                by_key[key] = replace(by_key[key], labels=labels, label_origin="provided", split=split)
+                if item.source in source_splits and source_splits[item.source] != split:
+                    raise ValueError("the source already belongs to a different calibration split")
+                annotator = parse_annotator(row)
+                source_splits[item.source] = split
+                by_key[key] = replace(item, labels=labels, label_origin="human" if annotator else "provided", split=split, annotator=annotator)
                 updated.add(key)
             except ValueError as problem:
                 error = str(problem)
@@ -68,15 +76,20 @@ def accepted(candidates: list[Finding], thresholds: dict[str, float]) -> list[Fi
     return sorted(distinct, key=lambda f: (f.category, f.span.field, f.span.start, f.span.end, f.check))
 
 
-def split_evaluations(results: list[Evaluation]) -> tuple[list[Evaluation], list[Evaluation]]:
-    """Group all variants of a source into the same calibration or holdout set."""
+def explicit_source_splits(items: list[Item]) -> dict[str, str]:
+    """Reject contradictory splits before any item can make a paid request."""
     explicit = {}
-    for result in results:
-        item = result.item
+    for item in items:
         if item.split:
             previous = explicit.setdefault(item.source, item.split)
             if previous != item.split:
                 raise ValueError("The same source is marked for both calibration and holdout.")
+    return explicit
+
+
+def split_evaluations(results: list[Evaluation]) -> tuple[list[Evaluation], list[Evaluation]]:
+    """Group all variants of a source into the same calibration or holdout set."""
+    explicit = explicit_source_splits([result.item for result in results])
     calibration, holdout = [], []
     for result in results:
         item = result.item
@@ -121,16 +134,26 @@ def ratio(numerator: int, denominator: int) -> float | None:
 
 
 def fit_thresholds(calibration: list[Evaluation]) -> dict[str, float]:
-    """Tune each category on reviewed data when both positive and negative evidence exist."""
+    """Return fitted values for callers that do not produce a calibration report."""
+    thresholds, _ = calibration_fit(calibration)
+    return thresholds
+
+
+def calibration_fit(calibration: list[Evaluation]) -> tuple[dict[str, float], dict[str, dict]]:
+    """Tune categories on reviewed evidence and return the support behind every threshold."""
     reviewed = [result for result in calibration if result.item.labels is not None and result.item.label_origin != "injected"]
     thresholds = dict.fromkeys(CATEGORIES, DEFAULT_THRESHOLD)
+    support = {}
     for category in CATEGORIES:
         examples = [
             (tuple(label for label in result.item.labels if label.category == category), [f for f in result.candidates if f.category == category])
             for result in reviewed
             if modality_checked(result, category)
         ]
-        if not (any(labels for labels, _ in examples) and any(not labels for labels, _ in examples)):
+        positives = sum(bool(labels) for labels, _ in examples)
+        negatives = len(examples) - positives
+        support[category] = {"positive_items": positives, "negative_items": negatives, "fitted": bool(positives and negatives)}
+        if not (positives and negatives):
             continue
         best = None
         for threshold in (0.58, 0.65, DEFAULT_THRESHOLD, 0.84, 0.92):
@@ -147,7 +170,7 @@ def fit_thresholds(calibration: list[Evaluation]) -> dict[str, float]:
             if best is None or rank > best:
                 best = rank
         thresholds[category] = best[2]
-    return thresholds
+    return thresholds, support
 
 
 def modality_checked(result: Evaluation, category: str) -> bool:

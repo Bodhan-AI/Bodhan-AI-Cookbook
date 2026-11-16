@@ -23,7 +23,8 @@ Categories: omission (missing source meaning), addition (unsupported output cont
 mistranslation (wrong meaning), number (changed value, date or unit), entity (wrong
 entity or technical term), format (damaged Markdown or math), wrong_language (wrong
 target language or script where that changes usability). Prefer the most specific
-category and use one finding per distinct defect. Major means meaning or usability
+category and use one finding per distinct defect. Check what each quantity describes
+even if all the original digits are present. Major means meaning or usability
 is affected, minor means the core meaning survives, critical means the defect inverts
 or makes the central message unusable. Strength is "clear" for direct evidence or
 "uncertain" when the checker or wording could also explain it. Point omissions to
@@ -135,5 +136,5 @@ def parse_judgment(content: bytes, segments: dict[str, Segment]) -> tuple[list[F
 
 
 def verdict_signature(findings: list[Finding]) -> str:
-    """Compare semantic verdict categories across independent judge trials."""
-    return json.dumps(sorted({finding.category for finding in findings}))
+    """Compare defect categories, severity, and coordinates across independent trials."""
+    return json.dumps(sorted((finding.category, finding.severity, finding.span.field, finding.span.start, finding.span.end) for finding in findings))

@@ -9,7 +9,7 @@ import subprocess
 import sys
 import wave
 from array import array
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 from jiwer import process_characters
@@ -192,7 +192,20 @@ def audio_finding(start: int, end: int, check: str, evidence: str, strength: flo
     return Finding("garbled_audio", "major", span, check, evidence, "Inspect the measured interval.", strength)
 
 
-def speech_findings(expected: str, transcript: str, duration_ms: int) -> tuple[dict, list[Finding]]:
+def aligned_span(text: str, offsets: list[tuple[int, int]], start: int, end: int) -> tuple[int, int]:
+    """Map a substantive alignment edit back to its original text, trimming boundary spaces."""
+    start += text[start] == " "
+    end -= text[end - 1] == " "
+    return offsets[start][0], offsets[end - 1][1]
+
+
+def speech_findings(
+    expected: str,
+    transcript: str,
+    duration_ms: int,
+    *,
+    script_field: str = "translation",
+) -> tuple[dict, list[Finding]]:
     """Align script and ASR text, using sustained edits as speech-quality evidence."""
     reference, reference_offsets = normalize_with_offsets(expected)
     actual, actual_offsets = normalize_with_offsets(transcript)
@@ -205,7 +218,7 @@ def speech_findings(expected: str, transcript: str, duration_ms: int) -> tuple[d
     min_length = max(6, min(16, math.ceil(len(reference) * 0.14)))
     for edit in alignment.alignments[0]:
         if edit.type == "delete" and edit.ref_end_idx - edit.ref_start_idx >= min_length:
-            start, end = reference_offsets[edit.ref_start_idx][0], reference_offsets[edit.ref_end_idx - 1][1]
+            start, end = aligned_span(reference, reference_offsets, edit.ref_start_idx, edit.ref_end_idx)
             suffix = edit.ref_end_idx >= len(reference) - 1
             # Character rate is only corroboration. Scripts and voices differ in pace.
             strength = 0.89 if suffix and duration_risk else 0.68
@@ -213,7 +226,7 @@ def speech_findings(expected: str, transcript: str, duration_ms: int) -> tuple[d
                 Finding(
                     "speech_omission",
                     "major",
-                    Span("translation", start, end),
+                    Span(script_field, start, end),
                     "transcript_alignment",
                     expected[start:end],
                     "A sustained script span is missing from the back-transcript.",
@@ -223,7 +236,7 @@ def speech_findings(expected: str, transcript: str, duration_ms: int) -> tuple[d
         elif edit.type == "insert" and edit.hyp_end_idx - edit.hyp_start_idx >= min_length:
             inserted = actual[edit.hyp_start_idx : edit.hyp_end_idx].strip()
             if len(inserted) >= min_length and inserted in reference and actual.count(inserted) > reference.count(inserted):
-                start, end = actual_offsets[edit.hyp_start_idx][0], actual_offsets[edit.hyp_end_idx - 1][1]
+                start, end = aligned_span(actual, actual_offsets, edit.hyp_start_idx, edit.hyp_end_idx)
                 findings.append(
                     Finding(
                         "speech_repetition",
@@ -252,6 +265,62 @@ def speech_findings(expected: str, transcript: str, duration_ms: int) -> tuple[d
         "substitutions": alignment.substitutions,
         "deletions": alignment.deletions,
         "insertions": alignment.insertions,
+        "matched_characters": alignment.hits,
         "script_characters_per_second": round(character_rate, 3),
         "short_for_script": duration_risk,
     }, findings
+
+
+def speech_recheck_window(duration_ms: int) -> int | None:
+    """Choose new ASR boundaries for clips long enough to give both chunks context."""
+    if duration_ms < 3_000:
+        return None
+    return max(2, min(14, duration_ms // 2_000))
+
+
+def corroborate_speech(
+    expected: str,
+    transcript: str,
+    duration_ms: int,
+    findings: list[Finding],
+    *,
+    script_field: str,
+) -> tuple[list[Finding], list[str], int]:
+    """Update speech evidence only when differently segmented audio supports or refutes it."""
+    metrics, repeated = speech_findings(expected, transcript, duration_ms, script_field=script_field)
+    # A blank or garbled second transcript can repeat an ASR failure rather than
+    # confirm a speech defect. Require recognisable material before deciding.
+    if metrics.get("matched_characters", 0) < 6:
+        return findings, [], 0
+    normalized = normalize_with_offsets(transcript)[0]
+    normalized_expected = normalize_with_offsets(expected)[0]
+    confirmed = set()
+    recovered = 0
+    updated = []
+    for finding in findings:
+        if finding.check == "transcript_alignment" and finding.category == "speech_omission":
+            missing = normalize_with_offsets(finding.evidence)[0]
+            # A phrase that was spoken once may still be missing a second time.
+            if missing and normalized.count(missing) >= normalized_expected.count(missing):
+                recovered += 1
+                continue
+        if finding.check == "transcript_alignment" and any(
+            other.category == finding.category
+            and (
+                (
+                    finding.category == "speech_omission"
+                    and other.span.field == finding.span.field
+                    and max(other.span.start, finding.span.start) < min(other.span.end, finding.span.end)
+                )
+                or (finding.category == "speech_repetition" and other.evidence.strip() == finding.evidence.strip())
+            )
+            for other in repeated
+        ):
+            confirmed.add(finding.category)
+            finding = replace(
+                finding,
+                strength=max(finding.strength, 0.87),
+                detail=finding.detail + " Observed again after re-segmenting the same audio.",
+            )
+        updated.append(finding)
+    return updated, sorted(confirmed), recovered

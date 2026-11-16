@@ -11,6 +11,8 @@ import sqlite3
 from collections import Counter
 from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import UTC, datetime
+from email.utils import parsedate_to_datetime
 from pathlib import Path
 from time import monotonic
 from typing import Any
@@ -21,6 +23,7 @@ from .schema import VOICES
 
 BASE_URL = "https://api.bodhan.ai"
 MICRO_INR = 1_000_000
+MAX_RETRY_WAIT = 90
 LOG = logging.getLogger(__name__)
 
 
@@ -69,6 +72,21 @@ def token_counts(value: Any) -> tuple[int | None, int | None]:
         return None, None
     counts = value.get("prompt_tokens"), value.get("completion_tokens")
     return tuple(count if type(count) is int and count >= 0 else None for count in counts)
+
+
+def retry_delay(header: str, attempt: int, now: datetime) -> float:
+    """Honor numeric and HTTP-date Retry-After values, with exponential backoff as a floor."""
+    delay = float(2**attempt)
+    if header.isdecimal():
+        return max(delay, int(header))
+    if header:
+        try:
+            deadline = parsedate_to_datetime(header)
+            if deadline.tzinfo is not None:
+                return max(delay, (deadline - now).total_seconds())
+        except (ValueError, OverflowError):
+            pass
+    return delay
 
 
 class Providers:
@@ -125,7 +143,10 @@ class Providers:
         fresh: bool = False,
     ) -> Call:
         """Replay a cached response, share a matching pending call, or dispatch once."""
-        cache_key = digest(encoded(["v1", operation, url, payload, digest(wav) if wav else None]))
+        # The judge cache predates verdict validation. Keep old unchecked entries
+        # out of the new namespace without invalidating cached Bodhan outputs.
+        version = "v2" if operation == "judge" else "v1"
+        cache_key = digest(encoded([version, operation, url, payload, digest(wav) if wav else None]))
         if fresh:
             # Independent repeatability trials must actually call the judge.
             return await self._request(cache_key, operation, url, key_name, payload, reserve, validate, wav, persist=False)
@@ -196,9 +217,6 @@ class Providers:
                         spent = usage.get("micro_inr", reserve)
                         self.charged += spent - reserve
                         usage = {"operation": operation, **usage}
-                        if operation == "judge":
-                            self.telemetry["judge_input_tokens"] += usage["input_tokens"] or 0
-                            self.telemetry["judge_output_tokens"] += usage["output_tokens"] or 0
                         if persist:
                             with self.cache:
                                 self.cache.execute(
@@ -210,14 +228,14 @@ class Providers:
                         self.charged -= reserve
                         self.exhausted.add(key_name)
                         raise CallError("credit_exhausted", f"Provider credit exhausted for {operation}.")
-                    if status < 500:
+                    if status < 500 and status != 408:
                         self.charged -= reserve
-                    if status != 429 and status < 500:
+                    if status not in (408, 429) and status < 500:
                         raise CallError(f"http_{status}", f"{operation} rejected the request (HTTP {status}).")
-                    header = response.headers.get("retry-after", "")
-                    if header.isdecimal():
-                        delay = min(max(delay, int(header)), 90)
+                    delay = retry_delay(response.headers.get("retry-after", "").strip(), attempt, datetime.now(UTC))
                     error = CallError(f"http_{status}", f"{operation} unavailable (HTTP {status}).")
+            if delay > MAX_RETRY_WAIT:
+                raise CallError("retry_delay", f"{operation} requested a retry after the configured {MAX_RETRY_WAIT}-second wait limit.")
             if attempt < 2:
                 self.telemetry["retries"] += 1
                 await asyncio.sleep(delay)
@@ -281,8 +299,15 @@ class Providers:
             wav=wav,
         )
 
-    async def judge(self, rubric: str, context: str, *, fresh: bool = False) -> Call:
-        """Call the configured OpenAI-compatible Chat Completions endpoint."""
+    async def judge(
+        self,
+        rubric: str,
+        context: str,
+        *,
+        validate_verdict: Callable[[bytes], None],
+        fresh: bool = False,
+    ) -> Call:
+        """Call the configured judge and validate its verdict before caching the response."""
         if not self.judge_url.startswith(("http://", "https://")) or not self.judge_model:
             raise CallError("missing_configuration", "Set LLM_BASE_URL and LLM_MODEL for the judge.")
         payload = {
@@ -293,14 +318,20 @@ class Providers:
         def decode(body: bytes) -> tuple[bytes, dict[str, Any]]:
             """Extract assistant text and usage without assuming a pricing contract."""
             response = json_object(body)
+            sent, received = token_counts(response.get("usage"))
+            # Malformed verdicts can still be billed. Retain live token usage
+            # before rejecting the result and leaving the cache empty.
+            self.telemetry["judge_input_tokens"] += sent or 0
+            self.telemetry["judge_output_tokens"] += received or 0
             try:
                 content = response["choices"][0]["message"]["content"]
             except (KeyError, IndexError, TypeError) as error:
                 raise CallError("invalid_response", "Judge endpoint returned no assistant message.") from error
             if not isinstance(content, str) or not content.strip():
                 raise CallError("invalid_response", "Judge endpoint returned empty assistant text.")
-            sent, received = token_counts(response.get("usage"))
-            return content.encode(), {"input_tokens": sent, "output_tokens": received}
+            value = content.encode()
+            validate_verdict(value)
+            return value, {"input_tokens": sent, "output_tokens": received}
 
         return await self._call(
             "judge",

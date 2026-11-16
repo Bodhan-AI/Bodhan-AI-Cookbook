@@ -13,10 +13,10 @@ from time import monotonic
 
 from dotenv import load_dotenv
 
-from .calibration import apply_external_labels
+from .calibration import apply_external_labels, explicit_source_splits
 from .judge import RUBRIC
 from .providers import MICRO_INR, Providers, digest
-from .report import write_reports
+from .report import load_baseline, write_reports
 from .schema import VOICES, load_items
 from .workflow import evaluate_item
 
@@ -89,12 +89,14 @@ async def run(args: argparse.Namespace) -> int:
     started = monotonic()
     if args.baseline is not None and args.baseline.resolve() == args.out.resolve():
         raise ValueError("Use a different directory for --out and --baseline.")
+    baseline = load_baseline(args.baseline) if args.baseline is not None else None
     items, invalid = load_items(args.dataset, args.langs)
     invalid_labels = []
     if args.calibration:
         items, invalid_labels = apply_external_labels(items, args.calibration)
     if args.limit:
         items = items[: args.limit]
+    explicit_source_splits(items)
     ordered_repeats = sorted(items, key=lambda item: digest(f"{item.lang}:{item.id}".encode()))
     repeats = {item.key for item in ordered_repeats[: args.judge_repeat or 0]}
     for kind, rows in (("invalid_item", invalid), ("invalid_label", invalid_labels)):
@@ -124,7 +126,7 @@ async def run(args: argparse.Namespace) -> int:
             "judge_endpoint_sha256": digest(providers.judge_url.encode()) if providers.judge_url else None,
             "speech_checks_enabled": not args.no_speech,
         }
-        write_reports(results, invalid, invalid_labels, args.out, config, args.baseline)
+        write_reports(results, invalid, invalid_labels, args.out, config, baseline)
         LOG.info(
             "run_finished",
             extra={
