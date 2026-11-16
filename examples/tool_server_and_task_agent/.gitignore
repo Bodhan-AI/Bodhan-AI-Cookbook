@@ -1,0 +1,21 @@
+# Secrets and local state — never commit.
+.env
+*.env
+
+# Generated outputs and caches.
+outputs/
+out/
+**/__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Large media stays out of git; sample_data holds only small synthetic files.
+*.mp4
+*.mov
+*.mkv
+*.webm
+!sample_data/*.mp4
