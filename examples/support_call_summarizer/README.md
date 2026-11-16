@@ -8,6 +8,10 @@
 **Languages shown:** Hindi, plus 22 other Indian languages and English
 **Format:** FastAPI backend + React web app + CLI
 
+[![Watch the 21-second demo: a Hindi support call becomes a side-by-side transcript, an English translation and an AI summary](docs/demo.jpg)](docs/demo.mp4)
+
+*21-second demo ([demo.mp4](docs/demo.mp4)). The call, ticket and summary shown are made-up examples. Music: Sascha Ende, [ende.app](https://ende.app/en) (CC BY 4.0).*
+
 ## What it does
 
 Many support calls in India happen in Hindi, Tamil, Telugu, Marathi, Bengali and other languages, while CRMs and QA reviews mostly work in English. This recipe chains two Bodhan APIs to turn a call recording into a searchable record:
@@ -380,6 +384,7 @@ support_call_summarizer/
 │   ├── scripts/make_sample_call.py
 │   └── tests/                 # pytest, Bodhan, Sarvam and Claude mocked
 ├── web/                       # React + Vite + TypeScript app (Bodhan.AI design: src/styles/tokens.css)
+├── docs/                      # demo video (demo.mp4) and its thumbnail
 ├── sample_data/               # synthetic sample calls (git-ignored)
 ├── outputs/                   # CLI output (git-ignored)
 ├── Dockerfile
