@@ -1,0 +1,245 @@
+/*
+ * Design tokens: the single place to reskin the app.
+ * Components reference only these custom properties.
+ *
+ * Values follow the Bodhan.AI console and API reference (console.bodhan.ai/api-docs):
+ * paper-white and zinc greys carry the page, and the brand orange (#ff5500, ramp 500,
+ * with 700 #c94400 as its darker ink) is spent only where it means something:
+ * the mark, the one primary action, the current item, a model id.
+ *
+ * Every colour is declared in the bare :root and re-declared for dark under
+ * [data-theme="dark"], which the script in index.html always stamps (stored choice,
+ * else the OS setting), as the Bodhan pages do.
+ *
+ * Breakpoints cannot be custom properties in media queries; the app uses
+ * 900px (transcript side-by-side), 700px (stepper) and 600px (form/grid layouts).
+ */
+
+@font-face {
+  font-family: Poppins;
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/poppins-latin-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: Poppins;
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/fonts/poppins-latin-500.woff2") format("woff2");
+}
+@font-face {
+  font-family: Poppins;
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/poppins-latin-600.woff2") format("woff2");
+}
+
+:root {
+  color-scheme: light;
+
+  /* Typography: Poppins for the brand and headings, the system stack for body text,
+     Noto/Nirmala fallbacks so every Indian script renders. */
+  --font-display: Poppins, Inter, -apple-system, "Segoe UI", sans-serif;
+  --font-sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans",
+    "Noto Sans Devanagari", "Noto Sans Tamil", "Noto Sans Telugu", "Noto Sans Kannada",
+    "Noto Sans Malayalam", "Noto Sans Bengali", "Noto Sans Gujarati", "Noto Sans Gurmukhi",
+    "Noto Sans Oriya", "Noto Sans Ol Chiki", "Nirmala UI", "Mangal", sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji";
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+
+  --font-size-2xs: 0.6875rem;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.84375rem;
+  --font-size-md: 0.9375rem;
+  --font-size-lg: 1.0625rem;
+  --font-size-xl: 1.3125rem;
+  --font-size-2xl: 1.875rem;
+  /* Transcript text is read closely, so it stays a step above body copy. */
+  --font-size-transcript: 1rem;
+
+  --font-weight-light: 300;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --line-height-tight: 1.18;
+  --line-height-body: 1.65;
+  /* Indic scripts need more vertical room for matras and conjuncts. */
+  --line-height-transcript: 1.8;
+  --letter-spacing-display: -0.02em;
+  --letter-spacing-label: 0.05em;
+
+  /* Spacing (4px scale) */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+
+  /* Shape */
+  --radius-xs: 5px;
+  --radius-sm: 6px;
+  --radius-md: 9px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-pill: 999px;
+  --border-width: 1px;
+  --border-width-strong: 2px;
+
+  /* Layout */
+  --layout-max-width: 72rem;
+  --header-height: 60px;
+  --control-height: 2.5rem;
+  --step-marker-size: 1.75rem;
+  --progress-height: 0.375rem;
+  --brand-mark-size: 30px;
+
+  /* Motion */
+  --transition-fast: 160ms ease;
+  --transition-medium: 240ms ease;
+  --opacity-disabled: 0.55;
+
+  /* Colour: surfaces and text */
+  --color-bg: #ffffff;
+  --color-header-bg: rgba(255, 255, 255, 0.82);
+  --color-surface: #ffffff;
+  --color-surface-muted: #fafafa;
+  --color-surface-sunken: #f4f4f5;
+  --color-border: #e7e7ea;
+  --color-border-soft: #efeff1;
+  --color-border-strong: #d4d4d8;
+  --color-border-hover: #6f6f78;
+  --color-text: #18181b;
+  --color-text-muted: #52525b;
+  --color-text-subtle: #6f6f78;
+  --color-text-inverse: #ffffff;
+
+  /* Colour: brand */
+  --color-accent: #ff5500;
+  --color-accent-hover: #c94400;
+  --color-accent-active: #c94400;
+  --color-accent-ink: #c94400; /* orange text and links on a light ground */
+  --color-accent-soft: rgba(255, 85, 0, 0.09);
+  --color-accent-soft-border: rgba(255, 85, 0, 0.35);
+  --color-on-accent: #ffffff;
+  --color-focus-ring: #ff5500;
+
+  /* Colour: code-style panels (the docs page's request/response rail) */
+  --color-panel-bg: #fbfbfc;
+  --color-panel-border: #e4e4e7;
+  --color-panel-meta: rgba(24, 24, 27, 0.62);
+
+  /* Colour: status */
+  --color-success: #0f7a4e;
+  --color-success-soft: rgba(15, 122, 78, 0.08);
+  --color-success-border: rgba(15, 122, 78, 0.3);
+  --color-warning: #8a5300;
+  --color-warning-soft: #fff7e8;
+  --color-warning-border: #f2d9a6;
+  --color-danger: #b42318;
+  --color-danger-soft: #fdf0ee;
+  --color-danger-border: #f5c7c1;
+  --color-info: var(--color-accent-ink);
+  --color-info-soft: var(--color-surface-muted);
+  --color-info-border: var(--color-border);
+
+  --color-mark-bg: rgba(255, 85, 0, 0.18);
+  --color-mark-text: var(--color-text);
+  --color-selection: rgba(255, 85, 0, 0.14);
+  --color-active-segment: rgba(255, 85, 0, 0.06);
+
+  /* Speaker chips: background / text pairs, all AA contrast */
+  --speaker-1-bg: #e8eefc;
+  --speaker-1-fg: #1f45a8;
+  --speaker-2-bg: #e3f4ea;
+  --speaker-2-fg: #17663f;
+  --speaker-3-bg: #f1e8fb;
+  --speaker-3-fg: #6b2a93;
+  --speaker-4-bg: #ddf3f5;
+  --speaker-4-fg: #0d6470;
+  --speaker-5-bg: #fde7ef;
+  --speaker-5-fg: #9b1f55;
+  --speaker-6-bg: #eef1d9;
+  --speaker-6-fg: #575f0b;
+  --speaker-7-bg: #fdf0dc;
+  --speaker-7-fg: #81480b;
+  --speaker-8-bg: #ececef;
+  --speaker-8-fg: #3c3f4c;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(24, 24, 27, 0.05);
+  --shadow-md: 0 1px 2px rgba(24, 24, 27, 0.05), 0 12px 32px rgba(24, 24, 27, 0.06);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-bg: #0b0b0d;
+  --color-header-bg: rgba(11, 11, 13, 0.82);
+  --color-surface: #0b0b0d;
+  --color-surface-muted: #111114;
+  --color-surface-sunken: #1a1a1e;
+  --color-border: #2a2a30;
+  --color-border-soft: #232328;
+  --color-border-strong: #3a3a42;
+  --color-border-hover: #8f8f99;
+  --color-text: #f4f4f5;
+  --color-text-muted: #a1a1aa;
+  --color-text-subtle: #8f8f99;
+  --color-text-inverse: #0b0b0d;
+
+  /* The brand does not change with the theme; only its ink flips to the lighter side. */
+  --color-accent: #ff5500;
+  --color-accent-hover: #ff6b1f;
+  --color-accent-active: #e64d00;
+  --color-accent-ink: #ff8c42;
+  --color-accent-soft: rgba(255, 85, 0, 0.09);
+  --color-accent-soft-border: rgba(255, 85, 0, 0.3);
+  --color-on-accent: #ffffff;
+  --color-focus-ring: #ff8c42;
+
+  --color-panel-bg: #111114;
+  --color-panel-border: rgba(255, 255, 255, 0.07);
+  --color-panel-meta: rgba(255, 255, 255, 0.5);
+
+  --color-success: #34d399;
+  --color-success-soft: rgba(52, 211, 153, 0.1);
+  --color-success-border: rgba(52, 211, 153, 0.3);
+  --color-warning: #f2c46b;
+  --color-warning-soft: #2a2110;
+  --color-warning-border: #57441a;
+  --color-danger: #ff8f84;
+  --color-danger-soft: #2e1412;
+  --color-danger-border: #5e2621;
+
+  --color-mark-bg: rgba(255, 85, 0, 0.32);
+  --color-selection: rgba(255, 85, 0, 0.25);
+  --color-active-segment: rgba(255, 85, 0, 0.08);
+
+  --speaker-1-bg: #1f2b4d;
+  --speaker-1-fg: #a9c1ff;
+  --speaker-2-bg: #15331f;
+  --speaker-2-fg: #8fe0b4;
+  --speaker-3-bg: #2f1f45;
+  --speaker-3-fg: #dcb3ff;
+  --speaker-4-bg: #10333a;
+  --speaker-4-fg: #87dce6;
+  --speaker-5-bg: #3d1628;
+  --speaker-5-fg: #ffa8cb;
+  --speaker-6-bg: #2c3012;
+  --speaker-6-fg: #d6df8c;
+  --speaker-7-bg: #3a2a12;
+  --speaker-7-fg: #f5c98d;
+  --speaker-8-bg: #26262c;
+  --speaker-8-fg: #c8cbd6;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 1px 2px rgba(0, 0, 0, 0.4), 0 16px 40px rgba(0, 0, 0, 0.45);
+}
