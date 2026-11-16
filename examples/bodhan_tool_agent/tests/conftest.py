@@ -8,12 +8,11 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from fake_bodhan import FakeBodhan  # noqa: E402
-
 from bodhan_mcp import costs  # noqa: E402
 from bodhan_mcp.bodhan_api import BodhanAPI  # noqa: E402
 from bodhan_mcp.config import Settings  # noqa: E402
 from bodhan_mcp.tools import Runtime  # noqa: E402
+from fake_bodhan import FakeBodhan  # noqa: E402
 
 FAKE_KEYS = {m: "test-key-not-real" for m in ("indic-transcribe", "indic-translate", "indic-speak", "indic-ocr")}
 

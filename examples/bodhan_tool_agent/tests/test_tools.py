@@ -90,7 +90,7 @@ async def test_markdown_table_kept_through_translation(rt, fake, tmp_path):
 
 
 async def test_long_document_is_chunked_for_context_window(rt, fake, tmp_path):
-    body = "\n\n".join(("Paragraph %d. " % i) + "The water cycle moves water around the planet. " * 20 for i in range(12))
+    body = "\n\n".join(f"Paragraph {i}. " + "The water cycle moves water around the planet. " * 20 for i in range(12))
     assert len(body) > 5000  # the fake API rejects anything over 5,000 characters in one request
     res = await tools.translate_text(rt, "ta", text=body)
     assert res.verification.passed
@@ -99,7 +99,7 @@ async def test_long_document_is_chunked_for_context_window(rt, fake, tmp_path):
 
 async def test_truncated_output_is_resplit(rt, fake):
     fake.truncate_over = 600
-    text = " ".join("Sentence number %d is here." % i for i in range(60))
+    text = " ".join(f"Sentence number {i} is here." for i in range(60))
     res = await tools.translate_text(rt, "hi", text=text)
     assert res.verification.truncated_units == 0
     assert res.api_requests > 1

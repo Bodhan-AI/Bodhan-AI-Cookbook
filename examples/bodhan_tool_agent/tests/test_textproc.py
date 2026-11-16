@@ -11,7 +11,7 @@ def test_tts_chunks_respect_limit_and_keep_all_text():
 
 
 def test_overlong_sentence_splits_at_clauses_then_words():
-    text = ", ".join(["clause number %d with several words" % i for i in range(30)])
+    text = ", ".join([f"clause number {i} with several words" for i in range(30)])
     chunks = textproc.chunk_sentences(text, 100)
     assert len(chunks) > 1 and all(len(c) <= 100 for c in chunks)
     assert " ".join(chunks).split() == text.split()
@@ -25,7 +25,7 @@ def test_indic_sentence_terminators():
 
 
 def test_paragraph_chunks_for_translation_context():
-    paras = ["Paragraph %d. " % i + "word " * 150 for i in range(10)]
+    paras = [f"Paragraph {i}. " + "word " * 150 for i in range(10)]
     chunks = textproc.chunk_paragraphs("\n\n".join(paras), 1800)
     assert all(len(c) <= 1800 for c in chunks)
     assert sum(c.count("Paragraph") for c in chunks) == 10

@@ -699,7 +699,7 @@ async def synthesize_speech(rt: Runtime, language: str, text: str | None = None,
         results = list(await asyncio.gather(*(_check_clip(rt, w, c, lang, meter) for w, c in zip(clips, chunks, strict=True))))
         resynth: list[int] = []
         issues: list[str] = []
-        for i, (sim, lr, heard) in enumerate(results):
+        for i, (sim, lr, _heard) in enumerate(results):
             if _clip_ok(sim, lr) and not _silent(clips[i]):
                 continue
             # Indic-Speak can repeat or drop words on longer inputs: regenerate this chunk as smaller pieces.
