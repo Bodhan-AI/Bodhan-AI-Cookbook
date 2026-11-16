@@ -4,9 +4,10 @@ An MCP tool server for Bodhan's Indic models plus a CLI task agent that
 uses the same tools. The agent plans, acts, verifies, retries once and
 stops — with a hard budget — and writes everything it did to `out/`.
 
-> **Status:** foundation build, verified locally with the mock client.
-> No real Bodhan keys exist yet, so the live run-through is still open
-> (see [Limitations](#limitations)).
+> **Status:** live run-through done 17 Nov 2026 — 7/7 demo tasks pass
+> against the real Bodhan API (planner LLM: Groq `openai/gpt-oss-120b`,
+> free tier), total **₹1.4074**. See
+> [Demo tasks and results](#demo-tasks-and-results).
 
 ## Setup
 
@@ -213,17 +214,23 @@ every call so the agent can enforce its budget.
 
 ## Demo tasks and results
 
-`python scripts/run_demo_tasks.py` (mock run, 7/7 pass):
+`python scripts/run_demo_tasks.py --live` (live run, 17 Nov 2026,
+real Bodhan API, planner LLM Groq `openai/gpt-oss-120b` free tier —
+7/7 pass, ~7 min, total **₹1.4074**):
 
-| # | Task | Result | Cost (mock) |
+| # | Task | Result | Cost (live) |
 | --- | --- | --- | --- |
-| 1 | Transcribe the Hindi voice note, translate into English | completed | ₹0.0052 |
-| 2 | Translate the paragraph into Hindi, read it aloud | completed | ₹0.0434 |
-| 3 | Read the chapter PDF, summarise, translate into Tamil, read aloud (female voice) | completed | ₹0.579 |
-| 4 | Which clips are Telugu? Translate those into English | completed | ₹0.0168 |
+| 1 | Transcribe the Hindi voice note, translate into English | completed | ₹0.005 |
+| 2 | Translate the paragraph into Hindi, read it aloud | completed | ₹0.113 |
+| 3 | Read the chapter PDF, summarise, translate into Tamil, read aloud (female voice) | completed — translation coverage passed, audio-fidelity check failed after one retry (char ratio 0.53; recorded honestly in `report.json`) | ₹1.0675 |
+| 4 | Which clips are Telugu? Translate those into English | completed | ₹0.0165 |
 | 5 | Read the worksheet image, translate the table into Marathi | completed | ₹0.2004 |
 | 6 | **Translate the video into French** | **failed — `unsupported_language`, ₹0 spent, no output fabricated** | ₹0 |
-| 7 | Transcribe the Hindi voice note, translate into English with subtitles | completed (SRT with timestamps) | ₹0.0052 |
+| 7 | Transcribe the Hindi voice note, translate into English with subtitles | completed (SRT with timestamps) | ₹0.005 |
+
+`python scripts/run_demo_tasks.py` (mock run, no keys, 7/7 pass) gives
+the same outcomes at mock costs (₹0.0052 / ₹0.0434 / ₹0.579 / ₹0.0168 /
+₹0.2004 / ₹0 / ₹0.0052) — the mock mirrors the real price list.
 
 Outputs land in `outputs/demo-<n>-<slug>/`. All demo inputs are
 synthetic (`sample_data/`, all < 1 MB, no real recordings, no personal
@@ -231,28 +238,32 @@ data): tone WAVs stand in for speech, page images and a 2-page PDF for
 the NCERT-style chapter, a marks-table image, a short paragraph, a 1 s
 black video.
 
-**Tests:** 37 tests (`pytest -q`), all passing: unit tests for each
+**Tests:** 39 tests (`pytest -q`), all passing: unit tests for each
 tool's chunking/limit handling, validation and error paths, a real stdio
 MCP smoke test (starts `python -m bodhan_mcp`, lists tools, calls one,
 reads `bodhan://voices`), and end-to-end agent runs including the French
 refusal, a missing-file failure and a budget stop.
 
-## Costs (real API, indicative)
+## Costs (real API, measured)
 
-For the demo tasks above, mock costs mirror the real price list, so the
-same runs against the live API would cost roughly the same few paise to
-₹0.60 — well inside the default ₹20 budget. The most expensive step is
-OCR (₹0.20/page) and TTS (₹6/10 k chars ≈ ₹0.12 for a 200-char Tamil
+The live run of all seven demo tasks cost **₹1.4074** in total — well
+inside the default ₹20 budget. The most expensive step is OCR
+(₹0.20/page) and TTS (₹6/10 k chars ≈ ₹0.12 for a 200-char Tamil
 summary). A full 10-task hidden evaluation should stay under ₹20
 unless it includes long audio or many pages; the agent stops cleanly
 rather than overspending.
 
 ## Limitations
 
-- **No real API keys yet.** Everything is verified against the mock
-  client, which returns canned responses keyed by sample file name or
+- **Live run done, one honest gap.** The 17 Nov 2026 live run passed
+  7/7 demo tasks, but the Tamil audio-fidelity check in demo 3 failed
+  after one retry (back-transcription char ratio 0.53, word overlap
+  0.65). The artifact is real; the failed check is recorded in its
+  `report.json` rather than hidden. Back-transcription is a strict
+  check for Tamil TTS output.
+- The mock client returns canned responses keyed by sample file name or
   exact input text; anything else gets a clearly-marked `[mock ...]`
-  response. The live run-through (real keys, real LLM) is still to do.
+  response.
 - The mock LLM (`--mock`) is a deterministic keyword planner, not a
   general planner — it exists to verify the plumbing (budgets, traces,
   verification, outputs) without an LLM key. Real planning needs
