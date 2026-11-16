@@ -1,0 +1,39 @@
+# secrets
+.env
+.env.*
+!.env.example
+
+# environments and caches
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+node_modules/
+*.egg-info/
+build/
+dist/
+
+# Bodhan response cache and tool working directories
+.bodhan_cache/
+bodhan_mcp_out/
+
+# run outputs and local media (never committed)
+# (out_*/ rather than out*/ so that outputs/.gitkeep can still be tracked)
+/out/
+/out_*/
+/out-*/
+outputs/*
+!outputs/.gitkeep
+sample_data/*
+!sample_data/.gitkeep
+
+# media anywhere else in the tree
+*.wav
+*.mp3
+*.mp4
+*.flac
+*.ogg
+*.m4a
