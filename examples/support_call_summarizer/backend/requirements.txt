@@ -1,0 +1,10 @@
+# Runtime dependencies (pinned). ffmpeg/ffprobe must also be installed on the system.
+fastapi==0.151.0
+uvicorn[standard]==0.54.0
+httpx==0.28.1
+pydantic==2.14.1
+pydantic-settings==2.16.0
+python-multipart==0.0.32
+numpy==2.5.4
+tzdata==2026.5
+anthropic==2.3.0
