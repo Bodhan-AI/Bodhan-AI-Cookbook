@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bodhan-eval"
+version = "0.1.0"
+description = "Quality harness for Indic-Translate and Indic-Speak outputs"
+requires-python = ">=3.10"
+# Exact pins live in requirements.txt (Cookbook rule); ranges here only document intent.
+dependencies = ["openai>=1.40", "httpx>=0.27", "sacrebleu>=2.4", "numpy>=1.26"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+bodhan_eval = ["*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 160
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]

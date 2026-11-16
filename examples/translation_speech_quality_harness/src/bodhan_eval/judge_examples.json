@@ -1,0 +1,91 @@
+[
+ {
+  "lang": "Hindi",
+  "source": "Water boils at 100 °C at sea level.",
+  "translation": "समुद्र तल पर पानी 100 डिग्री सेल्सियस पर उबलता है।",
+  "back_translation": "Water boils at 100 degrees Celsius at sea level.",
+  "answer": {
+   "source_facts": [
+    "water boils",
+    "at 100 °C",
+    "at sea level"
+   ],
+   "verdict": "clean",
+   "findings": []
+  }
+ },
+ {
+  "lang": "Hindi",
+  "source": "The heart pumps blood through the body. Arteries carry blood away from the heart, while veins bring it back. An adult heart beats about 72 times per minute.",
+  "translation": "हृदय शरीर में रक्त को पंप करता है। धमनियाँ हृदय से दूर रक्त ले जाती हैं जबकि शिराएँ इसे वापस लाती हैं। एक वयस्क हृदय प्रति मिनट लगभग ८२ बार धड़कता है।",
+  "back_translation": null,
+  "answer": {
+   "source_facts": [
+    "the heart pumps blood through the body",
+    "arteries carry blood away from the heart",
+    "veins bring it back",
+    "an adult heart beats about 72 times per minute"
+   ],
+   "verdict": "errors",
+   "findings": [
+    {
+     "category": "number",
+     "severity": "major",
+     "source_quote": "72",
+     "translation_quote": "८२",
+     "explanation": "The source says 72 beats per minute; the translation says 82.",
+     "certainty": "sure"
+    }
+   ]
+  }
+ },
+ {
+  "lang": "Hindi",
+  "source": "The heart pumps blood through the body. Arteries carry blood away from the heart, while veins bring it back. An adult heart beats about 72 times per minute.",
+  "translation": "हृदय शरीर में रक्त को पंप करता है। एक वयस्क हृदय प्रति मिनट लगभग ७२ बार धड़कता है।",
+  "back_translation": null,
+  "answer": {
+   "source_facts": [
+    "the heart pumps blood through the body",
+    "arteries carry blood away from the heart",
+    "veins bring it back",
+    "an adult heart beats about 72 times per minute"
+   ],
+   "verdict": "errors",
+   "findings": [
+    {
+     "category": "omission",
+     "severity": "major",
+     "source_quote": "Arteries carry blood away from the heart, while veins bring it back.",
+     "translation_quote": "",
+     "explanation": "The sentence about arteries and veins is missing from the translation.",
+     "certainty": "sure"
+    }
+   ]
+  }
+ },
+ {
+  "lang": "Hindi",
+  "source": "Water boils at 100 °C at sea level.",
+  "translation": "समुद्र तल पर पानी 100 डिग्री सेल्सियस पर जम जाता है।",
+  "back_translation": null,
+  "answer": {
+   "source_facts": [
+    "water boils",
+    "at 100 °C",
+    "at sea level"
+   ],
+   "verdict": "errors",
+   "findings": [
+    {
+     "category": "mistranslation",
+     "severity": "critical",
+     "source_quote": "boils",
+     "translation_quote": "जम जाता",
+     "explanation": "The translation says water freezes, not boils.",
+     "certainty": "sure"
+    }
+   ]
+  }
+ }
+]
