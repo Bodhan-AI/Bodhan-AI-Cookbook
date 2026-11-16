@@ -12,17 +12,19 @@
 
 ```bash
 cd examples/indic_task_agent
-python -m venv .venv && source .venv/bin/activate
+python3.11 -m venv .venv && source .venv/bin/activate   # Python 3.11+
 pip install -r requirements.txt
 cp .env.example .env   # then paste your keys from https://console.bodhan.ai
 ```
 
-System dependency: `ffmpeg` (for `ffprobe`).
+System dependency: `ffmpeg`.
 
 ## Run
 
-Phase 0 API probe (one tiny call per model, about Rs 0.33; cached runs cost nothing):
+Run commands from this folder.
 
 ```bash
-python scripts/probe.py
+pytest -q   # unit tests, no network, no spend
 ```
+
+Bodhan responses are cached in `~/.cache/bodhan_agent/`, so the same input is never paid for twice.
