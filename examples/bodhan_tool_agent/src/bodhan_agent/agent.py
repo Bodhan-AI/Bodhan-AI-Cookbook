@@ -17,7 +17,7 @@ import re
 import shutil
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -99,7 +99,7 @@ class Agent:
         self.out.mkdir(parents=True, exist_ok=True)
         self.work.mkdir(parents=True, exist_ok=True)
         self.trace = Trace(self.out / "trace.jsonl")
-        started = datetime.now(timezone.utc)
+        started = datetime.now(UTC)
         t0 = time.monotonic()
         self.trace.log("start", task=self.task, files=self.files, max_steps=self.budget.max_steps,
                        max_cost_inr=self.budget.max_cost_inr, max_runtime_s=self.budget.max_runtime_s,

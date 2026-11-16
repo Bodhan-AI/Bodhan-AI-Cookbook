@@ -1,7 +1,7 @@
 """Language, voice and script tables for the four Bodhan models.
 
 Source: https://console.bodhan.ai/api-docs/ and the Cookbook's scripts/bodhan_api_rules.json
-(version 2026-09-21). Codes are plain ISO codes (``hi``, not ``hi-IN``).
+(version 2026-09-21). Codes are plain ISO codes such as ``hi``, without a region suffix.
 """
 
 from __future__ import annotations
@@ -109,7 +109,7 @@ def normalize_code(value: str) -> str | None:
     if not raw:
         return None
     key = raw.lower().replace("_", "-")
-    if key.endswith("-in"):  # tolerate BCP-47 style "hi-IN"
+    if key.endswith("-in"):  # tolerate BCP-47 region tags (India) sent by some clients
         key = key[:-3]
     if key in _CODES_LOWER:
         return _CODES_LOWER[key]

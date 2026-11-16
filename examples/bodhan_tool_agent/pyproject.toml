@@ -7,7 +7,7 @@ name = "bodhan-tool-agent"
 version = "0.1.0"
 description = "An MCP server exposing Bodhan's Indic speech, translation, TTS and OCR models, plus a task agent that uses it."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = "Apache-2.0"
 authors = [{ name = "Abhyuday Vaish" }]
 dependencies = [
@@ -39,7 +39,7 @@ filterwarnings = ["ignore::DeprecationWarning"]
 
 [tool.ruff]
 line-length = 140
-target-version = "py310"
+target-version = "py311"
 src = ["src", "tests"]
 
 [tool.ruff.lint]

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -57,7 +57,7 @@ def build_report(agent: Agent, started: datetime, duration_s: float) -> dict[str
         "inputs": s.inputs,
         "missing_inputs": s.missing_inputs,
         "started_at": started.isoformat(timespec="seconds"),
-        "finished_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "finished_at": datetime.now(UTC).isoformat(timespec="seconds"),
         "duration_s": round(duration_s, 2),
         "tools_latency_s": round(sum(r.latency_s for r in s.records), 2),
         "steps": {"used": agent.budget.steps, "max": agent.budget.max_steps, "tool_calls": len(s.records),

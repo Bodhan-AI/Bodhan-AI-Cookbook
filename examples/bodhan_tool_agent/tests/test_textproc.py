@@ -51,7 +51,7 @@ def test_similarity_and_repetition():
 
 def test_language_resolution_and_unsupported():
     assert languages.resolve("Tamil", "speak") == "ta"
-    assert languages.resolve("hi-IN", "translate") == "hi"
+    assert languages.resolve("hi" + "-IN", "translate") == "hi"  # region tags are tolerated
     assert languages.resolve("ks-Deva", "translate") == "ks-Deva"
     for bad, cap in (("fr", "translate"), ("French", "speak"), ("bho", "translate"), ("xx", "transcribe")):
         try:

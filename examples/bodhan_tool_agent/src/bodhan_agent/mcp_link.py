@@ -75,7 +75,7 @@ class MCPLink:
         assert self.client is not None
         try:
             res = await asyncio.wait_for(self.client.call_tool(name, args, read_timeout_seconds=timeout_s), timeout=timeout_s + 5)
-        except (asyncio.TimeoutError, TimeoutError):
+        except TimeoutError:
             return ToolOutcome(False, {}, {"code": "tool_timeout", "message": f"{name} did not finish within {timeout_s:.0f}s.",
                                            "hint": "Retry with smaller input, or report the timeout.", "retryable": True})
         except Exception as exc:  # noqa: BLE001 - protocol/transport failures become tool errors for the planner
