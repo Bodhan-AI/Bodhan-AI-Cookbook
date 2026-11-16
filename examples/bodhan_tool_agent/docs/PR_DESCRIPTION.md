@@ -121,4 +121,16 @@ TBD (link, ≤ 5 minutes).
 \* OCR for the worksheet was a cache hit from an earlier smoke test; a cold run adds ₹0.20 per page. LLM cost is not included (Gemini free tier).
 
 ## AI assistance
-Built with Claude Code (Anthropic) as the coding assistant. I chose this assignment, set the design constraints and the shared tool contract, and directed the work; Claude Code wrote most of the code, tests and documentation, working as parallel sub-agents on the MCP server, the task agent and the packaging/docs, then integrating them. Live runs against the Bodhan API were used to check its claims, and they surfaced the fixes listed above (translation endpoint, MP3 speech, rate limits, Gemini thought signatures, Devanagari word splitting). All LLM calls in the shipped agent go to the endpoint set by `LLM_*`; no assistant is used at runtime.
+I made the decisions; Claude Code (Anthropic) wrote most of the code.
+
+**Decisions I made**
+- **Which problem to solve.** Of the four assignments I chose the tool server and task agent, because it matches my background in tool-calling models (BFCL fine-tuning), guarded agents and fault-tolerant workflows.
+- **How to build it.** I chose to have the project built by parallel agents rather than one long sequential session; it was split into three workstreams (MCP server, task agent, packaging and docs) bound by one shared tool contract.
+- **Cost discipline.** I set the budget (a small credit top-up, spend tracked after every batch, `--max-cost-inr` on every run) and kept the whole demo suite to under ₹4 of Bodhan usage.
+- **Model and provider.** I chose the planner LLM provider (Google Gemini); the specific model was picked by testing candidates on my key for reliable tool calling.
+- **Process.** I required work to be committed only once verified, and asked for the results and this PR once the demo suite passed.
+
+**What Claude Code did**
+Proposed the technical design and tool contract, which I approved; wrote most of the code, tests and documentation; checked behaviour against the live Bodhan API rather than its documentation; ran the demo suite; and fixed the issues it exposed (translation endpoint, MP3 speech, rate limits, Gemini thought signatures, Devanagari word splitting). Every line is in this PR for review, and I can walk through any of it.
+
+No assistant is used at runtime: all LLM calls in the shipped agent go to the endpoint set by `LLM_*`.
