@@ -1,0 +1,26 @@
+.env
+.env.*
+!.env.example
+.venv/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+.bodhan_cache/
+bodhan_outputs/
+out/
+runs/
+sample_data/*
+!sample_data/.gitkeep
+outputs/*
+!outputs/.gitkeep
+# keep generated media out of git (link it from the README instead)
+demo_runs/**/artifacts/
+demo_runs/**/work/
+*.wav
+*.mp3
+*.mp4
+*.ogg
+*.flac
+*.m4a
