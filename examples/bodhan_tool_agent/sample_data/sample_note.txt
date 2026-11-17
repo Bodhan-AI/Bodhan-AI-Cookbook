@@ -1,0 +1,4 @@
+This is a sample document for testing the Bodhan Tool Server and Task Agent.
+It contains basic English text that can be translated into Hindi, Tamil, Telugu, Marathi, or Bengali.
+1. Item one with number 100.
+2. Item two with number 250.
