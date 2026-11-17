@@ -99,7 +99,16 @@ def retry_delay(header: str, attempt: int, now: datetime) -> float:
 class Providers:
     """Own one run's HTTP connection pool, concurrency, cache, and spend ledger."""
 
-    def __init__(self, cache_path: Path, max_micro_inr: int, concurrency: int, judge_concurrency: int | None = None):
+    def __init__(
+        self,
+        cache_path: Path,
+        max_micro_inr: int,
+        concurrency: int,
+        judge_concurrency: int | None = None,
+        *,
+        judge_rpm: int | None = None,
+        max_retry_wait: int = MAX_RETRY_WAIT,
+    ):
         """Configure local persistence and read only the assignment's credential variables."""
         cache_path.parent.mkdir(parents=True, exist_ok=True)
         self.cache = sqlite3.connect(cache_path, timeout=10)
@@ -109,6 +118,10 @@ class Providers:
         # The judge often has a tighter rate limit than Bodhan, so it gets its own bound.
         self.judge_limit = asyncio.Semaphore(judge_concurrency or concurrency)
         self.cooldown: dict[str, float] = {}
+        # Optional client-side pacing for judges with a low requests-per-minute quota.
+        self.judge_interval = 60 / judge_rpm if judge_rpm else 0.0
+        self.next_judge_slot = 0.0
+        self.max_retry_wait = max_retry_wait
         self.budget = max_micro_inr
         self.charged = 0
         self.inflight: dict[str, asyncio.Task[Call]] = {}
@@ -196,11 +209,15 @@ class Providers:
             delay = 2**attempt
             # A rate limit applies to the key, so every caller waits out the same window.
             wait = self.cooldown.get(key_name, 0) - monotonic()
-            if wait > MAX_RETRY_WAIT:
+            if wait > self.max_retry_wait:
                 # A quota window (often daily) is still closed. Fail fast instead of stalling every row.
-                raise CallError("retry_delay", f"{operation} is rate limited for another {round(wait)} s, beyond the {MAX_RETRY_WAIT}-second wait limit.")
+                raise CallError("retry_delay", f"{operation} is rate limited for another {round(wait)} s, beyond the {self.max_retry_wait}-second wait limit.")
             if wait > 0:
                 await asyncio.sleep(wait)
+            if operation == "judge" and self.judge_interval:
+                slot = max(monotonic(), self.next_judge_slot)
+                self.next_judge_slot = slot + self.judge_interval
+                await asyncio.sleep(slot - monotonic())
             limit = self.judge_limit if operation == "judge" else self.limit
             async with limit:
                 if key_name in self.exhausted:
@@ -280,10 +297,10 @@ class Providers:
                     if status == 429:
                         self.cooldown[key_name] = max(self.cooldown.get(key_name, 0), monotonic() + delay)
                     error = CallError(f"http_{status}", f"{operation} unavailable (HTTP {status}).")
-            if delay > MAX_RETRY_WAIT:
+            if delay > self.max_retry_wait:
                 raise CallError(
                     "retry_delay",
-                    f"{operation} asked to retry after {round(delay)} s, beyond the {MAX_RETRY_WAIT}-second wait limit (often a daily quota).",
+                    f"{operation} asked to retry after {round(delay)} s, beyond the {self.max_retry_wait}-second wait limit (often a daily quota).",
                 )
             if attempt + 1 < ATTEMPTS:
                 self.telemetry["retries"] += 1

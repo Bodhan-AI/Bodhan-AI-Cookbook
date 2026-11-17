@@ -108,8 +108,6 @@ def judge_input(
         "segments": prompt_segments,
         "reference": evaluation.item.reference,
         "back_translation": back_translation,
-        "back_transcript": evaluation.transcript,
-        "signal_and_alignment": {name: evaluation.checks[name] for name in ("signal", "speech_alignment") if name in evaluation.checks},
         "possible_speech_recheck": may_verify_speech,
         "deterministic_candidates": [
             {"category": finding.category, "field": finding.span.field, "evidence": finding.evidence, "detail": finding.detail}
@@ -117,6 +115,12 @@ def judge_input(
             if finding.category in TEXT_CATEGORIES
         ],
     }
+    if may_verify_speech:
+        # Speech evidence is shown only when the judge can act on it, by asking for a second
+        # segmentation. The judge never reports speech defects itself, so ASR noise stays out
+        # of text judgements, and rows sharing a candidate share one cached verdict.
+        payload["back_transcript"] = evaluation.transcript
+        payload["signal_and_alignment"] = {name: evaluation.checks[name] for name in ("signal", "speech_alignment") if name in evaluation.checks}
     return encoded(payload).decode(), segments
 
 

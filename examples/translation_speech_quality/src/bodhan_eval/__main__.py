@@ -90,6 +90,13 @@ def args_for_cli() -> argparse.Namespace:
     parser.add_argument("--cache", type=Path, default=Path(".bodhan-cache/responses.sqlite3"))
     parser.add_argument("--concurrency", type=positive, default=4, help="maximum concurrent model calls")
     parser.add_argument("--judge-concurrency", type=positive, help="maximum concurrent judge calls (default: --concurrency)")
+    parser.add_argument("--judge-rpm", type=positive, help="pace judge requests to this many per minute (for low-quota endpoints)")
+    parser.add_argument(
+        "--max-retry-wait",
+        type=positive,
+        default=90,
+        help="longest provider-requested wait, in seconds, before a call is recorded as failed (default 90)",
+    )
     parser.add_argument("--limit", type=positive, help="select the first N valid matching rows")
     parser.add_argument(
         "--judge-repeat",
@@ -126,7 +133,14 @@ async def run(args: argparse.Namespace) -> int:
         for row in rows:
             LOG.info(kind, extra={"event_fields": row})
 
-    async with Providers(args.cache, args.max_cost_inr, args.concurrency, args.judge_concurrency) as providers:
+    async with Providers(
+        args.cache,
+        args.max_cost_inr,
+        args.concurrency,
+        args.judge_concurrency,
+        judge_rpm=args.judge_rpm,
+        max_retry_wait=args.max_retry_wait,
+    ) as providers:
         workers = asyncio.Semaphore(args.concurrency)
 
         async def evaluate(item):
