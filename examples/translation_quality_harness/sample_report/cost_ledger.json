@@ -1,0 +1,92 @@
+{
+  "bodhan_cap_inr": 5,
+  "dataset_sha256": "41ddbced40a21a1cf0de80a97f4384d43a4d5490807d7ea04ba00c389e9ef9e6",
+  "final_offline_demo": {
+    "max_inr": 0.0,
+    "paid_calls": {},
+    "refused_calls": {},
+    "spent_by_model": {},
+    "spent_this_run_inr": 0.0
+  },
+  "final_offline_heldout": {
+    "max_inr": 0.0,
+    "paid_calls": {},
+    "refused_calls": {},
+    "spent_by_model": {},
+    "spent_this_run_inr": 0.0
+  },
+  "generation_note": "Initial generation paid for 120 translations and 18 speech clips. A zero-cost cached rebuild moved clips into the bundled data/audio directory.",
+  "judge_billing_note": "Earlier judge experiments exhausted credit; no further judge calls in the final submission replay. Monetary cost is not claimed.",
+  "llm_usage": {
+    "demo_evaluation": {
+      "calls": 12,
+      "completion_tokens": 18707,
+      "prompt_tokens": 18712
+    },
+    "heldout_replay": {
+      "calls": 0,
+      "completion_tokens": 0,
+      "prompt_tokens": 0
+    },
+    "warmup": {
+      "calls": 9,
+      "completion_tokens": 61800,
+      "prompt_tokens": 14215
+    }
+  },
+  "recorded_bodhan_spend_inr": 2.0379,
+  "stages": {
+    "cached_repack": {
+      "max_inr": 0.0,
+      "paid_calls": {},
+      "refused_calls": {},
+      "spent_by_model": {},
+      "spent_this_run_inr": 0.0
+    },
+    "demo_evaluation": {
+      "max_inr": 2.0,
+      "paid_calls": {
+        "indic-transcribe": 18,
+        "indic-translate": 122
+      },
+      "refused_calls": {},
+      "spent_by_model": {
+        "indic-transcribe": 0.3222,
+        "indic-translate": 0.1271
+      },
+      "spent_this_run_inr": 0.4493
+    },
+    "generation": {
+      "max_inr": 3.0,
+      "paid_calls": {
+        "indic-speak": 18,
+        "indic-translate": 120
+      },
+      "refused_calls": {},
+      "spent_by_model": {
+        "indic-speak": 1.2864,
+        "indic-translate": 0.1594
+      },
+      "spent_this_run_inr": 1.4458
+    },
+    "heldout_replay": {
+      "max_inr": 0.0,
+      "paid_calls": {},
+      "refused_calls": {},
+      "spent_by_model": {},
+      "spent_this_run_inr": 0.0
+    },
+    "warmup": {
+      "max_inr": 1.0,
+      "paid_calls": {
+        "indic-translate": 140
+      },
+      "refused_calls": {},
+      "spent_by_model": {
+        "indic-translate": 0.1428
+      },
+      "spent_this_run_inr": 0.1428
+    }
+  },
+  "warmup_note": "Warmup is included in spend, but its quality metrics were superseded by sample_report and heldout_report."
+}

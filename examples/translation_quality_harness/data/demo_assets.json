@@ -1,0 +1,29 @@
+{
+  "audio_clips": 18,
+  "bytes": 7606909,
+  "cache_sha256": "ee14e23bbffd7b9e802fc79246ee8f3c4c2b811be212522900ecd88baf01ad2f",
+  "cached_bodhan_outputs": 400,
+  "contains_judge_outputs": false,
+  "files": {
+    "data/audio/0d88bb51fe0309f6474a12d9.wav": "138b0b20ff5104a5b7699ad1eae282078b315bafc4272be2e9fd5fc8f5b90033",
+    "data/audio/26fcb58af795506cf8377705.wav": "ee6b760fb26689708c97bd1f8191dcbab61d2e4fca8e9ae2b7b07b22b11ed943",
+    "data/audio/2c2a58492e36b4a5d89a5de7.wav": "54406ad7118c9f2111f3e6e4abfcd0d8bd05c3d6eac27b86f628320da0b46876",
+    "data/audio/2c2acd0d26db0afb6631ce3a.wav": "c917f93dddb0069ba3ee2cb22dd27e36a145804291e1b1fc222231b0ea75794c",
+    "data/audio/40179c596669a3f00ba4130b.wav": "e40ff494f614908a07890b2dfd1114435f81111f95e3914b5425f61d2a6f7f47",
+    "data/audio/610ba5bd1e9d192bb6c143c5.wav": "d29314e54c5ec8e4513e5b21c9314039a9fa79cea2a063da2a15f7d2f8ca0603",
+    "data/audio/819f900b9513dff5f7ca25ba.wav": "b06382736ff36eab09952d3ec42403e644a7e0a52c721be7baab90e51fcd325b",
+    "data/audio/82b61c2dea7a741c0003647e.wav": "97ee2e27929e4f56e65f6f402e25519502c8753cb62c167dab4e942799bfa831",
+    "data/audio/8a3da0042dcac891c5696224.wav": "031435f788488260b8df9214e755c49114f430f3f5e9b27e1fa47ad4c2100e54",
+    "data/audio/92478b833b3e8a7ec4202d2b.wav": "c33ac0fb7e74d35e4d8bc82ab6c31bf12fb42547b6044eeced29506bb87473ed",
+    "data/audio/9904b558561fcaca09bd8443.wav": "af98c0594d4d14d7d42d8fc16a969381125a695c79a2b7639b72e57d10098c2a",
+    "data/audio/aaee771de7c31c04ab2a80c5.wav": "041c701ec24cae00a67c1f84f613e0e17621bf5810de11822b231f7554f42580",
+    "data/audio/adc5ca1ae1074f78ccd391dc.wav": "4cd0db65122809d19cd9dca803b90ed1e62bc4ac4c4db245e0a7b56c24c6651a",
+    "data/audio/c07da2313659d30e437644c8.wav": "1bee6260cc5833a6407e6b4ed0dccde46bb7e3205dcb048769b7b22b12504a00",
+    "data/audio/d69b45fb540663475ff5710f.wav": "613f990449c5e591eb6a77b91e597be324cbb0b8feec70914ab7c748e2b5f260",
+    "data/audio/d7fa45d96b81b60bc3f5dbe9.wav": "64ab9f7db39c5b430dbb7b2048b190ab4413b96dd6659c8cef0b2b2fa580ee44",
+    "data/audio/d9f9bf5e8d48e72e15e76a35.wav": "95e171269c1aba34581bc485ed7f30cd093393df87110f8b3d6f999f59e01f75",
+    "data/audio/ea6f0d13cb8023290398864a.wav": "ab0b3c8cc6d97aa4f134a3d4de93ea0060077c0c0df1b4c31fff5855756cdd56"
+  },
+  "sha256": "f9c8aa117b7277dca6a28453b45d272ebf61b963073dad0f25203801a75354f2",
+  "url": "https://github.com/Purv-Kabaria/Bodhan-AI-Cookbook/releases/download/quality-harness-demo-v1/quality-harness-demo-assets.zip"
+}

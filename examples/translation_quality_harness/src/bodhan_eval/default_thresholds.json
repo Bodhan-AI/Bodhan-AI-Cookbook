@@ -1,0 +1,14 @@
+{
+  "flag": {
+    "omission": 0.5,
+    "addition": 0.5,
+    "mistranslation": 0.5,
+    "number": 0.5,
+    "term": 0.5,
+    "format": 0.5,
+    "wrong_language": 0.5,
+    "speech_omission": 0.5,
+    "speech_repetition": 0.5,
+    "speech_garbled": 0.5
+  }
+}
