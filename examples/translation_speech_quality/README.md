@@ -112,9 +112,9 @@ These are measured on `data/demo_scored.jsonl` (231 rows) with Cerebras `qwen-3.
 | Category | Precision | Recall | | Language | Recall | Localization |
 | --- | ---: | ---: | --- | --- | ---: | ---: |
 | omission | 69% | 100% | | hi | 96.8% | 100% |
-| addition | 100% | 100% | | ta | 93.3% | 100% |
+| addition | 92% | 100% | | ta | 93.3% | 100% |
 | mistranslation | 67% | 89% | | bn | 96.7% | 96.2% |
-| number | 100% | 100% | | | | |
+| number | 87% | 100% | | | | |
 | entity | 71% | 56% | | | | |
 | format | 60% | 100% | | | | |
 | wrong_language | 100% | 100% | | | | |
@@ -166,7 +166,7 @@ Every model response is cached by its exact request. A rerun from the cache prod
 ## Tests
 
 ```sh
-python -m pytest tests          # 136 tests, about 20 s, no network
+python -m pytest tests          # 138 tests, about 20 s, no network
 ```
 
 The suite covers:

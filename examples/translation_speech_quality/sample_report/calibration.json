@@ -103,8 +103,8 @@
     "per_category": {
       "addition": {
         "fn": 0,
-        "fp": 0,
-        "precision": 1.0,
+        "fp": 1,
+        "precision": 0.92308,
         "recall": 1.0,
         "tp": 12
       },
@@ -138,8 +138,8 @@
       },
       "number": {
         "fn": 0,
-        "fp": 0,
-        "precision": 1.0,
+        "fp": 2,
+        "precision": 0.86667,
         "recall": 1.0,
         "tp": 13
       },
@@ -192,8 +192,8 @@
       "per_category": {
         "addition": {
           "fn": 0,
-          "fp": 0,
-          "precision": 1.0,
+          "fp": 1,
+          "precision": 0.8,
           "recall": 1.0,
           "tp": 4
         },
@@ -403,8 +403,8 @@
         },
         "number": {
           "fn": 0,
-          "fp": 0,
-          "precision": 1.0,
+          "fp": 2,
+          "precision": 0.66667,
           "recall": 1.0,
           "tp": 4
         },
@@ -1075,8 +1075,8 @@
     "per_category": {
       "addition": {
         "fn": 0,
-        "fp": 0,
-        "precision": 1.0,
+        "fp": 1,
+        "precision": 0.92308,
         "recall": 1.0,
         "tp": 12
       },
@@ -1110,8 +1110,8 @@
       },
       "number": {
         "fn": 0,
-        "fp": 0,
-        "precision": 1.0,
+        "fp": 2,
+        "precision": 0.86667,
         "recall": 1.0,
         "tp": 13
       },
@@ -1164,8 +1164,8 @@
       "per_category": {
         "addition": {
           "fn": 0,
-          "fp": 0,
-          "precision": 1.0,
+          "fp": 1,
+          "precision": 0.8,
           "recall": 1.0,
           "tp": 4
         },
@@ -1375,8 +1375,8 @@
         },
         "number": {
           "fn": 0,
-          "fp": 0,
-          "precision": 1.0,
+          "fp": 2,
+          "precision": 0.66667,
           "recall": 1.0,
           "tp": 4
         },
