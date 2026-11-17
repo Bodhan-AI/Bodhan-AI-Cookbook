@@ -145,7 +145,7 @@ def test_long_quota_window_fails_fast_for_later_calls(tmp_path, monkeypatch):
         async with Providers(tmp_path / "cache.sqlite", 0, 1) as provider:
             await provider.http.aclose()
             provider.http = httpx.AsyncClient(transport=httpx.MockTransport(receive))
-            with pytest.raises(CallError, match=r"retry after d+ s"):
+            with pytest.raises(CallError, match=r"retry after \d+ s"):
                 await request_judgment(provider, "{}", {})
             with pytest.raises(CallError, match="rate limited for another"):
                 await request_judgment(provider, '{"other": 1}', {})
