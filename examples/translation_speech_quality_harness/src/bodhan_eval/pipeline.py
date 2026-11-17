@@ -23,7 +23,7 @@ from .checks_text import (
 )
 from .clients import KEY_ENV, LLM, Bodhan, Budget, NotRun, RunLog
 from .combine import SPAN_SIDE, adjust_severity, combine
-from .judge import judge_item
+from .judge import judge_item, latin_only
 
 
 def parse_langs(value: str) -> tuple[set[str], list[str]]:
@@ -257,7 +257,7 @@ def run(args, bodhan=None, llm=None, env=os.environ) -> int:
     labels, label_sources, label_warnings = calibrate.collect(items, args.calibration)
     warnings += label_warnings
     thresholds = calibrate.fit_thresholds(results, labels)
-    noise = 0
+    noise = overturned = overruled = 0
     items_by_key = {(it["id"], it["lang"]): it for it in items}
     for res in results:
         if not any(v == "ok" for v in res["checks_run"].values()):
@@ -266,6 +266,9 @@ def run(args, bodhan=None, llm=None, env=os.environ) -> int:
             j = res.get("judge") or {}
             verdict = "clean" if j.get("pass1") == "clean" and j.get("pass2") in (None, "clean") else None
             res["status"], res["flags"], res["review"], dropped = combine(calibrate.apply(res["_cands"], thresholds), verdict)
+            if verdict == "clean":
+                overturned += dropped  # noisy code suspicions the judge's clean verdict dismissed
+                overruled += any(e["class"] == "exact" for f in res["flags"] for e in f["evidence"])
             it = items_by_key[(res["id"], res["lang"])]
             for f in res["flags"] + res["review"]:
                 adjust_severity(f, it["source"], it["translation"] or "")
@@ -274,7 +277,7 @@ def run(args, bodhan=None, llm=None, env=os.environ) -> int:
                 res["dropped_as_noise"] = dropped
                 noise += dropped
     cal = calibrate.evaluate(results, labels, thresholds, label_sources, SPAN_SIDE)
-    cal["judge"] = {"consistency": consistency}
+    cal["judge"] = {"consistency": consistency, "overturned_code_suspicions": overturned, "code_overruled_clean_verdict_items": overruled}
     cal["dropped_as_checker_noise"] = noise
     for res in results:
         for k in [k for k in res if k.startswith("_")]:
@@ -283,7 +286,21 @@ def run(args, bodhan=None, llm=None, env=os.environ) -> int:
     meta = {"langs": sorted(langs), "warnings": warnings, "regen_agreement": agree, "judge_consistency": consistency,
             "calibration": cal}
     texts = {(it["id"], it["lang"]): (it["source"], it["translation"] or "") for it in items}
-    diff = report.write(out, results, skipped, meta, log, texts, args.baseline)
+    def narrate(facts):
+        if not llm.available:
+            return None
+        prompt = ("Below are the numbers from an automatic quality check of machine translations and synthesized speech. "
+                  "Write one short paragraph in plain English (at most four sentences) for the model team: which language and "
+                  "error category are worst, and whether the quality targets were met. Use only these numbers; do not invent "
+                  "any. Reply with the paragraph only.\n\n" + json.dumps(facts, ensure_ascii=False, sort_keys=True))
+        try:
+            text = latin_only(llm.chat([{"role": "user", "content": prompt}], tag="summary", max_tokens=1500,
+                                       ctx={"item": "report", "check": "summary"}))
+        except NotRun:
+            return None
+        return text[:1200] if len(text.split()) >= 8 else None  # anything shorter is not a paragraph
+
+    diff = report.write(out, results, skipped, meta, log, texts, args.baseline, narrate)
     with open(out / "run_log.jsonl", "w", encoding="utf-8", newline="\n") as f:
         for e in log.events:
             f.write(json.dumps(e, ensure_ascii=False) + "\n")

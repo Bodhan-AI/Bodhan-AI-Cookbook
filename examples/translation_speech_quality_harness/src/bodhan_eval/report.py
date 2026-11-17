@@ -57,9 +57,11 @@ def _weight(flags) -> int:
 
 
 def write(out: Path, results: list[dict], skipped: list[dict], meta: dict, log, texts: dict | None = None,
-          baseline: str | None = None) -> dict:
-    """Write every report file. `texts` maps (id, lang) to (source, translation) for quotes. Returns the diff counts
-    (empty without a baseline)."""
+          baseline: str | None = None, narrate=None) -> dict:
+    """Write every report file. `texts` maps (id, lang) to (source, translation) for quotes. `narrate(facts)` may
+    return an English paragraph about the numbers (the LLM); a fixed sentence is used otherwise. Returns the diff
+    counts (empty without a baseline)."""
+    base = load_baseline(Path(baseline)) if baseline else None  # before writing: --baseline may equal --out
     out.mkdir(parents=True, exist_ok=True)
     results = sorted(results, key=lambda r: (r["id"], r["lang"]))
     texts = texts or {}
@@ -93,8 +95,8 @@ def write(out: Path, results: list[dict], skipped: list[dict], meta: dict, log, 
                 not_run[f"{check}: {status}"] += 1
 
     diff = diff_md = None
-    if baseline:
-        diff, diff_md = compare(Path(baseline), results, per_lang)
+    if base is not None:
+        diff, diff_md = compare(base, results, per_lang)
     cal = meta.get("calibration", {"labelled_items": 0})
     summary = {
         "schema_version": SCHEMA_VERSION,
@@ -112,6 +114,11 @@ def write(out: Path, results: list[dict], skipped: list[dict], meta: dict, log, 
         "judge_consistency": meta.get("judge_consistency", {}),
         "langs_requested": meta.get("langs", []),
     }
+    facts = {"items": summary["items"], "status": summary["status"], "per_category": summary["per_category"],
+             "per_language": {lang: {k: v[k] for k in ("status", "flags", "weighted_errors_per_1000_words")} for lang, v in per_lang.items()},
+             "targets": [{k: t[k] for k in ("metric", "value", "target")} for t in summary["targets"]]}
+    text = narrate(facts) if narrate else None
+    summary["narrative"] = {"text": text, "by": "llm"} if text else {"text": _fixed_narrative(summary), "by": "fixed"}
     if diff is not None:
         summary["diff"] = diff
     (out / "summary.json").write_text(_dump(summary) + "\n", encoding="utf-8")
@@ -168,6 +175,19 @@ def _example(r, f) -> list[str]:
     return lines
 
 
+def _fixed_narrative(s: dict) -> str:
+    flagged = s["status"].get("flagged", 0)
+    parts = [f"{flagged} of {s['items']} items have at least one flagged error"]
+    scored = {lang: v["weighted_errors_per_1000_words"] for lang, v in s["per_language"].items() if v["weighted_errors_per_1000_words"] is not None}
+    if scored and max(scored.values()) > 0:
+        worst = max(scored, key=lambda lang: (scored[lang], lang))
+        parts.append(f"{worst} is the weakest language")
+    if s["per_category"]:
+        cat = max(s["per_category"], key=lambda c: (sum(s["per_category"][c].values()), c))
+        parts.append(f"{cat} is the most frequent error")
+    return "; ".join(parts) + "."
+
+
 def _summary_md(s: dict, results: list[dict], cal: dict) -> str:
     lines = ["# Quality report", ""]
     for w in s["warnings"]:
@@ -175,6 +195,7 @@ def _summary_md(s: dict, results: list[dict], cal: dict) -> str:
     if s["warnings"]:
         lines.append("")
     lines += [f"Items scored: **{s['items']}** · skipped: **{s['skipped']['count']}** · model cost: **₹{s['cost']['total_inr']:.2f}**", ""]
+    lines += [s["narrative"]["text"] + (" *(Written by the LLM from the numbers below.)*" if s["narrative"]["by"] == "llm" else ""), ""]
 
     scored = {lang: v for lang, v in s["per_language"].items() if v["weighted_errors_per_1000_words"] is not None}
     if s["per_category"] or scored:
@@ -294,17 +315,31 @@ def _same(a: dict, b: dict) -> bool:
     return sa is None or sb is None or (sa[0] < sb[1] and sb[0] < sa[1]) or sa == sb
 
 
-def compare(baseline: Path, results: list[dict], per_lang: dict) -> tuple[dict, str]:
-    lines = ["# Diff against baseline", "", f"Baseline: `{baseline.as_posix()}`", ""]
+def load_baseline(baseline: Path) -> dict:
+    """Read a previous report fully, before anything is written (the baseline may be this run's own --out folder)."""
+    b = {"path": baseline.as_posix(), "items": None, "per_language": {}, "schema_version": None, "error": None}
     try:
-        old = {(r["id"], r["lang"]): r for r in map(json.loads, (baseline / "items.jsonl").read_text(encoding="utf-8").splitlines())}
+        b["items"] = {(r["id"], r["lang"]): r for r in map(json.loads, (baseline / "items.jsonl").read_text(encoding="utf-8").splitlines())}
     except (OSError, ValueError, KeyError) as e:
-        lines.append(f"> **Warning:** cannot read the baseline's items.jsonl ({type(e).__name__}); nothing compared.")
-        return {"error": "baseline unreadable", "regressed_items": 0, "improved_items": 0, "new_flags": 0, "fixed_flags": 0}, "\n".join(lines) + "\n"
+        b["error"] = type(e).__name__
     try:
-        old_lang = json.loads((baseline / "summary.json").read_text(encoding="utf-8")).get("per_language", {})
+        s = json.loads((baseline / "summary.json").read_text(encoding="utf-8"))
+        b["per_language"], b["schema_version"] = s.get("per_language", {}), s.get("schema_version")
     except (OSError, ValueError):
-        old_lang = {}
+        pass
+    return b
+
+
+def compare(baseline: dict, results: list[dict], per_lang: dict) -> tuple[dict, str]:
+    lines = ["# Diff against baseline", "", f"Baseline: `{baseline['path']}`", ""]
+    if baseline["items"] is None:
+        lines.append(f"> **Warning:** cannot read the baseline's items.jsonl ({baseline['error']}); nothing compared.")
+        return {"error": "baseline unreadable", "regressed_items": 0, "improved_items": 0, "new_flags": 0, "fixed_flags": 0}, "\n".join(lines) + "\n"
+    old, old_lang = baseline["items"], baseline["per_language"]
+    if baseline["schema_version"] != SCHEMA_VERSION:
+        lines += [f"> **Note:** the baseline was written by report schema {baseline['schema_version']}, this run by {SCHEMA_VERSION}; "
+                  "fields missing on either side are not compared.", ""]
+        old_lang = {lang: v if isinstance(v, dict) else {} for lang, v in old_lang.items()}
 
     new = {(r["id"], r["lang"]): r for r in results}
     both = sorted(set(old) & set(new))

@@ -103,3 +103,22 @@ def test_flags_on_clean_labelled_items_are_listed(tmp_path, fake_bodhan, fake_ll
     _, out = run(tmp_path, fake_bodhan, fake_llm, "r", dataset=p)
     md = (out / "summary.md").read_text(encoding="utf-8")
     assert "## Flags on items labelled clean" in md and "t01 / hi" in md.split("## Flags on items labelled clean")[1]
+
+
+def test_narrative_from_llm_or_fixed_fallback(tmp_path, fake_bodhan, fake_llm):
+    fake_llm.reply = lambda body: ("Hindi is the weakest language and number errors are the most frequent; most targets were met."
+                                   if "quality check" in json.dumps(body) else "{}")
+    _, out = run(tmp_path, fake_bodhan, fake_llm, "r", dataset=dataset(tmp_path, "s.jsonl", True))
+    s = json.loads((out / "summary.json").read_text(encoding="utf-8"))
+    assert s["narrative"]["by"] == "llm" and "Written by the LLM" in (out / "summary.md").read_text(encoding="utf-8")
+    fake_llm.reply = "{}"  # not a paragraph: the fixed sentence is used
+    _, out = run(tmp_path, fake_bodhan, fake_llm, "r2", dataset=dataset(tmp_path, "c.jsonl", False))
+    s = json.loads((out / "summary.json").read_text(encoding="utf-8"))
+    assert s["narrative"] == {"by": "fixed", "text": "0 of 10 items have at least one flagged error."}
+
+
+def test_baseline_may_be_the_output_folder(tmp_path, fake_bodhan, fake_llm):
+    _, out = run(tmp_path, fake_bodhan, fake_llm, "same", dataset=dataset(tmp_path, "c.jsonl", False))
+    _, out = run(tmp_path, fake_bodhan, fake_llm, "same", dataset=dataset(tmp_path, "s.jsonl", True), baseline=str(out))
+    d = json.loads((out / "summary.json").read_text(encoding="utf-8"))["diff"]
+    assert d["regressed_items"] == 1 and d["compared_items"] == 10
