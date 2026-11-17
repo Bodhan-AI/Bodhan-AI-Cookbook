@@ -1,5 +1,5 @@
 import json
-import subprocess
+import shutil
 import sys
 from pathlib import Path
 
@@ -12,7 +12,7 @@ def test_new_recipe_scaffolds_from_template(tmp_path, monkeypatch):
     fake_repo = tmp_path / "repo"
     (fake_repo / "examples").mkdir(parents=True)
     src = REPO / "examples" / "TEMPLATE"
-    subprocess.run(["cp", "-R", str(src), str(fake_repo / "examples" / "TEMPLATE")], check=True)
+    shutil.copytree(src, fake_repo / "examples" / "TEMPLATE")
     monkeypatch.setattr(new_recipe, "REPO", fake_repo)
     monkeypatch.setattr(new_recipe, "TEMPLATE", fake_repo / "examples" / "TEMPLATE")
 
