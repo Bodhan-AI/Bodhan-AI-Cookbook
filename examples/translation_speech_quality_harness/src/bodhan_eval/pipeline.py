@@ -5,7 +5,7 @@ import os
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from . import calibrate, config, dataset, report
+from . import calibrate, config, dataset, generate, report
 from . import checks_speech as cs
 from .cache import Cache
 from .checks_roundtrip import agreement, back_translation, regen_candidates, regenerate
@@ -69,6 +69,13 @@ def run(args, bodhan=None, llm=None, env=os.environ) -> int:
             res["checks_run"][name] = "error"
             log.event(kind="check_error", check=name, item=f"{item['id']}/{item['lang']}", error=repr(e)[:300])
         return None
+
+    if args.generate:
+        generate.fill(items, results, bodhan, out / "audio", run_check, args.concurrency, args.max_cost_inr)
+        for item, res in zip(items, results, strict=True):
+            made = [k for k, flag in (("translation", "generated"), ("audio", "audio_generated")) if item.get(flag)]
+            if made:
+                res["generated"] = made
 
     # Tier 1: code-only checks.
     with_tr = [i for i, it in enumerate(items) if it["translation"]]
