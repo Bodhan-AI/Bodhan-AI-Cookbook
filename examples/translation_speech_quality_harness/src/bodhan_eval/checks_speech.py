@@ -196,6 +196,23 @@ def transcribe_long(x: np.ndarray, sr: int, lang: str, bodhan, ctx=None) -> tupl
     return " ".join(p for p in pieces if p), info
 
 
+RECHECK_PAD_S = 1.5  # seconds around the estimated position: speaking rate varies within an utterance
+RECHECK_HEARD = 0.6  # share of the missing words heard in the cut for the omission to count as checker noise
+
+
+def recheck_omission(x: np.ndarray, sr: int, text: str, finding: dict, lang: str, bodhan, ctx=None) -> float:
+    """Transcribe only the stretch where the missing words should be (position estimated from the character offset,
+    since the API returns no timestamps). Returns the share of the missing words heard there."""
+    s, e = finding["span"]
+    dur = len(x) / sr
+    t0 = max(0.0, s / max(1, len(text)) * dur - RECHECK_PAD_S)
+    t1 = min(dur, e / max(1, len(text)) * dur + RECHECK_PAD_S)
+    piece = bodhan.transcribe(wav_bytes(x[int(t0 * sr):int(t1 * sr)], sr), lang, ctx=ctx)
+    heard = set(transcript_tokens(piece))
+    missing = finding["missing"]
+    return sum(w in heard for w in missing) / max(1, len(missing))
+
+
 # ---------------------------------------------------------------- alignment
 
 def _is_repeat(inserted: list[str], context: list[str]) -> bool:

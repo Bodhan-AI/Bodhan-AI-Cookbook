@@ -6,6 +6,8 @@
 3. Merge each flagged group into one flag: one category, one severity, the tightest trustworthy spans, all evidence.
 """
 
+import re
+
 SPAN_SIDE = "source"  # which side `span` reports; both sides are always written
 
 SPEECH = {"speech_omission", "speech_repetition", "garbled"}
@@ -138,3 +140,21 @@ def combine(candidates: list[dict], judge_verdict: str | None = None) -> tuple[s
     flags.sort(key=key)
     review.sort(key=key)
     return ("flagged" if flags else "review" if review else "clean"), flags, review, dropped
+
+
+_NEGATION = re.compile(r"\b(not|never|no|none|nothing|without|cannot|neither|nor)\b|n't\b", re.I)
+
+
+def adjust_severity(flag: dict, source: str, translation: str) -> dict:
+    """Code severity rules on top of the merged flag: a negation lost or altered is critical; an omission or
+    addition of a single word, with no judge severity, is minor."""
+    sv, tv = flag.get("source_span"), flag.get("translation_span")
+    src_text = source[sv[0]:sv[1]] if sv else ""
+    if flag["category"] in ("omission", "addition", "mistranslation") and _NEGATION.search(src_text):
+        flag["severity"], flag["severity_reason"] = "critical", "negation involved"
+        return flag
+    judged = any(e["class"] == "judge" for e in flag["evidence"])
+    text = src_text if flag["category"] == "omission" else (translation[tv[0]:tv[1]] if tv else "")
+    if flag["category"] in ("omission", "addition") and not judged and text and len(text.split()) == 1:
+        flag["severity"], flag["severity_reason"] = "minor", "a single word"
+    return flag

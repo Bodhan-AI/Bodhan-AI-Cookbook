@@ -9,9 +9,20 @@ from . import calibrate, config, dataset, generate, report
 from . import checks_speech as cs
 from .cache import Cache
 from .checks_roundtrip import agreement, back_translation, regen_candidates, regenerate
-from .checks_text import MIN_ITEMS_FOR_STATS, OUTLIER_Z, TEXT_CHECKS, chrf, length_candidates, reference_scores, robust_z
+from .checks_text import (
+    MIN_ITEMS_FOR_STATS,
+    OUTLIER_Z,
+    TEXT_CHECKS,
+    bleu,
+    chrf,
+    length_candidates,
+    numbers_with_backtranslation,
+    reference_scores,
+    robust_z,
+    stat_groups,
+)
 from .clients import KEY_ENV, LLM, Bodhan, Budget, NotRun, RunLog
-from .combine import SPAN_SIDE, combine
+from .combine import SPAN_SIDE, adjust_severity, combine
 from .judge import judge_item
 
 
@@ -105,6 +116,7 @@ def run(args, bodhan=None, llm=None, env=os.environ) -> int:
         if k in ref_scores:
             res["checks_run"]["reference"] = "ok"
             res["scores"]["chrf_ref"] = ref_scores[k]
+            res["scores"]["bleu_ref"] = bleu(items[i]["translation"], items[i]["reference"])
             res["_cands"] += ref_c.get(k, [])
         else:
             res["checks_run"]["reference"] = "not_applicable"
@@ -117,7 +129,7 @@ def run(args, bodhan=None, llm=None, env=os.environ) -> int:
         ctx = {"item": f"{item['id']}/{item['lang']}"}
         bt = run_check("back_translation", lambda: back_translation(item, bodhan, {**ctx, "check": "back_translation"}), item, res)
         if bt:
-            res["_cands"] += bt["candidates"]
+            res["_cands"] = numbers_with_backtranslation(item, bt["back_translation"], res["_cands"]) + bt["candidates"]
             res["round_trip"] = {"back_translation": bt["back_translation"]}
             res["scores"]["chrf_backtranslation"] = chrf(bt["back_translation"], item["source"])
         if item.get("generated"):
@@ -144,7 +156,7 @@ def run(args, bodhan=None, llm=None, env=os.environ) -> int:
         results[i]["_fresh"] = rg["fresh"]  # for the judge; not written to the report
 
     # Tier 2: speech. Audio statistics need no model; the transcript comparison needs Indic-Transcribe.
-    rates = []
+    rates, ends, sims = [], [], []
 
     def speech(i):
         item, res = items[i], results[i]
@@ -173,21 +185,51 @@ def run(args, bodhan=None, llm=None, env=os.environ) -> int:
             res["checks_run"]["transcript"] = "not_run: audio is silent"  # nothing to transcribe; don't pay for it
             return
         rates.append((i, st["voiced_s"] / max(1, cs.spoken_chars(item["translation"])), True))
+        ends.append((i, st["end_energy"]))
         tr = run_check("transcript", lambda: cs.transcribe_long(x, sr, item["lang"], bodhan, ctx), item, res)
         if tr:
             al = cs.align(item["translation"], tr[0])
+            for f in [f for f in al["findings"] if f["shape"] == "omission" and f["span"]]:
+                # Re-check: transcribe only the stretch where the missing words should be. Heard there means the
+                # long transcript lost them (checker noise), not the speech.
+                try:
+                    heard = cs.recheck_omission(x, sr, item["translation"], f, item["lang"], bodhan, {**ctx, "check": "transcript_recheck"})
+                except NotRun:
+                    continue
+                if heard >= cs.RECHECK_HEARD:
+                    al["findings"].remove(f)
+                    res["_speech_noise"] = res.get("_speech_noise", 0) + 1
             res["_cands"] += cs.align_candidates(al, st)
             res["scores"]["speech_similarity"] = al["similarity"]
             res["audio"]["transcript"] = tr[0]
+            sims.append((i, al["similarity"], bool(al["findings"])))
 
     with ThreadPoolExecutor(max_workers=max(1, args.concurrency)) as pool:
         list(pool.map(speech, range(len(items))))
+    sim_lang = {}
+    for i, sim, shaped in sims:
+        sim_lang.setdefault(items[i]["lang"], []).append((i, sim, shaped))
+    for rows in stat_groups(sim_lang).values():
+        rows = sorted(rows)
+        for (i, sim, shaped), z in zip(rows, robust_z([r[1] for r in rows]), strict=True):
+            if z <= -OUTLIER_Z and not shaped:  # far below this language's own checker noise, with no clear shape
+                results[i]["_cands"].append(cs.cand("transcript", "garbled", "noisy", min(1.0, -z / 6), detail=(
+                    "transcript far below this language's usual similarity"), similarity=sim, z=round(z, 2)))
     by_lang = {}
     for i, r, ok in rates:
         by_lang.setdefault(items[i]["lang"], []).append((i, r, ok))
-    for rows in by_lang.values():
+    for rows in stat_groups(by_lang).values():
         for i, c in cs.speaking_rate_candidates(sorted(rows), robust_z, MIN_ITEMS_FOR_STATS, OUTLIER_Z).items():
             results[i]["_cands"] += c
+    end_lang = {}
+    for i, e in ends:
+        end_lang.setdefault(items[i]["lang"], []).append((i, e))
+    for rows in stat_groups(end_lang).values():
+        rows = sorted(rows)
+        for (i, _), z in zip(rows, robust_z([e for _, e in rows]), strict=True):
+            if z >= OUTLIER_Z:  # loud to the last frame: speech cut off rather than ending
+                results[i]["_cands"].append(cs.cand("audio_stats", "speech_omission", "weak", min(1.0, z / 6),
+                                                    detail="audio ends abruptly", z=round(z, 2)))
 
     # Tier 3: the judge, for meaning. Code candidates are passed in as hints for it to confirm or reject.
     def tier3(i):
@@ -216,6 +258,7 @@ def run(args, bodhan=None, llm=None, env=os.environ) -> int:
     warnings += label_warnings
     thresholds = calibrate.fit_thresholds(results, labels)
     noise = 0
+    items_by_key = {(it["id"], it["lang"]): it for it in items}
     for res in results:
         if not any(v == "ok" for v in res["checks_run"].values()):
             res["status"] = "unscored"
@@ -223,6 +266,10 @@ def run(args, bodhan=None, llm=None, env=os.environ) -> int:
             j = res.get("judge") or {}
             verdict = "clean" if j.get("pass1") == "clean" and j.get("pass2") in (None, "clean") else None
             res["status"], res["flags"], res["review"], dropped = combine(calibrate.apply(res["_cands"], thresholds), verdict)
+            it = items_by_key[(res["id"], res["lang"])]
+            for f in res["flags"] + res["review"]:
+                adjust_severity(f, it["source"], it["translation"] or "")
+            dropped += res.get("_speech_noise", 0)
             if dropped:
                 res["dropped_as_noise"] = dropped
                 noise += dropped

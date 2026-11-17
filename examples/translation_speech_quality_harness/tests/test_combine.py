@@ -106,3 +106,16 @@ def test_span_comes_from_the_flags_own_category():
          cand("numbers", "number", "noisy", 0.5, None, (30, 32))]
     f = merge(g)
     assert f["category"] == "addition" and tuple(f["translation_span"]) == (10, 60)
+
+
+def test_severity_rules_negation_and_single_word():
+    from bodhan_eval.combine import adjust_severity
+
+    src = "Children must not take this dose."
+    n = src.index("not")
+    f = {"category": "omission", "severity": "major", "source_span": [n, n + 3], "translation_span": None, "evidence": [{"class": "noisy"}]}
+    assert adjust_severity(dict(f), src, "x")["severity"] == "critical"
+    word = {**f, "source_span": [0, 8]}
+    assert adjust_severity(dict(word), src, "x")["severity"] == "minor"
+    judged = {**word, "evidence": [{"class": "judge"}]}
+    assert adjust_severity(dict(judged), src, "x")["severity"] == "major"

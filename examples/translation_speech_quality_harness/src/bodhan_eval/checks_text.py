@@ -125,6 +125,21 @@ def _equivalent(a, b) -> bool:
     return False
 
 
+_DOSE_UNITS = {"mg", "ml", "g"}
+_MONTHS = re.compile(r"\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\b", re.I)
+
+
+def _number_severity(source: str, n: dict) -> str:
+    """Critical when a changed number is a dose, an amount of money or part of a date: acting on it can cause harm."""
+    if n["currency"] or n["unit"] in _DOSE_UNITS:
+        return "critical"
+    v = n["value"]
+    year = isinstance(v, Decimal) and v == v.to_integral_value() and 1000 <= v <= 2100 and len(n["token"]) == 4
+    if year or _MONTHS.search(source[max(0, n["span"][0] - 12):n["span"][1] + 12]):
+        return "critical"
+    return "major"
+
+
 def check_numbers(item) -> list[dict]:
     src, tr = numbers_in(item["source"]), numbers_in(item["translation"])
     src_words = word_numbers(item["source"])
@@ -151,7 +166,7 @@ def check_numbers(item) -> list[dict]:
     unmatched_tr = [t for j, t in enumerate(tr) if j not in used and not any(_equivalent(w, t["value"]) for w in src_words)]
     # Pair leftovers in reading order: a source number replaced by a different number in the translation.
     for s, t in zip(unmatched_src, unmatched_tr, strict=False):
-        cands.append(cand("numbers", "number", "exact", 0.9, s["span"], t["span"], "major",
+        cands.append(cand("numbers", "number", "exact", 0.9, s["span"], t["span"], _number_severity(item["source"], s),
                           detail="number changed", source=s["token"], translation=t["token"]))
     for s in unmatched_src[len(unmatched_tr):]:
         cands.append(cand("numbers", "number", "noisy", 0.4, s["span"], None, "major",
@@ -160,6 +175,50 @@ def check_numbers(item) -> list[dict]:
         cands.append(cand("numbers", "number", "noisy", 0.5, None, t["span"], "major",
                           detail="number in the translation with no counterpart in the source", translation=t["token"]))
     return cands
+
+
+# English unit words, for units the translation spells out: compared through the back-translation.
+_UNIT_WORDS = {"celsius": "°C", "centigrade": "°C", "fahrenheit": "°F", "percent": "%", "kilograms": "kg", "kilogram": "kg",
+               "grams": "g", "gram": "g", "milligrams": "mg", "milligram": "mg", "kilometres": "km", "kilometre": "km",
+               "kilometers": "km", "kilometer": "km", "metres": "m", "metre": "m", "meters": "m", "meter": "m",
+               "centimetres": "cm", "centimeters": "cm", "millimetres": "mm", "millimeters": "mm", "millilitres": "ml",
+               "milliliters": "ml", "litres": "l", "litre": "l", "liters": "l", "liter": "l", "hours": "h", "hour": "h",
+               "minutes": "min", "minute": "min", "seconds": "s", "second": "s"}
+_UNIT_WORD_AFTER = re.compile(r"\s*(?:degrees?\s+|per\s+)?([a-z]+)")
+
+
+def _unit_in_english(text: str, pos: int) -> str | None:
+    m = _UNIT_WORD_AFTER.match(text.lower(), pos)
+    word = m.group(1) if m else ""
+    if word == "cent" and "per" in text.lower()[pos:m.end()]:
+        return "%"
+    return _UNIT_WORDS.get(word)
+
+
+def numbers_with_backtranslation(item, back: str, cands: list[dict]) -> list[dict]:
+    """Second look with the English back-translation. A source number missing as digits but present in the
+    back-translation (spelled as a word in the translation) is not a candidate. A unit the translation spells out is
+    compared through the back-translation."""
+    src = numbers_in(item["source"])
+    bt = numbers_in(back)
+    bt_values = {n["value"] for n in bt} | set(word_numbers(back))
+    out = []
+    for c in cands:
+        if c["check"] == "numbers" and c["class"] == "noisy" and c["source_span"] and c["translation_span"] is None:
+            s = next((n for n in src if tuple(n["span"]) == tuple(c["source_span"])), None)
+            if s and any(_equivalent(s["value"], v) for v in bt_values):
+                continue  # the number survives the round trip: written as a word in the translation
+        out.append(c)
+    tr_units = {n["value"]: n["unit"] for n in numbers_in(item["translation"])}
+    for s in src:
+        if not s["unit"] or tr_units.get(s["value"], "missing") is not None:
+            continue  # no unit in the source, or the translation writes a unit symbol (compared exactly already)
+        b = next((n for n in bt if n["value"] == s["value"]), None)
+        unit = (b["unit"] or _unit_in_english(back, b["span"][1])) if b else None
+        if unit and unit != s["unit"] and not (unit[0] == s["unit"][0] == "°" and "°" in (unit, s["unit"])):
+            out.append(cand("numbers", "number", "noisy", 0.6, s["span"], None, "major", detail="unit changed (seen in the back-translation)",
+                            source=f"{s['token']} {s['unit']}", back_translation=f"{b['token']} {unit}"))
+    return out
 
 
 # ---------------------------------------------------------------- format
@@ -323,6 +382,24 @@ def length_ratio(item) -> float | None:
     return math.log(t / s) if s and t else None
 
 
+def stat_groups(by_lang: dict[str, list]) -> dict[str, list]:
+    """Groups for in-run statistics: each language with enough items, plus the small languages pooled together
+    ("pooled:mr+te") when they reach the minimum between them. Smaller remainders get no statistics."""
+    groups = {lang: rows for lang, rows in sorted(by_lang.items()) if len(rows) >= MIN_ITEMS_FOR_STATS}
+    small = sorted(lang for lang, rows in by_lang.items() if len(rows) < MIN_ITEMS_FOR_STATS)
+    pooled = [x for lang in small for x in by_lang[lang]]
+    if small and len(pooled) >= MIN_ITEMS_FOR_STATS:
+        groups["pooled:" + "+".join(small)] = pooled
+    return groups
+
+
+def bleu(hypothesis: str, reference: str) -> float:
+    """Sentence BLEU on normalized text, 0-100, reported beside chrF++ (BLEU is unstable on short Indic sentences)."""
+    from sacrebleu.metrics import BLEU
+
+    return round(BLEU(effective_order=True).sentence_score(normalize(hypothesis)[0], [normalize(reference)[0]]).score, 2)
+
+
 def length_candidates(items: list[dict]) -> tuple[dict[int, list[dict]], set[str]]:
     """Per-language outliers of the translation/source length ratio. Weak evidence: supports, never flags.
     Returns candidates by item index and the languages that had enough items to compute statistics."""
@@ -331,15 +408,14 @@ def length_candidates(items: list[dict]) -> tuple[dict[int, list[dict]], set[str
         r = length_ratio(it)
         if r is not None:
             by_lang.setdefault(it["lang"], []).append((i, r))
-    for _lang, rows in by_lang.items():
-        if len(rows) < MIN_ITEMS_FOR_STATS:
-            continue
+    groups = stat_groups(by_lang)
+    for rows in groups.values():
         for (i, _), z in zip(rows, robust_z([r for _, r in rows]), strict=True):
             if z <= -OUTLIER_Z:
                 out[i] = [cand("length", "omission", "weak", min(1.0, -z / 6), detail="translation much shorter than usual", z=round(z, 2))]
             elif z >= OUTLIER_Z:
                 out[i] = [cand("length", "addition", "weak", min(1.0, z / 6), detail="translation much longer than usual", z=round(z, 2))]
-    return out, {lang for lang, rows in by_lang.items() if len(rows) >= MIN_ITEMS_FOR_STATS}
+    return out, {lang for g in groups for lang in g.removeprefix("pooled:").split("+")}
 
 
 def chrf(hypothesis: str, reference: str) -> float:
@@ -356,9 +432,7 @@ def reference_scores(items: list[dict]) -> tuple[dict[int, float], dict[int, lis
         if it.get("reference") and it.get("translation"):
             scores[i] = chrf(it["translation"], it["reference"])
             by_lang.setdefault(it["lang"], []).append(i)
-    for _lang, idx in by_lang.items():
-        if len(idx) < MIN_ITEMS_FOR_STATS:
-            continue
+    for idx in stat_groups(by_lang).values():
         for i, z in zip(idx, robust_z([scores[i] for i in idx]), strict=False):
             if z <= -OUTLIER_Z:
                 cands[i] = [cand("reference", "mistranslation", "noisy", min(1.0, -z / 6),

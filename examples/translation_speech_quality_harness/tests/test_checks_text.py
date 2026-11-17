@@ -175,3 +175,45 @@ def test_bare_degree_matches_spelled_out_celsius():
 def test_name_kept_in_latin_is_not_untranslated():
     src = "The Tierra del Sol Gallery is located at 7414 Santa Monica Blvd."
     assert not [c for c in check_script(item(src, "Tierra del Sol Gallery- ৭৪১৪ সান্তা মনিকা ব্লুভডে অবস্থিত।", "bn")) if c["class"] == "exact"]
+
+
+def test_number_spelled_out_is_confirmed_by_back_translation():
+    from bodhan_eval.checks_text import numbers_with_backtranslation
+
+    it = item("Mix 3 cups of flour.", "आटे के तीन कप मिलाएं।", "hi")
+    c = check_numbers(it)
+    assert c and c[0]["class"] == "noisy"
+    assert numbers_with_backtranslation(it, "Mix three cups of flour.", c) == []
+    assert numbers_with_backtranslation(it, "Mix four cups of flour.", c) == c
+
+
+def test_unit_spelled_out_is_compared_through_back_translation():
+    from bodhan_eval.checks_text import numbers_with_backtranslation
+
+    it = item("Water boils at 100 °C.", "पानी 100 डिग्री फ़ारेनहाइट पर उबलता है।", "hi")
+    got = numbers_with_backtranslation(it, "Water boils at 100 degrees Fahrenheit.", check_numbers(it))
+    assert [c["evidence"]["detail"] for c in got] == ["unit changed (seen in the back-translation)"]
+    assert numbers_with_backtranslation(it, "Water boils at 100 degrees Celsius.", check_numbers(it)) == []
+
+
+def test_small_languages_are_pooled_for_statistics():
+    from bodhan_eval.checks_text import MIN_ITEMS_FOR_STATS, stat_groups
+
+    n = MIN_ITEMS_FOR_STATS
+    g = stat_groups({"hi": [1] * n, "mr": [2] * (n // 2), "te": [3] * (n - n // 2), "ur": []})
+    assert set(g) == {"hi", "pooled:mr+te+ur"} and len(g["pooled:mr+te+ur"]) == n
+    assert stat_groups({"mr": [1]}) == {}
+
+
+def test_bleu_reported():
+    from bodhan_eval.checks_text import bleu
+
+    assert bleu("नीरु उबलता है", "नीरु उबलता है") == 100.0
+
+
+def test_changed_dose_money_or_date_is_critical():
+    sev = lambda s, t: exact(check_numbers(item(s, t)))[0]["severity_hint"]  # noqa: E731
+    assert sev("Take 500 mg twice.", "x 800 mg y") == "critical"
+    assert sev("It costs ₹1,200 now.", "x ₹1,500 y") == "critical"
+    assert sev("Opened on 24 December 2002.", "x 24 y 2003 z") == "critical"
+    assert sev("About 393 km of track.", "x 395 km y") == "major"
