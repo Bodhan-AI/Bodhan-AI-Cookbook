@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bodhan-tool-agent"
+version = "0.1.0"
+description = "Standalone stdio MCP server and unattended CLI task agent for Bodhan AI"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [{name = "Bharadwaj Mittapelli"}]
+dependencies = [
+    "mcp==1.20.0",
+    "openai==1.51.0",
+    "pydantic==2.10.6",
+    "pydantic-settings==2.7.1",
+    "httpx==0.28.1",
+    "aiohttp==3.9.5",
+    "pypdfium2==0.1.5",
+    "Pillow==10.4.0",
+    "python-dotenv==1.0.1",
+    "requests==2.32.3",
+]
+
+[project.scripts]
+bodhan-mcp = "bodhan_mcp.__main__:main"
+bodhan-agent = "bodhan_agent.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 88
+select = ["E", "F", "W"]
