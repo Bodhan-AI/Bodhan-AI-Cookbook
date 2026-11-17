@@ -423,7 +423,11 @@ def write_reports(
     # variants were made from. Any flag on them is a false alarm or a real defect in the
     # original output, so their flag rate is an upper bound on the false-alarm rate.
     injected_pairs = {(r.item.source, r.item.lang) for r in results if r.item.label_origin == "injected"}
-    control_rows = [row for row, r in zip(rows, results) if r.item.labels is None and (r.item.source, r.item.lang) in injected_pairs and row["status"] != "unscored"]
+    control_rows = [
+        row
+        for row, r in zip(rows, results, strict=True)
+        if r.item.labels is None and (r.item.source, r.item.lang) in injected_pairs and row["status"] != "unscored"
+    ]
     control_flags = Counter(flag["category"] for row in control_rows for flag in row["flags"])
     check_failures = Counter(
         f"{name}: {value.get('code') or value['status']}"
