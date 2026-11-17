@@ -1,4 +1,5 @@
 import json
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -169,3 +170,28 @@ def test_all_shipped_recipes_pass():
         require_env = root.parent.name not in NO_ENV_EXAMPLE
         findings = run_all(root, require_env_example=require_env)
         assert not has_errors(findings), [str(f) for f in findings]
+
+
+def test_native_android_recipe_uses_in_app_credentials(tmp_path):
+    root = tmp_path / "android"
+    main = root / "app" / "src" / "main"
+    main.mkdir(parents=True)
+    (root / "README.md").write_text("# Android\n\n## Setup\n\n## Run\n")
+    (root / ".gitignore").write_text(".env\n")
+    (main / "AndroidManifest.xml").write_text("<manifest />")
+    kotlin = main / "Main.kt"
+    kotlin.write_text('val model = "indic-translate"\n')
+    assert not has_errors(run_all(root))
+    kotlin.write_text(f'val key = "{FAKE_SK}"\n')
+    assert has_errors(check_security(root))
+    kotlin.write_text('val model = "bodhan-mt"\n')
+    assert has_errors(check_api(root))
+
+
+def test_security_ignores_local_env_but_catches_force_tracked_env(tmp_path):
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    (tmp_path / ".gitignore").write_text(".env\n")
+    (tmp_path / ".env").write_text("BODHAN_API_KEY=<your key>\n")
+    assert not has_errors(check_security(tmp_path))
+    subprocess.run(["git", "-C", str(tmp_path), "add", "-f", ".env"], check=True)
+    assert has_errors(check_security(tmp_path))
