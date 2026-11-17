@@ -113,6 +113,23 @@ def test_external_labels_preserve_the_injected_mutation(tmp_path):
     assert reviewed.seed_labels[0].category == "number"
 
 
+def test_blind_review_packet_round_trip(tmp_path):
+    """Hide mutation identity while accepting the reviewer's opaque ID."""
+    from bodhan_eval.demo import review_rows
+
+    row = {"id": "measurement-number", "lang": "hi", "source": "Take 5 steps.", "translation": "6 कदम चलें।", "label_origin": "injected"}
+    [entry] = review_rows([row])
+    assert set(entry) == {"review_id", "lang", "source", "translation"}
+    assert row["id"] not in entry["review_id"]
+    path = tmp_path / "review.jsonl"
+    path.write_text(json.dumps({"review_id": entry["review_id"], "labels": [], "annotator": "reviewer-01"}) + "\n", encoding="utf-8")
+
+    [reviewed], errors = apply_external_labels([parse_item(row, 1)], path)
+    assert not errors
+    assert reviewed.labels == ()
+    assert (reviewed.label_origin, reviewed.annotator) == ("human", "reviewer-01")
+
+
 def test_baseline_shows_resolved_and_new_quality_findings(tmp_path):
     """Compare two complete runs of the deterministic numeric check on the same keys."""
 

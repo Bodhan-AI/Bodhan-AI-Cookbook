@@ -12,12 +12,18 @@ from .schema import CATEGORIES, SPEECH_CATEGORIES, Evaluation, Finding, Item, La
 DEFAULT_THRESHOLD = 0.72
 
 
+def review_id(lang: str, item_id: str) -> str:
+    """Return a stable review ID that hides the category in an injected item ID."""
+    return digest(f"{lang}:{item_id}".encode())[:16]
+
+
 def apply_external_labels(
     items: list[Item],
     path: Path,
 ) -> tuple[list[Item], list[dict]]:
     """Read external human labels by ID and language, retaining parse errors."""
     by_key = {item.key: item for item in items}
+    by_review_id = {review_id(item.lang, item.id): item.key for item in items}
     source_splits = explicit_source_splits(items)
     by_id: dict[str, list] = {}
     for item in items:
@@ -27,13 +33,19 @@ def apply_external_labels(
     for line, row, error in read_jsonl(path):
         if error is None:
             try:
-                item_id, lang = row.get("id"), row.get("lang")
-                if not isinstance(item_id, str) or (lang is not None and not isinstance(lang, str)):
-                    raise ValueError("calibration row requires an id and an optional language code")
-                matches = by_id.get(item_id, [])
-                if lang is None and len(matches) > 1:
-                    raise ValueError("lang is required for an id shared across languages")
-                key = (item_id, lang.lower()) if lang is not None else (matches[0].key if matches else None)
+                opaque_id = row.get("review_id")
+                if opaque_id is not None:
+                    if not isinstance(opaque_id, str) or "id" in row:
+                        raise ValueError("review_id must be a string and can replace id")
+                    key = by_review_id.get(opaque_id)
+                else:
+                    item_id, lang = row.get("id"), row.get("lang")
+                    if not isinstance(item_id, str) or (lang is not None and not isinstance(lang, str)):
+                        raise ValueError("calibration row requires an id and an optional language code")
+                    matches = by_id.get(item_id, [])
+                    if lang is None and len(matches) > 1:
+                        raise ValueError("lang is required for an id shared across languages")
+                    key = (item_id, lang.lower()) if lang is not None else (matches[0].key if matches else None)
                 if key not in by_key:
                     raise ValueError("calibration row does not match a selected dataset item")
                 if key in updated:

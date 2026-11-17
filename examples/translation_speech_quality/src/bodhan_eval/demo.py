@@ -17,6 +17,7 @@ from dotenv import load_dotenv
 
 from .__main__ import money, positive
 from .audio_checks import SAMPLE_RATE, decode_audio, pcm_wav
+from .calibration import review_id
 from .providers import MICRO_INR, CallError, Providers, digest
 from .report import write_jsonl
 from .schema import CATEGORIES, read_jsonl
@@ -153,6 +154,18 @@ def controls_from_report(report: Path, output: Path) -> list[dict]:
     return controls
 
 
+def review_rows(rows: list[dict]) -> list[dict]:
+    """Export source context and candidate media without revealing the seed or row order."""
+    candidates = [
+        {
+            "review_id": review_id(row["lang"], row["id"]),
+            **{key: row[key] for key in ("lang", "source", "translation", "audio") if key in row},
+        }
+        for row in rows
+    ]
+    return sorted(candidates, key=lambda row: row["review_id"])
+
+
 async def inject(args: argparse.Namespace) -> None:
     """Produce a demo dataset with bounded per-category examples and a review manifest."""
     args.out.mkdir(parents=True, exist_ok=True)
@@ -210,10 +223,7 @@ async def inject(args: argparse.Namespace) -> None:
                 language_counts[f"{lang}:{category}"] = count
     write_jsonl(args.out / "demo.jsonl", [*controls, *variants])
     write_jsonl(args.out / "comparison_controls.jsonl", [*controls, *comparison])
-    write_jsonl(
-        args.out / "review_candidates.jsonl",
-        [{key: row[key] for key in ("id", "lang", "source", "translation", "audio") if key in row} for row in [*controls, *variants]],
-    )
+    write_jsonl(args.out / "review_candidates.jsonl", review_rows([*controls, *variants]))
     print(json.dumps({"controls": len(controls), "injected": len(variants), "injected_by_language_and_category": language_counts}))
 
 
