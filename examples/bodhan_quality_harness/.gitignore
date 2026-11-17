@@ -1,0 +1,10 @@
+.env
+.cache/
+outputs/*
+!outputs/.gitkeep
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+report/
+*.wav
