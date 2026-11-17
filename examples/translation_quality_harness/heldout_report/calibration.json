@@ -1,0 +1,165 @@
+{
+  "dataset": {
+    "clean_items": 30,
+    "counts": {
+      "clean": 30,
+      "correct_category": 21,
+      "detected": 21,
+      "detected_with_span": 21,
+      "false_alarms": 1,
+      "labels": 30,
+      "localized": 19,
+      "with_span": 30
+    },
+    "headline": {
+      "category_accuracy": 1.0,
+      "detection_recall": 0.7,
+      "false_alarm_rate": 0.0333,
+      "localization": 0.9048,
+      "localization_recall": 0.6333
+    },
+    "judge": {
+      "confirmed_flags": 0,
+      "confirmed_precision": null,
+      "confirmed_true": 0,
+      "judge_only_flags": 0,
+      "judge_only_precision": null,
+      "judge_only_true": 0,
+      "rejected_but_labeled": 0,
+      "rejected_candidates": 0,
+      "rejection_error_rate": null
+    },
+    "labeled_items": 60,
+    "per_category": {
+      "addition": {
+        "detection_recall": 1.0,
+        "f1": 0.8889,
+        "flags": 5,
+        "labels": 4,
+        "precision": 0.8,
+        "recall": 1.0
+      },
+      "format": {
+        "detection_recall": 1.0,
+        "f1": 0.3636,
+        "flags": 9,
+        "labels": 4,
+        "precision": 0.2222,
+        "recall": 1.0
+      },
+      "mistranslation": {
+        "detection_recall": 0.0,
+        "f1": 0.0,
+        "flags": 0,
+        "labels": 4,
+        "precision": null,
+        "recall": 0.0
+      },
+      "number": {
+        "detection_recall": 1.0,
+        "f1": 1.0,
+        "flags": 4,
+        "labels": 4,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "omission": {
+        "detection_recall": 0.6,
+        "f1": 0.6667,
+        "flags": 4,
+        "labels": 5,
+        "precision": 0.75,
+        "recall": 0.6
+      },
+      "term": {
+        "detection_recall": 0.5,
+        "f1": 0.6667,
+        "flags": 2,
+        "labels": 4,
+        "precision": 1.0,
+        "recall": 0.5
+      },
+      "wrong_language": {
+        "detection_recall": 0.8,
+        "f1": 0.8,
+        "flags": 5,
+        "labels": 5,
+        "precision": 0.8,
+        "recall": 0.8
+      }
+    },
+    "per_check": {
+      "back_translation": {
+        "flags": 9,
+        "precision": 0.7778
+      },
+      "format": {
+        "flags": 9,
+        "precision": 0.2222
+      },
+      "latin_terms": {
+        "flags": 2,
+        "precision": 1.0
+      },
+      "length_ratio": {
+        "flags": 8,
+        "precision": 0.875
+      },
+      "numbers": {
+        "flags": 4,
+        "precision": 1.0
+      },
+      "script_language": {
+        "flags": 5,
+        "precision": 0.8
+      }
+    },
+    "per_language": {
+      "mr": {
+        "category_accuracy": 1.0,
+        "clean": 18,
+        "detection_recall": 0.5833,
+        "false_alarm_rate": 0.0556,
+        "labels": 12,
+        "localization": 1.0,
+        "localization_recall": 0.5833
+      },
+      "te": {
+        "category_accuracy": 1.0,
+        "clean": 12,
+        "detection_recall": 0.7778,
+        "false_alarm_rate": 0.0,
+        "labels": 18,
+        "localization": 0.8571,
+        "localization_recall": 0.6667
+      }
+    },
+    "seeded_errors": 30
+  },
+  "judge_consistency": null,
+  "notes": "Metrics are computed from labels; 'dataset' uses labels inside --dataset and 'calibration_set' uses --calibration. Thresholds are tuned only on the calibration set.",
+  "thresholds_after": {
+    "addition": 0.4225,
+    "format": 0.5,
+    "mistranslation": 0.5,
+    "number": 0.575,
+    "omission": 0.4345,
+    "speech_garbled": 0.5,
+    "speech_omission": 0.5,
+    "speech_repetition": 0.5,
+    "term": 0.5,
+    "wrong_language": 0.5
+  },
+  "thresholds_before": {
+    "addition": 0.4225,
+    "format": 0.5,
+    "mistranslation": 0.5,
+    "number": 0.575,
+    "omission": 0.4345,
+    "speech_garbled": 0.5,
+    "speech_omission": 0.5,
+    "speech_repetition": 0.5,
+    "term": 0.5,
+    "wrong_language": 0.5
+  }
+}

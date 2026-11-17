@@ -1,0 +1,80 @@
+{
+  "headline": {
+    "compared": 120,
+    "improved": 0,
+    "only_in_baseline": 0,
+    "only_in_current": 0,
+    "outputs_changed": 0,
+    "regressed": 0,
+    "unchanged": 120
+  },
+  "improvements": [],
+  "per_category": {
+    "addition": {
+      "baseline_flags": 7,
+      "delta": 0,
+      "flags": 7
+    },
+    "format": {
+      "baseline_flags": 19,
+      "delta": 0,
+      "flags": 19
+    },
+    "number": {
+      "baseline_flags": 8,
+      "delta": 0,
+      "flags": 8
+    },
+    "omission": {
+      "baseline_flags": 7,
+      "delta": 0,
+      "flags": 7
+    },
+    "speech_garbled": {
+      "baseline_flags": 3,
+      "delta": 0,
+      "flags": 3
+    },
+    "speech_omission": {
+      "baseline_flags": 3,
+      "delta": 0,
+      "flags": 3
+    },
+    "speech_repetition": {
+      "baseline_flags": 1,
+      "delta": 0,
+      "flags": 1
+    },
+    "term": {
+      "baseline_flags": 3,
+      "delta": 0,
+      "flags": 3
+    },
+    "wrong_language": {
+      "baseline_flags": 4,
+      "delta": 0,
+      "flags": 4
+    }
+  },
+  "per_language": {
+    "bn": {
+      "baseline_flag_rate": 0.425,
+      "baseline_penalty_per_item": 3.0,
+      "flag_rate": 0.425,
+      "penalty_per_item": 3.0
+    },
+    "hi": {
+      "baseline_flag_rate": 0.425,
+      "baseline_penalty_per_item": 2.625,
+      "flag_rate": 0.425,
+      "penalty_per_item": 2.625
+    },
+    "ta": {
+      "baseline_flag_rate": 0.35,
+      "baseline_penalty_per_item": 2.0,
+      "flag_rate": 0.35,
+      "penalty_per_item": 2.0
+    }
+  },
+  "regressions": []
+}

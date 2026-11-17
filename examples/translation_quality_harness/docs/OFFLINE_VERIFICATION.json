@@ -1,0 +1,26 @@
+{
+  "baseline": {
+    "compared": 120,
+    "improved": 0,
+    "only_in_baseline": 0,
+    "only_in_current": 0,
+    "outputs_changed": 0,
+    "regressed": 0,
+    "unchanged": 120
+  },
+  "bodhan_spend_inr": 0,
+  "deterministic_files": [
+    "items.jsonl",
+    "calibration_items.jsonl",
+    "summary.md",
+    "summary.json",
+    "calibration.json",
+    "dashboard.html",
+    "review_queue.csv",
+    "thresholds.json"
+  ],
+  "identical": true,
+  "judge_calls": 0,
+  "model_requests": 0,
+  "tests_passed": 121
+}

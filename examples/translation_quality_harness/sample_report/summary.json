@@ -1,0 +1,324 @@
+{
+  "bad_rows": [],
+  "baseline_diff": null,
+  "checks": {
+    "audio_signal": {
+      "ok": 18
+    },
+    "back_transcription": {
+      "ok": 18
+    },
+    "back_translation": {
+      "ok": 120
+    },
+    "format": {
+      "ok": 48,
+      "skipped": 72
+    },
+    "latin_terms": {
+      "ok": 120
+    },
+    "length_ratio": {
+      "ok": 120
+    },
+    "llm_judge": {
+      "skipped": 120
+    },
+    "numbers": {
+      "ok": 120
+    },
+    "reference_chrf": {
+      "skipped": 120
+    },
+    "script_language": {
+      "error": 17,
+      "ok": 103
+    }
+  },
+  "config": {
+    "baseline": null,
+    "bodhan_models_available": {
+      "indic-speak": true,
+      "indic-transcribe": true,
+      "indic-translate": true
+    },
+    "calibration": "data/calibration.jsonl",
+    "dataset": "data/demo.jsonl",
+    "generate": false,
+    "harness_version": "0.1.0",
+    "judge_policy": "off",
+    "judge_votes": 1,
+    "langs": [
+      "hi",
+      "ta",
+      "bn"
+    ],
+    "llm_model": null,
+    "max_cost_inr": 0.0,
+    "offline": true,
+    "rubric_version": "mqm-v4"
+  },
+  "cost": {
+    "attributed_inr": {
+      "indic-transcribe": 0.3222,
+      "indic-translate": 0.2089
+    },
+    "note": "attributed = cost of every Bodhan output this report used, whether paid now or read from cache",
+    "per_100_items_inr": {
+      "speech": 1.79,
+      "text_checks": 0.0995
+    },
+    "total_inr": 0.5311
+  },
+  "items": {
+    "by_content_type": {
+      "latex": 12,
+      "markdown": 29,
+      "markdown+latex": 7,
+      "text": 72
+    },
+    "clean": 72,
+    "evaluated": 120,
+    "failed": 0,
+    "filtered_by_lang": 0,
+    "flagged": 48,
+    "rows_rejected": 0,
+    "scored": 120,
+    "skipped": 0
+  },
+  "judge_consistency": null,
+  "per_category": {
+    "addition": {
+      "area": "translation",
+      "by_language": {
+        "bn": 4,
+        "hi": 1,
+        "ta": 2
+      },
+      "by_severity": {
+        "major": 7
+      },
+      "flags": 7,
+      "items": 7
+    },
+    "format": {
+      "area": "translation",
+      "by_language": {
+        "bn": 7,
+        "hi": 3,
+        "ta": 9
+      },
+      "by_severity": {
+        "major": 19
+      },
+      "flags": 19,
+      "items": 16
+    },
+    "mistranslation": {
+      "area": "translation",
+      "by_language": {},
+      "by_severity": {},
+      "flags": 0,
+      "items": 0
+    },
+    "number": {
+      "area": "translation",
+      "by_language": {
+        "bn": 2,
+        "hi": 4,
+        "ta": 2
+      },
+      "by_severity": {
+        "major": 8
+      },
+      "flags": 8,
+      "items": 8
+    },
+    "omission": {
+      "area": "translation",
+      "by_language": {
+        "bn": 3,
+        "hi": 3,
+        "ta": 1
+      },
+      "by_severity": {
+        "critical": 3,
+        "major": 4
+      },
+      "flags": 7,
+      "items": 7
+    },
+    "speech_garbled": {
+      "area": "speech",
+      "by_language": {
+        "hi": 2,
+        "ta": 1
+      },
+      "by_severity": {
+        "major": 3
+      },
+      "flags": 3,
+      "items": 3
+    },
+    "speech_omission": {
+      "area": "speech",
+      "by_language": {
+        "bn": 2,
+        "hi": 1
+      },
+      "by_severity": {
+        "critical": 3
+      },
+      "flags": 3,
+      "items": 3
+    },
+    "speech_repetition": {
+      "area": "speech",
+      "by_language": {
+        "hi": 1
+      },
+      "by_severity": {
+        "major": 1
+      },
+      "flags": 1,
+      "items": 1
+    },
+    "term": {
+      "area": "translation",
+      "by_language": {
+        "bn": 1,
+        "hi": 2
+      },
+      "by_severity": {
+        "major": 3
+      },
+      "flags": 3,
+      "items": 3
+    },
+    "wrong_language": {
+      "area": "translation",
+      "by_language": {
+        "bn": 2,
+        "hi": 1,
+        "ta": 1
+      },
+      "by_severity": {
+        "major": 4
+      },
+      "flags": 4,
+      "items": 4
+    }
+  },
+  "per_language": {
+    "bn": {
+      "back_translated": 40,
+      "failed": 0,
+      "flag_rate": 0.425,
+      "flagged_items": 17,
+      "flags_by_category": {
+        "addition": 4,
+        "format": 7,
+        "number": 2,
+        "omission": 3,
+        "speech_omission": 2,
+        "term": 1,
+        "wrong_language": 2
+      },
+      "items": 40,
+      "mqm_penalty_per_item": 3.0,
+      "mqm_quality_mean": 89.3,
+      "scored": 40,
+      "skipped": 0,
+      "speech_checked": 6
+    },
+    "hi": {
+      "back_translated": 40,
+      "failed": 0,
+      "flag_rate": 0.425,
+      "flagged_items": 17,
+      "flags_by_category": {
+        "addition": 1,
+        "format": 3,
+        "number": 4,
+        "omission": 3,
+        "speech_garbled": 2,
+        "speech_omission": 1,
+        "speech_repetition": 1,
+        "term": 2,
+        "wrong_language": 1
+      },
+      "items": 40,
+      "mqm_penalty_per_item": 2.625,
+      "mqm_quality_mean": 90.7,
+      "scored": 40,
+      "skipped": 0,
+      "speech_checked": 6
+    },
+    "ta": {
+      "back_translated": 40,
+      "failed": 0,
+      "flag_rate": 0.35,
+      "flagged_items": 14,
+      "flags_by_category": {
+        "addition": 2,
+        "format": 9,
+        "number": 2,
+        "omission": 1,
+        "speech_garbled": 1,
+        "wrong_language": 1
+      },
+      "items": 40,
+      "mqm_penalty_per_item": 2.0,
+      "mqm_quality_mean": 94.11,
+      "scored": 40,
+      "skipped": 0,
+      "speech_checked": 6
+    }
+  },
+  "quality_targets": {
+    "category_accuracy": {
+      "met": true,
+      "target": 0.7,
+      "value": 0.9762
+    },
+    "detection_recall": {
+      "met": false,
+      "target": 0.8,
+      "value": 0.7
+    },
+    "false_alarm_rate": {
+      "met": true,
+      "target": 0.1,
+      "value": 0.0833
+    },
+    "judge_consistency": {
+      "met": null,
+      "target": 0.9,
+      "value": null
+    },
+    "localization": {
+      "met": true,
+      "target": 0.7,
+      "value": 0.9048
+    },
+    "measured_on": "dataset labels"
+  },
+  "skip_reasons": {
+    "format: no Markdown or LaTeX in source or translation": 72,
+    "llm_judge: LLM judge not configured": 120,
+    "reference_chrf: no reference translation": 120
+  },
+  "thresholds": {
+    "addition": 0.4225,
+    "format": 0.5,
+    "mistranslation": 0.5,
+    "number": 0.575,
+    "omission": 0.4345,
+    "speech_garbled": 0.5,
+    "speech_omission": 0.5,
+    "speech_repetition": 0.5,
+    "term": 0.5,
+    "wrong_language": 0.5
+  },
+  "warnings": {}
+}

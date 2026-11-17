@@ -1,0 +1,27 @@
+{
+  "bodhan_disabled": {},
+  "budget": {
+    "max_inr": 0.0,
+    "paid_calls": {},
+    "refused_calls": {},
+    "spent_by_model": {},
+    "spent_this_run_inr": 0.0
+  },
+  "cache": {
+    "hits": 57,
+    "misses": 0
+  },
+  "calibration_items": 0,
+  "elapsed_s": 0.83,
+  "items": 60,
+  "llm_disabled": null,
+  "llm_usage": {
+    "calls": 0,
+    "completion_tokens": 0,
+    "prompt_tokens": 0
+  },
+  "projected_minutes_for_200_items": 0.05,
+  "run_id": "6dabe37b7ad7",
+  "seconds_per_item": 0.014,
+  "warnings": []
+}
