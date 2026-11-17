@@ -24,11 +24,4 @@ Every produced artifact is checked for existence and content. SRT output must co
 
 Speech and OCR calls can be expensive, so verification is budgeted too. Subtitle timing uses audio windows, not word timestamps. Script matching is a lightweight check and cannot establish translation quality. Native-speaker review remains the quality standard.
 
-## What we took from the existing PRs
 
-- [PR #19](https://github.com/Bodhan-AI/Bodhan-AI-Cookbook/pull/19) demonstrates detailed traces and budget reporting. We keep those reviewer-visible run records, while meeting the required stdio server without its extra transport surface.
-- [PR #20](https://github.com/Bodhan-AI/Bodhan-AI-Cookbook/pull/20) has the clearest reusable capability boundary: the agent and MCP server call the same Python operations. We use that shared-core pattern and its early cost checks and structured errors.
-- [PR #21](https://github.com/Bodhan-AI/Bodhan-AI-Cookbook/pull/21) emphasizes untrusted OCR/transcript content, provenance, and budget-safe caching. We keep the untrusted-data rule, local response cache, and tool result summaries; the cache key includes a digest of the selected model key.
-- [PR #22](https://github.com/Bodhan-AI/Bodhan-AI-Cookbook/pull/22) presents a clear CLI and output-report layout. We use the required command shape, `result.md`, artifacts, trace, and JSON report, with a smaller explicit LangGraph loop.
-
-The shared tool layer is deliberately a bit richer than one tool per API: file translation, transcription-to-translation, and translate-and-speak keep Indic content inside the Bodhan tool boundary so the planner does not need to handle it.
