@@ -23,6 +23,15 @@ System dependency: `ffmpeg`.
 
 Run commands from this folder.
 
+**Task agent:**
+
+```bash
+python -m bodhan_agent --task "Read this paragraph aloud in Bengali with a female voice" \
+  --files path/to/inputs/ --out ./out [--max-steps 30] [--max-cost-inr 20]
+```
+
+It writes `out/result.md` (answer, assumptions, links to files), `out/artifacts/`, `out/trace.jsonl` (one line per tool call: plan, tool, arguments, result summary, latency, cost) and `out/report.json` (status, steps, cost, time). The LLM is any OpenAI-compatible endpoint with tool calling, set by `LLM_BASE_URL`, `LLM_MODEL`, `LLM_API_KEY`; tested with Google Gemini (`gemini-3.5-flash-lite` via `https://generativelanguage.googleapis.com/v1beta/openai/`).
+
 **MCP server** (stdio, works with any MCP client):
 
 ```bash

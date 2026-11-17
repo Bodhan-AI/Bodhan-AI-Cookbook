@@ -10,12 +10,15 @@ import pytest
 from PIL import Image
 
 from bodhan_mcp import media, tools
-from bodhan_mcp.bodhan import BodhanError
+from bodhan_mcp.bodhan import BodhanError, Budget
 
 
 class FakeBodhan:
     def __init__(self, mp3: bytes = b""):
-        self.calls, self.mp3 = [], mp3
+        self.calls, self.mp3, self.budget = [], mp3, Budget()
+
+    async def aclose(self):
+        pass
 
     async def transcribe(self, audio, filename, duration_s, language=None):
         self.calls.append(("transcribe", round(duration_s, 1)))
@@ -23,7 +26,7 @@ class FakeBodhan:
 
     async def translate(self, text, target):
         self.calls.append(("translate", text))
-        return text.replace("Hello", "नमस्ते")
+        return "জল মূল্যবান।" if target == "bn" else text.replace("Hello", "नमस्ते")
 
     async def speak(self, text, voice, lang, style=None):
         self.calls.append(("speak", text))

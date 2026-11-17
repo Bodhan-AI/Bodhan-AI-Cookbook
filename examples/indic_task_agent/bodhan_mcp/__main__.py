@@ -34,9 +34,9 @@ def _safe(fn):
     return wrapper
 
 
-def build_server(out_dir: Path) -> MCPServer:
-    tools.configure(Bodhan(), out_dir)
-    server = MCPServer("bodhan", instructions=INSTRUCTIONS)
+def build_server(out_dir: Path, bodhan: Bodhan | None = None) -> MCPServer:
+    tools.configure(bodhan or Bodhan(), out_dir)
+    server = MCPServer("bodhan", instructions=INSTRUCTIONS, log_level="WARNING")
     for fn in tools.TOOLS:
         server.add_tool(_safe(fn))
 
