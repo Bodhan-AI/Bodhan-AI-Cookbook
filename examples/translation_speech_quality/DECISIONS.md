@@ -66,3 +66,14 @@ The first scored demo (34 rows, held-out recall 66.7%) showed where detection wa
 | Make the injector more varied, without an LLM. | The first injector used one mutation per category, which overstates generalization. | `tests/test_injector.py`. The demo set now has 15 mutation methods. |
 | Measure judge consistency by default and cache the repeat. | The brief's consistency target was unmeasured unless the panel passed a flag. A fresh uncached repeat would break byte-identical cache replays. | `--judge-repeat` defaults to 10. The repeat is stored under its own cache key. |
 | Report the flag rate on unmutated controls. | False alarms were "Unmeasured" without reviewed clean rows. Controls give a large, conservative denominator. | `quality.unmutated_controls` in `summary.json`, and a row in `summary.md`. |
+
+## Improvement round on the 231-row demo
+
+The first full run, with Cerebras `qwen-3.8-27b` as judge, gave 94.7% recall on injected errors. Every miss was inspected.
+
+| Decision | Evidence that motivated it | Verification |
+| --- | --- | --- |
+| Treat a contiguous missing block of 20% or more of the script as strong omission evidence (0.86), and re-check every omission not already corroborated by speaking rate. | Mid-clip cuts lost 34–39% of the script in one stretch but stayed at 0.68. Clean demo clips never lost more than 4.8% in one stretch, and FLEURS recordings never more than 6.9%. | Offline replay of stored transcripts: 13 of 13 injected speech omissions flagged, and no speech flags on 108 clean demo clips or 199 FLEURS clips. |
+| Detect phrases the transcript says more often than the script (4+ words), comparing script phrases by character similarity. | A looped table row of times and temperatures was spoken as English number words, so it could not align to `08:30` and `21 °C`. | Offline replay: 11 of 11 repetitions flagged. A script that legitimately repeats a phrase is not flagged even when ASR spells a word differently. |
+| Accept native-digit list numbers (`১.`, `२.`) as Markdown list markers. | Bodhan localizes list numbers in Bengali, and CommonMark then saw a lost list, which was a false format flag on a clean control. | `test_native_digit_list_numbers_are_still_a_list`. |
+| Never rename a capitalized word that only starts a sentence, line, list item, heading or table cell. | The entity injector turned "Read" into "Curie" and a table header into "Lima". Those were meaning and format edits, not entity edits. | Injector tests. The demo was regenerated, and 6 entity variants changed. |
