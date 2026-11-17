@@ -13,6 +13,7 @@ Cheap deterministic checks run first. Bodhan round trips (back-translation and b
 - [Harness design](DESIGN.md): architecture diagram, flow chart, every check, the judge rubric, calibration and how flags combine.
 - [Decision log](DECISIONS.md): each design choice, the evidence behind it, and the test that verifies it.
 - [Sample report](sample_report/summary.md): a real run on the demo dataset, with [items.jsonl](sample_report/items.jsonl), [calibration.json](sample_report/calibration.json) and [diff.md](sample_report/diff.md).
+- [Demo video](VIDEO_URL) (under 5 minutes): a full run on the demo dataset and a walk through the report.
 
 ## Setup
 
@@ -121,6 +122,11 @@ These are measured on `data/demo_scored.jsonl` (231 rows) with Cerebras `qwen-3.
 | speech_omission | 100% | 100% | | | | |
 | speech_repetition | 100% | 100% | | | | |
 | garbled_audio | 100% | 100% | | | | |
+
+**Languages and lengths not in the demo.** Two live checks covered languages and passage lengths outside the demo:
+
+- **Long passages:** 12 Markdown passages of about 550 characters, each with a heading or list, a table or LaTeX, and prose, in Urdu and Telugu. Bodhan generated the translations and audio (48–69 s per clip, so several ASR chunks per clip), and the Groq `openai/gpt-oss-20b` judge scored them. No format, number, script or speech flags were raised, even though spoken numbers and markup pushed transcript error to 0.13–0.49. The judge raised 2 meaning flags. One is a dropped comparative, "more", in Telugu, which matches a real Bodhan pattern seen in the demo.
+- **Short sentences:** 12 rows in Telugu and Marathi, with no flags.
 
 **Reading the precision column.** Precision counts any flag that does not match the *injected* label as a false positive. Many of those flags point at real defects in the Bodhan output that the injector did not plant:
 

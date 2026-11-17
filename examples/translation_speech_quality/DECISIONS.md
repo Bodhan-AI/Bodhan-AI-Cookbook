@@ -83,3 +83,7 @@ The first full run, with Cerebras `qwen-3.8-27b` as judge, gave 94.7% recall on 
 ### Threshold fitting dry run
 
 Six hand labels are below the fitting support, so the sample report keeps the default thresholds. To check that fitting works on real evidence, the cached demo was re-scored with the calibration-split rows relabelled as provided labels (59 rows). This was a check, not a published result. Six categories had enough support: omission, mistranslation, wrong language, and all three speech categories. All six selected 0.72, so the fit did not move into the weak-evidence range, and held-out recall stayed at 95.6%.
+
+### Stress test on long passages in undemoed languages
+
+12 generated Markdown passages of about 550 characters in Urdu and Telugu, with tables, LaTeX and lists, produced 48–69 s of audio and multi-chunk ASR. Transcript error reached 0.49 because numbers and markup are spoken differently from how they are written. Even so, no speech, format, number or script flag fired. The block-omission rule and loop search stayed quiet, because spoken numbers show up as substitutions rather than one missing block. Cost was ₹4.80, almost all of it Indic-Speak.
