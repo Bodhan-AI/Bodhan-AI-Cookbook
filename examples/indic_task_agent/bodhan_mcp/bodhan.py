@@ -132,8 +132,8 @@ class Bodhan:
                                actual=lambda o: PRICE_INR["indic-translate"] * o["tokens"])
         return out["text"]
 
-    async def speak(self, text: str, voice: str, lang: str, style: str | None = None) -> bytes:
-        """One short text (a sentence or two) -> MP3 bytes."""
+    async def speak(self, text: str, voice: str, lang: str, style: str | None = None, attempt: int = 0) -> bytes:
+        """One short text (a sentence or two) -> MP3 bytes. attempt > 0 asks for a fresh take (not the cached one)."""
         if lang not in L.TTS_LANGS:
             raise _unsupported("speech", lang, L.TTS_LANGS)
         if voice not in L.ALL_VOICES:  # the API answers a bad voice with a bare 500, so check here
@@ -151,7 +151,8 @@ class Bodhan:
                 raise BodhanError("bad_response", f"expected audio, got {r.headers.get('content-type')}")
             return r.content
 
-        return await self._call("indic-speak", {"voice": voice, **instructions}, text.encode(),
+        params = {"voice": voice, **instructions} | ({"attempt": attempt} if attempt else {})
+        return await self._call("indic-speak", params, text.encode(),
                                 PRICE_INR["indic-speak"] * len(text), {"url": "/v1/audio/speech", "json": body},
                                 parse=parse)
 

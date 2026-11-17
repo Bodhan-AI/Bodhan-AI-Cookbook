@@ -18,7 +18,7 @@ from typing import Annotated, Literal
 from pydantic import Field
 
 from . import languages as L
-from . import media
+from . import checks, media
 from .bodhan import Bodhan, BodhanError
 
 PREVIEW_CHARS = 1200
@@ -101,6 +101,8 @@ async def inspect_media(path: Annotated[str, Field(description="File or folder p
         info |= media.probe(p)
     elif info["kind"] == "pdf":
         info["pages"] = media.pdf_page_count(p)
+    elif info["kind"] == "unknown":
+        info["note"] = "No tool can read this file type. Readable: audio, video, image, PDF, plain text/Markdown."
     elif info["kind"] == "text":
         text = p.read_text(encoding="utf-8", errors="replace")
         guess, cands = L.detect_script(text)
@@ -192,19 +194,28 @@ async def translate_text(
     async def one(chunk: str) -> str:
         return chunk if chunk.startswith("```") else await bodhan.translate(chunk, target)
 
-    out = await asyncio.gather(*(one(c) for c in chunks))
-    warnings = [f"chunk {i + 1}: came back empty" for i, t in enumerate(out) if not t.strip()]
-    warnings += [f"chunk {i + 1}: table rows {_rows(c)} -> {_rows(t)}" for i, (c, t) in enumerate(zip(chunks, out))
-                 if _rows(c) != _rows(t)]
-    result = "\n\n".join(out)
+    async def checked(chunk: str) -> tuple[str, list[str], bool]:
+        """Translate, check; if empty or far too short, retry once sentence by sentence."""
+        out = await one(chunk)
+        issues = [] if chunk.startswith("```") else checks.translation_issues(chunk, out)
+        parts = [x for x in re.split(r"(?<=[.!?।॥])\s+", chunk.strip()) if x]  # one sentence per call
+        if len(parts) > 1 and any(i.startswith(("came back empty", "length ratio 0.")) for i in issues):
+            retry = " ".join(await asyncio.gather(*(bodhan.translate(x, target) for x in parts)))
+            retry_issues = checks.translation_issues(chunk, retry)
+            if len(retry_issues) < len(issues):
+                return retry, retry_issues, True
+        return out, issues, False
+
+    results = await asyncio.gather(*(checked(c) for c in chunks))
+    warnings = [f"chunk {i}: {issue}" for i, (_, issues, _) in enumerate(results, 1) for issue in issues]
+    result = "\n\n".join(r[0] for r in results)
     dst = _out(f"{name}.{target}.md")
     dst.write_text(result + "\n", encoding="utf-8")
+    verification = {"check": "coverage: every chunk non-empty, sane length, numbers and table rows kept",
+                    "chunks": len(chunks), "passed": sum(not r[1] for r in results),
+                    "retried": sum(r[2] for r in results), "ok": not warnings}
     return {"text": _preview(result), "output_path": str(dst), "target_language": target, "chunks": len(chunks),
-            "warnings": warnings}
-
-
-def _rows(md: str) -> int:
-    return sum(1 for line in md.splitlines() if line.lstrip().startswith("|"))
+            "verification": verification, "warnings": warnings}
 
 
 def split_markdown(text: str, max_chars: int) -> list[str]:
@@ -275,11 +286,13 @@ async def synthesize_speech(
     gender: Annotated[Literal["female", "male"], Field(description="Voice gender if no voice is named.")] = "female",
     voice: Annotated[str | None, Field(description="Voice name from the bodhan://voices resource, e.g. 'Ishita'.")] = None,
     style: Annotated[str | None, Field(description="Optional speaking style, e.g. 'news', 'children's stories'.")] = None,
+    verify: Annotated[bool, Field(description="Transcribe each piece back and redo it once if it does not match.")] = True,
 ) -> dict:
     """Read text aloud and write one MP3 (labelled AI-generated). The text must already be in
     `language`: translate it first with translate_text. Long text is split into sentences, each
     synthesised, then joined. Most expensive tool: Rs 6 per 10,000 characters, max 5,000
-    characters per call (summarise longer text first)."""
+    characters per call (summarise longer text first). By default every piece is transcribed back and
+    compared with its text (catches skipped or repeated words) and a bad piece is redone once."""
     lang = _lang(language, "speak")
     content, name = _text_arg(text, path)
     content = re.sub(r"[#*_`|>]+", " ", content)  # Markdown symbols would be read out or confuse the model
@@ -293,16 +306,42 @@ async def synthesize_speech(
     chosen = voice or L.pick_voice(lang, gender)
     pieces = split_sentences(content, TTS_PIECE_CHARS)
     bodhan = _client()
-    audio = await asyncio.gather(*(bodhan.speak(p, chosen, lang, style) for p in pieces))
     dst = _out(f"{name}.{lang}.mp3")
     with tempfile.TemporaryDirectory() as tmp:
-        parts = []
-        for i, a in enumerate(audio):
-            parts.append(Path(tmp) / f"part{i:04d}.mp3")
-            parts[-1].write_bytes(a)
-        media.concat_mp3(parts, dst, f"AI-generated speech (Bodhan Indic-Speak, voice {chosen})")
-    return {"output_path": str(dst), "duration_s": media.probe(dst)["duration_s"], "voice": chosen, "language": lang,
-            "characters": len(content), "pieces": len(pieces), "ai_generated": True}
+
+        async def one(i: int, piece: str) -> tuple[Path, dict | None]:
+            part = Path(tmp) / f"part{i:04d}.mp3"
+            part.write_bytes(await bodhan.speak(piece, chosen, lang, style))
+            if not verify:
+                return part, None
+            check = await _check_speech(part, piece, lang)
+            if not check["ok"]:  # Indic-Speak sometimes skips or repeats words: one fresh take
+                part.write_bytes(await bodhan.speak(piece, chosen, lang, style, attempt=1))
+                check = await _check_speech(part, piece, lang) | {"retried": True}
+            return part, {"piece": i + 1} | check
+
+        done = await asyncio.gather(*(one(i, p) for i, p in enumerate(pieces)))
+        media.concat_mp3([part for part, _ in done], dst, f"AI-generated speech (Bodhan Indic-Speak, voice {chosen})")
+    result = {"output_path": str(dst), "duration_s": media.probe(dst)["duration_s"], "voice": chosen, "language": lang,
+              "characters": len(content), "pieces": len(pieces), "ai_generated": True}
+    if verify:
+        per_piece = [c for _, c in done]
+        bad = [c["piece"] for c in per_piece if not c["ok"]]
+        result["verification"] = {
+            "check": "back-transcription of every piece vs its text (character error rate)",
+            "pieces": len(pieces), "passed": len(pieces) - len(bad), "retried": sum("retried" in c for c in per_piece),
+            "max_cer": max((c["cer"] for c in per_piece if c["cer"] is not None), default=None), "ok": not bad}
+        result["warnings"] = [f"piece {c['piece']} still differs after a retry (CER {c['cer']}, length ratio "
+                              f"{c['length_ratio']}): '{pieces[c['piece'] - 1][:60]}...'" for c in per_piece if not c["ok"]]
+    return result
+
+
+async def _check_speech(part: Path, text: str, lang: str) -> dict:
+    duration = media.probe(part)["duration_s"]
+    if duration > 30:  # longer than one transcription window: cannot check this piece in one call
+        return {"cer": None, "length_ratio": None, "ok": True, "skipped": "piece longer than 30 s"}
+    heard = await _client().transcribe(part.read_bytes(), part.name, duration, lang)
+    return checks.speech_check(text, heard)
 
 
 async def ocr_document(

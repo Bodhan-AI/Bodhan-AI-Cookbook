@@ -65,4 +65,6 @@ Bodhan responses are cached in `~/.cache/bodhan_agent/`, so the same input is ne
 | `ocr_document` | Indic-OCR | PDF to page images, one call per page, one Markdown file |
 | `read_text` | none | reads a text file in parts |
 
+**Built-in checks.** `synthesize_speech` transcribes every generated piece back and compares it with its text (character error rate); a piece that skipped or repeated words is redone once, then reported. `translate_text` checks every chunk came back, has a sane length, and kept its numbers and table rows; an empty chunk is retried sentence by sentence. The agent copies these results into `report.json` (`verification`) and `result.md` ("Checks"). Text read from input files reaches the LLM inside `<untrusted_content>` tags and is treated as data.
+
 Tools take and return file paths; outputs go to `--out-dir`. Errors are JSON with `code`, `message` and `hint`. The voice library is the MCP resource `bodhan://voices`.

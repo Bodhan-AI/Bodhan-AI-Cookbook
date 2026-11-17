@@ -14,22 +14,31 @@ from bodhan_mcp.bodhan import BodhanError, Budget
 
 
 class FakeBodhan:
-    def __init__(self, mp3: bytes = b""):
+    """Records calls. transcribe() returns, in order: scripted `heard` texts, else what speak() last said
+    (a perfect round trip), else a fixed Hindi sentence."""
+
+    def __init__(self, mp3: bytes = b"", heard: list[str] | None = None):
         self.calls, self.mp3, self.budget = [], mp3, Budget()
+        self.heard, self.spoken = list(heard or []), []
 
     async def aclose(self):
         pass
 
     async def transcribe(self, audio, filename, duration_s, language=None):
         self.calls.append(("transcribe", round(duration_s, 1)))
-        return "नमस्ते दुनिया"
+        if self.heard:
+            return self.heard.pop(0)
+        return self.spoken.pop(0) if self.spoken else "नमस्ते दुनिया"
 
     async def translate(self, text, target):
         self.calls.append(("translate", text))
+        if getattr(self, "translations", None):  # scripted answers, if a test sets them
+            return self.translations.pop(0)
         return "জল মূল্যবান।" if target == "bn" else text.replace("Hello", "नमस्ते")
 
-    async def speak(self, text, voice, lang, style=None):
-        self.calls.append(("speak", text))
+    async def speak(self, text, voice, lang, style=None, attempt=0):
+        self.calls.append(("speak", text, attempt))
+        self.spoken.append(text)
         return self.mp3
 
     async def ocr(self, image, filename, table_format="markdown"):
@@ -186,3 +195,39 @@ def test_mcp_server_over_stdio(tmp_path):
     text = bad.content[0].text  # "Error executing tool transcribe_audio: {json}"
     assert bad.is_error and json.loads(text[text.index("{"):])["code"] == "file_not_found"
     assert "Kavya" in voices.contents[0].text
+
+
+# --- Phase 4: output checks inside the tools ------------------------------------------------
+
+
+def test_tts_bad_piece_is_redone_once(fake):
+    good = "पहला वाक्य है।"
+    fake.heard = ["हाँ हाँ हाँ हाँ हाँ हाँ हाँ हाँ हाँ हाँ", good]  # first take repeats nonsense, second is right
+    r = run(tools.synthesize_speech("hi", text=good))
+    assert [c[2] for c in fake.calls if c[0] == "speak"] == [0, 1]  # a fresh take, not the cached one
+    v = r["verification"]
+    assert v["ok"] and v["retried"] == 1 and v["passed"] == 1 and r["warnings"] == []
+
+
+def test_tts_still_bad_after_retry_is_reported(fake):
+    fake.heard = ["कुछ और", "कुछ और"]  # both takes say something else
+    r = run(tools.synthesize_speech("hi", text="पहला वाक्य है और यह लंबा है।"))
+    assert not r["verification"]["ok"] and "still differs" in r["warnings"][0]
+
+
+def test_tts_verify_can_be_turned_off(fake):
+    r = run(tools.synthesize_speech("hi", text="पहला वाक्य।", verify=False))
+    assert "verification" not in r and [c[0] for c in fake.calls] == ["speak"]
+
+
+def test_translation_empty_chunk_is_retried_by_sentence(fake):
+    fake.translations = ["", "पहला।", "दूसरा।"]
+    r = run(tools.translate_text("hi", text="First sentence here. Second sentence here."))
+    assert r["verification"]["retried"] == 1 and r["verification"]["ok"]
+    assert Path(r["output_path"]).read_text().strip() == "पहला। दूसरा।"
+
+
+def test_translation_lost_number_is_flagged(fake):
+    fake.translations = ["कक्षा में छात्र हैं"]
+    r = run(tools.translate_text("hi", text="There are 42 students in class."))
+    assert not r["verification"]["ok"] and "numbers missing: 42" in r["warnings"][0]

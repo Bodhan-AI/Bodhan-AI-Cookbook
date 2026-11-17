@@ -85,7 +85,7 @@ def write_outputs(args, out: Path, outcome: dict, budget: Budget, agent, model: 
         "bodhan_calls": len(budget.calls), "cache_hits": sum(c["cached"] for c in budget.calls),
         "elapsed_s": round(elapsed, 1), "llm": {"model": model, "total_tokens": agent.tokens if agent else 0},
         "artifacts": final["artifacts"], "missing_artifacts": final.get("missing_artifacts", []),
-        "errors": agent.errors if agent else [], "verification": [],
+        "errors": agent.errors if agent else [], "verification": agent.verification if agent else [],
     }
     (out / "report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
     if not (out / "trace.jsonl").exists():
@@ -103,6 +103,15 @@ def render_result(report: dict, final: dict, out: Path) -> str:
     lines += ["## Output files", ""] + ([link(p) for p in final["artifacts"]] or ["None."]) + [""]
     if final.get("missing_artifacts"):
         lines += ["Claimed but not found (not produced): " + ", ".join(final["missing_artifacts"]), ""]
+    if report["verification"]:
+        lines += ["## Checks", ""]
+        for v in report["verification"]:
+            name = Path(v["output"]).name if v.get("output") else v["tool"]
+            unit = "pieces" if "pieces" in v else "chunks"
+            lines.append(f"- {name}: {'passed' if v['ok'] else 'PROBLEMS'}: {v['passed']}/{v[unit]} {unit} ok, "
+                         f"{v['retried']} redone. {v['check']}.")
+            lines += [f"  - {w}" for w in v.get("warnings", [])]
+        lines.append("")
     lines += ["## Assumptions", ""] + ([f"- {a}" for a in final["assumptions"]] or ["None."]) + [""]
     lines += ["## Run", "", f"- Steps: {report['steps']} of {report['max_steps']}",
               f"- Bodhan cost: Rs {report['cost_inr']:.4f} of Rs {report['max_cost_inr']:g} "

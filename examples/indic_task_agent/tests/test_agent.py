@@ -61,6 +61,8 @@ def test_multi_step_task_end_to_end(tmp_path):
     assert report["artifacts"] == [str((art / "paragraph.bn.mp3").resolve())]
     result = (tmp_path / "out" / "result.md").read_text()
     assert "Bengali audio is ready." in result and "AI-generated" in result
+    assert [v["tool"] for v in report["verification"]] == ["translate_text", "synthesize_speech"]
+    assert all(v["ok"] for v in report["verification"]) and "## Checks" in result
     first_prompt = llm.seen[0][1]["content"]
     assert "paragraph.txt" in first_prompt and "Supported languages" in first_prompt  # manifest + language list
 
