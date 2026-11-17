@@ -35,6 +35,15 @@ IMAGE_MIME = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg"}
 RETRY_STATUS = {429, 500, 502, 503, 504}
 
 
+def load_env(path: Path = Path(".env")) -> None:
+    """Read KEY=value lines from .env into the environment (real env vars win)."""
+    if path.is_file():
+        for line in path.read_text().splitlines():
+            if "=" in line and not line.lstrip().startswith("#"):
+                k, v = line.split("=", 1)
+                os.environ.setdefault(k.strip(), v.strip())
+
+
 class BodhanError(Exception):
     """`code` is stable for branching; `hint` says what to do next."""
 

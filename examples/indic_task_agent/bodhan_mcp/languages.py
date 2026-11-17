@@ -18,6 +18,7 @@ VOICES: dict[str, dict[str, list[str]]] = _M["indic-speak"]["voices"]  # lang ->
 ALL_VOICES = {v for by_gender in VOICES.values() for names in by_gender.values() for v in names}
 STYLES = frozenset(_M["indic-speak"]["styles"])
 NAMES: dict[str, str] = _RULES["language_names"]  # code -> English name
+SUPPORTED = {"transcribe": STT_LANGS, "translate": TRANSLATE_LANGS, "speak": TTS_LANGS}
 
 _BY_NAME = {name.split(" (")[0].lower(): code for code, name in reversed(NAMES.items())}  # first code wins
 _BY_NAME |= {"oriya": "or", "bangla": "bn"}

@@ -1,3 +1,6 @@
 # Pin every dependency: name==version
 httpx==0.28.1
+mcp==2.3.0
+pillow==13.0.0
+pypdfium2==5.15.2
 pytest==9.1.1

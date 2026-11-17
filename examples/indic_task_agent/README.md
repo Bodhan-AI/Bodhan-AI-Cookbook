@@ -23,8 +23,37 @@ System dependency: `ffmpeg`.
 
 Run commands from this folder.
 
+**MCP server** (stdio, works with any MCP client):
+
 ```bash
-pytest -q   # unit tests, no network, no spend
+python -m bodhan_mcp --out-dir bodhan_outputs
+```
+
+Try it in the browser with the official MCP Inspector (needs Node.js):
+
+```bash
+npx @modelcontextprotocol/inspector .venv/bin/python -m bodhan_mcp
+```
+
+**Tests** (no network, no spend):
+
+```bash
+pytest -q
 ```
 
 Bodhan responses are cached in `~/.cache/bodhan_agent/`, so the same input is never paid for twice.
+
+## Tools
+
+| Tool | Model | What it hides from the caller |
+|---|---|---|
+| `inspect_media` | none | kind, size, duration, pages of a file or folder |
+| `detect_language` | Indic-Transcribe for audio | script-based guess; flags shared scripts as ambiguous |
+| `transcribe_audio` | Indic-Transcribe | splits on silence into windows of at most 30 s, trims and skips silence, joins text with timestamps |
+| `make_subtitles` | Indic-Translate | timed segments to `.srt`, translated per segment |
+| `translate_text` | Indic-Translate | splits long text by paragraph; tables and code blocks kept whole |
+| `synthesize_speech` | Indic-Speak | splits into sentences, joins into one MP3 tagged AI-generated |
+| `ocr_document` | Indic-OCR | PDF to page images, one call per page, one Markdown file |
+| `read_text` | none | reads a text file in parts |
+
+Tools take and return file paths; outputs go to `--out-dir`. Errors are JSON with `code`, `message` and `hint`. The voice library is the MCP resource `bodhan://voices`.
