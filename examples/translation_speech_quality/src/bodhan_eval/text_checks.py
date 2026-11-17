@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 import unicodedata
-from collections import Counter
+from collections import Counter, defaultdict
 from collections.abc import Callable, Iterable
 
 from markdown_it import MarkdownIt
@@ -20,6 +20,9 @@ NUMBER = re.compile(
 )
 FORMULA = re.compile(r"(?<!\\)(\$\$[\s\S]+?\$\$|\$(?!\$)[^$\n]+?\$|\\\[[\s\S]+?\\\]|\\\([^\n]+?\\\))")
 ENTITY = re.compile(r"https?://[^\s)>]+|(?<!\w)[A-Z][A-Z0-9]{1,}(?!\w)")
+QUANTITY_LABEL = re.compile(r"(?im)^[ \t]*(?P<label>[\w][\w -]*?)[ \t]*:[ \t]*(?P<value>[^\n\r]+)")
+UNIT_OBJECT = re.compile(r"\s+of\s+([\w-]+(?:[ \t]+[\w-]+)*?)(?=\s+(?:and|or|with|then|plus)\b|[.,;:\n|!?)]|$)", re.IGNORECASE)
+TABLE_PIPE = re.compile(r"(?<!\\)\|")
 SCRIPTS = {
     "as": "BENGALI",
     "bn": "BENGALI",
@@ -89,15 +92,94 @@ def numeric_value(match: re.Match[str]) -> str:
     return number_key(match["value"])
 
 
+def context_key(text: str) -> str:
+    """Normalize a literal label for matching without using word order or translation guesses."""
+    return " ".join(unicodedata.normalize("NFKC", text).casefold().split())
+
+
+def table_quantity_contexts(text: str):
+    """Yield quantities in Markdown table cells with explicit row and column labels."""
+    if "|" not in text:
+        return
+    columns = ()
+    heading = False
+    for token in MARKDOWN.parse(text):
+        if token.type == "thead_open":
+            heading = True
+        elif token.type == "thead_close":
+            heading = False
+        elif token.type == "tr_open" and token.map:
+            row = line_span(text, tuple(token.map), "source")
+            raw = text[row.start : row.end].rstrip()
+            cuts = [match.start() for match in TABLE_PIPE.finditer(raw)]
+            boundaries = [-1, *cuts, len(raw)]
+            cells = [(start + 1, end) for start, end in zip(boundaries, boundaries[1:], strict=False)]
+            if cells and not raw[slice(*cells[0])].strip():
+                cells = cells[1:]
+            if cells and not raw[slice(*cells[-1])].strip():
+                cells = cells[:-1]
+            labels = tuple(context_key(raw[start:end]) for start, end in cells)
+            if heading:
+                columns = labels if len(set(labels)) == len(labels) and all(labels) else ()
+            elif len(labels) > 1 and len(labels) == len(columns) and labels[0]:
+                for column, (start, end) in zip(columns[1:], cells[1:], strict=True):
+                    matches = list(NUMBER.finditer(text, row.start + start, row.start + end))
+                    if len(matches) == 1:
+                        yield ("table", labels[0], column), matches[0]
+
+
+def contextual_quantities(text: str, numbers: list[re.Match[str]]) -> dict[tuple[str, ...], re.Match[str]]:
+    """Index only unambiguous quantities attached to a shared literal label or table cell."""
+    labels = defaultdict(list)
+    for key, match in table_quantity_contexts(text):
+        labels[key].append(match)
+    for label in QUANTITY_LABEL.finditer(text):
+        start, end = label.span("value")
+        matches = list(NUMBER.finditer(text, start, end))
+        if len(matches) == 1:
+            labels[("field", context_key(label["label"]))].append(matches[0])
+    for number in numbers:
+        if number["unit"] and (label := UNIT_OBJECT.match(text, number.end())):
+            labels[("of", context_key(label[1]))].append(number)
+    return {key: matches[0] for key, matches in labels.items() if len(matches) == 1}
+
+
 def number_findings(source: str, candidate: str, field: str) -> list[Finding]:
     """Localize changed values on either side and defer ambiguous spelled-out numbers."""
     actual = list(NUMBER.finditer(candidate))
     if not actual:
         return []
     original = list(NUMBER.finditer(source))
+    source_contexts = contextual_quantities(source, original)
+    actual_contexts = contextual_quantities(candidate, actual)
+    used_source, used_actual = set(), set()
+    findings = []
+    for key, before in source_contexts.items():
+        after = actual_contexts.get(key)
+        if after is None or before.start() in used_source or after.start() in used_actual:
+            continue
+        used_source.add(before.start())
+        used_actual.add(after.start())
+        units_differ = before["unit"] and after["unit"] and quantity_key(before) != quantity_key(after)
+        if numeric_value(before) != numeric_value(after) or units_differ:
+            findings.append(
+                Finding(
+                    "number",
+                    "major",
+                    Span("translation", *after.span()),
+                    "numbers",
+                    after.group(),
+                    f"Quantity changed for {' / '.join(key[1:])!r}. Expected {before.group()!r}.",
+                    0.88,
+                    Span(field, *before.span()),
+                )
+            )
+    # Keep the global check for unlabeled or translated contexts. Global
+    # position alone cannot assign several changed values to source facts.
+    original = [match for match in original if match.start() not in used_source]
+    actual = [match for match in actual if match.start() not in used_actual]
     missing = unmatched(original, actual, numeric_value)
     extra = unmatched(actual, original, numeric_value)
-    findings = []
     for before, after in zip(missing, extra, strict=False):
         findings.append(
             Finding(
@@ -108,6 +190,7 @@ def number_findings(source: str, candidate: str, field: str) -> list[Finding]:
                 after.group(),
                 f"Unmatched candidate quantity. Comparison against {field} found {before.group()!r}.",
                 0.88,
+                Span(field, *before.span()) if len(missing) == len(extra) == 1 else None,
             )
         )
     for match in missing[len(extra) :]:
@@ -139,7 +222,8 @@ def number_findings(source: str, candidate: str, field: str) -> list[Finding]:
     original_units = [match for match in original if match["unit"]]
     actual_units = [match for match in actual if match["unit"]]
     for after in unmatched(actual_units, original_units, quantity_key):
-        expected = {number_key(match["unit"]) for match in original_units if numeric_value(match) == numeric_value(after)}
+        same_value = [match for match in original_units if numeric_value(match) == numeric_value(after)]
+        expected = {number_key(match["unit"]) for match in same_value}
         if expected and number_key(after["unit"]) not in expected:
             findings.append(
                 Finding(
@@ -150,6 +234,7 @@ def number_findings(source: str, candidate: str, field: str) -> list[Finding]:
                     after.group(),
                     f"The written unit differs for the same value. Expected one of {', '.join(sorted(expected))}.",
                     0.88,
+                    Span(field, *same_value[0].span()) if len(same_value) == 1 else None,
                 )
             )
     return findings

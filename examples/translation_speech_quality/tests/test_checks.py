@@ -48,6 +48,30 @@ def test_unicode_offsets_and_number_normalization():
     assert mismatched_unit.evidence == "100 mm"
 
 
+@pytest.mark.parametrize(
+    ("source", "swapped", "reordered"),
+    [
+        (
+            "Mix 5 g of salt with 20 g of sugar.",
+            "Mix 20 g of salt with 5 g of sugar.",
+            "Mix 20 g of sugar with 5 g of salt.",
+        ),
+        ("Salt: 5 g\nSugar: 20 g", "Salt: 20 g\nSugar: 5 g", "Sugar: 20 g\nSalt: 5 g"),
+        (
+            "| Ingredient | Mass |\n| --- | --- |\n| Salt | 5 g |\n| Sugar | 20 g |",
+            "| Ingredient | Mass |\n| --- | --- |\n| Salt | 20 g |\n| Sugar | 5 g |",
+            "| Ingredient | Mass |\n| --- | --- |\n| Sugar | 20 g |\n| Salt | 5 g |",
+        ),
+    ],
+)
+def test_quantity_associations_survive_reordering(source, swapped, reordered):
+    """Notice quantity swaps on shared labels while allowing the labels to change order."""
+    findings = number_findings(source, swapped, "source")
+    assert {finding.evidence for finding in findings} == {"5 g", "20 g"}
+    assert {source[flag.anchor.start : flag.anchor.end] for flag in findings} == {"5 g", "20 g"}
+    assert number_findings(source, reordered, "source") == []
+
+
 def test_markdown_tables_and_latex():
     """A translated header can change wording while table and formula syntax remain intact."""
     original = "| Input | Value |\n| --- | --- |\n| Length | $x^2$ |"

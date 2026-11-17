@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import defaultdict, deque
 from dataclasses import replace
 from pathlib import Path
 
@@ -100,7 +101,7 @@ def split_evaluations(results: list[Evaluation]) -> tuple[list[Evaluation], list
 
 
 def pairs(labels: tuple[Label, ...], findings: list[Finding], *, same_category: bool) -> list[tuple[int, int]]:
-    """Maximize one-to-one matches, prioritizing overlapping evidence over category-only pairs."""
+    """Match localized evidence first, then assign only unused category-only pairs."""
     matches = {}
     edges = []
     for label in labels:
@@ -108,9 +109,9 @@ def pairs(labels: tuple[Label, ...], findings: list[Finding], *, same_category: 
         for index, finding in enumerate(findings):
             same = finding.category == label.category
             localized = label.span is not None and overlaps(label.span, finding.span)
-            comparable = label.span is not None and label.span.field is not None
-            if (localized and (same or not same_category)) or (same and (not comparable or not same_category)):
-                related.append((not localized, not same, index))
+            if localized and (same or not same_category):
+                overlap = min(label.span.end, finding.span.end) - max(label.span.start, finding.span.start)
+                related.append((not same, -overlap, index))
         edges.append([entry[2] for entry in sorted(related)])
 
     def assign(label_index: int, visited: set[int]) -> bool:
@@ -125,6 +126,18 @@ def pairs(labels: tuple[Label, ...], findings: list[Finding], *, same_category: 
 
     for index in range(len(labels)):
         assign(index, set())
+
+    # A loose match must never reassign a localized finding. In strict scoring
+    # only labels without a coordinate field can fall back to category alone.
+    matched_labels = set(matches.values())
+    unmatched_by_category = defaultdict(deque)
+    for index, finding in enumerate(findings):
+        if index not in matches:
+            unmatched_by_category[finding.category].append(index)
+    for index, label in enumerate(labels):
+        known_field = label.span is not None and label.span.field is not None
+        if index not in matched_labels and (not same_category or not known_field) and unmatched_by_category[label.category]:
+            matches[unmatched_by_category[label.category].popleft()] = index
     return sorted((label_index, finding_index) for finding_index, label_index in matches.items())
 
 
@@ -184,7 +197,7 @@ def modality_checked(result: Evaluation, category: str) -> bool:
 def measure(results: list[Evaluation], thresholds: dict[str, float]) -> dict:
     """Measure span-level detection, localization, categories, and clean false alarms."""
     counts = {category: {"tp": 0, "fp": 0, "fn": 0} for category in CATEGORIES}
-    positives = detected = comparable = localized = correct_category = 0
+    positives = detected = comparable = localized = correct_category = category_only = 0
     clean = clean_flags = labelled = clean_incomplete = 0
     for result in results:
         labels = result.item.labels
@@ -208,10 +221,12 @@ def measure(results: list[Evaluation], thresholds: dict[str, float]) -> dict:
         detected += len(detected_pairs)
         for i, j in detected_pairs:
             label, finding = labels[i], findings[j]
+            is_localized = label.span is not None and overlaps(label.span, finding.span)
+            category_only += not is_localized
             correct_category += label.category == finding.category
             if label.span is not None and label.span.field is not None:
                 comparable += 1
-                localized += overlaps(label.span, finding.span)
+                localized += is_localized
         strict_pairs = pairs(labels, findings, same_category=True)
         matched_labels = {i for i, _ in strict_pairs}
         matched_findings = {j for _, j in strict_pairs}
@@ -227,6 +242,7 @@ def measure(results: list[Evaluation], thresholds: dict[str, float]) -> dict:
         "labelled_items": labelled,
         "labelled_errors": positives,
         "detected_errors": detected,
+        "category_only_detections": category_only,
         "recall": ratio(detected, positives),
         "reviewed_clean_items": clean,
         "clean_false_alarms": clean_flags,

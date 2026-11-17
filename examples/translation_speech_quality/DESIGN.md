@@ -46,7 +46,7 @@ flowchart TD
 
 | Check | Signal | Decision |
 | --- | --- | --- |
-| Quantities | Compare Unicode-normalized numeric forms and common unit tokens. | Flag changed quantities. A missing numeric form can be equivalent prose, so judge it in context. |
+| Quantities | Match uniquely shared literal labels in unit phrases, labelled fields, and Markdown table cells before checking remaining values globally. | Flag changed quantities even when the same set of values appears. Reordered labelled quantities stay comparable. Use the judge when the relationship depends on translated wording. |
 | Entities | Find missing literal URLs and acronyms. | URLs are strong evidence. Acronyms and names may be rendered differently in the target language. The judge evaluates semantic preservation. |
 | Format | Compare Markdown block structure, table shape, and LaTeX tokens. | Preserve the affected token or original line for review. |
 | Reference score | Compute chrF++ on rows with a reference. | Record the score alongside the checks. Multiple translations can express the same meaning. |
@@ -62,11 +62,11 @@ For a sustained uncertain omission on a clip of 3 to 14 seconds, the runner uses
 
 All rows with identical English source text stay in one split. An explicit split takes precedence for the whole group. Unassigned sources in the external label file enter calibration. Threshold fitting uses reviewed, non-injected calibration rows and requires positive and negative support for each tuned category. It selects among a small fixed set of ordinal evidence thresholds using F0.5 to weight precision. The calibration report lists support behind the selected and default thresholds. Weak findings remain visible as unconfirmed evidence.
 
-The held-out report includes overall and per-language metrics. Detection matches labels and flags one to one using overlap when available, with category agreement as a possible recovery for an imprecise span. Localization then measures overlap independently. Per-category precision and recall require the correct category and overlap when the annotation supplies comparable coordinates. Missing labels and incomplete checks are visible in the denominator accounting.
+The held-out report includes overall and per-language metrics. Detection pairs overlapping evidence first. It assigns category-only matches from unused labels and findings, and reports their count separately. Localization measures overlap on detections with declared label fields. Per-category precision and recall require the correct category and overlap when the annotation supplies a coordinate field. Missing labels and incomplete checks are visible in the denominator accounting.
 
 Uncached judge repeats compare category, severity, and evidence coordinates. Model cache keys include the payload and media content. The same successful result can be replayed without model cost. Canonical reports contain the represented historical usage. The run log contains active request and retry counts.
 
-Baseline comparisons pair findings by overlapping evidence in a shared coordinate field. An unchanged passage can retain its finding when text before it moves. Severity changes appear separately. A matching category by itself does not establish a persistent defect.
+Baseline comparisons prefer an exact shared source or reference anchor for a quantity. They can also pair overlapping evidence in a shared coordinate field, projecting unchanged passages across offset changes. Only checks completed in both runs contribute defect deltas. Severity changes appear separately. Reports record a finding policy version so comparisons across policy changes can warn the reviewer.
 
 ## Trade-offs
 

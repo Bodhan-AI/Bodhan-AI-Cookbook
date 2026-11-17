@@ -31,3 +31,11 @@ The Linux `make check` run passes 31 Cookbook tests and fails the all-recipes te
 | Accept usable judge verdicts at the cache boundary. | Malformed responses can be billable and should not prevent a later valid request. Judge cache version 2 leaves prior unchecked entries behind. | `test_unusable_judge_verdict_does_not_poison_cache` verifies rejection, successful replacement, and warm replay through SQLite. |
 | Validate baselines and source splits before provider work. | Invalid reports or contradictory source groups can be detected without spending credit. | The CLI performs both checks before creating the provider client. |
 | Report calibration support and author attribution. | An explicit calibration file signals which sources can tune thresholds. A reading of the results requires real positive and negative counts. | `calibration.json` exposes both support counts and whether tuning was possible. `items.jsonl` records supplied author attribution. |
+
+## Localization, baseline identity, and quantity association
+
+| Decision | Reason | Verification |
+| --- | --- | --- |
+| Pair localized evidence before assigning category-only detections. | The original matcher could move an overlapping flag to a different label while keeping the same detection count. Loose detections now have a separate count. | `test_category_only_match_cannot_displace_localized_evidence` first reported zero localized matches. It now retains one match out of two. |
+| Preserve expected-quantity anchors and compare shared check coverage. | A changed wrong value can leave the same source fact wrong. Missing judge coverage is independent of a completed numeric check. | `test_baseline_uses_expected_quantity_and_completed_checks` and `test_baseline_resolves_only_findings_with_shared_check_coverage`. |
+| Match uniquely shared literal labels before comparing unpaired numbers globally. | A quantity belongs to an entity or table cell. Absolute position would flag legitimate reordering. Literal matching leaves translated or ambiguous labels for the semantic checks. | `test_quantity_associations_survive_reordering` covers a unit phrase, labelled fields, and a Markdown table. |

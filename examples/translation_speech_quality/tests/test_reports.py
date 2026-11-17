@@ -67,6 +67,23 @@ def test_calibration_and_localization_are_independent():
     assert metrics["per_category"]["number"]["fn"] == 1
 
 
+def test_category_only_match_cannot_displace_localized_evidence():
+    """Retain a grounded detection even when a second finding has only a matching category."""
+    text = "6 grams. 20 minutes. 100 degrees."
+    labels = [
+        {"type": "number", "severity": "major", "field": "translation", "span": [0, 7]},
+        {"type": "number", "severity": "major", "field": "translation", "span": [9, 19]},
+    ]
+    actual = Finding("number", "major", Span("translation", 0, 7), "numbers", text[:7], "Wrong mass", 0.88)
+    result = labelled_result("multiple", text, labels, actual, "holdout")
+    result.candidates.append(Finding("number", "major", Span("translation", 21, 32), "numbers", text[21:32], "Other quantity", 0.88))
+    metrics = measure([result], fit_thresholds([]))
+    assert metrics["detected_errors"] == 2
+    assert metrics["localized_detections"] == 1
+    assert metrics["localization"] == 0.5
+    assert metrics["category_only_detections"] == 1
+
+
 def test_unlabelled_rows_never_inflate_clean_metrics():
     """A dataset row with missing labels is unknown and stays out of false-alarm counts."""
     item = parse_item({"id": "one", "source": "A sentence.", "lang": "en"}, 1)
@@ -157,6 +174,51 @@ def test_baseline_matches_evidence_across_runs(tmp_path):
     assert read_json(current / "summary.json")["baseline"] == {"persistent_flags": 1, "severity_changes": 1}
 
 
+def test_baseline_uses_expected_quantity_and_completed_checks(tmp_path):
+    """Track a changing wrong value and allow independent numeric results on partial rows."""
+    source = "Use 5 g of salt."
+
+    def evaluate(case, text, judge_status):
+        """Record the outcome of actual numeric checks and the available coverage."""
+        item = parse_item({"id": case, "lang": "en", "source": source, "translation": text}, 1)
+        result = Evaluation(item, translation=text, candidates=number_findings(source, text, "source"))
+        result.record("translation_structure")
+        result.record("judge", judge_status)
+        return result
+
+    baseline, current = tmp_path / "baseline", tmp_path / "current"
+    before = [evaluate("persistent", "Use 6 g of salt.", "ok"), evaluate("partial", "Use 6 g of salt.", "skipped")]
+    after = [evaluate("persistent", "Use 7 g of salt.", "ok"), evaluate("partial", source, "skipped")]
+    write_reports(before, [], [], baseline, {}, None)
+    write_reports(after, [], [], current, {}, baseline)
+    assert read_json(current / "summary.json")["baseline"] == {"persistent_flags": 1, "resolved_flags": 1}
+
+
+def test_baseline_resolves_only_findings_with_shared_check_coverage(tmp_path):
+    """Allow completed numeric work while withholding deltas for skipped judge and absent subchecks."""
+    source = "Use 5 g of salt."
+    wrong = "Use 6 g of salt."
+    old_item = parse_item({"id": "example", "lang": "en", "source": source, "translation": wrong}, 1)
+    old = Evaluation(old_item, translation=wrong, candidates=number_findings(source, wrong, "source"))
+    old.candidates.append(Finding("entity", "minor", Span("translation", 11, 15), "judge", "salt", "Item-level judge evidence", 0.85))
+    old.record("translation_structure", checks=["numbers"])
+    old.record("judge")
+    baseline, current = tmp_path / "baseline", tmp_path / "current"
+    write_reports([old], [], [], baseline, {}, None)
+
+    corrected = Evaluation(old_item, translation=source)
+    corrected.record("translation_structure", checks=["numbers"])
+    corrected.record("judge", "skipped")
+    write_reports([corrected], [], [], current, {}, baseline)
+    assert read_json(current / "summary.json")["baseline"] == {"incomparable_coverage": 1, "resolved_flags": 1}
+
+    omitted = Evaluation(old_item, translation="")
+    omitted.record("translation_structure", checks=["nonempty"])
+    omitted.record("judge", "skipped")
+    write_reports([omitted], [], [], current, {}, baseline)
+    assert read_json(current / "summary.json")["baseline"] == {"incomparable_coverage": 1}
+
+
 def read_json(path):
     """Read a UTF-8 report object."""
     return json.loads(path.read_text(encoding="utf-8"))
@@ -240,7 +302,7 @@ def test_cli_ten_real_input_cases_without_credentials(tmp_path):
     assert final_event["requests"] == 0
     diff = run_cli(tmp_path, dataset, comparison, "--baseline", str(cold), env=env)
     assert diff.returncode == 0, diff.stderr
-    assert "Incomplete or changed check coverage" in (comparison / "diff.md").read_text(encoding="utf-8")
+    assert read_json(comparison / "summary.json")["baseline"]["persistent_flags"] == 1
 
 
 @pytest.mark.skipif(os.getenv("BODHAN_LIVE_TEST") != "1", reason="live APIs cost credit and require explicit test opt-in")

@@ -91,18 +91,25 @@ def match_baseline_flags(before: dict, current: dict) -> tuple[list, list, list]
     for index, flag in enumerate(old):
         span = flag["span"]
         interval = projected(span)
-        if interval is None:
-            continue
-        start, end = interval
         for other_index, other in enumerate(new):
+            if flag["category"] != other["category"]:
+                continue
+            anchor, other_anchor = flag.get("anchor"), other.get("anchor")
+            if anchor and other_anchor:
+                # Both reports point to the same unchanged source or reference.
+                # Distinct anchors outrank coincidental matches in translated text.
+                if anchor == other_anchor:
+                    edges.append((0, 0, index, other_index))
+                continue
             other_span = other["span"]
-            if flag["category"] == other["category"] and span["field"] == other_span["field"]:
+            if interval is not None and span["field"] == other_span["field"]:
+                start, end = interval
                 overlap = min(end, other_span["end"]) - max(start, other_span["start"])
                 if overlap > 0:
-                    edges.append((-overlap, index, other_index))
+                    edges.append((1, -overlap, index, other_index))
     matched_old, matched_new = set(), set()
     pairs = []
-    for _, index, other_index in sorted(edges):
+    for _, _, index, other_index in sorted(edges):
         if index not in matched_old and other_index not in matched_new:
             matched_old.add(index)
             matched_new.add(other_index)
@@ -127,6 +134,17 @@ def load_baseline(path: Path) -> Baseline:
     metadata = json.loads((path / "summary.json").read_text(encoding="utf-8"))
     if not isinstance(metadata, dict) or not isinstance(metadata.get("configuration"), dict):
         raise ValueError("Baseline report is missing its configuration.")
+
+    def valid_span(span: Any) -> bool:
+        """Validate coordinate data before the comparison can trigger paid work."""
+        return (
+            isinstance(span, dict)
+            and isinstance(span.get("field"), str)
+            and type(span.get("start")) is int
+            and type(span.get("end")) is int
+            and 0 <= span["start"] <= span["end"]
+        )
+
     previous = {}
     for line, row, error in read_jsonl(path / "items.jsonl"):
         if error or not isinstance(row.get("id"), str) or not isinstance(row.get("lang"), str):
@@ -138,22 +156,42 @@ def load_baseline(path: Path) -> Baseline:
             or not isinstance(row.get("flags"), list)
         ):
             raise ValueError(f"Baseline item is missing check data or flags at line {line}.")
+        performed = row["checks"].get("translation_structure", {}).get("checks")
+        if performed is not None and (not isinstance(performed, list) or any(not isinstance(name, str) for name in performed)):
+            raise ValueError(f"Invalid baseline check coverage at line {line}.")
         for flag in row["flags"]:
-            span = flag.get("span") if isinstance(flag, dict) else None
             if (
-                not isinstance(span, dict)
-                or not isinstance(span.get("field"), str)
-                or type(span.get("start")) is not int
-                or type(span.get("end")) is not int
-                or not 0 <= span["start"] <= span["end"]
-                or any(not isinstance(flag.get(name), str) for name in ("category", "severity", "evidence"))
+                not isinstance(flag, dict)
+                or not valid_span(flag.get("span"))
+                or any(not isinstance(flag.get(name), str) for name in ("check", "category", "severity", "evidence"))
             ):
                 raise ValueError(f"Invalid baseline evidence at line {line}.")
+            anchor = flag.get("anchor")
+            if anchor is not None and (not valid_span(anchor) or anchor["field"] not in ("source", "reference")):
+                raise ValueError(f"Invalid baseline anchor at line {line}.")
         key = (row["id"], row["lang"])
         if key in previous:
             raise ValueError(f"Duplicate baseline item at line {line}.")
         previous[key] = row
     return Baseline(metadata["configuration"], previous)
+
+
+def completed_check(row: dict, detector: str) -> bool:
+    """Identify which completed workflow check can support a finding or its absence."""
+    checks = row["checks"]
+    if detector in ("numbers", "entities", "markdown", "latex", "script", "empty_translation"):
+        structure = checks.get("translation_structure", {})
+        if detector == "empty_translation":
+            return structure.get("status") == "ok"
+        performed = structure.get("checks")
+        return structure.get("status") == "ok" and (performed is None or detector in performed)
+    if detector in ("silence", "clipping"):
+        detector = "signal"
+    elif detector == "transcript_alignment":
+        if checks.get("speech_recheck", {}).get("status") in ("error", "skipped", "partial"):
+            return False
+        detector = "speech_alignment"
+    return checks.get(detector, {}).get("status") == "ok"
 
 
 def baseline_diff(rows: list[dict], baseline: Path | Baseline, current_config: dict) -> tuple[str, dict]:
@@ -189,11 +227,18 @@ def baseline_diff(rows: list[dict], baseline: Path | Baseline, current_config: d
             counts["changed_source_or_reference"] += 1
             changes.append(f"- Source or reference changed for {title}")
             continue
-        if coverage(row) != coverage(before) or row["status"] != "scored" or before.get("status") != "scored":
+        old_flags = [flag for flag in before["flags"] if completed_check(before, flag["check"]) and completed_check(row, flag["check"])]
+        new_flags = [flag for flag in row["flags"] if completed_check(before, flag["check"]) and completed_check(row, flag["check"])]
+        if (
+            coverage(row) != coverage(before)
+            or row["status"] == "unscored"
+            or before["status"] == "unscored"
+            or len(old_flags) != len(before["flags"])
+            or len(new_flags) != len(row["flags"])
+        ):
             counts["incomparable_coverage"] += 1
-            changes.append(f"- Incomplete or changed check coverage for {title}")
-            continue
-        pairs, resolved, added = match_baseline_flags(before, row)
+            changes.append(f"- Incomplete or changed check coverage for {title}. Deltas use the checks that completed in both runs.")
+        pairs, resolved, added = match_baseline_flags({**before, "flags": old_flags}, {**row, "flags": new_flags})
         if pairs:
             counts["persistent_flags"] += len(pairs)
         for old, new in pairs:
@@ -263,7 +308,7 @@ def summary_markdown(summary: dict) -> str:
             "Localization",
             "≥70%",
             seeded["localization"],
-            f"{seeded['localized_detections']} of {seeded['comparable_detections']} detections with comparable labels",
+            f"{seeded['localized_detections']} of {seeded['comparable_detections']} detections with declared label coordinates",
         ),
         ("Category accuracy", "≥70%", seeded["category_accuracy"], f"{seeded['correct_categories']} of {seeded['detected_errors']} detections"),
         ("Fresh judge agreement", "≥90%", consistency["agreement"], f"{consistency['agreements']} of {consistency['compared']} comparisons"),
@@ -284,6 +329,7 @@ def summary_markdown(summary: dict) -> str:
     lines.extend(
         [
             "",
+            f"Seeded detections matched by category alone **{seeded['category_only_detections']}**.",
             "Unmeasured cohorts have no denominator. See calibration.json for false negatives, false positives, and coverage.",
             "Cache replay and the 200-item runtime target require separate execution measurements.",
             "",
@@ -322,7 +368,7 @@ def write_reports(
     """Emit the assignment outputs from deterministic evidence and fitted thresholds."""
     calibration, holdout = split_evaluations(results)
     thresholds, support = calibration_fit(calibration)
-    config = {**config, "thresholds": thresholds}
+    config = {**config, "thresholds": thresholds, "finding_policy_version": 2}
     rows = [row_for(result, thresholds) for result in results]
     counts = Counter(row["status"] for row in rows)
     counts["invalid"] = len(invalid)

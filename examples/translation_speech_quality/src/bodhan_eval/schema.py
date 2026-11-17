@@ -102,6 +102,7 @@ class Finding:
     evidence: str
     detail: str
     strength: float
+    anchor: Span | None = None
 
 
 @dataclass

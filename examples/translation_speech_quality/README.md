@@ -71,13 +71,13 @@ The checked-in dataset contains source text. A generated audio bundle, human lab
 
 ## How it works
 
-Inspect [the architecture, workflow, and quality design](DESIGN.md) for how checks become evidence. See [the decision log](DECISIONS.md) for the choices and validation steps behind the implementation.
+Inspect [the architecture, workflow, and quality design](DESIGN.md) for how checks become evidence. The [learning guide](learning.md) walks through the code and verification status. The [decision log](DECISIONS.md) records the choices and tests behind the implementation.
 
 | Output | What to inspect |
 | --- | --- |
 | `summary.md` | Coverage, top findings, quality targets, and estimated cost |
 | `summary.json` | Metrics by language and category, invalid rows, and judge token usage |
-| `items.jsonl` | Per-item check outcomes, candidate text, back-transcript, evidence spans, and unconfirmed findings |
+| `items.jsonl` | Per-item check outcomes, candidate text, back-transcript, evidence spans, expected-quantity anchors when available, and unconfirmed findings |
 | `calibration.json` | Thresholds, reviewed support per category, held-out metrics, and per-check precision and recall |
 | `diff.md` | New, resolved, persistent, and severity changes for comparable rows when you pass `--baseline` |
 | `run.jsonl` | Actual requests, cache hits, error codes, timing, and reserved or spent Bodhan credit |

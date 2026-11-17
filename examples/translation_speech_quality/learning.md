@@ -2,11 +2,13 @@
 
 The initial audit reviewed `abee459`. This guide explains that assessment, the follow-up fixes, and the live evidence needed for the interview.
 
-## Current status after the offline fixes
+## Current status
 
-The two reproduced batch and baseline defects now have passing regression tests. Short clips with a sustained uncertain omission get one eligible second segmentation. The recheck can strengthen an omission or dismiss it when the recognizer recovers the missing text. Judge response validation now happens before caching. The reports also expose the reviewed positive and negative examples behind tuned thresholds. Live accuracy, complete demo artifacts, and the hosted runtime target still need to be measured.
+The offline suite now covers 25 tests. Malformed paths stay with their row. Baseline comparisons track expected quantities and compare checks that completed in both runs. Calibration preserves localized evidence before assigning category-only matches. The quantity checker catches swaps in uniquely shared labels, labelled fields, and Markdown table cells. A sustained uncertain omission on an eligible short clip gets one second segmentation. Live accuracy, complete demo artifacts, and the hosted runtime target still need to be measured.
 
-## Assessment
+In a separate offline smoke, all 216 source passages were deliberately supplied as untranslated candidates. Both CLI runs flagged all 216 as wrong-language examples and made zero model requests. All four canonical reports matched byte for byte. This exercises keyless batch handling and reproducibility. The hosted cache replay test uses genuine model responses and remains part of the live pilot.
+
+## Historical assessment
 
 **Initial engineering rating at `abee459` · 7/10.** The architecture is worth keeping. The CLI follows the brief, the checks and provider logic are easy to locate, and the reports expose evidence. The initial weak spots were failure isolation, finding identity across runs, and confidence in speech and judgement rules. The follow-up tests establish the new offline behavior. The live quality targets remain separate.
 
@@ -21,17 +23,17 @@ These scores are a code-review judgement. The brief’s hidden-set rubric gives 
 
 ### Requirement-by-requirement status
 
-| Brief asks for | What exists at `abee459` | What remains |
+| Brief asks for | Current implementation and offline evidence | Remaining validation or submission work |
 | --- | --- | --- |
-| JSONL, optional outputs and labels, score-only mode, and `--generate` | Exact required command and flags. Supplied text and audio are accepted independently. Absent outputs can be generated via Bodhan. Bad JSON rows are counted. | Fix malformed media path recovery. Verify a live generation run and a score-only run with partially supplied rows. |
-| Reference and reference-free translation checks | chrF++, numeric and literal-entity checks, script heuristics, Markdown and LaTeX checks, Indic-Translate back-translation, and a judge. | Measure all seven translation categories and false alarms on legitimate units and code-mixing. Require a trustworthy example of a wrong number attached to the wrong entity. |
-| Speech omission, repetition, and bad audio | Waveform measurements, Indic-Transcribe, character alignment, and a possible second segmentation. | Verify results with real audio. Add evidence that distinguishes short TTS truncation and ASR omission. Test a genuinely noisy or clipped clip as well as silence. |
-| LLM judge with category, severity, and exact evidence | Written rubric, configurable OpenAI-compatible endpoint, validated segment references, and local evidence extraction. | Validate the judge API contract, check whether spans point to the right meaning, and test fresh agreement. Handle unusable judge responses without replaying them indefinitely. |
-| Human calibration and category precision and recall | Source-group splits, fitted category thresholds, one-to-one matching, and per-check and per-category reports. | Collect human labels. Confirm the brief's bare span coordinates and external label format. Report calibration support and independent holdout support. |
+| JSONL, optional outputs and labels, score-only mode, and `--generate` | Exact required command and flags. Supplied text and audio are accepted independently. Bad JSON is counted. Missing and malformed audio paths stay with their row. | Verify live generation and hosted checks on partial inputs. |
+| Reference and reference-free translation checks | chrF++, quantity and literal-entity checks, script heuristics, Markdown and LaTeX checks, Indic-Translate back-translation, and a judge. Offline tests cover quantity swaps and correct reordering. | Measure all seven categories, including false alarms on natural unit expressions and code-mixing. Quantities with different translated labels still need semantic evidence. |
+| Speech omission, repetition, and bad audio | Waveform measurements, Indic-Transcribe, character alignment, and a second segmentation for eligible uncertain omissions. Controlled transcripts cover corroborated, recovered, and empty rechecks. | Measure detection and false alarms on real audio, including garble, clipping, and silence. |
+| LLM judge with category, severity, and exact evidence | Written rubric, configurable endpoint, validated segment references, and local evidence extraction. An unusable verdict stays out of the cache. The HTTP fixture proves valid replay. | Verify the hosted endpoint, judge spans, and fresh agreement on reviewed data. |
+| Human calibration and category precision and recall | Source-group splits, fitted category thresholds and support counts, attribution, and per-check reports. Localized evidence is matched first. Category-only matches cannot displace it. | Collect human labels and verify independent holdout support. Confirm the brief's bare span coordinates and external label format. |
 | Error injector | Controlled changes to actual candidates, source perturbations translated by Bodhan, and waveform edits. | Run it on live outputs. Verify that every intended error is present and that clean controls have been reviewed. |
-| Reports with cost and baseline diff | Required files, per-row spans/checks, grouped totals, usage, diff, and separate execution telemetry. | Match previous and current individual defects. Distinguish unreported judge usage from zero usage. Measure live cache replay and actual cost. |
+| Reports with cost and baseline diff | Required files, grouped totals, separate execution telemetry, and per-row evidence. Baseline tests cover persistent wrong values, a replacement defect, and skips that cannot produce false resolutions. Unknown judge usage stays distinct from zero. | Measure live cache replay and actual cost. |
 | Thirteen supported codes and 100+ demo items across Hindi, Tamil, and Bengali | The CLI accepts the 13 production codes. The repository contains 216 source cases from 72 original English passages. | A source corpus is the input to the demo. Publish a processed dataset with injected errors, a labelled subset, and audio links. Smoke-test an additional language such as Gujarati. |
-| One-command install, tests, and hosted targets | Pinned direct dependencies, Dockerfile, 12 passing recipe tests on Windows and Linux, and an opt-in 10-item hosted test. | Run the hosted test, compare canonical reports on a warm cache, and measure 200 speech-enabled items cold. The repo-wide Cookbook test fails on upstream AndroidSpeak, while recipe validation and the secret scan pass. |
+| One-command install, tests, and hosted targets | Pinned direct dependencies, Dockerfile, 25 offline tests, and an opt-in 10-item hosted test. Recipe validation and the secret scan pass. | Run the live test and warm-cache replay. Measure 200 speech-enabled items cold. The full Cookbook gate still fails on upstream AndroidSpeak. |
 | Public submission | Local assignment branch and recipe documentation. | Address or report the upstream gate with evidence. Link the real sample report and five-minute recording in the PR. Email the PR link and final SHA after review. |
 
 ## What the project does
@@ -122,6 +124,7 @@ Read down the table on your first pass. All source links point to the modules in
 | [demo.py](src/bodhan_eval/demo.py) | Builds a reproducible mutated dataset and an equivalent baseline from real generated outputs. | `controls_from_report()`, `inject()`, then the text, semantic, and audio variant functions. |
 | [tests/test_checks.py](tests/test_checks.py) | Local checks for Unicode offsets, quantities, structure, entities, script, audio, and judge parsing. | Play through the number change and the silence injection. |
 | [tests/test_reports.py](tests/test_reports.py) | Threshold and label tests, baseline tests, a no-key CLI run, and the opt-in hosted replay test. | `test_cli_ten_real_input_cases_without_credentials` and `test_live_ten_items_with_cache`. |
+| [tests/test_providers.py](tests/test_providers.py) | HTTP fixtures for cache validation, budget enforcement, and retry timing. | `test_unusable_judge_verdict_does_not_poison_cache`. |
 | `sample_data/` and `outputs/` | Cookbook layout and local generated artifacts. | The empty tracked files preserve the directory paths. Generated audio stays outside Git. |
 
 ## How a row works
@@ -140,7 +143,9 @@ An omitted `labels` field stays unknown. An empty list means the annotator revie
 
 ### 3. Observe translation and speech
 
-On the text side, `number_findings()` compares multisets of values and checks units when both sides use explicit recognized symbols. This handles native decimal digits and avoids treating a translated unit name as automatically missing. Multisets lose the relation between a value and its noun. A source with 5 g of salt and 20 g of sugar can swap those values and still pass this deterministic check. Literal URLs and acronyms feed entity checks. Markdown and LaTeX checks compare structural signatures and formula content. A provided reference also gives a chrF++ score. This is a similarity score on a scale of 0 to 100. It is useful evidence for a reviewer and is not itself a finding.
+On the text side, `number_findings()` first pairs quantities with uniquely shared literal labels. It handles a noun after a unit such as `5 g of salt`, an explicit field such as `Salt: 5 g`, and a Markdown cell identified by its row and column. Those labels let the check catch a salt and sugar swap while allowing the items to move. The remaining values go through the global multiset and explicit-unit checks. A translated label may lose its literal correspondence, so the judge still needs to evaluate those relationships.
+
+Literal URLs and acronyms feed entity checks. Markdown and LaTeX checks compare structural signatures and formula content. A provided reference also gives a chrF++ score. This measures similarity on a scale of 0 to 100 and supplies evidence for the reviewer.
 
 On the speech side, FFmpeg decodes one stream to mono PCM at 16 kHz. The signal checks scan 100 ms windows for quiet regions and sustained clipping. ASR chunks are capped at 28 seconds. When a cut is needed, the code looks backwards for a lower-energy boundary. It concatenates transcript text from the chunks. If the script is known, JiWER aligns normalized characters and reports substitutions, deletions, and insertions. The offset map takes an edit in normalized text back to the script or transcript. Time intervals shown for silence and clipping come from samples. Speech content mismatches use text spans because no word-level timestamp arrives from the transcription endpoint.
 
@@ -154,7 +159,7 @@ For clips from 3 to 14 seconds, a sustained uncertain omission triggers a second
 
 Deterministic checks and the judge emit evidence strengths, such as `0.88` for a numeric change and `0.85` for a clear judge verdict. These are implementation ranks, not probabilities. `fit_thresholds()` tries a fixed set of thresholds per category and uses F0.5 to favor precision. A category needs both positive and negative reviewed calibration examples to move away from the `0.72` default. Injected labels do not tune thresholds unless there is a separate human review applied through the label file. The same English source stays in one split so a corrupted version cannot train the threshold used to assess a matching control.
 
-`accepted()` applies the selected thresholds and removes overlaps within a category on the same coordinate field. `measure()` uses one-to-one matching. One label can match one flag. Category metrics require the correct category and, when the label declares a coordinate axis, an overlapping interval. The broader detection measure can recover a same-category, non-overlapping flag and score its localization as a miss. Read the broad and strict numbers together. A category match alone could mistake two different same-category errors for the same detection.
+`accepted()` applies the selected thresholds and removes overlaps within a category on the same coordinate field. `measure()` first pairs overlapping labels and evidence one to one. It assigns category-only matches from the labels and findings left over. The report shows how many detections relied on category alone. Category precision and recall require the correct category and, when the label declares a coordinate field, an overlapping interval. A detection with a declared label field and no overlap remains a localization miss.
 
 `row_for()` writes `scored`, `partial`, or `unscored` with the underlying check outcomes. The row-level word `scored` means at least one quality check ran and no recorded operation had an error, skip, or partial outcome. A field marked `unavailable` can still exist on that row. Look at the per-check coverage before interpreting it as evidence across both modalities.
 
@@ -254,7 +259,7 @@ stateDiagram-v2
 2. `baseline_diff()` reduces both findings to `(number, major)` and intersects the counts.
 3. The actual report recorded `persistent_flags = 1`. It recorded no resolution or new finding.
 
-The follow-up pairs evidence on common coordinate fields and projects unchanged text through new offsets. The test covers a replacement defect, an unchanged defect after a harmless offset shift, and a severity change on the same defect. [Baseline comparison](src/bodhan_eval/report.py)
+The current implementation prefers stable source or reference anchors when both reports have them. A change from 6 g to 7 g can point to the same expected 5 g and remain a persistent defect. For findings without anchors, the matcher projects unchanged text through new offsets. The diff only draws conclusions from checks that completed in both runs. A skipped judge cannot hide a completed numeric comparison or produce a false resolution of a judge finding. [Baseline comparison](src/bodhan_eval/report.py)
 
 ```mermaid
 ---
@@ -305,8 +310,9 @@ stateDiagram-v2
 | Priority | Do this | Exit check |
 | --- | --- | --- |
 | **P1** | Isolate media-path failures. Keep the row’s eligible text checks. | Passed. The two-row CLI run emits both rows and reports the first audio error for missing and malformed paths. |
-| **P1** | Match individual baseline defects and record severity changes separately. | Passed. A fixed quantity and a new quantity produce one resolution and one regression. A true persistent defect survives harmless text shifts. |
-| **P1** | Tighten evidence coverage. Keep an audited shortlist of borderline speech and numeric cases. Define what evidence can promote `unconfirmed` findings. | A controlled true truncation and a clean clip with an ASR omission behave differently. A swapped quantity test demonstrates which check catches it. |
+| **P1** | Match individual baseline defects and compare independent coverage. | Passed. A replacement gives one resolution and one regression. Wrong values for the same expected quantity remain persistent. Skipped and unperformed checks cannot create a false resolution. |
+| **P1** | Keep weaker calibration matches from displacing stronger evidence. | Passed. A two-label regression retains its one localized match and reports the other separately as category-only. |
+| **P1** | Check quantities attached to literal labels and corroborate short omissions. | Passed on controlled examples. Swaps are detected in text, fields, and tables. Correct reorderings stay clean. Alternate transcripts can corroborate or clear a short omission. |
 | **P2** | Strengthen the judge cache boundary. | Passed with HTTP protocol fixtures. A malformed verdict remains actionable. A valid replacement can run and returns from SQLite on replay. |
 | **P2** | Distinguish external calibration sources from held-out labels. Preserve authorship and display support. | Implemented. Confirm Bodhan’s external file and bare span conventions before interpreting live metrics. |
 | **P2** | Verify budgets, provider retry classification, and the item lifecycle. | The zero-credit dispatch and Retry-After tests pass. Measure ordinary timeouts and credit exhaustion against hosted behavior before tuning throughput. |
