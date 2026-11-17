@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools==80.9.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bodhan-tool-agent"
+version = "0.1.0"
+description = "LangGraph task agent and standalone MCP tools for Bodhan Indic models"
+requires-python = ">=3.11"
+dependencies = [
+  "diskcache==5.6.3",
+  "httpx==0.28.1",
+  "langchain==1.5.0",
+  "langchain-openai==1.7.4",
+  "langgraph==1.2.22",
+  "langsmith>=0.4,<1",
+  "mcp==2.2.0",
+  "Pillow==12.0.0",
+  "pydantic==2.12.4",
+  "pypdfium2==5.15.2",
+  "python-dotenv==1.2.1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest==9.2.0", "ruff==0.14.5"]
+
+[project.scripts]
+bodhan-agent = "bodhan_agent.__main__:main"
+bodhan-mcp = "bodhan_mcp.__main__:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
