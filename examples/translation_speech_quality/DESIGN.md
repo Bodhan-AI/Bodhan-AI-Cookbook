@@ -10,18 +10,21 @@ flowchart LR
     CLI --> TX[Deterministic text checks<br/>numbers, format, entities, script]
     CLI --> SG[Waveform checks<br/>silence, noise, clipping]
     CLI --> RT[Round trips<br/>back-translation, back-transcription]
-    RT --> AL[Transcript alignment<br/>omission, repetition, garbling]
+    RT --> AL[Transcript alignment<br/>block omission, repeated script,<br/>transcript loops, garbling]
     SG --> RC{Reconcile<br/>waveform vs transcript}
     AL --> RC
     TX --> J[LLM judge<br/>written rubric, numbered words]
-    RT --> J
-    RC --> J
+    RT -->|back-translation| J
+    RC -.->|speech evidence only when<br/>a recheck is possible| J
     J -->|verify_speech| RS[Second ASR segmentation]
     RS --> CB
-    J --> CB[Combine candidates<br/>thresholds and dedup]
+    J --> CB[Combine candidates<br/>thresholds, one explanation<br/>per passage]
     RC --> CB
     TX --> CB
     CB --> REP[summary.md / .json, items.jsonl,<br/>calibration.json, diff.md]
+    CB --> EX[extras: MQM score,<br/>review_queue.csv, dashboard.html,<br/>CI gate]
+    REP --> CMP[compare.py: voices<br/>and speech styles]
+    EX -->|answered review_queue.csv| CAL
     H[(Human labels<br/>+ injected seeds)] --> CAL[Calibration and<br/>held-out scoring]
     CAL --> CB
     CAL --> REP
@@ -64,22 +67,24 @@ flowchart TD
     D --> E2[Audio, free: silence, noise, clipping]
     E1 --> F1[Back-translate to English: cheap]
     E2 --> F2[Back-transcribe, 28 s chunks: about 0.10 INR per minute]
-    F2 --> G[Align transcript to script: omission, repetition, garbling]
+    F2 --> G[Align transcript to script: block omission, repeated script, transcript loops, garbling]
     G --> R[Reconcile: quiet waveform but fully recognised script, so demote silence]
-    R --> H{Uncertain omission on a clip of 14 s or less?}
+    R --> H{Omission not confirmed by speaking rate, on a clip of 3-14 s?}
     H -->|yes| H1[Re-transcribe with shifted windows: corroborate or clear]
     H -->|no| J
     H1 --> J
-    F1 --> J[LLM judge: one call per row with all evidence]
+    F1 --> J["LLM judge, one call per row: text, back-translation and suspicions, plus speech evidence only if a recheck is possible"]
     J --> K{Judge asks verify_speech on an uncertain speech finding?}
     K -->|yes| K1[Second segmentation for long clips]
     K -->|no| L
     K1 --> L[Accept candidates over category thresholds, one explanation per passage]
     L --> M[Fit thresholds on reviewed calibration rows. Score held-out rows.]
-    M --> N[Write reports and diff against --baseline]
+    M --> N[Write reports, dashboard, review queue, diff against --baseline]
+    N --> O{--fail-on-regression N?}
+    O -->|new minus resolved flags over N| P[Exit status 3]
 ```
 
-The cheap and free checks run first, in parallel for the two modalities. Paid round trips happen once per row. The extra ASR pass only runs when the cheaper evidence leaves a speech question open. TTS runs only with `--generate` for missing audio. It is the most expensive call (₹6 per 10,000 characters), and the run never repeats it because responses are cached.
+The cheap and free checks run first, in parallel for the two modalities. Paid round trips happen once per row. The extra ASR pass runs only when an omission is not already confirmed by an impossible speaking rate, or when the judge asks. A second transcript can confirm the omission or, if it hears the missing words, clear it. TTS runs only with `--generate` for missing audio. It is the most expensive call (₹6 per 10,000 characters), and the run never repeats it because responses are cached.
 
 ## Checks
 

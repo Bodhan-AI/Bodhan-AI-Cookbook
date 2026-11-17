@@ -75,7 +75,7 @@ Bad JSON lines and rows with missing fields are logged, skipped and counted. A f
 | `data/demo.jsonl` | 72 original English educational passages × hi, ta, bn (216 rows, source only). Includes Markdown lists, tables, LaTeX, units and named entities. |
 | `data/demo_scored.jsonl` | The demo dataset as scored. Its 231 rows are 108 Bodhan-generated controls plus 123 labelled injected variants: 4 per category per language, plus 3 human-reviewed rows. |
 | `data/demo_baseline.jsonl` | The same rows as the injector found them, before mutation. Scoring it gives the `--baseline` report behind `sample_report/diff.md`. |
-| `data/human_labels.jsonl` | 6 rows labelled by hand by Aafi Malek from a blind review packet. The opaque IDs hide which rows were mutated. |
+| `data/human_labels.jsonl` | 6 Hindi rows labelled by hand by Aafi Malek from a blind review packet, where opaque IDs hide which rows were mutated. One label was revised on a second look. Each row has a `note` explaining the verdict. |
 | `sample_report/` | The reports from scoring `data/demo_scored.jsonl` against the baseline: `summary.md`, `summary.json`, `items.jsonl`, `calibration.json`, `diff.md`, `dashboard.html`, `review_queue.csv` and `run.jsonl`, plus a three-voice Hindi comparison. |
 
 The generated audio is not committed. Download the [audio bundle](AUDIO_BUNDLE_URL) and unzip it next to `data/demo_scored.jsonl`, so its `audio/` paths resolve. To rebuild everything from the source passages with your own keys (about ₹11 of Bodhan credit, most of it Indic-Speak):
@@ -105,9 +105,9 @@ These are measured on `data/demo_scored.jsonl` (231 rows) with Cerebras `qwen-3.
 | Localization (flag overlaps the seeded span) | ≥70% | **98.8%** (79 of 80 with declared coordinates) |
 | Category accuracy | ≥70% | **100%** (87 of 87) |
 | Judge consistency (second independent verdict) | ≥90% | **100%** (10 of 10) |
-| False alarms on clean items | ≤10% | **9.6%** of unmutated controls flagged (7 of 73). This is an upper bound, because several of these flags are real Bodhan defects (see below). |
+| False alarms on clean items | ≤10% | **9.6%** of unmutated controls flagged (7 of 73). This is an upper bound, because several of these flags are real Bodhan defects (see below). On 200 clean human FLEURS recordings, 1 clip was flagged: it has real clipping. |
 | Determinism | rerun from cache is identical at no model cost | Verified by the end-to-end test (byte-identical reports, zero requests). |
-| Runtime | 200 items with speech in under 30 min | 22.4 min cold for 200 FLEURS clips in hi, ta and bn, including ASR, back-translation and judge. That run was throttled by a free-tier judge rate limit. |
+| Runtime | 200 items with speech in under 30 min | Measured on the final code with a fresh cache, on 200 human-read [FLEURS](https://huggingface.co/datasets/google/fleurs) clips (CC BY 4.0, hi/ta/bn): **14.1 min** for Bodhan back-transcription, back-translation and every local check, with 281 Bodhan 429 retries absorbed. The judge is added on top and depends on the endpoint. On Cerebras `qwen-3.8-27b` at concurrency 4, the demo's 147 judge calls completed inside a 9.6-minute run, which puts a full run at roughly 25 minutes. That total is an estimate, not a single measured run. FLEURS was used only for runtime and false-alarm checks. Its audio is not committed. |
 
 | Category | Precision | Recall | | Language | Recall | Localization |
 | --- | ---: | ---: | --- | --- | ---: | ---: |
