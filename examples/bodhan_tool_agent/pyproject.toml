@@ -14,7 +14,7 @@ dependencies = [
     "pydantic>=2.7.0",
     "pypdfium2>=4.30.0",
     "soundfile>=0.12.1",
-    "pillow>=10.4.0",
+    "pillow>=13.0.0",
     "python-dotenv>=1.0.0",
     "aiofiles>=24.1.0",
 ]
