@@ -320,3 +320,12 @@ def test_long_passage_is_fast():
     findings = all_text_findings(source, candidate, "hi")
     assert time.perf_counter() - started < 20
     assert flags(findings, source, candidate) == []
+
+
+def test_native_digit_list_numbers_are_still_a_list():
+    """Bengali or Devanagari list numbers render the same structure as 1. and 2."""
+    source = "## Measuring length\n\n1. Align the pencil with the zero mark.\n2. Read the mark at the far end."
+    candidate = "## দৈর্ঘ্য পরিমাপ করা\n\n১. পেন্সিলটিকে শূন্য চিহ্নের সাথে সারিবদ্ধ করুন।\n২. একেবারে শেষ প্রান্তে থাকা চিহ্নটি পড়ুন।"
+    assert format_findings(source, candidate) == []
+    flattened = "## দৈর্ঘ্য পরিমাপ করা\n\nপেন্সিলটিকে শূন্য চিহ্নের সাথে সারিবদ্ধ করুন। চিহ্নটি পড়ুন।"
+    assert [finding.category for finding in format_findings(source, flattened)] == ["format"]

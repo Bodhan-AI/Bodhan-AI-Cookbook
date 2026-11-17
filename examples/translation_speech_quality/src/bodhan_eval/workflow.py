@@ -20,7 +20,6 @@ from .audio_checks import (
     speech_parts,
     speech_recheck_window,
 )
-from .calibration import DEFAULT_THRESHOLD
 from .judge import RUBRIC, Segment, judge_input, parse_judgment, verdict_signature
 from .providers import Call, CallError, Providers, digest
 from .schema import Evaluation, Finding, Item, Span
@@ -256,7 +255,9 @@ async def judge_checks(
     if (
         seconds is not None
         and audio.duration_ms <= 14_000
-        and any(finding.category == "speech_omission" and finding.strength < DEFAULT_THRESHOLD for finding in result.candidates)
+        # Re-check every omission not already corroborated by an impossible speaking rate. The
+        # second transcript can confirm it or, if it hears the missing words, clear it.
+        and any(finding.category == "speech_omission" and finding.strength < 0.89 for finding in result.candidates)
     ):
         # On short clips a shifted window is cheap, and an omitted phrase can be
         # resolved even if the external judge is unavailable.

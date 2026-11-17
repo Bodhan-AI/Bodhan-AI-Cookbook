@@ -54,6 +54,7 @@ SENTENCE = re.compile(r"[^.!?।॥\n]+[.!?।॥]")
 NUMBER = re.compile(r"(?<!\w)[+\-−]?\d+(?:[.,:/]\d+)*(?:\s?(?:°[CF]|[%₹]|km|cm|mm|kg|mg|mL|Hz|kWh|m/s|s|m|g|L)(?!\w))?", re.IGNORECASE)
 FORMULA = re.compile(r"(?<!\\)(\$\$[\s\S]+?\$\$|\$(?!\$)[^$\n]+?\$)")
 LITERAL_ENTITY = re.compile(r"https?://[^\s)>]+|(?<!\w)[A-Z][A-Z0-9]{1,}(?!\w)")
+SENTENCE_START = re.compile(r"(?:\A|[.!?:|\n]|^[ \t]*(?:[-*+]|\d+[.)]|#{1,6}))[ \t]*\Z", re.MULTILINE)
 UNIT_SWAPS = {"cm": "mm", "mm": "cm", "km": "m", "kg": "g", "g": "kg", "°C": "°F", "mL": "L", "L": "mL", "%": "°C"}
 
 
@@ -182,7 +183,9 @@ def perturbed_source(row: dict, category: str) -> tuple[str, tuple[int, int] | N
         return source + " " + ADDITIONS[pick(row, category, len(ADDITIONS))], None
     if category == "entity":
         acronyms = list(re.finditer(r"\b[A-Z]{2,}\b", source))
-        names = [m for m in re.finditer(r"\b[A-Z][a-z]{2,}\b", source) if m.start() > 0 and not re.search(r"(^|[.!?:#\n]\s*)$", source[: m.start()])]
+        # A capital that only marks the start of a sentence, line, list item, heading or table
+        # cell is an ordinary word ("Read", "Material"), not a name.
+        names = [m for m in re.finditer(r"\b[A-Z][a-z]{2,}\b", source) if not SENTENCE_START.search(source[: m.start()])]
         targets = acronyms or names
         if not targets:
             return None

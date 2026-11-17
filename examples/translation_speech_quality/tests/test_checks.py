@@ -131,7 +131,9 @@ def test_short_speech_omission_requires_corroboration():
     duration = 5_000
     _, first = speech_findings(expected, prefix, duration, script_field="source")
     thresholds = fit_thresholds([])
-    assert accepted(first, thresholds) == []
+    # Over half the script missing in one block is strong evidence on its own (0.86).
+    [initial] = accepted(first, thresholds)
+    assert initial.strength == 0.86
     seconds = speech_recheck_window(duration)
     clip = Audio(tone(5))
     assert len(list(chunks(clip))) == 1
@@ -148,8 +150,9 @@ def test_short_speech_omission_requires_corroboration():
     assert accepted(updated, thresholds) == []
     assert confirmed == [] and recovered == 1
 
+    # An unusable second transcript neither confirms nor clears the first evidence.
     updated, confirmed, recovered = corroborate_speech(expected, "", duration, first, script_field="source")
-    assert accepted(updated, thresholds) == []
+    assert updated == first
     assert confirmed == [] and recovered == 0
 
 

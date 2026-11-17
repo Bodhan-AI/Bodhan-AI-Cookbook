@@ -492,6 +492,48 @@ def same_repeat(evidence: str, other: str, reference: str) -> bool:
     return bool(first and second) and len(first & second) >= 0.5 * min(len(first), len(second))
 
 
+MISSING_SHARE = 0.2
+LOOP_WORDS = 4
+LOOP_SIMILARITY = 0.8
+
+
+def transcript_loops(expected: str, transcript: str) -> Finding | None:
+    """Find the longest phrase of 4+ words that the transcript says more often than the script does."""
+    def words(text: str) -> list[tuple[int, int, str]]:
+        tokens = []
+        for match in re.finditer(r"\S+", text):
+            normalized = normalize_with_offsets(match.group())[0]
+            if normalized:
+                tokens.append((match.start(), match.end(), normalized))
+        return tokens
+
+    heard, script = words(transcript), [token for _, _, token in words(expected)]
+    for size in range(min(len(heard) // 2, 40), LOOP_WORDS - 1, -1):
+        seen: dict[tuple[str, ...], int] = {}
+        for index in range(len(heard) - size + 1):
+            phrase = tuple(token for _, _, token in heard[index : index + size])
+            first = seen.setdefault(phrase, index)
+            if first + size <= index:
+                spoken = sum(1 for at in range(len(heard) - size + 1) if tuple(t for _, _, t in heard[at : at + size]) == phrase)
+                # ASR spells words its own way, so a script phrase counts if it is close in characters.
+                joined = " ".join(phrase)
+                written = sum(
+                    1 for at in range(len(script) - size + 1) if SequenceMatcher(None, " ".join(script[at : at + size]), joined).ratio() >= LOOP_SIMILARITY
+                )
+                if spoken > written:
+                    start, end = heard[index][0], heard[index + size - 1][1]
+                    return Finding(
+                        "speech_repetition",
+                        "major",
+                        Span("transcript", start, end),
+                        "transcript_loop",
+                        transcript[start:end],
+                        f"The back-transcript says this {size}-word phrase {spoken} times; the script has it {written} times.",
+                        0.84,
+                    )
+    return None
+
+
 def transcript_time(finding: Finding, transcript_length: int, duration_ms: int) -> Finding:
     """Place a transcript-span finding on the audio timeline, keeping the text span as anchor.
 
@@ -527,8 +569,14 @@ def speech_findings(
         if edit.type == "delete" and edit.ref_end_idx - edit.ref_start_idx >= min_length:
             start, end = aligned_span(reference, reference_offsets, edit.ref_start_idx, edit.ref_end_idx)
             suffix = edit.ref_end_idx >= len(reference) - 1
+            missing = edit.ref_end_idx - edit.ref_start_idx
+            other_errors = alignment.substitutions + alignment.deletions - missing
+            # Recognizer noise drops a few characters at a time: no clean clip in the demo or in
+            # 199 FLEURS recordings lost more than 7% of its script in one stretch. A fifth of the
+            # script missing in one block, while the rest is heard, is missing speech.
+            block = missing >= MISSING_SHARE * len(reference) and other_errors <= 0.3 * len(reference)
             # Character rate is only corroboration. Scripts and voices differ in pace.
-            strength = 0.89 if suffix and duration_risk else 0.68
+            strength = 0.89 if suffix and duration_risk else 0.86 if block else 0.68
             findings.append(
                 Finding(
                     "speech_omission",
@@ -541,6 +589,13 @@ def speech_findings(
                 )
             )
     repeats, repeated_characters = repetition_findings(expected, transcript, alignment, min_length)
+    if not any(finding.strength >= 0.72 for finding in repeats):
+        # Numbers, units and symbols are spoken as words, so a repeat of them cannot align to
+        # the script. Count the transcript's own phrases against the script's instead.
+        looped = transcript_loops(expected, transcript)
+        if looped is not None:
+            repeats = [*repeats, looped]
+            repeated_characters = max(repeated_characters, looped.span.end - looped.span.start)
     findings.extend(transcript_time(finding, len(transcript), duration_ms) for finding in repeats)
     # Material explained as a spoken repeat is not evidence of unintelligible audio.
     residual = alignment.substitutions + alignment.deletions + max(0, alignment.insertions - repeated_characters)

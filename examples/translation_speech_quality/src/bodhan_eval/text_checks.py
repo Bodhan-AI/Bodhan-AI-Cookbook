@@ -129,10 +129,22 @@ NATIVE_SCALES = sorted(
 )
 
 
+LIST_MARKER = re.compile(r"(?m)^([ \t]*)(\d{1,9})([.)])(?=[ \t])")
+
+
+def ascii_list_markers(text: str) -> str:
+    """Read native-digit list numbers ("১.", "२)") as list markers, keeping every offset.
+
+    CommonMark only recognises ASCII digits in ordered-list markers. Localizing the digits
+    is a legitimate rendering choice, not a broken list, so they compare as equivalent.
+    """
+    return LIST_MARKER.sub(lambda m: m.group(1) + "".join(str(unicodedata.decimal(char)) for char in m.group(2)) + m.group(3), text)
+
+
 @lru_cache(maxsize=64)
 def parse_markdown(text: str):
     """Parse once per text; several checks inspect the same token stream."""
-    return MARKDOWN.parse(text)
+    return MARKDOWN.parse(ascii_list_markers(text))
 
 
 def line_starts(text: str) -> list[int]:

@@ -196,3 +196,35 @@ def test_reconcile_keeps_real_gaps_in_short_clips():
     # 2.5 s speech, 4 s trailing silence: 62% of the clip.
     trailing = [silence(2500, 6500)]
     assert reconcile_signal_with_transcript(trailing, short_script, {"duration_ms": 6500, "silence_ratio": 0.62}) == trailing
+
+
+def test_spoken_number_loop_is_a_repetition_even_without_script_alignment():
+    """Digits are spoken as words, so a looped time and temperature cannot align to the script."""
+    from bodhan_eval.audio_checks import transcript_loops
+
+    script = "| समय | तापमान |\n| --- | --- |\n| 08:30 | 21 °C |\n| 11:00 | 28 °C |"
+    heard = "समय तापमान एट थर्टी ट्वेंटी वन डिग्रीज़ सेल्सियस एट थर्टी ट्वेंटी वन डिग्रीज़ सेल्सियस इलेवन ओ क्लॉक ट्वेंटी एट डिग्रीज़ सेल्सियस"
+    finding = transcript_loops(script, heard)
+    assert finding is not None and finding.category == "speech_repetition" and finding.strength >= 0.72
+    assert heard[finding.span.start : finding.span.end] == finding.evidence
+    assert "एट थर्टी ट्वेंटी वन" in finding.evidence
+
+
+def test_phrase_repeated_in_the_script_is_not_a_loop_despite_asr_spelling():
+    """The script says the phrase twice; the transcript spells one word differently but is not a loop."""
+    from bodhan_eval.audio_checks import transcript_loops
+
+    script = "धीमी गति से साइकिल चलाने वाला पहले शुरू करता है। तेज गति से साइकिल चलाने वाला 5 मिनट बाद निकलता है।"
+    heard = "धीमी गति से साइकल चलाने वाला पहले शुरू करता है तेज़ गति से साइकल चलाने वाला फाइव मिनट बाद निकलता है"
+    assert transcript_loops(script, heard) is None
+
+
+def test_a_fifth_of_the_script_missing_in_one_block_is_strong_omission_evidence():
+    """A middle cut removes a large contiguous block while the rest is heard cleanly."""
+    script = "एक यू.एस.बी. केबल बिजली और डेटा ले जा सकती है। कनेक्टर का आकार अकेले इसकी डेटा दर की पहचान नहीं करता है।"
+    heard = "एक यू एस बी केबल बिजली और डेटा ले जास डेटा दर की पहचान नहीं करता है"
+    _, findings = speech_findings(script, heard, 6000)
+    [omission] = [finding for finding in findings if finding.category == "speech_omission"]
+    assert omission.strength == 0.86
+    _, clean = speech_findings(script, script, 6000)
+    assert not [finding for finding in clean if finding.category == "speech_omission"]
