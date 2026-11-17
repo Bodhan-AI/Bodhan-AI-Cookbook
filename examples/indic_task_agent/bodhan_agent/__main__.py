@@ -75,6 +75,11 @@ def write_outputs(args, out: Path, outcome: dict, budget: Budget, agent, model: 
         final = {"status": "stopped", "answer": f"The agent stopped before finishing: {outcome['stop_reason']}. "
                  "Files written so far are listed below; they may be incomplete.", "assumptions": [],
                  "artifacts": produced}
+    failed = [v for v in (agent.verification if agent else []) if not v["ok"]]
+    if final["status"] == "completed" and failed:  # no success claim while a check failed
+        final["status"] = "partial"
+        final["answer"] += ("\n\nMarked partial by the output checks: " +
+                            "; ".join(w for v in failed for w in v.get("warnings") or [v["check"]]) + ".")
     by_model: dict[str, float] = {}
     for c in budget.calls:
         by_model[c["model"]] = round(by_model.get(c["model"], 0) + c["cost_inr"], 4)

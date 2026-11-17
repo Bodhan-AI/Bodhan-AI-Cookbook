@@ -102,3 +102,16 @@ def test_missing_input_fails_fast_without_llm(tmp_path):
     report = asyncio.run(run(args, llm=llm, bodhan=FakeBodhan()))
     assert report["status"] == "impossible" and llm.seen == []
     assert "does not exist" in (tmp_path / "out" / "result.md").read_text()
+
+
+def test_length_target_and_failed_check_downgrades_completed(tmp_path):
+    art = tmp_path / "out" / "artifacts"
+    report, trace, _ = agent_run(tmp_path, [
+        ("write_file", {"why": "draft", "filename": "s.en.md", "content": "word " * 50, "speech_language": "ta"}),
+        ("translate_text", {"why": "Bengali", "path": str(tmp_path / "in" / "paragraph.txt"), "target_language": "bn"}),
+        ("synthesize_speech", {"why": "speak", "path": str(art / "paragraph.bn.md"), "language": "bn"}),
+        ("finish", {"why": "done", "status": "completed", "answer": "Done.", "artifacts": [str(art / "paragraph.bn.mp3")]}),
+    ], task="Make a two-minute Bengali audio summary")
+    assert trace[0]["result"]["length_check"].startswith("TOO SHORT: 50 words, about 180 wanted")
+    assert "length_vs_request" in trace[2]["result"]  # the 0.3 s fake audio is far from 120 s
+    assert report["status"] == "partial" and "Marked partial by the output checks" in (tmp_path / "out" / "result.md").read_text()
