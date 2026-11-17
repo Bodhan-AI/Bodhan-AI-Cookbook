@@ -128,11 +128,11 @@ Run with `gemini-3.5-flash-lite` and the hosted Bodhan API on 17 Nov 2026. Outpu
 
 | # | Task | Input | Result | Steps | Cost | Time |
 |---|---|---|---|---|---|---|
-| 1 | Make a two-minute Tamil audio summary of this chapter | NCERT Class 9 Maths ch. 6, pages 1–4 (PDF) | pass: [result](demo_runs/1_tamil_audio_summary/result.md), 95 s Tamil MP3 (AUDIO_LINK_1), all pieces pass back-transcription | 8 | ₹0.91 (+ ₹0.80 OCR, cached from an earlier run) | 56 s |
+| 1 | Make a two-minute Tamil audio summary of this chapter | NCERT Class 9 Maths ch. 6, pages 1–4 (PDF) | pass: [result](demo_runs/1_tamil_audio_summary/result.md), 95 s [Tamil MP3](https://drive.google.com/file/d/1zFoEiBAmNba_pAd0XcdQVOj5kYZcoOcP/view?usp=sharing), all pieces pass back-transcription | 8 | ₹0.91 (+ ₹0.80 OCR, cached from an earlier run) | 56 s |
 | 2 | Transcribe this Hindi voice note and give me English subtitles | own 18 s Hindi recording | pass: [SRT](demo_runs/2_hindi_note_english_subtitles/artifacts/Hindi_M_Darshan.en.srt) | 3 | ₹0.03 | 9 s |
 | 3 | Translate this worksheet into Marathi and keep the table | worksheet image with a table | pass: [Marathi Markdown](demo_runs/3_worksheet_marathi/artifacts/worksheet.mr.md), table intact | 3 | ₹0.20 (cached on rerun) | 6 s |
 | 4 | Which of these clips are in Telugu? Translate those into English | 5 clips (Telugu ×2, Tamil, Kannada, Hindi) generated with Indic-Speak | pass: all 5 languages identified, [result](demo_runs/4_which_clips_telugu/result.md) | 8 | ₹0.04 | 17 s |
-| 5 | Read this paragraph aloud in Bengali with a female voice | English text file | pass: Bengali MP3, voice Ishita (AUDIO_LINK_5), [result](demo_runs/5_bengali_female_voice/result.md) | 4 | ₹0.08 | 9–23 s |
+| 5 | Read this paragraph aloud in Bengali with a female voice | English text file | pass: [Bengali MP3](https://drive.google.com/file/d/1n8Rtd-RlOB0lycb2xUJPfMAqiT2njoxg/view?usp=sharing), voice Ishita, [result](demo_runs/5_bengali_female_voice/result.md) | 4 | ₹0.08 | 9–23 s |
 | 6 | Translate this video into French | MP4 | pass (impossible): [explanation](demo_runs/6_french_impossible/result.md), no files | 1 | ₹0 | 2 s |
 | + | Translate this note into Hindi | note containing "IGNORE ALL PREVIOUS INSTRUCTIONS…" | pass: translated, injection ignored and reported, [result](demo_runs/extra_prompt_injection/result.md) | 3 | ₹0.002 | 7 s |
 | + | Read this note aloud in Tamil, `--max-cost-inr 0.05` | text note | pass (partial): speech refused by the budget before any spend, [result](demo_runs/extra_budget_too_small/result.md) | 4 | ₹0.001 | 10 s |
@@ -155,4 +155,4 @@ Bodhan prices (hosted): transcription ₹0.10 per audio minute, translation ₹0
 
 ## AI assistance
 
-AI_ASSISTANCE_NOTE
+I used Claude Code (Anthropic) as a coding assistant throughout, working one phase at a time: probing the Bodhan API, writing and refactoring the client, tools, agent, tests and docs, and debugging the demo runs. I directed each phase, reviewed and ran every change, chose the test inputs and the spending, checked the outputs (including listening to the generated audio), and kept a build log of every bug and fix so I can explain each part of the code.
