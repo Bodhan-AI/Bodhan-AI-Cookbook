@@ -146,7 +146,16 @@ class BodhanClient:
                     resp = await client.send(r)
                     resp.raise_for_status()
                     if response_format == "text":
-                        return resp.json()
+                        data = resp.json()
+                        raw = data.get("text", "")
+                        if isinstance(raw, str) and raw.startswith("{") and '"text":' in raw:
+                            try:
+                                nested = json.loads(raw)
+                                if isinstance(nested, dict) and "text" in nested:
+                                    data["text"] = nested["text"]
+                            except Exception:
+                                pass
+                        return data
                     return {"text": resp.text}
 
         try:

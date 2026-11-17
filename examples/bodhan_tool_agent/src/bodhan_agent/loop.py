@@ -30,8 +30,28 @@ log = logging.getLogger(__name__)
 
 
 def _substitute_refs(args: dict[str, Any], step_results: dict[str, Any], files_dir: pathlib.Path) -> dict[str, Any]:
-    """Substitute references like {step_0_output} or {file_content} in tool arguments."""
+    """Substitute references like {step_0_output}, {file_content}, or <transcribed_text> in tool arguments."""
     resolved = dict(args)
+
+    # Helper to find latest text from prior steps
+    latest_text = ""
+    latest_file = ""
+    for _, res in sorted(step_results.items()):
+        data = res.get("data", {})
+        t = data.get("translated_text") or data.get("text") or data.get("markdown")
+        if t:
+            if isinstance(t, str) and t.startswith("{") and '"text":' in t:
+                try:
+                    nested = json.loads(t)
+                    if isinstance(nested, dict) and "text" in nested:
+                        t = nested["text"]
+                except Exception:
+                    pass
+            latest_text = t
+        f = data.get("output_file")
+        if f:
+            latest_file = f
+
     for k, v in list(resolved.items()):
         if isinstance(v, str):
             # Check for {step_N_output}
@@ -39,8 +59,21 @@ def _substitute_refs(args: dict[str, Any], step_results: dict[str, Any], files_d
             if m:
                 step_idx = f"step_{m.group(1)}"
                 prev_data = step_results.get(step_idx, {}).get("data", {})
-                resolved[k] = prev_data.get("output_file") or prev_data.get("translated_text") or prev_data.get("text") or prev_data.get("markdown") or ""
+                resolved[k] = (
+                    prev_data.get("output_file")
+                    or prev_data.get("translated_text")
+                    or prev_data.get("text")
+                    or prev_data.get("markdown")
+                    or ""
+                )
                 continue
+
+            # Check for LLM placeholder tokens like <transcribed_text>, <text>, <transcript>
+            v_clean = v.strip().lower()
+            if v_clean in {"<transcribed_text>", "<transcript>", "<text>", "<translation>", "<translated_text>"} or (v_clean.startswith("<") and v_clean.endswith(">")):
+                if latest_text:
+                    resolved[k] = latest_text
+                    continue
 
             # Check for {file_content}
             if "{file_content}" in v:
