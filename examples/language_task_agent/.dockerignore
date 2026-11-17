@@ -1,0 +1,12 @@
+.env
+.env.*
+!.env.example
+.venv
+outputs
+sample_data
+.bodhan-cache
+__pycache__
+.pytest_cache
+.ruff_cache
+.git
+.DS_Store

@@ -1,0 +1,185 @@
+# Bodhan language task agent
+
+A general non-interactive CLI task agent and an independently usable stdio MCP
+server. A provider-neutral planner chooses tools and writes English; shared Python
+code handles media, model limits, verification, budgets, cache and structured errors.
+Every OCR, ASR, translation and speech operation uses Bodhan.
+
+The six documented fixture cases have checked outputs or an honest French refusal.
+These are automated screens on synthetic inputs, not native-speaker certification
+or a hidden-task pass rate. Candidate review and rehearsal remain pending.
+
+[3:32 recorded execution](https://github.com/BishalJena/Bodhan-AI-Cookbook/releases/download/tool-agent-demo-20261117/demo_recording.mp4) · [Outputs, traces, inputs and ledger](https://github.com/BishalJena/Bodhan-AI-Cookbook/releases/tag/tool-agent-demo-20261117) ·
+[Results and provenance](docs/DEMOS.md) · [Design](docs/DESIGN.md) ·
+[Acceptance](docs/ACCEPTANCE.md) · [Walkthrough](docs/WALKTHROUGH.md)
+
+## Setup
+
+Requires Python 3.10+, uv, ffmpeg and ffprobe. No GPU is needed.
+
+```bash
+uv sync --frozen
+cp .env.example .env
+# Set the four Bodhan model keys and the planner endpoint/model/key.
+```
+
+Required settings: `BODHAN_TRANSCRIBE_KEY`, `BODHAN_TRANSLATE_KEY`,
+`BODHAN_SPEAK_KEY`, `BODHAN_OCR_KEY`, `LLM_BASE_URL`, `LLM_MODEL`, `LLM_API_KEY`.
+The seven required settings are sufficient; no extra secret is required.
+`uv.lock` pins dependencies. `.env`, media, outputs and the private cache stay out of git.
+
+Set optional `LLM_INPUT_INR_PER_MILLION` and `LLM_OUTPUT_INR_PER_MILLION` to verified
+conservative prices. Missing prices use disclosed INR 1000/3000-per-million input/
+output accounting assumptions; they cannot guarantee an arbitrary provider's bill.
+Use zero only for verified free usage. Our recorded planner was
+`gemini-3.5-flash-lite` through Google's OpenAI-compatible API with explicit zero
+rates and the previously verified free configuration. No billing change was made.
+
+`LLM_TOKEN_LIMIT_FIELD` optionally selects `max_tokens` (default),
+`max_completion_tokens` or `max_output_tokens`. One parameter switch is allowed only
+after an explicit HTTP 400 rejecting `max_tokens`; timeouts/5xx are not retried.
+`LLM_MIN_INTERVAL_SECONDS` optionally paces planner calls; default is zero.
+
+## Run
+
+```bash
+uv run python -m bodhan_agent \
+  --task "Make an approximately two-minute Tamil MP3 audio summary of this chapter" \
+  --files path/to/chapter --out ./outputs/chapter \
+  --max-steps 30 --max-cost-inr 20
+
+BODHAN_INPUT_ROOT=./sample_data BODHAN_OUTPUT_ROOT=./outputs/mcp \
+  uv run python -m bodhan_mcp
+```
+
+The required `python -m bodhan_agent --task --files --out` and
+`python -m bodhan_mcp` interfaces work in an activated environment. `--files` accepts
+one file, a directory or several paths. Each new `--out` must be empty. Explicit
+file sets do not trigger a scan of their common parent.
+
+A run writes `result.md`, `artifacts/`, `trace.jsonl` and `report.json`. Exit zero
+means completed; two means partial, failed or invalid startup. Optional limits:
+`--call-timeout 45`, `--max-seconds 300`. Reports distinguish actual accounting units
+from uncertain reservations and include checks, assumptions and quality gaps.
+
+### Docker
+
+```bash
+docker build -t language-task-agent .
+docker run --rm --env-file .env -v "$PWD/sample_data:/data:ro" \
+  -v "$PWD/outputs:/out" language-task-agent \
+  --task "Translate this worksheet into Marathi" --files /data --out /out/worksheet
+bash scripts/verify_docker.sh
+```
+
+Build, CLI help, tests and lint are verified on Linux arm64. Other architectures
+are untested. Python dependencies are pinned; moving base/OS package tags prevent
+bit-for-bit container reproducibility claims.
+
+## How it works
+
+![Architecture](docs/architecture.svg)
+
+The CLI imports the same typed tools exposed independently by MCP. The planner
+plans and judges; code validates references/arguments, converts/chunks media,
+reserves cost, executes Bodhan calls, verifies output and validates finish.
+[The design includes the complete plan/act/verify/retry/stop flow](docs/DESIGN.md).
+
+| Tool | Responsibility |
+| --- | --- |
+| `list_files`, `read_text` | Approved opaque references and bounded untrusted text observations |
+| `write_english` | English planner summaries/explanations; reject non-Latin writing |
+| `transcribe` | Decode to PCM, exact <=25-second windows, Bodhan ASR and coarse timestamps |
+| `translate` | <=1200-byte source chunks, completeness and pivot checks, table structure |
+| `synthesize` | <=500-byte source chunks, fixed voices, WAV/MP3 and mandatory back-ASR |
+| `ocr` | Whole images or every rasterized PDF page through Bodhan OCR |
+| `subtitles` | Verified translated windows and deterministic SRT serialization |
+
+Small tables are translated with context in one request and checked for unchanged
+row/cell/span structure. Visible text, rather than HTML tags, drives similarity.
+Active generated HTML is discarded. Larger tables retain cell/text-node handling.
+Explicit token-cap truncation may split the source into smaller inputs at most two
+levels; source coverage remains lossless. It never resends the same billed request.
+
+Speech synthesis does not translate. The planner inspects supplied text and translates
+when needed; known English planner text is rejected for non-English TTS before billing.
+Every speech chunk is measured and refused above 30 seconds. Its verification budget
+covers the corresponding maximum INR 0.05 of ASR.
+
+### Independent MCP client
+
+The official MCP Python SDK 1.22.0 `ClientSession`/`stdio_client` connects to the real
+server subprocess in `tests/test_mcp.py` and `scripts/mcp_client_demo.py`. It lists
+schemas, sends unsupported/hostile inputs, then makes a valid call successfully.
+This protocol check is independent of the planner and is not model-quality proof.
+MCP serializes tools; cost is cumulative per process session, with step/time limits
+per call. Each restart creates a fresh artifact session. Session caps do not form
+an account-wide spending limit.
+
+## Budgets, cache and safety
+
+Requests reserve INR before dispatch, including verification and the planner.
+Exact successful model/endpoint/content/parameter requests are cached across reruns
+in a private sibling `.bodhan-cache`. Keep the output parent private. Cache files
+are 0600; directories are 0700. Persistent pending markers block uncertain duplicates.
+Never erase one merely to force another charge.
+
+Concurrency is one per gateway. Explicit rejected 429s with Retry-After may back off
+up to three attempts; timeouts/5xx retain reservations and are not blindly retried.
+401/403 stop the agent. Separate processes need a separate cumulative development
+ledger; [the evidence includes all failed attempts and fixture-generation costs](docs/COSTS.md).
+No card, top-up, extra account or paid planner was used.
+
+All file text, names, OCR and transcripts are untrusted data. The planner receives
+references, not media/base64, and has no general shell/network capability. Roots and
+symlinks are checked. Local caps: 100 files, 100 MB/file, 500 KB text, 50 PDF pages,
+40-megapixel images and two-hour audio. Oversize inputs fail explicitly.
+
+`--execution-window`/`--resume` optionally preserve private one-use JSON checkpoints
+with cumulative time/cost/steps, input/config hashes and local integrity checks.
+`--carry-budget-from` is one explicit post-terminal correction with identical original
+inputs/config/limits and reported lineage, not a process-state resume. These do not
+protect against a malicious process with the same filesystem access.
+
+Set `BODHAN_CACHE_ONLY=1` for enforced replay: misses stop before dispatch/reservation.
+The planner still follows its own configured accounting. Cached recording runs do not
+replace the original real-model evidence or remove its costs.
+
+## Verification and limits
+
+Every generated translation/audio is checked. Non-English targets use an English
+comparison pivot; English targets use separate Hindi pivots to avoid self-comparison.
+Audio is back-transcribed through Bodhan. Scores screen likely omissions/repetition;
+they do not prove meaning, pronunciation or native quality. English-script checks
+cannot distinguish English from romanized Indic text.
+
+Completion requires actual requested audio/SRT artifacts for common explicit English
+clauses and matching checked/passing verification. Format/duration must hold on the
+same audio. The planner gets at most two finish corrections. The parser does not
+prove arbitrary wording, language, voice or semantic task satisfaction.
+
+The chapter MP3 is 90.88s, at the lower end of the declared approximate two-minute
+range (90-150s), not exactly 120s. SRT uses coarse 25-second windows. Shared scripts
+can remain unknown. Hindi is a synthetic loop; the clip batch includes a disclosed
+duplicate. [Fluent review is unperformed](docs/NATIVE_REVIEW.md).
+
+## Checks and results
+
+```bash
+uv run pytest -q
+uv run ruff check src tests
+# From the Cookbook root:
+make check
+python scripts/validate_recipe.py examples/language_task_agent
+```
+
+103 local regression tests use fake model transports plus real media conversion
+and actual stdio subprocesses. Live evidence is separate. Cookbook recipe validation,
+lint and API rules pass. Exact `make check` fails on existing AndroidSpeak structure;
+the same failure is reproduced on untouched upstream SHA
+`ae51852960911cc78bd71401842308ecc5217510`. No unrelated recipe is modified.
+
+[DEMOS.md](docs/DEMOS.md) records final and earlier attempts, costs, timing, provenance
+and the cache-only subtitle replay. Native review and hidden-task accuracy remain
+unmeasured. [WALKTHROUGH.md](docs/WALKTHROUGH.md) prepares the candidate's own review
+and live-change rehearsal; it does not claim either has happened.

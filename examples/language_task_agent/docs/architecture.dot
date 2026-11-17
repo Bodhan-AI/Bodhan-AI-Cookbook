@@ -1,0 +1,17 @@
+digraph architecture {
+ graph [rankdir=LR, bgcolor="#f8fafc", pad="0.3", nodesep="0.4", ranksep="0.6"];
+ node [shape=box, style="rounded,filled", fillcolor="white", color="#94a3b8", fontname="DejaVu Sans", fontsize=12, margin="0.15,0.1"];
+ edge [color="#64748b", arrowsize=0.7, fontname="DejaVu Sans", fontsize=10];
+ cli [label="CLI task + files"];
+ agent [label="Bounded agent loop\nEnglish planning only", fillcolor="#dbeafe"];
+ client [label="Any MCP client"];
+ mcp [label="Independent stdio\nMCP server", fillcolor="#dbeafe"];
+ tools [label="Shared typed tools\nChunk / convert / verify", fillcolor="#dcfce7"];
+ store [label="Private artifacts\nOpaque file references"];
+ gateway [label="Request gateway\nReserve INR / timeout\nCache / concurrency = 1", fillcolor="#fef3c7"];
+ planner [label="Configured planner API\nOpenAI-compatible"];
+ bodhan [label="Bodhan only\nASR / Translate / TTS / OCR"];
+ cli -> agent; client -> mcp; mcp -> tools; agent -> tools [label="choose tools"];
+ tools -> store [dir=both]; tools -> gateway; agent -> gateway [label="plan / decide"];
+ gateway -> planner; gateway -> bodhan;
+}

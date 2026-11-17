@@ -1,0 +1,8 @@
+# Direct dependency versions; uv.lock pins the full resolved graph.
+httpx==0.28.1
+mcp==1.22.0
+pydantic==2.12.4
+python-dotenv==1.0.1
+PyMuPDF==1.26.6
+Pillow==12.0.0
+beautifulsoup4==4.14.2
