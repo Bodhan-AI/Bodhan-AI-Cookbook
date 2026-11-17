@@ -151,3 +151,23 @@ errors, timeouts and 5xx do not enter this recovery. Persistent truncation still
 Output clauses end before common source descriptions such as covering/using/about/
 for; English subtitles covering an audio recording do not require generated audio.
 These are generic constraints, not execution routing by any demo task string.
+
+## Translation publication after expanded evaluation
+
+An English translation can be correct on disk while a planner-written list changes
+its meaning. Explicit translation clauses now require an actual verified Bodhan
+translation/SRT artifact or `bodhan_translation_index` at finish. The new index tool
+accepts only translation refs, rejects unchecked/non-Bodhan text, traces source
+filenames through tool events and copies text verbatim. The planner cannot supply
+its own translated sentences to this tool. General English summaries/explanations
+remain available; their semantic correctness still needs review.
+
+English-target checks use a distinctive-script source language when identified:
+compare the original source directly with Bodhan's output back-translation. Unknown
+or shared scripts retain separate Hindi pivots without claiming a source language.
+Planner schemas omit redundant display titles to reduce request size while keeping
+types, descriptions, enums and limits. MCP retains its SDK-generated schemas.
+
+The optional evaluation module runs declared suites through real CLI subprocesses,
+retains every outcome and checks artifacts/content/cost/dispatch independently.
+It does not substitute its fixtures into production or route tasks by their text.

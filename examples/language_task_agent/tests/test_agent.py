@@ -31,22 +31,24 @@ def tool_response(name, args, index):
 async def test_general_multistep_agent(tools, run, fake):
     ref = input_ref(run)
     counter = 0
+    translation_ref = None
 
     def planner(request):
-        nonlocal counter
+        nonlocal counter, translation_ref
         counter += 1
         payload = json.loads(request.content)
         if counter == 1:
             return tool_response("translate", {"source": ref, "target_language": "ta"}, counter)
         data = json.loads(payload["messages"][-1]["content"].split("\n", 1)[1])
         if counter == 2:
+            translation_ref = data["ref"]
             return tool_response("synthesize", {"source": data["ref"], "language": "ta"}, counter)
         return tool_response(
             "finish",
             {
                 "status": "completed",
                 "explanation": "Translated and generated AI audio; mock evidence only.",
-                "outputs": [data["ref"]],
+                "outputs": [translation_ref, data["ref"]],
                 "assumptions": [],
             },
             counter,
@@ -61,6 +63,43 @@ async def test_general_multistep_agent(tools, run, fake):
     assert report["total_cost_inr"] != "0"
     kinds = [json.loads(line)["kind"] for line in run.trace.read_text().splitlines()]
     assert {"plan", "tool", "api", "final"} <= set(kinds)
+
+
+@pytest.mark.asyncio
+async def test_translated_list_corrects_planner_rewrite_through_verbatim_index(tools, run, fake):
+    source = input_ref(run, "The garden has three bamboo markers.", name="garden.txt")
+    state = {"count": 0}
+
+    def planner(request):
+        state["count"] += 1
+        count = state["count"]
+        if count == 1:
+            return tool_response("translate", {"source": source, "target_language": "en"}, count)
+        observation = json.loads(request.content)["messages"][-1]["content"]
+        data = json.loads(observation.split("\n", 1)[1] if observation.startswith("UNTRUSTED") else observation)
+        if count == 2:
+            state["translation"] = data["ref"]
+            return tool_response("write_english", {"text": "The weather is pleasant."}, count)
+        if count == 3:
+            return tool_response("finish", {
+                "status": "completed", "outputs": [data["ref"]],
+                "explanation": "Saved the list.", "assumptions": [],
+            }, count)
+        if count == 4:
+            assert "requested_output_mismatch" in observation
+            return tool_response("write_translation_index", {"translations": [state["translation"]]}, count)
+        return tool_response("finish", {
+            "status": "completed", "outputs": [data["ref"]],
+            "explanation": "Published the checked translation verbatim.", "assumptions": [],
+        }, count)
+
+    fake.planner = planner
+    report = await execute("Translate the garden note into English and save a list.", run, tools.gateway)
+    assert report["status"] == "completed"
+    selected = [run.output / a["path"] for a in report["artifacts"] if a["selected"]]
+    assert len(selected) == 1
+    assert "three bamboo markers" in selected[0].read_text()
+    assert "weather" not in selected[0].read_text()
 
 
 @pytest.mark.asyncio

@@ -1,5 +1,9 @@
 # Six-case execution evidence
 
+[Current 4:32 recording and expanded evidence](https://github.com/BishalJena/Bodhan-AI-Cookbook/releases/tag/tool-agent-final-20261117)
+adds the later distinct-clip/publication correction. The original recording and
+six-case reports below remain available as unchanged historical evidence.
+
 These are original synthetic fixtures and real model responses. Automated checks
 are mechanical screens, not fluent-language or hidden-task certification.
 
@@ -47,3 +51,14 @@ All preparation costs count. The Hindi input is a synthetic 180-second loop.
 The final chapter took 142.299s; its earlier partial took 184.067s. Combined
 development attempts exceed the five-minute quality target. No first-attempt or
 production-latency guarantee is implied. Fluent and candidate review are pending.
+
+## Later review and distinct-clip supplement
+
+[EVALUATION.md](EVALUATION.md) records ten additional declared compositions, a
+distinct replacement Telugu clip and a discovered planner publication failure.
+Raw Bodhan translations in mixed02 were correct, but its selected English list
+invented unrelated content. That completed status does not pass quality review.
+mixed03's vague references also do not deliver the translations. The corrected
+mixed05 index copies the actual Bodhan text for distinct clips1/4, with filenames
+derived from tool ancestry. Its final execution is enforced cache-only; all real
+production calls, failed attempts and the planner503 partial remain retained.

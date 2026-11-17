@@ -25,13 +25,15 @@ async def test_off_the_shelf_mcp_client(tmp_path):
             await client.initialize()
             tools = await client.list_tools()
             names = {tool.name for tool in tools.tools}
-            assert {"ocr", "transcribe", "translate", "synthesize"} <= names
+            assert {"ocr", "transcribe", "translate", "synthesize", "write_translation_index"} <= names
             result = await client.call_tool("list_files", {})
             body = json.loads(result.content[0].text)
             assert body["ok"] and body["files"]
             ref = body["files"][0]["ref"]
             bad = await client.call_tool("translate", {"source": ref, "target_language": "fr"})
             assert json.loads(bad.content[0].text)["error"]["code"] == "unsupported_language"
+            unverified = await client.call_tool("write_translation_index", {"translations": [ref]})
+            assert json.loads(unverified.content[0].text)["error"]["code"] == "unverified_translation"
             missing = await client.call_tool("read_text", {"source": "../../etc/passwd"})
             assert json.loads(missing.content[0].text)["error"]["code"] == "missing_file"
             # Server remains alive after invalid input.

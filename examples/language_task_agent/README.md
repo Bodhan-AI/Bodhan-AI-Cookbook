@@ -9,7 +9,7 @@ The six documented fixture cases have checked outputs or an honest French refusa
 These are automated screens on synthetic inputs, not native-speaker certification
 or a hidden-task pass rate. Candidate review and rehearsal remain pending.
 
-[3:32 recorded execution](https://github.com/BishalJena/Bodhan-AI-Cookbook/releases/download/tool-agent-demo-20261117/demo_recording.mp4) · [Outputs, traces, inputs and ledger](https://github.com/BishalJena/Bodhan-AI-Cookbook/releases/tag/tool-agent-demo-20261117) ·
+[4:32 recorded execution and correction](https://github.com/BishalJena/Bodhan-AI-Cookbook/releases/download/tool-agent-final-20261117/demo_recording.mp4) · [Outputs, traces, inputs and ledger](https://github.com/BishalJena/Bodhan-AI-Cookbook/releases/tag/tool-agent-final-20261117) ·
 [Results and provenance](docs/DEMOS.md) · [Design](docs/DESIGN.md) ·
 [Acceptance](docs/ACCEPTANCE.md) · [Walkthrough](docs/WALKTHROUGH.md)
 
@@ -72,8 +72,8 @@ docker run --rm --env-file .env -v "$PWD/sample_data:/data:ro" \
 bash scripts/verify_docker.sh
 ```
 
-Build, CLI help, tests and lint are verified on Linux arm64. Other architectures
-are untested. Python dependencies are pinned; moving base/OS package tags prevent
+Build, CLI help, tests and lint are verified on Linux arm64 and amd64 (the latter
+under local emulation). Other platforms are untested. Python dependencies are pinned; moving base/OS package tags prevent
 bit-for-bit container reproducibility claims.
 
 ## How it works
@@ -89,6 +89,7 @@ reserves cost, executes Bodhan calls, verifies output and validates finish.
 | --- | --- |
 | `list_files`, `read_text` | Approved opaque references and bounded untrusted text observations |
 | `write_english` | English planner summaries/explanations; reject non-Latin writing |
+| `write_translation_index` | Copy verified Bodhan translations verbatim into a source-labeled list, with no planner rewriting |
 | `transcribe` | Decode to PCM, exact <=25-second windows, Bodhan ASR and coarse timestamps |
 | `translate` | <=1200-byte source chunks, completeness and pivot checks, table structure |
 | `synthesize` | <=500-byte source chunks, fixed voices, WAV/MP3 and mandatory back-ASR |
@@ -148,20 +149,22 @@ replace the original real-model evidence or remove its costs.
 ## Verification and limits
 
 Every generated translation/audio is checked. Non-English targets use an English
-comparison pivot; English targets use separate Hindi pivots to avoid self-comparison.
+comparison pivot. English targets with distinctive-script sources are back-translated
+to that source language and compared directly with the original. Ambiguous sources
+use separate Hindi pivots; shared scripts are never treated as a language label.
 Audio is back-transcribed through Bodhan. Scores screen likely omissions/repetition;
 they do not prove meaning, pronunciation or native quality. English-script checks
 cannot distinguish English from romanized Indic text.
 
-Completion requires actual requested audio/SRT artifacts for common explicit English
+Completion requires actual requested translation/audio/SRT artifacts for common explicit English
 clauses and matching checked/passing verification. Format/duration must hold on the
 same audio. The planner gets at most two finish corrections. The parser does not
 prove arbitrary wording, language, voice or semantic task satisfaction.
 
 The chapter MP3 is 90.88s, at the lower end of the declared approximate two-minute
 range (90-150s), not exactly 120s. SRT uses coarse 25-second windows. Shared scripts
-can remain unknown. Hindi is a synthetic loop; the clip batch includes a disclosed
-duplicate. [Fluent review is unperformed](docs/NATIVE_REVIEW.md).
+can remain unknown. Hindi is a synthetic loop. The original clip batch has a disclosed
+duplicate; the later supplement uses five distinct clips. [Fluent review is unperformed](docs/NATIVE_REVIEW.md).
 
 ## Checks and results
 
@@ -173,7 +176,7 @@ make check
 python scripts/validate_recipe.py examples/language_task_agent
 ```
 
-103 local regression tests use fake model transports plus real media conversion
+116 local regression tests use fake model transports plus real media conversion
 and actual stdio subprocesses. Live evidence is separate. Cookbook recipe validation,
 lint and API rules pass. Exact `make check` fails on existing AndroidSpeak structure;
 the same failure is reproduced on untouched upstream SHA
@@ -183,3 +186,8 @@ the same failure is reproduced on untouched upstream SHA
 and the cache-only subtitle replay. Native review and hidden-task accuracy remain
 unmeasured. [WALKTHROUGH.md](docs/WALKTHROUGH.md) prepares the candidate's own review
 and live-change rehearsal; it does not claim either has happened.
+
+[EVALUATION.md](docs/EVALUATION.md) records ten additional declared compositions and
+the live-discovered final-list publication bug, its regression and corrected
+verbatim-index replay. It distinguishes the original public snapshot from later
+development evidence; neither is a hidden-task score.

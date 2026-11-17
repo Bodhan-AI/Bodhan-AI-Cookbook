@@ -4,6 +4,13 @@ No fluent human review has been performed or arranged. No external reviewer was
 contacted. Round-trip scores, script evidence and matching transcripts are screens,
 not native-language correctness certificates.
 
+The later supplement adds five distinct synthetic clips and a code-rendered
+translation index. Development review caught a planner rewriting failure in an
+intermediate completed run; see EVALUATION.md. The corrected index copies actual
+Bodhan translations. Do not approve the older misleading list merely because its
+report says completed. A review packet provides hashes, sources and blank review
+forms; a prepared packet is not a completed human review.
+
 The final evidence contains the exact inputs/outputs/hashes for review:
 
 - Tamil: an original eight-page school-garden chapter, English source summary,

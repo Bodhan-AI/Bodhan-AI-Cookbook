@@ -100,6 +100,7 @@ OUTPUT_MODELS = {
     "list_files": FilesResult,
     "read_text": ReadResult,
     "write_english": WriteResult,
+    "write_translation_index": TranslationResult,
     "transcribe": TranscriptResult,
     "translate": TranslationResult,
     "synthesize": SpeechResult,

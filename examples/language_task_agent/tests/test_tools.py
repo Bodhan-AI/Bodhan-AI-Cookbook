@@ -127,10 +127,27 @@ async def test_unrelated_english_translation_fails_verification(tools, run, fake
 
 
 @pytest.mark.asyncio
-async def test_consistent_english_translation_passes_independent_pivot(tools, run, fake):
+async def test_common_wrong_pivot_cannot_verify_distinctive_script_source(tools, run, fake):
     source = chr(0x0C15) * 20
+    def translation(body):
+        if body["target_language"] == "en":
+            return "An unrelated weather forecast."
+        if body["target_language"] == "hi":
+            return "The same incorrect pivot for both inputs."
+        return chr(0x0C24) * 20
+    fake.translation = translation
+    result = await tools.call(
+        "translate", {"source": input_ref(run, source), "target_language": "en"}
+    )
+    assert result["ok"] and not result["verification"]["passed"]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("source", [chr(0x0C15) * 20, "Romanized source fixture.", chr(0x0915) * 20])
+async def test_consistent_english_translation_passes_independent_pivot(tools, run, fake, source):
     fake.translation = lambda body: (
-        "The class starts at nine." if body["target_language"] == "en" else "same pivot fixture"
+        "The class starts at nine." if body["target_language"] == "en"
+        else source if body["target_language"] == "te" else "same pivot fixture"
     )
     result = await tools.call(
         "translate", {"source": input_ref(run, source), "target_language": "en"}
@@ -142,7 +159,10 @@ async def test_consistent_english_translation_passes_independent_pivot(tools, ru
         for body in bodies
         if body["target_language_code"] != "en"
     }
-    assert pivot_inputs == {source, "The class starts at nine."}
+    expected = {"The class starts at nine."}
+    if not source.startswith(chr(0x0C15)):
+        expected.add(source)
+    assert pivot_inputs == expected
 
 
 @pytest.mark.asyncio
@@ -151,6 +171,30 @@ async def test_english_target_rejects_unchanged_indic_output(tools, run):
         "translate", {"source": input_ref(run, chr(0x0C15) * 20), "target_language": "en"}
     )
     assert result["ok"] and not result["verification"]["passed"]
+
+
+@pytest.mark.asyncio
+async def test_translation_index_copies_checked_output_and_actual_source_filename(tools, run, fake):
+    source = input_ref(run, "The class starts at nine.", name="class_note.txt")
+    translated = await tools.call("translate", {"source": source, "target_language": "en"})
+    assert translated["verification"]["passed"]
+    index = await tools.call("write_translation_index", {"translations": [translated["ref"]]})
+    assert index["ok"]
+    text = run.resolve(index["ref"]).read_text()
+    assert "class_note.txt" in text
+    assert run.resolve(translated["ref"]).read_text() in text
+    assert index["verification"]["passed"]
+    assert run.provenance[index["ref"]] == "bodhan_translation_index"
+
+
+@pytest.mark.asyncio
+async def test_translation_index_rejects_unverified_or_planner_written_content(tools, run):
+    invented = run.save_text("An invented translation.", "invented", "planner_english")
+    result = await tools.call("write_translation_index", {"translations": [invented]})
+    assert not result["ok"] and result["error"]["code"] == "unverified_translation"
+    translated = run.save_text("Unchecked translation.", "unchecked", "bodhan_translation")
+    result = await tools.call("write_translation_index", {"translations": [translated]})
+    assert not result["ok"] and result["error"]["code"] == "unverified_translation"
 
 
 @pytest.mark.asyncio

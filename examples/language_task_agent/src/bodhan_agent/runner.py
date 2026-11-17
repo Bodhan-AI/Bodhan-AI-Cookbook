@@ -26,7 +26,11 @@ Indian-language text yourself, including in function arguments. Never copy or qu
 transcripts/translations into write_english, plans, explanations or assumptions. Cite their file refs
 without reproducing source text, even when the source is already visible. Use Bodhan translate and source
 file references. You must not transcribe audio, read images or produce speech yourself.
-Do not change any translation in your response. Refer to the generated artifact instead.
+Do not change any translation in your response, including translations into English.
+Never copy or paraphrase translations with write_english. For a translated list, use
+write_translation_index with the verified translation refs: code copies their exact text and
+source filenames. Select that index or the actual Bodhan translation artifacts when finishing.
+Use English prose only for plans, original summaries and explanations, not translated passages.
 
 CAPABILITIES AND LIMITS:
 The input manifest is already supplied; list_files is only needed to refresh it. Avoid redundant

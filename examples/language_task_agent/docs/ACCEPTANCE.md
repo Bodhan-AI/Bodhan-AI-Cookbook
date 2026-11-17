@@ -1,3 +1,28 @@
+# Expanded evaluation and publication correction, November 17, 2026
+
+116 tests and lint pass locally and in Linux arm64 and amd64 Docker (amd64 under
+local emulation). Both builds and CLI help pass. Ten additional declared
+real CLI compositions pass their independent screens; two use retained Bodhan
+OCR/ASR in enforced cache-only mode. This is not the hidden evaluation.
+
+A new distinct Telugu clip removes the deliberate duplicate from a later five-clip
+batch. Review exposes a real final-publication bug: mixed02 rewrites correct raw
+Bodhan translations into unrelated English, and mixed03 delivers vague references.
+Their completed report statuses fail later acceptance; raw reports are preserved.
+The new typed translation index copies actual model text with actual source names.
+Explicit translation requests must deliver checked model translations or that index.
+mixed05 completes in101.473s using enforced cache-only real responses; its selected
+index matches the original garden content. mixed04's free-planner503 partial and
+zero-cost tombstone remain retained. Detailed diagnosis/reversal: EVALUATION.md.
+
+Known/reserved development accounting is now INR9.7872540625, not a fresh balance.
+Native review, natural long audio, closer two-minute speech and candidate rehearsal
+remain unperformed. The owner confirmed no email was sent and authorized updating
+the public PR to this corrected revision. Original commits/assets remain historical;
+the handoff records the new final email SHA.
+
+---
+
 # Final automated acceptance, November 17, 2026
 
 - 103 tests and lint pass locally; tests use mock model transports, real local media

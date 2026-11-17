@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 import base64
+import html
 import json
 import re
 import time
@@ -76,6 +77,13 @@ class Translate(Ref):
     )
 
 
+class TranslationIndex(Args):
+    translations: list[str] = Field(
+        min_length=1, max_length=100,
+        description="Verified Bodhan translation references to publish verbatim with their source filenames. No translated prose or invented labels.",
+    )
+
+
 class Speak(Ref):
     language: str = Field(
         description="Supported speech language ISO code. Translate first if source is another language."
@@ -109,6 +117,10 @@ TOOL_DEFS = {
         English,
         "Save an English-only summary/explanation composed by the planner. Never use to translate, transcribe or write Indian-language text.",
     ),
+    "write_translation_index": (
+        TranslationIndex,
+        "Publish a Markdown list of verified Bodhan translations, copying their exact text and tracing source filenames from tool results. Use for selection/translation lists instead of rewriting translations with write_english. No model call.",
+    ),
     "transcribe": (
         Transcribe,
         "Bodhan speech-to-text for audio/video. Internally converts and splits into <=25s WAV windows, returns transcript reference plus coarse timed-segment reference. No word timestamps. Distinctive-script language evidence only.",
@@ -133,13 +145,19 @@ TOOL_DEFS = {
 
 
 def schemas() -> list[dict]:
-    return [
-        {
+    result = []
+    for name, (cls, desc) in TOOL_DEFS.items():
+        parameters = cls.model_json_schema()
+        # Display titles duplicate names in planner messages; retain descriptions,
+        # types and all validation constraints. MCP builds its own full schemas.
+        parameters.pop("title", None)
+        for field in parameters.get("properties", {}).values():
+            field.pop("title", None)
+        result.append({
             "type": "function",
-            "function": {"name": name, "description": desc, "parameters": cls.model_json_schema()},
-        }
-        for name, (cls, desc) in TOOL_DEFS.items()
-    ]
+            "function": {"name": name, "description": desc, "parameters": parameters},
+        })
+    return result
 
 
 class Tools:
@@ -271,6 +289,44 @@ class Tools:
             "characters": len(text),
         }
 
+    async def write_translation_index(self, translations: list[str]) -> dict:
+        parents = {}
+        for line in self.run.trace.read_text().splitlines():
+            event = json.loads(line)
+            result = event.get("result_summary", {})
+            if event["kind"] == "tool" and result.get("ok") and event.get("tool") in {
+                "translate", "transcribe", "ocr"
+            }:
+                parents[result["ref"]] = event["arguments"]["source"]
+        parts, checks = ["# Bodhan translation index\n"], []
+        for ref in dict.fromkeys(translations):
+            path = self.run.resolve(ref)
+            if self.run.provenance.get(ref) != "bodhan_translation" or not any(
+                c.get("ref") == ref and c.get("kind") == "translation"
+                and c.get("checked") is True and c.get("passed") is True
+                for c in self.run.checks
+            ):
+                raise ToolError(
+                    "unverified_translation", "Index only checked, passing Bodhan translation artifacts."
+                )
+            source, seen = ref, set()
+            while source in parents and source not in seen:
+                seen.add(source)
+                source = parents[source]
+            name = html.escape(self.run.resolve(source).name)
+            text = self._text(ref)
+            fence = "`" * max([3] + [len(s) + 1 for s in re.findall(r"`+", text)])
+            parts.append(f"## Source: <code>{name}</code>\n\n[Bodhan translation]({path.name})\n\n{fence}\n{text}\n{fence}\n")
+            checks.append({"translation_ref": ref, "source_ref": source, "checked": True, "passed": True})
+        text = "\n".join(parts)
+        ref = self.run.save_text(text, "translation_index", "bodhan_translation_index")
+        verification = {
+            "kind": "translation", "ref": ref, "checked": True, "passed": True,
+            "checks": checks, "method": "Verbatim publication of individually checked Bodhan translations; no planner-authored translation text.",
+        }
+        self.run.checks.append(verification)
+        return {"ref": ref, "characters": len(text), "verification": verification, "warning": None}
+
     def _language(self, language: str, model: str):
         if language not in RULES["models"][model]["languages"]:
             raise ToolError(
@@ -386,12 +442,15 @@ class Tools:
 
     async def _verified_piece(self, text: str, target: str) -> tuple[str, dict]:
         result, chunks = await self._translate_plain(text, target)
-        # English output needs a different comparison language: translating the
-        # source to English again would reuse the very result being checked.
-        # Hindi is a supported pivot, not an inferred source-language label.
-        pivot = "hi" if target == "en" else "en"
+        # Anchor English verification to the actual source when its distinctive
+        # script identifies a supported language. Two third-language translations
+        # can agree on the same unrelated meaning. Shared scripts remain unknown.
+        source_language = script_language(text) if target == "en" else None
+        pivot = source_language or ("hi" if target == "en" else "en")
         reference = text
-        if pivot != "en" or any(c.isalpha() and not c.isascii() for c in text):
+        if not source_language and (
+            pivot != "en" or any(c.isalpha() and not c.isascii() for c in text)
+        ):
             reference, _ = await self._translate_plain(text, pivot)
         back, _ = await self._translate_plain(result, pivot)
         def visible(value):
@@ -412,7 +471,10 @@ class Tools:
             "passed": score >= 0.45 and target_script_matches,
             "comparison_language": pivot,
             "target_script_matches": target_script_matches,
-            "method": "Separate Bodhan source/output pivot translations and normalized character similarity; not proof of semantic accuracy",
+            "method": (
+                "Bodhan output back-translation compared directly with distinctive-script source"
+                if source_language else "Separate Bodhan source/output pivot translations"
+            ) + " and normalized character similarity; not proof of semantic accuracy",
         }
 
     async def translate(

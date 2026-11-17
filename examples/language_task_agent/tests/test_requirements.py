@@ -18,7 +18,21 @@ def test_generic_output_duration_and_format():
     assert requirements("Transcribe this three-minute voice note into subtitles.") == {
         "subtitles_required": True
     }
-    assert requirements("Translate this video into French.") == {}
+    assert requirements("Translate this video into French.") == {"translation_required": True}
+
+
+def test_translation_request_cannot_finish_with_only_planner_prose(run):
+    ref = run.save_text("An invented English translation.", "list", "planner_english")
+    errors = validate("Translate these clips into English and save a list.", run, [ref])
+    assert any("Bodhan translation" in error for error in errors)
+
+
+@pytest.mark.parametrize("task", [
+    "Do not translate the recordings; identify their scripts only.",
+    "Summarize this English explanation about translation.",
+])
+def test_negated_translation_or_source_description_does_not_require_translation(task):
+    assert not requirements(task).get("translation_required")
 
 
 @pytest.mark.parametrize("task", [

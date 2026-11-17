@@ -34,6 +34,8 @@ impossible task. Never present a mock fixture as a successful real demo.
 - Telugu script is useful evidence; Devanagari cannot distinguish Hindi and Marathi.
 - Prompt-injection containment has capability limits, but prompts alone are no guarantee.
 - Unknown provider tokenization/pricing prevents an unconditional all-in cost guarantee.
+- A verified intermediate translation is insufficient if the planner rewrites it in
+  the final list. Explain the new translation index and matching finish requirement.
 
 ## Small live-change rehearsals
 

@@ -84,6 +84,11 @@ async def write_english(text: str) -> WriteResult | ErrorResult:
     return await safe_call("write_english", {"text": text})
 
 
+@server.tool(description=TOOL_DEFS["write_translation_index"][1])
+async def write_translation_index(translations: list[str]) -> TranslationResult | ErrorResult:
+    return await safe_call("write_translation_index", {"translations": translations})
+
+
 @server.tool(description=TOOL_DEFS["transcribe"][1])
 async def transcribe(source: str, language: str | None = None) -> TranscriptResult | ErrorResult:
     return await safe_call("transcribe", {"source": source, "language": language})

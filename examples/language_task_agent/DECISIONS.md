@@ -313,3 +313,74 @@ failed first, then pass. Final Hindi replay is enforced cache-only with zero new
 Bodhan cost; the prior live ASR/translation/recovery runs are retained. No hidden
 score or live-first-attempt claim follows. Full local/container suite103passed.
 Guard-removal mutation checks fail for active markup and the resplit bound.
+
+## D039 - 2026-11-17 - Expand actual compositions after owner requests completion
+
+Owner asks to do remaining work after the provisional assignment assessment. Build
+an installed optional evaluation module, original English fixture builder and four
+oracle tests. Ten newly declared compositions pass actual CLI executions: inventory,
+two injection cases, pagination, explicit input selection, empty/missing input,
+unsupported Japanese, and two cached OCR/ASR compositions. No mocks in these runs;
+no Bodhan dispatch in the ten-case suite. Do not call this a hidden-test score.
+The first evaluator test import failed in Docker because it assumed a checkout's
+scripts folder; moving the evaluator into the installed package fixes collection.
+
+Within remaining historical credit, fixture_prep03 generates a distinct Telugu clip4
+through Bodhan and reuses other verified clips. All five hashes differ. Actual new
+fixture cost INR0.0662066667, followed by mixed02 INR0.0130866667 and mixed03 INR0.00108.
+No top-up, account change or paid planner. New combined accounting INR9.7872540625;
+it is not a dashboard-reconciled balance. About INR0.21 historical headroom remains.
+
+## D040 - 2026-11-17 - Correct the publication boundary and diagnostic reversal
+
+Inspection finds wrong weather/deadline sentences in mixed02's selected English
+list despite passing translation checks. The initial hypothesis blamed Bodhan's
+translation; raw artifacts disprove that hypothesis. Bodhan translated correctly;
+the planner changed the content while writing its list. mixed03 avoids the wrong
+sentences but still selects vague prose rather than delivering the translations.
+Retain both reports unchanged and mark their final acceptance failed in the review.
+
+Add a typed write_translation_index helper to agent/MCP. Code accepts only checked
+Bodhan translation refs, derives actual source filenames from tool ancestry and
+publishes the text verbatim. Explicit translation requests must select actual
+verified translations/SRT or the index; English planner prose alone cannot satisfy
+them. The failing-before regression observes missing deliverables, then the agent
+corrects using the index. No demo-specific routing or model call is added.
+
+A separate failing regression demonstrates how two wrong Hindi pivots could agree.
+For distinctive-script English-target sources, compare the original text directly
+with output back-translation to that source language. Ambiguous/shared scripts keep
+the uncertain Hindi pivot. This was not the cause of mixed02's publication failure.
+Strip redundant planner schema titles to keep the first default-price request
+within its existing budget; retain types/limits/descriptions and full MCP schemas.
+
+mixed04 stops on a free-planner503, with zero-cost reservation/tombstone retained.
+After code/schema changes, an independent mixed05 structured-publication task
+completes in101.473s at INR0 with enforced cache-only Bodhan responses. Selected
+index contains the actual garden translations and source filenames, not invented
+sentences. All production and failed/corrected evidence stays separate. Native
+review, natural long audio and a closer two-minute summary remain unperformed.
+Ask whether the assignment email was already sent before moving its fixed public
+evaluation SHA; continue improvements privately while that status is unknown.
+
+## D041 - 2026-11-17 - Complete cross-architecture and human-review preparation
+
+The full116test suite, lint, Docker build and CLI help also pass on Linux amd64
+under local emulation; arm64 passes natively. No API keys or calls are needed by
+these container checks. Prepare a separate66file review packet with artifact hashes,
+source material and blank forms. It is not a human review or candidate rehearsal.
+Keep the existing submitted commit fixed while email status is unknown; publish
+later code/evidence as an explicitly separate review revision rather than silently
+moving the evaluation head. Public materials must exclude private brief/instructions,
+environment, caches and unrelated files. Original reports/assets remain unchanged.
+
+## D042 - 2026-11-17 - Owner confirms email unsent and requests PR update
+
+The owner answers that no assignment email was sent and explicitly requests updating
+the PR. This supersedes D041's temporary frozen-head assumption. Update Cookbook
+PR21 to the corrected source before the email reply; retain the original commit/tag
+and reports as history. A272.04second recording preserves the original212seconds
+and appends60seconds of later actual trace/output playback, with provenance labels.
+The final release contains both original and expanded evidence plus the prepared
+human-review packet. No hidden/native score, candidate participation or email send
+is claimed. Record the new exact source SHA in the private handoff/email draft.

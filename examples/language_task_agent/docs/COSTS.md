@@ -29,3 +29,14 @@ Development summed reports against historical authorized credit. Planner rates
 must be verified; omitted rates use disclosed INR1000/3000-per-million input/output
 accounting assumptions. Only verified free usage may use zero. No unconditional
 arbitrary-provider payment cap is claimed.
+
+## Later expanded evaluation
+
+The original release ledger above remains historical. New fixture_prep03 adds
+INR0.0662066667; mixed02 adds INR0.0130866667; mixed03 adds INR0.00108. The ten-case
+cache-only suite, planner503 partial and final structured-index replay add zero.
+All reports remain unchanged, including misleading completed statuses that the
+later acceptance review rejects. Additional accounting INR0.0803733333; combined
+known/reserved development usage **INR9.7872540625**, not a fresh billing balance.
+About INR0.21 remains against the historical allocation. No further full speech
+production fits that headroom; do not purchase or assume additional credit.
