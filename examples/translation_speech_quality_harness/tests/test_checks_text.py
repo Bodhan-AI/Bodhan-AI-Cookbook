@@ -170,3 +170,8 @@ def test_scale_word_after_digits_in_indic_text():
 
 def test_bare_degree_matches_spelled_out_celsius():
     assert check_numbers(item("Store below 25 °C.", "২৫° সেলসিয়াসের নিচে", "bn")) == []
+
+
+def test_name_kept_in_latin_is_not_untranslated():
+    src = "The Tierra del Sol Gallery is located at 7414 Santa Monica Blvd."
+    assert not [c for c in check_script(item(src, "Tierra del Sol Gallery- ৭৪১৪ সান্তা মনিকা ব্লুভডে অবস্থিত।", "bn")) if c["class"] == "exact"]

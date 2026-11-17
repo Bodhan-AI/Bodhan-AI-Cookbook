@@ -205,6 +205,7 @@ def evaluate(results: list[dict], labels: dict, thresholds: dict, sources: dict,
             "localization": _rate(n_local, n_labels), "category_accuracy": _rate(n_cat_ok, n_local),
         },
         "per_category": dict(sorted(per_cat.items())),
+        "false_alarm_items": [f"{k[0]}/{k[1]}" for k in fa],
         "per_check": thresholds,
         "label_sources": sources,
     }

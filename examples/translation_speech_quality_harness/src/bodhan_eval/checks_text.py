@@ -291,7 +291,9 @@ def check_script(item) -> list[dict]:
     for m in _LATIN_RUN.finditer(t):
         rw = _words(m.group())
         alpha = [w for w in rw if not w.isdigit()]
-        if len(alpha) >= 4 and _contains(src_words, rw):
+        # A title-case run ("Tierra del Sol Gallery") is a name kept in Latin script, which is normal; prose has lowercase words.
+        name = all(w[0].isupper() for w in re.findall(r"[A-Za-z]+", m.group()) if len(w) > 3)
+        if len(alpha) >= 4 and not name and _contains(src_words, rw):
             flagged_latin = True
             cands.append(cand("script", "wrong_language", "exact", 0.9, None, (m.start(), m.end()), "major",
                               detail="English text from the source left untranslated", text=m.group()[:200]))

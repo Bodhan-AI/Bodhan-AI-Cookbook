@@ -221,6 +221,16 @@ def _summary_md(s: dict, results: list[dict], cal: dict) -> str:
             for cat, v in cal["per_category"].items():
                 lines.append(f"| {cat} | {_pct(v['recall'])} | {_pct(v['precision'])} | {v['tp']} / {v['tp'] + v['fn']} |")
         lines.append("")
+        fa = set(cal.get("false_alarm_items") or [])
+        if fa:
+            lines += ["## Flags on items labelled clean", "",
+                      "Counted as false alarms. Labels that only record injected errors leave real model errors marked clean, "
+                      "so read these before trusting the rate.", ""]
+            for r in results:
+                if f"{r['id']}/{r['lang']}" in fa:
+                    for f in r["flags"]:
+                        lines += _example(r, f)
+            lines.append("")
 
     review = sum(len(r["review"]) for r in results)
     if review:

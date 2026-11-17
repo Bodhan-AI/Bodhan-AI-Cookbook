@@ -28,6 +28,8 @@ def parser() -> argparse.ArgumentParser:
     p.add_argument("--calibration", help="JSONL of human-labelled items, or a filled review_queue.csv")
     p.add_argument("--fail-on-regression", type=int, metavar="N",
                    help="with --baseline: exit 1 when more than N items gain a major or critical flag")
+    p.add_argument("--skip", metavar="CHECKS", help="comma-separated checks to switch off, for ablations: "
+                   "back_translation, regen_diff, audio_stats, transcript, judge")
     p.add_argument("--max-cost-inr", type=float, default=None, help="stop paid calls before this many rupees")
     p.add_argument("--cache-dir", default=".bodhan_eval_cache", help="where model outputs are cached")
     p.add_argument("--concurrency", type=int, default=4, help="parallel calls per model")

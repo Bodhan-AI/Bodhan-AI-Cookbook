@@ -28,6 +28,9 @@ def parse_langs(value: str) -> tuple[set[str], list[str]]:
     return codes, warnings
 
 
+SKIPPABLE = {"back_translation", "regen_diff", "audio_stats", "transcript", "judge"}
+
+
 def build_clients(args, log: RunLog, cache: Cache, env=os.environ):
     keys = {svc: env.get(name, "").strip() for svc, name in KEY_ENV.items()}
     bodhan = Bodhan(keys, cache, Budget(args.max_cost_inr), log, concurrency=args.concurrency)
@@ -57,8 +60,15 @@ def run(args, bodhan=None, llm=None, env=os.environ) -> int:
     results = [{"id": it["id"], "lang": it["lang"], "status": "clean", "checks_run": {}, "flags": [], "review": [],
                 "scores": {}, "notes": list(it["notes"]), "_cands": []} for it in items]
 
+    skip = {x.strip() for x in (getattr(args, "skip", None) or "").split(",") if x.strip()}
+    if skip - SKIPPABLE:
+        warnings.append(f"--skip: unknown checks ignored: {', '.join(sorted(skip - SKIPPABLE))}")
+
     def run_check(name, thunk, item, res):
         """Run one check; record ok / not_run / error. Returns the thunk's value or None."""
+        if name in skip:
+            res["checks_run"][name] = "not_run: disabled by --skip"
+            return None
         try:
             value = thunk()
             res["checks_run"][name] = "ok"

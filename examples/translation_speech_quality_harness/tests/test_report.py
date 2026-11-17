@@ -92,3 +92,14 @@ def test_diff_finds_regression_and_improvement_and_ci_exit(tmp_path, fake_bodhan
 def test_unreadable_baseline_warns(tmp_path, fake_bodhan, fake_llm):
     code, out = run(tmp_path, fake_bodhan, fake_llm, "r", baseline=str(tmp_path / "missing"), fail_on_regression=0)
     assert code == 0 and "cannot read the baseline" in (out / "diff.md").read_text(encoding="utf-8")
+
+
+def test_flags_on_clean_labelled_items_are_listed(tmp_path, fake_bodhan, fake_llm):
+    rows = [dict(r) for r in ROWS]
+    rows[0]["translation"] = rows[0]["translation"].replace("100", "1000")
+    rows[0]["labels"] = []  # labelled clean, but the output has an error
+    p = tmp_path / "d.jsonl"
+    p.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8")
+    _, out = run(tmp_path, fake_bodhan, fake_llm, "r", dataset=p)
+    md = (out / "summary.md").read_text(encoding="utf-8")
+    assert "## Flags on items labelled clean" in md and "t01 / hi" in md.split("## Flags on items labelled clean")[1]
