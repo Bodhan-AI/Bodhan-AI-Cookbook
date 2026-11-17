@@ -218,9 +218,14 @@ def run(args, bodhan=None, llm=None, env=os.environ) -> int:
 
     meta = {"langs": sorted(langs), "warnings": warnings, "regen_agreement": agree, "judge_consistency": consistency,
             "calibration": cal}
-    report.write(out, results, skipped, meta, log)
+    texts = {(it["id"], it["lang"]): (it["source"], it["translation"] or "") for it in items}
+    diff = report.write(out, results, skipped, meta, log, texts, args.baseline)
     with open(out / "run_log.jsonl", "w", encoding="utf-8", newline="\n") as f:
         for e in log.events:
             f.write(json.dumps(e, ensure_ascii=False) + "\n")
     print(f"scored {len(results)} items, skipped {len(skipped)}; report in {out}")
+    limit = getattr(args, "fail_on_regression", None)
+    if limit is not None and diff.get("items_with_new_major_or_critical", 0) > limit:
+        print(f"regression: {diff['items_with_new_major_or_critical']} items have a new major or critical flag (limit {limit})")
+        return 1
     return 0

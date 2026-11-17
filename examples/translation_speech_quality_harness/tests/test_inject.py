@@ -55,7 +55,7 @@ def test_text_recipes_on_real_output(tmp_path, recipe, fake_bodhan, fake_llm):
     def translate(text, lang):
         for r in rows:
             a, b = r["source"].split(), text.split()
-            diff = [w for x, w in zip(a, b) if x != w]
+            diff = [w for x, w in zip(a, b, strict=False) if x != w]
             if r["lang"] == names.get(lang) and len(a) == len(b) and len(diff) == 1:
                 return r["translation"].replace(" ", f" {diff[0]} ", 1)
         return text

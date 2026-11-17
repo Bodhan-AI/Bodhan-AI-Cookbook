@@ -25,7 +25,9 @@ def parser() -> argparse.ArgumentParser:
     p.add_argument("--out", required=True, help="report folder")
     p.add_argument("--generate", action="store_true", help="create missing translations and audio with Bodhan models")
     p.add_argument("--baseline", help="previous report folder to diff against")
-    p.add_argument("--calibration", help="JSONL of human-labelled items")
+    p.add_argument("--calibration", help="JSONL of human-labelled items, or a filled review_queue.csv")
+    p.add_argument("--fail-on-regression", type=int, metavar="N",
+                   help="with --baseline: exit 1 when more than N items gain a major or critical flag")
     p.add_argument("--max-cost-inr", type=float, default=None, help="stop paid calls before this many rupees")
     p.add_argument("--cache-dir", default=".bodhan_eval_cache", help="where model outputs are cached")
     p.add_argument("--concurrency", type=int, default=4, help="parallel calls per model")

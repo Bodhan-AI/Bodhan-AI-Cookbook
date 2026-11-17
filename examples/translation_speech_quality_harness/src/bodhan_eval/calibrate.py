@@ -16,6 +16,7 @@ from pathlib import Path
 
 from .config import normalize_lang
 from .dataset import _labels
+from .report import read_review_csv
 
 # Structural constants, not tuned on any data: see DESIGN.md.
 MIN_CLEAN = 10  # labelled-clean items needed before a threshold may move
@@ -49,6 +50,10 @@ def read_label_file(path: str | Path) -> tuple[dict, list[str]]:
         lines = Path(path).read_bytes().decode("utf-8-sig", errors="replace").splitlines()
     except OSError as e:
         return {}, [f"--calibration: cannot read {path}: {e}"]
+    if str(path).lower().endswith(".csv"):
+        labels, unanswered = read_review_csv("\n".join(lines))
+        out = {(k[0], normalize_lang(k[1])): v for k, v in labels.items() if normalize_lang(k[1])}
+        return out, [f"--calibration: {unanswered} review rows without a human_label; their items are not used"] if unanswered else []
     bad = 0
     for line in lines:
         if not line.strip():
