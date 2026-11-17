@@ -1,77 +1,161 @@
-# Evaluation design
+# Harness design
+
+The harness turns each dataset row into **candidate findings**. Each finding has a category, a severity, an exact span, the evidence text, the check that produced it, and an evidence strength. Calibrated per-category thresholds decide which candidates become reported **flags**. Weaker candidates stay in `items.jsonl` as `unconfirmed`, so a reviewer can audit what was held back.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-    A[JSONL and local audio] --> R[Python CLI]
-    R --> T[Text checks]
-    R --> S[Audio checks]
-    T --> C[Cached provider calls]
-    S --> C
-    R --> J[Versioned text-only judge rubric]
-    J --> C
-    C --> B[Bodhan Translate, Speak, Transcribe]
-    C --> L[OpenAI-compatible judge endpoint]
-    T --> E[Evidence and check status]
-    S --> E
-    J --> E
-    E --> O[Calibration, reports and baseline diff]
-    H[Human and injected labels] --> O
+    D[(JSONL dataset<br/>+ local audio)] --> CLI[CLI and per-row worker pool]
+    CLI --> TX[Deterministic text checks<br/>numbers, format, entities, script]
+    CLI --> SG[Waveform checks<br/>silence, noise, clipping]
+    CLI --> RT[Round trips<br/>back-translation, back-transcription]
+    RT --> AL[Transcript alignment<br/>omission, repetition, garbling]
+    SG --> RC{Reconcile<br/>waveform vs transcript}
+    AL --> RC
+    TX --> J[LLM judge<br/>written rubric, numbered words]
+    RT --> J
+    RC --> J
+    J -->|verify_speech| RS[Second ASR segmentation]
+    RS --> CB
+    J --> CB[Combine candidates<br/>thresholds and dedup]
+    RC --> CB
+    TX --> CB
+    CB --> REP[summary.md / .json, items.jsonl,<br/>calibration.json, diff.md]
+    H[(Human labels<br/>+ injected seeds)] --> CAL[Calibration and<br/>held-out scoring]
+    CAL --> CB
+    CAL --> REP
+    subgraph Cache[SQLite cache keyed by exact request]
+      BT[Bodhan Indic-Translate]
+      BS[Bodhan Indic-Speak]
+      BA[Bodhan Indic-Transcribe]
+      LLM[OpenAI-compatible judge]
+    end
+    RT --> BT
+    RT --> BA
+    CLI -->|--generate only| BS
+    CLI -->|--generate only| BT
+    J --> LLM
+    RS --> BA
 ```
 
-## Per-item workflow
+All model calls pass through one `Providers` boundary (`providers.py`). It handles the following:
+
+- **Cache:** responses are stored in SQLite, keyed by the exact request payload and media bytes.
+- **Budget:** a spend ledger in integer micro-rupees enforces `--max-cost-inr` before each dispatch.
+- **Retries:** up to five attempts with jittered exponential backoff. A rate limit (429) sets a shared cooldown for that key.
+- **Concurrency:** separate limits for Bodhan and for the judge.
+- **Error codes:** stable codes per failure (`credit_exhausted`, `http_429`, `invalid_judgment`, and so on).
+
+Every translation, speech and recognition call goes to `https://api.bodhan.ai`. Only the judge uses `LLM_BASE_URL`.
+
+## Flow from dataset to report
 
 ```mermaid
 flowchart TD
-    A[Validate item] --> B{Generate missing outputs?}
-    B -->|Requested| C[Use Bodhan to fill eligible omissions]
-    B -->|Score only| D[Measure supplied outputs]
-    C --> D
-    D --> E[Check quantities, format, scripts and PCM]
-    E --> F[Back-translate and back-transcribe as eligible]
-    F --> Q{Short clip with a sustained uncertain omission?}
-    Q -->|Yes and budget allows| A1[Compare a second Bodhan transcript]
-    Q -->|Otherwise| G[Validate judge evidence references]
-    A1 --> G
-    G --> H{Judge requests an eligible second pass?}
-    H -->|Judge requests and budget allows| I[Compare a second Bodhan transcript]
-    H -->|Otherwise| K[Record available evidence]
-    I --> K
-    K --> L[Fit thresholds on reviewed calibration sources]
-    L --> M[Score held-out sources and write reports]
+    A[Read JSONL: count bad rows, keep rows whose labels are unusable] --> B{Translation supplied?}
+    B -->|no and --generate| B1[Indic-Translate]
+    B -->|yes| C
+    B1 --> C{Audio supplied?}
+    C -->|no and --generate| C1[Indic-Speak, 280-char chunks]
+    C -->|yes| D
+    C1 --> D
+    D --> E1[Text, free: numbers, format, entities, script, chrF++ if reference]
+    D --> E2[Audio, free: silence, noise, clipping]
+    E1 --> F1[Back-translate to English: cheap]
+    E2 --> F2[Back-transcribe, 28 s chunks: about 0.10 INR per minute]
+    F2 --> G[Align transcript to script: omission, repetition, garbling]
+    G --> R[Reconcile: quiet waveform but fully recognised script, so demote silence]
+    R --> H{Uncertain omission on a clip of 14 s or less?}
+    H -->|yes| H1[Re-transcribe with shifted windows: corroborate or clear]
+    H -->|no| J
+    H1 --> J
+    F1 --> J[LLM judge: one call per row with all evidence]
+    J --> K{Judge asks verify_speech on an uncertain speech finding?}
+    K -->|yes| K1[Second segmentation for long clips]
+    K -->|no| L
+    K1 --> L[Accept candidates over category thresholds, one explanation per passage]
+    L --> M[Fit thresholds on reviewed calibration rows. Score held-out rows.]
+    M --> N[Write reports and diff against --baseline]
 ```
 
-## Evidence rules
+The cheap and free checks run first, in parallel for the two modalities. Paid round trips happen once per row. The extra ASR pass only runs when the cheaper evidence leaves a speech question open. TTS runs only with `--generate` for missing audio. It is the most expensive call (₹6 per 10,000 characters), and the run never repeats it because responses are cached.
 
-| Check | Signal | Decision |
-| --- | --- | --- |
-| Quantities | Match uniquely shared literal labels in unit phrases, labelled fields, and Markdown table cells before checking remaining values globally. | Flag changed quantities even when the same set of values appears. Reordered labelled quantities stay comparable. Use the judge when the relationship depends on translated wording. |
-| Entities | Find missing literal URLs and acronyms. | URLs are strong evidence. Acronyms and names may be rendered differently in the target language. The judge evaluates semantic preservation. |
-| Format | Compare Markdown block structure, table shape, and LaTeX tokens. | Preserve the affected token or original line for review. |
-| Reference score | Compute chrF++ on rows with a reference. | Record the score alongside the checks. Multiple translations can express the same meaning. |
-| Back-translation and judge | Compare the candidate and available signals against the source. | Accept schema-valid findings with exact original text spans. The [written rubric](src/bodhan_eval/judge.py) defines categories, severity, and confidence levels. |
-| Audio signal | Measure duration, quiet windows, and saturation in mono PCM. | Use sample positions for audio evidence. Report decoded duration even if transcription is unavailable. |
-| Back-transcript | Compare script and transcript with character alignment. | Omissions and repetitions use sustained alignment differences. Character error rate alone remains weak evidence because the recognizer can make errors. |
+## Checks
 
-The judge sees only the evaluation inputs and check evidence. It returns English rationale and evidence coordinates. The program extracts Indic excerpts from existing text. A parseable verdict with usable evidence can enter the response cache.
+| Check | Kind | Categories | How it decides | Typical strength |
+| --- | --- | --- | --- | --- |
+| Quantities (`text_checks.number_findings`) | deterministic | number | Normalizes native digits in all 13 scripts, Indian and Western grouping, times, dates and scale words (lakh, crore, million) before pairing values. It pairs quantities by shared labels, table cells and unit phrases before falling back to global pairing. | 0.88 for a changed value. 0.55 for a missing-only value, which is likely spelled out and so never flagged. |
+| Format (`format_findings`) | deterministic | format | Compares CommonMark block structure, raw table cells per row, inline delimiters (`**`, backticks, `~~`), link syntax, and LaTeX skeletons with `\text{}` ignored. `$5` is treated as currency, not math. Spans point at the candidate. | 0.90–0.98 |
+| Entities (`entity_findings`) | deterministic | entity | Exact URLs and acronyms. Names and terms are left to the judge. | 0.98 for URLs |
+| Script (`script_findings`) | deterministic | wrong_language | Masks code, URLs and LaTeX, then checks each sentence for the expected script. Untranslated English is caught by 3- and 4-word shingles shared with the source. | 0.80–0.97 |
+| chrF++ | deterministic | (metric only) | Recorded when a reference exists. Never flags on its own. | n/a |
+| Back-translation | Bodhan | (evidence for judge) | English round trip of the candidate. The judge treats it as a hint, never as proof. | n/a |
+| Waveform (`audio_checks.signal_checks`) | deterministic | garbled_audio | Silence is 25 dB below the clip's own loud frames (with a −60 dBFS floor). Normal edge padding is ignored. Noise is at least 1 s of loud frames with a zero-crossing rate of 0.35 or more. Clipping is checked too. | 0.99 for a gap of 2.5 s or more. 0.9 for noise of 1.5 s or more. |
+| Transcript alignment (`speech_findings`) | deterministic, over Bodhan ASR | speech_omission, speech_repetition, garbled_audio | Character alignment after normalization. Omission is a sustained deleted script span. Repetition is leftover transcript text that duplicates script content already heard. Garbling is a high error rate after removing explained repeats. | 0.84–0.89. 0.61–0.68 when weak. |
+| Reconcile (`reconcile_signal_with_transcript`) | deterministic | — | If the recognizer heard 90% or more of the script, a "silence" finding contradicts it and drops to 0.5. | n/a |
+| Speech recheck (`corroborate_speech`) | Bodhan ASR | speech_omission, speech_repetition | Re-transcribes with shifted windows. It confirms a finding (0.87) or clears it. | n/a |
+| LLM judge (`judge.py`) | LLM | the 7 text categories | Gets the source and candidate as numbered words, plus back-translation, transcript, reference and deterministic suspicions. It returns typed findings with word ranges. | 0.85 for clear, 0.63 for uncertain |
 
-For a sustained uncertain omission on a clip of 3 to 14 seconds, the runner uses smaller ASR windows once. A recognisable second transcript must support the same missing span before the harness raises its strength. If the alternate transcript contains the missing text, it clears the finding. On longer clips the judge can request a second segmentation. All passes share the budget and provider limits.
+## Where the LLM adds signal, and how its output is constrained
 
-## Calibration and reporting
+Deterministic checks are precise for surface defects: digits, markup, script and silence. They cannot see meaning. The judge covers the categories that need it:
 
-All rows with identical English source text stay in one split. An explicit split takes precedence for the whole group. Unassigned sources in the external label file enter calibration. Threshold fitting uses reviewed, non-injected calibration rows and requires positive and negative support for each tuned category. It selects among a small fixed set of ordinal evidence thresholds using F0.5 to weight precision. The calibration report lists support behind the selected and default thresholds. Weak findings remain visible as unconfirmed evidence.
+- omission
+- addition
+- mistranslation (including flipped polarity such as open/closed)
+- entity renderings
+- same-script language confusion
 
-The held-out report includes overall and per-language metrics. Detection pairs overlapping evidence first. It assigns category-only matches from unused labels and findings, and reports their count separately. Localization measures overlap on detections with declared label fields. Per-category precision and recall require the correct category and overlap when the annotation supplies a coordinate field. Missing labels and incomplete checks are visible in the denominator accounting.
+The judge also decides when an extra speech check is worth paying for, through `verify_speech`.
 
-Uncached judge repeats compare category, severity, and evidence coordinates. Model cache keys include the payload and media content. The same successful result can be replayed without model cost. Canonical reports contain the represented historical usage. The run log contains active request and retry counts.
+The rubric in [judge.py](src/bodhan_eval/judge.py) controls the judge's output in several ways:
 
-Baseline comparisons prefer an exact shared source or reference anchor for a quantity. They can also pair overlapping evidence in a shared coordinate field, projecting unchanged passages across offset changes. Only checks completed in both runs contribute defect deltas. Severity changes appear separately. Reports record a finding policy version so comparisons across policy changes can warn the reviewer.
+- **Word numbers, not characters.** The judge sees every segment as `[0]word [1]word …` and answers with `first_word` and `last_word`. The harness maps those back to exact character offsets in the original text. An LLM counts words reliably and Indic code points unreliably. In the first live runs, character offsets caused most of the judge's rejected findings.
+- **No Indic text from the model.** The LLM may read Indian-language text but never write it. Evidence text is always cut from the original. Any non-English letters in the model's rationale are stripped before storage, while the finding itself is kept.
+- **Checker noise is named.** The rubric says back-translation and back-transcription are produced by other systems and can be wrong. Each finding must be confirmed against the candidate itself. Deterministic suspicions are passed in as hints to confirm or ignore.
+- **Robust parsing.** The harness uses JSON mode and temperature 0 where the endpoint supports them, and falls back to a plain request on HTTP 400. It extracts the verdict object from replies that contain reasoning, prose or code fences. Unusable replies are sampled again, up to five attempts. Only valid verdicts enter the cache.
+- **Consistency is measured on every run.** `--judge-repeat` (default 10) judges a sample of rows a second time, independently. The report shows the agreement on category, severity and span. The repeat is cached under its own key, so a replay reproduces the figure at no cost.
 
-## Trade-offs
+## Combining evidence into flags
 
-- A user-supplied audio file without a known script supports signal checks and transcription. Omission and repetition relative to an intended script are unavailable in that case.
-- Hosted ASR returns text. Script and transcript spans use original character offsets. Waveform measurements supply time intervals. Transcription alone cannot provide word timestamps.
-- Script cues have limited power for languages that share a script. Proper names, number words, and legitimate transliteration need semantic review.
-- The injector can measure specific mutations precisely. Source perturbation through Indic-Translate can also introduce unrelated changes. Human review gives different evidence from seed labels.
-- Translation does reserve against a bounded output-token count. The run keeps a conservative reservation after an ambiguous transport error because the provider may have billed the attempt.
+1. Each check emits candidates with an ordinal strength. Strength reflects how much the check can prove, not a probability.
+2. A candidate becomes a flag when its strength reaches its category's threshold. The default is 0.72.
+3. Overlapping text candidates are merged, and the strongest explanation wins. A changed digit is therefore reported once as `number`, not again as a judge `mistranslation` of the same word. Speech findings are only merged within their own category.
+4. Candidates below threshold remain in `items.jsonl` under `unconfirmed`.
+
+## Calibration against human labels
+
+- **Inputs.** Labels can come from the dataset or from `--calibration labels.jsonl`, keyed by `id`/`lang` or by the opaque `review_id` of the blind review packet. Rows with the same English source always share one split, so a mutation never leaks its control into the other split.
+- **Fitting.** Thresholds are fitted only on reviewed (human or provided) calibration rows. Injected seeds are not used for fitting. A category's threshold moves only with at least three positive and three negative reviewed items. Fitting chooses from five fixed levels (0.58–0.92) by F0.5, which weights precision because false alarms are a stated target. The `tuning_support` block in `calibration.json` shows the support behind every threshold, including the ones left at the default.
+- **Scoring.** Held-out rows are scored for precision and recall per category and language, localization, and category accuracy, plus the flag rate on unmutated controls.
+
+## Error injector
+
+`python -m bodhan_eval.demo` creates labelled variants from generated controls without any LLM. Every Indian-language string comes from Bodhan or from the original output.
+
+- **Text, programmatic:**
+  - change a digit, or swap a unit symbol
+  - break a LaTeX delimiter, a table separator, a table cell, bold, a heading or a link
+  - paste the English source, or one untranslated English sentence
+  - delete a translated sentence
+  - insert a sentence from another item's Bodhan translation
+- **Text, perturbing the English and re-translating with Indic-Translate:**
+  - drop a sentence
+  - append a neutral sentence
+  - flip a word to its antonym (a general opposites lexicon)
+  - rename an entity
+- **Audio:**
+  - truncate the tail, or cut the middle
+  - repeat the whole clip, or loop a middle phrase
+  - insert 3 s of silence, or 2 s of broadband noise
+
+Each variant records its method and an exact span on the axis where the defect lives: `source` for omissions, `translation` for most text errors, and `audio_ms` for audio. Review packets hide the method behind an opaque `review_id`.
+
+## Trade-offs and known limits
+
+- **No word timestamps from ASR.** Repetition intervals on the audio axis are estimated from the transcript position at an even speaking rate. The transcript excerpt stays attached as the exact anchor.
+- **Same-script language confusion** (Hindi vs Marathi, Bengali vs Assamese) depends on the judge.
+- **A clip that is only low-level hiss** (above −60 dBFS but without speech structure) is caught only through the transcript, as an omission.
+- **Source perturbation through Indic-Translate can change more than the intended word.** The label covers the largest changed region.
+- **The judge's recall on subtle mistranslations varies by model and language.** The per-language table in `calibration.json` shows this directly.

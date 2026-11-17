@@ -56,8 +56,9 @@ def test_whole_utterance_repetition_with_asr_variation():
     metrics, findings = speech_findings(HINDI, transcript, 9000)
     assert metrics["cer"] > 1 and metrics["repeat_adjusted_cer"] < 0.1
     [repeat] = [finding for finding in accepted(findings, THRESHOLDS) if finding.category == "speech_repetition"]
-    assert repeat.span.field == "transcript"
-    assert transcript[repeat.span.start : repeat.span.end] == repeat.evidence
+    # The audio interval is estimated from the transcript position. The text stays the anchor.
+    assert repeat.span.field == "audio_ms" and repeat.anchor.field == "transcript"
+    assert transcript[repeat.anchor.start : repeat.anchor.end] == repeat.evidence
     assert "शिक्षक ने हमें गणित" in repeat.evidence
     # The insertions are explained by the repeat, so they are not reported as garbled speech.
     assert not any(finding.category == "garbled_audio" for finding in findings)

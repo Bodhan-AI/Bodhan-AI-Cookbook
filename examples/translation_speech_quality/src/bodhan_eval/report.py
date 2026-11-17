@@ -13,6 +13,9 @@ from .calibration import accepted, calibration_fit, measure, measure_checks, rat
 from .providers import digest
 from .schema import Evaluation, read_jsonl
 
+# Anchors into inputs that do not change between runs. A transcript anchor can change.
+STABLE_ANCHORS = ("source", "reference")
+
 
 def write_json(path: Path, value: Any) -> None:
     """Write canonical readable JSON using UTF-8 and consistent line endings."""
@@ -94,7 +97,9 @@ def match_baseline_flags(before: dict, current: dict) -> tuple[list, list, list]
         for other_index, other in enumerate(new):
             if flag["category"] != other["category"]:
                 continue
-            anchor, other_anchor = flag.get("anchor"), other.get("anchor")
+            anchor, other_anchor = (
+                value.get("anchor") if (value.get("anchor") or {}).get("field") in STABLE_ANCHORS else None for value in (flag, other)
+            )
             if anchor and other_anchor:
                 # Both reports point to the same unchanged source or reference.
                 # Distinct anchors outrank coincidental matches in translated text.
@@ -167,7 +172,7 @@ def load_baseline(path: Path) -> Baseline:
             ):
                 raise ValueError(f"Invalid baseline evidence at line {line}.")
             anchor = flag.get("anchor")
-            if anchor is not None and (not valid_span(anchor) or anchor["field"] not in ("source", "reference")):
+            if anchor is not None and (not valid_span(anchor) or anchor["field"] not in ("source", "reference", "translation", "transcript")):
                 raise ValueError(f"Invalid baseline anchor at line {line}.")
         key = (row["id"], row["lang"])
         if key in previous:
@@ -281,13 +286,27 @@ def summary_markdown(summary: dict) -> str:
         f"Partial **{counts.get('partial', 0)}**. Unscored **{counts.get('unscored', 0)}**. "
         f"Invalid input rows **{counts.get('invalid', 0)}**.",
         "",
-        "## Findings by language",
+        "## Findings by language and category",
         "",
-        "| Language | Items | Confirmed findings |",
-        "| --- | ---: | ---: |",
     ]
+    active = [category for category, count in summary["findings"].items() if count]
+    lines.append("| Language | Items | Flagged items | " + " | ".join(active) + " |")
+    lines.append("| --- | ---: | ---: |" + " ---: |" * len(active))
     for lang, data in summary["languages"].items():
-        lines.append(f"| {lang} | {data['items']} | {sum(data['findings'].values())} |")
+        cells = " | ".join(str(data["findings"].get(category, 0)) for category in active)
+        lines.append(f"| {lang} | {data['items']} | {data.get('flagged_items', 0)} | {cells} |")
+    if "baseline" in summary:
+        changes = summary["baseline"]
+        lines.extend(
+            [
+                "",
+                "## Change against the baseline",
+                "",
+                f"New flags **{changes.get('added_flags', 0)}**, resolved **{changes.get('resolved_flags', 0)}**, "
+                f"persistent **{changes.get('persistent_flags', 0)}**, severity changes **{changes.get('severity_changes', 0)}**. "
+                "Examples are in diff.md.",
+            ]
+        )
     lines.extend(["", "## Findings by category", "", "| Category | Flags | Held-out precision | Held-out recall |", "| --- | ---: | ---: | ---: |"])
     categories = summary["quality"]["heldout"]["per_category"]
     for category, count in summary["findings"].items():
@@ -312,6 +331,13 @@ def summary_markdown(summary: dict) -> str:
         ),
         ("Category accuracy", "≥70%", seeded["category_accuracy"], f"{seeded['correct_categories']} of {seeded['detected_errors']} detections"),
         ("Fresh judge agreement", "≥90%", consistency["agreement"], f"{consistency['agreements']} of {consistency['compared']} comparisons"),
+        (
+            "Flag rate on unmutated controls",
+            "≤10%",
+            summary["quality"]["unmutated_controls"]["flag_rate"],
+            f"{summary['quality']['unmutated_controls']['flagged_items']} of {summary['quality']['unmutated_controls']['items']} "
+            "controls; an upper bound, since an original output can carry a real defect",
+        ),
     ):
         lines.append(f"| {name} | {target} | {percent(value)} ({detail}) |")
     measured_misses = []
@@ -344,6 +370,10 @@ def summary_markdown(summary: dict) -> str:
     )
     if "baseline" in summary:
         lines.append("- See diff.md for changes and comparable examples.")
+    if summary.get("check_failures"):
+        lines.extend(["", "## Checks that did not complete", "", "| Check and reason | Rows |", "| --- | ---: |"])
+        for name, count in summary["check_failures"].items():
+            lines.append(f"| {name} | {count} |")
     lines.extend(["", "## Findings to inspect first", ""])
     for row in summary["top_findings"]:
         lines.append(f"- {row['id']} [{row['lang']}] {row['category']} ({row['severity']}, {row['check']}). {row['evidence']!r}")
@@ -379,6 +409,7 @@ def write_reports(
         data["items"] += 1
         categories = Counter(flag["category"] for flag in row["flags"])
         data["findings"].update(categories)
+        data["flagged_items"] = data.get("flagged_items", 0) + bool(row["flags"])
         findings.update(categories)
 
     reviewed_ids = {result.item.source for result in holdout if result.item.seed_labels is not None}
@@ -388,6 +419,18 @@ def write_reports(
         for result in holdout
         if result.item.seed_labels is not None or (result.item.labels == () and result.item.source in reviewed_ids)
     ]
+    # Unlabelled rows that share a source with an injected variant are the controls the
+    # variants were made from. Any flag on them is a false alarm or a real defect in the
+    # original output, so their flag rate is an upper bound on the false-alarm rate.
+    injected_pairs = {(r.item.source, r.item.lang) for r in results if r.item.label_origin == "injected"}
+    control_rows = [row for row, r in zip(rows, results) if r.item.labels is None and (r.item.source, r.item.lang) in injected_pairs and row["status"] != "unscored"]
+    control_flags = Counter(flag["category"] for row in control_rows for flag in row["flags"])
+    check_failures = Counter(
+        f"{name}: {value.get('code') or value['status']}"
+        for result in results
+        for name, value in result.checks.items()
+        if value["status"] in ("error", "skipped", "partial")
+    )
     repeats = [r.checks["judge_repeat"]["agrees"] for r in results if r.checks.get("judge_repeat", {}).get("status") == "ok"]
     quality = {
         "calibration": measure(calibration, thresholds),
@@ -396,16 +439,29 @@ def write_reports(
         "injected_holdout": measure(injected_scope, thresholds),
         "injected_holdout_by_language": {lang: measure([r for r in injected_scope if r.item.lang == lang], thresholds) for lang in sorted(languages)},
         "judge_repeat": {"compared": len(repeats), "agreements": sum(repeats), "agreement": ratio(sum(repeats), len(repeats))},
+        "unmutated_controls": {
+            "items": len(control_rows),
+            "flagged_items": sum(bool(row["flags"]) for row in control_rows),
+            "flag_rate": ratio(sum(bool(row["flags"]) for row in control_rows), len(control_rows)),
+            "flags_by_category": dict(sorted(control_flags.items())),
+        },
     }
     calls = {key: value for result in results for key, value in result.usage.items()}
     judge_calls = [call for call in calls.values() if call["operation"] == "judge"]
     reported_input = [call["input_tokens"] for call in judge_calls if call.get("input_tokens") is not None]
     reported_output = [call["output_tokens"] for call in judge_calls if call.get("output_tokens") is not None]
     severity_order = {"critical": 0, "major": 1, "minor": 2}
-    top = sorted(
+    ranked = sorted(
         ({"id": row["id"], "lang": row["lang"], **flag} for row in rows for flag in row["flags"]),
         key=lambda flag: (severity_order[flag["severity"]], -flag["strength"], flag["lang"], flag["id"]),
-    )[:8]
+    )
+    # Two examples per category, so one frequent defect type cannot hide the others.
+    per_category: Counter[str] = Counter()
+    top = []
+    for flag in ranked:
+        if per_category[flag["category"]] < 2:
+            per_category[flag["category"]] += 1
+            top.append(flag)
     for flag in top:
         flag["evidence"] = " ".join(flag["evidence"].split())[:160]
     summary = {
@@ -418,6 +474,7 @@ def write_reports(
         "findings": findings,
         "quality": quality,
         "top_findings": top,
+        "check_failures": dict(sorted(check_failures.items())),
         "cost": {
             "bodhan_inr": sum(call.get("micro_inr", 0) for call in calls.values()) / 1_000_000,
             "judge_input_tokens": sum(reported_input) if reported_input else None,

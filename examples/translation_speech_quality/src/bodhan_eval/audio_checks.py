@@ -492,6 +492,20 @@ def same_repeat(evidence: str, other: str, reference: str) -> bool:
     return bool(first and second) and len(first & second) >= 0.5 * min(len(first), len(second))
 
 
+def transcript_time(finding: Finding, transcript_length: int, duration_ms: int) -> Finding:
+    """Place a transcript-span finding on the audio timeline, keeping the text span as anchor.
+
+    Hosted ASR returns no word timestamps, so the interval assumes an even speaking rate
+    across the clip. The transcript excerpt stays the evidence and the exact text anchor.
+    """
+    if finding.span.field != "transcript" or transcript_length <= 0:
+        return finding
+    start = finding.span.start * duration_ms // transcript_length
+    end = max(start + 1, -(-finding.span.end * duration_ms // transcript_length))
+    detail = f"{finding.detail} Time is estimated from the transcript position."
+    return replace(finding, span=Span("audio_ms", start, min(end, duration_ms)), anchor=finding.span, detail=detail)
+
+
 def speech_findings(
     expected: str,
     transcript: str,
@@ -527,7 +541,7 @@ def speech_findings(
                 )
             )
     repeats, repeated_characters = repetition_findings(expected, transcript, alignment, min_length)
-    findings.extend(repeats)
+    findings.extend(transcript_time(finding, len(transcript), duration_ms) for finding in repeats)
     # Material explained as a spoken repeat is not evidence of unintelligible audio.
     residual = alignment.substitutions + alignment.deletions + max(0, alignment.insertions - repeated_characters)
     adjusted_cer = residual / len(reference)
