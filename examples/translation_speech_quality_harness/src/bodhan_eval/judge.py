@@ -210,7 +210,7 @@ def judge_item(item, llm, cands: list[dict], back_translation: str | None, log=N
     """Run one or two judge passes. Returns {'candidates', 'pass1', 'pass2', 'consistent'}."""
     source, translation = item["source"], item["translation"]
     if len(source) + len(translation) > MAX_CHARS:
-        raise NotRun("judge: item too long for one call")
+        return _judge_by_paragraph(item, llm, cands, log)
     ctx = {"item": f"{item['id']}/{item['lang']}", "check": "judge"}
     msgs = build_messages(item["lang"], source, translation, back_translation, hints_from(cands, source, translation))
     v1, f1 = clean_findings(_pass(llm, msgs, 1, ctx), source, translation, log, ctx)
@@ -223,3 +223,50 @@ def judge_item(item, llm, cands: list[dict], back_translation: str | None, log=N
         out.append(cand("judge", f["category"], "judge" if agreed else "noisy", strength, f["source_span"], f["translation_span"], f["severity"],
                         explanation=f["explanation"], agreed=agreed, certainty=f["certainty"]))
     return {"candidates": out, "pass1": v1, "pass2": v2, "consistent": None if v2 is None else v1 == v2}
+
+
+def _paragraphs(text: str) -> list[tuple[int, int]]:
+    return [(m.start(), m.end()) for m in re.finditer(r"\S(?:.*?\S)?(?=[ \t]*\n\s*\n|\s*\Z)", text, re.S)]
+
+
+def _judge_by_paragraph(item, llm, cands, log) -> dict:
+    """Too long for one call: judge groups of aligned paragraphs, each under the size cap, and shift the spans back.
+    Needs the same paragraph count on both sides; otherwise there is no safe alignment and the judge does not run."""
+    sp, tp = _paragraphs(item["source"]), _paragraphs(item["translation"])
+    if len(sp) != len(tp) or len(sp) < 2:
+        raise NotRun("judge: item too long for one call and its paragraphs do not align")
+    groups, cur = [], []
+    for k in range(len(sp)):
+        size = sum(sp[j][1] - sp[j][0] + tp[j][1] - tp[j][0] for j in cur + [k])
+        if cur and size > MAX_CHARS:
+            groups.append(cur)
+            cur = []
+        cur.append(k)
+    groups.append(cur)
+    out, verdicts1, verdicts2 = [], [], []
+    for g in groups:
+        (s0, s1), (t0, t1) = (sp[g[0]][0], sp[g[-1]][1]), (tp[g[0]][0], tp[g[-1]][1])
+        if s1 - s0 + t1 - t0 > MAX_CHARS:
+            raise NotRun("judge: a single paragraph is too long for one call")
+        inside = [_shift(c, -s0, -t0) for c in cands if _within(c, (s0, s1), (t0, t1))]
+        part = {**item, "id": f"{item['id']}#p{g[0]}", "source": item["source"][s0:s1], "translation": item["translation"][t0:t1]}
+        r = judge_item(part, llm, inside, None, log)  # the whole-item back-translation cannot be cut to match
+        out += [_shift(c, s0, t0) for c in r["candidates"]]
+        verdicts1.append(r["pass1"])
+        verdicts2.append(r["pass2"])
+    merged = lambda vs: None if any(v is None for v in vs) else ("errors" if "errors" in vs else "uncertain" if "uncertain" in vs else "clean")  # noqa: E731
+    v1, v2 = merged(verdicts1), merged(verdicts2)
+    return {"candidates": out, "pass1": v1, "pass2": v2, "consistent": None if v2 is None else v1 == v2}
+
+
+def _within(c, s_rng, t_rng) -> bool:
+    ok = [lo <= sp[0] and sp[1] <= hi for sp, (lo, hi) in ((c.get("source_span"), s_rng), (c.get("translation_span"), t_rng)) if sp]
+    return bool(ok) and all(ok)
+
+
+def _shift(c, ds, dt) -> dict:
+    c = dict(c)
+    for field, d in (("source_span", ds), ("translation_span", dt)):
+        if c.get(field):
+            c[field] = [c[field][0] + d, c[field][1] + d]
+    return c

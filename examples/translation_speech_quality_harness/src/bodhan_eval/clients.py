@@ -18,6 +18,29 @@ KEY_ENV = {"translate": "BODHAN_TRANSLATE_KEY", "speak": "BODHAN_SPEAK_KEY", "tr
 MAX_ATTEMPTS = 8  # backoff 1, 2, 4 ... 30 s: about 2.5 minutes, longer than a per-minute rate window
 
 
+class Gate:
+    """A semaphore whose limit can be lowered while in use (when the server announces its own parallel limit)."""
+
+    def __init__(self, limit: int):
+        self.limit, self.active = max(1, limit), 0
+        self.cond = threading.Condition()
+
+    def limit_to(self, n: int):
+        with self.cond:
+            self.limit = max(1, min(self.limit, n))
+
+    def __enter__(self):
+        with self.cond:
+            while self.active >= self.limit:
+                self.cond.wait()
+            self.active += 1
+
+    def __exit__(self, *exc):
+        with self.cond:
+            self.active -= 1
+            self.cond.notify_all()
+
+
 class NotRun(Exception):
     """A check could not run. Never a finding about the item."""
 
@@ -102,7 +125,7 @@ class Bodhan(_Base):
         super().__init__(cache, log)
         self.keys, self.budget, self.sleep = keys, budget, sleep
         self.http = httpx.Client(base_url=base_url, timeout=timeout, transport=transport, headers={"User-Agent": "bodhan-eval"})
-        self.sem = {s: threading.Semaphore(concurrency) for s in KEY_ENV}
+        self.sem = {s: Gate(concurrency) for s in KEY_ENV}
 
     def _post(self, service, path, **kw):
         key = self.keys.get(service)
@@ -117,6 +140,9 @@ class Bodhan(_Base):
             except httpx.TransportError as e:
                 last = type(e).__name__
             else:
+                cap = r.headers.get("x-ratelimit-limit-parallel-requests", "")
+                if cap.isdigit() and int(cap) > 0:
+                    self.sem[service].limit_to(int(cap))  # the server says how many calls it accepts at once
                 if r.status_code == 200:
                     return r, attempt
                 last = f"HTTP {r.status_code}: {r.text[:200]}"
@@ -134,7 +160,27 @@ class Bodhan(_Base):
         raise NotRun(f"api: {service} failed after {MAX_ATTEMPTS} attempts ({last})")
 
     def translate(self, text: str, lang: str, ctx: dict | None = None) -> dict:
-        """Translate with Indic-Translate. Returns {'text', 'finish_reason', 'usage', 'cost_inr'}."""
+        """Translate with Indic-Translate. Returns {'text', 'finish_reason', 'usage', ...}. Text too long for one call
+        (truncated twice, or HTTP 413) is translated paragraph by paragraph and joined with the original breaks."""
+        try:
+            return self._translate_once(text, lang, ctx)
+        except NotRun as e:
+            parts = re.split(r"(\n\s*\n)", text)
+            if not ("truncated" in e.reason or "HTTP 413" in e.reason) or len(parts) < 3:
+                raise
+        out, usage = [], {}
+        for k, part in enumerate(parts):
+            if k % 2 or not part.strip():
+                out.append(part)  # paragraph breaks and blank pieces stay as they were
+                continue
+            meta = self.translate(part, lang, ctx)
+            out.append(meta["text"])
+            for name, v in (meta.get("usage") or {}).items():
+                if isinstance(v, int):
+                    usage[name] = usage.get(name, 0) + v
+        return {"text": "".join(out), "finish_reason": "stop", "usage": usage, "fingerprint": None, "split": "paragraphs"}
+
+    def _translate_once(self, text: str, lang: str, ctx: dict | None = None) -> dict:
         if not text or not text.strip():
             raise NotRun("input: empty text")
         prompt = f"Translate the following text into {config.prompt_name(lang)}:\n\n{text}"

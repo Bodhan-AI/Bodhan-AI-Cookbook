@@ -111,3 +111,28 @@ def test_prose_reply_is_retried_once_then_not_run(tmp_path, fake_bodhan, fake_ll
     assert out["pass1"] == "clean"
     with pytest.raises(NotRun, match="not valid JSON"):
         run_judge(tmp_path / "b", fake_bodhan, fake_llm, "no json here")
+
+
+def test_long_item_is_judged_by_paragraph_and_spans_shift_back(tmp_path, fake_bodhan, fake_llm, monkeypatch):
+    import bodhan_eval.judge as jm
+
+    monkeypatch.setattr(jm, "MAX_CHARS", 400)
+    r = ROWS["t02"]
+    filler_s, filler_t = "Plain filler sentence here. " * 6, "सादा वाक्य यहाँ है। " * 6
+    src = f"{filler_s}\n\n{r['source']}"
+    tr = f"{filler_t}\n\n{r['translation']}"
+    _, llm = make_clients(tmp_path, fake_bodhan, fake_llm)
+    fake_llm.reply = lambda body: answer(finding()) if WORD in json.dumps(body, ensure_ascii=False).split("Translation")[-1] else answer()
+    out = judge_item({**item(src, tr, "hi"), "id": "long"}, llm, [], None)
+    c = [c for c in out["candidates"] if c["category"] == "mistranslation"]
+    assert c and tr[c[0]["translation_span"][0]:c[0]["translation_span"][1]] == WORD
+    assert src[c[0]["source_span"][0]:c[0]["source_span"][1]] == "pumps"
+
+
+def test_long_item_with_unaligned_paragraphs_is_not_run(tmp_path, fake_bodhan, fake_llm, monkeypatch):
+    import bodhan_eval.judge as jm
+
+    monkeypatch.setattr(jm, "MAX_CHARS", 50)
+    _, llm = make_clients(tmp_path, fake_bodhan, fake_llm)
+    with pytest.raises(NotRun, match="do not align"):
+        judge_item({**item("A long one. " * 10 + "\n\nB.", "क " * 60, "hi"), "id": "x"}, llm, [], None)

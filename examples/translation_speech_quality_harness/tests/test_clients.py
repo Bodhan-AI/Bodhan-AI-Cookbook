@@ -142,3 +142,18 @@ def test_llm_daily_quota_fails_fast_and_hides_account_id(tmp_path, fake_bodhan):
     with pytest.raises(NotRun, match="daily token quota"):
         llm.chat([{"role": "user", "content": "b"}])
     assert len(calls) == n  # no further requests this run
+
+
+def test_too_long_text_is_translated_by_paragraph(tmp_path, fake_bodhan, fake_llm):
+    bodhan, _ = make_clients(tmp_path, fake_bodhan, fake_llm)
+    fake_bodhan.queue = [(413, {"error": "too large"}, None)]
+    out = bodhan.translate("First part.\n\nSecond part.", "hi")
+    assert out["text"] == "[Hindi] First part.\n\n[Hindi] Second part." and out["split"] == "paragraphs"
+
+
+def test_server_parallel_limit_lowers_concurrency(tmp_path, fake_bodhan, fake_llm):
+    bodhan, _ = make_clients(tmp_path, fake_bodhan, fake_llm)
+    ok = {"choices": [{"message": {"content": "x"}, "finish_reason": "stop"}], "usage": {"completion_tokens": 1}}
+    fake_bodhan.queue = [(200, ok, {"x-ratelimit-limit-parallel-requests": "1"})]
+    bodhan.translate("Hi.", "hi")
+    assert bodhan.sem["translate"].limit == 1
