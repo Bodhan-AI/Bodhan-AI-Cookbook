@@ -1,0 +1,53 @@
+# Baseline comparison
+
+- Added flags **113**
+- Resolved flags **1**
+- Persistent flags **15**
+- Severity changes **1**
+- Added items **0**
+- Removed items **0**
+- Changed source or reference **0**
+- Incomparable coverage **25**
+
+## Examples
+
+- New for edu-019-omission [bn]. mistranslation (major) ×1, omission (major) ×1. Evidence excerpt 'সঠিক'.
+- New for edu-021-omission [bn]. omission (major) ×1. Evidence excerpt 'A 500 mL bottle holds half a liter.'.
+- New for edu-008-omission [bn]. omission (major) ×1. Evidence excerpt 'An LED usually conducts in one direction.'.
+- New for edu-016-omission [bn]. omission (major) ×1. Evidence excerpt 'The speed of sound in dry air near room temperature is about 343 m/s.'.
+- New for edu-032-addition [bn]. addition (major) ×1. Evidence excerpt 'এটি করার সময় গ্লাভস পরুন।'.
+- New for edu-018-addition [bn]. addition (major) ×1. Evidence excerpt 'এই কাজ করার সময় হাতে গ্লাভস পরুন।'.
+- Resolved for edu-018-addition [bn]. wrong_language (major) ×1. Evidence excerpt 'দুটি গিয়ার বিপরীত দিকে ঘোরে। যদি উভয় গিয়ারের দাঁতের ব্যবধান একই হয় তবে বড় গিয়ারটি ধীরে ঘোরে।'.
+- New for edu-016-addition [bn]. addition (major) ×1. Evidence excerpt 'এটি করার সময় গ্লাভস পরুন।'.
+- New for edu-001-addition [bn]. addition (major) ×1. Evidence excerpt 'কিছু শিক্ষার্থী এই ধাপটি কঠিন মনে করে।'.
+- New for edu-025-mistranslation [bn]. mistranslation (major) ×1. Evidence excerpt 'পরে'.
+- New for edu-028-mistranslation [bn]. mistranslation (critical) ×1. Evidence excerpt 'ঘড়ির কাঁটার দিকে'.
+- New for edu-029-mistranslation [bn]. mistranslation (critical) ×1, mistranslation (major) ×1. Evidence excerpt 'মধ্যে দিয়ে'.
+- New for edu-009-mistranslation [bn]. mistranslation (critical) ×1. Evidence excerpt 'অসম'.
+- New for edu-019-number [bn]. number (major) ×1. Evidence excerpt '৩০'.
+- New for edu-027-number [bn]. number (major) ×1. Evidence excerpt '21 °F'.
+- New for edu-012-number [bn]. number (major) ×1. Evidence excerpt '৫০'.
+- New for edu-035-number [bn]. number (major) ×1. Evidence excerpt '২০'.
+- New for edu-026-entity [bn]. entity (major) ×1. Evidence excerpt 'কুরি তার'.
+- New for edu-025-entity [bn]. entity (major) ×1. Evidence excerpt 'কুরি'.
+- Incomplete or changed check coverage for edu-008-entity [bn]. Deltas use the checks that completed in both runs.
+- Incomplete or changed check coverage for edu-036-entity [bn]. Deltas use the checks that completed in both runs.
+- New for edu-022-format [bn]. format (major) ×1, format (minor) ×1. Evidence excerpt 'নদীর পর্যবেক্ষণ'.
+- New for edu-015-format [bn]. format (major) ×1. Evidence excerpt 'v = d/t$'.
+- New for edu-027-format [bn]. format (major) ×1, format (minor) ×1. Evidence excerpt 'তাপমাত্রা পরিমাপ করা'.
+- New for edu-014-format [bn]. format (major) ×1. Evidence excerpt '| ১২ গ্রাম |'.
+- New for edu-020-wrong_language [bn]. wrong_language (major) ×1. Evidence excerpt "An increase in rainfall can raise a river's water level".
+- New for edu-028-wrong_language [bn]. wrong_language (major) ×1. Evidence excerpt 'Rotate the paper counterclockwise by 90 degrees. The center of the paper stays in place'.
+- New for edu-030-wrong_language [bn]. wrong_language (major) ×1. Evidence excerpt 'Explain what each letter represents'.
+- New for edu-017-wrong_language [bn]. wrong_language (major) ×1. Evidence excerpt 'A compass needle points toward magnetic north'.
+- New for edu-025-speech_omission [bn]. speech_omission (major) ×1. Evidence excerpt 'করে। একটি রেকর্ডিং পুনরায় ব্যবহার করার'.
+- New for edu-029-speech_omission [bn]. speech_omission (major) ×1. Evidence excerpt 'করে তখন তার দিক পরিবর্তন হতে পারে'.
+- New for edu-026-speech_omission [bn]. speech_omission (major) ×1. Evidence excerpt 'সংযোগকারীর আকারটি একা এর ডেটা হার সনাক্ত করে না'.
+- New for edu-024-speech_omission [bn]. speech_omission (major) ×1. Evidence excerpt 'কে জিজ্ঞাসা করুন সময়সূচী কোন তারিখ রীতি ব্যবহার করে'.
+- New for edu-008-speech_repetition [bn]. speech_repetition (major) ×1. Evidence excerpt 'দিকে বিদ্যুৎ পরিবহন করে তারের প্রান্তগুলো অদলবদল করুন এ'.
+- New for edu-003-speech_repetition [bn]. speech_repetition (major) ×1. Evidence excerpt 'মিনিট পর আবার দেখুন ক্লাসরুমের থার্মোমিটার চব্বিশ ডিগ্রি সেলসিয়াস দেখাচ্ছে জানালা খোলার'.
+- Incomplete or changed check coverage for edu-013-speech_repetition [bn]. Deltas use the checks that completed in both runs.
+- New for edu-013-speech_repetition [bn]. speech_repetition (major) ×1. Evidence excerpt 'একেবারে শেষ প্রান্তে থাকা চিহ্নটি পড়ুন যে দৈর্ঘ্য পরিমাপ করা এক পেন্সিলটিকে শূন্য চিহ্নের সাথে সারিবদ্ধ করুন'.
+- Incomplete or changed check coverage for edu-027-speech_repetition [bn]. Deltas use the checks that completed in both runs.
+- Incomplete or changed check coverage for edu-025-garbled_audio [bn]. Deltas use the checks that completed in both runs.
+- New for edu-020-garbled_audio [bn]. garbled_audio (major) ×1. Evidence excerpt 'Internal quiet signal for 2.90 s, from 3.90 s to 6.80 s (no frame above -90 dBFS).'.
