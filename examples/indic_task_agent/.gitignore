@@ -4,3 +4,4 @@ __pycache__/
 .pytest_cache/
 out/
 bodhan_outputs/
+.ruff_cache/
