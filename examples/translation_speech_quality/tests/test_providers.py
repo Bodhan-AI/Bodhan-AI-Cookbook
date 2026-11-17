@@ -152,3 +152,25 @@ def test_long_quota_window_fails_fast_for_later_calls(tmp_path, monkeypatch):
             assert provider.telemetry["requests"] == 1
 
     asyncio.run(check())
+
+
+def test_speech_generation_uses_requested_voice_and_style(tmp_path, monkeypatch):
+    """Voice comparison runs send the chosen voice and style, so each setting has its own cache entry."""
+    monkeypatch.setenv("BODHAN_SPEAK_KEY", "local-test")
+    sent = []
+    wav = b"RIFF" + b"\x00" * 4 + b"WAVE" + b"\x00" * 32
+
+    def receive(request):
+        sent.append(json.loads(request.content))
+        return httpx.Response(200, content=wav)
+
+    async def check():
+        async with Providers(tmp_path / "cache.sqlite", 10**6, 1, voices={"hi": "Amit"}, speech_style="educational lecture") as provider:
+            await provider.http.aclose()
+            provider.http = httpx.AsyncClient(transport=httpx.MockTransport(receive))
+            await provider.speak("नमस्ते", "hi")
+            await provider.speak("வணக்கம்", "ta")
+
+    asyncio.run(check())
+    assert [body["voice"] for body in sent] == ["Amit", "Anitha"]
+    assert json.loads(sent[0]["instructions"]) == {"lang": "hi", "style": "educational lecture"}

@@ -57,6 +57,17 @@ def count(value: str) -> int:
     return number
 
 
+def voice_map(value: str) -> dict[str, str]:
+    """Parse LANG=VOICE pairs for generation comparisons."""
+    voices = {}
+    for part in filter(None, (piece.strip() for piece in value.split(","))):
+        lang, _, name = part.partition("=")
+        if not name.strip() or lang.strip().lower() not in VOICES:
+            raise argparse.ArgumentTypeError("expected LANG=VOICE pairs such as hi=Suhani")
+        voices[lang.strip().lower()] = name.strip()
+    return voices
+
+
 def money(value: str) -> int:
     """Parse a nonnegative INR budget into exact integer micro-rupees."""
     try:
@@ -102,6 +113,8 @@ def args_for_cli() -> argparse.Namespace:
         type=count,
         help="CI mode: exit with status 3 when new flags exceed resolved flags by more than N against --baseline",
     )
+    parser.add_argument("--voice", type=voice_map, default={}, help="Indic-Speak voices for --generate, e.g. hi=Suhani,ta=Arun")
+    parser.add_argument("--speech-style", help="Indic-Speak style for --generate, e.g. 'educational lecture'")
     parser.add_argument("--limit", type=positive, help="select the first N valid matching rows")
     parser.add_argument(
         "--judge-repeat",
@@ -145,6 +158,8 @@ async def run(args: argparse.Namespace) -> int:
         args.judge_concurrency,
         judge_rpm=args.judge_rpm,
         max_retry_wait=args.max_retry_wait,
+        voices=args.voice,
+        speech_style=args.speech_style,
     ) as providers:
         workers = asyncio.Semaphore(args.concurrency)
 
@@ -173,6 +188,8 @@ async def run(args: argparse.Namespace) -> int:
             "rubric_sha256": digest(RUBRIC.encode()),
             "judge_endpoint_sha256": digest(providers.judge_url.encode()) if providers.judge_url else None,
             "speech_checks_enabled": not args.no_speech,
+            "voices": {lang: providers.voices[lang] for lang in sorted(args.langs)},
+            "speech_style": args.speech_style,
         }
         summary = write_reports(results, invalid, invalid_labels, args.out, config, baseline)
         LOG.info(

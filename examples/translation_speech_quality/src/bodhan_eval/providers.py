@@ -108,6 +108,8 @@ class Providers:
         *,
         judge_rpm: int | None = None,
         max_retry_wait: int = MAX_RETRY_WAIT,
+        voices: dict[str, str] | None = None,
+        speech_style: str | None = None,
     ):
         """Configure local persistence and read only the assignment's credential variables."""
         cache_path.parent.mkdir(parents=True, exist_ok=True)
@@ -122,6 +124,9 @@ class Providers:
         self.judge_interval = 60 / judge_rpm if judge_rpm else 0.0
         self.next_judge_slot = 0.0
         self.max_retry_wait = max_retry_wait
+        # Generation settings under comparison. The defaults are the documented voice per language.
+        self.voices = {**VOICES, **(voices or {})}
+        self.speech_style = speech_style
         self.budget = max_micro_inr
         self.charged = 0
         self.inflight: dict[str, asyncio.Task[Call]] = {}
@@ -337,12 +342,13 @@ class Providers:
         return await self._call("translate", f"{BASE_URL}/v1/chat/completions", "BODHAN_TRANSLATE_KEY", payload, 20 * max_tokens, decode)
 
     async def speak(self, text: str, lang: str) -> Call:
-        """Synthesize a short script in the documented voice for its language."""
+        """Synthesize a short script in the configured voice and optional style for its language."""
+        instructions = {"lang": lang, **({"style": self.speech_style} if self.speech_style else {})}
         payload = {
             "model": "indic-speak",
             "input": text,
-            "voice": VOICES[lang],
-            "instructions": json.dumps({"lang": lang}),
+            "voice": self.voices[lang],
+            "instructions": json.dumps(instructions),
         }
         reserve = len(text) * 600
 

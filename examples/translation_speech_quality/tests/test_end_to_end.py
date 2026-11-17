@@ -189,3 +189,15 @@ def test_stretch_outputs_and_regression_gate(harness):
     dataset.write_text("".join(json.dumps(row, ensure_ascii=False) + "\n" for row in rows), encoding="utf-8")
     assert run("second", "--baseline", "first", "--fail-on-regression", "0") == 3
     assert run("third", "--baseline", "second", "--fail-on-regression", "0") == 0
+
+
+def test_voice_comparison_report(harness):
+    """Two runs compare side by side per language, with disagreements listed."""
+    from bodhan_eval.compare import compare
+
+    root, run, _ = harness
+    assert run("a") == 0 and run("b") == 0
+    markdown, data = compare([root / "a", root / "b"])
+    assert data["disagreements"] == 0
+    assert data["languages"][next(iter(data["languages"]))]["ta"]["clips"] == 2
+    assert "## hi" in markdown and "Mean CER" in markdown
