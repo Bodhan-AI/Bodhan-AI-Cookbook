@@ -196,6 +196,9 @@ class Providers:
             delay = 2**attempt
             # A rate limit applies to the key, so every caller waits out the same window.
             wait = self.cooldown.get(key_name, 0) - monotonic()
+            if wait > MAX_RETRY_WAIT:
+                # A quota window (often daily) is still closed. Fail fast instead of stalling every row.
+                raise CallError("retry_delay", f"{operation} is rate limited for another {round(wait)} s, beyond the {MAX_RETRY_WAIT}-second wait limit.")
             if wait > 0:
                 await asyncio.sleep(wait)
             limit = self.judge_limit if operation == "judge" else self.limit
@@ -226,6 +229,8 @@ class Providers:
                                 "status_code": status,
                                 "request_id": response.headers.get("x-request-id"),
                                 "elapsed_ms": round((monotonic() - started) * 1000),
+                                # The provider's own explanation, e.g. which rate limit was hit.
+                                "detail": None if status == 200 else " ".join(response.text.split())[:240],
                             }
                         },
                     )
@@ -276,7 +281,10 @@ class Providers:
                         self.cooldown[key_name] = max(self.cooldown.get(key_name, 0), monotonic() + delay)
                     error = CallError(f"http_{status}", f"{operation} unavailable (HTTP {status}).")
             if delay > MAX_RETRY_WAIT:
-                raise CallError("retry_delay", f"{operation} requested a retry after the configured {MAX_RETRY_WAIT}-second wait limit.")
+                raise CallError(
+                    "retry_delay",
+                    f"{operation} asked to retry after {round(delay)} s, beyond the {MAX_RETRY_WAIT}-second wait limit (often a daily quota).",
+                )
             if attempt + 1 < ATTEMPTS:
                 self.telemetry["retries"] += 1
                 await asyncio.sleep(delay)

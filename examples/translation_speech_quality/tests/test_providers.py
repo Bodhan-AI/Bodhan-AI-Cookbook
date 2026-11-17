@@ -130,3 +130,25 @@ def test_budget_refuses_dispatch_and_retry_after_respects_date(tmp_path, monkeyp
     assert retry_delay("Tue, 17 Nov 2026 00:00:20 GMT", 0, now) == 20
     assert retry_delay("17", 0, now) == 17
     assert retry_delay("unusable header", 2, now) == 4
+
+
+def test_long_quota_window_fails_fast_for_later_calls(tmp_path, monkeypatch):
+    """A daily-quota 429 must not make every other row sleep until the quota reopens."""
+    monkeypatch.setenv("LLM_BASE_URL", "http://localhost/v1")
+    monkeypatch.setenv("LLM_MODEL", "local-test")
+    monkeypatch.setenv("LLM_API_KEY", "local-test")
+
+    def receive(request):
+        return httpx.Response(429, headers={"retry-after": "600"}, json={"error": {"message": "tokens per day"}})
+
+    async def check():
+        async with Providers(tmp_path / "cache.sqlite", 0, 1) as provider:
+            await provider.http.aclose()
+            provider.http = httpx.AsyncClient(transport=httpx.MockTransport(receive))
+            with pytest.raises(CallError, match=r"retry after d+ s"):
+                await request_judgment(provider, "{}", {})
+            with pytest.raises(CallError, match="rate limited for another"):
+                await request_judgment(provider, '{"other": 1}', {})
+            assert provider.telemetry["requests"] == 1
+
+    asyncio.run(check())
