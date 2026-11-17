@@ -99,7 +99,7 @@ def accepted(candidates: list[Finding], thresholds: dict[str, float]) -> list[Fi
         # digit is not reported again as a judge mistranslation of the same words.
         if not any(
             (other.category == finding.category and overlaps(finding.span, other.span))
-            or ({other.category, finding.category} <= TEXT_CATEGORY_SET and same_passage(finding.span, other.span))
+            or ({other.category, finding.category} <= TEXT_CATEGORY_SET and explained_by(finding, other))
             for other in distinct
         ):
             distinct.append(finding)
@@ -116,6 +116,22 @@ def same_passage(left: Span, right: Span) -> bool:
         return False
     shared = min(left.end, right.end) - max(left.start, right.start)
     return shared >= 0.5 * (left.end - left.start) and shared >= 0.5 * (right.end - right.start)
+
+
+def explained_by(finding: Finding, stronger: Finding) -> bool:
+    """Tell whether a stronger text finding already explains this one.
+
+    Two findings on the same words get one explanation. A judge finding that sits inside
+    an exact deterministic finding (a dropped table cell, a broken list) is usually a
+    consequence of that damage. Two deterministic findings are both kept, so a changed
+    digit inside a broken table is still reported.
+    """
+    if same_passage(finding.span, stronger.span):
+        return True
+    if finding.check != "judge" or stronger.check == "judge" or not overlaps(finding.span, stronger.span):
+        return False
+    inside = min(finding.span.end, stronger.span.end) - max(finding.span.start, stronger.span.start)
+    return inside >= 0.5 * (finding.span.end - finding.span.start)
 
 
 def explicit_source_splits(items: list[Item]) -> dict[str, str]:

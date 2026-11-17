@@ -1,6 +1,6 @@
 # Baseline comparison
 
-- Added flags **114**
+- Added flags **113**
 - Resolved flags **1**
 - Persistent flags **15**
 - Severity changes **1**
@@ -32,7 +32,7 @@
 - New for edu-025-entity [bn]. entity (major) ×1. Evidence excerpt 'কুরি'.
 - Incomplete or changed check coverage for edu-008-entity [bn]. Deltas use the checks that completed in both runs.
 - Incomplete or changed check coverage for edu-036-entity [bn]. Deltas use the checks that completed in both runs.
-- New for edu-022-format [bn]. addition (minor) ×1, format (major) ×1, format (minor) ×1. Evidence excerpt 'সকাল'.
+- New for edu-022-format [bn]. format (major) ×1, format (minor) ×1. Evidence excerpt 'নদীর পর্যবেক্ষণ'.
 - New for edu-015-format [bn]. format (major) ×1. Evidence excerpt 'v = d/t$'.
 - New for edu-027-format [bn]. format (major) ×1, format (minor) ×1. Evidence excerpt 'তাপমাত্রা পরিমাপ করা'.
 - New for edu-014-format [bn]. format (major) ×1. Evidence excerpt '| ১২ গ্রাম |'.

@@ -385,3 +385,16 @@ def test_table_wide_format_flag_does_not_hide_a_changed_number_inside_it():
     same_words = Finding("mistranslation", "major", Span("translation", 40, 44), "judge", "12 g", "Wrong amount.", 0.85)
     kept = accepted([table, digit, same_words], thresholds)
     assert {finding.category for finding in kept} == {"format", "number"}
+
+
+def test_judge_finding_inside_exact_damage_is_merged_but_two_exact_findings_are_kept():
+    """A judge 'number' on a shifted cell inside a broken table is a consequence of the table damage."""
+    from bodhan_eval.calibration import accepted
+    from bodhan_eval.schema import CATEGORIES
+
+    thresholds = dict.fromkeys(CATEGORIES, 0.72)
+    table = Finding("format", "major", Span("translation", 0, 60), "markdown", "| … |", "Table shape changed.", 0.98)
+    judged = Finding("number", "major", Span("translation", 32, 41), "judge", "8 கி.கிராம்", "Value moved to the wrong row.", 0.85)
+    exact = Finding("number", "major", Span("translation", 49, 53), "numbers", "13 g", "Quantity changed.", 0.88)
+    kept = accepted([table, judged, exact], thresholds)
+    assert sorted((finding.category, finding.check) for finding in kept) == [("format", "markdown"), ("number", "numbers")]

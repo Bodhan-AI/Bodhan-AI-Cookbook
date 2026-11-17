@@ -293,11 +293,11 @@ def summary_markdown(summary: dict) -> str:
         "",
     ]
     active = [category for category, count in summary["findings"].items() if count]
-    lines.append("| Language | Items | Flagged items | " + " | ".join(active) + " |")
+    lines.append("| Language | Items | Flagged items |" + "".join(f" {category} |" for category in active))
     lines.append("| --- | ---: | ---: |" + " ---: |" * len(active))
     for lang, data in summary["languages"].items():
-        cells = " | ".join(str(data["findings"].get(category, 0)) for category in active)
-        lines.append(f"| {lang} | {data['items']} | {data.get('flagged_items', 0)} | {cells} |")
+        cells = "".join(f" {data['findings'].get(category, 0)} |" for category in active)
+        lines.append(f"| {lang} | {data['items']} | {data.get('flagged_items', 0)} |{cells}")
     if summary.get("mqm"):
         scores = ", ".join(f"{lang} **{'n/a' if data['score'] is None else data['score']}**" for lang, data in summary["mqm"].items())
         lines.extend(["", f"MQM-style score per language (100 minus penalty points per 100 source words; minor 1, major 5, critical 10): {scores}."])

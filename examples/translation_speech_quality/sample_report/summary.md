@@ -7,23 +7,23 @@ Scored **213** items. Partial **18**. Unscored **0**. Invalid input rows **0**.
 | Language | Items | Flagged items | omission | addition | mistranslation | number | entity | format | wrong_language | speech_omission | speech_repetition | garbled_audio |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | hi | 79 | 42 | 5 | 4 | 8 | 5 | 3 | 6 | 4 | 5 | 4 | 4 |
-| ta | 76 | 40 | 9 | 4 | 4 | 6 | 2 | 8 | 4 | 4 | 4 | 4 |
-| bn | 76 | 42 | 5 | 5 | 8 | 4 | 2 | 8 | 5 | 4 | 4 | 4 |
+| ta | 76 | 40 | 9 | 4 | 4 | 4 | 2 | 8 | 4 | 4 | 4 | 4 |
+| bn | 76 | 42 | 5 | 4 | 8 | 4 | 2 | 8 | 5 | 4 | 4 | 4 |
 
-MQM-style score per language (100 minus penalty points per 100 source words; minor 1, major 5, critical 10): bn **81.36**, hi **82.11**, ta **82.35**.
+MQM-style score per language (100 minus penalty points per 100 source words; minor 1, major 5, critical 10): bn **81.44**, hi **82.11**, ta **83.12**.
 
 ## Change against the baseline
 
-New flags **114**, resolved **1**, persistent **15**, severity changes **1**. Examples are in diff.md.
+New flags **113**, resolved **1**, persistent **15**, severity changes **1**. Examples are in diff.md.
 
 ## Findings by category
 
 | Category | Flags | Held-out precision | Held-out recall |
 | --- | ---: | ---: | ---: |
 | omission | 19 | 69.2% | 100.0% |
-| addition | 13 | 92.3% | 100.0% |
+| addition | 12 | 100.0% | 100.0% |
 | mistranslation | 20 | 66.7% | 88.9% |
-| number | 15 | 86.7% | 100.0% |
+| number | 13 | 100.0% | 100.0% |
 | entity | 7 | 71.4% | 55.6% |
 | format | 22 | 60.0% | 100.0% |
 | wrong_language | 13 | 100.0% | 100.0% |

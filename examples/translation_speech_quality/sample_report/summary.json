@@ -1,6 +1,6 @@
 {
   "baseline": {
-    "added_flags": 114,
+    "added_flags": 113,
     "incomparable_coverage": 25,
     "persistent_flags": 15,
     "resolved_flags": 1,
@@ -51,12 +51,12 @@
     "scored": 213
   },
   "findings": {
-    "addition": 13,
+    "addition": 12,
     "entity": 7,
     "format": 22,
     "garbled_audio": 12,
     "mistranslation": 20,
-    "number": 15,
+    "number": 13,
     "omission": 19,
     "speech_omission": 13,
     "speech_repetition": 12,
@@ -67,7 +67,7 @@
   "languages": {
     "bn": {
       "findings": {
-        "addition": 5,
+        "addition": 4,
         "entity": 2,
         "format": 8,
         "garbled_audio": 4,
@@ -104,7 +104,7 @@
         "format": 8,
         "garbled_audio": 4,
         "mistranslation": 4,
-        "number": 6,
+        "number": 4,
         "omission": 9,
         "speech_omission": 4,
         "speech_repetition": 4,
@@ -116,8 +116,8 @@
   },
   "mqm": {
     "bn": {
-      "penalty": 244,
-      "score": 81.36,
+      "penalty": 243,
+      "score": 81.44,
       "words": 1309
     },
     "hi": {
@@ -126,8 +126,8 @@
       "words": 1358
     },
     "ta": {
-      "penalty": 231,
-      "score": 82.35,
+      "penalty": 221,
+      "score": 83.12,
       "words": 1309
     }
   },
@@ -236,8 +236,8 @@
       "per_category": {
         "addition": {
           "fn": 0,
-          "fp": 1,
-          "precision": 0.92308,
+          "fp": 0,
+          "precision": 1.0,
           "recall": 1.0,
           "tp": 12
         },
@@ -271,8 +271,8 @@
         },
         "number": {
           "fn": 0,
-          "fp": 2,
-          "precision": 0.86667,
+          "fp": 0,
+          "precision": 1.0,
           "recall": 1.0,
           "tp": 13
         },
@@ -325,8 +325,8 @@
         "per_category": {
           "addition": {
             "fn": 0,
-            "fp": 1,
-            "precision": 0.8,
+            "fp": 0,
+            "precision": 1.0,
             "recall": 1.0,
             "tp": 4
           },
@@ -536,8 +536,8 @@
           },
           "number": {
             "fn": 0,
-            "fp": 2,
-            "precision": 0.66667,
+            "fp": 0,
+            "precision": 1.0,
             "recall": 1.0,
             "tp": 4
           },
@@ -590,8 +590,8 @@
       "per_category": {
         "addition": {
           "fn": 0,
-          "fp": 1,
-          "precision": 0.92308,
+          "fp": 0,
+          "precision": 1.0,
           "recall": 1.0,
           "tp": 12
         },
@@ -625,8 +625,8 @@
         },
         "number": {
           "fn": 0,
-          "fp": 2,
-          "precision": 0.86667,
+          "fp": 0,
+          "precision": 1.0,
           "recall": 1.0,
           "tp": 13
         },
@@ -679,8 +679,8 @@
         "per_category": {
           "addition": {
             "fn": 0,
-            "fp": 1,
-            "precision": 0.8,
+            "fp": 0,
+            "precision": 1.0,
             "recall": 1.0,
             "tp": 4
           },
@@ -890,8 +890,8 @@
           },
           "number": {
             "fn": 0,
-            "fp": 2,
-            "precision": 0.66667,
+            "fp": 0,
+            "precision": 1.0,
             "recall": 1.0,
             "tp": 4
           },
