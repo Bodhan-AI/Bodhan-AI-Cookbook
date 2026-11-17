@@ -1,12 +1,53 @@
 """Test budget and response handling at the HTTP boundary without paid calls."""
 
 import asyncio
+import json
 from datetime import UTC, datetime
 
 import httpx
 import pytest
 from bodhan_eval.providers import CallError, Providers, retry_delay
 from bodhan_eval.workflow import request_judgment
+
+
+def test_translation_uses_hosted_chat_contract(tmp_path, monkeypatch):
+    """Check direction, actual token cost, and rejection of a truncated translation."""
+    monkeypatch.setenv("BODHAN_TRANSLATE_KEY", "local-test")
+    finish_reasons = iter(("stop", "length"))
+
+    def receive(request):
+        """Exercise the request and response contract observed on the hosted route."""
+        assert request.url.path == "/v1/chat/completions"
+        assert json.loads(request.content) == {
+            "model": "indic-translate",
+            "messages": [{"role": "user", "content": "कक्षा नौ बजे शुरू होती है।"}],
+            "source_language_code": "hi",
+            "target_language_code": "en",
+            "max_output_tokens": 128,
+        }
+        return httpx.Response(
+            200,
+            json={
+                "choices": [{"finish_reason": next(finish_reasons), "message": {"content": "Class starts at nine."}}],
+                "usage": {"completion_tokens": 5},
+            },
+        )
+
+    async def check():
+        """Send the same input against independent caches so both responses are decoded."""
+        for cache_name in ("complete.sqlite", "truncated.sqlite"):
+            async with Providers(tmp_path / cache_name, 10_000, 1) as provider:
+                await provider.http.aclose()
+                provider.http = httpx.AsyncClient(transport=httpx.MockTransport(receive))
+                if cache_name == "truncated.sqlite":
+                    with pytest.raises(CallError, match="output token limit"):
+                        await provider.translate("कक्षा नौ बजे शुरू होती है।", "en", source_lang="hi")
+                else:
+                    result = await provider.translate("कक्षा नौ बजे शुरू होती है।", "en", source_lang="hi")
+                    assert result.value.decode() == "Class starts at nine."
+                    assert result.usage["micro_inr"] == 100
+
+    asyncio.run(check())
 
 
 def test_unusable_judge_verdict_does_not_poison_cache(tmp_path, monkeypatch):

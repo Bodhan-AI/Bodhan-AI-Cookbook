@@ -45,6 +45,8 @@ python -m bodhan_eval --dataset data/demo.jsonl --langs hi,ta,bn --out outputs/p
 
 Open `outputs/pilot/summary.md` and inspect `items.jsonl` for the translation, audio path, back-transcript, and evidence. A run with absent credentials reports skipped provider checks and can still run eligible local checks.
 
+The hosted pilot uses Indic-Translate through Bodhan's Chat Completions route. For the judge, Groq's `openai/gpt-oss-120b` works with `LLM_BASE_URL=https://api.groq.com/openai/v1` and a Groq key in `LLM_API_KEY`. Keep the same judge model and endpoint when comparing runs or verifying cache replay. [Bodhan quickstart](https://console.bodhan.ai/#quickstart) · [Groq compatibility](https://console.groq.com/docs/openai)
+
 ### Generate and compare the demo
 
 1. Generate at least 108 control rows from the checked-in corpus. Use the pilot to size your available credit before starting the batch.
@@ -82,4 +84,4 @@ Inspect [the architecture, workflow, and quality design](DESIGN.md) for how chec
 | `diff.md` | New, resolved, persistent, and severity changes for comparable rows when you pass `--baseline` |
 | `run.jsonl` | Actual requests, cache hits, error codes, timing, and reserved or spent Bodhan credit |
 
-Run the recipe tests with `python -m pytest tests` from the recipe directory after installing the dev dependencies. The tests measure real local audio signals. To run the ten-item test with hosted models, set `BODHAN_LIVE_TEST=1` and provide the credentials first. This test can spend up to ₹5 on Bodhan requests plus judge usage. Run `make check` from the Cookbook root.
+Run the recipe tests with `python -m pytest tests` from the recipe directory after installing the dev dependencies. The tests measure real local audio signals. To run the ten-item test with hosted models, set `BODHAN_LIVE_TEST=1` and provide the credentials first. This test can spend up to ₹5 on Bodhan requests plus judge usage. Run `make check` from the root of a clean Cookbook checkout because the secret scanner flags local `.env` files even when Git ignores them.

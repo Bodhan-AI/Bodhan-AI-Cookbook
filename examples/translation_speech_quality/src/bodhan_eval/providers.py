@@ -241,23 +241,34 @@ class Providers:
                 await asyncio.sleep(delay)
         raise error
 
-    async def translate(self, text: str, lang: str) -> Call:
-        """Translate with the hosted Indic model and reject truncated translations."""
+    async def translate(self, text: str, lang: str, *, source_lang: str = "en") -> Call:
+        """Translate from the declared source language and cache complete output with its cost."""
         max_tokens = min(8192, max(128, len(text) * 2))
-        payload = {"text": text, "target_language": lang, "max_output_tokens": max_tokens}
+        # The hosted gateway pins decoding and accepts this provider-specific budget field.
+        payload = {
+            "model": "indic-translate",
+            "messages": [{"role": "user", "content": text}],
+            "source_language_code": source_lang,
+            "target_language_code": lang,
+            "max_output_tokens": max_tokens,
+        }
 
         def decode(body: bytes) -> tuple[bytes, dict[str, Any]]:
             """Extract the translation and bill from provider usage when available."""
             data = json_object(body)
-            if data.get("truncated"):
+            try:
+                choice = data["choices"][0]
+                translation = choice["message"]["content"]
+            except (KeyError, IndexError, TypeError) as error:
+                raise CallError("invalid_response", "Indic-Translate returned no text.") from error
+            if choice.get("finish_reason") == "length":
                 raise CallError("truncated", "Indic-Translate hit its output token limit.")
-            translation = data.get("translation")
             if not isinstance(translation, str) or not translation.strip():
                 raise CallError("invalid_response", "Indic-Translate returned no text.")
             _, used = token_counts(data.get("usage"))
             return translation.encode(), {"micro_inr": 20 * (max_tokens if used is None else used), "output_tokens": used}
 
-        return await self._call("translate", f"{BASE_URL}/translate", "BODHAN_TRANSLATE_KEY", payload, 20 * max_tokens, decode)
+        return await self._call("translate", f"{BASE_URL}/v1/chat/completions", "BODHAN_TRANSLATE_KEY", payload, 20 * max_tokens, decode)
 
     async def speak(self, text: str, lang: str) -> Call:
         """Synthesize a short script in the documented voice for its language."""

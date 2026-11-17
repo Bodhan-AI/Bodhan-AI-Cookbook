@@ -141,7 +141,7 @@ async def text_checks(result: Evaluation, providers: Providers) -> str | None:
     if item.lang == "en":
         return candidate
     try:
-        back = register(result, await providers.translate(candidate, "en"))
+        back = register(result, await providers.translate(candidate, "en", source_lang=result.item.lang))
         result.record("back_translation", text=back)
         return back
     except CallError as error:

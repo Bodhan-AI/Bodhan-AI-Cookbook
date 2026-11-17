@@ -39,3 +39,10 @@ The Linux `make check` run passes 31 Cookbook tests and fails the all-recipes te
 | Pair localized evidence before assigning category-only detections. | The original matcher could move an overlapping flag to a different label while keeping the same detection count. Loose detections now have a separate count. | `test_category_only_match_cannot_displace_localized_evidence` first reported zero localized matches. It now retains one match out of two. |
 | Preserve expected-quantity anchors and compare shared check coverage. | A changed wrong value can leave the same source fact wrong. Missing judge coverage is independent of a completed numeric check. | `test_baseline_uses_expected_quantity_and_completed_checks` and `test_baseline_resolves_only_findings_with_shared_check_coverage`. |
 | Match uniquely shared literal labels before comparing unpaired numbers globally. | A quantity belongs to an entity or table cell. Absolute position would flag legitimate reordering. Literal matching leaves translated or ambiguous labels for the semantic checks. | `test_quantity_associations_survive_reordering` covers a unit phrase, labelled fields, and a Markdown table. |
+
+## Hosted integration
+
+| Decision | Reason | Verification |
+| --- | --- | --- |
+| Use Indic-Translate through `/v1/chat/completions`. | The legacy `/translate` route returned HTTP 404 in the first hosted run. The live gateway accepts explicit language codes and `max_output_tokens`, which preserves the request budget in either direction. | A one-token live probe returned `finish_reason: length` and reported one output token. `test_translation_uses_hosted_chat_contract` verifies request shape, metering, and truncation handling. |
+| Use Groq `openai/gpt-oss-120b` for the first hosted pilot. | The test account has access to this OpenAI-compatible text model. A consistent judge makes verdicts and cache behavior comparable across the run. | A direct chat request succeeded. The judge receives text evidence and returns verdicts. Bodhan still handles generation, back-translation, and speech recognition. |
