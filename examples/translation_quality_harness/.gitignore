@@ -1,0 +1,15 @@
+.env
+.venv/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+.cache/
+report/
+sample_data/*
+!sample_data/.gitkeep
+outputs/*
+!outputs/.gitkeep
+*.wav
+*.mp3

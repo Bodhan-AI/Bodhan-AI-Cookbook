@@ -1,0 +1,105 @@
+{"id": "civ-001.ml", "lang": "ml", "labels": [{"type": "addition", "span": [105, 204], "severity": "major", "annotator": "injector"}]}
+{"id": "civ-002.ml", "lang": "ml", "labels": []}
+{"id": "civ-003.ml", "lang": "ml", "labels": [{"type": "wrong_language", "span": [0, 66], "severity": "major", "annotator": "injector"}]}
+{"id": "fin-001.ml", "lang": "ml", "labels": [{"type": "addition", "span": [80, 184], "severity": "major", "annotator": "injector"}]}
+{"id": "geo-001.ml", "lang": "ml", "labels": []}
+{"id": "geo-002.ml", "lang": "ml", "labels": [{"type": "speech_garbled", "span": [60, 76], "severity": "major", "annotator": "injector"}]}
+{"id": "geo-003.ml", "lang": "ml", "labels": []}
+{"id": "hea-001.ml", "lang": "ml", "labels": []}
+{"id": "hea-002.ml", "lang": "ml", "labels": [{"type": "number", "span": [61, 63], "severity": "major", "annotator": "injector"}]}
+{"id": "hea-003.ml", "lang": "ml", "labels": [{"type": "omission", "ref": "source", "span": [29, 86], "severity": "major", "annotator": "injector"}]}
+{"id": "math-001.ml", "lang": "ml", "labels": [{"type": "format", "span": [0, 153], "op": "drop_dollar", "severity": "major", "annotator": "injector"}]}
+{"id": "math-002.ml", "lang": "ml", "labels": []}
+{"id": "math-003.ml", "lang": "ml", "labels": [{"type": "number", "span": [65, 66], "severity": "major", "annotator": "injector"}]}
+{"id": "md-001.ml", "lang": "ml", "labels": [{"type": "format", "span": [132, 147], "op": "drop_cell_bar", "severity": "major", "annotator": "injector"}]}
+{"id": "md-002.ml", "lang": "ml", "labels": [{"type": "speech_omission", "span": [0, 28], "severity": "major", "annotator": "injector"}]}
+{"id": "md-003.ml", "lang": "ml", "labels": []}
+{"id": "sci-001.ml", "lang": "ml", "labels": []}
+{"id": "sci-002.ml", "lang": "ml", "labels": [{"type": "mistranslation", "span": [38, 89], "severity": "major", "annotator": "injector"}]}
+{"id": "sci-003.ml", "lang": "ml", "labels": [{"type": "addition", "span": [105, 184], "severity": "major", "annotator": "injector"}]}
+{"id": "sci-004.ml", "lang": "ml", "labels": []}
+{"id": "sci-005.ml", "lang": "ml", "labels": [{"type": "number", "span": [14, 18], "severity": "major", "annotator": "injector"}]}
+{"id": "civ-001.mr", "lang": "mr", "labels": [{"type": "addition", "span": [101, 145], "severity": "major", "annotator": "injector"}]}
+{"id": "civ-002.mr", "lang": "mr", "labels": []}
+{"id": "civ-003.mr", "lang": "mr", "labels": [{"type": "speech_omission", "span": [49, 82], "severity": "major", "annotator": "injector"}]}
+{"id": "fin-001.mr", "lang": "mr", "labels": [{"type": "wrong_language", "span": [0, 76], "severity": "major", "annotator": "injector"}]}
+{"id": "geo-001.mr", "lang": "mr", "labels": []}
+{"id": "geo-002.mr", "lang": "mr", "labels": []}
+{"id": "geo-003.mr", "lang": "mr", "labels": []}
+{"id": "hea-001.mr", "lang": "mr", "labels": []}
+{"id": "hea-002.mr", "lang": "mr", "labels": [{"type": "wrong_language", "span": [0, 80], "severity": "major", "annotator": "injector"}]}
+{"id": "hea-003.mr", "lang": "mr", "labels": []}
+{"id": "math-001.mr", "lang": "mr", "labels": [{"type": "addition", "span": [111, 188], "severity": "major", "annotator": "injector"}]}
+{"id": "math-002.mr", "lang": "mr", "labels": [{"type": "format", "span": [0, 109], "op": "drop_dollar", "severity": "major", "annotator": "injector"}]}
+{"id": "math-003.mr", "lang": "mr", "labels": []}
+{"id": "md-001.mr", "lang": "mr", "labels": []}
+{"id": "md-002.mr", "lang": "mr", "labels": [{"type": "format", "span": [0, 29], "op": "heading_level", "severity": "major", "annotator": "injector"}]}
+{"id": "md-003.mr", "lang": "mr", "labels": []}
+{"id": "sci-001.mr", "lang": "mr", "labels": []}
+{"id": "sci-002.mr", "lang": "mr", "labels": []}
+{"id": "sci-003.mr", "lang": "mr", "labels": [{"type": "mistranslation", "span": [32, 41], "severity": "major", "annotator": "injector"}]}
+{"id": "sci-004.mr", "lang": "mr", "labels": [{"type": "mistranslation", "span": [24, 53], "severity": "major", "annotator": "injector"}]}
+{"id": "sci-005.mr", "lang": "mr", "labels": []}
+{"id": "civ-001.or", "lang": "or", "labels": [{"type": "speech_garbled", "span": [49, 65], "severity": "major", "annotator": "injector"}]}
+{"id": "civ-002.or", "lang": "or", "labels": []}
+{"id": "civ-003.or", "lang": "or", "labels": []}
+{"id": "fin-001.or", "lang": "or", "labels": [{"type": "omission", "ref": "source", "span": [0, 23], "severity": "major", "annotator": "injector"}]}
+{"id": "geo-001.or", "lang": "or", "labels": [{"type": "term", "span": [5, 74], "severity": "major", "annotator": "injector"}]}
+{"id": "geo-002.or", "lang": "or", "labels": []}
+{"id": "geo-003.or", "lang": "or", "labels": []}
+{"id": "hea-001.or", "lang": "or", "labels": [{"type": "mistranslation", "span": [7, 9], "severity": "major", "annotator": "injector"}]}
+{"id": "hea-002.or", "lang": "or", "labels": []}
+{"id": "hea-003.or", "lang": "or", "labels": []}
+{"id": "math-001.or", "lang": "or", "labels": []}
+{"id": "math-002.or", "lang": "or", "labels": [{"type": "wrong_language", "span": [42, 112], "severity": "major", "annotator": "injector"}]}
+{"id": "math-003.or", "lang": "or", "labels": [{"type": "speech_repetition", "span": [71, 95], "severity": "major", "annotator": "injector"}]}
+{"id": "md-001.or", "lang": "or", "labels": [{"type": "speech_repetition", "span": [113, 137], "severity": "major", "annotator": "injector"}]}
+{"id": "md-002.or", "lang": "or", "labels": []}
+{"id": "md-003.or", "lang": "or", "labels": []}
+{"id": "sci-001.or", "lang": "or", "labels": []}
+{"id": "sci-002.or", "lang": "or", "labels": [{"type": "speech_omission", "span": [58, 98], "severity": "major", "annotator": "injector"}]}
+{"id": "sci-003.or", "lang": "or", "labels": [{"type": "speech_repetition", "span": [39, 78], "severity": "major", "annotator": "injector"}]}
+{"id": "sci-004.or", "lang": "or", "labels": [{"type": "wrong_language", "span": [0, 98], "severity": "major", "annotator": "injector"}]}
+{"id": "sci-005.or", "lang": "or", "labels": []}
+{"id": "civ-001.pa", "lang": "pa", "labels": [{"type": "term", "span": [63, 70], "severity": "major", "annotator": "injector"}]}
+{"id": "civ-002.pa", "lang": "pa", "labels": []}
+{"id": "civ-003.pa", "lang": "pa", "labels": []}
+{"id": "fin-001.pa", "lang": "pa", "labels": []}
+{"id": "geo-001.pa", "lang": "pa", "labels": []}
+{"id": "geo-002.pa", "lang": "pa", "labels": [{"type": "omission", "ref": "source", "span": [97, 120], "severity": "major", "annotator": "injector"}]}
+{"id": "geo-003.pa", "lang": "pa", "labels": [{"type": "speech_garbled", "span": [35, 51], "severity": "major", "annotator": "injector"}]}
+{"id": "hea-001.pa", "lang": "pa", "labels": []}
+{"id": "hea-002.pa", "lang": "pa", "labels": []}
+{"id": "hea-003.pa", "lang": "pa", "labels": [{"type": "omission", "ref": "source", "span": [29, 86], "severity": "major", "annotator": "injector"}]}
+{"id": "math-001.pa", "lang": "pa", "labels": [{"type": "speech_garbled", "span": [57, 73], "severity": "major", "annotator": "injector"}]}
+{"id": "math-002.pa", "lang": "pa", "labels": [{"type": "omission", "ref": "source", "span": [67, 109], "severity": "major", "annotator": "injector"}]}
+{"id": "math-003.pa", "lang": "pa", "labels": [{"type": "term", "span": [0, 39], "severity": "major", "annotator": "injector"}]}
+{"id": "md-001.pa", "lang": "pa", "labels": [{"type": "speech_omission", "span": [86, 127], "severity": "major", "annotator": "injector"}]}
+{"id": "md-002.pa", "lang": "pa", "labels": [{"type": "speech_repetition", "span": [0, 20], "severity": "major", "annotator": "injector"}]}
+{"id": "md-003.pa", "lang": "pa", "labels": [{"type": "format", "span": [24, 191], "op": "drop_bold", "severity": "major", "annotator": "injector"}]}
+{"id": "sci-001.pa", "lang": "pa", "labels": []}
+{"id": "sci-002.pa", "lang": "pa", "labels": [{"type": "mistranslation", "span": [77, 103], "severity": "major", "annotator": "injector"}]}
+{"id": "sci-003.pa", "lang": "pa", "labels": []}
+{"id": "sci-004.pa", "lang": "pa", "labels": [{"type": "omission", "ref": "source", "span": [0, 42], "severity": "major", "annotator": "injector"}]}
+{"id": "sci-005.pa", "lang": "pa", "labels": [{"type": "term", "span": [7, 9], "severity": "major", "annotator": "injector"}]}
+{"id": "civ-001.ur", "lang": "ur", "labels": [{"type": "omission", "ref": "source", "span": [61, 99], "severity": "major", "annotator": "injector"}]}
+{"id": "civ-002.ur", "lang": "ur", "labels": []}
+{"id": "civ-003.ur", "lang": "ur", "labels": [{"type": "term", "span": [0, 36], "severity": "major", "annotator": "injector"}]}
+{"id": "fin-001.ur", "lang": "ur", "labels": [{"type": "speech_omission", "span": [47, 79], "severity": "major", "annotator": "injector"}]}
+{"id": "geo-001.ur", "lang": "ur", "labels": [{"type": "addition", "span": [102, 182], "severity": "major", "annotator": "injector"}]}
+{"id": "geo-002.ur", "lang": "ur", "labels": [{"type": "speech_omission", "span": [79, 133], "severity": "major", "annotator": "injector"}]}
+{"id": "geo-003.ur", "lang": "ur", "labels": [{"type": "speech_garbled", "span": [40, 56], "severity": "major", "annotator": "injector"}]}
+{"id": "hea-001.ur", "lang": "ur", "labels": []}
+{"id": "hea-002.ur", "lang": "ur", "labels": [{"type": "addition", "span": [90, 171], "severity": "major", "annotator": "injector"}]}
+{"id": "hea-003.ur", "lang": "ur", "labels": []}
+{"id": "math-001.ur", "lang": "ur", "labels": []}
+{"id": "math-002.ur", "lang": "ur", "labels": [{"type": "wrong_language", "span": [0, 117], "severity": "major", "annotator": "injector"}]}
+{"id": "math-003.ur", "lang": "ur", "labels": [{"type": "number", "span": [82, 83], "severity": "major", "annotator": "injector"}]}
+{"id": "md-001.ur", "lang": "ur", "labels": [{"type": "number", "span": [171, 173], "severity": "major", "annotator": "injector"}]}
+{"id": "md-002.ur", "lang": "ur", "labels": []}
+{"id": "md-003.ur", "lang": "ur", "labels": []}
+{"id": "sci-001.ur", "lang": "ur", "labels": [{"type": "speech_repetition", "span": [52, 105], "severity": "major", "annotator": "injector"}]}
+{"id": "sci-002.ur", "lang": "ur", "labels": [{"type": "number", "span": [39, 41], "severity": "major", "annotator": "injector"}]}
+{"id": "sci-003.ur", "lang": "ur", "labels": []}
+{"id": "sci-004.ur", "lang": "ur", "labels": []}
+{"id": "sci-005.ur", "lang": "ur", "labels": [{"type": "term", "span": [0, 8], "severity": "major", "annotator": "injector"}]}

@@ -1,0 +1,10 @@
+{
+  "llm_model": "claude-sonnet-5-5",
+  "max_cost_inr": 50.0,
+  "network_calls": {},
+  "review_queue_items": 47,
+  "spent_by_model": {},
+  "spent_inr_this_run": 0.0,
+  "started_at": "2026-11-17T21:32:55",
+  "wall_time_s": 1.1
+}

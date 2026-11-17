@@ -1,0 +1,92 @@
+id,lang,category,score,threshold,flagged,flagged_text,source,translation,span,source_span,evidence,human_label (error|clean)
+civ-004.bn,bn,speech_garbled,0.36,0.36,True,্য গ,"Dr. B. R. Ambedkar chaired the drafting committee, which met for nearly three years before the final text was adopted.","ডঃ বি আর আম্বেদকর খসড়া কমিটির সভাপতিত্ব করেন, যা চূড়ান্ত পাঠ্য গৃহীত হওয়ার আগে প্রায় তিন বছর ধরে মিলিত হয়েছিল।","[61, 65]",null,[audio_signal] problem=0.36s of noise-like audio; at_s=5.3,
+hea-005.bn,bn,addition,0.6,0.6,True,,"If a fever stays above 102 °F for more than two days, visit the nearest health centre.",যদি জ্বর ১০২° ফারেনহাইট এর উপরে থাকে দুই দিনের বেশি সময় ধরে তাহলে নিকটবর্তী স্বাস্থ্যকেন্দ্রে যান।,null,null,[backtranslation] back_translated_clause=go to a local health center; content_word_coverage=0.25,
+sci-009.bn,bn,term,0.45,0.45,True,,Light from the Sun takes about 8 minutes and 20 seconds to reach the Earth.,আশিয়ার আলো পৃথিবীতে পৌঁছাতে প্রায় ৮ মিনিট ২০ সেকেন্ড সময় নেয়।,null,"[15, 18]",[entities] entity=Sun,
+agr-003.hi,hi,number,0.6,0.6,True,,Soil testing every 3 years helps farmers add only the fertiliser that the crop needs.,हर तीन साल में मिट्टी की जाँच करने से किसानों को केवल वही उर्वरक डालने में मदद मिलती है जिसकी फसल को आवश्यकता होती है।,null,"[19, 20]",[numbers] missing_number=3,
+math-002.hi,hi,number,0.6,0.6,True,,"The area of a circle is $A = \pi r^2$. For a circle of radius 7 cm, the area is about 154 square centimetres.",एक वृत्त का क्षेत्रफल $A = \pi r^2$ है। क्षेत्रफल लगभग 154 वर्ग सेंटीमीटर है।,null,"[62, 63]","[numbers] missing_number=7; translation_numbers=['154', '2']",
+sci-008.hi,hi,number,0.6,0.6,True,,"The human body has 206 bones, and the smallest of them is in the middle ear.",और उनमें से सबसे छोटा मध्य कान में होता है।,null,"[19, 22]",[numbers] missing_number=206,
+sci-009.hi,hi,term,0.45,0.45,True,,Light from the Sun takes about 8 minutes and 20 seconds to reach the Earth.,शुक्र ग्रह से प्रकाश को पृथ्वी तक पहुँचने में लगभग 8 मिनट और 20 सेकंड लगते हैं।,null,"[15, 18]",[entities] entity=Sun,
+agr-003.ta,ta,number,0.6,0.6,True,,Soil testing every 3 years helps farmers add only the fertiliser that the crop needs.,ஒவ்வொரு மூன்று வருடங்களுக்கு ஒரு முறை மண் பரிசோதனை செய்வது விவசாயிகளுக்கு பயிருக்கு தேவையான உரத்தை மட்டும் சேர்க்க உதவுகிறது.,null,"[19, 20]",[numbers] missing_number=3,
+civ-002.ta,ta,number,0.6,0.6,True,,"Citizens aged 18 or above are allowed to vote, and voting is done by secret ballot.",மற்றும் வாக்குப்பதிவு ரகசிய வாக்கெடுப்பு மூலம் செய்யப்படுகிறது.,null,"[14, 16]",[numbers] missing_number=18,
+fin-002.ta,ta,term,0.45,0.45,True,,"Never share your bank PIN or one-time password with anyone, even if the caller says they work for the bank.",அழைப்பவர் தாங்கள் வங்கியின் சார்பாக பேசுவதாகக் கூறினாலும் கூட.,null,"[22, 25]",[entities] entity=PIN,
+geo-001.ta,ta,term,0.45,0.45,True,,"The Ganga rises in the Himalayas and flows east for more than 2,500 kilometres before reaching the Bay of Bengal.","கங்கை நதி இந்தியாவில் உற்பத்தியாகி வங்காள விரிகுடாவை அடைவதற்கு முன்பு 2,500 கிலோமீட்டருக்கும் அதிகமான தூரம் கிழக்கு நோக்கி பாய்கிறது.",null,"[23, 32]",[entities] entity=Himalayas,
+hea-005.ta,ta,addition,0.6,0.6,True,,"If a fever stays above 102 °F for more than two days, visit the nearest health centre.","ஒரு காய்ச்சல் இரண்டு நாட்களுக்கு மேல் 102°Fக்கு மேலே இருந்தால், அருகிலுள்ள சுகாதார மையத்திற்குச் செல்லவும்.",null,null,[backtranslation] back_translated_clause=go to a local health center; content_word_coverage=0.25,
+sci-009.ta,ta,term,0.45,0.45,True,,Light from the Sun takes about 8 minutes and 20 seconds to reach the Earth.,சூரிய ஒளியானது பூமியை அடைய சுமார் 8 நிமிடங்கள் மற்றும் 20 வினாடிகள் ஆகும்.,null,"[15, 18]",[entities] entity=Sun,
+md-005.bn,bn,format,0.55,0.6,False,**১০৮,"## Emergency numbers
+
+- **112** for all emergencies
+- **108** for an ambulance
+- **101** for the fire service
+
+Keep these numbers written near the phone.","## জরুরি নম্বরসমূহ
+
+- সব ধরনের জরুরি অবস্থার জন্য **১১২**
+- অ্যাম্বুলেন্সের জন্য **১০৮
+- ফায়ার সার্ভিসের জন্য **১০১**
+
+এই নম্বরগুলো ফোনের কাছে লিখে রাখুন।","[81, 86]","[54, 61]","[judge] explanation=The bold marker around 108 is not closed (`**১০৮` has no closing `**`), which breaks the Markdown bold formatting.",
+geo-003.hi,hi,addition,0.55,0.6,False,2.,"India has 28 states and 8 union territories, and each state has its own elected government.",भारत में 28 राज्य और 8 केंद्र शासित प्रदेश हैं और प्रत्येक राज्य की अपनी निर्वाचित सरकार है। 2. ,"[93, 95]",null,"[judge] explanation=A stray '2.' appears at the end of the translation, which has no counterpart in the source.",
+fin-001.ta,ta,omission,0.9,0.95,False,,"A fixed deposit of ₹10,000 at 7 percent annual interest earns ₹700 in the first year.","₹10,000-க்கு ஆண்டுக்கு 7% வட்டி விகிதத்தில் ஒரு வருடத்திற்கு ₹700 கிடைக்கும்.",null,"[2, 15]","[judge] explanation=The term 'fixed deposit' is missing. The translation never says what instrument earns the interest, so the subject of the sentence is lost.",
+math-001.ta,ta,format,0.55,0.6,False,60^\circ$,"The sum of the angles of a triangle is always $180^\circ$, so if two angles are $50^\circ$ and $60^\circ$, the third is $70^\circ$.","ஒரு முக்கோணத்தின் கோணங்களின் கூடுதல் எப்போதும் $180^\circ$ ஆகும், எனவே இரண்டு கோணங்கள் $50^\circ$ மற்றும் 60^\circ$ ஆக இருந்தால், மூன்றாவது கோணம் $70^\circ$ ஆகும்.","[106, 115]","[95, 106]","[judge] explanation=The opening $ delimiter is missing from the LaTeX expression for 60°, so the math is broken and unbalanced ('60^\circ$' instead of '$60^\circ$').",
+fin-001.hi,hi,omission,1.0,0.95,True,,"A fixed deposit of ₹10,000 at 7 percent annual interest earns ₹700 in the first year.","₹10 की सावधि जमा राशि,",null,"[27, 85]","[judge] explanation=The translation stops after the deposit amount. It omits the 7 percent annual interest rate, the ₹700 earned, and the first-year timeframe, so the main statement is missing.",
+math-002.hi,hi,omission,1.0,0.95,True,,"The area of a circle is $A = \pi r^2$. For a circle of radius 7 cm, the area is about 154 square centimetres.",एक वृत्त का क्षेत्रफल $A = \pi r^2$ है। क्षेत्रफल लगभग 154 वर्ग सेंटीमीटर है।,null,"[39, 67]","[judge] explanation=The clause 'For a circle of radius 7 cm' is missing. The radius of 7 cm is never stated, so the area of 154 cm² has no stated basis.",
+sci-008.hi,hi,omission,1.0,0.95,True,,"The human body has 206 bones, and the smallest of them is in the middle ear.",और उनमें से सबसे छोटा मध्य कान में होता है।,null,"[0, 28]",[backtranslation] source_clause=The human body has 206 bones; content_word_coverage=0.0,
+civ-002.ta,ta,omission,1.0,0.95,True,,"Citizens aged 18 or above are allowed to vote, and voting is done by secret ballot.",மற்றும் வாக்குப்பதிவு ரகசிய வாக்கெடுப்பு மூலம் செய்யப்படுகிறது.,null,"[0, 45]",[backtranslation] source_clause=Citizens aged 18 or above are allowed to vote; content_word_coverage=0.0,
+fin-002.ta,ta,omission,1.0,0.95,True,,"Never share your bank PIN or one-time password with anyone, even if the caller says they work for the bank.",அழைப்பவர் தாங்கள் வங்கியின் சார்பாக பேசுவதாகக் கூறினாலும் கூட.,null,"[0, 59]","[judge] explanation=The main instruction is missing: 'Never share your bank PIN or one-time password with anyone'. The translation only has the concessive clause, so the sentence is incomplete and the warning is lost.",
+md-001.bn,bn,addition,0.533,0.6,False,,"## Daily nutrient needs
+
+An active adult needs a balanced diet. The table shows approximate daily amounts.
+
+| Nutrient | Amount |
+|---|---|
+| Protein | 50 g |
+| Calcium | 1,000 mg |
+| Iron | 18 mg |","## দৈনিক পুষ্টির চাহিদা
+
+একজন সক্রিয় প্রাপ্তবয়স্কের একটি সুষম খাদ্য প্রয়োজন। সারণিতে আনুমানিক দৈনিক পরিমাণ দেখানো হয়েছে।
+
+| পুষ্টি উপাদান | পরিমাণ |
+|---|---|
+| প্রোটিন | ৫০ গ্রাম |
+| ক্যালসিয়াম | ১,০০০ মিলিগ্রাম |
+| আয়রন  ১৮ মিলিগ্রাম |",null,null,[backtranslation] back_translated_clause=## Daily Nutritional Requirements; content_word_coverage=0.333,
+md-001.ta,ta,addition,0.533,0.6,False,,"## Daily nutrient needs
+
+An active adult needs a balanced diet. The table shows approximate daily amounts.
+
+| Nutrient | Amount |
+|---|---|
+| Protein | 50 g |
+| Calcium | 1,000 mg |
+| Iron | 18 mg |","## தினசரி ஊட்டச்சத்து தேவைகள்
+
+ஒரு சுறுசுறுப்பான வயது வந்தவருக்கு சமச்சீரான உணவு தேவை. அட்டவணை தோராயமான தினசரி அளவைக் காட்டுகிறது.
+
+| ஊட்டச்சத்து | அளவு |
+|---|---|
+| புரதம் | 50 g |
+| கால்சியம் | 1,000 mg |
+| இரும்பு | 13 mg |",null,null,[backtranslation] back_translated_clause=## Daily Nutritional Requirements; content_word_coverage=0.333,
+math-001.bn,bn,mistranslation,0.95,0.875,True,"কখনই ১৮০ ডিগ্রী হয় না,","The sum of the angles of a triangle is always $180^\circ$, so if two angles are $50^\circ$ and $60^\circ$, the third is $70^\circ$.","একটি ত্রিভুজের কোণগুলির যোগফল কখনই ১৮০ ডিগ্রী হয় না, তাই যদি দুটি কোণ ৫০ ডিগ্রী এবং ৬০ ডিগ্রী হয় তবে তৃতীয়টি ৭০ ডিগ্রী।","[30, 53]","[39, 58]","[judge] explanation=The source says the angle sum is always 180°. The translation says it is never 180° (""‹…› ... ‹…›""), which reverses the meaning and states a false fact.",
+sci-009.bn,bn,mistranslation,0.8,0.875,False,আশিয়ার,Light from the Sun takes about 8 minutes and 20 seconds to reach the Earth.,আশিয়ার আলো পৃথিবীতে পৌঁছাতে প্রায় ৮ মিনিট ২০ সেকেন্ড সময় নেয়।,"[0, 7]","[15, 18]","[judge] explanation=""Sun"" (‹…› ) is mistranslated as a garbled word that reads as ""Asia"" (‹…› ). The light is said to come from Asia instead of the Sun, which changes the meaning.",
+sci-010.bn,bn,mistranslation,0.95,0.875,True,দুর্বল,"Copper is a strong conductor of electricity, so it is used in most household wiring.","তামা বিদ্যুতের একটি দুর্বল পরিবাহী, তাই এটি বেশিরভাগ গৃহস্থালীর তারে ব্যবহৃত হয়।","[20, 26]","[12, 18]","[judge] explanation=""strong"" is translated as ""‹…›"" (weak/poor). This reverses the meaning: copper is a strong conductor, and the translation says it is a weak one. The causal ""so"" clause then no longer makes sense.",
+edu-003.hi,hi,mistranslation,0.95,0.875,True,जल्दी,Students must submit the project before 15 March; late submissions will not be accepted.,छात्रों को परियोजना 15 मार्च से पहले जमा करनी होगी; जल्दी जमा की गई परियोजनाओं को स्वीकार नहीं किया जाएगा।,"[52, 57]","[50, 54]","[judge] explanation=""late"" is rendered as ""‹…›"" (early), so the translation says early submissions will not be accepted, reversing the rule's meaning. It should be ""‹…›"".",
+geo-004.hi,hi,mistranslation,0.95,0.875,True,रात में भी गर्म हो जाता है,The Thar Desert is hot during the day but becomes cold at night because sand loses heat quickly.,थार रेगिस्तान दिन के समय गर्म होता है लेकिन रात में भी गर्म हो जाता है क्योंकि रेत जल्दी से गर्मी खो देती है।,"[44, 70]","[42, 63]","[judge] explanation=The source says the desert becomes cold at night. The translation says it becomes hot at night too (""‹…›""). This reverses the meaning and contradicts the stated reason that sand loses heat quickly.",
+hea-003.hi,hi,mistranslation,0.8,0.875,False,बंद,"Drinking clean water is safe, but water from an open well should be boiled before use.",साफ पानी पीना सुरक्षित है लेकिन बंद कुएं के पानी को उपयोग करने से पहले उबाल लेना चाहिए।,"[32, 35]","[48, 52]","[judge] explanation=""open"" well is translated as ""‹…›"" (closed), which reverses the meaning. It should be ""‹…›"".",
+sci-009.hi,hi,mistranslation,0.8,0.875,False,शुक्र ग्रह से,Light from the Sun takes about 8 minutes and 20 seconds to reach the Earth.,शुक्र ग्रह से प्रकाश को पृथ्वी तक पहुँचने में लगभग 8 मिनट और 20 सेकंड लगते हैं।,"[0, 13]","[6, 18]","[judge] explanation=The source says light from the Sun, but the translation says it comes from Venus (‹…› ). This is a factual error and changes the meaning.",
+geo-001.ta,ta,mistranslation,0.8,0.875,False,இந்தியாவில்,"The Ganga rises in the Himalayas and flows east for more than 2,500 kilometres before reaching the Bay of Bengal.","கங்கை நதி இந்தியாவில் உற்பத்தியாகி வங்காள விரிகுடாவை அடைவதற்கு முன்பு 2,500 கிலோமீட்டருக்கும் அதிகமான தூரம் கிழக்கு நோக்கி பாய்கிறது.","[10, 21]","[19, 32]","[judge] explanation=The source says the Ganga rises in the Himalayas, but the translation says it originates in India (‹…› ). The Himalayas are not mentioned, so the specific origin is lost and replaced with a more gener…",
+hea-001.ta,ta,mistranslation,0.8,0.875,False,கழிப்பறையைப் பயன்படுத்துவதற்கு முன்பும்,Wash your hands with soap for at least 20 seconds before eating and after using the toilet.,உணவு உண்பதற்கு முன்பும் கழிப்பறையைப் பயன்படுத்துவதற்கு முன்பும் குறைந்தது 20 விநாடிகள் சோப்பு போட்டு கைகளை கழுவவும்.,"[24, 63]","[68, 91]","[judge] explanation=The source says to wash hands AFTER using the toilet, but the translation says 'before' (‹…› ) for the toilet clause, which changes the hygiene instruction.",
+sci-004.ta,ta,mistranslation,0.95,0.875,True,"மெதுவாக பயணிக்கிறது,","Sound travels faster in water than in air, at roughly 1,480 metres per second.","ஒலி காற்றில் பயணிப்பதை விட தண்ணீரில் மெதுவாக பயணிக்கிறது, அதாவது தோராயமாக ஒரு வினாடிக்கு 1,480 மீட்டர் வேகத்தில் பயணிக்கிறது.","[37, 57]","[14, 20]","[judge] explanation=The source says sound travels faster in water than in air, but the translation says it travels slower (‹…› ), which reverses the meaning.",
+sci-008.ta,ta,mistranslation,0.8,0.875,False,நடுக்காற்றில் உள்ளது.,"The human body has 206 bones, and the smallest of them is in the middle ear.","மனித உடலில் 206 எலும்புகள் உள்ளன, அவற்றில் மிகச் சிறியது நடுக்காற்றில் உள்ளது.","[57, 78]","[58, 76]","[judge] explanation='Middle ear' is rendered as a word meaning roughly 'in the mid-air/wind' instead of the middle ear (‹…› /‹…› ), so the reader is misinformed about where the smallest bone is.",
+agr-002.bn,bn,number,0.7,0.6,True,** ,Drip irrigation can reduce water use by 30 to 50 percent compared with flooding the field.,মাঠে জল দেওয়ার তুলনায় ফোঁটা সেচ দ্বারা জলের ব্যবহার ৩০ থেকে ৫০ শতাংশ কম করা যায়। - অ্যাম্বুলেন্সের জন্য **১০৮** ,"[109, 112]",null,"[numbers] translation_number=108; source_numbers=['30', '50']",
+agr-002.bn,bn,format,0.5,0.6,False,**,Drip irrigation can reduce water use by 30 to 50 percent compared with flooding the field.,মাঠে জল দেওয়ার তুলনায় ফোঁটা সেচ দ্বারা জলের ব্যবহার ৩০ থেকে ৫০ শতাংশ কম করা যায়। - অ্যাম্বুলেন্সের জন্য **১০৮** ,"[109, 111]",null,"[format] problem=** bold marker count differs (0 in source, 2 in translation); emphasis merged or split, markup still balanced",
+geo-001.bn,bn,number,0.7,0.6,True,১০৮,"The Ganga rises in the Himalayas and flows east for more than 2,500 kilometres before reaching the Bay of Bengal.","গঙ্গা হিমালয় থেকে উৎপন্ন হয়ে বঙ্গোপসাগরে পৌঁছানোর আগে ২,৫০০ কিলোমিটারেরও বেশি পূর্ব দিকে প্রবাহিত হয়। - অ্যাম্বুলেন্সের জন্য **১০৮** ","[130, 133]",null,[numbers] translation_number=108; source_numbers=['2500'],
+geo-001.bn,bn,format,0.5,0.6,False,**,"The Ganga rises in the Himalayas and flows east for more than 2,500 kilometres before reaching the Bay of Bengal.","গঙ্গা হিমালয় থেকে উৎপন্ন হয়ে বঙ্গোপসাগরে পৌঁছানোর আগে ২,৫০০ কিলোমিটারেরও বেশি পূর্ব দিকে প্রবাহিত হয়। - অ্যাম্বুলেন্সের জন্য **১০৮** ","[133, 135]",null,"[format] problem=** bold marker count differs (0 in source, 2 in translation); emphasis merged or split, markup still balanced",
+geo-003.hi,hi,number,0.7,0.6,True,2,"India has 28 states and 8 union territories, and each state has its own elected government.",भारत में 28 राज्य और 8 केंद्र शासित प्रदेश हैं और प्रत्येक राज्य की अपनी निर्वाचित सरकार है। 2. ,"[93, 94]",null,"[numbers] translation_number=2; source_numbers=['28', '8']",
+hea-004.hi,hi,wrong_language,0.7,0.6,True,(oral rehydration solution),Oral rehydration solution is made by mixing 6 teaspoons of sugar and half a teaspoon of salt in 1 litre of clean water.,ओरल रिहाइड्रेशन सॉल्यूशन (oral rehydration solution) बनाने के लिए 8 लीटर साफ पानी में 6 चम्मच चीनी और आधा चम्मच नमक मिलाया जाता है।,"[25, 52]",null,[script] untranslated_text=(oral rehydration solution); script=LATIN; words=3; copied_from_source=False,
+edu-003.ta,ta,number,0.7,0.6,True,154,Students must submit the project before 15 March; late submissions will not be accepted.,மாணவர்கள் மார்ச் 15-ஆம் தேதிக்கு முன் திட்டத்தை சமர்ப்பிக்க வேண்டும்; தாமதமாக சமர்ப்பித்தால் ஏற்றுக்கொள்ளப்பட மாட்டாது. மீ ஆரம் கொண்ட வட்டத்தின் பரப்பளவு சுமார் 154 சதுர சென்டிமீட்டர் ஆகும். ,"[161, 164]",null,[numbers] translation_number=154; source_numbers=['15'],
+math-002.ta,ta,wrong_language,0.7,0.6,True,A = \pi r^2$,"The area of a circle is $A = \pi r^2$. For a circle of radius 7 cm, the area is about 154 square centimetres.",வட்டத்தின் பரப்பளவு A = \pi r^2$ ஆகும். 7 செ.மீ ஆரம் கொண்ட வட்டத்தின் பரப்பளவு சுமார் 154 சதுர சென்டிமீட்டர் ஆகும்.,"[20, 32]",null,[script] untranslated_text=A = \pi r^2$; script=LATIN; words=2; copied_from_source=True,
+sci-005.ta,ta,number,0.7,0.6,True,30,"Isaac Newton described three laws of motion in 1687, and they are still taught in every school.","ஐசக் நியூட்டன் 1687இல் மூன்று இயக்க விதிகளின் விளக்கத்தை அளித்தார், அவை இன்றும் ஒவ்வொரு பள்ளியிலும் கற்பிக்கப்படுகின்றன. நீர்ப்பாசனத்தின் மூலம் நீர் பயன்பாடு 30 முதல் 50 சதவீதம் வரை குறைக்கலாம், வயலை வெள்ளத்தில் மூழ்க வைப்பதை ஒப்பிடுகையில். ","[158, 160]",null,[numbers] translation_number=30; source_numbers=['1687'],
+sci-005.ta,ta,number,0.7,0.6,True,50,"Isaac Newton described three laws of motion in 1687, and they are still taught in every school.","ஐசக் நியூட்டன் 1687இல் மூன்று இயக்க விதிகளின் விளக்கத்தை அளித்தார், அவை இன்றும் ஒவ்வொரு பள்ளியிலும் கற்பிக்கப்படுகின்றன. நீர்ப்பாசனத்தின் மூலம் நீர் பயன்பாடு 30 முதல் 50 சதவீதம் வரை குறைக்கலாம், வயலை வெள்ளத்தில் மூழ்க வைப்பதை ஒப்பிடுகையில். ","[167, 169]",null,[numbers] translation_number=50; source_numbers=['1687'],
+sci-007.hi,hi,omission,0.8,0.95,False,,"When ice melts, its volume decreases, which is why ice floats on water.","जब बर्फ पिघलती है, तो यही कारण है कि बर्फ पानी पर तैरती है।",null,"[16, 37]","[judge] explanation=The clause 'its volume decreases' is missing from the translation, so the explanation is incomplete and the causal chain is broken.",
+agr-002.ta,ta,omission,0.8,0.95,False,நீர்ப்பாசனத்தின் மூலம்,Drip irrigation can reduce water use by 30 to 50 percent compared with flooding the field.,"நீர்ப்பாசனத்தின் மூலம் நீர் பயன்பாடு 30 முதல் 50 சதவீதம் வரை குறைக்கலாம், வயலை வெள்ளத்தில் மூழ்க வைப்பதை ஒப்பிடுகையில்.","[0, 22]","[0, 15]","[judge] explanation=""Drip"" is missing. The translation says only ""‹…›"" (through irrigation), so the specific method, drip irrigation (‹…› ), is lost. The claim is then about irrigation in general, which is misleading.",
