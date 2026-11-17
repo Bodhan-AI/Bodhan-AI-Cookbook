@@ -16,7 +16,6 @@ from openai import AsyncOpenAI
 
 from bodhan_mcp import languages as L
 from bodhan_mcp.__main__ import build_server
-from bodhan_mcp.bodhan import Budget
 
 OBSERVATION_CHARS = 3000  # what the LLM sees of each tool result
 UNTRUSTED_FIELDS = ("text", "preview", "sample")  # tool result fields that carry text taken from input files

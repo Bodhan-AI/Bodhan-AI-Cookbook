@@ -52,7 +52,7 @@ def silences(wav: Path, noise_db: int = -35, min_s: float = 0.4) -> list[tuple[f
     starts = [float(x) for x in re.findall(r"silence_start: (-?[\d.]+)", err)]
     ends = [float(x) for x in re.findall(r"silence_end: ([\d.]+)", err)]
     ends += [float("inf")] * (len(starts) - len(ends))  # file ended while silent
-    return [(max(s, 0.0), e) for s, e in zip(starts, ends)]
+    return [(max(s, 0.0), e) for s, e in zip(starts, ends, strict=True)]
 
 
 def plan_chunks(duration: float, quiet: list[tuple[float, float]], max_s: float = 30, target_s: float = 10):

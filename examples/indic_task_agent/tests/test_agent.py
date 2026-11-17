@@ -4,7 +4,6 @@ import argparse
 import asyncio
 import json
 import subprocess
-from pathlib import Path
 
 from openai.types.chat import ChatCompletion
 from test_tools import FakeBodhan

@@ -17,8 +17,8 @@ from typing import Annotated, Literal
 
 from pydantic import Field
 
-from . import languages as L
 from . import checks, media
+from . import languages as L
 from .bodhan import Bodhan, BodhanError
 
 PREVIEW_CHARS = 1200
@@ -159,7 +159,7 @@ async def _transcribe(src: Path, language: str | None, first_only: bool = False)
             return await bodhan.transcribe(part.read_bytes(), part.name, end - start, language)
 
         texts = await asyncio.gather(*(one(i, s, e) for i, (s, e) in enumerate(windows)))
-    segments = [{"start": s, "end": e, "text": t.strip()} for (s, e), t in zip(windows, texts) if t.strip()]
+    segments = [{"start": s, "end": e, "text": t.strip()} for (s, e), t in zip(windows, texts, strict=True) if t.strip()]
     text = " ".join(seg["text"] for seg in segments)
     warnings = [f"segment {seg['start']:.1f}-{seg['end']:.1f}s repeats one word; possibly noise, not speech"
                 for seg in segments if _looks_repetitive(seg["text"])]
@@ -382,7 +382,7 @@ async def make_subtitles(
         texts = await asyncio.gather(*(bodhan.translate(s["text"], target) for s in segs))
     else:
         texts = [s["text"] for s in segs]
-    cues = [c for s, t in zip(segs, texts) for c in _cues(s["start"], s["end"], t)]
+    cues = [c for s, t in zip(segs, texts, strict=True) for c in _cues(s["start"], s["end"], t)]
     srt = "\n".join(f"{i}\n{_ts(a)} --> {_ts(b)}\n{t}\n" for i, (a, b, t) in enumerate(cues, 1))
     stem = src.name.removesuffix(".segments.json")
     dst = _out(f"{stem}.{target or 'orig'}.srt")

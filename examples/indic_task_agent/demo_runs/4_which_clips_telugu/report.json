@@ -1,0 +1,51 @@
+{
+  "status": "completed",
+  "task": "Which of these clips are in Telugu? Translate those into English",
+  "files": "inputs/telugu_clips",
+  "stop_reason": null,
+  "steps": 8,
+  "max_steps": 30,
+  "cost_inr": 0.0371,
+  "max_cost_inr": 1.0,
+  "cost_by_model": {
+    "indic-transcribe": 0.0368,
+    "indic-translate": 0.0004
+  },
+  "bodhan_calls": 7,
+  "cache_hits": 0,
+  "elapsed_s": 17.2,
+  "llm": {
+    "model": "gemini-3.5-flash-lite",
+    "total_tokens": 37469
+  },
+  "artifacts": [
+    "out/artifacts/clip1.en.md",
+    "out/artifacts/clip3.en.md"
+  ],
+  "missing_artifacts": [],
+  "errors": [],
+  "verification": [
+    {
+      "step": 6,
+      "tool": "translate_text",
+      "output": "out/artifacts/clip1.en.md",
+      "check": "coverage: every chunk non-empty, sane length, numbers and table rows kept",
+      "chunks": 1,
+      "passed": 1,
+      "retried": 0,
+      "ok": true,
+      "warnings": []
+    },
+    {
+      "step": 7,
+      "tool": "translate_text",
+      "output": "out/artifacts/clip3.en.md",
+      "check": "coverage: every chunk non-empty, sane length, numbers and table rows kept",
+      "chunks": 1,
+      "passed": 1,
+      "retried": 0,
+      "ok": true,
+      "warnings": []
+    }
+  ]
+}
