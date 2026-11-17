@@ -1,0 +1,10 @@
+# Pinned runtime dependencies (mirrors pyproject.toml). `-e .` installs the bodhan_eval package itself.
+httpx==0.28.1
+numpy==2.5.5
+openai==3.52.0
+python-dotenv==1.2.4
+sacrebleu==2.6.0
+soundfile==0.14.0
+pytest==9.2.0
+ruff==0.17.5
+-e .

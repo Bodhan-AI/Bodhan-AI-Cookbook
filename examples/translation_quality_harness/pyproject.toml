@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools==80.9.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bodhan-eval"
+version = "0.1.0"
+description = "Translation and speech quality harness for Bodhan Indic-Translate and Indic-Speak"
+requires-python = ">=3.10"
+dependencies = [
+    "httpx==0.28.1",
+    "numpy==2.5.5",
+    "openai==3.52.0",
+    "python-dotenv==1.2.4",
+    "sacrebleu==2.6.0",
+    "soundfile==0.14.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest==9.2.0", "ruff==0.17.5"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 160
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/bodhan_eval/dashboard.py" = ["E501"]  # embedded HTML/JS template

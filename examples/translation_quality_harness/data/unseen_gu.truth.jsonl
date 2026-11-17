@@ -1,0 +1,21 @@
+{"id": "civ-001.gu", "lang": "gu", "labels": [{"type": "term", "span": [5, 50], "severity": "major", "annotator": "injector"}]}
+{"id": "civ-002.gu", "lang": "gu", "labels": [{"type": "addition", "span": [98, 181], "severity": "major", "annotator": "injector"}]}
+{"id": "civ-003.gu", "lang": "gu", "labels": [{"type": "omission", "ref": "source", "span": [0, 43], "severity": "major", "annotator": "injector"}]}
+{"id": "fin-001.gu", "lang": "gu", "labels": []}
+{"id": "geo-001.gu", "lang": "gu", "labels": [{"type": "speech_omission", "span": [61, 103], "severity": "major", "annotator": "injector"}]}
+{"id": "geo-002.gu", "lang": "gu", "labels": []}
+{"id": "geo-003.gu", "lang": "gu", "labels": [{"type": "addition", "span": [92, 182], "severity": "major", "annotator": "injector"}]}
+{"id": "hea-001.gu", "lang": "gu", "labels": []}
+{"id": "hea-002.gu", "lang": "gu", "labels": [{"type": "number", "span": [8, 9], "severity": "major", "annotator": "injector"}]}
+{"id": "hea-003.gu", "lang": "gu", "labels": []}
+{"id": "math-001.gu", "lang": "gu", "labels": [{"type": "speech_garbled", "span": [57, 73], "severity": "major", "annotator": "injector"}]}
+{"id": "math-002.gu", "lang": "gu", "labels": []}
+{"id": "math-003.gu", "lang": "gu", "labels": []}
+{"id": "md-001.gu", "lang": "gu", "labels": []}
+{"id": "md-002.gu", "lang": "gu", "labels": [{"type": "format", "span": [0, 24], "op": "heading_level", "severity": "major", "annotator": "injector"}]}
+{"id": "md-003.gu", "lang": "gu", "labels": []}
+{"id": "sci-001.gu", "lang": "gu", "labels": [{"type": "speech_garbled", "span": [38, 54], "severity": "major", "annotator": "injector"}]}
+{"id": "sci-002.gu", "lang": "gu", "labels": [{"type": "number", "span": [36, 38], "severity": "major", "annotator": "injector"}]}
+{"id": "sci-003.gu", "lang": "gu", "labels": []}
+{"id": "sci-004.gu", "lang": "gu", "labels": [{"type": "wrong_language", "span": [0, 98], "severity": "major", "annotator": "injector"}]}
+{"id": "sci-005.gu", "lang": "gu", "labels": [{"type": "speech_repetition", "span": [52, 104], "severity": "major", "annotator": "injector"}]}
