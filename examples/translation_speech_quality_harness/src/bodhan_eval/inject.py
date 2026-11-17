@@ -375,7 +375,8 @@ def inject(rows: list[dict], rate: float, seed, base: Path, out_dir: Path, audio
             for tries in ([cat], ["omission", "addition"]):  # fall back to a recipe that nearly always applies
                 placed = False
                 for c in tries:
-                    for r in pool:
+                    # Text edits go to rows without audio first: edited text with the old audio is not a real system output.
+                    for r in (pool if c in SPEECH else sorted(pool, key=lambda r: bool(r.get("audio")))):
                         if r["id"] in used:
                             continue
                         got = RECIPES[c](originals[(r["id"], lang)], ctx, rng_for(seed, c, r["id"], lang))
@@ -391,7 +392,10 @@ def inject(rows: list[dict], rate: float, seed, base: Path, out_dir: Path, audio
     out = []
     for r in rows:
         changes, lab = done.get((r["id"], r["lang"]), ({}, None))
-        out.append({**r, **changes, "labels": [lab] if lab else []})
+        row = {**r, **changes, "labels": [lab] if lab else []}
+        if "translation" in changes and "audio" not in changes:
+            row.pop("audio", None)  # the audio spoke the clean text; it no longer matches
+        out.append(row)
     return out
 
 

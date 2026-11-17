@@ -92,13 +92,18 @@ def merge(g: list[dict]) -> dict:
     elif judge_cats:  # the judge reads meaning; prefer its category over the diff's guess
         category = judge_cats[0]
     else:
-        category = min((c["category"] for c in deciding), key=lambda x: order.index(x) if x in order else 99)
+        # Noisy only: the category most independent checks agree on ("number missing" inside a dropped sentence is
+        # the omission's side effect); precedence breaks ties.
+        votes = {cat: len({c["check"] for c in deciding if c["category"] == cat}) for cat in {c["category"] for c in deciding}}
+        category = min(votes, key=lambda x: (-votes[x], order.index(x) if x in order else 99))
     judged = [c["severity_hint"] for c in deciding if c["class"] == "judge" and c["severity_hint"]]
     hints = judged or [c["severity_hint"] for c in deciding if c["severity_hint"]]
     severity = max(hints, key=_SEV.get) if hints else DEFAULT_SEVERITY.get(category, "major")
 
     def best(field):
-        with_span = [c for c in deciding if c[field]]
+        # Spans from the flag's own category first: a number inside an added sentence must not shrink the addition's span.
+        own = [c for c in deciding if c[field] and c["category"] == category]
+        with_span = own or [c for c in deciding if c[field]]
         if not with_span:
             return None
         top = min(_RANK[c["class"]] for c in with_span)

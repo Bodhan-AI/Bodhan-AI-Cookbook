@@ -3,6 +3,7 @@
 import io
 import json
 import random
+import re
 import threading
 import time
 import wave
@@ -202,6 +203,7 @@ class LLM(_Base):
         self.available = bool(base_url and model)
         self.sem = threading.Semaphore(concurrency)
         self._drop: set[str] = set()  # parameters the endpoint rejected
+        self._exhausted = ""  # set when a daily quota runs out: later calls in this run fail fast
         if self.available:
             self.client = openai.OpenAI(base_url=base_url.strip().rstrip("/"), api_key=api_key or "none", timeout=timeout,
                                         max_retries=8, http_client=http_client)  # free tiers limit tokens per minute
@@ -212,6 +214,8 @@ class LLM(_Base):
         request = {"model": self.model, "messages": messages, "tag": tag}
 
         def call():
+            if self._exhausted:
+                raise NotRun(self._exhausted)
             params = {"temperature": 0, "max_tokens": max_tokens}
             for _ in range(3):
                 kw = {k: v for k, v in params.items() if k not in self._drop}
@@ -229,7 +233,11 @@ class LLM(_Base):
                     if "max_tokens" in bad:
                         params["max_completion_tokens"] = max_tokens
                 except openai.APIError as e:
-                    raise NotRun(f"llm: {type(e).__name__}") from None
+                    msg = re.sub(r"org_\w+", "org_…", str(e))  # account ids stay out of reports
+                    if isinstance(e, openai.RateLimitError) and "per day" in msg.lower():
+                        self._exhausted = "llm: daily token quota exhausted"
+                        raise NotRun(self._exhausted) from None
+                    raise NotRun(f"llm: {type(e).__name__} ({msg[:160]})") from None
             else:
                 raise NotRun("llm: endpoint rejected every parameter combination")
             usage = resp.usage.model_dump() if resp.usage else {}

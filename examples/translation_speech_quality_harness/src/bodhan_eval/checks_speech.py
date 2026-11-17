@@ -229,11 +229,15 @@ def align(text: str, transcript: str) -> dict:
         elif len(extra) > len(missing) + 1 and _is_repeat(extra, b[max(0, j1 - len(extra)):j1] + b[j2:j2 + len(extra)]):
             pos = toks[i1 - 1][1] if i1 else toks[0][1]
             findings.append({"shape": "repetition", "span": span or pos, "repeated": extra})
+    # Transcript words aligned to a number or formula in the text: a number read aloud twice ("2023" written twice) is
+    # not a loop, so n-grams touching these are skipped.
+    readings = {j for op, i1, i2, j1, j2 in sm.get_opcodes() if op != "equal" and PLACEHOLDER in a[i1:i2] for j in range(j1, j2)}
     counts = {}
     for n in range(3, 6):  # a phrase spoken more often than it is written: loops that the diff absorbed
         for k in range(len(b) - n + 1):
-            g = tuple(b[k:k + n])
-            counts[g] = counts.get(g, 0) + 1
+            if not readings.intersection(range(k, k + n)):
+                g = tuple(b[k:k + n])
+                counts[g] = counts.get(g, 0) + 1
     text_str = f" {' '.join(a)} "
     loops = [g for g, c in counts.items() if c > 1 and c > text_str.count(f" {' '.join(g)} ") and PLACEHOLDER not in g]
     if loops and not any(f["shape"] == "repetition" for f in findings):
@@ -242,12 +246,17 @@ def align(text: str, transcript: str) -> dict:
     return {"similarity": round(ratio, 4), "findings": findings, "text_words": len(words), "transcript_words": len(b)}
 
 
+LONG_TAIL_SHARE = 1 / 3  # chosen while looking at the demo data; see the build journal
+
+
 def align_candidates(al: dict, st: dict) -> list[dict]:
     c = []
     for f in al["findings"]:
         if f["shape"] == "truncation":
-            c.append(cand("transcript", "speech_omission", "noisy", 0.7, None, f["span"], "major", detail="end of the text not spoken (truncation)",
-                          missing=" ".join(f["missing"])[:200]))
+            # ASR drops a few words, not a third of an utterance: a tail that long is the speech being cut off.
+            long_tail = len(f["missing"]) >= LONG_TAIL_SHARE * max(1, al["text_words"])
+            c.append(cand("transcript", "speech_omission", "exact" if long_tail else "noisy", 0.9 if long_tail else 0.7, None, f["span"],
+                          "major", detail="end of the text not spoken (truncation)", missing=" ".join(f["missing"])[:200]))
         elif f["shape"] == "omission":
             c.append(cand("transcript", "speech_omission", "noisy", 0.6, None, f["span"], "major", detail="words not spoken",
                           missing=" ".join(f["missing"])[:200]))

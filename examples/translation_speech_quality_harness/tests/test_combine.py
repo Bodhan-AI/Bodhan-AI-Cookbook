@@ -86,3 +86,23 @@ def test_confidence_combines_independent_checks():
 def test_output_order_is_deterministic():
     a = [exact("format", "format", span=(30, 40)), exact(span=(0, 5))]
     assert combine(a) == combine(list(reversed(a)))
+
+
+def test_noisy_group_takes_category_most_checks_agree_on():
+    from bodhan_eval.checks_text import cand
+    from bodhan_eval.combine import merge
+
+    g = [cand("back_translation", "omission", "noisy", 0.6, (0, 40), None), cand("regen_diff", "omission", "noisy", 0.7, (0, 40), (0, 0)),
+         cand("numbers", "number", "noisy", 0.4, (10, 12), None), cand("numbers", "number", "noisy", 0.4, (20, 22), None)]
+    assert merge(g)["category"] == "omission"
+    assert merge(g[2:] + [cand("length", "omission", "noisy", 0.5, None, None)])["category"] == "number"  # 1 vs 1: precedence
+
+
+def test_span_comes_from_the_flags_own_category():
+    from bodhan_eval.checks_text import cand
+    from bodhan_eval.combine import merge
+
+    g = [cand("back_translation", "addition", "noisy", 0.6, None, (10, 60)), cand("regen_diff", "addition", "noisy", 0.7, None, (10, 60)),
+         cand("numbers", "number", "noisy", 0.5, None, (30, 32))]
+    f = merge(g)
+    assert f["category"] == "addition" and tuple(f["translation_span"]) == (10, 60)

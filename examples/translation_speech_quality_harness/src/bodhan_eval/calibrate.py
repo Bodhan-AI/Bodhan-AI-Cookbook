@@ -111,12 +111,13 @@ def fit_thresholds(results: list[dict], labels: dict) -> dict:
     by_key = {(r["id"], r["lang"]): r["_cands"] for r in results}
     clean = [k for k, v in labels.items() if v == [] and k in by_key]
     errs = [(k, lab) for k, v in labels.items() if v and k in by_key for lab in v]
-    checks = sorted({c["check"] for cands in by_key.values() for c in cands})
+    # One bar per check and category: a check's findings differ in noise (a long cut-off vs. a repeated phrase).
+    checks = sorted({_key(c) for cands in by_key.values() for c in cands})
     out = {}
     for check in checks:
-        pos = [max((c["strength"] for c in by_key[k] if c["check"] == check and hits(c, lab)), default=None) for k, lab in errs]
+        pos = [max((c["strength"] for c in by_key[k] if _key(c) == check and hits(c, lab)), default=None) for k, lab in errs]
         pos = [s for s in pos if s is not None]
-        neg = [max((c["strength"] for c in by_key[k] if c["check"] == check), default=None) for k in clean]
+        neg = [max((c["strength"] for c in by_key[k] if _key(c) == check), default=None) for k in clean]
         neg = [s for s in neg if s is not None]
         row = {"default": 0.0, "calibrated": 0.0, "moved": False, "labelled_errors_touched": len(pos), "clean_items": len(clean),
                "clean_items_fired": len(neg)}
@@ -142,7 +143,11 @@ def fit_thresholds(results: list[dict], labels: dict) -> dict:
 
 
 def apply(cands: list[dict], thresholds: dict) -> list[dict]:
-    return [c for c in cands if c["strength"] >= thresholds.get(c["check"], {}).get("calibrated", 0.0)]
+    return [c for c in cands if c["strength"] >= thresholds.get(_key(c), {}).get("calibrated", 0.0)]
+
+
+def _key(c: dict) -> str:
+    return f"{c['check']}:{c['category']}"
 
 
 def wilson(k: int, n: int, z: float = 1.96) -> list[float] | None:

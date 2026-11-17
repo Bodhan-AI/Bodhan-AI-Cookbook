@@ -28,28 +28,28 @@ def toy(n_err, n_clean, clean_strength=0.5, err_strength=0.8):
 
 def test_threshold_moves_with_enough_labels():
     results, labels = toy(MIN_POSITIVE, MIN_CLEAN)
-    t = fit_thresholds(results, labels)["back_translation"]
+    t = fit_thresholds(results, labels)["back_translation:omission"]
     assert t["moved"] and 0.5 < t["calibrated"] <= 0.8
     assert "keeps 5 of 5" in t["reason"]
 
 
 def test_threshold_kept_with_too_few_labels():
     results, labels = toy(MIN_POSITIVE - 1, MIN_CLEAN)
-    assert not fit_thresholds(results, labels)["back_translation"]["moved"]
+    assert not fit_thresholds(results, labels)["back_translation:omission"]["moved"]
     results, labels = toy(MIN_POSITIVE, MIN_CLEAN - 1)
-    assert not fit_thresholds(results, labels)["back_translation"]["moved"]
+    assert not fit_thresholds(results, labels)["back_translation:omission"]["moved"]
 
 
 def test_threshold_stays_when_check_is_quiet_on_clean():
     results, labels = toy(MIN_POSITIVE, MIN_CLEAN)
     for r in results[MIN_POSITIVE:]:
         r["_cands"] = []
-    t = fit_thresholds(results, labels)["back_translation"]
+    t = fit_thresholds(results, labels)["back_translation:omission"]
     assert t["calibrated"] == 0.0 and not t["moved"]
 
 
 def test_apply_drops_below_threshold_only():
-    th = {"back_translation": {"calibrated": 0.6}}
+    th = {"back_translation:omission": {"calibrated": 0.6}}
     kept = apply([noisy_bt(0.5), noisy_bt(0.7), cand("numbers", "number", "exact", 0.1)], th)
     assert [c["strength"] for c in kept] == [0.7, 0.1]
 
@@ -102,7 +102,7 @@ def test_wilson():
 def test_threshold_not_raised_past_most_labelled_errors():
     # The check fires on clean items as strongly as on errors: meeting the cap would silence it.
     results, labels = toy(MIN_POSITIVE, MIN_CLEAN, clean_strength=0.9, err_strength=0.9)
-    t = fit_thresholds(results, labels)["back_translation"]
+    t = fit_thresholds(results, labels)["back_translation:omission"]
     assert not t["moved"] and "would keep only 0 of 5" in t["reason"]
 
 

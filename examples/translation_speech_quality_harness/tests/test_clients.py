@@ -122,3 +122,23 @@ def test_llm_unavailable_is_not_run(tmp_path, fake_bodhan, fake_llm):
     _, llm = make_clients(tmp_path, fake_bodhan, fake_llm, llm=False)
     with pytest.raises(NotRun, match="LLM_BASE_URL"):
         llm.chat([{"role": "user", "content": "q"}])
+
+
+def test_llm_daily_quota_fails_fast_and_hides_account_id(tmp_path, fake_bodhan):
+    import httpx
+
+    calls = []
+
+    def quota(request):
+        calls.append(request)
+        msg = "Rate limit reached for model `m` in organization `org_abc123` on tokens per day (TPD): Limit 200000"
+        return httpx.Response(429, json={"error": {"message": msg, "type": "tokens"}}, headers={"x-should-retry": "false"})
+
+    _, llm = make_clients(tmp_path, fake_bodhan, quota)
+    with pytest.raises(NotRun, match="daily token quota") as e:
+        llm.chat([{"role": "user", "content": "a"}])
+    assert "org_abc123" not in str(e.value)
+    n = len(calls)
+    with pytest.raises(NotRun, match="daily token quota"):
+        llm.chat([{"role": "user", "content": "b"}])
+    assert len(calls) == n  # no further requests this run

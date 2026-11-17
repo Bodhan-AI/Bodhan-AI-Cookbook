@@ -146,3 +146,16 @@ def test_speaking_rate_outliers():
     out = cs.speaking_rate_candidates(rows, robust_z, 8, 3.0)
     assert list(out) == [9] and out[9][0]["category"] == "speech_omission"
     assert cs.speaking_rate_candidates(rows[:5], robust_z, 8, 3.0) == {}
+
+
+def test_long_missing_tail_is_exact_short_one_noisy():
+    s = SPEECH["hi_P1"]
+    words = s["transcript"].split()
+    short = cs.align_candidates(cs.align(s["text"], " ".join(words[:-5])), {"voiced_s": 0})
+    long = cs.align_candidates(cs.align(s["text"], " ".join(words[: len(words) // 2])), {"voiced_s": 0})
+    assert kinds(short) == [("speech_omission", "noisy")] and kinds(long) == [("speech_omission", "exact")]
+
+
+def test_number_read_twice_is_not_a_loop():
+    al = cs.align("मिशन 2023 में शुरू हुआ और 2023 में उतरा।", "मिशन ट्वेंटी ट्वेंटी थ्री में शुरू हुआ और ट्वेंटी ट्वेंटी थ्री में उतरा")
+    assert al["findings"] == []
