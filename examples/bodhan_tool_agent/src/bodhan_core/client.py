@@ -196,19 +196,44 @@ class BodhanClient:
             return result
 
         key = self._get_key("translate")
-        url = f"{BASE_URL}/translate"
         headers = {
             "Authorization": f"Bearer {key}",
             "Content-Type": "application/json",
         }
-        body: dict[str, Any] = {"text": text, "target_lang": target_lang}
+        body: dict[str, Any] = {"text": text, "target_language": target_lang}
         if source_lang:
-            body["source_lang"] = source_lang
+            body["source_language"] = source_lang
 
         async def _do() -> dict[str, Any]:
             async with self._sem:
                 async with httpx.AsyncClient(timeout=60.0) as client:
-                    resp = await client.post(url, json=body, headers=headers)
+                    resp = await client.post(f"{BASE_URL}/translate", json=body, headers=headers)
+                    if resp.status_code == 404:
+                        # Fallback to OpenAI-compatible chat completions transport
+                        chat_body = {
+                            "model": "indic-translate",
+                            "messages": [
+                                {
+                                    "role": "user",
+                                    "content": f"Translate into {target_lang}:\n{text}",
+                                }
+                            ],
+                        }
+                        chat_resp = await client.post(
+                            f"{BASE_URL}/v1/chat/completions",
+                            json=chat_body,
+                            headers=headers,
+                        )
+                        chat_resp.raise_for_status()
+                        data = chat_resp.json()
+                        content = data["choices"][0]["message"]["content"]
+                        usage = data.get("usage", {})
+                        return {
+                            "translation": content,
+                            "target_language": target_lang,
+                            "script": "native",
+                            "tokens": usage.get("completion_tokens", estimated_tokens),
+                        }
                     resp.raise_for_status()
                     return resp.json()
 
@@ -267,7 +292,7 @@ class BodhanClient:
             "Authorization": f"Bearer {key}",
             "Content-Type": "application/json",
         }
-        instructions = json.dumps({"lang": language, "style": style or "default"})
+        instructions = json.dumps({"lang": language, "style": style} if style else {"lang": language})
         body: dict[str, Any] = {
             "model": "indic-speak",
             "input": text,

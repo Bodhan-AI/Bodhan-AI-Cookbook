@@ -198,7 +198,7 @@ Cost: ₹0.20 per 10,000 output tokens."""
                     target_lang=target_lang,
                     source_lang=source_lang,
                 )
-                translated_parts.append(result.get("translated_text", seg))
+                translated_parts.append(result.get("translation") or result.get("translated_text") or seg)
                 if detected_source is None:
                     detected_source = result.get("source_lang_detected")
                 succeeded += 1

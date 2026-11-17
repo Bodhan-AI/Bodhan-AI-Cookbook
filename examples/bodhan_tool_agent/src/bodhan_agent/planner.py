@@ -10,15 +10,9 @@ import os
 from pathlib import Path
 from typing import Any
 
-try:
-    from openai import AsyncOpenAI
-    _HAVE_OPENAI = True
-except ImportError:
-    _HAVE_OPENAI = False
-    AsyncOpenAI = None  # type: ignore
-
 from bodhan_agent.guard import assert_safe
 from bodhan_core.langs import TRANSLATE_LANGS, TRANSCRIBE_LANGS, SPEAK_LANGS
+import httpx
 
 log = logging.getLogger(__name__)
 
@@ -35,13 +29,30 @@ class Planner:
     """Plans steps, validates feasibility, and generates English summaries."""
 
     def __init__(self) -> None:
-        self.base_url = os.environ.get("LLM_BASE_URL", "https://api.openai.com/v1")
+        self.base_url = os.environ.get("LLM_BASE_URL", "https://api.openai.com/v1").rstrip("/")
         self.api_key = os.environ.get("LLM_API_KEY", "")
         self.model = os.environ.get("LLM_MODEL", "gpt-4o-mini")
-        if _HAVE_OPENAI and self.api_key:
-            self.client = AsyncOpenAI(base_url=self.base_url, api_key=self.api_key)
-        else:
-            self.client = None
+        self.has_llm = bool(self.api_key)
+
+    async def _call_llm(self, messages: list[dict[str, str]], json_mode: bool = False, temperature: float = 0.2) -> str:
+        """Call OpenAI-compatible LLM endpoint via httpx without binary C-extension dependencies."""
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+        }
+        body: dict[str, Any] = {
+            "model": self.model,
+            "messages": messages,
+            "temperature": temperature,
+        }
+        if json_mode:
+            body["response_format"] = {"type": "json_object"}
+
+        async with httpx.AsyncClient(timeout=45.0) as client:
+            resp = await client.post(f"{self.base_url}/chat/completions", headers=headers, json=body)
+            resp.raise_for_status()
+            data = resp.json()
+            return data["choices"][0]["message"]["content"] or ""
 
     async def plan(self, task: str, file_metadata: list[dict[str, Any]]) -> dict[str, Any]:
         """
@@ -70,7 +81,7 @@ class Planner:
             }
 
         # 2. Try LLM planning
-        if self.client is not None:
+        if self.has_llm:
             try:
                 system_prompt = _load_system_prompt()
                 user_msg = (
@@ -88,16 +99,14 @@ class Planner:
                     "If the task cannot be done, set feasible to false and give refusal_reason."
                 )
 
-                resp = await self.client.chat.completions.create(
-                    model=self.model,
+                content = await self._call_llm(
                     messages=[
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": user_msg},
                     ],
-                    response_format={"type": "json_object"},
+                    json_mode=True,
                     temperature=0.1,
                 )
-                content = resp.choices[0].message.content or "{}"
                 plan = json.loads(content)
                 if "steps" in plan or not plan.get("feasible", True):
                     return plan
@@ -266,7 +275,7 @@ class Planner:
         Produce a concise English summary of the task execution and generated artifacts.
         Strictly guarded against emitting any Indic text.
         """
-        if self.client is not None:
+        if self.has_llm:
             try:
                 user_msg = (
                     f"Original Task: {task}\n\n"
@@ -275,15 +284,14 @@ class Planner:
                     "Write a professional English summary in 2-4 sentences explaining what was accomplished. "
                     "Do NOT include or generate any Indian-language text."
                 )
-                resp = await self.client.chat.completions.create(
-                    model=self.model,
+                raw_summary = await self._call_llm(
                     messages=[
                         {"role": "system", "content": "You are a concise English reporter. Never write Indian language text."},
                         {"role": "user", "content": user_msg},
                     ],
                     temperature=0.3,
                 )
-                summary = (resp.choices[0].message.content or "").strip()
+                summary = raw_summary.strip()
                 assert_safe(summary, context="summarize")
                 return summary
             except Exception as exc:

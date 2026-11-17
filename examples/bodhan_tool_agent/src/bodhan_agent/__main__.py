@@ -1,10 +1,13 @@
 import argparse
 import asyncio
 import pathlib
+from dotenv import load_dotenv
+
 from .loop import run_task
 
 
 def main() -> None:
+    load_dotenv()
     parser = argparse.ArgumentParser(description="Bodhan Task Agent")
     parser.add_argument("--task", required=True, help="Plain-language task description")
     parser.add_argument("--files", required=True, help="Path to input files directory or file")

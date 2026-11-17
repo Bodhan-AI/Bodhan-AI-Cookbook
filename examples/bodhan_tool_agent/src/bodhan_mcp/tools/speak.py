@@ -53,49 +53,21 @@ def _split_sentences(text: str, max_chars: int = _MAX_CHUNK_CHARS) -> list[str]:
 # ── WAV stitching ─────────────────────────────────────────────────────────────
 
 def _read_wav_data(path: Path) -> tuple[bytes, int, int, int]:
-    """
-    Parse a WAV file and return (pcm_data, sample_rate, num_channels, bit_depth).
-    Raises ValueError on malformed files.
-    """
-    raw = path.read_bytes()
-    if raw[:4] != b"RIFF" or raw[8:12] != b"WAVE":
-        raise ValueError(f"Not a valid WAV file: {path}")
-    offset = 12
-    sample_rate = num_channels = bit_depth = 0
-    pcm: bytes = b""
-    while offset < len(raw):
-        chunk_id = raw[offset:offset + 4]
-        chunk_size = struct.unpack_from("<I", raw, offset + 4)[0]
-        chunk_data = raw[offset + 8: offset + 8 + chunk_size]
-        if chunk_id == b"fmt ":
-            num_channels, sample_rate, _, _, bit_depth = struct.unpack_from("<HHIIHH", chunk_data)
-        elif chunk_id == b"data":
-            pcm = chunk_data
-        offset += 8 + chunk_size
-    return pcm, sample_rate, num_channels, bit_depth
+    """Parse a WAV file and return (pcm_data, sample_rate, num_channels, bit_depth)."""
+    import wave
+    with wave.open(str(path), "rb") as wf:
+        pcm = wf.readframes(wf.getnframes())
+        return pcm, wf.getframerate(), wf.getnchannels(), wf.getsampwidth() * 8
 
 
 def _write_wav(pcm: bytes, sample_rate: int, channels: int, bit_depth: int, path: Path) -> None:
-    """Write a minimal valid WAV file."""
-    byte_rate = sample_rate * channels * (bit_depth // 8)
-    block_align = channels * (bit_depth // 8)
-    header = struct.pack(
-        "<4sI4s4sIHHIIHH4sI",
-        b"RIFF",
-        36 + len(pcm),
-        b"WAVE",
-        b"fmt ",
-        16,                  # PCM fmt chunk size
-        1,                   # PCM format
-        channels,
-        sample_rate,
-        byte_rate,
-        block_align,
-        bit_depth,
-        b"data",
-        len(pcm),
-    )
-    path.write_bytes(header + pcm)
+    """Write standard PCM WAV file using built-in wave module."""
+    import wave
+    with wave.open(str(path), "wb") as wf:
+        wf.setnchannels(channels)
+        wf.setsampwidth(max(1, bit_depth // 8))
+        wf.setframerate(sample_rate)
+        wf.writeframes(pcm)
 
 
 def _stitch_wavs(chunk_paths: list[Path], output_path: Path) -> float:
