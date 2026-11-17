@@ -158,3 +158,15 @@ def test_reference_scores():
     r = ROWS["t01"]
     scores, cands = reference_scores([{**item(r["source"], r["translation"]), "reference": r["translation"]}])
     assert scores == {0: 100.0} and cands == {}
+
+
+def test_scale_word_after_digits_in_indic_text():
+    # Real Indic-Translate output: 910 million as 91 crore (Tamil), 6.5 million as 65 lakh (Bengali).
+    assert check_numbers(item("about 910 million people", "சுமார் 91 கோடி மக்கள்", "ta")) == []
+    assert check_numbers(item("about 6.5 million passengers", "প্রায় ৬৫ লক্ষ যাত্রী", "bn")) == []
+    c = exact(check_numbers(item("about 6.5 million passengers", "প্রায় ৬৬ লক্ষ যাত্রী", "bn")))
+    assert len(c) == 1 and c[0]["evidence"]["detail"] == "number changed"
+
+
+def test_bare_degree_matches_spelled_out_celsius():
+    assert check_numbers(item("Store below 25 °C.", "২৫° সেলসিয়াসের নিচে", "bn")) == []

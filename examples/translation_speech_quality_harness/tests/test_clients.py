@@ -4,7 +4,7 @@ import threading
 import pytest
 from conftest import make_clients, make_wav
 
-from bodhan_eval.clients import Budget, NotRun
+from bodhan_eval.clients import MAX_ATTEMPTS, Budget, NotRun
 
 
 def test_translate_is_cached_across_client_instances(tmp_path, fake_bodhan, fake_llm):
@@ -38,8 +38,8 @@ def test_model_access_denied_is_not_retried(tmp_path, fake_bodhan, fake_llm):
 
 def test_gives_up_after_max_attempts_and_caches_nothing(tmp_path, fake_bodhan, fake_llm):
     bodhan, _ = make_clients(tmp_path, fake_bodhan, fake_llm)
-    fake_bodhan.queue = [(500, {"error": {}}, None)] * 5
-    with pytest.raises(NotRun, match="failed after 5"):
+    fake_bodhan.queue = [(500, {"error": {}}, None)] * MAX_ATTEMPTS
+    with pytest.raises(NotRun, match=f"failed after {MAX_ATTEMPTS}"):
         bodhan.translate("Hi.", "hi")
     assert bodhan.translate("Hi.", "hi")["text"] == "[Hindi] Hi."  # failure was not cached
 

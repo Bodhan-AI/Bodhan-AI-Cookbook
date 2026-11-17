@@ -30,6 +30,15 @@ _WORDS = {w: i for i, w in enumerate("zero one two three four five six seven eig
                                          "sixteen seventeen eighteen nineteen".split())}
 _WORDS.update({w: 10 * (i + 2) for i, w in enumerate("twenty thirty forty fifty sixty seventy eighty ninety".split())})
 _SCALE_WORDS = {"hundred": 100, "thousand": 1000, "lakh": 10**5, "lakhs": 10**5, "million": 10**6, "crore": 10**7, "crores": 10**7, "billion": 10**9}
+# Scale words written after digits ("91 கோடி", "৬৫ লক্ষ"), matched as word prefixes so inflected forms count.
+_INDIC_SCALES = [
+    (10**3, "हज़ार हजार হাজার ஆயிரம் ஆயிரத் હજાર ਹਜ਼ਾਰ ਹਜਾਰ ହଜାର ಸಾವಿರ ആയിരം వేల వేయి"),
+    (10**5, "लाख লক্ষ লাখ லட்சம் லட்சத் લાખ ਲੱਖ ଲକ୍ଷ ಲಕ್ಷ ലക്ഷം లక్ష"),
+    (10**6, "मिलियन মিলিয়ন மில்லியன் મિલિયન ਮਿਲੀਅਨ ମିଲିୟନ ಮಿಲಿಯನ್ മില്യൺ మిలియన్"),
+    (10**7, "करोड़ करोड कोटी কোটি கோடி કરોડ ਕਰੋੜ କୋଟି ಕೋಟಿ കോടി కోటి కోట్ల"),
+    (10**9, "अरब अब्ज বিলিয়ন பில்லியன் અબજ ਅਰਬ ବିଲିୟନ ಬಿಲಿಯನ್ ബില്യൺ బిలియన్"),
+]
+_SCALE_AFTER = re.compile(r"[ \t]*([^\W\d_][\wऀ-෿]*)")  # Indic vowel signs are not \w
 
 
 def _value(tok: str):
@@ -54,9 +63,23 @@ def numbers_in(text: str) -> list[dict]:
     for m in _NUM.finditer(t):
         unit = _UNIT.match(t, m.end())
         cur = _CURRENCY.search(t, max(0, m.start() - 4), m.start())
-        out.append({"value": _value(m.group()), "token": text[m.start():m.end()], "span": (m.start(), m.end()),
+        value = _value(m.group())
+        if isinstance(value, Decimal) and not unit:
+            value *= _scale_after(t, m.end())
+        out.append({"value": value.normalize() if isinstance(value, Decimal) else value, "token": text[m.start():m.end()], "span": (m.start(), m.end()),
                     "unit": (unit.group(1).replace(" ", "") if unit else None), "currency": (cur.group(1).rstrip(".") if cur else None)})
     return out
+
+
+def _scale_after(text: str, pos: int) -> int:
+    """The multiplier of a scale word right after a number ("6.5 million", "65 লক্ষ"), else 1."""
+    m = _SCALE_AFTER.match(text, pos)
+    if not m:
+        return 1
+    w = m.group(1)
+    if w.lower() in _SCALE_WORDS and w.lower() != "hundred":
+        return _SCALE_WORDS[w.lower()]
+    return next((v for v, words in _INDIC_SCALES if any(w.startswith(x) for x in words.split())), 1)
 
 
 def word_numbers(text: str) -> list[Decimal]:
@@ -121,7 +144,8 @@ def check_numbers(item) -> list[dict]:
             continue
         t = tr[s["matched"]]
         for kind in ("unit", "currency"):
-            if s[kind] and t[kind] and s[kind] != t[kind]:
+            # A bare ° is compatible with °C/°F: the unit name is often spelled out ("২৫° সেলসিয়াস").
+            if s[kind] and t[kind] and s[kind] != t[kind] and not ({s[kind], t[kind]} & {"°"} and s[kind][0] == t[kind][0] == "°"):
                 cands.append(cand("numbers", "number", "exact", 0.9, s["span"], t["span"], "major",
                                   detail=f"{kind} changed", source=f"{s['token']} {s[kind]}", translation=f"{t['token']} {t[kind]}"))
     unmatched_tr = [t for j, t in enumerate(tr) if j not in used and not any(_equivalent(w, t["value"]) for w in src_words)]

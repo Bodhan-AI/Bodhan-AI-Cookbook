@@ -97,3 +97,19 @@ def test_wilson():
     assert wilson(0, 0) is None
     lo, hi = wilson(8, 10)
     assert 0.44 < lo < 0.5 and 0.94 < hi < 0.97
+
+
+def test_threshold_not_raised_past_most_labelled_errors():
+    # The check fires on clean items as strongly as on errors: meeting the cap would silence it.
+    results, labels = toy(MIN_POSITIVE, MIN_CLEAN, clean_strength=0.9, err_strength=0.9)
+    t = fit_thresholds(results, labels)["back_translation"]
+    assert not t["moved"] and "would keep only 0 of 5" in t["reason"]
+
+
+def test_speech_flag_without_text_span_matches_by_category():
+    from bodhan_eval.calibrate import hits
+
+    lab = {"category": "garbled", "span": [10, 20]}
+    assert hits({"category": "garbled", "span": None, "source_span": None, "translation_span": None}, lab)
+    assert not hits({"category": "omission", "span": None, "source_span": None, "translation_span": None}, lab)
+    assert not hits({"category": "garbled", "span": [30, 40], "source_span": [30, 40], "translation_span": None}, lab)

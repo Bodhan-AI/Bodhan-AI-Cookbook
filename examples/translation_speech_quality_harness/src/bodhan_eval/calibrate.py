@@ -22,6 +22,7 @@ from .report import read_review_csv
 MIN_CLEAN = 10  # labelled-clean items needed before a threshold may move
 MIN_POSITIVE = 5  # labelled errors a check must touch before its threshold may move
 FA_CAP_PER_CHECK = 0.02  # each check's share of the brief's 10% false-alarm budget
+MIN_KEEP_SHARE = 0.5  # a threshold may not drop more than half of the labelled errors the check touches
 
 ALIASES = {
     "number": "number", "number_or_unit": "number", "numbers": "number", "unit": "number", "number_unit": "number",
@@ -100,8 +101,8 @@ def _overlap(a, b):
 def hits(thing: dict, label: dict) -> bool:
     """A candidate or flag matches a label if its span overlaps the label's on either side; a label without a span
     is matched by category."""
-    if label.get("span") is None:
-        return thing["category"] == label["category"]
+    if label.get("span") is None or not any(thing.get(f) for f in ("span", "source_span", "translation_span")):
+        return thing["category"] == label["category"]  # speech flags locate in seconds, not characters
     return any(_overlap(thing.get(f), label["span"]) for f in ("span", "source_span", "translation_span"))
 
 
@@ -126,9 +127,16 @@ def fit_thresholds(results: list[dict], labels: dict) -> dict:
             for t in [0.0] + sorted({round(s + 0.001, 3) for s in neg}):
                 if sum(s >= t for s in neg) / len(clean) <= FA_CAP_PER_CHECK:
                     break
-            row.update(calibrated=t, moved=t > 0,
-                       reason=f"lowest threshold with false alarms on clean items <= {FA_CAP_PER_CHECK:.0%}; "
-                              f"keeps {sum(s >= t for s in pos)} of {len(pos)} labelled errors")
+            kept = sum(s >= t for s in pos)
+            if kept < MIN_KEEP_SHARE * len(pos):
+                # A bar that silences most of a check's real detections costs more than its noise, which the combiner
+                # already filters (a lone noisy candidate never flags on its own).
+                row["reason"] = (f"kept default: meeting the {FA_CAP_PER_CHECK:.0%} cap would keep only {kept} of {len(pos)} "
+                                 f"labelled errors")
+            else:
+                row.update(calibrated=t, moved=t > 0,
+                           reason=f"lowest threshold with false alarms on clean items <= {FA_CAP_PER_CHECK:.0%}; "
+                                  f"keeps {kept} of {len(pos)} labelled errors")
         out[check] = row
     return out
 

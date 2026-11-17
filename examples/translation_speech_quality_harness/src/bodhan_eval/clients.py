@@ -14,7 +14,7 @@ from . import config
 from .cache import Cache, key_for
 
 KEY_ENV = {"translate": "BODHAN_TRANSLATE_KEY", "speak": "BODHAN_SPEAK_KEY", "transcribe": "BODHAN_TRANSCRIBE_KEY"}
-MAX_ATTEMPTS = 5
+MAX_ATTEMPTS = 8  # backoff 1, 2, 4 ... 30 s: about 2.5 minutes, longer than a per-minute rate window
 
 
 class NotRun(Exception):
@@ -204,7 +204,7 @@ class LLM(_Base):
         self._drop: set[str] = set()  # parameters the endpoint rejected
         if self.available:
             self.client = openai.OpenAI(base_url=base_url.strip().rstrip("/"), api_key=api_key or "none", timeout=timeout,
-                                        max_retries=4, http_client=http_client)
+                                        max_retries=8, http_client=http_client)  # free tiers limit tokens per minute
 
     def chat(self, messages: list[dict], tag: str = "judge", max_tokens: int = 4000, ctx: dict | None = None) -> str:
         if not self.available:
