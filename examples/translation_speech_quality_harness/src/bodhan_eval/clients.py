@@ -91,7 +91,8 @@ class _Base:
         k = key_for(service, request)
         hit = self.cache.get(k)
         if hit:
-            self.log.event(kind="call", service=service, key=k, cache="hit", cost_inr=hit[0].get("cost_inr", 0.0), spent_inr=0.0, **(ctx or {}))
+            self.log.event(kind="call", service=service, key=k, cache="hit", cost_inr=hit[0].get("cost_inr", 0.0), spent_inr=0.0,
+                           orig_latency_s=hit[0].get("latency_s"), **(ctx or {}))
             return hit
         if budget:
             budget.reserve(est_cost)
@@ -105,6 +106,7 @@ class _Base:
         if budget:
             budget.settle(est_cost, cost)
         meta["cost_inr"] = round(cost, 6)
+        meta["latency_s"] = round(time.time() - t0, 3)  # kept so a cached rerun can still estimate a cold run's time
         self.cache.put(k, meta, blob)
         self.log.event(kind="call", service=service, key=k, cache="miss", cost_inr=meta["cost_inr"], spent_inr=meta["cost_inr"],
                        latency_s=round(time.time() - t0, 3), retries=retries, **(ctx or {}))

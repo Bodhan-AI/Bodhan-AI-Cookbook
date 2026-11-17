@@ -122,3 +122,11 @@ def test_baseline_may_be_the_output_folder(tmp_path, fake_bodhan, fake_llm):
     _, out = run(tmp_path, fake_bodhan, fake_llm, "same", dataset=dataset(tmp_path, "s.jsonl", True), baseline=str(out))
     d = json.loads((out / "summary.json").read_text(encoding="utf-8"))["diff"]
     assert d["regressed_items"] == 1 and d["compared_items"] == 10
+
+
+def test_dashboard_embeds_findings_safely(tmp_path):
+    results = [{"id": "a", "lang": "hi", "flags": [{"category": "number", "severity": "major", "confidence": 0.9, "checks": ["numbers"],
+                                                   "quote": {"source": "</script><b>x", "translation": "1000"}}], "review": []}]
+    html = report._dashboard_html(results)
+    data = html.split('type="application/json">')[1].split("</script>")[0]
+    assert json.loads(data.replace("<\/", "</"))[0]["source"] == "</script><b>x"

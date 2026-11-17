@@ -125,6 +125,7 @@ def write(out: Path, results: list[dict], skipped: list[dict], meta: dict, log, 
     (out / "summary.md").write_text(_summary_md(summary, results, cal), encoding="utf-8")
     (out / "calibration.json").write_text(_dump(cal) + "\n", encoding="utf-8")
     (out / "review_queue.csv").write_text(_review_csv(results), encoding="utf-8")
+    (out / "dashboard.html").write_text(_dashboard_html(results), encoding="utf-8")
 
     path = out / "diff.md"
     if diff_md is not None:
@@ -381,3 +382,72 @@ def compare(baseline: dict, results: list[dict], per_lang: dict) -> tuple[dict, 
             for r, f in order(pairs)[:8]:
                 lines += _example(r, f)
     return counts, "\n".join(lines) + "\n"
+
+
+# ---------------------------------------------------------------- static dashboard
+
+_DASHBOARD = """<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quality dashboard</title>
+<style>
+:root { --bg: #fff; --fg: #1d1d1f; --muted: #6e6e73; --line: #e3e3e6; --crit: #b42318; --major: #b54708; --minor: #475467; }
+@media (prefers-color-scheme: dark) { :root { --bg: #161618; --fg: #ececee; --muted: #a0a0a6; --line: #333338;
+  --crit: #f97066; --major: #fdb022; --minor: #98a2b3; } }
+body { margin: 0; padding: 16px; background: var(--bg); color: var(--fg); font: 15px/1.45 system-ui, sans-serif; }
+h1 { font-size: 20px; margin: 0 0 12px; }
+.filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+select, input { font: inherit; padding: 4px 6px; background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 6px; }
+.count { color: var(--muted); margin-bottom: 8px; }
+.row { border-top: 1px solid var(--line); padding: 10px 0; overflow-wrap: anywhere; }
+.head { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; }
+.sev { font-weight: 600; text-transform: uppercase; font-size: 12px; }
+.critical { color: var(--crit); } .major { color: var(--major); } .minor { color: var(--minor); }
+.q { margin: 4px 0 0; color: var(--muted); } .q b { color: var(--fg); font-weight: 500; }
+</style></head><body>
+<h1>Quality dashboard</h1>
+<div class="filters">
+<select id="lang" aria-label="Language"></select><select id="cat" aria-label="Category"></select>
+<select id="sev" aria-label="Severity"></select><select id="kind" aria-label="Flags or review">
+<option value="">flags and review</option><option value="flag">flags only</option><option value="review">review only</option></select>
+<input id="q" type="search" placeholder="Search id or text" aria-label="Search">
+</div>
+<div class="count" id="count"></div><div id="list"></div>
+<script id="data" type="application/json">__DATA__</script>
+<script>
+const rows = JSON.parse(document.getElementById("data").textContent);
+const el = id => document.getElementById(id);
+function fill(id, label, values) {
+  el(id).innerHTML = `<option value="">all ${label}</option>` + [...new Set(values)].sort().map(v => `<option>${v}</option>`).join("");
+}
+fill("lang", "languages", rows.map(r => r.lang)); fill("cat", "categories", rows.map(r => r.category));
+fill("sev", "severities", rows.map(r => r.severity));
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+function render() {
+  const f = {lang: el("lang").value, category: el("cat").value, severity: el("sev").value, kind: el("kind").value};
+  const q = el("q").value.toLowerCase();
+  const shown = rows.filter(r => Object.entries(f).every(([k, v]) => !v || r[k] === v) &&
+    (!q || (r.id + " " + r.source + " " + r.translation).toLowerCase().includes(q)));
+  el("count").textContent = `${shown.length} of ${rows.length} findings`;
+  el("list").innerHTML = shown.map(r => `<div class="row"><div class="head"><b>${esc(r.id)} / ${esc(r.lang)}</b>
+    <span>${esc(r.category)}</span><span class="sev ${esc(r.severity)}">${esc(r.severity)}</span>
+    <span class="q">${esc(r.kind)} · confidence ${r.confidence} · ${esc(r.checks)}</span></div>
+    ${r.source ? `<p class="q">source: <b>${esc(r.source)}</b></p>` : ""}
+    ${r.translation ? `<p class="q">translation: <b>${esc(r.translation)}</b></p>` : ""}</div>`).join("");
+}
+["lang", "cat", "sev", "kind", "q"].forEach(id => el(id).addEventListener("input", render));
+render();
+</script></body></html>
+"""
+
+
+def _dashboard_html(results) -> str:
+    rows = []
+    for r in results:
+        for kind, entries in (("flag", r["flags"]), ("review", r["review"])):
+            for f in entries:
+                q = f.get("quote") or {}
+                rows.append({"id": r["id"], "lang": r["lang"], "kind": kind, "category": f["category"], "severity": f["severity"],
+                             "confidence": f["confidence"], "checks": ", ".join(f["checks"]),
+                             "source": q.get("source", ""), "translation": q.get("translation", "")})
+    data = json.dumps(rows, ensure_ascii=False, sort_keys=True).replace("</", "<\\/")  # a quote containing </script> cannot end the data block
+    return _DASHBOARD.replace("__DATA__", data)

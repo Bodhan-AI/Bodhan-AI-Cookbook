@@ -6,7 +6,7 @@ from conftest import DATA, make_args, make_clients
 from bodhan_eval import pipeline
 from bodhan_eval.__main__ import main
 
-FILES = ["items.jsonl", "summary.json", "summary.md", "calibration.json", "review_queue.csv"]
+FILES = ["items.jsonl", "summary.json", "summary.md", "calibration.json", "review_queue.csv", "dashboard.html"]
 
 
 def run(tmp_path, fake_bodhan, fake_llm, **kw):
