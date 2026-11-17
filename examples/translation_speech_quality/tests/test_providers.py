@@ -6,7 +6,7 @@ from datetime import UTC, datetime
 
 import httpx
 import pytest
-from bodhan_eval.providers import CallError, Providers, retry_delay
+from bodhan_eval.providers import ATTEMPTS, CallError, Providers, retry_delay
 from bodhan_eval.workflow import request_judgment
 
 
@@ -51,15 +51,16 @@ def test_translation_uses_hosted_chat_contract(tmp_path, monkeypatch):
 
 
 def test_unusable_judge_verdict_does_not_poison_cache(tmp_path, monkeypatch):
-    """Reject a malformed verdict, then verify that a valid receipt is replayed from SQLite."""
+    """Resample a malformed verdict, cache only the valid one, and give up after bounded attempts."""
     monkeypatch.setenv("LLM_BASE_URL", "http://localhost/v1")
     monkeypatch.setenv("LLM_MODEL", "local-test")
     monkeypatch.setenv("LLM_API_KEY", "local-test")
-    receipts = iter(["no JSON verdict", '{"findings":[],"verify_speech":false}'])
+    receipts = iter(["no JSON verdict", '{"findings":[],"verify_speech":false}'] + ["still no verdict"] * 10)
 
     def receive(request):
         """Deliver controlled protocol bodies through the real client and cache logic."""
         assert request.url.path == "/v1/chat/completions"
+        assert json.loads(request.content)["temperature"] == 0
         return httpx.Response(
             200,
             json={
@@ -69,19 +70,46 @@ def test_unusable_judge_verdict_does_not_poison_cache(tmp_path, monkeypatch):
         )
 
     async def check():
-        """Verify only two dispatches even though three requests are evaluated."""
+        """The first verdict is resampled in place. A replay is served from SQLite."""
         async with Providers(tmp_path / "cache.sqlite", 0, 1) as provider:
             await provider.http.aclose()
             provider.http = httpx.AsyncClient(transport=httpx.MockTransport(receive))
-            with pytest.raises(CallError, match="invalid JSON"):
-                await request_judgment(provider, "{}", {})
             fresh, verdict = await request_judgment(provider, "{}", {})
             cached, replay = await request_judgment(provider, "{}", {})
             assert fresh == cached
             assert verdict == replay == ([], False, 0)
             assert provider.telemetry["requests"] == 2
+            assert provider.telemetry["judge_invalid_retries"] == 1
             assert provider.telemetry["cache_hits"] == 1
-            assert provider.telemetry["judge_output_tokens"] == 2
+            with pytest.raises(CallError, match="findings schema"):
+                await request_judgment(provider, '{"other": 1}', {})
+            assert provider.telemetry["requests"] == 2 + ATTEMPTS
+
+    asyncio.run(check())
+
+
+def test_judge_falls_back_when_json_mode_is_rejected(tmp_path, monkeypatch):
+    """An endpoint that rejects optional fields still receives a plain request."""
+    monkeypatch.setenv("LLM_BASE_URL", "http://localhost/v1")
+    monkeypatch.setenv("LLM_MODEL", "local-test")
+    monkeypatch.setenv("LLM_API_KEY", "local-test")
+    seen = []
+
+    def receive(request):
+        """Reject JSON mode once, then accept the plain Chat Completions body."""
+        body = json.loads(request.content)
+        seen.append(sorted(body))
+        if "response_format" in body:
+            return httpx.Response(400, json={"error": "response_format unsupported"})
+        return httpx.Response(200, json={"choices": [{"message": {"content": '{"findings":[]}'}}]})
+
+    async def check():
+        async with Providers(tmp_path / "cache.sqlite", 0, 1) as provider:
+            await provider.http.aclose()
+            provider.http = httpx.AsyncClient(transport=httpx.MockTransport(receive))
+            _, verdict = await request_judgment(provider, "{}", {})
+            assert verdict == ([], False, 0)
+            assert seen == [["messages", "model", "response_format", "temperature"], ["messages", "model"]]
 
     asyncio.run(check())
 

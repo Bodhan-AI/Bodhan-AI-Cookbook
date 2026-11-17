@@ -7,9 +7,13 @@ from dataclasses import replace
 from pathlib import Path
 
 from .providers import digest
-from .schema import CATEGORIES, SPEECH_CATEGORIES, Evaluation, Finding, Item, Label, Span, parse_annotator, parse_labels, read_jsonl
+from .schema import CATEGORIES, SPEECH_CATEGORIES, TEXT_CATEGORIES, Evaluation, Finding, Item, Label, Span, parse_annotator, parse_labels, read_jsonl
 
 DEFAULT_THRESHOLD = 0.72
+TEXT_CATEGORY_SET = frozenset(TEXT_CATEGORIES)
+# A threshold moves only with at least this many reviewed positive and negative items,
+# so one or two labels cannot switch on weak evidence for a whole category.
+MIN_SUPPORT = 3
 
 
 def review_id(lang: str, item_id: str) -> str:
@@ -84,7 +88,12 @@ def accepted(candidates: list[Finding], thresholds: dict[str, float]) -> list[Fi
     ordered = sorted(eligible, key=lambda f: (-f.strength, f.category, f.span.field, f.span.start, f.span.end, f.check))
     distinct = []
     for finding in ordered:
-        if not any(other.category == finding.category and overlaps(finding.span, other.span) for other in distinct):
+        # One text passage gets one explanation: the strongest evidence wins, so a changed
+        # digit is not reported again as a judge mistranslation of the same words.
+        if not any(
+            (other.category == finding.category or {other.category, finding.category} <= TEXT_CATEGORY_SET) and overlaps(finding.span, other.span)
+            for other in distinct
+        ):
             distinct.append(finding)
     return sorted(distinct, key=lambda f: (f.category, f.span.field, f.span.start, f.span.end, f.check))
 
@@ -177,8 +186,9 @@ def calibration_fit(calibration: list[Evaluation]) -> tuple[dict[str, float], di
         ]
         positives = sum(bool(labels) for labels, _ in examples)
         negatives = len(examples) - positives
-        support[category] = {"positive_items": positives, "negative_items": negatives, "fitted": bool(positives and negatives)}
-        if not (positives and negatives):
+        fitted = positives >= MIN_SUPPORT and negatives >= MIN_SUPPORT
+        support[category] = {"positive_items": positives, "negative_items": negatives, "fitted": fitted}
+        if not fitted:
             continue
         best = None
         for threshold in (0.58, 0.65, DEFAULT_THRESHOLD, 0.84, 0.92):

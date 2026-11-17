@@ -14,6 +14,7 @@ from .audio_checks import (
     corroborate_speech,
     decode_audio,
     merge_wav,
+    reconcile_signal_with_transcript,
     signal_checks,
     speech_findings,
     speech_parts,
@@ -172,8 +173,8 @@ async def speech_checks(
     """Combine waveform evidence and transcript alignment when a script is known."""
     if audio is None:
         return
-    metrics, findings = await asyncio.to_thread(signal_checks, audio)
-    result.record("signal", **metrics)
+    signal_metrics, findings = await asyncio.to_thread(signal_checks, audio)
+    result.record("signal", **signal_metrics)
     result.candidates.extend(findings)
     try:
         result.transcript = await transcribe(result, providers, audio)
@@ -184,9 +185,12 @@ async def speech_checks(
     if not expected:
         result.record("speech_alignment", "unavailable", reason="The intended spoken script is unknown.")
         return
-    metrics, findings = speech_findings(expected, result.transcript, audio.duration_ms, script_field=speech_script_field(result))
-    result.record("speech_alignment", "unavailable" if metrics.get("alignment") == "unavailable" else "ok", **metrics)
+    alignment_metrics, findings = speech_findings(expected, result.transcript, audio.duration_ms, script_field=speech_script_field(result))
+    result.record("speech_alignment", "unavailable" if alignment_metrics.get("alignment") == "unavailable" else "ok", **alignment_metrics)
     result.candidates.extend(findings)
+    # Two checkers disagree when the waveform reads as quiet but the recognizer heard the
+    # whole script. The transcript is the stronger evidence, so the silence flag is demoted.
+    result.candidates = reconcile_signal_with_transcript(result.candidates, alignment_metrics, signal_metrics)
 
 
 def speech_script_field(result: Evaluation) -> str:

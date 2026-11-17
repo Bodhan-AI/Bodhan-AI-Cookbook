@@ -17,7 +17,7 @@ from .calibration import apply_external_labels, explicit_source_splits
 from .judge import RUBRIC
 from .providers import MICRO_INR, Providers, digest
 from .report import load_baseline, write_reports
-from .schema import VOICES, load_items
+from .schema import VOICES, Evaluation, load_items
 from .workflow import evaluate_item
 
 LOG = logging.getLogger("bodhan_eval.cli")
@@ -43,6 +43,17 @@ def positive(value: str) -> int:
         raise argparse.ArgumentTypeError("expected a positive integer") from error
     if number < 1:
         raise argparse.ArgumentTypeError("expected a positive integer")
+    return number
+
+
+def count(value: str) -> int:
+    """Parse an integer count that may be zero."""
+    try:
+        number = int(value)
+    except ValueError as error:
+        raise argparse.ArgumentTypeError("expected a nonnegative integer") from error
+    if number < 0:
+        raise argparse.ArgumentTypeError("expected a nonnegative integer")
     return number
 
 
@@ -78,8 +89,14 @@ def args_for_cli() -> argparse.Namespace:
     parser.add_argument("--max-cost-inr", type=money, default=50 * MICRO_INR, help="Bodhan spend cap (default 50 INR)")
     parser.add_argument("--cache", type=Path, default=Path(".bodhan-cache/responses.sqlite3"))
     parser.add_argument("--concurrency", type=positive, default=4, help="maximum concurrent model calls")
+    parser.add_argument("--judge-concurrency", type=positive, help="maximum concurrent judge calls (default: --concurrency)")
     parser.add_argument("--limit", type=positive, help="select the first N valid matching rows")
-    parser.add_argument("--judge-repeat", type=positive, help="make an extra uncached judge call for N rows")
+    parser.add_argument(
+        "--judge-repeat",
+        type=count,
+        default=10,
+        help="judge N rows a second time, independently, to measure judge consistency (default 10, 0 disables)",
+    )
     parser.add_argument("--no-speech", action="store_true", help="measure translation-only throughput and cost")
     return parser.parse_args()
 
@@ -91,9 +108,15 @@ async def run(args: argparse.Namespace) -> int:
         raise ValueError("Use a different directory for --out and --baseline.")
     baseline = load_baseline(args.baseline) if args.baseline is not None else None
     items, invalid = load_items(args.dataset, args.langs)
-    invalid_labels = []
+    # Rows with unusable labels are still evaluated. Their labels are reported, not used.
+    invalid_labels = [
+        {"line": item.line, "id": item.id, "lang": item.lang, "error": f"dataset labels ignored: {item.label_error}"}
+        for item in items
+        if item.label_error
+    ]
     if args.calibration:
-        items, invalid_labels = apply_external_labels(items, args.calibration)
+        items, external_invalid = apply_external_labels(items, args.calibration)
+        invalid_labels += external_invalid
     if args.limit:
         items = items[: args.limit]
     explicit_source_splits(items)
@@ -103,21 +126,27 @@ async def run(args: argparse.Namespace) -> int:
         for row in rows:
             LOG.info(kind, extra={"event_fields": row})
 
-    async with Providers(args.cache, args.max_cost_inr, args.concurrency) as providers:
+    async with Providers(args.cache, args.max_cost_inr, args.concurrency, args.judge_concurrency) as providers:
         workers = asyncio.Semaphore(args.concurrency)
 
         async def evaluate(item):
             """Bound total concurrent items as well as the client's HTTP calls."""
             async with workers:
-                return await evaluate_item(
-                    item,
-                    providers,
-                    args.dataset.parent,
-                    args.out,
-                    args.generate,
-                    item.key in repeats,
-                    enable_speech=not args.no_speech,
-                )
+                try:
+                    return await evaluate_item(
+                        item,
+                        providers,
+                        args.dataset.parent,
+                        args.out,
+                        args.generate,
+                        item.key in repeats,
+                        enable_speech=not args.no_speech,
+                    )
+                except Exception as error:  # noqa: BLE001 - one bad row must not end the batch.
+                    LOG.exception("item_failed", extra={"event_fields": {"id": item.id, "lang": item.lang}})
+                    failed = Evaluation(item)
+                    failed.record("internal", "error", reason=f"Unexpected {type(error).__name__} while evaluating this row.", code="internal")
+                    return failed
 
         results = await asyncio.gather(*(evaluate(item) for item in items))
         config = {

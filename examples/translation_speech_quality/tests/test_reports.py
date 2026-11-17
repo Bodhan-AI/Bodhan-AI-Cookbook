@@ -52,15 +52,18 @@ def test_calibration_and_localization_are_independent():
     valid = Finding("number", "major", Span("translation", 4, 6), "numbers", "20", "quantity changed", 0.68)
     wrong_span = Finding("number", "major", Span("translation", 8, 10), "numbers", "10", "quantity changed", 0.68)
     training = [
-        labelled_result("train-bad", "Use 20 cm.", known, valid, "calibration"),
-        labelled_result("train-clean", "Use 30 cm.", [], None, "calibration"),
+        *(labelled_result(f"train-bad-{n}", f"Use 2{n} cm.", known, valid, "calibration") for n in range(3)),
+        *(labelled_result(f"train-clean-{n}", f"Use 3{n} cm.", [], None, "calibration") for n in range(3)),
     ]
     holdout = labelled_result("holdout", "Use 40 cm.", known, wrong_span, "holdout")
     calibration, test = split_evaluations([*training, holdout])
     thresholds, support = calibration_fit(calibration)
     assert thresholds["number"] == 0.65
-    assert support["number"] == {"positive_items": 1, "negative_items": 1, "fitted": True}
+    assert support["number"] == {"positive_items": 3, "negative_items": 3, "fitted": True}
     assert not support["entity"]["fitted"]
+    # One positive and one negative are not enough evidence to move a threshold.
+    sparse, sparse_support = calibration_fit(calibration[:1] + calibration[3:4])
+    assert sparse["number"] == 0.72 and not sparse_support["number"]["fitted"]
     metrics = measure(test, thresholds)
     assert metrics["recall"] == 1
     assert metrics["localization"] == 0

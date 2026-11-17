@@ -7,6 +7,7 @@ import hashlib
 import json
 import logging
 import os
+import random
 import sqlite3
 from collections import Counter
 from collections.abc import Callable
@@ -24,6 +25,12 @@ from .schema import VOICES
 BASE_URL = "https://api.bodhan.ai"
 MICRO_INR = 1_000_000
 MAX_RETRY_WAIT = 90
+# Five attempts ride out a typical per-minute rate-limit window (2+4+8+16 s plus jitter).
+ATTEMPTS = 5
+# Unusable judge replies are sampled again. Bodhan outputs are never re-requested on validation errors.
+RETRYABLE_VERDICTS = {"invalid_judgment", "invalid_response"}
+# Fields some OpenAI-compatible judges reject. The request is retried without them.
+OPTIONAL_JUDGE_FIELDS = frozenset({"response_format", "temperature"})
 LOG = logging.getLogger(__name__)
 
 
@@ -92,13 +99,16 @@ def retry_delay(header: str, attempt: int, now: datetime) -> float:
 class Providers:
     """Own one run's HTTP connection pool, concurrency, cache, and spend ledger."""
 
-    def __init__(self, cache_path: Path, max_micro_inr: int, concurrency: int):
+    def __init__(self, cache_path: Path, max_micro_inr: int, concurrency: int, judge_concurrency: int | None = None):
         """Configure local persistence and read only the assignment's credential variables."""
         cache_path.parent.mkdir(parents=True, exist_ok=True)
         self.cache = sqlite3.connect(cache_path, timeout=10)
         self.cache.execute("CREATE TABLE IF NOT EXISTS responses (key TEXT PRIMARY KEY, body BLOB, usage TEXT)")
         self.http = httpx.AsyncClient(timeout=httpx.Timeout(90, connect=10), trust_env=False)
         self.limit = asyncio.Semaphore(concurrency)
+        # The judge often has a tighter rate limit than Bodhan, so it gets its own bound.
+        self.judge_limit = asyncio.Semaphore(judge_concurrency or concurrency)
+        self.cooldown: dict[str, float] = {}
         self.budget = max_micro_inr
         self.charged = 0
         self.inflight: dict[str, asyncio.Task[Call]] = {}
@@ -148,9 +158,10 @@ class Providers:
         version = "v2" if operation == "judge" else "v1"
         cache_key = digest(encoded([version, operation, url, payload, digest(wav) if wav else None]))
         if fresh:
-            # Independent repeatability trials must actually call the judge.
-            return await self._request(cache_key, operation, url, key_name, payload, reserve, validate, wav, persist=False)
-        row = self.cache.execute("SELECT body, usage FROM responses WHERE key = ?", (cache_key,)).fetchone()
+            # A repeatability trial is a second, independent call stored under its own key.
+            # It is cached too, so a replay reproduces the same agreement figure at no cost.
+            cache_key = digest(encoded(["repeat", cache_key]))
+        row =self.cache.execute("SELECT body, usage FROM responses WHERE key = ?", (cache_key,)).fetchone()
         if row:
             self.telemetry["cache_hits"] += 1
             return Call(cache_key, row[0], json.loads(row[1]))
@@ -180,9 +191,15 @@ class Providers:
         token = self.keys[key_name]
         if not token:
             raise CallError("missing_credentials", f"Set {key_name} to use {operation}.")
-        for attempt in range(3):
+        error = CallError("unavailable", f"{operation} was not attempted.")
+        for attempt in range(ATTEMPTS):
             delay = 2**attempt
-            async with self.limit:
+            # A rate limit applies to the key, so every caller waits out the same window.
+            wait = self.cooldown.get(key_name, 0) - monotonic()
+            if wait > 0:
+                await asyncio.sleep(wait)
+            limit = self.judge_limit if operation == "judge" else self.limit
+            async with limit:
                 if key_name in self.exhausted:
                     raise CallError("credit_exhausted", f"Provider credit exhausted for {operation}.")
                 if reserve and self.charged + reserve > self.budget:
@@ -213,7 +230,19 @@ class Providers:
                         },
                     )
                     if status == 200:
-                        body, usage = validate(response.content)
+                        try:
+                            body, usage = validate(response.content)
+                        except CallError as invalid:
+                            # A judge can return an unusable verdict once and a valid one on
+                            # the next sample. Bodhan outputs are deterministic, so only the
+                            # judge is asked again.
+                            if operation != "judge" or invalid.code not in RETRYABLE_VERDICTS:
+                                raise
+                            self.telemetry["judge_invalid_retries"] += 1
+                            error = invalid
+                            if attempt + 1 >= ATTEMPTS:
+                                break
+                            continue
                         spent = usage.get("micro_inr", reserve)
                         self.charged += spent - reserve
                         usage = {"operation": operation, **usage}
@@ -230,13 +259,25 @@ class Providers:
                         raise CallError("credit_exhausted", f"Provider credit exhausted for {operation}.")
                     if status < 500 and status != 408:
                         self.charged -= reserve
+                    if status in (400, 422) and operation == "judge" and OPTIONAL_JUDGE_FIELDS & payload.keys():
+                        # Some compatible endpoints reject JSON mode or a temperature for
+                        # reasoning models. Fall back to the plain Chat Completions request.
+                        payload = {key: value for key, value in payload.items() if key not in OPTIONAL_JUDGE_FIELDS}
+                        self.telemetry["judge_plain_fallbacks"] += 1
+                        error = CallError(f"http_{status}", f"{operation} rejected optional fields (HTTP {status}).")
+                        continue
                     if status not in (408, 429) and status < 500:
                         raise CallError(f"http_{status}", f"{operation} rejected the request (HTTP {status}).")
-                    delay = retry_delay(response.headers.get("retry-after", "").strip(), attempt, datetime.now(UTC))
+                    floor = 2 ** (attempt + 1) if status == 429 else 2**attempt
+                    delay = max(floor, retry_delay(response.headers.get("retry-after", "").strip(), attempt, datetime.now(UTC)))
+                    # Jitter spreads concurrent retries so they do not collide again.
+                    delay += random.uniform(0, delay / 4)
+                    if status == 429:
+                        self.cooldown[key_name] = max(self.cooldown.get(key_name, 0), monotonic() + delay)
                     error = CallError(f"http_{status}", f"{operation} unavailable (HTTP {status}).")
             if delay > MAX_RETRY_WAIT:
                 raise CallError("retry_delay", f"{operation} requested a retry after the configured {MAX_RETRY_WAIT}-second wait limit.")
-            if attempt < 2:
+            if attempt + 1 < ATTEMPTS:
                 self.telemetry["retries"] += 1
                 await asyncio.sleep(delay)
         raise error
@@ -324,6 +365,9 @@ class Providers:
         payload = {
             "model": self.judge_model,
             "messages": [{"role": "system", "content": rubric}, {"role": "user", "content": context}],
+            # Deterministic decoding and JSON mode where supported. Both are dropped on HTTP 400.
+            "temperature": 0,
+            "response_format": {"type": "json_object"},
         }
 
         def decode(body: bytes) -> tuple[bytes, dict[str, Any]]:

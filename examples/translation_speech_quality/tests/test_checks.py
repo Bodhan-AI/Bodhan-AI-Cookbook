@@ -1,5 +1,6 @@
 """Exercise the deterministic checks against known transformations."""
 
+import json
 import math
 from array import array
 from dataclasses import replace
@@ -79,7 +80,10 @@ def test_markdown_tables_and_latex():
     assert format_findings(original, same_shape) == []
     problems = format_findings(original, same_shape.replace("| --- | --- |\n", "").replace("^2", "^3"))
     assert {problem.check for problem in problems} == {"markdown", "latex"}
-    assert any(problem.evidence == "$x^2$" for problem in problems)
+    # Evidence points at the damaged candidate formula; the source formula is the anchor.
+    assert any(
+        problem.evidence == "$x^3$" and original[problem.anchor.start : problem.anchor.end] == "$x^2$" for problem in problems
+    )
 
 
 def test_entities_and_script_are_separate_signals():
@@ -154,19 +158,20 @@ def test_judge_validation_uses_real_offsets():
     item = parse_item({"id": "speech", "lang": "en", "source": "Keep all 18 pages."}, 1)
     evaluation = Evaluation(item, translation="Keep all 8 pages.")
     _, segments = judge_input(evaluation, None, False)
+    assert segments["s2"].numbered() == "[0]Keep [1]all [2]8 [3]pages."
     observation = {
         "category": "number",
         "severity": "major",
         "segment": "s2",
-        "start": 9,
-        "end": 10,
+        "first_word": 2,
+        "last_word": 2,
         "strength": "clear",
         "reason": "The page count changed.",
     }
     findings, verify, rejected = parse_judgment(
         encoded(
             {
-                "findings": [observation, {**observation, "end": 500}],
+                "findings": [observation, {**observation, "last_word": 500}],
                 "verify_speech": False,
             }
         ),
@@ -174,22 +179,63 @@ def test_judge_validation_uses_real_offsets():
     )
     assert not verify and rejected == 1
     assert findings[0].evidence == "8"
+    assert findings[0].span == Span("translation", 9, 10)
     assert verdict_signature(findings) != verdict_signature([replace(findings[0], severity="minor")])
     assert verdict_signature(findings) != verdict_signature([replace(findings[0], span=Span("translation", 8, 9))])
     with pytest.raises(CallError, match="findings schema"):
         parse_judgment(b"{}", segments)
 
 
+def test_judge_reply_tolerates_wrappers_and_keeps_indic_free_reasons():
+    """Reasoning blocks, prose, aliases and Indic quotations do not discard a located finding."""
+    item = parse_item({"id": "tube", "lang": "hi", "source": "Place the open end in the water."}, 1)
+    evaluation = Evaluation(item, translation="ट्यूब के बंद सिरे को पानी में रखें।")
+    _, segments = judge_input(evaluation, None, False)
+    assert segments["s2"].numbered().startswith("[0]ट्यूब [1]के [2]बंद")
+    verdict = {
+        "findings": [
+            {
+                "category": "Mistranslation",
+                "severity": "MAJOR",
+                "segment": "s2",
+                "first_word": 2,
+                "last_word": 2,
+                "reason": "बंद means closed, but the source says open.",
+            }
+        ]
+    }
+    reply = "<think>check polarity</think>\nHere is my verdict:\n```json\n" + json.dumps(verdict, ensure_ascii=False) + "\n```"
+    findings, verify, rejected = parse_judgment(reply.encode(), segments)
+    assert (verify, rejected) == (False, 0)
+    [finding] = findings
+    assert (finding.category, finding.severity, finding.strength) == ("mistranslation", "major", 0.85)
+    assert evaluation.translation[finding.span.start : finding.span.end] == "बंद"
+    assert finding.evidence == "बंद"
+    assert all(ord(char) < 128 or not char.isalpha() for char in finding.detail)
+    assert "closed" in finding.detail
+
+
+def test_judge_segments_split_long_lines_on_word_boundaries():
+    """Long passages become several short segments whose words map back to the original text."""
+    source = " ".join(f"w{index}" for index in range(130))
+    item = parse_item({"id": "long", "lang": "en", "source": source}, 1)
+    _, segments = judge_input(Evaluation(item), None, False)
+    assert len(segments) == 3
+    for segment in segments.values():
+        for start, end in segment.words:
+            assert source[segment.offset + start : segment.offset + end] == segment.text[start:end]
+
+
 def test_injector_changes_actual_content(tmp_path):
     """Numeric edits and audio corruption produce real variants with provenance and spans."""
     row = {"source": "Measure 20 cm.", "translation": "Measure 20 cm.", "lang": "en"}
-    changed, label, method = text_variant(row, "number")
+    changed, label, method = text_variant(row, "number", choice=0)
     assert changed == "Measure 30 cm."
     assert changed[slice(*label["span"])] == "30 cm"
     assert method == "alter_original_digit"
     audio = tmp_path / "original.wav"
     audio.write_bytes(pcm_wav(tone(2.0)))
-    altered, label, method = audio_variant(audio, "garbled_audio")
+    altered, label, method = audio_variant(audio, "garbled_audio", choice=0)
     variant = tmp_path / "changed.wav"
     variant.write_bytes(altered)
     metrics, findings = signal_checks(decode_audio(variant))

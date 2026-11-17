@@ -84,6 +84,7 @@ class Item:
     split: str | None
     line: int
     annotator: str | None = None
+    label_error: str | None = None
 
     @property
     def key(self) -> tuple[str, str]:
@@ -138,38 +139,61 @@ def read_jsonl(path: Path):
                     yield number, row, None
 
 
+def category_name(value: Any) -> str | None:
+    """Map a label or judge category spelling to a documented category, if any."""
+    if not isinstance(value, str):
+        return None
+    category = value.strip().lower().replace("-", "_").replace(" ", "_").replace("/", "_")
+    category = LABEL_ALIASES.get(category, category)
+    return category if category in CATEGORIES else None
+
+
+def offset_value(value: Any) -> int | None:
+    """Accept integral offsets written as int, float or digit strings."""
+    if type(value) is int:
+        return value
+    if isinstance(value, float) and value.is_integer():
+        return int(value)
+    if isinstance(value, str) and value.strip().isdecimal():
+        return int(value.strip())
+    return None
+
+
 def parse_labels(raw: Any) -> tuple[Label, ...]:
-    """Validate documented label types and preserve unspecified span coordinates."""
+    """Validate documented label types and preserve unspecified span coordinates.
+
+    Spelling differences an annotator would not consider meaningful are normalized:
+    category case and separators, severity case, a missing severity (scored as major),
+    integral float offsets, and an unknown span field (kept as an unknown axis).
+    A label whose category cannot be recognised still raises, because silently
+    dropping it would turn a defective item into an apparently clean one.
+    """
     if not isinstance(raw, list):
         raise ValueError("labels must be an array")
     labels = []
     for value in raw:
         if not isinstance(value, dict):
             raise ValueError("each label must be an object")
-        category = value.get("type", value.get("category"))
-        if not isinstance(category, str):
-            raise ValueError("label type must be a string")
-        category = category.strip().lower().replace("-", "_").replace(" ", "_")
-        category = LABEL_ALIASES.get(category, category)
-        severity = value.get("severity")
-        if category not in CATEGORIES or severity not in sorted(SEVERITIES):
+        category = category_name(value.get("type", value.get("category")))
+        severity = value.get("severity", "major")
+        severity = severity.strip().lower() if isinstance(severity, str) else severity
+        if category is None or severity not in SEVERITIES:
             raise ValueError("unknown label category or severity")
         offsets = value.get("span")
         axis = value.get("field")
         if isinstance(offsets, dict):
             axis = offsets.get("field", axis)
             offsets = [offsets.get("start"), offsets.get("end")]
+        if axis is not None and axis not in FIELDS:
+            axis = None
         span = None
         if offsets is not None:
-            if (
-                not isinstance(offsets, list)
-                or len(offsets) != 2
-                or any(type(offset) is not int for offset in offsets)
-                or not 0 <= offsets[0] < offsets[1]
-                or (axis is not None and axis not in sorted(FIELDS))
-            ):
+            if not isinstance(offsets, list) or len(offsets) != 2:
                 raise ValueError("label span must be a valid half-open interval")
-            span = Span(axis, *offsets)
+            start, end = (offset_value(offset) for offset in offsets)
+            if start is None or end is None or not 0 <= start < end:
+                raise ValueError("label span must be a valid half-open interval")
+            span = Span(axis, start, end)
         labels.append(Label(category, severity, span))
     return tuple(labels)
 
@@ -196,7 +220,12 @@ def parse_item(row: dict[str, Any], line: int) -> Item:
     for name in ("id", "source", "translation", "reference", "audio"):
         if name in row and row[name] is not None:
             row[name].encode("utf-8")  # JSON may encode unpaired surrogate values.
-    labels = parse_labels(row["labels"]) if row.get("labels") is not None else None
+    label_error = None
+    try:
+        labels = parse_labels(row["labels"]) if row.get("labels") is not None else None
+    except ValueError as problem:
+        # Bad labels must not cost the row its evaluation. Treat it as unlabelled.
+        labels, label_error = None, str(problem)
     origin = row.get("label_origin", "provided")
     if origin not in ("provided", "human", "injected"):
         raise ValueError("label_origin must be provided, human or injected")
@@ -219,6 +248,7 @@ def parse_item(row: dict[str, Any], line: int) -> Item:
         split,
         line,
         parse_annotator(row),
+        label_error,
     )
 
 
