@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from .calibration import accepted, calibration_fit, measure, measure_checks, ratio, split_evaluations
+from .extras import dashboard, mqm_scores, review_queue
 from .providers import digest
 from .schema import Evaluation, read_jsonl
 
@@ -295,6 +296,9 @@ def summary_markdown(summary: dict) -> str:
     for lang, data in summary["languages"].items():
         cells = " | ".join(str(data["findings"].get(category, 0)) for category in active)
         lines.append(f"| {lang} | {data['items']} | {data.get('flagged_items', 0)} | {cells} |")
+    if summary.get("mqm"):
+        scores = ", ".join(f"{lang} **{'n/a' if data['score'] is None else data['score']}**" for lang, data in summary["mqm"].items())
+        lines.extend(["", f"MQM-style score per language (100 minus penalty points per 100 source words; minor 1, major 5, critical 10): {scores}."])
     if "baseline" in summary:
         changes = summary["baseline"]
         lines.extend(
@@ -394,7 +398,7 @@ def write_reports(
     output: Path,
     config: dict,
     baseline: Path | Baseline | None,
-) -> None:
+) -> dict:
     """Emit the assignment outputs from deterministic evidence and fitted thresholds."""
     calibration, holdout = split_evaluations(results)
     thresholds, support = calibration_fit(calibration)
@@ -475,6 +479,7 @@ def write_reports(
         "invalid_rows": invalid,
         "invalid_calibration_rows": invalid_labels,
         "languages": languages,
+        "mqm": mqm_scores(rows),
         "findings": findings,
         "quality": quality,
         "top_findings": top,
@@ -504,7 +509,10 @@ def write_reports(
         },
     )
     (output / "summary.md").write_text(summary_markdown(summary), encoding="utf-8", newline="\n")
+    (output / "review_queue.csv").write_text(review_queue(rows), encoding="utf-8", newline="\n")
+    (output / "dashboard.html").write_text(dashboard(rows, summary), encoding="utf-8", newline="\n")
     if diff is not None:
         (output / "diff.md").write_text(diff, encoding="utf-8", newline="\n")
     else:
         (output / "diff.md").unlink(missing_ok=True)
+    return summary

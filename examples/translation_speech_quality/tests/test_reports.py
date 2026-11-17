@@ -355,3 +355,20 @@ def test_live_ten_items_with_cache(tmp_path):
     assert all((cold / name).read_bytes() == (replay / name).read_bytes() for name in REPORTS)
     final_event = json.loads((replay / "run.jsonl").read_text(encoding="utf-8").splitlines()[-1])
     assert final_event["requests"] == 0 and final_event["cache_hits"] > 0
+
+
+def test_answered_review_queue_csv_recalibrates(tmp_path):
+    """Answers typed into review_queue.csv are read back as attributed human labels."""
+    from bodhan_eval.calibration import review_id
+
+    item = parse_item({"id": "q-1", "lang": "hi", "source": "Take 5 steps.", "translation": "6 कदम चलें।"}, 1)
+    answers = tmp_path / "answers.csv"
+    answers.write_text(
+        "review_id,lang,reason,source,translation,audio,verdict,severity,annotator\n"
+        f"{review_id('hi', 'q-1')},hi,weak evidence: number,Take 5 steps.,6 कदम चलें।,,Number,Major,reviewer-01\n",
+        encoding="utf-8",
+    )
+    [labelled], errors = apply_external_labels([item], answers)
+    assert not errors
+    assert [(label.category, label.severity) for label in labelled.labels] == [("number", "major")]
+    assert (labelled.label_origin, labelled.annotator) == ("human", "reviewer-01")

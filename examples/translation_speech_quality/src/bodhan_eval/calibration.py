@@ -34,7 +34,14 @@ def apply_external_labels(
         by_id.setdefault(item.id, []).append(item)
     invalid = []
     updated = set()
-    for line, row, error in read_jsonl(path):
+    if path.suffix.lower() == ".csv":
+        # Answers from the review queue export (review_queue.csv).
+        from .extras import calibration_rows_from_csv
+
+        rows = ((number, row, None) for number, row in enumerate(calibration_rows_from_csv(path), 2))
+    else:
+        rows = read_jsonl(path)
+    for line, row, error in rows:
         if error is None:
             try:
                 opaque_id = row.get("review_id")

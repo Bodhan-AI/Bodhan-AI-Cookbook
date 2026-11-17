@@ -97,6 +97,11 @@ def args_for_cli() -> argparse.Namespace:
         default=90,
         help="longest provider-requested wait, in seconds, before a call is recorded as failed (default 90)",
     )
+    parser.add_argument(
+        "--fail-on-regression",
+        type=count,
+        help="CI mode: exit with status 3 when new flags exceed resolved flags by more than N against --baseline",
+    )
     parser.add_argument("--limit", type=positive, help="select the first N valid matching rows")
     parser.add_argument(
         "--judge-repeat",
@@ -169,7 +174,7 @@ async def run(args: argparse.Namespace) -> int:
             "judge_endpoint_sha256": digest(providers.judge_url.encode()) if providers.judge_url else None,
             "speech_checks_enabled": not args.no_speech,
         }
-        write_reports(results, invalid, invalid_labels, args.out, config, baseline)
+        summary = write_reports(results, invalid, invalid_labels, args.out, config, baseline)
         LOG.info(
             "run_finished",
             extra={
@@ -185,6 +190,12 @@ async def run(args: argparse.Namespace) -> int:
             },
         )
     print(f"Wrote evaluation reports to {args.out.resolve()}")
+    if args.fail_on_regression is not None and "baseline" in summary:
+        changes = summary["baseline"]
+        net = changes.get("added_flags", 0) - changes.get("resolved_flags", 0)
+        if net > args.fail_on_regression:
+            print(f"bodhan_eval: regression gate failed, {net} more new flags than resolved (allowed {args.fail_on_regression}).", file=sys.stderr)
+            return 3
     return 0 if any(result.translation is not None or result.audio_digest is not None for result in results) else 1
 
 

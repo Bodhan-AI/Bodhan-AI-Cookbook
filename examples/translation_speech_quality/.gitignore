@@ -13,3 +13,7 @@ outputs/*
 !outputs/.gitkeep
 sample_data/*
 !sample_data/.gitkeep
+
+# Generated demo audio is distributed as a separate bundle, never committed.
+data/audio/
+*.wav

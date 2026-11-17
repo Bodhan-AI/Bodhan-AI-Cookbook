@@ -126,8 +126,8 @@ def harness(tmp_path, monkeypatch):
     real_client = httpx.AsyncClient
     monkeypatch.setattr(providers.httpx, "AsyncClient", lambda **_: real_client(transport=httpx.MockTransport(endpoints(transcripts, seen))))
 
-    def run(output: str) -> int:
-        argv = ["bodhan_eval", "--dataset", str(dataset), "--langs", "hi,ta,bn", "--out", output, "--cache", "cache.sqlite", "--max-cost-inr", "1"]
+    def run(output: str, *extra: str) -> int:
+        argv = ["bodhan_eval", "--dataset", str(dataset), "--langs", "hi,ta,bn", "--out", output, "--cache", "cache.sqlite", "--max-cost-inr", "1", *extra]
         monkeypatch.setattr(sys, "argv", argv)
         return main()
 
@@ -170,3 +170,22 @@ def test_ten_indic_rows_end_to_end_and_cached_replay(harness):
         assert (root / "cold" / name).read_bytes() == (root / "replay" / name).read_bytes()
     final = json.loads((root / "replay" / "run.jsonl").read_text(encoding="utf-8").splitlines()[-1])
     assert final["requests"] == 0
+
+
+def test_stretch_outputs_and_regression_gate(harness):
+    """MQM scores, the review queue, the dashboard, and the CI gate all come from the same run."""
+    root, run, _ = harness
+    assert run("first") == 0
+    summary = json.loads((root / "first" / "summary.json").read_text(encoding="utf-8"))
+    assert set(summary["mqm"]) == {"bn", "hi", "ta"} and all(0 <= value["score"] <= 100 for value in summary["mqm"].values())
+    page = (root / "first" / "dashboard.html").read_text(encoding="utf-8")
+    assert "hi-flip" in page and page.count("</script>") == 2
+    assert (root / "first" / "review_queue.csv").read_text(encoding="utf-8").startswith("review_id,lang,reason")
+
+    # A new defect in a previously clean row trips the gate; an unchanged run passes it.
+    dataset = root / "data.jsonl"
+    rows = [json.loads(line) for line in dataset.read_text(encoding="utf-8").splitlines()]
+    rows[0]["translation"] = rows[0]["translation"].replace("10", "15")
+    dataset.write_text("".join(json.dumps(row, ensure_ascii=False) + "\n" for row in rows), encoding="utf-8")
+    assert run("second", "--baseline", "first", "--fail-on-regression", "0") == 3
+    assert run("third", "--baseline", "second", "--fail-on-regression", "0") == 0
