@@ -98,11 +98,24 @@ def accepted(candidates: list[Finding], thresholds: dict[str, float]) -> list[Fi
         # One text passage gets one explanation: the strongest evidence wins, so a changed
         # digit is not reported again as a judge mistranslation of the same words.
         if not any(
-            (other.category == finding.category or {other.category, finding.category} <= TEXT_CATEGORY_SET) and overlaps(finding.span, other.span)
+            (other.category == finding.category and overlaps(finding.span, other.span))
+            or ({other.category, finding.category} <= TEXT_CATEGORY_SET and same_passage(finding.span, other.span))
             for other in distinct
         ):
             distinct.append(finding)
     return sorted(distinct, key=lambda f: (f.category, f.span.field, f.span.start, f.span.end, f.check))
+
+
+def same_passage(left: Span, right: Span) -> bool:
+    """Tell whether two spans describe the same words, not one inside a much larger passage.
+
+    A whole-table format flag or a whole-text language flag must not absorb a changed digit
+    inside it, so cross-category merging needs most of each span to overlap the other.
+    """
+    if not overlaps(left, right):
+        return False
+    shared = min(left.end, right.end) - max(left.start, right.start)
+    return shared >= 0.5 * (left.end - left.start) and shared >= 0.5 * (right.end - right.start)
 
 
 def explicit_source_splits(items: list[Item]) -> dict[str, str]:

@@ -62,6 +62,8 @@ def row_for(result: Evaluation, thresholds: dict[str, float]) -> dict:
             )
             if finding.strength < thresholds[finding.category]
         ],
+        # Evidence over threshold that a stronger finding on the same words already explains.
+        "merged": [asdict(finding) for finding in result.candidates if finding.strength >= thresholds[finding.category] and finding not in findings],
     }
 
 

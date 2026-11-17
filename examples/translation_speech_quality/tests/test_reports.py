@@ -372,3 +372,16 @@ def test_answered_review_queue_csv_recalibrates(tmp_path):
     assert not errors
     assert [(label.category, label.severity) for label in labelled.labels] == [("number", "major")]
     assert (labelled.label_origin, labelled.annotator) == ("human", "reviewer-01")
+
+
+def test_table_wide_format_flag_does_not_hide_a_changed_number_inside_it():
+    """A strong whole-table format finding and a number finding inside the table are both reported."""
+    from bodhan_eval.calibration import accepted
+    from bodhan_eval.schema import CATEGORIES
+
+    thresholds = dict.fromkeys(CATEGORIES, 0.72)
+    table = Finding("format", "major", Span("translation", 0, 70), "markdown", "| … |", "Table shape changed.", 0.98)
+    digit = Finding("number", "major", Span("translation", 40, 44), "numbers", "12 g", "Quantity changed.", 0.88)
+    same_words = Finding("mistranslation", "major", Span("translation", 40, 44), "judge", "12 g", "Wrong amount.", 0.85)
+    kept = accepted([table, digit, same_words], thresholds)
+    assert {finding.category for finding in kept} == {"format", "number"}

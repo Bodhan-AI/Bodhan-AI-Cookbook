@@ -497,6 +497,23 @@ LOOP_WORDS = 4
 LOOP_SIMILARITY = 0.8
 
 
+def similar_word(left: str, right: str) -> bool:
+    """Treat ASR spelling variants of one word (साइकिल, साइकल) as the same word."""
+    return left == right or (abs(len(left) - len(right)) <= 2 and SequenceMatcher(None, left, right).ratio() >= 0.75)
+
+
+def similar_phrase(left: list[str] | tuple[str, ...], right: tuple[str, ...]) -> bool:
+    """Match two equal-length word sequences when at least 80% of positions are similar words."""
+    allowed = len(right) - math.ceil(LOOP_SIMILARITY * len(right))
+    misses = 0
+    for one, other in zip(left, right, strict=True):
+        if not similar_word(one, other):
+            misses += 1
+            if misses > allowed:
+                return False
+    return True
+
+
 def transcript_loops(expected: str, transcript: str) -> Finding | None:
     """Find the longest phrase of 4+ words that the transcript says more often than the script does."""
     def words(text: str) -> list[tuple[int, int, str]]:
@@ -508,29 +525,37 @@ def transcript_loops(expected: str, transcript: str) -> Finding | None:
         return tokens
 
     heard, script = words(transcript), [token for _, _, token in words(expected)]
-    for size in range(min(len(heard) // 2, 40), LOOP_WORDS - 1, -1):
+    tokens = [token for _, _, token in heard]
+
+    def grams(sequence: list[str], size: int) -> Counter:
+        return Counter(tuple(sequence[at : at + size]) for at in range(len(sequence) - size + 1))
+
+    # No repeated 4-word phrase means no longer repeat either, which keeps clean text cheap.
+    if not any(count >= 2 for count in grams(tokens, LOOP_WORDS).values()):
+        return None
+    for size in range(min(len(tokens) // 2, 40), LOOP_WORDS - 1, -1):
+        spoken_counts, written_counts = grams(tokens, size), grams(script, size)
         seen: dict[tuple[str, ...], int] = {}
-        for index in range(len(heard) - size + 1):
-            phrase = tuple(token for _, _, token in heard[index : index + size])
+        for index in range(len(tokens) - size + 1):
+            phrase = tuple(tokens[index : index + size])
             first = seen.setdefault(phrase, index)
-            if first + size <= index:
-                spoken = sum(1 for at in range(len(heard) - size + 1) if tuple(t for _, _, t in heard[at : at + size]) == phrase)
-                # ASR spells words its own way, so a script phrase counts if it is close in characters.
-                joined = " ".join(phrase)
-                written = sum(
-                    1 for at in range(len(script) - size + 1) if SequenceMatcher(None, " ".join(script[at : at + size]), joined).ratio() >= LOOP_SIMILARITY
+            if first + size > index or spoken_counts[phrase] <= written_counts[phrase]:
+                continue
+            spoken = spoken_counts[phrase]
+            # ASR spells words its own way, so a script phrase counts when most of its words match
+            # position by position, each allowing a small spelling difference.
+            written = sum(1 for at in range(len(script) - size + 1) if similar_phrase(script[at : at + size], phrase))
+            if spoken > written:
+                start, end = heard[index][0], heard[index + size - 1][1]
+                return Finding(
+                    "speech_repetition",
+                    "major",
+                    Span("transcript", start, end),
+                    "transcript_loop",
+                    transcript[start:end],
+                    f"The back-transcript says this {size}-word phrase {spoken} times; the script has it {written} times.",
+                    0.84,
                 )
-                if spoken > written:
-                    start, end = heard[index][0], heard[index + size - 1][1]
-                    return Finding(
-                        "speech_repetition",
-                        "major",
-                        Span("transcript", start, end),
-                        "transcript_loop",
-                        transcript[start:end],
-                        f"The back-transcript says this {size}-word phrase {spoken} times; the script has it {written} times.",
-                        0.84,
-                    )
     return None
 
 

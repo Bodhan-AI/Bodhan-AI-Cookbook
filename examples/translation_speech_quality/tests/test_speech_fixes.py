@@ -228,3 +228,25 @@ def test_a_fifth_of_the_script_missing_in_one_block_is_strong_omission_evidence(
     assert omission.strength == 0.86
     _, clean = speech_findings(script, script, 6000)
     assert not [finding for finding in clean if finding.category == "speech_omission"]
+
+
+def test_loop_search_stays_fast_on_a_long_passage():
+    """A 2,000-word script with a repeated 30-word stretch is checked well within a second or two."""
+    import random
+    import time
+
+    from bodhan_eval.audio_checks import transcript_loops
+
+    generator = random.Random(1)
+    vocabulary = ["पानी", "गरम", "करें", "धीरे", "हिलाएँ", "कक्षा", "मिनट", "बाद", "फिर", "जांचें", "रेखा", "कोण"]
+    words = []
+    for index in range(2000):
+        words.append(generator.choice(vocabulary))
+        if index % 90 == 0:
+            words += "ध्यान से पढ़ें और उत्तर लिखें".split()
+    script = " ".join(words)
+    started = time.monotonic()
+    assert transcript_loops(script, script) is None
+    looped = transcript_loops(script, script + " " + " ".join(words[100:130]))
+    assert time.monotonic() - started < 5
+    assert looped is not None and "30-word" in looped.detail

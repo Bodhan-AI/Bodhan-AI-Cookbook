@@ -184,7 +184,9 @@ async def speech_checks(
     if not expected:
         result.record("speech_alignment", "unavailable", reason="The intended spoken script is unknown.")
         return
-    alignment_metrics, findings = speech_findings(expected, result.transcript, audio.duration_ms, script_field=speech_script_field(result))
+    alignment_metrics, findings = await asyncio.to_thread(
+        speech_findings, expected, result.transcript, audio.duration_ms, script_field=speech_script_field(result)
+    )
     result.record("speech_alignment", "unavailable" if alignment_metrics.get("alignment") == "unavailable" else "ok", **alignment_metrics)
     result.candidates.extend(findings)
     # Two checkers disagree when the waveform reads as quiet but the recognizer heard the
