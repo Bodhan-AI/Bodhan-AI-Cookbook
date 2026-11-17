@@ -5,13 +5,13 @@ import os
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+from . import calibrate, config, dataset, report
 from . import checks_speech as cs
-from . import config, dataset, report
 from .cache import Cache
 from .checks_roundtrip import agreement, back_translation, regen_candidates, regenerate
 from .checks_text import MIN_ITEMS_FOR_STATS, OUTLIER_Z, TEXT_CHECKS, chrf, length_candidates, reference_scores, robust_z
 from .clients import KEY_ENV, LLM, Bodhan, Budget, NotRun, RunLog
-from .combine import combine
+from .combine import SPAN_SIDE, combine
 from .judge import judge_item
 
 
@@ -187,15 +187,30 @@ def run(args, bodhan=None, llm=None, env=os.environ) -> int:
             judged.setdefault(res["lang"], []).append(res["judge"]["consistent"])
     consistency = {lang: {"items": len(v), "same_verdict": round(sum(v) / len(v), 3)} for lang, v in sorted(judged.items())}
 
+    # Calibrate on labelled items, then decide every item with the same thresholds.
+    labels, label_sources, label_warnings = calibrate.collect(items, args.calibration)
+    warnings += label_warnings
+    thresholds = calibrate.fit_thresholds(results, labels)
+    noise = 0
     for res in results:
         if not any(v == "ok" for v in res["checks_run"].values()):
             res["status"] = "unscored"
         else:
-            res["status"], res["flags"], res["review"] = combine(res["_cands"])
+            j = res.get("judge") or {}
+            verdict = "clean" if j.get("pass1") == "clean" and j.get("pass2") in (None, "clean") else None
+            res["status"], res["flags"], res["review"], dropped = combine(calibrate.apply(res["_cands"], thresholds), verdict)
+            if dropped:
+                res["dropped_as_noise"] = dropped
+                noise += dropped
+    cal = calibrate.evaluate(results, labels, thresholds, label_sources, SPAN_SIDE)
+    cal["judge"] = {"consistency": consistency}
+    cal["dropped_as_checker_noise"] = noise
+    for res in results:
         for k in [k for k in res if k.startswith("_")]:
             del res[k]
 
-    meta = {"langs": sorted(langs), "warnings": warnings, "regen_agreement": agree, "judge_consistency": consistency}
+    meta = {"langs": sorted(langs), "warnings": warnings, "regen_agreement": agree, "judge_consistency": consistency,
+            "calibration": cal}
     report.write(out, results, skipped, meta, log)
     with open(out / "run_log.jsonl", "w", encoding="utf-8", newline="\n") as f:
         for e in log.events:
