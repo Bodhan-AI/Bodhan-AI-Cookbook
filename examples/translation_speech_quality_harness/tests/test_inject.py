@@ -80,10 +80,15 @@ def test_number_respects_digit_script():
         got = inj.number(r, {}, inj.rng_for(seed))
         changes, lab = got
         s, e = lab["translation_span"]
+        if lab["recipe"] == "swap_numbers":
+            assert sorted(changes["translation"][s:e].split()) != [] and changes["translation"] != r["translation"]
+            continue
         old_tok, new_tok = lab["was"], lab["now"]
-        assert len(old_tok) == len(new_tok) and old_tok != new_tok
-        assert all((a.isascii() == b.isascii()) for a, b in zip(old_tok, new_tok, strict=True))
-        assert changes["translation"][s:e] == new_tok
+        assert old_tok != new_tok and changes["translation"][s:e] == new_tok
+        if lab["recipe"] == "change_digit":
+            assert len(old_tok) == len(new_tok)
+        # every digit keeps the script the output already used
+        assert {d.isascii() for d in new_tok if d.isdigit()} <= {d.isascii() for d in old_tok if d.isdigit()}
 
 
 def test_omission_never_drops_table_rows():
@@ -156,3 +161,29 @@ def test_cli(tmp_path):
     assert inj.main(["--dataset", str(src), "--out", str(tmp_path / "out" / "inj.jsonl"), "--seed", "3"]) == 0
     out = [json.loads(x) for x in (tmp_path / "out" / "inj.jsonl").read_text(encoding="utf-8").splitlines()]
     assert len(out) == 9 and any(r["labels"] for r in out) and any(r["labels"] == [] for r in out)
+
+
+def test_new_format_and_number_recipes_keep_labels_honest(tmp_path):
+    src = "## T\n\n| a | b | c |\n| --- | --- | --- |\n| 1 | 2 | 3 |\n| 4 | 5 | 6 |\n\n```\ncode\n```"
+    tr = "## ट\n\n| क | ख | ग |\n| --- | --- | --- |\n| 1 | 2 | 3 |\n| 4 | 5 | 6 |\n\n```\ncode\n```"
+    row = {"id": "f", "lang": "hi", "source": src, "translation": tr}
+    seen = set()
+    for seed in range(40):
+        got = inj.format_error(row, {}, inj.rng_for(seed))
+        changes, lab = got
+        seen.add(lab["recipe"])
+        check_label(row, changes, lab)
+    assert {"drop_table_cell", "drop_code_fence"} <= seen
+    nums = {"id": "n", "lang": "hi", "source": "Take 120 g and 45 g.", "translation": "120 ग्राम और 45 ग्राम लें।"}
+    recipes = set()
+    for seed in range(40):
+        changes, lab = inj.number(nums, {}, inj.rng_for(seed))
+        recipes.add(lab["recipe"])
+        check_label(nums, changes, lab)
+    assert {"swap_numbers", "add_or_drop_zero", "change_digit"} <= recipes
+
+
+def test_categories_limit_what_is_injected(tmp_path):
+    rows = rows_same_ids()
+    out = inj.inject(rows, 0.5, "7", tmp_path, tmp_path, tmp_path / "audio", None, ["number", "format"])
+    assert {lab["type"] for r in out for lab in r["labels"]} <= {"number", "format", "omission", "addition"}

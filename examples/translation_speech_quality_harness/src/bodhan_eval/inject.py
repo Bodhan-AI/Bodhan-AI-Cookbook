@@ -149,6 +149,20 @@ def number(row, ctx, rng):
             new = tr[:u0] + UNIT_SWAPS[n["unit"]] + tr[m.end():]
             return {"translation": new}, label("number", "major", "unit_swap", s_match["span"], (n["span"][0], u0 + len(UNIT_SWAPS[n["unit"]])))
     tok = n["token"]
+    op = rng.choice(["digit", "digit", "zero", "swap"])
+    others = [m for m in t_nums if m["token"] != tok and m["value"] != n["value"]]
+    if op == "swap" and others:  # two numbers trade places
+        m = rng.choice(others)
+        (a, b), (c, d) = sorted([n["span"], m["span"]])
+        new = tr[:a] + tr[c:d] + tr[b:c] + tr[a:b] + tr[d:]
+        s_m = next(x for x in s_nums if x["value"] == m["value"])
+        s_lo, s_hi = min(s_match["span"][0], s_m["span"][0]), max(s_match["span"][1], s_m["span"][1])
+        return {"translation": new}, label("number", "major", "swap_numbers", (s_lo, s_hi), (a, d), was=f"{tr[a:b]} … {tr[c:d]}")
+    if op == "zero" and tok.isdigit():  # add or drop a zero: 100 -> 1000 or 10
+        new_tok = tok[:-1] if unicodedata.digit(tok[-1]) == 0 and len(tok) > 1 and rng.random() < 0.5 else tok + _with_digit(tok[-1], 0, 0)
+        s, e = n["span"]
+        return {"translation": tr[:s] + new_tok + tr[e:]}, label("number", "major", "add_or_drop_zero", s_match["span"], (s, s + len(new_tok)),
+                                                                  was=tok, now=new_tok)
     digits = [i for i, ch in enumerate(tok) if ch.isdigit()]
     pos = digits[-1] if len(digits) == 1 or rng.random() < 0.5 else digits[0]
     old = unicodedata.digit(tok[pos])
@@ -230,6 +244,18 @@ def format_error(row, ctx, rng):
         b = rng.choice(t_bold)
         s_b = src.index("**")
         options.append(("drop_bold_marker", lambda: (tr[:b.end() - 2] + tr[b.end():], (s_b, src.index("**", s_b + 2) + 2), (b.start(), b.end() - 2))))
+    t_rows = [m for m in re.finditer(r"^\|(?:[^|\n]*\|){3,}[ \t]*$", tr, re.M) if not _TABLE_SEP.match(m.group())]
+    s_table = re.search(r"^\|.*\|[ \t]*$", src, re.M)
+    if t_rows[1:] and s_table:  # a data row loses one cell
+        row_m = rng.choice(t_rows[1:])
+        cells = [c.start() + row_m.start() for c in re.finditer(r"\|", row_m.group())]
+        ci = rng.randrange(1, len(cells) - 1)  # not `k`: the heading recipe's lambda above reads k
+        cut = cells[ci + 1] - cells[ci]
+        options.append(("drop_table_cell", lambda: (tr[:cells[ci]] + tr[cells[ci + 1]:], s_table.span(), (row_m.start(), row_m.end() - cut))))
+    t_fence, s_fence = list(re.finditer(r"^```[^\n]*$", tr, re.M)), re.search(r"^```", src, re.M)
+    if len(t_fence) >= 2 and s_fence:  # the closing fence of a code block is lost
+        f = t_fence[1]
+        options.append(("drop_code_fence", lambda: (tr[:f.start()] + tr[f.end() + 1:], (s_fence.start(), s_fence.end()), (max(0, f.start() - 1), f.start()))))
     if not options:
         return None
     recipe, make = rng.choice(options)
@@ -242,6 +268,14 @@ def wrong_language(row, ctx, rng):
     other = [r for r in ctx["by_id"].get(row["id"], []) if r["lang"] != row["lang"] and r.get("translation")]
     ts, ss = _sents(tr), _sents(src)
     prose = [k for k in range(len(ts)) if _prose(tr, ts[k])] if len(ts) == len(ss) else []
+    same_shape = [o for o in other if len(_sents(o["translation"])) == len(ts)]
+    if len(ts) >= 2 and prose and same_shape and rng.random() < 0.34:  # one sentence in another language
+        o, k = rng.choice(sorted(same_shape, key=lambda r: r["lang"])), rng.choice(prose)
+        s, e = ts[k]
+        a, b = _sents(o["translation"])[k]
+        piece = o["translation"][a:b]
+        return ({"translation": tr[:s] + piece + tr[e:]},
+                label("wrong_language", "major", f"sentence_in_{o['lang']}", ss[k], (s, s + len(piece))))
     if len(ts) >= 2 and prose and (not other or rng.random() < 0.5):
         k = rng.choice(prose)  # one sentence left in English
         s, e = ts[k]
@@ -357,7 +391,8 @@ RECIPES = {"omission": omission, "addition": addition, "number": number, "term":
            "speech_repetition": speech_repetition, "garbled": garbled}
 
 
-def inject(rows: list[dict], rate: float, seed, base: Path, out_dir: Path, audio_dir: Path, bodhan=None) -> list[dict]:
+def inject(rows: list[dict], rate: float, seed, base: Path, out_dir: Path, audio_dir: Path, bodhan=None,
+           categories: list[str] | None = None) -> list[dict]:
     rows = [dict(r) for r in rows]
     ctx = {"bodhan": bodhan, "base": base, "out_dir": out_dir, "audio_dir": audio_dir, "by_lang": {}, "by_id": {}}
     for r in rows:
@@ -368,7 +403,8 @@ def inject(rows: list[dict], rate: float, seed, base: Path, out_dir: Path, audio
     for lang in sorted(ctx["by_lang"]):
         pool = sorted((r for r in ctx["by_lang"][lang] if r.get("translation")), key=lambda r: rng_for(seed, "pick", r["id"], lang).random())
         n = round(rate * len(pool))
-        slots = [CATEGORIES[i % len(CATEGORIES)] for i in range(n)]
+        cats = [c for c in CATEGORIES if not categories or c in categories]
+        slots = [cats[i % len(cats)] for i in range(n)]
         slots.sort(key=PLACEMENT_ORDER.index)
         used = set()
         for cat in slots:
@@ -405,6 +441,7 @@ def main(argv=None) -> int:
     p.add_argument("--out", required=True)
     p.add_argument("--rate", type=float, default=0.5, help="share of items per language that get one error")
     p.add_argument("--seed", default="7")
+    p.add_argument("--categories", help=f"comma-separated subset of: {', '.join(CATEGORIES)}")
     p.add_argument("--audio-dir", help="where edited audio goes (default: <out folder>/audio)")
     p.add_argument("--env-file", help="KEY=VALUE file with BODHAN_TRANSLATE_KEY, for the re-translation recipes")
     p.add_argument("--cache-dir", default=".bodhan_eval_cache")
@@ -422,7 +459,10 @@ def main(argv=None) -> int:
     else:
         print("BODHAN_TRANSLATE_KEY not set: term and mistranslation recipes that re-translate are skipped", file=sys.stderr)
     audio_dir = Path(a.audio_dir) if a.audio_dir else out.parent / "audio"
-    result = inject(rows, a.rate, a.seed, src.parent, out.parent, audio_dir, bodhan)
+    cats = [c.strip() for c in (a.categories or "").split(",") if c.strip()]
+    if set(cats) - set(CATEGORIES):
+        p.error(f"unknown categories: {', '.join(sorted(set(cats) - set(CATEGORIES)))}")
+    result = inject(rows, a.rate, a.seed, src.parent, out.parent, audio_dir, bodhan, cats or None)
     out.parent.mkdir(parents=True, exist_ok=True)
     with open(out, "w", encoding="utf-8", newline="\n") as f:
         for r in result:
