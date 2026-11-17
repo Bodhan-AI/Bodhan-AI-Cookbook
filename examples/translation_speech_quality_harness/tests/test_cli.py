@@ -82,3 +82,28 @@ def test_skip_switches_checks_off(tmp_path, fake_bodhan, fake_llm):
     assert all(r["checks_run"].get("judge", "not_run: disabled by --skip") == "not_run: disabled by --skip" for r in rows)
     assert any(r["checks_run"].get("regen_diff") == "not_run: disabled by --skip" for r in rows)
     assert "bogus" in json.loads((out / "summary.json").read_text(encoding="utf-8"))["warnings"][0]
+
+
+def test_unseen_language_runs_end_to_end(tmp_path, fake_bodhan, fake_llm):
+    # Telugu is not in the demo set; nothing language-specific should be needed.
+    src = ["Water boils at 100 degrees at sea level.", "The heart pumps blood through the body."]
+    te = ["సముద్ర మట్టం వద్ద నీరు 100 డిగ్రీల వద్ద మరుగుతుంది.", "గుండె శరీరం అంతటా రక్తాన్ని పంపుతుంది."]
+    known = {(s, "Telugu"): t for s, t in zip(src, te, strict=True)} | {(t, "English"): s for s, t in zip(src, te, strict=True)}
+    fake_bodhan.translate = lambda text, lang: known.get((text, lang), text)
+    rows = [{"id": "a", "lang": "te", "source": src[0], "translation": te[0].replace("100", "1000")},
+            {"id": "b", "lang": "te", "source": src[1], "translation": te[1]}]
+    ds = tmp_path / "te.jsonl"
+    ds.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8")
+    out = run(tmp_path, fake_bodhan, fake_llm, dataset=ds, langs="te")
+    items = {r["id"]: r for r in map(json.loads, (out / "items.jsonl").read_text(encoding="utf-8").splitlines())}
+    assert items["a"]["status"] == "flagged" and items["a"]["flags"][0]["category"] == "number"
+    assert items["b"]["status"] == "clean"
+
+
+def test_language_far_from_fresh_translation_warns(tmp_path, fake_bodhan, fake_llm):
+    rows = [{"id": f"x{i}", "lang": "hi", "source": f"Sentence number {i} is here.", "translation": f"पूरी तरह अलग पाठ {i} यहाँ है।"} for i in range(10)]
+    fake_bodhan.translate = lambda text, lang: "कुछ और ही लिखा है" if lang == "Hindi" else text
+    ds = tmp_path / "far.jsonl"
+    ds.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8")
+    out = run(tmp_path, fake_bodhan, fake_llm, dataset=ds, langs="hi")
+    assert any(w.startswith("hi: median similarity") for w in json.loads((out / "summary.json").read_text(encoding="utf-8"))["warnings"])

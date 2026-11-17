@@ -113,3 +113,12 @@ def test_speech_flag_without_text_span_matches_by_category():
     assert hits({"category": "garbled", "span": None, "source_span": None, "translation_span": None}, lab)
     assert not hits({"category": "omission", "span": None, "source_span": None, "translation_span": None}, lab)
     assert not hits({"category": "garbled", "span": [30, 40], "source_span": [30, 40], "translation_span": None}, lab)
+
+
+def test_per_language_and_judge_only_metrics():
+    hit = {"category": "omission", "span": [0, 10], "source_span": [0, 10], "translation_span": None, "checks": ["judge"]}
+    results = [res(0, flags=[hit]), {"id": "1", "lang": "ta", "_cands": [], "flags": [hit]}]
+    labels = {("0", "hi"): [{"type": "omission", "category": "omission", "span": [2, 6]}], ("1", "ta"): []}
+    c = evaluate(results, labels, {}, {}, "source")
+    assert c["per_language"]["hi"]["recall"] == 1.0 and c["per_language"]["ta"]["false_alarm_rate_clean"] == 1.0
+    assert c["judge_only_flags"] == {"flags": 2, "correct": 1, "precision": 0.5}

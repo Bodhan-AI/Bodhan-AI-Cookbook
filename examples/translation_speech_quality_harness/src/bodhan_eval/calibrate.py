@@ -194,7 +194,19 @@ def evaluate(results: list[dict], labels: dict, thresholds: dict, sources: dict,
         row["recall"] = _rate(row["tp"], row["tp"] + row["fn"])
         row["interval_recall"] = wilson(row["tp"], row["tp"] + row["fn"])
 
+    per_lang = {}
+    for lang in sorted({k[1] for k in keys}):
+        e, c = [k for k in with_err if k[1] == lang], [k for k in clean if k[1] == lang]
+        per_lang[lang] = {"labelled_errors_items": len(e), "labelled_clean": len(c),
+                          "recall": _rate(sum(bool(by_key[k]["flags"]) for k in e), len(e)),
+                          "false_alarm_rate_clean": _rate(sum(bool(by_key[k]["flags"]) for k in c), len(c))}
+    # Flags that only the judge supports: how far its word alone can be trusted.
+    judge_only = [(k, f) for k in keys for f in by_key[k]["flags"] if f.get("checks") == ["judge"]]
+    jo_ok = sum(any(f["category"] == lab["category"] and hits(f, lab) for lab in labels[k]) for k, f in judge_only)
+
     return {
+        "per_language": per_lang,
+        "judge_only_flags": {"flags": len(judge_only), "correct": jo_ok, "precision": _rate(jo_ok, len(judge_only))},
         "labelled_items": len(keys), "labelled_clean": len(clean),
         "matching_rule": f"item detected if it has any flag; a label is located by a flag whose span overlaps it on either side "
                          f"(or by category when the label has no span); primary span side: {span_side}",

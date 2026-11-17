@@ -28,6 +28,7 @@ def parse_langs(value: str) -> tuple[set[str], list[str]]:
     return codes, warnings
 
 
+SYSTEMATIC_SIMILARITY = 0.5  # median regeneration similarity below this: warn that the whole language looks different
 SKIPPABLE = {"back_translation", "regen_diff", "audio_stats", "transcript", "judge"}
 
 
@@ -131,6 +132,12 @@ def run(args, bodhan=None, llm=None, env=os.environ) -> int:
     agree = {}
     for lang in sorted({items[i]["lang"] for i in regens}):
         agree[lang] = agreement([regens[i] for i in sorted(regens) if items[i]["lang"] == lang])
+    for lang in agree:
+        # In-run statistics assume most items are normal; a whole language far from a fresh translation breaks that.
+        sims = sorted(regens[i]["similarity"] for i in regens if items[i]["lang"] == lang)
+        if len(sims) >= MIN_ITEMS_FOR_STATS and sims[len(sims) // 2] < SYSTEMATIC_SIMILARITY:
+            warnings.append(f"{lang}: median similarity to a fresh translation is {sims[len(sims) // 2]:.2f}; the outputs may come from "
+                            "another system or model version, or fail systematically, and per-language statistics may hide it")
     for i, rg in regens.items():
         results[i]["scores"]["regen_similarity"] = rg["similarity"]
         results[i]["_cands"] += regen_candidates(items[i], rg, agree[items[i]["lang"]])
