@@ -9,7 +9,7 @@ python tools/build_demo.py --wmt-dir <folder with en-hi_IN.jsonl, en-ta_IN.jsonl
 3. Audio: Indic-Speak for a sample of short, plain items per language (see --audio-per-lang). Saved under data/audio/,
    which git ignores; the README links a public copy.
 4. data/demo_clean.jsonl, then the injector writes data/demo.jsonl (seed 7) and data/demo_v2.jsonl (seed 11, for the
-   --baseline diff demo).
+   --baseline diff demo). Human labels from data/demo_labels.jsonl are copied onto rows the injector left untouched.
 """
 
 import argparse
@@ -96,8 +96,18 @@ def main() -> int:
     with open(data / "demo_clean.jsonl", "w", encoding="utf-8", newline="\n") as f:
         for r in rows:
             f.write(json.dumps(r, ensure_ascii=False) + "\n")
+    # Real errors found by hand in the clean output (data/demo_labels.jsonl); without them the injector marks those rows clean.
+    human = {(x["id"], x["lang"]): x["labels"] for x in map(json.loads, (data / "demo_labels.jsonl").read_text(encoding="utf-8").splitlines()) if x["labels"]}
     for seed, name in (("7", "demo.jsonl"), ("11", "demo_v2.jsonl")):
         out = inject.inject(rows, 0.5, seed, data, data, data / "audio", bodhan)
+        clean = {(r["id"], r["lang"]): r["translation"] for r in rows}
+        for r in out:
+            key = (r["id"], r["lang"])
+            for lab in human.get(key, []):
+                # Keep a human label only while its text is unchanged and every injected edit comes after it.
+                e = lab["translation_span"][1]
+                if r["translation"][:e] == clean[key][:e] and all(x["translation_span"][0] >= e for x in r["labels"]):
+                    r["labels"].append(lab)
         with open(data / name, "w", encoding="utf-8", newline="\n") as f:
             for r in out:
                 f.write(json.dumps(r, ensure_ascii=False) + "\n")
