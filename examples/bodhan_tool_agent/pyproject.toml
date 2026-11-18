@@ -17,7 +17,7 @@ dependencies = [
     "pydantic-settings==2.7.1",
     "httpx==0.28.1",
     "aiohttp==3.9.5",
-    "pypdfium2==0.1.5",
+    "pypdfium2==5.15.2",
     "Pillow==10.4.0",
     "python-dotenv==1.0.1",
     "requests==2.32.3",
@@ -27,9 +27,26 @@ dependencies = [
 bodhan-mcp = "bodhan_mcp.__main__:main"
 bodhan-agent = "bodhan_agent.__main__:main"
 
+[tool.setuptools]
+package-dir = {"" = "src"}
+
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.ruff]
 line-length = 88
+
+[tool.ruff.lint]
 select = ["E", "F", "W"]
+per-file-ignores = { "tests/*" = ["E501"] }
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==9.1.0",
+    "pytest-asyncio==1.5.0",
+]

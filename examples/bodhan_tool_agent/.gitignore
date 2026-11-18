@@ -9,6 +9,7 @@ out/
 *.wav
 *.mp4
 *.pdf
+demo_inputs/
 sample_data/*
 !sample_data/.gitkeep
 outputs/*
