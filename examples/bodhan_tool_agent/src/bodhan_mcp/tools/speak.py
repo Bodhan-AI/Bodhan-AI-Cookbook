@@ -126,9 +126,9 @@ async def synthesize_speech(
 
     for sent in sentences:
         try:
-            resp, cost = await client.request(
+            api_resp = await client.request(
                 "indic-speak",
-                "/v1/audio/speech",
+                "/audio/speech",
                 json_data={
                     "input": sent,
                     "voice": voice,
@@ -137,6 +137,8 @@ async def synthesize_speech(
                 },
                 timeout=120,
             )
+            resp = api_resp.data
+            cost = api_resp.cost_inr
         except Exception as e:
             return _error(
                 ErrorCode.NETWORK_ERROR,

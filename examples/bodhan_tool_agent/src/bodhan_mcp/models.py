@@ -46,6 +46,7 @@ TTS_VOICES: dict[str, dict[str, list[str]]] = {
     "bn": {"female": ["Ishita"], "male": ["Sourav"]},
     "brx": {"female": ["Gwrbw"], "male": ["Sansuma"]},
     "doi": {"female": ["Preeti"], "male": ["Sham"]},
+    "en": {"female": ["Emily"], "male": ["James"]},
     "gu": {"female": ["Dhara"], "male": ["Parth"]},
     "hi": {"female": ["Kavya", "Suhani"], "male": ["Amit"]},
     "kn": {"female": ["Deepika"], "male": ["Adarsh"]},

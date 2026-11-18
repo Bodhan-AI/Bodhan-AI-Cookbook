@@ -21,7 +21,7 @@ from bodhan_mcp.models import (
     SUPPORTED_TRANSLATE_LANGUAGES,
     SUPPORTED_TTS_LANGUAGES,
 )
-from bodhan_mcp.client import BodhanCache
+from bodhan_mcp.client import BodhanCache, APIResponse
 
 
 def create_test_wav(path: str, duration_sec: float = 1.0, sample_rate: int = 16000):
@@ -110,9 +110,9 @@ class TestTranscribeAudio:
             create_test_wav(str(wav_path), duration_sec=2.0)
 
             with patch("bodhan_mcp.tools.transcribe.client") as mock_client:
-                mock_client.request = AsyncMock(return_value=(
-                    {"text": "Hello world", "duration_sec": 2.0},
-                    0.10
+                mock_client.request = AsyncMock(return_value=APIResponse(
+                    data={"text": "Hello world", "duration_sec": 2.0},
+                    cost_inr=0.10, cached=False
                 ))
                 result = await transcribe_audio(str(wav_path), language_hint="en")
                 assert "text" in result
@@ -127,9 +127,9 @@ class TestTranscribeAudio:
             create_test_wav(str(wav_path), duration_sec=30.0)
 
             with patch("bodhan_mcp.tools.transcribe.client") as mock_client:
-                mock_client.request = AsyncMock(return_value=(
-                    {"text": "Short probe", "duration_sec": 15.0},
-                    0.025
+                mock_client.request = AsyncMock(return_value=APIResponse(
+                    data={"text": "Short probe", "duration_sec": 15.0},
+                    cost_inr=0.025, cached=False
                 ))
                 result = await transcribe_audio(str(wav_path), max_duration_sec=15.0)
                 assert result["duration_sec"] > 0
@@ -169,9 +169,9 @@ class TestExtractDocumentText:
                 doc.close()
 
                 with patch("bodhan_mcp.tools.ocr.client") as mock_client:
-                    mock_client.request = AsyncMock(return_value=(
-                        {"choices": [{"message": {"content": "Page content"}}], "blocks": []},
-                        0.20
+                    mock_client.request = AsyncMock(return_value=APIResponse(
+                        data={"choices": [{"message": {"content": "Page content"}}], "blocks": []},
+                        cost_inr=0.20, cached=False
                     ))
                     result = await extract_document_text(str(pdf_path), page_range="2-3")
                     assert result["pages"] == 2
@@ -222,9 +222,9 @@ class TestTranslateText:
     async def test_translate_success(self):
         with tempfile.TemporaryDirectory():
             with patch("bodhan_mcp.tools.translate.client") as mock_client:
-                mock_client.request = AsyncMock(return_value=(
-                    {"translation": "\u0935\u0923\u0915\u094d\u0915\u092e", "script": "native", "truncated": False},
-                    0.02
+                mock_client.request = AsyncMock(return_value=APIResponse(
+                    data={"choices": [{"message": {"content": "\u0935\u0923\u0915\u094d\u0915\u092e"}}]},
+                    cost_inr=0.02, cached=False
                 ))
                 result = await translate_text("hi", "ta", text="\u0928\u092e\u0938\u094d\u0924\u0947")
                 assert "<untrusted_source_data>\u0935\u0923\u0915\u094d\u0915\u092e</untrusted_source_data>" in result["translation"]
@@ -237,9 +237,9 @@ class TestTranslateText:
         with tempfile.TemporaryDirectory() as tmpdir:
             out_file = Path(tmpdir) / "output.txt"
             with patch("bodhan_mcp.tools.translate.client") as mock_client:
-                mock_client.request = AsyncMock(return_value=(
-                    {"translation": "Translated text", "script": "native", "truncated": False},
-                    0.02
+                mock_client.request = AsyncMock(return_value=APIResponse(
+                    data={"choices": [{"message": {"content": "Translated text"}}]},
+                    cost_inr=0.02, cached=False
                 ))
                 await translate_text("hi", "ta", text="\u0928\u092e\u0938\u094d\u0924\u0947", output_file=str(out_file))
                 assert out_file.exists()
@@ -293,7 +293,9 @@ class TestSynthesizeSpeech:
             out_file = Path(tmpdir) / "output.wav"
             wav_data = create_test_wav_bytes()
             with patch("bodhan_mcp.tools.speak.client") as mock_client:
-                mock_client.request = AsyncMock(return_value=(wav_data, 0.60))
+                mock_client.request = AsyncMock(return_value=APIResponse(
+                    data=wav_data, cost_inr=0.60, cached=False
+                ))
                 result = await synthesize_speech("hi", str(out_file), text="\u0928\u092e\u0938\u094d\u0924\u0947 \u0926\u0941\u0928\u093f\u092f\u093e")
                 assert out_file.exists()
                 assert result["chunks_count"] >= 1
@@ -309,7 +311,9 @@ class TestSynthesizeSpeech:
             out_file = Path(tmpdir) / "output.wav"
             wav_data = create_test_wav_bytes()
             with patch("bodhan_mcp.tools.speak.client") as mock_client:
-                mock_client.request = AsyncMock(return_value=(wav_data, 0.60))
+                mock_client.request = AsyncMock(return_value=APIResponse(
+                    data=wav_data, cost_inr=0.60, cached=False
+                ))
                 result = await synthesize_speech("hi", str(out_file), input_file=str(in_file))
                 assert out_file.exists()
                 assert result["chunks_count"] >= 1

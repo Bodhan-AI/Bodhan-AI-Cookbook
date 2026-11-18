@@ -108,17 +108,23 @@ async def translate_text(
 
     for chunk in chunks:
         try:
-            resp, cost = await client.request(
+            api_resp = await client.request(
                 "indic-translate",
-                "/translate",
+                "/chat/completions",
                 json_data={
-                    "text": chunk,
-                    "source_language": source_lang,
-                    "target_language": target_lang,
+                    "model": "indic-translate",
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": f"Translate '{chunk}' to {target_lang}",
+                        }
+                    ],
                     "script": script,
                 },
                 timeout=60,
             )
+            resp = api_resp.data
+            cost = api_resp.cost_inr
         except Exception as e:
             return _error(
                 ErrorCode.NETWORK_ERROR,
@@ -126,7 +132,8 @@ async def translate_text(
                 retryable=True,
             )
         total_cost += cost
-        translations.append(resp.get("translation", ""))
+        content = resp.get("choices", [{}])[0].get("message", {}).get("content", "")
+        translations.append(content)
 
     full_translation = "\n\n".join(translations)
 

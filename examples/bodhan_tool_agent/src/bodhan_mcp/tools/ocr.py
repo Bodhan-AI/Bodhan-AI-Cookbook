@@ -82,6 +82,14 @@ async def extract_document_text(
 
     selected_images = image_paths[start_page:end_page]
 
+    if not selected_images:
+        return _error(
+            ErrorCode.MEDIA_PROCESSING_ERROR,
+            f"PDF has {total_pages} pages but no images were rendered",
+            retryable=True,
+            details={"total_pages": total_pages, "image_count": len(image_paths)},
+        )
+
     semaphore = asyncio.Semaphore(3)
 
     async def process_page(idx: int, img_path: str) -> tuple[int, dict, float]:
@@ -93,9 +101,9 @@ async def extract_document_text(
                 return idx, {"error": str(e), "cost": 0.0}
 
             try:
-                resp, cost = await client.request(
+                api_resp = await client.request(
                     "indic-ocr",
-                    "/v1/chat/completions",
+                    "/chat/completions",
                     json_data={
                         "model": "indic-ocr",
                         "messages": [{
@@ -109,6 +117,8 @@ async def extract_document_text(
                     },
                     timeout=120,
                 )
+                resp = api_resp.data
+                cost = api_resp.cost_inr
             except Exception as e:
                 return idx, {"error": str(e), "cost": 0.0}
 

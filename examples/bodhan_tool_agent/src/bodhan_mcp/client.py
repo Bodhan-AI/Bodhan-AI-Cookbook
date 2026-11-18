@@ -11,6 +11,11 @@ from pathlib import Path
 from typing import Any, Optional
 
 import aiohttp
+from dotenv import load_dotenv
+
+# Load .env from project root (one level up from src/)
+_load_env_path = Path(__file__).resolve().parents[2] / ".env"
+load_dotenv(_load_env_path)
 
 from .models import (
     BODHAN_BASE_URL,
@@ -22,10 +27,14 @@ from .models import (
 )
 
 
-INDR_TRANSCRIBE_KEY = os.environ.get("BODHAN_TRANSCRIBE_KEY", "")
-INDR_TRANSLATE_KEY = os.environ.get("BODHAN_TRANSLATE_KEY", "")
-INDR_SPEAK_KEY = os.environ.get("BODHAN_SPEAK_KEY", "")
-INDR_OCR_KEY = os.environ.get("BODHAN_OCR_KEY", "")
+def _get_key(name: str) -> str:
+    return os.environ.get(name, "")
+
+
+INDR_TRANSCRIBE_KEY = lambda: _get_key("BODHAN_TRANSCRIBE_KEY")
+INDR_TRANSLATE_KEY = lambda: _get_key("BODHAN_TRANSLATE_KEY")
+INDR_SPEAK_KEY = lambda: _get_key("BODHAN_SPEAK_KEY")
+INDR_OCR_KEY = lambda: _get_key("BODHAN_OCR_KEY")
 
 
 @dataclass
@@ -136,10 +145,10 @@ class BodhanClient:
 
     def _auth_headers(self, model: str) -> dict[str, str]:
         api_key_map = {
-            "indic-transcribe": INDR_TRANSCRIBE_KEY,
-            "indic-translate": INDR_TRANSLATE_KEY,
-            "indic-speak": INDR_SPEAK_KEY,
-            "indic-ocr": INDR_OCR_KEY,
+            "indic-transcribe": INDR_TRANSCRIBE_KEY(),
+            "indic-translate": INDR_TRANSLATE_KEY(),
+            "indic-speak": INDR_SPEAK_KEY(),
+            "indic-ocr": INDR_OCR_KEY(),
         }
         api_key = api_key_map.get(model, "")
         if not api_key:
@@ -319,9 +328,10 @@ class BodhanClient:
                 retryable=True,
             )
         if resp.status >= 500:
+            text = await resp.text()
             await asyncio.sleep(2 ** attempt)
             raise BodhanError(
-                f"Server error: {resp.status}",
+                f"Server error {resp.status}: {text}",
                 code=ErrorCode.SERVER_ERROR,
                 retryable=True,
             )

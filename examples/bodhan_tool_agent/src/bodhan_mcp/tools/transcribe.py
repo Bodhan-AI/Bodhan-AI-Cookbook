@@ -107,13 +107,15 @@ async def transcribe_audio(
                 json_data["language"] = language_hint
 
             try:
-                resp, cost = await client.request(
+                api_resp = await client.request(
                     "indic-transcribe",
                     "/audio/transcriptions",
                     json_data=json_data,
                     files=files,
                     timeout=60,
                 )
+                resp = api_resp.data
+                cost = api_resp.cost_inr
             except Exception as e:
                 return _error(
                     ErrorCode.NETWORK_ERROR,
