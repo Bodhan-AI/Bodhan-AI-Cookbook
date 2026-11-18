@@ -1,0 +1,77 @@
+# Environment variables & secrets
+.env
+.env.*
+!.env.example
+
+# Python virtual environment
+.venv/
+venv/
+env/
+ENV/
+
+# Python cache & build artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Pytest / testing / coverage
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Task outputs & run artifacts
+out/
+.cache/
+samples/*
+!samples/README.md
+!samples/notice.txt
+!samples/notice_injected.txt
+_cleanup_trash/
+_internal_notes/
+
+# Media files
+*.wav
+*.mp3
+*.mp4
+*.flac
+*.ogg
+*.m4a
+*.aac
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.tiff
+*.bmp
+*.pdf
+
+# Allow media inside tests/fixtures/ and docs/
+!tests/fixtures/**
+!docs/**
+
+# Editor & OS files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
