@@ -13,7 +13,7 @@ Cheap deterministic checks run first. Bodhan round trips (back-translation and b
 - [Harness design](DESIGN.md): architecture diagram, flow chart, every check, the judge rubric, calibration and how flags combine.
 - [Decision log](DECISIONS.md): each design choice, the evidence behind it, and the test that verifies it.
 - [Sample report](sample_report/summary.md): a real run on the demo dataset, with [items.jsonl](sample_report/items.jsonl), [calibration.json](sample_report/calibration.json) and [diff.md](sample_report/diff.md).
-- [Demo video](VIDEO_URL) (under 5 minutes): a full run on the demo dataset and a walk through the report.
+- [Demo video](https://drive.google.com/file/d/1yw1y8xhf5oxgvIY1NVggIpsww2BbTsS0/view?usp=sharing) (4:45): a full run on the demo dataset and a walk through the report. The narration is synthesized with Bodhan Indic-Speak (English, voice Arun).
 
 ## Setup
 
@@ -79,7 +79,7 @@ Bad JSON lines and rows with missing fields are logged, skipped and counted. A f
 | `data/human_labels.jsonl` | 6 Hindi rows labelled by hand by Aafi Malek from a blind review packet, where opaque IDs hide which rows were mutated. One label was revised on a second look. Each row has a `note` explaining the verdict. |
 | `sample_report/` | The reports from scoring `data/demo_scored.jsonl` against the baseline: `summary.md`, `summary.json`, `items.jsonl`, `calibration.json`, `diff.md`, `dashboard.html`, `review_queue.csv` and `run.jsonl`, plus a three-voice Hindi comparison. |
 
-The generated audio is not committed. Download the [audio bundle](AUDIO_BUNDLE_URL) and unzip it next to `data/demo_scored.jsonl`, so its `audio/` paths resolve. To rebuild everything from the source passages with your own keys (about ₹11 of Bodhan credit, most of it Indic-Speak):
+The generated audio is not committed. Download the [audio bundle](https://drive.google.com/file/d/1tm-sjoL_rwWMBoO1DqqNW0CF1kQdhwCW/view?usp=sharing) (46 MB) and unzip it next to `data/demo_scored.jsonl`, so its `audio/` paths resolve. To rebuild everything from the source passages with your own keys (about ₹11 of Bodhan credit, most of it Indic-Speak):
 
 ```sh
 python -m bodhan_eval --dataset data/demo.jsonl --langs hi,ta,bn --out outputs/controls --generate --limit 108
@@ -209,5 +209,6 @@ This harness was built with AI coding assistants:
   - review against the brief
   - test writing
   - documentation drafts
+  - assembling the demo video from a real cached run, with narration synthesized by Bodhan Indic-Speak
 
 I reviewed every change, labelled the human review set myself, and can explain each line.
