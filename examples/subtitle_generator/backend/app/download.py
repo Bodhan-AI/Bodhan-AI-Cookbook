@@ -1,8 +1,9 @@
 """
 Fetch a video from a direct link (DIRECT_VIDEO_LINKS in .env): a link that returns the video file itself
 (https://example.com/talk.mp4, a public cloud-storage file link). The file is streamed to disk with the upload limits.
-YouTube links go to youtube.py instead; links to other video sites are refused with a clear message, and links to
-this computer or a private network are refused so a pasted link can't reach local services.
+Links to video sites (YouTube and others) are refused with a clear message: they open a player page, not the file, and
+YouTube's terms don't allow downloading its videos with other tools. Links to this computer or a private network are
+refused so a pasted link can't reach local services.
 """
 
 import ipaddress
@@ -21,10 +22,11 @@ from .config import settings
 VIDEO_EXTENSIONS = {".mp4", ".mov", ".mkv", ".webm", ".avi", ".m4v"}
 # Types servers use for "a file" when they don't say which: accepted when the file name says it is a video
 GENERIC_TYPES = {"", "application/octet-stream", "binary/octet-stream", "application/binary", "application/x-download", "application/force-download"}
-# Video sites: their links open a player page, not the video file
+# YouTube gets its own message (upload the file; creators can download their own videos from YouTube Studio)
+YOUTUBE_HOSTS = ("youtube.com", "youtu.be", "youtube-nocookie.com")
+# Video sites: their links open a player page, not the video file. Mirrored in frontend/src/links.js
 SITE_HOSTS = (
-    "youtube.com",
-    "youtu.be",
+    *YOUTUBE_HOSTS,
     "vimeo.com",
     "instagram.com",
     "facebook.com",
@@ -50,14 +52,20 @@ def check_link(url: str) -> None:
     parts = urlsplit(url.strip())
     if parts.scheme not in ("http", "https") or not parts.hostname:
         raise MediaError("Paste a full link that starts with http:// or https://.")
+    if _on(url, YOUTUBE_HOSTS):
+        raise MediaError("YouTube links aren't supported. Upload the video file instead: for your own videos, download it from YouTube Studio.")
     if is_site(url):
-        raise MediaError("Links to this video site aren't supported. Paste a YouTube link, or a link that points straight at the video file.")
+        raise MediaError("Links to video sites aren't supported. Paste a link that points straight at the video file, or upload the file.")
     _check_host(parts.hostname)
 
 
 def is_site(url: str) -> bool:
+    return _on(url, SITE_HOSTS)
+
+
+def _on(url: str, hosts: tuple[str, ...]) -> bool:
     host = (urlsplit(url).hostname or "").lower()
-    return any(host == h or host.endswith("." + h) for h in SITE_HOSTS)
+    return any(host == h or host.endswith("." + h) for h in hosts)
 
 
 def name_from_link(url: str) -> str:

@@ -1,36 +1,18 @@
 import { useRef, useState } from 'react'
-import { AlertTriangle, Captions, FileVideo, Languages, Link2, LoaderCircle, SquarePlay, Upload, X } from 'lucide-react'
+import { AlertTriangle, Captions, FileVideo, Languages, Link2, LoaderCircle, Upload, X } from 'lucide-react'
 import { LANGUAGES, TRANSLATION_LANGUAGES } from '../languages.js'
-import { VIDEO_EXTENSIONS, isLink, isSiteLink, isYouTubeLink, youtubeId } from '../links.js'
+import { VIDEO_EXTENSIONS, isLink, isSiteLink, isYouTubeLink } from '../links.js'
 
 // Left panel: pick a video (a file, or a link) and languages, then start generation.
-// maxMb is the backend's upload limit (MAX_UPLOAD_MB); `links` = { direct, youtube }: which kinds of link the backend
-// takes (DIRECT_VIDEO_LINKS, YOUTUBE_LINKS), both read from /api/health. allowYouTube is the user's OK for YouTube
-// links, asked each visit.
-export default function UploadForm({
-  file,
-  onFile,
-  onError,
-  link,
-  onLink,
-  links,
-  allowYouTube,
-  onAllowYouTube,
-  maxMb,
-  settings,
-  onSettings,
-  busy,
-  onGenerate,
-}) {
+// maxMb is the backend's upload limit (MAX_UPLOAD_MB); directLinks: whether the backend takes direct links to video
+// files (DIRECT_VIDEO_LINKS); both read from /api/health.
+export default function UploadForm({ file, onFile, onError, link, onLink, directLinks, maxMb, settings, onSettings, busy, onGenerate }) {
   const [dragging, setDragging] = useState(false)
   const inputRef = useRef(null)
   const { language, translate, target, source } = settings
-  const linksEnabled = links.direct || links.youtube
-  const linkMode = linksEnabled && source === 'link'
-  const youtubeLink = isYouTubeLink(link)
-  const linkProblem = linkIssue(link, links)
-  const linkReady = isLink(link) && !linkProblem && (!youtubeLink || allowYouTube)
-  const ready = linkMode ? linkReady : Boolean(file)
+  const linkMode = directLinks && source === 'link'
+  const linkProblem = linkIssue(link)
+  const ready = linkMode ? isLink(link) && !linkProblem : Boolean(file)
 
   function choose(f) {
     if (!f) return
@@ -52,12 +34,12 @@ export default function UploadForm({
         <span className="step-badge">1</span>
         <div>
           <h2 id="step-1-title">Video and languages</h2>
-          <p>{linksEnabled ? 'Choose a video file or paste a link' : 'Choose a file'}, and tell us what is spoken in it.</p>
+          <p>{directLinks ? 'Choose a video file or paste a link' : 'Choose a file'}, and tell us what is spoken in it.</p>
         </div>
       </div>
 
-      {/* Shown only when a kind of link is on (DIRECT_VIDEO_LINKS / YOUTUBE_LINKS in .env) */}
-      {linksEnabled && (
+      {/* Shown only when links are on (DIRECT_VIDEO_LINKS in .env) */}
+      {directLinks && (
         <div className="source-switch" role="group" aria-label="Where the video comes from">
           <button
             className={!linkMode ? 'active' : ''}
@@ -84,7 +66,7 @@ export default function UploadForm({
                 id="video-link"
                 type="url"
                 inputMode="url"
-                placeholder={linkPlaceholder(links)}
+                placeholder="https://example.com/talk.mp4"
                 value={link}
                 onChange={(e) => onLink(e.target.value)}
                 aria-describedby="video-link-help"
@@ -96,7 +78,7 @@ export default function UploadForm({
               )}
             </div>
             <small id="video-link-help" className="field-help">
-              {linkHelp(link, links, maxMb)}
+              {linkHelp(link, maxMb)}
             </small>
           </div>
 
@@ -105,30 +87,6 @@ export default function UploadForm({
               <AlertTriangle size={18} />
               <span>{linkProblem}</span>
             </div>
-          )}
-
-          {/* YouTube links: the user's OK each visit, with what it means */}
-          {youtubeLink && !linkProblem && (
-            <>
-              <label className="toggle-wrapper" htmlFor="allow-youtube">
-                <div className="toggle-copy">
-                  <SquarePlay size={18} className="toggle-icon" />
-                  <div>
-                    <strong>Allow YouTube links</strong>
-                    <small>Download this video’s audio from YouTube to make its subtitles</small>
-                  </div>
-                </div>
-                <input id="allow-youtube" type="checkbox" checked={allowYouTube} onChange={(e) => onAllowYouTube(e.target.checked)} />
-                <span className="toggle-slider" />
-              </label>
-              <div className="notice-banner warning" role="note">
-                <AlertTriangle size={18} />
-                <span>
-                  Use only videos you have the right to use: YouTube’s terms apply. Private, age-restricted and live videos don’t work, and
-                  YouTube sometimes refuses downloads; if it does, upload the video file instead.
-                </span>
-              </div>
-            </>
           )}
         </div>
       ) : (
@@ -248,35 +206,20 @@ export default function UploadForm({
   )
 }
 
-function linkPlaceholder(links) {
-  if (links.youtube && links.direct) return 'Paste a YouTube link or a link to a video file'
-  return links.youtube ? 'https://www.youtube.com/watch?v=…' : 'https://example.com/talk.mp4'
-}
-
-// The hint under the link box: what kinds of link work, then what applies to the link pasted
-function linkHelp(link, links, maxMb) {
+// The hint under the link box: what works, then what applies to the link pasted
+function linkHelp(link, maxMb) {
   if (link && !isLink(link)) return 'Paste a full link that starts with http:// or https://.'
-  if (link && isYouTubeLink(link)) return 'YouTube video: only its audio is downloaded. Videos up to 15 minutes.'
-  if (link && links.direct)
+  if (link && !isSiteLink(link))
     return `Link to a video file: it is downloaded, then deleted when the job ends. Up to ${maxMb} MB and 15 minutes.`
-  const kinds = [
-    links.youtube && 'a link to a YouTube video',
-    links.direct && 'a direct link to a video file (ending in .mp4, .mov…, or a public cloud-storage file link)',
-  ]
-  return `Paste ${kinds.filter(Boolean).join(', or ')}. Up to 15 minutes${links.direct ? `, and ${maxMb} MB for video files` : ''}.`
+  return `Paste a direct link to a video file (ending in .mp4, .mov…, or a public cloud-storage file link). Up to ${maxMb} MB and 15 minutes.`
 }
 
-// Why a pasted link can't be used with the kinds of link that are on, or ''
-function linkIssue(link, links) {
+// Why a pasted link can't be used, or ''. Same messages as the backend (download.check_link).
+function linkIssue(link) {
   if (!isLink(link)) return ''
-  if (isYouTubeLink(link)) {
-    if (!links.youtube) return 'YouTube links are turned off (YOUTUBE_LINKS in .env). Upload the video file instead.'
-    return youtubeId(link)
-      ? ''
-      : 'Paste a link to one YouTube video (watch?v=…, youtu.be/…, or Shorts). Playlists and channels aren’t supported.'
-  }
+  if (isYouTubeLink(link))
+    return 'YouTube links aren’t supported. Upload the video file instead: for your own videos, download it from YouTube Studio.'
   if (isSiteLink(link))
-    return `Links to this video site aren’t supported. Paste ${links.youtube ? 'a YouTube link' : 'a link straight to the video file'}.`
-  if (!links.direct) return 'Links to video files are turned off (DIRECT_VIDEO_LINKS in .env). Paste a YouTube link, or upload the file.'
+    return 'Links to video sites aren’t supported. Paste a link that points straight at the video file, or upload the file.'
   return ''
 }

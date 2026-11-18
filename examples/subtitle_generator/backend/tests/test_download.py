@@ -37,16 +37,26 @@ class LinkCheckTests(unittest.TestCase):
 
     def test_video_sites_are_refused(self):
         with patch("socket.getaddrinfo", return_value=PUBLIC):
-            for url in ("https://www.youtube.com/watch?v=abc", "https://youtu.be/abc", "https://vimeo.com/123", "https://m.facebook.com/watch/?v=1"):
+            for url in ("https://vimeo.com/123", "https://m.facebook.com/watch/?v=1"):
                 with self.assertRaises(MediaError, msg=url) as caught:
                     download.check_link(url)
-                self.assertIn("video site", str(caught.exception))
+                self.assertIn("video sites", str(caught.exception))
+            # YouTube: refused too, with its own message (upload the file instead)
+            for url in (
+                "https://www.youtube.com/watch?v=abc",
+                "https://youtu.be/abc",
+                "https://m.youtube.com/shorts/abc",
+                "https://www.youtube-nocookie.com/embed/abc",
+            ):
+                with self.assertRaises(MediaError, msg=url) as caught:
+                    download.check_link(url)
+                self.assertIn("YouTube links aren't supported", str(caught.exception))
             download.check_link("https://cdn.example.com/talk.mp4")  # no error
             self.assertFalse(download.is_site("https://notyoutube.com/v.mp4"))
 
     def test_name_from_link(self):
         self.assertEqual(download.name_from_link("https://cdn.example.com/media/My%20Talk.mp4?sig=1"), "My Talk.mp4")
-        self.assertEqual(download.name_from_link("https://www.youtube.com/watch?v=abc"), "www.youtube.com")
+        self.assertEqual(download.name_from_link("https://cdn.example.com/files/8231/download"), "cdn.example.com")
 
 
 class _Server(BaseHTTPRequestHandler):
@@ -211,8 +221,12 @@ class LinkJobApiTests(LocalServerCase):
     def test_video_site_links_are_refused(self):
         with patch("socket.getaddrinfo", return_value=PUBLIC):
             refused = self.post("https://vimeo.com/123")
+            youtube = self.post("https://www.youtube.com/watch?v=aqz-KE-bpKQ")
         self.assertEqual(refused.status_code, 400)
         self.assertIn("video site", refused.json()["detail"])
+        self.assertEqual(youtube.status_code, 400)
+        self.assertIn("YouTube links aren't supported", youtube.json()["detail"])
+        self.assertEqual(self.client.get("/api/jobs").json()["jobs"], [])
 
     def test_job_name_comes_from_the_server_when_the_link_has_none(self):
         job = self.client.get(f"/api/jobs/{self.post(self.base + '/uc?id=1').json()['id']}").json()

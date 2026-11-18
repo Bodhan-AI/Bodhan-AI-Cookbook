@@ -12,8 +12,3 @@ imageio-ffmpeg==0.6.0
 silero-vad-lite==0.4.0
 # Job history database (SQLModel on SQLAlchemy). SQLite by default; see DATABASE_URL in .env.example
 sqlmodel==0.0.48
-# YouTube links (YOUTUBE_LINKS in .env): yt-dlp downloads the audio; yt-dlp-ejs and Deno (a JavaScript runtime, from
-# pip like FFmpeg) answer YouTube's script checks. YouTube changes often: if links stop working, pip install -U yt-dlp
-yt-dlp==2026.10.26
-yt-dlp-ejs==0.8.0
-deno==2.9.8

@@ -30,7 +30,7 @@ export function getJob(id) {
   return request(`/api/jobs/${encodeURIComponent(id)}`, undefined, 'Could not load the job.')
 }
 
-// What the backend can do: { ffmpeg_found, api_key_set, max_upload_mb, direct_video_links, youtube_links, ... }.
+// What the backend can do: { ffmpeg_found, api_key_set, max_upload_mb, direct_video_links, ... }.
 export function getHealth() {
   return request('/api/health', undefined, 'Could not reach the backend.')
 }
@@ -55,15 +55,14 @@ export function editLine(id, track, index, text) {
   )
 }
 
-// Start a job from a link: a direct link to a video file, or a YouTube video (allowYouTube: the user's OK for
-// YouTube links, asked each visit). Resolves to the new job.
-export function startLinkJob(url, language, targetLanguage, allowYouTube = false) {
+// Start a job from a direct link to a video file. Resolves to the new job.
+export function startLinkJob(url, language, targetLanguage) {
   return request(
     '/api/jobs/url',
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url, language, target_language: targetLanguage, allow_youtube: allowYouTube }),
+      body: JSON.stringify({ url, language, target_language: targetLanguage }),
     },
     'Could not start the job.'
   )

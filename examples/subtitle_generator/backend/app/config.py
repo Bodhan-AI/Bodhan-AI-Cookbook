@@ -28,11 +28,8 @@ class Settings(BaseSettings):
     ffmpeg_path: str = ""
     # Empty = SQLite file in backend/data/. For Postgres: postgresql+psycopg://user:password@host/db (and pip install psycopg)
     database_url: str = ""
-    # Starting jobs from a link instead of an upload, one switch per kind of link:
-    # a direct link to a video file (download.py)
+    # Start jobs from a direct link to a video file instead of an upload (download.py)
     direct_video_links: bool = False
-    # a YouTube video (youtube.py)
-    youtube_links: bool = False
     # Folder of the built web app (frontend/dist) to serve at / on the same port as the API. Empty = don't
     # (the normal setup runs the web app with Vite). The Docker image sets it.
     web_dist: str = ""

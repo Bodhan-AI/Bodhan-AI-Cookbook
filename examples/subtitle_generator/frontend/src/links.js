@@ -3,10 +3,11 @@
 // Video file types the backend accepts (download.VIDEO_EXTENSIONS); also used for uploads
 export const VIDEO_EXTENSIONS = ['.mp4', '.mov', '.mkv', '.webm', '.avi', '.m4v']
 
-// Video sites: their links open a player page, not the video file, so they aren't supported
+// YouTube gets its own message (upload the file; creators can download their own videos from YouTube Studio)
+const YOUTUBE_HOSTS = ['youtube.com', 'youtu.be', 'youtube-nocookie.com']
+// Video sites: their links open a player page, not the video file, so they aren't supported (download.SITE_HOSTS)
 const SITE_HOSTS = [
-  'youtube.com',
-  'youtu.be',
+  ...YOUTUBE_HOSTS,
   'vimeo.com',
   'instagram.com',
   'facebook.com',
@@ -34,30 +35,17 @@ export function isLink(link) {
   return parse(link) !== null
 }
 
-export function isSiteLink(link) {
+function onHost(link, hosts) {
   const host = parse(link)?.hostname.toLowerCase() ?? ''
-  return SITE_HOSTS.some((h) => host === h || host.endsWith(`.${h}`))
+  return hosts.some((h) => host === h || host.endsWith(`.${h}`))
 }
 
-// YouTube: the id of one video (watch?v=, youtu.be/, /shorts/, /live/, /embed/), or '' (not YouTube, or a playlist
-// or channel link). Mirrors video_id() in backend/app/youtube.py.
-const YOUTUBE_HOSTS = ['youtube.com', 'youtu.be', 'youtube-nocookie.com']
-const VIDEO_ID = /^[A-Za-z0-9_-]{11}$/
+export function isSiteLink(link) {
+  return onHost(link, SITE_HOSTS)
+}
 
 export function isYouTubeLink(link) {
-  const host = parse(link)?.hostname.toLowerCase() ?? ''
-  return YOUTUBE_HOSTS.some((h) => host === h || host.endsWith(`.${h}`))
-}
-
-export function youtubeId(link) {
-  if (!isYouTubeLink(link)) return ''
-  const url = parse(link)
-  const parts = url.pathname.split('/').filter(Boolean)
-  let id = ''
-  if (url.hostname.toLowerCase().endsWith('youtu.be')) id = parts[0] ?? ''
-  else if (parts[0] === 'watch') id = url.searchParams.get('v') ?? ''
-  else if (parts.length >= 2 && ['shorts', 'live', 'embed', 'v'].includes(parts[0])) id = parts[1]
-  return VIDEO_ID.test(id) ? id : ''
+  return onHost(link, YOUTUBE_HOSTS)
 }
 
 // Any link that isn't a video site may be a video file, even without .mp4 in it (https://lorem.video/720p):

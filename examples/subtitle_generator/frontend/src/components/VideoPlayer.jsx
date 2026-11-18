@@ -21,7 +21,6 @@ import FsTranscript from './FsTranscript.jsx'
 const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2]
 
 // Plays a local `file`, or else a `videoUrl` (a direct link to a video file), with the line being spoken drawn over it.
-// YouTube videos play in YouTubePlayer instead, which takes the same props.
 // - `cues` / `trackLabel`: the lines shown; onActiveLine(index) reports the line being spoken; `ref.current.seekTo`.
 // - Fullscreen: the transcript panel on the right, where onEdit(index, text) corrects a line; with a translation,
 //   `trackOptions` ([{ value, label, short }]), `activeTrack` and onTrack(id) switch the subtitle language.

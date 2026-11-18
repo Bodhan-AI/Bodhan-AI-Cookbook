@@ -6,24 +6,15 @@ import JobProgress from './components/JobProgress.jsx'
 import SubtitleList from './components/SubtitleList.jsx'
 import UploadForm from './components/UploadForm.jsx'
 import VideoPlayer from './components/VideoPlayer.jsx'
-import YouTubePlayer from './components/YouTubePlayer.jsx'
 import { languageName } from './languages.js'
 import { editLine, getHealth, getJob, listJobs, resumeJob, startJob, startLinkJob } from './api.js'
-import { isPreviewableLink, youtubeId } from './links.js'
+import { isPreviewableLink } from './links.js'
 import usePanelHeights from './usePanelHeights.js'
 
 const POLL_MS = 1000
 const FINISHED = ['done', 'failed']
 const HISTORY_PAGE_SIZE = 10
 const DEFAULT_SETTINGS = { language: 'hi', translate: false, target: 'en', source: 'file' }
-
-// The start of the page intro: how a video can be given, by which kinds of link are switched on
-function introSource(links) {
-  if (links.direct && links.youtube) return 'Upload a video or paste a link (a direct video link or YouTube)'
-  if (links.youtube) return 'Upload a video or paste a YouTube link'
-  if (links.direct) return 'Upload a video or paste a direct video link'
-  return 'Upload a video'
-}
 
 // The last source (file or link), language and translation choices, remembered in this browser
 function savedSettings() {
@@ -38,13 +29,10 @@ export default function App() {
   const [file, setFile] = useState(null)
   const [link, setLink] = useState('')
   const [settings, setSettings] = useState(savedSettings)
-  // Which kinds of link the backend takes, switched in .env (DIRECT_VIDEO_LINKS, YOUTUBE_LINKS); none until
-  // the backend says otherwise
-  const [links, setLinks] = useState({ direct: false, youtube: false })
-  const linksEnabled = links.direct || links.youtube
-  const [allowYouTube, setAllowYouTube] = useState(false) // the user's OK for YouTube links: this visit only
+  // Whether the backend takes direct links to video files (DIRECT_VIDEO_LINKS in .env); off until it says otherwise
+  const [directLinks, setDirectLinks] = useState(false)
   // The saved choice is kept while links are off, so it comes back when they are turned on
-  const source = linksEnabled ? settings.source : 'file'
+  const source = directLinks ? settings.source : 'file'
   const [starting, setStarting] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
@@ -67,7 +55,7 @@ export default function App() {
   useEffect(() => {
     getHealth().then(
       (health) => {
-        setLinks({ direct: Boolean(health.direct_video_links), youtube: Boolean(health.youtube_links) })
+        setDirectLinks(Boolean(health.direct_video_links))
         if (health.max_upload_mb) setMaxUploadMb(health.max_upload_mb)
       },
       () => {} // the history load below reports an unreachable backend
@@ -177,17 +165,17 @@ export default function App() {
     setResult(null)
   }
 
-  async function generate(chosen = settings, linkValue = link, allowed = allowYouTube) {
+  async function generate(chosen = settings, linkValue = link) {
     setStarting(true)
     setError('')
     setNotice('')
     setResult(null)
     const { language, translate, target } = chosen
-    const fromLink = linksEnabled && chosen.source === 'link'
+    const fromLink = directLinks && chosen.source === 'link'
     const targetLanguage = translate ? target : ''
     try {
       const started = fromLink
-        ? await startLinkJob(linkValue.trim(), language, targetLanguage, allowed)
+        ? await startLinkJob(linkValue.trim(), language, targetLanguage)
         : await startJob(file, language, targetLanguage)
       setJob(started)
       setJobId(started.id)
@@ -215,16 +203,11 @@ export default function App() {
   }
 
   // Run a failed job from the start with its settings. An uploaded video isn't kept, so it has to be chosen again;
-  // a link is, so a link job starts again at once
+  // a link is, so a link job starts again at once. A job from when the app took YouTube links needs an upload too.
   function runAgain() {
     const translate = Boolean(job.target_language) && job.target_language !== job.language
-    const fromLink = ['url', 'youtube'].includes(job.source) && job.source_url
-    const fromYouTube = fromLink && job.source === 'youtube'
-    if (fromYouTube && !links.youtube) {
-      setNotice('YouTube links are turned off (YOUTUBE_LINKS in .env). Upload the video file instead.')
-      return
-    }
-    if (fromLink && !fromYouTube && !links.direct) {
+    const fromLink = job.source === 'url' && job.source_url
+    if (fromLink && !directLinks) {
       setNotice('Links to video files are turned off (DIRECT_VIDEO_LINKS in .env). Upload the video file instead.')
       return
     }
@@ -236,9 +219,10 @@ export default function App() {
       source: fromLink ? 'link' : 'file',
     }
     setSettings(chosen)
-    if (fromYouTube && !allowYouTube) {
-      setLink(job.source_url) // the link is filled in; the user turns on "Allow YouTube links", then Generate
-      setNotice('Turn on “Allow YouTube links” on the left, then press Generate.')
+    if (job.source === 'youtube') {
+      setNotice(
+        'YouTube links are no longer supported. Upload the video file on the left, then press Generate. Its settings are filled in.'
+      )
     } else if (fromLink) {
       setLink(job.source_url)
       generate(chosen, job.source_url)
@@ -257,14 +241,10 @@ export default function App() {
 
   const failed = job?.status === 'failed' ? job : null
 
-  // Links to a video file can be played here (the player says so if one can't); YouTube videos play in YouTube's
-  // player; other video-site links can't be previewed
+  // Links to a video file can be played here (the player says so if one can't); video-site links can't be previewed
   const resultLink = !file && result?.source === 'url' && isPreviewableLink(result.source_url ?? '') ? result.source_url : ''
-  const typedLink = !file && source === 'link' && links.direct && isPreviewableLink(link) ? link.trim() : ''
+  const typedLink = !file && source === 'link' && directLinks && isPreviewableLink(link) ? link.trim() : ''
   const videoUrl = resultLink || typedLink
-  const resultYouTube = !file && result?.source === 'youtube' ? youtubeId(result.source_url ?? '') : ''
-  const typedYouTube = !file && source === 'link' && links.youtube ? youtubeId(link) : ''
-  const youtubeVideo = resultYouTube || (!resultLink && typedYouTube)
 
   // The followed job's live progress replaces its row from the last history load
   const historyRows = history.map((h) => (h.id === job?.id ? job : h))
@@ -296,7 +276,7 @@ export default function App() {
     : []
   const shownTrack = tracks.find((t) => t.id === activeTrack)
   const cues = shownTrack?.segments ?? []
-  // For the players' subtitle-language menu (shown in fullscreen when there is a translation)
+  // For the player's subtitle-language menu (shown in fullscreen when there is a translation)
   const trackOptions = tracks.map((t) => ({ value: t.id, label: `${t.label} · ${t.language}`, short: t.language }))
 
   return (
@@ -308,8 +288,8 @@ export default function App() {
           Subtitles for your video, <span className="accent">in its language and yours</span>.
         </h1>
         <p>
-          {introSource(links)}, pick the spoken language, and get SRT files you can preview, correct and download. Transcription by Bodhan
-          IndicTranscribe, translation by IndicTranslate.
+          {directLinks ? 'Upload a video or paste a direct video link' : 'Upload a video'}, pick the spoken language, and get SRT files you
+          can preview, correct and download. Transcription by Bodhan IndicTranscribe, translation by IndicTranslate.
         </p>
       </section>
 
@@ -324,12 +304,7 @@ export default function App() {
             setError('')
             setNotice('')
           }}
-          links={links}
-          allowYouTube={allowYouTube}
-          onAllowYouTube={(on) => {
-            setAllowYouTube(on)
-            setNotice('')
-          }}
+          directLinks={directLinks}
           maxMb={maxUploadMb}
           settings={settings}
           onSettings={setSettings}
@@ -346,32 +321,18 @@ export default function App() {
             </div>
           </div>
 
-          {youtubeVideo ? (
-            <YouTubePlayer
-              ref={playerRef}
-              videoId={youtubeVideo}
-              cues={cues}
-              trackLabel={shownTrack && `${shownTrack.label} · ${shownTrack.language}`}
-              trackOptions={trackOptions}
-              activeTrack={shownTrack?.id}
-              onTrack={setActiveTrack}
-              onActiveLine={setActiveIndex}
-              onEdit={shownTrack && ((index, text) => saveLine(shownTrack.id, index, text))}
-            />
-          ) : (
-            <VideoPlayer
-              ref={playerRef}
-              file={file}
-              videoUrl={videoUrl}
-              cues={cues}
-              trackLabel={shownTrack && `${shownTrack.label} · ${shownTrack.language}`}
-              trackOptions={trackOptions}
-              activeTrack={shownTrack?.id}
-              onTrack={setActiveTrack}
-              onActiveLine={setActiveIndex}
-              onEdit={shownTrack && ((index, text) => saveLine(shownTrack.id, index, text))}
-            />
-          )}
+          <VideoPlayer
+            ref={playerRef}
+            file={file}
+            videoUrl={videoUrl}
+            cues={cues}
+            trackLabel={shownTrack && `${shownTrack.label} · ${shownTrack.language}`}
+            trackOptions={trackOptions}
+            activeTrack={shownTrack?.id}
+            onTrack={setActiveTrack}
+            onActiveLine={setActiveIndex}
+            onEdit={shownTrack && ((index, text) => saveLine(shownTrack.id, index, text))}
+          />
 
           {error && (
             <div className="notice-banner error" role="alert">
@@ -415,7 +376,7 @@ export default function App() {
                 <div className="notice-banner success" role="status">
                   <CheckCircle2 size={18} />
                   <span>
-                    {file || videoUrl || youtubeVideo
+                    {file || videoUrl
                       ? 'Subtitles ready. Click any line to jump to that point in the video.'
                       : result.source === 'url'
                         ? `Subtitles for ${result.file_name}. This link can't be played here; the SRT files are ready to download.`

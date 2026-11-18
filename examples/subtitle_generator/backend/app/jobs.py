@@ -10,7 +10,7 @@ from collections.abc import Callable
 
 import httpx
 
-from . import audio, bodhan, db, download, vad, youtube
+from . import audio, bodhan, db, download, vad
 from .config import settings
 from .subtitles import Segment, clean_transcript, lines_from_words, time_lines
 
@@ -70,16 +70,15 @@ async def run_job(job_id: str, video_path: str, workdir: str, language: str, tar
 
 
 async def run_url_job(job_id: str, url: str, workdir: str, language: str, target_language: str) -> None:
-    """Download the video from a link (a video file, or YouTube), then run the job as for an upload."""
+    """Download the video from a direct link to the file, then run the job as for an upload."""
 
     def report(percent: int | None) -> None:
         db.update_job(job_id, progress=1, step=f"Downloading the video ({percent}%)" if percent is not None else "Downloading the video")
 
     try:
         db.update_job(job_id, status="running", step="Downloading the video")
-        fetch = youtube.download if youtube.is_youtube(url) else download.download
-        video_path, title = await fetch(url, workdir, report)
-        db.update_job(job_id, file_name=title[:200])
+        video_path, name = await download.download(url, workdir, report)
+        db.update_job(job_id, file_name=name[:200])
         await asyncio.to_thread(check_video, video_path)
     except Exception as exc:
         shutil.rmtree(workdir, ignore_errors=True)

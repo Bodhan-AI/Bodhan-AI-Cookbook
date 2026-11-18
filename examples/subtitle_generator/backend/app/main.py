@@ -17,7 +17,7 @@ from fastapi import BackgroundTasks, FastAPI, File, Form, HTTPException, Query, 
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from . import db, youtube
+from . import db
 from .audio import MediaError, find_ffmpeg
 from .bodhan import BodhanError, check_keys
 from .config import settings
@@ -63,8 +63,6 @@ class LinkJob(BaseModel):
     url: str = Field(max_length=2000)
     language: str
     target_language: str = ""
-    # YouTube links also need the user's OK in the page ("Allow YouTube links"), each visit
-    allow_youtube: bool = False
 
 
 class LineEdit(BaseModel):
@@ -88,7 +86,6 @@ def health():
         "max_upload_mb": settings.max_upload_mb,
         "max_video_seconds": settings.max_video_seconds,
         "direct_video_links": settings.direct_video_links,
-        "youtube_links": settings.youtube_links,
     }
 
 
@@ -138,37 +135,28 @@ async def create_job(
 @app.post("/api/jobs/url", response_model=JobSummary, status_code=202)
 async def create_link_job(link: LinkJob, background: BackgroundTasks):
     """
-    Start a job from a link: a direct link to a video file (DIRECT_VIDEO_LINKS) or a YouTube video (YOUTUBE_LINKS).
-    The video is downloaded in the background, then processed like an upload.
+    Start a job from a direct link to a video file (DIRECT_VIDEO_LINKS). Links to video sites such as YouTube are
+    refused. The video is downloaded in the background, then processed like an upload.
     """
     language, target_language, url = link.language.strip(), link.target_language.strip(), link.url.strip()
-    from_youtube = youtube.is_youtube(url)
-    if from_youtube and not settings.youtube_links:
-        raise HTTPException(403, "YouTube links are turned off. Upload the video file instead.")
-    if not from_youtube and not settings.direct_video_links:
+    if not settings.direct_video_links:
         raise HTTPException(403, "Direct video links are turned off. Upload the video file instead.")
-    if from_youtube and not link.allow_youtube:
-        raise HTTPException(400, "Turn on “Allow YouTube links” first.")
     if not language:
         raise HTTPException(422, "Choose the spoken language.")
     _refuse_if_busy()
     try:
         check_keys(translate=bool(target_language and target_language != language))
-        if from_youtube:
-            url = youtube.check_link(url)  # the clean watch link is what is downloaded and kept
-        else:
-            await asyncio.to_thread(check_link, url)
+        await asyncio.to_thread(check_link, url)
     except MediaError as exc:
         raise HTTPException(400, str(exc)) from None
     except BodhanError as exc:
         raise HTTPException(exc.status, str(exc)) from None
 
-    # The video's title replaces this name once yt-dlp has it
-    name = "YouTube video" if from_youtube else name_from_link(url)[:200]
-    source = "youtube" if from_youtube else "url"
+    # A name from the link for now; the download replaces it with the file's own name
+    name = name_from_link(url)[:200]
     # Checked again: another job may have started during the link check
     job = _start_one(
-        lambda: db.add_job(db.Job(source=source, source_url=url, file_name=name, language=language, target_language=target_language, step="Starting"))
+        lambda: db.add_job(db.Job(source="url", source_url=url, file_name=name, language=language, target_language=target_language, step="Starting"))
     )
     workdir = tempfile.mkdtemp(prefix="subtitles-")
     # The job owns workdir from here and deletes it when it ends

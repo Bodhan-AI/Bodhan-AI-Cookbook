@@ -9,13 +9,13 @@
 | Field | Value |
 | --- | --- |
 | App name | Subtitle Generator (folder `examples/subtitle_generator`) |
-| One-line description | Upload a video or paste a link to one (a direct video link or a YouTube video) and get timed subtitles (SRT) in its spoken language and, optionally, translated into another |
+| One-line description | Upload a video or paste a direct link to one and get timed subtitles (SRT) in its spoken language and, optionally, translated into another |
 | Authors | Sumit Bhukal |
 | Bodhan point of contact | @Bodhan-AI/cookbook-maintainers |
 | Recipe proposal issue | To be opened with the code PR |
 | Status | Draft for review |
-| Version | 0.1 |
-| Last updated | 2 Nov 2026 |
+| Version | 0.2 |
+| Last updated | 18 Nov 2026 |
 | Reviewers | Filled in at the review meeting |
 | Architecture document | [ARCHITECTURE.md](ARCHITECTURE.md) |
 | Designs | None; the built screen is described in Section 11 |
@@ -25,10 +25,11 @@
 | Version | Date | Author | What changed |
 | --- | --- | --- | --- |
 | 0.1 | 30 Oct 2026 | Sumit Bhukal | First version, written against the working prototype (not yet published) |
+| 0.2 | 18 Nov 2026 | Sumit Bhukal | YouTube links removed: YouTube's terms don't allow downloading its videos with other tools. FR-20 now refuses video-site links; J4 goes through an upload; R6 closed |
 
 ## 2. Summary
 
-- **What it is:** A web app that turns a video (an upload, or optionally a YouTube or direct video link) into subtitle files: one in the language spoken in the video, and optionally one translated into another language with the same timings.
+- **What it is:** A web app that turns a video (an upload, or optionally a direct video link) into subtitle files: one in the language spoken in the video, and optionally one translated into another language with the same timings.
 - **Who it is for:** Creators and educators who publish video in Indian languages and want subtitles without writing and timing them by hand.
 - **Bodhan models used:** `indic-transcribe`, `indic-translate`.
 - **Platform:** Web app (React) with a Python backend (FastAPI), run locally from the cookbook folder.
@@ -86,7 +87,7 @@ and in at least one other.
 - Correct the text of any line before downloading (G1)
 - Download or copy the original and translated SRT files (G1, G2)
 - Background jobs with progress, a job history, and resuming a translation that stopped (G1, G2)
-- Optional: start from a YouTube link or a direct link to a video file, each behind its own switch (G1)
+- Optional: start from a direct link to a video file, behind a switch (G1)
 - A mock mode that runs without a Bodhan key, for trying the app and for tests (G3)
 
 ### Deferred to V1 or later
@@ -97,7 +98,6 @@ and in at least one other.
 - Burned-in (hard-coded) subtitles
 - Batch processing of a video library
 - A hosted deployment with sign-in and per-user limits
-- Links to other video sites (only YouTube for now, FR-20)
 - Several jobs at once (V2)
 - Playing uploaded videos again from the history (V2 idea: a copy kept in the browser, so nothing new is stored on the server)
 
@@ -107,6 +107,7 @@ and in at least one other.
 - Not a full subtitle editor; files can be refined in existing editors after download.
 - No speaker labels: `indic-transcribe` does not identify speakers.
 - No storage of videos or audio: they are deleted when a job ends. Only subtitle text is kept, for the job history.
+- No downloading from video sites (YouTube, Vimeo, Instagram…): their terms don't allow it with other tools. Creators upload their own file (FR-20).
 
 ## 5. Platform and form factor
 
@@ -135,7 +136,7 @@ J2 — The same creator also wants English subtitles: they turn on Translate sub
 
 J3 — A developer without a key sets `DEV_MOCK_MODE=true` and runs J1 with canned text to see the whole flow.
 
-J4 — A creator whose video is already on YouTube pastes its link instead of uploading, turns on **Allow YouTube links**, and gets the same subtitles while the video plays in YouTube's player (only when `YOUTUBE_LINKS=true`).
+J4 — A creator whose video is already on YouTube downloads their own copy from YouTube Studio and uploads it (J1); the SRT files go back to the video in YouTube Studio. Pasting the YouTube link instead shows a message that says this.
 
 ### Functional requirements
 
@@ -162,7 +163,7 @@ The last column records whether the prototype meets each requirement today.
 | FR-17 | Correct the text of any subtitle line | J1 | Should | An edited line keeps its timing, is in the downloaded SRT, and is still there after a page reload | Yes |
 | FR-18 | Show the transcript next to the video in fullscreen, and let the viewer hide it | J1 | Should | In fullscreen the lines are listed on the right with the current one highlighted; lines can be corrected there as in the list; one button or `T` hides and shows them | Yes |
 | FR-19 | Start a job from a direct link to a video file | J1 | Should | A link that returns a video file works like an upload; page links and private addresses are refused with a message | Yes; off by default (`DIRECT_VIDEO_LINKS`) |
-| FR-20 | Start a job from a YouTube video link | J4 | Should | One public video of up to 15 minutes gives the same subtitles as uploading it; playlists, live, private and longer videos are refused before downloading | Yes; off by default (`YOUTUBE_LINKS`) |
+| FR-20 | Refuse links to video sites, and point YouTube links to uploading the file | J4 | Should | A YouTube, Vimeo, Instagram… link is refused before a job exists, in the page and by the API; a YouTube link's message mentions YouTube Studio | Yes (YouTube links were supported until 18 Nov 2026, then removed because of YouTube's terms) |
 | FR-21 | Let the viewer read other lines while the video plays | J1 | Should | Scrolling the lines stops them following the video; **Back to current line** follows again | Yes |
 | FR-22 | Choose the playback speed and, in fullscreen, the subtitle language | J1 | Could | Both menus work with the mouse and the keyboard | Yes |
 
@@ -183,7 +184,7 @@ The last column records whether the prototype meets each requirement today.
 - **Timing without timestamps:** `indic-transcribe` returns text only. The Silero voice activity detector (run locally) measures where speech starts and stops, and loudness where any sound is; lines are placed on those stretches, longer lines getting more time.
 - **Failure behaviour:** Rate limits (429) are retried with the wait the API asks for, up to five attempts. Any other failure stops the job and shows a message (FR-9).
 
-**Companion services:** No other AI service. Optionally (`YOUTUBE_LINKS=true`), YouTube: the backend downloads the video's audio with yt-dlp, and the page embeds YouTube's player.
+**Companion services:** None. Optionally (`DIRECT_VIDEO_LINKS=true`), the backend downloads a video file from the host in a pasted link.
 
 ### Gaps and feedback for Bodhan
 
@@ -197,14 +198,14 @@ The last column records whether the prototype meets each requirement today.
 
 | Area | Requirement | How it will be checked |
 | --- | --- | --- |
-| Latency | A 10-minute video with translation is ready within 5 minutes | Not met yet: a 12-minute video with translation (from a YouTube link, 155 lines) took about 11 minutes, including the download; translation sends one request per line (R3, Q4) |
+| Latency | A 10-minute video with translation is ready within 5 minutes | Not met yet: a 12-minute video with translation (155 lines) took about 11 minutes, including downloading it; translation sends one request per line (R3, Q4) |
 | Timing accuracy | 90% of lines start within 0.5 s of the speech | Timing benchmark planned (Section 12); 100% on the one test clip so far |
 | Readability | Lines need at most 20 characters per second to read, and stay on screen at least 0.7 s | Checked on every output by the planned evaluation script; the test clip peaked at 12.2 |
 | Reliability | One failed call must not lose the rest of the job | Partly met: a stop during translation keeps the subtitles and resumes only the missing lines; a failure during transcription means running the job again (Section 14) |
 | Upload size | At most 100 MB and 15 minutes per video | Enforced by the backend |
 | Privacy | No video or audio kept after a job; subtitle text kept only in the local database; no video, audio or text in logs | Met: logs hold counts, statuses and timings only |
 | Accessibility | Every control reachable by keyboard and labelled for screen readers; light and dark themes | Manual check; player has keyboard shortcuts |
-| Portability | Runs on Windows, macOS and Linux with only Python and Node.js installed | FFmpeg and Deno come from pip; tested on Windows, and on Linux in the optional Docker image |
+| Portability | Runs on Windows, macOS and Linux with only Python and Node.js installed | FFmpeg comes from pip; tested on Windows, and on Linux in the optional Docker image |
 | Quality of AI output | A native speaker accepts at least 8 of 10 subtitle lines as correct, per language tested | Not yet done |
 
 ## 9. Cost and usage estimate
@@ -249,7 +250,7 @@ Models used: `indic-transcribe` and `indic-translate`. Bodhan keys work with one
 | Data item | Collected from | Sent to | Stored where, and for how long | Personal data? |
 | --- | --- | --- | --- | --- |
 | Uploaded video | The creator | The local backend only | A temporary folder, deleted as soon as transcription ends (or the job fails) | Possibly: faces and voices of people in the video |
-| Pasted link, and the video or audio it points to | The creator; YouTube or the linked site | The backend downloads it; YouTube also learns the video was requested | The link: the local database, with the job. The download: the temporary folder, deleted with it | Possibly |
+| Pasted link, and the video it points to | The creator; the linked site | The backend downloads it; the site learns the file was requested | The link: the local database, with the job. The download: the temporary folder, deleted with it | Possibly |
 | Extracted audio and audio pieces | The video, by FFmpeg | Bodhan `indic-transcribe` (pieces with speech only) | The same temporary folder, deleted with it | Yes: voices |
 | Transcript and subtitle lines | Bodhan responses | Bodhan `indic-translate`; the creator's browser | The local database (`jobs` table) until the creator deletes it; browser memory while shown | Possibly, depending on what is said |
 | Job details (file name, languages, status, times) | The creator's upload | Nowhere | The local database, with the subtitle lines | Possibly: a file name can name a person |
@@ -263,7 +264,7 @@ Models used: `indic-transcribe` and `indic-translate`. Bodhan keys work with one
 - [ ] **Consent of people in the video:** the creator is responsible for having the right to subtitle their own video. Open question Q3: should the app say so before upload?
 - [x] **Users under 18:** the app targets adult creators. Videos may contain children; no video or audio is stored, and demos use synthetic or consented clips only.
 - [ ] **Consent and deletion:** subtitle text stays in `backend/data/subtitles.db` until that file is deleted. A delete button per job is not built yet.
-- [x] **Data leaving the machine:** only audio pieces and text, only to Bodhan (`api.bodhan.ai`). No analytics. Fonts load from Google Fonts. With YouTube links on, the backend fetches the video's audio from YouTube and the page embeds YouTube's player (privacy-enhanced mode, youtube-nocookie.com).
+- [x] **Data leaving the machine:** only audio pieces and text, only to Bodhan (`api.bodhan.ai`). No analytics. Fonts load from Google Fonts. With direct links on, the backend fetches the linked video file from its host, and the page plays it from the link.
 - [x] **Sample data:** none committed. Tests use synthetic tones, and the cookbook's shared `sample_data/sample_hindi.wav` when present.
 - [ ] **Backend abuse:** V0 runs locally for one person. If it were hosted as is, anyone could use it to spend the owner's credit (no sign-in, no limits); V1 must add both before hosting.
 
@@ -304,7 +305,7 @@ files and open the job from History. For a live demo, the same steps take about 
 | Working prototype | 14 Oct 2026 | J1 and J2 run against the live API |
 | Pause-based subtitle timing | 15 Oct 2026 | FR-5 met on the test clip |
 | Spec and architecture documents | 16 Oct 2026 | Ready for team review |
-| Job history, editing, links and YouTube, player menus | 30 Oct 2026 | FR-14 to FR-22 met |
+| Job history, editing, links, player menus | 30 Oct 2026 | FR-14 to FR-22 met (FR-20 changed to refusing video-site links, 18 Nov) |
 | Peer review | To be set | Comments resolved in these documents |
 | Code PR to the cookbook | Nov 2026 | Passes the cookbook validator; README, tests, `.env.example` and the demo video included |
 | V1: evaluation | To be set | Timing benchmark results published |
@@ -322,7 +323,7 @@ files and open the job from History. For a live demo, the same steps take about 
 | R3 | Long videos hit translation rate limits, slowing jobs | High | Medium | Retries already wait as asked; translate whole pieces instead of single lines in V1 (also better quality) |
 | R4 | One failed call loses the whole job | Medium | Medium | V1: retry 5xx errors and keep finished pieces |
 | R5 | The `/translate` route stays unavailable or the chat route changes | Medium | Low | Both routes supported; the fallback switches after the first 404 |
-| R6 | YouTube changes how it serves videos and the pinned yt-dlp stops working, or asks to confirm the viewer isn't a bot | Medium | Low | Optional and off by default; clear messages; the README says how to update yt-dlp; uploads always work |
+| R6 | (Closed 18 Nov 2026) YouTube links breaking with yt-dlp updates: YouTube links were removed | — | — | — |
 
 ### Dependencies
 
@@ -343,11 +344,11 @@ files and open the job from History. For a live demo, the same steps take about 
 | --- | --- |
 | Code location | `examples/subtitle_generator/` in the cookbook |
 | Licence | Apache-2.0, the cookbook's licence |
-| Third-party licences | Backend: FastAPI and fastapi-cli (MIT), Uvicorn (BSD-3-Clause), httpx (BSD-3-Clause), pydantic-settings (MIT), python-multipart (Apache-2.0), SQLModel (MIT), SQLAlchemy (MIT), imageio-ffmpeg (BSD-2-Clause), silero-vad-lite (MIT, Silero model MIT). imageio-ffmpeg downloads a static FFmpeg build at install time (GPL); it is not committed to the repo. YouTube links: yt-dlp (Unlicense), yt-dlp-ejs (Unlicense, MIT and ISC), Deno (MIT); the page uses YouTube's IFrame Player API under YouTube's API terms. Web app: React (MIT), Vite (MIT), lucide-react (ISC). Fonts from Google Fonts: Poppins and Inter (SIL Open Font License) |
+| Third-party licences | Backend: FastAPI and fastapi-cli (MIT), Uvicorn (BSD-3-Clause), httpx (BSD-3-Clause), pydantic-settings (MIT), python-multipart (Apache-2.0), SQLModel (MIT), SQLAlchemy (MIT), imageio-ffmpeg (BSD-2-Clause), silero-vad-lite (MIT, Silero model MIT). imageio-ffmpeg downloads a static FFmpeg build at install time (GPL); it is not committed to the repo. Web app: React (MIT), Vite (MIT), lucide-react (ISC). Fonts from Google Fonts: Poppins and Inter (SIL Open Font License) |
 | README | Has Setup, Run, How it works and Limitations sections |
 | Configuration | `.env.example` declares the Bodhan keys and every other setting; `.env` is git-ignored |
 | Dependencies | Pinned: `backend/requirements.txt` (`name==version`) and `frontend/package.json` with its lock file |
-| Tests | 99 backend tests, offline (no key or network needed; Bodhan, YouTube and links are faked) |
+| Tests | 85 backend tests, offline (no key or network needed; Bodhan and links are faked) |
 | AI assistance | Claude Code (most of the code, tests and docs, directed and reviewed by the author) and Antigravity (an architecture review); declared in the PR |
 
 **Areas left for contributors:** editing line timings, word-level forced alignment, deleting jobs from the history, burned-in subtitles, several translation languages at once, and the evaluation script in Section 12.

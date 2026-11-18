@@ -5,18 +5,18 @@
 | Field | Value |
 | --- | --- |
 | App name | Subtitle Generator (folder `examples/subtitle_generator`) |
-| Approved spec | [SOFTWARE_SPECIFICATION.md](SOFTWARE_SPECIFICATION.md), version 0.1 (in review) |
+| Approved spec | [SOFTWARE_SPECIFICATION.md](SOFTWARE_SPECIFICATION.md), version 0.2 (in review) |
 | Authors | Sumit Bhukal |
 | Bodhan reviewers | @Bodhan-AI/cookbook-maintainers |
 | Status | Draft for review |
-| Version | 0.1 |
-| Last updated | 2 Nov 2026 |
+| Version | 0.2 (YouTube links removed, 18 Nov 2026: ADR-11) |
+| Last updated | 18 Nov 2026 |
 | Code | `examples/subtitle_generator/`, in the same PR as these documents |
 
 ## 2. Overview and architectural drivers
 
 **Summary.** A React web app and a small FastAPI backend, both on the creator's machine. The backend
-takes an uploaded video (or downloads one from a direct or YouTube link), extracts the audio with FFmpeg,
+takes an uploaded video (or downloads one from a direct link to the file), extracts the audio with FFmpeg,
 and sends every stretch with sound to `indic-transcribe` in pieces of at most 24 s, cut at pauses found
 by loudness and the Silero voice activity detector. The text is split into short lines placed on the
 measured speech, then optionally translated line by line with `indic-translate`. Jobs run in the
@@ -54,15 +54,14 @@ flowchart LR
   web -->|"/api, same origin"| backend[FastAPI backend on the creator's machine]
   backend -->|"HTTPS, Bearer key per model"| bodhan["Bodhan APIs<br/>api.bodhan.ai"]
   web -.->|font files only| fonts[Google Fonts]
-  backend -.->|"optional: audio download (yt-dlp), direct links"| sites[YouTube / the linked site]
-  web -.->|"optional: embedded player"| sites
+  backend -.->|"optional: direct link download"| sites[The linked site]
+  web -.->|"optional: plays the linked file"| sites
 ```
 
 | Outside system | What it does for the app | Data sent to it |
 | --- | --- | --- |
 | Bodhan APIs | Speech to text, translation | Audio pieces that contain speech; subtitle lines to translate |
 | Google Fonts | Serves the Poppins and Inter fonts used by the page | Ordinary font requests from the browser; no app data |
-| YouTube (optional, `YOUTUBE_LINKS`) | The video's audio for transcription; the embedded player for the preview (youtube-nocookie.com) | The video id; the usual player requests from the browser |
 | The linked site (optional, `DIRECT_VIDEO_LINKS`) | The video file | One download request from the backend; the browser also loads the video for the preview |
 
 ## 4. Containers and components
@@ -78,7 +77,6 @@ flowchart TB
     APP[App.jsx]
     UF[UploadForm: file or link]
     VP[VideoPlayer]
-    YT[YouTubePlayer]
     FS[FsTranscript, ControlMenu]
     SL[SubtitleList]
     HD[Header]
@@ -91,7 +89,6 @@ flowchart TB
     MAIN[main.py: HTTP API]
     PIPE[jobs.py: background job, the steps in order]
     DL[download.py: direct links]
-    YTD[youtube.py: YouTube audio, yt-dlp]
     DB[db.py: jobs table]
     MEDIA[audio.py: FFmpeg]
     VAD[vad.py: sound by loudness, speech by Silero]
@@ -104,9 +101,7 @@ flowchart TB
   SQL[("SQLite file<br/>backend/data/subtitles.db")]
   APP --> UF
   APP --> VP
-  APP --> YT
   VP --> FS
-  YT --> FS
   APP --> SL
   APP --> HD
   APP --> JP
@@ -119,7 +114,6 @@ flowchart TB
   PIPE --> DB
   DB --> SQL
   PIPE --> DL
-  PIPE --> YTD
   PIPE --> MEDIA
   PIPE --> VAD
   PIPE --> SUBS
@@ -139,7 +133,6 @@ flowchart TB
 | Backend | Python 3.10+, FastAPI 0.143.0, Uvicorn 0.54.0, httpx 0.28.1, pydantic-settings 2.15.0 | Async calls, upload handling and validation built in; offline tests with httpx's mock transport |
 | Media | FFmpeg 7.1 from imageio-ffmpeg 0.6.0 | Converts every common format to WAV; installed by pip, nothing system-wide |
 | Speech detection | silero-vad-lite 0.4.0 (MIT), plus a loudness measure | Finds speech under music, where FFmpeg's `silencedetect` failed; about 0.4 s per 24 s of audio |
-| YouTube links (optional) | yt-dlp 2026.10.26, yt-dlp-ejs 0.8.0, Deno 2.9.8 from pip | The maintained YouTube tool; Deno comes from pip, like FFmpeg |
 | Storage | SQLite through SQLModel 0.0.48 | History with no server to run; Postgres by changing `DATABASE_URL` |
 | Web app | React 19.3.0, Vite 8.3.4, lucide-react 1.57.0, plain CSS with Bodhan's design tokens | A custom player synced with the line list; Vite's `/api` proxy |
 | Hosting and distribution | None; run from source (an optional Docker image) | V0 is a developer recipe |
@@ -148,18 +141,17 @@ flowchart TB
 
 | Component | Responsibility | Depends on |
 | --- | --- | --- |
-| `main.py` | HTTP API: start a job (upload or link), job status and history, edit a line, resume. Checks each request before a job exists; one job at a time | jobs, db, download, youtube |
+| `main.py` | HTTP API: start a job (upload or link), job status and history, edit a line, resume. Checks each request before a job exists; one job at a time | jobs, db, download |
 | `jobs.py` | The background job: download (links), extract audio, find sound and speech, plan pieces, transcribe, time lines, translate; resumes a stopped translation | audio, vad, subtitles, bodhan |
 | `audio.py` | FFmpeg: duration and audio track, WAV extraction, cutting; plans pieces at pauses | FFmpeg |
 | `vad.py` | Per 32 ms window, a speech probability (Silero) and a loudness; turns them into stretches of sound (what is sent) and speech (cut points, line timing) | silero-vad-lite |
 | `subtitles.py` | Junk filter, line splitting, line timing, SRT | none |
 | `bodhan.py` | The two Bodhan calls: key, 429 retries, `/translate` fallback, mock mode | httpx |
-| `download.py` | Direct links: public addresses only (also after redirects), video types only, upload limits | httpx |
-| `youtube.py` | YouTube links: one video id, YouTube's handler only, length and live checks before downloading the audio | yt-dlp, Deno |
+| `download.py` | Direct links: public addresses only (also after redirects), video types only, upload limits; links to video sites (YouTube…) refused | httpx |
 | `db.py`, `config.py` | The `jobs` table; settings from `.env` | SQLModel, pydantic-settings |
 | `App.jsx` | Page state: the form, polling the job, history, resume and **Run again** | api.js |
 | `UploadForm` | File or link, languages, Generate | links.js |
-| `VideoPlayer`, `YouTubePlayer` | The video with the current line (over a file, under a YouTube player); controls, speed menu, fullscreen with the transcript and a language menu | FsTranscript, ControlMenu |
+| `VideoPlayer` | The video (a file or a direct link) with the current line over it; controls, speed menu, fullscreen with the transcript and a language menu | FsTranscript, ControlMenu |
 | `SubtitleList`, `LineEditor` | Tabs, lines that follow the video, click to seek, edit a line, copy and download | useLineFollow |
 | `History`, `JobProgress`, `Header` | Past jobs, 10 per page; the running job's progress; the theme toggle | none |
 
@@ -192,8 +184,8 @@ flowchart TB
 | Browser memory | React state | The video (as a local object URL), the open job's subtitle lines and SRT text | Until the page is closed or a new video is chosen | Not stored |
 | `localStorage` | Browser | Theme, last languages, translation and upload-or-link choices | Until cleared | No; nothing sensitive |
 
-**Data model.** One table, `jobs`: `id`, `created_at`, `source` (`upload`, `url` or `youtube`), `source_url`
-(the link, for link jobs), `file_name` (or the video's title), `language`, `target_language`, `status`
+**Data model.** One table, `jobs`: `id`, `created_at`, `source` (`upload` or `url`; older databases may hold `youtube` jobs, which open
+but run again only from an upload), `source_url` (the link, for link jobs), `file_name`, `language`, `target_language`, `status`
 (queued, running, done, failed), `progress` (percent), `step`, `error`, `segments` (saved as soon as
 transcription ends) and `translated_segments` (saved as lines come in, at most once a second; `null`
 marks a line not translated yet) (JSON lists of `Segment(start, end, text)`, times in
@@ -268,7 +260,6 @@ sequenceDiagram
 | A key is committed to git | `.env` git-ignored; CI secret scan | `.env` git-ignored; `.env.example` has placeholders; the cookbook validator's secret scan passes |
 | Personal data leaks through logs | Log status and timings only | Logs hold HTTP statuses, counts and waits; no transcript, subtitle or file content |
 | A pasted link reaches local or private services (SSRF) | Allow only public addresses | http(s) only; every address the host resolves to must be public, checked again on each redirect; links to this computer or a private network are refused before a job exists |
-| A YouTube link is used to fetch something else | Allow-list, not a filter | Only the 11-character video id is taken from the link; yt-dlp gets `https://www.youtube.com/watch?v=<id>` and has only its YouTube video handler loaded. Off by default (`YOUTUBE_LINKS`), and the user allows it each visit |
 | Oversized or hostile uploads | Check size, type and duration before processing | Extension allow-list; upload streamed to disk with a 100 MB cap; 15-minute limit checked before any API call; FFmpeg runs with fixed arguments and timeouts, never a shell |
 | Temporary files left behind | Delete on every path | One folder per request, removed in `finally` |
 | Traffic is intercepted | HTTPS to external services | Bodhan over HTTPS; browser to backend is local |
@@ -304,7 +295,7 @@ sequenceDiagram
 | Latency | Per-request lines from httpx and Uvicorn in the console; job time not recorded | Log time per step and per job |
 | Usage and cost | The Bodhan console | Count audio seconds and translated lines per job |
 | Rate limits | A warning line for each 429 retry, with the wait | Read `x-ratelimit-*` headers and pace requests to them |
-| Health | `GET /api/health`: FFmpeg found, key set, mock mode, limits, which kinds of link are on | Same |
+| Health | `GET /api/health`: FFmpeg found, key set, mock mode, limits, whether direct video links are on | Same |
 
 **Support path:** a user reports the banner text and the backend console output. Without the
 `request_id`, a failed call cannot be traced on Bodhan's side.
@@ -321,7 +312,7 @@ sequenceDiagram
 
 ### Measured on a 12-minute video
 
-A YouTube link, English with Hindi translation, 155 lines: about 11 minutes, including the download.
+English with Hindi translation, 155 lines: about 11 minutes, including downloading the video.
 That misses the spec's target (10 minutes of video in under 5 minutes). Job time per step is not
 recorded yet (Section 10), so the split between transcription and translation is not known.
 
@@ -340,7 +331,7 @@ recorded yet (Section 10), so the split between transcription and translation is
 | Speech and sound detection | Stretches from probabilities and loudness; singing is sent though Silero ignores it; cut points; line placement; the real model on `sample_hindi.wav` (skipped when absent) | unittest, silero-vad-lite | Every change |
 | Integration, offline | Bodhan calls against a fake HTTP server: request shape, 429 retry, 404 fallback, readable errors, `verbose_json` parsing | httpx `MockTransport` | Every change |
 | API, mock mode | Upload to finished job with canned text; history; errors; restarts; editing; resume; one job at a time | FastAPI `TestClient` | Every change |
-| Links, offline | Direct links against a local test server (types, size, private addresses, redirects); YouTube with yt-dlp faked (ids, playlists, length and live checks, errors, switches) | unittest, `http.server` | Every change |
+| Links, offline | Direct links against a local test server (types, size, private addresses, redirects); video-site and YouTube links refused, in the check and by the API | unittest, `http.server` | Every change |
 | Live smoke test | One real job on a short clip | Manual, by the author | Before each PR; never in CI with a real key |
 | Timing and readability evaluation | Line start error against clips with known timing; reading speed; time on screen | A script, not written yet (open for contributors) | After timing changes |
 | Output quality | 10 lines per language rated by a native speaker | Rating sheet | Once, then on model changes |
@@ -362,7 +353,7 @@ recorded yet (Section 10), so the split between transcription and translation is
 | ADR-8 | Background jobs (FastAPI tasks), one at a time, state in SQLite | One request; Celery and Redis | Progress and history with no new services | A restart fails running jobs (translation resumes) | Accepted for V0 |
 | ADR-9 | Vite proxies `/api` to the backend | CORS; a configured API URL | One origin, nothing to configure | Hosting would need the same routing | Accepted |
 | ADR-10 | Timestamps only with `BODHAN_TIMESTAMPS=true` | Always; never | The API returns none yet | One setting to turn on later | Accepted |
-| ADR-11 | YouTube: audio with yt-dlp; preview in YouTube's player, the line under it | Every site yt-dlp knows; downloading a preview video | One site done well; YouTube forbids drawing over its player; videos are never kept | yt-dlp needs updates; a 42 MB Deno binary | Accepted, off by default |
+| ADR-11 | No YouTube links: refuse every video-site link and ask for the file (for YouTube, a copy from YouTube Studio) | Download YouTube audio with yt-dlp (built 29 Oct, off by default, the user allowed it each visit); embed YouTube's player only | YouTube's terms don't allow downloading its videos with other tools, whatever the video's licence; a cookbook recipe shouldn't ship such a downloader; yt-dlp broke with YouTube changes and needed a 42 MB Deno binary | One more step for creators whose video is on YouTube; no YouTube player preview | Accepted 18 Nov 2026 (replaces the yt-dlp design) |
 | ADR-12 | An optional Docker image and `npm start` | Docker as the main setup; separate images | One-command runs without changing the normal setup | Docker needs a rebuild after code changes | Accepted |
 
 **Approaches rejected outright:** calling Bodhan from the browser, because it would expose the
@@ -383,7 +374,6 @@ key; sending the whole audio in one request, because `indic-transcribe` refuses 
 | `error.code`, `request_id` and rate-limit headers not used | Messages are readable already | Parse the error envelope; pace to `x-ratelimit-*` |
 | Backend tests do not run in the cookbook CI | The workflow only tests the cookbook's own scripts | Propose running recipe tests in CI, offline |
 | No sign-in or limits on the backend | Runs locally for one person | Add both before any hosting |
-| yt-dlp is pinned, and YouTube breaks old versions | Pins keep installs reproducible; the README says how to update | Raise the pin regularly, or move to a better tool if one appears; add other sites one by one |
 
 **V1 direction.** Keep the same two-part design. Translate per piece, and switch line timing to Bodhan timestamps (or forced alignment) when they
 are available. Publish the timing evaluation so changes can be compared.

@@ -20,8 +20,10 @@ class Job(SQLModel, table=True):
 
     id: str = Field(default_factory=lambda: uuid4().hex, primary_key=True)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), index=True)
-    source: str = "upload"  # "upload", "url" (direct link to a video file) or "youtube"
-    source_url: str | None = None  # the pasted link ("url"), or the video's clean watch link ("youtube")
+    # "upload" or "url" (a direct link to a video file). Older databases may also hold "youtube" jobs, from when the
+    # app took YouTube links: they are still listed and opened, and run again from an upload.
+    source: str = "upload"
+    source_url: str | None = None  # the pasted link
     file_name: str
     language: str
     target_language: str = ""
@@ -105,8 +107,8 @@ def fail_unfinished_jobs() -> None:
             job.status = "failed"
             if job.segments:
                 job.error = "The server stopped during the translation. The subtitles are saved; resume to finish the translation."
-            elif job.source == "upload":
-                job.error = "The server stopped before the transcription finished. Choose the video again to run it again."
-            else:
+            elif job.source == "url":
                 job.error = "The server stopped before the transcription finished. Use Run again to start it from the link."
+            else:  # an upload (or an old YouTube job): the video has to be chosen again
+                job.error = "The server stopped before the transcription finished. Choose the video again to run it again."
         session.commit()

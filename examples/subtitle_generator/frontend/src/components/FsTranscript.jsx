@@ -4,7 +4,7 @@ import { formatTime } from '../format.js'
 import LineEditor from './LineEditor.jsx'
 import useLineFollow from '../useLineFollow.js'
 
-// The transcript panel on the right of a fullscreen player (VideoPlayer and YouTubePlayer). Lines jump to their
+// The transcript panel on the right of the fullscreen player (VideoPlayer). Lines jump to their
 // time with onSeek; with onEdit(index, text) they can be corrected (onStartEdit lets the player pause first).
 export default function FsTranscript({ cues, cueIndex, trackLabel, onSeek, onEdit, onStartEdit, onClose }) {
   const [editing, setEditing] = useState(null) // index of the line being edited

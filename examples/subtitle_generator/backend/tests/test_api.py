@@ -151,12 +151,15 @@ class ApiTests(unittest.TestCase):
         translating = db.add_job(
             db.Job(file_name="b.mp4", language="hi", target_language="en", status="running", segments=[{"start": 0.0, "end": 1.0, "text": "नमस्ते"}])
         )
-        db.add_job(db.Job(source="youtube", source_url="https://www.youtube.com/watch?v=aqz-KE-bpKQ", file_name="c", language="en", status="running"))
+        db.add_job(db.Job(source="url", source_url="https://cdn.example.com/c.mp4", file_name="c", language="en", status="running"))
+        # A job from when the app took YouTube links: it runs again only from an upload
+        db.add_job(db.Job(source="youtube", source_url="https://www.youtube.com/watch?v=aqz-KE-bpKQ", file_name="d", language="en", status="running"))
         db.fail_unfinished_jobs()
         jobs = {j["file_name"]: j for j in self.client.get("/api/jobs").json()["jobs"]}
         self.assertEqual((jobs["a.mp4"]["status"], jobs["a.mp4"]["resumable"]), ("failed", False))
         self.assertIn("Choose the video again", jobs["a.mp4"]["error"])
         self.assertIn("Run again", jobs["c"]["error"])  # a link job starts again from its link
+        self.assertIn("Choose the video again", jobs["d"]["error"])
         self.assertEqual((jobs["b.mp4"]["status"], jobs["b.mp4"]["resumable"]), ("failed", True))
         self.assertIn("resume", jobs["b.mp4"]["error"])
         self.assertEqual(stored(transcribing.id).status, "failed")
