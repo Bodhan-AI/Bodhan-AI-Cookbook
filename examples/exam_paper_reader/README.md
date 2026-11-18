@@ -90,7 +90,7 @@ These come from testing with the API, not from guesses.
 
 - **One page per request, images only.** Convert a PDF to one image per page first.
 - **Fields printed close together can merge.** On a blurred photo, OCR returned `Time: 30 minutes Maximum marks: 10` with a single space, so the gap rule above could not split it, and the translation reordered the fields. Check headers and marks against the paper.
-- **No per-line confidence warnings.** The OCR response includes a `conf` score per layout block, but in testing it barely changed between a sharp image, a blurred one and a misread one (0.62 to 0.87 throughout). It appears to describe layout detection, not text accuracy, so the app does not use it to flag doubtful lines.
+- **No per-line confidence warnings.** The OCR response includes a `conf` score per layout block, but in testing it barely changed between a sharp image, a blurred one and a misread one (0.54 to 0.87 throughout, with no pattern tied to quality). It appears to describe layout detection, not text accuracy, so the app does not use it to flag doubtful lines.
 - **Synthetic Hindi samples need a shaping-aware renderer.** Pillow without `libraqm` draws Devanagari vowel signs in the wrong place (`मिनट` comes out as `मनिट`), and OCR then faithfully reads the broken text. `make_sample_paper.py` therefore draws an English paper only.
 - **The same-language check looks at the script, not the language.** A Marathi or Nepali page is also in Devanagari, so with Hindi selected it is shown untranslated.
 - **Words with two meanings can go wrong.** On a Hindi textbook page, `लाख की गोलियाँ` (marbles made of lac) was translated into English as "lakh pills".
