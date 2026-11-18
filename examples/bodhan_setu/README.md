@@ -1,6 +1,6 @@
-# Bodhan MCP server
+# Bodhan Setu: MCP server and task agent
 
-Phase 1 of the tool-server assignment: a standalone MCP server exposing typed tools for Bodhan speech-to-text, translation, transliteration, speech synthesis, OCR, and local media inspection.
+Bodhan Setu implements the Bodhan tool server and an unattended task agent. The MCP server exposes typed tools for Bodhan speech-to-text, translation, transliteration, speech synthesis, and OCR. The task agent plans with an OpenAI-compatible LLM, executes through MCP, enforces step and rupee budgets, records a trace, and writes a per-run report.
 
 ## Setup
 
@@ -38,6 +38,31 @@ python -m bodhan_mcp --transport streamable-http --host 127.0.0.1 --port 8000
 The MCP endpoint is `http://127.0.0.1:8000/mcp`. Configure the client to send `Authorization: Bearer <token>` on MCP requests. The token is required for this transport; the server exits at startup if it is missing. To expose the service beyond loopback, bind to an appropriate interface and use HTTPS through a trusted reverse proxy. Stdio remains the default and does not require this token.
 
 The same settings can be supplied with `BODHAN_MCP_TRANSPORT=streamable-http`, `BODHAN_MCP_HOST`, `BODHAN_MCP_PORT`, and `BODHAN_MCP_HTTP_TOKEN` instead of command-line flags.
+
+## Task agent
+
+Configure an OpenAI-compatible tool-calling endpoint in `.env`:
+
+```dotenv
+LLM_BASE_URL=https://your-provider.example/v1
+LLM_MODEL=your-tool-calling-model
+LLM_API_KEY=your-key
+```
+
+Run one task with one or more supplied files or directories:
+
+```bash
+python -m bodhan_agent \
+  --task "Transcribe the recording and translate it into Marathi" \
+  --files ./recording.wav \
+  --out ./outputs \
+  --max-steps 30 \
+  --max-cost-inr 20
+```
+
+Each run creates a unique directory under `--out` containing `result.md`, `report.json`, `trace.jsonl`, and an `artifacts/` directory. The CLI prints the run directory and exits nonzero when the run is blocked, failed, or partial. The agent launches the local stdio MCP server itself, reads its language, voice, and pricing resources, and exposes the registered MCP tools to the LLM. Before any paid tool call, it requests a dry-run estimate and blocks the call if the estimate would exceed the remaining Bodhan budget. `translate_video` may require a second estimate with duration-based output-size assumptions; that assumption is recorded. The configured LLM endpoint cost is not included in the Bodhan rupee budget.
+
+Inputs are restricted to supplied paths and outputs from the current run. File IDs remain available for chaining without putting binary media in the LLM context; generated artifacts are downloaded into the run's `artifacts/` directory. Trace records include plans, tool arguments/results, latency, reported costs, artifact downloads, and verification outcomes. Large text values are summarized in the trace with a preview, length, and hash.
 
 ## Tools
 
@@ -85,16 +110,14 @@ This first phase keeps each Bodhan model as one explicit tool, while handling lo
 
 Every MCP tool publishes a typed `outputSchema` as well as typed input parameters. Tool result schemas cover normal, dry-run, and cache-hit responses.
 
-## Design notes
+## Design notes and limits
 
-Files are passed by path and generated content is written to `outputs/`; binary data is never returned through the MCP response. API keys are selected server-side by operation. The server returns an error object with an actionable message instead of exposing HTTP internals or crashing the client.
-
-## Limitations in Phase 1
-
-Retries, cost budgets, output verification, and autonomous planning are intentionally left for the next phase. This is the standalone MCP foundation required by the assignment.
+The agent uses the LLM for planning, tool selection, and English reporting only. Speech recognition, OCR, Indic translation/transliteration, and speech synthesis are delegated to Bodhan tools. It treats transcript and OCR contents as untrusted data, retries transient LLM errors, records tool errors, and asks the LLM to summarize honestly if the step budget is reached. Translation and synthesized audio receive advisory checks when the needed source/result is available. These checks are not native-speaker judgments; the report calls out uncertainty. Cost tracking is limited to what the MCP tools report, and the LLM provider cost is not included. Tool workflows remain sequential so each step can use the prior result and budget checks.
 
 ## Tests
 
 ```bash
 pytest -q
 ```
+
+The test suite includes a mocked end-to-end agent run through a real local MCP subprocess; it does not call paid Bodhan APIs or the configured LLM service.
