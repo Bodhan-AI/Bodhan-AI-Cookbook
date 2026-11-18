@@ -1,0 +1,167 @@
+review_id,lang,reason,source,translation,audio,verdict,severity,annotator
+04dc454bb0051836,ta,weak evidence: entity,NASA publishes recordings from some space missions. Check the source before reusing a recording.,நாசா சில விண்வெளிப் பயணங்களின் பதிவுகளை வெளியிடுகிறது. ஒரு பதிவை மீண்டும் பயன்படுத்திய பிறகு மூலத்தை சரிபார்க்கவும்.,,,,
+0739078829dd1828,hi,weak evidence: entity,An LED usually conducts in one direction. Swap the leads and observe whether it lights up.,एक एलईडी आमतौर पर एक दिशा में संचालित होता है। लीड को स्वैप करें और देखें कि क्या यह प्रकाशित होता है।,audio/aa5424734dd24cb9b8acd31f5c209a0cc50eff5803399a6c416aacbeee1cf4ff.wav,,,
+0cca832643bf43c2,ta,incomplete checks,An adult heart pumps blood through the lungs and the rest of the body. Each circuit serves a different purpose.,ஒரு வயது வந்த இதயம் நுரையீரல்கள் மற்றும் உடலின் மற்ற பாகங்கள் வழியாக இரத்தத்தை பம்ப் செய்கிறது. ஒவ்வொரு சுற்றுகளும் வெவ்வேறு நோக்கங்களுக்கு உதவுகின்றன.,audio/74a043d8a9ba2efe6315c2e9444b8f693c2d333b6ade5002cc28318cc4ef716b.wav,,,
+0ee393c819a797f3,bn,weak evidence: garbled_audio; incomplete checks,"## Measuring temperature
+
+| Time | Temperature |
+| --- | --- |
+| 08:30 | 21 °C |
+| 11:00 | 28 °C |","## তাপমাত্রা পরিমাপ করা
+
+| সময় | তাপমাত্রা |
+| --- | --- |
+| 08:30 | 21 °C |
+| 11:00 | 28 °C |",audio/4996d38def427e95454a45e656eb7c9b64f1aa0566262cdeb20019709a72ca4d.wav,,,
+0efc11d4a16fc8c1,bn,weak evidence: garbled_audio,"## Measuring temperature
+
+| Time | Temperature |
+| --- | --- |
+| 08:30 | 21 °C |
+| 11:00 | 28 °C |","## তাপমাত্রা পরিমাপ করা
+
+| সময় | তাপমাত্রা |
+| --- | --- |
+| 08:30 | 21 °C |
+| 11:00 | 28 °C |",audio/7661b6b2dc2a81e302d22a587c77feebf6789deac5830e3c31f5fe98a3e24efb.wav,,,
+178a9e5cd0ebd665,ta,weak evidence: garbled_audio,"| Group | Trials | Correct |
+| --- | --- | --- |
+| A | 10 | 8 |
+| B | 10 | 6 |","| குழு | முயற்சிகள் | சரியானவை |
+| --- | --- | --- |
+| A | 10 | 8 |
+| B | 10 | 6 |",audio/9c1032a2b889c02fcff81260cf06c07dad5d382e222052ce29be725f69db2769.wav,,,
+2456af1f01d550cf,bn,weak evidence: entity,NASA publishes recordings from some space missions. Check the source before reusing a recording.,কুরি কিছু মহাকাশ অভিযান থেকে রেকর্ডিং প্রকাশ করে। একটি রেকর্ডিং পুনরায় ব্যবহার করার আগে উৎসটি পরীক্ষা করুন।,,,,
+2881f25c95c68704,bn,weak evidence: entity,NASA publishes recordings from some space missions. Check the source before reusing a recording.,নাসা কিছু মহাকাশ অভিযান থেকে রেকর্ডিং প্রকাশ করে। একটি রেকর্ডিং পুনরায় ব্যবহার করার আগে উৎসটি পরীক্ষা করুন।,audio/2e2352eb8642c1ce5b6e8bc97a9ef64be132c00389415893b05d02693a8b76d2.wav,,,
+295bdbe3478d2cc8,ta,weak evidence: entity; incomplete checks,An LED usually conducts in one direction. Swap the leads and observe whether it lights up.,"ஒரு எல்இடி பொதுவாக ஒரு திசையில் மட்டுமே மின்சாரத்தை கடத்தும். அதன் கம்பிகளை மாற்றி, அது ஒளிர்கிறதா என்று கவனியுங்கள்.",audio/8eb0c5294e4071cd6c156747eb7e740b24a96317406335fb0076214165ba9162.wav,,,
+2e9b15166fd55b53,ta,weak evidence: entity,A USB cable can carry power and data. The connector shape alone does not identify its data rate.,ஒரு யுஎஸ்பி கேபிள் மின்சாரம் மற்றும் தரவை எடுத்துச் செல்ல முடியும். இணைப்பியின் வடிவம் மட்டுமே அதன் தரவு விகிதத்தை அடையாளம் காணாது.,audio/0a69e8de300aa317c228d18440dde075a3879154ebc65eaea70183539ccf0a60.wav,,,
+34b8b611d3109574,ta,weak evidence: entity,A USB cable can carry power and data. The connector shape alone does not identify its data rate.,ஒரு யுஎஸ்பி கேபிள் மின்சாரம் மற்றும் தரவை எடுத்துச் செல்ல முடியும். இணைப்பியின் வடிவம் மட்டுமே அதன் தரவு விகிதத்தை அடையாளம் காணாது.,audio/940f1fa6a6c0952d09744c1ad71330b80eeb851e23ccc01a5650308e39897e8b.wav,,,
+377eace382d75ecc,ta,incomplete checks,"## Measuring length
+
+1. Align the pencil with the zero mark.
+2. Read the mark at the far end.","## நீளத்தை அளவிடுதல்
+
+1. பென்சிலை பூஜ்ஜியக் குறியுடன் சீரமைக்கவும்.
+2. தூர முனையில் உள்ள குறியைப் படிக்கவும்.",audio/9ea43e51986c0831663e4c97dab002973623bf3103d0db7c81b39fd1d73f3fd5.wav,,,
+393d0932272643c5,hi,weak evidence: entity; incomplete checks,An LED usually conducts in one direction. Swap the leads and observe whether it lights up.,एक केन्या आमतौर पर एक दिशा में संचालित होता है। लीड को स्वैप करें और देखें कि क्या यह लाइट अप करता है।,,,,
+3a8dfbeb80b1b616,bn,weak evidence: entity,NASA publishes recordings from some space missions. Check the source before reusing a recording.,নাসা কিছু মহাকাশ অভিযান থেকে রেকর্ডিং প্রকাশ করে। একটি রেকর্ডিং পুনরায় ব্যবহার করার পরে উৎসটি পরীক্ষা করুন।,,,,
+3ba385215576d133,ta,weak evidence: entity,NASA publishes recordings from some space missions. Check the source before reusing a recording.,நாசா சில விண்வெளிப் பயணங்களின் பதிவுகளை வெளியிடுகிறது. ஒரு பதிவை மீண்டும் பயன்படுத்துவதற்கு முன் மூலத்தை சரிபார்க்கவும்.,audio/1082ba540a7a3e062b21a43a8ad1448e15ddb81a572a3cfab3213019d3c3a95b.wav,,,
+3fcf5bae8964d1f0,hi,weak evidence: entity,An LED usually conducts in one direction. Swap the leads and observe whether it lights up.,लीड्स को स्वैप करें और देखें कि क्या यह लाइट अप करता है।,,,,
+43aafbe1ad7bd3a1,bn,weak evidence: entity,A USB cable can carry power and data. The connector shape alone does not identify its data rate.,একটি কুরি তার বিদ্যুৎ এবং ডেটা বহন করতে পারে। শুধুমাত্র সংযোগকারীর আকার এর ডেটা হার সনাক্ত করে না।,,,,
+49122a98ebb1c0b5,hi,weak evidence: entity,An LED usually conducts in one direction. Swap the leads and observe whether it lights up.,एक एलईडी आमतौर पर एक दिशा में संचालित होता है। लीड को स्वैप करें और देखें कि क्या यह प्रकाशित होता है।,audio/2bee0a6132f857c6e45682a35db78086170ace63e1cf74eba70cbbb2bb142f77.wav,,,
+507122804c3a037e,hi,weak evidence: entity,NASA publishes recordings from some space missions. Check the source before reusing a recording.,नासा कुछ अंतरिक्ष अभियानों की रिकॉर्डिंग प्रकाशित करता है। किसी रिकॉर्डिंग का पुन: उपयोग करने से पहले स्रोत की जाँच करें।,audio/4a8f76c31691415df2d07de9aad32bbaceb7602c134826acfb6908bcafbc884c.wav,,,
+56a44d817460b95a,ta,incomplete checks,Turn the knob clockwise until the pointer reaches the first mark. Leave the second knob unchanged.,சுட்டிக்காட்டி முதல் அடையாளத்தை அடையும் வரை குமிழியை கடிகார திசையில் திருப்பவும். இரண்டாவது குமிழியை மாற்றாமல் விட்டுவிடவும்.,audio/b75e4a29ea58c1a16534ce6cce8bdff218975dbd8c3f1d4461c0f7965d8bd0b5.wav,,,
+5701f28972737980,bn,weak evidence: garbled_audio,"| Group | Trials | Correct |
+| --- | --- | --- |
+| A | 10 | 8 |
+| B | 10 | 6 |","| গ্রুপ | চেষ্টা | সঠিক |
+| --- | --- | --- |
+| এ | ১০ | ৮ |
+| বি | ১০ | ৬ |",audio/877c256b4f4c681dd426b5aa5073650aca6c1d859b92f0405630f0012c1fdb1d.wav,,,
+59bfa054c5a31a78,bn,incomplete checks,"## Measuring length
+
+1. Align the pencil with the zero mark.
+2. Read the mark at the far end.","## দৈর্ঘ্য পরিমাপ করা
+
+১. পেন্সিলটিকে শূন্য চিহ্নের সাথে সারিবদ্ধ করুন।
+২. একেবারে শেষ প্রান্তে থাকা চিহ্নটি পড়ুন।",audio/d8a6a03cd81366509fdaefcb6189f90b20c3bedeea5cbca19bc4a469767636cd.wav,,,
+5cb5c04068eb6997,bn,weak evidence: entity; incomplete checks,The sensor sends 10 readings per second. Save the results as a CSV file for later analysis.,সেন্সরটি প্রতি সেকেন্ডে ১০টি রিডিং পাঠায়। ফলাফলগুলি পরে বিশ্লেষণের জন্য একটি CSVX ফাইল হিসাবে সংরক্ষণ করুন।,,,,
+5eae98586c1eca30,ta,weak evidence: entity,A USB cable can carry power and data. The connector shape alone does not identify its data rate.,ஒரு கியூரி கேபிள் மின்சாரம் மற்றும் தரவை எடுத்துச் செல்ல முடியும். இணைப்பியின் வடிவம் மட்டுமே அதன் தரவு விகிதத்தை அடையாளம் காணாது.,,,,
+65c391ab1ed2f380,bn,weak evidence: entity; incomplete checks,An LED usually conducts in one direction. Swap the leads and observe whether it lights up.,একটি কেনিয়া সাধারণত এক দিকে পরিচালিত হয়। লিডগুলি পরিবর্তন করুন এবং দেখুন এটি জ্বলে কিনা।,,,,
+6637626a4680e636,ta,weak evidence: garbled_audio; incomplete checks,"## Measuring temperature
+
+| Time | Temperature |
+| --- | --- |
+| 08:30 | 21 °C |
+| 11:00 | 28 °C |","## வெப்பநிலையை அளவிடுதல்
+
+| நேரம் | வெப்பநிலை |
+| --- | --- |
+| 08:30 | 21 °C |
+| 11:00 | 28 °C |",audio/93c500d2deec00dfbc64284840aee068b6f7269bb554df411cf95dad033f46ec.wav,,,
+69292d785ccaa767,ta,weak evidence: entity,NASA publishes recordings from some space missions. Check the source before reusing a recording.,நாசா சில விண்வெளிப் பயணங்களின் பதிவுகளை வெளியிடுகிறது. ஒரு பதிவை மீண்டும் பயன்படுத்துவதற்கு முன் மூலத்தை சரிபார்க்கவும்.,audio/ec779bc67e6a42f191e59c5a5b78960c94956c5acedfba939361aae09c43390c.wav,,,
+6a99d6115d844f68,bn,weak evidence: entity,NASA publishes recordings from some space missions. Check the source before reusing a recording.,নাসা কিছু মহাকাশ অভিযান থেকে রেকর্ডিং প্রকাশ করে। একটি রেকর্ডিং পুনরায় ব্যবহার করার আগে উৎসটি পরীক্ষা করুন।,audio/6cdef8c93b39a25877a32d84792a6b3d36e1436bc3843871859fd87bbf8000df.wav,,,
+70d40b5198b6dc8b,hi,weak evidence: entity,A USB cable can carry power and data. The connector shape alone does not identify its data rate.,एक क्यूरी केबल बिजली और डेटा ले जा सकती है। कनेक्टर का आकार अकेले इसकी डेटा दर की पहचान नहीं करता है।,,,,
+74b9c3397cb34724,bn,weak evidence: entity,A USB cable can carry power and data. The connector shape alone does not identify its data rate.,একটি ইউএসবি কেবল শক্তি এবং ডেটা বহন করতে পারে। সংযোগকারীর আকারটি একা এর ডেটা হার সনাক্ত করে না।,audio/132687ddf6485bd3ff01358a4d56a3c22b416419818252e0bd37b4aa5e7a73e0.wav,,,
+84f717c879b10dca,ta,weak evidence: entity,NASA publishes recordings from some space missions. Check the source before reusing a recording.,நாசா சில விண்வெளிப் பயணங்களின் பதிவுகளை வெளியிடுகிறது. ஒரு பதிவை மீண்டும் பயன்படுத்துவதற்கு முன் மூலத்தை சரிபார்க்கவும்.,audio/ff27eeb917623bafb35571b2b9b6fd4720243dd21ad32b3c5d015b1b6c38e440.wav,,,
+8a3e7e1283b5e7fb,bn,weak evidence: garbled_audio,"| Material | Mass |
+| --- | --- |
+| Copper | 8 g |
+| Iron | 12 g |","| পদার্থ | ভর |
+| --- | --- |
+| তামা | ৮ গ্রাম |
+| লোহা | ১২ গ্রাম |",audio/3e0c2e233b7685a59b2b522df818b8c87417c8d475811f02840be8a7c0e480d3.wav,,,
+8ab7ee152ac7a0da,ta,weak evidence: entity,An LED usually conducts in one direction. Swap the leads and observe whether it lights up.,"ஒரு எல்இடி பொதுவாக ஒரு திசையில் மட்டுமே மின்சாரத்தை கடத்தும். அதன் கம்பிகளை மாற்றி, அது ஒளிர்கிறதா என்று கவனியுங்கள்.",audio/291add0f20aba45b486f791e955f07f88fe7e4713a4bfef74303dad117b0f863.wav,,,
+91bc3231e152fc2d,hi,weak evidence: garbled_audio; incomplete checks,"## Measuring temperature
+
+| Time | Temperature |
+| --- | --- |
+| 08:30 | 21 °C |
+| 11:00 | 28 °C |","## तापमान मापना
+
+| समय | तापमान |
+| --- | --- |
+| 08:30 | 21 °C |
+| 11:00 | 28 °C |",audio/64450b276840f85b78f2e2080231aac5fdfb2b75dac6437da3ff32c6a26a4026.wav,,,
+92634aa9aeb116b0,bn,weak evidence: entity,An LED usually conducts in one direction. Swap the leads and observe whether it lights up.,লিডগুলি অদলবদল করুন এবং দেখুন এটি জ্বলে কিনা।,,,,
+995838a42e06e421,ta,incomplete checks,"## River observations
+
+- Read the gauge at 08:00.
+- Write down the result before leaving the bridge.","## நதி கண்காணிப்பு
+
+- 08:00 மணிக்கு அளவீட்டுக் கருவியைப் படியுங்கள்.
+- பாலத்தை விட்டு வெளியேறும் முன் முடிவை எழுதுங்கள்.",audio/bd8c5349512565a4f921a427e43d2a43b9b3d7f2cc1fcc1950a42652bddb6453.wav,,,
+9a211330778a6c18,bn,weak evidence: entity,An LED usually conducts in one direction. Swap the leads and observe whether it lights up.,একটি এলইডি সাধারণত এক দিকে বিদ্যুৎ পরিবহন করে। তারের প্রান্তগুলো অদলবদল করুন এবং দেখুন এটি জ্বলে কিনা।,audio/0f987af5f67e048fafee31e46930b9fa41784e4ae4297c6bd80f7ee93e8f2ab2.wav,,,
+a0030018479dcc68,hi,weak evidence: entity,NASA publishes recordings from some space missions. Check the source before reusing a recording.,नासा कुछ अंतरिक्ष अभियानों की रिकॉर्डिंग प्रकाशित करता है। किसी रिकॉर्डिंग का पुन: उपयोग करने से पहले स्रोत की जाँच करें।,audio/9628d470a5ac4af3455248068d0647fc03ffb0c2c50eb8b51c3d0434bb88149b.wav,,,
+a405971f9bdadf10,ta,weak evidence: entity,An LED usually conducts in one direction. Swap the leads and observe whether it lights up.,லீடுகளை மாற்றிவிட்டு அது ஒளிர்கிறதா என்று கவனியுங்கள்.,,,,
+a8ca0876b1708a54,ta,incomplete checks,"| Material | Mass |
+| --- | --- |
+| Copper | 8 g |
+| Iron | 12 g |","| பொருள் | நிறை |
+| தாமிரம் | 8 கி.கிராம் |
+| இரும்பு | 12 கி.கிராம் |",audio/7f53c5b386ad98b855d88b6290d71c2e67068de4c6c48cbaea254beda52d3be3.wav,,,
+ab31da56063ace0c,hi,weak evidence: garbled_audio,"## Measuring temperature
+
+| Time | Temperature |
+| --- | --- |
+| 08:30 | 21 °C |
+| 11:00 | 28 °C |","## तापमान मापना
+
+| समय | तापमान |
+| --- | --- |
+| 08:30 | 21 °C |
+| 11:00 | 28 °C |",audio/498ffadf92da4465c8219f71007cc935434f7ad2ef819797418aa9ad1af0b269.wav,,,
+ac795c9bf6965694,hi,weak evidence: entity,A USB cable can carry power and data. The connector shape alone does not identify its data rate.,एक यू.एस.बी. केबल बिजली और डेटा ले जा सकती है। कनेक्टर का आकार अकेले इसकी डेटा दर की पहचान नहीं करता है।,audio/944bbb6c88e588e5cffd93b9c3d3cf98c12bfd0d03504d72e92154bfbcebb56a.wav,,,
+b8f3a1e0b4b09194,ta,weak evidence: entity; incomplete checks,An LED usually conducts in one direction. Swap the leads and observe whether it lights up.,ஒரு கென்யா பொதுவாக ஒரு திசையில் நடத்தும். லீடுகளை மாற்றவும் மற்றும் அது ஒளிர்கிறதா என்று கவனிக்கவும்.,,,,
+bbee67d6d963bb79,hi,weak evidence: entity,A USB cable can carry power and data. The connector shape alone does not identify its data rate.,एक यू.एस.बी. केबल बिजली और डेटा ले जा सकती है। कनेक्टर का आकार अकेले इसकी डेटा दर की पहचान नहीं करता है।,audio/1a7d408606a94129ff60bc67b788d70e2851d4c12f358cd6f36b2a607839ef48.wav,,,
+bcac5f6169423506,hi,weak evidence: entity; incomplete checks,NASA publishes recordings from some space missions. Check the source before reusing a recording.,नासा कुछ अंतरिक्ष अभियानों की रिकॉर्डिंग प्रकाशित करता है। किसी रिकॉर्डिंग का पुन: उपयोग करने से पहले स्रोत की जाँच करें।,audio/3c19c423f0ed4e6db7f92dc37f6b671e3f47abd77effa7a7c65e107e396f2b6b.wav,,,
+bf2130f3c3864832,bn,weak evidence: entity,An LED usually conducts in one direction. Swap the leads and observe whether it lights up.,একটি এলইডি সাধারণত এক দিকে বিদ্যুৎ পরিবহন করে। তারের প্রান্তগুলো অদলবদল করুন এবং দেখুন এটি জ্বলে কিনা।,audio/24d36f0d30150037971bc6f9f488cf412d4fab9f4bc95c9ac2b4abccad9c7fe6.wav,,,
+bf2eec6670498dbe,ta,weak evidence: mistranslation,The signal arrives before the lamp turns on. Record the time between the events.,விளக்கு எரியும் முன் சிக்னல் வந்து சேரும். நிகழ்வுகளுக்கு இடையிலான நேரத்தைப் பதிவு செய்யுங்கள்.,audio/0901151773e30b292c792003fff7cebc6e8eeb3132515fa27a2a98f40813f425.wav,,,
+c849ebe00405626b,ta,weak evidence: garbled_audio,"## Measuring temperature
+
+| Time | Temperature |
+| --- | --- |
+| 08:30 | 21 °C |
+| 11:00 | 28 °C |","## வெப்பநிலையை அளவிடுதல்
+
+| நேரம் | வெப்பநிலை |
+| --- | --- |
+| 08:30 | 21 °C |
+| 11:00 | 28 °C |",audio/593de2ab71bcdddd5b46b6e3bae019263ad7bf235cd26eb1de85fd72dac97183.wav,,,
+cb3a2426baf7446f,hi,weak evidence: entity,NASA publishes recordings from some space missions. Check the source before reusing a recording.,क्यूरी कुछ अंतरिक्ष अभियानों से रिकॉर्डिंग प्रकाशित करता है। किसी रिकॉर्डिंग का पुन: उपयोग करने से पहले स्रोत की जाँच करें।,,,,
+ce667163a362c44d,ta,weak evidence: entity; incomplete checks,The sensor sends 10 readings per second. Save the results as a CSV file for later analysis.,சென்சார் ஒரு நொடிக்கு 10 அளவீடுகளை அனுப்புகிறது. முடிவுகளை பின்னர் பகுப்பாய்வு செய்ய CSVX கோப்பாக சேமிக்கவும்.,,,,
+d03968386fa06703,hi,weak evidence: entity,NASA publishes recordings from some space missions. Check the source before reusing a recording.,नासा कुछ अंतरिक्ष अभियानों से रिकॉर्डिंग प्रकाशित करता है। एक रिकॉर्डिंग का पुन: उपयोग करने के बाद स्रोत की जाँच करें।,,,,
+d744fd1b6784bc77,bn,weak evidence: entity,NASA publishes recordings from some space missions. Check the source before reusing a recording.,নাসা কিছু মহাকাশ অভিযান থেকে রেকর্ডিং প্রকাশ করে। একটি রেকর্ডিং পুনরায় ব্যবহার করার আগে উৎসটি পরীক্ষা করুন।,audio/3b0f29474d82fed290ce9051cbb4e005707f7f29f350d610f8706a51eccb3c3b.wav,,,
+db52a8812151f0eb,bn,weak evidence: omission,Two gears turn in opposite directions. The larger gear turns more slowly if both gears have the same tooth spacing.,দুটি গিয়ার বিপরীত দিকে ঘুরবে। যদি দুটি গিয়ারের দাঁতের ব্যবধান সমান হয় তবে বড় গিয়ারটি ধীরে ঘুরবে। এই কাজ করার সময় হাতে গ্লাভস পরুন।,,,,
+dbe6585ecc3d9804,hi,weak evidence: entity; incomplete checks,The sensor sends 10 readings per second. Save the results as a CSV file for later analysis.,सेंसर प्रति सेकंड 10 रीडिंग भेजता है। बाद में विश्लेषण के लिए परिणामों को एक CSVX फ़ाइल के रूप में सहेजें।,,,,
+df33a1b24b084ef0,ta,weak evidence: entity,NASA publishes recordings from some space missions. Check the source before reusing a recording.,கியூரி சில விண்வெளிப் பயணங்களின் பதிவுகளை வெளியிடுகிறார். ஒரு பதிவை மீண்டும் பயன்படுத்துவதற்கு முன் மூலத்தை சரிபார்க்கவும்.,,,,
+e263ad89dce38a63,bn,weak evidence: entity,A USB cable can carry power and data. The connector shape alone does not identify its data rate.,একটি ইউএসবি কেবল শক্তি এবং ডেটা বহন করতে পারে। সংযোগকারীর আকারটি একা এর ডেটা হার সনাক্ত করে না।,audio/b10fd98d137c2d927b73573a8ad33f1fb4c7d026cd783028b3e5704c8d95006b.wav,,,
+f7b66ef2117988ca,bn,weak evidence: garbled_audio,Let $v = d/t$ denote average speed. Here $d$ is distance and $t$ is time.,"ধরা যাক, $v = d/t$ গড় গতিবেগ নির্দেশ করে। এখানে $d$ হলো দূরত্ব এবং $t$ হলো সময়।",audio/f749cbb4b7060e504c5a91a09d4a63a687d800e7c28c395c868576eb8429f77c.wav,,,
+f7b7728d5b7665d4,hi,weak evidence: garbled_audio,"| Group | Trials | Correct |
+| --- | --- | --- |
+| A | 10 | 8 |
+| B | 10 | 6 |","| समूह | परीक्षण | सही |
+| --- | --- | --- |
+| ए | 10 | 8 |
+| बी | 10 | 6 |",audio/77129b4aece0f6d94f7944d98929a272b30cbccb7c172cb3c47fea2d1bdfdaf5.wav,,,
+ffb1015c276bd355,ta,incomplete checks,The lower shelf is 40 cm above the floor. The upper shelf is 75 cm above the floor.,கீழ் அலமாரி தரைக்கு மேலே 40 செ.மீ உயரத்தில் உள்ளது. மேல் அலமாரி தரைக்கு மேலே 75 செ.மீ உயரத்தில் உள்ளது.,audio/fefb926d370e7394c51a0270842079efcb4e7857f5e3b88fbe6c9a8b9343e89d.wav,,,

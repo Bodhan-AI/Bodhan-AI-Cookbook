@@ -1,0 +1,6 @@
+{"review_id": "0187d5dd8db45a5f", "annotator": "Aafi Malek", "labels": [{"type": "speech_repetition", "severity": "minor"}], "note": "text clean; audio repeats the whole sentence", "split": "holdout"}
+{"review_id": "073fa7e571983169", "annotator": "Aafi Malek", "labels": [{"type": "speech_omission", "severity": "major"}], "note": "text clean; audio cuts off from दूसरे onward", "split": "calibration"}
+{"review_id": "9a989a085a04ba3a", "annotator": "Aafi Malek", "labels": [{"type": "number", "severity": "major", "field": "translation", "span": [18, 21]}], "note": "200 for source 100 °C; text only", "split": "holdout"}
+{"review_id": "caa3f0004662b30c", "annotator": "Aafi Malek", "labels": [], "note": "text and audio clean", "split": "holdout"}
+{"review_id": "fe5dd912ee177532", "annotator": "Aafi Malek", "labels": [], "note": "text and audio clean", "split": "holdout"}
+{"review_id": "b664efe19de93edc", "annotator": "Aafi Malek", "labels": [{"type": "mistranslation", "severity": "major", "field": "translation", "span": [9, 12]}], "note": "बंद (closed) for source 'open end'; text only", "split": "calibration"}
