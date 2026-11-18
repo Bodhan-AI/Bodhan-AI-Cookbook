@@ -114,7 +114,7 @@ def plan(task: str, inventory: list[dict[str, Any]], budgets: dict[str, Any], tr
     """Ask for a plan; repair once on invalid JSON or schema failure."""
     user = json.dumps({"task": task, "inventory": inventory, "budgets": budgets, "tools": TOOL_CATALOG}, ensure_ascii=False)
     messages = [{"role": "system", "content": POLICY}, {"role": "user", "content": user}]
-    reply = llm.chat(messages, max_tokens=3000)
+    reply = llm.chat(messages, max_tokens=8000)
     trace.emit("llm_call", purpose="plan", attempt=attempt, chars_in=reply.prompt_chars, chars_out=len(reply.text), latency_ms=reply.latency_ms, cost_inr=0, model=llm.model_name())
     try:
         return Plan.model_validate_json(_extract_json(reply.text))
@@ -125,7 +125,7 @@ def plan(task: str, inventory: list[dict[str, Any]], budgets: dict[str, Any], tr
         {"role": "assistant", "content": reply.text[:6000]},
         {"role": "user", "content": "That plan is invalid. Error:\n" + problem + "\nReturn the corrected JSON object only."},
     ]
-    reply2 = llm.chat(repair, max_tokens=3000)
+    reply2 = llm.chat(repair, max_tokens=8000)
     trace.emit("llm_call", purpose="plan_repair", attempt=attempt, chars_in=reply2.prompt_chars, chars_out=len(reply2.text), latency_ms=reply2.latency_ms, cost_inr=0)
     try:
         return Plan.model_validate_json(_extract_json(reply2.text))

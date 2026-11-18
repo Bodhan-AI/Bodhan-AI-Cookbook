@@ -338,7 +338,7 @@ def _write_text(args: dict[str, Any], trace: Trace, step_id: str = "draft") -> W
         f"Target length: about {target} characters. Stop at a sentence boundary near that length."
     )
     user = f"Instruction: {args.get('instruction', 'Summarise the source.')}\n\n" + "\n\n".join(sources)
-    reply = llm.chat([{"role": "system", "content": system}, {"role": "user", "content": user}], max_tokens=min(8000, target // 2 + 800))
+    reply = llm.chat([{"role": "system", "content": system}, {"role": "user", "content": user}], max_tokens=min(12000, target // 2 + 4000))
     draft = reply.text.strip()
     trace.emit("llm_call", purpose="write_text", chars_in=reply.prompt_chars, chars_out=len(draft), latency_ms=reply.latency_ms, cost_inr=0, finish_reason=reply.finish_reason)
     if not draft or _has_indic(draft):
