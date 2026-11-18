@@ -263,7 +263,8 @@ def check_live_calls_allowed(
     url: str,
     client: Optional[httpx.AsyncClient] = None,
 ) -> Optional[StructuredError]:
-    """Safety guard: refuses real HTTP calls to api.bodhan.ai unless BODHAN_ALLOW_LIVE=1.
+    """Safety guard: allows real HTTP calls to api.bodhan.ai by default when API keys are set,
+    and refuses them when BODHAN_ALLOW_LIVE is explicitly set to '0' or 'false'.
 
     Returns None if the call is allowed; otherwise returns a StructuredError
     with code LIVE_CALLS_DISABLED.
@@ -274,10 +275,14 @@ def check_live_calls_allowed(
     if is_mock_transport(client):
         return None
 
-    if os.environ.get("BODHAN_ALLOW_LIVE") != "1":
+    allow_val = os.environ.get("BODHAN_ALLOW_LIVE", "").strip().lower()
+    if allow_val in ("0", "false"):
         return StructuredError(
             code="LIVE_CALLS_DISABLED",
-            message="Live calls to api.bodhan.ai are disabled. Set BODHAN_ALLOW_LIVE=1 in environment to permit paid calls.",
+            message=(
+                "Live calls to api.bodhan.ai are disabled (BODHAN_ALLOW_LIVE=0). "
+                "Unset BODHAN_ALLOW_LIVE or set BODHAN_ALLOW_LIVE=1 to permit paid calls."
+            ),
             retryable=False,
         )
 

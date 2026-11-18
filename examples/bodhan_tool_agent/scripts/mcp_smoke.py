@@ -26,8 +26,8 @@ async def run_mcp_smoke(python_executable: str = sys.executable) -> Dict[str, An
 
     env = os.environ.copy()
     env["PYTHONPATH"] = str(src_dir)
-    # Ensure live calls are disabled during smoke test
-    env.pop("BODHAN_ALLOW_LIVE", None)
+    # Ensure live calls are explicitly disabled during smoke test
+    env["BODHAN_ALLOW_LIVE"] = "0"
 
     server_params = StdioServerParameters(
         command=python_executable,

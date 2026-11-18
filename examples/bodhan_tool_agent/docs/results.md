@@ -15,7 +15,8 @@ Measured performance, LLM usage, verification, and spend metrics for the 7 demo 
 ## Notes on Measured Cost and Models
 
 - **LLM model backfilling**: `report.json` now records `llm_model` from `LLM_MODEL`. For existing matrix reports written before that field was added, the table records the exact model used when each run executed: Tasks 2, 3, 5, and 4 used `openai/gpt-oss-20b`; Task 1 and the latest Task 7 run used `openai/gpt-oss-120b`; Task 6 stopped in pre-flight with 0 LLM calls.
-- **Cached reruns vs. uncached first-run cost**: The MCP server caches raw HTTP 200 responses under `.cache/bodhan_*`, so cached reruns report lower spend than an uncached cold run. In particular, Task 1's 2-page PDF OCR (about Rs 0.40) was paid in an earlier attempt (`run_09a35cca`, Rs 0.7065) and served from cache at Rs 0.0000 during the recorded Task 1 matrix run (Rs 0.3588 for translation, speech synthesis, and verification). Tasks 4 and 7 also hit cached transcription/translation entries from earlier runs.
+- **Cached reruns vs. uncached first-run cost**: The MCP server caches raw HTTP 200 responses under `.cache/bodhan_*`, so cached reruns report lower spend than an uncached cold run. In particular, Task 1's 2-page PDF OCR (about Rs 0.40) was paid in an earlier attempt (`run_09a35cca`, Rs 0.7065) and served from cache at Rs 0.0000 during the recorded Task 1 matrix run (Rs 0.3588 for translation, speech synthesis, and verification). Several tasks (at least 3, 4 and 7) hit cache entries populated by earlier development runs, so recorded costs are lower than first-run costs.
+- **Console balance check**: Bodhan console balance after the matrix: Rs 8.21 of Rs 10.00 (Rs 1.79 used), matching the ledger total of Rs 1.7852.
 
 ## Spend Ledger Reconciliation
 

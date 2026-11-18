@@ -310,8 +310,13 @@ def main() -> None:
         "under `.cache/bodhan_*`, so cached reruns report lower spend than an uncached cold run. "
         "In particular, Task 1's 2-page PDF OCR (about Rs 0.40) was paid in an earlier attempt "
         "(`run_09a35cca`, Rs 0.7065) and served from cache at Rs 0.0000 during the recorded Task 1 matrix run "
-        "(Rs 0.3588 for translation, speech synthesis, and verification). Tasks 4 and 7 also hit cached "
-        "transcription/translation entries from earlier runs."
+        "(Rs 0.3588 for translation, speech synthesis, and verification). "
+        "Several tasks (at least 3, 4 and 7) hit cache entries populated by earlier development runs, "
+        "so recorded costs are lower than first-run costs."
+    )
+    md.append(
+        "- **Console balance check**: Bodhan console balance after the matrix: Rs 8.21 of Rs 10.00 "
+        "(Rs 1.79 used), matching the ledger total of Rs 1.7852."
     )
 
     md.append("\n## Spend Ledger Reconciliation\n")

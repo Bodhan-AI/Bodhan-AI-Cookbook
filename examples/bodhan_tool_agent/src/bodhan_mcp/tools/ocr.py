@@ -296,7 +296,7 @@ class IndicOcrTool:
             ],
         }
 
-        # Live-call safety guard: block real HTTP unless BODHAN_ALLOW_LIVE=1
+        # Live-call safety guard: block real HTTP when BODHAN_ALLOW_LIVE is 0/false
         guard_err = check_live_calls_allowed(url, client)
         if guard_err:
             return None, guard_err

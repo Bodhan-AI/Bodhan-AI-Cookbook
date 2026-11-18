@@ -19,20 +19,62 @@ from bodhan_mcp.tools.speak import IndicSpeakTool
 
 
 @pytest.mark.asyncio
-async def test_live_call_refused_without_env_var(monkeypatch):
-    """Real HTTP client to api.bodhan.ai without BODHAN_ALLOW_LIVE=1 must be refused."""
+async def test_live_call_allowed_when_env_unset(monkeypatch, tmp_path):
+    """When BODHAN_ALLOW_LIVE is unset, calls are allowed by default (tested without network)."""
     monkeypatch.delenv("BODHAN_ALLOW_LIVE", raising=False)
-    client = httpx.AsyncClient()
+    real_client = httpx.AsyncClient()
     try:
         url = "https://api.bodhan.ai/v1/chat/completions"
-        err = check_live_calls_allowed(url, client)
-        assert err is not None
-        assert isinstance(err, StructuredError)
-        assert err.code == "LIVE_CALLS_DISABLED"
-        assert "disabled" in err.message.lower()
-        assert not err.retryable
+        assert check_live_calls_allowed(url, real_client) is None
     finally:
-        await client.aclose()
+        await real_client.aclose()
+
+    # Verify a tool call succeeds end-to-end with fake transport (no network) when env is unset
+    def fake_handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            json={
+                "choices": [
+                    {
+                        "finish_reason": "stop",
+                        "message": {"role": "assistant", "content": "नमस्ते दुनिया"},
+                    }
+                ],
+                "usage": {"prompt_tokens": 10, "completion_tokens": 6, "total_tokens": 16},
+            },
+        )
+
+    mock_client = httpx.AsyncClient(transport=httpx.MockTransport(fake_handler))
+    try:
+        t_tool = IndicTranslateTool(
+            client=mock_client,
+            cache_dir=tmp_path / "cache_tr_unset",
+            api_key="fake-key",
+            ledger_path=tmp_path / "ledger_unset.jsonl",
+        )
+        t_res = await t_tool.translate("Hello world", target_language="hi")
+        assert t_res.success is True
+        assert t_res.translated_text == "नमस्ते दुनिया"
+    finally:
+        await mock_client.aclose()
+
+
+@pytest.mark.asyncio
+async def test_live_call_refused_when_env_zero_or_false(monkeypatch):
+    """Real HTTP client to api.bodhan.ai with BODHAN_ALLOW_LIVE=0 or false must be refused."""
+    for disabled_val in ("0", "false", "FALSE", " 0 "):
+        monkeypatch.setenv("BODHAN_ALLOW_LIVE", disabled_val)
+        client = httpx.AsyncClient()
+        try:
+            url = "https://api.bodhan.ai/v1/chat/completions"
+            err = check_live_calls_allowed(url, client)
+            assert err is not None
+            assert isinstance(err, StructuredError)
+            assert err.code == "LIVE_CALLS_DISABLED"
+            assert "disabled" in err.message.lower()
+            assert not err.retryable
+        finally:
+            await client.aclose()
 
 
 @pytest.mark.asyncio
@@ -50,8 +92,8 @@ async def test_live_call_allowed_with_env_var(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_mock_transport_always_allowed(monkeypatch):
-    """MockTransport (used in test suite) must never be blocked even without BODHAN_ALLOW_LIVE."""
-    monkeypatch.delenv("BODHAN_ALLOW_LIVE", raising=False)
+    """MockTransport (used in test suite) must never be blocked even when BODHAN_ALLOW_LIVE=0."""
+    monkeypatch.setenv("BODHAN_ALLOW_LIVE", "0")
     transport = httpx.MockTransport(lambda r: httpx.Response(200, json={"text": "ok"}))
     client = httpx.AsyncClient(transport=transport)
     try:
@@ -65,7 +107,7 @@ async def test_mock_transport_always_allowed(monkeypatch):
 
 def test_non_bodhan_url_ignored(monkeypatch):
     """Non-Bodhan endpoints are never intercepted by the Bodhan live guard."""
-    monkeypatch.delenv("BODHAN_ALLOW_LIVE", raising=False)
+    monkeypatch.setenv("BODHAN_ALLOW_LIVE", "0")
     client = httpx.AsyncClient()
     err = check_live_calls_allowed("https://example.com/api", client)
     assert err is None
@@ -73,8 +115,8 @@ def test_non_bodhan_url_ignored(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_tools_enforce_live_guard(monkeypatch, tmp_path):
-    """All tools must return LIVE_CALLS_DISABLED when invoked with a real client without approval."""
-    monkeypatch.delenv("BODHAN_ALLOW_LIVE", raising=False)
+    """All tools must return LIVE_CALLS_DISABLED when BODHAN_ALLOW_LIVE=0 with a real client."""
+    monkeypatch.setenv("BODHAN_ALLOW_LIVE", "0")
     real_client = httpx.AsyncClient()
 
     try:

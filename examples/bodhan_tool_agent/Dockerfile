@@ -39,8 +39,8 @@ RUN mkdir -p .cache out samples && chown -R bodhan:bodhan /app
 # Switch to non-root user
 USER bodhan
 
-# Default environment: live calls require explicit opt-in at runtime
-ENV BODHAN_ALLOW_LIVE=0
+# Paid Bodhan calls are enabled when API keys are supplied at runtime;
+# pass -e BODHAN_ALLOW_LIVE=0 to block all paid calls.
 
 # Default entrypoint runs the MCP server over stdio
 ENTRYPOINT ["python", "-m", "bodhan_mcp"]

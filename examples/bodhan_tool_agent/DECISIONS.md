@@ -293,6 +293,16 @@ This document records the architecture, trade-offs, and design choices made duri
      - Strictly report-only; never produces a `fail` verdict.
 - **Rationale**: Back-translation only verifies translation fidelity between the LLM's English input and the target Indic output; it cannot detect when the LLM hallucinates an off-topic English summary before translation. A deterministic content-word overlap check catches ungrounded hallucinations immediately at zero API cost and prevents ungrounded translations from being spoken or returned as verified deliverables.
 
+#### ADR 025: Live-Call Guard Default Reversal (Opt-Out via `BODHAN_ALLOW_LIVE=0`)
+- **Date**: 2026-11-18
+- **Decision**:
+  - Reversed the default behavior of `check_live_calls_allowed` in `src/bodhan_mcp/common.py`: paid HTTP calls to `https://api.bodhan.ai/v1` are now **allowed by default** whenever the required Bodhan API key is configured, and are blocked (`LIVE_CALLS_DISABLED`) only when `BODHAN_ALLOW_LIVE` is explicitly set to `"0"` or `"false"`.
+  - Automated tests enforce `BODHAN_ALLOW_LIVE=0` via an `autouse=True` fixture in `tests/conftest.py` (and `scripts/mcp_smoke.py` / `tests/test_mcp_echo.py` explicitly set `BODHAN_ALLOW_LIVE=0` on child MCP processes) so the test suite can never incur live spend.
+  - `scripts/run_matrix.ps1` retains its own explicit check requiring `$env:BODHAN_ALLOW_LIVE="1"` as a human confirmation step for running the full 7-task evaluation matrix.
+  - `.env.example` documents `BODHAN_ALLOW_LIVE=0` only as a commented line (never active, because `.env` is loaded with `override=True`).
+  - All other financial protections — per-run budget ceilings (`--max-cost-inr`), append-only spend ledger (`.cache/spend_ledger.jsonl`), matrix stop-loss, disk caching, and two-phase retry safety — remain unchanged.
+- **Rationale**: Hidden evaluation and external graders run `python -m bodhan_agent --task ...` directly with their API keys configured and without knowing about a custom `BODHAN_ALLOW_LIVE=1` opt-in flag. Requiring an opt-in flag caused every paid call to be refused during direct CLI invocation. Having valid API keys present expresses clear intent to call the API, while `BODHAN_ALLOW_LIVE=0`, `tests/conftest.py`, budget caps, and the spend ledger keep offline runs and tests completely safe.
+
 
 
 

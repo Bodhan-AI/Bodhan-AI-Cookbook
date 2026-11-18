@@ -25,7 +25,7 @@ async def test_mcp_server_exact_tools_and_descriptions():
     env = os.environ.copy()
     src_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src"))
     env["PYTHONPATH"] = src_dir
-    env.pop("BODHAN_ALLOW_LIVE", None)
+    env["BODHAN_ALLOW_LIVE"] = "0"
 
     server_params = StdioServerParameters(
         command=sys.executable,

@@ -64,22 +64,22 @@ Large binary sample media are **not** shipped in git; only `samples/README.md` a
 - `notice_2page.pdf`: any 2-page English PDF (used for Task 1; evaluated with a 2-page PDF printout of the Wikipedia Pythagorean theorem article).
 - `table_photo.png`: a photo or screenshot of an English table (used for Task 3).
 - `hindi_voicenote.wav`: a short Hindi speech clip in WAV format (used for Task 2; record or convert with `ffmpeg -i input.mp4 -ar 16000 -ac 1 samples/hindi_voicenote.wav`).
-- `bengali_notice.txt`: short Bengali paragraph generated via `python scripts/make_bengali_notice.py` (used for Task 5; requires `BODHAN_ALLOW_LIVE=1`).
-- `clip_telugu.wav`, `clip_hindi.wav`, `clip_tamil.wav`: 3 short Indic WAV clips generated via `python scripts/make_clips.py` (used for Task 4; requires `BODHAN_ALLOW_LIVE=1`).
+- `bengali_notice.txt`: short Bengali paragraph generated via `python scripts/make_bengali_notice.py` (used for Task 5; skips paid calls if the file already exists).
+- `clip_telugu.wav`, `clip_hindi.wav`, `clip_tamil.wav`: 3 short Indic WAV clips generated via `python scripts/make_clips.py` (used for Task 4; skips paid calls if the files already exist).
 - `lecture.mp4` (and optional `corrupt.mp4`): any small placeholder MP4 file for Task 6 impossible-task validation (e.g. `ffmpeg -f lavfi -i color=c=black:s=320x240:d=1 -f lavfi -i anullsrc -t 1 samples/lecture.mp4`).
 
 ### Run the MCP server, Task Agent, and tests
 
+Paid Bodhan API calls are **enabled by default** whenever the required API keys are configured in `.env` or the environment. To block all paid calls (dry/offline mode), set `BODHAN_ALLOW_LIVE=0` (`cmd`: `set BODHAN_ALLOW_LIVE=0`, `bash`: `export BODHAN_ALLOW_LIVE=0`, PowerShell: `$env:BODHAN_ALLOW_LIVE="0"`). Automated tests force `BODHAN_ALLOW_LIVE=0` via `tests/conftest.py` so `pytest` never makes live calls. The batch evaluation runner `scripts/run_matrix.ps1` keeps its own explicit check requiring `BODHAN_ALLOW_LIVE=1` as a human confirmation before running the full paid matrix.
+
 ```bash
-# Run offline unit & integration tests (zero network spend)
+# Run offline unit & integration tests (zero network spend; conftest.py sets BODHAN_ALLOW_LIVE=0)
 python -m pytest -q
 
 # Start the MCP server over stdio
 python -m bodhan_mcp
 
-# Run the Task Agent (set BODHAN_ALLOW_LIVE=1 only when you want real paid Bodhan API calls)
-# PowerShell: $env:BODHAN_ALLOW_LIVE="1"
-# Bash:       export BODHAN_ALLOW_LIVE=1
+# Run the Task Agent (paid calls enabled when keys are configured; set BODHAN_ALLOW_LIVE=0 to block)
 python -m bodhan_agent --task "Translate notice.txt into Hindi." --files ./samples --out ./out/run1 --max-steps 30 --max-cost-inr 5.0
 ```
 
@@ -103,10 +103,10 @@ See [docs/architecture.md](docs/architecture.md) for the full Mermaid diagram an
 
 - **Peer packages**: `src/bodhan_mcp` (standalone stdio MCP server) and `src/bodhan_agent` (autonomous task runner consuming `bodhan_mcp` via `BodhanMcpClient` over stdio).
 - **Shared safety & caching layer (`bodhan_mcp.common`)**:
-  - **Live-call guard**: refuses real requests to `https://api.bodhan.ai/v1` with `LIVE_CALLS_DISABLED` unless `BODHAN_ALLOW_LIVE=1` is set.
+  - **Live-call kill switch**: paid requests to `https://api.bodhan.ai/v1` are allowed when API keys are configured and refused with `LIVE_CALLS_DISABLED` whenever `BODHAN_ALLOW_LIVE=0` (or `false`). Tests force `BODHAN_ALLOW_LIVE=0` via `tests/conftest.py`, and `scripts/run_matrix.ps1` requires `BODHAN_ALLOW_LIVE=1` before running the full matrix.
   - **Cache-before-processing**: commits raw HTTP 200 bytes to `.cache/bodhan_*` before post-processing and never retries after a 200 response.
   - **Append-only spend ledger**: records every dispatched call (`dispatched` -> `completed` / `failed`) in `.cache/spend_ledger.jsonl` keyed by `run_id`.
-- **Docker & Makefile**: `Dockerfile` packages Python 3.11 + `ffmpeg` + `bodhan_mcp`, and `Makefile` exposes `install`, `test`, `check`, `smoke`, and `run-mcp`.
+- **Makefile & Dockerfile**: `Makefile` defines `install`, `test`, `check` (`compileall`, `pytest`, `ruff check`, `ruff format --check`), `lint`, `smoke`, and `run-mcp`. Because `make` was not installed on this Windows machine, the equivalent `check` commands were run directly (all passed). A `Dockerfile` template is also included *(not built or tested with `docker build` on this machine)*.
 
 ## Agent flow
 
@@ -136,7 +136,7 @@ See [docs/agent_flow.md](docs/agent_flow.md) for the full Mermaid execution flow
 
 ## Where the LLM is used
 
-The frontier LLM (`OpenAILLMClient`, tested on Groq `openai/gpt-oss-20b` and `openai/gpt-oss-120b`) is strictly limited to **English-language orchestration**:
+The agent was developed and tested on Groq's `openai/gpt-oss-20b` and `openai/gpt-oss-120b` via `LLM_BASE_URL`, `LLM_MODEL`, and `LLM_API_KEY`, and any OpenAI-compatible model with tool calling can be used. The frontier LLM (`OpenAILLMClient`) is strictly limited to **English-language orchestration**:
 
 - Generating the Turn 1 English execution plan.
 - Choosing which MCP tool to call next and passing `@stepN.field` references between steps.
@@ -172,7 +172,7 @@ All figures below are copied directly from [docs/results.md](docs/results.md) (m
 
 ## Demo video
 
-TODO (to be added)
+https://drive.google.com/file/d/16TgIXnVj3m7muICbnJlncxhTA93hCjMV/view?usp=sharing
 
 ## Trade-offs
 
@@ -190,7 +190,8 @@ Measured directly from [docs/results.md](docs/results.md) and `.cache/spend_ledg
 - **Sum of the 7 matrix task reports**: `Rs 0.4037`
 - **Total spend recorded in `.cache/spend_ledger.jsonl`**: `Rs 1.7852`
 - **Spend not in matrix task reports (earlier development runs plus prep scripts)**: `Rs 1.3816`
-- **Cached reruns vs. cold cost**: Because `.cache/bodhan_*` caches raw HTTP 200 responses, cached reruns show lower cost than an uncached cold run. Task 1's 2-page PDF OCR (about `Rs 0.40`) was paid in an earlier development attempt (`run_09a35cca`, `Rs 0.7065`) and served from cache at `Rs 0.0000` during the recorded Task 1 matrix run (`Rs 0.3588` for translation, speech synthesis, and verification). Tasks 4 and 7 also hit cached entries from earlier runs.
+- **Cached reruns vs. cold cost**: Because `.cache/bodhan_*` caches raw HTTP 200 responses, cached reruns show lower cost than an uncached cold run. Task 1's 2-page PDF OCR (about `Rs 0.40`) was paid in an earlier development attempt (`run_09a35cca`, `Rs 0.7065`) and served from cache at `Rs 0.0000` during the recorded Task 1 matrix run (`Rs 0.3588` for translation, speech synthesis, and verification). Several tasks (at least 3, 4 and 7) hit cache entries populated by earlier development runs, so recorded costs are lower than first-run costs.
+- **Console balance check**: Bodhan console balance after the matrix: Rs 8.21 of Rs 10.00 (Rs 1.79 used), matching the ledger total of Rs 1.7852.
 - **Runtime range across the matrix**: `0.00s` (Task 6 pre-flight impossible), `8.47s–14.31s` (Tasks 7, 2, 3, 5 with `0.0ms` rate-limit wait), `45.88s` (Task 4, including `19000.0ms` rate-limit wait), and `235.12s` (Task 1, including `142061.6ms` rate-limit wait, `41628.9ms` LLM time, `49452.0ms` tool+verification time, and `1975.2ms` overhead).
 
 ## AI assistance

@@ -4,7 +4,7 @@
 
 Adds `examples/bodhan_tool_agent`: a standalone Model Context Protocol (MCP) server (`bodhan_mcp`) and an autonomous plan-act-verify Task Agent (`bodhan_agent`) built on Bodhan AI's sovereign Indic foundation models (`indic-translate`, `indic-ocr`, `indic-transcribe`, `indic-speak`).
 
-- **MCP Server (`src/bodhan_mcp`)**: Runs over `stdio` (MCP Python SDK `2.3.0`) exposing 8 model-agnostic tools with explicit HTTP timeouts, cache-before-processing, an append-only spend ledger (`.cache/spend_ledger.jsonl`), and a hard live-call safety guard (`BODHAN_ALLOW_LIVE=1`).
+- **MCP Server (`src/bodhan_mcp`)**: Runs over `stdio` (MCP Python SDK `2.3.0`) exposing 8 model-agnostic tools with explicit HTTP timeouts, cache-before-processing, an append-only spend ledger (`.cache/spend_ledger.jsonl`), and an opt-out live-call kill switch (`BODHAN_ALLOW_LIVE=0` blocks all paid calls; enforced automatically in `tests/conftest.py`).
 - **Task Agent (`src/bodhan_agent`)**: Orchestrates multi-step Indic workflows with pre-flight feasibility checks, forced English planning, strict `@stepN` reference passing, Indic-script and provenance guards, duplicate refusal and loop limits, deterministic code-driven verification, wall-clock timeout enforcement, and structured audit reports (`trace.jsonl`, `report.json`, `result.md`).
 - **Testing & Evaluation**: All 7 evaluation matrix tasks pass validation, backed by automated offline unit/integration tests (`pytest`, zero spend).
 
@@ -21,9 +21,10 @@ The project lives in `examples/bodhan_tool_agent`.
    pip install -r requirements.lock
    pip install -e .
    ```
-3. Copy `.env.example` to `.env` and add your Bodhan AI and OpenAI-compatible LLM keys (never commit `.env`).
-4. Prepare sample media files listed in `samples/README.md` (only `samples/README.md`, `samples/notice.txt`, and `samples/notice_injected.txt` are committed; `scripts/make_clips.py` and `scripts/make_bengali_notice.py` generate the Task 4/5 fixtures when `BODHAN_ALLOW_LIVE=1`).
-5. Run tests (`python -m pytest -q`), start the MCP server (`python -m bodhan_mcp`), inspect with MCP Inspector CLI (`@modelcontextprotocol/inspector` `2.15.0`), or run the agent (`python -m bodhan_agent --task "..." --files ./samples --out ./out`).
+3. Copy `.env.example` to `.env` and add your Bodhan AI and OpenAI-compatible LLM keys (never commit `.env`). Paid Bodhan calls are enabled by default when API keys are configured; to block all paid calls set `BODHAN_ALLOW_LIVE=0` (`cmd`: `set BODHAN_ALLOW_LIVE=0`, `bash`: `export BODHAN_ALLOW_LIVE=0`, PowerShell: `$env:BODHAN_ALLOW_LIVE="0"`). `scripts/run_matrix.ps1` retains its own explicit `BODHAN_ALLOW_LIVE=1` confirmation check before running the full paid matrix.
+4. Prepare sample media files listed in `samples/README.md` (only `samples/README.md`, `samples/notice.txt`, and `samples/notice_injected.txt` are committed; `scripts/make_clips.py` and `scripts/make_bengali_notice.py` generate the Task 4/5 fixtures when Bodhan keys are configured and skip if the files already exist).
+5. Run checks (`make check`, or directly: `python -m compileall src tests`, `python -m pytest`, `ruff check src tests scripts`, `ruff format --check src tests scripts`), start the MCP server (`python -m bodhan_mcp`), inspect with MCP Inspector CLI (`@modelcontextprotocol/inspector` `2.15.0`), or run the agent (`python -m bodhan_agent --task "..." --files ./samples --out ./out`).
+   - *Local verification note*: `make` was not installed on this Windows machine, so the equivalent `check` commands were run directly in a fresh export `.venv` (`compileall` exit 0, `pytest`: `178 passed, 1 skipped` in the clean export / `179 passed` with local PDF fixture, `ruff check`: `All checks passed!`, `ruff format --check`: `44 files already formatted`, plus `scripts/mcp_smoke.py` and MCP Inspector CLI `2.15.0`). The included `Dockerfile` has **not** been built or tested with `docker build` on this machine.
 
 ## Architecture
 
@@ -47,7 +48,7 @@ Exposes 8 external MCP tools over `stdio` (no internal `finish` or debug tools):
 
 ## Where the LLM is used
 
-Used strictly for English planning, tool selection, `@stepN` reference chaining, English summarization/analysis, and English finish explanations. Indic/Perso-Arabic text authoring by the LLM is blocked in code (`check_indic_guard`, `validate_tool_call_provenance`, `sanitize_final_answer`), and all verification is code-driven without LLM-as-judge.
+Developed and tested on Groq's `openai/gpt-oss-20b` and `openai/gpt-oss-120b` via `LLM_BASE_URL`, `LLM_MODEL`, and `LLM_API_KEY`; any OpenAI-compatible model with tool calling can be used. Used strictly for English planning, tool selection, `@stepN` reference chaining, English summarization/analysis, and English finish explanations. Indic/Perso-Arabic text authoring by the LLM is blocked in code (`check_indic_guard`, `validate_tool_call_provenance`, `sanitize_final_answer`), and all verification is code-driven without LLM-as-judge.
 
 ## Bodhan models used
 
@@ -72,7 +73,7 @@ Copied directly from [docs/results.md](docs/results.md) (measured values only):
 
 ## Demo video
 
-TODO (to be added)
+https://drive.google.com/file/d/16TgIXnVj3m7muICbnJlncxhTA93hCjMV/view?usp=sharing
 
 ## Trade-offs
 
@@ -90,7 +91,8 @@ Measured directly from [docs/results.md](docs/results.md):
 - **Sum of Matrix Run Reports**: `Rs 0.4037`
 - **Total Spend Recorded in Ledger (`.cache/spend_ledger.jsonl`)**: `Rs 1.7852`
 - **Spend not in matrix task reports (earlier development runs plus prep scripts)**: `Rs 1.3816`
-- **Caching note**: Cached reruns show lower cost than uncached first runs; Task 1's 2-page PDF OCR (about `Rs 0.40`) was paid in an earlier development attempt (`run_09a35cca`, `Rs 0.7065`) and served from cache at `Rs 0.0000` during the recorded Task 1 run (`Rs 0.3588`). Tasks 4 and 7 also hit cached entries.
+- **Caching note**: Cached reruns show lower cost than uncached first runs; Task 1's 2-page PDF OCR (about `Rs 0.40`) was paid in an earlier development attempt (`run_09a35cca`, `Rs 0.7065`) and served from cache at `Rs 0.0000` during the recorded Task 1 run (`Rs 0.3588`). Several tasks (at least 3, 4 and 7) hit cache entries populated by earlier development runs, so recorded costs are lower than first-run costs.
+- **Console balance check**: Bodhan console balance after the matrix: Rs 8.21 of Rs 10.00 (Rs 1.79 used), matching the ledger total of Rs 1.7852.
 - **Runtimes**: `0.00s` (Task 6), `8.47s` (Task 7), `13.10s` (Task 2), `13.58s` (Task 3), `14.31s` (Task 5), `45.88s` (Task 4, `19000.0ms` rate-limit wait), `235.12s` (Task 1, `142061.6ms` rate-limit wait).
 
 ## AI assistance

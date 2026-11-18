@@ -34,7 +34,7 @@ flowchart TD
     Agent -->|"MCP stdio client (BodhanMcpClient)"| MCP
 
     subgraph Common_Box["bodhan_mcp.common — Safety, Cache & Ledger"]
-        C1["Live-Call Guard (BODHAN_ALLOW_LIVE=1)"]
+        C1["Live-Call Kill Switch (BODHAN_ALLOW_LIVE=0 blocks paid calls)"]
         C2["Disk Cache (.cache/bodhan_*) — Cache Before Processing"]
         C3["Append-Only Spend Ledger (.cache/spend_ledger.jsonl)"]
         C4["Two-Phase Safe Retries (no retry after HTTP 200)"]
@@ -73,6 +73,6 @@ Coordinates multi-step workflows using an OpenAI-compatible tool-calling LLM (ev
 - **Filtered Deliverables & Long-Text Artifacts**: Writes full `indic_ocr` and `indic_transcribe` outputs to `artifacts/step_N_<tool>.txt`, shows only a 300-char preview plus relative link in `result.md` unless OCR/transcript is the final output, excludes failed-grounding / failed-verification candidates, and lists only final verified text outputs plus any text passed to `indic_speak`.
 
 ### 2.3 Safety, Cache, and Spend Layer (`src/bodhan_mcp/common.py`)
-- **Live-Call Guard**: Real HTTP calls to `api.bodhan.ai` are refused (`LIVE_CALLS_DISABLED`) unless `BODHAN_ALLOW_LIVE=1` is set.
+- **Live-Call Guard**: Real HTTP calls to `api.bodhan.ai` are allowed by default when API keys are configured and refused (`LIVE_CALLS_DISABLED`) whenever `BODHAN_ALLOW_LIVE=0` (or `false`). Tests force `BODHAN_ALLOW_LIVE=0` via `tests/conftest.py`, and `scripts/run_matrix.ps1` retains an explicit `BODHAN_ALLOW_LIVE=1` confirmation check.
 - **Append-Only Spend Ledger**: Logs every dispatched call to `.cache/spend_ledger.jsonl` (`dispatched` -> `completed` / `failed`) keyed by `run_id`.
 - **Cache-Before-Processing**: Commits raw HTTP 200 bytes to `.cache/bodhan_*` immediately before post-processing and never retries after a 200 response.
