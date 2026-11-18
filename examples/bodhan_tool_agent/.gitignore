@@ -1,0 +1,16 @@
+.env
+.venv/
+__pycache__/
+.ipynb_checkpoints/
+node_modules/
+.cache/
+out/
+*.mp3
+*.wav
+*.mp4
+*.pdf
+demo_inputs/
+sample_data/*
+!sample_data/.gitkeep
+outputs/*
+!outputs/.gitkeep

@@ -28,8 +28,12 @@ examples/*/outputs/*
 !examples/*/outputs/.gitkeep
 examples/*/sample_data/*
 !examples/*/sample_data/.gitkeep
+demo_inputs/
+.cache/
+examples/*/.cache/
 
 # OS / IDE
 .DS_Store
 .vscode/
 .idea/
+
