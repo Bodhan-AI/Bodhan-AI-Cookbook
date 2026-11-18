@@ -96,6 +96,9 @@ class BodhanClient:
             timeout=httpx.Timeout(settings.http_timeout_s, connect=15.0),
         )
         self._inflight: dict[str, asyncio.Future[bytes]] = {}
+        # Translation routes in order of preference; the first that does not 404 is remembered.
+        # BODHAN_TRANSLATE_PATH can force one ("chat" = /v1/chat/completions with model indic-translate).
+        self._translate_routes = list(dict.fromkeys([settings.translate_path, "chat", "/translate"]))
         self.sleep: Callable[[float], Awaitable[None]] = asyncio.sleep  # swapped out in tests
 
     async def aclose(self) -> None:
@@ -239,14 +242,16 @@ class BodhanClient:
         return str(json.loads(raw).get("text") or "").strip()
 
     async def translate(self, text: str, *, target: str, script: str, ledger: Ledger) -> dict[str, Any]:
+        """Returns {"translation", "truncated", "usage"} whichever API shape the server speaks.
+
+        The live API (verified Nov 2026) serves translation as OpenAI chat completions with
+        model=indic-translate plus a `target_language` field; the Cookbook docs describe a JSON
+        POST /translate route. We try the chat form first and fall back to the documented route.
+        """
         params = {"target": target, "script": script}
 
         async def fetch() -> tuple[bytes, float, int]:
-            body: dict[str, Any] = {"text": text, "target_language": target}
-            if script != "native":
-                body["script"] = script
-            resp, attempts = await self._post("indic-translate", "/translate", json=body)
-            obj = resp.json()
+            obj, attempts = await self._post_translate(text, target, script)
             tokens = int(
                 (obj.get("usage") or {}).get("completion_tokens")
                 or estimate_translate_tokens(obj.get("translation", ""))
@@ -265,6 +270,46 @@ class BodhanClient:
             fetch=fetch,
         )
         return json.loads(raw)
+
+    async def _post_translate(self, text: str, target: str, script: str) -> tuple[dict[str, Any], int]:
+        last: BodhanToolError | None = None
+        for i, route in enumerate(list(self._translate_routes)):
+            try:
+                if route == "chat":
+                    body: dict[str, Any] = {
+                        "model": "indic-translate",
+                        "messages": [{"role": "user", "content": text}],
+                        "target_language": target,
+                    }
+                    if script != "native":
+                        body["script"] = script
+                    resp, attempts = await self._post("indic-translate", "/v1/chat/completions", json=body)
+                    obj = resp.json()
+                    choice = (obj.get("choices") or [{}])[0]
+                    result = {
+                        "translation": str((choice.get("message") or {}).get("content") or "").strip(),
+                        "truncated": choice.get("finish_reason") == "length",
+                        "usage": obj.get("usage") or {},
+                        "target_language": target,
+                    }
+                else:
+                    body = {"text": text, "target_language": target}
+                    if script != "native":
+                        body["script"] = script
+                    resp, attempts = await self._post("indic-translate", route, json=body)
+                    result = resp.json()
+            except BodhanToolError as exc:
+                if exc.details.get("status") in {404, 405} and i + 1 < len(self._translate_routes):
+                    last = exc
+                    continue
+                if exc.details.get("status") in {404, 405}:
+                    raise exc.with_details(routes_tried=self._translate_routes) from None
+                raise
+            if i:  # remember the route that worked
+                self._translate_routes.insert(0, self._translate_routes.pop(i))
+            return result, attempts
+        assert last is not None
+        raise last
 
     async def speak(
         self, text: str, *, voice: str, language: str, style: str | None, ledger: Ledger, refresh: bool = False

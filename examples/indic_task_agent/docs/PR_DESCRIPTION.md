@@ -71,7 +71,7 @@ Everything else is plain code: inspection, script-based language ID, chunking, s
 Hosted API (`https://api.bodhan.ai`).
 
 - **indic-transcribe:** `language` omitted for auto-detect unless known; ~20 s chunks (5 s for subtitles).
-- **indic-translate:** `/translate`, `script=native` by default; spans ≤ 1,200 chars.
+- **indic-translate:** called as `POST /v1/chat/completions` with `model=indic-translate` and `target_language`. The documented `POST /translate` returned 404 for our key on 18 Nov 2026, so the client tries the chat form first, falls back to `/translate`, and remembers which one works. `finish_reason=length` is treated as truncation. Spans are ≤ 1,200 chars.
 - **indic-speak:** voice chosen from the library by language and gender; optional `style`; chunks ≤ 240 chars / 2 sentences.
 - **indic-ocr:** `table_format=markdown`, `max_tokens` raised to 4096 on 502.
 

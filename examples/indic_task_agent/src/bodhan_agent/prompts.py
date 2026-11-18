@@ -173,12 +173,16 @@ def llm_tool_schemas(mcp_tools: list[dict[str, Any]]) -> list[dict[str, Any]]:
 def user_brief(
     task: str, inventory: dict[str, Any], capabilities: dict[str, Any], budgets: dict[str, Any], notes: list[str]
 ) -> str:
+    stt = capabilities.get("speech_to_text", {}).get("languages") or {}
+    tr = capabilities.get("translation", {}).get("target_languages") or {}
+    tts = capabilities.get("speech_synthesis", {}).get("languages") or {}
+    names = {**stt, **tr, **tts}
     caps = {
-        "speech_to_text_languages": capabilities.get("speech_to_text", {}).get("languages"),
-        "translation_target_languages": capabilities.get("translation", {}).get("target_languages"),
-        "speech_synthesis_languages": capabilities.get("speech_synthesis", {}).get("languages"),
-        "voices_by_language": capabilities.get("speech_synthesis", {}).get("voices"),
-        "speech_styles": capabilities.get("speech_synthesis", {}).get("styles"),
+        "language_names": ", ".join(f"{c}={n}" for c, n in sorted(names.items())),
+        "speech_to_text": " ".join(sorted(stt)),
+        "translation_targets": " ".join(sorted(tr)),
+        "speech_synthesis": " ".join(sorted(tts)),
+        "voices_and_styles": "call list_capabilities only if the user asks for a specific voice or style; otherwise pass gender.",
         "pricing_inr": capabilities.get("pricing_inr"),
         "not_supported": capabilities.get("not_supported"),
     }
@@ -187,7 +191,7 @@ def user_brief(
         f"<task>\n{task}\n</task>",
         "",
         "INPUT FILES (inspected for free; metadata only):",
-        json.dumps(inventory, ensure_ascii=False, indent=1),
+        json.dumps(inventory, ensure_ascii=False),
         "",
         "CAPABILITIES:",
         json.dumps(caps, ensure_ascii=False),

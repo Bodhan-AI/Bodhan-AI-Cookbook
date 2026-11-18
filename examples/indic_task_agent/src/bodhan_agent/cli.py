@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -28,6 +29,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--tool-timeout", type=float, default=300.0, help="Per tool-call timeout in seconds.")
     p.add_argument("--max-wall-seconds", type=float, default=900.0, help="Overall time limit in seconds.")
     p.add_argument("--llm-timeout", type=float, default=120.0, help="Per LLM request timeout in seconds.")
+    p.add_argument(
+        "--max-prompt-tokens",
+        type=int,
+        default=int(os.environ.get("LLM_MAX_PROMPT_TOKENS") or 16000),
+        help="Shorten older context above this many prompt tokens (env LLM_MAX_PROMPT_TOKENS; ~5500 for Groq's free tier).",
+    )
     return p.parse_args(argv)
 
 
@@ -40,6 +47,7 @@ def main(argv: list[str] | None = None) -> int:
         max_cost_inr=max(0.0, args.max_cost_inr),
         tool_timeout_s=args.tool_timeout,
         max_wall_s=args.max_wall_seconds,
+        max_prompt_tokens=args.max_prompt_tokens,
     )
     try:
         llm = OpenAICompatibleLLM.from_env(timeout_s=args.llm_timeout)

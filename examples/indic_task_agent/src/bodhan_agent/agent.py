@@ -34,6 +34,7 @@ class Budgets:
     max_cost_inr: float = 20.0
     tool_timeout_s: float = 300.0
     max_wall_s: float = 900.0
+    max_prompt_tokens: int = 16000  # context compaction threshold; lower it for small rate limits (e.g. Groq free tier)
 
     @property
     def max_llm_calls(self) -> int:
@@ -167,6 +168,79 @@ def _verify_artifact(tool: str, data: dict[str, Any]) -> tuple[bool, dict[str, A
     return True, {"check": "none needed"}
 
 
+def _retry_after(exc: Exception) -> float | None:
+    resp = getattr(exc, "response", None)
+    try:
+        value = resp.headers.get("retry-after") if resp is not None else None
+        return min(float(value), 60.0) if value else None
+    except (TypeError, ValueError):
+        return None
+
+
+def _estimate_tokens(messages: list[dict[str, Any]], tools: list[dict[str, Any]]) -> int:
+    return int(len(json.dumps(messages, ensure_ascii=False)) / 3.2 + len(json.dumps(tools)) / 3.6)
+
+
+def _shorten_strings(value: Any, limit: int) -> Any:
+    if isinstance(value, str):
+        return value if len(value) <= limit else value[:limit] + "…(shortened)"
+    if isinstance(value, list):
+        return [_shorten_strings(v, limit) for v in value]
+    if isinstance(value, dict):
+        return {k: _shorten_strings(v, limit) for k, v in value.items()}
+    return value
+
+
+def compact_history(
+    messages: list[dict[str, Any]], tools: list[dict[str, Any]], budget: int, aggressive: bool = False
+) -> int:
+    """Shrink older turns (oldest first) until the prompt fits `budget` tokens. Keeps the system prompt,
+    the task brief and the latest turn intact. Older tool results keep their file paths and checks
+    (via _summary) but lose previews and file contents; long inline arguments are shortened."""
+    shortened = 0
+    keep_tail = 2 if aggressive else 4
+    limit = 120 if aggressive else 300
+    for i in range(2, max(2, len(messages) - keep_tail)):
+        if _estimate_tokens(messages, tools) <= budget:
+            break
+        m = messages[i]
+        content = m.get("content") or ""
+        if (
+            m.get("role") == "tool"
+            and len(content) > 400
+            and "older_result_summary" not in content[:40]
+            and not content.endswith("…(shortened)")
+        ):
+            try:
+                data = json.loads(content)
+            except (json.JSONDecodeError, TypeError):
+                data = None
+            if isinstance(data, dict) and "error" not in data:
+                inner = data.get("result", data)
+                small = _summary(inner) if isinstance(inner, dict) else {}
+                m["content"] = json.dumps(
+                    {
+                        "older_result_summary": small,
+                        "note": "shortened to save context; re-read files with read_text if needed",
+                    },
+                    ensure_ascii=False,
+                )
+            else:
+                m["content"] = content[:limit] + "…(shortened)"
+            shortened += 1
+        elif m.get("role") == "assistant" and m.get("tool_calls"):
+            for tc in m["tool_calls"]:
+                try:
+                    args = json.loads(tc["function"]["arguments"] or "{}")
+                except json.JSONDecodeError:
+                    continue
+                new_args = json.dumps(_shorten_strings(args, limit), ensure_ascii=False)
+                if new_args != tc["function"]["arguments"]:
+                    tc["function"]["arguments"] = new_args
+                    shortened += 1
+    return shortened
+
+
 class Agent:
     def __init__(
         self,
@@ -188,6 +262,7 @@ class Agent:
         self.state = RunState(task=self.task, out_dir=self.out, budgets=budgets)
         self.trace: Trace | None = None
         self._seen_calls: dict[str, ToolOutcome] = {}
+        self._error_counts: dict[tuple[str, str], int] = {}
         self._mcp_schemas: dict[str, dict[str, Any]] = {}
 
     # ------------------------------------------------------------------ entry point
@@ -251,7 +326,12 @@ class Agent:
                 preflight=True,
             )
             if res.ok:
-                inventory = res.data
+                inventory = {
+                    "files": [
+                        {k: v for k, v in f.items() if v not in (None, [], {}, "")} for f in res.data.get("files", [])
+                    ],
+                    "missing": res.data.get("missing", []),
+                }
                 for fi in inventory.get("files", []):
                     for n in fi.get("notes", []):
                         notes.append(f"{Path(fi['path']).name}: {n}")
@@ -270,21 +350,50 @@ class Agent:
     async def _llm(
         self, messages: list[dict[str, Any]], tools: list[dict[str, Any]], force: str | None = None
     ) -> LLMReply:
+        """One LLM call with context compaction and rate-limit handling.
+
+        * Before the call, older tool results are shortened if the prompt would exceed max_prompt_tokens.
+        * 413 / "request too large": compact harder and retry once.
+        * 429: wait (Retry-After, else 20 s, within the wall-clock budget) and retry, up to 4 times.
+        """
         st = self.state
-        st.llm_calls += 1
-        t0 = time.perf_counter()
-        reply = await self.llm.complete(messages, tools, force)
-        for k, v in reply.usage.items():
-            st.llm_usage[k] = st.llm_usage.get(k, 0) + int(v)
-        self.trace.write(
-            "llm",
-            call=st.llm_calls,
-            latency_ms=int((time.perf_counter() - t0) * 1000),
-            usage=reply.usage,
-            content=reply.content,
-            tool_calls=[{"name": c.name, "args": c.arguments} for c in reply.tool_calls],
-        )
-        return reply
+        budget = self.budgets.max_prompt_tokens
+        compact_history(messages, tools, budget)
+        for attempt in range(5):
+            st.llm_calls += 1
+            t0 = time.perf_counter()
+            try:
+                reply = await self.llm.complete(messages, tools, force)
+            except Exception as exc:
+                status = getattr(exc, "status_code", None)
+                text = str(exc).lower()
+                if (status == 413 or "request too large" in text or "context length" in text) and attempt == 0:
+                    budget = int(budget * 0.6)
+                    shrunk = compact_history(messages, tools, budget, aggressive=True)
+                    self.trace.write(
+                        "llm_retry", reason="request too large", new_budget_tokens=budget, shortened=shrunk
+                    )
+                    continue
+                if (status == 429 or "rate limit" in text) and attempt < 4:
+                    wait = _retry_after(exc) or 20.0
+                    if st.elapsed + wait > self.budgets.max_wall_s:
+                        raise
+                    self.trace.write("llm_retry", reason="rate limited", wait_s=wait)
+                    await asyncio.sleep(wait)
+                    continue
+                raise
+            for k, v in reply.usage.items():
+                st.llm_usage[k] = st.llm_usage.get(k, 0) + int(v)
+            self.trace.write(
+                "llm",
+                call=st.llm_calls,
+                latency_ms=int((time.perf_counter() - t0) * 1000),
+                usage=reply.usage,
+                content=reply.content,
+                tool_calls=[{"name": c.name, "args": c.arguments} for c in reply.tool_calls],
+            )
+            return reply
+        raise RuntimeError("LLM call failed after retries")
 
     async def _loop(self, bridge: ToolBridge) -> None:
         st = self.state
@@ -369,23 +478,25 @@ class Agent:
                         }
                     )
             try:
-                reply = await self._llm(messages, [FINISH_TOOL] if wrap_up else tools)
+                only_finish = bool(wrap_up) or nudges >= 1
+                reply = await self._llm(
+                    messages, [FINISH_TOOL] if only_finish else tools, force="finish" if only_finish else None
+                )
             except Exception as exc:
-                return self._stop("failed" if not st.produced else "partial", f"LLM error: {type(exc).__name__}: {exc}")
+                return self._stop("failed", f"LLM error: {type(exc).__name__}: {exc}")
             messages.append(reply.as_message())
 
             if not reply.tool_calls:
                 nudges += 1
-                if wrap_up or nudges > 2:
-                    return self._stop(
-                        "failed" if not st.produced else "partial",
-                        wrap_up or "model stopped without calling finish",
-                        answer=reply.content,
-                    )
+                if nudges > 2:  # even a forced finish call was refused: close the run honestly
+                    return self._stop("failed", wrap_up or "model stopped without calling finish", answer=reply.content)
                 messages.append(
                     {
                         "role": "user",
-                        "content": "Continue: call the next tool, or call finish if the task is done or impossible.",
+                        "content": (
+                            "You have not called finish in this run yet (writing about it does not count). "
+                            "Call the finish tool now with an honest status, an English answer_en and verified artifacts."
+                        ),
                     }
                 )
                 continue
@@ -512,10 +623,31 @@ class Agent:
                 "note": "Duplicate of an earlier call; returning the earlier result (no new cost).",
                 "result": self._for_llm(call.name, previous.data),
             }
+        blocked = [code for (tool, code), n in self._error_counts.items() if tool == call.name and n >= 3]
+        if blocked:
+            return self._reject(
+                step,
+                call,
+                why,
+                args,
+                "repeated_failure",
+                f"{call.name} has already failed 3 times with {blocked[0]}; it was not called again. "
+                "Use another approach, or finish and report honestly what could not be done.",
+            )
         outcome = await bridge.call(call.name, args, self.budgets.tool_timeout_s)
         self._seen_calls[key] = outcome
         self._record(call.name, why, args, outcome, step=step)
         if not outcome.ok:
+            code = str(outcome.error.get("code") or "error")
+            n = self._error_counts[(call.name, code)] = self._error_counts.get((call.name, code), 0) + 1
+            if n >= 2 and not outcome.error.get("retryable"):
+                return {
+                    "error": outcome.error,
+                    "advice": (
+                        f"{call.name} failed the same way {n} times ({code}) and the error is not transient. "
+                        "Retrying with different text will not help. Try a different approach or finish honestly."
+                    ),
+                }
             return {"error": outcome.error}
         return self._for_llm(call.name, outcome.data)
 

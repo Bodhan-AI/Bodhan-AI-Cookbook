@@ -87,6 +87,7 @@ Unsupported languages are refused by the tools (`unsupported_language`, with the
 - **Subtitle timing** within a segment is proportional to text length, because Indic-Transcribe returns no word timestamps. Segments are kept short (2–12 s) to limit the error.
 - **Script ≠ language** for shared scripts. "Is this Hindi or Marathi?" cannot be settled by script alone, and the result says so in `likely_languages`.
 - **TTS verification thresholds** were set conservatively without a large calibration set. Expect occasional false alarms on number-heavy text; scores are reported, not hidden.
+- **The translation route differs from the docs.** On 18 Nov 2026 the documented `POST /translate` returned 404, while `POST /v1/chat/completions` with `model=indic-translate` worked. The client tries the chat form first and falls back to the documented route (`BODHAN_TRANSLATE_PATH` can force one).
 - **Digital PDFs are OCR'd too.** That is simpler and safer under the "all text extraction through Indic-OCR" rule, at ₹0.20/page.
 - **LLM cost** is reported in tokens, not rupees (the provider is unknown).
 - **The HTTP transport** resolves file paths on the server's machine; it is for co-located clients.

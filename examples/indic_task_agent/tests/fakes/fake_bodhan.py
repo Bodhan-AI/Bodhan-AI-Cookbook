@@ -140,12 +140,27 @@ def make_handler(state: FakeState):
                 )
             if path == "/v1/audio/transcriptions":
                 return self._transcribe(body)
-            if path == "/translate":
+            if path in {"/translate", "/v1/translate"}:
+                with state.lock:
+                    state.calls["translate"] = state.calls.get("translate", 0) + 1
                 return self._translate(json.loads(body))
             if path == "/v1/audio/speech":
                 return self._speak(json.loads(body))
             if path == "/v1/chat/completions":
-                return self._ocr(json.loads(body))
+                req = json.loads(body)
+                if req.get("model") == "indic-translate":  # the live API's translate shape
+                    with state.lock:
+                        state.calls["translate"] = state.calls.get("translate", 0) + 1
+                    text = req["messages"][-1]["content"]
+                    return self._translate(
+                        {
+                            "text": text,
+                            "target_language": req.get("target_language"),
+                            "script": req.get("script", "native"),
+                        },
+                        chat=True,
+                    )
+                return self._ocr(req)
             self._json(404, {"error": {"message": "not found", "code": "not_found"}})
 
         def _transcribe(self, body: bytes) -> None:
@@ -171,7 +186,7 @@ def make_handler(state: FakeState):
             sentence = SENTENCES.get(code, SENTENCES["en"])
             self._json(200, {"text": " ".join(f"{sentence} {i + 1}" for i in range(max(1, round(seconds / 3))))})
 
-        def _translate(self, req: dict) -> None:
+        def _translate(self, req: dict, chat: bool = False) -> None:
             target = req.get("target_language")
             text = req.get("text", "")
             state.inputs.setdefault("translate", []).append(req)
@@ -203,6 +218,21 @@ def make_handler(state: FakeState):
             truncated = "TRUNCATE_ME" in text and len(text) > 60
             if truncated:
                 out = out[: len(out) // 2]
+            if chat:
+                return self._json(
+                    200,
+                    {
+                        "choices": [
+                            {
+                                "index": 0,
+                                "finish_reason": "length" if truncated else "stop",
+                                "message": {"role": "assistant", "content": out},
+                            }
+                        ],
+                        "model": "indic-translate",
+                        "usage": {"prompt_tokens": len(text) // 2, "completion_tokens": max(1, len(out) // 2)},
+                    },
+                )
             self._json(
                 200,
                 {

@@ -95,7 +95,7 @@ async def test_unsupported_language_is_refused_without_calls(ctx, fake):
         await translate_text("French", text="Hello")
     assert ei.value.code == "unsupported_language"
     assert "fr" not in ei.value.details["supported"]
-    assert fake.state.calls.get("/translate", 0) == 0
+    assert fake.state.calls.get("translate", 0) == 0
 
 
 async def test_truncated_translation_is_resplit(ctx, fake):
@@ -120,7 +120,7 @@ async def test_markdown_table_preserved_and_numbers_kept(ctx, tmp_path):
 
 async def test_text_already_in_target_is_not_sent(ctx, fake):
     res = await translate_text("ta", text="இன்று பள்ளியில் கூட்டம் உள்ளது.")
-    assert res.units_kept == 1 and fake.state.calls.get("/translate", 0) == 0
+    assert res.units_kept == 1 and fake.state.calls.get("translate", 0) == 0
 
 
 async def test_long_document_split_for_context_window(ctx, fake):
@@ -158,7 +158,7 @@ async def test_budget_refusal_happens_before_spending(ctx, fake):
     with pytest.raises(BodhanToolError) as ei:
         await translate_text("hi", text="Hello " * 2000, max_cost_inr=0.000001)
     assert ei.value.code == "budget_exceeded"
-    assert fake.state.calls.get("/translate", 0) == 0
+    assert fake.state.calls.get("translate", 0) == 0
 
 
 # ---------------------------------------------------------------- speak
@@ -255,3 +255,13 @@ async def test_inspect_and_read(ctx, tmp_path):
     assert txt.detected_script == "Telugu" and txt.likely_languages == ["te"]
     part = await read_text(str(tmp_path / "in" / "t.txt"), max_chars=100)
     assert len(part.content) == 100 and part.next_offset == 100
+
+
+async def test_translate_uses_chat_route_and_falls_back_on_404(ctx, fake):
+    res = await translate_text("hi", text="Good morning")
+    assert res.coverage_ok and fake.state.calls["/v1/chat/completions"] == 1
+    fake.state.fail_next["/v1/chat/completions"] = [404]
+    await translate_text("hi", text="Good evening")  # chat route 404s -> documented JSON route
+    assert fake.state.calls["/translate"] == 1
+    await translate_text("hi", text="Good night")  # the working route is remembered
+    assert fake.state.calls["/translate"] == 2 and fake.state.calls["/v1/chat/completions"] == 2

@@ -40,6 +40,7 @@ class Settings:
     cache_dir: Path = Path(".bodhan_cache")
     cache_enabled: bool = True
     output_dir: Path = Path("outputs/mcp")
+    translate_path: str = "chat"
 
     @classmethod
     def from_env(cls) -> Settings:
@@ -55,6 +56,7 @@ class Settings:
             cache_dir=Path(os.environ.get("BODHAN_CACHE_DIR", ".bodhan_cache")).expanduser(),
             cache_enabled=os.environ.get("BODHAN_CACHE", "1") not in {"0", "false", "off"},
             output_dir=Path(os.environ.get("BODHAN_MCP_OUTPUT_DIR", "outputs/mcp")).expanduser(),
+            translate_path=os.environ.get("BODHAN_TRANSLATE_PATH") or "chat",
         )
 
     def key_for(self, model: str) -> str | None:
