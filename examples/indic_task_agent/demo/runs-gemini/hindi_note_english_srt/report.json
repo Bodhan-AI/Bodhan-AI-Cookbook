@@ -1,0 +1,65 @@
+{
+  "status": "completed",
+  "stopped_by": "agent",
+  "task": "Transcribe this Hindi voice note and give me English subtitles",
+  "finished_at": "2026-11-18T16:25:55+00:00",
+  "duration_s": 23.89,
+  "steps_used": 2,
+  "max_steps": 30,
+  "cost_inr": 0.2766,
+  "max_cost_inr": 20.0,
+  "within_budget": true,
+  "bodhan_calls": {
+    "total": 14,
+    "paid": 14,
+    "cache_hits": 0,
+    "by_model": {
+      "indic-transcribe": {
+        "calls": 7,
+        "cache_hits": 0,
+        "cost_inr": 0.2686
+      },
+      "indic-translate": {
+        "calls": 7,
+        "cache_hits": 0,
+        "cost_inr": 0.008
+      }
+    }
+  },
+  "translate_route": "/v1/chat/completions",
+  "llm": {
+    "model": "gemini-3.5-flash",
+    "calls": 2,
+    "prompt_tokens": 7163,
+    "completion_tokens": 229
+  },
+  "artifacts": [
+    "artifacts/voice-note.en.srt",
+    "artifacts/voice-note.hi.srt"
+  ],
+  "verification": [
+    {
+      "artifact": "artifacts/voice-note.en.srt",
+      "tool": "make_subtitles",
+      "passed": true,
+      "warnings": [],
+      "checks": {}
+    },
+    {
+      "artifact": "artifacts/voice-note.hi.srt",
+      "tool": "make_subtitles",
+      "passed": true,
+      "warnings": [],
+      "checks": {}
+    }
+  ],
+  "all_checks_passed": true,
+  "assumptions": [
+    "Source language was set to Hindi (hi) based on the user request."
+  ],
+  "targets": {
+    "verification": "met",
+    "budget": "met",
+    "no_waste": "met (each input sent to a model at most once; repeats come from the cache)"
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "status": "completed",
+  "stopped_by": "agent",
+  "task": "Translate this worksheet into Marathi and keep the table",
+  "finished_at": "2026-11-18T16:26:55+00:00",
+  "duration_s": 59.47,
+  "steps_used": 5,
+  "max_steps": 30,
+  "cost_inr": 0.203,
+  "max_cost_inr": 20.0,
+  "within_budget": true,
+  "bodhan_calls": {
+    "total": 17,
+    "paid": 17,
+    "cache_hits": 0,
+    "by_model": {
+      "indic-ocr": {
+        "calls": 1,
+        "cache_hits": 0,
+        "cost_inr": 0.2
+      },
+      "indic-translate": {
+        "calls": 16,
+        "cache_hits": 0,
+        "cost_inr": 0.0032
+      }
+    }
+  },
+  "translate_route": "/v1/chat/completions",
+  "llm": {
+    "model": "gemini-3.5-flash",
+    "calls": 5,
+    "prompt_tokens": 20688,
+    "completion_tokens": 286
+  },
+  "artifacts": [
+    "artifacts/worksheet.mr.md"
+  ],
+  "verification": [
+    {
+      "artifact": "artifacts/worksheet.mr.md",
+      "tool": "translate_text",
+      "passed": true,
+      "warnings": [],
+      "checks": {
+        "sentences_in": 9,
+        "sentences_out": 9,
+        "structure_preserved": true,
+        "numbers_preserved": true,
+        "truncated_fragments": 0
+      }
+    }
+  ],
+  "all_checks_passed": true,
+  "assumptions": [],
+  "targets": {
+    "verification": "met",
+    "budget": "met",
+    "no_waste": "met (each input sent to a model at most once; repeats come from the cache)"
+  }
+}

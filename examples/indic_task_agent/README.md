@@ -33,7 +33,9 @@ cp .env.example .env   # then fill in the keys
 
 - System dependency: **ffmpeg** (with ffprobe). `brew install ffmpeg` or `apt install ffmpeg`.
 - Bodhan keys, one per model: `BODHAN_TRANSCRIBE_KEY`, `BODHAN_TRANSLATE_KEY`, `BODHAN_SPEAK_KEY`, `BODHAN_OCR_KEY` (from [console.bodhan.ai](https://console.bodhan.ai)).
-- LLM: `LLM_BASE_URL`, `LLM_MODEL`, `LLM_API_KEY`, any OpenAI-compatible endpoint with tool calling. Tested with DeepSeek (`deepseek-chat`).
+- LLM: `LLM_BASE_URL`, `LLM_MODEL`, `LLM_API_KEY`, any OpenAI-compatible endpoint with tool calling.
+  Tested with DeepSeek (`https://api.deepseek.com`, `deepseek-chat`) and Google Gemini
+  (`https://generativelanguage.googleapis.com/v1beta/openai/`, `gemini-3.5-flash`).
 - Or with Docker: `docker build -t indic-task-agent .` (see the comments in the `Dockerfile`).
 
 ## Run
@@ -110,7 +112,22 @@ Audio, video and images are not committed; rerun the suite to regenerate them.
 | Read this paragraph aloud in Bengali with a female voice | English text file | completed (checks passed) | .mp3, .md | 4 | 0.36 | 52 | [result](demo/runs/bengali_paragraph/result.md), [trace](demo/runs/bengali_paragraph/trace.jsonl), [report](demo/runs/bengali_paragraph/report.json) |
 | Translate this video into French | English MP4 | impossible | none | 4 | 0.01 | 6 | [result](demo/runs/video_french/result.md), [trace](demo/runs/video_french/trace.jsonl), [report](demo/runs/video_french/report.json) |
 
-All six pass the suite's checks ([demo/results.md](demo/results.md)), on an empty model cache so every call was paid for: INR 3.77 in total. Every multi-step task finished in under 5 minutes. The suite's checks are simple and independent of the agent: expected status, expected output types, all output checks passed, and a few facts in the answer.
+All six pass the suite's checks ([demo/results.md](demo/results.md)), on an empty model cache so every call was paid for: INR 3.77 in total. Every multi-step task finished in under 5 minutes. The suite's checks are simple and independent of the agent: expected status, the output types the task asks for, all output checks passed, audio length where the task names one, and a few facts in the answer or the English outputs.
+
+### Same tasks with a second LLM
+
+The same six tasks with Google Gemini (`gemini-3.5-flash`), also on an empty cache, to check the agent does not depend on one model. All six pass ([demo/runs-gemini/results.md](demo/runs-gemini/results.md)).
+
+| Task | Result | Turns | Cost (INR) | Time (s) | Run |
+|---|---|---|---|---|---|
+| Tamil audio summary | completed: 1 min 53 s audio, back-check 0.96 | 7 | 2.67 | 158 | [result](demo/runs-gemini/tamil_audio_summary/result.md) |
+| Hindi note, English subtitles | completed | 2 | 0.28 | 24 | [result](demo/runs-gemini/hindi_note_english_srt/result.md) |
+| Worksheet into Marathi | completed | 5 | 0.20 | 60 | [result](demo/runs-gemini/worksheet_marathi/result.md) |
+| Telugu clips | completed: clip1 and clip3 | 7 | 0.06 | 25 | [result](demo/runs-gemini/telugu_clips/result.md) |
+| Bengali paragraph aloud | completed: back-check 1.0 | 5 | 0.37 | 63 | [result](demo/runs-gemini/bengali_paragraph/result.md) |
+| Video into French | impossible | 4 | 0.00 | 10 | [result](demo/runs-gemini/video_french/result.md) |
+
+To run the suite with another LLM, set `LLM_*` in the environment and keep its runs apart: `python demo/run_demo.py --cold --runs-dir runs-<name>`.
 
 ## Known API issues
 
@@ -128,5 +145,6 @@ All six pass the suite's checks ([demo/results.md](demo/results.md)), on an empt
 - The speech check compares text, so a number read out as words can lower the score. A threshold of 0.6 leaves room for that.
 - The agent cannot fix a translation error itself (it may not write Indian-language text). It can rephrase the English and translate again, and otherwise reports the error.
 - Video is supported for transcription and subtitles (audio track only). Dubbing video or reading on-screen text is not built.
-- Tested with one LLM provider so far (DeepSeek). The client only uses standard chat-completions fields, and drops `temperature` if a model rejects it.
+- Tested with two LLMs (DeepSeek and Gemini). The client only uses standard chat-completions fields, drops `temperature` if a model rejects it,
+  and waits out a busy provider (6 tries, `Retry-After` honoured). Gemini's free tier (20 requests a day per model) is too small for the suite.
 - OCR doubt flags use layout confidence, which scores block detection rather than reading accuracy.

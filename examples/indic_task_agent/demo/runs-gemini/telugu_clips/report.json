@@ -1,0 +1,87 @@
+{
+  "status": "completed",
+  "stopped_by": "agent",
+  "task": "Which of these clips are in Telugu? Translate those into English",
+  "finished_at": "2026-11-18T16:27:19+00:00",
+  "duration_s": 24.42,
+  "steps_used": 7,
+  "max_steps": 30,
+  "cost_inr": 0.0609,
+  "max_cost_inr": 20.0,
+  "within_budget": true,
+  "bodhan_calls": {
+    "total": 9,
+    "paid": 9,
+    "cache_hits": 0,
+    "by_model": {
+      "indic-transcribe": {
+        "calls": 7,
+        "cache_hits": 0,
+        "cost_inr": 0.0604
+      },
+      "indic-translate": {
+        "calls": 2,
+        "cache_hits": 0,
+        "cost_inr": 0.0006
+      }
+    }
+  },
+  "translate_route": "/v1/chat/completions",
+  "llm": {
+    "model": "gemini-3.5-flash",
+    "calls": 7,
+    "prompt_tokens": 38723,
+    "completion_tokens": 1088
+  },
+  "artifacts": [
+    "artifacts/clip1_english.en.md",
+    "artifacts/clip3_english.en.md",
+    "artifacts/telugu_clips_summary.en.md"
+  ],
+  "verification": [
+    {
+      "artifact": "artifacts/clip1_english.en.md",
+      "tool": "translate_text",
+      "passed": true,
+      "warnings": [],
+      "checks": {
+        "sentences_in": 1,
+        "sentences_out": 1,
+        "structure_preserved": true,
+        "numbers_preserved": true,
+        "truncated_fragments": 0
+      }
+    },
+    {
+      "artifact": "artifacts/clip3_english.en.md",
+      "tool": "translate_text",
+      "passed": true,
+      "warnings": [],
+      "checks": {
+        "sentences_in": 1,
+        "sentences_out": 1,
+        "structure_preserved": true,
+        "numbers_preserved": true,
+        "truncated_fragments": 0
+      }
+    },
+    {
+      "artifact": "artifacts/telugu_clips_summary.en.md",
+      "tool": "save_english_text",
+      "passed": null,
+      "warnings": [],
+      "checks": {
+        "written_by": "llm (English)"
+      }
+    }
+  ],
+  "all_checks_passed": true,
+  "assumptions": [
+    "Identified Telugu language for clips based on speech script analysis and candidate detection."
+  ],
+  "targets": {
+    "verification": "met",
+    "budget": "met",
+    "no_waste": "met (each input sent to a model at most once; repeats come from the cache)"
+  }
+}

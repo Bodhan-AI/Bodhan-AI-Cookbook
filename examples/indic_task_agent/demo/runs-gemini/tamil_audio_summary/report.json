@@ -1,0 +1,96 @@
+{
+  "status": "completed",
+  "stopped_by": "agent",
+  "task": "Make a two-minute Tamil audio summary of this chapter",
+  "finished_at": "2026-11-18T16:25:30+00:00",
+  "duration_s": 157.78,
+  "steps_used": 7,
+  "max_steps": 30,
+  "cost_inr": 2.6746,
+  "max_cost_inr": 20.0,
+  "within_budget": true,
+  "bodhan_calls": {
+    "total": 26,
+    "paid": 26,
+    "cache_hits": 0,
+    "by_model": {
+      "indic-ocr": {
+        "calls": 8,
+        "cache_hits": 0,
+        "cost_inr": 1.6
+      },
+      "indic-translate": {
+        "calls": 4,
+        "cache_hits": 0,
+        "cost_inr": 0.0076
+      },
+      "indic-speak": {
+        "calls": 9,
+        "cache_hits": 0,
+        "cost_inr": 0.8784
+      },
+      "indic-transcribe": {
+        "calls": 5,
+        "cache_hits": 0,
+        "cost_inr": 0.1887
+      }
+    }
+  },
+  "translate_route": "/v1/chat/completions",
+  "llm": {
+    "model": "gemini-3.5-flash",
+    "calls": 7,
+    "prompt_tokens": 60840,
+    "completion_tokens": 898
+  },
+  "artifacts": [
+    "artifacts/summary_en.md",
+    "artifacts/summary_ta.ta.md",
+    "artifacts/tamil_summary.ta.anitha.wav"
+  ],
+  "verification": [
+    {
+      "artifact": "artifacts/summary_en.md",
+      "tool": "save_english_text",
+      "passed": null,
+      "warnings": [],
+      "checks": {
+        "written_by": "llm (English)"
+      }
+    },
+    {
+      "artifact": "artifacts/summary_ta.ta.md",
+      "tool": "translate_text",
+      "passed": true,
+      "warnings": [],
+      "checks": {
+        "sentences_in": 13,
+        "sentences_out": 13,
+        "structure_preserved": true,
+        "numbers_preserved": true,
+        "truncated_fragments": 0
+      }
+    },
+    {
+      "artifact": "artifacts/tamil_summary.ta.anitha.wav",
+      "tool": "speak_text",
+      "passed": true,
+      "warnings": [],
+      "checks": {
+        "chunks": 9,
+        "similarity": 0.962,
+        "length_ratio": 1.05,
+        "back_transcript_preview": "இந்த அத்தியாயம் வடிவியலில் உள்ள கோடுகள் மற்றும் கோணங்களின் அடிப்படை கருத்துக்களை அறிமுகப்படுத்துகிறது ஒரு கோட்டுத் துண்டு இரண்டு முனைகளைக் கொண்டுள்ளது கதிர் ஒரு"
+      }
+    }
+  ],
+  "all_checks_passed": true,
+  "assumptions": [
+    "Used default female Tamil voice (Anitha) for text-to-speech synthesis."
+  ],
+  "targets": {
+    "verification": "met",
+    "budget": "met",
+    "no_waste": "met (each input sent to a model at most once; repeats come from the cache)"
+  }
+}
