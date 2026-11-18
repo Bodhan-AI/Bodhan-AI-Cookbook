@@ -1,88 +1,153 @@
 #!/usr/bin/env python3
 from __future__ import annotations
+
+import tempfile
 from pathlib import Path
 from typing import Optional
+
 from ..client import client
-from ..media import convert_to_wav_16khz_mono
+from ..models import ErrorCode
+from ..media import (
+    inspect_audio_video,
+    convert_to_wav_16khz_mono,
+    chunk_wav_silence_aware,
+    detect_script,
+)
 
 
-async def transcribe(
+def _error(
+    code: ErrorCode, message: str, retryable: bool = False,
+    details: dict | None = None,
+) -> dict:
+    return {
+        "error": code.value,
+        "message": message,
+        "code": code.value,
+        "retryable": retryable,
+        "details": details or {},
+    }
+
+
+async def transcribe_audio(
     file_path: str,
     language_hint: Optional[str] = None,
     max_duration_sec: Optional[float] = None,
 ) -> dict:
-    import tempfile
-    import subprocess
-    import wave
-
     path = Path(file_path)
     if not path.exists():
-        raise FileNotFoundError(f"File not found: {file_path}")
+        return _error(
+            ErrorCode.FILE_NOT_FOUND,
+            f"File not found: {file_path}",
+            retryable=False,
+        )
 
-    wav_path = None
-    if max_duration_sec:
-        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
-            wav_path = tmp.name
-        subprocess.run([
-            "ffmpeg", "-y", "-i", str(path),
-            "-t", str(max_duration_sec),
-            "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le", wav_path
-        ], capture_output=True, check=True)
-        path_str = wav_path
-    else:
-        wav_path = convert_to_wav_16khz_mono(str(path), str(path) + ".converted.wav")
-        path_str = wav_path
+    try:
+        info = inspect_audio_video(str(path))
+    except Exception as e:
+        return _error(
+            ErrorCode.MEDIA_PROCESSING_ERROR,
+            f"Failed to inspect audio/video: {e}",
+            retryable=False,
+        )
 
-    with open(path_str, "rb") as f:
-        audio_data = f.read()
+    duration = info.get("duration_sec", 0)
+    if duration <= 0:
+        return _error(
+            ErrorCode.VALIDATION_ERROR,
+            f"Invalid audio duration: {duration}",
+            retryable=False,
+        )
 
-    duration = 0
-    if path_str.endswith(".wav"):
-        with wave.open(path_str, "rb") as wf:
-            duration = wf.getnframes() / wf.getframerate()
+    probe_mode = max_duration_sec is not None and max_duration_sec < duration
+    wav_paths: list[tuple[str, tuple[float, float]]] = []
 
-    files = {
-        "file": (Path(path_str).name, audio_data, "audio/wav"),
-    }
-    json_data = {
-        "model": "indic-transcribe",
-    }
-    if language_hint:
-        json_data["language"] = language_hint
+    try:
+        if probe_mode:
+            with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
+                wav_path = tmp.name
+            try:
+                convert_to_wav_16khz_mono(str(path), wav_path)
+            except Exception as e:
+                Path(wav_path).unlink(missing_ok=True)
+                return _error(
+                    ErrorCode.MEDIA_PROCESSING_ERROR,
+                    f"Failed to convert audio: {e}",
+                    retryable=False,
+                )
+            wav_paths.append((wav_path, (0.0, max_duration_sec)))
+        else:
+            try:
+                for idx, chunk_path, (start, end) in chunk_wav_silence_aware(str(path)):
+                    wav_paths.append((chunk_path, (start, end)))
+            except Exception as e:
+                return _error(
+                    ErrorCode.MEDIA_PROCESSING_ERROR,
+                    f"Failed to chunk audio: {e}",
+                    retryable=False,
+                )
 
-    resp, cost = await client.request(
-        "indic-transcribe",
-        "/v1/audio/transcriptions",
-        json_data=json_data,
-        files=files,
-        timeout=60,
-    )
+        segments = []
+        full_text = ""
+        total_cost = 0.0
 
-    text = resp.get("text", "")
-    return {
-        "text": f"<untrusted_source_data>{text}</untrusted_source_data>",
-        "language": language_hint or "auto",
-        "duration_sec": duration,
-        "cost_inr": cost,
-        "segments": [{"start": 0, "end": duration, "text": text}],
-    }
+        for wav_path, (start_sec, end_sec) in wav_paths:
+            try:
+                with open(wav_path, "rb") as f:
+                    audio_data = f.read()
+            except Exception as e:
+                return _error(
+                    ErrorCode.MEDIA_PROCESSING_ERROR,
+                    f"Failed to read audio chunk: {e}",
+                    retryable=False,
+                )
+
+            files = {"file": (Path(wav_path).name, audio_data, "audio/wav")}
+            json_data = {"model": "indic-transcribe"}
+            if language_hint:
+                json_data["language"] = language_hint
+
+            try:
+                resp, cost = await client.request(
+                    "indic-transcribe",
+                    "/audio/transcriptions",
+                    json_data=json_data,
+                    files=files,
+                    timeout=60,
+                )
+            except Exception as e:
+                return _error(
+                    ErrorCode.NETWORK_ERROR,
+                    f"Transcription API call failed: {e}",
+                    retryable=True,
+                )
+            total_cost += cost
+
+            text = resp.get("text", "").strip()
+            if text:
+                full_text += (" " + text) if full_text else text
+                segments.append({
+                    "start_sec": round(start_sec, 3),
+                    "end_sec": round(end_sec, 3),
+                    "text": text,
+                })
+
+        detected_script = detect_script(full_text)
+        return {
+            "text": f"<untrusted_source_data>{full_text}</untrusted_source_data>",
+            "language": language_hint or detected_script,
+            "detected_script": detected_script,
+            "duration_sec": round(duration, 3),
+            "cost_inr": round(total_cost, 4),
+            "segments": segments,
+            "cached": False,
+        }
+
+    finally:
+        for wav_path, _ in wav_paths:
+            try:
+                Path(wav_path).unlink(missing_ok=True)
+            except Exception:
+                pass
 
 
-async def identify_by_script(file_path: str, target_script: str) -> list[dict]:
-    import re
-
-    result = await transcribe(file_path)
-    text = result.get("text", "").replace(
-        "<untrusted_source_data>", ""
-    ).replace("</untrusted_source_data>", "")
-
-    matching_lines = []
-    for line in text.split("
-"):
-        if re.search(r"[\u0C00-\u0C7F]", line):
-            matching_lines.append({"text": line, "language": "telugu"})
-
-    return matching_lines
-
-
-__all__ = ["transcribe", "identify_by_script"]
+__all__ = ["transcribe_audio"]

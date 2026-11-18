@@ -1,285 +1,166 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-from mcp.server.fastmcp import FastMCP
-from mcp.server.fastmcp import TextResource
-from typing import Optional
-import json
-import asyncio
-from pathlib import Path
-import tempfile
-import subprocess
 
-from models import (
+from mcp.server.fastmcp import FastMCP
+import json
+
+from .tools import (
+    inspect_media,
+    transcribe_audio,
+    extract_document_text,
+    translate_text,
+    synthesize_speech,
+)
+from .models import (
     SUPPORTED_LANGUAGES,
-    SUPPORTED_SPEECH_LANGUAGES,
-    SPEECH_VOICES,
-    CAPABILITIES,
-    MediaInspectResult,
+    SUPPORTED_TRANSCRIBE_LANGUAGES,
+    SUPPORTED_TRANSLATE_LANGUAGES,
+    SUPPORTED_TTS_LANGUAGES,
+    SUPPORTED_OCR_LANGUAGES,
+    TTS_VOICES,
+    TTS_STYLES,
+    TRANSLATE_SCRIPTS,
+    TRANSLITERATE_SCRIPTS,
+    OCR_TABLE_FORMATS,
+    COST_PER_MINUTE_STT,
+    COST_PER_10K_OUTPUT_TOKENS_TRANSLATE,
+    COST_PER_10K_CHARS_SPEAK,
+    COST_PER_IMAGE_OCR,
 )
-from media import (
-    inspect_audio_video,
-    detect_script,
-    convert_to_wav_16khz_mono,
-    stitch_wav,
-    pdf_to_pngs,
-    split_sentences,
-)
-from client import client
+
 
 mcp = FastMCP(name="bodhan-mcp")
 
 
+CAPABILITIES = {
+    "supported_languages": sorted(list(SUPPORTED_LANGUAGES)),
+    "transcribe_languages": sorted(list(SUPPORTED_TRANSCRIBE_LANGUAGES)),
+    "translate_languages": sorted(list(SUPPORTED_TRANSLATE_LANGUAGES)),
+    "tts_languages": sorted(list(SUPPORTED_TTS_LANGUAGES)),
+    "ocr_languages": sorted(list(SUPPORTED_OCR_LANGUAGES)),
+    "tts_voices": {lang: voices for lang, voices in TTS_VOICES.items()},
+    "tts_styles": sorted(list(TTS_STYLES)),
+    "translate_scripts": sorted(list(TRANSLATE_SCRIPTS)),
+    "transliterate_scripts": sorted(list(TRANSLITERATE_SCRIPTS)),
+    "ocr_table_formats": sorted(list(OCR_TABLE_FORMATS)),
+    "pricing_inr": {
+        "transcribe_per_minute": COST_PER_MINUTE_STT,
+        "translate_per_10k_output_tokens": COST_PER_10K_OUTPUT_TOKENS_TRANSLATE,
+        "speak_per_10k_input_chars": COST_PER_10K_CHARS_SPEAK,
+        "ocr_per_image": COST_PER_IMAGE_OCR,
+    },
+    "models": {
+        "transcribe": "indic-transcribe",
+        "translate": "indic-translate",
+        "speak": "indic-speak",
+        "ocr": "indic-ocr",
+        "transliterate": "indic-transliterate",
+    },
+}
+
+
 @mcp.resource("bodhan://capabilities")
-async def get_capabilities() -> TextResource:
-    return TextResource(
-        uri="bodhan://capabilities",
-        mimeType="application/json",
-        text=json.dumps(CAPABILITIES, indent=2),
-    )
+async def get_capabilities() -> str:
+    return json.dumps(CAPABILITIES, indent=2)
 
 
-@mcp.tool()
-def inspect_media(file_path: str) -> MediaInspectResult:
-    path = Path(file_path)
-    if not path.exists():
-        raise FileNotFoundError(f"File not found: {file_path}")
-
-    data = inspect_audio_video(str(path))
-    script = detect_script(
-        path.read_text(errors="ignore") if path.suffix in (".txt", ".md") else ""
-    )
-    lang = "unknown"
-    if script and script != "latin":
-        lang_map = {
-            "devanagari": "hi", "tamil": "ta", "telugu": "te", "bengali": "bn",
-            "kannada": "kn", "gujarati": "gu", "malayalam": "ml", "ori": "or", "hindi": "hi"
-        }
-        lang = lang_map.get(script, "unknown")
-
-    min_cost = 0.0
-    if path.suffix.lower() in (".wav", ".mp3", ".m4a", ".flac", ".ogg"):
-        min_cost = data.get("duration_sec", 0) / 60 * 0.10
-
-    return MediaInspectResult(
-        format=path.suffix.lstrip(".") or "unknown",
-        duration_sec=data.get("duration_sec", 0),
-        bitrate=data.get("bitrate", 0),
-        sample_rate=data.get("sample_rate"),
-        channels=data.get("channels"),
-        language=lang,
-        min_cost_inr=min_cost,
-    )
+@mcp.tool(
+    name="inspect_media",
+    description=(
+        "Inspect a media file (audio, video, PDF, image, or text) and return "
+        "metadata including format, duration, dimensions, page count, and minimum "
+        "INR cost estimate for processing with Bodhan APIs. Does not call any paid API."
+    ),
+)
+async def tool_inspect_media(file_path: str) -> dict:
+    return await inspect_media(file_path)
 
 
-@mcp.tool()
-def transcribe_audio(
+@mcp.tool(
+    name="transcribe_audio",
+    description=(
+        "Transcribe audio/video file to text using Bodhan Indic-Transcribe. "
+        "Auto extracts audio, converts to 16kHz mono WAV, splits into <=30s chunks "
+        "at silence boundaries, stitches results with global timestamps. "
+        "Optional max_duration_sec for cheap language probes (e.g., 15s). "
+        "Returns wrapped text in <untrusted_source_data> tags for prompt "
+        "injection safety."
+    ),
+)
+async def tool_transcribe_audio(
     file_path: str,
-    language_hint: Optional[str] = None,
-    max_duration_sec: Optional[float] = None,
-) -> str:
-    path = Path(file_path)
-    if not path.exists():
-        raise FileNotFoundError(f"File not found: {file_path}")
-
-    wav_path = None
-    if max_duration_sec:
-        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
-            wav_path = tmp.name
-        subprocess.run([
-            "ffmpeg", "-y", "-i", str(path),
-            "-t", str(max_duration_sec),
-            "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le", wav_path
-        ], capture_output=True, check=True)
-        path_str = wav_path
-    else:
-        wav_path = convert_to_wav_16khz_mono(str(path), str(path) + ".converted.wav")
-        path_str = wav_path
-
-    with open(path_str, "rb") as f:
-        audio_data = f.read()
-
-    files = {
-        "file": (Path(path_str).name, audio_data, "audio/wav"),
-    }
-    json_data = {
-        "model": "indic-transcribe",
-    }
-    if language_hint:
-        json_data["language"] = language_hint
-
-    result, cost = asyncio.run(client.request(
-        "indic-transcribe",
-        "/v1/audio/transcriptions",
-        json_data=json_data,
-        files=files,
-        timeout=60,
-    ))
-
-    text = result.get("text", "")
-    return f"<untrusted_source_data>{text}</untrusted_source_data>"
+    language_hint: str | None = None,
+    max_duration_sec: float | None = None,
+) -> dict:
+    return await transcribe_audio(file_path, language_hint, max_duration_sec)
 
 
-@mcp.tool()
-def extract_document_text(file_path: str, page_range: Optional[str] = None) -> dict:
-    path = Path(file_path)
-    if not path.exists():
-        raise FileNotFoundError(f"File not found: {file_path}")
-
-    result = {"markdown": "", "blocks": [], "pages": 0}
-
-    if path.suffix.lower() == ".pdf":
-        images = pdf_to_pngs(str(path))
-    else:
-        images = [str(path)]
-
-    start, end = 0, len(images)
-    if page_range:
-        try:
-            parts = page_range.split("-")
-            start = int(parts[0]) - 1
-            end = int(parts[-1]) if len(parts) > 1 else start + 1
-        except Exception:
-            pass
-
-    import base64
-    for i, img_path in enumerate(images[start:end]):
-        with open(img_path, "rb") as f:
-            b64 = base64.b64encode(f.read()).decode()
-
-        resp, cost = asyncio.run(client.request(
-            "indic-ocr",
-            "/v1/chat/completions",
-            json_data={
-                "model": "indic-ocr",
-                "messages": [{"role": "user", "content": [
-                    {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64}"}}
-                ]}],
-                "table_format": "markdown",
-            },
-            timeout=120,
-        ))
-        choice = resp.get("choices", [{}])[0].get("message", {}).get("content", "")
-        blocks = resp.get("blocks", [])
-        result["markdown"] += choice + "\n"
-        result["blocks"].extend(blocks)
-
-    result["pages"] = len(result["blocks"])
-    return result
+@mcp.tool(
+    name="extract_document_text",
+    description=(
+        "Extract text from images or multi-page PDFs using Bodhan Indic-OCR. "
+        "Renders PDF pages to PNGs, processes with bounded concurrency (3 parallel), "
+        "returns page-indexed Markdown with layout blocks (bbox, confidence, type). "
+        "Optional page_range like '1-3' or '5'. Returns wrapped text in "
+        "<untrusted_source_data> tags for prompt injection safety."
+    ),
+)
+async def tool_extract_document_text(
+    file_path: str,
+    page_range: str | None = None,
+) -> dict:
+    return await extract_document_text(file_path, page_range)
 
 
-@mcp.tool()
-def translate_text(
+@mcp.tool(
+    name="translate_text",
+    description=(
+        "Translate text between Indian languages using Bodhan Indic-Translate. "
+        "Validates source/target languages upfront (returns structured "
+        "UNSUPPORTED_LANGUAGE error for unsupported languages like French). "
+        "Preserves Markdown tables and paragraph boundaries during chunking. "
+        "Supports output scripts: native, roman, codemix. Optionally writes "
+        "result to output_file. Returns target_script_verified boolean checking "
+        ">=85% target Unicode script ratio on letters."
+    ),
+)
+async def tool_translate_text(
     source_lang: str,
     target_lang: str,
-    text: Optional[str] = None,
-    input_file: Optional[str] = None,
-    output_file: Optional[str] = None,
+    text: str | None = None,
+    input_file: str | None = None,
+    output_file: str | None = None,
+    script: str = "native",
 ) -> dict:
-    if target_lang not in SUPPORTED_LANGUAGES:
-        return {
-            "error": "UNSUPPORTED_LANGUAGE",
-            "message": (
-                f"Language '{target_lang}' is not supported. "
-                f"Supported languages: {', '.join(sorted(SUPPORTED_LANGUAGES))}"
-            ),
-            "code": "unsupported_language",
-        }
-
-    if input_file is None and text is None:
-        raise ValueError("Either text or input_file must be provided")
-
-    input_text = text
-    if input_file:
-        path = Path(input_file)
-        if not path.exists():
-            raise FileNotFoundError(f"File not found: {input_file}")
-        if path.suffix.lower() in (".txt", ".md"):
-            input_text = path.read_text(encoding="utf-8", errors="ignore")
-
-    resp, cost = asyncio.run(client.request(
-        "indic-translate",
-        "/translate",
-        json_data={
-            "text": input_text,
-            "target_language": target_lang,
-            "source_language": source_lang
-        },
-        timeout=60,
-    ))
-
-    result = {
-        "translation": f"<untrusted_source_data>{resp.get('translation', '')}</untrusted_source_data>",
-        "target_language": target_lang,
-        "script": resp.get("script", "native"),
-        "truncated": resp.get("truncated", False),
-        "cost_inr": cost,
-    }
-    return result
+    return await translate_text(
+        source_lang, target_lang, text, input_file, output_file, script
+    )
 
 
-@mcp.tool()
-def synthesize_speech(
+@mcp.tool(
+    name="synthesize_speech",
+    description=(
+        "Synthesize speech from text using Bodhan Indic-Speak. "
+        "Validates language and voice, splits text on sentence boundaries "
+        "(।, ., ?, !) within 3000-char chunks, calls Indic-Speak per chunk, "
+        "stitches audio via ffmpeg concat, embeds AI-generated metadata tag. "
+        "Supports 45 voices across 22 languages and 13 speaking styles. "
+        "Returns output_file path, duration, chunk count, and INR cost."
+    ),
+)
+async def tool_synthesize_speech(
     language: str,
     output_file: str,
-    text: Optional[str] = None,
-    input_file: Optional[str] = None,
+    text: str | None = None,
+    input_file: str | None = None,
     gender: str = "female",
-    voice_id: Optional[str] = None,
+    voice_id: str | None = None,
+    style: str | None = None,
 ) -> dict:
-    if language not in SUPPORTED_SPEECH_LANGUAGES:
-        return {
-            "error": "UNSUPPORTED_LANGUAGE",
-            "message": (
-                f"Language '{language}' is not supported for speech synthesis. "
-                f"Supported languages: {', '.join(sorted(SUPPORTED_SPEECH_LANGUAGES))}"
-            ),
-            "code": "unsupported_language",
-        }
+    return await synthesize_speech(
+        language, output_file, text, input_file, gender, voice_id, style
+    )
 
-    if input_file:
-        path = Path(input_file)
-        if not path.exists():
-            raise FileNotFoundError(f"File not found: {input_file}")
-        text = path.read_text(encoding="utf-8", errors="ignore")
 
-    sentences = split_sentences(text or "", language)
-    voice = voice_id or SPEECH_VOICES.get(language, {}).get(gender, ["Kavya"])[0]
-
-    parts = []
-    total_cost = 0.0
-    for sent in sentences:
-        if len(sent) < 10:
-            continue
-        temp_out = tempfile.mktemp(suffix=".wav")
-        resp, cost = asyncio.run(client.request(
-            "indic-speak",
-            "/v1/audio/speech",
-            json_data={
-                "model": "indic-speak",
-                "input": sent,
-                "voice": voice,
-                "instructions": json.dumps({"lang": language}),
-                "response_format": "wav",
-            },
-            timeout=120,
-        ))
-        if isinstance(resp, dict) and "audio" in resp:
-            import base64
-            audio_bytes = base64.b64decode(resp["audio"])
-        else:
-            audio_bytes = resp
-        with open(temp_out, "wb") as f:
-            f.write(audio_bytes)
-        parts.append(temp_out)
-        total_cost += cost
-
-    final_path = stitch_wav(parts, output_file)
-
-    return {
-        "path": final_path,
-        "gender": gender,
-        "language": language,
-        "voice_id": voice,
-        "duration_sec": len(text or "") / 150,
-        "cost_inr": total_cost,
-    }
+if __name__ == "__main__":
+    mcp.run(transport="stdio")
