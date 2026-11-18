@@ -1,0 +1,9 @@
+{
+  "version": "0.8.0",
+  "counts": {
+    "single_tool": 8,
+    "tool_chains": 7,
+    "adversarial": 6
+  },
+  "total": 21
+}
