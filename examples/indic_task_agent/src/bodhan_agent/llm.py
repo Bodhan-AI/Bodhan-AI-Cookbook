@@ -87,6 +87,24 @@ class OpenAICompatibleLLM:
             raise LLMConfigError(f"Missing LLM settings: {', '.join(missing)} (see .env.example).")
         return cls(os.environ["LLM_BASE_URL"], os.environ["LLM_MODEL"], os.environ["LLM_API_KEY"], timeout_s)
 
+    async def _create_with_validation_retry(self, kwargs: dict[str, Any]) -> Any:
+        """Some providers (Groq) validate the model's tool-call arguments and return 400 when the model
+        produced an invalid call. Sampling again usually fixes it, so retry such errors twice."""
+        from openai import BadRequestError
+
+        for attempt in range(3):
+            try:
+                return await self.client.chat.completions.create(**kwargs)
+            except BadRequestError as exc:
+                text = str(exc).lower()
+                retryable = (
+                    "tool call validation" in text or "tool_use_failed" in text or "failed to call a function" in text
+                )
+                if attempt < 2 and retryable:
+                    continue
+                raise
+        raise RuntimeError("unreachable")
+
     async def complete(
         self, messages: list[dict[str, Any]], tools: list[dict[str, Any]], force_tool: str | None = None
     ) -> LLMReply:
