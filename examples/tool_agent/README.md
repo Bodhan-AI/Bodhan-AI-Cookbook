@@ -43,36 +43,36 @@ Each CLI run writes `result.md`, `artifacts/`, `trace.jsonl` and `report.json` u
 ## How it works
 
 ```mermaid
-flowchart LR
-  U[Task and input files] --> A[LLM task agent]
-  A -->|typed tool calls| M[MCP server or shared tool functions]
-  M --> T[Indic-Transcribe]
-  M --> X[Indic-Translate]
-  M --> S[Indic-Speak]
-  M --> O[Indic-OCR]
+flowchart TB
+  U["Task<br/>and input files"] --> A["Task agent<br/>(LLM)"]
+  A -->|typed tool calls| M["MCP server<br/>or shared tool layer"]
+  M --> T["Indic-Transcribe"]
+  M --> X["Indic-Translate"]
+  M --> S["Indic-Speak"]
+  M --> O["Indic-OCR"]
   T --> M
   X --> M
   S --> M
   O --> M
   M --> A
-  A --> V[Verify, budget and recovery]
-  V --> R[Artifacts, trace and report]
+  A --> V["Verify, enforce budget,<br/>retry or stop"]
+  V --> R["Outputs, traces<br/>and reports"]
 ```
 
 The LLM selects tools and sequences them. Model limits, media conversion, retry behavior, caching, cost accounting and output-path validation live in deterministic tool code. Media travels through tools by local file reference; OCR image encoding occurs only in the Bodhan API request, never in the LLM context.
 
 ```mermaid
 flowchart TD
-  Start[Read task and inspect files] --> Plan[Plan with LLM]
-  Plan --> Budget{Within step and cost budgets?}
-  Budget -->|No| Stop[Stop and report partial work]
-  Budget -->|Yes| Call[Call validated Bodhan tool]
-  Call --> Check{Tool succeeded and output verifies?}
-  Check -->|No, retryable| Retry[Bounded retry or re-plan]
+  Start["Read task<br/>and inspect inputs"] --> Plan["Plan with LLM"]
+  Plan --> Budget{"Within step<br/>and cost budget?"}
+  Budget -->|No| Stop["Stop with<br/>partial result"]
+  Budget -->|Yes| Call["Call a validated<br/>Bodhan tool"]
+  Call --> Check{"Did the tool succeed<br/>and output verify?"}
+  Check -->|Retryable| Retry["Retry or<br/>re-plan"]
   Retry --> Budget
-  Check -->|No, impossible or non-retryable| Honest[Explain failure without fabricated output]
+  Check -->|Impossible or non-retryable| Honest["Explain failure;<br/>do not invent output"]
   Check -->|Yes, more work| Plan
-  Check -->|Yes, complete| Done[Write artifacts, trace and report]
+  Check -->|Complete| Done["Write artifacts,<br/>trace and report"]
   Honest --> Done
   Stop --> Done
 ```
