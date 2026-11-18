@@ -11,8 +11,13 @@ from bodhan_agent import cli, llm
 from bodhan_mcp.core import costs
 
 INDIC = re.compile("[\u0900-\u0dff]")
-TAMIL = "\u0bb5\u0ba3\u0b95\u0bcd\u0b95\u0bae\u0bcd \u0b89\u0bb2\u0b95\u0bae\u0bcd. " * 6
-ENGLISH = "The report says the water supply improved across the district this year."
+TAMIL = (
+    "அறிக்கை நீர் வழங்கல் மேம்பட்டது மாவட்டம் முழுவதும் இந்த ஆண்டு புதிய திட்டம் தொடங்கியது "
+    "மக்கள் பயனடைந்தனர் குழந்தைகள் பள்ளி செல்கிறார்கள் ஆசிரியர்கள் கற்பிக்கிறார்கள் "
+    "விவசாயிகள் நிலத்தில் வேலை செய்கிறார்கள் சந்தை விலை உயர்ந்தது அரசு உதவி வழங்கியது "
+    "சாலைகள் பழுதுபார்க்கப்பட்டன மருத்துவமனை திறக்கப்பட்டது மின்சாரம் வந்தது குடிமக்கள் மகிழ்ச்சி அடைந்தனர்."
+)
+ENGLISH = "The report for year 1, page 1, says the water supply improved across the district."
 DRAFT = "A short English summary of the report. The water supply improved across the district."
 
 
@@ -30,8 +35,13 @@ class FakePlanner:
 
     def __call__(self, messages, max_tokens=4096, temperature=0.2):
         self.seen.append(messages)
-        prose = messages[0]["content"].startswith("You write English prose")
-        text = DRAFT if prose else json.dumps(self.plan)
+        system = messages[0]["content"]
+        if system.startswith("You write English prose"):
+            text = DRAFT
+        elif system.startswith("You compare two English texts"):
+            text = "consistent - the same content."
+        else:
+            text = json.dumps(self.plan)
         return llm.LlmReply(text=text, finish_reason="stop", prompt_chars=sum(len(m["content"]) for m in messages), latency_ms=1)
 
 
@@ -129,7 +139,9 @@ def test_no_indic_text_ever_reaches_the_llm(full_run):
 def test_the_same_input_is_never_sent_twice(full_run):
     sent = [(r.model, r.fingerprint) for r in full_run["bodhan"].requests]
     assert sent and [n for n, c in Counter(sent).items() if c > 1] == []
-    assert Counter(m for m, _ in sent) == {"indic-ocr": 1, "indic-translate": 2, "indic-speak": 1, "indic-transcribe": 1}
+    counts = Counter(m for m, _ in sent)
+    # the pipeline itself, plus the verifier's back-transcription and meaning round trip
+    assert counts == {"indic-ocr": 1, "indic-translate": 3, "indic-speak": 1, "indic-transcribe": 2}
 
 
 def test_second_identical_run_makes_no_paid_requests(full_run, monkeypatch, tmp_path):
@@ -146,6 +158,48 @@ def test_second_identical_run_costs_nothing(full_run, tmp_path):
     run(tmp_path / "run2", full_run["pdf"])
     second = report_of(tmp_path / "run2")
     assert second["steps"] and second["budget"]["cost_inr"] == 0
+
+
+def test_hindi_voice_note_becomes_an_english_srt(bodhan, monkeypatch, tmp_path, make_audio):
+    bodhan.asr_fn = lambda rec: TAMIL
+    bodhan.mt_fn = lambda rec: ENGLISH
+    audio = make_audio("note.wav", 6.0)
+    plan = {
+        "understanding": "Transcribe the Hindi note and subtitle it in English.",
+        "steps": [
+            {"id": "s1", "intent": "transcribe", "tool": "transcribe_audio", "args": {"audio_path": str(audio)}},
+            {"id": "s2", "intent": "translate to English", "tool": "translate_text", "depends_on": ["s1"],
+             "args": {"source_path": "$s1.text_path", "target_language": "en"}, "expected_chars": 600},
+        ],
+        "final_outputs": [{"role": "subtitles", "from": "s2"}],
+    }
+    install(monkeypatch, plan)
+    out = tmp_path / "run"
+    assert run(out, audio, task="Turn this Hindi voice note into English subtitles") == 0
+    (srt_file,) = (out / "artifacts").glob("*.srt")
+    body = srt_file.read_text(encoding="utf-8")
+    assert "-->" in body and "water supply" in body
+    assert not INDIC.search(body)
+    report = report_of(out)
+    assert report["status"] == "completed", report["errors"]
+    assert any(c["check"] == "cues" and c["result"] == "passed" for c in report["verification"])
+
+
+def test_indic_text_in_a_plan_argument_is_refused_before_the_llm(bodhan, monkeypatch, tmp_path):
+    plan = {
+        "understanding": "Write a note.",
+        "steps": [{"id": "s1", "intent": "draft", "tool": "write_text",
+                   "args": {"instruction": "\u0928\u092e\u0938\u094d\u0924\u0947", "inputs": [], "target_chars": 100}}],
+        "final_outputs": [{"role": "text", "from": "s1"}],
+    }
+    planner = install(monkeypatch, plan)
+    src = tmp_path / "in.txt"
+    src.write_text("An English note.")
+    out = tmp_path / "run"
+    assert run(out, src) == 0
+    report = report_of(out)
+    assert report["status"] == "failed" and report["errors"][0]["code"] == "LLM_WROTE_INDIC"
+    assert bodhan.requests == [] and len(planner.seen) == 1
 
 
 def test_infeasible_plan_is_a_clean_refusal(bodhan, monkeypatch, tmp_path):

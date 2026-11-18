@@ -69,6 +69,8 @@ def _item(path: str) -> MediaItem:
             item.warnings.append("silent")
         if kind == "video" and not item.has_audio:
             item.warnings.append("no_audio_track")
+        elif kind == "video" and media.is_silent(str(p), max_s=60.0):
+            item.warnings.append("silent_audio_track")
     elif kind == "pdf":
         try:
             item.pages = media.pdf_page_count(str(p))

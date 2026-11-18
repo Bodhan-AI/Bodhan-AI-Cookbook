@@ -105,9 +105,9 @@ def _fraction(value: object) -> float | None:
         return None
 
 
-def is_silent(path: str | Path, threshold_db: float = -60.0) -> bool:
+def is_silent(path: str | Path, threshold_db: float = -60.0, max_s: float | None = None) -> bool:
     """True when the loudest sample is below `threshold_db`. False if unmeasurable."""
-    peak = _peak_db(_existing(path))
+    peak = _peak_db(_existing(path), max_s)
     return peak is not None and peak <= threshold_db
 
 
@@ -125,8 +125,12 @@ def to_wav(path: str | Path, out_path: str | Path) -> Path:
     return out
 
 
-def _peak_db(path: Path) -> float | None:
-    proc = _run(["ffmpeg", "-nostdin", "-hide_banner", "-i", str(path), "-af", "volumedetect", "-f", "null", "-"])
+def _peak_db(path: Path, max_s: float | None = None) -> float | None:
+    cmd = ["ffmpeg", "-nostdin", "-hide_banner", "-i", str(path)]
+    if max_s:
+        cmd += ["-t", f"{max_s:.1f}"]  # a long video is sampled, not decoded end to end
+    cmd += ["-af", "volumedetect", "-f", "null", "-"]
+    proc = _run(cmd)
     match = _PEAK_RE.search(proc.stderr or "")
     return float(match.group(1)) if match else None
 

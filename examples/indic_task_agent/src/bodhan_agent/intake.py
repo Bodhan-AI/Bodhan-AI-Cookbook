@@ -2,11 +2,27 @@
 from __future__ import annotations
 
 import hashlib
+import re
 from pathlib import Path
 from typing import Any
 
 from bodhan_mcp.core import cache
 from bodhan_mcp.tools.probe import probe_media
+
+_INJECTION = re.compile(
+    r"\b(ignore\s+(all\s+|any\s+)?(previous|prior|above)|disregard\s+(the\s+)?(previous|above|system)|system\s+prompt|"
+    r"you\s+are\s+now|new\s+instructions|do\s+not\s+(tell|reveal)|reveal\s+(the\s+)?(api|secret|key)|"
+    r"instead\s+(output|print|send)|exfiltrate)\b",
+    re.I,
+)
+
+
+def _injection_warning(path: Path) -> bool:
+    """Text inside a file is data; this flags the files that try to give the agent orders."""
+    try:
+        return bool(_INJECTION.search(path.read_text(encoding="utf-8", errors="ignore")[:20_000]))
+    except OSError:
+        return False
 
 
 def resolve_files(spec: str | None) -> list[Path]:
@@ -42,6 +58,8 @@ def inventory(files: list[Path]) -> tuple[list[dict[str, Any]], dict[str, dict[s
     rows: list[dict[str, Any]] = []
     lookup: dict[str, dict[str, Any]] = {}
     for item in result.items:
+        if item.kind == "text" and _injection_warning(Path(item.path)):
+            item.warnings.append("possible_prompt_injection")
         row = {
             "path": item.path,
             "name": Path(item.path).name,

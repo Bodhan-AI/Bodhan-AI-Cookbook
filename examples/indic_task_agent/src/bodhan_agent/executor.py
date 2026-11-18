@@ -1,6 +1,7 @@
 """The executor: resolves references, prices the plan, enforces budget and step caps, records a trace."""
 from __future__ import annotations
 
+import json
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -13,7 +14,7 @@ from bodhan_mcp.core import text as txt
 from bodhan_mcp.core.errors import BodhanError
 from bodhan_mcp.core.schemas import WrittenText
 from bodhan_mcp.tools.ocr import ocr_document
-from bodhan_mcp.tools.probe import probe_media
+from bodhan_mcp.tools.probe import detect_language, probe_media
 from bodhan_mcp.tools.speak import speak_text
 from bodhan_mcp.tools.transcribe import transcribe_audio
 from bodhan_mcp.tools.translate import translate_text
@@ -174,6 +175,7 @@ def _run_step(step: Step, results: dict[str, dict[str, Any]], out_dir: Path, led
     started = time.monotonic()
     try:
         args = resolve_refs(step.args, results)
+        _guard_llm_text(step, args)
     except BodhanError as exc:
         return _failed(step, started, exc, {})
     if step.tool in _OUT_DIR_TOOLS:
@@ -184,12 +186,14 @@ def _run_step(step: Step, results: dict[str, dict[str, Any]], out_dir: Path, led
         ledger.reserve(estimate)
     except BodhanError as exc:
         return _failed(step, started, exc, args)
-    trace.emit("tool_call", step=step.id, tool=step.tool, intent=step.intent, args=safe_args(args), reserved_inr=round(estimate, 4))
+    call_args = dict(args)
     if step.tool in _PAID_TOOLS:
         # the tool's own local ceiling is everything still unspent, so it can never exceed the run budget
-        args["max_cost_inr"] = round(ledger.remaining() + estimate, 4)
+        call_args["max_cost_inr"] = round(ledger.remaining() + estimate, 4)
+    trace.emit("tool_call", step=step.id, tool=step.tool, intent=step.intent, args=safe_args(call_args), reserved_inr=round(estimate, 4))
+    marker = _mark_pending(out_dir, step) if step.tool in _PAID_TOOLS else None
     try:
-        result, cache_hit = _dispatch(step, args, trace)
+        result, cache_hit = _dispatch(step, call_args, trace)
         measured = float(_dump(result).get("cost_inr", 0.0))
         ledger.settle(estimate, measured)
         summary = _summarise(result)
@@ -201,6 +205,49 @@ def _run_step(step: Step, results: dict[str, dict[str, Any]], out_dir: Path, led
     except Exception as exc:  # noqa: BLE001 - the run must still report honestly
         ledger.settle(estimate, 0.0)
         return _failed(step, started, BodhanError("INTERNAL", f"{type(exc).__name__}: {exc}"), args)
+    finally:
+        if marker is not None:
+            marker.unlink(missing_ok=True)
+
+
+_CODE_ARGS = {"path", "paths", "source_path", "text_path", "audio_path", "input_path", "out_dir", "inputs", "target_language", "language", "script", "format", "gender", "style", "voice", "pages", "table_format"}
+
+
+def _guard_llm_text(step: Step, args: dict[str, Any]) -> None:
+    """Indic text never travels through an argument: only paths, codes and English prose are arguments."""
+    for key, value in args.items():
+        if key in _CODE_ARGS or not isinstance(value, str):
+            continue
+        if _has_indic(value):
+            raise BodhanError(
+                "LLM_WROTE_INDIC",
+                f"Step {step.id} ({step.tool}) put Indian-language text in argument '{key}'.",
+                hint="Indic text must travel as files; the model may write English only.",
+            )
+
+
+def _pending_dir(out_dir: Path) -> Path:
+    return out_dir.parent / ".pending"
+
+
+def _mark_pending(out_dir: Path, step: Step) -> Path:
+    """A paid call in flight leaves a marker, so a crash cannot look like it cost nothing."""
+    path = _pending_dir(out_dir) / f"{step.id}.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps({"step": step.id, "tool": step.tool, "started_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}), encoding="utf-8")
+    return path
+
+
+def stale_markers(out: Path) -> list[dict[str, Any]]:
+    """Markers left by an interrupted run: those calls may already have been billed."""
+    found: list[dict[str, Any]] = []
+    for path in sorted(_pending_dir(out / "artifacts").glob("*.json")):
+        try:
+            found.append(json.loads(path.read_text(encoding="utf-8")))
+        except (OSError, ValueError):
+            found.append({"step": path.stem, "tool": "unknown"})
+        path.unlink(missing_ok=True)
+    return found
 
 
 _OUT_DIR_TOOLS = {"transcribe_audio", "ocr_document", "translate_text", "speak_text"}
@@ -212,7 +259,7 @@ def _dispatch(step: Step, args: dict[str, Any], trace: Trace) -> tuple[Any, bool
     if tool == "probe_media":
         return probe_media(args.get("paths") or [args.get("path", "")]), False
     if tool == "detect_language":
-        return __import__("bodhan_mcp.tools.probe", fromlist=["detect_language"]).detect_language(args["text_path"]), False
+        return detect_language(args["text_path"]), False
     if tool == "transcribe_audio":
         return transcribe_audio(**args), False
     if tool == "ocr_document":
@@ -222,11 +269,11 @@ def _dispatch(step: Step, args: dict[str, Any], trace: Trace) -> tuple[Any, bool
     if tool == "speak_text":
         return speak_text(**args), False
     if tool == "write_text":
-        return _write_text(args, trace), False
+        return _write_text(args, trace, step.id), False
     raise BodhanError("LLM_INVALID_PLAN", f"Unknown tool '{tool}'.")
 
 
-def _write_text(args: dict[str, Any], trace: Trace) -> WrittenText:
+def _write_text(args: dict[str, Any], trace: Trace, step_id: str = "draft") -> WrittenText:
     inputs = [Path(p) for p in args.get("inputs", [])]
     target = int(args.get("target_chars") or 1200)
     remaining_chars = 20_000
@@ -255,7 +302,7 @@ def _write_text(args: dict[str, Any], trace: Trace) -> WrittenText:
         cut = draft.rfind(".", 0, target)
         draft = draft[: cut + 1] if cut > target // 2 else draft[:target]
     out_dir = Path(args.get("out_dir") or ".")
-    out_path = out_dir / f"draft_{args.get('target_chars', 'x')}.md"
+    out_path = out_dir / f"draft_{step_id}.md"
     out_path.write_text(draft, encoding="utf-8")
     return WrittenText(text_path=str(out_path.resolve()), chars=len(draft), language="en", truncated=truncated)
 

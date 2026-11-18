@@ -13,7 +13,7 @@ from bodhan_mcp.core import config
 from bodhan_mcp.core.errors import BodhanError
 
 from . import intake, planner, reporters, verifier
-from .executor import Ledger, _StepFailed, price_step, run_plan
+from .executor import Ledger, _StepFailed, price_step, run_plan, stale_markers
 from .planner import Plan
 from .trace import Trace
 
@@ -50,6 +50,8 @@ def main(argv: list[str] | None = None) -> int:
     ledger = Ledger(args.max_cost_inr, args.max_steps)
     plan_obj: Plan | None = None
     srt_note = False
+    for stale in stale_markers(out):
+        notes.append(f"An interrupted earlier run left step {stale.get('step')} ({stale.get('tool')}) unfinished; that call may already have been billed.")
 
     try:
         files = intake.dedupe(intake.resolve_files(args.files))
@@ -87,28 +89,31 @@ def main(argv: list[str] | None = None) -> int:
         run_plan(plan_obj, out_dir=out / "artifacts", ledger=ledger, trace=trace, inventory=lookup, records=records)
 
         if _wants_srt(args.task):
-            records, _ = _collect(records, out)
-            srt = _build_srt(trace)
-            if srt:
+            srts = _build_srt(records, out)
+            if srts:
                 srt_note = True
-                notes.append(f"Subtitle file written with interpolated timing: {srt.name}")
+                notes += [f"Subtitle file written with interpolated timing: {p.name}" for p in srts]
             else:
-                notes.append("An SRT was requested but no transcript timings reached the final plan; see steps.")
+                notes.append("An SRT was requested but no transcript with window timings reached the final plan; see steps.")
         records, artifacts = _collect(records, out)
-        checks = _verify(artifacts, records, out, ledger, trace)
+        checks = _verify(artifacts, records, out, ledger, trace, args.task)
         status = verifier.derive_status(checks, bool(artifacts))
-        if status != "completed":
+        gaps = _missing_final_outputs(plan_obj, records)
+        if gaps:
+            status = "partial" if status == "completed" else status
+            errors.append({"code": "REQUIRED_OUTPUT_MISSING", "message": "The plan required " + ", ".join(gaps) + " but no file exists for it.", "hint": "That step was skipped or failed; see the steps above."})
+        if status != "completed" and not errors:
             errors.append({"code": "VERIFICATION_FAILED", "message": "One or more checks did not pass.", "hint": None})
     except _StepFailed as exc:
         errors.append(exc.record.error or {"code": "INTERNAL", "message": "step failed"})
         records, artifacts = _collect(records, out)
-        checks = _verify(artifacts, records, out, ledger, trace) if artifacts else []
+        checks = _verify(artifacts, records, out, ledger, trace, args.task) if artifacts else []
         status = verifier.derive_status(checks, bool(artifacts))
     except BodhanError as exc:
         errors.append(exc.payload()["error"])
         trace.emit("error", **exc.payload()["error"])
         records, artifacts = _collect(records, out)
-        checks = _verify(artifacts, records, out, ledger, trace) if artifacts else []
+        checks = _verify(artifacts, records, out, ledger, trace, args.task) if artifacts else []
         status = "partial" if (artifacts and exc.code != "UNSUPPORTED_LANGUAGE") else "failed"
     except Exception as exc:  # noqa: BLE001 - a complete run folder beats a traceback
         errors.append({"code": "INTERNAL", "message": f"{type(exc).__name__}: {exc}", "hint": None})
@@ -187,9 +192,10 @@ def _collect(records: list[Any], out: Path) -> tuple[list[Any], list[dict[str, A
     return records, items
 
 
-def _verify(artifacts: list[dict[str, Any]], records: list[Any], out: Path, ledger: Ledger, trace: Trace) -> list[dict[str, str]]:
+def _verify(artifacts: list[dict[str, Any]], records: list[Any], out: Path, ledger: Ledger, trace: Trace, task: str = "") -> list[dict[str, str]]:
     checks: list[dict[str, str]] = []
     by_path = {str(r.result.get("text_path") or r.result.get("markdown_path") or r.result.get("audio_path")): r for r in records if r.ok}
+    wanted = verifier.requested_duration(task)
     for art in artifacts:
         path = Path(art["path"])
         if art["name"].endswith(".srt"):
@@ -199,10 +205,16 @@ def _verify(artifacts: list[dict[str, Any]], records: list[Any], out: Path, ledg
             continue
         record = by_path.get(art["path"])
         expected = record.args.get("expected_chars") if record else None
+        source = record.args.get("source_path") if record else None
+        source_path = Path(source) if source else None
         kind = art["kind"]
-        checks += verifier.verify_artifact(path, kind, expected_chars=expected, trace=trace)
+        checks += verifier.verify_artifact(path, kind, expected_chars=expected, source_path=source_path, trace=trace)
+        if kind == "translation" and record is not None and source_path:
+            checks += verifier.l2_translation(path, source_path, str(record.args.get("target_language") or ""), ledger, trace)
         if kind == "audio" and record is not None:
             checks += verifier.l2_audio(path, Path(record.args.get("text_path", out / "artifacts" / "missing.txt")), ledger, trace)
+            if wanted:
+                checks += verifier.verify_duration(path, wanted, trace)
     return checks
 
 
@@ -211,74 +223,72 @@ def _wants_srt(task: str) -> bool:
     return any(word in lowered for word in ("srt", "subtitle", "subtitles", "caption", "captions"))
 
 
-def _build_srt(trace: Trace) -> Path | None:
-    """Find a transcript and the translation made from it, then write interpolated cues next to them."""
-    transcript = None
-    for event in _events(trace.path):
-        pass
-    records = _load_records(trace.path)
-    transcripts = [r for r in records if r.get("tool") == "transcribe_audio" and r.get("ok")]
-    translations = [r for r in records if r.get("tool") == "translate_text" and r.get("ok")]
-    for t in translations:
-        for tr in transcripts:
-            if t["args"].get("source_path") == tr["result"].get("text_path"):
-                transcript = tr
-                translation = t
-                break
-        if transcript:
-            break
-    if not transcript:
-        return None
+_PATH_FIELDS = ("text_path", "markdown_path", "audio_path", "blocks_path")
+
+
+def _missing_final_outputs(plan: Plan, records: list[Any]) -> list[str]:
+    """A run is not 'completed' when a file the plan promised does not exist."""
+    by_id = {r.id: r for r in records}
+    gaps: list[str] = []
+    for output in plan.final_outputs:
+        record = by_id.get(output.from_step)
+        paths = [record.result.get(k) for k in _PATH_FIELDS] if record and record.ok else []
+        if not any(path and Path(path).is_file() for path in paths):
+            gaps.append(f"{output.role} (step {output.from_step})")
+    return gaps
+
+
+def _build_srt(records: list[Any], out: Path) -> list[Path]:
+    """Every transcript becomes cues; when a translation was made from it, those cues are in the target language.
+
+    The API returns text without word timings, so text is spread across the
+    transcription windows by character weight and split into sentences inside
+    each window. That interpolation is stated in result.md.
+    """
     from bodhan_agent import srt as srt_mod
 
-    chunks = transcript["result"].get("chunks") or []
-    text = Path(translation["result"]["text_path"]).read_text(encoding="utf-8")
-    cues = _allocate(text, chunks)
-    path = Path(translation["result"]["text_path"]).with_suffix(".srt")
-    srt_mod.write_srt(cues, str(path))
-    return path
-
-
-def _events(path: Path) -> list[dict[str, Any]]:
-    out: list[dict[str, Any]] = []
-    if not path.is_file():
-        return out
-    for line in path.read_text(encoding="utf-8").splitlines():
-        try:
-            out.append(json.loads(line))
-        except ValueError:
+    transcripts = [r for r in records if r.tool == "transcribe_audio" and r.ok and r.result.get("chunks")]
+    translations = [r for r in records if r.tool == "translate_text" and r.ok]
+    written: list[Path] = []
+    for transcript in transcripts:
+        text_path = transcript.result.get("text_path")
+        if not text_path or not Path(text_path).is_file():
             continue
-    return out
-
-
-def _load_records(path: Path) -> list[dict[str, Any]]:
-    """Reconstruct minimal step records from the trace's tool_result/call pairs."""
-    calls: dict[str, dict[str, Any]] = {}
-    out: list[dict[str, Any]] = []
-    for event in _events(path):
-        if event.get("type") == "tool_call":
-            calls[event["step"]] = event
-        elif event.get("type") == "tool_result":
-            call = calls.get(event["step"], {})
-            out.append({"step": event["step"], "tool": event.get("tool"), "ok": event.get("ok"), "args": call.get("args", {}), "summary": event.get("summary", {})})
-    return out
+        translation = next((t for t in translations if t.args.get("source_path") == text_path), None)
+        source = (translation.result.get("text_path") if translation else None) or text_path
+        if not Path(source).is_file():
+            continue
+        text = Path(source).read_text(encoding="utf-8")
+        cues = srt_mod.cues(_allocate(text, transcript.result["chunks"]))
+        if not cues:
+            continue
+        target = Path("artifacts") / f"{Path(text_path).stem}.srt"
+        written.append(Path(srt_mod.write_srt(cues, out / target)))
+    return written
 
 
 def _allocate(text: str, chunks: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Spread the translated text across the transcription windows by character weight."""
+    """Spread the document across the transcription windows by character weight.
+
+    One cue per window is not enough (a 30 s window holds several sentences), so
+    the window text is handed to srt.cues, which splits and re-times it inside
+    the window's own start and end.
+    """
+    if not text.strip():
+        return []
     if not chunks:
-        return [{"start_s": 0.0, "end_s": max(len(text) / 13.5, 1.0), "text": text.strip()}] if text.strip() else []
-    weights = [max(c.get("chars", 1), 1) for c in chunks]
+        return [{"start_s": 0.0, "end_s": max(len(text) / 13.5, 1.0), "text": text.strip()}]
+    weights = [max(int(c.get("chars") or 1), 1) for c in chunks]
     total = sum(weights)
     words = text.split()
-    cues = []
+    cues: list[dict[str, Any]] = []
     cursor = 0
-    for chunk, weight in zip(chunks, weights):
-        take = max(1, round(len(words) * weight / total)) if chunk is not chunks[-1] else len(words) - cursor
+    for i, (chunk, weight) in enumerate(zip(chunks, weights)):
+        take = len(words) - cursor if i == len(weights) - 1 else max(1, round(len(words) * weight / total))
         piece = " ".join(words[cursor : cursor + take]).strip()
         cursor += take
         if piece:
-            cues.append({"start_s": chunk.get("start_s", 0.0), "end_s": chunk.get("end_s", 0.0), "text": piece})
+            cues.append({"start_s": float(chunk.get("start_s") or 0.0), "end_s": float(chunk.get("end_s") or 0.0), "text": piece})
     return cues
 
 
