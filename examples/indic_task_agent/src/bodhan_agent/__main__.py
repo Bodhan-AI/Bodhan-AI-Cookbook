@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import logging
 import os
 import sys
 from pathlib import Path
@@ -31,6 +32,8 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     load_dotenv(find_dotenv(usecwd=True))
+    for noisy in ("httpx", "mcp"):
+        logging.getLogger(noisy).setLevel(logging.WARNING)
     env = dict(os.environ)
     out = Path(args.out).expanduser()
     cache = Path(args.cache_dir or env.get("BODHAN_CACHE_DIR") or Path.home() / ".cache" / "bodhan_mcp" / "cache").expanduser()

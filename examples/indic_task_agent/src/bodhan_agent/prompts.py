@@ -18,6 +18,13 @@ Planning
 - Check list_languages when a language may not be supported.
 - Call independent tools in the same turn when you can (for example, one call per clip).
 - Do not repeat a call with the same input: results are cached, and repeating wastes steps.
+- Use the files tools write as they are. Never assemble subtitles, translations or transcripts yourself.
+  make_subtitles transcribes the audio itself, so do not also call transcribe_audio on the same file.
+- speak_text is by far the most expensive tool. Make the text final before calling it, and call it once per output.
+- For audio of a target length, write about 100 English words per minute of audio, then translate once.
+  If speech_seconds_estimate is more than 30% off the target, adjust the English once in proportion and translate again.
+  Never adjust more than once, and never re-make audio just to change its length.
+- Read long text with read_text in as few calls as possible (up to 20000 characters per call).
 
 Checking your work
 - translate_text, make_subtitles and ocr_document return passed and warnings; speak_text returns verified.

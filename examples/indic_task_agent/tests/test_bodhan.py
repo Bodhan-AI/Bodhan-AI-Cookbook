@@ -175,3 +175,59 @@ def test_chat_fallback_refuses_roman_script_clearly(tmp_path):
     with pytest.raises(BodhanError) as err:
         client.translate("Hello", target_language="hi", script="roman")
     assert err.value.code == "unsupported_on_fallback"
+
+
+def test_rate_limit_backs_off_longer_and_honours_retry_after(tmp_path):
+    sleeps, attempts = [], []
+
+    def handler(req):
+        attempts.append(1)
+        if len(attempts) == 1:
+            return httpx.Response(429, json={"detail": "Maximum rate limit reached for the model"}, headers={"retry-after": "12"})
+        if len(attempts) == 2:
+            return httpx.Response(400, json={"detail": "Maximum rate limit reached for the model"})
+        return httpx.Response(200, json={"translation": "ok", "truncated": False, "usage": {"completion_tokens": 1}})
+
+    client = make_client(tmp_path, handler)
+    client._sleep = sleeps.append  # record waits instead of sleeping
+    assert client.translate("x", target_language="hi")["translation"] == "ok"
+    assert len(attempts) == 3 and client.rate_limit_waits == 2
+    assert sleeps[0] >= 11.9  # Retry-After honoured
+    assert sleeps[1] >= 9.0  # second rate limit without header: 10 s backoff
+
+
+def test_rate_limit_gives_up_with_clear_message(tmp_path):
+    client = make_client(tmp_path, lambda req: httpx.Response(429, json={"detail": "Maximum rate limit reached for the model"}))
+    with pytest.raises(BodhanError) as err:
+        client.translate("x", target_language="hi")
+    assert err.value.code == "rate_limited" and "try again later" in err.value.message
+
+
+def test_identical_parallel_calls_are_sent_once(tmp_path):
+    import threading
+    import time as _time
+    from concurrent.futures import ThreadPoolExecutor
+
+    calls, gate = [], threading.Event()
+
+    def handler(req):
+        calls.append(1)
+        gate.wait(timeout=2)
+        return httpx.Response(200, json={"text": "ok"})
+
+    client = make_client(tmp_path, handler)
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        futures = [pool.submit(client.transcribe, b"same-audio", filename="a.wav", language="hi", duration_s=5) for _ in range(3)]
+        _time.sleep(0.2)
+        gate.set()
+        results = [f.result()["text"] for f in futures]
+    assert results == ["ok", "ok", "ok"] and len(calls) == 1
+    assert sorted(e["cached"] for e in client.ledger) == [False, True, True]
+
+
+def test_template_placeholders_are_not_used_as_keys(tmp_path):
+    client = make_client(tmp_path, lambda req: httpx.Response(200), env={"BODHAN_API_KEY": "<optional-single-key-for-all-models>",
+                                                                         "BODHAN_TRANSLATE_KEY": "<your-indic-translate-key>"})
+    with pytest.raises(BodhanError) as err:
+        client.translate("x", target_language="hi")
+    assert err.value.code == "missing_key"

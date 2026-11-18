@@ -188,7 +188,7 @@ def test_make_subtitles_writes_both_srt_files(make_ctx, tmp_path):
     target = (tmp_path / "work" / "artifacts" / "note.en.srt").read_text(encoding="utf-8")
     assert target.startswith("1\n00:00:00,000 --> ") and "[en]" in target
     assert (tmp_path / "work" / "artifacts" / "note.hi.srt").exists()
-    assert len(state["translate_calls"]) == 2
+    assert len(state["translate_calls"]) == 1  # one window, translated whole, then split into cues
 
 
 @needs_ffmpeg

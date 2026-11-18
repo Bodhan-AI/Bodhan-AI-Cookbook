@@ -237,7 +237,7 @@ def test_save_english_text_refuses_indic(tmp_path):
     def script(turn, messages):
         if turn == 1:
             return {"role": "assistant", "content": "", "tool_calls": [call(1, "save_english_text", filename="s.md", content="नमस्ते"),
-                                                                        call(2, "save_english_text", filename="../../evil.sh", content="An English summary.")]}
+                                                                        call(2, "save_english_text", filename="../../escape.md", content="An English summary.")]}
         results = [json.loads(m["content"]) for m in messages if m["role"] == "tool"]
         assert results[0]["error"]["code"] == "indic_text_refused"
         saved = Path(results[1]["path"])
@@ -291,3 +291,54 @@ def test_llm_client_rejects_placeholder_config():
 
     with pytest.raises(LLMError):
         LLMClient(base_url="<your-llm-base-url>", model="<m>", api_key="<k>")
+
+
+def test_agent_cannot_write_subtitles_or_code_files(tmp_path):
+    def script(turn, messages):
+        if turn == 1:
+            return {"role": "assistant", "content": "", "tool_calls": [
+                call(1, "save_english_text", filename="out.srt", content="1\nHello"),
+                call(2, "save_english_text", filename="notes.md", content="1\n00:00:00,000 --> 00:00:02,000\nHello"),
+                call(3, "save_english_text", filename="build.py", content="print(1)"),
+            ]}
+        codes = [json.loads(m["content"])["error"]["code"] for m in messages if m["role"] == "tool"]
+        assert codes == ["bad_arguments"] * 3
+        return {"role": "assistant", "content": "", "tool_calls": [call(4, "finish", status="failed", answer="stop")]}
+
+    report, _, _ = run_agent(tmp_path, script)
+    assert report["status"] == "failed" and not list((tmp_path / "out" / "artifacts").glob("*"))
+
+
+def test_reading_an_output_later_keeps_its_check(tmp_path):
+    def script(turn, messages):
+        if turn == 1:
+            return {"role": "assistant", "content": "", "tool_calls": [call(1, "translate_text", target_language="hi", text="Hello there.")]}
+        if turn == 2:
+            return {"role": "assistant", "content": "", "tool_calls": [call(2, "read_text", path=last_tool_result(messages)["output_path"])]}
+        path = last_tool_result(messages)["path"]
+        return {"role": "assistant", "content": "", "tool_calls": [call(3, "finish", status="completed", answer="ok", artifacts=[path])]}
+
+    report, _, _ = run_agent(tmp_path, script)
+    assert report["verification"][0]["passed"] is True and report["verification"][0]["tool"] == "translate_text"
+
+
+def test_read_text_reaches_the_llm_in_full_and_loops_get_a_warning(tmp_path):
+    src = tmp_path / "inputs" / "long.md"
+    src.parent.mkdir()
+    src.write_text("word " * 2000, encoding="utf-8")  # 10000 characters
+
+    def script(turn, messages):
+        if turn == 1:
+            return {"role": "assistant", "content": "", "tool_calls": [call(1, "read_text", path=str(src))]}
+        result = last_tool_result(messages)
+        if turn == 2:
+            assert len(result["text"]) == 10000 and result["next_offset"] is None
+        if turn < 6:
+            if turn == 5:
+                assert "_warning" not in result  # three turns in a row: no warning yet
+            return {"role": "assistant", "content": "", "tool_calls": [call(turn, "list_languages", capability="ocr")]}
+        assert "_warning" in result  # turns 2, 3, 4 and 5 all called list_languages
+        return {"role": "assistant", "content": "", "tool_calls": [call(9, "finish", status="failed", answer="stop")]}
+
+    report, _, _ = run_agent(tmp_path, script, files=[src.parent])
+    assert report["status"] == "failed"

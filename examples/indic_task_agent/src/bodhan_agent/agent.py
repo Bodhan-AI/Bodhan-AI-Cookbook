@@ -23,13 +23,17 @@ from bodhan_mcp.tools import Context, make_tools
 
 from .llm import LLMClient, LLMError
 from .prompts import SYSTEM_PROMPT, first_message
-from .runlog import RunLog, shorten
+from .runlog import RunLog, redact_paths, shorten
 
 # Indian scripts (Devanagari to Malayalam), Perso-Arabic (Urdu, Kashmiri, Sindhi), Ol Chiki and Meetei Mayek.
 INDIC = "؀-ۿऀ-෿᱐-᱿ꯀ-꯿"
 INDIC_CHAR = re.compile(f"[{INDIC}]")
 INDIC_RUN = re.compile(f"[{INDIC}][{INDIC}\\s\\d.,!?;:'\"()\\-।॥]*")
+# Only these tools make outputs; reading a file later must not replace its check result.
+OUTPUT_TOOLS = {"translate_text", "speak_text", "make_subtitles", "ocr_document"}
+SRT_TIMING = re.compile(r"\d{2}:\d{2}:\d{2},\d{3}\s*-->")
 MAX_INPUT_FILES = 100
+LOOP_WARNING_TURNS = 4
 PARALLEL_TOOLS = 4
 TEXT_ARGS_CHECKED = {"translate_text", "speak_text"}
 OUTPUT_KEYS = ("output_path", "audio_path", "subtitles_path", "source_subtitles_path", "markdown_path", "path")
@@ -166,7 +170,8 @@ class Agent:
             {"role": "user", "content": first_message(self.cfg.task, manifest, artifacts_dir=str(self.ctx.artifacts),
                                                       max_steps=self.cfg.max_steps, max_cost_inr=self.cfg.max_cost_inr)},
         ]
-        nudges = 0
+        nudges = streak = 0
+        last_names: list[str] = []
         outcome: dict | None = None
         for step in range(1, self.cfg.max_steps + 1):
             self.steps_used = step
@@ -194,8 +199,15 @@ class Agent:
 
             results = self._run_calls(step, calls)
             finish_outcome = None
+            names = sorted({c.get("function", {}).get("name", "") for c in calls})
+            streak = streak + 1 if names == last_names else 1
+            last_names = names
             for call, result in results:
-                messages.append({"role": "tool", "tool_call_id": call.get("id", ""), "content": json.dumps(self._for_llm(result), ensure_ascii=False)})
+                shown = self._for_llm(result, call.get("function", {}).get("name", ""))
+                if streak >= LOOP_WARNING_TURNS:
+                    shown["_warning"] = (f"You have called {', '.join(names)} {streak} turns in a row. "
+                                         "Use what you have and move to the next step, or finish.")
+                messages.append({"role": "tool", "tool_call_id": call.get("id", ""), "content": json.dumps(shown, ensure_ascii=False)})
                 if call.get("function", {}).get("name") == "finish" and result.get("ok"):
                     finish_outcome = result["outcome"]
             if finish_outcome:
@@ -307,7 +319,7 @@ class Agent:
             if not isinstance(path, str) or not Path(path).is_file():
                 continue
             self._read_back(Path(path))
-            if artifacts_dir in Path(path).resolve().parents:
+            if name in OUTPUT_TOOLS and artifacts_dir in Path(path).resolve().parents:
                 passed = result.get("verified", result.get("passed"))
                 self.checks[str(Path(path).resolve())] = {
                     "tool": name,
@@ -330,7 +342,13 @@ class Agent:
         if INDIC_CHAR.search(content):
             return _err("indic_text_refused", "save_english_text only stores English. Write English and translate it with translate_text.")
         name = re.sub(r"[^A-Za-z0-9._-]+", "-", Path(filename).name).strip("-.") or "notes"
-        if Path(name).suffix.lower() not in {".md", ".txt"}:
+        suffix = Path(name).suffix.lower()
+        if suffix and suffix not in {".md", ".txt"}:
+            return _err("bad_arguments", f"save_english_text writes .md or .txt notes, not {suffix} files. "
+                        "Subtitles come from make_subtitles, translations from translate_text: use their files as they are.")
+        if SRT_TIMING.search(content):
+            return _err("bad_arguments", "This looks like subtitles. Use the .srt file make_subtitles wrote; do not rebuild it.")
+        if not suffix:
             name += ".md"
         target = self.ctx.artifacts / name
         target.write_text(content, encoding="utf-8")
@@ -373,8 +391,12 @@ class Agent:
         made = sorted(str(p.resolve()) for p in self.ctx.artifacts.glob("*") if p.is_file())
         return {"status": status, "answer": reason, "assumptions": [], "artifacts": made, "notes": "", "stopped_by": "runtime"}
 
-    def _for_llm(self, result: dict) -> dict:
-        shown = shorten({k: v for k, v in result.items() if k != "outcome"})
+    def _for_llm(self, result: dict, name: str = "") -> dict:
+        body = {k: v for k, v in result.items() if k != "outcome"}
+        full_text = body.pop("text", None) if name == "read_text" else None
+        shown = shorten(body)
+        if full_text is not None:
+            shown["text"] = full_text  # read_text already caps its size; the LLM needs all of it
         shown["_budget"] = {
             "spent_inr": round(self.client.budget.spent, 4),
             "remaining_inr": round(max(self.cfg.max_cost_inr - self.client.budget.spent, 0.0), 4),
@@ -423,8 +445,8 @@ class Agent:
                 "no_waste": "met (each input sent to a model at most once; repeats come from the cache)",
             },
         }
-        (self.out / "report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
-        (self.out / "result.md").write_text(self._result_md(outcome, report), encoding="utf-8")
+        (self.out / "report.json").write_text(redact_paths(json.dumps(report, ensure_ascii=False, indent=2)), encoding="utf-8")
+        (self.out / "result.md").write_text(redact_paths(self._result_md(outcome, report)), encoding="utf-8")
         self.log.event("finish", status=outcome["status"], stopped_by=outcome["stopped_by"], cost_inr=report["cost_inr"],
                        duration_s=duration, artifacts=report["artifacts"])
         if not self.cfg.keep_work:

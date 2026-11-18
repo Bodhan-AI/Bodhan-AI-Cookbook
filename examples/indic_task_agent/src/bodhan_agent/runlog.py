@@ -9,6 +9,12 @@ from pathlib import Path
 from typing import Any
 
 
+def redact_paths(text: str) -> str:
+    """Show paths relative to the working folder (or ~), so shared traces do not reveal local folder names."""
+    cwd, home = str(Path.cwd()), str(Path.home())
+    return text.replace(cwd + "/", "./").replace(cwd, ".").replace(home, "~")
+
+
 class RunLog:
     def __init__(self, out_dir: Path):
         out_dir.mkdir(parents=True, exist_ok=True)
@@ -19,7 +25,7 @@ class RunLog:
 
     def event(self, kind: str, **data: Any) -> None:
         line = {"t_s": round(time.monotonic() - self._t0, 3), "kind": kind, **data}
-        encoded = json.dumps(line, ensure_ascii=False, default=str)
+        encoded = redact_paths(json.dumps(line, ensure_ascii=False, default=str))
         with self._lock, self.path.open("a", encoding="utf-8") as fh:
             fh.write(encoded + "\n")
 

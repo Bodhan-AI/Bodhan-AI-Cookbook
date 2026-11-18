@@ -26,6 +26,9 @@ def test_stdio_server_lists_tools_and_returns_structured_errors(tmp_path):
                 ok = await session.call_tool("list_languages", {"capability": "text_to_speech"})
                 bad = await session.call_tool("transcribe_audio", {"path": str(tmp_path / "missing.wav")})
                 wrong = await session.call_tool("translate_text", {"target_language": "fr", "text": "Hello"})
+                resources = {str(r.uri) for r in (await session.list_resources()).resources}
+                voices = json.loads((await session.read_resource("bodhan://voices")).contents[0].text)
+                assert {"bodhan://voices", "bodhan://languages"} <= resources and "Kavya" in voices["voices"]["hi"]["female"]
                 return names, described, ok, bad, wrong
 
     names, described, ok, bad, wrong = asyncio.run(session_run())

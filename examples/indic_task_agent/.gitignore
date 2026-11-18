@@ -7,3 +7,11 @@ outputs/*
 !outputs/.gitkeep
 out/
 bodhan_work/
+demo/inputs/
+demo/runs/**/*.wav
+demo/runs/**/*.mp3
+demo/runs/**/*.mp4
+demo/runs/**/*.pdf
+demo/runs/**/*.png
+demo/runs/**/*.jpg
+demo/runs/**/.work/

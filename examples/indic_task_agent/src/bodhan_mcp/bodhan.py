@@ -42,6 +42,7 @@ KEY_ENV = {
 }
 
 RETRY_STATUS = {429, 500, 502, 503, 504}
+RATE_LIMIT_ATTEMPTS = 6
 
 # Second documented transport for indic-translate. Used only when POST /translate returns 404.
 CHAT_ROUTE = "/v1/chat/completions"
@@ -117,6 +118,13 @@ def cache_key(**parts: Any) -> str:
     return hashlib.sha256(json.dumps(parts, sort_keys=True, ensure_ascii=False).encode("utf-8")).hexdigest()
 
 
+def _real(value: str | None) -> str | None:
+    """Treat empty values and template placeholders like <your-key> as not set."""
+    if not value or value.strip().startswith("<"):
+        return None
+    return value.strip()
+
+
 def sha256_bytes(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
@@ -132,9 +140,22 @@ def _parse_error(resp: httpx.Response) -> BodhanError:
         code = err.get("code", code)
         message = err.get("message", message)
         request_id = err.get("request_id")
+    if isinstance(body, dict) and isinstance(body.get("detail"), str) and code == "http_error":
+        message = body["detail"]
+    if resp.status_code == 429 or "rate limit" in message.lower():
+        code = "rate_limited"
     if request_id:
         message = f"{message} (request_id {request_id})"
-    return BodhanError(code, message, retryable=resp.status_code in RETRY_STATUS, status=resp.status_code)
+    retryable = resp.status_code in RETRY_STATUS or code == "rate_limited"
+    return BodhanError(code, message, retryable=retryable, status=resp.status_code)
+
+
+def _retry_after(resp: httpx.Response) -> float | None:
+    value = resp.headers.get("retry-after")
+    try:
+        return max(0.0, float(value)) if value else None
+    except ValueError:
+        return None
 
 
 class BodhanClient:
@@ -152,8 +173,8 @@ class BodhanClient:
     ):
         env = dict(env) if env is not None else {}
         self.base_url = env.get("BODHAN_BASE_URL", DEFAULT_BASE_URL).rstrip("/")
-        fallback = env.get("BODHAN_API_KEY")
-        self.keys = {model: env.get(var) or fallback for model, var in KEY_ENV.items()}
+        fallback = _real(env.get("BODHAN_API_KEY"))
+        self.keys = {model: _real(env.get(var)) or fallback for model, var in KEY_ENV.items()}
         self.cache = DiskCache(cache_dir)
         self.budget = budget or Budget()
         self.max_attempts = max_attempts
@@ -161,6 +182,11 @@ class BodhanClient:
         self._http = httpx.Client(base_url=self.base_url, timeout=timeout_s, transport=transport)
         self._sleep = sleep
         self.translate_route = "/translate"
+        self._inflight: dict[str, threading.Lock] = {}
+        self._inflight_guard = threading.Lock()
+        self._cooldown_until: dict[str, float] = {}
+        self._cooldown_lock = threading.Lock()
+        self.rate_limit_waits = 0
         self._ledger: list[dict[str, Any]] = []
         self._ledger_lock = threading.Lock()
 
@@ -185,7 +211,10 @@ class BodhanClient:
             )
         headers = {"Authorization": f"Bearer {key}"}
         last: BodhanError | None = None
-        for attempt in range(1, self.max_attempts + 1):
+        errors = rate_limits = 0
+        while True:
+            self._wait_cooldown(model)
+            delay = None
             try:
                 with self._sem:
                     resp = self._http.request(method, path, headers=headers, files=files, data=data, json=json_body)
@@ -202,13 +231,40 @@ class BodhanClient:
                 last = _parse_error(resp)
                 if not last.retryable:
                     raise last
-            if attempt < self.max_attempts:
-                self._sleep(2 ** (attempt - 1) + random.uniform(0, 0.5))
-        assert last is not None
-        raise last
+                if last.code == "rate_limited":
+                    # Back off for this model across all threads: honour Retry-After, else 5, 10, 20, 40, 60 s.
+                    rate_limits += 1
+                    if rate_limits >= RATE_LIMIT_ATTEMPTS:
+                        last.message += f" Still rate-limited after {rate_limits} tries over several minutes; try again later."
+                        raise last
+                    delay = _retry_after(resp) or min(60.0, 5.0 * 2 ** (rate_limits - 1))
+                    self._set_cooldown(model, delay)
+                    self.rate_limit_waits += 1
+                    continue
+            errors += 1
+            if errors >= self.max_attempts:
+                raise last
+            self._sleep(2 ** (errors - 1) + random.uniform(0, 0.5))
+
+    def _set_cooldown(self, model: str, seconds: float) -> None:
+        with self._cooldown_lock:
+            until = time.monotonic() + seconds
+            self._cooldown_until[model] = max(self._cooldown_until.get(model, 0.0), until)
+
+    def _wait_cooldown(self, model: str) -> None:
+        with self._cooldown_lock:
+            remaining = self._cooldown_until.get(model, 0.0) - time.monotonic()
+        if remaining > 0:
+            self._sleep(remaining)
 
     def _cached(self, *, model: str, endpoint: str, key_parts: dict, estimate: float, do_call, cost_of) -> dict:
         key = cache_key(model=model, endpoint=endpoint, **key_parts)
+        with self._inflight_guard:
+            key_lock = self._inflight.setdefault(key, threading.Lock())
+        with key_lock:  # a second identical call made at the same time waits, then reads the cache
+            return self._cached_locked(model=model, endpoint=endpoint, key=key, estimate=estimate, do_call=do_call, cost_of=cost_of)
+
+    def _cached_locked(self, *, model: str, endpoint: str, key: str, estimate: float, do_call, cost_of) -> dict:
         hit = self.cache.get(key)
         if hit is not None:
             self._record(model=model, endpoint=endpoint, cached=True, cost_inr=0.0, latency_ms=0, status="cache_hit")

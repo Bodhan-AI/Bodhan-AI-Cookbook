@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
 
-from .bodhan import BodhanClient, Budget
+from .bodhan import RULES, BodhanClient, Budget
 from .tools import Context, make_tools
 
 INSTRUCTIONS = (
@@ -30,4 +31,17 @@ def build_server(ctx: Context) -> FastMCP:
     mcp = FastMCP("bodhan", instructions=INSTRUCTIONS)
     for fn in make_tools(ctx):
         mcp.add_tool(fn, name=fn.__name__, description=(fn.__doc__ or "").strip())
+
+    @mcp.resource("bodhan://voices", name="voices", description="Indic-Speak voice library: female and male voice names per language, and speaking styles.",
+                  mime_type="application/json")
+    def voices() -> str:
+        speak = RULES["models"]["indic-speak"]
+        return json.dumps({"voices": speak["voices"], "styles": speak["styles"]}, ensure_ascii=False)
+
+    @mcp.resource("bodhan://languages", name="languages", description="Language codes supported by each Bodhan model, with language names.",
+                  mime_type="application/json")
+    def languages() -> str:
+        per_model = {m: RULES["models"][m].get("languages", []) for m in ("indic-transcribe", "indic-translate", "indic-speak")}
+        return json.dumps({"models": per_model, "names": RULES["language_names"]}, ensure_ascii=False)
+
     return mcp

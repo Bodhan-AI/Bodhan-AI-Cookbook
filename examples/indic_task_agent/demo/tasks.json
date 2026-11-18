@@ -1,0 +1,83 @@
+[
+  {
+    "id": "tamil_audio_summary",
+    "task": "Make a two-minute Tamil audio summary of this chapter",
+    "files": [
+      "demo/inputs/chapter"
+    ],
+    "expect": {
+      "status": "completed",
+      "outputs": [
+        ".mp3|.wav",
+        ".md"
+      ]
+    }
+  },
+  {
+    "id": "hindi_note_english_srt",
+    "task": "Transcribe this Hindi voice note and give me English subtitles",
+    "files": [
+      "demo/inputs/voice_note"
+    ],
+    "expect": {
+      "status": "completed",
+      "outputs": [
+        ".srt"
+      ]
+    }
+  },
+  {
+    "id": "worksheet_marathi",
+    "task": "Translate this worksheet into Marathi and keep the table",
+    "files": [
+      "demo/inputs/worksheet"
+    ],
+    "expect": {
+      "status": "completed",
+      "outputs": [
+        ".md"
+      ],
+      "table_in": ".md"
+    }
+  },
+  {
+    "id": "telugu_clips",
+    "task": "Which of these clips are in Telugu? Translate those into English",
+    "files": [
+      "demo/inputs/clips"
+    ],
+    "expect": {
+      "status": "completed",
+      "answer_mentions": [
+        "clip1",
+        "clip3",
+        "library",
+        "cricket"
+      ]
+    }
+  },
+  {
+    "id": "bengali_paragraph",
+    "task": "Read this paragraph aloud in Bengali with a female voice",
+    "files": [
+      "demo/inputs/paragraph"
+    ],
+    "expect": {
+      "status": "completed",
+      "outputs": [
+        ".mp3|.wav"
+      ]
+    }
+  },
+  {
+    "id": "video_french",
+    "task": "Translate this video into French",
+    "files": [
+      "demo/inputs/video"
+    ],
+    "expect": {
+      "status": "impossible",
+      "outputs": []
+    }
+  }
+]
