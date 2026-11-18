@@ -1,7 +1,8 @@
 """A small OpenAI-compatible chat client with tool calling.
 
 It speaks the standard ``POST {LLM_BASE_URL}/chat/completions`` protocol over httpx, so any OpenAI-compatible
-provider works. Retries 429, 5xx and network errors with backoff; each request has a timeout.
+provider works. Retries 429, 5xx and network errors with backoff (honouring Retry-After), because one busy
+moment at the provider should not throw away a run's paid model work. Each request has a timeout.
 """
 
 from __future__ import annotations
@@ -14,6 +15,7 @@ from typing import Any
 import httpx
 
 RETRY_STATUS = {429, 500, 502, 503, 504}
+MAX_WAIT_S = 30.0
 
 
 class LLMError(Exception):
@@ -35,7 +37,7 @@ class LLMClient:
         model: str | None,
         api_key: str | None,
         timeout_s: float = 120.0,
-        max_attempts: int = 3,
+        max_attempts: int = 6,
         transport: httpx.BaseTransport | None = None,
         sleep: Callable[[float], None] = time.sleep,
     ):
@@ -66,6 +68,7 @@ class LLMClient:
                 resp = self._http.post("/chat/completions", json=payload, headers=self._headers)
             except httpx.TransportError as exc:
                 last = LLMError("network_error", f"Could not reach the LLM ({exc.__class__.__name__}).")
+                resp = None
             else:
                 if resp.status_code == 200:
                     return self._parse(resp)
@@ -78,9 +81,19 @@ class LLMClient:
                 if resp.status_code not in RETRY_STATUS:
                     raise last
             if attempt < self.max_attempts:
-                self._sleep(2 ** attempt + random.uniform(0, 0.5))
+                self._sleep(self._wait_s(attempt, resp))
         assert last is not None
         raise last
+
+    @staticmethod
+    def _wait_s(attempt: int, resp: httpx.Response | None) -> float:
+        """Retry-After when the provider sends it, otherwise 2, 4, 8, 16, 30 s with a little jitter."""
+        if resp is not None:
+            try:
+                return min(MAX_WAIT_S, max(0.0, float(resp.headers.get("retry-after", ""))))
+            except ValueError:
+                pass
+        return min(MAX_WAIT_S, 2 ** attempt) + random.uniform(0, 0.5)
 
     def _parse(self, resp: httpx.Response) -> dict:
         try:

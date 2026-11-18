@@ -31,7 +31,8 @@ def fake_bodhan(state, *, drop_digits=False, transcript=None):
             text = transcript(state) if transcript else state.get("last_speech", "")
             return httpx.Response(200, json={"text": text})
         if path == "/v1/chat/completions":
-            return httpx.Response(200, json={"choices": [{"message": {"role": "assistant", "content": "# Page text"}, "finish_reason": state.get("finish", "stop"), "index": 0}],
+            choice = {"message": {"role": "assistant", "content": "# Page text"}, "finish_reason": state.get("finish", "stop"), "index": 0}
+            return httpx.Response(200, json={"choices": [choice],
                                              "blocks": [{"order": 0, "label": "Title", "type": "Title", "bbox_xyxy": [0, 0, 1, 1], "conf": 0.2, "text": "x"}]})
         return httpx.Response(404, json={"error": {"code": "not_found", "message": path}})
 

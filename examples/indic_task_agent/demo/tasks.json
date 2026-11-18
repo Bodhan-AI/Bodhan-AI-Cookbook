@@ -8,8 +8,11 @@
     "expect": {
       "status": "completed",
       "outputs": [
-        ".mp3|.wav",
-        ".md"
+        ".mp3|.wav"
+      ],
+      "audio_seconds": [
+        90,
+        150
       ]
     }
   },
@@ -48,7 +51,7 @@
     ],
     "expect": {
       "status": "completed",
-      "answer_mentions": [
+      "mentions": [
         "clip1",
         "clip3",
         "library",

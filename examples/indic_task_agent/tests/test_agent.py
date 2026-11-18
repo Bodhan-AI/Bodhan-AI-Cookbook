@@ -165,7 +165,8 @@ def test_impossible_with_outputs_is_rejected(tmp_path):
 
 def test_budget_stops_the_run_cleanly(tmp_path):
     def script(turn, messages):
-        return {"role": "assistant", "content": "", "tool_calls": [call(turn, "translate_text", target_language="hi", text="A long enough sentence to cost money.")]}
+        translate = call(turn, "translate_text", target_language="hi", text="A long enough sentence to cost money.")
+        return {"role": "assistant", "content": "", "tool_calls": [translate]}
 
     report, seen, state = run_agent(tmp_path, script, max_cost=0.0000001)
     assert report["status"] == "budget_exhausted" and report["stopped_by"] == "runtime"
@@ -236,8 +237,9 @@ def test_bad_and_unknown_arguments_are_reported(tmp_path):
 def test_save_english_text_refuses_indic(tmp_path):
     def script(turn, messages):
         if turn == 1:
-            return {"role": "assistant", "content": "", "tool_calls": [call(1, "save_english_text", filename="s.md", content="नमस्ते"),
-                                                                        call(2, "save_english_text", filename="../../escape.md", content="An English summary.")]}
+            return {"role": "assistant", "content": "", "tool_calls": [
+                call(1, "save_english_text", filename="s.md", content="नमस्ते"),
+                call(2, "save_english_text", filename="../../escape.md", content="An English summary.")]}
         results = [json.loads(m["content"]) for m in messages if m["role"] == "tool"]
         assert results[0]["error"]["code"] == "indic_text_refused"
         saved = Path(results[1]["path"])
@@ -284,6 +286,37 @@ def test_llm_client_drops_temperature_when_rejected():
     llm = LLMClient(base_url="https://llm.test/v1", model="m", api_key="k", transport=httpx.MockTransport(handler), sleep=lambda s: None)
     assert llm.chat([{"role": "user", "content": "x"}], [])["content"] == "hi"
     assert "temperature" in bodies[0] and "temperature" not in bodies[1]
+
+
+def test_llm_client_waits_out_a_busy_provider():
+    statuses = iter([503, 503, 429, 200])
+    waits = []
+
+    def handler(req):
+        status = next(statuses)
+        if status == 200:
+            return httpx.Response(200, json={"choices": [{"message": {"role": "assistant", "content": "ok"}}]})
+        headers = {"retry-after": "7"} if status == 429 else {}
+        return httpx.Response(status, json={"error": {"message": "high demand"}}, headers=headers)
+
+    llm = LLMClient(base_url="https://llm.test/v1", model="m", api_key="k", transport=httpx.MockTransport(handler), sleep=waits.append)
+    assert llm.chat([{"role": "user", "content": "x"}], [])["content"] == "ok"
+    assert len(waits) == 3 and waits[0] < waits[1] and waits[2] == 7.0
+
+
+def test_llm_client_does_not_retry_a_bad_request():
+    from bodhan_agent.llm import LLMError
+
+    calls = []
+
+    def handler(req):
+        calls.append(req)
+        return httpx.Response(401, text="bad key")
+
+    llm = LLMClient(base_url="https://llm.test/v1", model="m", api_key="k", transport=httpx.MockTransport(handler), sleep=lambda s: None)
+    with pytest.raises(LLMError):
+        llm.chat([{"role": "user", "content": "x"}], [])
+    assert len(calls) == 1
 
 
 def test_llm_client_rejects_placeholder_config():
