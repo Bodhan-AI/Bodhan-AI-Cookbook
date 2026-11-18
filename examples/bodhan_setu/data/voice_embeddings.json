@@ -1,0 +1,603 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-11-18T15:15:00.271782+00:00",
+  "calibration_language": "en",
+  "calibration_text": "The quick brown fox jumps over the lazy dog. Please call me when you arrive.",
+  "method": "DSP statistics: pitch autocorrelation, RMS, zero-crossing rate, and spectral-tilt proxy; not a neural speaker embedding",
+  "features": [
+    "median_pitch_hz",
+    "pitch_iqr_hz",
+    "voiced_fraction",
+    "mean_rms_dbfs",
+    "zero_crossing_rate",
+    "spectral_tilt_proxy"
+  ],
+  "voices": [
+    {
+      "voice": "Prastuti",
+      "language": "as",
+      "gender": "female",
+      "features": {
+        "median_pitch_hz": 200.0,
+        "pitch_iqr_hz": 84.848,
+        "voiced_fraction": 0.86869,
+        "mean_rms_dbfs": -30.971,
+        "zero_crossing_rate": 0.092275,
+        "spectral_tilt_proxy": 0.296863
+      }
+    },
+    {
+      "voice": "Ankur",
+      "language": "as",
+      "gender": "male",
+      "features": {
+        "median_pitch_hz": 137.931,
+        "pitch_iqr_hz": 111.111,
+        "voiced_fraction": 0.83019,
+        "mean_rms_dbfs": -30.684,
+        "zero_crossing_rate": 0.063571,
+        "spectral_tilt_proxy": 0.217498
+      }
+    },
+    {
+      "voice": "Ishita",
+      "language": "bn",
+      "gender": "female",
+      "features": {
+        "median_pitch_hz": 242.647,
+        "pitch_iqr_hz": 153.11,
+        "voiced_fraction": 0.875,
+        "mean_rms_dbfs": -34.156,
+        "zero_crossing_rate": 0.089211,
+        "spectral_tilt_proxy": 0.287487
+      }
+    },
+    {
+      "voice": "Sourav",
+      "language": "bn",
+      "gender": "male",
+      "features": {
+        "median_pitch_hz": 129.032,
+        "pitch_iqr_hz": 147.436,
+        "voiced_fraction": 0.82524,
+        "mean_rms_dbfs": -34.479,
+        "zero_crossing_rate": 0.071875,
+        "spectral_tilt_proxy": 0.24541
+      }
+    },
+    {
+      "voice": "Gwrbw",
+      "language": "brx",
+      "gender": "female",
+      "features": {
+        "median_pitch_hz": 210.526,
+        "pitch_iqr_hz": 35.294,
+        "voiced_fraction": 0.83333,
+        "mean_rms_dbfs": -27.826,
+        "zero_crossing_rate": 0.105105,
+        "spectral_tilt_proxy": 0.327518
+      }
+    },
+    {
+      "voice": "Sansuma",
+      "language": "brx",
+      "gender": "male",
+      "features": {
+        "median_pitch_hz": 142.857,
+        "pitch_iqr_hz": 20.513,
+        "voiced_fraction": 0.82609,
+        "mean_rms_dbfs": -27.53,
+        "zero_crossing_rate": 0.083539,
+        "spectral_tilt_proxy": 0.283824
+      }
+    },
+    {
+      "voice": "Preeti",
+      "language": "doi",
+      "gender": "female",
+      "features": {
+        "median_pitch_hz": 235.294,
+        "pitch_iqr_hz": 44.444,
+        "voiced_fraction": 0.91111,
+        "mean_rms_dbfs": -27.341,
+        "zero_crossing_rate": 0.058973,
+        "spectral_tilt_proxy": 0.210885
+      }
+    },
+    {
+      "voice": "Sham",
+      "language": "doi",
+      "gender": "male",
+      "features": {
+        "median_pitch_hz": 135.632,
+        "pitch_iqr_hz": 215.686,
+        "voiced_fraction": 0.87755,
+        "mean_rms_dbfs": -32.767,
+        "zero_crossing_rate": 0.055789,
+        "spectral_tilt_proxy": 0.209949
+      }
+    },
+    {
+      "voice": "Dhara",
+      "language": "gu",
+      "gender": "female",
+      "features": {
+        "median_pitch_hz": 250.0,
+        "pitch_iqr_hz": 63.492,
+        "voiced_fraction": 0.8617,
+        "mean_rms_dbfs": -29.646,
+        "zero_crossing_rate": 0.104959,
+        "spectral_tilt_proxy": 0.326632
+      }
+    },
+    {
+      "voice": "Parth",
+      "language": "gu",
+      "gender": "male",
+      "features": {
+        "median_pitch_hz": 133.333,
+        "pitch_iqr_hz": 42.735,
+        "voiced_fraction": 0.7931,
+        "mean_rms_dbfs": -29.11,
+        "zero_crossing_rate": 0.076013,
+        "spectral_tilt_proxy": 0.266078
+      }
+    },
+    {
+      "voice": "Kavya",
+      "language": "hi",
+      "gender": "female",
+      "features": {
+        "median_pitch_hz": 190.476,
+        "pitch_iqr_hz": 36.613,
+        "voiced_fraction": 0.80682,
+        "mean_rms_dbfs": -27.93,
+        "zero_crossing_rate": 0.081731,
+        "spectral_tilt_proxy": 0.278481
+      }
+    },
+    {
+      "voice": "Suhani",
+      "language": "hi",
+      "gender": "female",
+      "features": {
+        "median_pitch_hz": 222.222,
+        "pitch_iqr_hz": 59.524,
+        "voiced_fraction": 0.82143,
+        "mean_rms_dbfs": -28.413,
+        "zero_crossing_rate": 0.09352,
+        "spectral_tilt_proxy": 0.297031
+      }
+    },
+    {
+      "voice": "Amit",
+      "language": "hi",
+      "gender": "male",
+      "features": {
+        "median_pitch_hz": 166.667,
+        "pitch_iqr_hz": 57.143,
+        "voiced_fraction": 0.85526,
+        "mean_rms_dbfs": -26.354,
+        "zero_crossing_rate": 0.085966,
+        "spectral_tilt_proxy": 0.277569
+      }
+    },
+    {
+      "voice": "Deepika",
+      "language": "kn",
+      "gender": "female",
+      "features": {
+        "median_pitch_hz": 190.476,
+        "pitch_iqr_hz": 28.708,
+        "voiced_fraction": 0.92174,
+        "mean_rms_dbfs": -26.931,
+        "zero_crossing_rate": 0.072459,
+        "spectral_tilt_proxy": 0.238975
+      }
+    },
+    {
+      "voice": "Adarsh",
+      "language": "kn",
+      "gender": "male",
+      "features": {
+        "median_pitch_hz": 131.183,
+        "pitch_iqr_hz": 42.735,
+        "voiced_fraction": 0.85714,
+        "mean_rms_dbfs": -27.796,
+        "zero_crossing_rate": 0.093399,
+        "spectral_tilt_proxy": 0.305919
+      }
+    },
+    {
+      "voice": "Anjali",
+      "language": "kok",
+      "gender": "female",
+      "features": {
+        "median_pitch_hz": 235.294,
+        "pitch_iqr_hz": 66.667,
+        "voiced_fraction": 0.88312,
+        "mean_rms_dbfs": -27.844,
+        "zero_crossing_rate": 0.105347,
+        "spectral_tilt_proxy": 0.344565
+      }
+    },
+    {
+      "voice": "Sandeep",
+      "language": "kok",
+      "gender": "male",
+      "features": {
+        "median_pitch_hz": 140.394,
+        "pitch_iqr_hz": 35.0,
+        "voiced_fraction": 0.77922,
+        "mean_rms_dbfs": -29.078,
+        "zero_crossing_rate": 0.099561,
+        "spectral_tilt_proxy": 0.337863
+      }
+    },
+    {
+      "voice": "Zoon",
+      "language": "ks",
+      "gender": "female",
+      "features": {
+        "median_pitch_hz": 190.476,
+        "pitch_iqr_hz": 28.708,
+        "voiced_fraction": 0.81481,
+        "mean_rms_dbfs": -27.459,
+        "zero_crossing_rate": 0.107025,
+        "spectral_tilt_proxy": 0.344984
+      }
+    },
+    {
+      "voice": "Ishfaq",
+      "language": "ks",
+      "gender": "male",
+      "features": {
+        "median_pitch_hz": 117.647,
+        "pitch_iqr_hz": 218.803,
+        "voiced_fraction": 0.71429,
+        "mean_rms_dbfs": -31.555,
+        "zero_crossing_rate": 0.051864,
+        "spectral_tilt_proxy": 0.191996
+      }
+    },
+    {
+      "voice": "Vaidehi",
+      "language": "mai",
+      "gender": "female",
+      "features": {
+        "median_pitch_hz": 250.0,
+        "pitch_iqr_hz": 63.492,
+        "voiced_fraction": 0.89773,
+        "mean_rms_dbfs": -27.331,
+        "zero_crossing_rate": 0.099362,
+        "spectral_tilt_proxy": 0.334842
+      }
+    },
+    {
+      "voice": "Madhukar",
+      "language": "mai",
+      "gender": "male",
+      "features": {
+        "median_pitch_hz": 210.526,
+        "pitch_iqr_hz": 31.746,
+        "voiced_fraction": 0.95098,
+        "mean_rms_dbfs": -29.765,
+        "zero_crossing_rate": 0.075225,
+        "spectral_tilt_proxy": 0.268995
+      }
+    },
+    {
+      "voice": "Lakshmi",
+      "language": "ml",
+      "gender": "female",
+      "features": {
+        "median_pitch_hz": 228.758,
+        "pitch_iqr_hz": 39.474,
+        "voiced_fraction": 0.78947,
+        "mean_rms_dbfs": -28.976,
+        "zero_crossing_rate": 0.111247,
+        "spectral_tilt_proxy": 0.355017
+      }
+    },
+    {
+      "voice": "Kiran",
+      "language": "ml",
+      "gender": "male",
+      "features": {
+        "median_pitch_hz": 129.032,
+        "pitch_iqr_hz": 39.56,
+        "voiced_fraction": 0.85981,
+        "mean_rms_dbfs": -29.386,
+        "zero_crossing_rate": 0.092122,
+        "spectral_tilt_proxy": 0.301657
+      }
+    },
+    {
+      "voice": "Thoibi",
+      "language": "mni",
+      "gender": "female",
+      "features": {
+        "median_pitch_hz": 200.0,
+        "pitch_iqr_hz": 48.309,
+        "voiced_fraction": 0.84615,
+        "mean_rms_dbfs": -27.759,
+        "zero_crossing_rate": 0.098669,
+        "spectral_tilt_proxy": 0.313876
+      }
+    },
+    {
+      "voice": "Chaoba",
+      "language": "mni",
+      "gender": "male",
+      "features": {
+        "median_pitch_hz": 142.857,
+        "pitch_iqr_hz": 82.353,
+        "voiced_fraction": 0.82955,
+        "mean_rms_dbfs": -31.654,
+        "zero_crossing_rate": 0.076598,
+        "spectral_tilt_proxy": 0.254273
+      }
+    },
+    {
+      "voice": "Anagha",
+      "language": "mr",
+      "gender": "female",
+      "features": {
+        "median_pitch_hz": 235.294,
+        "pitch_iqr_hz": 133.333,
+        "voiced_fraction": 0.8785,
+        "mean_rms_dbfs": -31.907,
+        "zero_crossing_rate": 0.084191,
+        "spectral_tilt_proxy": 0.26061
+      }
+    },
+    {
+      "voice": "Chinmay",
+      "language": "mr",
+      "gender": "male",
+      "features": {
+        "median_pitch_hz": 148.148,
+        "pitch_iqr_hz": 93.19,
+        "voiced_fraction": 0.88462,
+        "mean_rms_dbfs": -32.665,
+        "zero_crossing_rate": 0.059679,
+        "spectral_tilt_proxy": 0.19673
+      }
+    },
+    {
+      "voice": "Srijana",
+      "language": "ne",
+      "gender": "female",
+      "features": {
+        "median_pitch_hz": 222.222,
+        "pitch_iqr_hz": 39.474,
+        "voiced_fraction": 0.86458,
+        "mean_rms_dbfs": -26.883,
+        "zero_crossing_rate": 0.100709,
+        "spectral_tilt_proxy": 0.32608
+      }
+    },
+    {
+      "voice": "Sagar",
+      "language": "ne",
+      "gender": "male",
+      "features": {
+        "median_pitch_hz": 142.857,
+        "pitch_iqr_hz": 38.788,
+        "voiced_fraction": 0.8,
+        "mean_rms_dbfs": -28.637,
+        "zero_crossing_rate": 0.083774,
+        "spectral_tilt_proxy": 0.272662
+      }
+    },
+    {
+      "voice": "Itishree",
+      "language": "or",
+      "gender": "female",
+      "features": {
+        "median_pitch_hz": 235.294,
+        "pitch_iqr_hz": 153.11,
+        "voiced_fraction": 0.89256,
+        "mean_rms_dbfs": -34.588,
+        "zero_crossing_rate": 0.089382,
+        "spectral_tilt_proxy": 0.275436
+      }
+    },
+    {
+      "voice": "Akash",
+      "language": "or",
+      "gender": "male",
+      "features": {
+        "median_pitch_hz": 121.212,
+        "pitch_iqr_hz": 40.04,
+        "voiced_fraction": 0.80808,
+        "mean_rms_dbfs": -32.475,
+        "zero_crossing_rate": 0.080803,
+        "spectral_tilt_proxy": 0.269882
+      }
+    },
+    {
+      "voice": "Kaur",
+      "language": "pa",
+      "gender": "female",
+      "features": {
+        "median_pitch_hz": 142.857,
+        "pitch_iqr_hz": 92.879,
+        "voiced_fraction": 0.90323,
+        "mean_rms_dbfs": -32.691,
+        "zero_crossing_rate": 0.068514,
+        "spectral_tilt_proxy": 0.236361
+      }
+    },
+    {
+      "voice": "Manpreet",
+      "language": "pa",
+      "gender": "male",
+      "features": {
+        "median_pitch_hz": 133.333,
+        "pitch_iqr_hz": 35.0,
+        "voiced_fraction": 0.8625,
+        "mean_rms_dbfs": -29.659,
+        "zero_crossing_rate": 0.064424,
+        "spectral_tilt_proxy": 0.234425
+      }
+    },
+    {
+      "voice": "Bharati",
+      "language": "sa",
+      "gender": "female",
+      "features": {
+        "median_pitch_hz": 235.294,
+        "pitch_iqr_hz": 56.14,
+        "voiced_fraction": 0.8375,
+        "mean_rms_dbfs": -28.64,
+        "zero_crossing_rate": 0.122819,
+        "spectral_tilt_proxy": 0.368946
+      }
+    },
+    {
+      "voice": "Aryaman",
+      "language": "sa",
+      "gender": "male",
+      "features": {
+        "median_pitch_hz": 117.647,
+        "pitch_iqr_hz": 32.668,
+        "voiced_fraction": 0.81707,
+        "mean_rms_dbfs": -28.777,
+        "zero_crossing_rate": 0.084605,
+        "spectral_tilt_proxy": 0.284073
+      }
+    },
+    {
+      "voice": "Phulmani",
+      "language": "sat",
+      "gender": "female",
+      "features": {
+        "median_pitch_hz": 200.0,
+        "pitch_iqr_hz": 92.754,
+        "voiced_fraction": 0.88889,
+        "mean_rms_dbfs": -31.291,
+        "zero_crossing_rate": 0.07344,
+        "spectral_tilt_proxy": 0.246736
+      }
+    },
+    {
+      "voice": "Sibu",
+      "language": "sat",
+      "gender": "male",
+      "features": {
+        "median_pitch_hz": 166.667,
+        "pitch_iqr_hz": 66.667,
+        "voiced_fraction": 0.88,
+        "mean_rms_dbfs": -33.133,
+        "zero_crossing_rate": 0.068081,
+        "spectral_tilt_proxy": 0.227952
+      }
+    },
+    {
+      "voice": "Moomal",
+      "language": "sd",
+      "gender": "female",
+      "features": {
+        "median_pitch_hz": 235.294,
+        "pitch_iqr_hz": 50.0,
+        "voiced_fraction": 0.875,
+        "mean_rms_dbfs": -26.914,
+        "zero_crossing_rate": 0.109674,
+        "spectral_tilt_proxy": 0.363805
+      }
+    },
+    {
+      "voice": "Rano",
+      "language": "sd",
+      "gender": "male",
+      "features": {
+        "median_pitch_hz": 129.032,
+        "pitch_iqr_hz": 25.21,
+        "voiced_fraction": 0.74026,
+        "mean_rms_dbfs": -28.355,
+        "zero_crossing_rate": 0.103439,
+        "spectral_tilt_proxy": 0.325342
+      }
+    },
+    {
+      "voice": "Anitha",
+      "language": "ta",
+      "gender": "female",
+      "features": {
+        "median_pitch_hz": 210.526,
+        "pitch_iqr_hz": 151.515,
+        "voiced_fraction": 0.88298,
+        "mean_rms_dbfs": -32.491,
+        "zero_crossing_rate": 0.076098,
+        "spectral_tilt_proxy": 0.250981
+      }
+    },
+    {
+      "voice": "Arun",
+      "language": "ta",
+      "gender": "male",
+      "features": {
+        "median_pitch_hz": 145.503,
+        "pitch_iqr_hz": 69.264,
+        "voiced_fraction": 0.82828,
+        "mean_rms_dbfs": -31.085,
+        "zero_crossing_rate": 0.066464,
+        "spectral_tilt_proxy": 0.220544
+      }
+    },
+    {
+      "voice": "Sravani",
+      "language": "te",
+      "gender": "female",
+      "features": {
+        "median_pitch_hz": 228.758,
+        "pitch_iqr_hz": 133.333,
+        "voiced_fraction": 0.88496,
+        "mean_rms_dbfs": -34.423,
+        "zero_crossing_rate": 0.081956,
+        "spectral_tilt_proxy": 0.261828
+      }
+    },
+    {
+      "voice": "Vamsi",
+      "language": "te",
+      "gender": "male",
+      "features": {
+        "median_pitch_hz": 121.212,
+        "pitch_iqr_hz": 40.293,
+        "voiced_fraction": 0.76136,
+        "mean_rms_dbfs": -28.77,
+        "zero_crossing_rate": 0.106179,
+        "spectral_tilt_proxy": 0.344747
+      }
+    },
+    {
+      "voice": "Saba",
+      "language": "ur",
+      "gender": "female",
+      "features": {
+        "median_pitch_hz": 222.222,
+        "pitch_iqr_hz": 50.0,
+        "voiced_fraction": 0.86239,
+        "mean_rms_dbfs": -29.626,
+        "zero_crossing_rate": 0.091712,
+        "spectral_tilt_proxy": 0.293846
+      }
+    },
+    {
+      "voice": "Zaid",
+      "language": "ur",
+      "gender": "male",
+      "features": {
+        "median_pitch_hz": 106.686,
+        "pitch_iqr_hz": 31.977,
+        "voiced_fraction": 0.82927,
+        "mean_rms_dbfs": -31.048,
+        "zero_crossing_rate": 0.08507,
+        "spectral_tilt_proxy": 0.296767
+      }
+    }
+  ],
+  "complete": true
+}

@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools==75.6.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bodhan-setu"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp==1.12.4",
+    "uvicorn==0.54.0",
+    "pydantic==2.11.7",
+    "requests==2.32.3",
+    "python-dotenv==1.0.1",
+    "redis==5.2.1",
+    "PyMuPDF==1.25.5",
+]
+
+[project.optional-dependencies]
+test = ["pytest==8.3.4"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
