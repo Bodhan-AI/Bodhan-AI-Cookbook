@@ -9,7 +9,7 @@ from indic_task_agent.config import Settings
 
 
 def settings():
-    return Settings("dummy", "https://api.bodhan.ai", "https://llm.example/v1", "mock", "dummy", 3, 2.0, 1, 0)
+    return Settings({"indic-translate": "dummy"}, "https://api.bodhan.ai", "https://llm.example/v1", "mock", "dummy", 3, 2.0, 1, 0)
 
 
 class AgentTests(unittest.TestCase):

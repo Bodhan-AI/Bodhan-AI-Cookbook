@@ -21,7 +21,7 @@ pip install -r requirements.txt
 Copy-Item .env.example .env
 ```
 
-Edit `.env` locally. `BODHAN_API_KEY` is the Cookbook's documented Bodhan key for the Bodhan model endpoints. Set `LLM_BASE_URL`, `LLM_MODEL`, and `LLM_API_KEY` for an OpenAI-compatible model that supports tool calls. Never commit `.env` or paste credentials into traces. No keys are bundled or supplied by this recipe.
+Edit `.env` locally. Bodhan's console currently issues model-specific keys, so add the key for each model you plan to use (`BODHAN_TRANSCRIBE_KEY`, `BODHAN_TRANSLATE_KEY`, `BODHAN_SPEAK_KEY`, and `BODHAN_OCR_KEY`). Set `LLM_BASE_URL`, `LLM_MODEL`, and `LLM_API_KEY` for a separate OpenAI-compatible model that supports tool calls. Never commit `.env` or paste credentials into chat or traces. No keys are bundled or supplied by this recipe. For older Cookbook setups, `BODHAN_API_KEY` is accepted as a fallback for all four models.
 
 ## Run
 
@@ -71,7 +71,7 @@ The unit tests use mocks and make no live API calls. A real API run-through is r
 
 - Bodhan's documented `indic-translate` supports Indian languages and English; French is deliberately treated as unsupported.
 - OCR expects an image file. Audio requests should stay near 30 seconds, per Cookbook guidance. This sample does not chunk long media automatically.
-- The Bodhan API uses `BODHAN_API_KEY` per the Cookbook's documented contract. The planner uses a separate key and endpoint of your choice.
+- Bodhan keys are scoped by model in the current console. The planner uses a separate key and endpoint of your choice.
 - The rupee cap can stop further calls after Bodhan reports `cost_inr`; when cost is absent, the runner marks the call unmetered and relies on the maximum step count. A single in-flight call may cross the cap before its charge is reported. Planner-provider charges are outside the Bodhan budget report.
 - Retries are bounded; 429 and server errors use short exponential backoff. The agent does not retry indefinitely.
 - The recipe has not been run against live Bodhan services because no credentials were present in this workspace.

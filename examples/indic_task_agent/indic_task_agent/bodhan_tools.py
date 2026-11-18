@@ -18,15 +18,31 @@ class BodhanError(RuntimeError):
 
 
 def _request(
-    settings: Settings, method: str, path: str, *, json_body: dict | None = None, files: dict | None = None, data: dict | None = None
+    settings: Settings,
+    key_name: str,
+    method: str,
+    path: str,
+    *,
+    json_body: dict | None = None,
+    files: dict | None = None,
+    data: dict | None = None,
 ) -> requests.Response:
+    api_key = settings.bodhan_api_keys.get(key_name, "")
+    if not api_key:
+        env_name = {
+            "indic-transcribe": "BODHAN_TRANSCRIBE_KEY",
+            "indic-translate": "BODHAN_TRANSLATE_KEY",
+            "indic-speak": "BODHAN_SPEAK_KEY",
+            "indic-ocr": "BODHAN_OCR_KEY",
+        }[key_name]
+        raise BodhanError(f"Missing {env_name}. Add this model's key to the local .env file; no Bodhan request was made.")
     url = settings.bodhan_base_url + path
     for attempt in range(settings.max_retries + 1):
         try:
             response = requests.request(
                 method,
                 url,
-                headers={"Authorization": f"Bearer {settings.bodhan_api_key}"},
+                headers={"Authorization": f"Bearer {api_key}"},
                 json=json_body,
                 files=files,
                 data=data,
@@ -54,6 +70,7 @@ def indic_asr(settings: Settings, audio_path: str, language: str | None = None) 
     with path.open("rb") as audio:
         response = _request(
             settings,
+            "indic-transcribe",
             "POST",
             "/v1/audio/transcriptions",
             files={"file": (path.name, audio, mimetypes.guess_type(path.name)[0] or "application/octet-stream")},
@@ -99,7 +116,7 @@ def indic_translate(settings: Settings, text: str, target_language: str, script:
         )
     if script not in {"native", "roman", "codemix"}:
         raise BodhanError("script must be native, roman, or codemix")
-    payload = _request(settings, "POST", "/translate", json_body={"text": text, "target_language": target_language, "script": script}).json()
+    payload = _request(settings, "indic-translate", "POST", "/translate", json_body={"text": text, "target_language": target_language, "script": script}).json()
     return {"text": payload.get("translation", ""), "usage": payload.get("usage"), "cost_inr": payload.get("cost_inr")}
 
 
@@ -112,7 +129,7 @@ def indic_tts(settings: Settings, text: str, language: str, output_path: str, vo
         "voice": voice,
         "instructions": __import__("json").dumps({"lang": language, **({"style": style} if style else {})}),
     }
-    response = _request(settings, "POST", "/v1/audio/speech", json_body=body)
+    response = _request(settings, "indic-speak", "POST", "/v1/audio/speech", json_body=body)
     output = Path(output_path).expanduser().resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_bytes(response.content)
@@ -127,6 +144,7 @@ def indic_ocr(settings: Settings, image_path: str, prompt: str = "Extract all vi
     encoded = base64.b64encode(path.read_bytes()).decode("ascii")
     payload = _request(
         settings,
+        "indic-ocr",
         "POST",
         "/v1/chat/completions",
         json_body={
