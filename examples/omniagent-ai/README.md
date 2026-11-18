@@ -1,5 +1,5 @@
-
-# ✦ OmniAgent AI
+﻿
+# âœ¦ OmniAgent AI
 
 ### Multimodal & Multilingual Agentic AI Powered by Gemini, Bodhan AI & MCP
 
@@ -13,20 +13,20 @@
 
 <p align="center">
   <a href="https://omniagentai.streamlit.app/">
-    <img src="https://img.shields.io/badge/🚀_Launch_Live_App-Streamlit-FF4B4B?style=for-the-badge" />
+    <img src="https://img.shields.io/badge/ðŸš€_Launch_Live_App-Streamlit-FF4B4B?style=for-the-badge" />
   </a>
   <a href="https://github.com/samirmore7/OmniAgentAI">
-    <img src="https://img.shields.io/badge/💻_Source_Code-GitHub-181717?style=for-the-badge" />
+    <img src="https://img.shields.io/badge/ðŸ’»_Source_Code-GitHub-181717?style=for-the-badge" />
   </a>
 </p>
 
 ---
 
-## 🌐 Live Application
+## ðŸŒ Live Application
 
-**🚀 [Try OmniAgent AI](https://omniagentai.streamlit.app/)**
+**ðŸš€ [Try OmniAgent AI](https://omniagentai.streamlit.app/)**
 
-**💻 [GitHub Repository](https://github.com/samirmore7/OmniAgentAI)**
+**ðŸ’» [GitHub Repository](https://github.com/samirmore7/OmniAgentAI)**
 
 OmniAgent AI is a multimodal, multilingual AI agent that combines the reasoning capabilities of **Gemini 2.5 Flash** with specialized Indian-language AI services provided by **Bodhan AI**.
 
@@ -38,7 +38,7 @@ Users can interact with the agent through a Streamlit web application or Python 
 
 ---
 
-## 📌 Problem Statement
+## ðŸ“Œ Problem Statement
 
 Indian-language processing often requires multiple specialized AI services.
 
@@ -57,9 +57,9 @@ Instead of manually choosing and connecting tools, users describe what they want
 
 ---
 
-## ✨ Key Features
+## âœ¨ Key Features
 
-### 🧠 Intelligent Agent Planning
+### ðŸ§  Intelligent Agent Planning
 
 - Uses Gemini 2.5 Flash as the reasoning engine.
 - Understands natural-language instructions.
@@ -67,34 +67,34 @@ Instead of manually choosing and connecting tools, users describe what they want
 - Supports multi-step task execution.
 - Uses tool responses to determine subsequent actions.
 
-### 🔎 Multilingual OCR
+### ðŸ”Ž Multilingual OCR
 
 - Extracts text from uploaded images.
 - Supports PNG, JPG, and JPEG uploads.
 - Uses Bodhan AI's OCR capabilities.
 - Returns extracted text as structured output.
 
-### 🌐 Language Translation
+### ðŸŒ Language Translation
 
 - Translates text between supported languages.
 - Supports translation after OCR.
 - Preserves multilingual Unicode output.
 - Uses Bodhan AI translation services.
 
-### 🎙️ Speech Transcription
+### ðŸŽ™ï¸ Speech Transcription
 
 - Converts supported speech audio into text.
 - Supports WAV uploads through the web interface.
 - Includes audio-processing and chunking capabilities.
 - Uses Bodhan AI speech recognition.
 
-### 🔊 Text-to-Speech
+### ðŸ”Š Text-to-Speech
 
 - Integrates Bodhan AI speech generation.
 - Converts supported text into spoken audio.
 - Supports speech-generation workflows through MCP.
 
-### 🔗 Multi-Step Agentic Workflows
+### ðŸ”— Multi-Step Agentic Workflows
 
 OmniAgent can chain specialized tools automatically.
 
@@ -122,7 +122,7 @@ English Translation
 Final Result
 ```
 
-### 🖥️ Interactive Streamlit Dashboard
+### ðŸ–¥ï¸ Interactive Streamlit Dashboard
 
 - Modern responsive interface.
 - Four visual themes.
@@ -134,7 +134,7 @@ Final Result
 - Step-by-step tool output.
 - Downloadable execution reports.
 
-### 🛡️ Execution Controls
+### ðŸ›¡ï¸ Execution Controls
 
 - Maximum planning steps.
 - Maximum tool-call attempts.
@@ -145,7 +145,7 @@ Final Result
 
 ---
 
-## 🛠️ Technology Stack
+## ðŸ› ï¸ Technology Stack
 
 | Component | Technology |
 |---|---|
@@ -167,7 +167,7 @@ Final Result
 
 ---
 
-## 🏗️ System Architecture
+## ðŸ—ï¸ System Architecture
 
 ```text
                     +--------------------+
@@ -260,7 +260,7 @@ The system records tool results, execution details, budget usage, and structured
 
 ---
 
-## 🧰 Available AI Tools
+## ðŸ§° Available AI Tools
 
 | Tool | Description |
 |---|---|
@@ -275,7 +275,7 @@ Actual language and voice support depends on the configured Bodhan AI services.
 
 ---
 
-## 🖥️ Streamlit Web Application
+## ðŸ–¥ï¸ Streamlit Web Application
 
 **Live App:** https://omniagentai.streamlit.app/
 
@@ -350,47 +350,47 @@ Some interface labels may fall back to English.
 
 ---
 
-## 📂 Project Structure
+## ðŸ“‚ Project Structure
 
 ```text
 OmniAgentAI/
-│
-├── src/
-│   │
-│   ├── bodhan_agent/
-│   │   ├── agent.py
-│   │   ├── cli.py
-│   │   └── ... other agent modules
-│   │
-│   └── bodhan_mcp/
-│       ├── server.py
-│       ├── audio_tools.py
-│       ├── ocr_tools.py
-│       ├── translation_tools.py
-│       └── tts_tools.py
-│
-├── tests/
-│
-├── demo_inputs/
-│   └── sample_ocr.png
-│
-├── demo_outputs/
-│   ├── report.json
-│   ├── result.md
-│   └── trace.jsonl
-│
-├── streamlit_app.py
-├── requirements.txt
-├── pyproject.toml
-├── run_tests.py
-├── .env.example
-├── .gitignore
-└── README.md
+â”‚
+â”œâ”€â”€ src/
+â”‚   â”‚
+â”‚   â”œâ”€â”€ bodhan_agent/
+â”‚   â”‚   â”œâ”€â”€ agent.py
+â”‚   â”‚   â”œâ”€â”€ cli.py
+â”‚   â”‚   â””â”€â”€ ... other agent modules
+â”‚   â”‚
+â”‚   â””â”€â”€ bodhan_mcp/
+â”‚       â”œâ”€â”€ server.py
+â”‚       â”œâ”€â”€ audio_tools.py
+â”‚       â”œâ”€â”€ ocr_tools.py
+â”‚       â”œâ”€â”€ translation_tools.py
+â”‚       â””â”€â”€ tts_tools.py
+â”‚
+â”œâ”€â”€ tests/
+â”‚
+â”œâ”€â”€ demo_inputs/
+â”‚   â””â”€â”€ sample_ocr.png
+â”‚
+â”œâ”€â”€ demo_outputs/
+â”‚   â”œâ”€â”€ report.json
+â”‚   â”œâ”€â”€ result.md
+â”‚   â””â”€â”€ trace.jsonl
+â”‚
+â”œâ”€â”€ streamlit_app.py
+â”œâ”€â”€ requirements.txt
+â”œâ”€â”€ pyproject.toml
+â”œâ”€â”€ run_tests.py
+â”œâ”€â”€ .env.example
+â”œâ”€â”€ .gitignore
+â””â”€â”€ README.md
 ```
 
 ---
 
-## ⚙️ Installation and Setup
+## âš™ï¸ Installation and Setup
 
 ### Prerequisites
 
@@ -402,7 +402,7 @@ Ensure you have:
 - Bodhan AI API credentials
 - Internet access
 
-### Step 1 — Clone the Repository
+### Step 1 â€” Clone the Repository
 
 ```bash
 git clone https://github.com/samirmore7/OmniAgentAI.git
@@ -410,7 +410,7 @@ git clone https://github.com/samirmore7/OmniAgentAI.git
 cd OmniAgentAI
 ```
 
-### Step 2 — Create a Virtual Environment
+### Step 2 â€” Create a Virtual Environment
 
 ```bash
 python -m venv .venv
@@ -430,13 +430,13 @@ Activate it.
 source .venv/bin/activate
 ```
 
-### Step 3 — Install Dependencies
+### Step 3 â€” Install Dependencies
 
 ```bash
 python -m pip install -r requirements.txt
 ```
 
-### Step 4 — Configure API Credentials
+### Step 4 â€” Configure API Credentials
 
 Create a `.env` file in the project root.
 
@@ -461,7 +461,7 @@ Use the exact endpoint values provided by your API services.
 
 **Important:** Never commit your `.env` file or actual API keys to GitHub.
 
-### Step 5 — Launch Streamlit
+### Step 5 â€” Launch Streamlit
 
 ```bash
 python -m streamlit run streamlit_app.py
@@ -477,7 +477,7 @@ You can now access the OmniAgent AI dashboard locally.
 
 ---
 
-## 🚀 Cloud Deployment
+## ðŸš€ Cloud Deployment
 
 OmniAgent AI has been deployed to Streamlit Community Cloud.
 
@@ -519,13 +519,13 @@ The application uses a local MCP subprocess. End-to-end cloud execution depends 
 
 ---
 
-## 🧪 Demonstration — OCR + Translation
+## ðŸ§ª Demonstration â€” OCR + Translation
 
 ### User Instruction
 
 > Extract Hindi text from sample_ocr.png and translate it into English.
 
-### Step 1 — OCR
+### Step 1 â€” OCR
 
 **Tool:** `extract_text`
 
@@ -536,10 +536,10 @@ The application uses a local MCP subprocess. End-to-end cloud execution depends 
 **Extracted Text:**
 
 ```text
-नमस्ते भारत
+à¤¨à¤®à¤¸à¥à¤¤à¥‡ à¤­à¤¾à¤°à¤¤
 ```
 
-### Step 2 — Translation
+### Step 2 â€” Translation
 
 **Tool:** `translate_text`
 
@@ -582,7 +582,7 @@ This workflow was successfully demonstrated using the local backend.
 
 ---
 
-## 📊 Execution Budget Management
+## ðŸ“Š Execution Budget Management
 
 OmniAgent AI supports tool-call budgeting to control execution.
 
@@ -610,7 +610,7 @@ The budget prevents additional tool calls once the configured limit is reached.
 
 ---
 
-## 💰 Cost Tracking
+## ðŸ’° Cost Tracking
 
 OmniAgent records tool usage and available cost information.
 
@@ -628,7 +628,7 @@ This improves transparency in AI workflow execution.
 
 ---
 
-## 📄 Reporting and Tracing
+## ðŸ“„ Reporting and Tracing
 
 OmniAgent generates structured execution artifacts.
 
@@ -662,7 +662,7 @@ Reports may include user-submitted content and should be reviewed before sharing
 
 ---
 
-## 🧪 Testing and Validation
+## ðŸ§ª Testing and Validation
 
 The project includes offline regression tests for core agent functionality.
 
@@ -698,7 +698,7 @@ These results demonstrate local backend functionality. The hosted Streamlit depl
 
 ---
 
-## 🔐 Security and Reliability
+## ðŸ” Security and Reliability
 
 OmniAgent AI incorporates several development safeguards:
 
@@ -723,7 +723,7 @@ For public deployments:
 
 ---
 
-## ⚠️ Known Limitations
+## âš ï¸ Known Limitations
 
 - AI execution requires valid external API credentials.
 - OCR quality depends on image clarity and supported languages.
@@ -738,7 +738,7 @@ For public deployments:
 
 ---
 
-## 🔮 Future Enhancements
+## ðŸ”® Future Enhancements
 
 Potential future improvements include:
 
@@ -757,7 +757,7 @@ Potential future improvements include:
 
 ---
 
-## 🎯 Project Outcomes
+## ðŸŽ¯ Project Outcomes
 
 OmniAgent AI demonstrates practical experience in:
 
@@ -778,11 +778,11 @@ The project illustrates how a general-purpose LLM can coordinate specialized AI 
 
 ---
 
-## 👨‍💻 Developer
+## ðŸ‘¨â€ðŸ’» Developer
 
 **Samir More**
 
-B.Tech — Computer Science & Engineering  
+B.Tech â€” Computer Science & Engineering  
 Artificial Intelligence & Analytics
 
 **GitHub:** https://github.com/samirmore7
@@ -795,7 +795,7 @@ Artificial Intelligence & Analytics
 
 ---
 
-## ⭐ Support
+## â­ Support
 
 If you find this project useful, consider starring the repository.
 
@@ -813,5 +813,14 @@ Contributions, suggestions, and feedback are welcome.
 </p>
 
 <p align="center">
-  Built with Python • Powered by Gemini & Bodhan AI • Deployed on Streamlit
+  Built with Python â€¢ Powered by Gemini & Bodhan AI â€¢ Deployed on Streamlit
 </p>
+
+
+## Setup
+
+See the Installation and Setup section above for installation instructions.
+
+## Run
+
+See Step 5 - Launch Streamlit above for instructions to run the application.
