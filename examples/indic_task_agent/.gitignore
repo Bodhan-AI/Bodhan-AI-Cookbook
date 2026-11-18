@@ -15,3 +15,4 @@ demo/runs/**/*.pdf
 demo/runs/**/*.png
 demo/runs/**/*.jpg
 demo/runs/**/.work/
+demo/runs/.cache-cold-*/

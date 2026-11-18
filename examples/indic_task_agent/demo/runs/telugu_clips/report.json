@@ -1,0 +1,88 @@
+{
+  "status": "completed",
+  "stopped_by": "agent",
+  "task": "Which of these clips are in Telugu? Translate those into English",
+  "finished_at": "2026-11-18T04:40:49+00:00",
+  "duration_s": 12.27,
+  "steps_used": 6,
+  "max_steps": 30,
+  "cost_inr": 0.0609,
+  "max_cost_inr": 20.0,
+  "within_budget": true,
+  "bodhan_calls": {
+    "total": 9,
+    "paid": 9,
+    "cache_hits": 0,
+    "by_model": {
+      "indic-transcribe": {
+        "calls": 7,
+        "cache_hits": 0,
+        "cost_inr": 0.0604
+      },
+      "indic-translate": {
+        "calls": 2,
+        "cache_hits": 0,
+        "cost_inr": 0.0006
+      }
+    }
+  },
+  "translate_route": "/v1/chat/completions",
+  "llm": {
+    "model": "deepseek-chat",
+    "calls": 6,
+    "prompt_tokens": 32276,
+    "completion_tokens": 1710
+  },
+  "artifacts": [
+    "artifacts/clip1_translation.en.md",
+    "artifacts/clip3_translation.en.md",
+    "artifacts/telugu_clips_summary.en.md"
+  ],
+  "verification": [
+    {
+      "artifact": "artifacts/clip1_translation.en.md",
+      "tool": "translate_text",
+      "passed": true,
+      "warnings": [],
+      "checks": {
+        "sentences_in": 1,
+        "sentences_out": 1,
+        "structure_preserved": true,
+        "numbers_preserved": true,
+        "truncated_fragments": 0
+      }
+    },
+    {
+      "artifact": "artifacts/clip3_translation.en.md",
+      "tool": "translate_text",
+      "passed": true,
+      "warnings": [],
+      "checks": {
+        "sentences_in": 1,
+        "sentences_out": 1,
+        "structure_preserved": true,
+        "numbers_preserved": true,
+        "truncated_fragments": 0
+      }
+    },
+    {
+      "artifact": "artifacts/telugu_clips_summary.en.md",
+      "tool": "save_english_text",
+      "passed": null,
+      "warnings": [],
+      "checks": {
+        "written_by": "llm (English)"
+      }
+    }
+  ],
+  "all_checks_passed": true,
+  "assumptions": [
+    "clip2 (Devanagari) was treated as Hindi and clip5 (Bengali script) as Bengali; neither was translated since the task only asked for Telugu clips.",
+    "The Telugu transcripts are the tool's output and were not edited."
+  ],
+  "targets": {
+    "verification": "met",
+    "budget": "met",
+    "no_waste": "met (each input sent to a model at most once; repeats come from the cache)"
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "status": "completed",
+  "stopped_by": "agent",
+  "task": "Read this paragraph aloud in Bengali with a female voice",
+  "finished_at": "2026-11-18T04:41:42+00:00",
+  "duration_s": 51.99,
+  "steps_used": 4,
+  "max_steps": 30,
+  "cost_inr": 0.3646,
+  "max_cost_inr": 20.0,
+  "within_budget": true,
+  "bodhan_calls": {
+    "total": 6,
+    "paid": 6,
+    "cache_hits": 0,
+    "by_model": {
+      "indic-translate": {
+        "calls": 1,
+        "cache_hits": 0,
+        "cost_inr": 0.0023
+      },
+      "indic-speak": {
+        "calls": 3,
+        "cache_hits": 0,
+        "cost_inr": 0.2862
+      },
+      "indic-transcribe": {
+        "calls": 2,
+        "cache_hits": 0,
+        "cost_inr": 0.076
+      }
+    }
+  },
+  "translate_route": "/v1/chat/completions",
+  "llm": {
+    "model": "deepseek-chat",
+    "calls": 4,
+    "prompt_tokens": 15955,
+    "completion_tokens": 659
+  },
+  "artifacts": [
+    "artifacts/water_bn_female.bn.ishita.mp3",
+    "artifacts/water_bn.bn.md"
+  ],
+  "verification": [
+    {
+      "artifact": "artifacts/water_bn_female.bn.ishita.mp3",
+      "tool": "speak_text",
+      "passed": true,
+      "warnings": [],
+      "checks": {
+        "chunks": 3,
+        "similarity": 1.0,
+        "length_ratio": 1.0,
+        "back_transcript_preview": "পৃথিবীর সবচেয়ে মূল্যবান সম্পদগুলোর মধ্যে জল অন্যতম যদিও আমাদের গ্রহের বেশিরভাগ অংশ জল দ্বারা আবৃত এর মধ্যে খুব সামান্য অংশই মিষ্টি জল যা আমরা পান করতে পারি নদী"
+      }
+    },
+    {
+      "artifact": "artifacts/water_bn.bn.md",
+      "tool": "translate_text",
+      "passed": true,
+      "warnings": [],
+      "checks": {
+        "sentences_in": 5,
+        "sentences_out": 5,
+        "structure_preserved": true,
+        "numbers_preserved": true,
+        "truncated_fragments": 0
+      }
+    }
+  ],
+  "all_checks_passed": true,
+  "assumptions": [
+    "The input paragraph is English, so it was translated to Bengali before speaking.",
+    "A female Bengali voice was requested; the default female voice (Ishita) was used.",
+    "MP3 output format was chosen for a compact audio file."
+  ],
+  "targets": {
+    "verification": "met",
+    "budget": "met",
+    "no_waste": "met (each input sent to a model at most once; repeats come from the cache)"
+  }
+}

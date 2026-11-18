@@ -1,0 +1,106 @@
+{
+  "status": "completed",
+  "stopped_by": "agent",
+  "task": "Make a two-minute Tamil audio summary of this chapter",
+  "finished_at": "2026-11-18T04:39:23+00:00",
+  "duration_s": 162.45,
+  "steps_used": 9,
+  "max_steps": 30,
+  "cost_inr": 2.8572,
+  "max_cost_inr": 20.0,
+  "within_budget": true,
+  "bodhan_calls": {
+    "total": 32,
+    "paid": 31,
+    "cache_hits": 1,
+    "by_model": {
+      "indic-ocr": {
+        "calls": 8,
+        "cache_hits": 0,
+        "cost_inr": 1.6
+      },
+      "indic-translate": {
+        "calls": 8,
+        "cache_hits": 1,
+        "cost_inr": 0.0182
+      },
+      "indic-speak": {
+        "calls": 11,
+        "cache_hits": 0,
+        "cost_inr": 1.0212
+      },
+      "indic-transcribe": {
+        "calls": 5,
+        "cache_hits": 0,
+        "cost_inr": 0.2177
+      }
+    }
+  },
+  "translate_route": "/v1/chat/completions",
+  "llm": {
+    "model": "deepseek-chat",
+    "calls": 9,
+    "prompt_tokens": 75572,
+    "completion_tokens": 1920
+  },
+  "artifacts": [
+    "artifacts/chapter6_summary_ta.ta.anitha.mp3",
+    "artifacts/chapter6_summary_short.ta.md",
+    "artifacts/chapter6_summary_short.en.md",
+    "artifacts/lines-and-angles-scan.ocr.md"
+  ],
+  "verification": [
+    {
+      "artifact": "artifacts/chapter6_summary_ta.ta.anitha.mp3",
+      "tool": "speak_text",
+      "passed": true,
+      "warnings": [],
+      "checks": {
+        "chunks": 11,
+        "similarity": 0.983,
+        "length_ratio": 1.01,
+        "back_transcript_preview": "அத்தியாயம் சிக்ஸ் கோடுகளும் கோணங்களும் சுருக்கம் இந்த அத்தியாயம் கோடுகள் சந்திக்கும்போது உருவாகும் கோணங்களைப் பற்றியது இது அடிப்படை சொற்களை நினைவுபடுத்துகிறது ஒ"
+      }
+    },
+    {
+      "artifact": "artifacts/chapter6_summary_short.ta.md",
+      "tool": "translate_text",
+      "passed": true,
+      "warnings": [],
+      "checks": {
+        "sentences_in": 10,
+        "sentences_out": 10,
+        "structure_preserved": true,
+        "numbers_preserved": true,
+        "truncated_fragments": 0
+      }
+    },
+    {
+      "artifact": "artifacts/chapter6_summary_short.en.md",
+      "tool": "save_english_text",
+      "passed": null,
+      "warnings": [],
+      "checks": {
+        "written_by": "llm (English)"
+      }
+    },
+    {
+      "artifact": "artifacts/lines-and-angles-scan.ocr.md",
+      "tool": "ocr_document",
+      "passed": true,
+      "warnings": [],
+      "checks": {}
+    }
+  ],
+  "all_checks_passed": true,
+  "assumptions": [
+    "Two minutes was treated as a target with normal tolerance; the final audio is 130.7 s.",
+    "A female Tamil voice (Anitha) was used since no voice was specified.",
+    "The summary covers the whole chapter (sections 6.1-6.4, Axioms 6.1-6.2, Theorem 6.1 and the worked examples), not the exercise problems."
+  ],
+  "targets": {
+    "verification": "met",
+    "budget": "met",
+    "no_waste": "met (each input sent to a model at most once; repeats come from the cache)"
+  }
+}
