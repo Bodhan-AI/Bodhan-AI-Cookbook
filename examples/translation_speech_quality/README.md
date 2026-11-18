@@ -133,7 +133,9 @@ The demo contains 108 items in Hindi, Tamil and Bengali, comprising 54 clean con
 
 The injector deletes target spans, changes a digit or an explicit glossary term, removes a LaTeX delimiter, appends unsupported English content, or replaces a translation with its source. It writes machine-generated labels, never labels them as human. Omission source spans are approximate and explicitly marked. To reproduce the dataset, download the [FLORES-200 archive](https://dl.fbaipublicfiles.com/nllb/flores200_dataset.tar.gz) and run `python scripts/build_demo.py /path/to/flores200_dataset.tar.gz`.
 
-See [RESULTS.md](RESULTS.md) for the tested commands, observed API behavior, measurements, cost and remaining limitations. The publication status of the demo recording is recorded there as well.
+Watch the [2 minute 12 second recorded demo](https://github.com/Vidit-01/Bodhan-AI-Cookbook/releases/download/quality-harness-demo-2026-11-18/Bodhan_Demo.mp4): a complete cached run using real model responses, report inspection, reference-free limitations and a baseline diff. Download the [six AI-generated Bodhan audio samples](https://github.com/Vidit-01/Bodhan-AI-Cookbook/releases/download/quality-harness-demo-2026-11-18/Bodhan_AI_Generated_Audio.zip); extract the `audio/` folder alongside the sample item report to resolve its audio paths.
+
+See [RESULTS.md](RESULTS.md) for the tested commands, observed API behavior, measurements, cost and remaining limitations.
 
 ## Tests
 
