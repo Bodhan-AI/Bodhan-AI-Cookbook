@@ -1,0 +1,32 @@
+# Environment files and credentials (CRITICAL: never commit secrets)
+.env
+*.env
+!.env.example
+
+# Python caches and bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Test artifacts and caches
+.pytest_cache/
+.coverage
+htmlcov/
+.cache/
+
+# Agent run dossiers and local outputs
+runs/
+test_outputs/
+demo_run/
+outputs/*
+!outputs/.gitkeep
