@@ -169,6 +169,9 @@ def _verify_artifact(tool: str, data: dict[str, Any]) -> tuple[bool, dict[str, A
 
 
 def _retry_after(exc: Exception) -> float | None:
+    m = re.search(r"try again in (?:(\d+)m)?([\d.]+)s", str(exc))
+    if m:
+        return float(m.group(1) or 0) * 60 + float(m.group(2))
     resp = getattr(exc, "response", None)
     try:
         value = resp.headers.get("retry-after") if resp is not None else None
@@ -376,8 +379,8 @@ class Agent:
                     continue
                 if (status == 429 or "rate limit" in text) and attempt < 4:
                     wait = _retry_after(exc) or 20.0
-                    if st.elapsed + wait > self.budgets.max_wall_s:
-                        raise
+                    if wait > 90 or st.elapsed + wait > self.budgets.max_wall_s:
+                        raise  # e.g. a daily quota: waiting would only burn the time budget
                     self.trace.write("llm_retry", reason="rate limited", wait_s=wait)
                     await asyncio.sleep(wait)
                     continue
@@ -413,7 +416,12 @@ class Agent:
         try:
             reply = await self._llm(messages, [PLAN_TOOL], force="submit_plan")
         except Exception as exc:
-            return self._stop("failed", f"LLM unavailable during planning: {type(exc).__name__}: {exc}")
+            if getattr(exc, "status_code", None) in {401, 403, 429} or "rate limit" in str(exc).lower():
+                return self._stop("failed", f"LLM unavailable during planning: {type(exc).__name__}: {exc}")
+            # A malformed plan is not fatal: record it and let the act loop plan step by step.
+            self.trace.write("plan_failed", error=f"{type(exc).__name__}: {exc}")
+            st.notes.append("The structured plan step failed; the agent planned step by step instead.")
+            reply = LLMReply("(No structured plan; I will plan step by step.)", [], {})
         plan_call = next((c for c in reply.tool_calls if c.name == "submit_plan"), None)
         st.plan = (
             plan_call.arguments
@@ -588,6 +596,7 @@ class Agent:
                     "Inline Indian-language text must come from a Bodhan tool, not from you. Pass the tool's output file "
                     "as input_path instead (or write English and translate it).",
                 )
+        args = {k: v for k, v in args.items() if v is not None}  # null means "not set"
         props = (schema.get("input_schema") or {}).get("properties", {})
         for owned in ("output_dir", "max_cost_inr"):
             args.pop(owned, None)
@@ -606,7 +615,12 @@ class Agent:
             default=str,
         )
         previous = self._seen_calls.get(key)
-        if previous is not None and previous.ok:
+        incomplete = (
+            previous is not None
+            and previous.ok
+            and (previous.data.get("complete") is False or previous.data.get("coverage_ok") is False)
+        )
+        if previous is not None and previous.ok and not incomplete:
             st.duplicate_calls_blocked += 1
             self.trace.write(
                 "tool",

@@ -86,7 +86,7 @@ Streamable HTTP with a bearer token: `BODHAN_MCP_TOKEN=<16+ chars> python -m bod
 ```bash
 python scripts/make_demo_inputs.py   # builds sample_data/demo/ with Bodhan (~Rs 2 once, cached after)
 python scripts/run_eval.py           # runs tasks/demo_tasks.json, writes outputs/eval/summary.md
-python -m pytest -q                  # 64 offline tests: fake Bodhan API + scripted LLM, no keys needed
+python -m pytest -q                  # 72 offline tests: fake Bodhan API + scripted LLM, no keys needed
 ```
 
 ## How it works

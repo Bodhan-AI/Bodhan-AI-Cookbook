@@ -129,13 +129,27 @@ FINISH_TOOL: dict[str, Any] = {
     },
 }
 
+
+def _nullable_optionals(tool: dict[str, Any]) -> dict[str, Any]:
+    params = tool["function"]["parameters"]
+    required = set(params.get("required", []))
+    for name, prop in params["properties"].items():
+        if name not in required and isinstance(prop.get("type"), str):
+            prop["type"] = [prop["type"], "null"]
+    return tool
+
+
+_nullable_optionals(PLAN_TOOL)
+_nullable_optionals(FINISH_TOOL)
+
 # Arguments the agent controls itself; hidden from the LLM so it cannot change them.
 AGENT_OWNED_ARGS = {"output_dir", "max_cost_inr"}
 
 
 def _simplify(node: Any) -> Any:
     """Make MCP/pydantic JSON Schema friendlier to strict providers: collapse Optional[X]
-    (anyOf X|null) to X and drop `title` keys. Optional fields stay optional via `required`."""
+    (anyOf X|null) to a single schema whose type also allows null (models often send null for
+    "not set", and Groq rejects that against a plain string type), and drop `title` keys."""
     if isinstance(node, list):
         return [_simplify(n) for n in node]
     if not isinstance(node, dict):
@@ -148,6 +162,8 @@ def _simplify(node: Any) -> Any:
             merged = {**non_null[0], **{k: v for k, v in node.items() if k != "anyOf"}}
             if merged.get("default", "") is None:
                 merged.pop("default")
+            if isinstance(merged.get("type"), str):
+                merged["type"] = [merged["type"], "null"]
             return merged
     return node
 

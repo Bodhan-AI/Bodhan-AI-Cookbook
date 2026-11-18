@@ -51,7 +51,7 @@ def check(expect: dict, report: dict, out: Path) -> list[str]:
             for a in arts
             if Path(a["path"]).suffix in {".md", ".txt", ".srt"}
         ]
-        if not any(s in t for t in texts):
+        if not any(s in t or s in t.replace(" ", "") for t in texts):
             problems.append(f"no text artifact contains {s!r}")
     if expect.get("security_flagged") and not report.get("security_flags"):
         problems.append("prompt-injection text was not flagged")

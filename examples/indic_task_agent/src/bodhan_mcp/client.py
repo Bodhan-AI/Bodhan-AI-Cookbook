@@ -152,7 +152,7 @@ class BodhanClient:
                 retry_after = resp.headers.get("retry-after")
             if attempt == self.settings.max_retries:
                 break
-            delay = min(20.0, 0.75 * 2**attempt) + random.uniform(0, 0.5)
+            delay = min(30.0, 1.0 * 2**attempt) + random.uniform(0, 1.0)
             if retry_after:
                 try:
                     delay = max(delay, min(float(retry_after), 30.0))

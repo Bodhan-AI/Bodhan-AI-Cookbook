@@ -35,8 +35,8 @@ class Settings:
     keys: dict[str, str | None] = field(default_factory=dict)
     http_timeout_s: float = 90.0
     ocr_timeout_s: float = 180.0
-    max_retries: int = 4
-    max_concurrency: int = 4
+    max_retries: int = 6
+    max_concurrency: int = 2
     cache_dir: Path = Path(".bodhan_cache")
     cache_enabled: bool = True
     output_dir: Path = Path("outputs/mcp")
@@ -51,8 +51,8 @@ class Settings:
             keys=keys,
             http_timeout_s=float(os.environ.get("BODHAN_HTTP_TIMEOUT_S", 90)),
             ocr_timeout_s=float(os.environ.get("BODHAN_OCR_TIMEOUT_S", 180)),
-            max_retries=int(os.environ.get("BODHAN_MAX_RETRIES", 4)),
-            max_concurrency=max(1, int(os.environ.get("BODHAN_MAX_CONCURRENCY", 4))),
+            max_retries=int(os.environ.get("BODHAN_MAX_RETRIES", 6)),
+            max_concurrency=max(1, int(os.environ.get("BODHAN_MAX_CONCURRENCY", 2))),
             cache_dir=Path(os.environ.get("BODHAN_CACHE_DIR", ".bodhan_cache")).expanduser(),
             cache_enabled=os.environ.get("BODHAN_CACHE", "1") not in {"0", "false", "off"},
             output_dir=Path(os.environ.get("BODHAN_MCP_OUTPUT_DIR", "outputs/mcp")).expanduser(),

@@ -101,7 +101,7 @@ class OpenAICompatibleLLM:
                 else "auto"
             )
         try:
-            resp = await self.client.chat.completions.create(**kwargs)
+            resp = await self._create_with_validation_retry(kwargs)
         except BadRequestError:
             if not (force_tool and self.forced_choice_supported):
                 raise
@@ -112,7 +112,7 @@ class OpenAICompatibleLLM:
                 *messages,
                 {"role": "user", "content": f"Respond by calling the `{force_tool}` tool."},
             ]
-            resp = await self.client.chat.completions.create(**kwargs)
+            resp = await self._create_with_validation_retry(kwargs)
         choice = resp.choices[0].message
         calls = []
         for tc in choice.tool_calls or []:

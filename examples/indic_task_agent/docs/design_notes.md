@@ -81,6 +81,13 @@ Everything else is plain code: file inspection, script-based language ID, chunki
 
 Unsupported languages are refused by the tools (`unsupported_language`, with the supported list) and are visible to the planner up front via `list_capabilities`. Missing files are reported in pre-flight. Over-budget work is refused before spending. In every case the agent finishes with `impossible`/`failed`, a plain-English reason, and no artifacts. The code enforces that last part.
 
+## 8b. Lessons from the live API runs (18–19 Nov 2026)
+
+- **Translation route.** The documented `POST /translate` returned 404. `POST /v1/chat/completions` with `model=indic-translate` works, so the client uses that and falls back to the documented route.
+- **Strict tool-call validation (Groq).** The model sent `null` for an optional plan field, and the provider rejected the whole call. Optional fields now accept `null`, provider validation errors are retried, and a failed plan step no longer ends the run.
+- **Bodhan rate limits.** Twenty short subtitle chunks at concurrency 4 hit 429s. Defaults are now concurrency 2 and 6 retries with backoff up to 30 s. An incomplete result can be re-requested: the cache fills in the chunks that succeeded, so only the failed ones are paid for.
+- **LLM quotas.** Groq's free tier allows 8k tokens per minute and 200k per day. Older context is compacted to stay under the per-minute limit. A wait longer than 90 s (a daily quota) fails fast and honestly instead of burning the time budget.
+
 ## 9. Trade-offs and known limitations
 
 - **VAD is energy-based.** It is simple, dependency-free and deterministic. Speech over loud music or noise may not split at natural pauses; chunks are then cut at the quietest point before 28 s.
