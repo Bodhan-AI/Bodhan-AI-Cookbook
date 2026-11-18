@@ -121,7 +121,11 @@ The six workflows were run locally. The user reviewed and accepted the Kannada a
 
 Costs are Bodhan API charges only; LLM charges are excluded because the provider does not expose a compatible per-run amount here. The reports and traces include cache indicators: these are the recorded charges and runtimes for these runs, not uncached benchmark estimates. Input files, local caches and generated WAV media are not committed. Compact text outputs and traces are under [`demo_results/`](demo_results/README.md); trace paths are sanitized to remove local machine paths. The generated demo 1 WAV was over 1 MiB and is omitted from the repository.
 
-The recipe test suite passes 67 tests. The Cookbook validator and changed-recipe validation pass for this recipe. The full Cookbook suite also checks every existing example and currently flags the unchanged `AndroidSpeak` native Android/Kotlin layout as invalid. On Windows, another existing test invokes Unix `cp`, so that test also fails in this local environment; the Cookbook CI runner uses Ubuntu. The recipe itself does not change either unrelated example or test. MCP client interoperability is verified with MCP Inspector as described above. The short walkthrough recording is still pending.
+### Walkthrough video
+
+[Watch the Loom walkthrough](https://www.loom.com/share/f472d18aa2204487a733fe86173de52c).
+
+The recipe test suite passes 67 tests. The Cookbook validator and changed-recipe validation pass for this recipe. The full Cookbook suite also checks every existing example and currently flags the unchanged `AndroidSpeak` native Android/Kotlin layout as invalid. On Windows, another existing test invokes Unix `cp`, so that test also fails in this local environment; the Cookbook CI runner uses Ubuntu. The recipe itself does not change either unrelated example or test. MCP client interoperability is verified with MCP Inspector as described above.
 
 ```bash
 python -m pytest
@@ -141,4 +145,4 @@ Run the Cookbook's `python scripts/validate_recipe.py examples/tool_agent` and `
 
 ## AI assistance
 
-Codex was used to read the take-home and Cookbook requirements and assist with implementation. The author should review and be able to explain every submitted line, as required by the assignment.
+Codex assisted with implementation, test development, and documentation. The author selected the project approach and recorded the walkthrough.
