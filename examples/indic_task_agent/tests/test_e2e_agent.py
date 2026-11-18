@@ -321,3 +321,20 @@ def test_fit_redrafts_cheap_steps_before_buying_speech(bodhan, monkeypatch, tmp_
     assert fits and fits[0]["wanted_s"] == 10 and fits[0]["predicted_s"] > 10 * 1.06
     assert len(drafts) >= 2  # the English draft was redone before any speech request
     assert not INDIC.search("\n".join(json.dumps(e, ensure_ascii=False) for e in trace))
+
+
+def test_an_unpriceable_plan_gets_one_repair_before_anything_is_bought(bodhan, monkeypatch, tmp_path):
+    src = tmp_path / "in.txt"
+    src.write_text("A short English line.")
+    bad = {"understanding": "Read it.", "steps": [{"id": "s1", "intent": "mt", "tool": "translate_text", "args": {"source_path": "$s0.text_path", "target_language": "ta"}}],
+           "final_outputs": [{"role": "t", "from": "s1"}]}
+    good = {"understanding": "Read it.", "steps": [{"id": "s1", "intent": "mt", "tool": "translate_text", "args": {"source_path": str(src), "target_language": "ta"}}],
+            "final_outputs": [{"role": "t", "from": "s1"}]}
+    replies = iter([json.dumps(bad), json.dumps(good)])
+    monkeypatch.setattr(llm, "chat", lambda m, max_tokens=4096, temperature=0.2: llm.LlmReply(next(replies), "stop", 1, 1))
+    bodhan.mt_fn = lambda rec: TAMIL
+    out = tmp_path / "run"
+    assert run(out, src) == 0
+    report = report_of(out)
+    assert report["replans"] == 1 and report["status"] in ("completed", "partial")
+    assert any(s["tool"] == "translate_text" and s["ok"] for s in report["steps"])

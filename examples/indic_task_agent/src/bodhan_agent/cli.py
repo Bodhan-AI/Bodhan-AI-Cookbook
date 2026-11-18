@@ -84,7 +84,20 @@ def main(argv: list[str] | None = None) -> int:
         if not plan_obj.feasible:
             raise BodhanError(plan_obj.refusal_code or "UNSUPPORTED_TASK", plan_obj.refusal or "The task cannot be done with the available models.", hint="No model was called and no output was produced.")
 
-        estimate = sum(price_step(s, lookup) for s in plan_obj.steps) * 1.15
+        try:
+            estimate = sum(price_step(s, lookup) for s in plan_obj.steps) * 1.15
+        except BodhanError as exc:
+            if exc.code != "LLM_INVALID_PLAN":
+                raise
+            replans += 1
+            trace.emit("replan", reason="unpriceable_plan", replans_used=replans, note=exc.message)
+            plan_obj = planner.plan(args.task + "\n\nYour previous plan could not be priced: " + exc.message + " Return the corrected plan.", rows, budgets, trace, attempt=2)
+            if not plan_obj.feasible:
+                raise BodhanError(plan_obj.refusal_code or "UNSUPPORTED_TASK", plan_obj.refusal or "The task cannot be done with the available models.") from None
+            assumptions = [a.model_dump() for a in plan_obj.assumptions]
+            understanding = plan_obj.understanding
+            estimate = sum(price_step(s, lookup) for s in plan_obj.steps) * 1.15
+            (out / "plan.json").write_text(plan_obj.model_dump_json(by_alias=True), encoding="utf-8")
         trace.emit("estimate", estimated_cost_inr=round(estimate, 4), max_cost_inr=args.max_cost_inr)
         if estimate > args.max_cost_inr:
             replans += 1

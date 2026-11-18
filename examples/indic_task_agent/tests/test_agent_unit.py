@@ -345,3 +345,9 @@ def test_write_text_rejects_an_indic_draft(tmp_path, fake_llm):
         executor._write_text({"inputs": [str(src)], "out_dir": str(tmp_path)}, Trace(tmp_path / "t.jsonl"))
     assert exc.value.code == "LLM_WROTE_INDIC"
     assert not list(tmp_path.glob("draft_*"))
+
+
+def test_step_level_keys_misplaced_inside_args_are_moved_out():
+    got = Step.model_validate({"id": "s5", "intent": "speak", "tool": "speak_text",
+                               "args": {"text_path": "x", "language": "ta", "fit": {"seconds": 120, "redo": ["s3"]}}})
+    assert got.fit == {"seconds": 120, "redo": ["s3"]} and "fit" not in got.args

@@ -32,6 +32,9 @@ class Step(BaseModel):
 
     @model_validator(mode="after")
     def _when_shape(self) -> Step:
+        for key in ("when", "fit"):  # models sometimes tuck step-level keys inside args
+            if key in self.args and getattr(self, key) is None:
+                setattr(self, key, self.args.pop(key))
         if self.when is not None and not (set(self.when) == {"ref", "equals"} and str(self.when["ref"]).startswith("$")):
             raise ValueError('when must be {"ref": "$sN.field", "equals": value}')
         if self.fit is not None and not (self.tool == "speak_text" and isinstance(self.fit.get("seconds"), (int, float)) and self.fit["seconds"] > 0):
@@ -98,7 +101,7 @@ Hard rules, in order:
 8. Use probe_media first when a file's kind, length or language is unknown. For audio, do not guess the language from the task wording if the audio can be auto-detected.
 9. write_text is the only way to create English prose; every step that consumes generated text must set expected_chars.
 10. Subtitles: transcribe, then translate the transcript to the target language, and list the transcript step in final_outputs so the agent can build an SRT from its timestamps.
-12. When the task asks for audio of a given length, speech length depends on the characters of the FINAL language, not the English draft (Tamil, Malayalam and similar run 15-25% longer). Put "fit": {{"seconds": N, "redo": [ids of the write_text and translate steps that make the spoken text]}} on the speak_text step; Python measures the translated text before any speech is bought and re-drafts it to fit.
+12. When the task asks for audio of a given length, speech length depends on the characters of the FINAL language, not the English draft (Tamil, Malayalam and similar run 15-25% longer). Put "fit": {{"seconds": N, "redo": [ids of the write_text and translate steps that make the spoken text]}} on the speak_text step itself (a step-level key beside "depends_on", not inside "args"); Python measures the translated text before any speech is bought and re-drafts it to fit.
 11. A script can be shared by several languages (Devanagari: hi, mr, ne; Bengali: bn, as; Perso-Arabic: ur). Use the task wording and file names to choose; if it stays ambiguous, state the choice in assumptions rather than guessing silently.
 
 Supported translation targets: {", ".join(catalog.MT_LANGUAGES)}.
@@ -108,7 +111,7 @@ Answer with ONE JSON object and nothing else:
   "assumptions": [{{"text": "...", "why": "..."}}],
   "steps": [{{"id": "s1", "intent": "...", "tool": "...", "args": {{...}}, "depends_on": [], "expected_chars": null}}],
   "final_outputs": [{{"role": "audio", "from": "s3"}}]}}
-Any step may carry "when": {{"ref": "$s1.language_hint", "equals": "te"}}: it runs only if that tool-reported value matches, otherwise it is skipped at no cost, and skipped steps drop out of later inputs. Use it for "do X only for the clips that are Telugu". language_hint is null for scripts shared by several languages, so compare only where the script is decisive (Tamil, Telugu, Kannada, Malayalam, Gujarati, Gurmukhi, Odia).
+Any step may carry "when" (a step-level key beside "depends_on", not inside "args"): {{"ref": "$s1.language_hint", "equals": "te"}}: it runs only if that tool-reported value matches, otherwise it is skipped at no cost, and skipped steps drop out of later inputs. Use it for "do X only for the clips that are Telugu". language_hint is null for scripts shared by several languages, so compare only where the script is decisive (Tamil, Telugu, Kannada, Malayalam, Gujarati, Gurmukhi, Odia).
 For a listing or summary that depends on detected values, pass them to write_text as facts, never as file names.
 Use `$s1.text_path` (and similar) inside args to reference an earlier step's output field.
 """
