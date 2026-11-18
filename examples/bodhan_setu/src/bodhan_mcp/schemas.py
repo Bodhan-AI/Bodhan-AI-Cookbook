@@ -145,6 +145,28 @@ class TranslateVideoResult(CommonResult, total=False):
     expires_in_seconds: int
 
 
+class TranslateAudioResult(CommonResult, total=False):
+    source_file: str
+    output_file: str
+    duration_seconds: float
+    speech_regions: int
+    translated_regions: int
+    target_language: str
+    selected_voice: SelectedVoice
+    cost_estimates: list[CostEstimate]
+    known_estimated_total_inr: float
+    estimated_total_inr: float
+    estimate_complete: bool
+    estimate_note: str | None
+    file_id: str
+    media_type: str
+    size_bytes: int
+    expires_in_seconds: int
+    transcript: str
+    translation: str
+    note: str
+
+
 class TranslateTextResult(CommonResult, total=False):
     translation: str
     target_language: str

@@ -17,6 +17,7 @@ from bodhan_mcp.schemas import (
     SynthesizeSpeechResult,
     TranscribeAudioResult,
     TranscribeVideoResult,
+    TranslateAudioResult,
     TranslateTextResult,
     TranslateVideoResult,
     TransliterateTextResult,
@@ -64,6 +65,23 @@ def _write_wav(path: Path, seconds: int, rate: int = 16_000):
         audio.setsampwidth(2)
         audio.setframerate(rate)
         audio.writeframes(b"\0\0" * seconds * rate)
+
+
+def _write_speech_wav(path: Path, seconds: int = 4, rate: int = 16_000):
+    import math
+    import struct
+
+    frames = bytearray()
+    for index in range(seconds * rate):
+        moment = index / rate
+        amplitude = 5000 if 1.0 <= moment < 2.5 else 100
+        value = int(amplitude * math.sin(2 * math.pi * 220 * moment))
+        frames.extend(struct.pack("<h", value))
+    with wave.open(str(path), "wb") as audio:
+        audio.setnchannels(1)
+        audio.setsampwidth(2)
+        audio.setframerate(rate)
+        audio.writeframes(frames)
 
 
 def test_translation_chunks_at_safe_boundaries_and_reassembles(monkeypatch, tmp_path):
@@ -155,6 +173,107 @@ def test_transcribe_audio_dry_run_reports_chunk_count(tmp_path):
     result = server.transcribe_audio(str(audio_path), dry_run=True)
     assert result["chunk_count"] == 3
     assert result["will_call_api"] is False
+
+
+def test_translate_audio_dry_run_detects_vad_without_model_calls(tmp_path, monkeypatch):
+    source = tmp_path / "speech.wav"
+    _write_speech_wav(source)
+    monkeypatch.setattr(server, "transcribe_audio", lambda *args, **kwargs: pytest.fail("dry run called transcription"))
+    monkeypatch.setattr(server, "translate_text", lambda *args, **kwargs: pytest.fail("dry run called translation"))
+    monkeypatch.setattr(server, "synthesize_speech", lambda *args, **kwargs: pytest.fail("dry run called synthesis"))
+
+    result = server._translate_audio_regions(
+        source,
+        tmp_path / "out.wav",
+        target_language="hi",
+        voice="Amit",
+        source_language=None,
+        script=None,
+        output_tokens_estimate=None,
+        speech_characters_estimate=None,
+        dry_run=True,
+    )
+
+    assert result["dry_run"] is True
+    assert result["speech_regions"] == 1
+    assert result["estimate_complete"] is False
+    assert result["will_call_api"] is False
+
+
+def test_translate_audio_replaces_only_vad_spans_and_keeps_source_duration(tmp_path, monkeypatch):
+    source = tmp_path / "speech.wav"
+    output = tmp_path / "translated.wav"
+    _write_speech_wav(source)
+
+    def fake_transcribe(path, language=None):
+        return {"text": "hello", "cost_inr": 0.01}
+
+    def fake_translate(text, target, script=None):
+        return {"translation": "namaste", "cost_inr": 0.02}
+
+    def fake_synthesize(text, language, voice, path):
+        _write_wav(Path(path), 1)
+        return {"cost_inr": 0.03}
+
+    def fake_fit(path, fitted, duration, rate):
+        frame_count = round(duration * rate)
+        with wave.open(str(fitted), "wb") as audio:
+            audio.setnchannels(1)
+            audio.setsampwidth(2)
+            audio.setframerate(rate)
+            audio.writeframes(b"\x10\x27" * frame_count)
+
+    monkeypatch.setattr(server, "transcribe_audio", fake_transcribe)
+    monkeypatch.setattr(server, "translate_text", fake_translate)
+    monkeypatch.setattr(server, "synthesize_speech", fake_synthesize)
+    monkeypatch.setattr(server, "_fit_wav_duration", fake_fit)
+    intervals = server._vad_intervals(source, max_seconds=25, min_silence_ms=300, padding_ms=120)[1]
+
+    result = server._translate_audio_regions(
+        source,
+        output,
+        target_language="hi",
+        voice="Amit",
+        source_language=None,
+        script=None,
+        output_tokens_estimate=5,
+        speech_characters_estimate=10,
+        dry_run=False,
+    )
+
+    with wave.open(str(source), "rb") as source_wav, wave.open(str(output), "rb") as output_wav:
+        original = source_wav.readframes(source_wav.getnframes())
+        translated = output_wav.readframes(output_wav.getnframes())
+        assert output_wav.getnframes() == source_wav.getnframes()
+    start, end = intervals[0]
+    assert translated[: start * 2] == original[: start * 2]
+    assert translated[end * 2 :] == original[end * 2 :]
+    assert translated[start * 2 : end * 2] != original[start * 2 : end * 2]
+    assert result["translated_regions"] == 1
+    assert result["transcript"] == "hello"
+    assert result["translation"] == "namaste"
+
+
+@pytest.mark.skipif(not server.shutil.which("ffmpeg") or not server.shutil.which("ffprobe"), reason="FFmpeg is required")
+def test_audio_duration_fit_and_video_mux_preserve_source_duration(tmp_path):
+    speech = tmp_path / "speech.wav"
+    fitted = tmp_path / "fitted.wav"
+    _write_wav(speech, 2)
+    server._fit_wav_duration(speech, fitted, 1.25, 16_000)
+    assert server._wav_info(fitted)[2] == pytest.approx(1.25, abs=0.02)
+
+    video = tmp_path / "source.mp4"
+    replacement_audio = tmp_path / "replacement.wav"
+    output = tmp_path / "translated.mp4"
+    ffmpeg = server._find_media_binary("ffmpeg")
+    server._run_media_command(
+        [ffmpeg, "-nostdin", "-hide_banner", "-loglevel", "error", "-y", "-f", "lavfi", "-i", "color=c=black:s=160x120:r=10:d=1.6", "-t", "1.6", "-c:v", "libx264", "-pix_fmt", "yuv420p", str(video)],
+        "Video fixture creation",
+    )
+    _write_wav(replacement_audio, 3)
+    result = server._replace_video_audio(video, replacement_audio, output)
+    assert result["duration_strategy"] == "source_duration_preserved_audio_trimmed"
+    assert server._probe_video_duration(output) == pytest.approx(server._probe_video_duration(video), abs=0.1)
 
 
 def test_chunk_audio_splits_to_requested_duration(monkeypatch, tmp_path):
@@ -274,6 +393,7 @@ def test_all_tools_have_typed_output_contracts():
         "extract_video_audio": ExtractVideoAudioResult,
         "replace_video_audio_track": ReplaceVideoAudioResult,
         "translate_video": TranslateVideoResult,
+        "translate_audio": TranslateAudioResult,
         "translate_text": TranslateTextResult,
         "transliterate_text": TransliterateTextResult,
         "synthesize_speech": SynthesizeSpeechResult,

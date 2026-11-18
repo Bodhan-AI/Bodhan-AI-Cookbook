@@ -38,6 +38,7 @@ from .schemas import (
     SynthesizeSpeechResult,
     TranscribeAudioResult,
     TranscribeVideoResult,
+    TranslateAudioResult,
     TranslateTextResult,
     TranslateVideoResult,
     TransliterateTextResult,
@@ -517,6 +518,17 @@ def _extract_video_audio(video_path: Path, audio_path: Path) -> float:
     return _wav_info(audio_path)[2]
 
 
+def _convert_audio_to_wav(source_path: Path, audio_path: Path) -> float:
+    """Normalize common audio formats to mono 16 kHz PCM WAV for VAD/STT."""
+    audio_path.parent.mkdir(parents=True, exist_ok=True)
+    ffmpeg = _find_media_binary("ffmpeg")
+    _run_media_command([
+        ffmpeg, "-nostdin", "-hide_banner", "-loglevel", "error", "-y", "-i", str(source_path),
+        "-map", "0:a:0", "-vn", "-ac", "1", "-ar", "16000", "-c:a", "pcm_s16le", str(audio_path),
+    ], "Audio normalization")
+    return _wav_info(audio_path)[2]
+
+
 def _probe_video_duration(video_path: Path) -> float:
     ffprobe = _find_media_binary("ffprobe")
     result = _run_media_command([
@@ -548,7 +560,7 @@ def _probe_audio_duration(audio_path: Path) -> float:
 
 
 def _replace_video_audio(video_path: Path, audio_path: Path, output_path: Path) -> dict[str, Any]:
-    """Replace a video's audio stream and handle duration mismatch without truncating speech."""
+    """Replace a video's audio while keeping the original video duration."""
     if output_path.suffix.lower() not in {".mp4", ".mov", ".mkv"}:
         raise ToolError("output_file must end in .mp4, .mov, or .mkv")
     if output_path.resolve() in {video_path.resolve(), audio_path.resolve()}:
@@ -557,20 +569,176 @@ def _replace_video_audio(video_path: Path, audio_path: Path, output_path: Path) 
     video_duration = _probe_video_duration(video_path)
     audio_duration = _probe_audio_duration(audio_path)
     ffmpeg = _find_media_binary("ffmpeg")
-    command = [ffmpeg, "-nostdin", "-hide_banner", "-loglevel", "error", "-y", "-i", str(video_path), "-i", str(audio_path), "-map", "0:v:0", "-map", "1:a:0"]
-    if audio_duration > video_duration:
-        extension = audio_duration - video_duration
-        command += ["-vf", f"tpad=stop_mode=clone:stop_duration={extension:.3f}", "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-c:a", "aac", "-shortest"]
-        duration_strategy = "video_extended_with_frozen_final_frame"
+    command = [ffmpeg, "-nostdin", "-hide_banner", "-loglevel", "error", "-y", "-i", str(video_path), "-i", str(audio_path), "-map", "0:v:0", "-map", "1:a:0", "-t", f"{video_duration:.3f}"]
+    if audio_duration < video_duration:
+        command += ["-af", f"apad=pad_dur={video_duration - audio_duration:.3f}"]
+        duration_strategy = "source_duration_preserved_audio_padded_with_silence"
+    elif audio_duration > video_duration:
+        duration_strategy = "source_duration_preserved_audio_trimmed"
     else:
-        padding = video_duration - audio_duration
-        command += ["-c:v", "copy", "-af", f"apad=pad_dur={padding:.3f}", "-c:a", "aac", "-shortest"]
-        duration_strategy = "replacement_audio_padded_with_silence"
+        duration_strategy = "source_duration_preserved"
+    command += ["-c:v", "copy", "-c:a", "aac"]
     if output_path.suffix.lower() == ".mp4":
         command += ["-movflags", "+faststart"]
     command.append(str(output_path))
     _run_media_command(command, "Video audio replacement")
     return {"output_file": str(output_path), "size_bytes": output_path.stat().st_size, "video_duration_seconds": round(video_duration, 3), "replacement_audio_duration_seconds": round(audio_duration, 3), "duration_strategy": duration_strategy}
+
+
+def _fit_wav_duration(source: Path, output: Path, duration_seconds: float, sample_rate: int) -> None:
+    """Time-fit generated speech to a VAD region and normalize it for PCM splicing."""
+    ffmpeg = _find_media_binary("ffmpeg")
+    source_duration = _probe_audio_duration(source)
+    ratio = source_duration / max(duration_seconds, 0.001)
+    filters: list[str] = []
+    while ratio > 2.0:
+        filters.append("atempo=2.0")
+        ratio /= 2.0
+    while ratio < 0.5:
+        filters.append("atempo=0.5")
+        ratio /= 0.5
+    filters.append(f"atempo={ratio:.8f}")
+    filters.extend([f"aresample={sample_rate}", f"apad=pad_dur={duration_seconds:.6f}", f"atrim=duration={duration_seconds:.6f}"])
+    _run_media_command([ffmpeg, "-nostdin", "-hide_banner", "-loglevel", "error", "-y", "-i", str(source), "-af", ",".join(filters), "-ac", "1", "-c:a", "pcm_s16le", str(output)], "Translated speech duration fitting")
+
+
+def _translate_audio_regions(
+    source_path: Path,
+    output_path: Path,
+    *,
+    target_language: str,
+    voice: str,
+    source_language: str | None,
+    script: str | None,
+    output_tokens_estimate: int | None,
+    speech_characters_estimate: int | None,
+    dry_run: bool,
+) -> dict[str, Any]:
+    """Translate speech-only VAD regions, then restore all original off-speech samples."""
+    try:
+        params, intervals = _vad_intervals(source_path, max_seconds=MAX_TRANSCRIBE_SECONDS, min_silence_ms=300, padding_ms=120)
+    except ToolError as exc:
+        if "VAD detected no speech" not in str(exc):
+            raise
+        params, _, _ = _wav_info(source_path)
+        intervals = []
+    _, _, duration = _wav_info(source_path)
+    costs = [_estimate("indic-transcribe", duration / 60, "audio_minute")] if intervals else []
+    if intervals and output_tokens_estimate is not None:
+        costs.append(_estimate("indic-translate", output_tokens_estimate, "output_token"))
+    if intervals and speech_characters_estimate is not None:
+        costs.append(_estimate("indic-speak", speech_characters_estimate, "character"))
+    if dry_run:
+        return {
+            "dry_run": True,
+            "will_call_api": False,
+            "duration_seconds": round(duration, 3),
+            "speech_regions": len(intervals),
+            "cost_estimates": costs,
+            "known_estimated_total_inr": round(sum(item["estimated_cost_inr"] for item in costs), 6),
+            "estimate_complete": output_tokens_estimate is not None and speech_characters_estimate is not None,
+            "estimate_note": None if output_tokens_estimate is not None and speech_characters_estimate is not None else "Supply estimated_translation_output_tokens and estimated_speech_characters for a complete estimate; transcript and output sizes depend on speech content.",
+        }
+
+    if output_path.resolve() == source_path.resolve():
+        raise ToolError("output_file must differ from the source audio")
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    if not intervals:
+        shutil.copyfile(source_path, output_path)
+        return {
+            "output_file": str(output_path),
+            "duration_seconds": round(duration, 3),
+            "speech_regions": 0,
+            "translated_regions": 0,
+            "target_language": target_language,
+            "selected_voice": {"voice": voice, "language": target_language},
+            "transcript": "",
+            "translation": "",
+            "cost_estimates": [],
+            "estimated_total_inr": 0.0,
+            "cost_inr": 0.0,
+            "note": "No speech was detected; the normalized source audio was copied without Bodhan API calls.",
+            "size_bytes": output_path.stat().st_size,
+        }
+    with tempfile.TemporaryDirectory(prefix="bodhan-translate-audio-") as temporary:
+        work = Path(temporary)
+        region_files = _write_wav_intervals(source_path, work / "regions", intervals, params)
+        with wave.open(str(source_path), "rb") as original:
+            source_frames = bytearray(original.readframes(original.getnframes()))
+        bytes_per_frame = params.nchannels * params.sampwidth
+        transcripts: list[str] = []
+        translations: list[str] = []
+        actual_transcribe_cost = 0.0
+        actual_translate_cost = 0.0
+        actual_speech_cost = 0.0
+        for region in region_files:
+            part_path = Path(region["file_path"])
+            transcript = transcribe_audio(str(part_path), language=source_language)
+            text = str(transcript.get("text", "")).strip()
+            if not text:
+                continue
+            transcripts.append(text)
+            actual_transcribe_cost += float(transcript.get("cost_inr") or 0)
+            translated = translate_text(text, target_language, script=script)
+            translated_text = str(translated.get("translation", "")).strip()
+            if not translated_text:
+                raise ToolError(f"Translation returned empty text for speech region {region['index']}; output was not written")
+            translations.append(translated_text)
+            actual_translate_cost += float(translated.get("cost_inr") or 0)
+            generated = work / f"generated_{region['index']:04d}.wav"
+            speech = synthesize_speech(translated_text, target_language, voice, str(generated))
+            actual_speech_cost += float(speech.get("cost_inr") or 0)
+            region_duration = region["duration_seconds"]
+            fitted = work / f"fitted_{region['index']:04d}.wav"
+            _fit_wav_duration(generated, fitted, region_duration, params.framerate)
+            with wave.open(str(fitted), "rb") as generated_wav:
+                generated_frames = generated_wav.readframes(generated_wav.getnframes())
+            start = intervals[region["index"] - 1][0] * bytes_per_frame
+            end = intervals[region["index"] - 1][1] * bytes_per_frame
+            expected = end - start
+            source_frames[start:end] = generated_frames[:expected].ljust(expected, b"\0")
+        with wave.open(str(output_path), "wb") as output:
+            output.setparams(params)
+            output.writeframes(source_frames)
+    actual_costs = [
+        {"model": "indic-transcribe", "estimated_cost_inr": round(actual_transcribe_cost, 6)},
+        {"model": "indic-translate", "estimated_cost_inr": round(actual_translate_cost, 6)},
+        {"model": "indic-speak", "estimated_cost_inr": round(actual_speech_cost, 6)},
+    ]
+    return {
+        "output_file": str(output_path),
+        "duration_seconds": round(duration, 3),
+        "speech_regions": len(intervals),
+        "translated_regions": len(translations),
+        "target_language": target_language,
+        "selected_voice": {"voice": voice, "language": target_language},
+        "transcript": "\n".join(transcripts),
+        "translation": "\n".join(translations),
+        "cost_estimates": actual_costs,
+        "estimated_total_inr": round(sum(item["estimated_cost_inr"] for item in actual_costs), 6),
+        "cost_note": "Translation token and synthesis character quantities are pre-run estimates; actual tool usage costs are reported in nested tool results.",
+        "size_bytes": output_path.stat().st_size,
+    }
+
+
+def _audio_translation_voice(source_path: Path, target_language: str, requested_voice: str | None) -> dict[str, Any]:
+    catalog = _api_rules()["models"]["indic-speak"]["voices"]
+    target_voices = [name for group in catalog.get(target_language, {}).values() for name in group]
+    if not target_voices:
+        raise ToolError(f"No Bodhan-Speak voice is listed for target language {target_language}; supported language codes are in bodhan://languages")
+    if requested_voice:
+        if requested_voice not in target_voices:
+            raise ToolError(f"Voice {requested_voice!r} is not listed for {target_language}; read bodhan://voices")
+        return {"voice": requested_voice, "language": target_language, "method": "caller_selected"}
+    try:
+        library = load_voice_library(VOICE_EMBEDDINGS_PATH)
+        catalog_names = {voice for groups in catalog.values() for names in groups.values() for voice in names}
+        if {row.get("voice") for row in library["voices"]} != catalog_names:
+            raise ValueError("voice embedding library does not match the current voice catalog")
+        return closest_voice(audio_features(source_path), library["voices"])
+    except (ValueError, OSError) as exc:
+        gender, voice = next((gender, voice) for gender, names in catalog[target_language].items() for voice in names)
+        return {"voice": voice, "language": target_language, "gender": gender, "distance": None, "similarity_score": None, "method": "catalog_fallback", "match_note": "DSP voice match unavailable; selected the first catalog voice for the target language."}
 
 
 def _text_chunks(text: str, max_chars: int = MAX_SPEAK_CHARS) -> list[str]:
@@ -803,13 +971,52 @@ def extract_video_audio(video_file: str, output_audio_file: str) -> ExtractVideo
 
 @mcp.tool()
 def replace_video_audio_track(video_file: str, audio_file: str, output_file: str) -> ReplaceVideoAudioResult:
-    """Final step of a manual dubbing chain: video_file and audio_file accept paths or setu:=<file_id> references. Create a new video using the supplied replacement audio; keep source inputs unchanged. Visuals are preserved; if speech is longer, the final frame is held so speech is not cut off; if shorter, audio is padded. This does not lip-sync. Returns a temporary video file_id for downstream use. Requires FFmpeg and FFprobe; local operation only."""
+    """Final step of a manual dubbing chain: video_file and audio_file accept paths or setu:=<file_id> references. Create a new video using the supplied replacement audio; keep source inputs unchanged and preserve the source video duration. Short replacement audio is padded with silence; long replacement audio is trimmed at the source duration. This does not lip-sync. Returns a temporary video file_id for downstream use. Requires FFmpeg and FFprobe; local operation only."""
     video_path = _path(video_file)
     audio_path = _path(audio_file)
     if video_path.suffix.lower() not in {".mp4", ".mov", ".mkv", ".webm", ".avi"}:
         raise ToolError("video_file must be MP4, MOV, MKV, WebM, or AVI")
     result = _replace_video_audio(video_path, audio_path, Path(output_file).expanduser())
     return {**result, **_publish_file(Path(result["output_file"]), media_type="video/mp4"), "source_video": str(video_path), "replacement_audio": str(audio_path), "cost_inr": 0.0}
+
+
+@mcp.tool()
+def translate_audio(
+    audio_file: str,
+    target_language: str,
+    output_file: str,
+    voice: str | None = None,
+    source_language: str | None = None,
+    script: str | None = None,
+    dry_run: bool = False,
+    estimated_translation_output_tokens: int | None = None,
+    estimated_speech_characters: int | None = None,
+) -> TranslateAudioResult:
+    """Translate speech in a local audio file and return dubbed audio with the source duration. Uses frame-energy VAD internally, transcribes/translates/synthesizes only detected speech regions, fits generated speech to each region, and restores original audio samples outside those regions. audio_file accepts a path or setu:=<file_id>. If source language is unknown, omit source_language for Bodhan transcription auto-detection. target_language must be supported by Bodhan Translate and Speak. If voice is omitted, choose the closest voice from the DSP library; if matching is unavailable, choose a catalog voice for the target language. Run with dry_run=True first; supply estimated_translation_output_tokens and estimated_speech_characters for a complete estimate. The dry run detects speech regions locally and makes no Bodhan API calls. Requires FFmpeg and FFprobe."""
+    path = _path(audio_file)
+    _require_supported_language("indic-translate", target_language)
+    if estimated_translation_output_tokens is not None and estimated_translation_output_tokens < 0:
+        raise ToolError("estimated_translation_output_tokens must be non-negative")
+    if estimated_speech_characters is not None and estimated_speech_characters < 0:
+        raise ToolError("estimated_speech_characters must be non-negative")
+    output_path = Path(output_file).expanduser()
+    if output_path.suffix.lower() != ".wav":
+        raise ToolError("output_file must end in .wav")
+    if output_path.resolve() == path.resolve():
+        raise ToolError("output_file must differ from audio_file")
+    if dry_run:
+        with tempfile.TemporaryDirectory(prefix="bodhan-audio-preflight-") as temporary:
+            wav_path = Path(temporary) / "source.wav"
+            _convert_audio_to_wav(path, wav_path)
+            selected = _audio_translation_voice(wav_path, target_language, voice)
+            return {"source_file": str(path), "target_language": target_language, "selected_voice": selected, **_translate_audio_regions(wav_path, output_path, target_language=target_language, voice=selected["voice"], source_language=source_language, script=script, output_tokens_estimate=estimated_translation_output_tokens, speech_characters_estimate=estimated_speech_characters, dry_run=True)}
+    with tempfile.TemporaryDirectory(prefix="bodhan-audio-translate-") as temporary:
+        wav_path = Path(temporary) / "source.wav"
+        _convert_audio_to_wav(path, wav_path)
+        selected = _audio_translation_voice(wav_path, target_language, voice)
+        result = _translate_audio_regions(wav_path, output_path, target_language=target_language, voice=selected["voice"], source_language=source_language, script=script, output_tokens_estimate=estimated_translation_output_tokens, speech_characters_estimate=estimated_speech_characters, dry_run=False)
+    result.update({"source_file": str(path), "target_language": target_language, "selected_voice": selected, **_publish_file(output_path, media_type="audio/wav"), "cost_inr": result.get("estimated_total_inr", 0.0)})
+    return result
 
 
 @mcp.tool()
@@ -869,59 +1076,27 @@ def translate_video(
             match_note = "DSP voice match unavailable; selected the first catalog voice for the target language."
         if match_note:
             match["match_note"] = match_note
-        transcript_result = transcribe_audio(str(source_wav), language=source_language, dry_run=True)
-        translation_estimate = _estimate("indic-translate", estimated_translation_output_tokens, "output_token") if estimated_translation_output_tokens is not None else None
-        speech_estimate = _estimate("indic-speak", estimated_speech_characters, "character") if estimated_speech_characters is not None else None
         if dry_run:
-            estimates = [transcript_result]
-            if translation_estimate:
-                estimates.append(translation_estimate)
-            if speech_estimate:
-                estimates.append(speech_estimate)
             return {
-                "dry_run": True,
                 "source_video": str(video_path),
-                "duration_seconds": round(duration, 3),
                 "selected_voice": {**{key: match.get(key) for key in ("voice", "language", "gender", "distance", "similarity_score", "method")}, **({"match_note": match_note} if match_note else {})},
-                "cost_estimates": estimates,
-                "known_estimated_total_inr": round(sum(item["estimated_cost_inr"] for item in estimates), 6),
-                "estimate_complete": translation_estimate is not None and speech_estimate is not None,
-                "estimate_note": None if translation_estimate and speech_estimate else "Supply estimated_translation_output_tokens and estimated_speech_characters for a complete pre-run estimate; transcription estimate is duration-based.",
-                "will_call_api": False,
+                **_translate_audio_regions(source_wav, output_path, target_language=target_language, voice=match["voice"], source_language=source_language, script=script, output_tokens_estimate=estimated_translation_output_tokens, speech_characters_estimate=estimated_speech_characters, dry_run=True),
             }
-
-        transcript = transcribe_audio(str(source_wav), language=source_language)
-        text = transcript.get("text", "").strip()
-        if not text:
-            raise ToolError("Transcription returned no speech; translation and synthesis were skipped")
-        translated = translate_text(text, target_language, script=script)
-        translated_text = translated.get("translation", "").strip()
-        if not translated_text:
-            raise ToolError("Translation returned no text; speech synthesis was skipped")
         audio_output = temporary_path / "translated.wav"
-        # A catalog voice may be recorded in another language; Bodhan-Speak
-        # accepts any voice for any language, so synthesize in the requested
-        # translated language. This also keeps cache keys consistent with the
-        # manual dubbing chain for the same text, language, and voice.
-        speech = synthesize_speech(translated_text, target_language, match["voice"], str(audio_output))
+        translated_audio = _translate_audio_regions(source_wav, audio_output, target_language=target_language, voice=match["voice"], source_language=source_language, script=script, output_tokens_estimate=estimated_translation_output_tokens, speech_characters_estimate=estimated_speech_characters, dry_run=False)
         replacement = _replace_video_audio(video_path, audio_output, output_path)
-        actual_estimates = [
-            _estimate("indic-transcribe", duration / 60, "audio_minute"),
-            _estimate("indic-translate", len(translated_text), "estimated_output_token"),
-            _estimate("indic-speak", len(translated_text), "character"),
-        ]
         return {
             "source_video": str(video_path),
             **replacement,
             **_publish_file(output_path, media_type="video/mp4"),
-            "transcript": text,
-            "translation": translated_text,
+            "transcript": translated_audio.get("transcript", ""),
+            "translation": translated_audio.get("translation", ""),
             "target_language": target_language,
             "selected_voice": {**{key: match.get(key) for key in ("voice", "language", "gender", "distance", "similarity_score", "method")}, **({"match_note": match_note} if match_note else {})},
-            "steps": {"transcription": transcript, "translation": translated, "speech": speech},
-            "cost_estimates": actual_estimates,
-            "estimated_total_inr": round(sum(item["estimated_cost_inr"] for item in actual_estimates), 6),
-            "cost_note": "Translation output tokens and speech characters are estimated from translated character count; check Bodhan billing for actual usage.",
+            "steps": translated_audio,
+            "cost_estimates": translated_audio.get("cost_estimates", []),
+            "estimated_total_inr": translated_audio.get("estimated_total_inr", 0.0),
+            "cost_note": translated_audio.get("cost_note"),
         }
 
 

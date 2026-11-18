@@ -34,6 +34,7 @@ PAID_TOOLS = {
     "transliterate_text",
     "synthesize_speech",
     "ocr_document",
+    "translate_audio",
     "translate_video",
 }
 INPUT_PATH_FIELDS = {"audio_file", "video_file", "image_file", "pdf_file", "file_ref"}
@@ -54,6 +55,7 @@ Hard rules:
 - Omit source language when unknown if Indic-Transcribe can infer it. It does not return a detected-language code or confidence; label language conclusions as inference.
 - Use translate_text for meaning changes and transliterate_text for script changes. Do not conflate them.
 - Prefer `translate_video` for a requested translated/dubbed video; use transcript and processing tools for other workflows.
+- Prefer `translate_audio` for translated speech audio when preserving non-speech sounds and source duration matters; it runs VAD, transcribes/translates/synthesizes speech regions, then restores audio outside those regions.
 - Before finishing, check the requested artifacts and state what was verified, what remains uncertain, and any failed step. Generated audio needs back-transcription when the budget allows. Translation completeness and meaning should be checked against its source.
 - Do not expose API keys, base64 media, or large file contents in the final response.
 
@@ -312,7 +314,7 @@ class TaskAgent:
             else:
                 suffix = Path(original).suffix
                 if not suffix:
-                    suffix = {"synthesize_speech": ".wav", "ocr_document": ".md", "translate_video": ".mp4", "replace_video_audio_track": ".mp4"}.get(tool_name, "")
+                    suffix = {"synthesize_speech": ".wav", "translate_audio": ".wav", "ocr_document": ".md", "translate_video": ".mp4", "replace_video_audio_track": ".mp4"}.get(tool_name, "")
                 target = self.artifact_dir / f"{call_index:02d}-{_safe_name(tool_name)}{suffix}"
                 target.parent.mkdir(parents=True, exist_ok=True)
             cleaned[field] = str(target)
@@ -452,7 +454,11 @@ class TaskAgent:
             result, is_error, _ = await self._call_mcp(session, tool_name, args)
             return result, is_error, {}
 
-        if self.steps + 2 > self.max_steps:
+        needs_sizing_retry = tool_name in {"translate_video", "translate_audio"} and (
+            not args.get("estimated_translation_output_tokens") or not args.get("estimated_speech_characters")
+        )
+        required_steps = 3 if needs_sizing_retry else 2
+        if self.steps + required_steps > self.max_steps:
             return {"error": "not enough remaining MCP steps for a mandatory dry-run and paid call"}, True, {}
         dry_args = dict(args)
         dry_args["dry_run"] = True
@@ -460,15 +466,15 @@ class TaskAgent:
         if estimate_error:
             return {"error": "dry-run estimate failed", "details": estimate}, True, {"dry_run": estimate}
 
-        if tool_name == "translate_video" and not estimate.get("estimate_complete"):
+        if tool_name in {"translate_video", "translate_audio"} and not estimate.get("estimate_complete"):
             duration = float(estimate.get("duration_seconds") or 0)
             if duration <= 0:
-                return {"error": "could not estimate video duration; paid call was not made", "details": estimate}, True, {"dry_run": estimate}
+                return {"error": "could not estimate media duration; paid call was not made", "details": estimate}, True, {"dry_run": estimate}
             # Conservative size assumptions: roughly five output tokens and
             # fourteen spoken characters per second of source audio.
             dry_args["estimated_translation_output_tokens"] = max(1, int(duration * 5))
             dry_args["estimated_speech_characters"] = max(1, int(duration * 14))
-            assumption = f"translate_video output estimated from {duration:.1f}s audio (5 tokens/s and 14 speech characters/s)"
+            assumption = f"{tool_name} output estimated from {duration:.1f}s media (5 tokens/s and 14 speech characters/s)"
             self.assumptions.append(assumption)
             estimate, estimate_error, _ = await self._call_mcp(session, tool_name, dry_args)
             if estimate_error or not estimate.get("estimate_complete"):
@@ -488,7 +494,7 @@ class TaskAgent:
 
         paid_args = dict(args)
         paid_args.pop("dry_run", None)
-        if tool_name == "translate_video":
+        if tool_name in {"translate_video", "translate_audio"}:
             paid_args["estimated_translation_output_tokens"] = dry_args["estimated_translation_output_tokens"]
             paid_args["estimated_speech_characters"] = dry_args["estimated_speech_characters"]
         result, is_error, _ = await self._call_mcp(session, tool_name, paid_args)
@@ -543,7 +549,7 @@ class TaskAgent:
             return {"verdict": "uncertain", "issues": [f"translation review unavailable: {exc}"], "method": "review unavailable"}
 
     async def _verify_tool_output(self, session: ClientSession, tool_name: str, args: dict[str, Any], result: dict[str, Any]) -> None:
-        if tool_name in {"translate_text", "translate_video"}:
+        if tool_name in {"translate_text", "translate_audio", "translate_video"}:
             source_value = args.get("text") if tool_name == "translate_text" else result.get("transcript")
             target_value = result.get("translation")
             source = await self._read_text_reference(session, source_value) if isinstance(source_value, str) else None
