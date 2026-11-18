@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=68.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bodhan-tool-agent"
+version = "0.1.0"
+description = "MCP Tool Server and Task Agent for Bodhan AI Indic Models"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+    { name = "Bodhan Contributor" }
+]
+dependencies = [
+    "mcp==2.3.0",
+    "httpx==0.28.1",
+    "pydantic==2.14.3",
+    "python-dotenv==1.2.4",
+    "PyMuPDF==2.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==9.2.0",
+    "pytest-asyncio==1.5.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+pythonpath = ["src"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]
