@@ -81,9 +81,9 @@ Unique successful responses in the final cached trace represent ₹4.375209, or 
 
 ## Demo and validation status
 
-A captioned local recording of the complete cached run and report walkthrough is prepared with the review bundle. It is not publicly hosted yet. The README and PR need its public, sign-in-free link after applicant review. Generated audio is excluded from git and the sample report's audio paths refer to private local artifacts.
+A captioned 2 minute 12 second local recording of the complete cached run and report walkthrough is prepared with the review bundle. It is not publicly hosted yet. The README and PR need its public, sign-in-free link after applicant review. Generated audio is excluded from git and the sample report's audio paths refer to private local artifacts.
 
-The recipe's 40 tests pass. Cookbook-wide `make check`, a clean installation, the local demo recording and the final secret scan are recorded in the applicant briefing when completed. No PR or submission email has been sent.
+The recipe’s 40 tests pass, including from a fresh Python 3.12 installation built from a clean checkout. A credential-free 108-item CLI smoke run also passes from that installation. Recipe lint, Cookbook model rules, recipe structure validation and the repo-wide secret scan pass. Full `make check` stops at an existing upstream failure: `test_all_shipped_recipes_pass` rejects the unrelated AndroidSpeak example for missing recognized source files, `.env.example`, and `.env` ignore rules. The same failure was reproduced at untouched upstream commit `ae51852`; 31 of the 32 root tests pass. No validator was weakened and the unrelated recipe was not modified. No PR or submission email has been sent.
 
 ## Next quality work
 
