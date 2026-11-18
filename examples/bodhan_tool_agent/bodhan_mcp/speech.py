@@ -14,6 +14,8 @@ import httpx
 from mcp.server.fastmcp.exceptions import ToolError
 from pydantic import BaseModel, Field
 
+from .request_budget import SPEECH_RATE, reserve
+
 SPEECH_URL = "https://api.bodhan.ai/v1/audio/speech"
 # A conservative tool policy based on Bodhan's short-input guidance.
 MAX_CHUNK_CHARACTERS = 200
@@ -56,6 +58,7 @@ def _speech_chunks(text: str) -> list[str]:
 def _request_speech(
     client: httpx.Client, chunk: str, language: SpeechLanguage, voice: Voice, key: str
 ) -> bytes:
+    reserve("indic-speak", len(chunk) * SPEECH_RATE)
     try:
         response = client.post(
             SPEECH_URL,

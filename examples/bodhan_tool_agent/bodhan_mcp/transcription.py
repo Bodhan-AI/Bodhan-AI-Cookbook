@@ -1,5 +1,6 @@
 """Normalize local audio and send bounded WAV windows to Indic-Transcribe."""
 
+from decimal import Decimal
 import io
 import os
 from pathlib import Path
@@ -11,6 +12,8 @@ import wave
 import httpx
 from mcp.server.fastmcp.exceptions import ToolError
 from pydantic import BaseModel, Field, ValidationError
+
+from .request_budget import TRANSCRIBE_PER_SECOND, reserve
 
 TRANSCRIBE_URL = "https://api.bodhan.ai/v1/audio/transcriptions"
 SAMPLE_RATE = 16_000
@@ -81,6 +84,9 @@ def _transcribe_window(
     data = {"model": "indic-transcribe"}
     if language is not None:
         data["language"] = language
+    with wave.open(io.BytesIO(audio), "rb") as window:
+        seconds = Decimal(window.getnframes()) / window.getframerate()
+    reserve("indic-transcribe", seconds * TRANSCRIBE_PER_SECOND)
     try:
         reply = client.post(
             TRANSCRIBE_URL,

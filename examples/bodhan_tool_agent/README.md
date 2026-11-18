@@ -56,3 +56,23 @@ Run the offline checks with `.venv/bin/python -m unittest discover -s tests -v`.
 The translation wrapper sends one short passage per call. Long translation chunking and the task agent are later increments.
 
 [Translation API reference](https://console.bodhan.ai/api-docs/#translation-api)
+
+## Run the task agent
+
+Set `LLM_BASE_URL` (the OpenAI-compatible base, usually ending in `/v1`), `LLM_MODEL`, and `LLM_API_KEY` in the local `.env`. The Bodhan model keys remain separate.
+
+```sh
+.venv/bin/python -m bodhan_agent \
+  --task "Read this scanned handout aloud in Kannada" \
+  --files /path/to/scan.pdf \
+  --out outputs/handout-run \
+  --max-steps 12 --max-cost-inr 2
+```
+
+Choose a new or empty output directory. The agent writes `result.md`, `report.json`, `trace.jsonl` and `artifacts/`. The planner selects typed actions referencing known input and text IDs. The executor imports the same Bodhan operations exposed over stdio. It sends media directly to Bodhan and uses text previews for planning. The translation reviewer sees the full source and result for the supported short passages.
+
+The cost limit covers Bodhan charges at the assignment rates. OCR and speech requests reserve cost before submission, as do each STT window and each translation request. Translation reserves for up to 2,048 output tokens and settles against usage if it is available. Uncertain charges stay reserved. Planner charges are separate. The agent checks translations for coverage through the planner and compares Bodhan's speech read-back to the source. The read-back comparison is a heuristic and can flag ASR variation as a speech mismatch.
+
+The trace records translation review and speech read-back as verification events linked to the planner step that triggered them. Each event has its own latency and Bodhan request costs. Tool events exclude verification latency and costs, so those amounts are counted once. The step count reflects planner decisions and includes the finish decision.
+
+This increment supports short text, transcription, page OCR and WAV output. Long-document translation, English summarization, subtitles, retry and resumable partial work are upcoming. The trace records completed provider requests if a tool aborts mid-call. A page or chunk completed inside a failed call is not yet recoverable as an artifact.

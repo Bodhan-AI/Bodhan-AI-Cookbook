@@ -11,6 +11,9 @@ from mcp.server.fastmcp.exceptions import ToolError
 from pydantic import BaseModel, Field, ValidationError
 
 from .ocr import extract_document_text
+from .request_budget import (
+    TRANSLATE_PER_TOKEN, TRANSLATION_OUTPUT_LIMIT, active_budget,
+)
 from .speech import synthesize_speech
 from .transcription import transcribe_audio
 
@@ -61,16 +64,22 @@ class ChatResponse(BaseModel):
 def _translate_request(
     client: httpx.Client, text: str, target_language: Language, api_key: str
 ) -> TranslationResult:
+    payload = {
+        "model": "indic-translate",
+        "messages": [{"role": "user", "content": text}],
+        "target_language_code": target_language,
+        "target_script": "native",
+    }
+    budget = active_budget.get()
+    reservation = None
+    if budget is not None:
+        payload["max_output_tokens"] = TRANSLATION_OUTPUT_LIMIT
+        reservation = budget.reserve("indic-translate", TRANSLATION_OUTPUT_LIMIT * TRANSLATE_PER_TOKEN)
     try:
         response = client.post(
             TRANSLATE_URL,
             headers={"Authorization": f"Bearer {api_key}"},
-            json={
-                "model": "indic-translate",
-                "messages": [{"role": "user", "content": text}],
-                "target_language_code": target_language,
-                "target_script": "native",
-            },
+            json=payload,
         )
     except httpx.TimeoutException:
         raise ToolError("timeout: Bodhan did not respond within the request timeout.") from None
@@ -93,6 +102,8 @@ def _translate_request(
     except ValidationError:
         raise ToolError("invalid_response: Bodhan returned an unexpected translation response.") from None
 
+    if budget is not None and reservation is not None:
+        budget.settle(reservation, result.usage.completion_tokens * TRANSLATE_PER_TOKEN)
     choice = result.choices[0]
     if result.truncated or choice.finish_reason == "length":
         raise ToolError("incomplete_translation: Bodhan truncated the result. Try a shorter passage.")
