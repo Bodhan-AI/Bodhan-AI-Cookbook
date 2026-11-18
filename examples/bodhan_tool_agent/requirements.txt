@@ -1,7 +1,7 @@
 # Pinned dependencies — Bodhan Tool Server & Task Agent
-mcp==1.20.0
+mcp>=1.21
 openai==1.51.0
-pydantic==2.10.6
+pydantic>=2.11.0
 pydantic-settings==2.7.1
 httpx==0.28.1
 aiohttp==3.9.5

@@ -13,6 +13,7 @@ from ..media import (
     chunk_wav_silence_aware,
     detect_script,
 )
+from ..tools._lang import normalize_lang
 
 
 def _error(
@@ -104,7 +105,7 @@ async def transcribe_audio(
             files = {"file": (Path(wav_path).name, audio_data, "audio/wav")}
             json_data = {"model": "indic-transcribe"}
             if language_hint:
-                json_data["language"] = language_hint
+                json_data["language"] = normalize_lang(language_hint)
 
             try:
                 api_resp = await client.request(
@@ -134,9 +135,10 @@ async def transcribe_audio(
                 })
 
         detected_script = detect_script(full_text)
+        norm_hint = normalize_lang(language_hint) if language_hint else None
         return {
             "text": f"<untrusted_source_data>{full_text}</untrusted_source_data>",
-            "language": language_hint or detected_script,
+            "language": norm_hint or detected_script,
             "detected_script": detected_script,
             "duration_sec": round(duration, 3),
             "cost_inr": round(total_cost, 4),

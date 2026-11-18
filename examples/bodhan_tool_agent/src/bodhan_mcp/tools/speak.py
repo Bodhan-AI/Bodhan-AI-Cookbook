@@ -8,12 +8,12 @@ from typing import Optional
 
 from ..client import client
 from ..models import (
-    SUPPORTED_TTS_LANGUAGES,
     TTS_VOICES,
     TTS_STYLES,
     ErrorCode,
 )
 from ..media import split_sentences, stitch_wav_ffmpeg
+from ..tools._lang import validate_lang
 
 
 def _error(
@@ -38,15 +38,11 @@ async def synthesize_speech(
     voice_id: Optional[str] = None,
     style: Optional[str] = None,
 ) -> dict:
-    if language not in SUPPORTED_TTS_LANGUAGES:
-        return _error(
-            ErrorCode.UNSUPPORTED_LANGUAGE,
-            f"Language '{language}' is not supported for speech synthesis",
-            retryable=False,
-            details={"supported": sorted(SUPPORTED_TTS_LANGUAGES)},
-        )
+    lang_code, err = validate_lang(language, "tts")
+    if err:
+        return err
 
-    available_voices = TTS_VOICES.get(language, {})
+    available_voices = TTS_VOICES.get(lang_code, {})
     if voice_id:
         all_voices = [v for vs in available_voices.values() for v in vs]
         if voice_id not in all_voices:
@@ -108,7 +104,7 @@ async def synthesize_speech(
             retryable=False,
         )
 
-    sentences = split_sentences(input_text, language)
+    sentences = split_sentences(input_text, lang_code)
 
     if not sentences:
         return _error(
@@ -117,7 +113,7 @@ async def synthesize_speech(
             retryable=False,
         )
 
-    instructions = {"lang": language}
+    instructions = {"lang": lang_code}
     if style:
         instructions["style"] = style
 
@@ -200,7 +196,7 @@ async def synthesize_speech(
         "duration_sec": round(duration, 3),
         "chunks_count": len(parts),
         "cost_inr": round(total_cost, 4),
-        "language": language,
+        "language": lang_code,
         "voice_id": voice,
         "gender": gender,
         "style": style,

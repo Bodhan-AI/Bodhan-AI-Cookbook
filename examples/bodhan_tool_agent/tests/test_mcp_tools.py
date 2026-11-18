@@ -386,5 +386,73 @@ class TestLanguageValidation:
         assert "fr" not in SUPPORTED_TTS_LANGUAGES
 
 
+class TestLanguageNameNormalization:
+    def test_normalize_english_name_to_code(self):
+        from bodhan_mcp.tools._lang import normalize_lang
+        assert normalize_lang("Hindi") == "hi"
+        assert normalize_lang("English") == "en"
+        assert normalize_lang("Tamil") == "ta"
+        assert normalize_lang("Telugu") == "te"
+        assert normalize_lang("Marathi") == "mr"
+        assert normalize_lang("Bengali") == "bn"
+
+    def test_normalize_lowercase_name_to_code(self):
+        from bodhan_mcp.tools._lang import normalize_lang
+        assert normalize_lang("hindi") == "hi"
+        assert normalize_lang("tamil") == "ta"
+        assert normalize_lang("bengali") == "bn"
+
+    def test_iso_code_passes_through(self):
+        from bodhan_mcp.tools._lang import normalize_lang
+        assert normalize_lang("hi") == "hi"
+        assert normalize_lang("ta") == "ta"
+        assert normalize_lang("mr") == "mr"
+
+    def test_unsupported_language_rejected(self):
+        from bodhan_mcp.tools._lang import validate_lang
+        code, err = validate_lang("French", "translate")
+        assert err is not None
+        assert err["error"] == "UNSUPPORTED_LANGUAGE"
+        code, err = validate_lang("fr", "translate")
+        assert err is not None
+        assert err["error"] == "UNSUPPORTED_LANGUAGE"
+
+    @pytest.mark.asyncio
+    async def test_translate_accepts_name(self):
+        with tempfile.TemporaryDirectory():
+            with patch("bodhan_mcp.tools.translate.client") as mock_client:
+                mock_client.request = AsyncMock(return_value=APIResponse(
+                    data={"choices": [{"message": {"content": "வணக்கம்"}}]},
+                    cost_inr=0.02, cached=False
+                ))
+                result = await translate_text("English", "Tamil", text="Hello")
+                assert result["target_language"] == "ta"
+
+    @pytest.mark.asyncio
+    async def test_tts_accepts_name(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_file = Path(tmpdir) / "output.wav"
+            wav_data = create_test_wav_bytes()
+            with patch("bodhan_mcp.tools.speak.client") as mock_client:
+                mock_client.request = AsyncMock(return_value=APIResponse(
+                    data=wav_data, cost_inr=0.60, cached=False
+                ))
+                result = await synthesize_speech("Hindi", str(out_file), text="नमस्ते दुनिया")
+                assert result["language"] == "hi"
+
+    @pytest.mark.asyncio
+    async def test_transcribe_accepts_name(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            wav_path = Path(tmpdir) / "test.wav"
+            create_test_wav(str(wav_path), duration_sec=2.0)
+            with patch("bodhan_mcp.tools.transcribe.client") as mock_client:
+                mock_client.request = AsyncMock(return_value=APIResponse(
+                    data={"text": "Hello", "duration_sec": 2.0},
+                    cost_inr=0.10, cached=False
+                ))
+                result = await transcribe_audio(str(wav_path), language_hint="English")
+                assert result["language"] == "en"
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

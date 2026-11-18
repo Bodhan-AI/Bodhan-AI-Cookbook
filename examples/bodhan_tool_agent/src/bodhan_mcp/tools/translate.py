@@ -6,11 +6,11 @@ from typing import Optional
 
 from ..client import client
 from ..models import (
-    SUPPORTED_TRANSLATE_LANGUAGES,
     TRANSLATE_SCRIPTS,
     ErrorCode,
 )
 from ..media import chunk_text_for_translation, script_ratio
+from ..tools._lang import validate_lang
 
 
 def _error(
@@ -34,21 +34,12 @@ async def translate_text(
     output_file: Optional[str] = None,
     script: str = "native",
 ) -> dict:
-    if source_lang not in SUPPORTED_TRANSLATE_LANGUAGES:
-        return _error(
-            ErrorCode.UNSUPPORTED_LANGUAGE,
-            f"Source language '{source_lang}' is not supported for translation",
-            retryable=False,
-            details={"supported": sorted(SUPPORTED_TRANSLATE_LANGUAGES)},
-        )
-
-    if target_lang not in SUPPORTED_TRANSLATE_LANGUAGES:
-        return _error(
-            ErrorCode.UNSUPPORTED_LANGUAGE,
-            f"Target language '{target_lang}' is not supported for translation",
-            retryable=False,
-            details={"supported": sorted(SUPPORTED_TRANSLATE_LANGUAGES)},
-        )
+    source_code, err = validate_lang(source_lang, "translate")
+    if err:
+        return err
+    target_code, err = validate_lang(target_lang, "translate")
+    if err:
+        return err
 
     if script not in TRANSLATE_SCRIPTS:
         supported = ", ".join(sorted(TRANSLATE_SCRIPTS))
@@ -94,7 +85,7 @@ async def translate_text(
     if not input_text or not input_text.strip():
         return {
             "translation": "<untrusted_source_data></untrusted_source_data>",
-            "target_language": target_lang,
+            "target_language": target_code,
             "script": script,
             "target_script_verified": False,
             "cost_inr": 0.0,
@@ -116,7 +107,7 @@ async def translate_text(
                     "messages": [
                         {
                             "role": "user",
-                            "content": f"Translate '{chunk}' to {target_lang}",
+                            "content": f"Translate '{chunk}' to {target_code}",
                         }
                     ],
                     "script": script,
@@ -152,7 +143,7 @@ async def translate_text(
 
     expected_scripts = []
     for scr, langs in target_script_map.items():
-        if target_lang in langs:
+        if target_code in langs:
             expected_scripts.append(scr)
 
     target_script_verified = False
@@ -175,7 +166,7 @@ async def translate_text(
         "translation": (
             f"<untrusted_source_data>{full_translation}</untrusted_source_data>"
         ),
-        "target_language": target_lang,
+        "target_language": target_code,
         "script": script,
         "target_script_verified": target_script_verified,
         "cost_inr": round(total_cost, 4),

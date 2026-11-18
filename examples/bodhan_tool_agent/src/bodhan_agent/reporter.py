@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 from __future__ import annotations
 
 import json
@@ -51,7 +51,7 @@ class Reporter:
 
     def log_step_end(
         self, step: int, tool: str, arguments: dict, result: dict,
-        latency_ms: float, cost_inr: float,
+        latency_ms: float, cost_inr: float, cached: bool = False,
     ):
         """Record step completion for tracing."""
         summary = self._extract_summary(result)
@@ -63,6 +63,7 @@ class Reporter:
                 s["cost_inr"] = round(cost_inr, 4)
                 s["cumulative_cost_inr"] = round(self.ledger.total, 4)
                 s["status"] = "completed"
+                s["cached"] = cached
                 break
         self._flush_trace()
 
@@ -105,6 +106,21 @@ class Reporter:
 
     async def finalize(self, agent_result: dict, elapsed_sec: float):
         """Write report.json and result.md based on final state."""
+        executed_steps = []
+        cached_savings = 0.0
+        for entry in getattr(self, "_steps", []):
+            cached = entry.get("cached", False)
+            cost = entry.get("cost_inr", 0.0)
+            if cached:
+                cached_savings += cost
+            executed_steps.append({
+                "tool": entry.get("tool", "?"),
+                "cost_inr": cost,
+                "result_summary": entry.get("result_summary", ""),
+                "cached": cached,
+            })
+        agent_result["steps"] = executed_steps
+
         status = agent_result.get("status", "failed")
         verification_results = agent_result.get(
             "verification_results", {}
@@ -124,6 +140,7 @@ class Reporter:
             "steps_used": agent_result.get("steps_used", 0),
             "max_steps": self.max_steps,
             "total_cost_inr": round(self.ledger.total, 4),
+            "cached_savings_inr": round(cached_savings, 4),
             "max_cost_inr": self.max_cost_inr,
             "elapsed_sec": round(elapsed_sec, 2),
             "assumptions": agent_result.get("assumptions", []),
@@ -157,6 +174,17 @@ class Reporter:
         lines.append(f"**Total cost:** \u20b9{tc:.4f} / \u20b9{mc:.2f}")
         lines.append(f"**Elapsed time:** {report['elapsed_sec']:.2f}s")
         lines.append("")
+
+        steps = agent_result.get("steps", [])
+        if steps:
+            lines.append("## What Was Done")
+            lines.append("")
+            for s in steps:
+                cost = s.get("cost_inr", 0.0)
+                tool = s.get("tool", "?")
+                summary = s.get("result_summary", "")[:60]
+                lines.append(f"- `{tool}` — ₹{cost:.4f} — {summary}")
+            lines.append("")
 
         final_answer = agent_result.get("final_answer", "")
         if final_answer:
@@ -193,7 +221,7 @@ class Reporter:
 
         rel_artifacts = []
         if self.artifacts_dir.exists():
-            rel_artifacts = list(self.artifacts_dir.iterdir())
+            rel_artifacts = [p for p in self.artifacts_dir.iterdir() if p.is_file()]
         if rel_artifacts:
             lines.append("## Artifacts")
             lines.append("")

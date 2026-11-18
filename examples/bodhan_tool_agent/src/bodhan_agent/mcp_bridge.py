@@ -4,29 +4,63 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import re
 import sys
 import uuid
 from pathlib import Path
 
+_TOOL_NAME_MAP: dict[str, str] = {
+    "inspectMedia": "inspect_media",
+    "transcribeAudio": "transcribe_audio",
+    "extractDocumentText": "extract_document_text",
+    "translateText": "translate_text",
+    "synthesizeSpeech": "synthesize_speech",
+}
+
+_XML_TOOL_RE = re.compile(
+    r'<\s*function\s*=\s*(\w+)\s*>\s*(.*?)\s*</\s*function\s*>',
+    re.DOTALL | re.IGNORECASE,
+)
+
+_PARAM_RE = re.compile(
+    r'<\s*parameter\s*=\s*([\w_]+)\s*>\s*(.*?)\s*</\s*parameter\s*>',
+    re.DOTALL | re.IGNORECASE,
+)
+
+VALID_TOOLS = set(_TOOL_NAME_MAP.values())
+
+
+def normalize_tool_name(name: str) -> str:
+    return _TOOL_NAME_MAP.get(name, name)
+
+
+def parse_xml_tool_call(xml_text: str) -> dict | None:
+    match = _XML_TOOL_RE.search(xml_text)
+    if not match:
+        return None
+    raw_name = match.group(1)
+    body = match.group(2)
+    name = _TOOL_NAME_MAP.get(raw_name, raw_name)
+    args: dict = {}
+    for pm in _PARAM_RE.finditer(body):
+        args[pm.group(1)] = pm.group(2).strip()
+    return {"name": name, "arguments": args}
+
 
 class MCPBridge:
-    """Launches bodhan_mcp over stdio via subprocess and bridges tool calls."""
-
     def __init__(self):
-        self._proc: asyncio.subprocess.Process | None = None
-        self._tools: list[dict] = []
-        self._pending: dict[str, asyncio.Future] = {}
+        self._proc = None
+        self._tools = []
+        self._pending = {}
         self._lock = asyncio.Lock()
         self._running = False
+        self._read_task = None
 
     async def start(self):
-        """Start the MCP server process and session."""
         cmd = [sys.executable, "-m", "bodhan_mcp"]
         env = {**os.environ}
-        # Ensure the subprocess can import bodhan_mcp (which lives under src/).
         src_dir = str(Path(__file__).resolve().parent.parent)
         env["PYTHONPATH"] = src_dir + os.pathsep + env.get("PYTHONPATH", "")
-
         self._proc = await asyncio.create_subprocess_exec(
             *cmd,
             stdin=asyncio.subprocess.PIPE,
@@ -34,29 +68,25 @@ class MCPBridge:
             stderr=asyncio.subprocess.PIPE,
             env=env,
         )
-
         self._running = True
-        asyncio.get_event_loop().create_task(self._read_loop())
+        self._read_task = asyncio.get_event_loop().create_task(self._read_loop())
         await self._discover_tools()
 
     async def stop(self):
-        """Stop the MCP server."""
+        self._running = False
+        if self._read_task:
+            self._read_task.cancel()
         if self._proc and self._proc.returncode is None:
             self._proc.terminate()
             try:
-                await asyncio.wait_for(
-                    self._proc.wait(), timeout=5.0
-                )
+                await asyncio.wait_for(self._proc.wait(), timeout=5.0)
             except asyncio.TimeoutError:
                 self._proc.kill()
-        self._running = False
 
     async def _read_loop(self):
-        """Read JSON-RPC messages from stdout."""
         assert self._proc
         buffer = b""
-        while self._running and self._proc.stdout \
-                and not self._proc.stdout.at_eof():
+        while self._running and self._proc.stdout and not self._proc.stdout.at_eof():
             chunk = await self._proc.stdout.read(4096)
             if not chunk:
                 break
@@ -73,7 +103,6 @@ class MCPBridge:
                     pass
 
     async def _handle_message(self, msg: dict):
-        """Handle incoming JSON-RPC message."""
         request_id = msg.get("id")
         if request_id in self._pending:
             fut = self._pending.pop(request_id)
@@ -81,22 +110,18 @@ class MCPBridge:
                 fut.set_result(msg)
 
     async def _request(self, method: str, params=None):
-        """Send a JSON-RPC request and wait for response."""
         assert self._proc and self._proc.stdin
         async with self._lock:
             req_id = str(uuid.uuid4())
             loop = asyncio.get_event_loop()
             fut: asyncio.Future = loop.create_future()
             self._pending[req_id] = fut
-
             message = {"jsonrpc": "2.0", "id": req_id, "method": method}
             if params is not None:
                 message["params"] = params
             payload = json.dumps(message) + "\n"
-
             self._proc.stdin.write(payload.encode("utf-8"))
             await self._proc.stdin.drain()
-
             try:
                 return await asyncio.wait_for(fut, timeout=120.0)
             except asyncio.TimeoutError:
@@ -104,7 +129,6 @@ class MCPBridge:
                 raise
 
     async def _discover_tools(self):
-        """Discover available tools via initialize + list_tools."""
         await self._request("initialize", {
             "protocolVersion": "2024-11-05",
             "capabilities": {},
@@ -140,19 +164,20 @@ class MCPBridge:
                     "parameters": {
                         "type": "object",
                         "properties": props_dict,
-                        "required": [
-                            p["name"] for p in params if p["required"]
-                        ],
+                        "required": [p["name"] for p in params if p["required"]],
                     },
                 },
             })
 
     async def list_tools(self) -> list[dict]:
-        """Return discovered tool definitions."""
         return self._tools
 
     async def call_tool(self, name: str, arguments):
-        """Call an MCP tool by name with given arguments."""
+        name = normalize_tool_name(name)
+        if name not in VALID_TOOLS:
+            valid = ", ".join(sorted(VALID_TOOLS))
+            return {"error": "TOOL_ERROR",
+                    "message": f"Invalid tool: {name}. Valid: {valid}"}
         try:
             resp = await self._request(
                 "tools/call",
@@ -171,7 +196,6 @@ class MCPBridge:
                 else:
                     output_parts.append(str(item))
             result_text = "\n".join(output_parts)
-
             if resp.get("result", {}).get("isError"):
                 return {"error": "TOOL_ERROR", "message": result_text}
             return {"result": result_text}
