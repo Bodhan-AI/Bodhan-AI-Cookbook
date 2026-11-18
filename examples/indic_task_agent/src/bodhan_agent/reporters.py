@@ -102,7 +102,7 @@ def write_result_md(
     if not records:
         lines += ["Nothing was run; no model was called.", ""]
     for i, r in enumerate(records, 1):
-        state = "ok" if r.ok else "failed"
+        state = "skipped" if r.result.get("skipped") else "ok" if r.ok else "failed"
         lines.append(f"{i}. **{r.intent}** — `{r.tool}`, {state}, Rs {r.cost_inr:.2f}, {r.latency_ms / 1000:.1f}s")
     lines.append("")
     lines += ["## Assumptions", ""]

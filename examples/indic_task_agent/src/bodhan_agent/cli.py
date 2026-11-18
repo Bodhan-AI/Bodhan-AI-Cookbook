@@ -82,7 +82,7 @@ def main(argv: list[str] | None = None) -> int:
         trace.emit("plan", attempt=1, understanding=understanding, feasible=plan_obj.feasible, steps=[s.model_dump() for s in plan_obj.steps], assumptions=assumptions, refusal=plan_obj.refusal)
 
         if not plan_obj.feasible:
-            raise BodhanError("UNSUPPORTED_LANGUAGE", plan_obj.refusal or "The task cannot be done with the available models.", hint="No model was called and no output was produced.")
+            raise BodhanError(plan_obj.refusal_code or "UNSUPPORTED_TASK", plan_obj.refusal or "The task cannot be done with the available models.", hint="No model was called and no output was produced.")
 
         estimate = sum(price_step(s, lookup) for s in plan_obj.steps) * 1.15
         trace.emit("estimate", estimated_cost_inr=round(estimate, 4), max_cost_inr=args.max_cost_inr)
@@ -94,7 +94,7 @@ def main(argv: list[str] | None = None) -> int:
             assumptions = [a.model_dump() for a in plan_obj.assumptions]
             estimate = sum(price_step(s, lookup) for s in plan_obj.steps) * 1.15
             if not plan_obj.feasible:
-                raise BodhanError("UNSUPPORTED_LANGUAGE", plan_obj.refusal or "The task cannot be done with the available models.")
+                raise BodhanError(plan_obj.refusal_code or "UNSUPPORTED_TASK", plan_obj.refusal or "The task cannot be done with the available models.")
             if estimate > args.max_cost_inr:
                 raise BodhanError("BUDGET_EXCEEDED", f"The cheapest plan found costs about Rs {estimate:.2f}; the budget was Rs {args.max_cost_inr:.2f}.", hint="Raise --max-cost-inr. Nothing was purchased.")
 
@@ -126,7 +126,7 @@ def main(argv: list[str] | None = None) -> int:
         trace.emit("error", **exc.payload()["error"])
         records, artifacts = _collect(records, out)
         checks = _verify(artifacts, records, out, ledger, trace, args.task) if artifacts else []
-        status = "partial" if (artifacts and exc.code != "UNSUPPORTED_LANGUAGE") else "failed"
+        status = "partial" if (artifacts and exc.code not in ("UNSUPPORTED_LANGUAGE", "BUDGET_EXCEEDED", "UNSUPPORTED_TASK", "MISSING_FILE")) else "failed"
     except Exception as exc:  # noqa: BLE001 - a complete run folder beats a traceback
         errors.append({"code": "INTERNAL", "message": f"{type(exc).__name__}: {exc}", "hint": None})
         trace.emit("error", code="INTERNAL", message=str(exc))
@@ -204,6 +204,9 @@ def _collect(records: list[Any], out: Path) -> tuple[list[Any], list[dict[str, A
     return records, items
 
 
+_KIND_BY_TOOL = {"translate_text": "translation", "transcribe_audio": "transcript", "write_text": "text", "ocr_document": "document", "speak_text": "audio"}
+
+
 def _verify(artifacts: list[dict[str, Any]], records: list[Any], out: Path, ledger: Ledger, trace: Trace, task: str = "") -> list[dict[str, str]]:
     checks: list[dict[str, str]] = []
     by_path = {str(r.result.get("text_path") or r.result.get("markdown_path") or r.result.get("audio_path")): r for r in records if r.ok}
@@ -219,7 +222,7 @@ def _verify(artifacts: list[dict[str, Any]], records: list[Any], out: Path, ledg
         expected = record.args.get("expected_chars") if record else None
         source = record.args.get("source_path") if record else None
         source_path = Path(source) if source else None
-        kind = art["kind"]
+        kind = _KIND_BY_TOOL.get(record.tool, art["kind"]) if record else art["kind"]
         checks += verifier.verify_artifact(path, kind, expected_chars=expected, source_path=source_path, trace=trace)
         if kind == "translation" and record is not None and source_path:
             checks += verifier.l2_translation(path, source_path, str(record.args.get("target_language") or ""), ledger, trace)
@@ -244,6 +247,8 @@ def _missing_final_outputs(plan: Plan, records: list[Any]) -> list[str]:
     gaps: list[str] = []
     for output in plan.final_outputs:
         record = by_id.get(output.from_step)
+        if record is not None and record.result.get("skipped"):
+            continue
         paths = [record.result.get(k) for k in _PATH_FIELDS] if record and record.ok else []
         if not any(path and Path(path).is_file() for path in paths):
             gaps.append(f"{output.role} (step {output.from_step})")

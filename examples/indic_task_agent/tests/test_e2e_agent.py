@@ -141,7 +141,7 @@ def test_the_same_input_is_never_sent_twice(full_run):
     assert sent and [n for n, c in Counter(sent).items() if c > 1] == []
     counts = Counter(m for m, _ in sent)
     # the pipeline itself, plus the verifier's back-transcription and meaning round trip
-    assert counts == {"indic-ocr": 1, "indic-translate": 3, "indic-speak": 1, "indic-transcribe": 2}
+    assert counts == {"indic-ocr": 1, "indic-translate": 3, "indic-speak": 1, "indic-transcribe": 1}
 
 
 def test_second_identical_run_makes_no_paid_requests(full_run, monkeypatch, tmp_path):
@@ -256,3 +256,41 @@ def test_resume_reuses_the_plan_and_finished_steps(full_run, tmp_path, monkeypat
     trace = (out / "trace.jsonl").read_text(encoding="utf-8")
     assert trace.count('"type": "step_reused"') == 5 and '"type": "resume"' in trace
     assert report_of(out)["budget"]["cost_inr"] <= report_of(out)["budget"]["max_cost_inr"]
+
+
+def test_conditional_steps_translate_only_the_telugu_clip(bodhan, monkeypatch, tmp_path, make_audio):
+    telugu = "\u0c28\u0c2e\u0c38\u0c4d\u0c15\u0c3e\u0c30\u0c02 \u0c2a\u0c3e\u0c20\u0c36\u0c3e\u0c32 \u0c24\u0c46\u0c30\u0c41\u0c1a\u0c41\u0c15\u0c41\u0c02\u0c1f\u0c41\u0c02\u0c26\u0c3f"
+    bodhan.asr_fn = lambda rec: telugu if rec.wav_seconds < 2.2 else TAMIL  # a.wav is 2.0 s, b.wav 2.5 s
+    bodhan.mt_fn = lambda rec: ENGLISH
+    clips = tmp_path / "clips"
+    clips.mkdir()
+    make_audio("clips/a.wav", 2.0)
+    make_audio("clips/b.wav", 2.5)
+    tel = {"ref": "$s1.language_hint", "equals": "te"}
+    plan = {
+        "understanding": "Find the Telugu clip and translate it.",
+        "steps": [
+            {"id": "s1", "intent": "transcribe a", "tool": "transcribe_audio", "args": {"audio_path": str(clips / "a.wav")}},
+            {"id": "s2", "intent": "transcribe b", "tool": "transcribe_audio", "args": {"audio_path": str(clips / "b.wav")}},
+            {"id": "s3", "intent": "translate a if Telugu", "tool": "translate_text", "depends_on": ["s1"], "when": tel,
+             "args": {"source_path": "$s1.text_path", "target_language": "en"}, "expected_chars": 100},
+            {"id": "s4", "intent": "translate b if Telugu", "tool": "translate_text", "depends_on": ["s2"],
+             "when": {"ref": "$s2.language_hint", "equals": "te"},
+             "args": {"source_path": "$s2.text_path", "target_language": "en"}, "expected_chars": 100},
+            {"id": "s5", "intent": "list the Telugu clips", "tool": "write_text", "depends_on": ["s3", "s4"],
+             "args": {"instruction": "List the Telugu clips with their English text.", "inputs": ["$s3.text_path", "$s4.text_path"],
+                      "facts": {"a.wav": "$s1.language_hint", "b.wav": "$s2.language_hint"}, "target_chars": 200}},
+        ],
+        "final_outputs": [{"role": "listing", "from": "s5"}],
+    }
+    planner = install(monkeypatch, plan)
+    out = tmp_path / "run"
+    assert run(out, clips, task="Which clips are Telugu? Translate those.") == 0
+    report = report_of(out)
+    assert report["status"] == "completed", report["errors"]
+    assert len(bodhan.of("mt")) == 1  # the Tamil clip was never translated
+    skipped = [s for s in report["steps"] if s["result_summary"].get("skipped")]
+    assert [s["id"] for s in skipped] == ["s4"]
+    prose = next(m for m in planner.seen if m[0]["content"].startswith("You write English prose"))
+    assert "a.wav: te" in prose[1]["content"] and "b.wav: ta" in prose[1]["content"]
+    assert (out / "artifacts" / "draft_s5.md").is_file() and "skipped" in (out / "result.md").read_text(encoding="utf-8")

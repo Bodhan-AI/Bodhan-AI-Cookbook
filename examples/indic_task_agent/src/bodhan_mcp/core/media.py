@@ -177,6 +177,9 @@ def silence_cut_points(
     start = 0.0
     while start < duration - 1e-3:
         limit = min(start + cap_s, duration)
+        if limit >= duration:  # the rest fits in one window: never cut speech that needs no cut
+            windows.append((start, duration, windows[-1][2] if windows else "pause"))
+            break
         target = start + target_s
         candidates = [m for m in midpoints if start + 1.0 < m <= limit]
         if limit >= duration:  # don't leave an unusably short tail

@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 
 # Only these keys may ever reach the trace from tool arguments; arguments are paths and codes by contract.
-_SAFE_ARGS = {"path", "paths", "source_path", "text_path", "audio_path", "input_path", "out_dir", "target_language", "language", "voice", "gender", "style", "format", "script", "pages", "table_format", "dpi", "max_tokens", "max_cost_inr", "force", "instruction", "inputs", "target_chars"}
+_SAFE_ARGS = {"path", "paths", "source_path", "text_path", "audio_path", "input_path", "out_dir", "target_language", "language", "voice", "gender", "style", "format", "script", "pages", "table_format", "dpi", "max_tokens", "max_cost_inr", "force", "instruction", "inputs", "target_chars", "facts"}
 
 
 def safe_args(args: dict[str, Any]) -> dict[str, Any]:

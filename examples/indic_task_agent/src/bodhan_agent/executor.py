@@ -123,18 +123,42 @@ def resolve_refs(args: dict[str, Any], results: dict[str, dict[str, Any]]) -> di
     return resolved
 
 
+class _Skipped(Exception):
+    """A reference points at a step that was skipped by its `when` condition."""
+
+
 def _resolve_one(value: Any, results: dict[str, dict[str, Any]], key: str) -> Any:
     if isinstance(value, str) and value.startswith("$"):
         ref = value[1:]
         step_id, _, field = ref.partition(".")
         if step_id not in results:
             raise BodhanError("LLM_INVALID_PLAN", f"Argument '{key}' references step {step_id}, which has not run.")
+        if results[step_id].get("skipped"):
+            raise _Skipped(step_id)
         if field not in results[step_id]:
             raise BodhanError("LLM_INVALID_PLAN", f"Step {step_id} has no output field '{field}'.")
         return results[step_id][field]
     if isinstance(value, list):
-        return [_resolve_one(v, results, key) for v in value]
+        kept = []
+        for v in value:
+            try:
+                kept.append(_resolve_one(v, results, key))
+            except _Skipped:
+                continue  # a skipped input simply drops out of a list
+        return kept
+    if isinstance(value, dict):
+        return {k: v2 for k, v in value.items() if (v2 := _resolve_dict_value(v, results, key)) is not _DROP}
     return value
+
+
+_DROP = object()
+
+
+def _resolve_dict_value(value: Any, results: dict[str, dict[str, Any]], key: str) -> Any:
+    try:
+        return _resolve_one(value, results, key)
+    except _Skipped:
+        return _DROP
 
 
 def run_plan(plan: Plan, *, out_dir: Path, ledger: Ledger, trace: Trace, inventory: dict[str, Any], records: list[StepRecord] | None = None, dry_run: bool = False) -> list[StepRecord]:
@@ -220,8 +244,16 @@ class _StepFailed(Exception):
 def _run_step(step: Step, results: dict[str, dict[str, Any]], out_dir: Path, ledger: Ledger, trace: Trace, inventory: dict[str, Any]) -> StepRecord:
     started = time.monotonic()
     try:
+        skip = _skip_reason(step, results)
+        if skip:
+            trace.emit("step_skipped", step=step.id, tool=step.tool, reason=skip)
+            return StepRecord(step.id, step.intent, step.tool, {}, True, 0, 0.0, False, {"skipped": True, "reason": skip})
         args = resolve_refs(step.args, results)
         _guard_llm_text(step, args)
+    except _Skipped as gone:
+        reason = f"input step {gone} was skipped"
+        trace.emit("step_skipped", step=step.id, tool=step.tool, reason=reason)
+        return StepRecord(step.id, step.intent, step.tool, {}, True, 0, 0.0, False, {"skipped": True, "reason": reason})
     except BodhanError as exc:
         return _failed(step, started, exc, {})
     if step.tool in _OUT_DIR_TOOLS:
@@ -254,6 +286,16 @@ def _run_step(step: Step, results: dict[str, dict[str, Any]], out_dir: Path, led
     finally:
         if marker is not None:
             marker.unlink(missing_ok=True)
+
+
+def _skip_reason(step: Step, results: dict[str, dict[str, Any]]) -> str | None:
+    """A `when` condition compares one tool-reported value (a code, never text) with a fixed one."""
+    if not step.when:
+        return None
+    got = _resolve_one(step.when["ref"], results, "when")
+    if got == step.when["equals"]:
+        return None
+    return f"condition not met: {step.when['ref']} was {got!r}, needed {step.when['equals']!r}"
 
 
 _CODE_ARGS = {"path", "paths", "source_path", "text_path", "audio_path", "input_path", "out_dir", "inputs", "target_language", "language", "script", "format", "gender", "style", "voice", "pages", "table_format"}
@@ -296,7 +338,7 @@ def stale_markers(out: Path) -> list[dict[str, Any]]:
     return found
 
 
-_OUT_DIR_TOOLS = {"transcribe_audio", "ocr_document", "translate_text", "speak_text"}
+_OUT_DIR_TOOLS = {"transcribe_audio", "ocr_document", "translate_text", "speak_text", "write_text"}
 _PAID_TOOLS = {"transcribe_audio", "ocr_document", "translate_text", "speak_text"}
 
 
@@ -337,7 +379,12 @@ def _write_text(args: dict[str, Any], trace: Trace, step_id: str = "draft") -> W
         "Use only the source material provided. Lead with the substance; no headings unless asked. "
         f"Target length: about {target} characters. Stop at a sentence boundary near that length."
     )
-    user = f"Instruction: {args.get('instruction', 'Summarise the source.')}\n\n" + "\n\n".join(sources)
+    facts = args.get("facts") or {}
+    known = "".join(f"- {k}: {v}\n" for k, v in facts.items())
+    user = f"Instruction: {args.get('instruction', 'Summarise the source.')}\n\n"
+    if known:
+        user += f"Facts reported by tools (trust these, not file names; 'None' means unknown):\n{known}\n"
+    user += "\n\n".join(sources)
     reply = llm.chat([{"role": "system", "content": system}, {"role": "user", "content": user}], max_tokens=min(12000, target // 2 + 4000))
     draft = reply.text.strip()
     trace.emit("llm_call", purpose="write_text", chars_in=reply.prompt_chars, chars_out=len(draft), latency_ms=reply.latency_ms, cost_inr=0, finish_reason=reply.finish_reason)
