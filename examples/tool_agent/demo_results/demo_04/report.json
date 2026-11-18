@@ -1,0 +1,65 @@
+{
+  "status": "completed",
+  "task": "Transcribe this Kannada voice note with Bodhan. Translate the recognized content into English subtitle segments using Bodhan and preserve the estimated timestamps. Write the English SRT artifact. Return the transcript and artifact path, and label all subtitle timings as estimates.",
+  "steps": 3,
+  "max_steps": 8,
+  "verification": [
+    {
+      "step": 1,
+      "tool": "transcribe_audio",
+      "status": "success",
+      "cached": true,
+      "checks": null
+    },
+    {
+      "step": 2,
+      "tool": "translate_segments",
+      "status": "success",
+      "cached": false,
+      "checks": [
+        {
+          "checks": {
+            "nonempty": true,
+            "numbers_preserved": true,
+            "markdown_heading_count_preserved": true,
+            "table_row_count_preserved": true,
+            "html_table_structure_preserved": true,
+            "latex_delimiter_count_preserved": true
+          },
+          "passed": true,
+          "semantic_coverage_review_required": true
+        },
+        {
+          "checks": {
+            "nonempty": true,
+            "numbers_preserved": true,
+            "markdown_heading_count_preserved": true,
+            "table_row_count_preserved": true,
+            "html_table_structure_preserved": true,
+            "latex_delimiter_count_preserved": true
+          },
+          "passed": true,
+          "semantic_coverage_review_required": true
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "tool": "write_srt",
+      "status": "success",
+      "cached": false,
+      "checks": null
+    }
+  ],
+  "expected_limitations": [],
+  "bodhan_cost_inr": 0.00204,
+  "max_cost_inr": 0.2,
+  "elapsed_seconds": 39.121,
+  "artifacts": [
+    "artifacts\\english_subtitles.srt",
+    "artifacts\\task_result.md"
+  ],
+  "llm_model": "gemini-3.8-flash",
+  "llm_cost_included": false,
+  "started_at": "2026-11-18T11:24:12.850775+00:00"
+}

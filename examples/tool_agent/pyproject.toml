@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools==75.8.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bodhan-tool-agent"
+version = "0.1.0"
+description = "An MCP server and bounded task agent for Bodhan Indic models"
+requires-python = ">=3.10"
+dependencies = [
+  "httpx==0.28.1",
+  "mcp==1.26.0",
+  "openai==2.8.1",
+  "python-dotenv==1.0.1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest==8.3.5", "ruff==0.14.3"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
