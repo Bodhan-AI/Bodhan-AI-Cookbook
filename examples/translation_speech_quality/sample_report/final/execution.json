@@ -1,0 +1,17 @@
+{
+  "api_calls": 0,
+  "billing_note": "Bodhan published prices; supplied judge prices. Unknown failed-call billing retains the upper reservation.",
+  "budget_inr": 0.0,
+  "cache_hits": 235,
+  "charged_or_reserved_inr": 0.0,
+  "elapsed_seconds": 0.2019,
+  "judge_price_estimates_inr_per_million": {
+    "input": 25.0,
+    "output": 150.0
+  },
+  "scope": {
+    "generated_speech_sample": 6,
+    "judge": true,
+    "roundtrips": true
+  }
+}

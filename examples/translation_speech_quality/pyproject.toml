@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools==80.9.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bodhan-quality-harness"
+version = "0.1.0"
+description = "Evidence-based evaluation of Indic translation and speech"
+requires-python = ">=3.10"
+dependencies = ["httpx==0.28.1", "numpy==2.2.6", "soundfile==0.13.1", "sacrebleu==2.5.1", "python-dotenv==1.1.0"]
+
+[project.scripts]
+bodhan-eval = "bodhan_eval.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+

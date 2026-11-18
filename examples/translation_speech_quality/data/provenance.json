@@ -1,0 +1,35 @@
+{
+  "archive_sha256": "b8b0b76783024b85797e5cc75064eb83fc5288b41e9654dabc7be6ae944011f6",
+  "url": "https://dl.fbaipublicfiles.com/nllb/flores200_dataset.tar.gz",
+  "languages": {
+    "en": "eng_Latn",
+    "hi": "hin_Deva",
+    "ta": "tam_Taml",
+    "bn": "ben_Beng"
+  },
+  "source_line_indices_1_based": [
+    3,
+    8,
+    9,
+    10,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    23,
+    25,
+    26,
+    27,
+    28,
+    29,
+    31
+  ],
+  "items": 108,
+  "clean_controls": 54,
+  "injected": 54,
+  "human_quality_labels_added": 0,
+  "note": "References and clean controls share human translations. Scores on them are an integrity control, not independent MT quality estimates."
+}

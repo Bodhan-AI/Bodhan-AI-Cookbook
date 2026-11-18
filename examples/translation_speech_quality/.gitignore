@@ -1,0 +1,14 @@
+.env
+.env.*
+!.env.example
+.venv/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.cache/
+outputs/*
+!outputs/.gitkeep
+*.wav
+*.mp3
+*.mp4
+
