@@ -1,7 +1,7 @@
 """Probe the live Bodhan API and record the real request/response shapes and limits.
 
-    python scripts/probe_api.py              # basic probes, about ₹0.6 in total
-    python scripts/probe_api.py --limits     # also probe size limits, about ₹2 more
+    python scripts/probe_api.py              # lean probes, about ₹0.26 in total
+    python scripts/probe_api.py --limits     # also probe size limits, about ₹0.85 more
     python scripts/probe_api.py --only translate speak
 
 Raw results go to probes/ (git-ignored): one JSON file per probe plus any audio returned.
@@ -166,14 +166,16 @@ def probe_translate(c: httpx.Client, limits: bool):
         cases.append(("translate_long_6k", {"text": para * 70, "target_language": "ta"}))
     for name, body in cases:
         show = {**body, "text": body["text"][:120] + ("…" if len(body["text"]) > 120 else "")}
-        call(c, name, "indic-translate", "POST", "/translate", cost=cost_translate(estimate_tokens(body["text"]) * 2),
-             show={**show, "chars": len(body["text"])}, json=body)
+        # /translate returned 404 for our keys; the documented chat-completions transport works.
+        chat = {"model": "indic-translate", "messages": [{"role": "user", "content": body["text"]}],
+                "target_language": body["target_language"]}
+        call(c, name, "indic-translate", "POST", "/v1/chat/completions",
+             cost=cost_translate(estimate_tokens(body["text"]) * 2), show={**show, "chars": len(body["text"])}, json=chat)
 
 
 def probe_speak(c: httpx.Client, limits: bool):
     cases = [
         ("speak_ta", "வணக்கம், இன்று வகுப்பு பத்து மணிக்கு.", "Anitha", "ta", None),
-        ("speak_bn_female_style", "আগামীকাল স্কুল বন্ধ থাকবে।", "Ishita", "bn", "news"),
         ("speak_bad_voice", "नमस्ते", "NoSuchVoice", "hi", None),
     ]
     if limits:
@@ -190,7 +192,8 @@ def probe_speak(c: httpx.Client, limits: bool):
 def probe_ocr(c: httpx.Client, limits: bool):
     image = test_image()
     (OUT / "ocr_input.png").write_bytes(image)
-    for name, table_format in [("ocr_markdown", "markdown"), ("ocr_html", "html")]:
+    formats = [("ocr_markdown", "markdown")] + ([("ocr_html", "html")] if limits else [])
+    for name, table_format in formats:
         url = f"data:image/png;base64,{base64.b64encode(image).decode()}"
         body = {"model": "indic-ocr", "table_format": table_format,
                 "messages": [{"role": "user", "content": [{"type": "image_url", "image_url": {"url": url}}]}]}

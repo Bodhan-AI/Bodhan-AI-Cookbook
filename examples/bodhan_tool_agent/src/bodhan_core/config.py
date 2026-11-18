@@ -28,6 +28,9 @@ class Settings:
     max_concurrency: int = 4
     max_retries: int = 3
     cache_path: str | None = ".cache/bodhan_responses.sqlite"
+    # Hard cap on total Bodhan spend for one server process (None = unlimited). The agent's
+    # --max-cost-inr is a separate, per-run budget.
+    max_cost_inr: float | None = None
 
     def key_for(self, model: str) -> str | None:
         return self.bodhan_keys.get(model)
@@ -53,4 +56,5 @@ def load_settings(env_file: str | None = None) -> Settings:
         max_retries=int(os.environ.get("BODHAN_MAX_RETRIES", "3")),
         # Set BODHAN_CACHE_PATH="" to disable caching.
         cache_path=os.environ.get("BODHAN_CACHE_PATH", ".cache/bodhan_responses.sqlite") or None,
+        max_cost_inr=float(os.environ["BODHAN_MAX_COST_INR"]) if os.environ.get("BODHAN_MAX_COST_INR") else None,
     )

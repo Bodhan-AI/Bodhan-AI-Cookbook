@@ -96,20 +96,29 @@ class BodhanClient:
     async def translate(
         self, text: str, *, target_language: str, script: str | None = None, **extra
     ) -> CallResult:
-        """One text chunk. The source language is auto-detected by the API."""
-        body = {"text": text, "target_language": target_language, **({"script": script} if script else {}), **extra}
+        """One text chunk. The source language is inferred by the API (it accepts no source field).
+
+        Sent over the documented chat-completions transport (``/translate`` returns 404 for the keys
+        we tested; the docs say both give identical output). The response is normalised to the
+        ``/translate`` shape: ``{"translation", "target_language", "script", "truncated", "usage"}``.
+        """
+        opts = {"target_language": target_language, **({"script": script} if script else {}), **extra}
+        body = {"model": "indic-translate", "messages": [{"role": "user", "content": text}], **opts}
 
         def actual(data: dict | None, _c) -> float:
             usage = (data or {}).get("usage") or {}
-            tokens = usage.get("output_tokens") or usage.get("completion_tokens")
+            tokens = usage.get("completion_tokens") or usage.get("output_tokens")
             if not tokens:
                 tokens = estimate_tokens((data or {}).get("translation", ""))
             return cost_translate(int(tokens))
 
-        return await self._call(
-            "indic-translate", "POST", "/translate", lambda: {"json": body},
-            key_params=body, estimate=cost_translate(estimate_tokens(text) * 2), actual=actual,
+        result = await self._call(
+            "indic-translate", "POST", "/v1/chat/completions", lambda: {"json": body},
+            key_params={"text": text, **opts}, estimate=cost_translate(estimate_tokens(text) * 2), actual=actual,
+            normalize=lambda d: {**_normalize_translation(d), "target_language": target_language,
+                                 "script": script or "native"},
         )
+        return result
 
     async def speak(
         self, text: str, *, voice: str, lang: str, style: str | None = None, attempt: int = 0, **extra
@@ -155,6 +164,7 @@ class BodhanClient:
         actual: Callable[[dict | None, bytes | None], float],
         payload: bytes = b"",
         binary: bool = False,
+        normalize: Callable[[dict], dict] | None = None,
     ) -> CallResult:
         key = cache_key(model, key_params, payload)
         hit = self.cache.get(key)
@@ -205,6 +215,8 @@ class BodhanClient:
                 await self._sleep(_backoff(attempts))
 
         data, content, request_id = result
+        if normalize and data is not None:
+            data = normalize(data)
         cost = actual(data, content)
         self.cache.put(key, model, data, content)
         self.ledger.record(model, cost, cached=False, path=path, request_id=request_id)
@@ -238,11 +250,27 @@ class BodhanClient:
         if status >= 500:
             raise _Retry(ToolError(ErrorCode.UPSTREAM_ERROR, detail, hint="Bodhan server error; retry later."),
                          _retry_after(resp))
+        if "unsupported language" in message.lower() or code == "unsupported_language":
+            raise ToolError(ErrorCode.UNSUPPORTED_LANGUAGE, detail, hint="Call supported_languages for valid codes.")
         if status in (401, 403):
             raise ToolError(ErrorCode.AUTH_FAILED, detail, hint=f"Check {MODEL_KEY_ENV[model]} is a valid key for {model}.")
         if status == 413:
             raise ToolError(ErrorCode.INVALID_ARGUMENT, detail, hint="Input too large for one request; send smaller chunks.")
         raise ToolError(ErrorCode.INVALID_ARGUMENT, detail, hint="Fix the request arguments; retrying unchanged will fail.")
+
+
+def _normalize_translation(data: dict) -> dict:
+    """Chat-completions response -> the documented /translate response shape."""
+    if "translation" in data:
+        return data
+    choice = (data.get("choices") or [{}])[0]
+    return {
+        "translation": (choice.get("message") or {}).get("content") or "",
+        "target_language": data.get("target_language"),
+        "script": data.get("script"),
+        "truncated": choice.get("finish_reason") == "length",
+        "usage": data.get("usage"),
+    }
 
 
 class _Retry(Exception):

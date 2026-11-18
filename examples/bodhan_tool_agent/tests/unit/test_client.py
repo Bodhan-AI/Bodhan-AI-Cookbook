@@ -17,6 +17,11 @@ BASE = "https://api.bodhan.ai"
 KEYS = {m: f"test-{m}" for m in ("indic-transcribe", "indic-translate", "indic-speak", "indic-ocr")}
 
 
+def chat(text, completion_tokens=None, finish="stop"):
+    usage = {"completion_tokens": completion_tokens} if completion_tokens else None
+    return {"choices": [{"message": {"content": text}, "finish_reason": finish}], "usage": usage}
+
+
 def make_client(tmp_path, *, keys=KEYS, ledger=None, retries=3, concurrency=4):
     sleeps: list[float] = []
 
@@ -30,8 +35,8 @@ def make_client(tmp_path, *, keys=KEYS, ledger=None, retries=3, concurrency=4):
 
 @respx.mock
 async def test_translate_success_and_cache_hit(tmp_path):
-    route = respx.post(f"{BASE}/translate").mock(
-        return_value=httpx.Response(200, json={"translation": "नमस्ते", "usage": {"output_tokens": 5000}})
+    route = respx.post(f"{BASE}/v1/chat/completions").mock(
+        return_value=httpx.Response(200, json=chat("नमस्ते", completion_tokens=5000))
     )
     client, _ = make_client(tmp_path)
     r1 = await client.translate("Hello", target_language="hi")
@@ -41,14 +46,16 @@ async def test_translate_success_and_cache_hit(tmp_path):
     assert r2.cached and r2.cost_inr == 0
     assert route.call_count == 1  # same input never sent twice
     assert client.ledger.spent_inr == pytest.approx(0.10)
+    assert r1.data == {"translation": "नमस्ते", "target_language": "hi", "script": "native", "truncated": False,
+                       "usage": {"completion_tokens": 5000}}
     sent = json.loads(route.calls[0].request.content)
-    assert sent == {"text": "Hello", "target_language": "hi"}
+    assert sent == {"model": "indic-translate", "messages": [{"role": "user", "content": "Hello"}], "target_language": "hi"}
     assert route.calls[0].request.headers["authorization"] == "Bearer test-indic-translate"
 
 
 @respx.mock
 async def test_cache_persists_across_clients(tmp_path):
-    route = respx.post(f"{BASE}/translate").mock(return_value=httpx.Response(200, json={"translation": "x"}))
+    route = respx.post(f"{BASE}/v1/chat/completions").mock(return_value=httpx.Response(200, json=chat("x")))
     c1, _ = make_client(tmp_path)
     await c1.translate("Hi", target_language="ta")
     c2, _ = make_client(tmp_path)
@@ -58,11 +65,11 @@ async def test_cache_persists_across_clients(tmp_path):
 
 @respx.mock
 async def test_retry_on_429_honours_retry_after(tmp_path):
-    route = respx.post(f"{BASE}/translate").mock(
+    route = respx.post(f"{BASE}/v1/chat/completions").mock(
         side_effect=[
             httpx.Response(429, headers={"retry-after": "2"}, json={"error": {"message": "slow down", "code": "rate_limit"}}),
             httpx.Response(503, json={"error": {"message": "busy"}}),
-            httpx.Response(200, json={"translation": "ok"}),
+            httpx.Response(200, json=chat("ok")),
         ]
     )
     client, sleeps = make_client(tmp_path)
@@ -74,7 +81,7 @@ async def test_retry_on_429_honours_retry_after(tmp_path):
 
 @respx.mock
 async def test_retries_exhausted_gives_structured_error(tmp_path):
-    respx.post(f"{BASE}/translate").mock(return_value=httpx.Response(500, json={"error": {"message": "boom"}}))
+    respx.post(f"{BASE}/v1/chat/completions").mock(return_value=httpx.Response(500, json={"error": {"message": "boom"}}))
     client, sleeps = make_client(tmp_path, retries=2)
     with pytest.raises(ToolError) as exc:
         await client.translate("Hi", target_language="te")
@@ -84,7 +91,7 @@ async def test_retries_exhausted_gives_structured_error(tmp_path):
 
 @respx.mock
 async def test_quota_429_is_not_retried(tmp_path):
-    route = respx.post(f"{BASE}/translate").mock(
+    route = respx.post(f"{BASE}/v1/chat/completions").mock(
         return_value=httpx.Response(429, json={"error": {"message": "Insufficient credit", "code": "budget_exceeded"}})
     )
     client, sleeps = make_client(tmp_path)
@@ -96,7 +103,7 @@ async def test_quota_429_is_not_retried(tmp_path):
 
 @respx.mock
 async def test_400_is_not_retried_and_keeps_request_id(tmp_path):
-    respx.post(f"{BASE}/translate").mock(
+    respx.post(f"{BASE}/v1/chat/completions").mock(
         return_value=httpx.Response(400, json={"error": {"message": "bad target", "code": "invalid", "request_id": "r-1"}})
     )
     client, sleeps = make_client(tmp_path)
@@ -108,7 +115,7 @@ async def test_400_is_not_retried_and_keeps_request_id(tmp_path):
 
 @respx.mock
 async def test_timeout_retries_then_fails(tmp_path):
-    respx.post(f"{BASE}/translate").mock(side_effect=httpx.ReadTimeout("slow"))
+    respx.post(f"{BASE}/v1/chat/completions").mock(side_effect=httpx.ReadTimeout("slow"))
     client, sleeps = make_client(tmp_path, retries=1)
     with pytest.raises(ToolError) as exc:
         await client.translate("Hi", target_language="te")
@@ -182,9 +189,24 @@ async def test_concurrency_limit(tmp_path):
         peak = max(peak, in_flight)
         await asyncio.sleep(0.02)
         in_flight -= 1
-        return httpx.Response(200, json={"translation": "ok"})
+        return httpx.Response(200, json=chat("ok"))
 
-    respx.post(f"{BASE}/translate").mock(side_effect=slow)
+    respx.post(f"{BASE}/v1/chat/completions").mock(side_effect=slow)
     client, _ = make_client(tmp_path, concurrency=2)
     await asyncio.gather(*(client.translate(f"t{i}", target_language="hi") for i in range(8)))
     assert peak == 2
+
+
+@respx.mock
+async def test_translate_truncation_and_unsupported_language(tmp_path):
+    respx.post(f"{BASE}/v1/chat/completions").mock(
+        side_effect=[
+            httpx.Response(200, json=chat("आधा", finish="length")),
+            httpx.Response(400, json={"error": {"message": "unsupported language 'fr'; supported: hi, ta", "code": "400"}}),
+        ]
+    )
+    client, _ = make_client(tmp_path)
+    assert (await client.translate("Long text", target_language="hi")).data["truncated"] is True
+    with pytest.raises(ToolError) as exc:
+        await client.translate("Hello", target_language="fr")
+    assert exc.value.info.code is ErrorCode.UNSUPPORTED_LANGUAGE
