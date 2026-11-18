@@ -1,0 +1,14 @@
+{
+  "id": "telugu_clips",
+  "title": "Which clips are Telugu, translated into English",
+  "task": "Which of these clips are in Telugu? Translate those into English and list the file names with their English text.",
+  "files": ["media/clips/"],
+  "args": ["--max-cost-inr", "2.0"],
+  "expect": {
+    "status": ["completed"],
+    "artifacts": ["*.md", "*.txt"],
+    "checks": ["non_empty"],
+    "max_cost_inr": 2.0
+  },
+  "notes": "Five short clips in mixed languages, language unstated. Each is transcribed, its script checked locally, then only the Telugu ones are translated."
+}
