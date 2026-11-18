@@ -118,3 +118,26 @@ def voices_resource() -> str:
 def pricing_resource() -> str:
     """The four model prices and how each tool estimates cost before a call."""
     return _pricing()
+
+
+@mcp.prompt(description="Step-by-step recipe for turning a scanned document or photo into audio in another language.")
+def document_to_audio(input_path: str, target_language: str) -> str:
+    return (
+        f"Make a spoken version of {input_path} in {target_language}.\n"
+        f"1. probe_media on the file (free) to learn its kind and page count.\n"
+        f"2. ocr_document, then translate_text to 'en' if you need to reason about it.\n"
+        f"3. translate_text the final English text to '{target_language}'.\n"
+        f"4. speak_text the translation. Read bodhan://voices first to choose a voice.\n"
+        f"Every tool takes and returns file paths; never paste Indic text into your own messages."
+    )
+
+
+@mcp.prompt(description="Step-by-step recipe for subtitles from a voice recording.")
+def audio_to_subtitles(audio_path: str, target_language: str = "en") -> str:
+    return (
+        f"Subtitle {audio_path} in {target_language}.\n"
+        f"1. probe_media for the duration and cost estimate (bodhan://pricing explains the rates).\n"
+        f"2. transcribe_audio without a language so the model detects it; keep the returned chunk timestamps.\n"
+        f"3. translate_text the transcript to '{target_language}' unless the speech is already in it.\n"
+        f"The API returns no word timings, so spread the text over each chunk's start and end."
+    )

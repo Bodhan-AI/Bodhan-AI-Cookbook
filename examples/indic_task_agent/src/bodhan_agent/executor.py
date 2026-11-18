@@ -5,7 +5,8 @@ import json
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass, field
+from contextvars import ContextVar
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -141,7 +142,15 @@ def run_plan(plan: Plan, *, out_dir: Path, ledger: Ledger, trace: Trace, invento
     results: dict[str, dict[str, Any]] = {}
     records = records if records is not None else []
     done: set[str] = set()
-    remaining = list(plan.steps)
+    for step in plan.steps:
+        prior = _load_state(out_dir).get(step.id)
+        if prior and prior.get("tool") == step.tool and _outputs_exist(prior.get("result", {})):
+            record = StepRecord(**{**prior, "cost_inr": 0.0, "cache_hit": True})
+            records.append(record)
+            results[step.id] = record.result
+            done.add(step.id)
+            trace.emit("step_reused", step=step.id, tool=step.tool, reason="completed in an earlier run")
+    remaining = [s for s in plan.steps if s.id not in done]
     with ThreadPoolExecutor(max_workers=4) as pool:
         while remaining:
             ready = [s for s in remaining if all(d in done for d in s.depends_on)]
@@ -158,11 +167,48 @@ def run_plan(plan: Plan, *, out_dir: Path, ledger: Ledger, trace: Trace, invento
                 done.add(step.id)
                 if record.ok:
                     results[step.id] = record.result
+                    _save_state(out_dir, record)
                 else:
                     trace.emit("step_failed", step=step.id, error=record.error)
                     raise _StepFailed(record)
             remaining = [s for s in remaining if s.id not in done]
     return records
+
+
+def _state_path(out_dir: Path) -> Path:
+    return out_dir.parent / "state.json"
+
+
+def _load_state(out_dir: Path) -> dict[str, dict[str, Any]]:
+    """Records of steps that finished in an earlier run of this folder; only read when --resume is used."""
+    if not _RESUME.get():
+        return {}
+    try:
+        return json.loads(_state_path(out_dir).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+
+
+def _save_state(out_dir: Path, record: StepRecord) -> None:
+    path = _state_path(out_dir)
+    try:
+        state = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        state = {}
+    state[record.id] = asdict(record)
+    path.write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
+
+
+def _outputs_exist(result: dict[str, Any]) -> bool:
+    paths = [result.get(k) for k in ("text_path", "markdown_path", "audio_path") if result.get(k)]
+    return bool(paths) and all(Path(p).is_file() for p in paths)
+
+
+_RESUME: ContextVar[bool] = ContextVar("bodhan_resume", default=False)
+
+
+def set_resume(on: bool) -> None:
+    _RESUME.set(on)
 
 
 class _StepFailed(Exception):

@@ -105,3 +105,11 @@ def test_tool_results_never_carry_base64(bodhan, tmp_path):
         body = text_of(r) + json.dumps(r.structured_content or {})
         assert "base64" not in body and "data:image" not in body
     assert (out / "scan.ocr.md").is_file()
+
+
+def test_two_prompts_are_listed_and_render_without_indic_text():
+    prompts = run(lambda c: c.list_prompts()).prompts
+    assert {p.name for p in prompts} == {"document_to_audio", "audio_to_subtitles"}
+    got = run(lambda c: c.get_prompt("document_to_audio", {"input_path": "/x/a.pdf", "target_language": "ta"}))
+    body = " ".join(m.content.text for m in got.messages)
+    assert "ocr_document" in body and "speak_text" in body

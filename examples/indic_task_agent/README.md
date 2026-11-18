@@ -20,7 +20,7 @@ cp .env.example .env     # then fill in the keys; .env is gitignored
 ```bash
 # the task agent
 python -m bodhan_agent --task "Make a two-minute Tamil audio summary of this chapter" \
-  --files path/to/inputs/ --out ./out [--max-steps 30] [--max-cost-inr 20] [--ui]
+  --files path/to/inputs/ --out ./out [--max-steps 30] [--max-cost-inr 20] [--ui] [--resume]
 
 # the MCP server on its own: stdio, or streamable HTTP with a bearer token
 python -m bodhan_mcp
@@ -40,7 +40,7 @@ Each run writes `out/result.md`, `out/artifacts/`, `out/trace.jsonl` and `out/re
 | `translate_text` | Whole-document, split at headings only when needed, one re-split on truncation, unsupported targets refused before any request |
 | `speak_text` | Any length: sentence clips of at most 400 characters, joined into one WAV or MP3, voice resolved locally |
 
-Files go in and out as paths. Resources: `bodhan://languages`, `bodhan://voices`, `bodhan://pricing`. Errors are JSON with `code`, `message`, `retryable`, `hint`.
+Files go in and out as paths. `--resume` continues an interrupted run in the same `--out`: the saved plan and every finished step are reused, so nothing already paid for is bought again. Prompts: `document_to_audio`, `audio_to_subtitles`. Resources: `bodhan://languages`, `bodhan://voices`, `bodhan://pricing`. Errors are JSON with `code`, `message`, `retryable`, `hint`.
 
 ## How the agent works
 

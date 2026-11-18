@@ -13,7 +13,7 @@ from bodhan_mcp.core import config
 from bodhan_mcp.core.errors import BodhanError
 
 from . import intake, planner, reporters, verifier
-from .executor import Ledger, _StepFailed, price_step, run_plan, stale_markers
+from .executor import Ledger, _StepFailed, price_step, run_plan, set_resume, stale_markers
 from .planner import Plan
 from .trace import Trace
 
@@ -26,6 +26,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--max-steps", type=int, default=30)
     parser.add_argument("--max-cost-inr", type=float, default=20.0)
     parser.add_argument("--ui", action="store_true", help="also start the read-only trace viewer (stretch)")
+    parser.add_argument("--resume", action="store_true", help="continue an interrupted run in --out: reuse its plan and finished steps")
     args = parser.parse_args(argv)
 
     config.load_dotenv()
@@ -36,6 +37,10 @@ def main(argv: list[str] | None = None) -> int:
     except OSError as exc:
         print(f"cannot write --out {out}: {exc}", file=sys.stderr)
         return 2
+    set_resume(args.resume)
+    if not args.resume:
+        for name in ("plan.json", "state.json"):
+            (out / name).unlink(missing_ok=True)
     started = time.time()
     started_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(started))
     trace = Trace(out / "trace.jsonl")
@@ -64,7 +69,14 @@ def main(argv: list[str] | None = None) -> int:
             raise BodhanError("MISSING_FILE", f"None of the paths in '{args.files}' exist or can be read.", hint="Check the paths; nothing was called.")
 
         budgets = {"max_steps": args.max_steps, "max_cost_inr": args.max_cost_inr}
-        plan_obj = planner.plan(args.task, rows, budgets, trace)
+        saved = out / "plan.json"
+        if args.resume and saved.is_file():
+            plan_obj = Plan.model_validate_json(saved.read_text(encoding="utf-8"))
+            trace.emit("resume", plan_steps=len(plan_obj.steps), note="plan reused; finished steps are skipped")
+        else:
+            plan_obj = planner.plan(args.task, rows, budgets, trace)
+            if plan_obj.feasible:
+                saved.write_text(plan_obj.model_dump_json(by_alias=True), encoding="utf-8")
         understanding = plan_obj.understanding
         assumptions = [a.model_dump() for a in plan_obj.assumptions]
         trace.emit("plan", attempt=1, understanding=understanding, feasible=plan_obj.feasible, steps=[s.model_dump() for s in plan_obj.steps], assumptions=assumptions, refusal=plan_obj.refusal)

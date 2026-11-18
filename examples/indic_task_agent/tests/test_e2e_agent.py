@@ -241,3 +241,18 @@ def test_a_plan_over_budget_is_refused_without_spending(bodhan, monkeypatch, tmp
     assert report["budget"]["cost_inr"] <= 0.05 and report["quality_targets"]["within_budget"] is True
     assert bodhan.requests == []
     assert report["replans"] == 1 and len(planner.seen) == 2
+
+
+def test_resume_reuses_the_plan_and_finished_steps(full_run, tmp_path, monkeypatch):
+    out = full_run["out"]
+    assert (out / "plan.json").is_file() and (out / "state.json").is_file()
+    before = len(full_run["bodhan"].requests)
+    planner_calls = len(full_run["planner"].seen)
+    code = cli.main(["--task", "Make a Tamil audio summary", "--files", str(full_run["pdf"]), "--out", str(out), "--resume"])
+    assert code == 0
+    assert len(full_run["bodhan"].requests) - before <= 2  # only the verification calls, never the pipeline
+    new = [m[0]["content"] for m in full_run["planner"].seen[planner_calls:]]
+    assert all(c.startswith("You compare two English texts") for c in new)  # no new plan, no new draft
+    trace = (out / "trace.jsonl").read_text(encoding="utf-8")
+    assert trace.count('"type": "step_reused"') == 5 and '"type": "resume"' in trace
+    assert report_of(out)["budget"]["cost_inr"] <= report_of(out)["budget"]["max_cost_inr"]
