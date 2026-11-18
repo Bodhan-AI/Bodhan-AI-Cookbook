@@ -1,0 +1,82 @@
+{
+  "task": "convert audio to telugu language",
+  "goal": "Convert the provided Hindi audio file into Telugu audio.",
+  "status": "completed",
+  "stop_reason": "",
+  "total_cost_inr": 0.0625,
+  "spent_inr": 0.0625,
+  "total_time_seconds": 32.26,
+  "steps_used": 3,
+  "replan_count": 0,
+  "assumptions": [
+    "The input audio is in Hindi.",
+    "The target language is Telugu.",
+    "The voice for Telugu synthesis will be the default female voice 'Kavya'."
+  ],
+  "artifacts": [
+    {
+      "name": "translated_step_2.md",
+      "path": "outputs/audio_testing_v2/artifacts/translated_step_2.md",
+      "kind": "markdown",
+      "produced_by": "step_2"
+    },
+    {
+      "name": "speech_step_3.wav",
+      "path": "/Users/amogharora/bodhan_assignment/outputs/audio_testing_v2/artifacts/speech_step_3.wav",
+      "kind": "audio",
+      "produced_by": "step_3"
+    }
+  ],
+  "steps": [
+    {
+      "id": "step_1",
+      "tool": "transcribe_audio",
+      "status": "done",
+      "purpose": "Transcribe the Hindi audio file to extract the text content.",
+      "cost_inr": 0.0,
+      "latency_ms": 68.83,
+      "error": null
+    },
+    {
+      "id": "step_2",
+      "tool": "translate_text",
+      "status": "done",
+      "purpose": "Translate the transcribed Hindi text into Telugu.",
+      "cost_inr": 0.0007,
+      "latency_ms": 645.25,
+      "error": null
+    },
+    {
+      "id": "step_3",
+      "tool": "synthesize_speech",
+      "status": "done",
+      "purpose": "Synthesize the translated Telugu text into a Telugu audio file using the Kavya voice.",
+      "cost_inr": 0.0618,
+      "latency_ms": 9051.39,
+      "error": null
+    }
+  ],
+  "verifications": [
+    {
+      "check": "translation_verification",
+      "status": "passed",
+      "source_chars": 82,
+      "translated_chars": 103,
+      "length_ratio": 1.26,
+      "tables_preserved": true,
+      "detected_script": "Telugu",
+      "details": "Length ratio 1.26, tables: 0/0",
+      "artifact": "outputs/audio_testing_v2/artifacts/translated_step_2.md"
+    },
+    {
+      "check": "audio_verification",
+      "artifact": "/Users/amogharora/bodhan_assignment/outputs/audio_testing_v2/artifacts/speech_step_3.wav",
+      "status": "warning",
+      "cer": 3.96,
+      "duration_seconds": 9.3,
+      "back_transcription_preview": "నమస్తే ఈరోజు మనం గణిత తరగతిని ప్రారంభిద్దాం దయచేసి మీ పుస్తకాలు తెరవండి మరియు మొదటి పాఠాన్ని చదవండి",
+      "details": "CER: 396.00%, duration: 9.3s"
+    }
+  ],
+  "missed_targets": []
+}
