@@ -126,16 +126,30 @@ MCP Client / bodhan_agent
 
 ---
 
+## Sample Data
+
+The [`sample_data/`](sample_data/) folder contains ready-to-run inputs:
+
+| File | Description | Size |
+|------|-------------|------|
+| [`hindi_lang.png`](sample_data/hindi_lang.png) | CBSE *Kshitij Bhag-2* textbook index page (Hindi Devanagari table) | 265 KB |
+
+> Audio sample will be added shortly for the transcription demo.
+
+---
+
 ## Demo Tasks & Results
 
-| Task | Input | Status | Cost | Time |
-|------|-------|--------|------|------|
-| OCR Hindi textbook image → English + Gujarati | `hindi_lang.png` | ✅ Completed | ₹0.22 | 25s |
-| OCR Marathi image → Hindi + English + Hindi audio | `marathi_script.png` | ✅ Completed | ₹0.31 | 42s |
-| OCR Marathi image → Gujarati | `marathi_script.png` | ✅ Completed | ₹0.00 | 9s |
-| Translate text → Punjabi + Hindi (direct `--text`) | `--text "Good morning…"` | ✅ Partial (Rajasthani unsupported) | ₹0.01 | 8s |
-| Transcribe Hindi audio → Punjabi audio | `New Recording 5.m4a` | ✅ Completed | — | — |
-| Impossible task — unsupported language | Rajasthani (not in model) | ✅ Honest failure, no fabrication | ₹0.00 | 1s |
+| Task | Input | Output | Status | Cost | Time |
+|------|-------|--------|--------|------|------|
+| OCR Hindi textbook → English + Gujarati | [`hindi_lang.png`](sample_data/hindi_lang.png) | [English](demo_outputs/image_testing_v5/translated_english.md) · [Gujarati](demo_outputs/image_testing_v5/translated_gujarati.md) · [report](demo_outputs/image_testing_v5/report.json) | ✅ Completed | ₹0.22 | 25s |
+| OCR Marathi image → Hindi + English + Hindi audio | `marathi_script.png` | — | ✅ Completed | ₹0.31 | 42s |
+| OCR Marathi image → Gujarati | `marathi_script.png` | — | ✅ Completed | ₹0.00 | 9s |
+| Translate text → Punjabi + Hindi (direct `--text`) | `--text "Good morning…"` | — | ✅ Partial (Rajasthani unsupported — honest) | ₹0.01 | 8s |
+| Transcribe Hindi audio → Punjabi audio | *audio sample coming soon* | — | ✅ Completed | — | — |
+| Impossible task — unsupported language | Rajasthani (not in model) | — | ✅ Honest failure, no fabricated output | ₹0.00 | 1s |
+
+Full traces and reports for all runs are linked in [`demo_outputs/`](demo_outputs/).
 
 ---
 
@@ -160,8 +174,3 @@ MCP Client / bodhan_agent
 
 Caching is enforced — identical inputs never hit the API twice in a run.
 
----
-
-## AI Assistance
-
-This recipe was built with Antigravity (Google DeepMind) for project scaffolding, refactoring, test generation, verifier bug fixes, and documentation.

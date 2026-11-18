@@ -3,15 +3,18 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 .env
+out/
+out_*/
 outputs/
+.DS_Store
+.pytest_cache/
+
+# Ignore generated audio/large media everywhere EXCEPT sample_data/
 *.wav
 *.mp3
 *.m4a
-*.png
-*.jpg
-*.jpeg
-*.pdf
-out/
-out_*/
-.DS_Store
-.pytest_cache/
+*.aac
+
+# Allow sample_data images and demo outputs to be committed (< 1 MB, synthetic/public)
+!sample_data/**
+!demo_outputs/**
