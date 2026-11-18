@@ -81,6 +81,9 @@ def main(argv=None):
                       for label in record["labels"]) for record in label_records):
             p.error("Calibration file requires id and labels with supported error types")
     args.out.mkdir(parents=True, exist_ok=True)
+    baseline_flagged = None
+    if args.fail_on_regression is not None and args.baseline:
+        baseline_flagged = json.loads((args.baseline / "summary.json").read_text())["flagged_items"]
     client = ModelClient(args.cache, Ledger(args.max_cost_inr), offline=args.offline,
                          concurrency=args.workers, timeout=args.timeout,
                          llm_input_price=args.llm_input_inr_per_million,
@@ -105,8 +108,7 @@ def main(argv=None):
             trace.write(json.dumps(event, sort_keys=True) + "\n")
     client.http.close()
     print(json.dumps({"status": summary["status"], "items": len(rows), **execution}, indent=2))
-    if args.fail_on_regression is not None and args.baseline:
-        baseline = json.loads((args.baseline / "summary.json").read_text())
-        if summary["flagged_items"] - baseline["flagged_items"] > args.fail_on_regression:
+    if baseline_flagged is not None:
+        if summary["flagged_items"] - baseline_flagged > args.fail_on_regression:
             return 2
     return 1 if summary["status"] == "partial" else 0

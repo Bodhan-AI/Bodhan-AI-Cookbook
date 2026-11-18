@@ -80,7 +80,7 @@ def finalize(rows, originals, labels, invalid, out, baseline=None):
                 md.append("  - " + json.dumps(finding, ensure_ascii=False))
     (out / "summary.md").write_text("\n".join(md) + "\n")
     with (out / "review.csv").open("w", newline="") as stream:
-        writer = csv.writer(stream)
+        writer = csv.writer(stream, lineterminator="\n")
         writer.writerow(["id", "lang", "source", "translation", "candidates", "human_labels_json"])
         for row in rows:
             writer.writerow([row["id"], row["lang"], row["source"], row["translation"],
@@ -88,6 +88,8 @@ def finalize(rows, originals, labels, invalid, out, baseline=None):
     dashboard(rows, summary, out)
     if baseline_text is not None:
         baseline_diff(rows, baseline_text, out)
+    else:
+        (out / "diff.md").unlink(missing_ok=True)
     return summary
 
 
@@ -142,7 +144,8 @@ pre{white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.5 monospace;max-heig
 summary{cursor:pointer;padding:8px 0;font-weight:600}.label{font-size:12px;font-weight:700;color:#526c72;margin:8px 0}
 </style><h1>Translation and speech quality</h1><p>SUMMARY</p>
 <label>Filter items <input id="filter" placeholder="Language, category, item ID or text"></label>
-<table><thead><tr><th>Item</th><th>Lang</th><th>Status</th><th>Flags</th><th>Source and output</th><th>Evidence and review</th></tr></thead><tbody>ROWS</tbody></table>
+<table><thead><tr><th>Item</th><th>Lang</th><th>Status</th><th>Flags</th>
+<th>Source and output</th><th>Evidence and review</th></tr></thead><tbody>ROWS</tbody></table>
 <script>document.getElementById('filter').addEventListener('input', e => {
 const q=e.target.value.toLowerCase();for(const row of document.querySelectorAll('tbody tr')){
 row.hidden=!row.textContent.toLowerCase().includes(q);}});</script></html>"""

@@ -4,7 +4,7 @@
   "budget_inr": 0.0,
   "cache_hits": 0,
   "charged_or_reserved_inr": 0.0,
-  "elapsed_seconds": 0.1146,
+  "elapsed_seconds": 0.1026,
   "judge_price_estimates_inr_per_million": {
     "input": 100.0,
     "output": 1000.0

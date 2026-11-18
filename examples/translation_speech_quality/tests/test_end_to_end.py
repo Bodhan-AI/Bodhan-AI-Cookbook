@@ -23,6 +23,8 @@ def test_ten_items_from_cli_are_deterministic_and_diffable(tmp_path):
         assert (out / name).read_bytes() == data
     assert "No changes" in (out / "diff.md").read_text()
     assert json.loads((out / "summary.json").read_text())["flagged_items"] == 5
+    assert main(base) == 0
+    assert not (out / "diff.md").exists()
 
 
 def test_judge_rejects_invented_evidence_and_localizes_exact_quotes():
