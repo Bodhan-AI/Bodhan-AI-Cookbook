@@ -52,7 +52,9 @@ def check(run_dir: Path, spec: dict) -> list[str]:
     failures: list[str] = []
     if report["status"] not in expect.get("status", ["completed"]):
         failures.append(f"status {report['status']}")
-    artifacts = [p for p in (run_dir / "artifacts").iterdir() if p.is_file()] if (run_dir / "artifacts").is_dir() else []
+    # a recorded run keeps no audio, so the report's own artifact list counts too
+    artifacts = {Path(p.name) for p in (run_dir / "artifacts").iterdir() if p.is_file()} if (run_dir / "artifacts").is_dir() else set()
+    artifacts |= {Path(a["name"]) for a in report.get("artifacts", [])}
     for pattern in expect.get("artifacts", []):
         if not any(p.match(pattern) for p in artifacts):
             failures.append(f"no artifact matching {pattern}")
@@ -99,6 +101,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--replay", type=Path, help="folder of recorded runs, one subfolder per task id")
     parser.add_argument("--out", type=Path, default=ROOT / "out" / "eval", help="where live runs are written")
     parser.add_argument("--max-cost-inr", type=float, help="override every task's budget (live only)")
+    parser.add_argument("--record", type=Path, help="copy each checked run here (text outputs only, local paths made relative) for later --replay")
     parser.add_argument("--strict", action="store_true", help="a skipped task counts as a failure")
     args = parser.parse_args(argv)
 
@@ -120,6 +123,8 @@ def main(argv: list[str] | None = None) -> int:
         if skip:
             rows.append((spec["id"], "SKIP", skip))
             continue
+        if args.record:
+            record(run_dir, args.record / spec["id"])
         failures = check(run_dir, spec)
         rows.append((spec["id"], "PASS" if not failures else "FAIL", "; ".join(failures) or report_line(run_dir)))
 
@@ -133,6 +138,23 @@ def main(argv: list[str] | None = None) -> int:
     if args.strict:
         return 1 if failed or skipped else 0
     return 1 if failed else 0
+
+
+def record(run_dir: Path, dest: Path) -> None:
+    """Keep the evidence, not the media: reports, traces and text artifacts, with this machine's paths removed."""
+    import shutil
+
+    if dest.exists():
+        shutil.rmtree(dest)
+    (dest / "artifacts").mkdir(parents=True)
+    root = str(run_dir.resolve())
+    for name in ("result.md", "report.json", "trace.jsonl"):
+        src = run_dir / name
+        if src.is_file():
+            dest.joinpath(name).write_text(src.read_text(encoding="utf-8").replace(root, ".").replace(str(ROOT), "<recipe>"), encoding="utf-8")
+    for art in (run_dir / "artifacts").glob("*"):
+        if art.suffix in (".md", ".txt", ".srt", ".json"):
+            dest.joinpath("artifacts", art.name).write_text(art.read_text(encoding="utf-8"), encoding="utf-8")
 
 
 def report_line(run_dir: Path) -> str:

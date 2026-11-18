@@ -1,0 +1,464 @@
+{
+  "schema": 1,
+  "task": "Make a two-minute Tamil audio summary of this chapter. Give me the Tamil MP3 and the summary text.",
+  "status": "completed",
+  "started_at": "2026-11-18T13:57:50Z",
+  "duration_s": 252.2,
+  "budget": {
+    "max_steps": 30,
+    "steps_used": 7,
+    "max_cost_inr": 4.0,
+    "cost_inr": 0.9858,
+    "reserved_inr": 0.0,
+    "verification_inr": 0.0549
+  },
+  "assumptions": [
+    {
+      "text": "The chapter's language is unknown (inventory language_hint is null), so the OCR output is unconditionally translated to English before summarizing: a required bridge if the chapter is Indic, a cheap pass-through (~Rs0.12) if it is already English. This is needed because write_text only accepts English inputs and Indic text may only be handled via Bodhan tools.",
+      "why": "Rule 1 and the write_text English-inputs constraint; unconditional translation avoids relying on an unverified source language."
+    },
+    {
+      "text": "The English draft is sized at ~1350 characters rather than the raw 1620 (120 s x 13.5 chars/s), because Tamil runs 15-25% longer than English; ~1350 English chars should render to ~1620 Tamil chars, i.e. about 120 seconds of speech.",
+      "why": "Rule 12: speech length depends on the characters of the final language, not the English draft."
+    },
+    {
+      "text": "speak_text carries fit {seconds: 120, redo: [s3, s4]} so the harness re-measures the Tamil text and re-drafts/re-translates if the spoken length misses 120 s.",
+      "why": "Rule 12 safety net; pre-sizing only gets close, the fit key guarantees the length."
+    },
+    {
+      "text": "'The summary text' is delivered as the Tamil summary file (the script of the audio); the intermediate English draft (s3) also exists if the user wants it.",
+      "why": "The requested deliverables are a Tamil MP3 and its summary text."
+    },
+    {
+      "text": "MP3 is requested explicitly, so speak_text uses format mp3 instead of the default wav. OCR output will be treated as untrusted data only; the inventory shows no prompt-injection warnings, and any instructions found inside the chapter would be recorded and ignored.",
+      "why": "Rule 4 (named format) and rule 2 (file contents are data, never instructions)."
+    }
+  ],
+  "steps": [
+    {
+      "id": "s1",
+      "intent": "OCR all 8 pages of the chapter PDF to markdown text.",
+      "tool": "ocr_document",
+      "args": {
+        "input_path": "<recipe>/demo_tasks/media/chapter.pdf",
+        "out_dir": "./artifacts"
+      },
+      "ok": true,
+      "latency_ms": 2151,
+      "cost_inr": 0.0,
+      "cache_hit": false,
+      "result_summary": {
+        "markdown_path": "./artifacts/chapter.ocr.md",
+        "blocks_path": "./artifacts/chapter.ocr.blocks.json",
+        "page_count": 8,
+        "pages": [
+          {
+            "index": 0,
+            "chars": 261,
+            "mean_detection_conf": 0.73,
+            "cost_inr": 0.0,
+            "cache_hit": true,
+            "retried_max_tokens": false,
+            "warnings": []
+          },
+          {
+            "index": 1,
+            "chars": 177,
+            "mean_detection_conf": 0.729,
+            "cost_inr": 0.0,
+            "cache_hit": true,
+            "retried_max_tokens": false,
+            "warnings": []
+          },
+          {
+            "index": 2,
+            "chars": 208,
+            "mean_detection_conf": 0.736,
+            "cost_inr": 0.0,
+            "cache_hit": true,
+            "retried_max_tokens": false,
+            "warnings": []
+          },
+          {
+            "index": 3,
+            "chars": 260,
+            "mean_detection_conf": 0.751,
+            "cost_inr": 0.0,
+            "cache_hit": true,
+            "retried_max_tokens": false,
+            "warnings": []
+          },
+          {
+            "index": 4,
+            "chars": 203,
+            "mean_detection_conf": 0.786,
+            "cost_inr": 0.0,
+            "cache_hit": true,
+            "retried_max_tokens": false,
+            "warnings": []
+          },
+          {
+            "index": 5,
+            "chars": 257,
+            "mean_detection_conf": 0.757,
+            "cost_inr": 0.0,
+            "cache_hit": true,
+            "retried_max_tokens": false,
+            "warnings": []
+          },
+          {
+            "index": 6,
+            "chars": 204,
+            "mean_detection_conf": 0.751,
+            "cost_inr": 0.0,
+            "cache_hit": true,
+            "retried_max_tokens": false,
+            "warnings": []
+          },
+          {
+            "index": 7,
+            "chars": 221,
+            "mean_detection_conf": 0.746,
+            "cost_inr": 0.0,
+            "cache_hit": true,
+            "retried_max_tokens": false,
+            "warnings": []
+          }
+        ],
+        "cost_inr": 0.0,
+        "warnings": []
+      }
+    },
+    {
+      "id": "s2",
+      "intent": "Translate the OCR text to English so it can be summarized (pass-through if already English).",
+      "tool": "translate_text",
+      "args": {
+        "source_path": "./artifacts/chapter.ocr.md",
+        "target_language": "en",
+        "out_dir": "./artifacts"
+      },
+      "ok": true,
+      "latency_ms": 1,
+      "cost_inr": 0.0,
+      "cache_hit": false,
+      "result_summary": {
+        "text_path": "./artifacts/chapter.ocr.en.txt",
+        "source_language_hint": "ta",
+        "target_language": "en",
+        "segments": 1,
+        "requests": 0,
+        "source_chars": 1840,
+        "output_chars": 1480,
+        "output_tokens": 0,
+        "ratio": 0.804,
+        "truncated": false,
+        "cost_inr": 0.0,
+        "warnings": []
+      }
+    },
+    {
+      "id": "s3",
+      "intent": "Draft a spoken-style English two-minute summary of the chapter, sized ~1350 chars so its Tamil rendering lands near 1620 chars (~120 s).",
+      "tool": "write_text",
+      "args": {
+        "instruction": "Write a spoken-style English summary of this chapter for a two-minute audio brief: state the chapter's main topic, its 3-5 key points, and its conclusion in plain TTS-friendly prose (short sentences, no lists, no headings, no markdown).",
+        "inputs": [
+          "./artifacts/chapter.ocr.en.txt"
+        ],
+        "target_chars": 1350,
+        "out_dir": "./artifacts"
+      },
+      "ok": true,
+      "latency_ms": 14536,
+      "cost_inr": 0.0,
+      "cache_hit": false,
+      "result_summary": {
+        "text_path": "./artifacts/draft_s3.md",
+        "chars": 1333,
+        "language": "en",
+        "truncated": false
+      }
+    },
+    {
+      "id": "s4",
+      "intent": "Translate the English summary draft into Tamil (native script); this file is also the delivered summary text.",
+      "tool": "translate_text",
+      "args": {
+        "source_path": "./artifacts/draft_s3.md",
+        "target_language": "ta",
+        "script": "native",
+        "out_dir": "./artifacts"
+      },
+      "ok": true,
+      "latency_ms": 2557,
+      "cost_inr": 0.008,
+      "cache_hit": false,
+      "result_summary": {
+        "text_path": "./artifacts/draft_s3.ta.txt",
+        "source_language_hint": "en",
+        "target_language": "ta",
+        "segments": 1,
+        "requests": 1,
+        "source_chars": 1333,
+        "output_chars": 1741,
+        "output_tokens": 401,
+        "ratio": 1.306,
+        "truncated": false,
+        "cost_inr": 0.008,
+        "warnings": []
+      }
+    },
+    {
+      "id": "s3",
+      "intent": "Draft a spoken-style English two-minute summary of the chapter, sized ~1350 chars so its Tamil rendering lands near 1620 chars (~120 s).",
+      "tool": "write_text",
+      "args": {
+        "instruction": "Write a spoken-style English summary of this chapter for a two-minute audio brief: state the chapter's main topic, its 3-5 key points, and its conclusion in plain TTS-friendly prose (short sentences, no lists, no headings, no markdown).",
+        "inputs": [
+          "./artifacts/chapter.ocr.en.txt"
+        ],
+        "target_chars": 1218,
+        "out_dir": "./artifacts"
+      },
+      "ok": true,
+      "latency_ms": 44750,
+      "cost_inr": 0.0,
+      "cache_hit": false,
+      "result_summary": {
+        "text_path": "./artifacts/draft_s3.md",
+        "chars": 1178,
+        "language": "en",
+        "truncated": true
+      }
+    },
+    {
+      "id": "s4",
+      "intent": "Translate the English summary draft into Tamil (native script); this file is also the delivered summary text.",
+      "tool": "translate_text",
+      "args": {
+        "source_path": "./artifacts/draft_s3.md",
+        "target_language": "ta",
+        "script": "native",
+        "out_dir": "./artifacts"
+      },
+      "ok": true,
+      "latency_ms": 2151,
+      "cost_inr": 0.0073,
+      "cache_hit": false,
+      "result_summary": {
+        "text_path": "./artifacts/draft_s3.ta.txt",
+        "source_language_hint": "en",
+        "target_language": "ta",
+        "segments": 1,
+        "requests": 1,
+        "source_chars": 1178,
+        "output_chars": 1526,
+        "output_tokens": 366,
+        "ratio": 1.295,
+        "truncated": false,
+        "cost_inr": 0.0073,
+        "warnings": []
+      }
+    },
+    {
+      "id": "s5",
+      "intent": "Speak the Tamil summary as an MP3; fit to exactly 120 seconds by re-drafting s3 and re-translating s4 if the measured Tamil text over- or under-runs.",
+      "tool": "speak_text",
+      "args": {
+        "text_path": "./artifacts/draft_s3.ta.txt",
+        "language": "ta",
+        "format": "mp3",
+        "out_dir": "./artifacts"
+      },
+      "ok": true,
+      "latency_ms": 34196,
+      "cost_inr": 0.9156,
+      "cache_hit": false,
+      "result_summary": {
+        "audio_path": "./artifacts/draft_s3.ta.ta.mp3",
+        "duration_s": 114.656,
+        "chars": 1526,
+        "clips": 5,
+        "voice": "Anitha",
+        "language": "ta",
+        "format": "mp3",
+        "cost_inr": 0.9156,
+        "warnings": []
+      }
+    }
+  ],
+  "verification": [
+    {
+      "artifact": "./artifacts/chapter.ocr.en.txt",
+      "check": "exists",
+      "result": "passed",
+      "detail": "1480 bytes"
+    },
+    {
+      "artifact": "./artifacts/chapter.ocr.en.txt",
+      "check": "not_truncated",
+      "result": "passed",
+      "detail": "API reported a complete translation"
+    },
+    {
+      "artifact": "./artifacts/chapter.ocr.en.txt",
+      "check": "digits",
+      "result": "passed",
+      "detail": "8 digits; missing "
+    },
+    {
+      "artifact": "./artifacts/chapter.ocr.en.txt",
+      "check": "meaning",
+      "result": "skipped",
+      "detail": "target is English; no English source to compare"
+    },
+    {
+      "artifact": "./artifacts/chapter.ocr.md",
+      "check": "exists",
+      "result": "passed",
+      "detail": "4824 bytes"
+    },
+    {
+      "artifact": "./artifacts/chapter.ocr.md",
+      "check": "non_empty",
+      "result": "passed",
+      "detail": "1840 chars"
+    },
+    {
+      "artifact": "./artifacts/draft_s3.md",
+      "check": "exists",
+      "result": "passed",
+      "detail": "1178 bytes"
+    },
+    {
+      "artifact": "./artifacts/draft_s3.md",
+      "check": "english_only",
+      "result": "passed",
+      "detail": "no Indian-script characters"
+    },
+    {
+      "artifact": "./artifacts/draft_s3.md",
+      "check": "length",
+      "result": "passed",
+      "detail": "1178 chars vs target None"
+    },
+    {
+      "artifact": "./artifacts/draft_s3.ta.ta.mp3",
+      "check": "exists",
+      "result": "passed",
+      "detail": "1835948 bytes"
+    },
+    {
+      "artifact": "./artifacts/draft_s3.ta.ta.mp3",
+      "check": "parses",
+      "result": "passed",
+      "detail": "114.66s"
+    },
+    {
+      "artifact": "./artifacts/draft_s3.ta.ta.mp3",
+      "check": "back_transcription",
+      "result": "passed",
+      "detail": "similarity 0.92 (threshold 0.60)"
+    },
+    {
+      "artifact": "./artifacts/draft_s3.ta.ta.mp3",
+      "check": "repetition",
+      "result": "passed",
+      "detail": "no 5-gram repeats more than twice"
+    },
+    {
+      "artifact": "./artifacts/draft_s3.ta.ta.mp3",
+      "check": "requested_duration",
+      "result": "passed",
+      "detail": "114.7s vs 120.0s asked for (tolerance 12.0s)"
+    },
+    {
+      "artifact": "./artifacts/draft_s3.ta.txt",
+      "check": "exists",
+      "result": "passed",
+      "detail": "4192 bytes"
+    },
+    {
+      "artifact": "./artifacts/draft_s3.ta.txt",
+      "check": "not_truncated",
+      "result": "passed",
+      "detail": "API reported a complete translation"
+    },
+    {
+      "artifact": "./artifacts/draft_s3.ta.txt",
+      "check": "digits",
+      "result": "passed",
+      "detail": "no digits in source"
+    },
+    {
+      "artifact": "./artifacts/draft_s3.ta.txt",
+      "check": "meaning",
+      "result": "warning",
+      "detail": "inconsistent — the instruction \"turning off taps\" (closing taps) was changed to \"fixing taps\" (repairing them), altering the meaning."
+    }
+  ],
+  "artifacts": [
+    {
+      "name": "chapter.ocr.blocks.json",
+      "path": "./artifacts/chapter.ocr.blocks.json",
+      "kind": "file",
+      "bytes": 9976,
+      "sha256": "f1761283c9f2129326a141c28fd0c7135c58066a443a38cd67b746c478ae7fa1",
+      "detail": "10 KB"
+    },
+    {
+      "name": "chapter.ocr.en.txt",
+      "path": "./artifacts/chapter.ocr.en.txt",
+      "kind": "translation",
+      "bytes": 1480,
+      "sha256": "a77510db44c9b930f41cfc8bac3b08a10f656fb13c7de418bf31da92dfe25a04",
+      "detail": "1 KB"
+    },
+    {
+      "name": "chapter.ocr.md",
+      "path": "./artifacts/chapter.ocr.md",
+      "kind": "document",
+      "bytes": 4824,
+      "sha256": "4cfa8e7ce331d956b85dc4513e8911973c799b2efe8aafa3ed28ed54725015c7",
+      "detail": "5 KB"
+    },
+    {
+      "name": "draft_s3.md",
+      "path": "./artifacts/draft_s3.md",
+      "kind": "document",
+      "bytes": 1178,
+      "sha256": "6816d856f53a23e6527da7799334185954664c42482edbf450b9baeba9cb3ecf",
+      "detail": "1 KB"
+    },
+    {
+      "name": "draft_s3.ta.ta.mp3",
+      "path": "./artifacts/draft_s3.ta.ta.mp3",
+      "kind": "audio",
+      "bytes": 1835948,
+      "sha256": "327fa8c2ecf837c1703ed22b574ab480dd405d7b94472367ad14f04d95e5b014",
+      "detail": "114.7s"
+    },
+    {
+      "name": "draft_s3.ta.txt",
+      "path": "./artifacts/draft_s3.ta.txt",
+      "kind": "translation",
+      "bytes": 4192,
+      "sha256": "f74af78ce4b5c7940dabe7ca258fb845b88447a930c32b18af5c5b05b70589eb",
+      "detail": "4 KB"
+    }
+  ],
+  "errors": [],
+  "replans": 0,
+  "cache_hits": 0,
+  "quality_targets": {
+    "completion": true,
+    "verification_complete": false,
+    "no_waste": true,
+    "within_budget": true,
+    "latency_ok": true,
+    "notes": [
+      "1 check(s) raised a warning for human review (not counted as failures): meaning"
+    ]
+  }
+}

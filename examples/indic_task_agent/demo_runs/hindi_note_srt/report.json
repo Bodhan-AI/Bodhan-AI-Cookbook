@@ -1,0 +1,167 @@
+{
+  "schema": 1,
+  "task": "Transcribe this Hindi voice note and give me English subtitles as an SRT file.",
+  "status": "completed",
+  "started_at": "2026-11-18T14:03:09Z",
+  "duration_s": 15.0,
+  "budget": {
+    "max_steps": 30,
+    "steps_used": 2,
+    "max_cost_inr": 1.0,
+    "cost_inr": 0.0,
+    "reserved_inr": 0.0,
+    "verification_inr": 0.0
+  },
+  "assumptions": [
+    {
+      "text": "Although the task calls the note 'Hindi', transcription runs with language omitted so the tool auto-detects it; English subtitles are produced whatever language is found.",
+      "why": "Policy: never guess audio language from task wording when auto-detection is available."
+    },
+    {
+      "text": "The SRT is built downstream from s1's chunk timestamps plus s2's English text, so both steps appear in final_outputs.",
+      "why": "Subtitle rule: the transcript step must be listed so its timestamps can anchor the SRT."
+    },
+    {
+      "text": "The audio content is treated as untrusted data only; inventory shows no prompt-injection warnings.",
+      "why": "File contents are never instructions."
+    },
+    {
+      "text": "Estimated cost: ~Rs0.06 transcription + negligible translation (~440 source chars for 32.7 s of speech), well within the Rs1.00 budget and 2 of 30 steps.",
+      "why": "Cheap-first arithmetic confirms feasibility."
+    }
+  ],
+  "steps": [
+    {
+      "id": "s1",
+      "intent": "Transcribe the voice note with per-chunk timestamps, letting the tool auto-detect the language instead of trusting the 'Hindi' label",
+      "tool": "transcribe_audio",
+      "args": {
+        "audio_path": "<recipe>/demo_tasks/media/note.wav",
+        "out_dir": "./artifacts"
+      },
+      "ok": true,
+      "latency_ms": 369,
+      "cost_inr": 0.0,
+      "cache_hit": false,
+      "result_summary": {
+        "text_path": "./artifacts/note.transcript.txt",
+        "language_hint": null,
+        "duration_s": 32.717,
+        "cost_inr": 0.0,
+        "cache_hits": 2,
+        "warnings": []
+      }
+    },
+    {
+      "id": "s2",
+      "intent": "Translate the transcript to English to serve as the subtitle text",
+      "tool": "translate_text",
+      "args": {
+        "source_path": "./artifacts/note.transcript.txt",
+        "target_language": "en",
+        "out_dir": "./artifacts"
+      },
+      "ok": true,
+      "latency_ms": 0,
+      "cost_inr": 0.0,
+      "cache_hit": false,
+      "result_summary": {
+        "text_path": "./artifacts/note.transcript.en.txt",
+        "source_language_hint": null,
+        "target_language": "en",
+        "segments": 1,
+        "requests": 0,
+        "source_chars": 413,
+        "output_chars": 451,
+        "output_tokens": 0,
+        "ratio": 1.092,
+        "truncated": false,
+        "cost_inr": 0.0,
+        "warnings": []
+      }
+    }
+  ],
+  "verification": [
+    {
+      "artifact": "./artifacts/note.transcript.en.txt",
+      "check": "exists",
+      "result": "passed",
+      "detail": "451 bytes"
+    },
+    {
+      "artifact": "./artifacts/note.transcript.en.txt",
+      "check": "not_truncated",
+      "result": "passed",
+      "detail": "API reported a complete translation"
+    },
+    {
+      "artifact": "./artifacts/note.transcript.en.txt",
+      "check": "digits",
+      "result": "passed",
+      "detail": "no digits in source"
+    },
+    {
+      "artifact": "./artifacts/note.transcript.en.txt",
+      "check": "meaning",
+      "result": "skipped",
+      "detail": "target is English; no English source to compare"
+    },
+    {
+      "artifact": "./artifacts/note.transcript.srt",
+      "check": "cues",
+      "result": "passed",
+      "detail": "10 cues, 0 malformed"
+    },
+    {
+      "artifact": "./artifacts/note.transcript.srt",
+      "check": "monotonic",
+      "result": "passed",
+      "detail": "cues ordered without overlap"
+    },
+    {
+      "artifact": "./artifacts/note.transcript.txt",
+      "check": "exists",
+      "result": "passed",
+      "detail": "1053 bytes"
+    }
+  ],
+  "artifacts": [
+    {
+      "name": "note.transcript.en.txt",
+      "path": "./artifacts/note.transcript.en.txt",
+      "kind": "translation",
+      "bytes": 451,
+      "sha256": "d9768e8e774be263fc24a3908f9192030304d49eee012938e9bde2bca66feed9",
+      "detail": "0 KB"
+    },
+    {
+      "name": "note.transcript.srt",
+      "path": "./artifacts/note.transcript.srt",
+      "kind": "file",
+      "bytes": 782,
+      "sha256": "81da499e2a726c9b368d74c2493f64f2ff348b0cb51b4dbf7b98293d5e945b2e",
+      "detail": "1 KB"
+    },
+    {
+      "name": "note.transcript.txt",
+      "path": "./artifacts/note.transcript.txt",
+      "kind": "translation",
+      "bytes": 1053,
+      "sha256": "008b4d7d3ab58d568c775a2ca7f4925c776f3376ce1e171e16e426d7140fa457",
+      "detail": "1 KB"
+    }
+  ],
+  "errors": [],
+  "replans": 0,
+  "cache_hits": 0,
+  "quality_targets": {
+    "completion": true,
+    "verification_complete": false,
+    "no_waste": true,
+    "within_budget": true,
+    "latency_ok": true,
+    "notes": [
+      "Subtitle file written with interpolated timing: note.transcript.srt"
+    ]
+  }
+}
