@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import subprocess
 import tempfile
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from ..core import api, cache, catalog, config, costs, media
@@ -47,8 +48,9 @@ def speak_text(
     wavs: list[Path] = []
     with tempfile.TemporaryDirectory(prefix="bodhan-tts-") as tmp:
         tmpdir = Path(tmp)
-        for i, clip in enumerate(clips):
-            wav, hit = _clip(clip, language, chosen, style, tmpdir, i, force)
+        with ThreadPoolExecutor(max_workers=config.max_concurrency()) as pool:  # the client's semaphore enforces the real cap
+            first = list(pool.map(lambda item: _clip(item[1], language, chosen, style, tmpdir, item[0], force), enumerate(clips)))
+        for i, (clip, (wav, hit)) in enumerate(zip(clips, first)):
             hits += hit
             expected = len(clip) / config.TTS_CHARS_PER_S
             got = media.wav_duration(str(wav))

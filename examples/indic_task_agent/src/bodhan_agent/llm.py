@@ -36,7 +36,7 @@ def chat(messages: list[dict[str, str]], max_tokens: int = 4096, temperature: fl
     last: Exception | None = None
     for attempt in range(4):
         try:
-            resp = _client().chat.completions.create(model=model_name(), messages=messages, max_tokens=max_tokens, temperature=temperature)
+            resp = _client().chat.completions.create(model=model_name(), messages=messages, max_tokens=max(max_tokens, 1000), temperature=temperature)  # the endpoint 500s on tiny ceilings; reasoning needs room
             choice = resp.choices[0]
             text = choice.message.content or ""
             return LlmReply(

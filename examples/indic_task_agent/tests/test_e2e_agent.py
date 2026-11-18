@@ -38,7 +38,7 @@ class FakePlanner:
         system = messages[0]["content"]
         if system.startswith("You write English prose"):
             text = DRAFT
-        elif system.startswith("You compare two English texts"):
+        elif system.startswith("You compare an English source"):
             text = "consistent - the same content."
         else:
             text = json.dumps(self.plan)
@@ -252,7 +252,7 @@ def test_resume_reuses_the_plan_and_finished_steps(full_run, tmp_path, monkeypat
     assert code == 0
     assert len(full_run["bodhan"].requests) - before <= 2  # only the verification calls, never the pipeline
     new = [m[0]["content"] for m in full_run["planner"].seen[planner_calls:]]
-    assert all(c.startswith("You compare two English texts") for c in new)  # no new plan, no new draft
+    assert all(c.startswith("You compare an English source") for c in new)  # no new plan, no new draft
     trace = (out / "trace.jsonl").read_text(encoding="utf-8")
     assert trace.count('"type": "step_reused"') == 5 and '"type": "resume"' in trace
     assert report_of(out)["budget"]["cost_inr"] <= report_of(out)["budget"]["max_cost_inr"]
@@ -294,3 +294,30 @@ def test_conditional_steps_translate_only_the_telugu_clip(bodhan, monkeypatch, t
     prose = next(m for m in planner.seen if m[0]["content"].startswith("You write English prose"))
     assert "a.wav: te" in prose[1]["content"] and "b.wav: ta" in prose[1]["content"]
     assert (out / "artifacts" / "draft_s5.md").is_file() and "skipped" in (out / "result.md").read_text(encoding="utf-8")
+
+
+def test_fit_redrafts_cheap_steps_before_buying_speech(bodhan, monkeypatch, tmp_path, make_pdf):
+    long_tamil = TAMIL * 3
+    bodhan.mt_fn = lambda rec: long_tamil if rec.json["target_language_code"] == "ta" else ENGLISH
+    bodhan.asr_fn = lambda rec: TAMIL
+    pdf = make_pdf("report.pdf", 1)
+    plan = pipeline(pdf)
+    plan["steps"][4]["fit"] = {"seconds": 10, "redo": ["s3", "s4"]}
+    plan["steps"][4]["expected_chars"] = 200
+    planner = install(monkeypatch, plan)
+    drafts = []
+    real = planner.__call__
+
+    def counting(messages, max_tokens=4096, temperature=0.2):
+        if messages[0]["content"].startswith("You write English prose"):
+            drafts.append(messages[1]["content"])
+        return real(messages, max_tokens, temperature)
+
+    monkeypatch.setattr(llm, "chat", counting)
+    out = tmp_path / "run"
+    assert run(out, pdf) == 0
+    trace = [json.loads(line) for line in (out / "trace.jsonl").read_text(encoding="utf-8").splitlines()]
+    fits = [e for e in trace if e["type"] == "fit"]
+    assert fits and fits[0]["wanted_s"] == 10 and fits[0]["predicted_s"] > 10 * 1.06
+    assert len(drafts) >= 2  # the English draft was redone before any speech request
+    assert not INDIC.search("\n".join(json.dumps(e, ensure_ascii=False) for e in trace))

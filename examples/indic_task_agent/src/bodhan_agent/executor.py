@@ -184,6 +184,9 @@ def run_plan(plan: Plan, *, out_dir: Path, ledger: Ledger, trace: Trace, invento
                 done.update(s.id for s in ready)
                 remaining = [s for s in remaining if s.id not in done]
                 continue
+            for s in ready:
+                if s.fit:
+                    _fit_to_duration(s, {x.id: x for x in plan.steps}, results, records, out_dir, ledger, trace, inventory)
             futures = {pool.submit(_run_step, s, results, out_dir, ledger, trace, inventory): s for s in ready}
             for future, step in futures.items():
                 record = future.result()
@@ -233,6 +236,40 @@ _RESUME: ContextVar[bool] = ContextVar("bodhan_resume", default=False)
 
 def set_resume(on: bool) -> None:
     _RESUME.set(on)
+
+
+FIT_CHARS_PER_S = 13.1  # measured on live Tamil speech; the documented 13.5 runs about 3% fast
+FIT_TOLERANCE = 0.06
+
+
+def _fit_to_duration(step: Step, steps: dict[str, Step], results: dict[str, dict[str, Any]], records: list[StepRecord], out_dir: Path, ledger: Ledger, trace: Trace, inventory: dict[str, Any]) -> None:
+    """Make the spoken text fit the requested length before any speech is bought.
+
+    Speech length is a property of the final text, so the cheap steps that made it
+    (English draft, translation) are redone with a corrected character target.
+    At most two corrections; the post-hoc duration check still reports the truth.
+    """
+    wanted = float(step.fit["seconds"])
+    redo = [steps[i] for i in step.fit.get("redo", []) if i in steps]
+    for attempt in range(2):
+        path = resolve_refs(step.args, results).get("text_path")
+        predicted = len(Path(path).read_text(encoding="utf-8").strip()) / FIT_CHARS_PER_S
+        trace.emit("fit", step=step.id, wanted_s=wanted, predicted_s=round(predicted, 1), attempt=attempt)
+        if abs(predicted - wanted) <= wanted * FIT_TOLERANCE or not redo:
+            return
+        factor = wanted / predicted
+        for earlier in redo:
+            scaled = earlier
+            if earlier.tool == "write_text":
+                args = {**earlier.args, "target_chars": int(int(earlier.args.get("target_chars") or 1200) * factor)}
+                scaled = earlier.model_copy(update={"args": args, "expected_chars": int((earlier.expected_chars or args["target_chars"]) * factor)})
+            elif earlier.expected_chars:
+                scaled = earlier.model_copy(update={"expected_chars": int(earlier.expected_chars * factor)})
+            record = _run_step(scaled, results, out_dir, ledger, trace, inventory)
+            records.append(record)
+            if not record.ok:
+                raise _StepFailed(record)
+            results[earlier.id] = record.result
 
 
 class _StepFailed(Exception):

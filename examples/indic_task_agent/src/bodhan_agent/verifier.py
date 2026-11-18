@@ -216,10 +216,10 @@ def l2_translation(path: Path, source_path: Path, target_language: str, ledger: 
 
         reply = llm.chat(
             [
-                {"role": "system", "content": "You compare two English texts. Reply on one line: 'consistent' or 'inconsistent', then a short reason. Do not rewrite either text."},
+                {"role": "system", "content": "You compare an English source with an English back-translation of a translation. Paraphrase and word choice are expected and fine. Reply on one line: 'consistent' if every fact, number, name and instruction survives, or 'inconsistent' only if one is lost, added or reversed; then a short reason. Do not rewrite either text."},
                 {"role": "user", "content": f"SOURCE:\n{source.read_text(encoding='utf-8')[:4000]}\n\nBACK-TRANSLATION:\n{translated_back[:4000]}"},
             ],
-            max_tokens=120,
+            max_tokens=1500,
         )
         verdict = reply.text.strip().lower()
         check = _check(rel, "meaning", "passed" if verdict.startswith("consistent") else "failed", reply.text.strip()[:160])
