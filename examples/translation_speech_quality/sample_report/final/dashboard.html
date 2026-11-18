@@ -1,0 +1,2974 @@
+<!doctype html><html lang="en"><meta charset="utf-8">
+<title>Translation and speech quality</title><style>
+body{font:16px system-ui;margin:36px;color:#172b35;background:#fafaf7}input{padding:10px;width:400px}
+table{border-collapse:collapse;width:100%;table-layout:fixed;margin-top:25px}
+th,td{text-align:left;vertical-align:top;padding:12px;border-bottom:1px solid #ccd4d3;overflow-wrap:anywhere}
+th{background:#e6efeb;position:sticky;top:0}th:nth-child(1){width:15%}th:nth-child(2){width:4%}
+th:nth-child(3){width:7%}th:nth-child(4){width:10%}th:nth-child(5){width:32%}th:last-child{width:32%}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.5 monospace;max-height:500px;overflow:auto}
+summary{cursor:pointer;padding:8px 0;font-weight:600}.label{font-size:12px;font-weight:700;color:#526c72;margin:8px 0}
+</style><h1>Translation and speech quality</h1><p>108 items · 54 flagged · complete</p>
+<label>Filter items <input id="filter" placeholder="Language, category, item ID or text"></label>
+<table><thead><tr><th>Item</th><th>Lang</th><th>Status</th><th>Flags</th>
+<th>Source and output</th><th>Evidence and review</th></tr></thead><tbody><tr><td>flores-0003-hi</td><td>hi</td><td>complete</td><td></td><td><div class="label">English source</div>The JAS 39C Gripen crashed onto a runway at around 9:30 am local time (0230 UTC) and exploded, closing the airport to commercial flights. [41]<div class="label">Supplied output</div>स्थानीय समय (0230 UTC) के मुताबिक करीब 9:30 बजे JAS 39C Gripen रनवे पर धमाके के साथ दुर्घटनाग्रस्त हो गया, जिसकी वजह से वाणिज्यिक उड़ानों के लिए हवाई अड्डे को बंद कर दिया गया. [41]</td><td><details><summary>Needs review (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;omission&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      81,
+      93
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;and exploded&quot;,
+      &quot;explanation&quot;: &quot;The source text mentions that the aircraft &#x27;exploded&#x27;, but this detail is omitted in the Hindi translation.&quot;,
+      &quot;source_field_repaired&quot;: true
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0003-hi:number</td><td>hi</td><td>complete</td><td>number</td><td><div class="label">English source</div>The JAS 39C Gripen crashed onto a runway at around 9:30 am local time (0230 UTC) and exploded, closing the airport to commercial flights. [41]<div class="label">Supplied output</div>स्थानीय समय (3230 UTC) के मुताबिक करीब 9:30 बजे JAS 39C Gripen रनवे पर धमाके के साथ दुर्घटनाग्रस्त हो गया, जिसकी वजह से वाणिज्यिक उड़ानों के लिए हवाई अड्डे को बंद कर दिया गया. [41]</td><td><details><summary>Findings (2)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;number&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      13,
+      17
+    ],
+    &quot;evidence&quot;: {
+      &quot;observed&quot;: &quot;3230&quot;,
+      &quot;missing&quot;: [
+        &quot;0230&quot;
+      ]
+    },
+    &quot;check&quot;: &quot;number_preservation&quot;,
+    &quot;confidence&quot;: 0.98
+  },
+  {
+    &quot;type&quot;: &quot;number&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      13,
+      21
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;3230 UTC&quot;,
+      &quot;explanation&quot;: &quot;The source text specifies &#x27;0230 UTC&#x27;, but the translation incorrectly renders this as &#x27;3230 UTC&#x27;.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0
+  }
+]</pre></details><details><summary>Needs review (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;number&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      71,
+      75
+    ],
+    &quot;evidence&quot;: {
+      &quot;missing&quot;: &quot;0230&quot;,
+      &quot;could_be_spelled_out&quot;: true
+    },
+    &quot;check&quot;: &quot;number_coverage&quot;,
+    &quot;confidence&quot;: 0.55
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0008-hi</td><td>hi</td><td>complete</td><td></td><td><div class="label">English source</div>The protest started around 11:00 local time (UTC+1) on Whitehall opposite the police-guarded entrance to Downing Street, the Prime Minister&#x27;s official residence.<div class="label">Supplied output</div>व्हाइटहॉल पर लगभग 11:00 बजे स्थानीय समय (यूटीसी + 1) पर विरोध शुरू हुआ, जो प्रधानमंत्री के आधिकारिक आवास डाउनिंग स्ट्रीट के पुलिस-पहरेदार के दरवाजे के सामने था।</td><td>No supported finding</td></tr>
+<tr><td>flores-0008-hi:omission</td><td>hi</td><td>complete</td><td>omission</td><td><div class="label">English source</div>The protest started around 11:00 local time (UTC+1) on Whitehall opposite the police-guarded entrance to Downing Street, the Prime Minister&#x27;s official residence.<div class="label">Supplied output</div>व्हाइटहॉल पर लगभग 11:00 बजे स्थानीय समय (यूटीसी + 1) पर विरोध शुरू हुआ, जो प्रधानमंत्री के आधिकारिक आवास</td><td><details><summary>Findings (2)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;omission&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      65,
+      119
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;opposite the police-guarded entrance to Downing Street&quot;,
+      &quot;explanation&quot;: &quot;The translation completely omits the location detail &#x27;opposite the police-guarded entrance to Downing Street&#x27;.&quot;,
+      &quot;source_field_repaired&quot;: true
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0
+  },
+  {
+    &quot;type&quot;: &quot;omission&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      105,
+      119
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;Downing Street&quot;,
+      &quot;explanation&quot;: &quot;The translation omits the specific mention of &#x27;Downing Street&#x27;, which is a key entity in the source text.&quot;,
+      &quot;source_field_repaired&quot;: true
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0009-hi</td><td>hi</td><td>complete</td><td></td><td><div class="label">English source</div>Just after 11:00, protesters blocked traffic on the northbound carriage in Whitehall.<div class="label">Supplied output</div>ठीक 11:00 बजे के बाद, व्हाइटहॉल में उत्तर की ओर जाने वाले ट्रैफ़िक को प्रदर्शनकारियों ने रोक दिया.</td><td><details><summary>Needs review (2)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      0,
+      13
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;ठीक 11:00 बजे&quot;,
+      &quot;explanation&quot;: &quot;The source text says &#x27;Just after 11:00&#x27;, which implies a time shortly following 11:00. The translation &#x27;ठीक 11:00 बजे&#x27; translates to &#x27;exactly at 11:00&#x27;, which changes the meaning.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.9,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  },
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      36,
+      69
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;उत्तर की ओर जाने वाले ट्रैफ़िक को&quot;,
+      &quot;explanation&quot;: &quot;The source specifies &#x27;northbound carriage&#x27; (a specific road/lane), whereas the translation refers to &#x27;traffic heading north&#x27; in general.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.8,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0009-hi:addition</td><td>hi</td><td>complete</td><td>addition, mistranslation</td><td><div class="label">English source</div>Just after 11:00, protesters blocked traffic on the northbound carriage in Whitehall.<div class="label">Supplied output</div>ठीक 11:00 बजे के बाद, व्हाइटहॉल में उत्तर की ओर जाने वाले ट्रैफ़िक को प्रदर्शनकारियों ने रोक दिया. This statement is not supported by the source.</td><td><details><summary>Findings (2)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;addition&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      99,
+      145
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;This statement is not supported by the source.&quot;,
+      &quot;explanation&quot;: &quot;The translator included an extraneous English sentence that is not present in the source text.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0
+  },
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      0,
+      13
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;ठीक 11:00 बजे&quot;,
+      &quot;explanation&quot;: &quot;The source says &#x27;Just after 11:00&#x27;, but the translation uses &#x27;ठीक 11:00 बजे&#x27; which means &#x27;exactly at 11:00&#x27;.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.9
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0010-hi</td><td>hi</td><td>complete</td><td></td><td><div class="label">English source</div>At 11:20, the police asked the protesters to move back on to the pavement, stating that they needed to balance the right to protest with the traffic building up.<div class="label">Supplied output</div>11:20 पर, पुलिस ने प्रदर्शनकारियों को यह कहते हुए फ़ुटपाथ पर वापस जाने के लिए कहा कि उन्हें भीड़ इकट्ठा करने के साथ विरोध करने के अधिकार को संतुलित करने की ज़रूरत है.</td><td><details><summary>Needs review (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      92,
+      108
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;भीड़ इकट्ठा करने&quot;,
+      &quot;explanation&quot;: &quot;The source text refers to &#x27;traffic building up&#x27;, whereas the translation uses &#x27;भीड़ इकट्ठा करने&#x27; (gathering crowds). These are distinct concepts.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.9,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0010-hi:wrong_language</td><td>hi</td><td>complete</td><td>wrong_language</td><td><div class="label">English source</div>At 11:20, the police asked the protesters to move back on to the pavement, stating that they needed to balance the right to protest with the traffic building up.<div class="label">Supplied output</div>At 11:20, the police asked the protesters to move back on to the pavement, stating that they needed to balance the right to protest with the traffic building up.</td><td><details><summary>Findings (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;wrong_language&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      0,
+      161
+    ],
+    &quot;evidence&quot;: {
+      &quot;reason&quot;: &quot;English source was copied unchanged into a requested Indic output&quot;
+    },
+    &quot;check&quot;: &quot;untranslated_source&quot;,
+    &quot;confidence&quot;: 0.99
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0015-hi</td><td>hi</td><td>complete</td><td></td><td><div class="label">English source</div>After the match, King of Clay said, &quot;I am just excited about being back in the final rounds of the most important events. I am here to try to win this.&quot; $x^2 + y^2 = z^2$<div class="label">Supplied output</div>मैच के बाद, क्ले के राजा ने कहा, “मैं सबसे महत्वपूर्ण इवेंट के अंतिम दौर में वापस आने को लेकर उत्साहित हूँं। मैं यहाँ इसे जीतने का प्रयास कर रहा हूँं।”  $x^2 + y^2 = z^2$</td><td><details><summary>Needs review (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      38,
+      72
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;सबसे महत्वपूर्ण इवेंट के अंतिम दौर&quot;,
+      &quot;explanation&quot;: &quot;The source text says \&quot;final rounds\&quot; (plural) and \&quot;most important events\&quot; (plural), but the translation uses singular forms for both (\&quot;अंतिम दौर\&quot; and \&quot;इवेंट\&quot;).&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.9,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0015-hi:format</td><td>hi</td><td>complete</td><td>format, mistranslation</td><td><div class="label">English source</div>After the match, King of Clay said, &quot;I am just excited about being back in the final rounds of the most important events. I am here to try to win this.&quot; $x^2 + y^2 = z^2$<div class="label">Supplied output</div>मैच के बाद, क्ले के राजा ने कहा, “मैं सबसे महत्वपूर्ण इवेंट के अंतिम दौर में वापस आने को लेकर उत्साहित हूँं। मैं यहाँ इसे जीतने का प्रयास कर रहा हूँं।”  $x^2 + y^2 = z^2</td><td><details><summary>Findings (2)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;format&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      0,
+      169
+    ],
+    &quot;evidence&quot;: {
+      &quot;component&quot;: &quot;math&quot;,
+      &quot;expected&quot;: [
+        &quot;$x^2 + y^2 = z^2$&quot;
+      ],
+      &quot;observed&quot;: []
+    },
+    &quot;check&quot;: &quot;format_integrity&quot;,
+    &quot;confidence&quot;: 0.95
+  },
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      38,
+      72
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;सबसे महत्वपूर्ण इवेंट के अंतिम दौर&quot;,
+      &quot;explanation&quot;: &quot;The source text uses plural &#x27;final rounds&#x27; and &#x27;most important events&#x27;, but the translation uses singular forms for both.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.9
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0016-hi</td><td>hi</td><td>complete</td><td></td><td><div class="label">English source</div>&quot;Panama Papers&quot; is an umbrella term for roughly ten million documents from Panamanian law firm Mossack Fonseca, leaked to the press in spring 2016. (Sample-A)<div class="label">Supplied output</div>“पनामा पेपर्स” पनामा की कानूनी फर्म मोसाक फोंसेका से लगभग दस मिलियन दस्तावेजों के लिए एक शब्द युग्म है जिसे सन 2016 के वसंत में प्रेस को लीक कर दिया गया था।  (Sample-A)</td><td><details><summary>Needs review (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      89,
+      99
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;शब्द युग्म&quot;,
+      &quot;explanation&quot;: &quot;The source text uses the term &#x27;umbrella term&#x27;, which refers to a broad or inclusive category. The translation &#x27;शब्द युग्म&#x27; literally means &#x27;word pair&#x27; or &#x27;compound word&#x27;, which is an inaccurate translation of the concept.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.9,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0016-hi:entity</td><td>hi</td><td>complete</td><td>entity, mistranslation</td><td><div class="label">English source</div>&quot;Panama Papers&quot; is an umbrella term for roughly ten million documents from Panamanian law firm Mossack Fonseca, leaked to the press in spring 2016. (Sample-A)<div class="label">Supplied output</div>“पनामा पेपर्स” पनामा की कानूनी फर्म मोसाक फोंसेका से लगभग दस मिलियन दस्तावेजों के लिए एक शब्द युग्म है जिसे सन 2016 के वसंत में प्रेस को लीक कर दिया गया था।  (DIFFERENT_ENTITY)</td><td><details><summary>Findings (2)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;entity&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      149,
+      157
+    ],
+    &quot;evidence&quot;: {
+      &quot;term&quot;: &quot;Sample-A&quot;,
+      &quot;allowed_targets&quot;: [
+        &quot;Sample-A&quot;
+      ]
+    },
+    &quot;check&quot;: &quot;explicit_glossary&quot;,
+    &quot;confidence&quot;: 0.9
+  },
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      89,
+      99
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;शब्द युग्म&quot;,
+      &quot;explanation&quot;: &quot;The source text uses the term &#x27;umbrella term&#x27;, which refers to a broad or inclusive category. The translation &#x27;शब्द युग्म&#x27; literally means &#x27;word pair&#x27; or &#x27;compound word&#x27;, which is an inaccurate translation of the concept.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.9
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0017-hi</td><td>hi</td><td>complete</td><td></td><td><div class="label">English source</div>The documents showed fourteen banks helped wealthy clients hide billions of US dollars of wealth to avoid taxes and other regulations. [41]<div class="label">Supplied output</div>दस्तावेजों से पता चलता है कि चौदह बैंकों ने अमीर ग्राहकों को कर और अन्य नियमों से बचने के लिए अरबों अमेरिकी डॉलर की संपत्ति छिपाने में मदद की। [41]</td><td>No supported finding</td></tr>
+<tr><td>flores-0017-hi:number</td><td>hi</td><td>complete</td><td>number</td><td><div class="label">English source</div>The documents showed fourteen banks helped wealthy clients hide billions of US dollars of wealth to avoid taxes and other regulations. [41]<div class="label">Supplied output</div>दस्तावेजों से पता चलता है कि चौदह बैंकों ने अमीर ग्राहकों को कर और अन्य नियमों से बचने के लिए अरबों अमेरिकी डॉलर की संपत्ति छिपाने में मदद की। [71]</td><td><details><summary>Findings (2)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;number&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      144,
+      146
+    ],
+    &quot;evidence&quot;: {
+      &quot;observed&quot;: &quot;71&quot;,
+      &quot;missing&quot;: [
+        &quot;41&quot;
+      ]
+    },
+    &quot;check&quot;: &quot;number_preservation&quot;,
+    &quot;confidence&quot;: 0.98
+  },
+  {
+    &quot;type&quot;: &quot;number&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      143,
+      147
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;[71]&quot;,
+      &quot;explanation&quot;: &quot;The source text contains the citation &#x27;[41]&#x27;, but the translation incorrectly changed this to &#x27;[71]&#x27;.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0
+  }
+]</pre></details><details><summary>Needs review (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;number&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      136,
+      138
+    ],
+    &quot;evidence&quot;: {
+      &quot;missing&quot;: &quot;41&quot;,
+      &quot;could_be_spelled_out&quot;: true
+    },
+    &quot;check&quot;: &quot;number_coverage&quot;,
+    &quot;confidence&quot;: 0.55
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0018-hi</td><td>hi</td><td>complete</td><td></td><td><div class="label">English source</div>British newspaper The Guardian suggested Deutsche Bank controlled roughly a third of the 1200 shell companies used to accomplish this.<div class="label">Supplied output</div>ब्रिटिश अख़बार द गार्जियन के अनुसार ड्यूश बैंक ने इसे पूरा करने के लिए इस्तेमाल की जाने वाली 1200 शेल कंपनियों में से एक तिहाई को मोटे तौर पर नियंत्रित किया.</td><td>No supported finding</td></tr>
+<tr><td>flores-0018-hi:omission</td><td>hi</td><td>complete</td><td>omission</td><td><div class="label">English source</div>British newspaper The Guardian suggested Deutsche Bank controlled roughly a third of the 1200 shell companies used to accomplish this.<div class="label">Supplied output</div>ब्रिटिश अख़बार द गार्जियन के अनुसार ड्यूश बैंक ने इसे पूरा करने के लिए इस्तेमाल की जाने वाली 1200 शेल</td><td><details><summary>Findings (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;omission&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      55,
+      134
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;controlled roughly a third of the 1200 shell companies used to accomplish this.&quot;,
+      &quot;explanation&quot;: &quot;The translation is incomplete; it stops abruptly after &#x27;1200 शेल&#x27; (1200 shell), omitting the information that Deutsche Bank controlled roughly a third of these companies.&quot;,
+      &quot;source_field_repaired&quot;: true
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0019-hi</td><td>hi</td><td>complete</td><td></td><td><div class="label">English source</div>There were protests worldwide, several criminal prosecutions, and the leaders of the governments of Iceland and Pakistan both resigned.<div class="label">Supplied output</div>दुनिया भर में विरोध प्रदर्शन हुए, कई आपराधिक मुकदमे दर्ज हुए और आइसलैंड और पाकिस्तान की सरकारों के कई नेताओं ने इस्तीफा दे दिया।</td><td>No supported finding</td></tr>
+<tr><td>flores-0019-hi:addition</td><td>hi</td><td>complete</td><td>addition, mistranslation</td><td><div class="label">English source</div>There were protests worldwide, several criminal prosecutions, and the leaders of the governments of Iceland and Pakistan both resigned.<div class="label">Supplied output</div>दुनिया भर में विरोध प्रदर्शन हुए, कई आपराधिक मुकदमे दर्ज हुए और आइसलैंड और पाकिस्तान की सरकारों के कई नेताओं ने इस्तीफा दे दिया। This statement is not supported by the source.</td><td><details><summary>Findings (2)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;addition&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      129,
+      175
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;This statement is not supported by the source.&quot;,
+      &quot;explanation&quot;: &quot;The translator added an English sentence at the end of the translation that is not present in the source text.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0
+  },
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      99,
+      108
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;कई नेताओं&quot;,
+      &quot;explanation&quot;: &quot;The source says &#x27;the leaders&#x27; (implying the specific heads of government), whereas the translation says &#x27;many leaders&#x27; (कई नेताओं), which changes the meaning significantly.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.9
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0020-hi</td><td>hi</td><td>complete</td><td></td><td><div class="label">English source</div>Born in Hong Kong, Ma studied at New York University and Harvard Law School and once held an American permanent resident &quot;green card&quot;.<div class="label">Supplied output</div>मा का जन्म हांगकांग में हुआ था, उन्होंने न्यूयॉर्क विश्वविद्यालय और हार्वर्ड लॉ स्कूल में अध्ययन किया और उनके पास अमेरिका की स्थाई नागरिकता वाला “ग्रीन कार्ड” भी था.</td><td><details><summary>Needs review (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      125,
+      139
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;स्थाई नागरिकता&quot;,
+      &quot;explanation&quot;: &quot;The source text says &#x27;permanent resident&#x27;, but the translation says &#x27;permanent citizenship&#x27;. A green card grants permanent residency, not citizenship.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.9,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0020-hi:wrong_language</td><td>hi</td><td>complete</td><td>wrong_language</td><td><div class="label">English source</div>Born in Hong Kong, Ma studied at New York University and Harvard Law School and once held an American permanent resident &quot;green card&quot;.<div class="label">Supplied output</div>Born in Hong Kong, Ma studied at New York University and Harvard Law School and once held an American permanent resident &quot;green card&quot;.</td><td><details><summary>Findings (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;wrong_language&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      0,
+      134
+    ],
+    &quot;evidence&quot;: {
+      &quot;reason&quot;: &quot;English source was copied unchanged into a requested Indic output&quot;
+    },
+    &quot;check&quot;: &quot;untranslated_source&quot;,
+    &quot;confidence&quot;: 0.99
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0021-hi</td><td>hi</td><td>complete</td><td></td><td><div class="label">English source</div>Hsieh implied during the election that Ma might flee the country during a time of crisis. $x^2 + y^2 = z^2$<div class="label">Supplied output</div>चुनाव के दौरान साइह ने जताया कि संकट के दौर में मा देश छोड़कर भाग सकते हैं. $x^2 + y^2 = z^2$</td><td><details><summary>Needs review (2)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      15,
+      19
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;साइह&quot;,
+      &quot;explanation&quot;: &quot;The name &#x27;Hsieh&#x27; has been transliterated as &#x27;Cyah&#x27; (साइह) in the translation, which is an incorrect representation of the name &#x27;Hsieh&#x27;.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.9,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  },
+  {
+    &quot;type&quot;: &quot;omission&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      6,
+      13
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;implied&quot;,
+      &quot;explanation&quot;: &quot;The word &#x27;implied&#x27; is missing from the translation; the Hindi text uses &#x27;जताया&#x27; which translates more closely to &#x27;expressed&#x27; or &#x27;indicated&#x27;, losing the nuance of &#x27;implied&#x27;.&quot;,
+      &quot;source_field_repaired&quot;: true
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.8,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0021-hi:format</td><td>hi</td><td>complete</td><td>format</td><td><div class="label">English source</div>Hsieh implied during the election that Ma might flee the country during a time of crisis. $x^2 + y^2 = z^2$<div class="label">Supplied output</div>चुनाव के दौरान साइह ने जताया कि संकट के दौर में मा देश छोड़कर भाग सकते हैं. $x^2 + y^2 = z^2</td><td><details><summary>Findings (2)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;format&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      0,
+      91
+    ],
+    &quot;evidence&quot;: {
+      &quot;component&quot;: &quot;math&quot;,
+      &quot;expected&quot;: [
+        &quot;$x^2 + y^2 = z^2$&quot;
+      ],
+      &quot;observed&quot;: []
+    },
+    &quot;check&quot;: &quot;format_integrity&quot;,
+    &quot;confidence&quot;: 0.95
+  },
+  {
+    &quot;type&quot;: &quot;format&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      75,
+      91
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;$x^2 + y^2 = z^2&quot;,
+      &quot;explanation&quot;: &quot;The mathematical formula is missing the closing dollar sign ($) in the translation, which breaks the LaTeX formatting.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0
+  }
+]</pre></details><details><summary>Needs review (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      15,
+      19
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;साइह&quot;,
+      &quot;explanation&quot;: &quot;The name &#x27;Hsieh&#x27; (a common Taiwanese surname) has been transliterated as &#x27;Cyah&#x27; or &#x27;Sai-h&#x27; in a way that does not accurately reflect the standard pronunciation or common transliteration of the name in this context.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.8
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0023-hi</td><td>hi</td><td>complete</td><td></td><td><div class="label">English source</div>Despite these accusations, Ma won handily on a platform advocating closer ties with the Chinese mainland. (Sample-A)<div class="label">Supplied output</div>इन आरोपों के बावजूद, मा ने चीनी महाद्वीप के साथ घनिष्ठ संबंधों की वकालत करते हुए एक मंच पर जीत हासिल की. (Sample-A)</td><td><details><summary>Needs review (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      81,
+      103
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;एक मंच पर जीत हासिल की&quot;,
+      &quot;explanation&quot;: &quot;The source text says &#x27;won handily on a platform&#x27;, meaning the platform was the basis of his campaign/victory. The translation literally says he &#x27;won on a platform&#x27; (as if standing on a physical stage), which loses the idiomatic political meaning of &#x27;platform&#x27;.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.8,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0023-hi:entity</td><td>hi</td><td>complete</td><td>entity, omission, addition</td><td><div class="label">English source</div>Despite these accusations, Ma won handily on a platform advocating closer ties with the Chinese mainland. (Sample-A)<div class="label">Supplied output</div>इन आरोपों के बावजूद, मा ने चीनी महाद्वीप के साथ घनिष्ठ संबंधों की वकालत करते हुए एक मंच पर जीत हासिल की. (DIFFERENT_ENTITY)</td><td><details><summary>Findings (3)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;entity&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      107,
+      115
+    ],
+    &quot;evidence&quot;: {
+      &quot;term&quot;: &quot;Sample-A&quot;,
+      &quot;allowed_targets&quot;: [
+        &quot;Sample-A&quot;
+      ]
+    },
+    &quot;check&quot;: &quot;explicit_glossary&quot;,
+    &quot;confidence&quot;: 0.9
+  },
+  {
+    &quot;type&quot;: &quot;omission&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      106,
+      116
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;(Sample-A)&quot;,
+      &quot;explanation&quot;: &quot;The parenthetical reference &#x27;(Sample-A)&#x27; present in the source text was omitted in the translation.&quot;,
+      &quot;source_field_repaired&quot;: true
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0
+  },
+  {
+    &quot;type&quot;: &quot;addition&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      105,
+      123
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;(DIFFERENT_ENTITY)&quot;,
+      &quot;explanation&quot;: &quot;The translation includes an extraneous tag &#x27;(DIFFERENT_ENTITY)&#x27; that was not present in the source text.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0025-hi</td><td>hi</td><td>complete</td><td></td><td><div class="label">English source</div>He had 2 goals and 2 assists in Washington&#x27;s 5-3 win over the Atlanta Thrashers. [41]<div class="label">Supplied output</div>अटलांटा थ्रैशर्स पर वाशिंगटन की 5-3 की जीत में उन्होंने 2 गोल और 2 असिस्ट किए थे. [41]</td><td>No supported finding</td></tr>
+<tr><td>flores-0025-hi:number</td><td>hi</td><td>complete</td><td>number</td><td><div class="label">English source</div>He had 2 goals and 2 assists in Washington&#x27;s 5-3 win over the Atlanta Thrashers. [41]<div class="label">Supplied output</div>अटलांटा थ्रैशर्स पर वाशिंगटन की 8-3 की जीत में उन्होंने 2 गोल और 2 असिस्ट किए थे. [41]</td><td><details><summary>Findings (2)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;number&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      32,
+      33
+    ],
+    &quot;evidence&quot;: {
+      &quot;observed&quot;: &quot;8&quot;,
+      &quot;missing&quot;: [
+        &quot;5&quot;
+      ]
+    },
+    &quot;check&quot;: &quot;number_preservation&quot;,
+    &quot;confidence&quot;: 0.98
+  },
+  {
+    &quot;type&quot;: &quot;number&quot;,
+    &quot;severity&quot;: &quot;critical&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      32,
+      35
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;8-3&quot;,
+      &quot;explanation&quot;: &quot;The source text states the score was &#x27;5-3&#x27;, but the translation incorrectly states &#x27;8-3&#x27;.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0
+  }
+]</pre></details><details><summary>Needs review (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;number&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      45,
+      46
+    ],
+    &quot;evidence&quot;: {
+      &quot;missing&quot;: &quot;5&quot;,
+      &quot;could_be_spelled_out&quot;: true
+    },
+    &quot;check&quot;: &quot;number_coverage&quot;,
+    &quot;confidence&quot;: 0.55
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0026-hi</td><td>hi</td><td>complete</td><td></td><td><div class="label">English source</div>Ovechkin&#x27;s first assist of the night was on the game-winning goal by rookie Nicklas Backstrom;<div class="label">Supplied output</div>उस रात रूकी निकल्स बैकस्ट्रॉम के खेल जिताने वाले गोल से ओवेचकिन को सबसे पहली मदद मिली.</td><td><details><summary>Needs review (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      56,
+      85
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;ओवेचकिन को सबसे पहली मदद मिली&quot;,
+      &quot;explanation&quot;: &quot;The translation incorrectly states that Ovechkin received the assist, whereas the source text states that Ovechkin provided the assist (&#x27;Ovechkin&#x27;s first assist... was on the game-winning goal&#x27;).&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0026-hi:omission</td><td>hi</td><td>complete</td><td>omission</td><td><div class="label">English source</div>Ovechkin&#x27;s first assist of the night was on the game-winning goal by rookie Nicklas Backstrom;<div class="label">Supplied output</div>उस रात रूकी निकल्स बैकस्ट्रॉम के खेल जिताने वाले गोल से</td><td><details><summary>Findings (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;omission&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      0,
+      43
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;Ovechkin&#x27;s first assist of the night was on&quot;,
+      &quot;explanation&quot;: &quot;The translation completely omits the primary subject and action of the sentence, which is Ovechkin&#x27;s first assist.&quot;,
+      &quot;source_field_repaired&quot;: true
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0027-hi</td><td>hi</td><td>complete</td><td></td><td><div class="label">English source</div>his second goal of the night was his 60th of the season, becoming the first player to score 60 or more goals in a season since 1995-96, when Jaromir Jagr and Mario Lemieux each reached that milestone.<div class="label">Supplied output</div>रात का उनका दूसरा गोल सीज़न का उनका 60वाँ गोल था, जिससे 1995-96 से लेकरजब जोरोमिर जागर और मारियो लेमिएक्स ने इतने गोल किए थे उसके बाद वह एक सीज़न में 60 या इससे अधिक गोल करने वाले पहले खिलाड़ी बन गए हैं.</td><td><details><summary>Needs review (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;format&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      56,
+      73
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;1995-96 से लेकरजब&quot;,
+      &quot;explanation&quot;: &quot;There is a missing space between &#x27;लेकर&#x27; and &#x27;जब&#x27;.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0027-hi:addition</td><td>hi</td><td>complete</td><td>addition</td><td><div class="label">English source</div>his second goal of the night was his 60th of the season, becoming the first player to score 60 or more goals in a season since 1995-96, when Jaromir Jagr and Mario Lemieux each reached that milestone.<div class="label">Supplied output</div>रात का उनका दूसरा गोल सीज़न का उनका 60वाँ गोल था, जिससे 1995-96 से लेकरजब जोरोमिर जागर और मारियो लेमिएक्स ने इतने गोल किए थे उसके बाद वह एक सीज़न में 60 या इससे अधिक गोल करने वाले पहले खिलाड़ी बन गए हैं. This statement is not supported by the source.</td><td><details><summary>Findings (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;addition&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      204,
+      250
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;This statement is not supported by the source.&quot;,
+      &quot;explanation&quot;: &quot;The translator added an unnecessary English disclaimer at the end of the translation which is not present in the source text.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0
+  }
+]</pre></details><details><summary>Needs review (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      56,
+      133
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;1995-96 से लेकरजब जोरोमिर जागर और मारियो लेमिएक्स ने इतने गोल किए थे उसके बाद&quot;,
+      &quot;explanation&quot;: &quot;The phrasing in Hindi is slightly awkward and grammatically disjointed compared to the source, specifically the connection between the year and the players mentioned.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.8
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0028-hi</td><td>hi</td><td>complete</td><td></td><td><div class="label">English source</div>Batten was ranked 190th on the 2008 400 Richest Americans list with an estimated fortune of $2.3 billion.<div class="label">Supplied output</div>2008 के 400 सबसे अमीर अमेरिकियों की सूची में बैटन को $ 2.3 billion की अनुमानित संपत्ति के साथ 190 वें स्थान पर रखा गया था।</td><td><details><summary>Needs review (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;entity&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;back_translation&quot;,
+    &quot;span&quot;: [
+      46,
+      53
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;Buffett&quot;,
+      &quot;explanation&quot;: &quot;The back-translation incorrectly identifies the subject as &#x27;Buffett&#x27; instead of &#x27;Batten&#x27;. While this is a back-translation error, it reflects a potential ambiguity or error in the translation&#x27;s handling of the name.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.9
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0028-hi:wrong_language</td><td>hi</td><td>complete</td><td>wrong_language</td><td><div class="label">English source</div>Batten was ranked 190th on the 2008 400 Richest Americans list with an estimated fortune of $2.3 billion.<div class="label">Supplied output</div>Batten was ranked 190th on the 2008 400 Richest Americans list with an estimated fortune of $2.3 billion.</td><td><details><summary>Findings (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;wrong_language&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      0,
+      105
+    ],
+    &quot;evidence&quot;: {
+      &quot;reason&quot;: &quot;English source was copied unchanged into a requested Indic output&quot;
+    },
+    &quot;check&quot;: &quot;untranslated_source&quot;,
+    &quot;confidence&quot;: 0.99
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0029-hi</td><td>hi</td><td>complete</td><td></td><td><div class="label">English source</div>He graduated from the College of Arts &amp; Sciences of the University of Virginia in 1950 and was a significant donor to that institution. $x^2 + y^2 = z^2$<div class="label">Supplied output</div>उन्होंने 1950 में वर्जीनिया यूनिवर्सिटी के कला और विज्ञान महाविद्यालय से स्नातक की उपाधि हासिल की थी और वे उस संस्था के अहम दानदाता थे. $x^2 + y^2 = z^2$</td><td>No supported finding</td></tr>
+<tr><td>flores-0029-hi:format</td><td>hi</td><td>complete</td><td>format</td><td><div class="label">English source</div>He graduated from the College of Arts &amp; Sciences of the University of Virginia in 1950 and was a significant donor to that institution. $x^2 + y^2 = z^2$<div class="label">Supplied output</div>उन्होंने 1950 में वर्जीनिया यूनिवर्सिटी के कला और विज्ञान महाविद्यालय से स्नातक की उपाधि हासिल की थी और वे उस संस्था के अहम दानदाता थे. $x^2 + y^2 = z^2</td><td><details><summary>Findings (2)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;format&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      0,
+      152
+    ],
+    &quot;evidence&quot;: {
+      &quot;component&quot;: &quot;math&quot;,
+      &quot;expected&quot;: [
+        &quot;$x^2 + y^2 = z^2$&quot;
+      ],
+      &quot;observed&quot;: []
+    },
+    &quot;check&quot;: &quot;format_integrity&quot;,
+    &quot;confidence&quot;: 0.95
+  },
+  {
+    &quot;type&quot;: &quot;format&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      136,
+      152
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;$x^2 + y^2 = z^2&quot;,
+      &quot;explanation&quot;: &quot;The closing dollar sign ($) for the LaTeX math expression is missing in the translation.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0031-hi</td><td>hi</td><td>complete</td><td></td><td><div class="label">English source</div>The jail became notorious after prisoner abuse was discovered there after US forces took over. (Sample-A)<div class="label">Supplied output</div>कैदी दुर्व्यवहार के पता चलने का बाद जेल कुख्यात हो गयी, उसके बाद यू एस सैन्य दलों ने पद भर संभल लिया | (Sample-A)</td><td><details><summary>Needs review (2)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;format&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      0,
+      113
+    ],
+    &quot;evidence&quot;: {
+      &quot;component&quot;: &quot;table&quot;,
+      &quot;expected&quot;: [],
+      &quot;observed&quot;: [
+        2
+      ]
+    },
+    &quot;check&quot;: &quot;format_integrity&quot;,
+    &quot;confidence&quot;: 0.95,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  },
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      17,
+      35
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;के पता चलने का बाद&quot;,
+      &quot;explanation&quot;: &quot;The grammar is slightly awkward; &#x27;के पता चलने के बाद&#x27; would be the correct grammatical form.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.8,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0031-hi:entity</td><td>hi</td><td>complete</td><td>format, entity, mistranslation</td><td><div class="label">English source</div>The jail became notorious after prisoner abuse was discovered there after US forces took over. (Sample-A)<div class="label">Supplied output</div>कैदी दुर्व्यवहार के पता चलने का बाद जेल कुख्यात हो गयी, उसके बाद यू एस सैन्य दलों ने पद भर संभल लिया | (DIFFERENT_ENTITY)</td><td><details><summary>Findings (4)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;format&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      0,
+      121
+    ],
+    &quot;evidence&quot;: {
+      &quot;component&quot;: &quot;table&quot;,
+      &quot;expected&quot;: [],
+      &quot;observed&quot;: [
+        2
+      ]
+    },
+    &quot;check&quot;: &quot;format_integrity&quot;,
+    &quot;confidence&quot;: 0.95
+  },
+  {
+    &quot;type&quot;: &quot;entity&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      96,
+      104
+    ],
+    &quot;evidence&quot;: {
+      &quot;term&quot;: &quot;Sample-A&quot;,
+      &quot;allowed_targets&quot;: [
+        &quot;Sample-A&quot;
+      ]
+    },
+    &quot;check&quot;: &quot;explicit_glossary&quot;,
+    &quot;confidence&quot;: 0.9
+  },
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      85,
+      100
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;पद भर संभल लिया&quot;,
+      &quot;explanation&quot;: &quot;The phrase &#x27;took over&#x27; in the context of military forces means &#x27;to assume control&#x27;. The translation &#x27;पद भर संभल लिया&#x27; (took charge of a position/post) is semantically incorrect and does not convey the meaning of taking control of the facility.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.9
+  },
+  {
+    &quot;type&quot;: &quot;format&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      103,
+      121
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;(DIFFERENT_ENTITY)&quot;,
+      &quot;explanation&quot;: &quot;The source text contains &#x27;(Sample-A)&#x27; at the end, but the translation replaced it with &#x27;(DIFFERENT_ENTITY)&#x27;, which is an incorrect placeholder or label.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0003-ta</td><td>ta</td><td>complete</td><td></td><td><div class="label">English source</div>The JAS 39C Gripen crashed onto a runway at around 9:30 am local time (0230 UTC) and exploded, closing the airport to commercial flights. [41]<div class="label">Supplied output</div>JAS 39C க்ரப்பென் விமானம் உள்ளூர் நேரம் 9:30 AM (0230 UTC) க்கு ஓடுபாதையில் விழுந்து வெடித்தது, அதனால் வணிக விமானங்களுக்கு விமான நிலையம் மூடப்பட்டது. [41]</td><td><details><summary>Needs review (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;speech_omission&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      0,
+      154
+    ],
+    &quot;evidence&quot;: {
+      &quot;operation&quot;: &quot;delete&quot;,
+      &quot;expected_span&quot;: [
+        148,
+        154
+      ],
+      &quot;observed_span&quot;: [
+        162,
+        162
+      ],
+      &quot;expected&quot;: &quot;. [41]&quot;,
+      &quot;observed&quot;: &quot;&quot;
+    },
+    &quot;check&quot;: &quot;asr_coverage&quot;,
+    &quot;confidence&quot;: 0.538961038961039
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0003-ta:number</td><td>ta</td><td>complete</td><td>number, mistranslation</td><td><div class="label">English source</div>The JAS 39C Gripen crashed onto a runway at around 9:30 am local time (0230 UTC) and exploded, closing the airport to commercial flights. [41]<div class="label">Supplied output</div>JAS 69C க்ரப்பென் விமானம் உள்ளூர் நேரம் 9:30 AM (0230 UTC) க்கு ஓடுபாதையில் விழுந்து வெடித்தது, அதனால் வணிக விமானங்களுக்கு விமான நிலையம் மூடப்பட்டது. [41]</td><td><details><summary>Findings (2)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;number&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      4,
+      6
+    ],
+    &quot;evidence&quot;: {
+      &quot;observed&quot;: &quot;69&quot;,
+      &quot;missing&quot;: [
+        &quot;39&quot;
+      ]
+    },
+    &quot;check&quot;: &quot;number_preservation&quot;,
+    &quot;confidence&quot;: 0.98
+  },
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      4,
+      7
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;69C&quot;,
+      &quot;explanation&quot;: &quot;The source text specifies &#x27;39C&#x27;, but the translation incorrectly uses &#x27;69C&#x27;.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0
+  }
+]</pre></details><details><summary>Needs review (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;number&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      8,
+      10
+    ],
+    &quot;evidence&quot;: {
+      &quot;missing&quot;: &quot;39&quot;,
+      &quot;could_be_spelled_out&quot;: true
+    },
+    &quot;check&quot;: &quot;number_coverage&quot;,
+    &quot;confidence&quot;: 0.55
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0008-ta</td><td>ta</td><td>complete</td><td></td><td><div class="label">English source</div>The protest started around 11:00 local time (UTC+1) on Whitehall opposite the police-guarded entrance to Downing Street, the Prime Minister&#x27;s official residence.<div class="label">Supplied output</div>பிரதமரின் அதிகாரபூர்வ இல்லமான வைட் ஹாலுக்கு எதிரில், உள்ளூர் நேரமான சுமார் 11:00 மணிக்கு (UTC+1) போராட்டம் தொடங்கியது. காவல்துறை அதிகாரிகள் டவுனிங் தெருவின் நுழைவாயிலை பாதுகாத்து நின்றனர்.</td><td><details><summary>Needs review (2)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      30,
+      43
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;வைட் ஹாலுக்கு&quot;,
+      &quot;explanation&quot;: &quot;The translation incorrectly identifies &#x27;Whitehall&#x27; as the Prime Minister&#x27;s residence. In the source text, Whitehall is the location of the protest, and Downing Street is the Prime Minister&#x27;s residence.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  },
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      0,
+      43
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;பிரதமரின் அதிகாரபூர்வ இல்லமான வைட் ஹாலுக்கு&quot;,
+      &quot;explanation&quot;: &quot;The translation incorrectly attributes the status of &#x27;Prime Minister&#x27;s official residence&#x27; to Whitehall instead of Downing Street.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0008-ta:omission</td><td>ta</td><td>complete</td><td>mistranslation</td><td><div class="label">English source</div>The protest started around 11:00 local time (UTC+1) on Whitehall opposite the police-guarded entrance to Downing Street, the Prime Minister&#x27;s official residence.<div class="label">Supplied output</div>பிரதமரின் அதிகாரபூர்வ இல்லமான வைட் ஹாலுக்கு எதிரில், உள்ளூர் நேரமான சுமார் 11:00 மணிக்கு (UTC+1) போராட்டம் தொடங்கியது.</td><td><details><summary>Findings (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      30,
+      43
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;வைட் ஹாலுக்கு&quot;,
+      &quot;explanation&quot;: &quot;The translation incorrectly identifies &#x27;Whitehall&#x27; as the Prime Minister&#x27;s residence. In the source text, the protest is on &#x27;Whitehall&#x27; opposite the entrance to Downing Street (the residence). The translation implies the residence is Whitehall.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.9
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0009-ta</td><td>ta</td><td>complete</td><td></td><td><div class="label">English source</div>Just after 11:00, protesters blocked traffic on the northbound carriage in Whitehall.<div class="label">Supplied output</div>11:00 மணிக்குப் பின்னர், எதிர்ப்பாளர்கள் ஒயிட்ஹாலில் வடக்கு நோக்கி செல்லும் வண்டிகளின் போக்குவரத்தைத் தடுத்தனர்.</td><td>No supported finding</td></tr>
+<tr><td>flores-0009-ta:addition</td><td>ta</td><td>complete</td><td>addition</td><td><div class="label">English source</div>Just after 11:00, protesters blocked traffic on the northbound carriage in Whitehall.<div class="label">Supplied output</div>11:00 மணிக்குப் பின்னர், எதிர்ப்பாளர்கள் ஒயிட்ஹாலில் வடக்கு நோக்கி செல்லும் வண்டிகளின் போக்குவரத்தைத் தடுத்தனர். This statement is not supported by the source.</td><td><details><summary>Findings (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;addition&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      113,
+      159
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;This statement is not supported by the source.&quot;,
+      &quot;explanation&quot;: &quot;The translator added an extraneous English sentence that is not present in the source text.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0
+  }
+]</pre></details><details><summary>Needs review (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;back_translation&quot;,
+    &quot;span&quot;: [
+      47,
+      58
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;White House&quot;,
+      &quot;explanation&quot;: &quot;The back-translation incorrectly identifies &#x27;Whitehall&#x27; as &#x27;White House&#x27;. While this is a back-translation error, it reflects a potential misunderstanding of the location name in the translation process.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.8
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0010-ta</td><td>ta</td><td>complete</td><td></td><td><div class="label">English source</div>At 11:20, the police asked the protesters to move back on to the pavement, stating that they needed to balance the right to protest with the traffic building up.<div class="label">Supplied output</div>11:20 க்கு போலீசார், அதிகரிக்கும் போக்குவரத்து நெரிசலையும் அவர்கள் போராடும் உரிமையையும் சமமாகப் பாவிக்கக் கூறி, போராட்டக்காரர்களை நடைபாதைக்கு செல்லும்படி உத்தரவிட்டனர்.</td><td><details><summary>Needs review (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      88,
+      110
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;சமமாகப் பாவிக்கக் கூறி&quot;,
+      &quot;explanation&quot;: &quot;The source text says the police needed to &#x27;balance&#x27; the right to protest with the traffic. The translation uses &#x27;சமமாகப் பாவிக்கக் கூறி&#x27; (asking them to treat equally), which changes the meaning from managing/balancing competing interests to treating them as equal, which is not what the source implies.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.9,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0010-ta:wrong_language</td><td>ta</td><td>complete</td><td>wrong_language</td><td><div class="label">English source</div>At 11:20, the police asked the protesters to move back on to the pavement, stating that they needed to balance the right to protest with the traffic building up.<div class="label">Supplied output</div>At 11:20, the police asked the protesters to move back on to the pavement, stating that they needed to balance the right to protest with the traffic building up.</td><td><details><summary>Findings (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;wrong_language&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      0,
+      161
+    ],
+    &quot;evidence&quot;: {
+      &quot;reason&quot;: &quot;English source was copied unchanged into a requested Indic output&quot;
+    },
+    &quot;check&quot;: &quot;untranslated_source&quot;,
+    &quot;confidence&quot;: 0.99
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0015-ta</td><td>ta</td><td>complete</td><td></td><td><div class="label">English source</div>After the match, King of Clay said, &quot;I am just excited about being back in the final rounds of the most important events. I am here to try to win this.&quot; $x^2 + y^2 = z^2$<div class="label">Supplied output</div>&quot;போட்டிக்குப் பின்பு, கிங் ஆஃப் க்ளே, &quot;&quot;மிக முக்கியமான நிகழ்வுகளின் இறுதி சுற்றுகளில் திரும்பியிருப்பதைக் குறித்து நான் மிக மகிழ்ச்சியடைகிறேன்&quot;&quot; என்றார். இதை வெற்றி பெறுவதற்கு முயற்சி செய்ய நான் இங்கு வந்துள்ளேன்.&quot;&quot;&quot; $x^2 + y^2 = z^2$</td><td>No supported finding</td></tr>
+<tr><td>flores-0015-ta:format</td><td>ta</td><td>complete</td><td>format</td><td><div class="label">English source</div>After the match, King of Clay said, &quot;I am just excited about being back in the final rounds of the most important events. I am here to try to win this.&quot; $x^2 + y^2 = z^2$<div class="label">Supplied output</div>&quot;போட்டிக்குப் பின்பு, கிங் ஆஃப் க்ளே, &quot;&quot;மிக முக்கியமான நிகழ்வுகளின் இறுதி சுற்றுகளில் திரும்பியிருப்பதைக் குறித்து நான் மிக மகிழ்ச்சியடைகிறேன்&quot;&quot; என்றார். இதை வெற்றி பெறுவதற்கு முயற்சி செய்ய நான் இங்கு வந்துள்ளேன்.&quot;&quot;&quot; $x^2 + y^2 = z^2</td><td><details><summary>Findings (2)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;format&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      0,
+      233
+    ],
+    &quot;evidence&quot;: {
+      &quot;component&quot;: &quot;math&quot;,
+      &quot;expected&quot;: [
+        &quot;$x^2 + y^2 = z^2$&quot;
+      ],
+      &quot;observed&quot;: []
+    },
+    &quot;check&quot;: &quot;format_integrity&quot;,
+    &quot;confidence&quot;: 0.95
+  },
+  {
+    &quot;type&quot;: &quot;format&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      38,
+      216
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;\&quot;\&quot;மிக முக்கியமான நிகழ்வுகளின் இறுதி சுற்றுகளில் திரும்பியிருப்பதைக் குறித்து நான் மிக மகிழ்ச்சியடைகிறேன்\&quot;\&quot; என்றார். இதை வெற்றி பெறுவதற்கு முயற்சி செய்ய நான் இங்கு வந்துள்ளேன்.\&quot;\&quot;\&quot;&quot;,
+      &quot;explanation&quot;: &quot;The translation contains excessive and redundant quotation marks at the end of the sentence.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0
+  }
+]</pre></details><details><summary>Needs review (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      154,
+      213
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;இதை வெற்றி பெறுவதற்கு முயற்சி செய்ய நான் இங்கு வந்துள்ளேன்.&quot;,
+      &quot;explanation&quot;: &quot;The source text says \&quot;I am here to try to win this,\&quot; but the translation adds \&quot;வந்துள்ளேன்\&quot; (have come), which is a slight shift in meaning from the original \&quot;I am here.\&quot;&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.8
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0016-ta</td><td>ta</td><td>complete</td><td></td><td><div class="label">English source</div>&quot;Panama Papers&quot; is an umbrella term for roughly ten million documents from Panamanian law firm Mossack Fonseca, leaked to the press in spring 2016. (Sample-A)<div class="label">Supplied output</div>&quot;&quot;&quot;பனாமா பேப்பர்ஸ்&quot;&quot; என்பது பனாமேனியன் சட்ட நிறுவனமான மொசாக் ஃபொன்சேகாவிடமிருந்து பெறக்கூடிய சுமார் பத்து மில்லியன் ஆவணங்களுக்கான ஒரு மேக்அப் சொல், இது 2016-ஆம் ஆண்டின் இளவேனிற்காலத்தில் பத்திரிகைகளுக்குக் கசிந்தது.&quot; (Sample-A)</td><td><details><summary>Needs review (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      82,
+      92
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;பெறக்கூடிய&quot;,
+      &quot;explanation&quot;: &quot;The source says &#x27;from&#x27;, implying origin. The translation uses &#x27;பெறக்கூடிய&#x27; (obtainable/can be obtained), which slightly alters the meaning from a statement of fact to a possibility.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.9,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0016-ta:entity</td><td>ta</td><td>complete</td><td>entity, mistranslation, format</td><td><div class="label">English source</div>&quot;Panama Papers&quot; is an umbrella term for roughly ten million documents from Panamanian law firm Mossack Fonseca, leaked to the press in spring 2016. (Sample-A)<div class="label">Supplied output</div>&quot;&quot;&quot;பனாமா பேப்பர்ஸ்&quot;&quot; என்பது பனாமேனியன் சட்ட நிறுவனமான மொசாக் ஃபொன்சேகாவிடமிருந்து பெறக்கூடிய சுமார் பத்து மில்லியன் ஆவணங்களுக்கான ஒரு மேக்அப் சொல், இது 2016-ஆம் ஆண்டின் இளவேனிற்காலத்தில் பத்திரிகைகளுக்குக் கசிந்தது.&quot; (DIFFERENT_ENTITY)</td><td><details><summary>Findings (3)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;entity&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      149,
+      157
+    ],
+    &quot;evidence&quot;: {
+      &quot;term&quot;: &quot;Sample-A&quot;,
+      &quot;allowed_targets&quot;: [
+        &quot;Sample-A&quot;
+      ]
+    },
+    &quot;check&quot;: &quot;explicit_glossary&quot;,
+    &quot;confidence&quot;: 0.9
+  },
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      82,
+      92
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;பெறக்கூடிய&quot;,
+      &quot;explanation&quot;: &quot;The source says &#x27;from&#x27;, implying the origin of the documents. The translation uses &#x27;பெறக்கூடிய&#x27; (obtainable/can be obtained), which slightly alters the meaning from the source&#x27;s statement of origin.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.9
+  },
+  {
+    &quot;type&quot;: &quot;format&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      0,
+      20
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;\&quot;\&quot;\&quot;பனாமா பேப்பர்ஸ்\&quot;\&quot;&quot;,
+      &quot;explanation&quot;: &quot;There is an excessive use of quotation marks (triple quotes) at the beginning of the sentence.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0017-ta</td><td>ta</td><td>complete</td><td></td><td><div class="label">English source</div>The documents showed fourteen banks helped wealthy clients hide billions of US dollars of wealth to avoid taxes and other regulations. [41]<div class="label">Supplied output</div>வரிகளையும் பிற விதிமுறைகளையும் தவிர்ப்பதற்காக, பதினான்கு வங்கிகள் செல்வ செழிப்புள்ள வாடிக்கையாளர்களுக்கு பில்லியன் கணக்கில் அமெரிக்க டாலர் செல்வத்தை மறைக்க உதவின என்று ஆவணங்கள் காட்டின. [41]</td><td>No supported finding</td></tr>
+<tr><td>flores-0017-ta:number</td><td>ta</td><td>complete</td><td>number</td><td><div class="label">English source</div>The documents showed fourteen banks helped wealthy clients hide billions of US dollars of wealth to avoid taxes and other regulations. [41]<div class="label">Supplied output</div>வரிகளையும் பிற விதிமுறைகளையும் தவிர்ப்பதற்காக, பதினான்கு வங்கிகள் செல்வ செழிப்புள்ள வாடிக்கையாளர்களுக்கு பில்லியன் கணக்கில் அமெரிக்க டாலர் செல்வத்தை மறைக்க உதவின என்று ஆவணங்கள் காட்டின. [71]</td><td><details><summary>Findings (2)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;number&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      187,
+      189
+    ],
+    &quot;evidence&quot;: {
+      &quot;observed&quot;: &quot;71&quot;,
+      &quot;missing&quot;: [
+        &quot;41&quot;
+      ]
+    },
+    &quot;check&quot;: &quot;number_preservation&quot;,
+    &quot;confidence&quot;: 0.98
+  },
+  {
+    &quot;type&quot;: &quot;number&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      186,
+      190
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;[71]&quot;,
+      &quot;explanation&quot;: &quot;The citation number in the source text is &#x27;[41]&#x27;, but the translation incorrectly uses &#x27;[71]&#x27;.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0
+  }
+]</pre></details><details><summary>Needs review (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;number&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      136,
+      138
+    ],
+    &quot;evidence&quot;: {
+      &quot;missing&quot;: &quot;41&quot;,
+      &quot;could_be_spelled_out&quot;: true
+    },
+    &quot;check&quot;: &quot;number_coverage&quot;,
+    &quot;confidence&quot;: 0.55
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0018-ta</td><td>ta</td><td>complete</td><td></td><td><div class="label">English source</div>British newspaper The Guardian suggested Deutsche Bank controlled roughly a third of the 1200 shell companies used to accomplish this.<div class="label">Supplied output</div>பிரிட்டிஷ் செய்தித்தாள் தி கார்டியன் இதை நிறைவேற்ற பயன்படுத்தப்படும் 1200 ஷெல் நிறுவனங்களில் மூன்றில் ஒரு பகுதியை டாய்ச் வங்கி கட்டுப்படுத்த பரிந்துரைத்தது</td><td><details><summary>Needs review (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      127,
+      155
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;கட்டுப்படுத்த பரிந்துரைத்தது&quot;,
+      &quot;explanation&quot;: &quot;The source text says &#x27;controlled&#x27; (past tense, indicating a state of being), but the translation uses &#x27;பரிந்துரைத்தது&#x27; (suggested/recommended to control), which changes the meaning to an instruction or recommendation rather than a factual claim about past control.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.9,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0018-ta:omission</td><td>ta</td><td>complete</td><td>omission, mistranslation</td><td><div class="label">English source</div>British newspaper The Guardian suggested Deutsche Bank controlled roughly a third of the 1200 shell companies used to accomplish this.<div class="label">Supplied output</div>பிரிட்டிஷ் செய்தித்தாள் தி கார்டியன் இதை நிறைவேற்ற பயன்படுத்தப்படும் 1200 ஷெல் நிறுவனங்களில் மூன்றில்</td><td><details><summary>Findings (2)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;omission&quot;,
+    &quot;severity&quot;: &quot;critical&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      41,
+      88
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;Deutsche Bank controlled roughly a third of the&quot;,
+      &quot;explanation&quot;: &quot;The translation completely omits the subject &#x27;Deutsche Bank&#x27; and the verb &#x27;controlled&#x27;, leaving the sentence incomplete and changing the meaning entirely.&quot;,
+      &quot;source_field_repaired&quot;: true
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0
+  },
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      93,
+      101
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;மூன்றில்&quot;,
+      &quot;explanation&quot;: &quot;The translation ends abruptly at &#x27;one-third&#x27; (மூன்றில்), failing to complete the sentence or convey the full information provided in the source text.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0019-ta</td><td>ta</td><td>complete</td><td></td><td><div class="label">English source</div>There were protests worldwide, several criminal prosecutions, and the leaders of the governments of Iceland and Pakistan both resigned.<div class="label">Supplied output</div>உலகெங்கிலும் கண்டனக் கூட்டங்கள் இருந்தன, பல குற்ற வழக்குகள் தொடரப்பட்டன, ஐஸ்லாந்து மற்றும் பாகிஸ்தான் அரசாங்கங்களின் தலைவர்கள் இருவரும் தங்கள் பதவியை இராஜினாமா செய்தனர்.</td><td>No supported finding</td></tr>
+<tr><td>flores-0019-ta:addition</td><td>ta</td><td>complete</td><td>addition</td><td><div class="label">English source</div>There were protests worldwide, several criminal prosecutions, and the leaders of the governments of Iceland and Pakistan both resigned.<div class="label">Supplied output</div>உலகெங்கிலும் கண்டனக் கூட்டங்கள் இருந்தன, பல குற்ற வழக்குகள் தொடரப்பட்டன, ஐஸ்லாந்து மற்றும் பாகிஸ்தான் அரசாங்கங்களின் தலைவர்கள் இருவரும் தங்கள் பதவியை இராஜினாமா செய்தனர். This statement is not supported by the source.</td><td><details><summary>Findings (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;addition&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      170,
+      216
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;This statement is not supported by the source.&quot;,
+      &quot;explanation&quot;: &quot;The translator added an extraneous English sentence to the end of the translation that is not present in the source text.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0020-ta</td><td>ta</td><td>complete</td><td></td><td><div class="label">English source</div>Born in Hong Kong, Ma studied at New York University and Harvard Law School and once held an American permanent resident &quot;green card&quot;.<div class="label">Supplied output</div>&quot;மா, ஹாங்காங்கில் பிறந்து, நியூயார்க் மற்றும் ஹார்வர்ட் சட்டக் கல்லூரியில் பயின்றார் மற்றும் சிலகாலம் அமெரிக்காவின் நிரந்தரக் குடியுரிமையான &quot;&quot;கிரீன் கார்ட்&quot;&quot; ஐயும் வைத்திருந்தார்.&quot;</td><td><details><summary>Needs review (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      27,
+      74
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;நியூயார்க் மற்றும் ஹார்வர்ட் சட்டக் கல்லூரியில்&quot;,
+      &quot;explanation&quot;: &quot;The source text specifies &#x27;New York University and Harvard Law School&#x27;. The translation implies that both universities are &#x27;Law Schools&#x27; (நியூயார்க் மற்றும் ஹார்வர்ட் சட்டக் கல்லூரியில்), whereas only Harvard is a law school in the source text.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.9,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0020-ta:wrong_language</td><td>ta</td><td>complete</td><td>wrong_language</td><td><div class="label">English source</div>Born in Hong Kong, Ma studied at New York University and Harvard Law School and once held an American permanent resident &quot;green card&quot;.<div class="label">Supplied output</div>Born in Hong Kong, Ma studied at New York University and Harvard Law School and once held an American permanent resident &quot;green card&quot;.</td><td><details><summary>Findings (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;wrong_language&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      0,
+      134
+    ],
+    &quot;evidence&quot;: {
+      &quot;reason&quot;: &quot;English source was copied unchanged into a requested Indic output&quot;
+    },
+    &quot;check&quot;: &quot;untranslated_source&quot;,
+    &quot;confidence&quot;: 0.99
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0021-ta</td><td>ta</td><td>complete</td><td></td><td><div class="label">English source</div>Hsieh implied during the election that Ma might flee the country during a time of crisis. $x^2 + y^2 = z^2$<div class="label">Supplied output</div>தேர்தலின் போது ஹெசே, சிக்கலான நேரத்தில் மா, நாட்டை விட்டு ஓடி விடுவார் என்று மறைமுகமாகத் தெரிவித்தார். $x^2 + y^2 = z^2$</td><td>No supported finding</td></tr>
+<tr><td>flores-0021-ta:format</td><td>ta</td><td>complete</td><td>format</td><td><div class="label">English source</div>Hsieh implied during the election that Ma might flee the country during a time of crisis. $x^2 + y^2 = z^2$<div class="label">Supplied output</div>தேர்தலின் போது ஹெசே, சிக்கலான நேரத்தில் மா, நாட்டை விட்டு ஓடி விடுவார் என்று மறைமுகமாகத் தெரிவித்தார். $x^2 + y^2 = z^2</td><td><details><summary>Findings (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;format&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      0,
+      119
+    ],
+    &quot;evidence&quot;: {
+      &quot;component&quot;: &quot;math&quot;,
+      &quot;expected&quot;: [
+        &quot;$x^2 + y^2 = z^2$&quot;
+      ],
+      &quot;observed&quot;: []
+    },
+    &quot;check&quot;: &quot;format_integrity&quot;,
+    &quot;confidence&quot;: 0.95
+  }
+]</pre></details><details><summary>Needs review (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      15,
+      19
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;ஹெசே&quot;,
+      &quot;explanation&quot;: &quot;The name &#x27;Hsieh&#x27; is transliterated as &#x27;Haze&#x27; (ஹெசே) in the translation, which is a phonetic approximation but deviates from the standard transliteration of the surname &#x27;Hsieh&#x27;.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.8
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0023-ta</td><td>ta</td><td>complete</td><td></td><td><div class="label">English source</div>Despite these accusations, Ma won handily on a platform advocating closer ties with the Chinese mainland. (Sample-A)<div class="label">Supplied output</div>இந்தக் குற்றச்சாட்டுகள் இருந்தபோதிலும், சீனாவின் பிரதான நிலப்பரப்புடன் நெருக்கமான உறவுகளை ஆதரிப்பதற்கான அடிப்படையில் மா வெற்றியடைந்தார். (Sample-A)</td><td><details><summary>Needs review (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;omission&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      34,
+      41
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;handily&quot;,
+      &quot;explanation&quot;: &quot;The adverb &#x27;handily&#x27; (meaning easily or by a large margin) is missing from the Tamil translation.&quot;,
+      &quot;source_field_repaired&quot;: true
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.9,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0023-ta:entity</td><td>ta</td><td>complete</td><td>entity, omission, format</td><td><div class="label">English source</div>Despite these accusations, Ma won handily on a platform advocating closer ties with the Chinese mainland. (Sample-A)<div class="label">Supplied output</div>இந்தக் குற்றச்சாட்டுகள் இருந்தபோதிலும், சீனாவின் பிரதான நிலப்பரப்புடன் நெருக்கமான உறவுகளை ஆதரிப்பதற்கான அடிப்படையில் மா வெற்றியடைந்தார். (DIFFERENT_ENTITY)</td><td><details><summary>Findings (3)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;entity&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      107,
+      115
+    ],
+    &quot;evidence&quot;: {
+      &quot;term&quot;: &quot;Sample-A&quot;,
+      &quot;allowed_targets&quot;: [
+        &quot;Sample-A&quot;
+      ]
+    },
+    &quot;check&quot;: &quot;explicit_glossary&quot;,
+    &quot;confidence&quot;: 0.9
+  },
+  {
+    &quot;type&quot;: &quot;omission&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      34,
+      41
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;handily&quot;,
+      &quot;explanation&quot;: &quot;The adverb &#x27;handily&#x27; (meaning easily or by a large margin) is missing from the Tamil translation.&quot;,
+      &quot;source_field_repaired&quot;: true
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.9
+  },
+  {
+    &quot;type&quot;: &quot;format&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      137,
+      155
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;(DIFFERENT_ENTITY)&quot;,
+      &quot;explanation&quot;: &quot;The source text contains &#x27;(Sample-A)&#x27; while the translation contains &#x27;(DIFFERENT_ENTITY)&#x27;. This is a format/content mismatch.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0025-ta</td><td>ta</td><td>complete</td><td></td><td><div class="label">English source</div>He had 2 goals and 2 assists in Washington&#x27;s 5-3 win over the Atlanta Thrashers. [41]<div class="label">Supplied output</div>வாஷிங்டனின் அட்லாண்டா டிராஷர்களுடனான 5-3 வெற்றியில் அவர் 2 கோல் அடித்தார். 2 கோலடிக்க உதவினார். [41]</td><td><details><summary>Needs review (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;omission&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      19,
+      28
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;2 assists&quot;,
+      &quot;explanation&quot;: &quot;The translation splits the &#x27;2 assists&#x27; into a separate sentence (&#x27;2 கோலடிக்க உதவினார்&#x27;), which is grammatically acceptable but slightly changes the structure. However, the source text says &#x27;2 goals and 2 assists&#x27;, while the translation says &#x27;2 goals&#x27; and then &#x27;helped score 2 goals&#x27;. The translation is accurate in meaning, but the phrasing is slightly redundant compared to the source.&quot;,
+      &quot;source_field_repaired&quot;: true
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.8,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0025-ta:number</td><td>ta</td><td>complete</td><td>number</td><td><div class="label">English source</div>He had 2 goals and 2 assists in Washington&#x27;s 5-3 win over the Atlanta Thrashers. [41]<div class="label">Supplied output</div>வாஷிங்டனின் அட்லாண்டா டிராஷர்களுடனான 8-3 வெற்றியில் அவர் 2 கோல் அடித்தார். 2 கோலடிக்க உதவினார். [41]</td><td><details><summary>Findings (2)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;number&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      37,
+      38
+    ],
+    &quot;evidence&quot;: {
+      &quot;observed&quot;: &quot;8&quot;,
+      &quot;missing&quot;: [
+        &quot;5&quot;
+      ]
+    },
+    &quot;check&quot;: &quot;number_preservation&quot;,
+    &quot;confidence&quot;: 0.98
+  },
+  {
+    &quot;type&quot;: &quot;number&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      37,
+      40
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;8-3&quot;,
+      &quot;explanation&quot;: &quot;The source text states the score was &#x27;5-3&#x27;, but the translation incorrectly states &#x27;8-3&#x27;.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0
+  }
+]</pre></details><details><summary>Needs review (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;number&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      45,
+      46
+    ],
+    &quot;evidence&quot;: {
+      &quot;missing&quot;: &quot;5&quot;,
+      &quot;could_be_spelled_out&quot;: true
+    },
+    &quot;check&quot;: &quot;number_coverage&quot;,
+    &quot;confidence&quot;: 0.55
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0026-ta</td><td>ta</td><td>complete</td><td></td><td><div class="label">English source</div>Ovechkin&#x27;s first assist of the night was on the game-winning goal by rookie Nicklas Backstrom;<div class="label">Supplied output</div>ஓவெச்ச்கின் உடைய இரவு முதல் உதவி ரூக்கி நிக்லஸ் பேக்ஸ்ட்ரோமின் ஆட்டத்தின் வெற்றிக்கான கோலில் இருந்தது;</td><td><details><summary>Needs review (2)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      0,
+      32
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;ஓவெச்ச்கின் உடைய இரவு முதல் உதவி&quot;,
+      &quot;explanation&quot;: &quot;The phrase &#x27;Ovechkin&#x27;s first assist of the night&#x27; is mistranslated as &#x27;Ovechkin&#x27;s night first assist&#x27;, which sounds unnatural and loses the intended meaning of the assist occurring during the game.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.9,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  },
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      63,
+      101
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;ஆட்டத்தின் வெற்றிக்கான கோலில் இருந்தது&quot;,
+      &quot;explanation&quot;: &quot;The translation &#x27;was on the goal for the game&#x27;s win&#x27; is slightly awkward; it fails to capture the specific hockey term &#x27;game-winning goal&#x27; accurately in Tamil, making the sentence structure confusing.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.8,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0026-ta:omission</td><td>ta</td><td>complete</td><td>omission, mistranslation</td><td><div class="label">English source</div>Ovechkin&#x27;s first assist of the night was on the game-winning goal by rookie Nicklas Backstrom;<div class="label">Supplied output</div>ஓவெச்ச்கின் உடைய இரவு முதல் உதவி ரூக்கி நிக்லஸ் பேக்ஸ்ட்ரோமின்</td><td><details><summary>Findings (3)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;omission&quot;,
+    &quot;severity&quot;: &quot;critical&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      37,
+      68
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;was on the game-winning goal by&quot;,
+      &quot;explanation&quot;: &quot;The translation omits the core action of the sentence, specifically that the assist was on the game-winning goal.&quot;,
+      &quot;source_field_repaired&quot;: true
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0
+  },
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      28,
+      32
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;உதவி&quot;,
+      &quot;explanation&quot;: &quot;The word &#x27;assist&#x27; in a sports context is mistranslated as &#x27;help/aid&#x27; (உதவி) instead of the appropriate sports terminology.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.9
+  },
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      0,
+      27
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;ஓவெச்ச்கின் உடைய இரவு முதல்&quot;,
+      &quot;explanation&quot;: &quot;The phrase &#x27;Ovechkin&#x27;s first assist of the night&#x27; is translated as &#x27;Ovechkin&#x27;s night first&#x27;, losing the meaning of the assist entirely.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.9
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0027-ta</td><td>ta</td><td>complete</td><td></td><td><div class="label">English source</div>his second goal of the night was his 60th of the season, becoming the first player to score 60 or more goals in a season since 1995-96, when Jaromir Jagr and Mario Lemieux each reached that milestone.<div class="label">Supplied output</div>அன்று இரவு அவர் அடித்த இரண்டாவது கோல் இந்த பருவத்தில் அவரது 60 வது கோல் மட்டுமல்லாது 1995-96 ம் பருவத்தில் ஜரோமிர் ஜாக்ர் மற்றும் மரியோ லேமிக்ஸ் இருவரும் ஒரே பருவத்தில் தலா 60 கோல் அடித்துப் படைத்த சாதனையை அதன் பிறகு எட்டிய முதல் வீரரும் ஆகிறார்.</td><td><details><summary>Needs review (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      0,
+      10
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;அன்று இரவு&quot;,
+      &quot;explanation&quot;: &quot;The source text says &#x27;his second goal of the night&#x27;, implying the night of the game. The translation uses &#x27;அன்று இரவு&#x27; which translates to &#x27;that night&#x27;, which is slightly less precise than &#x27;the night&#x27; in this context, though it does not change the meaning significantly.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.7,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0027-ta:addition</td><td>ta</td><td>complete</td><td>addition</td><td><div class="label">English source</div>his second goal of the night was his 60th of the season, becoming the first player to score 60 or more goals in a season since 1995-96, when Jaromir Jagr and Mario Lemieux each reached that milestone.<div class="label">Supplied output</div>அன்று இரவு அவர் அடித்த இரண்டாவது கோல் இந்த பருவத்தில் அவரது 60 வது கோல் மட்டுமல்லாது 1995-96 ம் பருவத்தில் ஜரோமிர் ஜாக்ர் மற்றும் மரியோ லேமிக்ஸ் இருவரும் ஒரே பருவத்தில் தலா 60 கோல் அடித்துப் படைத்த சாதனையை அதன் பிறகு எட்டிய முதல் வீரரும் ஆகிறார். This statement is not supported by the source.</td><td><details><summary>Findings (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;addition&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      247,
+      293
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;This statement is not supported by the source.&quot;,
+      &quot;explanation&quot;: &quot;The translator included an English meta-commentary at the end of the translation which is not present in the source text.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0028-ta</td><td>ta</td><td>complete</td><td></td><td><div class="label">English source</div>Batten was ranked 190th on the 2008 400 Richest Americans list with an estimated fortune of $2.3 billion.<div class="label">Supplied output</div>2008ஆம் ஆண்டின் 400 பணக்கார அமெரிக்கர்கள் பட்டியலில் பேட்டன் $2.3 பில்லியன் சொத்து மதிப்புடன் 190வது இடத்தைப் பிடித்தார்.</td><td><details><summary>Needs review (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      53,
+      60
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;பேட்டன்&quot;,
+      &quot;explanation&quot;: &quot;The name &#x27;Batten&#x27; was transliterated as &#x27;Patton&#x27; (பேட்டன்) in the translation, which is a slight phonetic deviation from the source name.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.8,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0028-ta:wrong_language</td><td>ta</td><td>complete</td><td>wrong_language</td><td><div class="label">English source</div>Batten was ranked 190th on the 2008 400 Richest Americans list with an estimated fortune of $2.3 billion.<div class="label">Supplied output</div>Batten was ranked 190th on the 2008 400 Richest Americans list with an estimated fortune of $2.3 billion.</td><td><details><summary>Findings (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;wrong_language&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      0,
+      105
+    ],
+    &quot;evidence&quot;: {
+      &quot;reason&quot;: &quot;English source was copied unchanged into a requested Indic output&quot;
+    },
+    &quot;check&quot;: &quot;untranslated_source&quot;,
+    &quot;confidence&quot;: 0.99
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0029-ta</td><td>ta</td><td>complete</td><td></td><td><div class="label">English source</div>He graduated from the College of Arts &amp; Sciences of the University of Virginia in 1950 and was a significant donor to that institution. $x^2 + y^2 = z^2$<div class="label">Supplied output</div>அவர் 1950-இல் வர்ஜீனியா பல்கலைக்கழகத்தின் கலை மற்றும் அறிவியல் கல்லூரியில் பட்டம் பெற்றார், மேலும் அந்த நிறுவனத்திற்குக் குறிப்பிடத்தகுந்த நன்கொடையாளராக இருந்தார். $x^2 + y^2 = z^2$</td><td>No supported finding</td></tr>
+<tr><td>flores-0029-ta:format</td><td>ta</td><td>complete</td><td>format</td><td><div class="label">English source</div>He graduated from the College of Arts &amp; Sciences of the University of Virginia in 1950 and was a significant donor to that institution. $x^2 + y^2 = z^2$<div class="label">Supplied output</div>அவர் 1950-இல் வர்ஜீனியா பல்கலைக்கழகத்தின் கலை மற்றும் அறிவியல் கல்லூரியில் பட்டம் பெற்றார், மேலும் அந்த நிறுவனத்திற்குக் குறிப்பிடத்தகுந்த நன்கொடையாளராக இருந்தார். $x^2 + y^2 = z^2</td><td><details><summary>Findings (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;format&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      0,
+      180
+    ],
+    &quot;evidence&quot;: {
+      &quot;component&quot;: &quot;math&quot;,
+      &quot;expected&quot;: [
+        &quot;$x^2 + y^2 = z^2$&quot;
+      ],
+      &quot;observed&quot;: []
+    },
+    &quot;check&quot;: &quot;format_integrity&quot;,
+    &quot;confidence&quot;: 0.95
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0031-ta</td><td>ta</td><td>complete</td><td></td><td><div class="label">English source</div>The jail became notorious after prisoner abuse was discovered there after US forces took over. (Sample-A)<div class="label">Supplied output</div>இந்தச் சிறை, அமெரிக்க படைகள் பொறுப்பேற்றதும், கைதிகள் தவறாக நடத்தப்படுவது கண்டுபிடிக்கப்பட்ட பிறகு மிகவும் கெட்ட பெயரை சம்பாதித்தது. (Sample-A)</td><td><details><summary>Needs review (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      13,
+      98
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;அமெரிக்க படைகள் பொறுப்பேற்றதும், கைதிகள் தவறாக நடத்தப்படுவது கண்டுபிடிக்கப்பட்ட பிறகு&quot;,
+      &quot;explanation&quot;: &quot;The translation implies that the abuse was discovered *after* the US forces took over, which is correct, but the phrasing suggests the discovery happened immediately upon takeover. The source text implies the abuse was discovered *after* the takeover occurred, not necessarily as a direct consequence of the takeover timing.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.7,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0031-ta:entity</td><td>ta</td><td>complete</td><td>entity, omission</td><td><div class="label">English source</div>The jail became notorious after prisoner abuse was discovered there after US forces took over. (Sample-A)<div class="label">Supplied output</div>இந்தச் சிறை, அமெரிக்க படைகள் பொறுப்பேற்றதும், கைதிகள் தவறாக நடத்தப்படுவது கண்டுபிடிக்கப்பட்ட பிறகு மிகவும் கெட்ட பெயரை சம்பாதித்தது. (DIFFERENT_ENTITY)</td><td><details><summary>Findings (2)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;entity&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      96,
+      104
+    ],
+    &quot;evidence&quot;: {
+      &quot;term&quot;: &quot;Sample-A&quot;,
+      &quot;allowed_targets&quot;: [
+        &quot;Sample-A&quot;
+      ]
+    },
+    &quot;check&quot;: &quot;explicit_glossary&quot;,
+    &quot;confidence&quot;: 0.9
+  },
+  {
+    &quot;type&quot;: &quot;omission&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      95,
+      105
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;(Sample-A)&quot;,
+      &quot;explanation&quot;: &quot;The source text includes the tag &#x27;(Sample-A)&#x27;, which was omitted in the translation and replaced with &#x27;(DIFFERENT_ENTITY)&#x27;.&quot;,
+      &quot;source_field_repaired&quot;: true
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0
+  }
+]</pre></details><details><summary>Needs review (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      13,
+      98
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;அமெரிக்க படைகள் பொறுப்பேற்றதும், கைதிகள் தவறாக நடத்தப்படுவது கண்டுபிடிக்கப்பட்ட பிறகு&quot;,
+      &quot;explanation&quot;: &quot;The translation implies that the abuse was discovered immediately upon the US forces taking over, whereas the source states the abuse was discovered after they took over. The causal link is slightly distorted in the Tamil phrasing.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.8
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0003-bn</td><td>bn</td><td>complete</td><td></td><td><div class="label">English source</div>The JAS 39C Gripen crashed onto a runway at around 9:30 am local time (0230 UTC) and exploded, closing the airport to commercial flights. [41]<div class="label">Supplied output</div>স্থানীয় সময় সকাল ৯:৩০ এর  (০২:৩০ UTC) দিকে জেএএস ৩৯ সি গ্রিপেন একটি রানওয়েতে বিধ্বস্ত হয় এবং বিস্ফোরিত হয়,ফলে বিমানবন্দরটি বাণিজ্যিক ফ্লাইট বন্ধ করে দেয়। [41]</td><td><details><summary>Needs review (4)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;number&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      21,
+      23
+    ],
+    &quot;evidence&quot;: {
+      &quot;observed&quot;: &quot;30&quot;,
+      &quot;missing&quot;: [
+        &quot;0230&quot;
+      ]
+    },
+    &quot;check&quot;: &quot;number_preservation&quot;,
+    &quot;confidence&quot;: 0.98,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  },
+  {
+    &quot;type&quot;: &quot;number&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      29,
+      31
+    ],
+    &quot;evidence&quot;: {
+      &quot;observed&quot;: &quot;02&quot;,
+      &quot;missing&quot;: [
+        &quot;0230&quot;
+      ]
+    },
+    &quot;check&quot;: &quot;number_preservation&quot;,
+    &quot;confidence&quot;: 0.98,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  },
+  {
+    &quot;type&quot;: &quot;number&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      71,
+      75
+    ],
+    &quot;evidence&quot;: {
+      &quot;missing&quot;: &quot;0230&quot;,
+      &quot;could_be_spelled_out&quot;: true
+    },
+    &quot;check&quot;: &quot;number_coverage&quot;,
+    &quot;confidence&quot;: 0.55,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  },
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      111,
+      158
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;ফলে বিমানবন্দরটি বাণিজ্যিক ফ্লাইট বন্ধ করে দেয়&quot;,
+      &quot;explanation&quot;: &quot;The translation implies the airport itself closed the flights, whereas the source states the crash caused the airport to be closed to commercial flights. The causal relationship is slightly misrepresented.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.8,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0003-bn:number</td><td>bn</td><td>complete</td><td>number, mistranslation</td><td><div class="label">English source</div>The JAS 39C Gripen crashed onto a runway at around 9:30 am local time (0230 UTC) and exploded, closing the airport to commercial flights. [41]<div class="label">Supplied output</div>স্থানীয় সময় সকাল 2:৩০ এর  (০২:৩০ UTC) দিকে জেএএস ৩৯ সি গ্রিপেন একটি রানওয়েতে বিধ্বস্ত হয় এবং বিস্ফোরিত হয়,ফলে বিমানবন্দরটি বাণিজ্যিক ফ্লাইট বন্ধ করে দেয়। [41]</td><td><details><summary>Findings (4)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;number&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      19,
+      20
+    ],
+    &quot;evidence&quot;: {
+      &quot;observed&quot;: &quot;2&quot;,
+      &quot;missing&quot;: [
+        &quot;9&quot;,
+        &quot;0230&quot;
+      ]
+    },
+    &quot;check&quot;: &quot;number_preservation&quot;,
+    &quot;confidence&quot;: 0.98
+  },
+  {
+    &quot;type&quot;: &quot;number&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      21,
+      23
+    ],
+    &quot;evidence&quot;: {
+      &quot;observed&quot;: &quot;30&quot;,
+      &quot;missing&quot;: [
+        &quot;9&quot;,
+        &quot;0230&quot;
+      ]
+    },
+    &quot;check&quot;: &quot;number_preservation&quot;,
+    &quot;confidence&quot;: 0.98
+  },
+  {
+    &quot;type&quot;: &quot;number&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      29,
+      31
+    ],
+    &quot;evidence&quot;: {
+      &quot;observed&quot;: &quot;02&quot;,
+      &quot;missing&quot;: [
+        &quot;9&quot;,
+        &quot;0230&quot;
+      ]
+    },
+    &quot;check&quot;: &quot;number_preservation&quot;,
+    &quot;confidence&quot;: 0.98
+  },
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      14,
+      26
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;সকাল 2:৩০ এর&quot;,
+      &quot;explanation&quot;: &quot;The source text states &#x27;9:30 am&#x27;, but the translation incorrectly states &#x27;2:30 am&#x27;.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0
+  }
+]</pre></details><details><summary>Needs review (2)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;number&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      51,
+      52
+    ],
+    &quot;evidence&quot;: {
+      &quot;missing&quot;: &quot;9&quot;,
+      &quot;could_be_spelled_out&quot;: true
+    },
+    &quot;check&quot;: &quot;number_coverage&quot;,
+    &quot;confidence&quot;: 0.55
+  },
+  {
+    &quot;type&quot;: &quot;number&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      71,
+      75
+    ],
+    &quot;evidence&quot;: {
+      &quot;missing&quot;: &quot;0230&quot;,
+      &quot;could_be_spelled_out&quot;: true
+    },
+    &quot;check&quot;: &quot;number_coverage&quot;,
+    &quot;confidence&quot;: 0.55
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0008-bn</td><td>bn</td><td>complete</td><td></td><td><div class="label">English source</div>The protest started around 11:00 local time (UTC+1) on Whitehall opposite the police-guarded entrance to Downing Street, the Prime Minister&#x27;s official residence.<div class="label">Supplied output</div>প্রধানমন্ত্রীর সরকারি বাসভবন, ডাউনিং স্ট্রিটের পুলিশ-রক্ষিত প্রবেশ দ্বারের সামনে হোয়াইটহলে স্থানীয় সময় (UTC +1) বেলা 11:00 টার দিকে বিক্ষোভ শুরু হয়েছিল।</td><td><details><summary>Needs review (2)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;number&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      111,
+      113
+    ],
+    &quot;evidence&quot;: {
+      &quot;observed&quot;: &quot;+1&quot;,
+      &quot;missing&quot;: [
+        &quot;1&quot;
+      ]
+    },
+    &quot;check&quot;: &quot;number_preservation&quot;,
+    &quot;confidence&quot;: 0.98,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  },
+  {
+    &quot;type&quot;: &quot;number&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      49,
+      50
+    ],
+    &quot;evidence&quot;: {
+      &quot;missing&quot;: &quot;1&quot;,
+      &quot;could_be_spelled_out&quot;: true
+    },
+    &quot;check&quot;: &quot;number_coverage&quot;,
+    &quot;confidence&quot;: 0.55,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0008-bn:omission</td><td>bn</td><td>complete</td><td>omission</td><td><div class="label">English source</div>The protest started around 11:00 local time (UTC+1) on Whitehall opposite the police-guarded entrance to Downing Street, the Prime Minister&#x27;s official residence.<div class="label">Supplied output</div>প্রধানমন্ত্রীর সরকারি বাসভবন, ডাউনিং স্ট্রিটের পুলিশ-রক্ষিত প্রবেশ দ্বারের সামনে হোয়াইটহলে স্থানীয়</td><td><details><summary>Findings (2)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;omission&quot;,
+    &quot;severity&quot;: &quot;critical&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      0,
+      51
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;The protest started around 11:00 local time (UTC+1)&quot;,
+      &quot;explanation&quot;: &quot;The entire first part of the source sentence regarding the start time and the protest itself is missing from the translation.&quot;,
+      &quot;source_field_repaired&quot;: true
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0
+  },
+  {
+    &quot;type&quot;: &quot;omission&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      39,
+      51
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;time (UTC+1)&quot;,
+      &quot;explanation&quot;: &quot;The time zone information is missing from the translation.&quot;,
+      &quot;source_field_repaired&quot;: true
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0
+  }
+]</pre></details><details><summary>Needs review (3)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;number&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      27,
+      29
+    ],
+    &quot;evidence&quot;: {
+      &quot;missing&quot;: &quot;11&quot;,
+      &quot;could_be_spelled_out&quot;: true
+    },
+    &quot;check&quot;: &quot;number_coverage&quot;,
+    &quot;confidence&quot;: 0.55
+  },
+  {
+    &quot;type&quot;: &quot;number&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      30,
+      32
+    ],
+    &quot;evidence&quot;: {
+      &quot;missing&quot;: &quot;00&quot;,
+      &quot;could_be_spelled_out&quot;: true
+    },
+    &quot;check&quot;: &quot;number_coverage&quot;,
+    &quot;confidence&quot;: 0.55
+  },
+  {
+    &quot;type&quot;: &quot;number&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      49,
+      50
+    ],
+    &quot;evidence&quot;: {
+      &quot;missing&quot;: &quot;1&quot;,
+      &quot;could_be_spelled_out&quot;: true
+    },
+    &quot;check&quot;: &quot;number_coverage&quot;,
+    &quot;confidence&quot;: 0.55
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0009-bn</td><td>bn</td><td>complete</td><td></td><td><div class="label">English source</div>Just after 11:00, protesters blocked traffic on the northbound carriage in Whitehall.<div class="label">Supplied output</div>11:00 টার ঠিক পরে, বিক্ষোভকারীরা হোয়াইটহলের উত্তরদিকগামি যানচলাচল অবরোধ করেছিল।</td><td><details><summary>Needs review (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;back_translation&quot;,
+    &quot;span&quot;: [
+      45,
+      63
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;north of Whitehall&quot;,
+      &quot;explanation&quot;: &quot;The back-translation incorrectly translates &#x27;উত্তরদিকগামি&#x27; (northbound) as &#x27;north of&#x27;, which changes the meaning from a direction of travel to a geographical location.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.9
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0009-bn:addition</td><td>bn</td><td>complete</td><td>addition</td><td><div class="label">English source</div>Just after 11:00, protesters blocked traffic on the northbound carriage in Whitehall.<div class="label">Supplied output</div>11:00 টার ঠিক পরে, বিক্ষোভকারীরা হোয়াইটহলের উত্তরদিকগামি যানচলাচল অবরোধ করেছিল। This statement is not supported by the source.</td><td><details><summary>Findings (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;addition&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      81,
+      127
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;This statement is not supported by the source.&quot;,
+      &quot;explanation&quot;: &quot;The translator included an extraneous meta-commentary sentence that is not present in the source text.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0010-bn</td><td>bn</td><td>complete</td><td></td><td><div class="label">English source</div>At 11:20, the police asked the protesters to move back on to the pavement, stating that they needed to balance the right to protest with the traffic building up.<div class="label">Supplied output</div>১১:২০ এ পুলিশ প্রতিবাদকারীদের পায়ে হাটার পথে ফিরে যেতে বলেছেন। তারা জানিয়েছেন যে যানজট তৈরী হচ্ছে তার সাথে প্রতিবাদের অধিকারের ভারসাম্য করা দরকার।</td><td><details><summary>Needs review (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      81,
+      145
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;যানজট তৈরী হচ্ছে তার সাথে প্রতিবাদের অধিকারের ভারসাম্য করা দরকার&quot;,
+      &quot;explanation&quot;: &quot;The translation implies that the right to protest needs to be balanced with the &#x27;creation&#x27; of traffic congestion, whereas the source text states it needs to be balanced with the &#x27;traffic building up&#x27; (the existing congestion).&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.8,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0010-bn:wrong_language</td><td>bn</td><td>complete</td><td>wrong_language</td><td><div class="label">English source</div>At 11:20, the police asked the protesters to move back on to the pavement, stating that they needed to balance the right to protest with the traffic building up.<div class="label">Supplied output</div>At 11:20, the police asked the protesters to move back on to the pavement, stating that they needed to balance the right to protest with the traffic building up.</td><td><details><summary>Findings (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;wrong_language&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      0,
+      161
+    ],
+    &quot;evidence&quot;: {
+      &quot;reason&quot;: &quot;English source was copied unchanged into a requested Indic output&quot;
+    },
+    &quot;check&quot;: &quot;untranslated_source&quot;,
+    &quot;confidence&quot;: 0.99
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0015-bn</td><td>bn</td><td>complete</td><td></td><td><div class="label">English source</div>After the match, King of Clay said, &quot;I am just excited about being back in the final rounds of the most important events. I am here to try to win this.&quot; $x^2 + y^2 = z^2$<div class="label">Supplied output</div>&quot;ম্যাচের পরে কিং অফ ক্লে বলেছিলেন, &quot;&quot;আমি সর্বাধিক গুরুত্বপূর্ণ ইভেন্টের চূড়ান্ত রাউন্ডে ফিরে আসতে পেরে খুবই উচ্ছ্বসিত। আমি এটি জেতার চেষ্টায় এসেছি।&quot;&quot;&quot; $x^2 + y^2 = z^2$</td><td><details><summary>Needs review (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;format&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      35,
+      150
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;\&quot;\&quot;আমি সর্বাধিক গুরুত্বপূর্ণ ইভেন্টের চূড়ান্ত রাউন্ডে ফিরে আসতে পেরে খুবই উচ্ছ্বসিত। আমি এটি জেতার চেষ্টায় এসেছি।\&quot;\&quot;&quot;,
+      &quot;explanation&quot;: &quot;The translation uses double double-quotes (\&quot;\&quot;) inside the main quotation marks, which is a formatting error in the target text.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0015-bn:format</td><td>bn</td><td>complete</td><td>format</td><td><div class="label">English source</div>After the match, King of Clay said, &quot;I am just excited about being back in the final rounds of the most important events. I am here to try to win this.&quot; $x^2 + y^2 = z^2$<div class="label">Supplied output</div>&quot;ম্যাচের পরে কিং অফ ক্লে বলেছিলেন, &quot;&quot;আমি সর্বাধিক গুরুত্বপূর্ণ ইভেন্টের চূড়ান্ত রাউন্ডে ফিরে আসতে পেরে খুবই উচ্ছ্বসিত। আমি এটি জেতার চেষ্টায় এসেছি।&quot;&quot;&quot; $x^2 + y^2 = z^2</td><td><details><summary>Findings (2)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;format&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      0,
+      168
+    ],
+    &quot;evidence&quot;: {
+      &quot;component&quot;: &quot;math&quot;,
+      &quot;expected&quot;: [
+        &quot;$x^2 + y^2 = z^2$&quot;
+      ],
+      &quot;observed&quot;: []
+    },
+    &quot;check&quot;: &quot;format_integrity&quot;,
+    &quot;confidence&quot;: 0.95
+  },
+  {
+    &quot;type&quot;: &quot;format&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      35,
+      151
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;\&quot;\&quot;আমি সর্বাধিক গুরুত্বপূর্ণ ইভেন্টের চূড়ান্ত রাউন্ডে ফিরে আসতে পেরে খুবই উচ্ছ্বসিত। আমি এটি জেতার চেষ্টায় এসেছি।\&quot;\&quot;\&quot;&quot;,
+      &quot;explanation&quot;: &quot;The translation contains excessive and nested quotation marks that do not match the source text&#x27;s formatting.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0016-bn</td><td>bn</td><td>complete</td><td></td><td><div class="label">English source</div>&quot;Panama Papers&quot; is an umbrella term for roughly ten million documents from Panamanian law firm Mossack Fonseca, leaked to the press in spring 2016. (Sample-A)<div class="label">Supplied output</div>&quot;&quot;&quot;পানামা পেপারস&quot;&quot; হলো পানামানিয়ান আইন সংস্থা মোস্যাক ফনসেকার প্রায় দশ মিলিয়ন ডকুমেন্টের একটি সংরক্ষণ, যা 2016 সালে বসন্তকালীন সময়ে প্রেসে প্রকাশ হয়েছিল।&quot; (Sample-A)</td><td>No supported finding</td></tr>
+<tr><td>flores-0016-bn:entity</td><td>bn</td><td>complete</td><td>entity</td><td><div class="label">English source</div>&quot;Panama Papers&quot; is an umbrella term for roughly ten million documents from Panamanian law firm Mossack Fonseca, leaked to the press in spring 2016. (Sample-A)<div class="label">Supplied output</div>&quot;&quot;&quot;পানামা পেপারস&quot;&quot; হলো পানামানিয়ান আইন সংস্থা মোস্যাক ফনসেকার প্রায় দশ মিলিয়ন ডকুমেন্টের একটি সংরক্ষণ, যা 2016 সালে বসন্তকালীন সময়ে প্রেসে প্রকাশ হয়েছিল।&quot; (DIFFERENT_ENTITY)</td><td><details><summary>Findings (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;entity&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      149,
+      157
+    ],
+    &quot;evidence&quot;: {
+      &quot;term&quot;: &quot;Sample-A&quot;,
+      &quot;allowed_targets&quot;: [
+        &quot;Sample-A&quot;
+      ]
+    },
+    &quot;check&quot;: &quot;explicit_glossary&quot;,
+    &quot;confidence&quot;: 0.9
+  }
+]</pre></details><details><summary>Needs review (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      97,
+      104
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;সংরক্ষণ&quot;,
+      &quot;explanation&quot;: &quot;The word &#x27;umbrella term&#x27; was translated as &#x27;সংরক্ষণ&#x27; (collection/archive), which loses the nuance of it being a general term or category rather than just a collection.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.8
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0017-bn</td><td>bn</td><td>complete</td><td></td><td><div class="label">English source</div>The documents showed fourteen banks helped wealthy clients hide billions of US dollars of wealth to avoid taxes and other regulations. [41]<div class="label">Supplied output</div>কাগজপত্রগুলোতে দেখা গেছে যে চৌদ্দ ব্যাংকে ধনী ক্লায়েন্টদের কর এবং অন্যান্য বিধিবিধান এড়াতে কয়েক বিলিয়ন মার্কিন ডলার সম্পদ আড়াল করতে সহায়তা করেছিল। [41]</td><td><details><summary>Needs review (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      28,
+      41
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;চৌদ্দ ব্যাংকে&quot;,
+      &quot;explanation&quot;: &quot;The source says &#x27;fourteen banks&#x27; (subject), but the translation uses &#x27;চৌদ্দ ব্যাংকে&#x27; which translates to &#x27;in fourteen banks&#x27; (locative), incorrectly changing the grammatical role of the banks from the agents of the action to the location of the action.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0017-bn:number</td><td>bn</td><td>complete</td><td>number, mistranslation</td><td><div class="label">English source</div>The documents showed fourteen banks helped wealthy clients hide billions of US dollars of wealth to avoid taxes and other regulations. [41]<div class="label">Supplied output</div>কাগজপত্রগুলোতে দেখা গেছে যে চৌদ্দ ব্যাংকে ধনী ক্লায়েন্টদের কর এবং অন্যান্য বিধিবিধান এড়াতে কয়েক বিলিয়ন মার্কিন ডলার সম্পদ আড়াল করতে সহায়তা করেছিল। [71]</td><td><details><summary>Findings (3)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;number&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      154,
+      156
+    ],
+    &quot;evidence&quot;: {
+      &quot;observed&quot;: &quot;71&quot;,
+      &quot;missing&quot;: [
+        &quot;41&quot;
+      ]
+    },
+    &quot;check&quot;: &quot;number_preservation&quot;,
+    &quot;confidence&quot;: 0.98
+  },
+  {
+    &quot;type&quot;: &quot;number&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      153,
+      157
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;[71]&quot;,
+      &quot;explanation&quot;: &quot;The source text contains the citation &#x27;[41]&#x27;, but the translation incorrectly changed this to &#x27;[71]&#x27;.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0
+  },
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      28,
+      41
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;চৌদ্দ ব্যাংকে&quot;,
+      &quot;explanation&quot;: &quot;The source says &#x27;fourteen banks&#x27; (subject), but the translation uses &#x27;চৌদ্দ ব্যাংকে&#x27; which translates to &#x27;in fourteen banks&#x27; (locative), changing the grammatical role of the banks in the sentence.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.9
+  }
+]</pre></details><details><summary>Needs review (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;number&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      136,
+      138
+    ],
+    &quot;evidence&quot;: {
+      &quot;missing&quot;: &quot;41&quot;,
+      &quot;could_be_spelled_out&quot;: true
+    },
+    &quot;check&quot;: &quot;number_coverage&quot;,
+    &quot;confidence&quot;: 0.55
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0018-bn</td><td>bn</td><td>complete</td><td></td><td><div class="label">English source</div>British newspaper The Guardian suggested Deutsche Bank controlled roughly a third of the 1200 shell companies used to accomplish this.<div class="label">Supplied output</div>ব্রিটিশ সংবাদমাধ্যম গার্ডিয়ান প্রকাশিত করেছে যে ডাচ ব্যাঙ্ক ১২০০  শেল সংস্থার প্রায় এক তৃতীয়াংশ নিয়ন্ত্রণ করে যা এই লক্ষ্য বাস্তবায়নে ব্যবহার হয়েছে।</td><td><details><summary>Needs review (2)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      49,
+      60
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;ডাচ ব্যাঙ্ক&quot;,
+      &quot;explanation&quot;: &quot;The source text refers to &#x27;Deutsche Bank&#x27; (a specific German bank), but the translation uses &#x27;ডাচ ব্যাঙ্ক&#x27; which translates to &#x27;Dutch bank&#x27;. This is a factual error regarding the entity name.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  },
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      31,
+      48
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;প্রকাশিত করেছে যে&quot;,
+      &quot;explanation&quot;: &quot;The source text says &#x27;suggested&#x27;, which implies an allegation or report. &#x27;প্রকাশিত করেছে যে&#x27; means &#x27;has published that&#x27;, which is a slight shift in meaning from the original nuance.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.8,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0018-bn:omission</td><td>bn</td><td>complete</td><td>omission, mistranslation</td><td><div class="label">English source</div>British newspaper The Guardian suggested Deutsche Bank controlled roughly a third of the 1200 shell companies used to accomplish this.<div class="label">Supplied output</div>ব্রিটিশ সংবাদমাধ্যম গার্ডিয়ান প্রকাশিত করেছে যে ডাচ ব্যাঙ্ক ১২০০  শেল সংস্থার প্রায় এক তৃতীয়াংশ</td><td><details><summary>Findings (2)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;omission&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      55,
+      134
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;controlled roughly a third of the 1200 shell companies used to accomplish this.&quot;,
+      &quot;explanation&quot;: &quot;The translation is incomplete; it ends abruptly after &#x27;এক তৃতীয়াংশ&#x27; (a third), failing to translate the rest of the sentence including the purpose of the shell companies.&quot;,
+      &quot;source_field_repaired&quot;: true
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0
+  },
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      49,
+      60
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;ডাচ ব্যাঙ্ক&quot;,
+      &quot;explanation&quot;: &quot;The source text refers to &#x27;Deutsche Bank&#x27; (German bank), but the translation uses &#x27;ডাচ ব্যাঙ্ক&#x27; (Dutch bank), which is a factual error.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0019-bn</td><td>bn</td><td>complete</td><td></td><td><div class="label">English source</div>There were protests worldwide, several criminal prosecutions, and the leaders of the governments of Iceland and Pakistan both resigned.<div class="label">Supplied output</div>সারা বিশ্ব জুড়ে আন্দোলন হয়েছিল, বিভিন্ন অপরাধমূলক মামলা হয়েছে এবং উভয় আইসল্যান্ড ও পাকিস্তানের সরকারের নেতারা পদত্যাগ করেছেন।</td><td><details><summary>Needs review (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      32,
+      62
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;বিভিন্ন অপরাধমূলক মামলা হয়েছে&quot;,
+      &quot;explanation&quot;: &quot;The source text says &#x27;several criminal prosecutions&#x27;, which implies legal proceedings or charges. The translation &#x27;বিভিন্ন অপরাধমূলক মামলা হয়েছে&#x27; translates to &#x27;various criminal cases have happened&#x27;, which slightly shifts the meaning from the act of prosecution to the existence of cases.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.8,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0019-bn:addition</td><td>bn</td><td>complete</td><td>addition</td><td><div class="label">English source</div>There were protests worldwide, several criminal prosecutions, and the leaders of the governments of Iceland and Pakistan both resigned.<div class="label">Supplied output</div>সারা বিশ্ব জুড়ে আন্দোলন হয়েছিল, বিভিন্ন অপরাধমূলক মামলা হয়েছে এবং উভয় আইসল্যান্ড ও পাকিস্তানের সরকারের নেতারা পদত্যাগ করেছেন। This statement is not supported by the source.</td><td><details><summary>Findings (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;addition&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      127,
+      173
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;This statement is not supported by the source.&quot;,
+      &quot;explanation&quot;: &quot;The translator added an extraneous English sentence that is not present in the source text.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0020-bn</td><td>bn</td><td>complete</td><td></td><td><div class="label">English source</div>Born in Hong Kong, Ma studied at New York University and Harvard Law School and once held an American permanent resident &quot;green card&quot;.<div class="label">Supplied output</div>মা-এর জন্ম হংকং-এ, তারপর নিউ ইয়র্ক বিশ্ববিদ্যালয় এবং হার্ভার্ড আইন স্কুলে পড়ার পর তিনি একসময় মার্কিন যুক্তরাষ্ট্রের স্থায়ী বাসিন্দা হিসাবে “গ্রীন কার্ড“ পান।</td><td><details><summary>Needs review (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      0,
+      5
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;মা-এর&quot;,
+      &quot;explanation&quot;: &quot;The source text refers to &#x27;Ma&#x27; (a surname), but the translation uses &#x27;মা-এর&#x27; which literally translates to &#x27;Mother&#x27;s&#x27; in Bengali. It should have been transliterated as &#x27;মা&#x27;-এর.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.9,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0020-bn:wrong_language</td><td>bn</td><td>complete</td><td>wrong_language</td><td><div class="label">English source</div>Born in Hong Kong, Ma studied at New York University and Harvard Law School and once held an American permanent resident &quot;green card&quot;.<div class="label">Supplied output</div>Born in Hong Kong, Ma studied at New York University and Harvard Law School and once held an American permanent resident &quot;green card&quot;.</td><td><details><summary>Findings (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;wrong_language&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      0,
+      134
+    ],
+    &quot;evidence&quot;: {
+      &quot;reason&quot;: &quot;English source was copied unchanged into a requested Indic output&quot;
+    },
+    &quot;check&quot;: &quot;untranslated_source&quot;,
+    &quot;confidence&quot;: 0.99
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0021-bn</td><td>bn</td><td>complete</td><td></td><td><div class="label">English source</div>Hsieh implied during the election that Ma might flee the country during a time of crisis. $x^2 + y^2 = z^2$<div class="label">Supplied output</div>শেই নির্বাচনের সময় সূচিত করেন যে মা হয়তো সংকট-এর মুহূর্তে দেশ ছেড়ে পালিয়ে যেতে পারেন। $x^2 + y^2 = z^2$</td><td>No supported finding</td></tr>
+<tr><td>flores-0021-bn:format</td><td>bn</td><td>complete</td><td>format</td><td><div class="label">English source</div>Hsieh implied during the election that Ma might flee the country during a time of crisis. $x^2 + y^2 = z^2$<div class="label">Supplied output</div>শেই নির্বাচনের সময় সূচিত করেন যে মা হয়তো সংকট-এর মুহূর্তে দেশ ছেড়ে পালিয়ে যেতে পারেন। $x^2 + y^2 = z^2</td><td><details><summary>Findings (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;format&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      0,
+      102
+    ],
+    &quot;evidence&quot;: {
+      &quot;component&quot;: &quot;math&quot;,
+      &quot;expected&quot;: [
+        &quot;$x^2 + y^2 = z^2$&quot;
+      ],
+      &quot;observed&quot;: []
+    },
+    &quot;check&quot;: &quot;format_integrity&quot;,
+    &quot;confidence&quot;: 0.95
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0023-bn</td><td>bn</td><td>complete</td><td></td><td><div class="label">English source</div>Despite these accusations, Ma won handily on a platform advocating closer ties with the Chinese mainland. (Sample-A)<div class="label">Supplied output</div>এই অভিযোগগুলো সত্ত্বেও, মা চীনের মূল ভূখণ্ডের সাথে নিবিড় সম্পর্কের সমর্থনে প্রচার মাধ্যমে স্বচ্ছন্দে জয়ী হয়েছেন। (Sample-A)</td><td><details><summary>Needs review (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      75,
+      89
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;প্রচার মাধ্যমে&quot;,
+      &quot;explanation&quot;: &quot;The source text says &#x27;on a platform advocating&#x27;, which refers to a political platform (policy agenda). The translation incorrectly interprets &#x27;platform&#x27; as &#x27;media&#x27; (প্রচার মাধ্যম).&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.9,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0023-bn:entity</td><td>bn</td><td>complete</td><td>entity, mistranslation</td><td><div class="label">English source</div>Despite these accusations, Ma won handily on a platform advocating closer ties with the Chinese mainland. (Sample-A)<div class="label">Supplied output</div>এই অভিযোগগুলো সত্ত্বেও, মা চীনের মূল ভূখণ্ডের সাথে নিবিড় সম্পর্কের সমর্থনে প্রচার মাধ্যমে স্বচ্ছন্দে জয়ী হয়েছেন। (DIFFERENT_ENTITY)</td><td><details><summary>Findings (2)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;entity&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      107,
+      115
+    ],
+    &quot;evidence&quot;: {
+      &quot;term&quot;: &quot;Sample-A&quot;,
+      &quot;allowed_targets&quot;: [
+        &quot;Sample-A&quot;
+      ]
+    },
+    &quot;check&quot;: &quot;explicit_glossary&quot;,
+    &quot;confidence&quot;: 0.9
+  },
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      75,
+      89
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;প্রচার মাধ্যমে&quot;,
+      &quot;explanation&quot;: &quot;The source text says &#x27;on a platform advocating&#x27;, which refers to a political platform or policy agenda. The translation incorrectly translates &#x27;platform&#x27; as &#x27;media&#x27; (প্রচার মাধ্যম), changing the meaning of the sentence.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.95
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0025-bn</td><td>bn</td><td>complete</td><td></td><td><div class="label">English source</div>He had 2 goals and 2 assists in Washington&#x27;s 5-3 win over the Atlanta Thrashers. [41]<div class="label">Supplied output</div>আটলান্টা থ্রাশারস এর বিরুদ্ধে ওয়াশিংটন এর ৫-৩ গোলে জয়লাভ এর সময় তার দু&#x27;টি গোল এবং দু&#x27;টি অ্যাসিস্ট ছিল। [41]</td><td><details><summary>Needs review (3)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;number&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      7,
+      8
+    ],
+    &quot;evidence&quot;: {
+      &quot;missing&quot;: &quot;2&quot;,
+      &quot;could_be_spelled_out&quot;: true
+    },
+    &quot;check&quot;: &quot;number_coverage&quot;,
+    &quot;confidence&quot;: 0.55,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  },
+  {
+    &quot;type&quot;: &quot;number&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      19,
+      20
+    ],
+    &quot;evidence&quot;: {
+      &quot;missing&quot;: &quot;2&quot;,
+      &quot;could_be_spelled_out&quot;: true
+    },
+    &quot;check&quot;: &quot;number_coverage&quot;,
+    &quot;confidence&quot;: 0.55,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  },
+  {
+    &quot;type&quot;: &quot;speech_omission&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      0,
+      107
+    ],
+    &quot;evidence&quot;: {
+      &quot;operation&quot;: &quot;delete&quot;,
+      &quot;expected_span&quot;: [
+        104,
+        110
+      ],
+      &quot;observed_span&quot;: [
+        113,
+        113
+      ],
+      &quot;expected&quot;: &quot;। [41]&quot;,
+      &quot;observed&quot;: &quot;&quot;
+    },
+    &quot;check&quot;: &quot;asr_coverage&quot;,
+    &quot;confidence&quot;: 0.5560747663551402
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0025-bn:number</td><td>bn</td><td>complete</td><td>number</td><td><div class="label">English source</div>He had 2 goals and 2 assists in Washington&#x27;s 5-3 win over the Atlanta Thrashers. [41]<div class="label">Supplied output</div>আটলান্টা থ্রাশারস এর বিরুদ্ধে ওয়াশিংটন এর 8-৩ গোলে জয়লাভ এর সময় তার দু&#x27;টি গোল এবং দু&#x27;টি অ্যাসিস্ট ছিল। [41]</td><td><details><summary>Findings (2)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;number&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      42,
+      43
+    ],
+    &quot;evidence&quot;: {
+      &quot;observed&quot;: &quot;8&quot;,
+      &quot;missing&quot;: [
+        &quot;2&quot;,
+        &quot;2&quot;,
+        &quot;5&quot;
+      ]
+    },
+    &quot;check&quot;: &quot;number_preservation&quot;,
+    &quot;confidence&quot;: 0.98
+  },
+  {
+    &quot;type&quot;: &quot;number&quot;,
+    &quot;severity&quot;: &quot;critical&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      42,
+      45
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;8-৩&quot;,
+      &quot;explanation&quot;: &quot;The source text states the score was &#x27;5-3&#x27;, but the translation incorrectly states &#x27;8-3&#x27;.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0
+  }
+]</pre></details><details><summary>Needs review (3)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;number&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      7,
+      8
+    ],
+    &quot;evidence&quot;: {
+      &quot;missing&quot;: &quot;2&quot;,
+      &quot;could_be_spelled_out&quot;: true
+    },
+    &quot;check&quot;: &quot;number_coverage&quot;,
+    &quot;confidence&quot;: 0.55
+  },
+  {
+    &quot;type&quot;: &quot;number&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      19,
+      20
+    ],
+    &quot;evidence&quot;: {
+      &quot;missing&quot;: &quot;2&quot;,
+      &quot;could_be_spelled_out&quot;: true
+    },
+    &quot;check&quot;: &quot;number_coverage&quot;,
+    &quot;confidence&quot;: 0.55
+  },
+  {
+    &quot;type&quot;: &quot;number&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      45,
+      46
+    ],
+    &quot;evidence&quot;: {
+      &quot;missing&quot;: &quot;5&quot;,
+      &quot;could_be_spelled_out&quot;: true
+    },
+    &quot;check&quot;: &quot;number_coverage&quot;,
+    &quot;confidence&quot;: 0.55
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0026-bn</td><td>bn</td><td>complete</td><td></td><td><div class="label">English source</div>Ovechkin&#x27;s first assist of the night was on the game-winning goal by rookie Nicklas Backstrom;<div class="label">Supplied output</div>ওভেচকিনের রাতের প্রথম সহায়তা ছিল রুকি নিকলাস ব্যাকস্ট্রম দ্বারা গেম বিজয়ী গোলে;</td><td><details><summary>Needs review (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      22,
+      29
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;সহায়তা&quot;,
+      &quot;explanation&quot;: &quot;In the context of ice hockey, &#x27;assist&#x27; is a specific sports term. While &#x27;সহায়তা&#x27; literally means &#x27;help&#x27; or &#x27;assistance&#x27;, it is not the standard terminology used in Bengali sports reporting for a hockey assist.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 0.8,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0026-bn:omission</td><td>bn</td><td>complete</td><td>omission</td><td><div class="label">English source</div>Ovechkin&#x27;s first assist of the night was on the game-winning goal by rookie Nicklas Backstrom;<div class="label">Supplied output</div>ওভেচকিনের রাতের প্রথম সহায়তা ছিল রুকি নিকলাস</td><td><details><summary>Findings (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;omission&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      48,
+      93
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;game-winning goal by rookie Nicklas Backstrom&quot;,
+      &quot;explanation&quot;: &quot;The translation omits the second half of the sentence, specifically the information about the game-winning goal and the full name of the player.&quot;,
+      &quot;source_field_repaired&quot;: true
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0027-bn</td><td>bn</td><td>complete</td><td></td><td><div class="label">English source</div>his second goal of the night was his 60th of the season, becoming the first player to score 60 or more goals in a season since 1995-96, when Jaromir Jagr and Mario Lemieux each reached that milestone.<div class="label">Supplied output</div>তার সে রাতের দ্বিতীয় গোল ছিল মৌসুমের ৬০তম, প্রথম কোন খেলোয়াড় হয়ে যিনি 1995-96 সাল থেকে একই মৌসুমে 60 বা ততোধিক গোল করেছেন, যখন ইয়ারোমির ইয়াগোর ও মারিও লেমিউ প্রত্যেকে সেই মাইলফলকে পৌঁছেছিলেন।</td><td>No supported finding</td></tr>
+<tr><td>flores-0027-bn:addition</td><td>bn</td><td>complete</td><td>addition</td><td><div class="label">English source</div>his second goal of the night was his 60th of the season, becoming the first player to score 60 or more goals in a season since 1995-96, when Jaromir Jagr and Mario Lemieux each reached that milestone.<div class="label">Supplied output</div>তার সে রাতের দ্বিতীয় গোল ছিল মৌসুমের ৬০তম, প্রথম কোন খেলোয়াড় হয়ে যিনি 1995-96 সাল থেকে একই মৌসুমে 60 বা ততোধিক গোল করেছেন, যখন ইয়ারোমির ইয়াগোর ও মারিও লেমিউ প্রত্যেকে সেই মাইলফলকে পৌঁছেছিলেন। This statement is not supported by the source.</td><td><details><summary>Findings (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;addition&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      198,
+      244
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;This statement is not supported by the source.&quot;,
+      &quot;explanation&quot;: &quot;The translator added an English sentence at the end of the translation that is not present in the source text.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0028-bn</td><td>bn</td><td>complete</td><td></td><td><div class="label">English source</div>Batten was ranked 190th on the 2008 400 Richest Americans list with an estimated fortune of $2.3 billion.<div class="label">Supplied output</div>ব্যাটেন ২০০৮ সালে আমেরিকার শীর্ষ ৪০০ ধনীর তালিকায় ১৯০তম স্থানে ছিলেন আনুমানিক ২.৩ বিলিয়ন ডলায় সম্পদ নিয়ে।</td><td>No supported finding</td></tr>
+<tr><td>flores-0028-bn:wrong_language</td><td>bn</td><td>complete</td><td>wrong_language</td><td><div class="label">English source</div>Batten was ranked 190th on the 2008 400 Richest Americans list with an estimated fortune of $2.3 billion.<div class="label">Supplied output</div>Batten was ranked 190th on the 2008 400 Richest Americans list with an estimated fortune of $2.3 billion.</td><td><details><summary>Findings (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;wrong_language&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      0,
+      105
+    ],
+    &quot;evidence&quot;: {
+      &quot;reason&quot;: &quot;English source was copied unchanged into a requested Indic output&quot;
+    },
+    &quot;check&quot;: &quot;untranslated_source&quot;,
+    &quot;confidence&quot;: 0.99
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0029-bn</td><td>bn</td><td>complete</td><td></td><td><div class="label">English source</div>He graduated from the College of Arts &amp; Sciences of the University of Virginia in 1950 and was a significant donor to that institution. $x^2 + y^2 = z^2$<div class="label">Supplied output</div>1950 সালে তিনি ভার্জিনিয়া বিশ্ববিদ্যালয়ের অধীনে কলা ও বিজ্ঞান বিভাগীয় কলেজ থেকে স্নাতক ডিগ্রি লাভ করেছিলেন এবং ওই প্রতিষ্ঠানের একজন গুরুত্বপূর্ণ দাতা ছিলেন। $x^2 + y^2 = z^2$</td><td>No supported finding</td></tr>
+<tr><td>flores-0029-bn:format</td><td>bn</td><td>complete</td><td>format</td><td><div class="label">English source</div>He graduated from the College of Arts &amp; Sciences of the University of Virginia in 1950 and was a significant donor to that institution. $x^2 + y^2 = z^2$<div class="label">Supplied output</div>1950 সালে তিনি ভার্জিনিয়া বিশ্ববিদ্যালয়ের অধীনে কলা ও বিজ্ঞান বিভাগীয় কলেজ থেকে স্নাতক ডিগ্রি লাভ করেছিলেন এবং ওই প্রতিষ্ঠানের একজন গুরুত্বপূর্ণ দাতা ছিলেন। $x^2 + y^2 = z^2</td><td><details><summary>Findings (2)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;format&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      0,
+      175
+    ],
+    &quot;evidence&quot;: {
+      &quot;component&quot;: &quot;math&quot;,
+      &quot;expected&quot;: [
+        &quot;$x^2 + y^2 = z^2$&quot;
+      ],
+      &quot;observed&quot;: []
+    },
+    &quot;check&quot;: &quot;format_integrity&quot;,
+    &quot;confidence&quot;: 0.95
+  },
+  {
+    &quot;type&quot;: &quot;format&quot;,
+    &quot;severity&quot;: &quot;minor&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      159,
+      175
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;$x^2 + y^2 = z^2&quot;,
+      &quot;explanation&quot;: &quot;The closing dollar sign ($) for the LaTeX math expression is missing in the translation.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0031-bn</td><td>bn</td><td>complete</td><td></td><td><div class="label">English source</div>The jail became notorious after prisoner abuse was discovered there after US forces took over. (Sample-A)<div class="label">Supplied output</div>কারাগারে বন্দীদের অত্যাচারের খোঁজ পাওয়ার পরে কারাগারটি কুখ্যাত হয়েছিল এবং তার পরে মার্কিন বাহিনী দায়িত্ব গ্রহণ করেছিল। (Sample-A)</td><td><details><summary>Needs review (1)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      0,
+      120
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;কারাগারে বন্দীদের অত্যাচারের খোঁজ পাওয়ার পরে কারাগারটি কুখ্যাত হয়েছিল এবং তার পরে মার্কিন বাহিনী দায়িত্ব গ্রহণ করেছিল।&quot;,
+      &quot;explanation&quot;: &quot;The translation incorrectly states that US forces took over after the prison became notorious. The source text states that the abuse was discovered after US forces took over.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0,
+    &quot;review_only&quot;: true,
+    &quot;counterevidence&quot;: &quot;Supplied translation exactly agrees with the normalized reference&quot;
+  }
+]</pre></details></td></tr>
+<tr><td>flores-0031-bn:entity</td><td>bn</td><td>complete</td><td>entity, mistranslation</td><td><div class="label">English source</div>The jail became notorious after prisoner abuse was discovered there after US forces took over. (Sample-A)<div class="label">Supplied output</div>কারাগারে বন্দীদের অত্যাচারের খোঁজ পাওয়ার পরে কারাগারটি কুখ্যাত হয়েছিল এবং তার পরে মার্কিন বাহিনী দায়িত্ব গ্রহণ করেছিল। (DIFFERENT_ENTITY)</td><td><details><summary>Findings (2)</summary><pre>[
+  {
+    &quot;type&quot;: &quot;entity&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;source&quot;,
+    &quot;span&quot;: [
+      96,
+      104
+    ],
+    &quot;evidence&quot;: {
+      &quot;term&quot;: &quot;Sample-A&quot;,
+      &quot;allowed_targets&quot;: [
+        &quot;Sample-A&quot;
+      ]
+    },
+    &quot;check&quot;: &quot;explicit_glossary&quot;,
+    &quot;confidence&quot;: 0.9
+  },
+  {
+    &quot;type&quot;: &quot;mistranslation&quot;,
+    &quot;severity&quot;: &quot;major&quot;,
+    &quot;field&quot;: &quot;translation&quot;,
+    &quot;span&quot;: [
+      0,
+      120
+    ],
+    &quot;evidence&quot;: {
+      &quot;quote&quot;: &quot;কারাগারে বন্দীদের অত্যাচারের খোঁজ পাওয়ার পরে কারাগারটি কুখ্যাত হয়েছিল এবং তার পরে মার্কিন বাহিনী দায়িত্ব গ্রহণ করেছিল।&quot;,
+      &quot;explanation&quot;: &quot;The translation incorrectly states that US forces took over after the prison became notorious, whereas the source states the prison became notorious after US forces took over.&quot;,
+      &quot;source_field_repaired&quot;: false
+    },
+    &quot;check&quot;: &quot;llm_judge&quot;,
+    &quot;confidence&quot;: 1.0
+  }
+]</pre></details></td></tr></tbody></table>
+<script>document.getElementById('filter').addEventListener('input', e => {
+const q=e.target.value.toLowerCase();for(const row of document.querySelectorAll('tbody tr')){
+row.hidden=!row.textContent.toLowerCase().includes(q);}});</script></html>

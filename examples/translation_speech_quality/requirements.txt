@@ -1,0 +1,5 @@
+httpx==0.28.1
+numpy==2.2.6
+soundfile==0.13.1
+sacrebleu==2.5.1
+python-dotenv==1.1.0

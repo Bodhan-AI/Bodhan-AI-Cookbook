@@ -1,0 +1,28 @@
+{
+  "equal_assessment_files": 6,
+  "sha256": {
+    "summary.json": "4fe345e1e1ea9932f4f81f61f92c21f12c6c21e1ee90d5ed5484df68b39b10f0",
+    "summary.md": "df3e49bfb9e4c212b80fec6e14193b126c906ec45298f4bb04a4d1bd01a9f8fb",
+    "items.jsonl": "42dd06905cb027abde68a25c2ff3061e3f3ef46ec31e317c8d025afe78838301",
+    "calibration.json": "51139a3290e622ffdac7edeaa1b2e219475a07ee2ca17830ac038a13b2455f30",
+    "review.csv": "962d7d5ecae494eda25d4897f0a8628f681a265c06342d1d0842ec30796e69f7",
+    "dashboard.html": "e12555ebb2be1a32c8d1521ac44db6b50a29eb05b78b14c1497794754f4a6725"
+  },
+  "replay_execution": {
+    "api_calls": 0,
+    "billing_note": "Bodhan published prices; supplied judge prices. Unknown failed-call billing retains the upper reservation.",
+    "budget_inr": 0.0,
+    "cache_hits": 235,
+    "charged_or_reserved_inr": 0.0,
+    "elapsed_seconds": 0.1974,
+    "judge_price_estimates_inr_per_million": {
+      "input": 25.0,
+      "output": 150.0
+    },
+    "scope": {
+      "generated_speech_sample": 6,
+      "judge": true,
+      "roundtrips": true
+    }
+  }
+}
