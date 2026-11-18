@@ -1,0 +1,195 @@
+# Bodhan Task Agent Comprehensive Self-Evaluation Suite
+# 22 tasks covering 12 Indic languages, diverse media types, multi-hop pipelines, and impossible/honest refusal cases
+version: 1.0
+
+tasks:
+  # ── 1. Speech-to-Text & Subtitles (Indic-Transcribe) ───────────────────────
+  - id: stt_hindi_audio
+    name: "Transcribe Hindi speech"
+    task: "Transcribe this Hindi voice note and output the transcript"
+    input_type: audio
+    language: hi
+    files: ["hindi_voice.wav"]
+    expected_status: "completed"
+    expected_artifacts: ["transcript"]
+
+  - id: stt_tamil_lecture_srt
+    name: "Tamil audio to Tamil & English subtitles"
+    task: "Transcribe this Tamil audio recording and generate an SRT subtitle file"
+    input_type: audio
+    language: ta
+    files: ["tamil_speech.wav"]
+    expected_status: "completed"
+    expected_artifacts: ["subtitles.srt"]
+
+  - id: stt_punjabi_podcast
+    name: "Transcribe Punjabi podcast clip"
+    task: "Transcribe this Punjabi interview clip into text"
+    input_type: audio
+    language: pa
+    files: ["punjabi_clip.wav"]
+    expected_status: "completed"
+    expected_artifacts: ["transcript"]
+
+  - id: stt_marathi_short_audio
+    name: "Marathi audio transcription"
+    task: "Transcribe this Marathi voice message"
+    input_type: audio
+    language: mr
+    files: ["marathi_audio.wav"]
+    expected_status: "completed"
+
+  - id: stt_bengali_long_audio
+    name: "Bengali 90s audio with automatic chunking"
+    task: "Transcribe this 90-second Bengali discussion"
+    input_type: audio
+    language: bn
+    files: ["bengali_90s.wav"]
+    expected_status: "completed"
+
+  # ── 2. Translation (Indic-Translate) ─────────────────────────────────────────
+  - id: trans_english_to_telugu
+    name: "Translate English notice to Telugu"
+    task: "Translate this English announcement into Telugu"
+    input_type: text
+    target_language: te
+    files: ["notice_en.txt"]
+    expected_status: "completed"
+    expected_artifacts: ["translation"]
+
+  - id: trans_gujarati_to_english
+    name: "Translate Gujarati news article to English"
+    task: "Translate this Gujarati news report into English"
+    input_type: text
+    source_language: gu
+    target_language: en
+    files: ["gujarati_news.txt"]
+    expected_status: "completed"
+
+  - id: trans_kannada_table_preservation
+    name: "Translate Kannada markdown table to English"
+    task: "Translate this markdown table from Kannada to English without breaking the table structure"
+    input_type: text
+    target_language: en
+    files: ["kannada_table.md"]
+    expected_status: "completed"
+
+  - id: trans_malayalam_to_hindi
+    name: "Cross-Indic translation Malayalam to Hindi"
+    task: "Translate this Malayalam paragraph into Hindi"
+    input_type: text
+    source_language: ml
+    target_language: hi
+    files: ["malayalam_text.txt"]
+    expected_status: "completed"
+
+  - id: trans_odia_government_circular
+    name: "Translate Odia government notification to English"
+    task: "Translate this Odia official notice into English"
+    input_type: text
+    source_language: or
+    target_language: en
+    files: ["odia_notice.txt"]
+    expected_status: "completed"
+
+  # ── 3. Speech Synthesis (Indic-Speak) ───────────────────────────────────────
+  - id: tts_hindi_male_voice
+    name: "Hindi speech synthesis with Amit voice"
+    task: "Synthesize this Hindi paragraph into natural speech using Amit's voice"
+    input_type: text
+    language: hi
+    voice: Amit
+    files: ["hindi_script.txt"]
+    expected_status: "completed"
+    expected_artifacts: ["speech.wav"]
+
+  - id: tts_bengali_female_voice
+    name: "Bengali speech synthesis with Ananya voice"
+    task: "Read this paragraph aloud in Bengali with a female voice"
+    input_type: text
+    language: bn
+    voice: Ananya
+    files: ["bengali_paragraph.txt"]
+    expected_status: "completed"
+    expected_artifacts: ["speech.wav"]
+
+  - id: tts_tamil_female_voice
+    name: "Tamil audio generation with Devi voice"
+    task: "Generate a Tamil spoken audio clip for this sentence using Devi voice"
+    input_type: text
+    language: ta
+    voice: Devi
+    files: ["tamil_script.txt"]
+    expected_status: "completed"
+
+  - id: tts_telugu_male_voice
+    name: "Telugu audio synthesis with Arjun voice"
+    task: "Convert this Telugu greeting text to audio using Arjun voice"
+    input_type: text
+    language: te
+    voice: Arjun
+    files: ["telugu_greeting.txt"]
+    expected_status: "completed"
+
+  # ── 4. Document & Image OCR (Indic-OCR) ─────────────────────────────────────
+  - id: ocr_scanned_chapter_pdf
+    name: "OCR scanned multi-page Hindi document"
+    task: "Extract all text from this scanned Hindi PDF document"
+    input_type: pdf
+    files: ["hindi_chapter.pdf"]
+    expected_status: "completed"
+    expected_artifacts: ["ocr_text.txt"]
+
+  - id: ocr_marathi_worksheet_png
+    name: "OCR Marathi worksheet image preserving tabular data"
+    task: "Extract text from this Marathi worksheet image"
+    input_type: image
+    files: ["worksheet_mr.png"]
+    expected_status: "completed"
+
+  # ── 5. Multi-Step Chained Pipelines ──────────────────────────────────────────
+  - id: chain_pdf_to_tamil_audio_summary
+    name: "PDF chapter OCR to translation to Tamil audio"
+    task: "Make a two-minute Tamil audio summary of this chapter"
+    input_type: pdf
+    target_language: ta
+    files: ["sample_chapter.pdf"]
+    expected_status: "completed"
+    expected_artifacts: ["*.wav", "*.txt"]
+
+  - id: chain_audio_transcribe_translate_srt
+    name: "Speech to English subtitles pipeline"
+    task: "Transcribe this Hindi voice note and give me English subtitles"
+    input_type: audio
+    files: ["hindi_voice.wav"]
+    expected_status: "completed"
+    expected_artifacts: ["*.srt"]
+
+  - id: multi_file_telugu_filter_translate
+    name: "Classify multiple clips and translate Telugu ones"
+    task: "Which of these clips are in Telugu? Translate those into English"
+    input_type: audio_multi
+    files: ["clip1.wav", "clip2.wav", "clip3.wav"]
+    expected_status: "completed"
+
+  # ── 6. Impossible Tasks & Honest Refusal ────────────────────────────────────
+  - id: impossible_french_video
+    name: "French translation request (unsupported foreign language)"
+    task: "Translate this video into French with French subtitles"
+    input_type: video
+    expected_status: "impossible"
+    allow_fake_output: false
+
+  - id: impossible_japanese_document
+    name: "Japanese document translation request"
+    task: "Translate this document to Japanese"
+    input_type: text
+    expected_status: "impossible"
+    allow_fake_output: false
+
+  - id: impossible_missing_files
+    name: "Task referencing nonexistent files"
+    task: "Transcribe this audio file"
+    files: ["nonexistent_file_path.wav"]
+    expected_status: "impossible"
+    allow_fake_output: false

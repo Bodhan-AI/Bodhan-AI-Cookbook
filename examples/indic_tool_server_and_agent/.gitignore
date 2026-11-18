@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.env
+outputs/
+*.wav
+*.mp3
+*.m4a
+*.png
+*.jpg
+*.jpeg
+*.pdf
+out/
+out_*/
+.DS_Store
+.pytest_cache/
