@@ -8,7 +8,7 @@ Phase 1 of the tool-server assignment: a standalone MCP server exposing typed to
 cd examples/bodhan_setu
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-pip install -e .
+pip install -e ".[test]"
 cp .env.example .env
 ```
 
@@ -48,7 +48,7 @@ The same settings can be supplied with `BODHAN_MCP_TRANSPORT=streamable-http`, `
 - `translate_video`: one-call video dubbing workflow. `source_language` may be omitted; it delegates auto-detection to Indic-Transcribe, though the API does not report the detected code or confidence. Its dry run estimates transcription automatically; provide estimated translated output tokens and speech characters for a complete estimate.
 - `extract_video_audio`: local extraction for users who need the audio file or for a manually orchestrated video chain.
 - `replace_video_audio_track`: final step of a manual dubbing chain; writes a new video, preserves visuals, and extends/holds the final frame when speech runs longer. It does not lip-sync.
-- `translate_text`: changes meaning into another language. Bodhan infers the source language; provide an explicit supported target code such as `mr` for Marathi.
+- `translate_text`: changes meaning into another language. Bodhan infers the source language; provide an explicit supported target code such as `mr` for Marathi. Inputs up to 1,000,000 characters are split at paragraph, sentence, then word boundaries into requests of at most 8,000 characters; results are reassembled in order. A failed chunk reports progress and known/estimated cost, and partial translations are not cached.
 - `transliterate_text`: changes script while preserving language. It requires the source language code. `script` is the output script: `roman` means Latin letters; `native` means the language's native script.
 - `synthesize_speech`: writes a WAV; language is required because Bodhan does not infer it. Provide a supported language code and voice listed in `bodhan://voices`.
 - `ocr_document`: extracts text directly from a local image or PDF. It infers the page script, but does not return a separate language detection result. OCRs every PDF page in order and writes page-headed Markdown.
@@ -82,6 +82,8 @@ The voice and language resources are read from the repository's `scripts/bodhan_
 The synthetic evaluation fixtures can be regenerated locally on macOS with `swift evals/generate_document_fixtures.swift "$PWD/evals"`, `python evals/generate_audio_fixtures.py`, then `python evals/refresh_media_manifest.py`. The audio generator uses built-in macOS speech voices and FFmpeg; it makes no network or Bodhan calls.
 
 This first phase keeps each Bodhan model as one explicit tool, while handling long audio and speech chunking internally. Caching is provided for repeat calls and artifact reuse.
+
+Every MCP tool publishes a typed `outputSchema` as well as typed input parameters. Tool result schemas cover normal, dry-run, and cache-hit responses.
 
 ## Design notes
 
