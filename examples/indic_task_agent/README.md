@@ -53,7 +53,7 @@ One LLM call writes a JSON plan; Python prices it, reserves cost before every ca
 ## Tests and evaluation
 
 ```bash
-pytest -q                                   # 166 tests, no network, no keys
+pytest -q                                   # 172 tests, no network, no keys
 python scripts/cold_read.py                 # stock MCP client against the stdio server
 python scripts/check_media.py               # which demo media is present (free)
 python scripts/eval_suite.py --replay demo_runs   # re-check recorded runs, free
@@ -61,6 +61,23 @@ python scripts/eval_suite.py                # live: spends money; skips tasks wi
 ```
 
 Demo media is not committed; see `demo_tasks/media.manifest.json`.
+
+## Live results
+
+Ten tasks run against the real models; recordings are in `demo_runs/` (reports, traces, text outputs; no media). Re-check them for free with `python scripts/eval_suite.py --replay demo_runs`.
+
+| Task | Status | Cost (Rs) | Time |
+|---|---|---|---|
+| Tamil chapter (8-page scan) to a 2-minute Tamil MP3 and text | completed, audio 124 s vs 120 asked | 0.99 | 252 s |
+| Hindi voice note to English SRT | completed | 0.06 | 21 s |
+| Marathi worksheet photo to Markdown with the table | completed | 0.20 | 23 s |
+| Which of five clips are Telugu, translated | completed, 3 of 5 translations skipped | 0.05 | 48 s |
+| Bengali paragraph read aloud, female voice | completed | 0.12 | 45 s |
+| Translate a video into French | refused, nothing spent | 0 | 5 s |
+| Missing file / tiny budget / long audio on a small budget | refused with the arithmetic, nothing spent | 0 | under 20 s |
+| Text file that tries to give orders | completed, order ignored | 0.51 | 86 s |
+
+Media is synthetic (generated with Bodhan's own models by `scripts/make_demo_media.py`, a 33 s Hindi note instead of 3 minutes). Costs are the tool-measured spend; the LLM is billed separately.
 
 ## Limitations
 
