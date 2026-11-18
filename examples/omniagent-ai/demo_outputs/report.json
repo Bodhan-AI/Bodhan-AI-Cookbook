@@ -1,0 +1,60 @@
+{
+  "task": "Extract Hindi text from sample_ocr.png and translate it into English.",
+  "status": "success",
+  "generated_at": "2026-11-17T09:30:19.704915+00:00",
+  "executed_tools": [
+    "extract_text",
+    "translate_text"
+  ],
+  "completed_steps": 2,
+  "budget": {
+    "max_tool_calls": 2,
+    "tool_calls_used": 2,
+    "remaining": 0,
+    "budget_exhausted": true
+  },
+  "cost": {
+    "currency": "INR",
+    "total_calls": 2,
+    "calls_by_tool": {
+      "extract_text": 1,
+      "translate_text": 1
+    },
+    "known_cost_inr": "0",
+    "unknown_cost_calls": 2,
+    "total_cost_inr": null,
+    "cost_complete": false
+  },
+  "trace_path": "demo_outputs/trace.jsonl",
+  "steps": [
+    {
+      "tool": "extract_text",
+      "arguments": {
+        "file_path": "demo_inputs/sample_ocr.png",
+        "language": "hi"
+      },
+      "result": {
+        "status": "success",
+        "file_path": "demo_inputs/sample_ocr.png",
+        "language": "hi",
+        "extracted_text": "नमस्ते भारत",
+        "model": "indic-ocr"
+      }
+    },
+    {
+      "tool": "translate_text",
+      "arguments": {
+        "text": "नमस्ते भारत",
+        "source_lang": "hi",
+        "target_lang": "en"
+      },
+      "result": {
+        "status": "success",
+        "source_lang": "hi",
+        "target_lang": "en",
+        "translated_text": "hello india",
+        "model": "indic-translate"
+      }
+    }
+  ]
+}
