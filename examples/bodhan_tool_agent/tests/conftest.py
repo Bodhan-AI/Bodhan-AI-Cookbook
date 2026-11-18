@@ -94,6 +94,13 @@ class FakeBodhan:
                                          "usage": {"completion_tokens": len(out) // 2}})
 
 
+@pytest.fixture(autouse=True)
+def _never_read_dotenv(request, monkeypatch):
+    """Tests must never pick up real keys from .env (live tests opt out explicitly)."""
+    if "live" not in request.keywords:
+        monkeypatch.setenv("BODHAN_NO_DOTENV", "1")
+
+
 @pytest.fixture
 def fake(tmp_path, monkeypatch):
     """Install a fake Bodhan API and a fresh client; outputs go under tmp_path/ws."""

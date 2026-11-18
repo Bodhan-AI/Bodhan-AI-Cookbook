@@ -1,16 +1,25 @@
-"""Run orchestration: preflight -> plan -> act -> verify -> report.
+"""Run orchestration: preflight → plan → feasibility → act loop → verify (→ one repair) → outputs.
 
-Scaffold: preflight, output layout, trace and report are wired; planning/execution are TODO.
+Every exit path writes the full output layout (result.md, artifacts/, trace.jsonl, report.json).
 """
 
 from __future__ import annotations
 
-import json
+import asyncio
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
+from bodhan_core.config import load_settings
+
+from .llm import LLM, LLMError
+from .loop import ActLoop, Budget, LoopOutcome
+from .planner import Plan, check_feasibility, make_plan
+from .preflight import build_manifest
+from .report import copy_artifacts, write_report_json, write_result_md
+from .session import ToolSession
 from .trace import Trace
+from .verify import Verification, verify
 
 
 @dataclass
@@ -20,52 +29,148 @@ class RunConfig:
     out: Path
     max_steps: int = 30
     max_cost_inr: float = 20.0
-    call_timeout_s: float = 120.0
+    call_timeout_s: float = 300.0
+    max_minutes: float = 15.0
 
 
-def collect_inputs(paths: list[Path]) -> tuple[list[Path], list[str]]:
-    """Expand directories; return (existing files, missing paths)."""
-    found, missing = [], []
-    for p in paths:
-        if p.is_dir():
-            found.extend(sorted(f for f in p.rglob("*") if f.is_file() and not f.name.startswith(".")))
-        elif p.is_file():
-            found.append(p)
-        else:
-            missing.append(str(p))
-    return found, missing
+@dataclass
+class _State:
+    status: str = "failed"
+    answer: str = ""
+    reason: str = ""
+    plan: Plan | None = None
+    outcome: LoopOutcome | None = None
+    verification: Verification = field(default_factory=Verification)
+    assumptions: list[str] = field(default_factory=list)
+    manifest: list[dict] = field(default_factory=list)
+    llm_usage: dict = field(default_factory=dict)
+    repaired: bool = False
+    cost_inr: float = 0.0
+    steps: int = 0
 
 
 def run_task(cfg: RunConfig) -> dict:
+    return asyncio.run(_run(cfg))
+
+
+async def _run(cfg: RunConfig) -> dict:
     started = time.monotonic()
-    (cfg.out / "artifacts").mkdir(parents=True, exist_ok=True)
-    trace = Trace(cfg.out / "trace.jsonl")
-    trace.log("start", task=cfg.task, budgets={"max_steps": cfg.max_steps, "max_cost_inr": cfg.max_cost_inr})
+    out = cfg.out
+    (out / "artifacts").mkdir(parents=True, exist_ok=True)
+    work = out / ".work"
+    work.mkdir(parents=True, exist_ok=True)
+    trace = Trace(out / "trace.jsonl")
+    trace.log("start", task=cfg.task, files=[str(f) for f in cfg.files],
+              budgets={"max_steps": cfg.max_steps, "max_cost_inr": cfg.max_cost_inr,
+                       "call_timeout_s": cfg.call_timeout_s, "max_minutes": cfg.max_minutes})
+    st = _State()
+    try:
+        await _pipeline(cfg, trace, st, work, started)
+    except LLMError as e:
+        st.status, st.reason = "failed", f"The LLM could not be used: {e}"
+        trace.log("error", error=st.reason)
+    except Exception as e:  # noqa: BLE001 - always write outputs
+        st.status, st.reason = "failed", f"Unexpected {type(e).__name__}: {e}"
+        trace.log("error", error=st.reason)
+    return _finalize(cfg, trace, st, work, started)
 
-    files, missing = collect_inputs(cfg.files)
-    trace.log("preflight", files=[str(f) for f in files], missing=missing)
 
-    if missing or not files:
-        status = "impossible"
-        answer = "Input files are missing: " + (", ".join(missing) if missing else "no files found") + "."
-    else:
-        # TODO: plan (LLM) -> feasibility check (code) -> act via MCP -> verify -> retry/stop.
-        status = "not_implemented"
-        answer = "Planning and execution are not implemented yet."
+async def _pipeline(cfg: RunConfig, trace: Trace, st: _State, work: Path, started: float) -> None:
+    settings = load_settings()
+    async with ToolSession(work, max_cost_inr=cfg.max_cost_inr, call_timeout_s=cfg.call_timeout_s) as session:
+        manifest = await build_manifest(session, cfg.files)
+        st.manifest = manifest.files
+        trace.log("preflight", manifest=manifest.files, missing=manifest.missing, unreadable=manifest.unreadable)
+        if not manifest.files:
+            st.status = "impossible"
+            details = manifest.missing or [u["name"] for u in manifest.unreadable] or ["(none given)"]
+            st.reason = ("No usable input files: " + ", ".join(details) + ". The task cannot be done without its "
+                         "inputs, so nothing was attempted.")
+            return
 
-    trace.log("stop", status=status)
+        llm = LLM(settings, timeout_s=min(cfg.call_timeout_s, 180))
+        plan = await make_plan(llm, cfg.task, manifest.files, manifest.missing, trace)
+        st.plan = plan
+        st.assumptions += plan.assumptions
+        status, reason, notes = check_feasibility(cfg.task, plan, manifest.files, manifest.missing, cfg.max_cost_inr)
+        trace.log("feasibility", feasible=status is None, status=status, reason=reason, notes=notes)
+        st.assumptions += [n for n in notes if not n.startswith("Estimated")]
+        if status:
+            st.status, st.reason = status, reason
+            st.llm_usage = llm.usage
+            return
+
+        budget = Budget(cfg.max_steps, cfg.max_cost_inr, deadline=started + cfg.max_minutes * 60, steps=1)
+        loop = ActLoop(llm, session, trace, budget, work)
+        loop.start(cfg.task, manifest.files, plan.model_dump(), manifest.missing)
+        outcome = await loop.run()
+        st.outcome = outcome
+        if outcome.status == "finished":
+            st.verification = verify(plan, outcome.answer, outcome.artifacts, outcome.results, work)
+            trace.log("verify", checks=st.verification.checks, missed_targets=st.verification.missed_targets)
+            if st.verification.failures and not budget.exhausted():
+                st.repaired = True
+                failed = "; ".join(f"{c['check']}: {c['detail']}" for c in st.verification.failures)
+                trace.log("repair", failures=failed)
+                loop.add_user(f"Verification failed: {failed}. Fix these problems (re-run the needed tools), then "
+                              f"call finish again with the corrected artifacts. If they cannot be fixed, call "
+                              f"finish with what is correct and explain what is missing.")
+                outcome = await loop.run()
+                st.outcome = outcome
+                if outcome.status == "finished":
+                    st.verification = verify(plan, outcome.answer, outcome.artifacts, outcome.results, work)
+                    trace.log("verify", checks=st.verification.checks, missed_targets=st.verification.missed_targets,
+                              after_repair=True)
+        st.answer = outcome.answer
+        st.assumptions += outcome.assumptions
+        st.cost_inr, st.steps = budget.cost_inr, budget.steps
+        st.llm_usage = llm.usage
+        if outcome.status == "finished":
+            st.status = "partial" if st.verification.failures else "completed"
+            if st.verification.failures:
+                st.reason = "Some checks failed: " + "; ".join(c["detail"] for c in st.verification.failures)
+        elif outcome.status == "gave_up":
+            st.status, st.reason = ("partial" if outcome.artifacts else "impossible"), outcome.reason
+        elif outcome.status == "budget_exhausted":
+            st.status, st.reason = "budget_exhausted", f"Stopped cleanly: {outcome.reason}."
+        else:
+            st.status, st.reason = "failed", outcome.reason
+
+
+def _finalize(cfg: RunConfig, trace: Trace, st: _State, work: Path, started: float) -> dict:
+    outcome = st.outcome
+    artifacts = []
+    if outcome and st.status in {"completed", "partial"}:
+        # Artifacts that failed a check are not presented as results.
+        failed = {c["artifact"] for c in st.verification.checks if c.get("artifact") and not c["passed"]}
+        keep = [a for a in outcome.artifacts if a not in failed and Path(a).name not in failed]
+        artifacts = copy_artifacts(keep, cfg.out / "artifacts")
+    produced = sorted({Path(p).name for p in (outcome.results if outcome else {})})
+    seconds = round(time.monotonic() - started, 2)
+    assumptions = list(dict.fromkeys(st.assumptions))
+    trace.log("end", status=st.status, cost_inr=round(st.cost_inr, 4), seconds=seconds)
     report = {
-        "status": status,
+        "status": st.status,
         "task": cfg.task,
-        "steps": trace.step,
-        "verification": [],
-        "assumptions": [],
-        "total_cost_inr": 0.0,
-        "total_time_s": round(time.monotonic() - started, 2),
-        "missed_targets": [],
+        "reason": st.reason or None,
+        "steps": st.steps,
+        "trace_entries": trace.step,
+        "tool_calls": outcome.calls if outcome else [],
+        "plan": st.plan.model_dump() if st.plan else None,
+        "inputs": st.manifest,
+        "artifacts": [str(p.relative_to(cfg.out)) for p in artifacts],
+        "verification": st.verification.checks,
+        "verification_passed": bool(st.verification.checks) and not st.verification.failures,
+        "repair_round_used": st.repaired,
+        "missed_targets": st.verification.missed_targets,
+        "assumptions": assumptions,
+        "total_cost_inr": round(st.cost_inr, 4),
+        "budget": {"max_steps": cfg.max_steps, "max_cost_inr": cfg.max_cost_inr, "max_minutes": cfg.max_minutes},
+        "total_time_s": seconds,
+        "llm": st.llm_usage,
     }
-    (cfg.out / "report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
-    (cfg.out / "result.md").write_text(
-        f"# Result\n\n**Task:** {cfg.task}\n\n**Status:** {status}\n\n{answer}\n", encoding="utf-8"
-    )
+    write_report_json(cfg.out, report)
+    write_result_md(cfg.out, task=cfg.task, status=st.status, answer=st.answer, reason=st.reason, artifacts=artifacts,
+                    assumptions=assumptions, verification=st.verification.checks,
+                    missed=st.verification.missed_targets, produced=produced, cost_inr=st.cost_inr, seconds=seconds)
     return report

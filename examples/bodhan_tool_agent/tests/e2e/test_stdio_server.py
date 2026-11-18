@@ -19,7 +19,7 @@ def payload(result) -> dict:
 
 async def test_stdio_server_schemas_and_bad_inputs(tmp_path):
     # BODHAN_MAX_COST_INR=0: this test may read a real .env, but it can never spend money.
-    env = {"BODHAN_CACHE_PATH": "", "BODHAN_WORKSPACE": str(tmp_path), "BODHAN_MAX_COST_INR": "0",
+    env = {"BODHAN_CACHE_PATH": "", "BODHAN_WORKSPACE": str(tmp_path), "BODHAN_MAX_COST_INR": "0", "BODHAN_NO_DOTENV": "1",
            "PATH": "/usr/bin:/bin:/usr/local/bin"}
     params = StdioServerParameters(command=sys.executable, args=["-m", "bodhan_mcp"], env=env)
     async with stdio_client(params) as (read, write), ClientSession(read, write) as session:

@@ -37,8 +37,13 @@ class Settings:
 
 
 def load_settings(env_file: str | None = None) -> Settings:
-    """Read settings from the environment (and a .env file if present). Never logs key values."""
-    load_dotenv(env_file, override=False)
+    """Read settings from the environment (and a .env file if present). Never logs key values.
+
+    Set BODHAN_NO_DOTENV=1 to ignore .env files entirely (the test suite does, so it can never pick up
+    real keys).
+    """
+    if not os.environ.get("BODHAN_NO_DOTENV"):
+        load_dotenv(env_file, override=False)
     fallback = os.environ.get(FALLBACK_KEY_ENV)
     keys = {}
     for model, var in MODEL_KEY_ENV.items():

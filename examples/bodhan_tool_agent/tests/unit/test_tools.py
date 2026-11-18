@@ -289,3 +289,16 @@ async def test_list_voices_and_languages(fake):
     assert (await server.list_voices(language="French"))["error"]["code"] == "UNSUPPORTED_LANGUAGE"
     langs = (await server.supported_languages())["languages"]
     assert "fr" not in {x["code"] for x in langs["indic-translate"]}
+
+
+async def test_make_srt_splits_long_segments_into_two_line_cues(fake, tmp_path):
+    seg = tmp_path / "s.segments.json"
+    text = "Hello, today we will start our math class. Please open your books and read the first lesson now."
+    seg.write_text(json.dumps([{"id": 1, "start": 0.0, "end": 6.0, "text": text}]), encoding="utf-8")
+    r = await server.make_srt(str(seg), max_chars_per_line=30)
+    import srt as srtlib
+
+    cues = list(srtlib.parse(load(r["srt_path"])))
+    assert len(cues) >= 2 and all(c.content.count("\n") <= 1 for c in cues)
+    assert cues[0].start.total_seconds() == 0 and cues[-1].end.total_seconds() == pytest.approx(6.0, abs=0.01)
+    assert " ".join(c.content.replace("\n", " ") for c in cues) == text

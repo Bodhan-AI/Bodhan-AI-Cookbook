@@ -6,7 +6,7 @@
 **Languages shown:** Hindi, Tamil, Marathi, Telugu, Bengali (any language the models support)
 **Format:** CLI agent + MCP server (stdio)
 
-> **Status: work in progress.** The MCP server and all its tools work today. The agent loop is being built; see [Roadmap](#roadmap).
+> **Status:** the MCP server, its tools and the task agent work end to end against the live Bodhan API. Demo video and self-evaluation suite are next; see [Roadmap](#roadmap).
 
 ## What it does
 
@@ -25,6 +25,15 @@ python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt        # or: make setup (also installs dev tools)
 cp .env.example .env                   # then fill in the Bodhan keys and LLM settings
 ```
+
+The agent reads its LLM from `LLM_BASE_URL`, `LLM_MODEL` and `LLM_API_KEY` (any OpenAI-compatible endpoint with tool calling). Tested with:
+
+| LLM | Where | Notes |
+|---|---|---|
+| `openai/gpt-oss-120b` | Groq (`https://api.groq.com/openai/v1`) | Main development model. The free tier allows 8,000 tokens per minute, so multi-step runs spend some time waiting out rate limits (logged as `llm_wait_s`). |
+| `qwen2.5:7b` | Ollama on a CPU-only laptop (`http://localhost:11434/v1`, `LLM_API_KEY=ollama`) | Robustness check: same tasks, same results, but about 7× slower. Start Ollama with `OLLAMA_CONTEXT_LENGTH=16384`, because the default 4k context silently truncates the agent's prompt. |
+
+To create small demo inputs (git-ignored, under ₹0.01): `python scripts/make_demo_inputs.py`.
 
 Or with Docker: `docker build -t bodhan-tool-agent .`
 
@@ -59,12 +68,14 @@ out/
 
 See [docs/architecture.md](docs/architecture.md), [docs/agent_flow.md](docs/agent_flow.md) and [docs/design_notes.md](docs/design_notes.md).
 
-1. **Preflight (code):** expand inputs, check the files exist, inspect each one's media type, duration, page count and script.
-2. **Plan (LLM):** structured plan with outputs, steps and assumptions.
-3. **Feasibility (code):** languages supported? cost estimate within budget? Otherwise stop with an honest explanation.
-4. **Act (LLM + MCP tools):** one tool call at a time. Results come back as file paths plus short previews.
-5. **Verify (code + Bodhan):** back-transcribe generated audio, check translation coverage and tables, validate SRT.
-6. **Report:** write `result.md`, `report.json` and the full trace.
+![Agent flow](docs/images/agent_flow.svg)
+
+1. **Preflight (code):** expand inputs and inspect each file for free (kind, duration, pages, script). Missing inputs end the run here, without calling the LLM.
+2. **Plan (LLM, JSON):** deliverables (kind, language, target duration), steps and assumptions, validated against a schema with one repair attempt.
+3. **Feasibility (code):** every output language is supported by the model that produces it, and the minimum Bodhan cost fits `--max-cost-inr`. Otherwise the run ends with a clear explanation and nothing is spent (French, for example, is refused here).
+4. **Act loop (LLM + guards + MCP):** the LLM picks tools, and independent calls run in parallel. Code guards **reject any Indian-language text written by the LLM**, force `out_dir` and speech verification, and enforce step, ₹ and time budgets. The agent talks to `bodhan_mcp` over stdio, like any MCP client. Results come back compacted, with text from the input files wrapped as `<untrusted_content>`.
+5. **Verify (code):** generated speech must have passed back-transcription, translations must have full coverage with tables intact, SRT files must parse, every planned deliverable must exist in the right language, and duration targets are checked. One repair round is allowed; after that the run is reported as partial, never as success.
+6. **Report:** `result.md`, `artifacts/`, `report.json` and a step-by-step `trace.jsonl`.
 
 ## Tools
 
@@ -87,23 +98,49 @@ What the live API actually returns, and why the tools are shaped this way: [docs
 ## Tests
 
 ```bash
-make test        # 80+ unit and end-to-end tests against a fake Bodhan API; no keys, no cost
+make test        # 100+ unit and end-to-end tests; no keys, no cost
 make live        # optional: one real round trip through the tools (about ₹0.05)
 ```
 
-The tests cover chunking and limit handling for every tool, structured errors for bad inputs, caching (no input is sent twice), budget refusal, and a real stdio session driven by the MCP client SDK.
+The tests never read `.env`. The end-to-end agent tests run the real CLI and the real MCP server subprocess against local fake Bodhan and LLM HTTP servers, with a scripted LLM. They cover:
+- a multi-step scanned PDF → Tamil audio summary;
+- French refused at ₹0;
+- missing files;
+- a budget too small to finish;
+- the step limit;
+- Indian-language text written by the LLM being blocked;
+- prompt injection staying data;
+- a repair round;
+- a 429 that is waited out.
+
+## Results (live Bodhan API, `openai/gpt-oss-120b` on Groq)
+
+| Task | Input | Status | Steps | Bodhan cost | Time | Output |
+|---|---|---|---|---|---|---|
+| Transcribe this Hindi voice note and give me English subtitles | 6 s WAV | ✅ completed | 6 | ₹0.00 (cached) / ₹0.01 | 78 s (64 s rate-limit waits) | English SRT |
+| Read this paragraph aloud in Bengali with a female voice | Bengali .txt | ✅ completed | 7 | ₹0.11 | 91 s (61 s waits) | 13 s MP3 (voice Ishita), back-transcription passed |
+| Translate this worksheet into Marathi and keep the table | worksheet PNG | ✅ completed | 5 | ₹0.20 | 66 s (52 s waits) | Marathi Markdown, 3×4 table intact |
+| Translate this video into French | MP4 | ⛔ impossible (correct) | 0 | ₹0.00 | 5 s | Clear explanation, no artifacts |
+| Same worksheet task on `qwen2.5:7b` (local Ollama, CPU) | worksheet PNG | ✅ completed | 4 | ₹0.00 (cached) | 410 s | Same Marathi Markdown |
+
+In the Bengali run the LLM tried to pass Bengali text it had copied into `translate_text`. The guard blocked it (`POLICY_VIOLATION`), and the agent switched to passing the file path. Outputs and traces stay out of git; regenerate them with the commands above.
 
 ## Roadmap
 
 - [x] Scaffold, config, language and voice data
 - [x] Bodhan HTTP client: retries, backoff, concurrency limit, cache, cost ledger
 - [x] Model tools with chunking and limit handling
-- [ ] Agent loop: plan, act, verify, retry, budgets
-- [ ] Demo tasks, self-evaluation suite, demo video
+- [x] Agent loop: plan, act, verify, retry, budgets
+- [ ] Full demo set (scanned PDF summary, multi-clip language ID), self-evaluation suite, demo video
 
 ## Limitations
 
-To be completed with measured results. Generated audio is AI-generated from Indic-Speak's fixed voice library; voices are not cloned.
+- Generated audio is AI-generated from Indic-Speak's fixed voice library; voices are not cloned.
+- **Language detection uses script only.** Devanagari is shared by Hindi, Marathi, Nepali and others, so the agent records an assumption when it matters. Indic-Transcribe returns no language field.
+- **Timestamps** come from our own pause-aligned cuts (the API returns none), so subtitle timing is accurate to the segment, not to the word.
+- **Speech verification** compares normalised text with a fuzzy-match threshold. Numbers spoken as words lower the score, so the threshold is deliberately moderate.
+- **Groq free tier:** 8,000 tokens per minute makes multi-step runs slower than the brief's latency targets, mostly time spent waiting. A paid tier or another provider removes this.
+- **`/translate` returns 404** for our keys, so translation uses the documented chat-completions transport (see [docs/api_facts.md](docs/api_facts.md)).
 
 ## AI assistance
 

@@ -12,6 +12,7 @@ from bodhan_core import workspace
 from bodhan_core.errors import ErrorCode, ToolError
 
 MAX_READ = 20_000
+MAX_LINES = 2  # subtitle convention: at most two lines on screen
 
 
 def _load_segments(segments_path: str) -> tuple[list[dict], object]:
@@ -44,8 +45,14 @@ async def make_srt(segments_path: str, max_chars_per_line: int = 42, out_dir: st
             end = start + 0.5
             fixes += 1
         lines = textwrap.wrap(text, max_chars_per_line) or [text]
-        cues.append(srt.Subtitle(index=len(cues) + 1, start=timedelta(seconds=start), end=timedelta(seconds=end),
-                                 content="\n".join(lines)))
+        groups = [lines[i : i + MAX_LINES] for i in range(0, len(lines), MAX_LINES)]
+        total = sum(len(" ".join(g)) for g in groups) or 1
+        t = start
+        for g in groups:
+            share = (end - start) * len(" ".join(g)) / total
+            cues.append(srt.Subtitle(index=len(cues) + 1, start=timedelta(seconds=t),
+                                     end=timedelta(seconds=t + share), content="\n".join(g)))
+            t += share
         prev_end = end
     if not cues:
         raise ToolError(ErrorCode.INVALID_ARGUMENT, "No non-empty segments to write.")

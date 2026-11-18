@@ -1,0 +1,149 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="1130" viewBox="0 0 960 1130" font-family="-apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <title>Bodhan task agent: plan, act, verify, retry and stop</title>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#52525B"/>
+    </marker>
+    <style>
+      .t { font-size: 15px; font-weight: 600; fill: #18181B; text-anchor: middle; }
+      .s { font-size: 12.5px; fill: #3F3F46; text-anchor: middle; }
+      .lbl { font-size: 12px; font-weight: 600; fill: #52525B; }
+      .edge { stroke: #52525B; stroke-width: 1.6; fill: none; marker-end: url(#arrow); }
+      .input { fill: #F4F4F5; stroke: #71717A; }
+      .code { fill: #E8F0FE; stroke: #3B6FD8; }
+      .llm { fill: #F1E8FD; stroke: #7B3FD8; }
+      .mcp { fill: #E3F5EA; stroke: #2E8B57; }
+      .fail { fill: #FDECEC; stroke: #C0392B; }
+      .stop { fill: #FFF4E0; stroke: #D68910; }
+      .ok { fill: #DCF3E1; stroke: #1E7F3C; }
+      rect, polygon { stroke-width: 1.6; }
+    </style>
+  </defs>
+
+  <rect width="960" height="1130" fill="#FFFFFF"/>
+  <text x="480" y="22" class="t" style="font-size:17px">Task agent flow: plan → act → verify → retry → stop</text>
+
+  <!-- 1. CLI input -->
+  <rect x="300" y="40" width="260" height="52" rx="10" class="input"/>
+  <text x="430" y="62" class="t">CLI input</text>
+  <text x="430" y="81" class="s">--task · --files · --out · budgets</text>
+
+  <!-- 2. Preflight -->
+  <path d="M430 92 V120" class="edge"/>
+  <rect x="300" y="120" width="260" height="60" rx="10" class="code"/>
+  <text x="430" y="144" class="t">Preflight (code)</text>
+  <text x="430" y="164" class="s">expand files · inspect_media · manifest</text>
+
+  <!-- D1 inputs present -->
+  <path d="M430 180 V206" class="edge"/>
+  <polygon points="430,206 540,242 430,278 320,242" class="code"/>
+  <text x="430" y="247" class="t" style="font-size:14px">Inputs present?</text>
+
+  <!-- T1 honest failure -->
+  <rect x="700" y="210" width="220" height="70" rx="10" class="fail"/>
+  <text x="810" y="234" class="t">Honest failure</text>
+  <text x="810" y="253" class="s">clear explanation in result.md</text>
+  <text x="810" y="270" class="s">no artifacts · status: impossible</text>
+  <path d="M540 242 H700" class="edge"/>
+  <text x="600" y="235" class="lbl">no</text>
+
+  <!-- 3. Plan -->
+  <path d="M430 278 V312" class="edge"/>
+  <text x="440" y="300" class="lbl">yes</text>
+  <rect x="300" y="312" width="260" height="60" rx="10" class="llm"/>
+  <text x="430" y="336" class="t">Plan (LLM → JSON)</text>
+  <text x="430" y="356" class="s">deliverables · steps · assumptions</text>
+
+  <!-- D2 feasible -->
+  <path d="M430 372 V398" class="edge"/>
+  <polygon points="430,398 550,438 430,478 310,438" class="code"/>
+  <text x="430" y="434" class="t" style="font-size:14px">Feasible?</text>
+  <text x="430" y="453" class="s">languages · cost ≤ budget</text>
+  <path d="M550 438 H810 V280" class="edge"/>
+  <text x="600" y="431" class="lbl">no</text>
+
+  <!-- Act loop group -->
+  <rect x="20" y="505" width="640" height="300" rx="14" fill="none" stroke="#A1A1AA" stroke-width="1.4" stroke-dasharray="6 5"/>
+  <text x="36" y="527" class="lbl" style="font-size:12.5px">ACT LOOP · repeats until finish</text>
+
+  <!-- 4. LLM picks tool -->
+  <path d="M430 478 V530" class="edge"/>
+  <text x="440" y="496" class="lbl">yes</text>
+  <rect x="300" y="530" width="260" height="56" rx="10" class="llm"/>
+  <text x="430" y="553" class="t">LLM picks next tool</text>
+  <text x="430" y="572" class="s">or calls finish</text>
+
+  <!-- 5. Guards -->
+  <path d="M430 586 V616" class="edge"/>
+  <rect x="300" y="616" width="260" height="64" rx="10" class="code"/>
+  <text x="430" y="639" class="t">Guards (code)</text>
+  <text x="430" y="658" class="s">no Indian-script text from the LLM</text>
+  <text x="430" y="673" class="s">forced out_dir &amp; verify · budget check</text>
+
+  <!-- T2 stop cleanly -->
+  <rect x="700" y="613" width="220" height="70" rx="10" class="stop"/>
+  <text x="810" y="637" class="t">Stop cleanly</text>
+  <text x="810" y="656" class="s">budget exhausted (steps · ₹ · time)</text>
+  <text x="810" y="673" class="s">partial results + report</text>
+  <path d="M560 648 H700" class="edge"/>
+  <text x="575" y="640" class="lbl">out of budget</text>
+
+  <!-- 6. MCP call -->
+  <path d="M430 680 V712" class="edge"/>
+  <rect x="300" y="712" width="260" height="60" rx="10" class="mcp"/>
+  <text x="430" y="736" class="t">MCP call → bodhan_mcp</text>
+  <text x="430" y="756" class="s">stdio · Bodhan models · cost_inr</text>
+
+  <!-- 7. Compact result -->
+  <rect x="40" y="616" width="200" height="64" rx="10" class="code"/>
+  <text x="140" y="639" class="t">Compact result</text>
+  <text x="140" y="658" class="s">paths · previews · stats</text>
+  <text x="140" y="673" class="s">wrapped as &lt;untrusted&gt;</text>
+  <path d="M300 742 H140 V680" class="edge"/>
+  <path d="M140 616 V558 H300" class="edge"/>
+
+  <!-- finish route -->
+  <path d="M560 545 H940 V900 H552" class="edge"/>
+  <text x="868" y="537" class="lbl">finish</text>
+
+  <!-- D3 verify -->
+  <polygon points="430,858 552,900 430,942 308,900" class="code"/>
+  <text x="430" y="896" class="t" style="font-size:14px">Verify deliverables</text>
+  <text x="430" y="915" class="s">(code)</text>
+
+  <!-- repair -->
+  <rect x="40" y="870" width="200" height="60" rx="10" class="llm"/>
+  <text x="140" y="894" class="t">Repair round</text>
+  <text x="140" y="913" class="s">once: tell the LLM what failed</text>
+  <path d="M308 900 H240" class="edge"/>
+  <text x="252" y="892" class="lbl">fail</text>
+  <path d="M140 870 V805" class="edge"/>
+  <text x="150" y="842" class="lbl">back into the loop</text>
+
+  <!-- partial -->
+  <rect x="40" y="990" width="200" height="64" rx="10" class="stop"/>
+  <text x="140" y="1014" class="t">Partial</text>
+  <text x="140" y="1033" class="s">what passed, what failed</text>
+  <text x="140" y="1048" class="s">reported honestly</text>
+  <path d="M140 930 V990" class="edge"/>
+  <text x="150" y="965" class="lbl">still fails</text>
+
+  <!-- finish box -->
+  <path d="M430 942 V990" class="edge"/>
+  <text x="440" y="970" class="lbl">pass</text>
+  <rect x="300" y="990" width="260" height="64" rx="10" class="ok"/>
+  <text x="430" y="1014" class="t">Finish</text>
+  <text x="430" y="1033" class="s">result.md · artifacts/</text>
+  <text x="430" y="1048" class="s">trace.jsonl · report.json</text>
+
+  <!-- legend -->
+  <g font-size="12.5" fill="#3F3F46">
+    <rect x="40" y="1084" width="16" height="14" rx="3" class="code"/><text x="62" y="1096">Code (deterministic)</text>
+    <rect x="200" y="1084" width="16" height="14" rx="3" class="llm"/><text x="222" y="1096">LLM decision</text>
+    <rect x="330" y="1084" width="16" height="14" rx="3" class="mcp"/><text x="352" y="1096">MCP / Bodhan models</text>
+    <rect x="500" y="1084" width="16" height="14" rx="3" class="ok"/><text x="522" y="1096">Success</text>
+    <rect x="590" y="1084" width="16" height="14" rx="3" class="stop"/><text x="612" y="1096">Clean stop</text>
+    <rect x="700" y="1084" width="16" height="14" rx="3" class="fail"/><text x="722" y="1096">Honest failure</text>
+    <text x="40" y="1120" font-style="italic">Every step (plan, tool call, arguments, result summary, latency, cost) is appended to trace.jsonl.</text>
+  </g>
+</svg>

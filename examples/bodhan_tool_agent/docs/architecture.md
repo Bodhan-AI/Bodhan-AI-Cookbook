@@ -3,13 +3,15 @@
 ```mermaid
 flowchart LR
   subgraph Agent["bodhan_agent (CLI)"]
-    CLI[--task / --files / --out] --> Run[run.py: preflight · plan · act · verify]
+    CLI[--task / --files / --out] --> Run[run.py: preflight · plan · feasibility · act loop · verify]
+    Run --> Guards[guards.py: no LLM-written Indic text · forced args · budgets]
+    Run --> Local[agent-side tools: write_text · summarize_text · finish · give_up]
     Run --> LLM[(Companion LLM\nLLM_BASE_URL)]
     Run --> Trace[trace.jsonl · report.json · result.md]
   end
 
   subgraph Server["bodhan_mcp (stdio MCP server)"]
-    Tools[Tools: inspect_media · ocr_document · transcribe_audio\ntranslate_text · translate_segments · synthesize_speech · make_srt\nsupported_languages · list_voices]
+    Tools[Tools: inspect_media · ocr_document · transcribe_audio\ntranslate_text · translate_segments · synthesize_speech · make_srt\nread_text · supported_languages · list_voices]
   end
 
   subgraph Core["bodhan_core"]

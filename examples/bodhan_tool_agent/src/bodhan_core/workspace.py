@@ -74,7 +74,14 @@ def output_dir(out_dir: str | None) -> Path:
 
 def artifact_path(directory: Path, source: Path | str, suffix: str, *, key: str = "") -> Path:
     """Deterministic, collision-free output name: <source stem>.<short hash><suffix>."""
-    stem = re.sub(r"[^\w.-]+", "_", Path(str(source)).stem)[:60] or "output"
+    from .langs import language_names
+
+    parts = Path(str(source)).name.split(".")
+    base = re.sub(r"[^\w-]+", "_", parts[0])[:60] or "output"
+    codes = set(language_names())
+    # Carry a language tag (e.g. ".en" from a translation) unless the new suffix names its own language.
+    carried = [] if any(t in codes for t in suffix.split(".")) else [t for t in parts[1:-1] if t in codes]
+    stem = ".".join([base, *carried[-1:]])
     digest = hashlib.sha256(f"{source}|{key}".encode()).hexdigest()[:8]
     return directory / f"{stem}.{digest}{suffix}"
 
