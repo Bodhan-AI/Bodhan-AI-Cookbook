@@ -1,0 +1,55 @@
+{
+  "status": "completed",
+  "task": "OCR this clinic notice and extract its event date, time, location, required documents, and contact instruction. Translate those details into Hindi with Bodhan. Return a concise bilingual checklist; do not infer any information that is not on the notice.",
+  "steps": 2,
+  "max_steps": 8,
+  "verification": [
+    {
+      "step": 1,
+      "tool": "ocr_document",
+      "status": "success",
+      "cached": true,
+      "checks": null
+    },
+    {
+      "step": 2,
+      "tool": "translate_text",
+      "status": "success",
+      "cached": false,
+      "checks": {
+        "checks": {
+          "nonempty": true,
+          "numbers_preserved": true,
+          "markdown_heading_count_preserved": true,
+          "table_row_count_preserved": true,
+          "html_table_structure_preserved": true,
+          "latex_delimiter_count_preserved": true
+        },
+        "passed": true,
+        "semantic_coverage_review_required": true,
+        "semantic_coverage": {
+          "status": "full",
+          "passed": true,
+          "batches": [
+            {
+              "status": "full",
+              "passed": true,
+              "reason": "The translation accurately and completely conveys all substantive information from the source.",
+              "latency_seconds": 3.175
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "expected_limitations": [],
+  "bodhan_cost_inr": 0.00118,
+  "max_cost_inr": 0.3,
+  "elapsed_seconds": 32.686,
+  "artifacts": [
+    "artifacts\\task_result.md"
+  ],
+  "llm_model": "gemini-3.8-flash",
+  "llm_cost_included": false,
+  "started_at": "2026-11-18T11:17:36.282449+00:00"
+}

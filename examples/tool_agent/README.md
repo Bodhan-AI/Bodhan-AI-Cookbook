@@ -108,11 +108,20 @@ Required environment variables are documented in `.env.example`: `BODHAN_TRANSCR
 
 ## Demo and validation status
 
-The six workflows have been exercised locally. The user reviewed the Kannada and Hindi audio artifacts for demos 4 and 5 and accepted their transcripts. Known limitations remain: transcription may omit or misrecognize words, and subtitle timing is estimated because Indic-Transcribe does not return timestamps. Link the reviewed run reports and outputs when preparing the submission.
+The six workflows were run locally. The user reviewed and accepted the Kannada and Hindi audio outputs in demos 4 and 5. The other results below are recorded from their run reports; review the linked artifacts before relying on their content. Demo 6 is an intentional unsupported-language refusal, not a failed translation.
 
-Each run writes `result.md`, `report.json`, `trace.jsonl`, and a copy of its final text output at `artifacts/task_result.md`; media outputs such as WAV and SRT files are also stored under `artifacts/`. Local run folders under `out/` and inputs under `.cache/` are ignored by Git. Do not describe a run as a successful demo unless its report and actual output have both been reviewed.
+| Demo | Workflow and recorded outcome | Bodhan cost | Runtime | Evidence |
+|---|---|---:|---:|---|
+| 1 | Scanned clinic guidance → OCR, two-sentence English summary, Tamil translation and speech. Completed; Tamil speech back-transcription CER was 0.0. | ₹0.203109 | 57.387 s | [Output](demo_results/demo_01/task_result.md) · [Report](demo_results/demo_01/report.json) · [Trace](demo_results/demo_01/trace.jsonl) |
+| 2 | Pantry worksheet → OCR and Marathi translation with the HTML table structure preserved. Completed; structural and semantic checks passed. | ₹0.004880 | 27.604 s | [Output](demo_results/demo_02/task_result.md) · [Report](demo_results/demo_02/report.json) · [Trace](demo_results/demo_02/trace.jsonl) |
+| 3 | Clinic notice → OCR and bilingual Hindi checklist. Completed; structural and semantic checks passed. | ₹0.001180 | 32.686 s | [Output](demo_results/demo_03/task_result.md) · [Report](demo_results/demo_03/report.json) · [Trace](demo_results/demo_03/trace.jsonl) |
+| 4 | Kannada voice note → transcription, English subtitle translation and SRT. Completed; the user reviewed and accepted the transcript. Subtitle timings are estimates. | ₹0.002040 | 39.121 s | [Output](demo_results/demo_04/task_result.md) · [SRT](demo_results/demo_04/english_subtitles.srt) · [Report](demo_results/demo_04/report.json) · [Trace](demo_results/demo_04/trace.jsonl) |
+| 5 | Two anonymous clips → Bodhan transcription followed by script-based Hindi/Kannada identification. Completed; the user reviewed and accepted the outputs. Transcript words are model output without independent ground truth. | ₹0.000000 | 14.619 s | [Output](demo_results/demo_05/task_result.md) · [Report](demo_results/demo_05/report.json) · [Trace](demo_results/demo_05/trace.jsonl) |
+| 6 | Clinic notice → OCR, followed by a French translation request. Completed as an expected limitation: Bodhan rejected unsupported French and the agent did not fabricate a translation. | ₹0.000000 | 14.338 s | [Output](demo_results/demo_06/task_result.md) · [Report](demo_results/demo_06/report.json) · [Trace](demo_results/demo_06/trace.jsonl) |
 
-The current automated suite passes 67 tests. MCP client interoperability is verified with MCP Inspector as described above. Submission-ready links to the demo outputs and the short walkthrough recording are still pending.
+Costs are Bodhan API charges only; LLM charges are excluded because the provider does not expose a compatible per-run amount here. The reports and traces include cache indicators: these are the recorded charges and runtimes for these runs, not uncached benchmark estimates. Input files, local caches and generated WAV media are not committed. Compact text outputs and traces are under [`demo_results/`](demo_results/README.md); trace paths are sanitized to remove local machine paths. The generated demo 1 WAV was over 1 MiB and is omitted from the repository.
+
+The recipe test suite passes 67 tests. The Cookbook validator and changed-recipe validation pass for this recipe. The full Cookbook suite also checks every existing example and currently flags the unchanged `AndroidSpeak` native Android/Kotlin layout as invalid. On Windows, another existing test invokes Unix `cp`, so that test also fails in this local environment; the Cookbook CI runner uses Ubuntu. The recipe itself does not change either unrelated example or test. MCP client interoperability is verified with MCP Inspector as described above. The short walkthrough recording is still pending.
 
 ```bash
 python -m pytest
@@ -127,7 +136,8 @@ Run the Cookbook's `python scripts/validate_recipe.py examples/tool_agent` and `
 - Long audio chunking uses fixed-duration windows and may split a sentence at a boundary.
 - PDF handling requires Poppler. Audio splitting requires ffmpeg only for long non-WAV or unsupported/compressed WAV input; PCM WAV splitting and WAV joining use Python's standard library.
 - The agent is intentionally non-interactive; it records reasonable assumptions and stops only when it cannot complete a task safely.
-- The six end-to-end demonstrations, costs and runtimes must be linked and summarized from reviewed run reports before submission.
+- Transcription may omit or misrecognize words; demo 5 transcripts have no independent ground truth. The user reviewed and accepted the audio outputs in demos 4 and 5.
+- Subtitle timing is estimated because the transcription API does not return timestamps; it may miss the assignment's synchronization target.
 
 ## AI assistance
 

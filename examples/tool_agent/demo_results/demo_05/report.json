@@ -1,0 +1,46 @@
+{
+  "status": "completed",
+  "task": "Transcribe each anonymous clip with Bodhan automatic language selection. Then call identify_language_from_script on each Bodhan transcript with the candidate language codes hi and kn. Use the script result, not the filename, to identify the language. Return each neutral filename, detected script, identified language, and Bodhan transcript. Do not claim the transcript is exact without ground truth.",
+  "steps": 4,
+  "max_steps": 8,
+  "verification": [
+    {
+      "step": 1,
+      "tool": "transcribe_audio",
+      "status": "success",
+      "cached": true,
+      "checks": null
+    },
+    {
+      "step": 2,
+      "tool": "transcribe_audio",
+      "status": "success",
+      "cached": true,
+      "checks": null
+    },
+    {
+      "step": 3,
+      "tool": "identify_language_from_script",
+      "status": "success",
+      "cached": false,
+      "checks": null
+    },
+    {
+      "step": 4,
+      "tool": "identify_language_from_script",
+      "status": "success",
+      "cached": false,
+      "checks": null
+    }
+  ],
+  "expected_limitations": [],
+  "bodhan_cost_inr": 0.0,
+  "max_cost_inr": 0.1,
+  "elapsed_seconds": 14.619,
+  "artifacts": [
+    "artifacts\\task_result.md"
+  ],
+  "llm_model": "gemini-3.8-flash",
+  "llm_cost_included": false,
+  "started_at": "2026-11-18T11:35:14.098795+00:00"
+}

@@ -1,0 +1,55 @@
+{
+  "status": "completed",
+  "task": "OCR the complete food-pantry worksheet. Pass the complete OCR result to Bodhan Indic-Translate in Marathi, preserving the exact HTML table structure, all headers, all rows, and the translated units. Do not flatten or rebuild the table from memory. Hindi/Marathi numerals may use their native glyphs, but all values must remain the same. Return Bodhan's translated table verbatim and the translated note.",
+  "steps": 2,
+  "max_steps": 6,
+  "verification": [
+    {
+      "step": 1,
+      "tool": "ocr_document",
+      "status": "success",
+      "cached": true,
+      "checks": null
+    },
+    {
+      "step": 2,
+      "tool": "translate_text",
+      "status": "success",
+      "cached": false,
+      "checks": {
+        "checks": {
+          "nonempty": true,
+          "numbers_preserved": true,
+          "markdown_heading_count_preserved": true,
+          "table_row_count_preserved": true,
+          "html_table_structure_preserved": true,
+          "latex_delimiter_count_preserved": true
+        },
+        "passed": true,
+        "semantic_coverage_review_required": true,
+        "semantic_coverage": {
+          "status": "full",
+          "passed": true,
+          "batches": [
+            {
+              "status": "full",
+              "passed": true,
+              "reason": "All substantive information, table headers, data entries, and notes have been fully conveyed.",
+              "latency_seconds": 3.587
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "expected_limitations": [],
+  "bodhan_cost_inr": 0.00488,
+  "max_cost_inr": 0.35,
+  "elapsed_seconds": 27.604,
+  "artifacts": [
+    "artifacts\\task_result.md"
+  ],
+  "llm_model": "gemini-3.8-flash",
+  "llm_cost_included": false,
+  "started_at": "2026-11-18T11:22:41.289046+00:00"
+}

@@ -1,0 +1,37 @@
+{
+  "status": "completed",
+  "task": "Translate the attached clinic notice into French, preserving all dates, times, and instructions. If French is unsupported, explain that clearly and do not invent or fabricate a translation.",
+  "steps": 2,
+  "max_steps": 5,
+  "verification": [
+    {
+      "step": 1,
+      "tool": "ocr_document",
+      "status": "success",
+      "cached": true,
+      "checks": null
+    },
+    {
+      "step": 2,
+      "tool": "translate_text",
+      "status": "expected_limitation",
+      "error_code": "unsupported_language",
+      "message": "Unsupported language code 'fr' for Indic-Translate."
+    }
+  ],
+  "expected_limitations": [
+    {
+      "code": "unsupported_language",
+      "message": "Unsupported language code 'fr' for Indic-Translate."
+    }
+  ],
+  "bodhan_cost_inr": 0.0,
+  "max_cost_inr": 0.25,
+  "elapsed_seconds": 14.338,
+  "artifacts": [
+    "artifacts\\task_result.md"
+  ],
+  "llm_model": "gemini-3.8-flash",
+  "llm_cost_included": false,
+  "started_at": "2026-11-18T11:16:03.323260+00:00"
+}
