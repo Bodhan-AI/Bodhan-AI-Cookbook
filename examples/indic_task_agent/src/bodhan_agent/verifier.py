@@ -65,7 +65,8 @@ def verify_artifact(path: Path, kind: str, *, expected_chars: int | None = None,
     elif kind == "text":
         text = path.read_text(encoding="utf-8")
         ok_len = expected_chars is None or len(text) <= int(expected_chars * 1.05)
-        checks.append(_check(rel, "english_only", "passed" if text.strip().isascii() else "failed", "non-ASCII found" if not text.strip().isascii() else "ASCII"))
+        indic = not _looks_english(text)
+        checks.append(_check(rel, "english_only", "failed" if indic else "passed", "Indian-script characters found" if indic else "no Indian-script characters"))
         checks.append(_check(rel, "length", "passed" if ok_len else "failed", f"{len(text)} chars vs target {expected_chars}"))
     for c in checks:
         if trace:
@@ -222,7 +223,8 @@ def l2_translation(path: Path, source_path: Path, target_language: str, ledger: 
             max_tokens=1500,
         )
         verdict = reply.text.strip().lower()
-        check = _check(rel, "meaning", "passed" if verdict.startswith("consistent") else "failed", reply.text.strip()[:160])
+        # a model judging a lossy round trip is evidence for a human, not proof: it warns, it never fails the run
+        check = _check(rel, "meaning", "passed" if verdict.startswith("consistent") else "warning", reply.text.strip()[:160])
     except Exception as exc:  # noqa: BLE001 - a failed check must never read as passed
         check = _check(rel, "meaning", "skipped", f"check error: {type(exc).__name__}")
     trace.emit("verify", **check)

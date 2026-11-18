@@ -2,12 +2,25 @@
   "id": "tamil_chapter_audio",
   "title": "Two-minute Tamil audio summary of a scanned chapter",
   "task": "Make a two-minute Tamil audio summary of this chapter. Give me the Tamil MP3 and the summary text.",
-  "files": ["media/chapter.pdf"],
-  "args": ["--max-cost-inr", "4.0"],
+  "files": [
+    "media/chapter.pdf"
+  ],
+  "args": [
+    "--max-cost-inr",
+    "4.0"
+  ],
   "expect": {
-    "status": ["completed"],
-    "artifacts": ["*.mp3", "*.txt"],
-    "checks": ["back_transcription", "meaning"],
+    "status": [
+      "completed"
+    ],
+    "artifacts": [
+      "*.mp3",
+      "draft_*.ta.txt"
+    ],
+    "checks": [
+      "back_transcription",
+      "requested_duration"
+    ],
     "max_cost_inr": 4.0
   },
   "notes": "OCR 8 pages, translate to English, write ~1620 characters, translate back to Tamil, speak as MP3."

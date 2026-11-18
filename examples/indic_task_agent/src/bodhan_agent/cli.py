@@ -123,6 +123,9 @@ def main(argv: list[str] | None = None) -> int:
         records, artifacts = _collect(records, out)
         checks = _verify(artifacts, records, out, ledger, trace, args.task)
         status = verifier.derive_status(checks, bool(artifacts))
+        warned = [c for c in checks if c["result"] == "warning"]
+        if warned:
+            notes.append(f"{len(warned)} check(s) raised a warning for human review (not counted as failures): " + ", ".join(sorted({c["check"] for c in warned})))
         gaps = _missing_final_outputs(plan_obj, records)
         if gaps:
             status = "partial" if status == "completed" else status
