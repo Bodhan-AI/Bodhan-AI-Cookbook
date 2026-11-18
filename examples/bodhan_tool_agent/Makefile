@@ -9,7 +9,7 @@ test:
 	.venv/bin/pytest -q
 
 lint:
-	.venv/bin/ruff check src tests
+	.venv/bin/ruff check src tests scripts
 
 server:
 	.venv/bin/python -m bodhan_mcp

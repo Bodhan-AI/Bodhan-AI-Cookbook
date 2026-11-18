@@ -14,7 +14,6 @@ dependencies = [
     "mcp",
     "openai",
     "httpx",
-    "tenacity",
     "pydantic",
     "pypdfium2",
     "pillow",
@@ -44,7 +43,7 @@ markers = ["live: calls the real Bodhan API and LLM (needs keys; skipped by defa
 addopts = "-m 'not live'"
 
 [tool.ruff]
-line-length = 120
+line-length = 130
 target-version = "py310"
 src = ["src", "tests"]
 

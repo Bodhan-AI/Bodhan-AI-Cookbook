@@ -26,6 +26,8 @@ class Settings:
     llm_api_key: str | None = None
     call_timeout_s: float = 120.0
     max_concurrency: int = 4
+    max_retries: int = 3
+    cache_path: str | None = ".cache/bodhan_responses.sqlite"
 
     def key_for(self, model: str) -> str | None:
         return self.bodhan_keys.get(model)
@@ -48,4 +50,7 @@ def load_settings(env_file: str | None = None) -> Settings:
         llm_api_key=os.environ.get("LLM_API_KEY"),
         call_timeout_s=float(os.environ.get("BODHAN_CALL_TIMEOUT_S", "120")),
         max_concurrency=int(os.environ.get("BODHAN_MAX_CONCURRENCY", "4")),
+        max_retries=int(os.environ.get("BODHAN_MAX_RETRIES", "3")),
+        # Set BODHAN_CACHE_PATH="" to disable caching.
+        cache_path=os.environ.get("BODHAN_CACHE_PATH", ".cache/bodhan_responses.sqlite") or None,
     )

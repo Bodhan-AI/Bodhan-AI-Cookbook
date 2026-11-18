@@ -2,7 +2,6 @@
 mcp==2.3.0
 openai==3.55.0
 httpx==0.28.1
-tenacity==9.2.1
 pydantic==2.14.3
 pypdfium2==5.15.2
 pillow==13.0.0
