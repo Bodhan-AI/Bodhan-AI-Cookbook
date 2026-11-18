@@ -6,7 +6,7 @@
 **Languages shown:** Hindi, Tamil, Marathi, Telugu, Bengali (any language the models support)
 **Format:** CLI agent + MCP server (stdio)
 
-> **Status: work in progress.** The scaffold, configuration, language data and the `supported_languages` / `list_voices` tools work today. The model tools and the agent loop are being built; see [Roadmap](#roadmap).
+> **Status: work in progress.** The MCP server and all its tools work today. The agent loop is being built; see [Roadmap](#roadmap).
 
 ## What it does
 
@@ -68,30 +68,36 @@ See [docs/architecture.md](docs/architecture.md), [docs/agent_flow.md](docs/agen
 
 ## Tools
 
-| Tool | Purpose | Status |
-|---|---|---|
-| `supported_languages` | Languages each Bodhan model accepts | ✅ |
-| `list_voices` | Indic-Speak voices by language and gender | ✅ |
-| `inspect_media` | Type, duration, pages and script of an input file | ⏳ |
-| `ocr_document` | Image/PDF → Markdown, page by page | ⏳ |
-| `transcribe_audio` | Any-length audio → transcript + timed segments | ⏳ |
-| `translate_text` | Text/Markdown → target language, tables preserved | ⏳ |
-| `translate_segments` | Timed segments → translated segments | ⏳ |
-| `synthesize_speech` | Any-length text → MP3 (AI-generated) | ⏳ |
-| `make_srt` | Segments → SRT subtitles | ⏳ |
+Every tool takes and returns **local file paths** (never base64) and returns `{"ok": true, ...}` or `{"ok": false, "error": {code, message, hint, retryable}}`. Model limits are handled inside the tools.
+
+| Tool | Model | What it does, and how it handles the model's limits | Cost |
+|---|---|---|---|
+| `inspect_media` | none | Kind (audio, video, image, PDF, text), duration, pages, script; suggests the next tool and its cost | free |
+| `ocr_document` | Indic-OCR | Image or PDF → Markdown. PDFs are rendered and read page by page in parallel; tables kept; per-page script; partial failures reported | ₹0.20/page |
+| `transcribe_audio` | Indic-Transcribe | Any length or format, including video soundtracks. Cut at pauses into windows of 30 s or less, silence skipped, timestamps from our own cuts, language from the script. `segment_style="subtitle"` gives segments of 7 s or less | ₹0.10/min |
+| `translate_text` | Indic-Translate | Text or Markdown. Long text split at sentences; **tables translated cell by cell and rebuilt**; each piece checked (non-empty, numbers kept, target script, length); free when the text is already in the target language | ≈₹0.20/10k output tokens |
+| `translate_segments` | Indic-Translate | Timed segments → translated segments, timings kept | ≈₹0.20/10k tokens |
+| `synthesize_speech` | Indic-Speak (+ Transcribe to verify) | Any length → one MP3 labelled AI-generated. Sentence-sized pieces in parallel; **each piece transcribed back and compared; a failing piece is re-synthesised once**; text in the wrong script is rejected | ₹6/10k chars |
+| `make_srt` | none | Segments → validated SRT | free |
+| `read_text` | none | Bounded reads of large outputs | free |
+| `supported_languages`, `list_voices` | none | Language and voice catalogue (also exposed as resources `bodhan://languages` and `bodhan://voices`) | free |
+
+What the live API actually returns, and why the tools are shaped this way: [docs/api_facts.md](docs/api_facts.md).
 
 ## Tests
 
 ```bash
-make test     # unit + end-to-end tests against mocked Bodhan and LLM endpoints
-pytest -m live   # optional: real API calls (needs keys, costs credit)
+make test        # 80+ unit and end-to-end tests against a fake Bodhan API; no keys, no cost
+make live        # optional: one real round trip through the tools (about ₹0.05)
 ```
+
+The tests cover chunking and limit handling for every tool, structured errors for bad inputs, caching (no input is sent twice), budget refusal, and a real stdio session driven by the MCP client SDK.
 
 ## Roadmap
 
 - [x] Scaffold, config, language and voice data
-- [ ] Bodhan HTTP client: retries, backoff, concurrency limit, cache, cost ledger
-- [ ] Model tools with chunking and limit handling
+- [x] Bodhan HTTP client: retries, backoff, concurrency limit, cache, cost ledger
+- [x] Model tools with chunking and limit handling
 - [ ] Agent loop: plan, act, verify, retry, budgets
 - [ ] Demo tasks, self-evaluation suite, demo video
 

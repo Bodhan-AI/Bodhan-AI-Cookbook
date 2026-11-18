@@ -3,7 +3,14 @@
 To be filled in as each part is built. Sections:
 
 ## Tool granularity
-One tool per model capability, with that model's limits handled inside the tool, plus small helpers (`inspect_media`, `make_srt`, `translate_segments`, `supported_languages`, `list_voices`). There are no task-level tools: planning stays with the agent, and chunking stays out of the caller's way.
+One tool per model capability, with that model's limits handled inside the tool, plus small free helpers (`inspect_media`, `make_srt`, `read_text`, `translate_segments`, `supported_languages`, `list_voices`). There are no task-level tools such as "make an audio summary": planning stays with the agent, where it can be seen and traced, and no caller ever has to chunk audio, text or pages.
+
+Specific choices, each driven by what the live API does ([api_facts.md](api_facts.md)):
+- **Transcription windows** cut at the quietest point between 2/3 of the limit and 29.5 s. A hard cut (no silence found) gets a 0.6 s overlap, and the duplicated words are removed when the text is stitched back together. Silent windows are skipped. The API returns no timestamps, so segment times come from our own cuts, and the `subtitle` style simply uses windows of 7 s or less. That costs the same, because billing is per audio second.
+- **Language detection** uses Unicode script only, which the rules allow. Devanagari and Bengali script are flagged as ambiguous, so the caller can decide.
+- **Tables** are translated cell by cell, because sent whole the model dropped the `|---|` separator row.
+- **Speech** is packed into pieces of about 250 characters at sentence ends, matching the documented guidance of "a sentence or two".
+- **PDFs** are always read with OCR, even digital ones, so all text extraction goes through a Bodhan model.
 
 ## Media plumbing
 Tools take and return file paths. Results carry a short preview and stats, never full media or full documents.

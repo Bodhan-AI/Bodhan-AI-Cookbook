@@ -8,6 +8,10 @@ setup:
 test:
 	.venv/bin/pytest -q
 
+# Real API round trip through the tools (≈₹0.05). Needs keys in .env.
+live:
+	.venv/bin/pytest -m live tests/live -s -q
+
 lint:
 	.venv/bin/ruff check src tests scripts
 
