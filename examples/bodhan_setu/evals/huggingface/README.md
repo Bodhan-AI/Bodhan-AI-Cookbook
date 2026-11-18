@@ -21,6 +21,8 @@ configs:
 
 Synthetic task records for evaluating Bodhan MCP tool choice, dry-run cost estimates, and multi-step orchestration. Version 0.8.0 packages the referenced synthetic audio, image, PDF, text, and video media with corrected paths, and adds the completed 45-voice reference library to the local MCP setup. Version 0.7.0 added a high-level video translation workflow that matches source-audio DSP features against the full Bodhan voice catalog. Version 0.6.0 added local video audio extraction and replacement tools. Earlier additions cover Indic-Transliterate, dry-run pricing, unsupported-script handling, and translation/transliteration chains.
 
+All records and bundled media are synthetic fixtures. No API keys or private user media are included.
+
 | Split | Records |
 |---|---:|
 | single_tool | 8 |

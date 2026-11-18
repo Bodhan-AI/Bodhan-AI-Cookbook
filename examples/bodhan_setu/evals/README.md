@@ -8,7 +8,7 @@ This benchmark measures which MCP tool catalog helps an agent complete language 
 - `tool_catalogs.jsonl`: alternative MCP tool designs to compare (per-model tools, fine-grained primitives, and workflow-level tools).
 - `media_manifest.jsonl`: input-file paths, SHA-256 checksums, provenance, and ground truth. All task inputs are now included under `media/`.
 - `verifiers.jsonl`: machine-checkable final-state requirements.
-- `huggingface/`: versioned Dataset Viewer export prepared for the private `1rsh/bodhan-setu-mcp-evals` Hub dataset.
+- `huggingface/`: versioned Dataset Viewer export published at [1rsh/bodhan-setu-mcp-evals](https://huggingface.co/datasets/1rsh/bodhan-setu-mcp-evals).
 
 Each benchmark case is a task × catalog pair. A harness should present one catalog to an agent, run the user task in an isolated workspace, record the tool trace, and execute the same verifier. Do not bake a prescribed tool sequence into the agent-facing task prompt; store expected behavior privately in verifier metadata.
 
@@ -22,7 +22,7 @@ Media exists to probe real MCP file-reference behavior and model-tool workflows.
 
 ## Hugging Face export
 
-The export uses JSONL with a dataset-card YAML config mapping files to named splits for the Dataset Viewer. Private-repository viewer availability depends on the account plan; publish a public redacted copy only if desired and authorized.
+The export uses JSONL with a dataset-card YAML config mapping files to named splits for the Dataset Viewer. The Hub repository is public. All records and included media are synthetic evaluation fixtures; do not add credentials, real user recordings, or private data.
 
 ## Current status
 
