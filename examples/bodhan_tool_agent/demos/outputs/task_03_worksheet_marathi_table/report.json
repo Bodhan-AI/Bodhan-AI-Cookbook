@@ -1,0 +1,66 @@
+{
+  "status": "completed",
+  "task": "Translate this worksheet into Marathi and keep the table",
+  "input_path": "demos/inputs/worksheet_table.png",
+  "steps_taken": 4,
+  "max_steps": 30,
+  "total_cost_inr": 0.20202,
+  "max_cost_inr": 20.0,
+  "total_time_sec": 0.003,
+  "total_latency_ms": 3.25,
+  "assumptions": [],
+  "artifacts": [
+    "/Users/rajesh07/Downloads/iitm/demos/outputs/task_03_worksheet_marathi_table/artifacts/worksheet_table_ocr.md",
+    "/Users/rajesh07/Downloads/iitm/demos/outputs/task_03_worksheet_marathi_table/artifacts/worksheet_table_ocr_mr.md"
+  ],
+  "verification_results": [
+    {
+      "status": "ok",
+      "passed": true,
+      "target_language": "mr",
+      "detected_script": "Devanagari",
+      "checks": {
+        "non_empty": true,
+        "script_valid": true,
+        "coverage_ratio_valid": true,
+        "length_ratio": 0.534,
+        "numbers_preserved": true,
+        "missing_numbers": [
+          "180",
+          "6"
+        ],
+        "tables_preserved": true,
+        "source_table_rows": 5,
+        "translated_table_rows": 5
+      },
+      "back_translation_sample": null,
+      "issues": [],
+      "cost_inr": 0.0,
+      "latency_ms": 0.22,
+      "translated_path": "/Users/rajesh07/Downloads/iitm/demos/outputs/task_03_worksheet_marathi_table/artifacts/worksheet_table_ocr_mr.md"
+    }
+  ],
+  "security_alerts": [],
+  "failure_reason": null,
+  "cost_breakdown": {
+    "total_cost_inr": 0.20202,
+    "max_cost_inr": 20.0,
+    "remaining_cost_inr": 19.79798,
+    "steps_taken": 4,
+    "max_steps": 30,
+    "api_calls": 2,
+    "cache_hits": 0,
+    "cost_by_model_inr": {
+      "indic-ocr": 0.2,
+      "indic-translate": 0.00202
+    }
+  },
+  "quality_targets": {
+    "completed_or_honest_failure": true,
+    "all_outputs_verified": true,
+    "verifications_passed": true,
+    "no_duplicate_model_calls": true,
+    "within_cost_budget": true,
+    "latency_within_target": true
+  }
+}

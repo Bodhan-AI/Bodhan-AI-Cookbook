@@ -1,0 +1,13 @@
+{
+  "ai_generated": true,
+  "label": "AI-Generated Audio (Synthesized by Bodhan AI Indic-Speak)",
+  "model": "indic-speak",
+  "language": "ta",
+  "language_name": "Tamil",
+  "voice": "Kavya",
+  "gender": "female",
+  "style": "narration",
+  "duration_sec": 121.519,
+  "chunks_synthesized": 8,
+  "total_characters": 1718
+}

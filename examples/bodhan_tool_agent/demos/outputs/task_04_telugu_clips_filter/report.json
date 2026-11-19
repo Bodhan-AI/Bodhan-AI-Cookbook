@@ -1,0 +1,90 @@
+{
+  "status": "completed",
+  "task": "Which of these clips are in Telugu? Translate those into English",
+  "input_path": "demos/inputs/five_audio_clips",
+  "steps_taken": 10,
+  "max_steps": 30,
+  "total_cost_inr": 0.02626,
+  "max_cost_inr": 20.0,
+  "total_time_sec": 0.04,
+  "total_latency_ms": 39.65,
+  "assumptions": [],
+  "artifacts": [
+    "/Users/rajesh07/Downloads/iitm/demos/outputs/task_04_telugu_clips_filter/artifacts/clip_01_transcript.txt",
+    "/Users/rajesh07/Downloads/iitm/demos/outputs/task_04_telugu_clips_filter/artifacts/clip_02_transcript.txt",
+    "/Users/rajesh07/Downloads/iitm/demos/outputs/task_04_telugu_clips_filter/artifacts/clip_03_transcript.txt",
+    "/Users/rajesh07/Downloads/iitm/demos/outputs/task_04_telugu_clips_filter/artifacts/clip_04_transcript.txt",
+    "/Users/rajesh07/Downloads/iitm/demos/outputs/task_04_telugu_clips_filter/artifacts/clip_05_transcript.txt",
+    "/Users/rajesh07/Downloads/iitm/demos/outputs/task_04_telugu_clips_filter/artifacts/clip_01_transcript_en.md",
+    "/Users/rajesh07/Downloads/iitm/demos/outputs/task_04_telugu_clips_filter/artifacts/clip_03_transcript_en.md"
+  ],
+  "verification_results": [
+    {
+      "status": "ok",
+      "passed": true,
+      "target_language": "en",
+      "detected_script": "Latin",
+      "checks": {
+        "non_empty": true,
+        "script_valid": true,
+        "coverage_ratio_valid": true,
+        "length_ratio": 1.244,
+        "numbers_preserved": true,
+        "missing_numbers": [],
+        "tables_preserved": true,
+        "source_table_rows": 0,
+        "translated_table_rows": 0
+      },
+      "back_translation_sample": null,
+      "issues": [],
+      "cost_inr": 0.0,
+      "latency_ms": 0.1,
+      "translated_path": "/Users/rajesh07/Downloads/iitm/demos/outputs/task_04_telugu_clips_filter/artifacts/clip_01_transcript_en.md"
+    },
+    {
+      "status": "ok",
+      "passed": true,
+      "target_language": "en",
+      "detected_script": "Latin",
+      "checks": {
+        "non_empty": true,
+        "script_valid": true,
+        "coverage_ratio_valid": true,
+        "length_ratio": 1.033,
+        "numbers_preserved": true,
+        "missing_numbers": [],
+        "tables_preserved": true,
+        "source_table_rows": 0,
+        "translated_table_rows": 0
+      },
+      "back_translation_sample": null,
+      "issues": [],
+      "cost_inr": 0.0,
+      "latency_ms": 0.09,
+      "translated_path": "/Users/rajesh07/Downloads/iitm/demos/outputs/task_04_telugu_clips_filter/artifacts/clip_03_transcript_en.md"
+    }
+  ],
+  "security_alerts": [],
+  "failure_reason": null,
+  "cost_breakdown": {
+    "total_cost_inr": 0.02626,
+    "max_cost_inr": 20.0,
+    "remaining_cost_inr": 19.97374,
+    "steps_taken": 10,
+    "max_steps": 30,
+    "api_calls": 7,
+    "cache_hits": 0,
+    "cost_by_model_inr": {
+      "indic-transcribe": 0.025,
+      "indic-translate": 0.00126
+    }
+  },
+  "quality_targets": {
+    "completed_or_honest_failure": true,
+    "all_outputs_verified": true,
+    "verifications_passed": true,
+    "no_duplicate_model_calls": true,
+    "within_cost_budget": true,
+    "latency_within_target": true
+  }
+}
