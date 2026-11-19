@@ -247,3 +247,22 @@ async def test_an_interrupt_during_teardown_after_finish_keeps_the_final_report(
         await run(args(tmp_path, "When does the library open?", [txt]), transport=FakeBodhan().transport, llm=PlannerLLM(client=chat, model="s"))
     rep = json.loads((tmp_path / "out" / "report.json").read_text(encoding="utf-8"))
     assert rep["status"] == "completed" and not rep.get("provisional")
+
+
+# live gemini d5: the planner declared the Bengali text twice (as "translation" and as "text") and could never finish
+def test_the_same_output_declared_under_two_kinds_shares_its_artifact(tmp_path):
+    from bodhan_agent.loop import Agent, Settings
+    from bodhan_agent.trace import TraceWriter
+    from bodhan_mcp.runtime import Artifact, CostLedger, ResultCache, RunContext
+
+    ctx = RunContext(artifacts_dir=tmp_path / "art", ledger=CostLedger(), cache=ResultCache(None))
+    ctx.artifacts_dir.mkdir()
+    f = ctx.artifacts_dir / "p_bn.md"
+    f.write_text("x", encoding="utf-8")
+    art = ctx.register(Artifact(f, "translation", "translate_text", "bn", "indic-translate", {"status": "pass"}, origin=["paragraph.txt"]))
+    agent = Agent("t", ctx, TraceWriter(tmp_path / "t.jsonl"), Settings(), None, [], [], out=None)
+    agent.plan = {"deliverables": [{"kind": "translation", "language": "bn", "source": "paragraph.txt"},
+                                   {"kind": "text", "language": "bn", "source": "paragraph.txt"}]}
+    assert agent._contract_gaps([art], "Done.") == []
+    agent.plan = {"deliverables": [{"kind": "translation", "language": "bn"}, {"kind": "translation", "language": "bn"}]}
+    assert agent._contract_gaps([art], "Done.")  # two translations still need two artifacts

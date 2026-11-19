@@ -541,7 +541,7 @@ class Agent:
                 # a declared source must be in the artifact's input lineage
                 fits = [str(x.path) for x in delivered if x.kind in KIND_MATCH[kind] and (not lang or x.language == lang)
                         and (not src or Path(src).name.lower() in {o.lower() for o in x.origin}) and self._usable(x)]
-                required.append((label, fits))
+                required.append((label, fits, kind))
         # one artifact per declared deliverable: a maximum matching, so a general deliverable never takes the only
         # artifact that a more specific one could use while another artifact would have done for it
         owner: dict[str, int] = {}
@@ -556,8 +556,13 @@ class Agent:
             return False
 
         matched = {i for i in range(len(required)) if assign(i, set())}
+        for i, (_, fits, kind) in enumerate(required):
+            # A "text"/"transcript" deliverable declared next to the translation or subtitles that already is that text
+            # (the same output under two kinds) may share its artifact. Same-kind deliverables still need one each.
+            if i not in matched and kind in ("text", "transcript") and any(p in owner and required[owner[p]][2] != kind for p in fits):
+                matched.add(i)
         gaps += [f"declared deliverable '{label}' has no matching verified artifact among the finish deliverables "
-                 "(each declared deliverable needs its own artifact)" for i, (label, _) in enumerate(required) if i not in matched]
+                 "(each declared deliverable needs its own artifact)" for i, (label, _, _) in enumerate(required) if i not in matched]
         return gaps
 
     def _usable(self, art: Artifact) -> bool:
