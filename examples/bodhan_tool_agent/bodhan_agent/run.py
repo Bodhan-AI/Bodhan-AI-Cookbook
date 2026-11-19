@@ -5,6 +5,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from decimal import Decimal
 from difflib import SequenceMatcher
+from itertools import batched
 import json
 from pathlib import Path
 from time import monotonic
@@ -21,15 +22,18 @@ from bodhan_mcp.speech import SpeechLanguage, synthesize_speech
 from bodhan_mcp.transcription import SpeechLanguage as TranscriptionLanguage
 from bodhan_mcp.transcription import TranscriptionResult, transcribe_audio
 
+from .clip_language import AUDIO_SUFFIXES, assess_transcript
 from .planner import (
     Action, Declare, Deliverable, Finish, PlannerError, Read, Save, SaveSubtitles,
-    Speak, Summarize, Transcribe, Translate, TranslationReview,
+    Speak, Summarize, Transcribe, Translate, TranslateMatchingClips, TranslationReview,
 )
 from .subtitles import SUBTITLE_TIMING_NOTE, SUBTITLE_WINDOW_SECONDS, render_srt
 
 MAX_SPEECH_BYTES = 16_000
 REVIEW_BYTES = 6_000
 PREVIEW_CHARS = 320
+SUMMARY_WORDS_PER_MINUTE = 130
+SUBTITLE_REVIEW_CUES = 4
 
 
 class Planner(Protocol):
@@ -90,6 +94,7 @@ class Run:
     fulfilled: dict[str, str] = field(default_factory=dict)
     partial_artifacts: list[str] = field(default_factory=list)
     artifacts: list[str] = field(default_factory=list)
+    clip_selections: dict[str, dict] = field(default_factory=dict)
     verification: list[dict] = field(default_factory=list)
     history: list[dict] = field(default_factory=list)
 
@@ -220,15 +225,27 @@ def _non_latin_letters(text: str) -> bool:
 def _summarize(run: Run, planner: Planner, step: StepTrace, action: Summarize, source: str) -> dict:
     if run.text_languages.get(action.source) not in {None, "en"} or _non_latin_letters(source):
         raise ToolError("Translate the source into English with Indic-Translate before summarizing.")
-    summary = planner.summarize(source, run.task, action.target_words)
+    durations = {item.duration_seconds for item in run.deliverables.values() if item.duration_seconds}
+    target_words = action.target_words
+    word_limit = None
+    if len(durations) == 1:
+        seconds = durations.pop()
+        suggested = max(1, seconds * SUMMARY_WORDS_PER_MINUTE // 60)
+        word_limit = max(10, suggested * 3 // 2)
+        target_words = min(target_words or suggested, word_limit)
+    summary = planner.summarize(source, run.task, target_words)
     if not summary or not any(char.isalpha() for char in summary) or _non_latin_letters(summary):
         raise ToolError("The planner did not return an English summary.")
-    with run.verify(step, "summary_grounding", method="planner_review", source=action.source) as check:
+    word_count = len(summary.split())
+    if word_limit is not None and word_count > word_limit:
+        raise ToolError(f"The English narration has {word_count} words. Revise it to fit {word_limit} words.")
+    with run.verify(step, "summary_grounding", method="planner_review", source=action.source,
+                    words=word_count, target_words=target_words) as check:
         review = planner.review_summary(source, summary, run.task)
         check.update(passed=review.approved, explanation=review.explanation)
     if not review.approved:
         raise ToolError("The English summary did not pass grounding review: " + review.explanation)
-    return {**run.remember(summary, "en"), "words": len(summary.split())}
+    return {**run.remember(summary, "en"), "words": word_count, "target_words": target_words}
 
 
 def _speak(run: Run, step: StepTrace, action: Speak, text: str) -> dict:
@@ -290,20 +307,29 @@ def _save_subtitles(run: Run, planner: Planner, step: StepTrace, action: SaveSub
     if needs_translation and target_language not in get_args(Language):
         raise ToolError(f"Bodhan does not support subtitle translation into {target_language}.")
 
-    captions = {}
-    for index, window in enumerate(transcript.windows):
-        text = window.text.strip()
-        if not text:
-            continue
-        if needs_translation:
-            language = cast(Language, target_language)
-            key = (text, language)
-            if key not in run.subtitle_translations:
-                result = translate_text(text, language)
-                _review_translation(run, planner, step, action.source, language, text, result, window=index + 1)
-                run.subtitle_translations[key] = result.translation
-            text = run.subtitle_translations[key]
-        captions[index] = text
+    captions = {index: window.text.strip() for index, window in enumerate(transcript.windows)
+                if window.text.strip()}
+    if needs_translation:
+        language = cast(Language, target_language)
+        pending = {}
+        for index, text in captions.items():
+            if (text, language) not in run.subtitle_translations:
+                pending.setdefault(text, index + 1)
+        for group in batched(pending.items(), SUBTITLE_REVIEW_CUES):
+            originals = {index: text for text, index in group}
+            translated = {index: translate_text(text, language).translation for index, text in originals.items()}
+            with run.verify(step, "translation_coverage", method="subtitle_group_review", source=action.source,
+                            language=language, windows=list(originals)) as check:
+                review = planner.review(json.dumps(originals, ensure_ascii=False),
+                                        json.dumps(translated, ensure_ascii=False), language)
+                check.update(passed=review.approved, explanation=review.explanation)
+                if not review.approved:
+                    window_labels = ", ".join(map(str, originals))
+                    raise ToolError(f"Subtitle translation review failed for windows {window_labels}: "
+                                    + review.explanation)
+            for index, text in originals.items():
+                run.subtitle_translations[(text, language)] = translated[index]
+        captions = {index: run.subtitle_translations[(text, language)] for index, text in captions.items()}
 
     with run.verify(step, "subtitle_cues", method="window_coverage", source=action.source,
                     cues=len(captions), timing="audio_window_boundaries",
@@ -315,6 +341,82 @@ def _save_subtitles(run: Run, planner: Planner, step: StepTrace, action: SaveSub
     run.fulfilled[action.deliverable] = path
     return {"artifact": path, "deliverable": action.deliverable, "cue_count": len(captions),
             "duration_seconds": transcript.duration_seconds, "timing": "audio_window_boundaries"}
+
+
+def _render_clip_selection(selection: dict, translations: dict[str, str], markdown: bool) -> str:
+    prefix = "#" if markdown else ""
+    heading = f"Selected language: {selection['source_language']}"
+    sections = [f"{prefix} {heading}".strip()]
+    sections.append("Selection uses script evidence from automatic transcription.")
+    if not translations:
+        sections.append("No verified translations are available.")
+    for clip in selection["clips"]:
+        name = " ".join(clip["name"].splitlines())
+        if markdown:
+            name = "".join("\\" + char if char in "\\`*_{}[]<>#!|&" else char for char in name)
+        heading = f"{clip['input']} — {name}"
+        sections.append(f"{prefix * 2} {heading}".strip())
+        translation = translations.get(clip["input"])
+        if translation is not None:
+            sections.append(f"Translation ({selection['target_language']}): " + translation)
+        elif clip.get("translation") == "pending":
+            sections.append("The script points to the requested language. Translation is pending.")
+        else:
+            sections.append(clip["explanation"])
+    return "\n\n".join(sections) + "\n"
+
+
+def _translate_matching_clips(
+    run: Run, planner: Planner, inputs: dict[str, Path], action: TranslateMatchingClips, step: StepTrace,
+) -> dict:
+    path = run.target(action.deliverable, {"md", "txt"}, action.target_language)
+    candidates = {ref: file for ref, file in inputs.items() if file.suffix.lower() in AUDIO_SUFFIXES}
+    if not candidates:
+        raise ToolError("No supported audio files were found in the input inventory.")
+    clips = [
+        {"input": ref, "name": file.name, "status": "pending", "scripts": [],
+         "explanation": "The clip has not been assessed."}
+        for ref, file in candidates.items()
+    ]
+    selection = {
+        "source_language": action.source_language, "target_language": action.target_language,
+        "method": "autodetected_transcription_script", "clips": clips,
+    }
+    run.clip_selections[action.deliverable] = selection
+    translations: dict[str, str] = {}
+    markdown = path.endswith(".md")
+    try:
+        for clip in clips:
+            ref = clip["input"]
+            try:
+                transcript = transcribe_audio(str(candidates[ref]))
+                status, scripts, explanation = assess_transcript(transcript.text, action.source_language)
+                clip.update(status=status, scripts=scripts, explanation=explanation)
+                if status != "match":
+                    continue
+                clip["translation"] = "pending"
+                result = translate_text(transcript.text, action.target_language)
+                _review_translation(run, planner, step, ref, action.target_language, transcript.text, result)
+                translations[ref] = result.translation
+                clip["translation"] = "verified"
+            except (ToolError, PlannerError, OSError) as exc:
+                if clip["status"] == "match":
+                    clip["translation"] = "failed"
+                else:
+                    clip["status"] = "assessment_failed"
+                clip["explanation"] = str(exc) if not isinstance(exc, OSError) else "Could not read the audio."
+        if any(clip["status"] == "assessment_failed" or clip.get("translation") == "failed" for clip in clips):
+            raise ToolError("One or more clips could not be assessed or translated. See the partial clip result.")
+    except (BudgetExhausted, ToolError):
+        partial = f"artifacts/partial-{action.deliverable}-{step.number}.{Path(path).suffix[1:]}"
+        run.save_partial(partial, _render_clip_selection(selection, translations, markdown),
+                         deliverable=action.deliverable)
+        raise
+
+    (run.output / path).write_text(_render_clip_selection(selection, translations, markdown), encoding="utf-8")
+    run.artifacts.append(path)
+    run.fulfilled[action.deliverable] = path
+    return {"artifact": path, "deliverable": action.deliverable, **selection}
 
 
 def _execute(run: Run, planner: Planner, inputs: dict[str, Path], action: Action, step: StepTrace) -> dict:
@@ -340,6 +442,9 @@ def _execute(run: Run, planner: Planner, inputs: dict[str, Path], action: Action
         if len(data) > MAX_SOURCE_BYTES:
             raise ToolError("Text exceeds this increment's input size limit.")
         return run.remember(data.decode("utf-8"))
+
+    if isinstance(action, TranslateMatchingClips):
+        return _translate_matching_clips(run, planner, inputs, action, step)
 
     if isinstance(action, SaveSubtitles):
         return _save_subtitles(run, planner, step, action)
@@ -481,6 +586,8 @@ def run_task(task: str, files: list[Path], output: Path, max_steps: int, max_cos
         "artifacts": run.artifacts, "partial_artifacts": run.partial_artifacts,
         "deliverables": run.deliverable_status(), "assumptions": assumptions, "explanation": explanation,
     }
+    if run.clip_selections:
+        report["clip_selections"] = run.clip_selections
     run.record("summary", **report)
     (output / "report.json").write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     links = "\n".join(

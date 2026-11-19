@@ -121,13 +121,14 @@ The trace records translation review and speech read-back as verification events
 For an audio summary, the agent writes and reviews an English narration from
 up to 48 KB of English source text. Indic-Translate handles any language
 conversion. The matched summary text and audio use the same narration.
-The agent supports WAV and MP3. For a timed request, ffmpeg can adjust playback
+The agent supports WAV and MP3. A timed request bounds the English word budget
+based on the requested seconds. FFmpeg can adjust playback
 tempo by up to 15%. The agent uses the final audio's decoded duration and
 reports a miss outside 15% of the requested duration, with a one-second
 minimum tolerance. It can revise the narration before exporting the text.
 
 For SRT, the agent uses audio windows of at most eight seconds and prefers nearby pauses, translates each nonblank cue
-with Bodhan when needed, reviews the translation, and validates cue order and coverage.
+with Bodhan when needed, reviews up to four aligned translations per check, and validates cue order and coverage.
 Offsets are window boundaries. A window can split a word or include silence.
 
 Four simultaneous Bodhan HTTP requests are allowed per process. Short rate limits
@@ -139,3 +140,20 @@ artifact. Completed translation text is kept as an unverified artifact if
 its coverage review is unavailable or fails. A partial file cannot fulfill
 a requested deliverable. The trace
 records reserved costs even when a tool aborts mid-call.
+
+To find clips with Telugu speech and translate only the matches into English:
+
+```sh
+.venv/bin/python -m bodhan_agent \
+  --task "Which of these clips are in Telugu? Translate those into English." \
+  --files /path/to/clips \
+  --out outputs/telugu-clips \
+  --max-steps 8 --max-cost-inr 2
+```
+
+The agent sends audio to Indic-Transcribe without a language hint. It uses
+the returned text's script to select likely matches among supported languages.
+Shared scripts, mixed scripts, and short or romanized transcripts can leave
+the selection inconclusive. The output records those cases and includes a
+reviewed translation for each match. If the budget runs out, a partial
+artifact preserves any verified translations and identifies unfinished clips.

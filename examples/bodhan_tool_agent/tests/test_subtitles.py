@@ -48,8 +48,10 @@ class SubtitleTests(unittest.TestCase):
             system, user = json.loads(request.content)["messages"]
             if "Check whether" in system["content"]:
                 pair = json.loads(user["content"])
-                self.assertEqual(pair["translation"], translations[pair["source"]])
-                reviews.append(pair["source"])
+                sources = json.loads(pair["source"])
+                targets = json.loads(pair["translation"])
+                self.assertEqual(targets, {cue: translations[text] for cue, text in sources.items()})
+                reviews.append(list(sources.values()))
                 answer = {"approved": approved, "explanation": "Test review."}
             else:
                 answer = dict(next(actions), reason="Advance the subtitle task.")
@@ -92,7 +94,7 @@ class SubtitleTests(unittest.TestCase):
         self.assertEqual(report["status"], "completed")
         self.assertEqual(frames, [8 * SAMPLE_RATE] * 4 + [SAMPLE_RATE // 4])
         self.assertEqual(translated, ["कक्षा कल है।", "सभी छात्र आएं।", "धन्यवाद।"])
-        self.assertEqual(reviews, translated)
+        self.assertEqual(reviews, [translated])
         self.assertEqual(report["verification"][-1]["cues"], 4)
         self.assertTrue(all(check["passed"] for check in report["verification"]))
         self.assertIn("audio window boundaries", report["assumptions"][0])

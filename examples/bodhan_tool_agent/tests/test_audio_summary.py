@@ -75,7 +75,7 @@ class AudioSummaryTests(unittest.TestCase):
                 state = json.loads(content)
                 if system.startswith("Write a factual English summary"):
                     self.assertEqual(state["source"], SOURCE)
-                    self.assertEqual(state["target_words"], 15)
+                    self.assertEqual(state["target_words"], 10 if target == 2 else 15)
                     return answer({"summary": SUMMARY})
                 if system.startswith("Review the English summary"):
                     self.assertEqual(state["summary"], SUMMARY)
@@ -120,7 +120,7 @@ class AudioSummaryTests(unittest.TestCase):
         return code, output, report
 
     @unittest.skipUnless(shutil.which("ffmpeg"), "ffmpeg is required for media verification")
-    def test_summary_text_and_timed_mp3_are_verified(self):
+    def test_summary_clamps_word_target_and_verifies_timed_mp3(self):
         code, output, report = self.invoke(target=2)
         self.assertEqual(code, 0)
         self.assertEqual(report["status"], "completed")
