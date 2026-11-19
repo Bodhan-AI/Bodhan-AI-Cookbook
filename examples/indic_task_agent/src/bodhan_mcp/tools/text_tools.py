@@ -24,7 +24,7 @@ from ..languages import (
 )
 from ..runtime import Artifact, RunContext, settle, sha256_bytes
 from ..textutil import preview
-from .common import authored_indic, frame_untrusted, output_name, resolve_text
+from .common import authored_indic, frame_untrusted, output_name, quoted_from, resolve_text
 from .subtitles import parse_srt, render_srt
 from .translation import check_source, check_target, detect_source, translate_markdown, verify_units
 
@@ -88,10 +88,11 @@ async def translate_text(ctx: RunContext, a: TranslateIn) -> dict:
     dest = ctx.artifact_path(output_name(a.output_name, src_label, f"_{target}"), suffix)
     dest.write_text(output, encoding="utf-8")
     notes = [n for u in units for n in u.notes]
-    deps = [src_label] if src_label in ctx.artifacts else []
+    lineage = src_label if src_label != "inline" else (quoted_from(ctx, source) or "inline")  # text copied from an artifact keeps its origin
+    deps = [lineage] if lineage in ctx.artifacts else []
     art = ctx.register(Artifact(dest, "subtitles" if is_srt else "translation", "translate_text", target, "indic-translate", verification, notes,
                                 depends_on=deps, source_digest=sha256_bytes(source.encode("utf-8")), source_language=src_lang,
-                                origin=ctx.origin_of(src_label)))
+                                origin=ctx.origin_of(lineage)))
     if ctx.provenance_guard is not None:
         ctx.provenance_guard.add(output)
     result = {

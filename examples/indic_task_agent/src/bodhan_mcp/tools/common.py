@@ -145,6 +145,23 @@ def resolve_text(ctx: RunContext, text: str | None, path: str | None, field: str
     return text, "inline"
 
 
+def quoted_from(ctx: RunContext, text: str) -> str | None:
+    """The artifact an inline text was copied from, if any, so its lineage (origin) is kept: a planner that reads an
+    OCR result and passes the text inline still produces output linked to the scanned input."""
+    needle = ProvenanceGuard._norm(text)
+    if len(needle) < 20:
+        return None
+    for path, art in reversed(list(ctx.artifacts.items())):  # newest first
+        if art.kind not in ("ocr", "transcript", "translation", "text", "subtitles") or not art.path.is_file():
+            continue
+        try:
+            if needle in ProvenanceGuard._norm(read_text_file(art.path)):
+                return path
+        except E.ToolError:
+            continue
+    return None
+
+
 def _text_from_json(raw: str) -> str:
     """Transcript JSON artifacts carry the text under `text`; otherwise use the raw JSON."""
     try:

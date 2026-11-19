@@ -29,7 +29,7 @@ from ..languages import (
 from ..media import ASR_RATE, chunk_audio, concat_wavs, decode_pcm, encode_audio, probe, read_wav, wav_bytes
 from ..runtime import Artifact, RunContext, price_speak, price_transcribe, settle, sha256_bytes
 from ..textutil import extract_numbers, letters_only, pack_segments, similarity
-from .common import frame_untrusted, output_name, resolve_text
+from .common import frame_untrusted, output_name, quoted_from, resolve_text
 from .subtitles import render_srt
 from .translation import Unit, _translate_piece, check_target, verify_units
 
@@ -310,6 +310,7 @@ async def synthesize_speech(ctx: RunContext, a: SpeakIn) -> dict:
         raise E.ToolError(E.UNSUPPORTED_LANGUAGE, f"Indic-Speak cannot speak {name}.",
                           hint=f"Speech languages: {supported_list(SPEAK_LANGUAGES)}. Report the task as unsupported rather than substituting.")
     text, src_label = resolve_text(ctx, a.text, a.path)
+    lineage = src_label if src_label != "inline" else (quoted_from(ctx, text) or "inline")  # text copied from an artifact keeps its origin
     text = text.replace("#", " ").replace("*", " ").replace("|", " ")  # do not read Markdown syntax aloud
     share = script_matches_language(text, lang)
     if letters_only(text) and share < 0.6:
@@ -405,7 +406,7 @@ async def synthesize_speech(ctx: RunContext, a: SpeakIn) -> dict:
     dest = ctx.artifact_path(output_name(a.output_name, src_label, f"_{lang}_speech"), f".{a.format}")
     encode_audio(audio, dest, a.format, title=dest.stem, comment=label)
     ctx.register(Artifact(dest, "audio", "synthesize_speech", lang, f"indic-speak ({voice})", verification, notes + [label],
-                          depends_on=[src_label] if src_label in ctx.artifacts else [], origin=ctx.origin_of(src_label)))
+                          depends_on=[lineage] if lineage in ctx.artifacts else [], origin=ctx.origin_of(lineage)))
     return {"path": str(dest), "duration_s": round(duration, 1), "language": lang, "voice": voice, "style": style, "segments": len(segments),
             "characters": total_chars, "label": label, "notes": notes, "verification": verification,
             "segment_report": [{k: v for k, v in r.items() if k != "heard"} for r in seg_reports][:40]}

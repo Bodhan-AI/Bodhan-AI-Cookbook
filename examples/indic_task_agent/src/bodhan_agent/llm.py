@@ -136,7 +136,7 @@ def _json_objects(text: str):
 _FUNCTION_TAG = re.compile(r"<function[=\s]+\"?([\w.\-]+)\"?\s*>?")
 
 
-def _fallback_tool_call(content: str, known: set[str]) -> ToolCall | None:
+def _fallback_tool_call(content: str, known: set[str], schemas: dict[str, dict] | None = None) -> ToolCall | None:
     """Accept {"name": "...", "arguments": {...}} (or "tool"/"function") written as text, and the
     `<function=NAME>{...}</function>` form some open models produce."""
     for m in _FUNCTION_TAG.finditer(content or ""):
@@ -154,7 +154,16 @@ def _fallback_tool_call(content: str, known: set[str]) -> ToolCall | None:
         args, err = decode_arguments(obj.get("arguments") or obj.get("args") or obj.get("parameters") or fn.get("arguments") or {})
         if name in known and err is None:
             return ToolCall(f"fallback_{uuid.uuid4().hex[:8]}", name, args, json.dumps(args, ensure_ascii=False))
+        if not name and schemas:  # bare arguments, e.g. {"status": ..., "final_answer": ...}: the one tool they fit
+            fits = [n for n, sch in schemas.items() if _fits(obj, sch)]
+            if len(fits) == 1:
+                return ToolCall(f"fallback_{uuid.uuid4().hex[:8]}", fits[0], obj, json.dumps(obj, ensure_ascii=False))
     return None
+
+
+def _fits(obj: dict, schema: dict) -> bool:
+    props, required = set((schema or {}).get("properties", {})), set((schema or {}).get("required", []))
+    return bool(required) and required <= set(obj) <= props
 
 
 TEXT_PROTOCOL = ("You can call exactly one tool per reply. Reply with ONLY a JSON object, no other text: "
@@ -223,7 +232,7 @@ class PlannerLLM:
             known = {t["function"]["name"] for t in tools}
             try:
                 resp = await self._create(messages, tools, max_tokens)
-                return self._parse(resp, time.monotonic() - t0, known)
+                return self._parse(resp, time.monotonic() - t0, known, {t["function"]["name"]: t["function"].get("parameters", {}) for t in tools})
             except asyncio.CancelledError:  # cut off (e.g. by the run deadline) while a request was in flight: it may be billed
                 self.uncertain_attempts += 1
                 raise
@@ -284,7 +293,7 @@ class PlannerLLM:
         raise LLMError("This planner endpoint rejects both max_tokens and max_completion_tokens, so the cost of a priced "
                        "planner call cannot be bounded. Run without --llm-*-inr-per-1m prices, or use an endpoint that accepts an output cap.")
 
-    def _parse(self, resp: Any, latency: float, known: set[str]) -> LLMReply:
+    def _parse(self, resp: Any, latency: float, known: set[str], schemas: dict[str, dict] | None = None) -> LLMReply:
         choice = resp.choices[0]
         msg = choice.message
         usage = getattr(resp, "usage", None)
@@ -301,7 +310,7 @@ class PlannerLLM:
         content = msg.content or ""
         fallback = False
         if not calls and content:
-            fb = _fallback_tool_call(content, known)
+            fb = _fallback_tool_call(content, known, schemas)
             if fb:
                 calls, fallback = [fb], True
         # Echo the provider's own non-standard fields back (e.g. reasoning_content, Gemini thought signatures in

@@ -128,3 +128,28 @@ async def test_a_plain_text_final_answer_is_not_lost(tmp_path):
     await run(args(tmp_path, "When does the library open?", [txt]), transport=FakeBodhan().transport, llm=PlannerLLM(client=chat, model="s"))
     out, rep, trace, md = read_outputs(tmp_path)
     assert rep["status"] == "completed" and "eight" in rep["final_answer"] and any(e["type"] == "finish_salvaged" for e in trace)
+
+
+def test_bare_finish_arguments_written_as_text_are_understood():
+    from bodhan_agent.llm import _fallback_tool_call
+    from bodhan_agent.loop import openai_tools
+
+    schemas = {t["function"]["name"]: t["function"]["parameters"] for t in openai_tools(None)}
+    text = '{\n  "status": "completed",\n  "final_answer": "The worksheet has been translated into Marathi."\n}'
+    call = _fallback_tool_call(text, set(schemas), schemas)
+    assert call is not None and call.name == "finish" and call.arguments["status"] == "completed"
+
+
+async def test_inline_text_copied_from_an_artifact_keeps_its_lineage(make_ctx, tmp_path):
+    from bodhan_mcp.registry import invoke
+    from bodhan_mcp.runtime import Artifact
+    from bodhan_mcp.tools import TOOL_BY_NAME
+
+    ctx = make_ctx(FakeBodhan())
+    ocr = ctx.artifacts_dir / "worksheet_ocr.md"
+    ocr.parent.mkdir(parents=True, exist_ok=True)
+    ocr.write_text("Worksheet 4: The planets of our solar system and their moons.", encoding="utf-8")
+    ctx.register(Artifact(ocr, "ocr", "ocr_document", "en", "indic-ocr", None, origin=["worksheet_photo.jpg"]))
+    r, err = await invoke(TOOL_BY_NAME["translate_text"], ctx, {"text": "Worksheet 4: The planets of our solar system and their moons.",
+                                                                "target_language": "mr"})
+    assert not err and ctx.artifacts[r["path"]].origin == ["worksheet_photo.jpg"]
