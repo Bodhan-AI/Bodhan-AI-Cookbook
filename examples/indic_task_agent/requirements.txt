@@ -1,4 +1,3 @@
-# Pin every dependency: name==version
 mcp==2.3.0
 openai==3.52.0
 httpx==0.28.1
