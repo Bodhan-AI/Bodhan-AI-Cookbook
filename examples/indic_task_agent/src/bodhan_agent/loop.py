@@ -38,7 +38,7 @@ from bodhan_mcp.tools import TOOL_BY_NAME, TOOLS
 from bodhan_mcp.tools.common import ProvenanceGuard
 
 from . import state as checkpoint
-from .llm import LLMError, PlannerLLM, ToolCall
+from .llm import ContextTooLong, LLMError, PlannerLLM, ToolCall
 from .prompts import SYSTEM_PROMPT, user_message
 from .trace import CURRENT_STEP, TraceWriter, summarize_result
 
@@ -47,12 +47,23 @@ VERIFIED_KINDS = {"translation", "audio", "subtitles"}
 OUTPUT_KINDS = VERIFIED_KINDS | {"text", "ocr", "transcript"}
 FINISH_STATUSES = ["completed", "partial", "failed", "unsupported"]
 MAX_TOOL_RESULT_CHARS = 7000
+CONTEXT_BYTES = 90_000  # about 24k tokens of English: older tool results are shortened beyond this (fits 32k-context planners)
+KEEP_RECENT_TOOL_RESULTS = 6
 LLM_COMPLETION_RESERVE = 4000  # completion tokens allowed per planner call when its price is known
 # Upper bound on a priced planner call's prompt tokens: byte-level BPE and byte-fallback tokenizers never make a token
 # smaller than one UTF-8 byte, so tokens <= bytes. Margins cover per-message special tokens and the provider's own
 # formatting of the tool list. (A character count is not a bound: one Indic character is 3 bytes and may be 3 tokens.)
 PROMPT_TOKENS_PER_MESSAGE = 16
 PROMPT_TOKENS_MARGIN = 1000
+
+
+def _without_nulls(value):
+    """null for an optional field means "not given" (many models send it); applied inside lists and objects too."""
+    if isinstance(value, dict):
+        return {k: _without_nulls(v) for k, v in value.items() if v is not None}
+    if isinstance(value, list):
+        return [_without_nulls(v) for v in value if v is not None]
+    return value
 
 
 def prompt_token_bound(messages: list[dict], tools: list[dict]) -> int:
@@ -228,7 +239,7 @@ class Agent:
         if pending:  # a turn interrupted before its results were recorded: run its calls again (completed paid work is cached)
             calls = [ToolCall(c["id"], c["name"], c["arguments"], c.get("raw_arguments", "{}"), c.get("parse_error")) for c in pending["calls"]]
             await self._execute_turn(calls, pending.get("rationale", ""))
-        nudges = 0
+        nudges = compactions = 0
         while self.outcome is None:
             self._save()
             limit = self._limit_reached()
@@ -238,6 +249,8 @@ class Agent:
             tools = openai_tools({"finish"} if last_step else None)
             if last_step:
                 self.messages.append({"role": "user", "content": "Only one step is left: call finish now with what you have (status partial if incomplete)."})
+            if self._compact():
+                self.trace.write({"type": "context_compacted", "step": self.steps, "reason": "conversation over the context budget"})
             est = self._llm_cost(prompt_token_bound(self.messages, tools), LLM_COMPLETION_RESERVE)
             if est is not None and not self.ctx.ledger.can_afford(est):  # priced planner: check before spending
                 return self._forced_stop(("budget_exhausted", f"Not enough budget left for another planner call (up to about ₹{est:.3f})."))
@@ -254,6 +267,14 @@ class Agent:
                 if est is not None and sent:
                     self._charge_uncertain_llm(est, sent, "timeout")
                 return self._forced_stop(("time_limit", f"Reached the {self.settings.max_seconds:.0f}s time limit during a planner call."))
+            except ContextTooLong as exc:
+                if compactions < 2 and self._compact(aggressive=True):
+                    compactions += 1
+                    self.trace.write({"type": "context_compacted", "step": self.steps, "reason": str(exc)[:200]})
+                    continue
+                sent = getattr(self.llm, "uncertain_attempts", 0)
+                self.trace.write({"type": "llm_error", "step": self.steps, "error": str(exc), "uncertain_attempts": sent})
+                return self._forced_stop(("llm_error", f"The planner LLM failed: {exc}"))
             except LLMError as exc:
                 sent = getattr(self.llm, "uncertain_attempts", 0)
                 if est is not None and sent:  # priced: failed attempts may have been billed; count them conservatively
@@ -277,6 +298,19 @@ class Agent:
                 nudges += 1
                 self.steps += 1
                 if nudges > 2:
+                    if reply.content.strip() and self.plan is not None:
+                        # The planner keeps answering in plain text: take that text as its final answer. The finish gate
+                        # still decides what may be called complete.
+                        usable = [str(a.path) for a in self.ctx.artifacts.values() if a.kind in OUTPUT_KINDS and self._usable(a)]
+                        salvage = ToolCall(f"salvaged_{self.steps}", "finish",
+                                           {"status": "completed", "final_answer": reply.content.strip(), "deliverables": usable},
+                                           json.dumps({"status": "completed"}))
+                        self.trace.write({"type": "finish_salvaged", "step": self.steps, "deliverables": usable})
+                        self.messages[-1] = {**self.messages[-1], "tool_calls": [{"id": salvage.id, "type": "function", "function":
+                                                                                     {"name": "finish", "arguments": salvage.raw_arguments}}]}
+                        await self._execute_turn([salvage], reply.content)
+                        if self.outcome is not None:
+                            return self.outcome
                     return self._forced_stop(("no_progress", "The planner stopped calling tools without finishing."))
                 self.messages.append({"role": "user", "content": "Continue by calling a tool, or call finish(...) to end the run."})
                 continue
@@ -354,7 +388,7 @@ class Agent:
         if call.parse_error:
             return self._control_error(call, f"Arguments are not valid JSON: {call.parse_error}. The previous plan (if any) is unchanged.")
         try:
-            plan = RecordPlanIn.model_validate(call.arguments)
+            plan = RecordPlanIn.model_validate(_without_nulls(call.arguments))
         except ValidationError as exc:
             return self._control_error(call, f"Invalid plan: {_validation_message(exc)}. The previous plan (if any) is unchanged.")
         texts = plan.steps + plan.assumptions + [x for d in plan.deliverables for x in (d.description, d.language or "", d.source or "")]
@@ -417,7 +451,7 @@ class Agent:
         if call.parse_error:
             return self._control_error(call, f"Arguments are not valid JSON: {call.parse_error}.")
         try:
-            a = FinishIn.model_validate(call.arguments)
+            a = FinishIn.model_validate(_without_nulls(call.arguments))
         except ValidationError as exc:
             return self._control_error(call, f"Invalid finish call: {_validation_message(exc)}.")
         status, answer = a.status, a.final_answer.strip()
@@ -653,6 +687,36 @@ class Agent:
     def _budget_view(self) -> dict:
         return {"max_cost_inr": self.settings.max_cost_inr, "prices": {"indic-transcribe": "₹0.10/min", "indic-translate": "₹0.20/10k output tokens",
                 "indic-speak": "₹6/10k chars", "indic-ocr": "₹0.20/page"}}
+
+    def _compact(self, aggressive: bool = False) -> bool:
+        """Keep the conversation inside small planner context windows: older tool results are replaced by a short
+        record (ok, error code, paths, verification status). Artifacts stay on disk and read_text can reopen them."""
+        size = len(json.dumps(self.messages, ensure_ascii=False).encode("utf-8"))
+        if size <= CONTEXT_BYTES and not aggressive:
+            return False
+        tool_msgs = [i for i, m in enumerate(self.messages) if m.get("role") == "tool"]
+        keep = set(tool_msgs[-(2 if aggressive else KEEP_RECENT_TOOL_RESULTS):])
+        changed = False
+        for i in tool_msgs:
+            content = self.messages[i].get("content") or ""
+            if i in keep or content.startswith('{"compacted"'):
+                continue
+            try:
+                r = json.loads(content)
+            except ValueError:
+                r = {}
+            small: dict[str, Any] = {"compacted": True, "ok": r.get("ok")}
+            for k in ("path", "transcript_path", "subtitles_path", "next_offset", "target_language", "language", "duration_s"):
+                if r.get(k) is not None:
+                    small[k] = r[k]
+            if isinstance(r.get("error"), dict):
+                small["error"] = r["error"].get("code")
+            if isinstance(r.get("verification"), dict):
+                small["verification"] = r["verification"].get("status")
+            small["note"] = "older result shortened to save context; open artifacts with read_text if needed"
+            self.messages[i] = {**self.messages[i], "content": json.dumps(small, ensure_ascii=False)}
+            changed = True
+        return changed
 
     def _charge_uncertain_llm(self, est: float, attempts: int, why: str) -> None:
         """Priced planner attempts that got no usable reply may still have been billed: charge each at the call's estimate."""

@@ -217,7 +217,7 @@ class ScriptedChat:
     def chat(self):
         return self
 
-    async def create(self, *, model: str, messages: list[dict], tools: list[dict], tool_choice: str, **extra):
+    async def create(self, *, model: str, messages: list[dict], tools: list[dict] | None = None, tool_choice: str | None = None, **extra):
         self.extra = extra
         self.seen.append([dict(m) for m in messages])
         step = self.script.pop(0) if self.script else [("finish", {"status": "failed", "final_answer": "script exhausted"})]

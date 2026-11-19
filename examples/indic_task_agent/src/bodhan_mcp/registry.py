@@ -94,8 +94,11 @@ async def invoke(spec: ToolSpec, ctx: RunContext, arguments: dict[str, Any] | No
     try:
         if arguments is not None and not isinstance(arguments, dict):
             raise E.ToolError(E.INVALID_ARGUMENT, "Arguments must be a JSON object.")
+        # Many models send null for an optional argument they mean to leave out; treat it as "not given"
+        # (a required argument sent as null is still reported as missing).
+        given = {k: v for k, v in (arguments or {}).items() if v is not None}
         try:
-            args = spec.input_model.model_validate(arguments or {})
+            args = spec.input_model.model_validate(given)
         except ValidationError as exc:
             msg, problems = _validation_message(exc)
             raise E.ToolError(E.INVALID_ARGUMENT, msg, hint=f"See the input schema of {spec.name}.", details={"problems": problems}) from exc

@@ -90,7 +90,8 @@ def build_report(agent: Any, out: Path, started_at: datetime, elapsed: float) ->
         "verification": {"results": verifications, "unverified_translations_or_audio": unverified,
                          "all_checked": not unverified},
         "cost": ledger,
-        "llm": {"model": getattr(agent.llm, "model", None), "endpoint_host": llm_host},
+        "llm": {"model": getattr(agent.llm, "model", None), "endpoint_host": llm_host,
+                "adaptations": list(getattr(agent.llm, "notes", []) or [])},  # e.g. tool_choice dropped, text protocol used
         "quality_targets": {
             "latency": {"kind": "multi-step" if multi else "single-step", "target_s": target, "actual_s": round(elapsed, 1),
                         "met": elapsed <= target,
