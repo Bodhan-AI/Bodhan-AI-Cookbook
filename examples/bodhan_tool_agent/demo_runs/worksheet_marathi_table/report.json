@@ -1,0 +1,141 @@
+{
+  "status": "completed",
+  "exit_code": 0,
+  "stop_reason": "finish",
+  "task": "Translate this worksheet into Marathi and keep the table",
+  "answer": "The worksheet image has been successfully extracted via OCR and translated into Marathi while fully preserving the markdown table structure and formatting.",
+  "steps": 5,
+  "tool_calls": 3,
+  "tool_calls_by_name": {
+    "ocr_document": 1,
+    "translate_text": 1,
+    "verify_translation": 1
+  },
+  "verification": [
+    {
+      "target": "outputs\\worksheet_marathi_table\\work\\worksheet.ocr.cb00d208.mr.60c13b8e.md",
+      "kind": "translation",
+      "passed": true,
+      "by": "verify_translation",
+      "issues": [],
+      "details": {}
+    }
+  ],
+  "verification_failures": [],
+  "total_cost_inr": 0.0031,
+  "cost_by_tool_inr": {
+    "ocr_document": 0.0,
+    "translate_text": 0.0031,
+    "verify_translation": 0.0
+  },
+  "llm": {
+    "model": "gemini-3.5-flash-lite",
+    "calls": 5,
+    "prompt_tokens": 35401,
+    "completion_tokens": 509
+  },
+  "elapsed_s": 11.58,
+  "artifacts": [
+    {
+      "name": "worksheet.ocr.cb00d208.mr.60c13b8e.md",
+      "rel_path": "artifacts/worksheet.ocr.cb00d208.mr.60c13b8e.md",
+      "source_path": "outputs\\worksheet_marathi_table\\work\\worksheet.ocr.cb00d208.mr.60c13b8e.md",
+      "kind": "translation",
+      "verified": true,
+      "verification": {
+        "target": "outputs\\worksheet_marathi_table\\work\\worksheet.ocr.cb00d208.mr.60c13b8e.md",
+        "kind": "translation",
+        "passed": true,
+        "by": "verify_translation",
+        "issues": [],
+        "details": {}
+      }
+    }
+  ],
+  "assumptions": [
+    "The input image worksheet.png is in English and needs to be extracted via OCR and then translated into Marathi while keeping the table structure."
+  ],
+  "plan": {
+    "goal": "Translate the worksheet image into Marathi and keep the table structure.",
+    "interpretation": "OCR the image to markdown, then translate the markdown to Marathi using translate_text.",
+    "assumptions": [
+      "The input image worksheet.png is in English and needs to be extracted via OCR and then translated into Marathi while keeping the table structure."
+    ],
+    "input_languages": [
+      "en"
+    ],
+    "target_languages": [
+      "mr"
+    ],
+    "feasibility": "possible",
+    "feasibility_reason": "All tools for OCR and translation are available and within budget.",
+    "steps": [
+      "ocr_document(path='sample_data\\\\worksheet.png')",
+      "translate_text(path=<markdown_path>, target_language='mr')"
+    ],
+    "expected_outputs": [
+      "Marathi translation of the worksheet in Markdown format including tables"
+    ],
+    "estimated_cost_inr": 0.4
+  },
+  "injection_warnings": [],
+  "inputs": [
+    {
+      "path": "sample_data\\worksheet.png",
+      "exists": true,
+      "cost_inr": 0.0,
+      "calls": 0,
+      "cache_hits": 0,
+      "warnings": [],
+      "kind": "image",
+      "mime": "image/png",
+      "size_bytes": 1374939,
+      "duration_s": null,
+      "has_audio": null,
+      "pages": null,
+      "width": 1240,
+      "height": 1500,
+      "chars": null,
+      "detected_language": null,
+      "estimates": {
+        "transcribe_inr": null,
+        "ocr_inr": 0.2,
+        "speak_inr_per_1k_chars": 0.6,
+        "speech_seconds_estimate": null,
+        "translate_inr": null
+      },
+      "entries": null,
+      "suggested_tools": [
+        "ocr_document"
+      ]
+    }
+  ],
+  "notes": [],
+  "budget": {
+    "max_steps": 30,
+    "max_cost_inr": 20.0,
+    "exhausted": null
+  },
+  "quality_targets": {
+    "latency": {
+      "met": true,
+      "detail": "11.6s against 300s (multi-step task)"
+    },
+    "verification": {
+      "met": true,
+      "detail": "all generated audio/translations passed checks"
+    },
+    "budget": {
+      "met": true,
+      "detail": "spent Rs 0.0031 of Rs 20.00"
+    },
+    "no_waste": {
+      "met": true,
+      "detail": "0 repeated paid call(s) with identical arguments"
+    },
+    "honest_failure": {
+      "met": true,
+      "detail": "impossible tasks produce no artifacts"
+    }
+  }
+}

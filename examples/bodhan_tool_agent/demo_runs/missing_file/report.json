@@ -1,0 +1,79 @@
+{
+  "status": "impossible",
+  "exit_code": 2,
+  "stop_reason": "finish",
+  "task": "Transcribe this Gujarati voice note",
+  "answer": "The requested input file (sample_data/does_not_exist.wav) does not exist, so the task cannot be completed.",
+  "steps": 2,
+  "tool_calls": 0,
+  "tool_calls_by_name": {},
+  "verification": [],
+  "verification_failures": [],
+  "total_cost_inr": 0.0,
+  "cost_by_tool_inr": {},
+  "llm": {
+    "model": "gemini-3.5-flash-lite",
+    "calls": 2,
+    "prompt_tokens": 12147,
+    "completion_tokens": 191
+  },
+  "elapsed_s": 3.68,
+  "artifacts": [],
+  "assumptions": [
+    "The input file sample_data/does_not_exist.wav does not exist.",
+    "The input file does not exist on disk."
+  ],
+  "plan": {
+    "goal": "Transcribe a Gujarati voice note from a non-existent file.",
+    "assumptions": [
+      "The input file sample_data/does_not_exist.wav does not exist."
+    ],
+    "input_languages": [
+      "gu"
+    ],
+    "target_languages": [
+      "gu"
+    ],
+    "feasibility": "impossible",
+    "feasibility_reason": "The requested input file sample_data/does_not_exist.wav does not exist, so the task cannot be performed.",
+    "steps": [],
+    "expected_outputs": [],
+    "estimated_cost_inr": 0
+  },
+  "injection_warnings": [],
+  "inputs": [
+    {
+      "path": "sample_data/does_not_exist.wav",
+      "exists": false,
+      "error": "file_not_found: this input path does not exist"
+    }
+  ],
+  "notes": [],
+  "budget": {
+    "max_steps": 30,
+    "max_cost_inr": 2.0,
+    "exhausted": null
+  },
+  "quality_targets": {
+    "latency": {
+      "met": true,
+      "detail": "3.7s against 30s (single-step task)"
+    },
+    "verification": {
+      "met": true,
+      "detail": "all generated audio/translations passed checks"
+    },
+    "budget": {
+      "met": true,
+      "detail": "spent Rs 0.0000 of Rs 2.00"
+    },
+    "no_waste": {
+      "met": true,
+      "detail": "0 repeated paid call(s) with identical arguments"
+    },
+    "honest_failure": {
+      "met": true,
+      "detail": "impossible tasks produce no artifacts"
+    }
+  }
+}

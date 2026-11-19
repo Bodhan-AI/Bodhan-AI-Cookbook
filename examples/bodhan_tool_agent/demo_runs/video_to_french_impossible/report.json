@@ -1,0 +1,104 @@
+{
+  "status": "impossible",
+  "exit_code": 2,
+  "stop_reason": "finish",
+  "task": "Translate this video into French",
+  "answer": "I cannot complete this task because French is not a supported language in the Bodhan AI system. The supported languages are English and 22 Indian languages.",
+  "steps": 2,
+  "tool_calls": 0,
+  "tool_calls_by_name": {},
+  "verification": [],
+  "verification_failures": [],
+  "total_cost_inr": 0.0,
+  "cost_by_tool_inr": {},
+  "llm": {
+    "model": "gemini-3.5-flash-lite",
+    "calls": 2,
+    "prompt_tokens": 12605,
+    "completion_tokens": 179
+  },
+  "elapsed_s": 3.64,
+  "artifacts": [],
+  "assumptions": [
+    "French is requested as the target language"
+  ],
+  "plan": {
+    "goal": "Translate the input video into French.",
+    "assumptions": [
+      "French is requested as the target language"
+    ],
+    "input_languages": [
+      "en"
+    ],
+    "target_languages": [
+      "fr"
+    ],
+    "feasibility": "impossible",
+    "feasibility_reason": "French is not a supported language in the Bodhan AI system (supported languages are English and 22 Indian languages).",
+    "steps": [
+      "finish"
+    ],
+    "expected_outputs": [],
+    "estimated_cost_inr": 0.01
+  },
+  "injection_warnings": [],
+  "inputs": [
+    {
+      "path": "sample_data\\video_short.mp4",
+      "exists": true,
+      "cost_inr": 0.0,
+      "calls": 0,
+      "cache_hits": 0,
+      "warnings": [],
+      "kind": "video",
+      "mime": "video/mp4",
+      "size_bytes": 68083,
+      "duration_s": 6.0,
+      "has_audio": true,
+      "pages": null,
+      "width": 640,
+      "height": 360,
+      "chars": null,
+      "detected_language": null,
+      "estimates": {
+        "transcribe_inr": 0.01,
+        "ocr_inr": null,
+        "speak_inr_per_1k_chars": 0.6,
+        "speech_seconds_estimate": null,
+        "translate_inr": null
+      },
+      "entries": null,
+      "suggested_tools": [
+        "transcribe_audio"
+      ]
+    }
+  ],
+  "notes": [],
+  "budget": {
+    "max_steps": 30,
+    "max_cost_inr": 2.0,
+    "exhausted": null
+  },
+  "quality_targets": {
+    "latency": {
+      "met": true,
+      "detail": "3.6s against 30s (single-step task)"
+    },
+    "verification": {
+      "met": true,
+      "detail": "all generated audio/translations passed checks"
+    },
+    "budget": {
+      "met": true,
+      "detail": "spent Rs 0.0000 of Rs 2.00"
+    },
+    "no_waste": {
+      "met": true,
+      "detail": "0 repeated paid call(s) with identical arguments"
+    },
+    "honest_failure": {
+      "met": true,
+      "detail": "impossible tasks produce no artifacts"
+    }
+  }
+}
