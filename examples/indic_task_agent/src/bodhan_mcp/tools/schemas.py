@@ -67,7 +67,7 @@ FIELDS: dict[str, dict[str, Any]] = {
         "transcribe": B, "translate": B, "speak": B}}},
     "read_text": {"path": S, "total_chars": I, "offset": I, "returned_chars": I, "next_offset": {"type": ["integer", "null"]}, "language": DETECTION,
                   "content_kind": {"const": "untrusted_data"}, "source": S, "note": S, "text": S, "injection_warning": S},
-    "write_text": {"path": S, "chars": I, "embedded_artifacts": STRS},
+    "write_text": {"path": S, "chars": I, "embedded_artifacts": STRS, "source_paths": STRS},
     "list_voices": {"language": S, "language_name": S, "voices": {"type": "object"}, "styles": STRS, "note": S},
 }
 

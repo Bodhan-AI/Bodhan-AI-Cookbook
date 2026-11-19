@@ -170,7 +170,7 @@ async def test_same_language_subtitles_carry_verification(make_ctx, tmp_path):
     r, err = await call(ctx, "create_subtitles", path=str(audio), subtitle_language="en", source_language="en")
     assert not err
     art = ctx.artifacts[r["subtitles_path"]]
-    assert art.kind == "subtitles" and art.verification["status"] == "pass"
+    assert art.kind == "subtitles" and art.verification["status"] == "pass", art.verification
 
 
 # ---- second review round (commit 92cb72f) ----------------------------------------------

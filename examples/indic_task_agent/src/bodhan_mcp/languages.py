@@ -163,6 +163,10 @@ _ENGLISH_HINTS = frozenset("the a an and or of to in on at for with from by is a
                            "we you he she i my your our his her its which who what when where why how all any each about after also "
                            "because before into more most only other over some such them through under very just may must "
                            "every both many much up out here now yes get make like time per".split())
+# Hint words that are also common words of French, Italian/Spanish or romanized Hindi ("a", "on", "as", "is", "to"):
+# alone they do not show that a text is English.
+_ENGLISH_AMBIGUOUS = frozenset("a an on as or in to is do so no per but i he".split())
+_ENGLISH_STRONG = _ENGLISH_HINTS - _ENGLISH_AMBIGUOUS
 
 _DEVANAGARI_SUFFIXES = {
     "hi": ("ेगा", "ेगी", "ेंगे", "ता है", "ती है", "ाएगा", "ियों", "ाओं"),
@@ -227,9 +231,12 @@ def detect_language(text: str) -> LanguageGuess:
         return LanguageGuess(None, script, share, [], f"script {script} is not used by any Bodhan-supported language")
     if script == "Latin":
         # Latin script does not identify a language: English, romanized Hindi and French look alike.
-        en_words = sum(1 for w in text.lower().split() if w.strip(".,;:!?\"'()") in _ENGLISH_HINTS)
+        tokens = [w.strip(".,;:!?\"'()") for w in text.lower().split()]
+        en_words = sum(1 for w in tokens if w in _ENGLISH_HINTS)
         n_words = sum(1 for w in text.split() if any(ch.isalpha() for ch in w))  # table pipes and dashes are not words
-        if en_words >= max(2, n_words // 8):  # one shared short word ("a", "on") is not evidence
+        # "On a un chat et on a un chien" has four hint words, all shared with French: they count only next to an
+        # unambiguously English word.
+        if any(w in _ENGLISH_STRONG for w in tokens) and en_words >= max(2, n_words // 8):
             return LanguageGuess("en", script, share * 0.9, candidates, "Latin script with English function words")
         return LanguageGuess(None, script, share * 0.3, candidates,
                              "Latin script without English function words: could be romanized Indian-language text or a non-Indian language")

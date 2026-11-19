@@ -231,18 +231,24 @@ class Agent:
                                  LLM_COMPLETION_RESERVE)
             if est is not None and not self.ctx.ledger.can_afford(est):  # priced planner: check before spending
                 return self._forced_stop(("budget_exhausted", f"Not enough budget left for another planner call (up to about ₹{est:.3f})."))
+            # priced: a retry is sent only if the budget still covers it after the attempts that may already have been billed
+            can_retry = (lambda e=est: self.ctx.ledger.can_afford(e * (self.llm.uncertain_attempts + 1))) if est is not None else None
             try:
-                reply = await asyncio.wait_for(self.llm.chat(self.messages, tools, max_tokens=LLM_COMPLETION_RESERVE if est is not None else None),
-                                               timeout=max(0.0, self._time_left()))
+                reply = await asyncio.wait_for(self.llm.chat(self.messages, tools, max_tokens=LLM_COMPLETION_RESERVE if est is not None else None,
+                                                             can_retry=can_retry), timeout=max(0.0, self._time_left()))
             except TimeoutError:
+                if est is not None:  # the cut-off attempt, and failed ones before it, may have been billed
+                    self._charge_uncertain_llm(est, getattr(self.llm, "uncertain_attempts", 0) + 1, "timeout")
                 return self._forced_stop(("time_limit", f"Reached the {self.settings.max_seconds:.0f}s time limit during a planner call."))
             except LLMError as exc:
                 sent = getattr(self.llm, "uncertain_attempts", 0)
                 if est is not None and sent:  # priced: failed attempts may have been billed; count them conservatively
-                    self.ctx.ledger.add_llm(0, 0, est * sent)
+                    self.ctx.ledger.add_llm(0, 0, est * sent, calls=0)
                 self.trace.write({"type": "llm_error", "step": self.steps, "error": str(exc), "uncertain_attempts": sent,
                                   "cost_inr": round(est * sent, 5) if est is not None and sent else None})
                 return self._forced_stop(("llm_error", f"The planner LLM failed: {exc}"))
+            if est is not None and getattr(self.llm, "uncertain_attempts", 0):  # failed attempts before this success
+                self._charge_uncertain_llm(est, self.llm.uncertain_attempts, "retried")
             cost = self._llm_cost(reply.prompt_tokens, reply.completion_tokens)
             self.ctx.ledger.add_llm(reply.prompt_tokens, reply.completion_tokens, cost)
             self.trace.write({"type": "llm_call", "step": self.steps, "latency_s": round(reply.latency_s, 2), "prompt_tokens": reply.prompt_tokens,
@@ -590,6 +596,11 @@ class Agent:
     def _budget_view(self) -> dict:
         return {"max_cost_inr": self.settings.max_cost_inr, "prices": {"indic-transcribe": "₹0.10/min", "indic-translate": "₹0.20/10k output tokens",
                 "indic-speak": "₹6/10k chars", "indic-ocr": "₹0.20/page"}}
+
+    def _charge_uncertain_llm(self, est: float, attempts: int, why: str) -> None:
+        """Priced planner attempts that got no usable reply may still have been billed: charge each at the call's estimate."""
+        self.ctx.ledger.add_llm(0, 0, est * attempts, calls=0)
+        self.trace.write({"type": "llm_uncertain", "step": self.steps, "reason": why, "attempts": attempts, "cost_inr": round(est * attempts, 5)})
 
     def _llm_cost(self, prompt: int, completion: int) -> float | None:
         s = self.settings

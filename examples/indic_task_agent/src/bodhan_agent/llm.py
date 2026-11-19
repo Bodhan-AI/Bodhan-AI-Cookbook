@@ -14,6 +14,7 @@ import os
 import re
 import time
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -94,13 +95,18 @@ class PlannerLLM:
         self._rejected_caps: set[str] = set()
         self.uncertain_attempts = 0
 
-    async def chat(self, messages: list[dict[str, Any]], tools: list[dict[str, Any]], max_tokens: int | None = None) -> LLMReply:
+    async def chat(self, messages: list[dict[str, Any]], tools: list[dict[str, Any]], max_tokens: int | None = None,
+                   can_retry: Callable[[], bool] | None = None) -> LLMReply:
         """`max_tokens` is sent only when the planner is priced, to bound its spend. Providers that
         reject it are tried with `max_completion_tokens`; if both are rejected, a priced call is refused
-        (its cost could not be bounded) rather than sent without a cap."""
+        (its cost could not be bounded) rather than sent without a cap. `can_retry` is asked before each
+        retry, so a priced planner never retries beyond the budget."""
         last_exc: Exception | None = None
         self.uncertain_attempts = 0  # attempts that failed after the request may have reached the provider
         for attempt in range(1, self.max_attempts + 1):
+            if attempt > 1 and can_retry is not None and not can_retry():
+                raise LLMError(f"Not retrying the planner call: the budget cannot cover another attempt "
+                               f"(last error: {type(last_exc).__name__}: {str(last_exc)[:200]})")
             t0 = time.monotonic()
             try:
                 resp = await self._create(messages, tools, max_tokens)

@@ -200,6 +200,9 @@ class WriteTextIn(_Strict):
     name: str = Field(description="File name for the artifact, e.g. 'summary_en.md' or 'telugu_clips.md'.")
     content: str = Field(description="English text or Markdown to save. May embed earlier artifacts with {{artifact:<path>}}, which is replaced by that file's content.")
     language: str = Field("en", description="Language of `content` you wrote. Must be 'en': write English and use translate_text for Indian languages.")
+    source_paths: list[str] = Field(default_factory=list, max_length=50,
+                                    description="Files this text is based on (e.g. the English translation you summarised). Recorded as its "
+                                                "sources, so outputs made from it stay linked to the original input.")
 
 
 _EMBED = re.compile(r"\{\{artifact:([^}]+)\}\}")
@@ -223,6 +226,7 @@ async def write_text(ctx: RunContext, a: WriteTextIn) -> dict:
         return read_text_file(p).strip()
 
     final = _EMBED.sub(expand, a.content)
+    sources = [str(ctx.resolve_input(sp)) for sp in a.source_paths]  # must exist inside the sandbox, like any input
     suffix = ".json" if a.name.lower().endswith(".json") else (".txt" if a.name.lower().endswith(".txt") else ".md")
     if suffix == ".json":
         if embedded:
@@ -237,8 +241,9 @@ async def write_text(ctx: RunContext, a: WriteTextIn) -> dict:
     dest = ctx.artifact_path(a.name, suffix)
     dest.write_text(final, encoding="utf-8")
     ctx.register(Artifact(dest, "text", "write_text", "en", "planner (English)" + (" + embedded artifacts" if embedded else ""), None,
-                          depends_on=embedded, origin=sorted({o for e in embedded for o in ctx.origin_of(e)})))
-    return {"path": str(dest), "chars": len(final), "embedded_artifacts": embedded}
+                          depends_on=sorted(set(embedded) | {s for s in sources if s in ctx.artifacts}),
+                          origin=sorted({o for e in embedded + sources for o in ctx.origin_of(e)})))
+    return {"path": str(dest), "chars": len(final), "embedded_artifacts": embedded, "source_paths": sources}
 
 
 # ---------------------------------------------------------------------------

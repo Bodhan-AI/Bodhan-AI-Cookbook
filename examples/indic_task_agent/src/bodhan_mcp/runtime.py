@@ -162,8 +162,9 @@ class CostLedger:
     def release(self, r: Reservation) -> None:
         self._close(r)
 
-    def add_llm(self, prompt_tokens: int, completion_tokens: int, cost: float | None) -> None:
-        self.llm_calls += 1
+    def add_llm(self, prompt_tokens: int, completion_tokens: int, cost: float | None, calls: int = 1) -> None:
+        """`calls=0` charges planner attempts that failed after sending (no reply, possibly billed)."""
+        self.llm_calls += calls
         self.llm_prompt_tokens += prompt_tokens
         self.llm_completion_tokens += completion_tokens
         if cost is not None:
