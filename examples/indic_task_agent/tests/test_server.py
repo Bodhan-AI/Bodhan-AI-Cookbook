@@ -113,3 +113,11 @@ def test_two_prompts_are_listed_and_render_without_indic_text():
     got = run(lambda c: c.get_prompt("document_to_audio", {"input_path": "/x/a.pdf", "target_language": "ta"}))
     body = " ".join(m.content.text for m in got.messages)
     assert "ocr_document" in body and "speak_text" in body
+
+
+def test_every_parameter_is_described_and_every_tool_has_hints():
+    for t in run(lambda c: c.list_tools()).tools:
+        schema = getattr(t, "input_schema", None) or t.inputSchema
+        undocumented = [k for k, v in schema["properties"].items() if not v.get("description")]
+        assert undocumented == [], f"{t.name}: {undocumented}"
+        assert t.title and t.annotations is not None, t.name

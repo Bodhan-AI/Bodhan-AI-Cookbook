@@ -2,11 +2,15 @@
 from __future__ import annotations
 
 import json
+from typing import Annotated
 
 from mcp.server.mcpserver import MCPServer
+from mcp.types import ToolAnnotations
+from pydantic import Field
 
 from .core import catalog, costs
 from .core.errors import tool_guard
+from .core.schemas import LanguageGuess, MediaInventory, OcrDocument, Speech, Transcript, Translation
 from .tools.ocr import ocr_document
 from .tools.probe import detect_language, probe_media
 from .tools.speak import speak_text
@@ -24,44 +28,84 @@ mcp = MCPServer(
 )
 
 
-@mcp.tool(name="probe_media")
+FREE = ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=False)
+PAID = ToolAnnotations(read_only_hint=False, destructive_hint=False, idempotent_hint=True, open_world_hint=True)
+
+OutDir = Annotated[str | None, Field(description="Folder for the output file. Defaults to .bodhan_out in the working directory. Created if missing.")]
+MaxCost = Annotated[float | None, Field(description="Refuse before any request if the estimated cost in rupees exceeds this. Omit for no cap.")]
+Force = Annotated[bool, Field(description="Ignore the result cache and pay for a fresh call. Leave false unless the cached output was wrong.")]
+
+
+@mcp.tool(name="probe_media", title="Inspect media files", annotations=FREE)
 @tool_guard
-def probe_media_tool(paths: list[str]):
+def probe_media_tool(paths: Annotated[list[str], Field(description="File or folder paths to inspect (a folder is read one level deep). Absolute or relative to the server's working directory.")]) -> MediaInventory:
     """Inspect audio, video, image, PDF and text files and report what they are, how long they are and how many pages they hold, so a caller can plan before paying for anything. Handles batches and directories (one level). Detects the script of text files and estimates transcription cost. Free: never calls a model."""
     return probe_media(paths)
 
 
-@mcp.tool(name="detect_language")
+@mcp.tool(name="detect_language", title="Detect language of a text file", annotations=FREE)
 @tool_guard
-def detect_language_tool(text_path: str):
+def detect_language_tool(text_path: Annotated[str, Field(description="Path to a UTF-8 text file whose language you want identified.")]) -> LanguageGuess:
     """Identify the language of a text file from its writing system. Free and local. Returns a confident language only when the script is unambiguous; for Devanagari and other shared scripts it returns candidates and low confidence instead of guessing."""
     return detect_language(text_path)
 
 
-@mcp.tool(name="transcribe_audio")
+@mcp.tool(name="transcribe_audio", title="Transcribe speech (Indic-Transcribe)", annotations=PAID)
 @tool_guard
-def transcribe_audio_tool(audio_path: str, language: str | None = None, out_dir: str | None = None, max_cost_inr: float | None = None, force: bool = False):
+def transcribe_audio_tool(
+    audio_path: Annotated[str, Field(description="Path to an audio file or a video with an audio track.")],
+    language: Annotated[str | None, Field(description="Spoken language code, e.g. hi, ta, te. Omit to auto-detect (recommended when unsure). See bodhan://languages.")] = None,
+    out_dir: OutDir = None,
+    max_cost_inr: MaxCost = None,
+    force: Force = False,
+) -> Transcript:
     """Transcribe speech to a text file. Accepts WAV/FLAC/OGG/MP3, the containers the API refuses (M4A, AAC, WebM, AMR), and any video with an audio track. Long recordings are cut at natural pauses into windows of at most 30 seconds and merged, so any length works in one call. Returns the transcript path, per-window timestamps and a locally detected language. Omit `language` to let the model auto-detect."""
     return transcribe_audio(audio_path, language, out_dir, max_cost_inr, force)
 
 
-@mcp.tool(name="ocr_document")
+@mcp.tool(name="ocr_document", title="Extract text from images and scans (Indic-OCR)", annotations=PAID)
 @tool_guard
-def ocr_document_tool(input_path: str, pages: str | None = None, table_format: str = "html", dpi: int = 300, max_tokens: int = 2048, out_dir: str | None = None, max_cost_inr: float | None = None, force: bool = False):
+def ocr_document_tool(
+    input_path: Annotated[str, Field(description="Path to an image (PNG, JPEG, WebP) or a PDF.")],
+    pages: Annotated[str | None, Field(description='PDF pages to read, 1-based, e.g. "1-4" or "2,5". Omit for every page.')] = None,
+    table_format: Annotated[str, Field(description="How tables are written: 'html' (keeps merged cells) or 'markdown'.")] = "html",
+    dpi: Annotated[int, Field(description="Resolution used to render PDF pages. 300 suits print; raise only for tiny text.")] = 300,
+    max_tokens: Annotated[int, Field(description="Starting output ceiling per page. The tool raises it itself if a page overflows.")] = 2048,
+    out_dir: OutDir = None,
+    max_cost_inr: MaxCost = None,
+    force: Force = False,
+) -> OcrDocument:
     """Extract text and tables from an image or a scanned multi-page PDF into a Markdown file. Pages are rendered and sent one at a time, so any page count works in one call. Headings are rebuilt from layout labels, page breaks marked with ---, tables kept as HTML (or Markdown). `pages` selects pages ("1-4", "2,5"). Returns Markdown and layout-JSON paths."""
     return ocr_document(input_path, pages, table_format, dpi, max_tokens, out_dir, max_cost_inr, force)
 
 
-@mcp.tool(name="translate_text")
+@mcp.tool(name="translate_text", title="Translate a text file (Indic-Translate)", annotations=PAID)
 @tool_guard
-def translate_text_tool(source_path: str, target_language: str, script: str = "native", out_dir: str | None = None, max_cost_inr: float | None = None, force: bool = False):
+def translate_text_tool(
+    source_path: Annotated[str, Field(description="Path to a UTF-8 text or Markdown file. The source language is detected by the model; you do not pass it.")],
+    target_language: Annotated[str, Field(description="Target language code such as hi, ta, mr, bn, en. Unsupported targets (e.g. fr) are refused before any request. See bodhan://languages.")],
+    script: Annotated[str, Field(description="Script for languages written in more than one: 'native' (default), or a variant code like ks-Deva, sd-Arab, mni-Beng.")] = "native",
+    out_dir: OutDir = None,
+    max_cost_inr: MaxCost = None,
+    force: Force = False,
+) -> Translation:
     """Translate a UTF-8 text or Markdown file into one of Bodhan's 23 supported languages (26 codes: as, bn, brx, doi, en, gu, hi, kn, kok, ks, ks-Deva, mai, ml, mni, mni-Beng, mr, ne, or, pa, sa, sat, sd, sd-Arab, ta, te, ur). The whole document is sent when it fits, preserving headings, lists and tables; longer documents split only at heading and page boundaries. Writes the translation to a file and returns its path. Rejects unsupported targets (e.g. French) before any request."""
     return translate_text(source_path, target_language, script, out_dir, max_cost_inr, force)
 
 
-@mcp.tool(name="speak_text")
+@mcp.tool(name="speak_text", title="Speak a text file (Indic-Speak)", annotations=PAID)
 @tool_guard
-def speak_text_tool(text_path: str, language: str, voice: str | None = None, gender: str | None = None, style: str | None = None, format: str = "wav", out_dir: str | None = None, max_cost_inr: float | None = None, force: bool = False):
+def speak_text_tool(
+    text_path: Annotated[str, Field(description="Path to a UTF-8 text file written in the language to speak.")],
+    language: Annotated[str, Field(description="Language code of the text, e.g. ta, hi, bn. See bodhan://languages.")],
+    voice: Annotated[str | None, Field(description="Exact voice name from bodhan://voices. Overrides gender.")] = None,
+    gender: Annotated[str | None, Field(description="'female' or 'male'; picks that language's voice when no voice is given.")] = None,
+    style: Annotated[str | None, Field(description="Speaking style from the fixed list in bodhan://voices. Omit for the default.")] = None,
+    format: Annotated[str, Field(description="Output audio format: 'wav' or 'mp3'.")] = "wav",
+    out_dir: OutDir = None,
+    max_cost_inr: MaxCost = None,
+    force: Force = False,
+) -> Speech:
     """Speak a UTF-8 text file as a single audio file in one of Bodhan's 23 synthesis languages. Voice is optional (name, or gender female/male, or the language default); any voice can read any language. Long text is split into sentence groups, synthesised, checked for duration and joined, so any length works. Returns the audio path, duration and cost. Output is AI-generated (Indic-Speak)."""
     return speak_text(text_path, language, voice, gender, style, format, out_dir, max_cost_inr, force)
 

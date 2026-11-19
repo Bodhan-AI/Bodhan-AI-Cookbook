@@ -2,6 +2,10 @@
 
 > An MCP server exposing Bodhan's four Indic models as tools, plus a budget-aware CLI agent that plans, runs and verifies multi-step language tasks.
 
+**Demo video (5 min or less):** https://drive.google.com/file/d/1j30R06h0ifynZ_dNF4yjD3bEzZQi8ccr/view?usp=sharing
+
+**Docs:** [architecture diagram](docs/architecture.md) · [agent flow chart](docs/agent-flow.md) · [design notes](docs/design-notes.md)
+
 ## Setup
 
 Needs Python 3.11+ and **ffmpeg** (with ffprobe) on `PATH`; the Dockerfile installs it.
@@ -13,7 +17,7 @@ pip install -r requirements.txt && pip install --no-deps -e .   # or: uv sync
 cp .env.example .env     # then fill in the keys; .env is gitignored
 ```
 
-`.env` holds the four per-model Bodhan keys (`BODHAN_TRANSCRIBE_KEY`, `BODHAN_TRANSLATE_KEY`, `BODHAN_SPEAK_KEY`, `BODHAN_OCR_KEY`; `BODHAN_API_KEY` is a shared fallback) and the planner's `LLM_BASE_URL`, `LLM_MODEL`, `LLM_API_KEY` (any OpenAI-compatible endpoint). The LLM never reads or writes Indic text.
+`.env` holds the four per-model Bodhan keys (`BODHAN_TRANSCRIBE_KEY`, `BODHAN_TRANSLATE_KEY`, `BODHAN_SPEAK_KEY`, `BODHAN_OCR_KEY`; `BODHAN_API_KEY` is a shared fallback) and the planner's `LLM_BASE_URL`, `LLM_MODEL`, `LLM_API_KEY` (any OpenAI-compatible endpoint; tested with `glm-5.3-flash`, plain JSON replies, no tool calling or provider-only features). The LLM never reads or writes Indic text.
 
 ## Run
 
@@ -29,6 +33,10 @@ python scripts/http_demo.py     # free live check: 401 without the token, tools 
 ```
 
 Each run writes `out/result.md`, `out/artifacts/`, `out/trace.jsonl` and `out/report.json`. An impossible or unaffordable task exits 0 with `status: failed` and the reason; exit 2 means the command line was wrong.
+
+Docker: `docker build -t indic-task-agent .`, then `docker run --env-file .env -v "$PWD/in:/in" -v "$PWD/out:/out" indic-task-agent bodhan_agent --task "..." --files /in --out /out` (with no module name it starts the MCP server) (the image installs ffmpeg).
+
+Audio the agent produces comes from Indic-Speak and is **AI-generated**; the voices are a fixed library and the model does not clone voices.
 
 ### Trace viewer
 
@@ -55,7 +63,7 @@ name, the newest is shown. Start it in its own terminal: it owns port 8766.
 | `translate_text` | Whole-document, split at headings only when needed, one re-split on truncation, unsupported targets refused before any request |
 | `speak_text` | Any length: sentence clips of at most 400 characters, joined into one WAV or MP3, voice resolved locally |
 
-Files go in and out as paths. `--resume` continues an interrupted run in the same `--out`: the saved plan and every finished step are reused, so nothing already paid for is bought again. Prompts: `document_to_audio`, `audio_to_subtitles`. Resources: `bodhan://languages`, `bodhan://voices`, `bodhan://pricing`. Errors are JSON with `code`, `message`, `retryable`, `hint`.
+Files go in and out as paths. `--resume` continues an interrupted run in the same `--out`: the saved plan and every finished step are reused, so nothing already paid for is bought again. Every tool also publishes an output schema, a title, and read-only or paid hints. Tested with the official MCP Python SDK client (`python scripts/cold_read.py`, stdio). Prompts: `document_to_audio`, `audio_to_subtitles`. Resources: `bodhan://languages`, `bodhan://voices`, `bodhan://pricing`. Errors are JSON with `code`, `message`, `retryable`, `hint`.
 
 ## How the agent works
 
@@ -69,7 +77,7 @@ One LLM call writes a JSON plan; Python prices it, reserves cost before every ca
 
 ```bash
 pip install pytest                          # once; tests are not in requirements.txt
-pytest                                      # 177 tests, one line each, no network, no keys
+pytest                                      # 187 tests, one line each, no network, no keys
 python scripts/cold_read.py                 # stock MCP client against the stdio server
 python scripts/check_media.py               # which demo media is present (free)
 python scripts/eval_suite.py --replay demo_runs   # re-check recorded runs, free
@@ -95,6 +103,10 @@ Ten tasks run against the real models; recordings are in `demo_runs/` (reports, 
 | Text file that tries to give orders | completed, order ignored | 0.51 | 86 s |
 
 Media is synthetic (generated with Bodhan's own models by `scripts/make_demo_media.py`, a 33 s Hindi note instead of 3 minutes). Costs are the tool-measured spend; the LLM is billed separately.
+
+## AI assistance
+
+Built with an AI coding assistant (OpenCode) for drafting code, tests and docs. I reviewed the code and checked behaviour by running it against the live models, not only against mocks.
 
 ## Limitations
 
