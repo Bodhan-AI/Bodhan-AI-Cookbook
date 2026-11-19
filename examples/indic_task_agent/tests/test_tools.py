@@ -92,14 +92,21 @@ async def test_translate_unsupported_language_costs_nothing(fake, make_ctx):
 
 
 async def test_translate_document_already_in_target_costs_nothing_but_minority_paragraphs_are_translated(fake, make_ctx, tmp_path):
+    ta = tmp_path / "ta.txt"
+    ta.write_text("இது ஏற்கனவே தமிழில் உள்ளது.", encoding="utf-8")  # Tamil script is used by one language only
+    r, err = await call(make_ctx(fake), "translate_text", path=str(ta), target_language="ta")
+    assert not err and fake.calls["translate"] == 0 and open(r["path"], encoding="utf-8").read().strip() == ta.read_text(encoding="utf-8").strip()
     f = tmp_path / "hi.txt"
     f.write_text("यह पहले से हिंदी में है और यह सरल है।", encoding="utf-8")
-    r, err = await call(make_ctx(fake), "translate_text", path=str(f), target_language="hi")
-    assert not err and fake.calls["translate"] == 0 and open(r["path"], encoding="utf-8").read().strip() == f.read_text(encoding="utf-8").strip()
+    r, err = await call(make_ctx(fake), "translate_text", path=str(f), target_language="hi", source_language="hi")
+    assert not err and fake.calls["translate"] == 0  # Devanagari is shared, so only an explicit source language skips the model
     mixed = tmp_path / "mixed.md"
     mixed.write_text(PARA.join(["यह हिंदी में पहला अनुच्छेद है और यह लंबा है।", "This paragraph is in English.", "यह हिंदी में तीसरा अनुच्छेद है।"]), encoding="utf-8")
-    r, err = await call(make_ctx(fake), "translate_text", path=str(mixed), target_language="hi")
+    r, err = await call(make_ctx(fake), "translate_text", path=str(mixed), target_language="hi", source_language="hi")
     assert not err and [q["text"] for q in fake.requests if q["kind"] == "translate" and q["target"] == "hi"] == ["This paragraph is in English."]
+    before = fake.calls["translate"]
+    r, err = await call(make_ctx(fake), "translate_text", path=str(f), target_language="bn", source_language="as")
+    assert not err and fake.calls["translate"] > before  # a declared different source language is always translated
     roman = await call(make_ctx(fake), "translate_text", path=str(f), target_language="hi", script="roman")
     assert not roman[1] and fake.requests[-1]["kind"] == "translate"  # passthrough only when the requested script is native too
 

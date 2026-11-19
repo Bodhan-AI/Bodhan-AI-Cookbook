@@ -91,13 +91,24 @@ class PlannerLLM:
         self.client = client
         self.model = model or "test-model"
         self.max_attempts = max_attempts
+        self._no_max_tokens = False
 
-    async def chat(self, messages: list[dict[str, Any]], tools: list[dict[str, Any]]) -> LLMReply:
+    async def chat(self, messages: list[dict[str, Any]], tools: list[dict[str, Any]], max_tokens: int | None = None) -> LLMReply:
+        """`max_tokens` is only sent when the planner is priced (to bound spend). Some providers reject it
+        (they expect max_completion_tokens); then it is dropped and the call is repeated without it."""
         last_exc: Exception | None = None
         for attempt in range(1, self.max_attempts + 1):
             t0 = time.monotonic()
             try:
-                resp = await self.client.chat.completions.create(model=self.model, messages=messages, tools=tools, tool_choice="auto")
+                extra = {"max_tokens": max_tokens} if max_tokens and not self._no_max_tokens else {}
+                try:
+                    resp = await self.client.chat.completions.create(model=self.model, messages=messages, tools=tools, tool_choice="auto", **extra)
+                except Exception as exc:
+                    if extra and getattr(exc, "status_code", None) == 400 and "max_tokens" in str(exc):
+                        self._no_max_tokens = True
+                        resp = await self.client.chat.completions.create(model=self.model, messages=messages, tools=tools, tool_choice="auto")
+                    else:
+                        raise
                 return self._parse(resp, time.monotonic() - t0, {t["function"]["name"] for t in tools})
             except Exception as exc:  # network, 429, 5xx, malformed
                 last_exc = exc

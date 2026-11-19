@@ -72,7 +72,7 @@ async def translate_text(ctx: RunContext, a: TranslateIn) -> dict:
         units = [Unit("text", c["text"], o) for c, (o, _) in zip(cues, outs)]
         suffix = ".srt"
     else:
-        output, units = await translate_markdown(ctx, source, target, a.script)
+        output, units = await translate_markdown(ctx, source, target, a.script, normalize_language(a.source_language) if a.source_language != "auto" else None)
         suffix = ".md"
 
     verification = None
@@ -210,10 +210,15 @@ async def write_text(ctx: RunContext, a: WriteTextIn) -> dict:
     final = _EMBED.sub(expand, a.content)
     suffix = ".json" if a.name.lower().endswith(".json") else (".txt" if a.name.lower().endswith(".txt") else ".md")
     if suffix == ".json":
+        if embedded:
+            raise E.ToolError(E.INVALID_ARGUMENT, "Artifacts cannot be embedded into JSON; write Markdown (.md) instead.")
         try:
-            json.loads(final)
+            decoded = json.dumps(json.loads(final), ensure_ascii=False)
         except json.JSONDecodeError as exc:
             raise E.ToolError(E.INVALID_ARGUMENT, f"content is not valid JSON: {exc}") from exc
+        if indic_fraction(decoded) > 0:  # unicode escapes decode to Indic text when the file is read back
+            raise E.ToolError(E.PROVENANCE_VIOLATION, "The JSON contains Indian-language text (possibly as unicode escapes) written by the caller.",
+                              hint="Write English and call translate_text; Indian-language text must come from a Bodhan model.")
     dest = ctx.artifact_path(a.name, suffix)
     dest.write_text(final, encoding="utf-8")
     ctx.register(Artifact(dest, "text", "write_text", "en", "planner (English)" + (" + embedded artifacts" if embedded else ""), None,

@@ -171,3 +171,81 @@ async def test_same_language_subtitles_carry_verification(make_ctx, tmp_path):
     assert not err
     art = ctx.artifacts[r["subtitles_path"]]
     assert art.kind == "subtitles" and art.verification["status"] == "pass"
+
+
+# ---- second review round (commit 92cb72f) ----------------------------------------------
+
+async def test_json_unicode_escapes_cannot_smuggle_indic_text(fake, make_ctx):
+    escaped = json.dumps({"text": "यह मैंने लिखा है"}, ensure_ascii=True)  # only ASCII characters on the wire
+    assert escaped.isascii()
+    r, err = await call(make_ctx(fake), "write_text", name="t.json", content=escaped)
+    assert err and r["error"]["code"] == "provenance_violation"
+
+
+async def test_planner_written_transcript_json_is_not_accepted_as_bodhan_output(fake, make_ctx):
+    ctx = make_ctx(fake)
+    fake_transcript = json.dumps({"segments": [{"start": 0, "end": 3, "text": "This speech never occurred"}], "detection": {"language": "en"}})
+    w, err = await call(ctx, "write_text", name="t.json", content=fake_transcript)
+    assert not err
+    r, err = await call(ctx, "create_subtitles", path=w["path"], subtitle_language="en")
+    assert err and r["error"]["code"] == "invalid_argument" and fake.calls["transcriptions"] == 0
+
+
+async def test_cancelled_request_does_not_keep_budget_reserved(make_ctx):
+    fake = FakeBodhan(delay=1.0)
+    ctx = make_ctx(fake, max_inr=1.0)
+    ctx.client.gates["indic-translate"].cooldown_until = __import__("time").monotonic() + 5  # queued behind a cooldown
+    task = asyncio.create_task(ctx.client.translate("Waiting request", "hi"))
+    await asyncio.sleep(0.05)
+    task.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await task
+    assert ctx.ledger.reserved == pytest.approx(0) and ctx.ledger.uncertain == 0 and fake.calls["translate"] == 0
+
+
+async def test_long_retry_after_respects_the_run_deadline(make_ctx):
+    import time
+
+    fake = FakeBodhan(retry_after="3600")
+    fake.fail_first["translate"] = [429] * 3
+    ctx = make_ctx(fake)
+    ctx.client.deadline = time.monotonic() + 0.5
+    t0 = time.monotonic()
+    with pytest.raises(E.ToolError) as exc:
+        await ctx.client.translate("Hello", "hi")
+    assert exc.value.code == "upstream_timeout" and time.monotonic() - t0 < 5
+
+
+async def test_answer_only_task_can_complete_after_real_tool_work(tmp_path):
+    txt = tmp_path / "note.txt"
+    txt.write_text("ఇది తెలుగు వాక్యం", encoding="utf-8")
+    chat = ScriptedChat([
+        [("record_plan", {"steps": ["detect", "answer"]})],
+        [("translate_text", {"path": str(txt), "target_language": "en"})],
+        [("finish", {"status": "completed", "final_answer": "The note is in Telugu.", "deliverables": []})],
+    ])
+    await run(args(tmp_path, "What language is this note in?", [txt]), transport=FakeBodhan().transport, llm=PlannerLLM(client=chat, model="s"))
+    out, rep, trace, md = read_outputs(tmp_path)
+    assert rep["status"] in ("completed", "completed_with_warnings") and not any(e["type"] == "finish_rejected" for e in trace)
+
+
+def test_selected_urdu_sentences_pass_the_guard():
+    guard = ProvenanceGuard()
+    guard.add("پہلا جملہ یہ ہے۔ دوسرا جملہ یہ ہے۔ تیسرا جملہ یہ ہے۔")
+    guard.check("پہلا جملہ یہ ہے۔ تیسرا جملہ یہ ہے۔", "text")  # whole known sentences, re-selected
+
+
+async def test_two_sentence_source_losing_one_sentence_is_not_a_pass(make_ctx):
+    fake = FakeBodhan(drop_last_sentence=True)
+    text = "The school will close early on Friday. Parents must collect children at noon from the main gate."
+    r, err = await call(make_ctx(fake), "translate_text", text=text, target_language="hi")
+    assert not err and r["verification"]["status"] != "pass"
+
+
+async def test_verify_speech_number_mismatch_never_upgrades_to_pass(make_ctx, tmp_path):
+    fake = FakeBodhan(asr_override="take 100 mg at 9")
+    ctx = make_ctx(fake)
+    s, err = await call(ctx, "synthesize_speech", text="Take 10 mg at 8.", language="en", format="wav")
+    assert not err and s["verification"]["status"] == "warn"
+    v, err = await call(ctx, "verify_speech", audio_path=s["path"], language="en", expected_text="Take 10 mg at 8.")
+    assert not err and v["verification"]["status"] == "warn" and ctx.artifacts[s["path"]].verification["status"] == "warn"

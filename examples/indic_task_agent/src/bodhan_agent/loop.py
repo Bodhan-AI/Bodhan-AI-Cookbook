@@ -32,6 +32,7 @@ from .llm import LLMError, PlannerLLM
 from .prompts import SYSTEM_PROMPT, user_message
 from .trace import CURRENT_STEP, TraceWriter, summarize_result
 
+PAID_TOOLS = {t.name for t in TOOLS if t.paid}
 VERIFIED_KINDS = {"translation", "audio", "subtitles"}
 FINISH_STATUSES = ["completed", "partial", "failed", "unsupported"]
 MAX_TOOL_RESULT_CHARS = 7000
@@ -143,11 +144,14 @@ class Agent:
             tools = openai_tools({"finish"} if last_step else None)
             if last_step:
                 messages.append({"role": "user", "content": "Step limit reached: call finish now with what you have (status partial if incomplete)."})
-            est = self._llm_cost(len(json.dumps(messages, ensure_ascii=False)) // 3, LLM_COMPLETION_RESERVE)
+            est = self._llm_cost((len(json.dumps(messages, ensure_ascii=False)) + len(json.dumps(tools))) // 3, LLM_COMPLETION_RESERVE)
             if est is not None and not self.ctx.ledger.can_afford(est):  # priced planner: check before spending
                 return self._forced_stop(("budget_exhausted", f"Not enough budget left for another planner call (about ₹{est:.3f})."))
             try:
-                reply = await self.llm.chat(messages, tools)
+                reply = await asyncio.wait_for(self.llm.chat(messages, tools, max_tokens=LLM_COMPLETION_RESERVE if est is not None else None),
+                                               timeout=max(1.0, self._time_left()))
+            except TimeoutError:
+                return self._forced_stop(("time_limit", f"Reached the {self.settings.max_seconds:.0f}s time limit during a planner call."))
             except LLMError as exc:
                 self.trace.write({"type": "llm_error", "step": self.steps, "error": str(exc)})
                 return self._forced_stop(("llm_error", f"The planner LLM failed: {exc}"))
@@ -226,7 +230,11 @@ class Agent:
             result = {"ok": False, "error": {"code": "plan_required", "message": "Call record_plan before using paid tools."}}
         else:
             CURRENT_STEP.set(step)
-            result, _ = await invoke(spec, self.ctx, call.arguments)
+            try:  # a tool may not outlive the run's time limit; cancellation releases unsent reservations
+                result, _ = await asyncio.wait_for(invoke(spec, self.ctx, call.arguments), timeout=max(1.0, self._time_left()))
+            except TimeoutError:
+                result = {"ok": False, "error": {"code": "time_limit", "message": "The run's time limit was reached while this tool was running.",
+                                                 "retryable": False, "hint": "Finish with what you have."}}
         if not result.get("ok") and (result.get("error") or {}).get("code") == E.BUDGET_EXCEEDED:
             self.budget_errors += 1
         entry = {"type": "tool_call", "step": step, "plan_version": self.plan_version, "rationale": rationale[:400], "tool": call.name,
@@ -265,7 +273,8 @@ class Agent:
             art = self._resolve_deliverable(d)
             (delivered if art else unknown).append(art or d)
         if unknown:
-            reasons.append(f"deliverables not produced by a tool in this run: {unknown}")
+            shown = [str(u) if self._indic_ok(str(u)) else "<non-English text>" for u in unknown]
+            reasons.append(f"deliverables not produced by a tool in this run: {shown}")
         unverified = [str(x.path.name) for x in self.ctx.artifacts.values() if x.kind in VERIFIED_KINDS and x.verification is None]
         if unverified:
             reasons.append(f"generated translations/audio without verification: {unverified}; verify them (verify_translation/verify_speech)")
@@ -273,8 +282,10 @@ class Agent:
         if status == "completed" and failing:
             reasons.append("deliverables failed verification (directly or through embedded artifacts): "
                            + "; ".join(x.path.name for x in failing) + ". Repair them differently, or finish with status partial and explain.")
-        if status == "completed" and not delivered:
-            reasons.append("status completed needs at least one deliverable artifact made in this run (save a text answer with write_text)")
+        evidence = any(t["ok"] and t["tool"] in PAID_TOOLS for t in self.tool_log) or bool(self.ctx.artifacts)
+        if status == "completed" and not delivered and not evidence:
+            # An answer-only task (e.g. "which clips are Telugu?") may finish without files, but only after tools did real work.
+            reasons.append("status completed needs evidence: no tool produced any result in this run")
         if reasons and self.finish_rejections < 2:
             self.finish_rejections += 1
             self.trace.write({"type": "finish_rejected", "step": self.steps, "reasons": reasons})
@@ -332,6 +343,9 @@ class Agent:
                 if order.get(st, 0) > order.get(worst, 0):
                     worst = st
         return worst
+
+    def _time_left(self) -> float:
+        return self.settings.max_seconds - (time.monotonic() - self.started)
 
     # --------------------------------------------------------------- stops
     def _limit_reached(self) -> tuple[str, str] | None:

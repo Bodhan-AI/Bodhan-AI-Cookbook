@@ -68,20 +68,35 @@ class AdaptiveGate:
         self._cond = asyncio.Condition()
 
     @asynccontextmanager
-    async def slot(self):
+    async def slot(self, deadline: float | None = None):
+        """Wait for a free slot and any cooldown, but never past `deadline` (monotonic time)."""
+
+        def remaining() -> float | None:
+            return None if deadline is None else deadline - time.monotonic()
+
+        def expired() -> E.ToolError:
+            return E.ToolError(E.UPSTREAM_TIMEOUT, "The run's time limit was reached while waiting for the API rate limit to clear.",
+                               retryable=True, hint="Stop and report what was done; retry later with a longer --max-seconds.")
+
         async with self._cond:
             while True:
+                left = remaining()
+                if left is not None and left <= 0:
+                    raise expired()
                 wait = self.cooldown_until - time.monotonic()
                 if wait > 0:
                     self._cond.release()
                     try:
-                        await asyncio.sleep(wait)
+                        await asyncio.sleep(wait if left is None else min(wait, left))
                     finally:
                         await self._cond.acquire()
                     continue
                 if self.inflight < self.limit:
                     break
-                await self._cond.wait()
+                try:
+                    await asyncio.wait_for(self._cond.wait(), timeout=left)
+                except TimeoutError as exc:
+                    raise expired() from exc
             self.inflight += 1
         try:
             yield
@@ -117,6 +132,7 @@ class BodhanClient:
         backoff_base: float = 1.0,
         base_url: str = BODHAN_BASE_URL,
         transport: httpx.AsyncBaseTransport | None = None,
+        deadline: float | None = None,
     ):
         self.keys = keys
         self.ledger = ledger
@@ -129,6 +145,7 @@ class BodhanClient:
         self.base_url = base_url.rstrip("/")
         self.gates = {m: AdaptiveGate(concurrency) for m in KEY_ENV}
         self._inflight: dict[str, asyncio.Future] = {}
+        self.deadline = deadline  # monotonic time after which no request may wait or retry (set by the agent)
         self._http = httpx.AsyncClient(timeout=httpx.Timeout(timeout, connect=min(10.0, timeout)), transport=transport)
 
     async def aclose(self) -> None:
@@ -187,11 +204,15 @@ class BodhanClient:
         attempt = 0
         while True:
             attempt += 1
-            reservation = self.ledger.reserve(model, reserve, purpose)
             t0 = time.monotonic()
             status: int | None = None
+            reservation = None
+            dispatched = False
             try:
-                async with self.gates[model].slot():
+                async with self.gates[model].slot(self.deadline):
+                    # Reserve once a slot is held, so queued requests do not lock up budget.
+                    reservation = self.ledger.reserve(model, reserve, purpose)
+                    dispatched = True
                     try:
                         resp = await send(api_key)
                     except httpx.ConnectError as exc:
@@ -223,6 +244,7 @@ class BodhanClient:
                             "billing": "billed", "latency_s": round(time.monotonic() - t0, 3), "cost_inr": round(cost, 5)})
                 return meta, blob, info
             except _Attempt as failure:
+                assert reservation is not None
                 if failure.billing in ("uncertain", "billed_unusable"):
                     self.ledger.mark_uncertain(reservation)
                 else:
@@ -234,7 +256,7 @@ class BodhanClient:
                 will_retry = failure.retry and attempt < limit
                 if failure.error.code == E.RATE_LIMITED:
                     # 429s are not billed, so waiting is cheap; back off for the whole model, not just this request
-                    rl_wait = failure.wait if failure.wait is not None else min(30.0, self.backoff_base * 2 ** attempt)
+                    rl_wait = min(60.0, failure.wait if failure.wait is not None else self.backoff_base * 2 ** attempt)
                     self.gates[model].rate_limited(rl_wait)
                 self._emit({"type": "api_call", "model": model, "purpose": purpose, "cache": "miss", "attempt": attempt, "status": failure.status or status,
                             "billing": failure.billing, "error": failure.error.code, "message": failure.error.message[:300],
@@ -248,6 +270,12 @@ class BodhanClient:
                     await asyncio.sleep(min(wait, 30.0) + random.uniform(0, self.backoff_base * 0.25))
                 else:
                     await asyncio.sleep(random.uniform(0, self.backoff_base * 0.5))
+            except BaseException:
+                # Cancellation (MCP client, run deadline) or a budget/deadline error: never leave budget locked.
+                # A request that was already sent may have been billed, so it counts as uncertain.
+                if reservation is not None and reservation.open:
+                    (self.ledger.mark_uncertain if dispatched else self.ledger.release)(reservation)
+                raise
         assert last is not None
         err = last.error
         err.details.setdefault("attempts", attempt)

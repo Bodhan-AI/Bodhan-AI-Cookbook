@@ -68,7 +68,7 @@ async def run(args: argparse.Namespace, *, transport=None, llm: PlannerLLM | Non
     ledger = CostLedger(max_inr=args.max_cost_inr)
     cache = ResultCache(None if args.no_cache else Path(args.cache_dir).expanduser())
     client = BodhanClient(BodhanKeys.from_env(), ledger, cache, trace.tool_event, timeout=args.call_timeout, concurrency=args.concurrency,
-                          transport=transport)
+                          transport=transport, deadline=time.monotonic() + args.max_seconds)
     ctx = RunContext(artifacts_dir=out / "artifacts", ledger=ledger, cache=cache, client=client, read_roots=roots, trace=trace.tool_event)
     settings = Settings(max_steps=max(2, args.max_steps), max_cost_inr=args.max_cost_inr, max_seconds=args.max_seconds,
                         llm_input_inr_per_1m=args.llm_input_inr_per_1m, llm_output_inr_per_1m=args.llm_output_inr_per_1m)

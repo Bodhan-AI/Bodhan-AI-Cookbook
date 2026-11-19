@@ -50,7 +50,7 @@ class ProvenanceGuard:
             # a whole span quoted verbatim, or a selection of whole known sentences
             if self._norm(span) in corpus:
                 return True
-            sentences = [x.strip(_EDGE_PUNCT) for x in re.split(r"(?<=[.?!।॥])\s+", span)]
+            sentences = [x.strip(_EDGE_PUNCT) for x in re.split(r"(?<=[.?!।॥۔᱾])\s+", span)]
             return len(sentences) > 1 and all(self._norm(x) in corpus for x in sentences if x)
 
         unknown = [span for span in indic_spans(text) if not known(span)]

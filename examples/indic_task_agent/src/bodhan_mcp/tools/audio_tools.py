@@ -165,6 +165,11 @@ async def create_subtitles(ctx: RunContext, a: SubtitlesIn) -> dict:
     target = check_target(a.subtitle_language)
     p = ctx.resolve_input(a.path)
     reuse = p if p.suffix.lower() == ".json" else ctx.transcripts.get(str(p))
+    if reuse is not None and not (str(reuse) in ctx.artifacts and ctx.artifacts[str(reuse)].producer == "transcribe_audio"):
+        # Only transcripts this server produced may be reused; anything else (e.g. JSON written by a planner)
+        # would otherwise be labelled as Indic-Transcribe output without any model call.
+        raise E.ToolError(E.INVALID_ARGUMENT, f"{p.name} is not a transcript produced by transcribe_audio in this session.",
+                          hint="Pass the audio/video file itself, or the *_transcript.json returned by transcribe_audio.")
     if reuse is not None:
         data = json.loads(reuse.read_text(encoding="utf-8"))
         segments, detection = data.get("segments") or [], data.get("detection")
@@ -398,9 +403,19 @@ async def verify_speech(ctx: RunContext, a: VerifySpeechIn) -> dict:
     r = await transcribe_file(ctx, p, a.language)
     sim = similarity(expected, r["text"])
     status = "pass" if sim >= SPEECH_PASS else ("warn" if sim >= SPEECH_FAIL else "fail")
-    verification = {"status": status, "method": "back-transcription with Indic-Transcribe; letter-level similarity",
+    warnings = []
+    heard_nums, exp_nums = extract_numbers(r["text"]), extract_numbers(expected)
+    if heard_nums and sorted(heard_nums) != sorted(exp_nums):
+        warnings.append(f"numbers heard {heard_nums[:8]} differ from the text {exp_nums[:8]}")
+        status = "warn" if status == "pass" else status
+    verification = {"status": status, "method": "back-transcription with Indic-Transcribe; letter-level similarity; digit comparison",
                     "similarity": round(sim, 3), "duration_s": r["duration_s"],
-                    "problems": [] if status != "fail" else ["audio does not match the expected text"], "warnings": []}
-    if str(p) in ctx.artifacts:
-        ctx.artifacts[str(p)].verification = verification
+                    "problems": [] if status != "fail" else ["audio does not match the expected text"], "warnings": warnings}
+    art = ctx.artifacts.get(str(p))
+    if art is not None:
+        order = {None: 0, "pass": 1, "warn": 2, "fail": 3}
+        previous = (art.verification or {}).get("status")
+        # a re-check may add evidence but never upgrades an earlier warn/fail to a better status
+        if order[status] >= order.get(previous, 0):
+            art.verification = verification
     return {"audio_path": str(p), "verification": verification, "heard": frame_untrusted(r["text"], str(p), 800)}

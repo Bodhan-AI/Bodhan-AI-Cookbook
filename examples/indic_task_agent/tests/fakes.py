@@ -85,6 +85,7 @@ class FakeBodhan:
     speak_seconds_per_char: float = 0.07
     ocr_truncate: bool = False  # OCR answers with finish_reason=length
     delay: float = 0.0  # seconds each request takes (to make concurrency observable)
+    drop_last_sentence: bool = False  # translation silently omits the final sentence
 
     @property
     def transport(self) -> httpx.MockTransport:
@@ -138,6 +139,8 @@ class FakeBodhan:
         text = msgs[0]["content"]
         self.requests.append({"kind": "translate", "target": target, "text": text})
         out = pseudo_translate(text, target)
+        if self.drop_last_sentence and target != 'en' and '. ' in text:
+            out = pseudo_translate(text.rsplit('. ', 1)[0] + '.', target)
         if self.reflow_tables and "|" in text and "\n" in text:
             out = out.replace("\n", " ")
         finish = "stop"
@@ -209,7 +212,8 @@ class ScriptedChat:
     def chat(self):
         return self
 
-    async def create(self, *, model: str, messages: list[dict], tools: list[dict], tool_choice: str):
+    async def create(self, *, model: str, messages: list[dict], tools: list[dict], tool_choice: str, **extra):
+        self.extra = extra
         self.seen.append([dict(m) for m in messages])
         step = self.script.pop(0) if self.script else [("finish", {"status": "failed", "final_answer": "script exhausted"})]
         if callable(step):
