@@ -17,7 +17,24 @@ The `h1`–`h8` tasks are my own held-out tasks, written to resemble the kinds o
 
 ## Environment
 
-TODO(final): commit, OS, Python, Node, ffmpeg, dependency lock, planner model and endpoint type, date.
+### Clean Linux setup (containers)
+
+Checked on 20 November 2026 from a fresh clone of commit `182938e`. These are **Linux containers on WSL2 (Docker Desktop 29.9.3, linux/amd64, kernel 6.18.58.1-microsoft-standard-WSL2)**, not a native Linux machine.
+
+| Check | Image | Result |
+|---|---|---|
+| `apt-get install ffmpeg`, then `pip install -r requirements.txt`, `pytest tests`, `ruff check .` | `python:3.11-slim` (Debian 13, Python 3.11.18, `sha256:07d48240…`) | install OK; **174 passed**; ruff clean |
+| same | `python:3.12-slim` (Debian 13, Python 3.12.16, `sha256:5e2bdb1b…`) | install OK; **174 passed**; ruff clean |
+| root `make check` (`test`, `lint`, `rules`, `validate`) | both images | `lint`, `rules` and `validate` pass. `test` has **one failure that is not this recipe's**: `test_all_shipped_recipes_pass` fails on `examples/AndroidSpeak`, which is already on `main` (it has no Python source file and no `.env.example`). This branch does not touch it. The same failure appears on Windows. |
+| `docker build` of the recipe image | `python:3.12-slim` base | builds; runs as the non-root user `agent` (uid 1000) in `/work`; no keys or planner settings in the image |
+| The brief's agent command, as the non-root user, with only the seven required variables passed by `--env-file`: `python -m bodhan_agent --task "Translate this worksheet into Marathi and keep the table" --files /data/worksheet --out ./out` | recipe image | `completed` in 20 s; outputs written to `./out`. **Cache-backed**: the host's result cache was mounted, so Bodhan cost ₹0 (17 cache hits). |
+| Bare `python -m bodhan_mcp` in the container, driven over stdio by MCP Inspector 2.13.0 on the host: `tools/list`, then a real `translate_text` call (English → Tamil) | recipe image | 12 tools listed; the call returned `ok`, verification `pass`, ₹0.00042 |
+
+The planner for the container run was reached through the host (`LLM_BASE_URL` pointing at `host.docker.internal`). No other setting changed.
+
+### Development machine
+
+TODO(final): Windows 11 run environment for the suites (Python, Node, ffmpeg, planner model and endpoint type).
 
 ## Demo tasks
 
