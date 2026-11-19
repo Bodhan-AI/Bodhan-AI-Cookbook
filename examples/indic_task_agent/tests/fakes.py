@@ -81,10 +81,14 @@ class FakeBodhan:
     requests: list[dict[str, Any]] = field(default_factory=list)
     spoken: dict[str, str] = field(default_factory=dict)
     asr_default: str = "नमस्ते यह एक परीक्षण वाक्य है"
+    asr_override: str | None = None  # every transcription returns this text
+    speak_seconds_per_char: float = 0.07
+    ocr_truncate: bool = False  # OCR answers with finish_reason=length
+    delay: float = 0.0  # seconds each request takes (to make concurrency observable)
 
     @property
     def transport(self) -> httpx.MockTransport:
-        return httpx.MockTransport(self.handle)
+        return httpx.MockTransport(self.handle_async)
 
     def _maybe_fail(self, key: str) -> httpx.Response | None:
         queue = self.fail_first.get(key)
@@ -96,6 +100,13 @@ class FakeBodhan:
             body = {"error": {"message": "insufficient credit balance" if status == 4291 else "simulated", "code": str(status)}}
             return httpx.Response(429 if status == 4291 else status, json=body, headers=headers)
         return None
+
+    async def handle_async(self, request: httpx.Request) -> httpx.Response:
+        if self.delay:
+            import asyncio
+
+            await asyncio.sleep(self.delay)
+        return self.handle(request)
 
     def handle(self, request: httpx.Request) -> httpx.Response:
         path = request.url.path
@@ -143,7 +154,7 @@ class FakeBodhan:
         assert "lang" in instr
         text = body["input"]
         idx = self.calls["speech"] - 1
-        audio = wav_tone(max(0.5, len(text) * 0.07), seed=idx)
+        audio = wav_tone(max(0.5, len(text) * self.speak_seconds_per_char), seed=idx)
         said = "कुछ और ही बोला गया" if idx in self.speak_garble else text
         self.spoken[hashlib.sha256(audio).hexdigest()] = said
         self.requests.append({"kind": "speak", "voice": voice, "lang": instr["lang"], "text": text})
@@ -158,7 +169,7 @@ class FakeBodhan:
         seconds = wav_duration(wav)
         if seconds > 30.5:
             return httpx.Response(400, json={"error": {"message": f"audio is {seconds:.1f}s; max 30s", "code": "400"}})
-        text = self.spoken.get(hashlib.sha256(wav).hexdigest(), self.asr_default)
+        text = self.asr_override or self.spoken.get(hashlib.sha256(wav).hexdigest(), self.asr_default)
         self.requests.append({"kind": "transcribe", "seconds": round(seconds, 2)})
         return httpx.Response(200, json={"text": text, "usage": None})
 
@@ -172,7 +183,7 @@ class FakeBodhan:
         blocks = [{"order": 0, "label": "Paragraph", "type": "Text", "bbox_xyxy": [0, 0, 10, 10], "conf": 0.9, "text": md}]
         if "|" in md:
             blocks.append({"order": 1, "label": "Table", "type": "Table", "bbox_xyxy": [0, 10, 10, 20], "conf": 0.9, "text": ""})
-        return httpx.Response(200, json={"choices": [{"index": 0, "finish_reason": "stop", "message": {"role": "assistant", "content": md}}],
+        return httpx.Response(200, json={"choices": [{"index": 0, "finish_reason": "length" if self.ocr_truncate else "stop", "message": {"role": "assistant", "content": md}}],
                                          "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2}, "blocks": blocks})
 
 

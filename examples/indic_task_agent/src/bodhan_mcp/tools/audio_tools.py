@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import json
 import statistics
 from pathlib import Path
@@ -27,8 +26,8 @@ from ..languages import (
     supported_list,
 )
 from ..media import ASR_RATE, chunk_audio, concat_wavs, decode_pcm, encode_audio, probe, read_wav, wav_bytes
-from ..runtime import Artifact, RunContext, price_speak, price_transcribe
-from ..textutil import letters_only, pack_segments, similarity
+from ..runtime import Artifact, RunContext, price_speak, price_transcribe, settle
+from ..textutil import extract_numbers, letters_only, pack_segments, similarity
 from .common import frame_untrusted, output_name, resolve_text
 from .subtitles import render_srt
 from .translation import Unit, _translate_piece, check_target, verify_units
@@ -92,7 +91,7 @@ async def transcribe_file(ctx: RunContext, path: Path, language: str | None, *, 
         meta, _ = await ctx.client.transcribe(wav_bytes(c.samples, ASR_RATE), c.duration, lang)
         texts[i] = meta["text"].strip()
 
-    await asyncio.gather(*[one(i) for i in range(len(chunks))])
+    await settle(*[one(i) for i in range(len(chunks))])
     segments = [{"index": i, "start": round(c.start, 2), "end": round(c.end, 2), "text": t or ""} for i, (c, t) in enumerate(zip(chunks, texts))]
     empty = [s["index"] for s in segments if not s["text"]]
     if empty:
@@ -192,8 +191,11 @@ async def create_subtitles(ctx: RunContext, a: SubtitlesIn) -> dict:
     if src_lang == target:
         out_cues, out_path = segments, src_srt
         notes.append("speech is already in the subtitle language; no translation")
+        verification = {"status": "pass", "method": "same-language subtitles: transcript cues, no translation to verify", "problems": [], "warnings": []}
+        ctx.artifacts[str(src_srt)].kind = "subtitles"
+        ctx.artifacts[str(src_srt)].verification = verification
     else:
-        outs = await asyncio.gather(*[_translate_piece(ctx, s["text"], target, "native") for s in segments])
+        outs = await settle(*[_translate_piece(ctx, s["text"], target, "native") for s in segments])
         # ASR output has no punctuation, so English cues often arrive lower-case; capitalise the first letter (English only).
         fix = (lambda t: t[:1].upper() + t[1:]) if target == "en" else (lambda t: t)
         out_cues = [{**s, "text": fix(o)} for s, (o, _) in zip(segments, outs)]
@@ -240,11 +242,20 @@ async def _verify_clip(ctx: RunContext, wav: bytes, expected: str, lang: str) ->
     x, rate = read_wav(wav)
     seconds = len(x) / rate
     asr_lang = lang if lang in TRANSCRIBE_LANGUAGES else None
-    meta, _ = await ctx.client.transcribe(wav, seconds, asr_lang, purpose="verify-back-transcribe")
-    heard = meta["text"].strip()
+    if seconds <= 28.0:
+        meta, _ = await ctx.client.transcribe(wav, seconds, asr_lang, purpose="verify-back-transcribe")
+        heard = meta["text"].strip()
+    else:  # slow or looping synthesis can exceed the ASR window: verify it in pieces
+        pieces = chunk_audio(x, rate, max_seconds=28.0, trim_silence=False)
+        metas = await settle(*[ctx.client.transcribe(wav_bytes(c.samples, rate), c.duration, asr_lang, purpose="verify-back-transcribe")
+                               for c in pieces])
+        heard = " ".join(m["text"].strip() for m, _ in metas)
     sim = similarity(expected, heard)
+    exp_nums, heard_nums = extract_numbers(expected), extract_numbers(heard)
     return {"similarity": round(sim, 3), "heard": heard, "seconds": round(seconds, 2),
-            "chars_per_second": round(len(letters_only(expected)) / max(seconds, 0.1), 1)}
+            "chars_per_second": round(len(letters_only(expected)) / max(seconds, 0.1), 1),
+            # letters-only similarity ignores digits; compare numbers separately when the ASR writes them as digits
+            "number_mismatch": bool(heard_nums) and sorted(heard_nums) != sorted(exp_nums)}
 
 
 class SpeakIn(_Strict):
@@ -306,11 +317,11 @@ async def synthesize_speech(ctx: RunContext, a: SpeakIn) -> dict:
                 tmp.unlink(missing_ok=True)
         return data
 
-    clips = list(await asyncio.gather(*[synth(s, voice) for s in segments]))
+    clips = list(await settle(*[synth(s, voice) for s in segments]))
     seg_reports: list[dict] = [{"index": i, "chars": len(s)} for i, s in enumerate(segments)]
     verification = None
     if a.verify:
-        checks = await asyncio.gather(*[_verify_clip(ctx, c, s, lang) for c, s in zip(clips, segments)])
+        checks = await settle(*[_verify_clip(ctx, c, s, lang) for c, s in zip(clips, segments)])
         for rep, chk in zip(seg_reports, checks):
             rep.update(chk)
         cps = [c["chars_per_second"] for c in checks]
@@ -342,9 +353,12 @@ async def synthesize_speech(ctx: RunContext, a: SpeakIn) -> dict:
         sims = [r["similarity"] for r in seg_reports]
         failed = [r["index"] for r in seg_reports if r["similarity"] < SPEECH_FAIL]
         weak = [r["index"] for r in seg_reports if SPEECH_FAIL <= r["similarity"] < SPEECH_PASS]
+        numbers_off = [r["index"] for r in seg_reports if r.get("number_mismatch")]
         problems = [f"segments {failed} did not match the text when back-transcribed (possible omission/repetition)"] if failed else []
         warnings = [f"segments {weak} matched only partly (similarity {SPEECH_FAIL}-{SPEECH_PASS})"] if weak else []
-        verification = {"status": "fail" if failed else ("warn" if weak else "pass"),
+        if numbers_off:
+            warnings.append(f"segments {numbers_off}: numbers heard in the audio differ from the text; check them")
+        verification = {"status": "fail" if failed else ("warn" if weak or numbers_off else "pass"),
                         "method": "back-transcription of every segment with Indic-Transcribe; letter-level similarity; speaking-rate outliers",
                         "mean_similarity": round(sum(sims) / len(sims), 3), "min_similarity": round(min(sims), 3),
                         "segments_repaired": retried, "problems": problems, "warnings": warnings}
@@ -363,7 +377,8 @@ async def synthesize_speech(ctx: RunContext, a: SpeakIn) -> dict:
     label = f"AI-generated speech (Bodhan Indic-Speak, voice {voice}, {LANGUAGE_NAMES.get(lang, lang)})"
     dest = ctx.artifact_path(output_name(a.output_name, src_label, f"_{lang}_speech"), f".{a.format}")
     encode_audio(audio, dest, a.format, title=dest.stem, comment=label)
-    ctx.register(Artifact(dest, "audio", "synthesize_speech", lang, f"indic-speak ({voice})", verification, notes + [label]))
+    ctx.register(Artifact(dest, "audio", "synthesize_speech", lang, f"indic-speak ({voice})", verification, notes + [label],
+                          depends_on=[src_label] if src_label in ctx.artifacts else []))
     return {"path": str(dest), "duration_s": round(duration, 1), "language": lang, "voice": voice, "style": style, "segments": len(segments),
             "characters": total_chars, "label": label, "notes": notes, "verification": verification,
             "segment_report": [{k: v for k, v in r.items() if k != "heard"} for r in seg_reports][:40]}

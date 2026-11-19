@@ -23,7 +23,6 @@ from typing import Any
 from bodhan_mcp import errors as E
 from bodhan_mcp.config import BodhanKeys
 from bodhan_mcp.documents import classify, read_text_file
-from bodhan_mcp.languages import indic_fraction
 from bodhan_mcp.registry import invoke
 from bodhan_mcp.runtime import RunContext
 from bodhan_mcp.tools import TOOL_BY_NAME, TOOLS
@@ -36,6 +35,7 @@ from .trace import CURRENT_STEP, TraceWriter, summarize_result
 VERIFIED_KINDS = {"translation", "audio", "subtitles"}
 FINISH_STATUSES = ["completed", "partial", "failed", "unsupported"]
 MAX_TOOL_RESULT_CHARS = 7000
+LLM_COMPLETION_RESERVE = 4000  # tokens assumed for a planner reply when checking a priced budget
 
 CONTROL_TOOLS = [
     {"type": "function", "function": {
@@ -143,6 +143,9 @@ class Agent:
             tools = openai_tools({"finish"} if last_step else None)
             if last_step:
                 messages.append({"role": "user", "content": "Step limit reached: call finish now with what you have (status partial if incomplete)."})
+            est = self._llm_cost(len(json.dumps(messages, ensure_ascii=False)) // 3, LLM_COMPLETION_RESERVE)
+            if est is not None and not self.ctx.ledger.can_afford(est):  # priced planner: check before spending
+                return self._forced_stop(("budget_exhausted", f"Not enough budget left for another planner call (about ₹{est:.3f})."))
             try:
                 reply = await self.llm.chat(messages, tools)
             except LLMError as exc:
@@ -254,8 +257,9 @@ class Agent:
             reasons.append("finish was called in the same turn as other tools; check their results first, then call finish alone")
         if not answer:
             reasons.append("final_answer is empty")
-        if indic_fraction(answer) > 0.02:
-            reasons.append("final_answer contains Indian-language text; it must be English (deliver Indic text as artifacts)")
+        indic_fields = [f for f, v in self._finish_texts(a) if not self._indic_ok(v)]
+        if indic_fields:
+            reasons.append(f"{', '.join(indic_fields)} contain Indian-language text you wrote; write English only and deliver Indic text as artifacts")
         delivered, unknown = [], []
         for d in a.get("deliverables") or []:
             art = self._resolve_deliverable(d)
@@ -265,29 +269,69 @@ class Agent:
         unverified = [str(x.path.name) for x in self.ctx.artifacts.values() if x.kind in VERIFIED_KINDS and x.verification is None]
         if unverified:
             reasons.append(f"generated translations/audio without verification: {unverified}; verify them (verify_translation/verify_speech)")
-        failing = [x for x in delivered if x.verification and x.verification.get("status") == "fail"]
+        failing = [x for x in delivered if self._effective_status(x) == "fail"]
         if status == "completed" and failing:
-            reasons.append("deliverables failed verification: " + "; ".join(f"{x.path.name}: {x.verification.get('problems')}" for x in failing)
-                           + ". Repair them differently, or finish with status partial and explain.")
-        if status == "completed" and not delivered and not answer:
-            reasons.append("status completed but nothing was delivered")
+            reasons.append("deliverables failed verification (directly or through embedded artifacts): "
+                           + "; ".join(x.path.name for x in failing) + ". Repair them differently, or finish with status partial and explain.")
+        if status == "completed" and not delivered:
+            reasons.append("status completed needs at least one deliverable artifact made in this run (save a text answer with write_text)")
         if reasons and self.finish_rejections < 2:
             self.finish_rejections += 1
             self.trace.write({"type": "finish_rejected", "step": self.steps, "reasons": reasons})
             return {"ok": False, "error": {"code": "finish_rejected", "message": "Cannot finish yet: " + " | ".join(reasons)}}
         limitations = [str(x) for x in a.get("limitations") or []]
+        assumptions = [str(x) for x in a.get("assumptions") or []]
+        if indic_fields:  # never relaxed: replace planner-written Indic text with a code-written English note
+            note = "[removed: the planner wrote Indian-language text here, which this agent does not allow]"
+            answer = answer if self._indic_ok(answer) else ("The planner's final answer contained Indian-language text it wrote itself, so it was "
+                                                            "withheld. See the deliverables below; only Bodhan-generated text is delivered.")
+            limitations = [x if self._indic_ok(x) else note for x in limitations]
+            assumptions = [x if self._indic_ok(x) else note for x in assumptions]
         if reasons:  # accepted after repeated rejection: downgrade honestly
             limitations += [f"verification gate: {r}" for r in reasons]
             if status == "completed":
-                status = "partial"
+                status = "partial" if delivered and not failing else "failed"
         final = status
-        if status == "completed" and any((x.verification or {}).get("status") == "warn" for x in delivered):
+        if status == "completed" and any(self._effective_status(x) == "warn" for x in delivered):
             final = "completed_with_warnings"
-        self.outcome = Outcome(final, "finished", answer, [str(x.path) for x in delivered], [str(x) for x in a.get("assumptions") or []],
-                               limitations, planner_status=a.get("status"))
+        self.outcome = Outcome(final, "finished", answer, [str(x.path) for x in delivered], assumptions, limitations, planner_status=a.get("status"))
         self.trace.write({"type": "finish", "step": self.steps, "status": final, "planner_status": a.get("status"),
                           "deliverables": self.outcome.deliverables, "gate_reasons": reasons})
         return {"ok": True, "status": final}
+
+    @staticmethod
+    def _finish_texts(a: dict) -> list[tuple[str, str]]:
+        texts = [("final_answer", str(a.get("final_answer") or ""))]
+        texts += [("assumptions", str(x)) for x in a.get("assumptions") or []]
+        texts += [("limitations", str(x)) for x in a.get("limitations") or []]
+        return texts
+
+    def _indic_ok(self, text: str) -> bool:
+        """Indic text in the planner's own words is allowed only when quoted verbatim from
+        the task, an input or a Bodhan output (checked span by span)."""
+        try:
+            self.ctx.provenance_guard.check(text, "final answer")
+            return True
+        except E.ToolError:
+            return False
+
+    def _effective_status(self, art, seen: set[str] | None = None) -> str | None:
+        """Worst verification status of an artifact and everything it embeds."""
+        seen = seen or set()
+        if str(art.path) in seen:
+            return None
+        seen.add(str(art.path))
+        order = {None: 0, "pass": 1, "warn": 2, "fail": 3}
+        worst = (art.verification or {}).get("status")
+        if art.kind in VERIFIED_KINDS and art.verification is None:
+            worst = "fail"
+        for dep in art.depends_on:
+            child = self.ctx.artifacts.get(dep)
+            if child is not None:
+                st = self._effective_status(child, seen)
+                if order.get(st, 0) > order.get(worst, 0):
+                    worst = st
+        return worst
 
     # --------------------------------------------------------------- stops
     def _limit_reached(self) -> tuple[str, str] | None:

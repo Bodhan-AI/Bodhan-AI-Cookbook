@@ -6,6 +6,7 @@ per task run. Tools never touch globals, which keeps tests deterministic.
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import json
 import math
@@ -51,6 +52,17 @@ def _scope_add(amount: float) -> None:
     scope = COST_SCOPE.get()
     if scope is not None:
         scope.append(amount)
+
+
+async def settle(*aws):
+    """Like asyncio.gather, but lets every sibling finish before raising the first error,
+    so no paid request is still running (and missing from the cost report) when a tool
+    returns."""
+    results = await asyncio.gather(*aws, return_exceptions=True)
+    for r in results:
+        if isinstance(r, BaseException):
+            raise r
+    return results
 
 
 # ---------------------------------------------------------------------------
@@ -238,11 +250,13 @@ class Artifact:
     provenance: str = ""  # which Bodhan model produced the content, or "llm-english", "code"
     verification: dict[str, Any] | None = None
     notes: list[str] = field(default_factory=list)
+    depends_on: list[str] = field(default_factory=list)  # artifacts embedded in this one
 
     def as_dict(self, base: Path | None = None) -> dict[str, Any]:
         p = str(self.path.relative_to(base)) if base and self.path.is_relative_to(base) else str(self.path)
         return {"path": p.replace("\\", "/"), "kind": self.kind, "producer": self.producer, "language": self.language,
-                "provenance": self.provenance, "verification": self.verification, "notes": self.notes}
+                "provenance": self.provenance, "verification": self.verification, "notes": self.notes,
+                "embeds": [Path(d).name for d in self.depends_on]}
 
 
 @dataclass

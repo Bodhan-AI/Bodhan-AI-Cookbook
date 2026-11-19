@@ -20,7 +20,7 @@ from ..languages import (
     script_matches_language,
     supported_list,
 )
-from ..runtime import RunContext
+from ..runtime import RunContext, settle
 from ..textutil import (
     chrf,
     letters_only,
@@ -30,6 +30,7 @@ from ..textutil import (
     render_table,
     repetition_score,
     split_markdown_blocks,
+    split_sentences,
     table_shapes,
 )
 
@@ -79,7 +80,7 @@ def _already_in(text: str, target: str) -> bool:
     return guess.language == target and guess.confidence >= 0.6
 
 
-def plan_units(source: str, target: str | None = None) -> list[tuple[Unit, str]]:
+def plan_units(source: str, target: str | None = None, script: str = "native") -> list[tuple[Unit, str]]:
     """Return (unit, separator-before) pairs that re-join to the document layout."""
     units: list[tuple[Unit, str]] = []
     buf: list[str] = []
@@ -105,7 +106,7 @@ def plan_units(source: str, target: str | None = None) -> list[tuple[Unit, str]]
         if block.kind == "text" and _HTML_COMMENT.fullmatch(block.text.strip()):
             flush()
             units.append((Unit("keep", block.text), PARA))  # e.g. <!-- page 3 --> markers
-        elif block.kind == "text" and target and _already_in(block.text, target):
+        elif block.kind == "text" and target and script == "native" and _already_in(block.text, target):
             flush()
             unit = Unit("keep", block.text)
             unit.notes.append("a passage already in the target language was kept as is")
@@ -138,7 +139,7 @@ async def _translate_piece(ctx: RunContext, text: str, target: str, script: str,
                           hint="Report this passage as untranslated; do not present a partial translation as complete.",
                           details={"passage_start": text[:120]})
     ctx.emit({"type": "recovery", "action": "split_truncated_chunk", "depth": depth + 1, "pieces": len(pieces)})
-    results = await asyncio.gather(*[_translate_piece(ctx, p, target, script, depth + 1, purpose) for p in pieces])
+    results = await settle(*[_translate_piece(ctx, p, target, script, depth + 1, purpose) for p in pieces])
     return " ".join(r[0] for r in results), sum(r[1] for r in results) + 1
 
 
@@ -153,14 +154,14 @@ async def _translate_table(ctx: RunContext, unit: Unit, target: str, script: str
     ctx.emit({"type": "recovery", "action": "table_cellwise", "shape": table_shapes(unit.source)})
     rows = parse_table(unit.source)
     cells = sorted({c for r in rows for c in r if letters_only(c)})
-    translated = await asyncio.gather(*[_translate_piece(ctx, c, target, script, purpose="translate-cell") for c in cells])
+    translated = await settle(*[_translate_piece(ctx, c, target, script, purpose="translate-cell") for c in cells])
     mapping = {c: t for c, (t, _) in zip(cells, translated)}
     unit.calls += sum(n for _, n in translated)
     unit.output = render_table([[mapping.get(c, c) for c in r] for r in rows])
 
 
 async def translate_markdown(ctx: RunContext, source: str, target: str, script: str = "native") -> tuple[str, list[Unit]]:
-    planned = plan_units(source, target)
+    planned = plan_units(source, target, script)
 
     async def run(unit: Unit) -> None:
         if unit.kind == "keep":
@@ -175,12 +176,12 @@ async def translate_markdown(ctx: RunContext, source: str, target: str, script: 
                 # Coverage check: the model merged or dropped paragraphs. Re-translate them one by one
                 # (each is a new input, so nothing is sent twice) and keep the layout.
                 ctx.emit({"type": "recovery", "action": "paragraph_coverage_retranslate", "expected": len(paras), "got": len(got)})
-                outs = await asyncio.gather(*[_translate_piece(ctx, b, target, script) for b in paras])
+                outs = await settle(*[_translate_piece(ctx, b, target, script) for b in paras])
                 unit.output = PARA.join(o for o, _ in outs)
                 unit.calls += sum(n for _, n in outs)
                 unit.notes.append(f"a passage came back with {len(got)} of {len(paras)} paragraphs, so it was re-translated paragraph by paragraph")
 
-    await asyncio.gather(*[run(u) for u, _ in planned])
+    await settle(*[run(u) for u, _ in planned])
     text = "".join(sep + u.output for u, sep in planned)
     return text, [u for u, _ in planned]
 
@@ -211,6 +212,12 @@ async def verify_units(ctx: RunContext, units: list[Unit], source_text: str, out
     if src_shapes != out_shapes:
         problems.append(f"table structure changed: source {src_shapes} vs output {out_shapes}")
 
+    short = [u.source[:60] for u in units if u.kind == "text" and len(split_sentences(u.source)) >= 3
+             and len(split_sentences(u.output)) < len(split_sentences(u.source)) - 1]
+    checks["sentence_coverage"] = {"passages_with_fewer_sentences": len(short)}
+    if short:
+        warnings.append(f"{len(short)} passage(s) came back with noticeably fewer sentences than the source (merged or omitted?): {short[:3]}")
+
     rep_src, rep_out = repetition_score(source_text), repetition_score(output_text)
     checks["repetition"] = {"source": round(rep_src, 3), "output": round(rep_out, 3)}
     if rep_out > rep_src + 0.25:
@@ -236,7 +243,7 @@ async def verify_units(ctx: RunContext, units: list[Unit], source_text: str, out
             r = len(letters_only(u.back)) / max(len(letters_only(u.source)), 1)
             scores.append(s)
             ratios.append(r)
-            if len(letters_only(u.source)) > 80 and (r < 0.45 or s < 0.15):
+            if (len(letters_only(u.source)) > 80 and (r < 0.45 or s < 0.15)) or (len(letters_only(u.source)) > 30 and r < 0.35):
                 flagged.append({"passage_start": u.source[:80], "back_translation_start": u.back[:80], "chrf": round(s, 3), "length_ratio": round(r, 2)})
         if scores:
             mean = sum(scores) / len(scores)

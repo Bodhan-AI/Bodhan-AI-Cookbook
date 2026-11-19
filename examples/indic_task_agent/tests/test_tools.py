@@ -9,6 +9,7 @@ from bodhan_mcp.registry import invoke
 from bodhan_mcp.tools import TOOL_BY_NAME
 from bodhan_mcp.tools.audio_tools import TTS_SEGMENT_CHARS
 from bodhan_mcp.tools.common import ProvenanceGuard
+from bodhan_mcp.tools.translation import PARA
 
 
 async def call(ctx, tool_name, **args):
@@ -90,11 +91,17 @@ async def test_translate_unsupported_language_costs_nothing(fake, make_ctx):
     assert fake.calls["translate"] == 0 and r["cost_inr"] == 0
 
 
-async def test_translate_skips_when_already_in_target_language(fake, make_ctx, tmp_path):
+async def test_translate_document_already_in_target_costs_nothing_but_minority_paragraphs_are_translated(fake, make_ctx, tmp_path):
     f = tmp_path / "hi.txt"
     f.write_text("यह पहले से हिंदी में है और यह सरल है।", encoding="utf-8")
     r, err = await call(make_ctx(fake), "translate_text", path=str(f), target_language="hi")
-    assert not err and r["skipped"] and fake.calls["translate"] == 0
+    assert not err and fake.calls["translate"] == 0 and open(r["path"], encoding="utf-8").read().strip() == f.read_text(encoding="utf-8").strip()
+    mixed = tmp_path / "mixed.md"
+    mixed.write_text(PARA.join(["यह हिंदी में पहला अनुच्छेद है और यह लंबा है।", "This paragraph is in English.", "यह हिंदी में तीसरा अनुच्छेद है।"]), encoding="utf-8")
+    r, err = await call(make_ctx(fake), "translate_text", path=str(mixed), target_language="hi")
+    assert not err and [q["text"] for q in fake.requests if q["kind"] == "translate" and q["target"] == "hi"] == ["This paragraph is in English."]
+    roman = await call(make_ctx(fake), "translate_text", path=str(f), target_language="hi", script="roman")
+    assert not roman[1] and fake.requests[-1]["kind"] == "translate"  # passthrough only when the requested script is native too
 
 
 async def test_translate_srt_keeps_timing(fake, make_ctx, tmp_path):

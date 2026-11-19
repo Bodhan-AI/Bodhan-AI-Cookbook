@@ -22,7 +22,7 @@ from ..languages import (
     indic_fraction,
     normalize_language,
 )
-from ..runtime import Artifact, RunContext
+from ..runtime import Artifact, RunContext, settle
 from ..textutil import preview
 from .common import frame_untrusted, output_name, resolve_text
 from .subtitles import parse_srt, render_srt
@@ -55,24 +55,16 @@ async def translate_text(ctx: RunContext, a: TranslateIn) -> dict:
                           "so Indic-Translate cannot translate it.",
                           hint="Report the source language as unsupported; do not guess a translation.", details={"source_detection": detection})
 
-    if src_lang == target and a.script == "native" and (detection.get("confidence", 1) or 0) >= 0.6 and not is_srt:
-        dest = ctx.artifact_path(output_name(a.output_name, src_label, f"_{target}"), ".md")
-        dest.write_text(source, encoding="utf-8")
-        ctx.register(Artifact(dest, "translation", "translate_text", target, "copied (source already in target language)",
-                              {"status": "pass", "method": "no translation needed", "problems": [], "warnings": []}))
-        return {"path": str(dest), "target_language": target, "skipped": True,
-                "note": f"Source is already {LANGUAGE_NAMES.get(target, target)}; copied without calling the model.",
-                "source_detection": detection}
-
+    # No whole-document shortcut: each paragraph is checked on its own (translation.plan_units), so a
+    # minority-language paragraph inside a mostly-target-language document is still translated.
     if is_srt:
         cues = parse_srt(source)
         if not cues:
             raise E.ToolError(E.INVALID_ARGUMENT, f"{src_label} has no subtitle cues.")
-        import asyncio
 
         from .translation import _translate_piece  # cue-by-cue keeps timing aligned
 
-        outs = await asyncio.gather(*[_translate_piece(ctx, c["text"], target, a.script) for c in cues])
+        outs = await settle(*[_translate_piece(ctx, c["text"], target, a.script) for c in cues])
         new_cues = [{**c, "text": o} for c, (o, _) in zip(cues, outs)]
         output = render_srt(new_cues)
         from .translation import Unit
@@ -92,7 +84,9 @@ async def translate_text(ctx: RunContext, a: TranslateIn) -> dict:
     dest = ctx.artifact_path(output_name(a.output_name, src_label, f"_{target}"), suffix)
     dest.write_text(output, encoding="utf-8")
     notes = [n for u in units for n in u.notes]
-    art = ctx.register(Artifact(dest, "subtitles" if is_srt else "translation", "translate_text", target, "indic-translate", verification, notes))
+    deps = [src_label] if src_label in ctx.artifacts else []
+    art = ctx.register(Artifact(dest, "subtitles" if is_srt else "translation", "translate_text", target, "indic-translate", verification, notes,
+                                depends_on=deps))
     if ctx.provenance_guard is not None:
         ctx.provenance_guard.add(output)
     result = {
@@ -201,7 +195,7 @@ async def write_text(ctx: RunContext, a: WriteTextIn) -> dict:
         raise E.ToolError(E.PROVENANCE_VIOLATION, "write_text only saves English text written by the caller.",
                           hint="Write the text in English and call translate_text to produce Indian-language output.")
     authored = _EMBED.sub("", a.content)
-    if indic_fraction(authored) > 0.02:
+    if indic_fraction(authored) > 0:
         raise E.ToolError(E.PROVENANCE_VIOLATION,
                           "The content contains Indian-language text written by the caller. Indian-language text must come from a Bodhan model.",
                           hint="Write English and call translate_text, or embed an existing artifact with {{artifact:<path>}}.")
@@ -222,7 +216,8 @@ async def write_text(ctx: RunContext, a: WriteTextIn) -> dict:
             raise E.ToolError(E.INVALID_ARGUMENT, f"content is not valid JSON: {exc}") from exc
     dest = ctx.artifact_path(a.name, suffix)
     dest.write_text(final, encoding="utf-8")
-    ctx.register(Artifact(dest, "text", "write_text", "en", "planner (English)" + (" + embedded artifacts" if embedded else ""), None))
+    ctx.register(Artifact(dest, "text", "write_text", "en", "planner (English)" + (" + embedded artifacts" if embedded else ""), None,
+                          depends_on=embedded))
     return {"path": str(dest), "chars": len(final), "embedded_artifacts": embedded}
 
 

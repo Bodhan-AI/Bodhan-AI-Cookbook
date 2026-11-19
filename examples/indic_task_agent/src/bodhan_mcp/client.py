@@ -128,6 +128,7 @@ class BodhanClient:
         self.backoff_base = backoff_base
         self.base_url = base_url.rstrip("/")
         self.gates = {m: AdaptiveGate(concurrency) for m in KEY_ENV}
+        self._inflight: dict[str, asyncio.Future] = {}
         self._http = httpx.AsyncClient(timeout=httpx.Timeout(timeout, connect=min(10.0, timeout)), transport=transport)
 
     async def aclose(self) -> None:
@@ -154,6 +155,27 @@ class BodhanClient:
             self._emit({"type": "api_call", "purpose": purpose, **info})
             return meta, blob, info
 
+        pending = self._inflight.get(key)
+        if pending is not None:  # the same input is already being sent: share that request instead of paying twice
+            meta, blob = await asyncio.shield(pending)
+            self.ledger.cache_hits += 1
+            info = {"model": model, "cache": "in_flight", "cost_inr": 0.0, "attempts": 0, "latency_s": 0.0}
+            self._emit({"type": "api_call", "purpose": purpose, **info})
+            return meta, blob, info
+        future: asyncio.Future = asyncio.get_running_loop().create_future()
+        self._inflight[key] = future
+        try:
+            meta, blob, info = await self._send(model, purpose, key, reserve, send, parse, cost_of)
+            future.set_result((meta, blob))
+            return meta, blob, info
+        except BaseException as exc:
+            future.set_exception(exc)
+            future.exception()  # mark retrieved when nobody else was waiting
+            raise
+        finally:
+            self._inflight.pop(key, None)
+
+    async def _send(self, model, purpose, key, reserve, send, parse, cost_of) -> tuple[dict, bytes | None, dict]:
         api_key = self.keys.for_model(model)
         if not api_key:
             raise E.ToolError(E.MISSING_CREDENTIALS, f"{KEY_ENV[model]} is not set, so {model} cannot be called.",

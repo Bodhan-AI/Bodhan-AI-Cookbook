@@ -7,7 +7,9 @@ looks clean; otherwise the page is rendered and sent to Indic-OCR.
 
 from __future__ import annotations
 
+import functools
 import io
+import threading
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -20,6 +22,19 @@ TEXT_EXT = {".txt", ".md", ".markdown", ".srt", ".vtt", ".csv", ".tsv", ".json",
 PDF_EXT = {".pdf"}
 MAX_SIDE = 2400  # px; large phone photos are downscaled before upload
 MAX_PDF_PAGES = 60
+
+# PDFium is not thread-safe: concurrent page renders crashed natively in testing.
+# Every PDFium call in this process goes through one lock.
+_PDFIUM_LOCK = threading.Lock()
+
+
+def _pdfium_serialized(fn):
+    @functools.wraps(fn)
+    def wrapper(*args, **kwargs):
+        with _PDFIUM_LOCK:
+            return fn(*args, **kwargs)
+
+    return wrapper
 
 
 def classify(path: Path) -> str:
@@ -110,6 +125,7 @@ def load_image(path: Path) -> PageImage:
     return PageImage(1, data, mime, int(w * s), int(h * s))
 
 
+@_pdfium_serialized
 def pdf_page_count(path: Path) -> int:
     import pypdfium2 as pdfium
 
@@ -123,6 +139,7 @@ def pdf_page_count(path: Path) -> int:
         pdf.close()
 
 
+@_pdfium_serialized
 def pdf_text_layer(path: Path, page_index: int) -> str:
     import pypdfium2 as pdfium
 
@@ -152,6 +169,7 @@ def text_layer_is_usable(text: str) -> bool:
     return letters / len(stripped) > 0.5
 
 
+@_pdfium_serialized
 def render_pdf_page(path: Path, page_index: int, dpi: int = 200) -> PageImage:
     import pypdfium2 as pdfium
 

@@ -22,7 +22,7 @@ from ..documents import (
 )
 from ..languages import detect_language
 from ..media import probe
-from ..runtime import Artifact, RunContext, price_ocr
+from ..runtime import Artifact, RunContext, price_ocr, settle
 from ..textutil import preview
 from .common import frame_untrusted, output_name
 
@@ -81,6 +81,11 @@ async def inspect_files(ctx: RunContext, a: InspectIn) -> dict:
             raise
         files = sorted(x for x in p.rglob("*") if x.is_file() and not x.name.startswith(".")) if p.is_dir() else [p]
         for f in files[:MAX_LISTED]:
+            try:
+                f = ctx.resolve_input(str(f))  # every file, not just the folder, must be inside the allowed roots (symlinks)
+            except E.ToolError as exc:
+                found.append({"path": str(f), "name": f.name, "error": exc.as_dict()})
+                continue
             found.append(await asyncio.to_thread(_describe, f))
     if not found and missing:
         raise E.ToolError(E.FILE_NOT_FOUND, f"None of the paths exist: {missing}", hint="Report that the input files are missing.")
@@ -103,6 +108,11 @@ async def _ocr_image(ctx: RunContext, data: bytes, mime: str, table_format: str)
             raise
         ctx.emit({"type": "recovery", "action": "ocr_retry_larger_max_tokens"})
         meta, _ = await ctx.client.ocr(data, mime, table_format=table_format, max_tokens=4096)
+    if meta.get("finish_reason") == "length":  # a block hit max_tokens: the page text is cut short
+        ctx.emit({"type": "recovery", "action": "ocr_truncated_retry_larger_max_tokens"})
+        meta, _ = await ctx.client.ocr(data, mime, table_format=table_format, max_tokens=4096)
+    meta = dict(meta)
+    meta["incomplete"] = meta.get("finish_reason") == "length"
     return meta
 
 
@@ -119,7 +129,7 @@ async def ocr_document(ctx: RunContext, a: OcrIn) -> dict:
         if not ctx.ledger.can_afford(price_ocr(1)):
             ctx.ledger.reserve("indic-ocr", price_ocr(1), "ocr")  # raises a structured budget error
         meta = await _ocr_image(ctx, img.data, img.mime, a.table_format)
-        pages_out.append({"page": 1, "source": "indic-ocr", "markdown": meta["markdown"], "blocks": meta["blocks"]})
+        pages_out.append({"page": 1, "source": "indic-ocr", "markdown": meta["markdown"], "blocks": meta["blocks"], "incomplete": meta["incomplete"]})
     else:
         count = pdf_page_count(p)
         page_list = parse_page_spec(a.pages, count)
@@ -139,9 +149,9 @@ async def ocr_document(ctx: RunContext, a: OcrIn) -> dict:
                 return {"page": n, "source": "pdf-text-layer", "markdown": layers[n].strip(), "blocks": []}
             img = await asyncio.to_thread(render_pdf_page, p, n - 1)
             meta = await _ocr_image(ctx, img.data, img.mime, a.table_format)
-            return {"page": n, "source": "indic-ocr", "markdown": meta["markdown"], "blocks": meta["blocks"]}
+            return {"page": n, "source": "indic-ocr", "markdown": meta["markdown"], "blocks": meta["blocks"], "incomplete": meta["incomplete"]}
 
-        pages_out = list(await asyncio.gather(*[page(n) for n in page_list]))
+        pages_out = list(await settle(*[page(n) for n in page_list]))
 
     notes = []
     empty = [pg["page"] for pg in pages_out if not pg["markdown"].strip()]
@@ -150,6 +160,11 @@ async def ocr_document(ctx: RunContext, a: OcrIn) -> dict:
     low = sum(1 for pg in pages_out for b in pg["blocks"] if (b.get("conf") or 1) < 0.4 and b.get("text"))
     if low:
         notes.append(f"{low} text block(s) had low layout-detection confidence")
+    incomplete = [pg["page"] for pg in pages_out if pg.get("incomplete")]
+    verification = None
+    if incomplete:
+        notes.append(f"page(s) {incomplete} are INCOMPLETE: the OCR output was cut off even with a larger token limit")
+        verification = {"status": "fail", "method": "OCR finish_reason", "problems": [f"truncated OCR on page(s) {incomplete}"], "warnings": []}
     if any(pg["source"] == "pdf-text-layer" for pg in pages_out):
         notes.append("some pages used the PDF's embedded text layer (no OCR needed)")
     multi = len(pages_out) > 1
@@ -157,10 +172,10 @@ async def ocr_document(ctx: RunContext, a: OcrIn) -> dict:
     dest = ctx.artifact_path(output_name(a.output_name, str(p), "_ocr"), ".md")
     dest.write_text(md, encoding="utf-8")
     det = detect_language(md)
-    ctx.register(Artifact(dest, "ocr", "ocr_document", det.language, "indic-ocr", None, notes))
+    ctx.register(Artifact(dest, "ocr", "ocr_document", det.language, "indic-ocr", verification, notes))
     if ctx.provenance_guard is not None:
         ctx.provenance_guard.add(md)
     tables = sum(1 for pg in pages_out for b in pg["blocks"] if b.get("type") == "Table")
     return {"path": str(dest), "pages": page_list, "pages_ocr": sum(1 for pg in pages_out if pg["source"] == "indic-ocr"),
-            "chars": len(md), "tables_detected": tables, "detection": det.as_dict(), "notes": notes,
+            "chars": len(md), "tables_detected": tables, "detection": det.as_dict(), "notes": notes, "incomplete_pages": incomplete,
             "content": frame_untrusted(md, str(dest), 1500)}

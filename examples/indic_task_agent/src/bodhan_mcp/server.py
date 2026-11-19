@@ -44,6 +44,25 @@ INSTRUCTIONS = (
     "Unsupported languages return an `unsupported_language` error; report it rather than substituting."
 )
 
+# Every tool returns this envelope; tool-specific fields (paths, previews, detection...) are added alongside.
+RESULT_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "ok": {"type": "boolean", "description": "true on success; false with `error` on failure"},
+        "error": {"type": "object", "properties": {
+            "code": {"type": "string", "description": "stable code, e.g. unsupported_language, file_not_found, budget_exceeded, rate_limited"},
+            "message": {"type": "string"}, "hint": {"type": "string", "description": "what to do next"},
+            "retryable": {"type": "boolean"}, "details": {"type": "object"}}, "required": ["code", "message", "retryable"]},
+        "path": {"type": "string", "description": "main output artifact (absolute path), when the tool writes one"},
+        "verification": {"type": ["object", "null"], "description": "status pass/warn/fail with method, problems, warnings"},
+        "cost_inr": {"type": "number", "description": "Bodhan spend of this call (0 when served from cache)"},
+        "elapsed_s": {"type": "number"},
+        "budget_remaining_inr": {"type": "number"},
+    },
+    "required": ["ok"],
+    "additionalProperties": True,
+}
+
 RESOURCES = {
     "bodhan://voices": ("Indic-Speak voice library", "Fixed voices per language (female/male) and styles."),
     "bodhan://languages": ("Supported languages", "Language codes supported by each Bodhan model."),
@@ -67,7 +86,7 @@ def resource_payload(uri: str) -> dict[str, Any]:
 def build_server(ctx: RunContext) -> Server:
     async def list_tools(_rc, _params) -> types.ListToolsResult:
         return types.ListToolsResult(tools=[
-            types.Tool(name=t.name, title=t.title, description=t.description, input_schema=t.input_schema(),
+            types.Tool(name=t.name, title=t.title, description=t.description, input_schema=t.input_schema(), output_schema=RESULT_SCHEMA,
                        annotations=types.ToolAnnotations(title=t.title, read_only_hint=t.read_only, destructive_hint=False,
                                                          idempotent_hint=True, open_world_hint=t.paid))
             for t in TOOLS])

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+import string
 from pathlib import Path
 
 from .. import errors as E
@@ -43,15 +44,16 @@ class ProvenanceGuard:
             self._corpus.append(self._norm(text))
 
     def check(self, text: str, field: str) -> None:
-        if indic_fraction(text) < 0.02:
-            return
-        norm = self._norm(text)
-        corpus = "\n".join(self._corpus)
-        if norm in corpus:
-            return
-        # Accept text assembled from known lines/sentences (e.g. a subset of a transcript).
-        pieces = [p.strip() for p in re.split(r"(?<=[.?!।॥])\s+|\n+", text) if p.strip()]
-        unknown = [p for p in pieces if indic_fraction(p) >= 0.02 and self._norm(p) not in corpus]
+        corpus = " | ".join(self._corpus)
+
+        def known(span: str) -> bool:
+            # a whole span quoted verbatim, or a selection of whole known sentences
+            if self._norm(span) in corpus:
+                return True
+            sentences = [x.strip(_EDGE_PUNCT) for x in re.split(r"(?<=[.?!।॥])\s+", span)]
+            return len(sentences) > 1 and all(self._norm(x) in corpus for x in sentences if x)
+
+        unknown = [span for span in indic_spans(text) if not known(span)]
         if not unknown:
             return
         raise E.ToolError(
@@ -60,6 +62,30 @@ class ProvenanceGuard:
             f"(e.g. {unknown[0][:60]!r}). The planner may not write Indian-language text.",
             hint="Pass the text by `path` (an input file or a tool artifact), or write English and call translate_text.",
         )
+
+
+_EDGE_PUNCT = string.whitespace + '"\'“”‘’()[]{}:;,.!?।॥-–—'
+
+
+def indic_spans(text: str) -> list[str]:
+    """Maximal runs of words that contain Indian-language letters (punctuation and digits
+    between such words stay inside the run). Every span must be quoted verbatim from a
+    known source; recombining known words into new sentences is still caught."""
+    spans: list[list[str]] = []
+    current: list[str] = []
+    pending: list[str] = []  # non-Indic tokens that may sit inside a span
+    for tok in text.split():
+        if indic_fraction(tok) > 0:
+            current += pending + [tok]
+            pending = []
+        elif current and not any(ch.isalpha() for ch in tok):
+            pending.append(tok)
+        elif current:
+            spans.append(current)
+            current, pending = [], []
+    if current:
+        spans.append(current)
+    return [" ".join(s).strip(_EDGE_PUNCT) for s in spans if " ".join(s).strip(_EDGE_PUNCT)]
 
 
 def resolve_text(ctx: RunContext, text: str | None, path: str | None, field: str = "text") -> tuple[str, str]:
