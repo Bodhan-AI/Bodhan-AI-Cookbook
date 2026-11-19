@@ -24,8 +24,10 @@ produce no substitute output.
 ## How to work
 - The user message already lists the input files with metadata (inspect_files was run for you; do not repeat it). \
 Start by calling record_plan with numbered steps, your \
-assumptions (e.g. unstated source language, voice gender, length) and the deliverables you will produce. Paid tools \
-are refused until a plan is recorded. Call record_plan again if you change course.
+assumptions (e.g. unstated source language, voice gender, length) and every deliverable the task asks for, each with \
+its kind (audio, translation, subtitles, text, transcript) and language code; use kind "answer" when the reply itself \
+is the output (e.g. "which clips are Telugu?"). Paid tools are refused until a plan is recorded, and "completed" is \
+accepted only when each declared deliverable exists and passed verification. Call record_plan again if you change course.
 - Use the fewest tool calls that do the job. Each step costs time and money. Pass files by path; chain the \
 artifact paths that tools return. Never run the same tool on the same input twice.
 - Language unknown? transcribe_audio/ocr_document detect it; detect_language is free for text.

@@ -44,7 +44,7 @@ async def test_final_answer_with_planner_indic_text_is_never_accepted(tmp_path):
     txt = tmp_path / "p.txt"
     txt.write_text("Trees give shade.", encoding="utf-8")
     hindi = "पेड़ छाया देते हैं और यह उत्तर मैंने लिखा।"
-    chat = ScriptedChat([[("record_plan", {"steps": ["answer"]})], [("write_text", {"name": "a.md", "content": "Trees give shade."})]]
+    chat = ScriptedChat([[("record_plan", {"steps": ["answer"], "deliverables": [{"kind": "text", "language": "en"}]})], [("write_text", {"name": "a.md", "content": "Trees give shade."})]]
                         + [lambda m: [("finish", {"status": "completed", "final_answer": hindi, "deliverables": [last_ok(m, "path")]})]] * 3)
     await run(args(tmp_path, "Explain", [txt]), transport=FakeBodhan().transport, llm=PlannerLLM(client=chat, model="s"))
     out, rep, trace, md = read_outputs(tmp_path)
@@ -57,7 +57,7 @@ async def test_completed_without_any_deliverable_is_refused(tmp_path):
     txt = tmp_path / "p.txt"
     txt.write_text("A paragraph.", encoding="utf-8")
     claim = [("finish", {"status": "completed", "final_answer": "Created the requested Tamil MP3.", "deliverables": []})]
-    chat = ScriptedChat([[("record_plan", {"steps": ["x"]})], claim, claim, claim])
+    chat = ScriptedChat([[("record_plan", {"steps": ["x"], "deliverables": [{"kind": "audio", "language": "ta"}]})], claim, claim, claim])
     await run(args(tmp_path, "Produce a Tamil MP3", [txt]), transport=FakeBodhan().transport, llm=PlannerLLM(client=chat, model="s"))
     out, rep, trace, md = read_outputs(tmp_path)
     assert rep["status"] == "failed" and rep["deliverables"] == []
@@ -75,7 +75,7 @@ async def test_embedding_a_failed_translation_keeps_the_failure(tmp_path):
 
     fake = FakeBodhan(truncate_over_chars=None)
     chat = ScriptedChat([
-        [("record_plan", {"steps": ["translate", "wrap"]})],
+        [("record_plan", {"steps": ["translate", "wrap"], "deliverables": [{"kind": "text", "language": "ta"}]})],
         [("translate_text", {"path": str(txt), "target_language": "ta"})],
         wrap,
         lambda m: [("finish", {"status": "completed", "final_answer": "Done.", "deliverables": [last_ok(m, "path")]})],
@@ -153,7 +153,7 @@ async def test_speech_number_mismatch_is_flagged(make_ctx):
 async def test_priced_llm_is_checked_before_each_call(tmp_path):
     txt = tmp_path / "p.txt"
     txt.write_text("Trees.", encoding="utf-8")
-    chat = ScriptedChat([[("record_plan", {"steps": ["x"]})]] + [[("detect_language", {"path": str(txt)})]] * 10)
+    chat = ScriptedChat([[("record_plan", {"steps": ["x"], "deliverables": [{"kind": "answer"}]})]] + [[("detect_language", {"path": str(txt)})]] * 10)
     await run(args(tmp_path, "Do it", [txt], max_cost_inr=0.01, llm_input_inr_per_1m=1000.0, llm_output_inr_per_1m=1000.0),
               transport=FakeBodhan().transport, llm=PlannerLLM(client=chat, model="s"))
     out, rep, trace, md = read_outputs(tmp_path)
@@ -220,7 +220,7 @@ async def test_answer_only_task_can_complete_after_real_tool_work(tmp_path):
     txt = tmp_path / "note.txt"
     txt.write_text("ఇది తెలుగు వాక్యం", encoding="utf-8")
     chat = ScriptedChat([
-        [("record_plan", {"steps": ["detect", "answer"]})],
+        [("record_plan", {"steps": ["detect", "answer"], "deliverables": [{"kind": "answer"}]})],
         [("translate_text", {"path": str(txt), "target_language": "en"})],
         [("finish", {"status": "completed", "final_answer": "The note is in Telugu.", "deliverables": []})],
     ])

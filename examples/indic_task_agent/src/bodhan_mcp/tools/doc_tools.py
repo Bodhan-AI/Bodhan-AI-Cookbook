@@ -11,10 +11,13 @@ from pydantic import BaseModel, ConfigDict, Field
 from .. import errors as E
 from ..documents import (
     MAX_PDF_PAGES,
+    RASTER_OCR_THRESHOLD,
     classify,
+    image_frame_count,
     load_image,
     parse_page_spec,
     pdf_page_count,
+    pdf_raster_share,
     pdf_text_layer,
     read_text_file,
     render_pdf_page,
@@ -94,7 +97,7 @@ async def inspect_files(ctx: RunContext, a: InspectIn) -> dict:
 
 class OcrIn(_Strict):
     path: str = Field(description="Image (PNG/JPEG/WebP/TIFF/...) or PDF (scanned or digital, multi-page).")
-    pages: str = Field("all", description="Pages for PDFs, e.g. 'all', '1-3,5'. Ignored for images.")
+    pages: str = Field("all", description="Pages for PDFs and multi-page TIFFs, e.g. 'all', '1-3,5'. Ignored for single images.")
     table_format: Literal["markdown", "html"] = Field("markdown", description="How tables are returned. 'markdown' is easiest to translate; 'html' keeps merged cells.")
     use_text_layer: bool = Field(True, description="For PDFs, use the embedded text layer when it looks clean instead of paying for OCR.")
     output_name: str | None = Field(None, description="File name for the Markdown artifact.")
@@ -124,34 +127,43 @@ async def ocr_document(ctx: RunContext, a: OcrIn) -> dict:
                           hint={"text": "Use read_text.", "audio": "Use transcribe_audio.", "video": "Use transcribe_audio."}.get(kind, ""))
     pages_out: list[dict] = []
     if kind == "image":
-        img = await asyncio.to_thread(load_image, p)
-        page_list = [1]
-        if not ctx.ledger.can_afford(price_ocr(1)):
-            ctx.ledger.reserve("indic-ocr", price_ocr(1), "ocr")  # raises a structured budget error
-        meta = await _ocr_image(ctx, img.data, img.mime, a.table_format)
-        pages_out.append({"page": 1, "source": "indic-ocr", "markdown": meta["markdown"], "blocks": meta["blocks"], "incomplete": meta["incomplete"]})
+        count = await asyncio.to_thread(image_frame_count, p)  # multi-page TIFFs are documents
+        page_list = parse_page_spec(a.pages, count) if count > 1 else [1]
     else:
-        count = pdf_page_count(p)
+        count = await asyncio.to_thread(pdf_page_count, p)
         page_list = parse_page_spec(a.pages, count)
-        if len(page_list) > MAX_PDF_PAGES:
-            raise E.ToolError(E.INVALID_ARGUMENT, f"{len(page_list)} pages requested; the limit is {MAX_PDF_PAGES} per call.",
-                              hint="Pass a page range, e.g. pages='1-30', and call again for the rest.")
-        layers = {n: (await asyncio.to_thread(pdf_text_layer, p, n - 1) if a.use_text_layer else "") for n in page_list}
-        need_ocr = [n for n in page_list if not text_layer_is_usable(layers[n])]
-        if not ctx.ledger.can_afford(price_ocr(len(need_ocr))):
-            raise E.ToolError(E.BUDGET_EXCEEDED, f"OCR of {len(need_ocr)} page(s) needs ₹{price_ocr(len(need_ocr)):.2f}; "
-                              f"only ₹{max(ctx.ledger.remaining or 0, 0):.2f} remains.",
-                              hint="OCR fewer pages (pages='1-3') or stop and report.",
-                              details={"needed_inr": price_ocr(len(need_ocr)), "remaining_inr": round(max(ctx.ledger.remaining or 0, 0), 4)})
+    if len(page_list) > MAX_PDF_PAGES:
+        raise E.ToolError(E.INVALID_ARGUMENT, f"{len(page_list)} pages requested; the limit is {MAX_PDF_PAGES} per call.",
+                          hint="Pass a page range, e.g. pages='1-30', and call again for the rest.")
 
-        async def page(n: int) -> dict:
-            if n not in need_ocr:
-                return {"page": n, "source": "pdf-text-layer", "markdown": layers[n].strip(), "blocks": []}
-            img = await asyncio.to_thread(render_pdf_page, p, n - 1)
-            meta = await _ocr_image(ctx, img.data, img.mime, a.table_format)
-            return {"page": n, "source": "indic-ocr", "markdown": meta["markdown"], "blocks": meta["blocks"], "incomplete": meta["incomplete"]}
+    layers: dict[int, str] = {}
+    if kind == "pdf" and a.use_text_layer:
+        for n in page_list:
+            text = await asyncio.to_thread(pdf_text_layer, p, n - 1)
+            # A clean text layer is used only when no large picture could hold more text (scanned body, table image).
+            if text_layer_is_usable(text) and await asyncio.to_thread(pdf_raster_share, p, n - 1) < RASTER_OCR_THRESHOLD:
+                layers[n] = text
+    need_ocr = [n for n in page_list if n not in layers]
 
-        pages_out = list(await settle(*[page(n) for n in page_list]))
+    async def render(n: int):
+        return await asyncio.to_thread(render_pdf_page, p, n - 1) if kind == "pdf" else await asyncio.to_thread(load_image, p, n)
+
+    images = {n: await render(n) for n in need_ocr}
+    # Budget only pages that will actually be sent: pages already OCRed (cache) are free.
+    uncached = [n for n in need_ocr if not ctx.client.ocr_cached(images[n].data, a.table_format)]
+    if not ctx.ledger.can_afford(price_ocr(len(uncached))):
+        raise E.ToolError(E.BUDGET_EXCEEDED, f"OCR of {len(uncached)} page(s) needs ₹{price_ocr(len(uncached)):.2f}; "
+                          f"only ₹{max(ctx.ledger.remaining or 0, 0):.2f} remains.",
+                          hint="OCR fewer pages (pages='1-3') or stop and report.",
+                          details={"needed_inr": price_ocr(len(uncached)), "remaining_inr": round(max(ctx.ledger.remaining or 0, 0), 4)})
+
+    async def page(n: int) -> dict:
+        if n in layers:
+            return {"page": n, "source": "pdf-text-layer", "markdown": layers[n].strip(), "blocks": []}
+        meta = await _ocr_image(ctx, images[n].data, images[n].mime, a.table_format)
+        return {"page": n, "source": "indic-ocr", "markdown": meta["markdown"], "blocks": meta["blocks"], "incomplete": meta["incomplete"]}
+
+    pages_out = list(await settle(*[page(n) for n in page_list]))
 
     notes = []
     empty = [pg["page"] for pg in pages_out if not pg["markdown"].strip()]
@@ -167,7 +179,7 @@ async def ocr_document(ctx: RunContext, a: OcrIn) -> dict:
         verification = {"status": "fail", "method": "OCR finish_reason", "problems": [f"truncated OCR on page(s) {incomplete}"], "warnings": []}
     if any(pg["source"] == "pdf-text-layer" for pg in pages_out):
         notes.append("some pages used the PDF's embedded text layer (no OCR needed)")
-    multi = len(pages_out) > 1
+    multi = len(pages_out) > 1 or count > 1
     md = "\n\n".join((f"<!-- page {pg['page']} -->\n" if multi else "") + pg["markdown"].strip() for pg in pages_out)
     dest = ctx.artifact_path(output_name(a.output_name, str(p), "_ocr"), ".md")
     dest.write_text(md, encoding="utf-8")

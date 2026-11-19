@@ -51,7 +51,8 @@ async def test_multistep_worksheet_to_marathi_keeps_table(tmp_path):
     img = make_image(tmp_path / "worksheet.jpg")
     fake = FakeBodhan(ocr_pages=["Worksheet 4: Planets\n\n| Planet | Moons |\n| --- | --- |\n| Earth | 1 |\n| Mars | 2 |\n\nFill in the blanks."])
     chat = ScriptedChat([
-        [("record_plan", {"steps": ["ocr_document", "translate_text to mr", "finish"], "assumptions": ["source is English"]})],
+        [("record_plan", {"steps": ["ocr_document", "translate_text to mr", "finish"],
+                           "assumptions": ["source is English"], "deliverables": [{"kind": "translation", "language": "mr", "description": "Marathi worksheet"}]})],
         [("ocr_document", {"path": str(img)})],
         lambda m: [("translate_text", {"path": last_ok(m, "path"), "target_language": "mr", "output_name": "worksheet_mr"})],
         lambda m: [("finish", {"status": "completed", "final_answer": "Translated the worksheet into Marathi; the table is intact.",
@@ -76,7 +77,8 @@ async def test_chapter_to_tamil_audio_summary_chain(tmp_path):
     fake = FakeBodhan(ocr_pages=["நீர் சுழற்சி பாடம் ஒன்று", "மழை மேகங்கள் பாடம் இரண்டு", "ஆறுகள் கடல் பாடம் மூன்று"])
     summary = "The chapter explains the water cycle: evaporation, clouds, rain and rivers returning water to the sea."
     chat = ScriptedChat([
-        [("record_plan", {"steps": ["ocr", "translate en", "summarise", "translate ta", "speak"], "assumptions": ["~110 words per minute"]})],
+        [("record_plan", {"steps": ["ocr", "translate en", "summarise", "translate ta", "speak"],
+                           "assumptions": ["~110 words per minute"], "deliverables": [{"kind": "audio", "language": "ta"}, {"kind": "text", "language": "ta"}]})],
         [("ocr_document", {"path": str(pdf)})],
         lambda m: [("translate_text", {"path": last_ok(m, "path"), "target_language": "en"})],
         [("write_text", {"name": "summary_en.md", "content": summary})],
@@ -102,7 +104,7 @@ async def test_unsupported_language_ends_honestly_without_artifacts(tmp_path):
     video = tmp_path / "lecture.mp4"
     video.write_bytes(b"\x00\x00\x00\x18ftypmp42")  # never decoded: the planner checks support first
     chat = ScriptedChat([
-        [("record_plan", {"steps": ["check French support"]})],
+        [("record_plan", {"steps": ["check French support"], "deliverables": [{"kind": "translation", "language": "fr"}]})],
         [("translate_text", {"text": "test", "target_language": "fr"})],
         [("finish", {"status": "unsupported", "final_answer": "French is not supported by Bodhan's translation model, so no translation was made.",
                      "limitations": ["Indic-Translate covers English and 22 Indian languages only."]})],
@@ -119,7 +121,7 @@ async def test_gates_plan_provenance_and_unknown_deliverables(tmp_path):
     txt.write_text("A short English paragraph about trees.", encoding="utf-8")
     chat = ScriptedChat([
         [("translate_text", {"path": str(txt), "target_language": "bn"})],  # refused: no plan yet
-        [("record_plan", {"steps": ["translate", "speak"]})],
+        [("record_plan", {"steps": ["translate", "speak"], "deliverables": [{"kind": "translation", "language": "bn"}]})],
         [("synthesize_speech", {"text": "আমি নিজে লিখেছি", "language": "bn"})],  # refused: LLM-authored Bengali
         [("translate_text", {"path": str(txt), "target_language": "bn"})],
         [("finish", {"status": "completed", "final_answer": "Done", "deliverables": ["artifacts/made_up.mp3"]})],  # refused
@@ -137,7 +139,7 @@ async def test_tiny_budget_stops_cleanly(tmp_path):
     txt = tmp_path / "long.txt"
     txt.write_text("यह एक बहुत लंबा अनुच्छेद है जिसे बोलना है। " * 60, encoding="utf-8")
     chat = ScriptedChat([
-        [("record_plan", {"steps": ["speak"]})],
+        [("record_plan", {"steps": ["speak"], "deliverables": [{"kind": "audio", "language": "hi"}]})],
         [("synthesize_speech", {"path": str(txt), "language": "hi"})],
         lambda m: [("finish", {"status": "failed", "final_answer": "The budget of ₹0.05 is too small to synthesise this text (needs about ₹1.6)."
                                .replace("₹", "INR "), "limitations": ["budget too small"]})],
@@ -153,7 +155,7 @@ async def test_step_limit_forces_a_truthful_partial_report(tmp_path):
     txt = tmp_path / "p.txt"
     txt.write_text("Trees give shade.", encoding="utf-8")
     loop = [[("detect_language", {"path": str(txt)})]] * 20
-    chat = ScriptedChat([[("record_plan", {"steps": ["loop forever"]})], *loop])
+    chat = ScriptedChat([[("record_plan", {"steps": ["loop forever"], "deliverables": [{"kind": "answer"}]})], *loop])
     await run(args(tmp_path, "Do something", [txt], max_steps=4), transport=FakeBodhan().transport, llm=PlannerLLM(client=chat, model="s"))
     out, rep, trace, md = read_outputs(tmp_path)
     assert rep["stop_reason"] == "step_limit" and rep["status"] == "failed" and rep["steps"]["used"] <= 5

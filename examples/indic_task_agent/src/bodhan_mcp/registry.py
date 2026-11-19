@@ -83,10 +83,13 @@ def _validation_message(exc: ValidationError) -> tuple[str, list[dict[str, Any]]
     return f"Invalid arguments: {text}", problems
 
 
-async def invoke(spec: ToolSpec, ctx: RunContext, arguments: dict[str, Any] | None) -> tuple[dict[str, Any], bool]:
+async def invoke(spec: ToolSpec, ctx: RunContext, arguments: dict[str, Any] | None,
+                 scope: list[float] | None = None) -> tuple[dict[str, Any], bool]:
     """Run a tool. Returns (payload, is_error). Never raises."""
     t0 = time.monotonic()
-    scope: list[float] = []
+    # `scope` collects every amount this call commits; a caller that may cancel the call passes its own
+    # list so the spend stays attributable after cancellation.
+    scope = scope if scope is not None else []
     token = COST_SCOPE.set(scope)
     try:
         if arguments is not None and not isinstance(arguments, dict):

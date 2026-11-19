@@ -145,10 +145,15 @@ class BodhanClient:
         self.base_url = base_url.rstrip("/")
         self.gates = {m: AdaptiveGate(concurrency) for m in KEY_ENV}
         self._inflight: dict[str, asyncio.Future] = {}
+        self._tasks: set[asyncio.Future] = set()
         self.deadline = deadline  # monotonic time after which no request may wait or retry (set by the agent)
         self._http = httpx.AsyncClient(timeout=httpx.Timeout(timeout, connect=min(10.0, timeout)), transport=transport)
 
     async def aclose(self) -> None:
+        for t in list(self._tasks):
+            t.cancel()
+        if self._tasks:
+            await asyncio.gather(*self._tasks, return_exceptions=True)
         await self._http.aclose()
 
     # ------------------------------------------------------------------ core
@@ -172,25 +177,47 @@ class BodhanClient:
             self._emit({"type": "api_call", "purpose": purpose, **info})
             return meta, blob, info
 
-        pending = self._inflight.get(key)
-        if pending is not None:  # the same input is already being sent: share that request instead of paying twice
-            meta, blob = await asyncio.shield(pending)
+        task = self._inflight.get(key)
+        shared = task is not None
+        if task is None:
+            # The request is owned by the client, not by this caller: if this caller is cancelled
+            # (MCP client gave up, run deadline), other callers waiting for the same input still get
+            # the result, and a request already sent completes and is accounted for.
+            task = asyncio.ensure_future(self._send(model, purpose, key, reserve, send, parse, cost_of))
+            self._inflight[key] = task
+            self._tasks.add(task)
+            task.add_done_callback(lambda t, k=key: self._request_done(k, t))
+        meta, blob, info = await asyncio.shield(task)
+        if shared:
             self.ledger.cache_hits += 1
             info = {"model": model, "cache": "in_flight", "cost_inr": 0.0, "attempts": 0, "latency_s": 0.0}
             self._emit({"type": "api_call", "purpose": purpose, **info})
-            return meta, blob, info
-        future: asyncio.Future = asyncio.get_running_loop().create_future()
-        self._inflight[key] = future
-        try:
-            meta, blob, info = await self._send(model, purpose, key, reserve, send, parse, cost_of)
-            future.set_result((meta, blob))
-            return meta, blob, info
-        except BaseException as exc:
-            future.set_exception(exc)
-            future.exception()  # mark retrieved when nobody else was waiting
-            raise
-        finally:
-            self._inflight.pop(key, None)
+        return meta, blob, info
+
+    def _request_done(self, key: str, task: asyncio.Future) -> None:
+        if self._inflight.get(key) is task:
+            del self._inflight[key]
+        self._tasks.discard(task)
+        if not task.cancelled():
+            task.exception()  # retrieved here so an unobserved failure never logs a warning
+
+    def is_cached(self, model: str, payload: bytes, params: dict[str, Any]) -> bool:
+        """True if this exact request would be served free (cache or an identical request in flight)."""
+        key = cache_key(model, sha256_bytes(payload), params)
+        return key in self._inflight or self.cache.get(key) is not None
+
+    # Keys must match the ones the model methods below build.
+    def speak_cached(self, text: str, voice: str, lang: str, style: str | None = None) -> bool:
+        instructions = {"lang": lang}
+        if style:
+            instructions["style"] = style
+        return self.is_cached(MODEL_SPEAK, text.encode("utf-8"), {"voice": voice, "instructions": instructions})
+
+    def ocr_cached(self, image: bytes, table_format: str = "markdown", max_tokens: int = 2048) -> bool:
+        return self.is_cached(MODEL_OCR, image, {"table_format": table_format, "max_tokens": max_tokens})
+
+    def transcribe_cached(self, wav: bytes, language: str | None) -> bool:
+        return self.is_cached(MODEL_TRANSCRIBE, wav, {"language": language or "auto"})
 
     async def _send(self, model, purpose, key, reserve, send, parse, cost_of) -> tuple[dict, bytes | None, dict]:
         api_key = self.keys.for_model(model)
@@ -237,7 +264,7 @@ class BodhanClient:
                 cost = cost_of(meta)
                 self.ledger.commit(reservation, cost)
                 self.gates[model].succeeded()
-                self.cache.put(key, meta, blob)
+                self.cache.put(key, meta, blob, durable=meta.get("complete", True))  # truncated output is kept for this run only
                 info = {"model": model, "cache": "miss", "cost_inr": round(cost, 5), "attempts": attempt,
                         "latency_s": round(time.monotonic() - started, 3)}
                 self._emit({"type": "api_call", "model": model, "purpose": purpose, "cache": "miss", "attempt": attempt, "status": status,
@@ -359,7 +386,7 @@ class BodhanClient:
             out = choice["message"]["content"] or ""
             finish = choice.get("finish_reason")
             usage = body.get("usage") or {}
-            return {"translation": out, "finish_reason": finish, "truncated": finish == "length",
+            return {"translation": out, "finish_reason": finish, "truncated": finish == "length", "complete": finish != "length",
                     "completion_tokens": usage.get("completion_tokens"), "budget_tokens": budget_tokens}, None
 
         def cost(m: dict) -> float:
@@ -408,7 +435,8 @@ class BodhanClient:
             body = resp.json()
             choice = body["choices"][0]
             blocks = [{k: b.get(k) for k in ("order", "label", "type", "bbox_xyxy", "conf", "text")} for b in body.get("blocks") or []]
-            return {"markdown": choice["message"]["content"] or "", "finish_reason": choice.get("finish_reason"), "blocks": blocks}, None
+            finish = choice.get("finish_reason")
+            return {"markdown": choice["message"]["content"] or "", "finish_reason": finish, "blocks": blocks, "complete": finish != "length"}, None
 
         meta, _, info = await self._call(MODEL_OCR, purpose, params, sha256_bytes(image), price_ocr(1), send, parse, lambda m: price_ocr(1))
         return meta, info

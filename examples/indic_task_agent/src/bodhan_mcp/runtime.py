@@ -10,6 +10,7 @@ import asyncio
 import hashlib
 import json
 import math
+import os
 import re
 import time
 from collections.abc import Callable
@@ -46,6 +47,15 @@ def price_ocr(images: int = 1) -> float:
 # Per-tool-call cost accumulator. `registry.invoke` sets a fresh list; the client
 # appends every amount it commits, so concurrent tool calls report their own cost.
 COST_SCOPE: ContextVar[list[float] | None] = ContextVar("bodhan_cost_scope", default=None)
+
+
+RUN_DEADLINE: ContextVar[float | None] = ContextVar("bodhan_run_deadline", default=None)  # time.monotonic() value
+
+
+def deadline_left() -> float | None:
+    """Seconds until the run deadline (None when no deadline is set, e.g. the MCP server)."""
+    d = RUN_DEADLINE.get()
+    return None if d is None else d - time.monotonic()
 
 
 def _scope_add(amount: float) -> None:
@@ -160,6 +170,19 @@ class CostLedger:
             self.llm_cost += cost
             self.llm_priced = True
 
+    _STATE_FIELDS = ("billed", "uncertain", "by_model", "calls", "cache_hits", "llm_prompt_tokens", "llm_completion_tokens",
+                     "llm_calls", "llm_cost", "llm_priced")
+
+    def to_state(self) -> dict[str, Any]:
+        """Settled amounts only: in-flight reservations are not saved (a checkpoint is written
+        between turns, when nothing is in flight)."""
+        return {k: getattr(self, k) for k in self._STATE_FIELDS}
+
+    def load_state(self, state: dict[str, Any]) -> None:
+        for k in self._STATE_FIELDS:
+            if k in state:
+                setattr(self, k, dict(state[k]) if k == "by_model" else state[k])
+
     def summary(self) -> dict[str, Any]:
         return {
             "max_inr": self.max_inr,
@@ -189,49 +212,88 @@ def cache_key(model: str, payload_hash: str, params: dict[str, Any]) -> str:
     return hashlib.sha256(blob.encode()).hexdigest()
 
 
-class ResultCache:
-    """Disk cache keyed by (model, exact input bytes, settings). Only successful,
-    complete results are stored. `seen_this_run` lets us prove that no input was
-    sent twice to the same model within one run."""
+CACHE_VERSION = 2
 
-    def __init__(self, directory: Path | None):
-        self.dir = directory
-        if self.dir:
-            self.dir.mkdir(parents=True, exist_ok=True)
+
+class ResultCache:
+    """Cache keyed by (model, exact input bytes, settings).
+
+    * In memory, every successful response is kept for the run, so an identical
+      request is never sent twice in one run (no waste).
+    * On disk, only *complete* results are stored (not truncated translations or OCR),
+      so a later run can recover once the upstream behaves. Entries are versioned,
+      carry the SHA-256 of their binary, and are published atomically (binary first,
+      manifest last via os.replace). Anything unreadable or inconsistent is a miss.
+    * `directory` is the shared cross-run cache (optional); `local` is the run folder's
+      own store, which makes --resume free of re-billing even without the shared cache.
+    * A directory that cannot be used is skipped with a warning (memory still works).
+    """
+
+    def __init__(self, directory: Path | None, local: Path | None = None):
+        self.warning: str | None = None
+        self.dirs: list[Path] = []
+        for d in (local, directory):
+            if d is None:
+                continue
+            try:
+                d.mkdir(parents=True, exist_ok=True)
+                probe = d / f".write_test_{os.getpid()}"
+                probe.write_bytes(b"ok")
+                probe.unlink()
+                self.dirs.append(d)
+            except OSError as exc:
+                self.warning = f"cache folder {d} is not usable ({type(exc).__name__}); continuing without it"
         self.memory: dict[str, tuple[dict, bytes | None]] = {}
         self.seen_this_run: set[str] = set()
 
-    def _paths(self, key: str) -> tuple[Path, Path]:
-        assert self.dir
-        return self.dir / f"{key}.json", self.dir / f"{key}.bin"
+    @property
+    def dir(self) -> Path | None:  # first usable directory (kept for callers that only need one)
+        return self.dirs[0] if self.dirs else None
 
     def get(self, key: str) -> tuple[dict, bytes | None, str] | None:
         if key in self.memory:
             meta, blob = self.memory[key]
             return meta, blob, "this_run"
-        if self.dir:
-            meta_p, bin_p = self._paths(key)
-            if meta_p.is_file():
-                try:
-                    meta = json.loads(meta_p.read_text(encoding="utf-8"))
-                    blob = bin_p.read_bytes() if bin_p.is_file() else None
-                except (OSError, json.JSONDecodeError):
-                    return None
-                self.memory[key] = (meta, blob)
-                return meta, blob, "previous_run"
+        for d in self.dirs:
+            entry = self._read(d, key)
+            if entry is not None:
+                self.memory[key] = entry
+                return entry[0], entry[1], "previous_run"
         return None
 
-    def put(self, key: str, meta: dict, blob: bytes | None = None) -> None:
+    @staticmethod
+    def _read(d: Path, key: str) -> tuple[dict, bytes | None] | None:
+        try:
+            entry = json.loads((d / f"{key}.json").read_text(encoding="utf-8"))
+            if not (isinstance(entry, dict) and entry.get("v") == CACHE_VERSION and entry.get("key") == key and isinstance(entry.get("meta"), dict)):
+                return None
+            blob = None
+            if entry.get("blob_sha256"):
+                blob = (d / f"{key}.bin").read_bytes()
+                if sha256_bytes(blob) != entry["blob_sha256"]:
+                    return None
+        except (OSError, ValueError, UnicodeDecodeError):  # missing, partial or corrupt entry: a miss, refetch
+            return None
+        return entry["meta"], blob
+
+    def put(self, key: str, meta: dict, blob: bytes | None = None, *, durable: bool = True) -> None:
         self.memory[key] = (meta, blob)
         self.seen_this_run.add(key)
-        if self.dir:
-            meta_p, bin_p = self._paths(key)
+        if not durable:
+            return
+        for d in self.dirs:
+            tag = f".tmp{os.getpid()}_{id(meta)}"
             try:
                 if blob is not None:
-                    bin_p.write_bytes(blob)
-                meta_p.write_text(json.dumps(meta, ensure_ascii=False), encoding="utf-8")
+                    tmp = d / f"{key}.bin{tag}"
+                    tmp.write_bytes(blob)
+                    os.replace(tmp, d / f"{key}.bin")
+                entry = {"v": CACHE_VERSION, "key": key, "meta": meta, "blob_sha256": sha256_bytes(blob) if blob is not None else None}
+                tmp = d / f"{key}.json{tag}"
+                tmp.write_text(json.dumps(entry, ensure_ascii=False), encoding="utf-8")
+                os.replace(tmp, d / f"{key}.json")  # manifest last: readers never see a half-written entry
             except OSError:
-                pass
+                continue
 
 
 # ---------------------------------------------------------------------------
@@ -250,13 +312,48 @@ class Artifact:
     provenance: str = ""  # which Bodhan model produced the content, or "llm-english", "code"
     verification: dict[str, Any] | None = None
     notes: list[str] = field(default_factory=list)
-    depends_on: list[str] = field(default_factory=list)  # artifacts embedded in this one
+    depends_on: list[str] = field(default_factory=list)  # artifacts embedded in / derived from this one
+    # What the artifact was made from, fixed at creation: later checks must use the same source.
+    source_digest: str | None = None
+    source_language: str | None = None
+    digest: str | None = None  # SHA-256 of the file as written
+    history: list[dict[str, Any]] = field(default_factory=list)  # every verification ever recorded, in order
+
+    def __post_init__(self) -> None:
+        if self.digest is None and self.path.is_file():
+            self.digest = sha256_bytes(self.path.read_bytes())
+        if self.verification is not None:
+            self.history.append(self.verification)
+
+    def record_verification(self, verification: dict[str, Any]) -> dict[str, Any]:
+        """Append a check. The effective status never improves on an earlier one: an
+        artifact that failed once stays failed (make a new artifact to repair it)."""
+        order = {None: 0, "pass": 1, "warn": 2, "fail": 3}
+        self.history.append(verification)
+        if order.get(verification.get("status"), 0) >= order.get((self.verification or {}).get("status"), 0):
+            self.verification = verification
+        return self.verification or verification
+
+    def to_state(self) -> dict[str, Any]:
+        return {"path": str(self.path), "kind": self.kind, "producer": self.producer, "language": self.language,
+                "provenance": self.provenance, "verification": self.verification, "notes": self.notes, "depends_on": self.depends_on,
+                "source_digest": self.source_digest, "source_language": self.source_language, "digest": self.digest, "history": self.history}
+
+    @classmethod
+    def from_state(cls, state: dict[str, Any]) -> Artifact:
+        art = cls(Path(state["path"]), state["kind"], state["producer"], state.get("language"), state.get("provenance", ""),
+                  None, list(state.get("notes") or []), list(state.get("depends_on") or []), state.get("source_digest"),
+                  state.get("source_language"), state.get("digest"), [])
+        art.verification = state.get("verification")
+        art.history = list(state.get("history") or [])
+        return art
 
     def as_dict(self, base: Path | None = None) -> dict[str, Any]:
         p = str(self.path.relative_to(base)) if base and self.path.is_relative_to(base) else str(self.path)
         return {"path": p.replace("\\", "/"), "kind": self.kind, "producer": self.producer, "language": self.language,
                 "provenance": self.provenance, "verification": self.verification, "notes": self.notes,
-                "embeds": [Path(d).name for d in self.depends_on]}
+                "embeds": [Path(d).name for d in self.depends_on], "sha256": self.digest,
+                "source_language": self.source_language, "verification_checks": len(self.history)}
 
 
 @dataclass

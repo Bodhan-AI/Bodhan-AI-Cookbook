@@ -19,14 +19,13 @@ from ..languages import (
     TRANSLATE_LANGUAGES,
     VOICES,
     detect_language,
-    indic_fraction,
     normalize_language,
 )
-from ..runtime import Artifact, RunContext, settle
+from ..runtime import Artifact, RunContext, settle, sha256_bytes
 from ..textutil import preview
-from .common import frame_untrusted, output_name, resolve_text
+from .common import authored_indic, frame_untrusted, output_name, resolve_text
 from .subtitles import parse_srt, render_srt
-from .translation import check_target, detect_source, translate_markdown, verify_units
+from .translation import check_source, check_target, detect_source, translate_markdown, verify_units
 
 
 class _Strict(BaseModel):
@@ -46,6 +45,7 @@ class TranslateIn(_Strict):
 
 async def translate_text(ctx: RunContext, a: TranslateIn) -> dict:
     target = check_target(a.target_language, script=a.script)
+    check_source(a.source_language)
     source, src_label = resolve_text(ctx, a.text, a.path)
     src_lang, detection = detect_source(source, a.source_language)
     is_srt = src_label.lower().endswith(".srt")
@@ -86,7 +86,7 @@ async def translate_text(ctx: RunContext, a: TranslateIn) -> dict:
     notes = [n for u in units for n in u.notes]
     deps = [src_label] if src_label in ctx.artifacts else []
     art = ctx.register(Artifact(dest, "subtitles" if is_srt else "translation", "translate_text", target, "indic-translate", verification, notes,
-                                depends_on=deps))
+                                depends_on=deps, source_digest=sha256_bytes(source.encode("utf-8")), source_language=src_lang))
     if ctx.provenance_guard is not None:
         ctx.provenance_guard.add(output)
     result = {
@@ -115,9 +115,19 @@ class VerifyTranslationIn(_Strict):
 
 async def verify_translation(ctx: RunContext, a: VerifyTranslationIn) -> dict:
     target = check_target(a.target_language)
+    check_source(a.source_language)
     source, _ = resolve_text(ctx, a.source_text, a.source_path, "source_text")
     trans_path = ctx.resolve_input(a.translation_path)
     output = read_text_file(trans_path)
+    art = ctx.artifacts.get(str(trans_path))
+    if art is not None and art.source_digest:
+        # A translation made in this session is always checked against what it was made from:
+        # checking it against itself or another text could relabel a failed translation as passed.
+        if sha256_bytes(source.encode("utf-8")) != art.source_digest:
+            raise E.ToolError(E.INVALID_ARGUMENT, f"{trans_path.name} was not translated from this source text.",
+                              hint="Pass the original source the translation was made from, or translate again to repair it.")
+        if art.language and target != art.language:
+            raise E.ToolError(E.INVALID_ARGUMENT, f"{trans_path.name} is a {art.language} translation, not {target}.")
     src_lang, detection = detect_source(source, a.source_language)
     from .translation import plan_units
 
@@ -133,8 +143,9 @@ async def verify_translation(ctx: RunContext, a: VerifyTranslationIn) -> dict:
         units = [Unit("text", source, output)]
     verification = await verify_units(ctx, units, source, output, target, "native", src_lang)
     key = str(trans_path)
-    if key in ctx.artifacts:
-        ctx.artifacts[key].verification = verification
+    if art is not None:
+        # history is kept; the effective status never improves on an earlier failure
+        verification = {**verification, "effective_status": art.record_verification(verification)["status"]}
     return {"translation_path": key, "source_detection": detection, "verification": verification}
 
 
@@ -195,7 +206,7 @@ async def write_text(ctx: RunContext, a: WriteTextIn) -> dict:
         raise E.ToolError(E.PROVENANCE_VIOLATION, "write_text only saves English text written by the caller.",
                           hint="Write the text in English and call translate_text to produce Indian-language output.")
     authored = _EMBED.sub("", a.content)
-    if indic_fraction(authored) > 0:
+    if authored_indic(authored):  # also catches &#2351; style character references
         raise E.ToolError(E.PROVENANCE_VIOLATION,
                           "The content contains Indian-language text written by the caller. Indian-language text must come from a Bodhan model.",
                           hint="Write English and call translate_text, or embed an existing artifact with {{artifact:<path>}}.")
@@ -216,7 +227,7 @@ async def write_text(ctx: RunContext, a: WriteTextIn) -> dict:
             decoded = json.dumps(json.loads(final), ensure_ascii=False)
         except json.JSONDecodeError as exc:
             raise E.ToolError(E.INVALID_ARGUMENT, f"content is not valid JSON: {exc}") from exc
-        if indic_fraction(decoded) > 0:  # unicode escapes decode to Indic text when the file is read back
+        if authored_indic(decoded):  # unicode escapes decode to Indic text when the file is read back
             raise E.ToolError(E.PROVENANCE_VIOLATION, "The JSON contains Indian-language text (possibly as unicode escapes) written by the caller.",
                               hint="Write English and call translate_text; Indian-language text must come from a Bodhan model.")
     dest = ctx.artifact_path(a.name, suffix)

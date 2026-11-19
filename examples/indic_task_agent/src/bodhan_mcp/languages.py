@@ -89,20 +89,28 @@ KNOWN_UNSUPPORTED = {
 }
 
 
+_CANONICAL = {code.lower(): code for code in LANGUAGE_NAMES}
+
+
 def normalize_language(value: str) -> str:
-    """Map a code or English name ('Tamil', 'ta', or a region-tagged code) to a Bodhan code, or return it unchanged."""
+    """Map a code or English name ('Tamil', 'ta', 'KS-deva', 'hi-IN') to a Bodhan code,
+    or return it lower-cased and unchanged so callers can reject it.
+
+    Language tags are case-insensitive (RFC 5646), so 'ks-deva' means 'ks-Deva'. A
+    two-letter or three-digit region subtag is dropped ('hi-IN' -> 'hi'); an unknown
+    four-letter script subtag is kept, so an unsupported script is rejected rather than
+    silently swapped for the language's default script."""
     v = (value or "").strip()
     if not v:
         return v
-    if v in LANGUAGE_NAMES:
-        return v
-    low = v.lower()
+    low = v.lower().replace("_", "-")
+    if low in _CANONICAL:
+        return _CANONICAL[low]
     if low in _ALIASES:
         return _ALIASES[low]
-    if "-" in v:  # BCP-47 style region tags such as hi-IN
-        head = v.split("-")[0].lower()
-        if head in LANGUAGE_NAMES:
-            return head
+    parts = low.split("-")
+    if len(parts) == 2 and parts[0] in _CANONICAL and (len(parts[1]) == 2 or parts[1].isdigit()):
+        return _CANONICAL[parts[0]]
     return low
 
 
@@ -149,6 +157,10 @@ _DEVANAGARI_HINTS = {
     "ne": {"छ", "छन्", "र", "मा", "हो", "थियो", "गर्न", "भएको", "पनि", "हुन्छ", "गरेको", "लागि", "यो", "तर"},
 }
 
+
+_ENGLISH_HINTS = frozenset("the a an and or of to in on at for with from by is are was were be been it this that these those "
+                           "will would can could should has have had not no do does did as if but so than then there their they "
+                           "we you he she i my your our his her its which who what when where why how all any each".split())
 
 _DEVANAGARI_SUFFIXES = {
     "hi": ("ेगा", "ेगी", "ेंगे", "ता है", "ती है", "ाएगा", "ियों", "ाओं"),
@@ -211,6 +223,13 @@ def detect_language(text: str) -> LanguageGuess:
     candidates = SCRIPT_TO_LANGS.get(script)
     if not candidates:
         return LanguageGuess(None, script, share, [], f"script {script} is not used by any Bodhan-supported language")
+    if script == "Latin":
+        # Latin script does not identify a language: English, romanized Hindi and French look alike.
+        en_words = sum(1 for w in text.lower().split() if w.strip(".,;:!?\"'()") in _ENGLISH_HINTS)
+        if en_words >= max(1, len(text.split()) // 10):
+            return LanguageGuess("en", script, share * 0.9, candidates, "Latin script with English function words")
+        return LanguageGuess(None, script, share * 0.3, candidates,
+                             "Latin script without English function words: could be romanized Indian-language text or a non-Indian language")
     if len(candidates) == 1:
         return LanguageGuess(candidates[0], script, share, candidates, f"identified by {script} script")
     words = {w.strip(".,;:!?।॥\"'()[]") for w in text.split()}
@@ -233,8 +252,6 @@ def detect_language(text: str) -> LanguageGuess:
         return LanguageGuess("bn", script, share * 0.8, candidates, "Bengali-Assamese script without Assamese-only letters")
     if script == "Arabic":
         return LanguageGuess("ur", script, share * 0.6, candidates, "Perso-Arabic script, assumed Urdu (could be Kashmiri or Sindhi)")
-    if script == "Latin":
-        return LanguageGuess("en", script, share * 0.7, candidates, "Latin script, assumed English (could be romanized Indic)")
     return LanguageGuess(candidates[0], script, share * 0.5, candidates, f"{script} script, ambiguous")
 
 

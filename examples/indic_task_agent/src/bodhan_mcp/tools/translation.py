@@ -25,6 +25,7 @@ from ..languages import (
 from ..runtime import RunContext, settle
 from ..textutil import (
     chrf,
+    extract_numbers,
     letters_only,
     number_check,
     pack_segments,
@@ -38,6 +39,7 @@ from ..textutil import (
 PARA = "\n\n"  # paragraph separator in Markdown
 MAX_PARAGRAPH_UNITS = 80
 _HTML_COMMENT = re.compile(r"<!--.*?-->", re.S)
+MAX_PIECE_CHARS = 3000  # hard per-request input bound (well inside the 32K-token context)
 CHUNK_CHARS = 1500  # well inside the 32K-token context; smaller chunks translate more faithfully
 MAX_SPLIT_DEPTH = 3
 
@@ -59,6 +61,21 @@ def check_target(lang: str, *, script: str = "native") -> str:
     )
 
 
+
+def check_source(lang: str | None) -> str | None:
+    """An explicitly named source language must be one Indic-Translate supports; 'auto' is fine.
+    Checked before anything is sent, so an unsupported request costs nothing."""
+    if not lang or lang == "auto":
+        return None
+    code = normalize_language(lang)
+    if code in TRANSLATE_LANGUAGES:
+        return code
+    name = KNOWN_UNSUPPORTED.get(code) or KNOWN_UNSUPPORTED.get(lang.strip().lower()) or lang
+    raise E.ToolError(E.UNSUPPORTED_LANGUAGE, f"Indic-Translate does not support {name} as a source language.",
+                      hint=f"Supported source codes: {supported_list(TRANSLATE_LANGUAGES)}, or 'auto'. Report the task as unsupported.",
+                      details={"requested_source": lang})
+
+
 @dataclass
 class Unit:
     kind: str  # "text" | "table" | "keep"
@@ -67,6 +84,7 @@ class Unit:
     back: str | None = None
     calls: int = 0
     notes: list[str] = field(default_factory=list)
+    attach_next: bool = False  # joined to the next unit by a single newline (a page marker split off its text)
 
 
 def _already_in(text: str, target: str, source_hint: str | None = None) -> bool:
@@ -81,7 +99,8 @@ def _already_in(text: str, target: str, source_hint: str | None = None) -> bool:
     if not letters_only(text):
         return True  # numbers/punctuation only
     if target == "en":
-        return script_matches_language(text, "en") > 0.9
+        # Latin script alone is not English (romanized Hindi, French): require English evidence.
+        return script_matches_language(text, "en") > 0.9 and detect_language(text).language == "en"
     script = LANG_TO_SCRIPT.get(target)
     if script is None or script_matches_language(text, target) < 0.9:
         return False
@@ -118,10 +137,21 @@ def plan_units(source: str, target: str | None = None, script: str = "native", s
     # paragraphs instead, to stay well under the 120 requests/minute limit; the paragraph
     # coverage check in translate_markdown repairs any merge.
     group = sum(1 for b in blocks if b.kind == "text") > MAX_PARAGRAPH_UNITS
-    for block in blocks:
+    split: list = []
+    glued: set[int] = set()
+    for block in blocks:  # a page marker on its own line is never sent to the model
+        lines = block.text.split(chr(10)) if block.kind == "text" else []
+        if len(lines) > 1 and _HTML_COMMENT.fullmatch(lines[0].strip()):
+            glued.add(len(split))
+            split.append(type(block)("text", lines[0]))
+            split.append(type(block)("text", chr(10).join(lines[1:])))
+        else:
+            split.append(block)
+    blocks = split
+    for i, block in enumerate(blocks):
         if block.kind == "text" and _HTML_COMMENT.fullmatch(block.text.strip()):
             flush()
-            units.append((Unit("keep", block.text), PARA))  # e.g. <!-- page 3 --> markers
+            units.append((Unit("keep", block.text, attach_next=i in glued), PARA))  # e.g. <!-- page 3 --> markers
         elif block.kind == "text" and target and script == "native" and _already_in(block.text, target, source_hint):
             flush()
             unit = Unit("keep", block.text)
@@ -143,6 +173,12 @@ def plan_units(source: str, target: str | None = None, script: str = "native", s
 async def _translate_piece(ctx: RunContext, text: str, target: str, script: str, depth: int = 0, purpose: str = "translate") -> tuple[str, int]:
     """Translate one piece; on truncation split it and translate the halves. Never
     returns silently partial text."""
+    if len(text) > MAX_PIECE_CHARS and depth < MAX_SPLIT_DEPTH:
+        # Never send more than the model's context comfortably holds: split before sending.
+        pieces = pack_segments(text, MAX_PIECE_CHARS)
+        if len(pieces) > 1:
+            results = await settle(*[_translate_piece(ctx, x, target, script, depth + 1, purpose) for x in pieces])
+            return " ".join(r[0] for r in results), sum(r[1] for r in results)
     meta, _ = await ctx.client.translate(text, target, script=script, purpose=purpose)
     if not meta["truncated"]:
         out = meta["translation"].strip()
@@ -160,7 +196,10 @@ async def _translate_piece(ctx: RunContext, text: str, target: str, script: str,
 
 
 async def _translate_table(ctx: RunContext, unit: Unit, target: str, script: str) -> None:
-    out, calls = await _translate_piece(ctx, unit.source, target, script)
+    if len(unit.source) > CHUNK_CHARS:  # too big to send whole: translate cell by cell from the start
+        out, calls = "", 0
+    else:
+        out, calls = await _translate_piece(ctx, unit.source, target, script)
     unit.calls += calls
     if table_shapes(out) == table_shapes(unit.source):
         unit.output = out
@@ -174,6 +213,10 @@ async def _translate_table(ctx: RunContext, unit: Unit, target: str, script: str
     mapping = {c: t for c, (t, _) in zip(cells, translated)}
     unit.calls += sum(n for _, n in translated)
     unit.output = render_table([[mapping.get(c, c) for c in r] for r in rows])
+
+
+def _table_rows(md: str) -> list[list[list[str]]]:
+    return [parse_table(b.text) for b in split_markdown_blocks(md) if b.kind == "table"]
 
 
 async def translate_markdown(ctx: RunContext, source: str, target: str, script: str = "native",
@@ -199,7 +242,10 @@ async def translate_markdown(ctx: RunContext, source: str, target: str, script: 
                 unit.notes.append(f"a passage came back with {len(got)} of {len(paras)} paragraphs, so it was re-translated paragraph by paragraph")
 
     await settle(*[run(u) for u, _ in planned])
-    text = "".join(sep + u.output for u, sep in planned)
+    text, prev = "", None
+    for u, sep in planned:
+        text += (chr(10) if prev is not None and prev.attach_next else sep) + u.output
+        prev = u
     return text, [u for u, _ in planned]
 
 
@@ -223,6 +269,14 @@ async def verify_units(ctx: RunContext, units: list[Unit], source_text: str, out
     checks["numbers"] = nums
     if nums["missing"]:
         warnings.append(f"numbers not found in the translation: {nums['missing'][:8]} (may be spelled out as words)")
+    if nums["unexpected"]:
+        warnings.append(f"numbers in the translation that are not in the source: {nums['unexpected'][:8]}")
+    # Tables: numbers must stay in their row (a global count cannot see two values swapped between rows).
+    for src_rows, out_rows in zip(_table_rows(source_text), _table_rows(output_text)):
+        if len(src_rows) == len(out_rows):
+            moved = [i for i, (a, b) in enumerate(zip(src_rows, out_rows)) if sorted(extract_numbers(" ".join(a))) != sorted(extract_numbers(" ".join(b)))]
+            if moved:
+                problems.append(f"table rows {moved[:6]} have different numbers than the source rows (values moved, changed or lost)")
 
     src_shapes, out_shapes = table_shapes(source_text), table_shapes(output_text)
     checks["tables"] = {"source": src_shapes, "output": out_shapes}
@@ -243,6 +297,10 @@ async def verify_units(ctx: RunContext, units: list[Unit], source_text: str, out
     def unit_lang(u: Unit) -> str | None:
         # Mixed documents: back-translate each passage into the language it was actually written in.
         guess = detect_language(u.source)
+        if guess.script == "Latin" and guess.language is None:
+            # A short Latin-script heading in an English document is English; inside an Indic document its
+            # language is unknown, so there is no reference to back-translate into.
+            return source_lang if LANG_TO_SCRIPT.get(source_lang or "") == "Latin" else None
         if guess.language in TRANSLATE_LANGUAGES and guess.confidence >= 0.6 and LANG_TO_SCRIPT.get(guess.language) != LANG_TO_SCRIPT.get(source_lang or ""):
             return guess.language
         return source_lang if source_lang in TRANSLATE_LANGUAGES else None
@@ -253,6 +311,8 @@ async def verify_units(ctx: RunContext, units: list[Unit], source_text: str, out
             lang = unit_lang(u)
             if u.kind in ("text", "table") and letters_only(u.output) and lang and lang != target:
                 todo.append((u, lang))
+            elif u.kind == "text" and letters_only(u.output) and lang is None and source_lang is not None:
+                warnings.append(f"a passage in an unidentified language was not back-translated: {u.source[:50]!r}")
         if source_lang is None and not todo:
             warnings.append("source language unknown; back-translation skipped")
     back_lang = todo[0][1] if todo else None

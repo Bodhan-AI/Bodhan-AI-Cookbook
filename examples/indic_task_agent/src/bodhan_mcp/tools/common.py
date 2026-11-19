@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import html
 import json
 import re
 import string
@@ -44,6 +45,9 @@ class ProvenanceGuard:
             self._corpus.append(self._norm(text))
 
     def check(self, text: str, field: str) -> None:
+        # Check what a reader would see: Markdown/HTML renders numeric and named character
+        # references (e.g. &#2351;) as the characters themselves.
+        text = rendered_view(text)
         corpus = " | ".join(self._corpus)
 
         def known(span: str) -> bool:
@@ -64,7 +68,18 @@ class ProvenanceGuard:
         )
 
 
-_EDGE_PUNCT = string.whitespace + '"\'“”‘’()[]{}:;,.!?।॥-–—'
+def rendered_view(text: str) -> str:
+    """The text as a Markdown/HTML renderer shows it: character references decoded.
+    Applied twice so a double-encoded reference cannot hide a character either."""
+    return html.unescape(html.unescape(text))
+
+
+def authored_indic(text: str) -> bool:
+    """True if caller-written text would display any Indian-language letter."""
+    return indic_fraction(rendered_view(text)) > 0
+
+
+_EDGE_PUNCT = string.whitespace +'"\'“”‘’()[]{}:;,.!?।॥-–—'
 
 
 def indic_spans(text: str) -> list[str]:

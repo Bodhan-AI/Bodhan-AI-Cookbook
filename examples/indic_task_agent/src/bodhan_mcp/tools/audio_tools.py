@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import statistics
 from pathlib import Path
@@ -58,12 +59,12 @@ async def transcribe_file(ctx: RunContext, path: Path, language: str | None, *, 
     if kind not in ("audio", "video"):
         raise E.ToolError(E.UNSUPPORTED_FILE_TYPE, f"{path.name} is a {kind} file, not audio or video.",
                           hint="Use ocr_document for images/PDFs and read_text for text files.")
-    info = probe(path)
+    info = await asyncio.to_thread(probe, path)  # ffmpeg work off the event loop, bounded by the run deadline
     if not info.has_audio:
         raise E.ToolError(E.MEDIA_ERROR, f"{path.name} has no audio track.", hint="Nothing to transcribe.")
     if info.duration and info.duration > MAX_AUDIO_SECONDS:
         raise E.ToolError(E.INVALID_ARGUMENT, f"{path.name} is {info.duration / 60:.0f} minutes; the limit is {MAX_AUDIO_SECONDS // 60}.")
-    x = decode_pcm(path, ASR_RATE)
+    x = await asyncio.to_thread(decode_pcm, path, ASR_RATE)
     total = len(x) / ASR_RATE
     chunks = chunk_audio(x, ASR_RATE, max_seconds=min(max_segment_seconds, 28.0), min_seconds=min_segment_seconds)
     if not chunks:
@@ -178,6 +179,9 @@ async def create_subtitles(ctx: RunContext, a: SubtitlesIn) -> dict:
         segments = split_cues(segments, a.max_cue_seconds)
         notes = ["reused this run's transcript instead of transcribing the audio again; long segments were split into cues "
                  "with times proportional to text length (approximate)"]
+        long_cues = sum(1 for s in segments if s["end"] - s["start"] > a.max_cue_seconds + 0.05)
+        if long_cues:
+            notes.append(f"{long_cues} cue(s) are longer than {a.max_cue_seconds:g}s because the speech there has too few words to split")
     else:
         r = await transcribe_file(ctx, p, a.source_language, max_segment_seconds=a.max_cue_seconds, min_segment_seconds=1.5)
         segments, detection, notes = r["segments"], r["detection"], r["notes"]
@@ -198,7 +202,7 @@ async def create_subtitles(ctx: RunContext, a: SubtitlesIn) -> dict:
         notes.append("speech is already in the subtitle language; no translation")
         verification = {"status": "pass", "method": "same-language subtitles: transcript cues, no translation to verify", "problems": [], "warnings": []}
         ctx.artifacts[str(src_srt)].kind = "subtitles"
-        ctx.artifacts[str(src_srt)].verification = verification
+        ctx.artifacts[str(src_srt)].record_verification(verification)
     else:
         outs = await settle(*[_translate_piece(ctx, s["text"], target, "native") for s in segments])
         # ASR output has no punctuation, so English cues often arrive lower-case; capitalise the first letter (English only).
@@ -256,11 +260,23 @@ async def _verify_clip(ctx: RunContext, wav: bytes, expected: str, lang: str) ->
                                for c in pieces])
         heard = " ".join(m["text"].strip() for m, _ in metas)
     sim = similarity(expected, heard)
-    exp_nums, heard_nums = extract_numbers(expected), extract_numbers(heard)
     return {"similarity": round(sim, 3), "heard": heard, "seconds": round(seconds, 2),
             "chars_per_second": round(len(letters_only(expected)) / max(seconds, 0.1), 1),
-            # letters-only similarity ignores digits; compare numbers separately when the ASR writes them as digits
-            "number_mismatch": bool(heard_nums) and sorted(heard_nums) != sorted(exp_nums)}
+            "number_issue": speech_number_issue(expected, heard)}
+
+
+def speech_number_issue(expected: str, heard: str) -> str | None:
+    """Letter similarity ignores digits, so numbers are compared on their own. Numbers
+    the ASR did not return as digits cannot be confirmed (they may be spoken as words or
+    missing), so they are a warning, never a silent pass."""
+    exp, got = extract_numbers(expected), extract_numbers(heard)
+    if not exp and not got:
+        return None
+    if exp and not got:
+        return f"numbers {exp[:8]} in the text are not confirmed by back-transcription (missing, or transcribed as words)"
+    if sorted(exp) != sorted(got):
+        return f"numbers heard {got[:8]} differ from the text {exp[:8]}"
+    return None
 
 
 class SpeakIn(_Strict):
@@ -304,7 +320,9 @@ async def synthesize_speech(ctx: RunContext, a: SpeakIn) -> dict:
     if not segments:
         raise E.ToolError(E.EMPTY_RESULT, "There is no text to speak.")
     total_chars = sum(len(s) for s in segments)
-    est = price_speak(total_chars) + (price_transcribe(total_chars / 8) if a.verify else 0)
+    # Budget only what will actually be sent: segments already synthesised (cache) cost nothing.
+    new_chars = sum(len(s) for s in set(segments) if not ctx.client.speak_cached(s, voice, lang, style))
+    est = price_speak(new_chars) + (price_transcribe(new_chars / 8) if a.verify else 0)
     if not ctx.ledger.can_afford(est):
         raise E.ToolError(E.BUDGET_EXCEEDED, f"Speaking {total_chars} characters (+ verification) needs about ₹{est:.3f}; "
                           f"only ₹{max(ctx.ledger.remaining or 0, 0):.3f} remains.",
@@ -358,11 +376,11 @@ async def synthesize_speech(ctx: RunContext, a: SpeakIn) -> dict:
         sims = [r["similarity"] for r in seg_reports]
         failed = [r["index"] for r in seg_reports if r["similarity"] < SPEECH_FAIL]
         weak = [r["index"] for r in seg_reports if SPEECH_FAIL <= r["similarity"] < SPEECH_PASS]
-        numbers_off = [r["index"] for r in seg_reports if r.get("number_mismatch")]
+        numbers_off = [r["index"] for r in seg_reports if r.get("number_issue")]
         problems = [f"segments {failed} did not match the text when back-transcribed (possible omission/repetition)"] if failed else []
         warnings = [f"segments {weak} matched only partly (similarity {SPEECH_FAIL}-{SPEECH_PASS})"] if weak else []
         if numbers_off:
-            warnings.append(f"segments {numbers_off}: numbers heard in the audio differ from the text; check them")
+            warnings.append(f"segments {numbers_off}: " + "; ".join(r["number_issue"] for r in seg_reports if r.get("number_issue"))[:400])
         verification = {"status": "fail" if failed else ("warn" if weak or numbers_off else "pass"),
                         "method": "back-transcription of every segment with Indic-Transcribe; letter-level similarity; speaking-rate outliers",
                         "mean_similarity": round(sum(sims) / len(sims), 3), "min_similarity": round(min(sims), 3),
@@ -404,18 +422,14 @@ async def verify_speech(ctx: RunContext, a: VerifySpeechIn) -> dict:
     sim = similarity(expected, r["text"])
     status = "pass" if sim >= SPEECH_PASS else ("warn" if sim >= SPEECH_FAIL else "fail")
     warnings = []
-    heard_nums, exp_nums = extract_numbers(r["text"]), extract_numbers(expected)
-    if heard_nums and sorted(heard_nums) != sorted(exp_nums):
-        warnings.append(f"numbers heard {heard_nums[:8]} differ from the text {exp_nums[:8]}")
+    issue = speech_number_issue(expected, r["text"])
+    if issue:
+        warnings.append(issue)
         status = "warn" if status == "pass" else status
     verification = {"status": status, "method": "back-transcription with Indic-Transcribe; letter-level similarity; digit comparison",
                     "similarity": round(sim, 3), "duration_s": r["duration_s"],
                     "problems": [] if status != "fail" else ["audio does not match the expected text"], "warnings": warnings}
     art = ctx.artifacts.get(str(p))
     if art is not None:
-        order = {None: 0, "pass": 1, "warn": 2, "fail": 3}
-        previous = (art.verification or {}).get("status")
-        # a re-check may add evidence but never upgrades an earlier warn/fail to a better status
-        if order[status] >= order.get(previous, 0):
-            art.verification = verification
+        verification = {**verification, "effective_status": art.record_verification(verification)["status"]}  # never upgrades history
     return {"audio_path": str(p), "verification": verification, "heard": frame_untrusted(r["text"], str(p), 800)}

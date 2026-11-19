@@ -16,6 +16,7 @@ from pathlib import Path
 import numpy as np
 
 from . import errors as E
+from .runtime import deadline_left
 
 ASR_RATE = 16_000
 TTS_RATE = 24_000
@@ -37,10 +38,69 @@ def ffmpeg_bin() -> str:
 
 
 def _run(args: list[str], *, input_bytes: bytes | None = None, timeout: float = 300) -> subprocess.CompletedProcess:
+    """Run ffmpeg/ffprobe. The timeout is capped by the run deadline, and subprocess.run
+    kills the child when it expires, so slow or corrupt media cannot outlive a run."""
+    left = deadline_left()
+    if left is not None:
+        if left <= 0:
+            raise E.ToolError(E.UPSTREAM_TIMEOUT, "The run's time limit was reached before media processing could start.")
+        timeout = min(timeout, left)
     try:
         return subprocess.run(args, input=input_bytes, capture_output=True, timeout=timeout, check=False)
     except subprocess.TimeoutExpired as exc:
-        raise E.ToolError(E.MEDIA_ERROR, "ffmpeg timed out while processing media.") from exc
+        raise E.ToolError(E.MEDIA_ERROR, f"ffmpeg did not finish within {timeout:.0f}s.", hint="The file may be corrupt or very long.") from exc
+
+
+# Media is treated as one self-contained file. The container is identified from its first
+# bytes and passed to ffmpeg explicitly, so a playlist/concat/manifest file renamed to .wav
+# can never make the decoder open other files (which would bypass the input sandbox).
+_PROTOCOLS = ["-protocol_whitelist", "file,pipe"]
+
+
+def container_format(path: Path) -> str:
+    try:
+        with path.open("rb") as f:
+            h = f.read(200)
+    except OSError as exc:
+        raise E.ToolError(E.FILE_NOT_FOUND, f"Cannot read {path.name}: {exc}") from exc
+    if h[:4] == b"RIFF" and h[8:12] == b"WAVE":
+        return "wav"
+    if h[:4] == b"RIFF" and h[8:12] == b"AVI ":
+        return "avi"
+    if h[4:8] == b"ftyp":
+        return "mov"
+    if h[:4] == bytes.fromhex("1a45dfa3"):
+        return "matroska"
+    if h[:4] == b"OggS":
+        return "ogg"
+    if h[:4] == b"fLaC":
+        return "flac"
+    if h[:3] == b"ID3":
+        return "mp3"
+    if len(h) > 1 and h[0] == 0xFF and (h[1] & 0xF6) == 0xF0:
+        return "aac"
+    if len(h) > 1 and h[0] == 0xFF and (h[1] & 0xE0) == 0xE0:
+        return "mp3"
+    if h[:5] == b"#!AMR":
+        return "amr"
+    if h[:4] == b"FORM" and h[8:12] in (b"AIFF", b"AIFC"):
+        return "aiff"
+    if h[:4] == b".snd":
+        return "au"
+    if h[:4] == b"caff":
+        return "caf"
+    if h[:4] == b"wvpk":
+        return "wv"
+    if h[:3] == b"FLV":
+        return "flv"
+    if h[:4] == bytes.fromhex("3026b275"):
+        return "asf"
+    if h[:4] == bytes.fromhex("000001ba"):
+        return "mpeg"
+    if h[:1] == b"G" and len(h) > 188 and h[188:189] == b"G":
+        return "mpegts"
+    raise E.ToolError(E.UNSUPPORTED_FILE_TYPE, f"{path.name} is not a recognised self-contained audio/video file.",
+                      hint="Use WAV, MP3, M4A/MP4, OGG/Opus, FLAC, WebM/MKV, AAC, AMR, AIFF, AVI, FLV, WMV or MPEG. Playlists and manifests are not accepted.")
 
 
 @dataclass
@@ -61,7 +121,8 @@ def probe(path: Path) -> MediaInfo:
     """Inspect media with ffprobe when available, else by parsing `ffmpeg -i`."""
     ffprobe = shutil.which("ffprobe")
     if ffprobe:
-        r = _run([ffprobe, "-v", "error", "-print_format", "json", "-show_format", "-show_streams", str(path)], timeout=60)
+        fmt = container_format(path)
+        r = _run([ffprobe, "-v", "error", *_PROTOCOLS, "-f", fmt, "-print_format", "json", "-show_format", "-show_streams", str(path)], timeout=60)
         if r.returncode == 0:
             data = json.loads(r.stdout or b"{}")
             streams = data.get("streams", [])
@@ -71,7 +132,7 @@ def probe(path: Path) -> MediaInfo:
             return MediaInfo(float(dur) if dur not in (None, "N/A") else None, a is not None, v is not None,
                              a.get("codec_name") if a else None, int(a["sample_rate"]) if a and a.get("sample_rate") else None,
                              a.get("channels") if a else None, data.get("format", {}).get("format_name"))
-    r = _run([ffmpeg_bin(), "-hide_banner", "-i", str(path)], timeout=60)
+    r = _run([ffmpeg_bin(), "-hide_banner", *_PROTOCOLS, "-f", container_format(path), "-i", str(path)], timeout=60)
     err = r.stderr.decode("utf-8", "replace")
     if "Invalid data found" in err or "No such file" in err:
         raise E.ToolError(E.MEDIA_ERROR, f"Could not read media file {path.name}.", hint="The file may be corrupt or not audio/video.")
@@ -84,7 +145,8 @@ def probe(path: Path) -> MediaInfo:
 
 def decode_pcm(path: Path, rate: int = ASR_RATE) -> np.ndarray:
     """Decode any audio/video file's first audio stream to mono float32 at `rate`."""
-    r = _run([ffmpeg_bin(), "-hide_banner", "-loglevel", "error", "-i", str(path), "-vn", "-ac", "1", "-ar", str(rate),
+    r = _run([ffmpeg_bin(), "-hide_banner", "-loglevel", "error", *_PROTOCOLS, "-f", container_format(path), "-i", str(path),
+              "-vn", "-ac", "1", "-ar", str(rate),
               "-f", "s16le", "-acodec", "pcm_s16le", "pipe:1"])
     if r.returncode != 0 or not r.stdout:
         msg = r.stderr.decode("utf-8", "replace").strip().splitlines()[-1:] or ["no audio stream"]

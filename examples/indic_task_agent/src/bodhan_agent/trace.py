@@ -56,11 +56,12 @@ class TraceWriter:
     """Appends one JSON object per line. Nested events (API calls, retries,
     verification) from the tools are attributed to the step that caused them."""
 
-    def __init__(self, path: Path):
+    def __init__(self, path: Path, append: bool = False):
         self.path = path
         self.t0 = time.monotonic()
         self.events = 0
-        path.write_text("", encoding="utf-8")
+        if not append:  # a resumed run continues the same trace
+            path.write_text("", encoding="utf-8")
 
     def write(self, event: dict[str, Any]) -> None:
         record = {"ts": datetime.now(UTC).isoformat(timespec="milliseconds"), "t": round(time.monotonic() - self.t0, 3), **event}
