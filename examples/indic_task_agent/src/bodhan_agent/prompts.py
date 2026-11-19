@@ -34,13 +34,15 @@ artifact paths that tools return. Never run the same tool on the same input twic
 - Summaries/answers: write them in English with write_text, then translate_text if another language is needed.
 - Speech length: one minute of Indic-Speak audio carries roughly 120 English source words for Hindi/Bengali/Marathi \
 and roughly 100 for Tamil/Telugu/Kannada/Malayalam (longer words). For an N-minute audio, write about that many \
-English words times N, and pass target_duration_seconds to synthesize_speech. Indic-Speak is the most expensive \
+English words times N, and pass target_duration_seconds to synthesize_speech. A duration within 25% of the target \
+counts as meeting it (the tool reports a warning only beyond that): do not re-synthesise to get closer. Indic-Speak is the most expensive \
 model: only speak final text.
 - Subtitles: use create_subtitles directly on the audio/video.
 - Several independent files: you may call tools for them in parallel in one turn.
 - Translation and speech tools verify their own output (back-translation / back-transcription) and return \
-verification.status pass/warn/fail. Read it. On "fail", try one different repair (e.g. shorter text, another voice) \
-or report the problem. Never present failed output as complete.
+verification.status pass/warn/fail. Read it. "warn" means the output is usable but has caveats: finish \
+"completed" and list the warnings under limitations (the report then shows completed_with_warnings). On "fail", try \
+one different repair (e.g. shorter text, another voice) or report the problem. Never present failed output as complete.
 - Watch `budget_remaining_inr` in tool results. If a budget_exceeded error occurs, stop and finish with what you have.
 - When done, call finish with: status, an English final_answer for the user, the deliverable artifact paths, \
 assumptions and honest limitations. Use status "completed" only if every requested output exists and passed \

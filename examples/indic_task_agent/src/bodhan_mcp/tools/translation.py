@@ -32,7 +32,6 @@ from ..textutil import (
     render_table,
     repetition_score,
     split_markdown_blocks,
-    split_sentences,
     table_shapes,
 )
 
@@ -73,11 +72,12 @@ class Unit:
 def _already_in(text: str, target: str, source_hint: str | None = None) -> bool:
     """True when a paragraph is already written in the target language (e.g. an English
     line inside a Hindi notice being translated to English). Such text is kept verbatim:
-    translating it wastes money and the model tends to drop it. For scripts shared by
-    several languages (Devanagari, Bengali, Perso-Arabic) the script proves nothing, so
-    text is kept only when the caller said the source is already the target language."""
-    if source_hint and source_hint not in ("auto", target):
-        return False  # the caller said the source is another language
+    translating it wastes money and the model tends to drop it.
+
+    A script used by one language only (Latin for English here, Tamil, Telugu, ...) is
+    proof by itself. For scripts several languages share (Devanagari, Bengali,
+    Perso-Arabic) the script proves nothing, so such text is kept only when the caller
+    said the source is the target language."""
     if not letters_only(text):
         return True  # numbers/punctuation only
     if target == "en":
@@ -88,6 +88,12 @@ def _already_in(text: str, target: str, source_hint: str | None = None) -> bool:
     if len(SCRIPT_TO_LANGS.get(script, [])) > 1:
         return source_hint == target
     return True
+
+
+def count_sentences(text: str) -> int:
+    """Sentences by terminator only; OCR line wraps inside a sentence do not count."""
+    flat = " ".join(text.split())
+    return len([x for x in re.split(r"(?<=[.?!।॥۔᱾])\s+", flat) if letters_only(x)])
 
 
 def plan_units(source: str, target: str | None = None, script: str = "native", source_hint: str | None = None) -> list[tuple[Unit, str]]:
@@ -223,9 +229,8 @@ async def verify_units(ctx: RunContext, units: list[Unit], source_text: str, out
     if src_shapes != out_shapes:
         problems.append(f"table structure changed: source {src_shapes} vs output {out_shapes}")
 
-    short = [u.source[:60] for u in units if u.kind == "text" and len(split_sentences(u.source)) >= 3
-             and len(split_sentences(u.output)) < len(split_sentences(u.source)) - 1]
-    short += [u.source[:60] for u in units if u.kind == "text" and len(split_sentences(u.source)) == 2 and len(split_sentences(u.output)) < 2]
+    short = [u.source[:60] for u in units if u.kind == "text" and count_sentences(u.source) >= 2
+             and count_sentences(u.output) < count_sentences(u.source) - (1 if count_sentences(u.source) >= 4 else 0)]
     checks["sentence_coverage"] = {"passages_with_fewer_sentences": len(short)}
     if short:
         warnings.append(f"{len(short)} passage(s) came back with noticeably fewer sentences than the source (merged or omitted?): {short[:3]}")
@@ -235,16 +240,26 @@ async def verify_units(ctx: RunContext, units: list[Unit], source_text: str, out
     if rep_out > rep_src + 0.25:
         warnings.append("translation repeats phrases much more than the source (possible looping)")
 
-    back_lang = None
+    def unit_lang(u: Unit) -> str | None:
+        # Mixed documents: back-translate each passage into the language it was actually written in.
+        guess = detect_language(u.source)
+        if guess.language in TRANSLATE_LANGUAGES and guess.confidence >= 0.6 and LANG_TO_SCRIPT.get(guess.language) != LANG_TO_SCRIPT.get(source_lang or ""):
+            return guess.language
+        return source_lang if source_lang in TRANSLATE_LANGUAGES else None
+
+    todo: list[tuple[Unit, str]] = []
     if back_translate:
-        if source_lang in TRANSLATE_LANGUAGES and source_lang != target:
-            back_lang = source_lang
-        elif source_lang is None:
+        for u in units:
+            lang = unit_lang(u)
+            if u.kind in ("text", "table") and letters_only(u.output) and lang and lang != target:
+                todo.append((u, lang))
+        if source_lang is None and not todo:
             warnings.append("source language unknown; back-translation skipped")
-    if back_lang:
-        todo = [u for u in units if u.kind in ("text", "table") and letters_only(u.output)]
-        backs = await asyncio.gather(*[_translate_piece(ctx, u.output, back_lang, "native", purpose="verify-back-translate") for u in todo],
+    back_lang = todo[0][1] if todo else None
+    if todo:
+        backs = await asyncio.gather(*[_translate_piece(ctx, u.output, lang, "native", purpose="verify-back-translate") for u, lang in todo],
                                      return_exceptions=True)
+        todo = [u for u, _ in todo]  # type: ignore[misc]
         scores, ratios, flagged = [], [], []
         for u, b in zip(todo, backs):
             if isinstance(b, BaseException):
