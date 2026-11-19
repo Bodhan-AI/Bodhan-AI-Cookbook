@@ -151,21 +151,25 @@ async def run(args: argparse.Namespace, *, transport=None, llm: PlannerLLM | Non
         agent.outcome = Outcome("failed", "setup_error", f"The run could not start: {type(exc).__name__}: {exc}. No model was called.")
         return _finish(agent, ledger, trace, out, started_at, t0)
     try:
-        await agent.run()
-    except (KeyboardInterrupt, asyncio.CancelledError):  # Ctrl-C / SIGTERM: keep the run resumable, leave an honest report
-        trace.write({"type": "interrupted", "step": agent.steps})
-        # Not agent._save(): the checkpoint written before this turn (with its pending calls) is the one --resume must
-        # replay; a snapshot taken mid-turn would hold tool calls without their results.
-        agent.write_provisional()
-        raise
-    except Exception as exc:  # never leave a run without a report; same output rule as any other stop
-        trace.write({"type": "internal_error", "error": repr(exc), "traceback": traceback.format_exc()[-3000:]})
-        agent.forced_outcome("internal_error", f"The agent hit an internal error: {type(exc).__name__}: {exc}.")
-        agent._save()
+        try:
+            await agent.run()
+        except (KeyboardInterrupt, asyncio.CancelledError):  # Ctrl-C / SIGTERM: keep the run resumable, leave an honest report
+            trace.write({"type": "interrupted", "step": agent.steps})
+            if agent.outcome is not None:  # the run had already finished: write its real report
+                _finish(agent, ledger, trace, out, started_at, t0)
+            else:
+                # Not agent._save(): the checkpoint written before this turn (with its pending calls) is the one --resume
+                # must replay; a snapshot taken mid-turn would hold tool calls without their results.
+                agent.write_provisional()
+            raise
+        except Exception as exc:  # never leave a run without a report; same output rule as any other stop
+            trace.write({"type": "internal_error", "error": repr(exc), "traceback": traceback.format_exc()[-3000:]})
+            agent.forced_outcome("internal_error", f"The agent hit an internal error: {type(exc).__name__}: {exc}.")
+            agent._save()
+        return _finish(agent, ledger, trace, out, started_at, t0)  # written before teardown, which may itself be interrupted
     finally:
         if client is not None:
             await client.aclose()
-    return _finish(agent, ledger, trace, out, started_at, t0)
 
 
 def _finish(agent: Agent, ledger: CostLedger, trace: TraceWriter, out: Path, started_at: datetime, t0: float) -> dict:

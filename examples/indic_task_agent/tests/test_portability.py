@@ -1,12 +1,13 @@
 """Planner portability: providers other than the one the demos used (Groq, Gemini, small open models)."""
 
+import json
 
 import pytest
 from fakes import FakeBodhan, ScriptedChat, _Obj
 from test_agent_e2e import args, read_outputs
 
 from bodhan_agent.cli import run
-from bodhan_agent.llm import PlannerLLM, clean_tool_name, decode_arguments
+from bodhan_agent.llm import LLMError, PlannerLLM, clean_tool_name, decode_arguments
 
 FINISH_TOOL = [{"type": "function", "function": {"name": "finish", "parameters": {"type": "object", "properties": {}}}}]
 
@@ -127,7 +128,8 @@ async def test_a_plain_text_final_answer_is_not_lost(tmp_path):
     chat = ScriptedChat([[plan], [("read_text", {"path": str(txt)})], answer, answer, answer])
     await run(args(tmp_path, "When does the library open?", [txt]), transport=FakeBodhan().transport, llm=PlannerLLM(client=chat, model="s"))
     out, rep, trace, md = read_outputs(tmp_path)
-    assert rep["status"] == "completed" and "eight" in rep["final_answer"] and any(e["type"] == "finish_salvaged" for e in trace)
+    # kept, but never claimed complete: plain text carries no status (an explicit {"status": ...} would be honoured)
+    assert rep["status"] == "partial" and "eight" in rep["final_answer"] and any(e["type"] == "finish_salvaged" for e in trace)
 
 
 def test_bare_finish_arguments_written_as_text_are_understood():
@@ -153,3 +155,43 @@ async def test_inline_text_copied_from_an_artifact_keeps_its_lineage(make_ctx, t
     r, err = await invoke(TOOL_BY_NAME["translate_text"], ctx, {"text": "Worksheet 4: The planets of our solar system and their moons.",
                                                                 "target_language": "mr"})
     assert not err and ctx.artifacts[r["path"]].origin == ["worksheet_photo.jpg"]
+
+
+async def test_tools_rejection_mentioning_tool_choice_still_reaches_the_text_protocol():
+    def behave(kw):
+        if "tools" in kw:
+            raise Err(400, "Error code: 400 - tools and tool_choice are unsupported for this model")
+        return reply('{"name": "finish", "arguments": {"status": "failed", "final_answer": "x"}}')
+
+    llm = PlannerLLM(client=Endpoint(behave), model="m")
+    r = await llm.chat([{"role": "user", "content": "x"}], FINISH_TOOL)
+    assert llm.text_protocol and r.tool_calls[0].name == "finish"
+
+
+async def test_an_unrelated_error_mentioning_function_does_not_switch_protocol():
+    def behave(kw):
+        raise Err(400, "Error code: 400 - invalid value for messages[2].function_call")
+
+    llm = PlannerLLM(client=Endpoint(behave), model="m", max_attempts=2)
+    with pytest.raises(LLMError):
+        await llm.chat([{"role": "user", "content": "x"}], FINISH_TOOL)
+    assert not llm.text_protocol
+
+
+async def test_an_echoed_field_the_provider_refuses_is_dropped():
+    calls = {"n": 0}
+
+    def behave(kw):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            return reply(None, [("finish", "{}")], msg_extra={"diagnostic": "internal"})
+        if any("diagnostic" in m for m in kw["messages"]):
+            raise Err(400, "Error code: 400 - property 'diagnostic' is not allowed in messages")
+        return reply(None, [("finish", "{}")])
+
+    llm = PlannerLLM(client=Endpoint(behave), model="m")
+    msgs = [{"role": "user", "content": "x"}]
+    first = await llm.chat(msgs, FINISH_TOOL)
+    msgs += [first.assistant_message, {"role": "tool", "tool_call_id": first.tool_calls[0].id, "content": "{}"}]
+    second = await llm.chat(msgs, FINISH_TOOL)
+    assert second.tool_calls and "diagnostic" not in json.dumps(msgs) and llm.notes

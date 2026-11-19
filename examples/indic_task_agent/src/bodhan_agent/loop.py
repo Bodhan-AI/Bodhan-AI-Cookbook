@@ -306,11 +306,11 @@ class Agent:
                 self.steps += 1
                 if nudges > 2:
                     if reply.content.strip() and self.plan is not None:
-                        # The planner keeps answering in plain text: take that text as its final answer. The finish gate
-                        # still decides what may be called complete.
+                        # The planner keeps answering in plain text: take that text as its final answer, as "partial"
+                        # (it never said the task is complete; an explicit {"status": ...} would have been parsed as finish).
                         usable = [str(a.path) for a in self.ctx.artifacts.values() if a.kind in OUTPUT_KINDS and self._usable(a)]
                         salvage = ToolCall(f"salvaged_{self.steps}", "finish",
-                                           {"status": "completed", "final_answer": reply.content.strip(), "deliverables": usable},
+                                           {"status": "partial", "final_answer": reply.content.strip(), "deliverables": usable},
                                            json.dumps({"status": "completed"}))
                         self.trace.write({"type": "finish_salvaged", "step": self.steps, "deliverables": usable})
                         self.messages[-1] = {**self.messages[-1], "tool_calls": [{"id": salvage.id, "type": "function", "function":

@@ -213,6 +213,8 @@ class PlannerLLM:
         self.no_tool_choice = False  # the endpoint rejected `tool_choice`
         self.text_protocol = False  # the endpoint rejected `tools`: tools are described in text instead
         self.notes: list[str] = []  # adaptations made for this endpoint (reported)
+        self._echoed: set[str] = set()  # provider extra fields we send back
+        self._blocked_extras: set[str] = set()  # extra fields the provider refused
 
     async def chat(self, messages: list[dict[str, Any]], tools: list[dict[str, Any]], max_tokens: int | None = None,
                    can_retry: Callable[[], bool] | None = None) -> LLMReply:
@@ -255,12 +257,26 @@ class PlannerLLM:
                                         {"role": "assistant", "content": None,
                                          "tool_calls": [{"id": fb.id, "type": "function", "function": {"name": fb.name, "arguments": fb.raw_arguments}}]},
                                         True)
+                echoed = [k for k in self._echoed if k in text]
+                if status in (400, 422) and echoed:  # the provider refuses a field we echoed from its own reply: stop echoing it
+                    self._echoed -= set(echoed)
+                    self._blocked_extras |= set(echoed)
+                    for m in messages:
+                        for k in echoed:
+                            m.pop(k, None)
+                            for c in m.get("tool_calls") or []:
+                                c.pop(k, None)
+                    self.notes.append(f"the planner endpoint rejected echoed fields {echoed}; they are no longer sent back")
+                    limit += 1
+                    continue
                 if status in (400, 422) and "tool_choice" in text and not self.no_tool_choice:
                     self.no_tool_choice = True
                     self.notes.append("the planner endpoint rejected tool_choice; it is no longer sent")
                     limit += 1  # this attempt taught us the endpoint's shape; it does not count
                     continue
-                if status in (400, 404, 422) and ("tools" in text or "function" in text) and "tool_choice" not in text and not self.text_protocol:
+                unsupported = any(w in text for w in ("not support", "unsupported", "not supported", "not available", "not enabled"))
+                if (status in (400, 404, 422) and ("tools" in text or "function calling" in text or "tool use" in text) and unsupported
+                        and (self.no_tool_choice or "tool_choice" not in text) and not self.text_protocol):
                     self.text_protocol = True
                     self.notes.append("the planner endpoint rejected native tool calling; tools are described in text and replies parsed as JSON")
                     limit += 1
@@ -304,8 +320,10 @@ class PlannerLLM:
             args, err = decode_arguments(raw)
             call_id = tc.id or f"call_{uuid.uuid4().hex[:8]}"
             calls.append(ToolCall(call_id, clean_tool_name(tc.function.name, known), args, raw if isinstance(raw, str) else json.dumps(args), err))
-            fn_extra = dict(getattr(tc.function, "model_extra", None) or {})
-            native.append({**dict(getattr(tc, "model_extra", None) or {}), "id": call_id, "type": "function",
+            fn_extra = {k: v for k, v in (getattr(tc.function, "model_extra", None) or {}).items() if k not in self._blocked_extras}
+            call_extra = {k: v for k, v in (getattr(tc, "model_extra", None) or {}).items() if k not in self._blocked_extras}
+            self._echoed |= set(fn_extra) | set(call_extra)
+            native.append({**call_extra, "id": call_id, "type": "function",
                            "function": {**fn_extra, "name": calls[-1].name, "arguments": calls[-1].raw_arguments or "{}"}})
         content = msg.content or ""
         fallback = False
@@ -316,7 +334,9 @@ class PlannerLLM:
         # Echo the provider's own non-standard fields back (e.g. reasoning_content, Gemini thought signatures in
         # extra_content): some providers reject the next turn without them. Standard OpenAI-only fields (refusal,
         # annotations) are not echoed, because other providers reject them as unknown.
-        assistant: dict[str, Any] = {k: v for k, v in (getattr(msg, "model_extra", None) or {}).items() if v is not None}
+        assistant: dict[str, Any] = {k: v for k, v in (getattr(msg, "model_extra", None) or {}).items()
+                                     if v is not None and k not in self._blocked_extras}
+        self._echoed |= set(assistant)
         assistant.update({"role": "assistant", "content": content or None})
         if calls:
             assistant["tool_calls"] = native if native else [

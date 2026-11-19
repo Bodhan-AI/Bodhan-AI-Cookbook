@@ -227,3 +227,23 @@ def test_finish_accepts_as_many_deliverables_as_a_plan_may_declare():
     from bodhan_agent.loop import FinishIn
 
     assert FinishIn(status="completed", final_answer="Done.", deliverables=[f"a{i}.md" for i in range(40)])
+
+
+async def test_an_interrupt_during_teardown_after_finish_keeps_the_final_report(tmp_path, monkeypatch):
+    import asyncio
+
+    from bodhan_mcp.client import BodhanClient
+
+    txt = tmp_path / "p.txt"
+    txt.write_text("The library opens at eight.", encoding="utf-8")
+    plan = ("record_plan", {"steps": ["read", "answer"], "deliverables": [{"kind": "answer"}]})
+    chat = ScriptedChat([[plan], [("read_text", {"path": str(txt)})], [("finish", {"status": "completed", "final_answer": "At eight."})]])
+
+    async def interrupted_close(self):
+        raise asyncio.CancelledError()
+
+    monkeypatch.setattr(BodhanClient, "aclose", interrupted_close)
+    with pytest.raises(asyncio.CancelledError):
+        await run(args(tmp_path, "When does the library open?", [txt]), transport=FakeBodhan().transport, llm=PlannerLLM(client=chat, model="s"))
+    rep = json.loads((tmp_path / "out" / "report.json").read_text(encoding="utf-8"))
+    assert rep["status"] == "completed" and not rep.get("provisional")
