@@ -353,3 +353,33 @@ def test_a_provisional_report_before_any_checkpoint_says_restart(tmp_path, make_
     agent.write_provisional()
     rep = json.loads((out / "report.json").read_text(encoding="utf-8"))
     assert "run the same command again" in rep["final_answer"] and "--resume" not in rep["final_answer"]
+
+
+# live gpt-oss-20b on Groq: even the first request (system prompt + tools + inventory) was over the 8k cap
+async def test_the_short_tool_list_is_used_when_even_the_first_request_is_too_long(tmp_path):
+    from bodhan_agent.loop import openai_tools
+
+    full, short = len(json.dumps(openai_tools(None))), len(json.dumps(openai_tools(None, compact=True)))
+    assert short < 0.6 * full
+    txt = tmp_path / "p.txt"
+    txt.write_text("The library opens at eight.", encoding="utf-8")
+    plan = ("record_plan", {"steps": ["read", "answer"], "deliverables": [{"kind": "answer"}]})
+    inner = ScriptedChat([[plan], [("read_text", {"path": str(txt)})], [("finish", {"status": "completed", "final_answer": "At eight."})]])
+    cap = (full + short) // 2 + 9000  # tools plus a little conversation fit only in the short form
+
+    class Err(Exception):
+        status_code = 413
+
+    class Capped:
+        def __init__(self):
+            self.chat = self.completions = self
+
+        async def create(self, **kw):
+            if len(json.dumps(kw.get("tools") or [])) + len(json.dumps(kw["messages"])) > cap:
+                raise Err("Error code: 413 - Request too large for model on tokens per minute (TPM): Limit 8000, Requested 8618")
+            return await inner.create(**kw)
+
+    await run(args(tmp_path, "When does the library open?", [txt]), transport=FakeBodhan().transport, llm=PlannerLLM(client=Capped(), model="s"))
+    out, rep, trace, md = read_outputs(tmp_path)
+    assert rep["status"] in ("completed", "completed_with_warnings"), rep["final_answer"]
+    assert any("short tool list" in a for a in rep["llm"]["adaptations"])

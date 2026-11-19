@@ -132,7 +132,8 @@ The graders bring their own planner, so `llm.py` assumes only `chat.completions`
 | Groq `400 tool_use_failed` with a `failed_generation` | The failed generation is parsed as above. |
 | `null` for an optional argument | Treated as not given. |
 | Context-length rejection or `413` (for example Groq's on-demand tier, which refuses any request over 8,000 tokens) | Older tool results are shortened in steps (keep the last two, keep the last one shortened, shorten every result and the planner's own long arguments) until the request is accepted. Artifacts stay on disk, so `read_text` can reopen anything. Long conversations are also shortened before sending once they pass about 90 kB. |
-| A plain-text final answer after two reminders to call `finish` | Passed to the finish gate as a `finish` call, so the run is judged like any other. |
+| A request that is too long even before any conversation (system prompt, tool list and input list over the cap, as with `gpt-oss-20b` on Groq's on-demand tier) | The short form of the tool list (names, types, each tool's first sentence; about half the size) is sent from then on. |
+| A plain-text final answer after two reminders to call `finish` | Passed to the finish gate as a `finish` call with status `partial` (plain text never claims completion), so the run is judged like any other. |
 
 Live results per planner model are in [evaluation.md](evaluation.md).
 

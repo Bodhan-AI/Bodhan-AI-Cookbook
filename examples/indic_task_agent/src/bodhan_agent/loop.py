@@ -118,10 +118,28 @@ CONTROL_TOOLS = [{"type": "function", "function": {"name": n, "description": d, 
                  for n, (d, m) in CONTROL_SPECS.items()]
 
 
-def openai_tools(only: set[str] | None = None) -> list[dict[str, Any]]:
+def openai_tools(only: set[str] | None = None, compact: bool = False) -> list[dict[str, Any]]:
+    """The tool list for the planner. `compact` keeps names, types and each tool's first sentence only (about half the
+    size), for endpoints that refuse long requests (e.g. 8k-token caps)."""
     specs = [{"type": "function", "function": {"name": t.name, "description": t.description, "parameters": t.input_schema()}} for t in TOOLS]
-    out = specs + CONTROL_TOOLS
-    return [t for t in out if only is None or t["function"]["name"] in only]
+    out = [t for t in specs + CONTROL_TOOLS if only is None or t["function"]["name"] in only]
+    if not compact:
+        return out
+    return [{"type": "function", "function": {"name": t["function"]["name"], "description": _first_sentence(t["function"].get("description", "")),
+                                              "parameters": _without_descriptions(t["function"]["parameters"])}} for t in out]
+
+
+def _first_sentence(text: str) -> str:
+    end = text.find(". ")
+    return (text[: end + 1] if end > 0 else text)[:200]
+
+
+def _without_descriptions(node: Any) -> Any:
+    if isinstance(node, dict):
+        return {k: _without_descriptions(v) for k, v in node.items() if k != "description"}
+    if isinstance(node, list):
+        return [_without_descriptions(x) for x in node]
+    return node
 
 
 def _validation_message(exc: ValidationError) -> str:
@@ -199,6 +217,7 @@ class Agent:
         self.outcome: Outcome | None = None
         self.finish_rejections = 0
         self.budget_errors = 0
+        self.compact_tools = False  # set when the endpoint refuses even a compacted request
         self.tool_log: list[dict[str, Any]] = []
         self.inventory: dict[str, Any] = {}
         self.messages: list[dict[str, Any]] = []
@@ -247,7 +266,7 @@ class Agent:
             if limit:
                 return self._forced_stop(limit)
             last_step = self.steps >= self.settings.max_steps - 1
-            tools = openai_tools({"finish"} if last_step else None)
+            tools = openai_tools({"finish"} if last_step else None, compact=self.compact_tools)
             if last_step:
                 self.messages.append({"role": "user", "content": "Only one step is left: call finish now with what you have (status partial if incomplete)."})
             if self._compact(level=0):
@@ -277,6 +296,11 @@ class Agent:
                     shrunk = self._compact(level=compactions)
                 if shrunk:
                     self.trace.write({"type": "context_compacted", "step": self.steps, "reason": str(exc)[:200]})
+                    continue
+                if not self.compact_tools:  # the fixed part is too big: send the short form of the tool list from now on
+                    self.compact_tools = True
+                    getattr(self.llm, "notes", []).append("the planner endpoint refused long requests; the short tool list is used")
+                    self.trace.write({"type": "context_compacted", "step": self.steps, "reason": "short tool list: " + str(exc)[:160]})
                     continue
                 sent = getattr(self.llm, "uncertain_attempts", 0)
                 self.trace.write({"type": "llm_error", "step": self.steps, "error": str(exc), "uncertain_attempts": sent})
