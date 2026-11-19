@@ -18,96 +18,177 @@ from pathlib import Path
 from urllib.parse import unquote, urlparse
 
 PAGE = """<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><title>Bodhan task runs</title>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bodhan task runs</title>
 <style>
- :root{color-scheme:dark}
+ :root{color-scheme:dark;--bg:#0d1017;--panel:#151a24;--panel2:#1b2130;--line:#262d3d;--text:#e8ebf3;--muted:#8d97ad;
+   --blue:#5b9dff;--green:#4cd08a;--red:#ff6b78;--amber:#ffc857;--violet:#a98bff;--orange:#ff9a5c;--pink:#ff7eb6}
  *{box-sizing:border-box}
- body{margin:0;background:#14161c;color:#e6e8ee;font:16px/1.55 system-ui,Segoe UI,sans-serif}
- #wrap{display:grid;grid-template-columns:230px minmax(0,1fr);height:100vh}
- nav{border-right:1px solid #2a2e3a;padding:16px;overflow-y:auto;background:#0f1116}
- nav h1{font-size:13px;color:#8b93a7;margin:0 0 12px;font-weight:600}
- .run{padding:8px 10px;margin:0 0 4px;border-radius:6px;cursor:pointer;overflow-wrap:anywhere}
- .run:hover{background:#1a1e29}.run.on{background:#232a3d}
- .run small{display:block;color:#8b93a7}
- main{overflow-y:auto;padding:28px 36px 80px;min-width:0}
- .inner{max-width:820px;margin:0 auto}
+ body{margin:0;background:radial-gradient(1200px 600px at 70% -10%,#16203a 0%,var(--bg) 60%);color:var(--text);
+   font:15px/1.55 Inter,system-ui,Segoe UI,Roboto,sans-serif}
  *{overflow-wrap:anywhere}
- h1.task{font-size:21px;margin:0 0 4px}
- .top{color:#aab1c5;margin-bottom:22px}
- .badge{font-weight:700;padding:1px 10px;border-radius:99px;font-size:13px;margin-right:8px}
- .completed{background:#1c4a2e;color:#8ff0b0}.partial{background:#5a4a14;color:#ffd979}
- .failed{background:#5a1f24;color:#ff9aa2}.running{background:#1f3a5a;color:#9ac9ff}
- .ev{display:grid;grid-template-columns:26px minmax(0,1fr);padding:7px 0;border-bottom:1px solid #1f2330}
- .ev .ic{color:#8b93a7;text-align:center}
- .ev.think .ic{color:#9ac9ff}.ev.ok .ic{color:#6fdc98}.ev.bad .ic{color:#ff8a93}.ev.skip .ic{color:#8b93a7}
- .ev .t{font-weight:600}.ev .d{color:#aab1c5}
- .ev .n{color:#8b93a7;font-size:14px}
- .ev.skip{opacity:.7}
- .muted{color:#8b93a7}
+ #wrap{display:grid;grid-template-columns:250px minmax(0,1fr);height:100vh}
+ nav{background:#0a0d13;border-right:1px solid var(--line);padding:18px 12px;overflow-y:auto}
+ .brand{display:flex;align-items:center;gap:10px;padding:0 8px 16px;font-weight:700;font-size:15px}
+ .logo{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--blue),var(--violet));display:grid;place-items:center;font-size:15px}
+ .label{color:var(--muted);font-size:11px;letter-spacing:.12em;text-transform:uppercase;padding:0 8px 8px}
+ .run{display:flex;gap:10px;align-items:flex-start;padding:9px 10px;margin-bottom:3px;border-radius:9px;cursor:pointer;border:1px solid transparent}
+ .run:hover{background:var(--panel)}.run.on{background:var(--panel2);border-color:#33405f}
+ .dot{width:9px;height:9px;border-radius:50%;margin-top:7px;flex:none;background:var(--muted)}
+ .dot.completed{background:var(--green)}.dot.failed{background:var(--red)}.dot.partial{background:var(--amber)}.dot.running{background:var(--blue)}
+ .run b{display:block;font-weight:600;font-size:14px}.run small{color:var(--muted)}
+ main{overflow-y:auto;padding:30px 40px 90px;min-width:0}
+ .inner{max-width:880px;margin:0 auto}
+ .hero{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:16px;padding:22px 24px;margin-bottom:26px}
+ .hero h1{font-size:22px;line-height:1.3;margin:0 0 14px}
+ .pill{display:inline-block;padding:3px 12px;border-radius:99px;font-size:12px;font-weight:700;letter-spacing:.06em;margin-bottom:12px}
+ .pill.completed{background:#14392a;color:var(--green)}.pill.failed{background:#4a1c24;color:var(--red)}
+ .pill.partial{background:#4a3c12;color:var(--amber)}.pill.running{background:#173458;color:var(--blue)}
+ .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+ .stat{background:#0e131c;border:1px solid var(--line);border-radius:11px;padding:10px 14px}
+ .stat small{color:var(--muted);display:block;font-size:12px}.stat b{font-size:18px}
+ .bar{height:7px;background:#0e131c;border-radius:5px;margin-top:14px;overflow:hidden}
+ .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--violet))}
+ .tl{position:relative;padding-left:46px}
+ .tl:before{content:"";position:absolute;left:15px;top:6px;bottom:6px;width:2px;background:var(--line)}
+ .item{position:relative;margin-bottom:12px}
+ .item .ic{position:absolute;left:-46px;top:10px;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;
+   background:var(--panel2);border:2px solid var(--line);font-size:14px}
+ .item.ok .ic{border-color:var(--green);color:var(--green)}.item.bad .ic{border-color:var(--red);color:var(--red)}
+ .item.think .ic{border-color:#3a4a74;color:var(--blue)}.item.warn .ic{border-color:var(--amber);color:var(--amber)}
+ .item.skip .ic{color:var(--muted)}.item.run .ic{border-color:var(--blue);color:var(--blue)}
+ .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 16px}
+ .item.ok .card{border-left:3px solid var(--green)}.item.bad .card{border-left:3px solid var(--red)}
+ .item.skip .card{opacity:.65}.item.run .card{border-left:3px solid var(--blue)}
+ .kicker{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:3px}
+.chips+.kicker{margin-top:14px}
+ .title{font-weight:600}.sub{color:#b6bfd3;margin-top:2px}
+ .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+ .chip{font-size:12px;padding:2px 9px;border-radius:99px;background:#0e131c;border:1px solid var(--line);color:#b6bfd3}
+ .tool{font-weight:600;border:0}
+ .t-ocr_document{background:#2a2250;color:var(--violet)}.t-transcribe_audio{background:#173458;color:var(--blue)}
+ .t-translate_text{background:#14392a;color:var(--green)}.t-speak_text{background:#4a2c14;color:var(--orange)}
+ .t-write_text{background:#4a1c36;color:var(--pink)}.t-probe_media,.t-detect_language{background:#262d3d;color:#b6bfd3}
+ .sid{color:var(--muted);font-weight:700;margin-right:8px}
+ ul{margin:6px 0 0;padding-left:18px;color:#b6bfd3}li{margin:3px 0}
+ .chk{display:grid;grid-template-columns:20px minmax(0,1fr);gap:4px 8px;padding:5px 0;border-top:1px solid var(--line)}
+ .chk:first-of-type{border-top:0}
+ .chk .r{font-weight:700}.passed{color:var(--green)}.failed{color:var(--red)}.warning{color:var(--amber)}.skipped{color:var(--muted)}
+ .muted{color:var(--muted)}
+ .empty{margin:80px auto;text-align:center;color:var(--muted)}
 </style></head><body><div id="wrap">
-<nav><h1>Task runs</h1><div id="runs"><span class="muted">no runs yet</span></div></nav>
-<main><div class="inner" id="main"><span class="muted">Waiting for a run. Start one in the terminal.</span></div></main></div>
+<nav><div class="brand"><div class="logo">B</div>Bodhan agent</div><div class="label">Task runs</div><div id="runs"></div></nav>
+<main><div class="inner" id="main"><div class="empty">Waiting for a run.<br>Start one in the terminal and it will appear here.</div></div></main></div>
 <script>
+const NL=String.fromCharCode(10);
 const $=(t,c,x)=>{const n=document.createElement(t);if(c)n.className=c;if(x!==undefined)n.textContent=x;return n};
 let current=new URLSearchParams(location.search).get('run');
 async function g(u,asJson){try{const r=await fetch(u,{cache:'no-store'});if(!r.ok)return null;return asJson?await r.json():await r.text()}catch(_){return null}}
 const rs=n=>'Rs '+Number(n||0).toFixed(2);
 const sec=ms=>((ms||0)/1000).toFixed(1)+' s';
-function row(kind,icon,title,detail,note){
-  const r=$('div','ev '+kind);r.append($('div','ic',icon));
-  const b=$('div');b.append($('div','t',title));
-  if(detail)b.append($('div','d',detail));
-  if(note)b.append($('div','n',note));
-  r.append(b);return r}
-function render(e,plan){
-  switch(e.type){
-    case 'intake':{const f=(e.inventory||[]).map(i=>i.name+' ('+i.kind+(i.duration_s?', '+Math.round(i.duration_s)+' s':'')+(i.pages?', '+i.pages+' pages':'')+')').join(', ');
-      return row('think','•','Looked at the input files for free',f||'no files')}
-    case 'plan':
-      if(e.feasible===false)return row('bad','✗','Decided it cannot be done',e.refusal||'');
-      return row('think','•','Made a plan',e.understanding||'',(e.steps||[]).length+' steps')
-    case 'estimate':return row('think','•','Worked out the cost before spending anything','Estimated '+rs(e.estimated_cost_inr)+' of a '+rs(e.max_cost_inr)+' limit');
-    case 'replan':return row('think','↻','Changed the plan',e.note||e.reason||'');
-    case 'plan_repair':return row('think','↻','Fixed an invalid plan',(e.error||'').slice(0,160));
-    case 'resume':return row('think','↻','Resumed an earlier run','Reusing its plan and finished steps');
-    case 'llm_call':return row('think','•','Asked the language model: '+(e.purpose||'').replace('_',' '),'',sec(e.latency_ms));
-    case 'fit':return row('think','•','Checked speech length before buying speech','Predicted '+e.predicted_s+' s for '+e.wanted_s+' s wanted');
-    case 'tool_call':return row('think','▶',e.step+'  '+e.tool,e.intent||'','reserved '+rs(e.reserved_inr));
-    case 'tool_result':{const s=e.summary||{};const bits=[];
-      if(s.duration_s)bits.push(Math.round(s.duration_s)+' s of audio');if(s.page_count)bits.push(s.page_count+' pages');
-      if(s.chars)bits.push(s.chars+' characters');if(s.output_chars&&!s.chars)bits.push(s.output_chars+' characters out');
-      if(s.language_hint)bits.push('language '+s.language_hint);if(s.chunks)bits.push(s.chunks+' windows');if(s.clips)bits.push(s.clips+' speech clips');
-      if(s.warnings&&s.warnings.length)bits.push('warnings: '+s.warnings.join(', '));
-      return row(e.ok?'ok':'bad',e.ok?'✓':'✗',e.step+' '+(e.ok?'done':'failed'),bits.join(' · '),rs(e.cost_inr)+' · '+sec(e.latency_ms)+(e.cache_hit?' · from cache':''))}
-    case 'step_skipped':return row('skip','–',e.step+' skipped',e.reason||'','no cost');
-    case 'step_reused':return row('ok','↺',e.step+' reused',e.reason||'','no cost');
-    case 'step_failed':return row('bad','✗',e.step+' failed',(e.error&&e.error.message)||'');
-    case 'verify':{const k=e.result==='passed'?'ok':e.result==='failed'?'bad':'skip';
-      return row(k,e.result==='passed'?'✓':e.result==='failed'?'✗':'–','Check: '+e.check+' → '+e.result,e.detail||'',(e.artifact||'').split('/').pop())}
-    case 'error':return row('bad','✗','Stopped: '+(e.code||'error'),e.message||'');
-    case 'stop':return row(e.status==='completed'?'ok':'bad','■','Finished: '+e.status,'Total '+rs(e.cost_inr)+' in '+e.duration_s+' s');
-    default:return null}}
+const chip=(t,c)=>$('span','chip'+(c?' '+c:''),t);
+
+function item(kind,icon){const i=$('div','item '+kind);i.append($('div','ic',icon));const c=$('div','card');i.append(c);i.card=c;return i}
+function note(kind,icon,kicker,title,sub,chips){
+  const i=item(kind,icon),c=i.card;
+  if(kicker)c.append($('div','kicker',kicker));
+  if(title)c.append($('div','title',title));
+  if(sub)c.append($('div','sub',sub));
+  if(chips&&chips.length){const w=$('div','chips');chips.forEach(x=>w.append(x));c.append(w)}
+  return i}
+
+function resultChips(e){
+  const s=e.summary||{},out=[];
+  out.push(chip(rs(e.cost_inr)));out.push(chip(sec(e.latency_ms)));
+  if(e.cache_hit)out.push(chip('from cache'));
+  if(s.duration_s)out.push(chip(Math.round(s.duration_s)+' s audio'));
+  if(s.page_count)out.push(chip(s.page_count+' pages'));
+  if(s.chars)out.push(chip(s.chars+' characters'));
+  if(s.language_hint)out.push(chip('language: '+s.language_hint));
+  if(s.chunks)out.push(chip(s.chunks+' windows'));
+  if(s.clips)out.push(chip(s.clips+' speech clips'));
+  (s.warnings||[]).forEach(w=>out.push(chip(w)));
+  return out}
+
 async function show(run){
   const raw=await g('/run/'+encodeURIComponent(run)+'/trace.jsonl')||'';
-  const events=raw.split('\\n').filter(Boolean).map(l=>{try{return JSON.parse(l)}catch(_){return null}}).filter(Boolean);
+  const events=raw.split(NL).filter(Boolean).map(l=>{try{return JSON.parse(l)}catch(_){return null}}).filter(Boolean);
   const report=await g('/run/'+encodeURIComponent(run)+'/report.json',true);
   const stop=[...events].reverse().find(e=>e.type==='stop');
   const status=report?report.status:(stop?stop.status:'running');
-  const main=document.getElementById('main'),keep=main.parentElement.scrollTop;main.replaceChildren();
-  main.append($('h1','task',report?report.task:run));
-  const spent=report?report.budget.cost_inr:events.filter(e=>e.type==='tool_result').reduce((s,e)=>s+(e.cost_inr||0),0);
-  const top=$('div','top');top.append($('span','badge '+status,status.toUpperCase()),document.createTextNode('spent '+rs(spent)+(report?' of '+rs(report.budget.max_cost_inr)+' · '+report.duration_s+' s':'')));
-  main.append(top);
-  const plan=[...events].reverse().find(e=>e.type==='plan');
-  events.forEach(e=>{const r=render(e,plan);if(r)main.append(r);
-    if(e.type==='plan'&&(e.assumptions||[]).length)e.assumptions.forEach(a=>main.append(row('think','•','Assumed',a.text)))});
-  main.parentElement.scrollTop=keep}
+  const results=events.filter(e=>e.type==='tool_result');
+  const spent=report?report.budget.cost_inr:results.reduce((s,e)=>s+(e.cost_inr||0),0);
+  const est=events.find(e=>e.type==='estimate');
+  const cap=report?report.budget.max_cost_inr:(est?est.max_cost_inr:null);
+  const main=document.getElementById('main'),scroller=main.parentElement,keep=scroller.scrollTop;
+  main.replaceChildren();
+
+  const hero=$('div','hero');
+  hero.append($('div','pill '+status,status.toUpperCase()),$('h1',null,report?report.task:run));
+  const st=$('div','stats');
+  const tile=(l,v)=>{const d=$('div','stat');d.append($('small',null,l),$('b',null,v));return d};
+  const steps=events.filter(e=>e.type==='tool_call').length;
+  st.append(tile('Spent',rs(spent)),tile('Budget',cap?rs(cap):'-'),tile('Time',report?report.duration_s+' s':'running'),tile('Steps',String(report?report.budget.steps_used:steps)));
+  hero.append(st);
+  if(cap){const b=$('div','bar'),i=$('i');i.style.width=Math.min(100,spent/cap*100)+'%';b.append(i);hero.append(b)}
+  main.append(hero);
+
+  const tl=$('div','tl');main.append(tl);
+  const cards={};let checks=null;
+  for(const e of events){
+    if(e.type==='intake'){
+      const f=(e.inventory||[]).map(i=>chip(i.name+' · '+i.kind+(i.duration_s?' · '+Math.round(i.duration_s)+' s':'')+(i.pages?' · '+i.pages+' pages':'')));
+      tl.append(note('think','1','Step 0 · free','Looked at your files','Nothing is spent while the agent inspects them.',f))}
+    else if(e.type==='llm_call'){
+      tl.append(note('think','…','Thinking','Asked the language model: '+(e.purpose||'').replace('_',' '),null,[chip(sec(e.latency_ms))]))}
+    else if(e.type==='plan'){
+      if(e.feasible===false){tl.append(note('bad','✗','Decision','It cannot be done',e.refusal||''));continue}
+      const i=note('think','◆','Plan',e.understanding||'',null,[chip((e.steps||[]).length+' steps')]);
+      if((e.assumptions||[]).length){const u=$('ul');e.assumptions.forEach(a=>u.append($('li',null,a.text)));i.card.append($('div','kicker','Assumptions it made'),u)}
+      tl.append(i)}
+    else if(e.type==='estimate'){
+      tl.append(note('think','₹','Cost check','Estimated before spending anything','About '+rs(e.estimated_cost_inr)+' against a limit of '+rs(e.max_cost_inr)+'.'))}
+    else if(e.type==='replan'){tl.append(note('warn','↻','Re-planning','Changed the plan',e.note||e.reason||''))}
+    else if(e.type==='plan_repair'){tl.append(note('warn','↻','Re-planning','Fixed an invalid plan','The first plan was not valid, so it asked again once.'))}
+    else if(e.type==='resume'){tl.append(note('think','↻','Resume','Continued an earlier run','Reusing its plan and every finished step.'))}
+    else if(e.type==='fit'){tl.append(note('think','≈','Length check','Checked speech length before buying speech','Predicted '+e.predicted_s+' s of speech for the '+e.wanted_s+' s asked for.'))}
+    else if(e.type==='tool_call'){
+      const i=item('run','▶'),c=i.card;
+      const h=$('div','title');h.append($('span','sid',e.step),$('span','chip tool t-'+e.tool,e.tool));
+      c.append(h,$('div','sub',e.intent||''));
+      const w=$('div','chips');w.append(chip('running… reserved '+rs(e.reserved_inr)));c.append(w);i.chips=w;cards[e.step]=i;tl.append(i)}
+    else if(e.type==='tool_result'){
+      const i=cards[e.step];if(!i)continue;
+      i.className='item '+(e.ok?'ok':'bad');i.firstChild.textContent=e.ok?'✓':'✗';
+      i.chips.replaceChildren(...resultChips(e))}
+    else if(e.type==='step_skipped'||e.type==='step_reused'){
+      const skip=e.type==='step_skipped';
+      const i=item(skip?'skip':'ok',skip?'–':'↺'),c=i.card;
+      const h=$('div','title');h.append($('span','sid',e.step),$('span','chip tool t-'+e.tool,e.tool),$('span','muted',skip?'  skipped':'  reused'));
+      c.append(h,$('div','sub',e.reason||''));const w=$('div','chips');w.append(chip('no cost'));c.append(w);tl.append(i)}
+    else if(e.type==='step_failed'){
+      const i=cards[e.step];if(i){i.className='item bad';i.firstChild.textContent='✗';if(e.error&&e.error.message)i.card.append($('div','sub',e.error.message))}}
+    else if(e.type==='verify'){
+      if(!checks){checks=note('think','✔','Verification','Checked its own work',null);tl.append(checks)}
+      const r=e.result,row=$('div','chk');
+      row.append($('div','r '+r,r==='passed'?'✓':r==='failed'?'✗':r==='warning'?'!':'–'));
+      const t=$('div');t.append($('b',null,e.check),$('span','muted','  '+(e.artifact||'').split('/').pop()),$('div','muted',e.detail||''));row.append(t);
+      checks.card.append(row)}
+    else if(e.type==='error'){tl.append(note('bad','✗','Stopped',e.code||'error',e.message||''))}
+    else if(e.type==='stop'){
+      tl.append(note(e.status==='completed'?'ok':'bad','■','Finished',e.status==='completed'?'Done':'Ended: '+e.status,null,[chip('Total '+rs(e.cost_inr)),chip(e.duration_s+' s')]))}
+  }
+  scroller.scrollTop=keep}
+
 async function tick(){
   const runs=await g('/api/runs',true)||[];
   const nav=document.getElementById('runs');nav.replaceChildren();
-  if(!runs.length)nav.append($('span','muted','no runs yet'));
   if(!current&&runs.length)current=runs[0].name;
-  runs.forEach(r=>{const d=$('div','run'+(r.name===current?' on':''));d.append($('div',null,r.name),$('small',null,r.status+(r.cost!==null?' · '+rs(r.cost):'')));d.onclick=()=>{current=r.name;history.replaceState(null,'','?run='+encodeURIComponent(r.name));tick()};nav.append(d)});
+  runs.forEach(r=>{
+    const d=$('div','run'+(r.name===current?' on':''));
+    const t=$('div');t.append($('b',null,r.name),$('small',null,r.status+(r.cost!==null?' · '+rs(r.cost):'')));
+    d.append($('div','dot '+r.status),t);
+    d.onclick=()=>{current=r.name;history.replaceState(null,'','?run='+encodeURIComponent(r.name));tick()};nav.append(d)});
   if(current)await show(current)}
 tick();setInterval(tick,1500);
 </script></body></html>
