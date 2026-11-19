@@ -88,6 +88,7 @@ class NarrationItem(BaseModel):
     english_script: str = ""
     target_script: str = ""
     target_language: str = ""
+    section_markdown: str = ""
     grounding_references: list[str] = Field(default_factory=list)
     audio_path: Path | None = None
     full_track_offset_seconds: float = 0.0
@@ -107,6 +108,7 @@ class QAReportSection(BaseModel):
     cer: float = 0.0  # Character Error Rate via Indic-Transcribe
     wer: float = 0.0  # Word Error Rate
     passed: bool = True
+    qa_status: str = "passed"  # "passed", "failed", "skipped_due_to_service_unavailability"
     retry_count: int = 0
     failure_notes: str | None = None
 

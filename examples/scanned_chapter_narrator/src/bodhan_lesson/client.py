@@ -27,6 +27,10 @@ class BodhanClient:
     def __init__(self, base_url: str = BASE_URL, timeout: float = 60.0):
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
+        self._transcribe_consecutive_failures = 0
+        self._transcribe_circuit_broken = False
+        self._transcribe_circuit_broken_time = 0.0
+        self._transcribe_cooldown_seconds = 60.0
 
     # -------------------------------------------------------------------------
     # 1. Indic-OCR
@@ -303,47 +307,101 @@ class BodhanClient:
         audio_bytes: bytes,
         language: str | None = None,
     ) -> dict[str, Any]:
-        """Transcribe speech in audio bytes using Indic-Transcribe with retry."""
+        """Transcribe speech in audio bytes using Indic-Transcribe with cooldown circuit breaker."""
         if not audio_bytes:
-            return {"text": "", "duration_seconds": 0.0}
+            return {"text": "", "duration_seconds": 0.0, "status": "skipped_due_to_service_unavailability"}
 
         if is_mock_mode():
-            return {"text": "हम्म", "duration_seconds": 1.0}
+            return {"text": "हम्म", "duration_seconds": 1.0, "status": "passed"}
+
+        now = time.time()
+        is_probe = False
+        if self._transcribe_circuit_broken:
+            elapsed = now - self._transcribe_circuit_broken_time
+            if elapsed < self._transcribe_cooldown_seconds:
+                # Circuit remains open during cooldown period
+                return {
+                    "text": "",
+                    "duration_seconds": 0.0,
+                    "status": "skipped_due_to_service_unavailability",
+                    "error": "transcribe_circuit_broken",
+                }
+            else:
+                # Cooldown expired: allow a single recovery probe request
+                is_probe = True
+                logging.getLogger("bodhan_lesson").info(
+                    "Indic-Transcribe circuit breaker cooldown expired (60s). Probing service with 1 recovery request..."
+                )
 
         headers = {"Authorization": f"Bearer {TRANSCRIBE_KEY}"}
         data: dict[str, Any] = {"model": "indic-transcribe"}
         if language and language != "auto":
             data["language"] = language
 
-        retries = 3
+        retries = 1 if is_probe else 3
+        transcribe_timeout = min(self.timeout, 20.0)
+
         for attempt in range(retries):
             try:
                 files = {"file": ("audio.wav", audio_bytes, "audio/wav")}
-                with httpx.Client(timeout=self.timeout) as client:
+                with httpx.Client(timeout=transcribe_timeout) as client:
                     resp = client.post(f"{self.base_url}/v1/audio/transcriptions", headers=headers, data=data, files=files)
                     if resp.status_code in (500, 502, 503, 504) and attempt < retries - 1:
                         time.sleep(2.0 * (attempt + 1))
                         continue
                     resp.raise_for_status()
                     res_data = resp.json()
+
+                    # Service healthy: reset circuit breaker
+                    self._transcribe_consecutive_failures = 0
+                    self._transcribe_circuit_broken = False
+                    self._transcribe_circuit_broken_time = 0.0
                     return {
                         "text": res_data.get("text", "").strip(),
                         "duration_seconds": float(res_data.get("duration", 0.0)),
+                        "status": "passed",
                     }
             except httpx.HTTPStatusError as e:
                 if attempt < retries - 1 and e.response.status_code in (500, 502, 503, 504):
                     time.sleep(2.0 * (attempt + 1))
                     continue
-                logging.getLogger("bodhan_lesson").warning(f"Indic-Transcribe returned {e.response.status_code}: {e}")
-                return {"text": "", "duration_seconds": 0.0, "error": str(e)}
+                self._transcribe_consecutive_failures += 1
+                if self._transcribe_consecutive_failures >= 3:
+                    self._transcribe_circuit_broken = True
+                    self._transcribe_circuit_broken_time = time.time()
+                    logging.getLogger("bodhan_lesson").warning(
+                        "Indic-Transcribe returned consecutive 502/503 server errors. "
+                        "Circuit breaker opened: skipping remaining QA requests for 60s cooldown to protect pipeline runtime."
+                    )
+                else:
+                    logging.getLogger("bodhan_lesson").warning(f"Indic-Transcribe returned HTTP {e.response.status_code}: {e}")
+                return {
+                    "text": "",
+                    "duration_seconds": 0.0,
+                    "status": "skipped_due_to_service_unavailability" if self._transcribe_circuit_broken else "failed",
+                    "error": str(e),
+                }
             except Exception as e:
                 if attempt < retries - 1:
                     time.sleep(2.0 * (attempt + 1))
                     continue
-                logging.getLogger("bodhan_lesson").warning(f"Indic-Transcribe call failed: {e}")
-                return {"text": "", "duration_seconds": 0.0, "error": str(e)}
+                self._transcribe_consecutive_failures += 1
+                if self._transcribe_consecutive_failures >= 3:
+                    self._transcribe_circuit_broken = True
+                    self._transcribe_circuit_broken_time = time.time()
+                    logging.getLogger("bodhan_lesson").warning(
+                        "Indic-Transcribe connection failures. Circuit breaker opened for 60s cooldown to protect pipeline runtime."
+                    )
+                else:
+                    logging.getLogger("bodhan_lesson").warning(f"Indic-Transcribe call failed: {e}")
+                return {
+                    "text": "",
+                    "duration_seconds": 0.0,
+                    "status": "skipped_due_to_service_unavailability" if self._transcribe_circuit_broken else "failed",
+                    "error": str(e),
+                }
 
-        return {"text": "", "duration_seconds": 0.0}
+        return {"text": "", "duration_seconds": 0.0, "status": "failed"}
 
 
 bodhan_client = BodhanClient()

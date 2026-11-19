@@ -41,3 +41,30 @@ def test_detect_speech_repetitions():
     looping_text = "angle AOB angle BOC angle AOB angle BOC angle AOB angle BOC"
     has_rep_loop, phrases = detect_speech_repetitions(looping_text)
     assert has_rep_loop
+
+
+def test_verifier_circuit_breaker_handling(monkeypatch):
+    from bodhan_lesson.verifier import AudioVerifier
+
+    verifier = AudioVerifier()
+    # Mock client to simulate circuit breaker skipping
+    monkeypatch.setattr(
+        verifier.client,
+        "transcribe_audio",
+        lambda audio_bytes, language: {
+            "text": "",
+            "duration_seconds": 0.0,
+            "status": "skipped_due_to_service_unavailability",
+            "error": "transcribe_circuit_broken",
+        },
+    )
+
+    res = verifier.verify_section_audio(
+        audio_bytes=b"dummy",
+        reference_script="Hello test",
+        section_id="01",
+        language="hi",
+    )
+    assert res.passed is False
+    assert res.qa_status == "skipped_due_to_service_unavailability"
+    assert "skipped" in res.failure_notes.lower()

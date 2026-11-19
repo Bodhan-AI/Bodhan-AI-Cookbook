@@ -69,6 +69,7 @@ class ReportAuditor:
         audio_lufs: dict[str, float],
         execution_time_sec: float,
         output_dir: Path,
+        errors: list[str] | None = None,
     ) -> dict[str, Any]:
         """Compile full run report and write to output_dir/report.json."""
         # Tally metrics across languages
@@ -92,13 +93,32 @@ class ReportAuditor:
             total_asr_sec += duration
 
             # Aggregated QA metrics
-            avg_coverage = (
-                sum(q.coverage_score for q in qa_list) / max(1, len(qa_list)) if qa_list else 1.0
+            passed_count = sum(1 for q in qa_list if getattr(q, "qa_status", "passed") == "passed" and q.passed)
+            failed_count = sum(1 for q in qa_list if getattr(q, "qa_status", "") == "failed")
+            skipped_count = sum(
+                1 for q in qa_list if getattr(q, "qa_status", "") == "skipped_due_to_service_unavailability"
             )
-            avg_cer = sum(q.cer for q in qa_list) / max(1, len(qa_list)) if qa_list else 0.0
-            avg_wer = sum(q.wer for q in qa_list) / max(1, len(qa_list)) if qa_list else 0.0
+
+            if skipped_count > 0 and passed_count == 0 and failed_count == 0:
+                overall_qa_status = "skipped_due_to_service_unavailability"
+                all_passed = False
+            elif failed_count > 0 or skipped_count > 0:
+                overall_qa_status = "failed"
+                all_passed = False
+            elif passed_count > 0:
+                overall_qa_status = "passed"
+                all_passed = True
+            else:
+                overall_qa_status = "passed"
+                all_passed = True
+
+            eval_list = [q for q in qa_list if getattr(q, "qa_status", "passed") != "skipped_due_to_service_unavailability"]
+            avg_coverage = (
+                sum(q.coverage_score for q in eval_list) / max(1, len(eval_list)) if eval_list else 1.0
+            )
+            avg_cer = sum(q.cer for q in eval_list) / max(1, len(eval_list)) if eval_list else 0.0
+            avg_wer = sum(q.wer for q in eval_list) / max(1, len(eval_list)) if eval_list else 0.0
             repetitions_count = sum(1 for q in qa_list if q.repetition_detected)
-            all_passed = all(q.passed for q in qa_list) if qa_list else True
 
             per_language_data[lang] = {
                 "audio_files": {
@@ -120,6 +140,10 @@ class ReportAuditor:
                 "integrated_loudness_lufs": round(lufs, 2),
                 "qa_summary": {
                     "passed": all_passed,
+                    "qa_status": overall_qa_status,
+                    "sections_passed": passed_count,
+                    "sections_failed": failed_count,
+                    "sections_skipped_due_to_service_unavailability": skipped_count,
                     "average_coverage": round(avg_coverage, 4),
                     "average_cer": round(avg_cer, 4),
                     "average_wer": round(avg_wer, 4),
@@ -139,8 +163,21 @@ class ReportAuditor:
         total_tables = sum(len(s.tables) for s in doc_ir.sections)
         total_words = sum(s.word_count for s in doc_ir.sections)
 
+        err_list = errors or []
+        successful_languages = [
+            lang_code
+            for lang_code in target_languages
+            if lang_code in narration_items and narration_items[lang_code]
+        ]
+        if not err_list and len(successful_languages) == len(target_languages):
+            overall_status = "completed"
+        elif successful_languages:
+            overall_status = "partially_completed"
+        else:
+            overall_status = "failed"
+
         report = {
-            "status": "completed",
+            "status": overall_status,
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "execution_time_seconds": round(execution_time_sec, 2),
             "source_document": {
@@ -156,6 +193,7 @@ class ReportAuditor:
             "target_languages": target_languages,
             "financial_audit": financials,
             "languages": per_language_data,
+            "errors": err_list,
         }
 
         output_dir.mkdir(parents=True, exist_ok=True)

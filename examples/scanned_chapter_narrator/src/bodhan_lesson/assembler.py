@@ -217,43 +217,72 @@ class LessonAssembler:
 
         return stitched
 
+    def _is_heading_block(self, block: OCRBlock) -> bool:
+        """Check if block is a primary section header based on normalized type or Markdown/regex."""
+        if block.normalized_type == BlockType.SECTION_HEADER:
+            return True
+        txt = block.text.strip()
+        return bool(
+            re.match(
+                r"^(?:#{1,3}\s+|(?:\d+\.)+\d*\s+[A-Z]|(?:Chapter|Section)\s+\d+)",
+                txt,
+            )
+        )
+
+    def _extract_heading_metadata(self, block: OCRBlock, fallback_index: int) -> tuple[str, int]:
+        """Extract clean section title and heading level from a heading block."""
+        first_line = block.text.strip().split("\n")[0].lstrip("#").strip()[:80]
+        title = first_line or f"Section {fallback_index:02d}"
+        level = block.text.count("#") if block.text.startswith("#") else 2
+        return title, max(1, min(6, level))
+
     def _group_into_sections(self, blocks: list[OCRBlock]) -> list[LessonSection]:
-        """Group blocks into logical pedagogical sections based on headings."""
+        """Group blocks into logical pedagogical sections with boundary-aware handling.
+
+        If a document scan begins mid-book without an initial heading, pre-heading
+        blocks are folded into the first meaningful heading encountered rather than
+        fabricating an artificial 'Overview & Introduction' section. If no headings
+        exist anywhere in the scan, a neutral 'Section 01' label is assigned.
+        """
+        if not blocks:
+            return []
+
+        # Find the first meaningful heading block across all blocks
+        first_heading_idx = -1
+        for idx, b in enumerate(blocks):
+            if self._is_heading_block(b):
+                first_heading_idx = idx
+                break
+
         sections: list[LessonSection] = []
-        current_title = "Overview & Introduction"
-        current_level = 1
-        current_blocks: list[OCRBlock] = []
         sec_idx = 1
 
-        for b in blocks:
-            # Detect section heading across diverse formats (Markdown #, numbered 1.1 or 5.6.1, or named Chapter/Section)
-            is_heading = (
-                b.normalized_type == BlockType.SECTION_HEADER
-                or bool(
-                    re.match(
-                        r"^(?:#{1,6}\s+|(?:\d+\.)+\d*\s+[A-Z]|(?:Chapter|Section|Theorem|Axiom|Example)\s+\d+)",
-                        b.text.strip(),
-                    )
-                )
-            )
+        if first_heading_idx == -1:
+            # Case 1: No headings anywhere in the document (pure prose or exercises)
+            sec = self._build_section(1, "Section 01", 1, blocks)
+            return [sec]
 
-            if is_heading and current_blocks:
-                # Save completed section
-                sec = self._build_section(sec_idx, current_title, current_level, current_blocks)
-                sections.append(sec)
-                sec_idx += 1
+        # Case 2: Document has headings. Pre-heading blocks (if any) are folded into first section.
+        first_heading = blocks[first_heading_idx]
+        current_title, current_level = self._extract_heading_metadata(first_heading, 1)
+        current_blocks: list[OCRBlock] = []
 
-                # Start new section
-                first_line = b.text.strip().split("\n")[0].lstrip("#").strip()[:80]
-                current_title = first_line or f"Section {sec_idx}"
-                current_level = b.text.count("#") if b.text.startswith("#") else 2
-                current_blocks = [b]
-            else:
-                if is_heading:
-                    first_line = b.text.strip().split("\n")[0].lstrip("#").strip()[:80]
-                    current_title = first_line or f"Section {sec_idx}"
-                    current_level = b.text.count("#") if b.text.startswith("#") else 2
+        for idx, b in enumerate(blocks):
+            if idx <= first_heading_idx:
+                # Pre-heading blocks and the first heading itself belong to Section 1
                 current_blocks.append(b)
+            else:
+                if self._is_heading_block(b):
+                    # Finalize current section
+                    sec = self._build_section(sec_idx, current_title, current_level, current_blocks)
+                    sections.append(sec)
+                    sec_idx += 1
+
+                    # Start next section
+                    current_title, current_level = self._extract_heading_metadata(b, sec_idx)
+                    current_blocks = [b]
+                else:
+                    current_blocks.append(b)
 
         if current_blocks:
             sec = self._build_section(sec_idx, current_title, current_level, current_blocks)

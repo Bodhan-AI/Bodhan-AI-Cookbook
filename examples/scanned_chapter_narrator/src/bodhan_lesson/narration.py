@@ -6,6 +6,7 @@ import re
 
 import httpx
 
+from bodhan_lesson.cache import disk_cache
 from bodhan_lesson.client import bodhan_client
 from bodhan_lesson.config import LLM_API_KEY, LLM_BASE_URL, LLM_MODEL, MOCK_MODE
 from bodhan_lesson.schemas import BlockType, LessonSection, NarrationItem
@@ -153,12 +154,13 @@ class NarrationPlanner:
         source_lang: str = "en",
         code_mixed: bool = False,
         glossary_terms: list[str] | None = None,
+        fast_narration: bool = False,
     ) -> NarrationItem:
         """Create a grounded pedagogical narration script in English, then translate to target_lang."""
         grounding_refs = [b.block_id for b in section.blocks]
 
         # Step 1: Draft pedagogical English script
-        english_script = self._draft_english_narration(section)
+        english_script = self._draft_english_narration(section, fast_narration=fast_narration)
         english_script = clean_spoken_text(english_script)
 
         # Step 2: Translate English narration script to target Indic language via Bodhan Indic-Translate
@@ -194,8 +196,11 @@ class NarrationPlanner:
             grounding_references=grounding_refs,
         )
 
-    def _draft_english_narration(self, section: LessonSection) -> str:
+    def _draft_english_narration(self, section: LessonSection, fast_narration: bool = False) -> str:
         """Draft English narration using LLM if available, with deterministic fallback."""
+        if fast_narration:
+            return self._generate_rule_based_narration(section)
+
         # Check if LLM call is viable
         if not MOCK_MODE and self.llm_key and "placeholder" not in self.llm_key.lower():
             try:
@@ -209,11 +214,6 @@ class NarrationPlanner:
 
     def _call_llm_narration_planner(self, section: LessonSection) -> str | None:
         """Query LLM to generate an educational tutor script strictly grounded in section text."""
-        headers = {
-            "Authorization": f"Bearer {self.llm_key}",
-            "Content-Type": "application/json",
-        }
-
         # Build context from blocks
         content_lines = []
         for b in section.blocks:
@@ -228,15 +228,30 @@ class NarrationPlanner:
 
         context_prompt = "\n".join(content_lines)
 
+        # Check disk cache first to eliminate duplicate LLM token charges
+        cached_script = disk_cache.get_narration(section.title, context_prompt, self.llm_model)
+        if cached_script:
+            return cached_script
+
+        headers = {
+            "Authorization": f"Bearer {self.llm_key}",
+            "Content-Type": "application/json",
+        }
+
         system_prompt = (
             "You are an expert school educator narrating a textbook lesson. "
             "Your task is to write a warm, engaging, and clear spoken narration script in English. "
             "Rules:\n"
             "1. Grounding: Speak ONLY about concepts, equations, and diagrams explicitly present in the provided text.\n"
-            "2. Spoken Math: Do NOT read raw LaTeX or symbols. Vocalize equations naturally (e.g. say 'angle A-O-B plus angle B-O-C equals 180 degrees').\n"
-            "3. Visuals: Walk the student through figures based on their captions and text descriptions.\n"
-            "4. Tone: Encouraging, clear, and pedagogical like a master teacher.\n"
-            "5. Output ONLY the spoken narration text in plain English. No meta-commentary, no markdown headers."
+            "2. No Boilerplate: Do NOT add artificial welcome greetings or sign-offs (e.g. do not say 'Welcome to this "
+            "section' or 'This concludes our discussion'). Start directly with the actual content.\n"
+            "3. Repetitive Exercises: If the section contains long lists of exercise questions, summarize the "
+            "problem-solving themes and walk through 1 or 2 sample questions concisely rather than reading every number.\n"
+            "4. Spoken Math: Do NOT read raw LaTeX or symbols. Vocalize equations naturally (e.g. say 'angle A-O-B "
+            "plus angle B-O-C equals 180 degrees').\n"
+            "5. Visuals: Walk the student through figures based on their captions and text descriptions.\n"
+            "6. Tone: Encouraging, clear, and pedagogical like a master teacher.\n"
+            "7. Output ONLY the spoken narration text in plain English. No meta-commentary, no markdown headers."
         )
 
         user_prompt = f"Section: {section.title}\n\nContent:\n{context_prompt}\n\nPlease generate the spoken lesson narration."
@@ -255,19 +270,49 @@ class NarrationPlanner:
             resp = client.post(f"{self.llm_base_url}/chat/completions", headers=headers, json=payload)
             resp.raise_for_status()
             data = resp.json()
-            return data["choices"][0]["message"]["content"].strip()
+            generated = data["choices"][0]["message"]["content"].strip()
+            if generated:
+                disk_cache.set_narration(section.title, context_prompt, self.llm_model, generated)
+            return generated
+
+    def _is_exercise_content(self, text: str) -> bool:
+        """Check if a text block contains repetitive numerical drill questions or exercises."""
+        lines = [line.strip() for line in text.split("\n") if line.strip()]
+        if len(lines) < 3:
+            return False
+        numbered_items = sum(1 for line in lines if re.match(r"^(\d+[\.\)]|\([a-z0-9]+\)|Q\d+[:.])", line, re.I))
+        return numbered_items >= 3 or (numbered_items / len(lines) >= 0.5)
 
     def _generate_rule_based_narration(self, section: LessonSection) -> str:
         """Deterministic rule-based pedagogical script generation grounded in extracted blocks."""
         sentences: list[str] = []
+        is_exercise_section = bool(
+            re.search(r"\b(exercise|exercises|practice problems|questions|review questions)\b", section.title, re.I)
+        )
 
-        # Intro
-        sentences.append(f"Welcome to this section on {section.title}.")
+        if is_exercise_section:
+            sentences.append(f"In this section on {section.title}, we review the practice exercises and key problems.")
 
         for b in section.blocks:
             if b.normalized_type == BlockType.PARAGRAPH:
                 clean_p = clean_spoken_text(b.text)
-                if clean_p and not clean_p.startswith("#"):
+                if not clean_p or clean_p.startswith("#"):
+                    continue
+
+                if self._is_exercise_content(b.text):
+                    # Concise grounded framing for repetitive drills instead of verbatim recitation
+                    lines = [ln.strip() for ln in b.text.split("\n") if ln.strip()]
+                    q_samples = [
+                        clean_spoken_text(ln)
+                        for ln in lines
+                        if re.match(r"^(\d+[\.\)]|\([a-z0-9]+\)|Q\d+[:.])", ln, re.I)
+                    ][:2]
+                    sample_str = " For example: " + " Next: ".join(q_samples) if q_samples else ""
+                    sentences.append(
+                        f"This set contains practice exercises to reinforce these principles.{sample_str} "
+                        "Work through each problem using the formulas derived in this chapter."
+                    )
+                else:
                     sentences.append(clean_p)
 
             elif b.normalized_type == BlockType.EQUATION:
@@ -281,10 +326,11 @@ class NarrationPlanner:
             elif b.normalized_type == BlockType.TABLE:
                 sentences.append("Examining the values summarized in the table, let us review each corresponding entry.")
 
-        # Outro
-        sentences.append(f"This concludes our discussion on {section.title}.")
-
-        return " ".join(sentences)
+        # Return strictly grounded text without artificial welcome or conclusion boilerplate
+        narration_text = " ".join(sentences).strip()
+        if not narration_text:
+            narration_text = f"This section presents the principles of {section.title}."
+        return narration_text
 
 
 narration_planner = NarrationPlanner()

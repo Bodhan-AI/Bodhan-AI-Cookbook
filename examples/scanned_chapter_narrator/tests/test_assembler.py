@@ -83,3 +83,61 @@ def test_assembler_recurring_noise_filtering():
     doc_ir = assembler.assemble_document(pages, source_language="en")
     assert "aspirationsinstitute.com" not in doc_ir.source_markdown
     assert "Content 1" in doc_ir.source_markdown
+
+
+def test_assembler_boundary_aware_pre_heading_folding():
+    # Pre-heading table & intro paragraph before Heading 1
+    blocks = [
+        OCRBlock(
+            block_id="b0",
+            page_number=1,
+            normalized_type=BlockType.TABLE,
+            text="| Col1 | Col2 |\n|---|---|\n| A | B |",
+        ),
+        OCRBlock(
+            block_id="b1",
+            page_number=1,
+            normalized_type=BlockType.SECTION_HEADER,
+            text="## 5.1 Magnetic Field Lines",
+        ),
+        OCRBlock(
+            block_id="b2",
+            page_number=1,
+            normalized_type=BlockType.PARAGRAPH,
+            text="Magnetic field lines form continuous closed loops.",
+        ),
+    ]
+    p = PageResult(page_number=1, image_path=Path("p.png"), blocks=blocks)
+    doc_ir = assembler.assemble_document([p], source_language="en")
+
+    # Should NOT fabricate "Overview & Introduction"
+    assert len(doc_ir.sections) == 1
+    assert doc_ir.sections[0].title == "5.1 Magnetic Field Lines"
+    assert "Overview & Introduction" not in [s.title for s in doc_ir.sections]
+    # Pre-heading table must be preserved in section blocks
+    assert any(b.normalized_type == BlockType.TABLE for b in doc_ir.sections[0].blocks)
+
+
+def test_assembler_mid_book_no_headings():
+    # Scan of pure narrative text without any headings
+    blocks = [
+        OCRBlock(
+            block_id="b0",
+            page_number=1,
+            normalized_type=BlockType.PARAGRAPH,
+            text="This is a continuing discussion from the previous chapter.",
+        ),
+        OCRBlock(
+            block_id="b1",
+            page_number=1,
+            normalized_type=BlockType.PARAGRAPH,
+            text="It continues with derivation of electrostatic potential.",
+        ),
+    ]
+    p = PageResult(page_number=1, image_path=Path("p.png"), blocks=blocks)
+    doc_ir = assembler.assemble_document([p], source_language="en")
+
+    # Must produce neutral "Section 01", not an invented heading or overview
+    assert len(doc_ir.sections) == 1
+    assert doc_ir.sections[0].title == "Section 01"
+    assert len(doc_ir.sections[0].blocks) == 2

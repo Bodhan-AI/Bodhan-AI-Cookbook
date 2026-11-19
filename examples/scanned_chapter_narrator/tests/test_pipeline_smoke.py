@@ -51,3 +51,43 @@ def test_pipeline_end_to_end_mock(tmp_path: Path):
         loaded = json.load(f)
         assert loaded["status"] == "completed"
         assert loaded["source_document"]["total_pages"] == 2
+
+
+def test_pipeline_language_validation_error(tmp_path: Path):
+    img_dir = tmp_path / "scans_val"
+    img_dir.mkdir()
+    img = Image.new("RGB", (800, 1100), color=(255, 255, 255))
+    img.save(img_dir / "page_1.png")
+
+    import pytest
+
+    # Passing only unauthorized non-Indic languages raises ValueError upfront
+    with pytest.raises(ValueError, match="None of the requested languages"):
+        pipeline.run(
+            input_path=img_dir,
+            target_languages=["be", "french"],
+            output_dir=tmp_path / "out_val",
+        )
+
+
+def test_pipeline_graceful_queue_fault_isolation(tmp_path: Path):
+    img_dir = tmp_path / "scans_fault"
+    img_dir.mkdir()
+    img = Image.new("RGB", (800, 1100), color=(255, 255, 255))
+    img.save(img_dir / "page_1.png")
+
+    out_dir = tmp_path / "out_fault"
+
+    # Passing 1 valid ('hi') and 1 unsupported ('be')
+    # The pipeline should cleanly process 'hi', skip 'be', and generate a partially_completed report
+    report = pipeline.run(
+        input_path=img_dir,
+        target_languages=["hi", "be"],
+        output_dir=out_dir,
+    )
+
+    assert report["status"] == "partially_completed"
+    assert "hi" in report["languages"]
+    assert (out_dir / "hi" / "lesson.hi.mp3").is_file()
+    assert (out_dir / "report.json").is_file()
+    assert any("be" in err for err in report.get("errors", []))

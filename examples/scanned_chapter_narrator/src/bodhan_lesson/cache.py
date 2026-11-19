@@ -20,11 +20,13 @@ class DiskCache:
         self.cache_dir = Path(cache_dir)
         self.ocr_dir = self.cache_dir / "ocr"
         self.trans_dir = self.cache_dir / "translate"
+        self.narr_dir = self.cache_dir / "narration"
         self._ensure_dirs()
 
     def _ensure_dirs(self) -> None:
         self.ocr_dir.mkdir(parents=True, exist_ok=True)
         self.trans_dir.mkdir(parents=True, exist_ok=True)
+        self.narr_dir.mkdir(parents=True, exist_ok=True)
 
     @staticmethod
     def _compute_hash(data: bytes | str) -> str:
@@ -73,6 +75,27 @@ class DiskCache:
             cache_file.write_text(translated_text, encoding="utf-8")
         except Exception as e:
             logger.warning(f"Failed to write translation cache {cache_file}: {e}")
+
+    def get_narration(self, section_title: str, context_text: str, model: str) -> str | None:
+        """Retrieve cached LLM narration script if present."""
+        key = self._compute_hash(f"{model}::{section_title}::{context_text}")
+        cache_file = self.narr_dir / f"{key}.txt"
+        if cache_file.is_file():
+            try:
+                logger.debug(f"Narration cache hit for {key[:12]}...")
+                return cache_file.read_text(encoding="utf-8")
+            except Exception:
+                return None
+        return None
+
+    def set_narration(self, section_title: str, context_text: str, model: str, script: str) -> None:
+        """Store LLM narration script keyed by content hash."""
+        key = self._compute_hash(f"{model}::{section_title}::{context_text}")
+        cache_file = self.narr_dir / f"{key}.txt"
+        try:
+            cache_file.write_text(script, encoding="utf-8")
+        except Exception as e:
+            logger.warning(f"Failed to write narration cache {cache_file}: {e}")
 
 
 disk_cache = DiskCache()

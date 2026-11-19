@@ -53,6 +53,9 @@ DEFAULT_VOICES: dict[str, dict[str, str]] = {
     "sa": {"female": "Bharati", "male": "Aryaman"},
 }
 
+# 13 production-tier Indic languages supported by Bodhan models + English
+SUPPORTED_LANGUAGES: set[str] = set(DEFAULT_VOICES.keys()) | {"en"}
+
 # Mock Mode dynamic checker
 def is_mock_mode() -> bool:
     env_mock = os.environ.get("BODHAN_MOCK", "").lower() in ("1", "true", "yes")

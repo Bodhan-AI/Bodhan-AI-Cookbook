@@ -8,6 +8,7 @@ import os
 import sys
 from pathlib import Path
 
+from bodhan_lesson.config import SUPPORTED_LANGUAGES
 from bodhan_lesson.pipeline import pipeline
 
 
@@ -62,6 +63,13 @@ def main() -> int:
         help="Skip ASR back-transcription QA checks to accelerate processing.",
     )
     parser.add_argument(
+        "--fast-narration",
+        "--deterministic-narration",
+        dest="fast_narration",
+        action="store_true",
+        help="Use deterministic rule-based narration verbalizer (0 LLM tokens, 0.01s per section).",
+    )
+    parser.add_argument(
         "--voice",
         default=None,
         help="Optional voice override for speech synthesis.",
@@ -93,10 +101,29 @@ def main() -> int:
         import bodhan_lesson.config
         bodhan_lesson.config.MOCK_MODE = True
 
-    langs = [code.strip().lower() for code in args.langs.split(",") if code.strip()]
-    if not langs:
+    raw_langs = [code.strip().lower() for code in args.langs.split(",") if code.strip()]
+    if not raw_langs:
         print("Error: No target languages specified in --langs.", file=sys.stderr)
         return 1
+
+    valid_langs = [c for c in raw_langs if c in SUPPORTED_LANGUAGES]
+    unsupported_langs = [c for c in raw_langs if c not in SUPPORTED_LANGUAGES]
+
+    if unsupported_langs:
+        logging.warning(
+            f"Unsupported language code(s) detected: {unsupported_langs}. "
+            f"Authorized Bodhan Indic languages: {sorted(SUPPORTED_LANGUAGES)}"
+        )
+
+    if not valid_langs:
+        print(
+            f"Error: None of the requested languages {raw_langs} are supported by Bodhan models.\n"
+            f"Supported Indic language codes are: {sorted(SUPPORTED_LANGUAGES)}",
+            file=sys.stderr,
+        )
+        return 1
+
+    langs = valid_langs
 
     custom_glossary: dict[str, str] | None = None
     if args.glossary and Path(args.glossary).is_file():
@@ -135,6 +162,7 @@ def main() -> int:
             code_mixed=args.code_mixed,
             custom_glossary=custom_glossary,
             custom_voices=custom_voices,
+            fast_narration=args.fast_narration,
         )
 
         print("\n" + "=" * 60)
@@ -147,6 +175,10 @@ def main() -> int:
         print(f"Target Languages : {', '.join(report['target_languages'])}")
         print(f"Execution Time   : {report['execution_time_seconds']}s")
         print(f"Total Cost       : ₹{report['financial_audit']['total_cost_inr']} INR")
+        if report.get("errors"):
+            print("Errors           :")
+            for err in report["errors"]:
+                print(f"  - {err}")
         print(f"Full Report      : {Path(args.out).resolve() / 'report.json'}")
         print("=" * 60 + "\n")
 
@@ -157,6 +189,14 @@ def main() -> int:
 
     except Exception as e:
         logging.exception(f"Pipeline failed: {e}")
+        print("\n" + "=" * 60)
+        print("BODHAN LESSON PIPELINE EXECUTION SUMMARY")
+        print("=" * 60)
+        print("Status           : failed")
+        print(f"Target Languages : {', '.join(raw_langs)}")
+        print(f"Error            : {e}")
+        print(f"Output Directory : {Path(args.out).resolve()}")
+        print("=" * 60 + "\n")
         return 1
 
 

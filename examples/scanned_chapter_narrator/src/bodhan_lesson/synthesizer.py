@@ -15,21 +15,49 @@ from bodhan_lesson.config import DEFAULT_VOICES
 from bodhan_lesson.narration import clean_spoken_text
 
 
-def split_narration_chunks(text: str, max_chars: int = 220) -> list[str]:
-    """Split narration text along natural Indic/English sentence boundaries into clean utterances."""
+def split_narration_chunks(text: str, max_chars: int = 400) -> list[str]:
+    """Split narration text along natural Indic/English sentence boundaries into clean utterances (~20-25s)."""
     if not text or not text.strip():
         return []
 
-    # Split by danda (।), double danda (॥), period, exclamation, question mark, or newlines
-    raw_sentences = re.split(r"(?<=[।॥.!?\n])\s+", text)
+    # 1. Protect inline math blocks $...$ from being split across chunks
+    math_placeholders: dict[str, str] = {}
+
+    def _shield_math(m: re.Match) -> str:
+        key = f"__MATH_{len(math_placeholders)}__"
+        math_placeholders[key] = m.group(0)
+        return key
+
+    protected_text = re.sub(r"\$[^$]+\$", _shield_math, text)
+
+    # 2. Protect common abbreviations with periods
+    abbrevs = ["Fig.", "fig.", "e.g.", "i.e.", "etc.", "vs.", "approx.", "Dr.", "Prof.", "vol.", "no."]
+    for abb in abbrevs:
+        if abb in protected_text:
+            safe = abb.replace(".", "__DOT__")
+            protected_text = protected_text.replace(abb, safe)
+
+    # 3. Protect decimal numbers e.g. 3.14 -> 3__DOT__14
+    protected_text = re.sub(r"(\d+)\.(\d+)", r"\1__DOT__\2", protected_text)
+
+    # 4. Split by danda (।), double danda (॥), period, exclamation, question mark, or newlines
+    raw_sentences = re.split(r"(?<=[।॥.!?\n])\s+", protected_text)
+
+    # 5. Restore placeholders in individual sentences
+    restored_sentences: list[str] = []
+    for s in raw_sentences:
+        s = s.replace("__DOT__", ".")
+        for k, v in math_placeholders.items():
+            s = s.replace(k, v)
+        s = s.strip()
+        if s:
+            restored_sentences.append(s)
+
+    # 6. Greedily pack sentences up to max_chars (~400 chars, ~20-25s speech)
     chunks: list[str] = []
     current = ""
 
-    for s in raw_sentences:
-        s = s.strip()
-        if not s:
-            continue
-
+    for s in restored_sentences:
         if len(current) + len(s) + 1 <= max_chars:
             current = f"{current} {s}".strip() if current else s
         else:
@@ -38,8 +66,8 @@ def split_narration_chunks(text: str, max_chars: int = 220) -> list[str]:
             if len(s) <= max_chars:
                 current = s
             else:
-                # If a single sentence exceeds max_chars, split on commas or semicolons
-                sub_parts = re.split(r"(?<=[,;])\s+", s)
+                # If a single sentence exceeds max_chars, split on secondary pauses (comma, semicolon, colon)
+                sub_parts = re.split(r"(?<=[,;:\u0964])\s+", s)
                 sub_curr = ""
                 for part in sub_parts:
                     if len(sub_curr) + len(part) + 1 <= max_chars:
@@ -189,6 +217,7 @@ class Synthesizer:
         output_mp3_path: Path | None = None,
         voice: str | None = None,
         target_lufs: float = -16.0,
+        max_chars: int = 400,
     ) -> tuple[float, float]:
         """Synthesize a section narration script to WAV and MP3, returning (duration_sec, lufs)."""
         output_wav_path.parent.mkdir(parents=True, exist_ok=True)
@@ -198,8 +227,8 @@ class Synthesizer:
             voice_map = DEFAULT_VOICES.get(lang.lower(), {"female": "Kavya"})
             voice = voice_map.get("female", "Kavya")
 
-        # 2. Split script into natural utterances
-        chunks = split_narration_chunks(script_text)
+        # 2. Split script into natural utterances (~20-25s per chunk)
+        chunks = split_narration_chunks(script_text, max_chars=max_chars)
         if not chunks:
             # Generate 1 sec of silence
             silence = np.zeros(24000, dtype=np.int16)

@@ -108,6 +108,26 @@ class AudioVerifier:
         """Transcribe synthesized audio and compute coverage, repetition, and CER/WER."""
         # 1. Back-transcribe via Indic-Transcribe
         asr_result = self.client.transcribe_audio(audio_bytes=audio_bytes, language=language)
+
+        # Check if Indic-Transcribe was skipped due to circuit breaker or service outage
+        if (
+            asr_result.get("status") == "skipped_due_to_service_unavailability"
+            or asr_result.get("error") == "transcribe_circuit_broken"
+        ):
+            return QAReportSection(
+                section_id=section_id,
+                language=language,
+                coverage_score=0.0,
+                repetition_detected=False,
+                repetition_phrases=[],
+                cer=1.0,
+                wer=1.0,
+                passed=False,
+                qa_status="skipped_due_to_service_unavailability",
+                retry_count=0,
+                failure_notes="QA verification skipped: Indic-Transcribe service unavailable (circuit open due to consecutive 502/503 errors).",
+            )
+
         hypothesis_text = asr_result.get("text", "")
 
         # In mock mode, simulate successful transcription
@@ -121,9 +141,8 @@ class AudioVerifier:
         cer, wer = calculate_cer_and_wer(reference_script, hypothesis_text)
 
         # 3. Determine pass/fail thresholds
-        # Speech transcription of non-Latin Indic scripts has natural orthographic variance,
-        # so CER <= 0.40 and coverage >= 0.70 with no loops represents high delivery fidelity.
         passed = (coverage >= 0.65) and (not has_repetition) and (cer <= 0.45)
+        qa_status = "passed" if passed else "failed"
         failure_notes = None
         if not passed:
             reasons = []
@@ -144,6 +163,7 @@ class AudioVerifier:
             cer=cer,
             wer=wer,
             passed=passed,
+            qa_status=qa_status,
             retry_count=0,
             failure_notes=failure_notes,
         )
