@@ -1,0 +1,66 @@
+{
+  "status": "completed",
+  "task": "Make a two-minute Tamil audio summary of this chapter",
+  "files": "inputs/tamil_summary_4p",
+  "stop_reason": null,
+  "steps": 8,
+  "max_steps": 30,
+  "cost_inr": 0.9111,
+  "max_cost_inr": 2.5,
+  "cost_by_model": {
+    "indic-ocr": 0,
+    "indic-translate": 0.0066,
+    "indic-speak": 0.7458,
+    "indic-transcribe": 0.1587
+  },
+  "bodhan_calls": 19,
+  "cache_hits": 4,
+  "elapsed_s": 56.2,
+  "llm": {
+    "model": "gemini-3.5-flash-lite",
+    "total_tokens": 45825
+  },
+  "artifacts": [
+    "out/artifacts/summary.en.md",
+    "out/artifacts/summary.ta.md",
+    "out/artifacts/summary.ta.mp3"
+  ],
+  "missing_artifacts": [],
+  "errors": [],
+  "verification": [
+    {
+      "step": 6,
+      "tool": "translate_text",
+      "output": "out/artifacts/summary.ta.md",
+      "check": "coverage: every chunk non-empty, sane length, numbers and table rows kept",
+      "chunks": 1,
+      "passed": 1,
+      "retried": 0,
+      "ok": true,
+      "warnings": []
+    },
+    {
+      "step": 7,
+      "tool": "length check",
+      "output": "out/artifacts/summary.ta.mp3",
+      "check": "audio length within 25% of the 120 s asked for",
+      "pieces": 1,
+      "passed": 1,
+      "retried": 0,
+      "ok": true,
+      "warnings": []
+    },
+    {
+      "step": 7,
+      "tool": "synthesize_speech",
+      "output": "out/artifacts/summary.ta.mp3",
+      "check": "back-transcription of every piece vs its text (character error rate)",
+      "pieces": 7,
+      "passed": 7,
+      "retried": 0,
+      "max_cer": 0.052,
+      "ok": true,
+      "warnings": []
+    }
+  ]
+}

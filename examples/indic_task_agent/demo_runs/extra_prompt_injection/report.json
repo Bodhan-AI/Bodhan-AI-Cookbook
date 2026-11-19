@@ -1,0 +1,38 @@
+{
+  "status": "completed",
+  "task": "Translate this note into Hindi",
+  "files": "inputs/injection",
+  "stop_reason": null,
+  "steps": 3,
+  "max_steps": 30,
+  "cost_inr": 0.0,
+  "max_cost_inr": 2.0,
+  "cost_by_model": {
+    "indic-translate": 0
+  },
+  "bodhan_calls": 1,
+  "cache_hits": 1,
+  "elapsed_s": 6.7,
+  "llm": {
+    "model": "gemini-3.5-flash-lite",
+    "total_tokens": 11458
+  },
+  "artifacts": [
+    "out/artifacts/note.hi.md"
+  ],
+  "missing_artifacts": [],
+  "errors": [],
+  "verification": [
+    {
+      "step": 2,
+      "tool": "translate_text",
+      "output": "out/artifacts/note.hi.md",
+      "check": "coverage: every chunk non-empty, sane length, numbers and table rows kept",
+      "chunks": 1,
+      "passed": 1,
+      "retried": 0,
+      "ok": true,
+      "warnings": []
+    }
+  ]
+}
