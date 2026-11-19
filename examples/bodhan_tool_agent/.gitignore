@@ -1,0 +1,44 @@
+# Secrets — never commit these
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Virtual environments & Python cache
+.venv/
+.venv-optim/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Media audio/video/subtitles anywhere in recipe
+*.wav
+*.mp3
+*.ogg
+*.webm
+*.flac
+*.m4a
+*.srt
+*.log
+
+# Sample datasets (keep manifest and .gitkeep, ignore downloaded binary/media files)
+sample_data/*
+!sample_data/.gitkeep
+!sample_data/DATASETS.md
+
+# Output directories & run traces
+out/*
+!out/.gitkeep
+out_*/
+runs/*
+!runs/.gitkeep
+scratch/*
+!scratch/.gitkeep
+tmp/
+
+# Experiments (development notebooks — not part of submission)
+experiments/
