@@ -265,6 +265,8 @@ class ResultCache:
     def _read(d: Path, key: str) -> tuple[dict, bytes | None] | None:
         try:
             entry = json.loads((d / f"{key}.json").read_text(encoding="utf-8"))
+            if isinstance(entry, dict) and "v" not in entry:
+                return ResultCache._read_legacy(d, key, entry)
             if not (isinstance(entry, dict) and entry.get("v") == CACHE_VERSION and entry.get("key") == key and isinstance(entry.get("meta"), dict)):
                 return None
             blob = None
@@ -275,6 +277,20 @@ class ResultCache:
         except (OSError, ValueError, UnicodeDecodeError):  # missing, partial or corrupt entry: a miss, refetch
             return None
         return entry["meta"], blob
+
+    @staticmethod
+    def _read_legacy(d: Path, key: str, meta: dict) -> tuple[dict, bytes | None] | None:
+        """Entries written before CACHE_VERSION 2 (bare metadata, no checksum). They are used only
+        if they are clearly complete results: truncated translations/OCR and audio entries without
+        their WAV/MP3 bytes are misses and get refetched."""
+        if meta.get("truncated") or meta.get("finish_reason") == "length":
+            return None
+        blob = None
+        if "format" in meta:  # speech: the audio bytes must be present and look like audio
+            blob = (d / f"{key}.bin").read_bytes()
+            if not (blob[:4] == b"RIFF" or blob[:3] == b"ID3"):
+                return None
+        return meta, blob
 
     def put(self, key: str, meta: dict, blob: bytes | None = None, *, durable: bool = True) -> None:
         self.memory[key] = (meta, blob)

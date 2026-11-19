@@ -197,7 +197,7 @@ def pdf_raster_share(path: Path, page_index: int) -> float:
         w, h = page.get_size()
         area = 0.0
         for obj in page.get_objects(filter=[pdfium_c.FPDF_PAGEOBJ_IMAGE]):
-            left, bottom, right, top = obj.get_pos()
+            left, bottom, right, top = obj.get_bounds()
             cw = max(0.0, min(right, w) - max(left, 0.0))
             ch = max(0.0, min(top, h) - max(bottom, 0.0))
             area += cw * ch

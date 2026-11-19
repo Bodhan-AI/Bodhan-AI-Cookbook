@@ -448,3 +448,34 @@ async def test_independent_calls_in_one_turn_run_in_parallel_with_separate_costs
     # each request takes ~0.4 s: run in parallel they finish together; one after the other they would finish ~0.4 s apart
     assert abs(calls[0]["t"] - calls[1]["t"]) < 0.25
     assert len([e for e in trace if e["type"] == "api_call"]) == 2
+
+
+def test_N04_raster_share_on_real_pdfs_without_stubs(tmp_path):
+    from conftest import make_pdf
+
+    from bodhan_mcp.documents import pdf_raster_share, pdf_text_layer
+
+    scanned = make_pdf(tmp_path / "scan.pdf", 1)  # Pillow writes each page as one full-page image
+    assert pdf_raster_share(scanned, 0) > 0.9
+    text = "This digital page has a complete text layer and no pictures at all."
+    content = f"BT /F1 12 Tf 72 720 Td ({text}) Tj ET".encode()
+    objs = [b"<< /Type /Catalog /Pages 2 0 R >>", b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+            b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>",
+            b"<< /Length " + str(len(content)).encode() + b" >>\nstream\n" + content + b"\nendstream",
+            b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>"]
+    pdf = b"%PDF-1.4\n" + b"".join(f"{i} 0 obj\n".encode() + o + b"\nendobj\n" for i, o in enumerate(objs, 1)) + b"trailer << /Root 1 0 R >>\n%%EOF\n"
+    digital = tmp_path / "digital.pdf"
+    digital.write_bytes(pdf)
+    assert pdf_raster_share(digital, 0) == 0.0 and "complete text layer" in pdf_text_layer(digital, 0)
+
+
+def test_N09_legacy_cache_entries_are_reused_only_when_complete(tmp_path):
+    d = tmp_path / "cache"
+    d.mkdir()
+    (d / "ok.json").write_text(json.dumps({"translation": "x", "truncated": False}), encoding="utf-8")
+    (d / "cut.json").write_text(json.dumps({"translation": "x", "truncated": True}), encoding="utf-8")
+    (d / "ocrcut.json").write_text(json.dumps({"markdown": "x", "finish_reason": "length"}), encoding="utf-8")
+    (d / "audio.json").write_text(json.dumps({"format": "wav", "chars": 3}), encoding="utf-8")  # its .bin is missing
+    cache = ResultCache(d)
+    assert cache.get("ok") is not None
+    assert cache.get("cut") is None and cache.get("ocrcut") is None and cache.get("audio") is None
