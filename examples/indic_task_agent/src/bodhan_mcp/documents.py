@@ -272,9 +272,11 @@ def looks_like_legacy_font(text: str) -> bool:
     words = [w for w in text.split() if any(ch.isalpha() for ch in w)]
     if not words:
         return False
-    inside = sum(1 for w in words if any(ch in ";|{}[]~`^=" for ch in w.strip(".,:!?()\"")))
-    legacy = sum(1 for w in words if w.strip(".,;:!?()\"") in _LEGACY_WORDS)
-    return inside >= max(2, 0.1 * len(words)) or legacy >= max(3, 0.08 * len(words))
+    # brackets and quotes around a word are ordinary punctuation; symbols left after removing them are not
+    inside = sum(1 for w in words if any(ch in ";|{}[]~`^=" for ch in w.strip(".,:!?()[]{}\"'")))
+    legacy = sum(1 for w in words if w.strip(".,;:!?()[]{}\"'") in _LEGACY_WORDS)
+    # symbols alone could be code or maths, so they count when frequent or backed by at least one legacy word
+    return (inside >= max(2, 0.1 * len(words)) and (legacy >= 1 or inside >= 0.25 * len(words))) or legacy >= max(3, 0.08 * len(words))
 
 
 @_pdfium_serialized

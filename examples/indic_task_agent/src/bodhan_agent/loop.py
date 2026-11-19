@@ -556,10 +556,15 @@ class Agent:
             return False
 
         matched = {i for i in range(len(required)) if assign(i, set())}
+        shared: set[tuple[str, str]] = set()  # (artifact, kind) already used by a sharing deliverable
         for i, (_, fits, kind) in enumerate(required):
             # A "text"/"transcript" deliverable declared next to the translation or subtitles that already is that text
-            # (the same output under two kinds) may share its artifact. Same-kind deliverables still need one each.
-            if i not in matched and kind in ("text", "transcript") and any(p in owner and required[owner[p]][2] != kind for p in fits):
+            # (the same output under two kinds) may share its artifact, once per kind. Same-kind deliverables still need one each.
+            if i in matched or kind not in ("text", "transcript"):
+                continue
+            p = next((p for p in fits if p in owner and required[owner[p]][2] != kind and (p, kind) not in shared), None)
+            if p is not None:
+                shared.add((p, kind))
                 matched.add(i)
         gaps += [f"declared deliverable '{label}' has no matching verified artifact among the finish deliverables "
                  "(each declared deliverable needs its own artifact)" for i, (label, _, _) in enumerate(required) if i not in matched]
@@ -666,8 +671,9 @@ class Agent:
         from .report import write_outputs
 
         try:
-            self.forced_outcome("interrupted", f"The run was interrupted (stopped or killed) after step {self.steps}, or is still running. "
-                                               f"Continue it with: python -m bodhan_agent --resume --out \"{self.out}\"")
+            how = (f"Continue it with: python -m bodhan_agent --resume --out \"{self.out}\"" if checkpoint.checkpoint_path(self.out).is_file()
+                   else "It stopped before its first checkpoint: run the same command again.")
+            self.forced_outcome("interrupted", f"The run was interrupted (stopped or killed) after step {self.steps}, or is still running. {how}")
             write_outputs(self, self.out, self.started_at, self.elapsed_before + (time.monotonic() - self.started), provisional=True)
         except Exception as exc:  # never let reporting break the run
             self.trace.write({"type": "report_error", "error": repr(exc)})

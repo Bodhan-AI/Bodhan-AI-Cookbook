@@ -11,7 +11,7 @@ Every run below is a real execution of `python -m bodhan_agent` against the host
 | **cold** | Run with `--no-cache`: every Bodhan result in the run was requested and paid for in that run. Its cost is the full cost of the task. |
 | **cache-backed** | The agent and planner ran for real, but Bodhan results already in the shared cache (from an earlier run with the same input bytes and settings) were reused at no cost. Its cost is the extra spend of that run only. |
 | **automatic checks** | What the tools and `scripts/run_suite.py` verify in code: back-translation, back-transcription, script, numbers, tables, duration, deliverable kinds and languages, status, budget. They screen for errors. They are not a quality score. |
-| **inspected** | I read the output (and listened to the audio) myself. I am not a fluent reader of every language involved, so Indian-language quality beyond what back-translation shows is **not assessed** unless a row says otherwise. |
+| **inspected** | The output was opened and read in full (texts, tables, subtitles), and for audio the duration and per-segment back-transcription were checked. No fluent reader of the Indian languages has reviewed these outputs, so their language quality beyond what back-translation shows is **not assessed**. |
 
 The `h1`–`h8` tasks are my own held-out tasks, written to resemble the kinds of hidden tasks the brief describes. They are not the employer's hidden tests.
 
@@ -32,9 +32,9 @@ Checked on 20 November 2026 from a fresh clone of commit `182938e`. These are **
 
 The planner for the container run was reached through the host (`LLM_BASE_URL` pointing at `host.docker.internal`). No other setting changed.
 
-### Development machine
+### Development machine (where the suites ran)
 
-TODO(final): Windows 11 run environment for the suites (Python, Node, ffmpeg, planner model and endpoint type).
+Windows 11 Pro 10.0.26300, Python 3.12.13, Node 24.15.0 (for MCP Inspector), ffmpeg 9.0.1. Dependencies from the pinned `requirements.txt` (for example `mcp==2.3.0`, `openai==3.54.0`). The main planner, `gpt-6.1-sol`, was reached through a local OpenAI-compatible gateway (CLIProxyAPI) on a ChatGPT subscription, so its calls were not billed per token. The other planners were reached directly at their providers' OpenAI-compatible endpoints with only `LLM_BASE_URL`, `LLM_MODEL` and `LLM_API_KEY` changed.
 
 ## Demo tasks
 
@@ -81,4 +81,4 @@ Earlier evaluation runs are kept, not overwritten. Times are UTC, on 19 November
 
 - Indian-language quality was screened automatically (back-translation chrF, back-transcription similarity, script and number checks), not by fluent reviewers. Those checks catch omissions, wrong languages, lost numbers and garbled speech. They do not prove fluency or naturalness.
 - Six demo tasks and eight held-out tasks are a small sample of what the agent may be asked.
-- Runs were made on Windows 11. Linux was not tested locally (see the README).
+- The suites ran on Windows 11. Linux was checked in containers (tests, image build, the agent and server commands; see Environment), not on a native Linux machine.

@@ -266,6 +266,8 @@ class PlannerLLM:
                             m.pop(k, None)
                             for c in m.get("tool_calls") or []:
                                 c.pop(k, None)
+                                if isinstance(c.get("function"), dict) and k not in ("name", "arguments"):
+                                    c["function"].pop(k, None)
                     self.notes.append(f"the planner endpoint rejected echoed fields {echoed}; they are no longer sent back")
                     limit += 1
                     continue

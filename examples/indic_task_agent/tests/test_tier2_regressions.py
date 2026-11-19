@@ -315,3 +315,41 @@ def test_a_plain_english_heading_layer_is_trusted():
 
 def test_mostly_utf8_text_with_one_bad_byte_stays_utf8():
     assert decode_text("The café is open.\n!".encode() + b"\x96").startswith("The café is open.")
+
+
+# CodeRabbit (final diff) ----------------------------------------------------------------------
+def test_bracketed_english_is_not_legacy_font_evidence():
+    from bodhan_mcp.documents import looks_like_legacy_font
+
+    assert not looks_like_legacy_font("See [1] and [2] (Table 3) for the [results] of the {survey} in the report.")
+    assert looks_like_legacy_font("dsUnzh; fo|ky; ds Nk=ksa us vkt ,d ubZ ;kstuk dh 'kq:vkr dh")
+
+
+def test_one_artifact_shares_with_at_most_one_text_declaration(tmp_path):
+    from bodhan_agent.loop import Agent, Settings
+    from bodhan_agent.trace import TraceWriter
+    from bodhan_mcp.runtime import Artifact, CostLedger, ResultCache, RunContext
+
+    ctx = RunContext(artifacts_dir=tmp_path / "art", ledger=CostLedger(), cache=ResultCache(None))
+    ctx.artifacts_dir.mkdir()
+    f = ctx.artifacts_dir / "p_bn.md"
+    f.write_text("x", encoding="utf-8")
+    art = ctx.register(Artifact(f, "translation", "translate_text", "bn", "indic-translate", {"status": "pass"}, origin=["p.txt"]))
+    agent = Agent("t", ctx, TraceWriter(tmp_path / "t.jsonl"), Settings(), None, [], [], out=None)
+    agent.plan = {"deliverables": [{"kind": "translation", "language": "bn"}, {"kind": "text", "language": "bn"}, {"kind": "text", "language": "bn"}]}
+    assert len(agent._contract_gaps([art], "Done.")) == 1  # the second text declaration needs its own artifact
+
+
+def test_a_provisional_report_before_any_checkpoint_says_restart(tmp_path, make_ctx):
+    from datetime import UTC, datetime
+
+    from bodhan_agent.loop import Agent, Settings
+    from bodhan_agent.trace import TraceWriter
+
+    out = tmp_path / "out"
+    (out / "artifacts").mkdir(parents=True)
+    agent = Agent("t", make_ctx(FakeBodhan()), TraceWriter(out / "trace.jsonl"), Settings(), None, [], [], out=out)
+    agent.started_at = datetime.now(UTC)
+    agent.write_provisional()
+    rep = json.loads((out / "report.json").read_text(encoding="utf-8"))
+    assert "run the same command again" in rep["final_answer"] and "--resume" not in rep["final_answer"]
