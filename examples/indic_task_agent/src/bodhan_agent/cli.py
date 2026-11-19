@@ -202,12 +202,17 @@ def main(argv: list[str] | None = None) -> int:
 def _collect(records: list[Any], out: Path) -> tuple[list[Any], list[dict[str, Any]]]:
     artifacts_dir = out / "artifacts"
     items: list[dict[str, Any]] = []
+    made_by = {}
+    for r in records:
+        for key in ("text_path", "markdown_path", "audio_path"):
+            if r.ok and r.result.get(key):
+                made_by[Path(r.result[key]).name] = _KIND_BY_TOOL.get(r.tool)
     if artifacts_dir.is_dir():
         for path in sorted(artifacts_dir.iterdir()):
             if not path.is_file():
                 continue
             suffix = path.suffix.lower()
-            kind = "audio" if suffix in (".wav", ".mp3") else "translation" if suffix == ".txt" else "document" if suffix in (".md", ".html") else "file"
+            kind = made_by.get(path.name) or ("audio" if suffix in (".wav", ".mp3") else "translation" if suffix == ".txt" else "document" if suffix in (".md", ".html") else "file")
             detail = f"{path.stat().st_size / 1024:.0f} KB"
             if kind == "audio":
                 try:
