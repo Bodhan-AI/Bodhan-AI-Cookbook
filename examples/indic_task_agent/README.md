@@ -14,7 +14,7 @@ The same tools run as a standalone MCP server, so any MCP client can use them wi
 
 - Design, architecture diagram and agent flow chart: [DESIGN.md](DESIGN.md)
 - Demo outputs and traces: [demo_runs/](demo_runs/)
-- Demo video: VIDEO_LINK
+- Demo video: https://youtu.be/Wp9ZWRiwPCw
 
 ## Setup
 
