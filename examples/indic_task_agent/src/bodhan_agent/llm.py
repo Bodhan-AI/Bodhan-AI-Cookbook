@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from openai import OpenAI
 
 from bodhan_mcp.core.errors import BodhanError
+from bodhan_mcp.core.langid import has_indic_script
 
 
 @dataclass
@@ -26,12 +27,18 @@ def _client() -> OpenAI:
     return OpenAI(base_url=base, api_key=model_key, max_retries=0, timeout=float(os.environ.get("LLM_TIMEOUT_S", "120")))
 
 
+def _indic(text: str) -> bool:
+    return has_indic_script(text)
+
+
 def model_name() -> str:
     return os.environ.get("LLM_MODEL", "default")
 
 
 def chat(messages: list[dict[str, str]], max_tokens: int = 4096, temperature: float = 0.2) -> LlmReply:
     """One completion. 503 (queued capacity) and 429 are retried here; anything else is raised."""
+    if any(_indic(m["content"]) for m in messages):
+        raise BodhanError("INTERNAL", "Indic-script text was about to be sent to the planner LLM; refused.", hint="Indic text must travel as file paths, never in a prompt.")
     started = time.monotonic()
     last: Exception | None = None
     for attempt in range(4):

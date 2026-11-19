@@ -25,6 +25,7 @@ python -m bodhan_agent --task "Make a two-minute Tamil audio summary of this cha
 # the MCP server on its own: stdio, or streamable HTTP with a bearer token
 python -m bodhan_mcp
 BODHAN_MCP_TOKEN=... python -m bodhan_mcp --transport streamable-http --port 8765
+python scripts/http_demo.py     # free live check: 401 without the token, tools with it
 ```
 
 Each run writes `out/result.md`, `out/artifacts/`, `out/trace.jsonl` and `out/report.json`. An impossible or unaffordable task exits 0 with `status: failed` and the reason; exit 2 means the command line was wrong.
@@ -38,9 +39,10 @@ python -m bodhan_agent.webui ./out          # one run folder, or a folder of run
 # -> http://127.0.0.1:8766/
 ```
 
-It follows runs live as they are written. Runs one level below the argument are listed,
-so `./out` shows `out/<run>/` but not `out/demo/<run>/`; point it at
-`./out/demo` for a demo folder. Start it in its own terminal: it owns port 8766.
+It follows runs live as they are written. The folder is searched recursively for run
+folders (any folder containing `trace.jsonl`), so `python -m bodhan_agent.webui` finds
+`out/demo/<run>/` and `out/eval/<run>/` as well as `out/<run>/`. If two runs share a
+name, the newest is shown. Start it in its own terminal: it owns port 8766.
 
 ## Tools
 
@@ -82,7 +84,7 @@ Ten tasks run against the real models; recordings are in `demo_runs/` (reports, 
 
 | Task | Status | Cost (Rs) | Time |
 |---|---|---|---|
-| Tamil chapter (8-page scan) to a 2-minute Tamil MP3 and text | completed, audio 124 s vs 120 asked | 0.99 | 252 s |
+| Tamil chapter (8-page scan) to a 2-minute Tamil MP3 and text | completed, audio 114.7 s vs 120 asked | 0.99 | 252 s |
 | Hindi voice note to English SRT | completed | 0.06 | 21 s |
 | Real recorded Hindi (the Cookbook's `sample_hindi.wav`) to English SRT | completed | 0.02 | 58 s |
 | Marathi worksheet photo to Markdown with the table | completed | 0.20 | 23 s |

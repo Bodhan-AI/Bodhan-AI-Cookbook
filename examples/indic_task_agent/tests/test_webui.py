@@ -23,6 +23,11 @@ def viewer(tmp_path):
     (run / "report.json").write_text(json.dumps({"status": "completed", "budget": {"cost_inr": 0.5}}), encoding="utf-8")
     (run / "result.md").write_text("# done", encoding="utf-8")
     (run / "artifacts" / "out.txt").write_text("hello", encoding="utf-8")
+    nested = root / "demo" / "task_b"
+    nested.mkdir(parents=True)
+    (nested / "trace.jsonl").write_text('{"type": "plan", "steps": []}\n', encoding="utf-8")
+    (nested / "report.json").write_text(json.dumps({"status": "failed", "budget": {"cost_inr": 0}}), encoding="utf-8")
+    (nested / "result.md").write_text("# nested", encoding="utf-8")
     (tmp_path / "secret.txt").write_text("nope", encoding="utf-8")
     httpd = serve(str(root), port=0, block=False)
     yield f"http://127.0.0.1:{httpd.server_address[1]}"
@@ -32,10 +37,15 @@ def viewer(tmp_path):
 
 def test_viewer_lists_runs_and_serves_their_files(viewer):
     assert b"Task runs" in _get(viewer + "/")
-    assert json.loads(_get(viewer + "/api/runs")) == [{"name": "task_a", "status": "completed", "cost": 0.5}]
+    runs = {r["name"]: r for r in json.loads(_get(viewer + "/api/runs"))}
+    assert runs == {
+        "task_a": {"name": "task_a", "status": "completed", "cost": 0.5},
+        "task_b": {"name": "task_b", "status": "failed", "cost": 0},
+    }
     assert _get(viewer + "/run/task_a/trace.jsonl").startswith(b'{"type": "plan"')
     assert _get(viewer + "/run/task_a/result.md") == b"# done"
     assert _get(viewer + "/run/task_a/artifacts/out.txt") == b"hello"
+    assert _get(viewer + "/run/task_b/result.md") == b"# nested"
 
 
 @pytest.mark.parametrize(

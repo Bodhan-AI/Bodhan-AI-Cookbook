@@ -40,6 +40,9 @@ graph TB
   EX -->|direct import| TOOLS
   TOOLS --> CORE
   C1 --> API[("api.bodhan.ai<br/>indic-transcribe / translate / speak / ocr")]
+
+  WV["python -m bodhan_agent.webui<br/>read-only run viewer"]
+  RP -.->|"result.md, report.json, trace.jsonl"| WV
 ```
 
 | Part | Responsibility |

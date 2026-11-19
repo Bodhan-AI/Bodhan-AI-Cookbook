@@ -10,6 +10,7 @@ from typing import Any
 
 from bodhan_mcp.core import media
 from bodhan_mcp.core import text as txt
+from bodhan_mcp.core.langid import has_indic_script
 
 from .trace import Trace
 
@@ -185,7 +186,7 @@ def table_consistency(text: str) -> tuple[bool, str]:
 
 
 def _looks_english(text: str) -> bool:
-    return not any(0x0900 <= ord(ch) <= 0x0DFF for ch in text)
+    return not has_indic_script(text)
 
 
 def l2_translation(path: Path, source_path: Path, target_language: str, ledger: Any, trace: Trace) -> list[dict[str, str]]:

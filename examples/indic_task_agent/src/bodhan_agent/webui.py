@@ -1,6 +1,6 @@
 """A read-only run viewer on the standard library: the trace as a plain timeline.
 
-    python -m bodhan_agent.webui ./out/demo      # a folder of runs, or one run folder
+    python -m bodhan_agent.webui ./out          # a folder of runs (searched recursively), or one run folder
 
 Open http://127.0.0.1:8766/ and leave it open: it follows the runs live as a timeline of
 what the agent did and why (plan, assumptions, each tool call with cost and time, skipped
@@ -200,8 +200,17 @@ tick();setInterval(tick,1500);
 def _runs(root: Path) -> list[Path]:
     if (root / "trace.jsonl").is_file():
         return [root]
-    found = [p for p in root.iterdir() if p.is_dir() and (p / "trace.jsonl").is_file()] if root.is_dir() else []
-    return sorted(found, key=lambda p: (p / "trace.jsonl").stat().st_mtime, reverse=True)
+    if not root.is_dir():
+        return []
+    found = sorted(
+        (p.parent for p in root.rglob("trace.jsonl") if p.is_file()),
+        key=lambda p: p.stat().st_mtime,
+        reverse=True,
+    )
+    unique: dict[str, Path] = {}
+    for run in found:
+        unique.setdefault(run.name, run)  # newest wins when two folders share a name
+    return list(unique.values())
 
 
 def _summary(run: Path) -> dict:

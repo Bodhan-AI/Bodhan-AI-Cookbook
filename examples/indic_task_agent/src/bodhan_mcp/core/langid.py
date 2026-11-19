@@ -21,6 +21,7 @@ _BLOCKS: tuple[tuple[str, int, int], ...] = (
     ("Telugu", 0x0C00, 0x0C7F),
     ("Kannada", 0x0C80, 0x0CFF),
     ("Malayalam", 0x0D00, 0x0D7F),
+    ("Ol Chiki", 0x1C50, 0x1C7F),
     ("Latin", 0x00C0, 0x024F),
     ("Latin", 0x1E00, 0x1EFF),
     ("Urdu/Arabic", 0x0600, 0x06FF),
@@ -37,6 +38,7 @@ _SINGLE = {
     "Gujarati": "gu",
     "Gurmukhi": "pa",
     "Odia": "or",
+    "Ol Chiki": "sat",
 }
 # Scripts Bodhan serves for more than one language: candidates, never a verdict.
 _SHARED = {"Bengali": ["bn", "as"], "Devanagari": ["hi", "mr", "ne", "sa"], "Urdu/Arabic": ["ur", "sd", "ks"]}
