@@ -128,6 +128,8 @@ def ledger_from_trace(trace: Path) -> dict[str, Any] | None:
             if e.get("cost_inr") is not None:
                 st["llm_cost"] += float(e["cost_inr"])
                 st["llm_priced"] = True
+        elif kind == "llm_estimate_exceeded":
+            st["llm_over_bound"] = st.get("llm_over_bound", 0.0) + max(0.0, float(e["cost_inr"]) - float(e["estimate_inr"]))
         elif kind in ("llm_uncertain", "llm_error") and e.get("cost_inr") is not None:  # failed attempts charged conservatively
             st["llm_cost"] += float(e["cost_inr"])
             st["llm_priced"] = True

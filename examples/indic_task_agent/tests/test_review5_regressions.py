@@ -82,7 +82,7 @@ async def test_failed_planner_attempt_before_a_success_is_charged(tmp_path):
     txt = tmp_path / "p.txt"
     txt.write_text("Trees grow slowly.", encoding="utf-8")
     chat = ScriptedChat([[("finish", {"status": "unsupported", "final_answer": "Stopping."})]])
-    await run(_priced(tmp_path, txt, 40.0), transport=FakeBodhan().transport, llm=PlannerLLM(client=_Flaky(chat), model="s"))
+    await run(_priced(tmp_path, txt, 80.0), transport=FakeBodhan().transport, llm=PlannerLLM(client=_Flaky(chat), model="s"))
     out, rep, trace, md = read_outputs(tmp_path)
     charged = [e for e in trace if e["type"] == "llm_uncertain"]
     reply = [e for e in trace if e["type"] == "llm_call"]
@@ -94,11 +94,11 @@ async def test_planner_retry_is_not_sent_beyond_the_budget(tmp_path):
     txt = tmp_path / "p.txt"
     txt.write_text("Trees grow slowly.", encoding="utf-8")
     flaky = _Flaky(ScriptedChat([]), fail=99)
-    # one estimated planner call (about ₹13 at ₹1000 per 1M tokens) fits in ₹20, two do not
-    await run(_priced(tmp_path, txt, 20.0), transport=FakeBodhan().transport, llm=PlannerLLM(client=flaky, model="s"))
+    # one bounded planner call (about ₹27 at ₹1000 per 1M tokens) fits in ₹40, two do not
+    await run(_priced(tmp_path, txt, 40.0), transport=FakeBodhan().transport, llm=PlannerLLM(client=flaky, model="s"))
     out, rep, trace, md = read_outputs(tmp_path)
     assert flaky.sent == 1 and rep["stop_reason"] == "llm_error"
-    assert rep["cost"]["total_counted_inr"] <= 20.0 + 1e-9
+    assert rep["cost"]["total_counted_inr"] <= 40.0 + 1e-9
 
 
 # ---- review round 6 --------------------------------------------------------------------------
@@ -142,3 +142,31 @@ async def test_a_deadline_during_retry_backoff_charges_only_the_sent_attempt(tmp
     assert flaky.sent == 1 and rep["stop_reason"] == "time_limit"  # the 2 s backoff outlives the 1 s deadline
     charged = [e for e in trace if e["type"] == "llm_uncertain"]
     assert len(charged) == 1 and charged[0]["attempts"] == 1
+
+
+# ---- planner budget: a bound, not an average -------------------------------------------------
+def test_prompt_bound_covers_byte_level_tokenizers_on_indic_text():
+    from bodhan_agent.loop import prompt_token_bound
+
+    msgs = [{"role": "tool", "content": "நீர் சுழற்சி பாடம் " * 200}]
+    worst = len(msgs[0]["content"].encode("utf-8"))  # a byte-level tokenizer can need one token per byte
+    assert prompt_token_bound(msgs, []) >= worst > 2 * len(msgs[0]["content"])
+
+
+async def test_a_reply_costing_more_than_its_bound_is_reported(tmp_path):
+    txt = tmp_path / "p.txt"
+    txt.write_text("Trees grow slowly.", encoding="utf-8")
+
+    class Overcounting:  # a provider that reports far more prompt tokens than the request could contain
+        def __init__(self):
+            self.inner = ScriptedChat([[("finish", {"status": "unsupported", "final_answer": "Stopping."})]])
+            self.chat = self.completions = self
+
+        async def create(self, **kw):
+            resp = await self.inner.create(**kw)
+            resp.usage.prompt_tokens = 10_000_000
+            return resp
+
+    await run(_priced(tmp_path, txt, 80.0), transport=FakeBodhan().transport, llm=PlannerLLM(client=Overcounting(), model="s"))
+    out, rep, trace, md = read_outputs(tmp_path)
+    assert rep["cost"]["llm_over_pre_call_bound_inr"] > 0 and any(e["type"] == "llm_estimate_exceeded" for e in trace)

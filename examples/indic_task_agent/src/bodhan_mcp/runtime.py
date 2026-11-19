@@ -113,6 +113,7 @@ class CostLedger:
     llm_calls: int = 0
     llm_cost: float = 0.0
     llm_priced: bool = False
+    llm_over_bound: float = 0.0  # planner spend beyond its pre-call bound (expected 0; reported when not)
 
     @property
     def committed(self) -> float:
@@ -172,7 +173,7 @@ class CostLedger:
             self.llm_priced = True
 
     _STATE_FIELDS = ("billed", "uncertain", "by_model", "calls", "cache_hits", "llm_prompt_tokens", "llm_completion_tokens",
-                     "llm_calls", "llm_cost", "llm_priced")
+                     "llm_calls", "llm_cost", "llm_priced", "llm_over_bound")
 
     def to_state(self) -> dict[str, Any]:
         """Settled amounts only: in-flight reservations are not saved (a checkpoint is written
@@ -194,6 +195,7 @@ class CostLedger:
             "by_model_inr": {k: round(v, 4) for k, v in sorted(self.by_model.items())},
             "bodhan_calls": self.calls,
             "cache_hits": self.cache_hits,
+            **({"llm_over_pre_call_bound_inr": round(self.llm_over_bound, 4)} if self.llm_over_bound > 0 else {}),
             "llm": {"calls": self.llm_calls, "prompt_tokens": self.llm_prompt_tokens,
                     "completion_tokens": self.llm_completion_tokens,
                     "pricing": "priced from CLI rates" if self.llm_priced else "not priced (no rate supplied); tokens reported only"},

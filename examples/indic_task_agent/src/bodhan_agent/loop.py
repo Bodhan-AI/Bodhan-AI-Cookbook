@@ -48,7 +48,16 @@ OUTPUT_KINDS = VERIFIED_KINDS | {"text", "ocr", "transcript"}
 FINISH_STATUSES = ["completed", "partial", "failed", "unsupported"]
 MAX_TOOL_RESULT_CHARS = 7000
 LLM_COMPLETION_RESERVE = 4000  # completion tokens allowed per planner call when its price is known
-CHARS_PER_TOKEN_ESTIMATE = 2.5  # conservative (real tokenizers average ~4 chars/token for English)
+# Upper bound on a priced planner call's prompt tokens: byte-level BPE and byte-fallback tokenizers never make a token
+# smaller than one UTF-8 byte, so tokens <= bytes. Margins cover per-message special tokens and the provider's own
+# formatting of the tool list. (A character count is not a bound: one Indic character is 3 bytes and may be 3 tokens.)
+PROMPT_TOKENS_PER_MESSAGE = 16
+PROMPT_TOKENS_MARGIN = 1000
+
+
+def prompt_token_bound(messages: list[dict], tools: list[dict]) -> int:
+    body = json.dumps(messages, ensure_ascii=False).encode("utf-8") + json.dumps(tools, ensure_ascii=False).encode("utf-8")
+    return len(body) + PROMPT_TOKENS_PER_MESSAGE * len(messages) + PROMPT_TOKENS_MARGIN
 
 # Which artifact kinds satisfy a declared deliverable kind.
 KIND_MATCH = {"audio": {"audio"}, "translation": {"translation", "subtitles"}, "subtitles": {"subtitles"},
@@ -227,8 +236,7 @@ class Agent:
             tools = openai_tools({"finish"} if last_step else None)
             if last_step:
                 self.messages.append({"role": "user", "content": "Only one step is left: call finish now with what you have (status partial if incomplete)."})
-            est = self._llm_cost(int((len(json.dumps(self.messages, ensure_ascii=False)) + len(json.dumps(tools))) / CHARS_PER_TOKEN_ESTIMATE),
-                                 LLM_COMPLETION_RESERVE)
+            est = self._llm_cost(prompt_token_bound(self.messages, tools), LLM_COMPLETION_RESERVE)
             if est is not None and not self.ctx.ledger.can_afford(est):  # priced planner: check before spending
                 return self._forced_stop(("budget_exhausted", f"Not enough budget left for another planner call (up to about ₹{est:.3f})."))
             # priced: a retry is sent only if the budget still covers it after the attempts that may already have been billed
@@ -252,6 +260,9 @@ class Agent:
                 self._charge_uncertain_llm(est, self.llm.uncertain_attempts, "retried")
             cost = self._llm_cost(reply.prompt_tokens, reply.completion_tokens)
             self.ctx.ledger.add_llm(reply.prompt_tokens, reply.completion_tokens, cost)
+            if est is not None and cost is not None and cost > est:  # should not happen; if it does, say so rather than hide it
+                self.ctx.ledger.llm_over_bound += cost - est
+                self.trace.write({"type": "llm_estimate_exceeded", "step": self.steps, "estimate_inr": round(est, 5), "cost_inr": round(cost, 5)})
             self.trace.write({"type": "llm_call", "step": self.steps, "latency_s": round(reply.latency_s, 2), "prompt_tokens": reply.prompt_tokens,
                               "completion_tokens": reply.completion_tokens, "cost_inr": cost, "finish_reason": reply.finish_reason,
                               "decision": [c.name for c in reply.tool_calls] or "no tool call", "rationale": reply.content[:600],
