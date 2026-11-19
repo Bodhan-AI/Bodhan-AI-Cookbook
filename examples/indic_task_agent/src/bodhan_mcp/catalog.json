@@ -1,0 +1,361 @@
+{
+ "source": "Bodhan API docs (https://console.bodhan.ai/api-docs/) via scripts/bodhan_api_rules.json, version 2026-09-21",
+ "language_names": {
+  "as": "Assamese",
+  "bhb": "Bhili",
+  "bho": "Bhojpuri",
+  "bn": "Bengali",
+  "brx": "Bodo",
+  "doi": "Dogri",
+  "en": "English",
+  "gu": "Gujarati",
+  "hi": "Hindi",
+  "kn": "Kannada",
+  "kok": "Konkani",
+  "ks": "Kashmiri (Perso-Arabic)",
+  "ks-Deva": "Kashmiri (Devanagari)",
+  "mai": "Maithili",
+  "ml": "Malayalam",
+  "mni": "Manipuri (Meitei Mayek)",
+  "mni-Beng": "Manipuri (Bengali script)",
+  "mr": "Marathi",
+  "ne": "Nepali",
+  "or": "Odia",
+  "pa": "Punjabi",
+  "sa": "Sanskrit",
+  "sat": "Santali",
+  "sd": "Sindhi (Devanagari)",
+  "sd-Arab": "Sindhi (Perso-Arabic)",
+  "ta": "Tamil",
+  "te": "Telugu",
+  "ur": "Urdu"
+ },
+ "speech_to_text": {
+  "model": "indic-transcribe",
+  "languages": [
+   "as",
+   "bhb",
+   "bho",
+   "bn",
+   "brx",
+   "doi",
+   "en",
+   "gu",
+   "hi",
+   "kn",
+   "kok",
+   "ks",
+   "mai",
+   "ml",
+   "mni",
+   "mr",
+   "ne",
+   "or",
+   "pa",
+   "sa",
+   "sat",
+   "sd",
+   "ta",
+   "te",
+   "ur"
+  ],
+  "max_seconds_per_request": 30,
+  "accepted_containers": [
+   "wav",
+   "flac",
+   "ogg",
+   "mp3"
+  ],
+  "returns": "text only (no timestamps, no detected language)"
+ },
+ "translation": {
+  "model": "indic-translate",
+  "target_languages": [
+   "as",
+   "bn",
+   "brx",
+   "doi",
+   "en",
+   "gu",
+   "hi",
+   "kn",
+   "kok",
+   "ks",
+   "ks-Deva",
+   "mai",
+   "ml",
+   "mni",
+   "mni-Beng",
+   "mr",
+   "ne",
+   "or",
+   "pa",
+   "sa",
+   "sat",
+   "sd",
+   "sd-Arab",
+   "ta",
+   "te",
+   "ur"
+  ],
+  "scripts": [
+   "native",
+   "roman",
+   "codemix"
+  ],
+  "codemix_unavailable_for": [
+   "en",
+   "ks-Deva",
+   "sd-Arab"
+  ],
+  "source_language": "auto-detected by the model"
+ },
+ "speech_synthesis": {
+  "model": "indic-speak",
+  "languages": [
+   "as",
+   "bn",
+   "brx",
+   "doi",
+   "en",
+   "gu",
+   "hi",
+   "kn",
+   "kok",
+   "ks",
+   "mai",
+   "ml",
+   "mni",
+   "mr",
+   "ne",
+   "or",
+   "pa",
+   "sa",
+   "sat",
+   "sd",
+   "ta",
+   "te",
+   "ur"
+  ],
+  "voices": {
+   "as": {
+    "female": [
+     "Prastuti"
+    ],
+    "male": [
+     "Ankur"
+    ]
+   },
+   "bn": {
+    "female": [
+     "Ishita"
+    ],
+    "male": [
+     "Sourav"
+    ]
+   },
+   "brx": {
+    "female": [
+     "Gwrbw"
+    ],
+    "male": [
+     "Sansuma"
+    ]
+   },
+   "doi": {
+    "female": [
+     "Preeti"
+    ],
+    "male": [
+     "Sham"
+    ]
+   },
+   "gu": {
+    "female": [
+     "Dhara"
+    ],
+    "male": [
+     "Parth"
+    ]
+   },
+   "hi": {
+    "female": [
+     "Kavya",
+     "Suhani"
+    ],
+    "male": [
+     "Amit"
+    ]
+   },
+   "kn": {
+    "female": [
+     "Deepika"
+    ],
+    "male": [
+     "Adarsh"
+    ]
+   },
+   "kok": {
+    "female": [
+     "Anjali"
+    ],
+    "male": [
+     "Sandeep"
+    ]
+   },
+   "ks": {
+    "female": [
+     "Zoon"
+    ],
+    "male": [
+     "Ishfaq"
+    ]
+   },
+   "mai": {
+    "female": [
+     "Vaidehi"
+    ],
+    "male": [
+     "Madhukar"
+    ]
+   },
+   "ml": {
+    "female": [
+     "Lakshmi"
+    ],
+    "male": [
+     "Kiran"
+    ]
+   },
+   "mni": {
+    "female": [
+     "Thoibi"
+    ],
+    "male": [
+     "Chaoba"
+    ]
+   },
+   "mr": {
+    "female": [
+     "Anagha"
+    ],
+    "male": [
+     "Chinmay"
+    ]
+   },
+   "ne": {
+    "female": [
+     "Srijana"
+    ],
+    "male": [
+     "Sagar"
+    ]
+   },
+   "or": {
+    "female": [
+     "Itishree"
+    ],
+    "male": [
+     "Akash"
+    ]
+   },
+   "pa": {
+    "female": [
+     "Kaur"
+    ],
+    "male": [
+     "Manpreet"
+    ]
+   },
+   "sa": {
+    "female": [
+     "Bharati"
+    ],
+    "male": [
+     "Aryaman"
+    ]
+   },
+   "sat": {
+    "female": [
+     "Phulmani"
+    ],
+    "male": [
+     "Sibu"
+    ]
+   },
+   "sd": {
+    "female": [
+     "Moomal"
+    ],
+    "male": [
+     "Rano"
+    ]
+   },
+   "ta": {
+    "female": [
+     "Anitha"
+    ],
+    "male": [
+     "Arun"
+    ]
+   },
+   "te": {
+    "female": [
+     "Sravani"
+    ],
+    "male": [
+     "Vamsi"
+    ]
+   },
+   "ur": {
+    "female": [
+     "Saba"
+    ],
+    "male": [
+     "Zaid"
+    ]
+   }
+  },
+  "styles": [
+   "AIR style news",
+   "Customer Care",
+   "TV style news",
+   "advertisements",
+   "anger",
+   "children's stories",
+   "disgust",
+   "educational lecture",
+   "fear",
+   "happy",
+   "news",
+   "sad",
+   "single person narration audiobook",
+   "surprise"
+  ],
+  "output": "audio/wav PCM16 24 kHz mono",
+  "guidance": "one or two sentences (~30 s of speech) per request",
+  "any_voice_any_language": true
+ },
+ "ocr": {
+  "model": "indic-ocr",
+  "input": "one PNG or JPEG page per request",
+  "table_formats": [
+   "html",
+   "markdown"
+  ]
+ },
+ "pricing_inr": {
+  "indic-transcribe": {
+   "per_audio_minute": 0.1
+  },
+  "indic-translate": {
+   "per_10k_output_tokens": 0.2
+  },
+  "indic-speak": {
+   "per_10k_input_chars": 6.0
+  },
+  "indic-ocr": {
+   "per_image": 0.2
+  }
+ }
+}

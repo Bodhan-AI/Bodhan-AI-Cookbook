@@ -1,0 +1,48 @@
+{
+  "status": "failed",
+  "stop_reason": "LLM unavailable during planning: BadRequestError: Error code: 400 - Tool call validation failed: tool call validation failed: parameters for tool submit_plan did not match schema: errors: [`/input_languages`: expected string, but got null]",
+  "task": "Transcribe this recording",
+  "answer_en": "The run stopped before finishing: LLM unavailable during planning: BadRequestError: Error code: 400 - Tool call validation failed: tool call validation failed: parameters for tool submit_plan did not match schema: errors: [`/input_languages`: expected string, but got null]. No verified outputs were delivered.",
+  "artifacts": [],
+  "assumptions": [],
+  "notes": [
+    "Input path does not exist: C:\\Users\\bit\\Desktop\\Bodhan-AI-Cookbook\\examples\\indic_task_agent\\sample_data\\demo\\does_not_exist.wav"
+  ],
+  "security_flags": [],
+  "steps": {
+    "tool_calls": 0,
+    "max_steps": 30,
+    "llm_calls": 1,
+    "duplicate_calls_blocked": 0
+  },
+  "cost": {
+    "total_inr": 0.0,
+    "max_cost_inr": 20.0,
+    "by_model": {},
+    "llm_tokens": {
+      "prompt_tokens": 0,
+      "completion_tokens": 0
+    },
+    "llm_model": "openai/gpt-oss-120b",
+    "note": "Bodhan costs are computed from the published hosted prices; LLM spend is reported in tokens."
+  },
+  "time": {
+    "elapsed_s": 25.34,
+    "max_wall_s": 900.0
+  },
+  "verification": [],
+  "plan": {},
+  "quality_targets": {
+    "budget_respected": true,
+    "all_artifacts_verified": true,
+    "honest_failure": true,
+    "latency_target_s": 30,
+    "latency_met": true,
+    "no_repeat_paid_calls": {
+      "duplicates_blocked": 0,
+      "cache_hits": 0,
+      "paid_tool_calls": 0
+    },
+    "misses": []
+  }
+}

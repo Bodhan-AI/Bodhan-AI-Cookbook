@@ -1,0 +1,117 @@
+{
+  "status": "success",
+  "stop_reason": null,
+  "task": "Transcribe this Hindi voice note and give me English subtitles",
+  "answer_en": "I have transcribed the Hindi voice note and generated English subtitles for it. The transcript is provided in a text file, and the subtitles are in SRT format.",
+  "artifacts": [
+    {
+      "path": "artifacts\\hindi_voice_note_transcript.txt",
+      "description": "Hindi transcript of the audio note (plain text).",
+      "produced_by": "transcribe_audio",
+      "verified": true,
+      "verification": {
+        "check": "all chunks/pages processed",
+        "complete": true,
+        "warnings": []
+      }
+    },
+    {
+      "path": "artifacts\\hindi_voice_note_english_subtitles.srt",
+      "description": "English subtitles (SRT) for the audio note.",
+      "produced_by": "make_subtitles",
+      "verified": true,
+      "verification": {
+        "check": "cues written",
+        "cues": 20
+      }
+    }
+  ],
+  "assumptions": [
+    "The audio is in Hindi (language code hi).",
+    "English subtitles should be provided in .srt format.",
+    "English subtitles are required in .srt format."
+  ],
+  "notes": [
+    "Rough cost to process every input once with its main model: Rs 0.16 (budget Rs 20.00)."
+  ],
+  "security_flags": [],
+  "steps": {
+    "tool_calls": 3,
+    "max_steps": 30,
+    "llm_calls": 5,
+    "duplicate_calls_blocked": 0
+  },
+  "cost": {
+    "total_inr": 0.0343,
+    "max_cost_inr": 20.0,
+    "by_model": {
+      "indic-transcribe": {
+        "calls": 3,
+        "cached": 16,
+        "cost_inr": 0.034323
+      },
+      "indic-translate": {
+        "calls": 0,
+        "cached": 19,
+        "cost_inr": 0.0
+      }
+    },
+    "llm_tokens": {
+      "prompt_tokens": 19044,
+      "completion_tokens": 1342
+    },
+    "llm_model": "openai/gpt-oss-120b",
+    "note": "Bodhan costs are computed from the published hosted prices; LLM spend is reported in tokens."
+  },
+  "time": {
+    "elapsed_s": 98.66,
+    "max_wall_s": 900.0
+  },
+  "verification": [
+    {
+      "artifact": "artifacts\\hindi_voice_note_transcript.txt",
+      "verified": true,
+      "check": "all chunks/pages processed",
+      "complete": true,
+      "warnings": []
+    },
+    {
+      "artifact": "artifacts\\hindi_voice_note_english_subtitles.srt",
+      "verified": true,
+      "check": "cues written",
+      "cues": 20
+    }
+  ],
+  "plan": {
+    "assumptions": [
+      "The audio is in Hindi (language code hi).",
+      "English subtitles should be provided in .srt format."
+    ],
+    "deliverables": [
+      "Hindi transcript (text file).",
+      "English subtitles (SRT file)."
+    ],
+    "estimated_cost_inr": 0.5,
+    "feasible": true,
+    "input_languages": "hi",
+    "steps": [
+      "transcribe_audio (language='hi', for_subtitles=true) to get Hindi transcript and segments JSON.",
+      "translate_text (input_path=segments JSON, target_language='en') to get translated segments JSON.",
+      "make_subtitles (segments_path=translated segments JSON) to produce English .srt subtitles."
+    ],
+    "understanding": "The user wants the Hindi audio note transcribed and English subtitles generated."
+  },
+  "quality_targets": {
+    "budget_respected": true,
+    "all_artifacts_verified": true,
+    "honest_failure": true,
+    "latency_target_s": 300,
+    "latency_met": true,
+    "no_repeat_paid_calls": {
+      "duplicates_blocked": 0,
+      "cache_hits": 35,
+      "paid_tool_calls": 1
+    },
+    "misses": []
+  }
+}

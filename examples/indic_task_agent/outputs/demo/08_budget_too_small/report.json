@@ -1,0 +1,66 @@
+{
+  "status": "impossible",
+  "stop_reason": "planner judged the task infeasible",
+  "task": "Read this paragraph aloud in Bengali",
+  "answer_en": "The required speech synthesis costs Rs 0.189, which exceeds the user's budget of Rs 0.05.",
+  "artifacts": [],
+  "assumptions": [
+    "The paragraph is in English, requiring translation to Bengali before speech synthesis."
+  ],
+  "notes": [
+    "Rough cost to process every input once with its main model: Rs 0.19 (budget Rs 0.05)."
+  ],
+  "security_flags": [],
+  "steps": {
+    "tool_calls": 0,
+    "max_steps": 30,
+    "llm_calls": 1,
+    "duplicate_calls_blocked": 0
+  },
+  "cost": {
+    "total_inr": 0.0,
+    "max_cost_inr": 0.05,
+    "by_model": {},
+    "llm_tokens": {
+      "prompt_tokens": 1695,
+      "completion_tokens": 281
+    },
+    "llm_model": "openai/gpt-oss-120b",
+    "note": "Bodhan costs are computed from the published hosted prices; LLM spend is reported in tokens."
+  },
+  "time": {
+    "elapsed_s": 2.69,
+    "max_wall_s": 900.0
+  },
+  "verification": [],
+  "plan": {
+    "assumptions": [
+      "The paragraph is in English, requiring translation to Bengali before speech synthesis."
+    ],
+    "deliverables": [
+      "Bengali audio file of the paragraph."
+    ],
+    "estimated_cost_inr": 0.189,
+    "feasible": false,
+    "infeasible_reason": "The required speech synthesis costs Rs 0.189, which exceeds the user's budget of Rs 0.05.",
+    "input_languages": "en",
+    "steps": [
+      "translate_text (English text file -> Bengali)",
+      "synthesize_speech (Bengali text -> audio)"
+    ],
+    "understanding": "The user wants the paragraph in the provided text file read aloud in Bengali."
+  },
+  "quality_targets": {
+    "budget_respected": true,
+    "all_artifacts_verified": true,
+    "honest_failure": true,
+    "latency_target_s": 30,
+    "latency_met": true,
+    "no_repeat_paid_calls": {
+      "duplicates_blocked": 0,
+      "cache_hits": 0,
+      "paid_tool_calls": 0
+    },
+    "misses": []
+  }
+}

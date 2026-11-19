@@ -1,0 +1,99 @@
+{
+  "status": "success",
+  "stop_reason": null,
+  "task": "What does this note say? Give me an English version.",
+  "answer_en": "The note says: “Dear neighbors, there will be a water shut‑off tomorrow from 9 AM to 4 PM for pipe repairs. Please fill up your containers tonight.”",
+  "artifacts": [
+    {
+      "path": "artifacts\\note_translation_en.txt",
+      "description": "English translation of the Gujarati note (plain text).",
+      "produced_by": "translate_text",
+      "verified": true,
+      "verification": {
+        "check": "coverage + structure + target script",
+        "coverage_ok": true,
+        "structure_preserved": true,
+        "target_script_share": 1.0,
+        "units_translated": 1,
+        "units_total": 1
+      }
+    }
+  ],
+  "assumptions": [
+    "The note is written in Gujarati, as indicated by the detected script and likely language metadata.",
+    "The source note is in Gujarati, as indicated by the detected script and likely language metadata."
+  ],
+  "notes": [
+    "Rough cost to process every input once with its main model: Rs 0.09 (budget Rs 20.00)."
+  ],
+  "security_flags": [],
+  "steps": {
+    "tool_calls": 1,
+    "max_steps": 30,
+    "llm_calls": 4,
+    "duplicate_calls_blocked": 0
+  },
+  "cost": {
+    "total_inr": 0.0006,
+    "max_cost_inr": 20.0,
+    "by_model": {
+      "indic-translate": {
+        "calls": 1,
+        "cached": 0,
+        "cost_inr": 0.00064
+      }
+    },
+    "llm_tokens": {
+      "prompt_tokens": 11488,
+      "completion_tokens": 945
+    },
+    "llm_model": "openai/gpt-oss-120b",
+    "note": "Bodhan costs are computed from the published hosted prices; LLM spend is reported in tokens."
+  },
+  "time": {
+    "elapsed_s": 85.31,
+    "max_wall_s": 900.0
+  },
+  "verification": [
+    {
+      "artifact": "artifacts\\note_translation_en.txt",
+      "verified": true,
+      "check": "coverage + structure + target script",
+      "coverage_ok": true,
+      "structure_preserved": true,
+      "target_script_share": 1.0,
+      "units_translated": 1,
+      "units_total": 1
+    }
+  ],
+  "plan": {
+    "assumptions": [
+      "The note is written in Gujarati, as indicated by the detected script and likely language metadata."
+    ],
+    "deliverables": [
+      "English translation of the note (text file)."
+    ],
+    "estimated_cost_inr": 0.2,
+    "feasible": true,
+    "input_languages": "gu",
+    "steps": [
+      "translate_text"
+    ],
+    "understanding": "The user wants an English translation of the note contained in the provided text file, which appears to be in Gujarati."
+  },
+  "quality_targets": {
+    "budget_respected": true,
+    "all_artifacts_verified": true,
+    "honest_failure": true,
+    "latency_target_s": 30,
+    "latency_met": false,
+    "no_repeat_paid_calls": {
+      "duplicates_blocked": 0,
+      "cache_hits": 0,
+      "paid_tool_calls": 1
+    },
+    "misses": [
+      "Latency 85s exceeded the 30s target (dominated by Bodhan/LLM response times; see trace latency_ms)."
+    ]
+  }
+}
