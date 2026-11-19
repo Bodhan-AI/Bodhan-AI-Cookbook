@@ -98,7 +98,11 @@ class OpenAICompatibleLLM:
             except BadRequestError as exc:
                 text = str(exc).lower()
                 retryable = (
-                    "tool call validation" in text or "tool_use_failed" in text or "failed to call a function" in text
+                    "tool call validation" in text
+                    or "tool_use_failed" in text
+                    or "failed to call a function" in text
+                    or "parsing failed" in text
+                    or "failed_generation" in text
                 )
                 if attempt < 2 and retryable:
                     continue

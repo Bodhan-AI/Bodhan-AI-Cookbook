@@ -39,6 +39,12 @@ HOW TO WORK:
 - After each call, check the result: complete, coverage_ok, structure_preserved, target_script_share,
   verification.all_passed and warnings. If something failed, try a different approach or report it honestly.
   Do not repeat a call with identical arguments.
+- The tools verify their own outputs (coverage, structure, back-transcription). When a result passes its checks,
+  move on: do not re-translate, back-translate or re-read passed outputs to "double-check" them. Every extra
+  call costs time and money. As soon as the requested outputs exist and pass, call finish.
+- Deliver what the user asked for in a usable format: subtitles = the .srt from make_subtitles (a segments .json
+  is only an intermediate step); a summary or translation = its text file; audio = the audio file plus the text
+  it reads.
 - Calls that do not depend on each other (for example one per audio clip) can be issued together in one turn.
 - Voice requests: pass gender ('female'/'male') or a voice name to synthesize_speech. All generated audio is
   AI-generated; say so in your answer.

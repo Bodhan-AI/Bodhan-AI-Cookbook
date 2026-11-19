@@ -176,3 +176,53 @@ async def test_incomplete_result_may_be_retried_and_cache_fills_the_gaps(fake, t
     calls = [t for t in tools if t["kind"] == "tool" and t["tool"] == "transcribe_audio"]
     assert calls[0]["result_summary"]["complete"] is False and calls[1]["result_summary"]["complete"] is True
     assert report["status"] == "success"
+
+
+async def test_segments_json_is_not_a_deliverable_and_audio_brings_its_text(fake, tmp_path):
+    from tests.fakes.fake_bodhan import tone_wav
+
+    clip = tmp_path / "note.wav"
+    tone_wav(clip, 8, 220)
+    turns = [
+        lambda s: [("transcribe_audio", {"path": str(clip), "language": "hi", "for_subtitles": True, "why": "t"})],
+        lambda s: [
+            (
+                "translate_text",
+                {"target_language": "ta", "input_path": result(s, "transcribe_audio")["transcript_path"], "why": "t"},
+            )
+        ],
+        lambda s: [
+            (
+                "synthesize_speech",
+                {"language": "ta", "input_path": result(s, "translate_text")["output_path"], "why": "t"},
+            )
+        ],
+        lambda s: [
+            (
+                "finish",
+                {
+                    "status": "success",
+                    "answer_en": "Done.",
+                    "artifacts": [{"path": result(s, "transcribe_audio")["segments_path"], "description": "segments"}],
+                },
+            )
+        ],
+        lambda s: [
+            (
+                "finish",
+                {
+                    "status": "success",
+                    "answer_en": "Tamil audio attached.",
+                    "artifacts": [{"path": result(s, "synthesize_speech")["audio_path"], "description": "Tamil audio"}],
+                },
+            )
+        ],
+    ]
+    state, report, trace, out = await _run(
+        fake, tmp_path, "Read this voice note aloud in Tamil", [clip], ScriptedLLM(PLAN, turns)
+    )
+    finishes = [t for t in trace if t["kind"] == "finish"]
+    assert len(finishes) == 1  # the .json delivery was rejected and the model tried again
+    exts = sorted(a["path"].rsplit(".", 1)[-1] for a in report["artifacts"])
+    assert exts == ["md", "mp3"] or exts == ["mp3", "txt"]  # audio plus the Tamil text it reads
+    assert report["status"] == "success"

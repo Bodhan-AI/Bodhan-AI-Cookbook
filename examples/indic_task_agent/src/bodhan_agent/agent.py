@@ -700,7 +700,7 @@ class Agent:
                 agg["cached"] += u.get("cached", 0)
                 agg["cost_inr"] = round(agg["cost_inr"] + float(u.get("cost_inr", 0)), 6)
             for p in produced_paths(res.data):
-                st.produced[str(Path(p).resolve())] = {"tool": tool, "data": res.data}
+                st.produced[str(Path(p).resolve())] = {"tool": tool, "data": res.data, "args": args}
         summary = _summary(res.data) if res.ok else {"error": res.error}
         st.step_log.append(
             StepRecord(
@@ -757,6 +757,29 @@ class Agent:
                 st.notes.append(f"Dropped an artifact that no tool produced: {a['path']}")
                 continue
             chosen.append((p, a))
+        # Intermediate formats are not deliverables: a segments .json is a step towards subtitles or text.
+        intermediates = [
+            p
+            for p, _ in chosen
+            if p.lower().endswith(".json") and st.produced[p]["tool"] in {"transcribe_audio", "translate_text"}
+        ]
+        if intermediates and strict:
+            return (
+                "A segments .json is an intermediate file, not a deliverable. For subtitles, call make_subtitles on it and "
+                "deliver the .srt; for plain text, deliver the transcript or translation text file instead."
+            )
+        # Audio is delivered together with the text it reads (users usually want both, and it lets them check it).
+        chosen_paths = {p for p, _ in chosen}
+        for p, _ in list(chosen):
+            info = st.produced[p]
+            src = (info.get("args") or {}).get("input_path") if info["tool"] == "synthesize_speech" else None
+            if src:
+                sp = str(Path(str(src)).expanduser().resolve())
+                if sp in st.produced and sp not in chosen_paths:
+                    chosen.append(
+                        (sp, {"path": sp, "description": "The text read aloud in the audio (produced by Bodhan)."})
+                    )
+                    chosen_paths.add(sp)
         if status in {"impossible", "failed"} and chosen:
             st.notes.append("Artifacts were not delivered because the task did not complete.")
             chosen = []

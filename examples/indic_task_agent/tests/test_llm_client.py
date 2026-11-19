@@ -67,3 +67,10 @@ async def test_unsupported_named_tool_choice_falls_back_to_auto():
     )
     reply = await llm.complete([{"role": "user", "content": "x"}], [PLAN_TOOL], force_tool="submit_plan")
     assert reply.tool_calls and stub.kwargs[-1]["tool_choice"] == "auto"
+
+
+async def test_unparseable_generation_is_retried():
+    err = _bad_request("Parsing failed. The model generated output that could not be parsed. See 'failed_generation'")
+    llm, stub = _llm([err, _resp("finish", {"status": "failed"})])
+    reply = await llm.complete([{"role": "user", "content": "x"}], [PLAN_TOOL])
+    assert reply.tool_calls[0].name == "finish" and len(stub.kwargs) == 2
