@@ -1,0 +1,23 @@
+{
+  "task": "Translate this worksheet into Marathi and keep the table",
+  "status": "COMPLETED",
+  "total_steps": 3,
+  "total_cost_inr": 0.201,
+  "total_duration_seconds": 0.11,
+  "cache_hits": 0,
+  "cache_misses": 2,
+  "verifications": [
+    {
+      "artifact_name": "translation_mr",
+      "check_type": "content_coverage",
+      "passed": true,
+      "details": "Generated 50 tokens in mr."
+    }
+  ],
+  "artifacts": [
+    "C:\\Users\\Hksona\\Downloads\\Bodhan Ai\\eval_results\\BM-08\\artifacts\\input_extracted.md",
+    "./out/artifacts/worksheet.mr.md"
+  ],
+  "explanation": null,
+  "final_answer": "Worksheet extracted and translated into Marathi Markdown preserving table formatting."
+}

@@ -1,0 +1,13 @@
+{
+  "task": "Translate this video into French",
+  "status": "IMPOSSIBLE_TASK",
+  "total_steps": 1,
+  "total_cost_inr": 0.0,
+  "total_duration_seconds": 0.0,
+  "cache_hits": 0,
+  "cache_misses": 0,
+  "verifications": [],
+  "artifacts": [],
+  "explanation": "Translation to 'French' is not supported. Bodhan Indic models exclusively support Indian languages (Hindi, Tamil, Telugu, Bengali, Marathi, Gujarati, Kannada, Malayalam, Odia, Punjabi, Assamese, Urdu, Sanskrit) and English.",
+  "final_answer": "Task aborted honestly: Translation to 'French' is not supported. Bodhan Indic models exclusively support Indian languages (Hindi, Tamil, Telugu, Bengali, Marathi, Gujarati, Kannada, Malayalam, Odia, Punjabi, Assamese, Urdu, Sanskrit) and English."
+}
