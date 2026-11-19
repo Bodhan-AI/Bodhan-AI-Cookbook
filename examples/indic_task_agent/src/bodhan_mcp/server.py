@@ -173,9 +173,8 @@ def artifacts_folder(requested: str | None) -> Path:
                 Path(tempfile.gettempdir()) / "bodhan_mcp_artifacts"):
         try:
             out.mkdir(parents=True, exist_ok=True)
-            probe = out / ".write_test"
-            probe.write_text("", encoding="utf-8")
-            probe.unlink()
+            with tempfile.NamedTemporaryFile(dir=out, prefix=".write_test_", delete=True):
+                pass  # created exclusively and removed again: the folder is writable
             return out.resolve()
         except OSError:
             continue
@@ -211,7 +210,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--cache-dir", default="~/.cache/bodhan_tool_agent", help="Result cache so repeated inputs are not re-billed.")
     p.add_argument("--no-cache", action="store_true", help="Disable the on-disk cache.")
     p.add_argument("--timeout", type=float, default=60.0, help="Per-request timeout in seconds.")
-    p.add_argument("--concurrency", type=int, default=4, help="Parallel requests per model.")
+    p.add_argument("--concurrency", type=int, default=8, help="Parallel requests per model (default 8; the API allows 10).")
     p.add_argument("--env-file", default=None, help="Optional .env file to load the Bodhan keys from.")
     p.add_argument("--transport", choices=["stdio", "http"], default="stdio", help="stdio (default) or Streamable HTTP at /mcp.")
     p.add_argument("--host", default="127.0.0.1", help="HTTP bind address (default loopback only).")

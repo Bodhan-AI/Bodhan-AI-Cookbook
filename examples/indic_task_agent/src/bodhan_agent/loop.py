@@ -104,7 +104,7 @@ class FinishIn(_Strict):
     status: Literal["completed", "partial", "failed", "unsupported"] = Field(
         description="completed only if every declared deliverable exists and passed verification.")
     final_answer: str = Field(min_length=1, max_length=6000, description="English answer/explanation for the user (no Indian-language text).")
-    deliverables: list[str] = Field(default_factory=list, max_length=30, description="Artifact paths that answer the task.")
+    deliverables: list[str] = Field(default_factory=list, max_length=40, description="Artifact paths that answer the task.")
     assumptions: list[str] = Field(default_factory=list, max_length=20)
     limitations: list[str] = Field(default_factory=list, max_length=30, description="Honest limitations, failures, skipped parts.")
 
@@ -269,6 +269,8 @@ class Agent:
                     self._charge_uncertain_llm(est, sent, "timeout")
                 return self._forced_stop(("time_limit", f"Reached the {self.settings.max_seconds:.0f}s time limit during a planner call."))
             except ContextTooLong as exc:
+                if est is not None and getattr(self.llm, "uncertain_attempts", 0):  # earlier failed attempts may be billed
+                    self._charge_uncertain_llm(est, self.llm.uncertain_attempts, "before_context_rejection")
                 shrunk = False
                 while compactions < 3 and not shrunk:  # escalate until a level actually shortens the conversation
                     compactions += 1
@@ -313,6 +315,7 @@ class Agent:
                         self.trace.write({"type": "finish_salvaged", "step": self.steps, "deliverables": usable})
                         self.messages[-1] = {**self.messages[-1], "tool_calls": [{"id": salvage.id, "type": "function", "function":
                                                                                      {"name": "finish", "arguments": salvage.raw_arguments}}]}
+                        self.steps -= 1  # the plain-text reply's step becomes the finish step
                         await self._execute_turn([salvage], reply.content)
                         if self.outcome is not None:
                             return self.outcome
@@ -614,6 +617,8 @@ class Agent:
         answer = (f"The run stopped before the planner finished: {text} "
                   + (f"{len(good)} artifact(s) passed their checks and are listed below; they may not fully answer the task."
                      if good else "No usable output was produced."))
+        if self.missing:  # checked in code before planning, so it is a fact even when the planner never ran
+            answer += f" Also, these inputs do not exist: {', '.join(self.missing)}."
         limitations = [f"Stopped early ({reason}); outputs were not confirmed complete by the planner."]
         limitations += [f"not delivered as usable: {x.path.name} ({self._effective_status(x) or 'unverified'})" for x in bad]
         self.outcome = Outcome(status, reason, answer, [str(x.path) for x in good], list((self.plan or {}).get("assumptions", [])), limitations)

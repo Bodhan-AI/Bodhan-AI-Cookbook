@@ -56,7 +56,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--max-seconds", type=_number(float, 0, inclusive=False), default=600.0, help="Wall-clock limit for the whole run (default 600).")
     p.add_argument("--call-timeout", type=_number(float, 0, inclusive=False), default=60.0, help="Per-request timeout for Bodhan calls (default 60 s).")
     p.add_argument("--llm-timeout", type=_number(float, 0, inclusive=False), default=120.0, help="Per-request timeout for planner calls (default 120 s).")
-    p.add_argument("--concurrency", type=_number(int, 1), default=4, help="Parallel requests per Bodhan model (default 4; the API allows 10).")
+    p.add_argument("--concurrency", type=_number(int, 1), default=8, help="Parallel requests per Bodhan model (default 8; the API allows 10, and a 429 halves it).")
     p.add_argument("--cache-dir", default="~/.cache/bodhan_tool_agent", help="Shared result cache, so reruns do not repeat paid calls.")
     p.add_argument("--no-cache", action="store_true", help="Do not use the shared cache (the run folder still keeps its own, for --resume).")
     p.add_argument("--env-file", default=None, help="Optional .env file with the Bodhan/LLM variables.")
@@ -154,7 +154,9 @@ async def run(args: argparse.Namespace, *, transport=None, llm: PlannerLLM | Non
         await agent.run()
     except (KeyboardInterrupt, asyncio.CancelledError):  # Ctrl-C / SIGTERM: keep the run resumable, leave an honest report
         trace.write({"type": "interrupted", "step": agent.steps})
-        agent._save()  # checkpoint plus the provisional report that says how to resume
+        # Not agent._save(): the checkpoint written before this turn (with its pending calls) is the one --resume must
+        # replay; a snapshot taken mid-turn would hold tool calls without their results.
+        agent.write_provisional()
         raise
     except Exception as exc:  # never leave a run without a report; same output rule as any other stop
         trace.write({"type": "internal_error", "error": repr(exc), "traceback": traceback.format_exc()[-3000:]})
@@ -184,7 +186,11 @@ def main(argv: list[str] | None = None) -> None:
         print(f"error: {exc}", file=sys.stderr)
         sys.exit(2)
     except KeyboardInterrupt:
-        print(f"interrupted: report and checkpoint are in {Path(args.out).resolve()}; continue with --resume", file=sys.stderr)
+        out = Path(args.out).resolve()
+        if checkpoint.checkpoint_path(out).is_file():
+            print(f"interrupted: report and checkpoint are in {out}; continue with --resume --out {out}", file=sys.stderr)
+        else:
+            print("interrupted before the run started; run the same command again", file=sys.stderr)
         sys.exit(130)
     c = report["cost"]
     print(f"status={report['status']} stop={report['stop_reason']} steps={report['steps']['used']} "

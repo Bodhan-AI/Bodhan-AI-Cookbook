@@ -31,6 +31,19 @@ def main() -> None:
 
         chat = ScriptedChat([plan, [("translate_text", {"path": str(txt), "target_language": "hi"})], hang])
         asyncio.run(run(args(tmp, "Read this aloud in Hindi", [txt]), transport=fake.transport, llm=PlannerLLM(client=chat, model="s")))
+    elif phase == "interrupt":  # Ctrl-C while the translation request is in flight
+        plan = [("record_plan", {"steps": ["translate", "speak"], "deliverables": [{"kind": "audio", "language": "hi"}]})]
+        inner = fake.handle
+
+        def interrupting(request):
+            raise KeyboardInterrupt()
+
+        fake.handle = interrupting
+        chat = ScriptedChat([plan, [("translate_text", {"path": str(txt), "target_language": "hi"})]])
+        try:
+            asyncio.run(run(args(tmp, "Read this aloud in Hindi", [txt]), transport=fake.transport, llm=PlannerLLM(client=chat, model="s")))
+        finally:
+            fake.handle = inner
     else:
         chat = ScriptedChat([
             lambda m: [("synthesize_speech", {"path": last_ok(m, "path"), "language": "hi", "format": "wav"})],

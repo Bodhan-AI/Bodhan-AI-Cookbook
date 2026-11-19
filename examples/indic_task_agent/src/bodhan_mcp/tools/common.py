@@ -65,7 +65,8 @@ class ProvenanceGuard:
         """The text with only its unknown Indian-language spans replaced by a note (the rest is kept)."""
         out = rendered_view(text)
         for span in self.unknown_spans(text):
-            out = out.replace(span, "[Indian-language text removed: it did not come from the task, an input or a Bodhan model]")
+            pattern = r"\s+".join(re.escape(tok) for tok in span.split())  # the span's words, any whitespace between them
+            out = re.sub(pattern, "[Indian-language text removed: it did not come from the task, an input or a Bodhan model]", out)
         return out
 
     def check(self, text: str, field: str) -> None:
@@ -118,10 +119,10 @@ def indic_spans(text: str) -> list[str]:
     return [" ".join(s).strip(_EDGE_PUNCT) for s in spans if " ".join(s).strip(_EDGE_PUNCT)]
 
 
-def resolve_text(ctx: RunContext, text: str | None, path: str | None, field: str = "text") -> tuple[str, str]:
+def resolve_text(ctx: RunContext, text: str | None, path: str | None, field: str = "text", path_field: str = "path") -> tuple[str, str]:
     """Return (content, source_label) from inline text or a text/Markdown/JSON artifact path."""
     if bool(text) == bool(path):
-        raise E.ToolError(E.INVALID_ARGUMENT, f"Provide exactly one of `{field}` or `path`.",
+        raise E.ToolError(E.INVALID_ARGUMENT, f"Provide exactly one of `{field}` or `{path_field}`.",
                           hint="Use `path` for files and earlier tool artifacts; use inline text only for short English strings.")
     if path:
         p = ctx.resolve_input(path)

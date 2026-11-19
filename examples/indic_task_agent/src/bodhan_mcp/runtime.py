@@ -418,9 +418,9 @@ class RunContext:
             raise E.ToolError(E.INVALID_ARGUMENT, "A file path is required.", hint="Pass the path of an input file or an artifact returned by an earlier tool.")
         p = Path(str(raw).strip().strip('"')).expanduser()
         if not p.is_absolute():
-            # relative paths resolve against the artifacts dir first, then cwd
-            cand = self.artifacts_dir / p
-            p = cand if cand.exists() else Path.cwd() / p
+            # relative paths resolve against the artifacts dir, then the input folders, then cwd
+            options = [self.artifacts_dir / p] + [r / p for r in (self.read_roots or []) if r.is_dir()]
+            p = next((c for c in options if c.exists()), Path.cwd() / p)
         p = p.resolve()
         if self.read_roots is not None:
             roots = [r.resolve() for r in self.read_roots] + [self.artifacts_dir.resolve()]

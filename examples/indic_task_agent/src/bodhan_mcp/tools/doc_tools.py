@@ -71,6 +71,10 @@ def _describe(p: Path) -> dict:
     return d
 
 
+def _listing(p: Path) -> list[Path]:
+    return sorted(x for x in p.rglob("*") if x.is_file() and not x.name.startswith(".")) if p.is_dir() else [p]
+
+
 async def inspect_files(ctx: RunContext, a: InspectIn) -> dict:
     found: list[dict] = []
     missing: list[str] = []
@@ -82,7 +86,7 @@ async def inspect_files(ctx: RunContext, a: InspectIn) -> dict:
                 missing.append(raw)
                 continue
             raise
-        files = sorted(x for x in p.rglob("*") if x.is_file() and not x.name.startswith(".")) if p.is_dir() else [p]
+        files = await asyncio.to_thread(_listing, p)  # a big folder is walked off the event loop
         for f in files[:MAX_LISTED]:
             try:
                 f = ctx.resolve_input(str(f))  # every file, not just the folder, must be inside the allowed roots (symlinks)

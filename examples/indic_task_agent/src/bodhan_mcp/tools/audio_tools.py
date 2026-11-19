@@ -421,7 +421,7 @@ class VerifySpeechIn(_Strict):
 
 async def verify_speech(ctx: RunContext, a: VerifySpeechIn) -> dict:
     p = ctx.resolve_input(a.audio_path)
-    expected, _ = resolve_text(ctx, a.expected_text, a.expected_path, "expected_text")
+    expected, _ = resolve_text(ctx, a.expected_text, a.expected_path, "expected_text", "expected_path")
     checked = sha256_bytes(p.read_bytes())
     r = await transcribe_file(ctx, p, a.language)
     sim = similarity(expected, r["text"])

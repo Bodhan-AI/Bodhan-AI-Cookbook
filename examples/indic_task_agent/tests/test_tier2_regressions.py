@@ -155,3 +155,75 @@ async def test_audio_is_delivered_with_its_script(tmp_path):
     out, rep, trace, md = read_outputs(tmp_path)
     kinds = sorted(d["kind"] for d in rep["deliverables"])
     assert kinds == ["audio", "translation"] and any(e["type"] == "deliverable_added" for e in trace)
+
+
+# 18. a bare file name is found in the input folders
+async def test_a_bare_file_name_resolves_inside_the_input_folder(make_ctx, tmp_path):
+    folder = tmp_path / "inputs"
+    folder.mkdir()
+    (folder / "note.txt").write_text("The library opens at eight.", encoding="utf-8")
+    ctx = make_ctx(FakeBodhan(), read_roots=[folder])
+    r, err = await invoke(TOOL_BY_NAME["read_text"], ctx, {"path": "note.txt"})
+    assert not err and "eight" in r["text"]
+
+
+# 19. a planner outage still names the missing inputs, which code checked before planning
+async def test_a_planner_outage_still_reports_missing_inputs(tmp_path):
+    class Down:
+        def __init__(self):
+            self.chat = self.completions = self
+
+        async def create(self, **kw):
+            raise ConnectionError("planner unreachable")
+
+    await run(args(tmp_path, "Translate the letter", [tmp_path / "letter.pdf"]), transport=FakeBodhan().transport,
+              llm=PlannerLLM(client=Down(), model="s", max_attempts=1))
+    out, rep, trace, md = read_outputs(tmp_path)
+    assert rep["status"] == "failed" and "letter.pdf" in rep["final_answer"]
+
+
+# 20. verify_speech names its real field in errors
+async def test_verify_speech_error_names_the_real_field(make_ctx, tmp_path):
+    from conftest import speechlike, write_wav
+
+    wav = write_wav(tmp_path / "a.wav", speechlike(2, 16000))
+    r, err = await invoke(TOOL_BY_NAME["verify_speech"], make_ctx(FakeBodhan()), {"audio_path": str(wav), "language": "hi"})
+    assert err and "expected_path" in r["error"]["message"]
+
+
+# CodeRabbit (tier 0-2 diff) ------------------------------------------------------------------
+def test_redaction_ignores_how_the_words_are_spaced():
+    g = ProvenanceGuard()
+    out = g.redact("Answer: नई\nबात  यहाँ, done.")
+    assert "नई" not in out and "बात" not in out and "Answer:" in out and "done." in out
+
+
+def test_an_interrupt_mid_turn_keeps_the_turn_replayable(tmp_path):
+    """Ctrl-C while a tool call is in flight (in a child process: pytest treats KeyboardInterrupt as its own)."""
+    import os
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    from bodhan_agent import state as checkpoint
+
+    (tmp_path / "p.txt").write_text("The library opens at eight o'clock every morning.", encoding="utf-8")
+    child = [sys.executable, str(Path(__file__).with_name("_kill_resume_child.py"))]
+    env = {**os.environ, "PYTHONIOENCODING": "utf-8", **{k: "test-key" for k in ("BODHAN_TRANSCRIBE_KEY", "BODHAN_TRANSLATE_KEY",
+                                                                                 "BODHAN_SPEAK_KEY", "BODHAN_OCR_KEY")}}
+    first = subprocess.run([*child, "interrupt", str(tmp_path)], env=env, capture_output=True, text=True, encoding="utf-8", timeout=120)
+    assert "KeyboardInterrupt" in first.stderr
+    saved = checkpoint.load(tmp_path / "out")
+    assert saved["pending"] and saved["pending"]["calls"][0]["name"] == "translate_text"  # the turn to replay is still there
+    report = json.loads((tmp_path / "out" / "report.json").read_text(encoding="utf-8"))
+    assert report["provisional"] and report["stop_reason"] == "interrupted"
+    done = subprocess.run([*child, "resume", str(tmp_path)], env=env, capture_output=True, text=True, encoding="utf-8", timeout=120)
+    assert done.returncode == 0, done.stderr
+    out, rep, trace, md = read_outputs(tmp_path)
+    assert rep["status"] in ("completed", "completed_with_warnings") and not rep.get("provisional")
+
+
+def test_finish_accepts_as_many_deliverables_as_a_plan_may_declare():
+    from bodhan_agent.loop import FinishIn
+
+    assert FinishIn(status="completed", final_answer="Done.", deliverables=[f"a{i}.md" for i in range(40)])
