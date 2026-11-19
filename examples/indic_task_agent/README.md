@@ -118,6 +118,8 @@ npx @modelcontextprotocol/inspector@2.13.0 --cli python -m bodhan_mcp --method t
   --tool-name translate_text --tool-arg text="The school opens at 9 AM." --tool-arg target_language=ta
 ```
 
+`python scripts/client_check.py [--paid --env-file .env]` runs a fixed set of checks through that client and saves the transcript to `evaluation/clients/inspector.md`. Over stdio it lists tools, reads resources, makes a free call and sends four bad inputs. Over Streamable HTTP it checks that a missing or wrong token is refused, then lists tools and makes calls with the token. With `--paid` it adds one real one-sentence Bodhan translation per transport. Keys are read by the server from the env file and never appear on a command line or in the transcript.
+
 `tests/test_mcp_stdio.py` and `tests/test_mcp_http.py` also drive the server as a separate process through the official MCP Python SDK client, over stdio and HTTP. They cover schemas, bad input, unknown tools, missing keys, the path sandbox, resources, unknown-resource errors and token checks.
 
 Resources: `bodhan://voices` (the fixed voice library and styles), `bodhan://languages` (codes per model) and `bodhan://pricing`. An unknown resource URI returns the protocol error `-32602`. Each tool advertises an input schema and a typed output schema (`src/bodhan_mcp/tools/schemas.py`), and tests validate real results against them.
