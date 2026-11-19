@@ -196,3 +196,24 @@ async def test_a_read_page_counts_only_if_it_reached_the_planner_whole(tmp_path)
     page = reads[-1]
     assert page["ok"] and page["next_offset"] is not None and len(page["text"]) < len(doc.read_text(encoding="utf-8"))  # shortened, arrived whole
     assert rep["status"] not in ("completed", "completed_with_warnings")  # the rest was never read, so the summary has no source
+
+
+# ---- cost basis: metered vs bounded estimate -------------------------------------------------
+async def test_a_translation_without_usage_is_labelled_an_estimate(make_ctx):
+    import httpx
+
+    fake = FakeBodhan()
+    inner = fake.handle
+
+    def no_usage(request):
+        resp = inner(request)
+        body = json.loads(resp.content)
+        body.pop("usage", None)
+        return httpx.Response(resp.status_code, json=body)
+
+    fake.handle = no_usage
+    events: list = []
+    ctx = make_ctx(fake, events=events)
+    meta, _ = await ctx.client.translate("The school opens at nine.", "hi")
+    call = [e for e in events if e.get("type") == "api_call" and e.get("cache") == "miss"][-1]
+    assert call["cost_basis"] == "bounded_estimate" and ctx.ledger.summary()["bodhan_billed_estimated_inr"] > 0

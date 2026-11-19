@@ -288,12 +288,16 @@ class BodhanClient:
                                                retryable=True), "uncertain", True, status=status) from exc
                 cost = cost_of(meta)
                 self.ledger.commit(reservation, cost)
+                basis = meta.get("cost_basis", "metered")
+                if basis == "bounded_estimate":
+                    self.ledger.estimated += cost
                 self.gates[model].succeeded()
                 self.cache.put(key, meta, blob, durable=meta.get("complete", True))  # truncated output is kept for this run only
                 info = {"model": model, "cache": "miss", "cost_inr": round(cost, 5), "attempts": attempt,
                         "latency_s": round(time.monotonic() - started, 3)}
                 self._emit({"type": "api_call", "model": model, "purpose": purpose, "cache": "miss", "attempt": attempt, "status": status,
-                            "reservation_id": reservation.id, "billing": "billed", "latency_s": round(time.monotonic() - t0, 3), "cost_inr": round(cost, 5)})
+                            "reservation_id": reservation.id, "billing": "billed", "cost_basis": basis, "latency_s": round(time.monotonic() - t0, 3),
+                            "cost_inr": round(cost, 5)})
                 return meta, blob, info
             except _Attempt as failure:
                 assert reservation is not None
@@ -417,7 +421,9 @@ class BodhanClient:
             finish = choice.get("finish_reason")
             usage = body.get("usage") or {}
             return {"translation": out, "finish_reason": finish, "truncated": finish == "length", "complete": finish != "length",
-                    "completion_tokens": usage.get("completion_tokens"), "budget_tokens": budget_tokens}, None
+                    "completion_tokens": usage.get("completion_tokens"), "budget_tokens": budget_tokens,
+                    # no usage in the reply: priced at the token cap sent, an upper bound rather than a metered amount
+                    **({"cost_basis": "bounded_estimate"} if usage.get("completion_tokens") is None else {})}, None
 
         def cost(m: dict) -> float:
             toks = m.get("completion_tokens")

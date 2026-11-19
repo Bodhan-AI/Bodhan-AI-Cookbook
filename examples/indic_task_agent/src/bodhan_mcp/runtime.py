@@ -28,7 +28,13 @@ PRICE_SPEAK_PER_10K_CHARS = 6.0
 PRICE_OCR_PER_IMAGE = 0.20
 
 
+# Unit prices as published at console.bodhan.ai (checked 19 November 2026). These give the recipe's own ledger;
+# the provider's dashboard/invoice is the authority for what was actually debited.
+
+
 def price_transcribe(seconds: float) -> float:
+    # Billed per second; the provider does not publish how a fraction of a second is rounded, so each request is
+    # counted rounded UP to a whole second (conservative: never below the provider's charge for that duration).
     return math.ceil(max(seconds, 0.0)) / 60.0 * PRICE_TRANSCRIBE_PER_MIN
 
 
@@ -114,6 +120,7 @@ class CostLedger:
     llm_cost: float = 0.0
     llm_priced: bool = False
     llm_over_bound: float = 0.0  # planner spend beyond its pre-call bound (expected 0; reported when not)
+    estimated: float = 0.0  # part of `billed` priced from an upper bound because the response carried no usage
 
     @property
     def committed(self) -> float:
@@ -173,7 +180,7 @@ class CostLedger:
             self.llm_priced = True
 
     _STATE_FIELDS = ("billed", "uncertain", "by_model", "calls", "cache_hits", "llm_prompt_tokens", "llm_completion_tokens",
-                     "llm_calls", "llm_cost", "llm_priced", "llm_over_bound")
+                     "llm_calls", "llm_cost", "llm_priced", "llm_over_bound", "estimated")
 
     def to_state(self) -> dict[str, Any]:
         """Settled amounts only: in-flight reservations are not saved (a checkpoint is written
@@ -196,6 +203,9 @@ class CostLedger:
             "bodhan_calls": self.calls,
             "cache_hits": self.cache_hits,
             **({"llm_over_pre_call_bound_inr": round(self.llm_over_bound, 4)} if self.llm_over_bound > 0 else {}),
+            **({"bodhan_billed_estimated_inr": round(self.estimated, 4)} if self.estimated > 0 else {}),
+            "bodhan_cost_basis": "published unit prices x metered quantity (audio seconds rounded up per request, output tokens from usage, "
+                                 "input characters, images); provider dashboard is authoritative",
             "llm": {"calls": self.llm_calls, "prompt_tokens": self.llm_prompt_tokens,
                     "completion_tokens": self.llm_completion_tokens,
                     "pricing": "priced from CLI rates" if self.llm_priced else "not priced (no rate supplied); tokens reported only"},

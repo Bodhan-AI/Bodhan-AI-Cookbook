@@ -116,6 +116,8 @@ def ledger_from_trace(trace: Path) -> dict[str, Any] | None:
             if e.get("billing") == "billed":
                 st["billed"] += cost
                 st["calls"] += 1
+                if e.get("cost_basis") == "bounded_estimate":
+                    st["estimated"] = st.get("estimated", 0.0) + cost
             elif e.get("billing") in ("uncertain", "billed_unusable"):
                 st["uncertain"] += cost
             else:

@@ -13,7 +13,7 @@ One key per model: `BODHAN_TRANSCRIBE_KEY`, `BODHAN_TRANSLATE_KEY`, `BODHAN_SPEA
 | Request | `POST /v1/audio/transcriptions`, multipart: `file`, `model=indic-transcribe`, optional `language` |
 | Limit | About 30 s of audio per request |
 | Response | `{"text": "...", "usage": null}`. No timestamps, segments or detected language. |
-| Price | ₹0.10 per audio minute, billed per second |
+| Price | ₹0.10 per audio minute, billed per second. Rounding of fractional seconds is not published; the recipe counts each request rounded up to a whole second. |
 
 The documented error for unmeasurable containers is 415, so the tool always sends 16 kHz mono WAV that it decodes itself. Under load the model returned `429 "Maximum rate limit reached for the model"` to every request for a few minutes. Latency rose from about 0.5 s to about 6 s per 6 s clip.
 
@@ -25,7 +25,7 @@ The documented error for unmeasurable containers is 415, so the tool always send
 | Observed | `POST /translate` returns **404**. `POST /v1/translate` returns 404 too. |
 | Working request | `POST /v1/chat/completions` with `model=indic-translate`, exactly one `user` message, `target_language`, optional `script` (`native`, `roman`, `codemix`), optional `max_output_tokens` |
 | Response | Chat completion. `finish_reason: "length"` means truncated. `usage.completion_tokens` is billed. |
-| Price | ₹0.20 per 10,000 output tokens |
+| Price | ₹0.20 per 10,000 output tokens (counted from the reply's `usage.completion_tokens`) |
 
 Other observed behaviour:
 

@@ -65,7 +65,11 @@ def resource_payload(uri: str) -> dict[str, Any]:
     if uri == "bodhan://pricing":
         return {"indic-transcribe": f"₹{PRICE_TRANSCRIBE_PER_MIN} per audio minute",
                 "indic-translate": f"₹{PRICE_TRANSLATE_PER_10K_OUT_TOKENS} per 10k output tokens",
-                "indic-speak": f"₹{PRICE_SPEAK_PER_10K_CHARS} per 10k input characters", "indic-ocr": f"₹{PRICE_OCR_PER_IMAGE} per image"}
+                "indic-speak": f"₹{PRICE_SPEAK_PER_10K_CHARS} per 10k input characters", "indic-ocr": f"₹{PRICE_OCR_PER_IMAGE} per image",
+                "source": "published prices at https://console.bodhan.ai/ (checked 19 November 2026)",
+                "accounting": "Costs reported by these tools are this server's ledger: audio seconds are rounded up per request, a translation "
+                              "without usage is priced at its token cap, a cached result costs nothing, and verification calls are counted. "
+                              "The Bodhan dashboard is the authority for actual debits."}
     raise KeyError(uri)
 
 
