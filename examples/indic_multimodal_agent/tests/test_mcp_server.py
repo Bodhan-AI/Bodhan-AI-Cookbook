@@ -22,6 +22,7 @@ def test_mcp_tools_registered():
 
     for et in expected_tools:
         assert et in tool_names, f"Expected tool '{et}' to be registered in MCPServer"
+    assert len(tools) == 7, f"Expected exactly 7 registered MCP tools, got {len(tools)}"
 
 
 def test_mcp_transcribe_malformed_input():

@@ -104,6 +104,21 @@ python -m bodhan_agent --task "Translate this village census table to Marathi" -
 ```
 
 ### 2. Running the Standalone MCP Server
+The server exposes **7 Model Context Protocol (MCP) tools**:
+1. `bodhan_transcribe`: Transcribe speech audio file to text with optional language code (Indic-Transcribe).
+2. `bodhan_translate`: Translate text between Indic and English with optional batching (Indic-Translate).
+3. `bodhan_speak`: Synthesize speech from text or text_artifact_id using natural Indic voices (Indic-Speak).
+4. `bodhan_ocr`: Extract text, tables, and layout from image or PDF document (Indic-OCR).
+5. `bodhan_detect_language`: Identify language and script from text or audio sample.
+6. `bodhan_list_voices`: List available Indic text-to-speech voices and their supported languages.
+7. `bodhan_inspect_media`: Inspect local media file properties (duration, format, sample rate, page count).
+
+To test interactively using the official MCP Inspector:
+```bash
+npx @modelcontextprotocol/inspector python -m bodhan_mcp
+```
+
+Or run directly over stdio:
 ```bash
 python -m bodhan_mcp
 ```
@@ -113,7 +128,7 @@ Compatible with any standard MCP client (e.g. Claude Desktop, Antigravity, MCP I
 ```bash
 pytest tests/
 ```
-Executes all 51 unit and integration tests completely offline without network calls or paid API charges.
+Executes all 54 unit and integration tests completely offline without network calls or paid API charges.
 
 ---
 
@@ -143,11 +158,11 @@ Executes all 51 unit and integration tests completely offline without network ca
 ## Verification Status: What Has and Has Not Been Verified
 
 - **Verified**:
-  - **52 Offline Unit & Integration Tests**: 100% passing offline via `pytest` without network access or paid API calls running specifically on **Python 3.14.1 (Windows 11 x86_64)** (including user-stated budget hard-cap enforcement, reference-passing, audio verification without OCR, transcription cost accounting, LLM provider portability, and explicit `LLM_BASE_URL` requirement tests).
+  - **54 Offline Unit & Integration Tests**: 100% passing offline via `pytest` without network access or paid API calls running specifically on **Python 3.14.1 (Windows 11 x86_64)** (including user-stated budget hard-cap enforcement, reference-passing, audio verification without OCR, transcription cost accounting, LLM provider portability, explicit `LLM_BASE_URL` requirement tests, `--files` accepting either file or directory, and `report.json` missed quality targets tracking).
   - **Zero LLM Simulation**: Production agent runs strictly on remote LLM calls (`LLM_BASE_URL`/`LLM_MODEL`/`LLM_API_KEY`). Test doubles exist solely in `tests/test_doubles.py` for offline regression testing.
   - **Provider Portability**: Only Google Gemini (`gemini-flash-lite-latest`) has been live-tested. Standard OpenAI-compatible providers are supported by automated message sanitization in `LLMClient.sanitize_messages()` (stripping Gemini-specific `extra_content` and `thought_signature` fields), but have not been live-tested.
   - **Live Bodhan Indic Endpoints**: Live calls to Indic-Transcribe, Indic-Translate, Indic-Speak, and Indic-OCR verified against live schemas.
-  - **Back-Transcription Coverage Honesty**: Verification honestly marks synthesis with $<70\%$ back-transcription coverage as **`WEAK`** (not `PASS`) and renders a prominent quality warning block.
+  - **Honest Quality Target Auditing**: Every run logs missed quality targets in machine-readable `report.json` and human-readable `result.md` (e.g. single-step tasks exceeding 30s latency due to remote API or rasterization latency, multi-step tasks exceeding 90s, or synthesis back-transcription coverage $<70\%$ marked as `WEAK` rather than `PASS`).
 - **Not Verified**:
   - **Python 3.11 and 3.12 Execution**: Tests were executed locally on Python 3.14.1. Local installation and execution on Python 3.11 and 3.12 remain unverified.
   - **GitHub Actions CI Workflow**: No standalone GitHub Actions workflow runs inside `examples/indic_multimodal_agent/` (workflows only run from repo-root `.github/workflows/`); recipe CI relies on repo-level `make check`.

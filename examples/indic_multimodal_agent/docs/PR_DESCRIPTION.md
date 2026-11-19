@@ -47,7 +47,7 @@ Exposes standard JSON-RPC 2.0 over `stdio`. Compatible with any standard MCP cli
 ```bash
 pytest tests/
 ```
-Executes all 52 unit and integration tests completely offline with 0 external network requests and ₹0.00 spent.
+Executes all 54 unit and integration tests completely offline with 0 external network requests and ₹0.00 spent.
 
 ---
 
@@ -76,6 +76,7 @@ flowchart TD
         T4["bodhan_ocr\n(PyMuPDF 2x Render, Layout & Tables)"]
         T5["bodhan_detect_language\n(Devanagari Stop-words, Script Analysis)"]
         T6["bodhan_list_voices\n(Regional Indic Voice Catalog)"]
+        T7["bodhan_inspect_media\n(Duration, Format, Pages)"]
     end
 
     subgraph BodhanEndpoints ["Bodhan AI Foundation Endpoints"]
@@ -90,7 +91,7 @@ flowchart TD
     Agent <--> LLM
     Agent --> Budget
     Agent --> MCPEntry
-    MCPEntry --> T1 & T2 & T3 & T4 & T5 & T6
+    MCPEntry --> T1 & T2 & T3 & T4 & T5 & T6 & T7
     T1 --> B1
     T2 --> B2
     T3 --> B3
@@ -156,6 +157,7 @@ The tools are designed at a medium-high level of granularity. Low-level primitiv
 | **`bodhan_ocr`** | `Indic-OCR` | Uses PyMuPDF to render PDF pages at $2\times$ resolution; performs page-by-page OCR; reconstructs tables as Markdown; outputs structured layout bounding boxes. |
 | **`bodhan_detect_language`**| Unicode & Heuristics | Analyzes Unicode script ranges and Devanagari stop-words (e.g. Marathi vs. Hindi frequency analysis) to determine language and confidence offline at zero cost. |
 | **`bodhan_list_voices`** | Catalog Resource | Provides regional persona catalog categorized by language, gender, and voice ID; logs assumptions if requested persona requires cross-lingual adaptation. |
+| **`bodhan_inspect_media`** | Local Metadata Probe | Inspects audio duration, format, sample rate, and PDF page counts locally at zero cost before API invocation. |
 
 ---
 
@@ -219,10 +221,10 @@ TODO: [Add YouTube / Loom demo video link here before submission - 5 min maximum
 
 ### Verification Status (Honest Audit)
 - **Verified**:
-  - **52 Offline Unit & Integration Tests**: 100% passing offline on **Python 3.14.1 (Windows 11 x86_64)** with zero paid calls.
+  - **54 Offline Unit & Integration Tests**: 100% passing offline on **Python 3.14.1 (Windows 11 x86_64)** with zero paid calls (including user budget enforcement, reference-passing, audio verification without OCR, transcription cost accounting, LLM provider portability, explicit `LLM_BASE_URL` requirement, `--files` accepting file or directory, and `report.json` missed quality targets tracking).
   - **Zero LLM Simulation**: Production agent runs strictly against remote LLMs; test doubles exist solely under `tests/test_doubles.py`.
   - **Live Bodhan Indic Endpoints**: Live calls to all four foundation models tested and validated.
-  - **Back-Transcription Coverage Honesty**: Verification honestly marks synthesis with $<70\%$ back-transcription coverage as **`WEAK`** (not `PASS`) and flags a prominent warning.
+  - **Honest Quality Target Auditing**: Missed quality targets are logged in machine-readable `report.json` and rendered in `result.md` (e.g. single-step tasks > 30s latency due to remote API network latency, or synthesis back-transcription coverage $<70\%$ marked as `WEAK` rather than `PASS`).
   - **Budget Enforcements**: Both CLI flags and natural-language budgets ("5 paise") are strictly enforced.
 - **Not Verified**:
   - **Python 3.11 and 3.12**: Tests have only been executed locally on Python 3.14.1. Local execution on Python 3.11 and 3.12 remains unverified.

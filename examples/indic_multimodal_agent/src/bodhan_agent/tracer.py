@@ -115,6 +115,33 @@ class Tracer:
         """Write report.json and result.md using relative paths only."""
         total_duration = round(time.time() - self.start_time, 2)
 
+        # Evaluate quality targets (e.g. latency targets, verification invariant degradations)
+        missed_quality_targets = []
+        if len(self.steps) == 1 and total_duration > 30.0:
+            missed_quality_targets.append({
+                "target": "single_step_latency",
+                "actual": f"{total_duration}s",
+                "threshold": "<= 30.0s",
+                "reason": f"Single-step execution duration ({total_duration}s) exceeded 30s target due to remote API network latency or image rasterization overhead."
+            })
+        elif len(self.steps) > 1 and total_duration > 90.0:
+            missed_quality_targets.append({
+                "target": "multi_step_latency",
+                "actual": f"{total_duration}s",
+                "threshold": "<= 90.0s",
+                "reason": f"Multi-step pipeline duration ({total_duration}s) exceeded 90s target due to sequential multi-chunk speech synthesis or back-transcription."
+            })
+
+        for v in self.verification_results:
+            st = v.get("status") or ("PASS" if v.get("passed") else "FAIL")
+            if st in ("WEAK", "FAIL"):
+                missed_quality_targets.append({
+                    "target": f"verification_{v.get('check', 'invariant')}",
+                    "actual": st,
+                    "threshold": "PASS",
+                    "reason": v.get("details", "Invariant check flagged quality degradation.")
+                })
+
         # 1. Write report.json
         report_data = {
             "status": status,
@@ -128,6 +155,7 @@ class Tracer:
             "tokens": llm_tokens or {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0},
             "llm_tokens": llm_tokens or {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0},
             "verification_results": self.verification_results,
+            "missed_quality_targets": missed_quality_targets,
             "artifacts": self.artifacts_created,
             "assumptions": self.assumptions,
             "error": error_message,
@@ -200,6 +228,16 @@ class Tracer:
                     "> **Quality Warning**: Verification flagged one or more checks as **WEAK** (e.g. back-transcription speech coverage below 70%). Output quality may be degraded.",
                     "",
                 ])
+
+        if missed_quality_targets:
+            md_lines.extend([
+                "## Missed Quality Targets",
+                "| Target | Actual | Target Threshold | Reason |",
+                "| :--- | :--- | :--- | :--- |",
+            ])
+            for m in missed_quality_targets:
+                md_lines.append(f"| `{m['target']}` | **{m['actual']}** | `{m['threshold']}` | {m['reason']} |")
+            md_lines.append("")
 
         with open(self.result_file, "w", encoding="utf-8") as f:
             f.write("\n".join(md_lines).strip() + "\n")

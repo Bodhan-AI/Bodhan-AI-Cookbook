@@ -313,3 +313,73 @@ def test_stage_c_audio_lang_detect_mocked(temp_dirs, capsys):
         rep = json.load(f)
     assert rep["status"] == "completed"
     assert "artifacts/lang_detect_results.json" in rep["artifacts"]
+
+
+def test_cli_files_argument_accepts_file_or_directory(tmp_path):
+    """Test that find_input_files accepts either a single file or a directory path."""
+    input_dir = tmp_path / "clips_folder"
+    input_dir.mkdir(parents=True, exist_ok=True)
+    file_1 = input_dir / "track1.mp3"
+    file_2 = input_dir / "track2.wav"
+    file_1.write_bytes(b"\x00" * 50)
+    file_2.write_bytes(b"\x00" * 50)
+
+    # 1. Directory test
+    agent_dir = BodhanTaskAgent(
+        task="Test directory input",
+        files_dir=str(input_dir),
+        out_dir=str(tmp_path / "out_dir"),
+    )
+    found_from_dir = agent_dir.find_input_files()
+    assert len(found_from_dir) == 2
+    assert file_1 in found_from_dir
+    assert file_2 in found_from_dir
+
+    # 2. Single file test
+    agent_file = BodhanTaskAgent(
+        task="Test single file input",
+        files_dir=str(file_1),
+        out_dir=str(tmp_path / "out_file"),
+    )
+    found_from_file = agent_file.find_input_files()
+    assert len(found_from_file) == 1
+    assert found_from_file[0] == file_1
+
+
+def test_report_json_records_missed_quality_targets(tmp_path):
+    """Test that report.json properly records missed quality targets and reasons."""
+    from bodhan_agent.tracer import Tracer
+    from bodhan_agent.verifier import VerificationResult
+
+    out_dir = tmp_path / "out_tracer_test"
+    tracer = Tracer(out_dir=out_dir)
+
+    # Simulate a verification check that resulted in WEAK
+    tracer.record_verifications([
+        VerificationResult(
+            artifact_name="artifacts/summary.mp3",
+            check_type="back_transcription_coverage",
+            passed=True,
+            status="WEAK",
+            details="Coverage is 58.2% (<70%), speech may be degraded.",
+        )
+    ])
+
+    tracer.finalize(
+        task="Test quality tracking",
+        status="completed",
+        total_cost_inr=0.05,
+    )
+
+    report_p = out_dir / "report.json"
+    assert report_p.exists()
+    with open(report_p, "r", encoding="utf-8") as f:
+        rep = json.load(f)
+
+    assert "missed_quality_targets" in rep
+    assert len(rep["missed_quality_targets"]) >= 1
+    miss = rep["missed_quality_targets"][0]
+    assert "verification_back_transcription_coverage" in miss["target"]
+    assert miss["actual"] == "WEAK"
+    assert "58.2%" in miss["reason"]
+
