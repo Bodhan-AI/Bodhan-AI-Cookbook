@@ -5,6 +5,7 @@ verify_translation."""
 from __future__ import annotations
 
 import asyncio
+import re
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -33,6 +34,8 @@ from ..textutil import (
 )
 
 PARA = "\n\n"  # paragraph separator in Markdown
+MAX_PARAGRAPH_UNITS = 80
+_HTML_COMMENT = re.compile(r"<!--.*?-->", re.S)
 CHUNK_CHARS = 1500  # well inside the 32K-token context; smaller chunks translate more faithfully
 MAX_SPLIT_DEPTH = 3
 
@@ -92,16 +95,23 @@ def plan_units(source: str, target: str | None = None) -> list[tuple[Unit, str]]
             for i, seg in enumerate(pack_segments(text, CHUNK_CHARS)):
                 units.append((Unit("text", seg), PARA if i == 0 else " "))
 
-    for block in split_markdown_blocks(source):
-        if block.kind == "blank":
-            continue
-        if block.kind == "text" and target and _already_in(block.text, target):
+    blocks = [b for b in split_markdown_blocks(source) if b.kind != "blank"]
+    # Indic-Translate merges paragraphs it receives together, so by default each paragraph
+    # is its own request (layout preserved, no re-translation). Very long documents group
+    # paragraphs instead, to stay well under the 120 requests/minute limit; the paragraph
+    # coverage check in translate_markdown repairs any merge.
+    group = sum(1 for b in blocks if b.kind == "text") > MAX_PARAGRAPH_UNITS
+    for block in blocks:
+        if block.kind == "text" and _HTML_COMMENT.fullmatch(block.text.strip()):
+            flush()
+            units.append((Unit("keep", block.text), PARA))  # e.g. <!-- page 3 --> markers
+        elif block.kind == "text" and target and _already_in(block.text, target):
             flush()
             unit = Unit("keep", block.text)
             unit.notes.append("a passage already in the target language was kept as is")
             units.append((unit, PARA))
         elif block.kind == "text":
-            if sum(len(b) for b in buf) + len(block.text) > CHUNK_CHARS:
+            if not group or sum(len(b) for b in buf) + len(block.text) > CHUNK_CHARS:
                 flush()
             buf.append(block.text)
         else:
@@ -191,7 +201,7 @@ async def verify_units(ctx: RunContext, units: list[Unit], source_text: str, out
         elif share < 0.8:
             warnings.append(f"{1 - share:.0%} of letters are not in the target script (names/terms kept in source script?)")
 
-    nums = number_check(source_text, output_text)
+    nums = number_check(_HTML_COMMENT.sub("", source_text), _HTML_COMMENT.sub("", output_text))  # page markers are not content
     checks["numbers"] = nums
     if nums["missing"]:
         warnings.append(f"numbers not found in the translation: {nums['missing'][:8]} (may be spelled out as words)")

@@ -107,3 +107,24 @@ async def test_missing_key_is_actionable(fake, tmp_path):
         await client.ocr(b"\x89PNG", "image/png")
     assert exc.value.code == E.MISSING_CREDENTIALS and "BODHAN_OCR_KEY" in exc.value.message
     assert json.dumps(exc.value.as_dict())
+
+
+async def test_rate_limit_burst_backs_off_for_the_whole_model_and_recovers(fake, make_ctx):
+    fake.fail_first["transcriptions"] = [429] * 5  # a busy server: several requests rejected in a row
+    ctx = make_ctx(fake)
+    from fakes import wav_tone
+
+    clips = [wav_tone(2.0 + i * 0.1, rate=16000) for i in range(6)]
+    results = await asyncio.gather(*[ctx.client.transcribe(c, 2.0, "hi") for c in clips])
+    assert len(results) == 6  # every request eventually succeeds; none is reported as failed
+    gate = ctx.client.gates["indic-transcribe"]
+    assert gate.limit < gate.max  # halved to 1 during the burst; six successes have only grown it back part-way
+    assert ctx.ledger.uncertain == 0  # 429s are never billed
+
+
+async def test_rate_limit_gives_up_after_bounded_attempts(fake, make_ctx):
+    fake.fail_first["translate"] = [429] * 20
+    ctx = make_ctx(fake)
+    with pytest.raises(E.ToolError) as exc:
+        await ctx.client.translate("Hello", "hi")
+    assert exc.value.code == E.RATE_LIMITED and exc.value.details["attempts"] == ctx.client.max_rate_limit_attempts

@@ -25,6 +25,7 @@ import json
 import random
 import time
 from collections.abc import Awaitable, Callable
+from contextlib import asynccontextmanager
 from typing import Any
 
 import httpx
@@ -53,6 +54,54 @@ class _Attempt(Exception):
         self.error, self.billing, self.retry, self.wait, self.status = error, billing, retry, wait, status
 
 
+class AdaptiveGate:
+    """Per-model concurrency limit. A 429 halves the limit and starts a cooldown that
+    every request to that model waits out (one shared back-off instead of N requests
+    hammering a busy server); three successes in a row raise the limit by one again."""
+
+    def __init__(self, maximum: int):
+        self.max = max(1, maximum)
+        self.limit = self.max
+        self.inflight = 0
+        self.cooldown_until = 0.0
+        self.ok_streak = 0
+        self._cond = asyncio.Condition()
+
+    @asynccontextmanager
+    async def slot(self):
+        async with self._cond:
+            while True:
+                wait = self.cooldown_until - time.monotonic()
+                if wait > 0:
+                    self._cond.release()
+                    try:
+                        await asyncio.sleep(wait)
+                    finally:
+                        await self._cond.acquire()
+                    continue
+                if self.inflight < self.limit:
+                    break
+                await self._cond.wait()
+            self.inflight += 1
+        try:
+            yield
+        finally:
+            async with self._cond:
+                self.inflight -= 1
+                self._cond.notify_all()
+
+    def rate_limited(self, wait: float) -> None:
+        self.limit = max(1, self.limit // 2)
+        self.ok_streak = 0
+        self.cooldown_until = max(self.cooldown_until, time.monotonic() + wait)
+
+    def succeeded(self) -> None:
+        self.ok_streak += 1
+        if self.ok_streak >= 3 and self.limit < self.max:
+            self.limit += 1
+            self.ok_streak = 0
+
+
 class BodhanClient:
     def __init__(
         self,
@@ -64,6 +113,7 @@ class BodhanClient:
         timeout: float = 60.0,
         concurrency: int = 4,
         max_attempts: int = 3,
+        max_rate_limit_attempts: int = 7,
         backoff_base: float = 1.0,
         base_url: str = BODHAN_BASE_URL,
         transport: httpx.AsyncBaseTransport | None = None,
@@ -74,9 +124,10 @@ class BodhanClient:
         self.trace = trace
         self.timeout = timeout
         self.max_attempts = max(1, max_attempts)
+        self.max_rate_limit_attempts = max(self.max_attempts, max_rate_limit_attempts)
         self.backoff_base = backoff_base
         self.base_url = base_url.rstrip("/")
-        self._sems = {m: asyncio.Semaphore(max(1, concurrency)) for m in KEY_ENV}
+        self.gates = {m: AdaptiveGate(concurrency) for m in KEY_ENV}
         self._http = httpx.AsyncClient(timeout=httpx.Timeout(timeout, connect=min(10.0, timeout)), transport=transport)
 
     async def aclose(self) -> None:
@@ -111,12 +162,14 @@ class BodhanClient:
         last: _Attempt | None = None
         started = time.monotonic()
         auth_retried = False
-        for attempt in range(1, self.max_attempts + 1):
+        attempt = 0
+        while True:
+            attempt += 1
             reservation = self.ledger.reserve(model, reserve, purpose)
             t0 = time.monotonic()
             status: int | None = None
             try:
-                async with self._sems[model]:
+                async with self.gates[model].slot():
                     try:
                         resp = await send(api_key)
                     except httpx.ConnectError as exc:
@@ -140,6 +193,7 @@ class BodhanClient:
                                                retryable=True), "uncertain", True, status=status) from exc
                 cost = cost_of(meta)
                 self.ledger.commit(reservation, cost)
+                self.gates[model].succeeded()
                 self.cache.put(key, meta, blob)
                 info = {"model": model, "cache": "miss", "cost_inr": round(cost, 5), "attempts": attempt,
                         "latency_s": round(time.monotonic() - started, 3)}
@@ -154,7 +208,12 @@ class BodhanClient:
                 if failure.error.code == E.AUTH_FAILED and not auth_retried and failure.retry:
                     auth_retried = True
                 last = failure
-                will_retry = failure.retry and attempt < self.max_attempts
+                limit = self.max_rate_limit_attempts if failure.error.code == E.RATE_LIMITED else self.max_attempts
+                will_retry = failure.retry and attempt < limit
+                if failure.error.code == E.RATE_LIMITED:
+                    # 429s are not billed, so waiting is cheap; back off for the whole model, not just this request
+                    rl_wait = failure.wait if failure.wait is not None else min(30.0, self.backoff_base * 2 ** attempt)
+                    self.gates[model].rate_limited(rl_wait)
                 self._emit({"type": "api_call", "model": model, "purpose": purpose, "cache": "miss", "attempt": attempt, "status": failure.status or status,
                             "billing": failure.billing, "error": failure.error.code, "message": failure.error.message[:300],
                             "latency_s": round(time.monotonic() - t0, 3),
@@ -162,8 +221,11 @@ class BodhanClient:
                             "will_retry": will_retry})
                 if not will_retry:
                     break
-                wait = failure.wait if failure.wait is not None else self.backoff_base * (2 ** (attempt - 1))
-                await asyncio.sleep(min(wait, 30.0) + random.uniform(0, self.backoff_base * 0.25))
+                if failure.error.code != E.RATE_LIMITED:  # rate limits wait inside the shared gate instead
+                    wait = failure.wait if failure.wait is not None else self.backoff_base * (2 ** (attempt - 1))
+                    await asyncio.sleep(min(wait, 30.0) + random.uniform(0, self.backoff_base * 0.25))
+                else:
+                    await asyncio.sleep(random.uniform(0, self.backoff_base * 0.5))
         assert last is not None
         err = last.error
         err.details.setdefault("attempts", attempt)

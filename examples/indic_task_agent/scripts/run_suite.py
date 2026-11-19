@@ -73,17 +73,18 @@ def main() -> None:
     ap.add_argument("--ids", default="")
     ap.add_argument("--out", default=str(ROOT / "outputs" / "suite"))
     ap.add_argument("--score-only", action="store_true", help="re-score existing outputs without running")
+    ap.add_argument("--skip-existing", action="store_true", help="do not re-run tasks that already have a report.json")
     ap.add_argument("--env-file", default=None)
     a, extra = ap.parse_known_args()
     tasks = json.loads((ROOT / "evaluation" / "tasks.json").read_text(encoding="utf-8"))["tasks"]
     if a.ids:
         wanted = set(a.ids.split(","))
         tasks = [t for t in tasks if t["id"] in wanted]
-    base = Path(a.out)
+    base = Path(a.out).resolve()
     rows = []
     for t in tasks:
         out = base / t["id"]
-        if not a.score_only:
+        if not a.score_only and not (a.skip_existing and (out / "report.json").exists()):
             cmd = [sys.executable, "-m", "bodhan_agent", "--task", t["task"], "--files", *[str(ROOT / f) for f in t["files"]], "--out", str(out),
                    "--max-steps", str(t.get("max_steps", 30)), "--max-cost-inr", str(t.get("max_cost_inr", 20))]
             if a.env_file:
