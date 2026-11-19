@@ -738,6 +738,23 @@ class Agent:
             small["note"] = "older result shortened to save context; open artifacts with read_text if needed"
             self.messages[i] = {**self.messages[i], "content": json.dumps(small, ensure_ascii=False)}
             changed = True
+        if level >= 3:  # also the planner's own earlier arguments (e.g. a long write_text content), kept valid JSON
+            last_assistant = max((i for i, m in enumerate(self.messages) if m.get("role") == "assistant"), default=-1)
+            for i, m in enumerate(self.messages):
+                if m.get("role") != "assistant" or i == last_assistant or not m.get("tool_calls"):
+                    continue
+                calls = []
+                for c in m["tool_calls"]:
+                    try:
+                        args = json.loads(c["function"].get("arguments") or "{}")
+                    except ValueError:
+                        args = {}
+                    if isinstance(args, dict) and len(c["function"].get("arguments") or "") > 400:
+                        args = {k: (v if len(json.dumps(v, ensure_ascii=False)) <= 120 else "[shortened to save context]") for k, v in args.items()}
+                        c = {**c, "function": {**c["function"], "arguments": json.dumps(args, ensure_ascii=False)}}
+                        changed = True
+                    calls.append(c)
+                self.messages[i] = {**m, "tool_calls": calls}
         return changed
 
     def _charge_uncertain_llm(self, est: float, attempts: int, why: str) -> None:
