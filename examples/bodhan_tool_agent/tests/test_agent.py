@@ -311,7 +311,7 @@ class AgentTests(unittest.TestCase):
     def test_unsupported_declared_format_stops_before_bodhan(self):
         report, calls = self.invoke([
             {"action": "declare_deliverables", "deliverables": [
-                {"description": "Requested subtitles", "format": "srt"},
+                {"description": "Requested video", "format": "other"},
             ]},
         ])
         self.assertEqual(report["status"], "unsupported")

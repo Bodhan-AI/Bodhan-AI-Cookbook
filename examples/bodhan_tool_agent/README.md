@@ -86,8 +86,22 @@ The cost limit covers Bodhan charges at the assignment rates. OCR and speech req
 
 The trace records translation review and speech read-back as verification events linked to the planner step that triggered them. Each event has its own latency and Bodhan request costs. Tool events exclude verification latency and costs, so those amounts are counted once. The step count reflects planner decisions and includes the finish decision.
 
-The agent publishes Markdown, plain text, and WAV. English summarization, MP3,
-subtitles, Bodhan request retries, and resumable work are upcoming. If OCR
+For an audio summary, the agent writes and reviews an English narration from
+up to 48 KB of English source text. Indic-Translate handles any language
+conversion. The matched summary text and audio use the same narration.
+The agent supports WAV and MP3. For a timed request, ffmpeg can adjust playback
+tempo by up to 15%. The agent uses the final audio's decoded duration and
+reports a miss outside 15% of the requested duration, with a one-second
+minimum tolerance. It can revise the narration before exporting the text.
+
+For SRT, the agent uses eight-second audio windows, translates each nonblank cue
+with Bodhan when needed, reviews the translation, and validates cue order and coverage.
+Offsets are window boundaries. A window can split a word or include silence.
+
+Four simultaneous Bodhan HTTP requests are allowed per process. Short rate limits
+and pre-send connection failures get bounded backoff. Identical requests reuse
+successful responses within an agent run. Ambiguously billed attempts keep
+their reservation. Starting another run creates a fresh cache. If OCR
 stops after completing some pages, those pages are saved as a partial Markdown
 artifact. Completed translation text is kept as an unverified artifact if
 its coverage review is unavailable or fails. A partial file cannot fulfill

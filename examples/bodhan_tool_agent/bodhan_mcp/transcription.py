@@ -13,7 +13,8 @@ import httpx
 from mcp.server.fastmcp.exceptions import ToolError
 from pydantic import BaseModel, Field, ValidationError
 
-from .request_budget import TRANSCRIBE_PER_SECOND, reserve
+from .api_requests import post_bodhan
+from .request_budget import TRANSCRIBE_PER_SECOND
 
 TRANSCRIBE_URL = "https://api.bodhan.ai/v1/audio/transcriptions"
 SAMPLE_RATE = 16_000
@@ -62,13 +63,15 @@ def _normalize(source: Path, destination: Path) -> None:
         raise ToolError("invalid_audio: Provide a readable file with an audio stream.") from None
 
 
-def _wav_windows(path: Path) -> Iterator[tuple[float, float, bytes]]:
+def _wav_windows(path: Path, window_frames: int = MAX_WINDOW_FRAMES) -> Iterator[tuple[float, float, bytes]]:
+    if not 0 < window_frames <= MAX_WINDOW_FRAMES:
+        raise ToolError("invalid_window: Choose a window of at least one sample and at most 30 seconds.")
     with wave.open(str(path), "rb") as source:
         if not source.getnframes():
             raise ToolError("empty_audio: Provide a recording with at least one sample.")
         while source.tell() < source.getnframes():
             start_frame = source.tell()
-            frames = source.readframes(MAX_WINDOW_FRAMES)
+            frames = source.readframes(window_frames)
             if not frames:
                 raise ToolError("invalid_audio: The decoded WAV ended unexpectedly.")
             output = io.BytesIO()
@@ -86,10 +89,9 @@ def _transcribe_window(
         data["language"] = language
     with wave.open(io.BytesIO(audio), "rb") as window:
         seconds = Decimal(window.getnframes()) / window.getframerate()
-    reserve("indic-transcribe", seconds * TRANSCRIBE_PER_SECOND)
     try:
-        reply = client.post(
-            TRANSCRIBE_URL,
+        reply, _ = post_bodhan(
+            client, TRANSCRIBE_URL, "indic-transcribe", seconds * TRANSCRIBE_PER_SECOND,
             headers={"Authorization": f"Bearer {api_key}"},
             data=data,
             files={"file": ("window.wav", audio, "audio/wav")},
@@ -117,11 +119,13 @@ def _transcribe_window(
 def transcribe_audio(
     audio_path: Annotated[str, Field(min_length=1, description="Path to a local audio file.")],
     language: Annotated[SpeechLanguage | None, Field(description="Known spoken language code, such as hi.")] = None,
+    window_seconds: Annotated[int, Field(ge=1, le=30, description="Maximum seconds of audio per request.")] = 30,
 ) -> TranscriptionResult:
     """Transcribe local audio using Indic-Transcribe.
 
     Pass a file path. The tool splits recordings into windows of up to 30 seconds.
-    Window times are audio boundaries. Omit language to let Bodhan infer it.
+    Set window_seconds to get shorter windows for subtitles. Window times are
+    audio boundaries. Omit language to let Bodhan infer it.
     """
     source = Path(audio_path).expanduser().absolute()
     if not source.is_file():
@@ -134,7 +138,7 @@ def transcribe_audio(
     with TemporaryDirectory(prefix="bodhan-audio-") as directory, httpx.Client(timeout=30.0) as client:
         wav = Path(directory) / "audio.wav"
         _normalize(source, wav)
-        for start, end, audio in _wav_windows(wav):
+        for start, end, audio in _wav_windows(wav, window_seconds * SAMPLE_RATE):
             try:
                 text = _transcribe_window(client, audio, language, api_key)
             except ToolError as exc:

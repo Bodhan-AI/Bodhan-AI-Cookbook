@@ -1,10 +1,12 @@
-"""Synthesize short passages on Bodhan and assemble a local WAV artifact."""
+"""Synthesize short passages on Bodhan and assemble a local audio artifact."""
 
 import io
 import json
 import os
 from pathlib import Path
 import re
+import shutil
+import subprocess
 from tempfile import TemporaryDirectory
 import textwrap
 from typing import Annotated, Literal
@@ -14,7 +16,8 @@ import httpx
 from mcp.server.fastmcp.exceptions import ToolError
 from pydantic import BaseModel, Field
 
-from .request_budget import SPEECH_RATE, reserve
+from .api_requests import post_bodhan
+from .request_budget import SPEECH_RATE
 
 SPEECH_URL = "https://api.bodhan.ai/v1/audio/speech"
 # A conservative tool policy based on Bodhan's short-input guidance.
@@ -58,10 +61,9 @@ def _speech_chunks(text: str) -> list[str]:
 def _request_speech(
     client: httpx.Client, chunk: str, language: SpeechLanguage, voice: Voice, key: str
 ) -> bytes:
-    reserve("indic-speak", len(chunk) * SPEECH_RATE)
     try:
-        response = client.post(
-            SPEECH_URL,
+        response, _ = post_bodhan(
+            client, SPEECH_URL, "indic-speak", len(chunk) * SPEECH_RATE,
             headers={"Authorization": f"Bearer {key}"},
             json={
                 "model": "indic-speak",
@@ -98,22 +100,45 @@ def _speech_pcm(wav_bytes: bytes) -> bytes:
     return frames
 
 
+def _encode_audio(source: Path, destination: Path, tempo: float) -> None:
+    codec = {"mp3": "libmp3lame", "wav": "pcm_s16le"}[destination.suffix[1:]]
+    try:
+        subprocess.run(
+            ["ffmpeg", "-nostdin", "-loglevel", "error", "-protocol_whitelist", "file,pipe",
+             "-i", str(source), "-af", f"atempo={tempo:.6f}", "-c:a", codec,
+             "-metadata", "comment=AI-generated with Bodhan Indic-Speak", str(destination)],
+            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=90,
+        )
+    except FileNotFoundError:
+        raise ToolError("missing_ffmpeg: Install ffmpeg and make it available on PATH.") from None
+    except subprocess.TimeoutExpired:
+        raise ToolError("audio_encode_timeout: Try a shorter passage.") from None
+    except subprocess.CalledProcessError:
+        raise ToolError("audio_encode_failed: Check that ffmpeg supports the requested format.") from None
+
+
 def synthesize_speech(
     text: Annotated[str, Field(min_length=1, description="Text to read aloud in the requested language.")],
     language: Annotated[SpeechLanguage, Field(description="Language of the text, such as kn for Kannada.")],
     voice: Annotated[Voice, Field(description="A voice from Bodhan's voice library.")],
-    output_path: Annotated[str, Field(min_length=1, description="New local .wav file to create.")],
+    output_path: Annotated[str, Field(min_length=1, description="New local .wav or .mp3 file to create.")],
+    target_seconds: Annotated[int | None, Field(
+        ge=1, le=1800, description="Optional duration goal in seconds. Playback tempo can vary by up to 15%.",
+    )] = None,
 ) -> SpeechResult:
-    """Read text aloud with Indic-Speak and return a path to the AI-generated WAV.
+    """Read text aloud with Indic-Speak and return a path to AI-generated WAV or MP3.
 
     Long text is split into short requests. The destination must be a new file
     in an existing directory. The language must match the supplied text.
     """
     destination = Path(output_path).expanduser().absolute()
-    if destination.suffix.lower() != ".wav" or not destination.parent.is_dir():
-        raise ToolError("invalid_output_path: Choose a .wav file in an existing directory.")
+    suffix = destination.suffix.lower()
+    if suffix not in {".wav", ".mp3"} or not destination.parent.is_dir():
+        raise ToolError("invalid_output_path: Choose a .wav or .mp3 file in an existing directory.")
     if os.path.lexists(destination):
-        raise ToolError("output_exists: Choose a new WAV file path.")
+        raise ToolError("output_exists: Choose a new audio file path.")
+    if (suffix == ".mp3" or target_seconds is not None) and not shutil.which("ffmpeg"):
+        raise ToolError("missing_ffmpeg: Install ffmpeg and make it available on PATH.")
     chunks = _speech_chunks(text)
     key = os.getenv("BODHAN_SPEAK_KEY", "").strip()
     if not key:
@@ -131,9 +156,15 @@ def synthesize_speech(
                         raise ToolError(f"Speech chunk {index} of {len(chunks)}: {exc}") from None
                     output.writeframesraw(pcm)
                 duration = output.getnframes() / 24_000
+            tempo = min(1.15, max(0.85, duration / target_seconds)) if target_seconds else 1.0
+            if suffix == ".mp3" or tempo != 1.0:
+                encoded = temporary.with_name("output" + suffix)
+                _encode_audio(temporary, encoded, tempo)
+                temporary = encoded
+                duration /= tempo
             os.link(temporary, destination)
     except FileExistsError:
-        raise ToolError("output_exists: Choose a new WAV file path.") from None
+        raise ToolError("output_exists: Choose a new audio file path.") from None
     except OSError:
         raise ToolError("output_error: Check permissions and free space in the output directory.") from None
 

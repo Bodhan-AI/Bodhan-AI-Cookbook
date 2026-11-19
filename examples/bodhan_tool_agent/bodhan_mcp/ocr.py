@@ -13,7 +13,8 @@ import httpx
 from mcp.server.fastmcp.exceptions import ToolError
 from pydantic import BaseModel, Field, ValidationError
 
-from .request_budget import OCR_RATE, reserve
+from .api_requests import post_bodhan
+from .request_budget import OCR_RATE
 
 OCR_URL = "https://api.bodhan.ai/v1/chat/completions"
 IMAGE_TYPES = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg"}
@@ -77,10 +78,9 @@ def _read_page(client: httpx.Client, image: Path, key: str) -> str:
         raise ToolError("unreadable_image: Check that the page image can be read.") from None
 
     data_uri = f"data:{IMAGE_TYPES[image.suffix.lower()]};base64,{encoded}"
-    reserve("indic-ocr", OCR_RATE)
     try:
-        response = client.post(
-            OCR_URL,
+        response, _ = post_bodhan(
+            client, OCR_URL, "indic-ocr", OCR_RATE,
             headers={"Authorization": f"Bearer {key}"},
             json={
                 "model": "indic-ocr",

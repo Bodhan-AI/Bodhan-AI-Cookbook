@@ -10,6 +10,7 @@ from mcp.server.fastmcp import FastMCP
 from mcp.server.fastmcp.exceptions import ToolError
 from pydantic import BaseModel, Field, ValidationError
 
+from .api_requests import post_bodhan
 from .document_chunks import MAX_SOURCE_BYTES, document_parts
 from .ocr import extract_document_text
 from .request_budget import (
@@ -83,12 +84,9 @@ def _translate_request(
         "max_output_tokens": TRANSLATION_OUTPUT_LIMIT,
     }
     budget = active_budget.get()
-    reservation = None
-    if budget is not None:
-        reservation = budget.reserve("indic-translate", TRANSLATION_OUTPUT_LIMIT * TRANSLATE_PER_TOKEN)
     try:
-        response = client.post(
-            TRANSLATE_URL,
+        response, reservation = post_bodhan(
+            client, TRANSLATE_URL, "indic-translate", TRANSLATION_OUTPUT_LIMIT * TRANSLATE_PER_TOKEN,
             headers={"Authorization": f"Bearer {api_key}"},
             json=payload,
         )

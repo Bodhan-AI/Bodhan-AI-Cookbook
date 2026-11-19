@@ -8,7 +8,7 @@ from difflib import SequenceMatcher
 import json
 from pathlib import Path
 from time import monotonic
-from typing import Callable, Protocol
+from typing import Callable, Protocol, cast, get_args
 import unicodedata
 
 from mcp.server.fastmcp.exceptions import ToolError
@@ -16,14 +16,16 @@ from mcp.server.fastmcp.exceptions import ToolError
 from bodhan_mcp.document_chunks import MAX_SOURCE_BYTES, markdown_for_export
 from bodhan_mcp.ocr import OcrPage, read_document
 from bodhan_mcp.request_budget import BudgetExhausted, RequestBudget, active_budget
-from bodhan_mcp.server import TranslationResult, translate_text
-from bodhan_mcp.speech import synthesize_speech
-from bodhan_mcp.transcription import transcribe_audio
+from bodhan_mcp.server import Language, TranslationResult, translate_text
+from bodhan_mcp.speech import SpeechLanguage, synthesize_speech
+from bodhan_mcp.transcription import SpeechLanguage as TranscriptionLanguage
+from bodhan_mcp.transcription import TranscriptionResult, transcribe_audio
 
 from .planner import (
-    Action, Declare, Deliverable, Finish, PlannerError, Read, Save,
-    Speak, Transcribe, Translate, TranslationReview,
+    Action, Declare, Deliverable, Finish, PlannerError, Read, Save, SaveSubtitles,
+    Speak, Summarize, Transcribe, Translate, TranslationReview,
 )
+from .subtitles import SUBTITLE_TIMING_NOTE, SUBTITLE_WINDOW_SECONDS, render_srt
 
 MAX_SPEECH_BYTES = 16_000
 REVIEW_BYTES = 6_000
@@ -33,6 +35,8 @@ PREVIEW_CHARS = 320
 class Planner(Protocol):
     def decide(self, state: dict) -> Action: ...
     def review(self, source: str, translation: str, language: str) -> TranslationReview: ...
+    def summarize(self, source: str, task: str, target_words: int | None) -> str: ...
+    def review_summary(self, source: str, summary: str, task: str) -> TranslationReview: ...
 
 
 def _normalized(text: str) -> str:
@@ -77,8 +81,11 @@ def _request_summary(requests: list[dict]) -> dict:
 class Run:
     output: Path
     budget: RequestBudget
+    task: str
     texts: dict[str, str] = field(default_factory=dict)
     text_languages: dict[str, str] = field(default_factory=dict)
+    transcriptions: dict[str, TranscriptionResult] = field(default_factory=dict)
+    subtitle_translations: dict[tuple[str, str], str] = field(default_factory=dict)
     deliverables: dict[str, Deliverable] = field(default_factory=dict)
     fulfilled: dict[str, str] = field(default_factory=dict)
     partial_artifacts: list[str] = field(default_factory=list)
@@ -146,10 +153,11 @@ class Run:
 
 
 def _review_translation(run: Run, planner: Planner, step: StepTrace,
-                        action: Translate, original: str, result: TranslationResult) -> None:
+                        source: str, language: Language, original: str, result: TranslationResult,
+                        **details: object) -> None:
     if not result.segments:
         with run.verify(step, "translation_coverage", method="literal_preservation",
-                        source=action.source, language=action.language) as check:
+                        source=source, language=language, **details) as check:
             check["passed"] = original == result.translation
             if not check["passed"]:
                 raise ToolError("Untranslated literal text changed.")
@@ -173,11 +181,11 @@ def _review_translation(run: Run, planner: Planner, step: StepTrace,
             source_start, source_end = 0, len(original)
             output_start, output_end = 0, len(result.translation)
         with run.verify(step, "translation_coverage", method="planner_review",
-                        source=action.source, language=action.language,
+                        source=source, language=language, **details,
                         segments=[first + 1, last + 1],
                         source_range=[source_start, source_end]) as check:
             review = planner.review(original[source_start:source_end],
-                                    result.translation[output_start:output_end], action.language)
+                                    result.translation[output_start:output_end], language)
             check.update(passed=review.approved, explanation=review.explanation)
         if not review.approved:
             raise ToolError(f"Translation segments {first + 1}–{last + 1} did not pass review.")
@@ -205,13 +213,124 @@ def _read_ocr(run: Run, source_id: str, source: Path) -> dict:
     return {**run.remember("\n\n".join(text)), "page_ranges": ranges}
 
 
+def _non_latin_letters(text: str) -> bool:
+    return any(char.isalpha() and "LATIN" not in unicodedata.name(char, "") for char in text)
+
+
+def _summarize(run: Run, planner: Planner, step: StepTrace, action: Summarize, source: str) -> dict:
+    if run.text_languages.get(action.source) not in {None, "en"} or _non_latin_letters(source):
+        raise ToolError("Translate the source into English with Indic-Translate before summarizing.")
+    summary = planner.summarize(source, run.task, action.target_words)
+    if not summary or not any(char.isalpha() for char in summary) or _non_latin_letters(summary):
+        raise ToolError("The planner did not return an English summary.")
+    with run.verify(step, "summary_grounding", method="planner_review", source=action.source) as check:
+        review = planner.review_summary(source, summary, run.task)
+        check.update(passed=review.approved, explanation=review.explanation)
+    if not review.approved:
+        raise ToolError("The English summary did not pass grounding review: " + review.explanation)
+    return {**run.remember(summary, "en"), "words": len(summary.split())}
+
+
+def _speak(run: Run, step: StepTrace, action: Speak, text: str) -> dict:
+    if len(text.encode("utf-8")) > MAX_SPEECH_BYTES:
+        raise ToolError("Text exceeds this increment's speech input limit.")
+    known_language = run.text_languages.get(action.source)
+    if known_language is not None and known_language != action.language:
+        raise ToolError("Translate the source into the speech language before synthesis.")
+    path = run.target(action.deliverable, {"wav", "mp3"}, action.language)
+    if path in run.artifacts:
+        destination = Path(path)
+        path = str(destination.with_stem(f"{destination.stem}-attempt-{step.number}"))
+    target = run.deliverables[action.deliverable].duration_seconds
+    synthesis = synthesize_speech(text, action.language, action.voice, str(run.output / path),
+                                  target_seconds=target)
+    with run.verify(step, "speech_artifact_created", artifact=path, ai_generated=True) as check:
+        run.artifacts.append(path)
+        check["passed"] = True
+    try:
+        with run.verify(step, "speech_content_match", method="back_transcription",
+                        source=action.source, artifact=path, language=action.language) as check:
+            readback = transcribe_audio(synthesis.audio_path, action.language)
+            expected = _normalized(text)
+            actual = _normalized(readback.text)
+            similarity = SequenceMatcher(None, expected, actual, autojunk=False).ratio()
+            passed = bool(expected and actual and similarity >= 0.85)
+            check.update(passed=passed, similarity=round(similarity, 3), threshold=0.85,
+                         transcript_characters=len(readback.text))
+        if not passed:
+            raise ToolError(f"Speech read-back diverged from the source. See {path} for review.")
+        duration = round(readback.duration_seconds, 3)
+        if target is not None:
+            tolerance = max(1.0, target * 0.15)
+            with run.verify(step, "speech_duration", artifact=path, target_seconds=target) as check:
+                passed = abs(duration - target) <= tolerance
+                check.update(passed=passed, actual_seconds=duration, tolerance_seconds=tolerance)
+                if not passed:
+                    raise ToolError(
+                        f"Audio runs {duration:g} seconds against a {target}-second target. "
+                        f"Use a revised narration or review the audio at {path}."
+                    )
+    except (BudgetExhausted, OSError, ToolError):
+        run.partial_artifacts.append(path)
+        raise
+    run.fulfilled[action.deliverable] = path
+    return {"artifact": path, "deliverable": action.deliverable,
+            "duration_seconds": duration, "ai_generated": True}
+
+
+def _save_subtitles(run: Run, planner: Planner, step: StepTrace, action: SaveSubtitles) -> dict:
+    transcript = run.transcriptions.get(action.source)
+    if transcript is None:
+        raise ToolError("Select the text ID returned by transcribing this recording.")
+    requirement = run.deliverables.get(action.deliverable)
+    source_language = run.text_languages.get(action.source)
+    target_language = requirement.language if requirement else None
+    path = run.target(action.deliverable, {"srt"}, target_language or source_language)
+    needs_translation = target_language is not None and target_language != source_language
+    if needs_translation and target_language not in get_args(Language):
+        raise ToolError(f"Bodhan does not support subtitle translation into {target_language}.")
+
+    captions = {}
+    for index, window in enumerate(transcript.windows):
+        text = window.text.strip()
+        if not text:
+            continue
+        if needs_translation:
+            language = cast(Language, target_language)
+            key = (text, language)
+            if key not in run.subtitle_translations:
+                result = translate_text(text, language)
+                _review_translation(run, planner, step, action.source, language, text, result, window=index + 1)
+                run.subtitle_translations[key] = result.translation
+            text = run.subtitle_translations[key]
+        captions[index] = text
+
+    with run.verify(step, "subtitle_cues", method="window_coverage", source=action.source,
+                    cues=len(captions), timing="audio_window_boundaries",
+                    duration_seconds=transcript.duration_seconds) as check:
+        srt = render_srt(transcript, captions)
+        check["passed"] = True
+    (run.output / path).write_text(srt, encoding="utf-8")
+    run.artifacts.append(path)
+    run.fulfilled[action.deliverable] = path
+    return {"artifact": path, "deliverable": action.deliverable, "cue_count": len(captions),
+            "duration_seconds": transcript.duration_seconds, "timing": "audio_window_boundaries"}
+
+
 def _execute(run: Run, planner: Planner, inputs: dict[str, Path], action: Action, step: StepTrace) -> dict:
     if isinstance(action, (Read, Transcribe)):
         source = inputs.get(action.source)
         if source is None:
             raise ToolError("Select an input ID from the inventory.")
         if isinstance(action, Transcribe):
-            return run.remember(transcribe_audio(str(source), action.language).text, action.language)
+            if any(item.format == "srt" for item in run.deliverables.values()):
+                transcript = transcribe_audio(str(source), action.language, SUBTITLE_WINDOW_SECONDS)
+            else:
+                transcript = transcribe_audio(str(source), action.language)
+            observation = run.remember(transcript.text, action.language)
+            run.transcriptions[observation["text_id"]] = transcript
+            return {**observation, "windows": len(transcript.windows),
+                    "duration_seconds": transcript.duration_seconds}
         if action.action == "ocr":
             return _read_ocr(run, action.source, source)
         if source.suffix.lower() not in {".txt", ".md"}:
@@ -221,6 +340,9 @@ def _execute(run: Run, planner: Planner, inputs: dict[str, Path], action: Action
         if len(data) > MAX_SOURCE_BYTES:
             raise ToolError("Text exceeds this increment's input size limit.")
         return run.remember(data.decode("utf-8"))
+
+    if isinstance(action, SaveSubtitles):
+        return _save_subtitles(run, planner, step, action)
 
     text = run.texts.get(action.source)
     if text is None:
@@ -235,7 +357,7 @@ def _execute(run: Run, planner: Planner, inputs: dict[str, Path], action: Action
     if isinstance(action, Translate):
         result = translate_text(text, action.language)
         try:
-            _review_translation(run, planner, step, action, text, result)
+            _review_translation(run, planner, step, action.source, action.language, text, result)
         except (PlannerError, ToolError):
             path = f"artifacts/unverified-{step.number}.md"
             run.save_partial(path, result.translation, source=action.source,
@@ -243,32 +365,9 @@ def _execute(run: Run, planner: Planner, inputs: dict[str, Path], action: Action
             raise
         return {**run.remember(result.translation, action.language), "segments": len(result.segments)}
 
-    if len(text.encode("utf-8")) > MAX_SPEECH_BYTES:
-        raise ToolError("Text exceeds this increment's speech input limit.")
-    known_language = run.text_languages.get(action.source)
-    if known_language is not None and known_language != action.language:
-        raise ToolError("Translate the source into the speech language before synthesis.")
-    path = run.target(action.deliverable, {"wav"}, action.language)
-    if path in run.artifacts:
-        raise ToolError("An existing unverified WAV occupies the deliverable path.")
-    synthesis = synthesize_speech(text, action.language, action.voice, str(run.output / path))
-    with run.verify(step, "speech_artifact_created", artifact=path, ai_generated=True) as check:
-        run.artifacts.append(path)
-        check["passed"] = True
-    with run.verify(step, "speech_content_match", method="back_transcription",
-                    source=action.source, artifact=path, language=action.language) as check:
-        heard = transcribe_audio(synthesis.audio_path, action.language).text
-        expected = _normalized(text)
-        actual = _normalized(heard)
-        similarity = SequenceMatcher(None, expected, actual, autojunk=False).ratio()
-        passed = bool(expected and actual and similarity >= 0.85)
-        check.update(passed=passed, similarity=round(similarity, 3), threshold=0.85,
-                     transcript_characters=len(heard))
-    if not passed:
-        raise ToolError("Speech read-back diverged from the source. The WAV is available for review.")
-    run.fulfilled[action.deliverable] = path
-    return {"artifact": path, "deliverable": action.deliverable,
-            "duration_seconds": synthesis.duration_seconds, "ai_generated": True}
+    if isinstance(action, Summarize):
+        return _summarize(run, planner, step, action, text)
+    return _speak(run, step, action, text)
 
 
 def run_task(task: str, files: list[Path], output: Path, max_steps: int, max_cost: Decimal,
@@ -278,7 +377,7 @@ def run_task(task: str, files: list[Path], output: Path, max_steps: int, max_cos
     if any(output.iterdir()):
         raise ValueError("Choose a new or empty output directory.")
     (output / "artifacts").mkdir()
-    run = Run(output, RequestBudget(max_cost))
+    run = Run(output, RequestBudget(max_cost), task)
     run.record("start", task=task, max_steps=max_steps, max_cost_inr=max_cost)
     token = active_budget.set(run.budget)
     status = "step_limit"
@@ -321,10 +420,19 @@ def run_task(task: str, files: list[Path], output: Path, max_steps: int, max_cos
                 run.deliverables = {f"deliverable-{i}": item
                                     for i, item in enumerate(action.deliverables, start=1)}
                 unsupported = [item.format for item in action.deliverables
-                               if item.format not in {"md", "txt", "wav"}]
+                               if item.format not in {"md", "txt", "wav", "mp3", "srt"}]
                 if unsupported:
                     status = "unsupported"
                     explanation = "Unsupported output format: " + ", ".join(dict.fromkeys(unsupported))
+                    break
+                supported_text = get_args(Language) + get_args(TranscriptionLanguage)
+                for item in run.deliverables.values():
+                    languages = get_args(SpeechLanguage) if item.format in {"mp3", "wav"} else supported_text
+                    if item.language is not None and item.language not in languages:
+                        status = "unsupported"
+                        explanation = f"Bodhan does not support the requested output language ({item.language})."
+                        break
+                if status == "unsupported":
                     break
                 continue
             if not run.deliverables:
@@ -363,6 +471,8 @@ def run_task(task: str, files: list[Path], output: Path, max_steps: int, max_cos
     finally:
         active_budget.reset(token)
 
+    if any(path.endswith(".srt") for path in run.fulfilled.values()):
+        assumptions = list(dict.fromkeys([*assumptions, SUBTITLE_TIMING_NOTE]))
     report = {
         "status": status, "steps": step, "verification": run.verification,
         "cost_inr": str(run.budget.total), "max_cost_inr": str(max_cost),
@@ -373,7 +483,12 @@ def run_task(task: str, files: list[Path], output: Path, max_steps: int, max_cos
     }
     run.record("summary", **report)
     (output / "report.json").write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    links = "\n".join(f"- [{Path(path).name}]({path})" for path in run.artifacts) or "No artifacts were produced."
+    links = "\n".join(
+        f"- [{Path(path).name}]({path})"
+        + (" (AI-generated audio)" if Path(path).suffix in {".wav", ".mp3"} else "")
+        + (" (pending verification or incomplete)" if path in run.partial_artifacts else "")
+        for path in run.artifacts
+    ) or "No artifacts were produced."
     deliverable_lines = "\n".join(
         f"- {item['description']} (`{item['format']}`) — " +
         (f"[ready]({item['artifact']})" if item["artifact"] else "pending")
