@@ -185,12 +185,12 @@ On the 108-item demo set generated directly with Bodhan Indic-Translate across `
 
 | Metric | Value | Target |
 | --- | --- | --- |
-| Detection recall | **93.5%** | ≥ 80% |
-| False alarms on clean items | **3.5%** | ≤ 10% |
-| Precision | **74.1%** | — |
-| F1 | **0.827** | — |
+| Detection recall | **96.1%** | ≥ 80% |
+| False alarms on clean items | **5.3%** | ≤ 10% |
+| Precision | **83.1%** | — |
+| F1 | **0.891** | — |
 | Localization | **100%** of detections | ≥ 70% |
-| Determinism | identical digest (`4535583a6a99fd13`) + byte-identical `items.jsonl` on rerun | required |
+| Determinism | identical digest (`2e6b34b0d36bdfb7`) + byte-identical `items.jsonl` on rerun | required |
 
 Per category: `addition` 0.73/0.96, `language` 0.92/1.00, `number` 0.78/0.88.
 The LLM judge tier reviews suspicious items, evaluating meaning-level mistranslations and character spans with high consistency.

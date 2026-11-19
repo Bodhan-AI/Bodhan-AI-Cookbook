@@ -35,7 +35,10 @@ def _entity_tokens(text: str) -> set[str]:
         camel = any(c.isupper() for c in tok[1:]) and not tok.isupper()
         alnum = any(c.isdigit() for c in tok) and any(c.isalpha() for c in tok)
         proper_name = tok[0].isupper() and tok[1:].islower()
-        looks_entity = (acronym or camel or alnum) and not proper_name
+        # Mixed-case tokens like "NaCl" are transliterated by Indic-Translate
+        # ("என்.ஏ.எல்.சி."), so treating them as must-preserve entities is a false
+        # alarm. Only all-caps acronyms and tokens containing digits survive verbatim.
+        looks_entity = (acronym or alnum) and not proper_name
         if looks_entity:
             out.add(tok)
     return out

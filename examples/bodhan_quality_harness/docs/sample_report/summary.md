@@ -1,15 +1,15 @@
 # Translation and speech quality report
 
-**108 items** across bn, hi, ta · **68 flags** on 58 items
+**108 items** across bn, hi, ta · **59 flags** on 53 items
 
 ## Headline
 
 | Metric | Value | Target |
 | --- | --- | --- |
 | Detection recall | 96.1% | ≥ 80% |
-| False alarms on clean items | 14.0% | ≤ 10% |
-| Precision | 72.1% | — |
-| F1 | 0.824 | — |
+| False alarms on clean items | 5.3% | ≤ 10% |
+| Precision | 83.1% | — |
+| F1 | 0.891 | — |
 
 ## Per category
 
@@ -17,17 +17,17 @@
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | addition | 28 | 4 | 0 | 88% | 100% | 100% | 100% |
 | language | 15 | 0 | 0 | 100% | 100% | 100% | 100% |
-| number | 6 | 8 | 2 | 43% | 75% | 100% | 100% |
+| number | 6 | 2 | 2 | 75% | 75% | 100% | 100% |
 | omission | 0 | 1 | 0 | 0% | 0% | — | — |
-| term | 0 | 6 | 0 | 0% | 0% | — | — |
+| term | 0 | 3 | 0 | 0% | 0% | — | — |
 
 ## Per language
 
 | Language | Items | Flags | Flags/item | Top categories |
 | --- | --- | --- | --- | --- |
-| bn | 36 | 21 | 0.58 | addition (7), language (6), number (5) |
-| hi | 36 | 30 | 0.83 | addition (15), number (9), language (4) |
-| ta | 36 | 17 | 0.47 | addition (10), language (5), term (2) |
+| bn | 36 | 17 | 0.47 | addition (7), language (6), number (2) |
+| hi | 36 | 26 | 0.72 | addition (15), number (6), language (4) |
+| ta | 36 | 16 | 0.44 | addition (10), language (5), term (1) |
 
 ## Top failures
 
@@ -44,9 +44,9 @@
 
 ## Cost and runtime
 
-- Total: **₹0.00** over 8s
-- Cache: 30 hits / 28 misses (52% hit rate)
+- Total: **₹0.00** over 0s
+- Cache: 0 hits / 0 misses (0% hit rate)
 
 ---
 
-Deterministic digest: `4111fd8c9d903121` — a cached rerun must reproduce this exactly at zero model cost.
+Deterministic digest: `2e6b34b0d36bdfb7` — a cached rerun must reproduce this exactly at zero model cost.

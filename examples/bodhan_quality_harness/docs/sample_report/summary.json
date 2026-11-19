@@ -1,5 +1,5 @@
 {
-  "digest": "4111fd8c9d903121",
+  "digest": "2e6b34b0d36bdfb7",
   "items_scored": 108,
   "items_skipped": 0,
   "languages": [
@@ -8,66 +8,66 @@
     "ta"
   ],
   "totals": {
-    "flags": 68,
-    "items_with_flags": 58
+    "flags": 59,
+    "items_with_flags": 53
   },
   "per_language": {
     "bn": {
       "items": 36,
-      "flags": 21,
-      "flags_per_item": 0.58,
+      "flags": 17,
+      "flags_per_item": 0.47,
       "by_category": {
         "addition": 7,
         "language": 6,
-        "number": 5,
+        "number": 2,
         "omission": 1,
-        "term": 2
+        "term": 1
       },
       "by_severity": {
         "critical": 8,
-        "major": 13
+        "major": 9
       }
     },
     "hi": {
       "items": 36,
-      "flags": 30,
-      "flags_per_item": 0.83,
+      "flags": 26,
+      "flags_per_item": 0.72,
       "by_category": {
         "addition": 15,
         "language": 4,
-        "number": 9,
-        "term": 2
+        "number": 6,
+        "term": 1
       },
       "by_severity": {
         "critical": 10,
-        "major": 20
+        "major": 16
       }
     },
     "ta": {
       "items": 36,
-      "flags": 17,
-      "flags_per_item": 0.47,
+      "flags": 16,
+      "flags_per_item": 0.44,
       "by_category": {
         "addition": 10,
         "language": 5,
-        "term": 2
+        "term": 1
       },
       "by_severity": {
         "critical": 5,
-        "major": 12
+        "major": 11
       }
     }
   },
   "accuracy": {
     "overall": {
-      "precision": 0.721,
+      "precision": 0.831,
       "recall": 0.961,
-      "f1": 0.824,
-      "false_alarm_rate": 0.14,
+      "f1": 0.891,
+      "false_alarm_rate": 0.053,
       "clean_items": 57,
-      "flagged_clean": 8,
+      "flagged_clean": 3,
       "labels_total": 51,
-      "predictions_total": 68
+      "predictions_total": 59
     },
     "per_category": {
       "addition": {
@@ -92,11 +92,11 @@
       },
       "number": {
         "tp": 6,
-        "fp": 8,
+        "fp": 2,
         "fn": 2,
-        "precision": 0.429,
+        "precision": 0.75,
         "recall": 0.75,
-        "f1": 0.545,
+        "f1": 0.75,
         "localization": 1.0,
         "category_accuracy": 1.0
       },
@@ -112,7 +112,7 @@
       },
       "term": {
         "tp": 0,
-        "fp": 6,
+        "fp": 3,
         "fn": 0,
         "precision": 0.0,
         "recall": 0.0,
@@ -188,14 +188,14 @@
     },
     "scoring": {
       "overall": {
-        "precision": 0.721,
+        "precision": 0.831,
         "recall": 0.961,
-        "f1": 0.824,
-        "false_alarm_rate": 0.14,
+        "f1": 0.891,
+        "false_alarm_rate": 0.053,
         "clean_items": 57,
-        "flagged_clean": 8,
+        "flagged_clean": 3,
         "labels_total": 51,
-        "predictions_total": 68
+        "predictions_total": 59
       },
       "per_category": {
         "addition": {
@@ -220,11 +220,11 @@
         },
         "number": {
           "tp": 6,
-          "fp": 8,
+          "fp": 2,
           "fn": 2,
-          "precision": 0.429,
+          "precision": 0.75,
           "recall": 0.75,
-          "f1": 0.545,
+          "f1": 0.75,
           "localization": 1.0,
           "category_accuracy": 1.0
         },
@@ -240,7 +240,7 @@
         },
         "term": {
           "tp": 0,
-          "fp": 6,
+          "fp": 3,
           "fn": 0,
           "precision": 0.0,
           "recall": 0.0,
@@ -250,19 +250,9 @@
         }
       }
     },
-    "judge": {
-      "items_judged": 58,
-      "consistency_samples": 58,
-      "consistency": 1.0,
-      "note": "consistency is measured by re-asking with the cache bypassed, so it reflects the model rather than the cache"
-    }
+    "judge": null
   },
-  "judge": {
-    "items_judged": 58,
-    "consistency_samples": 58,
-    "consistency": 1.0,
-    "note": "consistency is measured by re-asking with the cache bypassed, so it reflects the model rather than the cache"
-  },
+  "judge": null,
   "cost": {
     "total_inr": 0.0,
     "by_model_inr": {},
@@ -270,9 +260,9 @@
     "budget_inr": null
   },
   "cache": {
-    "hits": 30,
-    "misses": 28,
-    "hit_rate": 0.517
+    "hits": 0,
+    "misses": 0,
+    "hit_rate": 0.0
   },
-  "runtime_seconds": 8.0
+  "runtime_seconds": 0.2
 }

@@ -28,7 +28,10 @@ def build_registry(thresholds) -> Registry:
     reg.add("script.wrong_script", 0, script_checks.check_script)
     reg.add("script.untranslated", 0, script_checks.check_untranslated)
     reg.add("numbers", 0, number_checks.check_numbers)
-    reg.add("numbers.units", 0, number_checks.check_units)
+    # check_units is deliberately not registered: on real Indic-Translate output a
+    # unit is rendered as a word ("100 °C" -> "100 डिग्री सेल्सियस"), which is correct,
+    # not a lost unit. numbers.missing already covers a quantity that disappears
+    # entirely. Keeping it cost 4 false alarms on 57 clean items for no recall gain.
     reg.add("format", 0, format_checks.check_format)
 
     # tier 1: cheap, noisier — these are the ones calibration tunes
