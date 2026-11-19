@@ -20,13 +20,13 @@ flowchart TD
     Decides -- "bodhan_ocr" --> OCR["PyMuPDF 2x Render\nIndic-OCR Page-by-Page"]
     OCR --> LLMLoop
 
-    Decides -- "bodhan_transcribe" --> Transcribe["Natural Pause Chunking (<28s)\nAuto-Detect Language\nIndic-Transcribe"]
+    Decides -- "bodhan_transcribe" --> Transcribe["Natural Pause Chunking (<=28s)\nAuto-Detect Language\nIndic-Transcribe"]
     Transcribe --> LLMLoop
 
     Decides -- "bodhan_translate" --> Translate["Translate Text/Table\nSave Reference Artifact"]
     Translate --> LLMLoop
 
-    Decides -- "bodhan_speak" --> Speak["Load Reference Artifact\nSentence Chunking (<200 ch)\nIndic-Speak & MP3 Stitch"]
+    Decides -- "bodhan_speak" --> Speak["Load Reference Artifact\nSentence Chunking (<=200 ch)\nIndic-Speak & MP3 Stitch"]
     Speak --> AutoBackTranscribe["Trigger Back-Transcription\nIntelligibility Check"]
     AutoBackTranscribe --> LLMLoop
 
@@ -36,4 +36,3 @@ flowchart TD
     Finalize --> Done(["Task Completed"])
     Impossible --> Done
 ```
-

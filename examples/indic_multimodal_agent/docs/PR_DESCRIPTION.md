@@ -229,6 +229,7 @@ TODO: [Add YouTube / Loom demo video link here before submission - 5 min maximum
   - **GitHub Actions CI Workflow**: No standalone GitHub Actions workflow runs inside `examples/indic_multimodal_agent/` (recipe CI relies on repo-level `make check`).
   - **Local Host Docker Runtime**: Dockerfile syntax is provided for containerized deployment, but Docker image build and container runtime have not been executed on the local host machine.
   - **Non-Indic Languages**: German, French, and Spanish are intentionally not supported.
+  - **Cookbook Root Pytest on Windows**: Running the Cookbook repository's root `pytest tests/` on Windows encounters failures due to pre-existing upstream repository issues unrelated to this recipe (`tests/test_new_recipe.py` hardcodes POSIX `cp -R`, and `examples/AndroidSpeak/.gitignore` has an unignored `.env`). Our recipe `examples/indic_multimodal_agent` independently passes all recipe validation and CI gates (`python scripts/ci_validate.py --base-ref main`, `python scripts/bodhan_rules.py --check`, and `python scripts/validate_recipe.py`) with 0 errors.
 
 ---
 
