@@ -1,0 +1,13 @@
+{
+  "source_file": "/Users/rajesh07/Downloads/iitm/demos/inputs/five_audio_clips/clip_04.wav",
+  "language": "ta",
+  "language_name": "Tamil",
+  "duration_sec": 3.0,
+  "segments": [
+    {
+      "start": 0.0,
+      "end": 3.0,
+      "text": "வணக்கம் மாணவர்களே, நாளை காலை பத்து மணிக்கு தேர்வு நடைபெறும்."
+    }
+  ]
+}

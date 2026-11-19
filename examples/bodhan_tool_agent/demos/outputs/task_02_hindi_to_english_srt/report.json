@@ -1,0 +1,93 @@
+{
+  "status": "completed",
+  "task": "Transcribe this Hindi voice note and give me English subtitles",
+  "input_path": "demos/inputs/hindi_voice_note_3min.wav",
+  "steps_taken": 6,
+  "max_steps": 30,
+  "total_cost_inr": 1.274431,
+  "max_cost_inr": 20.0,
+  "total_time_sec": 1.131,
+  "total_latency_ms": 1130.6,
+  "assumptions": [
+    "Voice gender was not explicitly specified; defaulted to 'female' voice from the Indic-Speak library."
+  ],
+  "artifacts": [
+    "/Users/rajesh07/Downloads/iitm/demos/outputs/task_02_hindi_to_english_srt/artifacts/hindi_voice_note_3min_transcript.txt",
+    "/Users/rajesh07/Downloads/iitm/demos/outputs/task_02_hindi_to_english_srt/artifacts/hindi_voice_note_3min_transcript_en.srt",
+    "/Users/rajesh07/Downloads/iitm/demos/outputs/task_02_hindi_to_english_srt/artifacts/hindi_voice_note_3min_transcript_en.mp3"
+  ],
+  "verification_results": [
+    {
+      "status": "ok",
+      "passed": false,
+      "target_language": "en",
+      "detected_script": "Latin",
+      "checks": {
+        "non_empty": true,
+        "script_valid": true,
+        "coverage_ratio_valid": false,
+        "length_ratio": 8.578,
+        "numbers_preserved": true,
+        "missing_numbers": [],
+        "tables_preserved": true,
+        "source_table_rows": 0,
+        "translated_table_rows": 0
+      },
+      "back_translation_sample": null,
+      "issues": [
+        "Suspicious translation length ratio (8.578); possible truncation or hallucination."
+      ],
+      "cost_inr": 0.0,
+      "latency_ms": 0.5,
+      "translated_path": "/Users/rajesh07/Downloads/iitm/demos/outputs/task_02_hindi_to_english_srt/artifacts/hindi_voice_note_3min_transcript_en.srt"
+    },
+    {
+      "status": "ok",
+      "passed": true,
+      "audio_path": "/Users/rajesh07/Downloads/iitm/demos/outputs/task_02_hindi_to_english_srt/artifacts/hindi_voice_note_3min_transcript_en.mp3",
+      "metrics": {
+        "duration_sec": 91.1,
+        "sample_rate": 16000,
+        "channels": 1,
+        "rms": 2981.4,
+        "silence_ratio": 0.039,
+        "clipping_ratio": 0.0
+      },
+      "checks": {
+        "non_empty_duration": true,
+        "not_silent": true,
+        "duration_target_ok": true,
+        "repetition_detected": false,
+        "word_overlap_ratio": 0.0
+      },
+      "back_transcript_sample": "सुप्रभात छात्रों। आज हम न्यूटन के गति के तीन नियमों का पुनरीक्षण करेंगे।",
+      "issues": [],
+      "cost_inr": 0.046417,
+      "latency_ms": 192.96
+    }
+  ],
+  "security_alerts": [],
+  "failure_reason": null,
+  "cost_breakdown": {
+    "total_cost_inr": 1.274431,
+    "max_cost_inr": 20.0,
+    "remaining_cost_inr": 18.725569,
+    "steps_taken": 6,
+    "max_steps": 30,
+    "api_calls": 12,
+    "cache_hits": 4,
+    "cost_by_model_inr": {
+      "indic-transcribe": 0.154751,
+      "indic-translate": 0.00368,
+      "indic-speak": 1.116
+    }
+  },
+  "quality_targets": {
+    "completed_or_honest_failure": true,
+    "all_outputs_verified": true,
+    "verifications_passed": false,
+    "no_duplicate_model_calls": true,
+    "within_cost_budget": true,
+    "latency_within_target": true
+  }
+}

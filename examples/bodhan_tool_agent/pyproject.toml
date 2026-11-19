@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bodhan-tool-agent"
+version = "0.1.0"
+description = "Bodhan AI MCP Tool Server and Autonomous Task Agent for multi-step Indic language workflows"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [
+    { name = "Rajesh", email = "rajesh@example.com" }
+]
+dependencies = [
+    "mcp>=1.2.0,<2.0.0",
+    "openai>=1.50.0,<2.0.0",
+    "httpx>=0.27.0,<1.0.0",
+    "pydantic>=2.7.0,<3.0.0",
+    "python-dotenv>=1.0.1,<2.0.0",
+    "pillow>=10.3.0,<12.0.0",
+    "pypdfium2>=4.30.0,<5.0.0",
+    "pypdf>=4.2.0,<6.0.0",
+    "numpy>=1.26.0,<3.0.0",
+    "soundfile>=0.12.1,<1.0.0",
+    "imageio-ffmpeg>=0.5.1,<1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.2.0,<9.0.0",
+    "pytest-asyncio>=0.23.6,<1.0.0",
+    "ruff>=0.4.0,<1.0.0",
+]
+
+[project.scripts]
+bodhan-mcp = "bodhan_mcp.__main__:main"
+bodhan-agent = "bodhan_agent.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+asyncio_mode = "auto"
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W"]
+ignore = ["E501"]
