@@ -49,6 +49,11 @@ async def translate_text(ctx: RunContext, a: TranslateIn) -> dict:
     source, src_label = resolve_text(ctx, a.text, a.path)
     src_lang, detection = detect_source(source, a.source_language)
     is_srt = src_label.lower().endswith(".srt")
+    if src_lang is None and detection.get("script") and (detection.get("confidence") or 0) >= 0.5:
+        raise E.ToolError(E.UNSUPPORTED_LANGUAGE,
+                          f"The source text is written in {detection['script']} script, which no Bodhan-supported language uses, "
+                          "so Indic-Translate cannot translate it.",
+                          hint="Report the source language as unsupported; do not guess a translation.", details={"source_detection": detection})
 
     if src_lang == target and a.script == "native" and (detection.get("confidence", 1) or 0) >= 0.6 and not is_srt:
         dest = ctx.artifact_path(output_name(a.output_name, src_label, f"_{target}"), ".md")

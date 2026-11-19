@@ -32,6 +32,7 @@ from ..textutil import (
     table_shapes,
 )
 
+PARA = "\n\n"  # paragraph separator in Markdown
 CHUNK_CHARS = 1500  # well inside the 32K-token context; smaller chunks translate more faithfully
 MAX_SPLIT_DEPTH = 3
 
@@ -63,7 +64,19 @@ class Unit:
     notes: list[str] = field(default_factory=list)
 
 
-def plan_units(source: str) -> list[tuple[Unit, str]]:
+def _already_in(text: str, target: str) -> bool:
+    """True when a paragraph is already written in the target language (e.g. an English
+    line inside a Hindi notice being translated to English). Such text is kept verbatim:
+    translating it wastes money and the model tends to drop it."""
+    if not letters_only(text):
+        return True  # numbers/punctuation only
+    if target == "en":
+        return script_matches_language(text, "en") > 0.9
+    guess = detect_language(text)
+    return guess.language == target and guess.confidence >= 0.6
+
+
+def plan_units(source: str, target: str | None = None) -> list[tuple[Unit, str]]:
     """Return (unit, separator-before) pairs that re-join to the document layout."""
     units: list[tuple[Unit, str]] = []
     buf: list[str] = []
@@ -71,24 +84,29 @@ def plan_units(source: str) -> list[tuple[Unit, str]]:
     def flush() -> None:
         if not buf:
             return
-        text = "\n\n".join(buf)
+        text = PARA.join(buf)
         buf.clear()
         if len(text) <= CHUNK_CHARS:
-            units.append((Unit("text", text), "\n\n"))
+            units.append((Unit("text", text), PARA))
         else:
             for i, seg in enumerate(pack_segments(text, CHUNK_CHARS)):
-                units.append((Unit("text", seg), "\n\n" if i == 0 else " "))
+                units.append((Unit("text", seg), PARA if i == 0 else " "))
 
     for block in split_markdown_blocks(source):
         if block.kind == "blank":
             continue
-        if block.kind == "text":
+        if block.kind == "text" and target and _already_in(block.text, target):
+            flush()
+            unit = Unit("keep", block.text)
+            unit.notes.append("a passage already in the target language was kept as is")
+            units.append((unit, PARA))
+        elif block.kind == "text":
             if sum(len(b) for b in buf) + len(block.text) > CHUNK_CHARS:
                 flush()
             buf.append(block.text)
         else:
             flush()
-            units.append((Unit("table" if block.kind == "table" else "keep", block.text), "\n\n"))
+            units.append((Unit("table" if block.kind == "table" else "keep", block.text), PARA))
     flush()
     if units:
         units[0] = (units[0][0], "")
@@ -132,7 +150,7 @@ async def _translate_table(ctx: RunContext, unit: Unit, target: str, script: str
 
 
 async def translate_markdown(ctx: RunContext, source: str, target: str, script: str = "native") -> tuple[str, list[Unit]]:
-    planned = plan_units(source)
+    planned = plan_units(source, target)
 
     async def run(unit: Unit) -> None:
         if unit.kind == "keep":
@@ -141,6 +159,16 @@ async def translate_markdown(ctx: RunContext, source: str, target: str, script: 
             await _translate_table(ctx, unit, target, script)
         else:
             unit.output, unit.calls = await _translate_piece(ctx, unit.source, target, script)
+            paras = [b for b in unit.source.split(PARA) if b.strip()]
+            got = [b for b in unit.output.split(PARA) if b.strip()]
+            if len(paras) > 1 and len(got) < len(paras):
+                # Coverage check: the model merged or dropped paragraphs. Re-translate them one by one
+                # (each is a new input, so nothing is sent twice) and keep the layout.
+                ctx.emit({"type": "recovery", "action": "paragraph_coverage_retranslate", "expected": len(paras), "got": len(got)})
+                outs = await asyncio.gather(*[_translate_piece(ctx, b, target, script) for b in paras])
+                unit.output = PARA.join(o for o, _ in outs)
+                unit.calls += sum(n for _, n in outs)
+                unit.notes.append(f"a passage came back with {len(got)} of {len(paras)} paragraphs, so it was re-translated paragraph by paragraph")
 
     await asyncio.gather(*[run(u) for u, _ in planned])
     text = "".join(sep + u.output for u, sep in planned)

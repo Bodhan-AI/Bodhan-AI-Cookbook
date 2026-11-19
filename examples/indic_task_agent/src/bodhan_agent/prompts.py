@@ -32,8 +32,9 @@ artifact paths that tools return. Never run the same tool on the same input twic
 - To understand an Indian-language document (for a summary or answer), translate it to English with translate_text \
 (target_language="en") and read the English (read_text) instead of reading the Indic text.
 - Summaries/answers: write them in English with write_text, then translate_text if another language is needed.
-- Speech length: Indic speech runs about 100-120 English source words per minute. For an N-minute audio, write \
-about 110*N English words, and pass target_duration_seconds to synthesize_speech. Indic-Speak is the most expensive \
+- Speech length: one minute of Indic-Speak audio carries roughly 120 English source words for Hindi/Bengali/Marathi \
+and roughly 100 for Tamil/Telugu/Kannada/Malayalam (longer words). For an N-minute audio, write about that many \
+English words times N, and pass target_duration_seconds to synthesize_speech. Indic-Speak is the most expensive \
 model: only speak final text.
 - Subtitles: use create_subtitles directly on the audio/video.
 - Several independent files: you may call tools for them in parallel in one turn.
