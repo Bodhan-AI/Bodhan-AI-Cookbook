@@ -1,0 +1,56 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.venv/
+env/
+venv/
+ENV/
+
+# Testing & Cache
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Environment variables & secrets
+.env
+*.env
+*.key
+*.pem
+
+# Output & temp media
+out/
+out_test/
+out_french/
+sample_inputs/*.mp4
+sample_inputs/*.wav
+sample_inputs/*.pdf
+sample_inputs/*.png
+*.wav
+*.mp3
+*.mp4
+*.pdf
+!examples/**/*.md
+!examples/**/*.json
+!examples/**/*.jsonl

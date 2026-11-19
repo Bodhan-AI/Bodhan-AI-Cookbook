@@ -1,0 +1,22 @@
+{
+  "task": "Transcribe this Hindi voice note and give me English subtitles",
+  "status": "COMPLETED",
+  "total_steps": 3,
+  "total_cost_inr": 0.0002,
+  "total_duration_seconds": 0.06,
+  "cache_hits": 0,
+  "cache_misses": 2,
+  "verifications": [
+    {
+      "artifact_name": "translation_en",
+      "check_type": "content_coverage",
+      "passed": true,
+      "details": "Generated 11 tokens in en."
+    }
+  ],
+  "artifacts": [
+    "./out/artifacts/subtitles.en.srt"
+  ],
+  "explanation": null,
+  "final_answer": "Successfully transcribed Hindi voice note and generated English SRT subtitles."
+}

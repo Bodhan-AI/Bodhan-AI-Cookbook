@@ -1,0 +1,22 @@
+{
+  "task": "Read this paragraph aloud in Bengali with a female voice",
+  "status": "COMPLETED",
+  "total_steps": 3,
+  "total_cost_inr": 0.0441,
+  "total_duration_seconds": 0.15,
+  "cache_hits": 0,
+  "cache_misses": 2,
+  "verifications": [
+    {
+      "artifact_name": "speech_bn_0.wav",
+      "check_type": "back_transcription",
+      "passed": true,
+      "details": "Back-transcribed text: 'This is a transcribed sample from speech_bn_0.wav....'"
+    }
+  ],
+  "artifacts": [
+    "C:\\Users\\Hksona\\Downloads\\Bodhan Ai\\examples\\demo_outputs\\task_5_bengali_speech\\artifacts\\speech_bn_0.wav",
+    "./out/artifacts/bengali_speech.wav"
+  ],
+  "explanation": null
+}
