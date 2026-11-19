@@ -1,9 +1,12 @@
-"""Tests for LLM provider portability.
+"""Tests for LLM provider portability and configuration.
 Validates that Gemini-specific metadata (extra_content, thought_signature) is preserved
-for Google Gemini endpoints, but stripped for standard OpenAI-compatible endpoints.
+for Google Gemini endpoints, but stripped for standard OpenAI-compatible endpoints,
+and that missing LLM_BASE_URL raises a clear ValueError.
 """
 
+import pytest
 from bodhan_agent.llm import LLMClient
+from bodhan_mcp.config import Settings
 
 
 def test_sanitize_messages_openai_endpoint():
@@ -59,3 +62,10 @@ def test_sanitize_messages_gemini_endpoint():
     # Preserved for Gemini
     assert sanitized[0].get("extra_content") == {"google": {"thought_signature": "sig123"}}
 
+
+def test_missing_llm_base_url_raises_clear_error(monkeypatch):
+    """Confirm that when LLM_BASE_URL is not provided, config raises ValueError with a clear error message."""
+    monkeypatch.delenv("LLM_BASE_URL", raising=False)
+    test_settings = Settings()
+    with pytest.raises(ValueError, match="LLM_BASE_URL is required"):
+        _ = test_settings.LLM_BASE_URL

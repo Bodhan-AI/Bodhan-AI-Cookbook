@@ -30,3 +30,4 @@ flowchart TD
         Verifier --> Out["Sandboxed out/ Folder\n- artifacts/* (Relative Paths)\n- result.md (Summary & Markdown)\n- report.json (Machine Readable)\n- trace.jsonl (Step Audit Trail)"]
     end
 ```
+

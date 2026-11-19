@@ -143,14 +143,15 @@ Executes all 51 unit and integration tests completely offline without network ca
 ## Verification Status: What Has and Has Not Been Verified
 
 - **Verified**:
-  - **51 Offline Unit & Integration Tests**: 100% passing offline via `pytest` without network access or paid API calls (including user-stated budget hard-cap enforcement, reference-passing, audio verification without OCR, transcription cost accounting, and message sanitization tests).
+  - **52 Offline Unit & Integration Tests**: 100% passing offline via `pytest` without network access or paid API calls running specifically on **Python 3.14.1 (Windows 11 x86_64)** (including user-stated budget hard-cap enforcement, reference-passing, audio verification without OCR, transcription cost accounting, LLM provider portability, and explicit `LLM_BASE_URL` requirement tests).
   - **Zero LLM Simulation**: Production agent runs strictly on remote LLM calls (`LLM_BASE_URL`/`LLM_MODEL`/`LLM_API_KEY`). Test doubles exist solely in `tests/test_doubles.py` for offline regression testing.
   - **Provider Portability**: Only Google Gemini (`gemini-flash-lite-latest`) has been live-tested. Standard OpenAI-compatible providers are supported by automated message sanitization in `LLMClient.sanitize_messages()` (stripping Gemini-specific `extra_content` and `thought_signature` fields), but have not been live-tested.
   - **Live Bodhan Indic Endpoints**: Live calls to Indic-Transcribe, Indic-Translate, Indic-Speak, and Indic-OCR verified against live schemas.
   - **Back-Transcription Coverage Honesty**: Verification honestly marks synthesis with $<70\%$ back-transcription coverage as **`WEAK`** (not `PASS`) and renders a prominent quality warning block.
-  - **GitHub Actions CI Workflow**: Automated matrix testing on Python 3.11 and 3.12, verifying headless pytest runs and Docker build validation.
 - **Not Verified**:
-  - **Local Host Docker Runtime**: Dockerfile syntax and container build steps are verified, but the Docker daemon was not executed on the local Windows host machine.
+  - **Python 3.11 and 3.12 Execution**: Tests were executed locally on Python 3.14.1. Local installation and execution on Python 3.11 and 3.12 remain unverified.
+  - **GitHub Actions CI Workflow**: No standalone GitHub Actions workflow runs inside `examples/indic_multimodal_agent/` (workflows only run from repo-root `.github/workflows/`); recipe CI relies on repo-level `make check`.
+  - **Local Host Docker Runtime**: Dockerfile syntax is provided for containerized deployment, but Docker image build and container runtime have not been executed on the local host machine.
   - **Non-Indic Languages**: German, French, and Spanish are intentionally not supported and are verified to be honestly rejected without hallucinations.
 
 ---
@@ -164,3 +165,4 @@ In accordance with transparent engineering practices:
   - **Step 0 Verification**: Live minimal API probes ($<₹1.00$) were executed before coding to record verified API response shapes in `docs/bodhan_api_notes.md`, eliminating speculative API hallucinations.
   - **Vertical Slice First**: A single vertical slice (Hindi audio note $\to$ English SRT) was implemented, verified, and reviewed before expanding to PDF OCR and table pipelines.
   - **Test-Driven Rigor**: Every bug identified during testing (e.g. cue wrapping, Devanagari stop-words, budget preflights) was resolved in a general, modular manner and paired with an automated unit test.
+
