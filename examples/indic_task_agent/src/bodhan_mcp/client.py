@@ -146,6 +146,7 @@ class BodhanClient:
         self.gates = {m: AdaptiveGate(concurrency) for m in KEY_ENV}
         self._inflight: dict[str, asyncio.Future] = {}
         self._tasks: set[asyncio.Future] = set()
+        self._waiters: dict[str, int] = {}
         self.deadline = deadline  # monotonic time after which no request may wait or retry (set by the agent)
         self._http = httpx.AsyncClient(timeout=httpx.Timeout(timeout, connect=min(10.0, timeout)), transport=transport)
 
@@ -176,6 +177,8 @@ class BodhanClient:
     ) -> tuple[dict, bytes | None, dict]:
         key = cache_key(model, payload_hash, key_params)
         hit = self.cache.get(key)
+        if hit and not _valid_meta(model, hit[0], hit[1]):
+            hit = None  # a well-formed entry with unusable content: refetch rather than fail
         if hit:
             meta, blob, origin = hit
             self.ledger.cache_hits += 1
@@ -193,7 +196,20 @@ class BodhanClient:
             self._inflight[key] = task
             self._tasks.add(task)
             task.add_done_callback(lambda t, k=key: self._request_done(k, t))
-        meta, blob, info = await asyncio.shield(task)
+        # Waiters are counted: when the last one gives up (cancelled), the request is cancelled too,
+        # which settles its cost (released if unsent, uncertain if sent) instead of running orphaned.
+        self._waiters[key] = self._waiters.get(key, 0) + 1
+        try:
+            meta, blob, info = await asyncio.shield(task)
+        except asyncio.CancelledError:
+            if self._waiters.get(key, 0) <= 1 and not task.done():
+                task.cancel()
+                await asyncio.gather(task, return_exceptions=True)
+            raise
+        finally:
+            self._waiters[key] = self._waiters.get(key, 1) - 1
+            if self._waiters[key] <= 0:
+                self._waiters.pop(key, None)
         if shared:
             self.ledger.cache_hits += 1
             info = {"model": model, "cache": "in_flight", "cost_inr": 0.0, "attempts": 0, "latency_s": 0.0}
@@ -246,6 +262,9 @@ class BodhanClient:
                     # Reserve once a slot is held, so queued requests do not lock up budget.
                     reservation = self.ledger.reserve(model, reserve, purpose)
                     dispatched = True
+                    # Logged before sending: if the process dies mid-request, --resume counts it as uncertain spend.
+                    self._emit({"type": "api_dispatch", "model": model, "purpose": purpose, "reservation_id": reservation.id,
+                                "amount_inr": round(reserve, 5)})
                     try:
                         resp = await send(api_key)
                     except httpx.ConnectError as exc:
@@ -274,7 +293,7 @@ class BodhanClient:
                 info = {"model": model, "cache": "miss", "cost_inr": round(cost, 5), "attempts": attempt,
                         "latency_s": round(time.monotonic() - started, 3)}
                 self._emit({"type": "api_call", "model": model, "purpose": purpose, "cache": "miss", "attempt": attempt, "status": status,
-                            "billing": "billed", "latency_s": round(time.monotonic() - t0, 3), "cost_inr": round(cost, 5)})
+                            "reservation_id": reservation.id, "billing": "billed", "latency_s": round(time.monotonic() - t0, 3), "cost_inr": round(cost, 5)})
                 return meta, blob, info
             except _Attempt as failure:
                 assert reservation is not None
@@ -292,6 +311,7 @@ class BodhanClient:
                     rl_wait = min(60.0, failure.wait if failure.wait is not None else self.backoff_base * 2 ** attempt)
                     self.gates[model].rate_limited(rl_wait)
                 self._emit({"type": "api_call", "model": model, "purpose": purpose, "cache": "miss", "attempt": attempt, "status": failure.status or status,
+                            "reservation_id": reservation.id,
                             "billing": failure.billing, "error": failure.error.code, "message": failure.error.message[:300],
                             "latency_s": round(time.monotonic() - t0, 3),
                             "cost_inr": round(reservation.amount, 5) if failure.billing != "none" else 0.0,
@@ -308,6 +328,10 @@ class BodhanClient:
                 # A request that was already sent may have been billed, so it counts as uncertain.
                 if reservation is not None and reservation.open:
                     (self.ledger.mark_uncertain if dispatched else self.ledger.release)(reservation)
+                    if dispatched:
+                        self._emit({"type": "api_call", "model": model, "purpose": purpose, "cache": "miss", "attempt": attempt,
+                                    "reservation_id": reservation.id, "billing": "uncertain", "error": "cancelled",
+                                    "cost_inr": round(reservation.amount, 5), "will_retry": False})
                 raise
         assert last is not None
         err = last.error
@@ -446,6 +470,22 @@ class BodhanClient:
 
         meta, _, info = await self._call(MODEL_OCR, purpose, params, sha256_bytes(image), price_ocr(1), send, parse, lambda m: price_ocr(1))
         return meta, info
+
+
+def _valid_meta(model: str, meta: dict, blob: bytes | None) -> bool:
+    """Cached content must have the shape the model's parser produces."""
+    try:
+        if model == MODEL_TRANSLATE:
+            return isinstance(meta.get("translation"), str)
+        if model == MODEL_OCR:
+            return isinstance(meta.get("markdown"), str) and isinstance(meta.get("blocks", []), list)
+        if model == MODEL_TRANSCRIBE:
+            return isinstance(meta.get("text"), str) and isinstance(meta.get("seconds", 0), (int, float))
+        if model == MODEL_SPEAK:
+            return blob is not None and sniff_audio(blob) is not None
+    except AttributeError:
+        return False
+    return True
 
 
 def sniff_audio(data: bytes) -> str | None:

@@ -334,6 +334,7 @@ class Artifact:
     source_language: str | None = None
     digest: str | None = None  # SHA-256 of the file as written
     history: list[dict[str, Any]] = field(default_factory=list)  # every verification ever recorded, in order
+    origin: list[str] = field(default_factory=list)  # names of the input files this artifact derives from
 
     def __post_init__(self) -> None:
         if self.digest is None and self.path.is_file():
@@ -353,7 +354,8 @@ class Artifact:
     def to_state(self) -> dict[str, Any]:
         return {"path": str(self.path), "kind": self.kind, "producer": self.producer, "language": self.language,
                 "provenance": self.provenance, "verification": self.verification, "notes": self.notes, "depends_on": self.depends_on,
-                "source_digest": self.source_digest, "source_language": self.source_language, "digest": self.digest, "history": self.history}
+                "source_digest": self.source_digest, "source_language": self.source_language, "digest": self.digest, "history": self.history,
+                "origin": self.origin}
 
     @classmethod
     def from_state(cls, state: dict[str, Any]) -> Artifact:
@@ -362,6 +364,7 @@ class Artifact:
                   state.get("source_language"), state.get("digest"), [])
         art.verification = state.get("verification")
         art.history = list(state.get("history") or [])
+        art.origin = list(state.get("origin") or [])
         return art
 
     def as_dict(self, base: Path | None = None) -> dict[str, Any]:
@@ -369,7 +372,7 @@ class Artifact:
         return {"path": p.replace("\\", "/"), "kind": self.kind, "producer": self.producer, "language": self.language,
                 "provenance": self.provenance, "verification": self.verification, "notes": self.notes,
                 "embeds": [Path(d).name for d in self.depends_on], "sha256": self.digest,
-                "source_language": self.source_language, "verification_checks": len(self.history)}
+                "source_language": self.source_language, "verification_checks": len(self.history), "origin": self.origin}
 
 
 @dataclass
@@ -421,6 +424,14 @@ class RunContext:
             candidate = self.artifacts_dir / f"{stem}_{i}{suffix}"
             i += 1
         return candidate
+
+    def origin_of(self, label: str) -> list[str]:
+        """Input files behind a path: an artifact's own origin, or the file name of an input."""
+        if label in self.artifacts:
+            return list(self.artifacts[label].origin)
+        if not label or label == "inline":
+            return []
+        return [Path(label).name]
 
     def register(self, artifact: Artifact) -> Artifact:
         self.artifacts[str(artifact.path)] = artifact

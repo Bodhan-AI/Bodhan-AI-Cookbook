@@ -122,8 +122,8 @@ async def transcribe_audio(ctx: RunContext, a: TranscribeIn) -> dict:
     js = ctx.artifact_path(base, ".json")
     js.write_text(json.dumps({"source": p.name, **r}, ensure_ascii=False, indent=1), encoding="utf-8")
     lang = (r["detection"] or {}).get("language")
-    ctx.register(Artifact(txt, "transcript", "transcribe_audio", lang, "indic-transcribe", None, r["notes"]))
-    ctx.register(Artifact(js, "json", "transcribe_audio", lang, "indic-transcribe", None))
+    ctx.register(Artifact(txt, "transcript", "transcribe_audio", lang, "indic-transcribe", None, r["notes"], origin=ctx.origin_of(str(p))))
+    ctx.register(Artifact(js, "json", "transcribe_audio", lang, "indic-transcribe", None, origin=ctx.origin_of(str(p))))
     ctx.transcripts[str(p)] = js
     if ctx.provenance_guard is not None:
         ctx.provenance_guard.add(r["text"])
@@ -158,7 +158,7 @@ class SubtitlesIn(_Strict):
     path: str = Field(description="Audio/video file, or the segments JSON from transcribe_audio (reuses it instead of re-transcribing).")
     subtitle_language: str = Field("en", description="Language of the subtitles, e.g. 'en'.")
     source_language: str = Field("auto", description="Spoken language code if known, else 'auto'.")
-    max_cue_seconds: float = Field(7.0, ge=3.0, le=28.0, description="Maximum length of one subtitle cue.")
+    max_cue_seconds: float = Field(7.0, ge=3.0, le=28.0, description="Target maximum length of one cue. Very sparse speech can give a longer cue; the result notes it.")
     output_name: str | None = Field(None, description="Base file name for the .srt artifacts.")
 
 
@@ -194,7 +194,7 @@ async def create_subtitles(ctx: RunContext, a: SubtitlesIn) -> dict:
     base = output_name(a.output_name, str(p), "")
     src_srt = ctx.artifact_path(f"{base}_{src_lang or 'source'}", ".srt")
     src_srt.write_text(render_srt(segments), encoding="utf-8")
-    ctx.register(Artifact(src_srt, "transcript", "create_subtitles", src_lang, "indic-transcribe", None))
+    ctx.register(Artifact(src_srt, "transcript", "create_subtitles", src_lang, "indic-transcribe", None, origin=ctx.origin_of(str(p))))
 
     verification = None
     if src_lang == target:
@@ -215,7 +215,8 @@ async def create_subtitles(ctx: RunContext, a: SubtitlesIn) -> dict:
                   "problems": verification["problems"], "warnings": verification["warnings"]})
         out_path = ctx.artifact_path(f"{base}_{target}", ".srt")
         out_path.write_text(render_srt(out_cues), encoding="utf-8")
-        ctx.register(Artifact(out_path, "subtitles", "create_subtitles", target, "indic-transcribe + indic-translate", verification, notes))
+        ctx.register(Artifact(out_path, "subtitles", "create_subtitles", target, "indic-transcribe + indic-translate", verification, notes,
+                              origin=ctx.origin_of(str(p))))
     sample = render_srt(out_cues[:4])
     return {"subtitles_path": str(out_path), "source_subtitles_path": str(src_srt), "cues": len(out_cues), "source_detection": detection,
             "verification": verification, "notes": notes, "timing_note": "Cue boundaries are pause-based cuts (or proportional splits of a reused transcript); speech inside a cue is not aligned.",
@@ -401,7 +402,7 @@ async def synthesize_speech(ctx: RunContext, a: SpeakIn) -> dict:
     dest = ctx.artifact_path(output_name(a.output_name, src_label, f"_{lang}_speech"), f".{a.format}")
     encode_audio(audio, dest, a.format, title=dest.stem, comment=label)
     ctx.register(Artifact(dest, "audio", "synthesize_speech", lang, f"indic-speak ({voice})", verification, notes + [label],
-                          depends_on=[src_label] if src_label in ctx.artifacts else []))
+                          depends_on=[src_label] if src_label in ctx.artifacts else [], origin=ctx.origin_of(src_label)))
     return {"path": str(dest), "duration_s": round(duration, 1), "language": lang, "voice": voice, "style": style, "segments": len(segments),
             "characters": total_chars, "label": label, "notes": notes, "verification": verification,
             "segment_report": [{k: v for k, v in r.items() if k != "heard"} for r in seg_reports][:40]}

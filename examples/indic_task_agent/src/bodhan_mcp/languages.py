@@ -160,7 +160,9 @@ _DEVANAGARI_HINTS = {
 
 _ENGLISH_HINTS = frozenset("the a an and or of to in on at for with from by is are was were be been it this that these those "
                            "will would can could should has have had not no do does did as if but so than then there their they "
-                           "we you he she i my your our his her its which who what when where why how all any each".split())
+                           "we you he she i my your our his her its which who what when where why how all any each about after also "
+                           "because before into more most only other over some such them through under very just may must "
+                           "every both many much up out here now yes get make like time per".split())
 
 _DEVANAGARI_SUFFIXES = {
     "hi": ("ेगा", "ेगी", "ेंगे", "ता है", "ती है", "ाएगा", "ियों", "ाओं"),
@@ -226,7 +228,8 @@ def detect_language(text: str) -> LanguageGuess:
     if script == "Latin":
         # Latin script does not identify a language: English, romanized Hindi and French look alike.
         en_words = sum(1 for w in text.lower().split() if w.strip(".,;:!?\"'()") in _ENGLISH_HINTS)
-        if en_words >= max(1, len(text.split()) // 10):
+        n_words = sum(1 for w in text.split() if any(ch.isalpha() for ch in w))  # table pipes and dashes are not words
+        if en_words >= max(2, n_words // 8):  # one shared short word ("a", "on") is not evidence
             return LanguageGuess("en", script, share * 0.9, candidates, "Latin script with English function words")
         return LanguageGuess(None, script, share * 0.3, candidates,
                              "Latin script without English function words: could be romanized Indian-language text or a non-Indian language")

@@ -168,7 +168,8 @@ def main() -> None:
             rows.append({**row, "pass": False, "status": None, "fails": ["no report.json"]})
             continue
         report = json.loads(rp.read_text(encoding="utf-8"))
-        problem = None if reuse else fresh(report, t, launched)
+        # reused evidence must at least belong to this task; fresh runs must also postdate their launch
+        problem = ("report belongs to a different task" if report.get("task") != t["task"] else None) if reuse else fresh(report, t, launched)
         if problem:
             rows.append({**row, "pass": False, "status": report.get("status"), "fails": [problem]})
             continue

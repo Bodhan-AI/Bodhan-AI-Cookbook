@@ -109,7 +109,10 @@ async def run(args: argparse.Namespace, *, transport=None, llm: PlannerLLM | Non
     else:
         task = args.task
         check_inputs_vs_out(args.files, out)
-        files, missing, roots = expand_inputs(args.files, exclude=out)
+        try:
+            files, missing, roots = expand_inputs(args.files, exclude=out)
+        except OSError as exc:  # e.g. an unreadable folder: a usage problem, reported before anything changes
+            raise UsageError(f"Cannot read the input files: {exc}") from exc
         settings = Settings(max_steps=args.max_steps, max_cost_inr=args.max_cost_inr, max_seconds=args.max_seconds,
                             llm_input_inr_per_1m=args.llm_input_inr_per_1m, llm_output_inr_per_1m=args.llm_output_inr_per_1m)
         deadline = t0 + settings.max_seconds

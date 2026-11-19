@@ -17,6 +17,7 @@ from ..languages import (
     SCRIPT_TO_LANGS,
     TRANSLATE_LANGUAGES,
     detect_language,
+    indic_fraction,
     language_label,
     normalize_language,
     script_matches_language,
@@ -100,7 +101,8 @@ def _already_in(text: str, target: str, source_hint: str | None = None) -> bool:
         return True  # numbers/punctuation only
     if target == "en":
         # Latin script alone is not English (romanized Hindi, French): require English evidence.
-        return script_matches_language(text, "en") > 0.9 and detect_language(text).language == "en"
+        # Any Indian-language letter means part of the passage still needs translating.
+        return indic_fraction(text) == 0 and script_matches_language(text, "en") > 0.9 and detect_language(text).language == "en"
     script = LANG_TO_SCRIPT.get(target)
     if script is None or script_matches_language(text, target) < 0.9:
         return False
@@ -274,7 +276,10 @@ async def verify_units(ctx: RunContext, units: list[Unit], source_text: str, out
     # Tables: numbers must stay in their row (a global count cannot see two values swapped between rows).
     for src_rows, out_rows in zip(_table_rows(source_text), _table_rows(output_text)):
         if len(src_rows) == len(out_rows):
-            moved = [i for i, (a, b) in enumerate(zip(src_rows, out_rows)) if sorted(extract_numbers(" ".join(a))) != sorted(extract_numbers(" ".join(b)))]
+            # cell by cell when the row keeps its shape (catches values swapped between columns), else per row
+            moved = [i for i, (a, b) in enumerate(zip(src_rows, out_rows))
+                     if ([extract_numbers(c) for c in a] != [extract_numbers(c) for c in b] if len(a) == len(b)
+                         else sorted(extract_numbers(" ".join(a))) != sorted(extract_numbers(" ".join(b))))]
             if moved:
                 problems.append(f"table rows {moved[:6]} have different numbers than the source rows (values moved, changed or lost)")
 
@@ -311,7 +316,7 @@ async def verify_units(ctx: RunContext, units: list[Unit], source_text: str, out
             lang = unit_lang(u)
             if u.kind in ("text", "table") and letters_only(u.output) and lang and lang != target:
                 todo.append((u, lang))
-            elif u.kind == "text" and letters_only(u.output) and lang is None and source_lang is not None:
+            elif u.kind in ("text", "table") and letters_only(u.output) and lang is None:
                 warnings.append(f"a passage in an unidentified language was not back-translated: {u.source[:50]!r}")
         if source_lang is None and not todo:
             warnings.append("source language unknown; back-translation skipped")

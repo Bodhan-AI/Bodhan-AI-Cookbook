@@ -31,7 +31,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from bodhan_mcp import errors as E
 from bodhan_mcp.config import BodhanKeys
 from bodhan_mcp.documents import classify, read_text_file
-from bodhan_mcp.languages import normalize_language
+from bodhan_mcp.languages import LANGUAGE_NAMES, normalize_language
 from bodhan_mcp.registry import clean_schema, invoke
 from bodhan_mcp.runtime import RUN_DEADLINE, Artifact, RunContext
 from bodhan_mcp.tools import TOOL_BY_NAME, TOOLS
@@ -66,7 +66,9 @@ class _Strict(BaseModel):
 class DeliverableSpec(_Strict):
     kind: Literal["audio", "translation", "subtitles", "text", "transcript", "answer"] = Field(
         description="audio, translation, subtitles, text (a written summary/report/list), transcript, or answer (no file: the reply itself)")
-    language: str | None = Field(None, description="Language code of the output, e.g. 'ta' (omit if not language-specific).")
+    language: str | None = Field(None, max_length=12, description="Language code of the output, e.g. 'ta' (omit if not language-specific).")
+    source: str | None = Field(None, max_length=200, description="Input file name this output is made from, when the task asks for one output per file.")
+    optional: bool = Field(False, description="True for conditional outputs that may legitimately not exist (e.g. 'translate the Telugu clips' when none is Telugu).")
     description: str = Field("", max_length=300, description="What this output is, e.g. 'two-minute Tamil summary audio'.")
 
 
@@ -235,7 +237,11 @@ class Agent:
             except TimeoutError:
                 return self._forced_stop(("time_limit", f"Reached the {self.settings.max_seconds:.0f}s time limit during a planner call."))
             except LLMError as exc:
-                self.trace.write({"type": "llm_error", "step": self.steps, "error": str(exc)})
+                sent = getattr(self.llm, "uncertain_attempts", 0)
+                if est is not None and sent:  # priced: failed attempts may have been billed; count them conservatively
+                    self.ctx.ledger.add_llm(0, 0, est * sent)
+                self.trace.write({"type": "llm_error", "step": self.steps, "error": str(exc), "uncertain_attempts": sent,
+                                  "cost_inr": round(est * sent, 5) if est is not None and sent else None})
                 return self._forced_stop(("llm_error", f"The planner LLM failed: {exc}"))
             cost = self._llm_cost(reply.prompt_tokens, reply.completion_tokens)
             self.ctx.ledger.add_llm(reply.prompt_tokens, reply.completion_tokens, cost)
@@ -265,9 +271,16 @@ class Agent:
         order = ([c for c in calls if c.name == "record_plan"] + [c for c in calls if c.name not in ("record_plan", "finish")]
                  + [c for c in calls if c.name == "finish"])
         room = max(0, self.settings.max_steps - self.steps)
-        admitted, refused = order[:room], order[room:]
+        # The last step is reserved for finish: other calls may use at most room - 1 steps.
+        others = [c for c in order if c.name != "finish"]
+        finishes_all = [c for c in order if c.name == "finish"]
+        admitted_others = others[:max(0, room - 1)]
+        admitted = admitted_others + finishes_all[:max(0, room - len(admitted_others))][:1]
+        refused = [c for c in order if c not in admitted]
         results: dict[str, dict] = {c.id: {"ok": False, "error": {"code": "step_limit", "message": f"--max-steps {self.settings.max_steps} reached; "
                                                                   "this call was not run. Call finish."}} for c in refused}
+        if not admitted:
+            self.steps += 1  # a turn whose calls were all refused still uses a step, so a planner ignoring the limit cannot loop forever
         plans = [c for c in admitted if c.name == "record_plan"]
         work = [c for c in admitted if c.name not in ("record_plan", "finish")]
         finishes = [c for c in admitted if c.name == "finish"]
@@ -317,12 +330,15 @@ class Agent:
             plan = RecordPlanIn.model_validate(call.arguments)
         except ValidationError as exc:
             return self._control_error(call, f"Invalid plan: {_validation_message(exc)}. The previous plan (if any) is unchanged.")
-        texts = plan.steps + plan.assumptions + [d.description for d in plan.deliverables]
+        texts = plan.steps + plan.assumptions + [x for d in plan.deliverables for x in (d.description, d.language or "", d.source or "")]
         if not all(self._indic_ok(t) for t in texts):
             return self._control_error(call, "The plan contains Indian-language text you wrote. Write the plan in English.", E.PROVENANCE_VIOLATION)
         for d in plan.deliverables:
             if d.language:
                 d.language = normalize_language(d.language)
+                if d.language not in LANGUAGE_NAMES:
+                    return self._control_error(call, f"Deliverable language {d.language!r} is not a language code Bodhan supports "
+                                               "(use e.g. 'ta', 'hi', 'en'). If the task asks for an unsupported language, finish as unsupported.")
         self.plan = plan.model_dump()
         self.plan_version += 1
         self.trace.write({"type": "plan", "step": self.steps, "version": self.plan_version, **self.plan})
@@ -433,17 +449,22 @@ class Agent:
         artifact of a compatible kind and language. Generic: no task-specific rules."""
         if self.plan is None:
             return ["status completed needs a recorded plan with its deliverables"]
-        gaps = []
+        gaps, used = [], set()
         for spec in self.plan["deliverables"]:
-            kind, lang = spec["kind"], spec.get("language")
-            label = f"{kind}{' (' + lang + ')' if lang else ''}{': ' + spec['description'][:60] if spec.get('description') else ''}"
+            kind, lang, src = spec["kind"], spec.get("language"), (spec.get("source") or "").strip()
+            label = f"{kind}{' (' + lang + ')' if lang else ''}{' from ' + src if src else ''}"                     f"{': ' + spec['description'][:60] if spec.get('description') else ''}"
             if kind == "answer":
                 if not answer or not any(t["ok"] for t in self.tool_log):
                     gaps.append(f"declared deliverable '{label}' needs an answer based on at least one successful tool call")
                 continue
-            match = [x for x in delivered if x.kind in KIND_MATCH[kind] and (not lang or x.language == lang) and self._usable(x)]
-            if not match:
-                gaps.append(f"declared deliverable '{label}' has no matching verified artifact among the finish deliverables")
+            # one artifact per declared deliverable; a declared source must be in the artifact's input lineage
+            match = next((x for x in delivered if str(x.path) not in used and x.kind in KIND_MATCH[kind] and (not lang or x.language == lang)
+                          and (not src or Path(src).name.lower() in {o.lower() for o in x.origin}) and self._usable(x)), None)
+            if match is not None:
+                used.add(str(match.path))
+            elif not spec.get("optional"):
+                gaps.append(f"declared deliverable '{label}' has no matching verified artifact among the finish deliverables "
+                            "(each declared deliverable needs its own artifact)")
         return gaps
 
     def _usable(self, art: Artifact) -> bool:
@@ -475,10 +496,9 @@ class Agent:
             worst = "fail"
         for dep in art.depends_on:
             child = self.ctx.artifacts.get(dep)
-            if child is not None:
-                st = self._effective_status(child, seen)
-                if order.get(st, 0) > order.get(worst, 0):
-                    worst = st
+            st = self._effective_status(child, seen) if child is not None else "fail"  # an unknown source cannot vouch
+            if order.get(st, 0) > order.get(worst, 0):
+                worst = st
         return worst
 
     def _time_left(self) -> float:
@@ -545,6 +565,9 @@ class Agent:
         self.missing, self._inputs_fp = st.get("missing", []), st.get("inputs", [])
         self.elapsed_before = float(st.get("elapsed_s", 0.0))
         self.ctx.ledger.load_state(st["ledger"])
+        rebuilt = checkpoint.ledger_from_trace(self.out / "trace.jsonl") if self.out else None
+        if rebuilt is not None:  # the trace is written as each request settles, so it is the more complete record
+            self.ctx.ledger.load_state(rebuilt)
         guard = ProvenanceGuard()
         guard._corpus = list(st.get("provenance", []))
         self.ctx.provenance_guard = guard
@@ -552,12 +575,15 @@ class Agent:
         for item in st.get("artifacts", []):
             art = Artifact.from_state(item)
             if not art.path.is_file() or (art.digest and checkpoint.file_sha256(art.path) != art.digest):
-                dropped.append(art.path.name)  # changed or missing since the checkpoint: not trusted
-                continue
+                # Changed or missing since the checkpoint: kept as a failed record, so anything made from it
+                # stays unusable too (dropping it would hide that failure from its descendants).
+                dropped.append(art.path.name)
+                art.verification = {"status": "fail", "method": "resume integrity check",
+                                    "problems": ["the file changed or disappeared after the checkpoint"], "warnings": []}
             self.ctx.artifacts[str(art.path)] = art
         self.ctx.transcripts.update({k: Path(v) for k, v in st.get("transcripts", {}).items() if str(v) in self.ctx.artifacts})
         if dropped:
-            self.setup_notes.append(f"artifacts changed or missing since the checkpoint were dropped: {dropped}")
+            self.setup_notes.append(f"artifacts changed or missing since the checkpoint are marked failed: {dropped}")
         return st.get("pending")
 
     # ----------------------------------------------------------------- misc

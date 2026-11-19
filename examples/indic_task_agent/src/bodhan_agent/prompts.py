@@ -26,7 +26,9 @@ produce no substitute output.
 Start by calling record_plan with numbered steps, your \
 assumptions (e.g. unstated source language, voice gender, length) and every deliverable the task asks for, each with \
 its kind (audio, translation, subtitles, text, transcript) and language code; use kind "answer" when the reply itself \
-is the output (e.g. "which clips are Telugu?"). Paid tools are refused until a plan is recorded, and "completed" is \
+is the output (e.g. "which clips are Telugu?"). Declare one deliverable per output file; when the task asks for one \
+output per input, set "source" to that input's file name. Mark outputs that depend on what you find with "optional": \
+true (e.g. translations of the clips that turn out to be Telugu). Paid tools are refused until a plan is recorded, and "completed" is \
 accepted only when each declared deliverable exists and passed verification. Call record_plan again if you change course.
 - Use the fewest tool calls that do the job. Each step costs time and money. Pass files by path; chain the \
 artifact paths that tools return. Never run the same tool on the same input twice.

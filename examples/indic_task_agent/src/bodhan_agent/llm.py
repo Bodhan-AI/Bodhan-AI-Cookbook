@@ -91,33 +91,47 @@ class PlannerLLM:
         self.client = client
         self.model = model or "test-model"
         self.max_attempts = max_attempts
-        self._no_max_tokens = False
+        self._rejected_caps: set[str] = set()
+        self.uncertain_attempts = 0
 
     async def chat(self, messages: list[dict[str, Any]], tools: list[dict[str, Any]], max_tokens: int | None = None) -> LLMReply:
-        """`max_tokens` is only sent when the planner is priced (to bound spend). Some providers reject it
-        (they expect max_completion_tokens); then it is dropped and the call is repeated without it."""
+        """`max_tokens` is sent only when the planner is priced, to bound its spend. Providers that
+        reject it are tried with `max_completion_tokens`; if both are rejected, a priced call is refused
+        (its cost could not be bounded) rather than sent without a cap."""
         last_exc: Exception | None = None
+        self.uncertain_attempts = 0  # attempts that failed after the request may have reached the provider
         for attempt in range(1, self.max_attempts + 1):
             t0 = time.monotonic()
             try:
-                extra = {"max_tokens": max_tokens} if max_tokens and not self._no_max_tokens else {}
-                try:
-                    resp = await self.client.chat.completions.create(model=self.model, messages=messages, tools=tools, tool_choice="auto", **extra)
-                except Exception as exc:
-                    if extra and getattr(exc, "status_code", None) == 400 and "max_tokens" in str(exc):
-                        self._no_max_tokens = True
-                        resp = await self.client.chat.completions.create(model=self.model, messages=messages, tools=tools, tool_choice="auto")
-                    else:
-                        raise
+                resp = await self._create(messages, tools, max_tokens)
                 return self._parse(resp, time.monotonic() - t0, {t["function"]["name"] for t in tools})
+            except LLMError:
+                raise
             except Exception as exc:  # network, 429, 5xx, malformed
                 last_exc = exc
                 status = getattr(exc, "status_code", None)
+                if status is None or status >= 500:
+                    self.uncertain_attempts += 1
                 if status in (400, 401, 403, 404, 422) and attempt == 1 and "tool" not in str(exc).lower():
                     break  # configuration error; retrying will not help
                 if attempt < self.max_attempts:
                     await asyncio.sleep(2 ** attempt)
         raise LLMError(f"LLM call failed after retries: {type(last_exc).__name__}: {str(last_exc)[:300]}")
+
+    async def _create(self, messages, tools, max_tokens):
+        base = {"model": self.model, "messages": messages, "tools": tools, "tool_choice": "auto"}
+        if not max_tokens:
+            return await self.client.chat.completions.create(**base)
+        for cap in [f for f in ("max_tokens", "max_completion_tokens") if f not in self._rejected_caps]:
+            try:
+                return await self.client.chat.completions.create(**base, **{cap: max_tokens})
+            except Exception as exc:
+                if getattr(exc, "status_code", None) == 400 and cap in str(exc):
+                    self._rejected_caps.add(cap)
+                    continue
+                raise
+        raise LLMError("This planner endpoint rejects both max_tokens and max_completion_tokens, so the cost of a priced "
+                       "planner call cannot be bounded. Run without --llm-*-inr-per-1m prices, or use an endpoint that accepts an output cap.")
 
     def _parse(self, resp: Any, latency: float, known: set[str]) -> LLMReply:
         choice = resp.choices[0]

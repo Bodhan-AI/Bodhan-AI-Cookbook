@@ -49,7 +49,7 @@ FIELDS: dict[str, dict[str, Any]] = {
     "inspect_files": {"files": {"type": "array", "items": {"type": "object", "properties": {
         "path": S, "name": S, "kind": {"enum": ["audio", "video", "pdf", "image", "text", "unknown"]}, "bytes": I, "duration_s": {"type": ["number", "null"]},
         "pages": I, "language": DETECTION, "error": ERROR}}}, "missing": STRS, "note": S},
-    "transcribe_audio": {"source": S, "transcript_path": S, "segments_path": S, "duration_s": N, "segments": I, "language_used": S,
+    "transcribe_audio": {"source": S, "transcript_path": S, "segments_path": S, "duration_s": N, "segments": I, "language_used": OPT_S,
                          "detection": DETECTION, "notes": STRS, "timing_note": S, "transcript": UNTRUSTED},
     "create_subtitles": {"subtitles_path": S, "source_subtitles_path": S, "cues": I, "source_detection": DETECTION, "verification": VERIFICATION,
                          "notes": STRS, "timing_note": S, "first_cues": UNTRUSTED},

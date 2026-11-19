@@ -20,6 +20,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 import shutil
 import sys
@@ -71,7 +72,9 @@ def export(src: Path, dest: Path, media_out: Path, media_base_url: str | None = 
     runs = sorted(p for p in src.iterdir() if (p / "report.json").exists())
     if not runs:
         raise ExportError(f"No runs with report.json in {src}. Nothing was changed.")
-    staging = dest.with_name(dest.name + ".staging")
+    staging = dest.with_name(f"{dest.name}.staging-{os.getpid()}")
+    if overlaps(staging, src) or overlaps(staging, media_out):  # the derived folder is checked like the given ones
+        raise ExportError(f"the staging folder {staging} would overlap the source or media folder. Nothing was changed.")
     if staging.exists():
         shutil.rmtree(staging)
     staging.mkdir(parents=True)

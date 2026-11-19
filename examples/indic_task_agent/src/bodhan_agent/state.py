@@ -79,3 +79,54 @@ def check_inputs(state: dict[str, Any]) -> list[Path]:
             raise ResumeError(f"Input {p} changed since the run started; start a new run.")
         files.append(p)
     return files
+
+
+def ledger_from_trace(trace: Path) -> dict[str, Any] | None:
+    """Rebuild settled spend from trace.jsonl, which is appended as each request settles
+    (unlike the checkpoint, which is written between turns). A request that was dispatched
+    but never settled before the process stopped is counted as uncertain spend."""
+    if not trace.is_file():
+        return None
+    st: dict[str, Any] = {"billed": 0.0, "uncertain": 0.0, "by_model": {}, "calls": 0, "cache_hits": 0, "llm_prompt_tokens": 0,
+                          "llm_completion_tokens": 0, "llm_calls": 0, "llm_cost": 0.0, "llm_priced": False}
+    pending: dict[Any, tuple[str, float]] = {}
+
+    def settle_unresolved() -> None:
+        for model, amount in pending.values():
+            st["uncertain"] += amount
+            st["by_model"][model] = st["by_model"].get(model, 0.0) + amount
+        pending.clear()
+
+    for line in trace.read_text(encoding="utf-8").splitlines():
+        try:
+            e = json.loads(line)
+        except ValueError:
+            continue  # a line cut off by the interruption
+        kind = e.get("type")
+        if kind in ("run_start", "run_resumed"):
+            settle_unresolved()  # reservation ids restart with each process
+        elif kind == "api_dispatch":
+            pending[e.get("reservation_id")] = (e.get("model", "?"), float(e.get("amount_inr") or 0))
+        elif kind == "api_call":
+            if e.get("cache") in ("this_run", "previous_run", "in_flight"):
+                st["cache_hits"] += 1
+                continue
+            pending.pop(e.get("reservation_id"), None)
+            cost, model = float(e.get("cost_inr") or 0), e.get("model", "?")
+            if e.get("billing") == "billed":
+                st["billed"] += cost
+                st["calls"] += 1
+            elif e.get("billing") in ("uncertain", "billed_unusable"):
+                st["uncertain"] += cost
+            else:
+                continue
+            st["by_model"][model] = st["by_model"].get(model, 0.0) + cost
+        elif kind == "llm_call":
+            st["llm_calls"] += 1
+            st["llm_prompt_tokens"] += int(e.get("prompt_tokens") or 0)
+            st["llm_completion_tokens"] += int(e.get("completion_tokens") or 0)
+            if e.get("cost_inr") is not None:
+                st["llm_cost"] += float(e["cost_inr"])
+                st["llm_priced"] = True
+    settle_unresolved()
+    return st

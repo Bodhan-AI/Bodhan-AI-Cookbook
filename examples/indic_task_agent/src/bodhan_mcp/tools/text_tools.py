@@ -86,7 +86,8 @@ async def translate_text(ctx: RunContext, a: TranslateIn) -> dict:
     notes = [n for u in units for n in u.notes]
     deps = [src_label] if src_label in ctx.artifacts else []
     art = ctx.register(Artifact(dest, "subtitles" if is_srt else "translation", "translate_text", target, "indic-translate", verification, notes,
-                                depends_on=deps, source_digest=sha256_bytes(source.encode("utf-8")), source_language=src_lang))
+                                depends_on=deps, source_digest=sha256_bytes(source.encode("utf-8")), source_language=src_lang,
+                                origin=ctx.origin_of(src_label)))
     if ctx.provenance_guard is not None:
         ctx.provenance_guard.add(output)
     result = {
@@ -128,7 +129,10 @@ async def verify_translation(ctx: RunContext, a: VerifyTranslationIn) -> dict:
                               hint="Pass the original source the translation was made from, or translate again to repair it.")
         if art.language and target != art.language:
             raise E.ToolError(E.INVALID_ARGUMENT, f"{trans_path.name} is a {art.language} translation, not {target}.")
-    src_lang, detection = detect_source(source, a.source_language)
+        if art.source_language:  # the language recorded when it was made, not a caller-supplied hint
+            src_lang, detection = art.source_language, {"language": art.source_language, "source": "recorded at translation time"}
+    if not (art is not None and art.source_language):
+        src_lang, detection = detect_source(source, a.source_language)
     from .translation import plan_units
 
     src_units = [u for u, _ in plan_units(source)]
@@ -233,7 +237,7 @@ async def write_text(ctx: RunContext, a: WriteTextIn) -> dict:
     dest = ctx.artifact_path(a.name, suffix)
     dest.write_text(final, encoding="utf-8")
     ctx.register(Artifact(dest, "text", "write_text", "en", "planner (English)" + (" + embedded artifacts" if embedded else ""), None,
-                          depends_on=embedded))
+                          depends_on=embedded, origin=sorted({o for e in embedded for o in ctx.origin_of(e)})))
     return {"path": str(dest), "chars": len(final), "embedded_artifacts": embedded}
 
 

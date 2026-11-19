@@ -184,7 +184,7 @@ async def ocr_document(ctx: RunContext, a: OcrIn) -> dict:
     dest = ctx.artifact_path(output_name(a.output_name, str(p), "_ocr"), ".md")
     dest.write_text(md, encoding="utf-8")
     det = detect_language(md)
-    ctx.register(Artifact(dest, "ocr", "ocr_document", det.language, "indic-ocr", verification, notes))
+    ctx.register(Artifact(dest, "ocr", "ocr_document", det.language, "indic-ocr", verification, notes, origin=ctx.origin_of(str(p))))
     if ctx.provenance_guard is not None:
         ctx.provenance_guard.add(md)
     tables = sum(1 for pg in pages_out for b in pg["blocks"] if b.get("type") == "Table")
