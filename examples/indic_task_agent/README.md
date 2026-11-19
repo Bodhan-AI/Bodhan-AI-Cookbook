@@ -67,10 +67,10 @@ Status is `completed`, `partial` (some part could not be done, or an output chec
 python -m bodhan_mcp --out-dir ./bodhan_outputs
 ```
 
-Try it in a browser with the official MCP Inspector (Node.js):
+Try it in a browser with the official MCP Inspector (Node.js). Run it from this folder and give the full Python path:
 
 ```bash
-npx @modelcontextprotocol/inspector .venv/bin/python -m bodhan_mcp
+npx @modelcontextprotocol/inspector "$PWD/.venv/bin/python" -m bodhan_mcp
 ```
 
 Claude Desktop (`claude_desktop_config.json`):
