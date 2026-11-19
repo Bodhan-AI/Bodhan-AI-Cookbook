@@ -103,7 +103,7 @@ Tools take file paths and return artifact paths plus short previews. Audio and i
 | Tool choice and arguments | Which tool, which language, voice, length, file | Tools validate everything. Errors carry a `hint` naming the fix. |
 | English writing (`write_text`) | Summaries, answers, lists of results | Indian-language text is refused. It must come from `translate_text`. |
 | Judging results | Reads `verification` and decides to repair, re-plan or report | The finish gate re-checks the same facts in code. |
-| Final answer (`finish`) | Status and an English explanation | Gate rejects unverified, failing or invented deliverables and non-English answers. After two rejections, the run is accepted and downgraded to `partial`, with the gate's reasons listed. |
+| Final answer (`finish`) | Status and an English explanation | Gate rejects unverified, failing or invented deliverables (including failures inherited through embedded or source artifacts), non-English answers, and `completed` with no evidence of work. An answer-only task may finish without files after tools did real work. After two rejections, the run is accepted and downgraded to `partial` or `failed`, with the gate's reasons listed. |
 
 LLM failure (network, outage, misconfiguration) after three attempts stops the run with status `failed` and a full report. A model that writes a JSON tool call as plain text instead of using `tool_calls` is still understood (`llm.py` fallback). The endpoint needs only `chat.completions` with `tools` and `tool_choice="auto"`, with no provider-specific features.
 
@@ -111,9 +111,10 @@ LLM failure (network, outage, misconfiguration) after three attempts stops the r
 
 The prompt states the rule. Code also enforces it in three places:
 
-1. **`ProvenanceGuard`** (`tools/common.py`). In agent runs, inline Indian-language text passed to a tool must already exist in the task, an input file or a Bodhan output. Otherwise the call fails with `provenance_violation`, and the planner must pass text by artifact path.
-2. **`write_text`** refuses Indian-language content. Existing artifacts can be embedded by reference: `{{artifact:<path>}}`.
-3. **The finish gate** refuses a final answer that contains Indian-language text.
+1. **`ProvenanceGuard`** (`tools/common.py`). In agent runs, every run of Indian-language words that the planner passes inline must be a verbatim quote, or a selection of whole sentences, from the task, an input file or a Bodhan output. The check works span by span, so English padding cannot dilute it. Otherwise the call fails with `provenance_violation`, and the planner must pass text by artifact path.
+2. **`write_text`** refuses any Indian-language letter written by the caller, including unicode escapes inside JSON. Existing artifacts can be embedded by reference: `{{artifact:<path>}}`. The new file records what it embeds, so it inherits their verification.
+3. **The finish gate** never accepts planner-written Indian-language text in the answer, assumptions or limitations. If the planner insists, the text is replaced by a code-written English note.
+4. **`create_subtitles`** reuses only transcripts that `transcribe_audio` produced in the same session, so planner-written JSON cannot pass as Indic-Transcribe output.
 
 ## Verification
 
@@ -125,9 +126,11 @@ Every translation and every generated audio file is checked before the run can f
 - Numbers preserved, after converting Indic digits. Missing numbers only warn, because the model may spell them out.
 - Table shapes are identical. A changed shape fails.
 - Repetition is not much higher than in the source.
-- Back-translation into the source language with Indic-Translate, then chrF against the source. A passage whose back-translation is under 45 % of the source length, or whose chrF is under 0.15, fails as "incomplete or wrong". This is how silent omissions show up.
+- Back-translation into the source language with Indic-Translate, then chrF against the source. A passage whose back-translation is under 60 % of the source length, or whose chrF is under 0.15, fails as "incomplete or wrong". This is how silent omissions show up.
+- Sentence coverage per paragraph: a paragraph that comes back with fewer sentences warns.
+- A paragraph already in the target language is kept as it is, without a model call. For scripts that several languages share (Devanagari, Bengali, Perso-Arabic), the script proves nothing, so this happens only when the caller states the source language.
 
-**Speech** (`synthesize_speech`): every segment is back-transcribed with Indic-Transcribe and compared letter by letter. Under 0.5 similarity fails, and 0.5–0.72 warns. Segments whose speaking rate is far from the median (a sign of repetition or skipping) are flagged too. A failing segment is re-synthesised once with a different input. If a target length was requested, the duration is checked against it (±25 % warns).
+**Speech** (`synthesize_speech`): every segment is back-transcribed with Indic-Transcribe, in ≤28 s pieces if the audio is long, and compared letter by letter. Numbers that the ASR writes as digits are compared separately, because letter similarity ignores them. Under 0.5 similarity fails, and 0.5–0.72 warns. Segments whose speaking rate is far from the median (a sign of repetition or skipping) are flagged too. A failing segment is re-synthesised once with a different input. If a target length was requested, the duration is checked against it (±25 % warns).
 
 The LLM never sees audio and never judges Indian-language text. It reads English back-translation previews and the numeric checks.
 
@@ -137,13 +140,15 @@ The LLM never sees audio and never judges Indian-language text. It reads English
 - **Billing classes.** `billed` covers success, with cost computed from the response. `uncertain` covers timeouts, 5xx and unreadable bodies after the request was sent. It is counted against the budget, because the request may have been billed. `none` covers 4xx and 429, which are not billed.
 - **LLM spend.** The brief's budget is in rupees and the planner's price is unknown, so LLM tokens are always reported. They are converted into rupees and counted only when you pass `--llm-input-inr-per-1m` and `--llm-output-inr-per-1m`. `report.json` states which applies.
 - **No repeated paid input.** Results are cached by (model, exact input bytes, settings). Within a run, the same input is never sent twice. Across runs, a disk cache (`~/.cache/bodhan_tool_agent`) makes reruns free. Repairs always change the input, for example by splitting text or switching voice. `report.json` shows the cache hits.
-- **Step, time and call limits.** `--max-steps` counts tool calls. The last step offers only `finish`. `--max-seconds` bounds the whole run, and `--call-timeout` bounds each request.
+- **Step, time and call limits.** `--max-steps` counts tool calls. The last step offers only `finish`. `--max-seconds` bounds the whole run: tool calls, planner calls and rate-limit waits are all cut off at the deadline. `--call-timeout` bounds each request.
+- **Cancellation.** A request takes its budget reservation only once it holds a concurrency slot. If it is cancelled before it is sent, the reservation is released. If it was already sent, its cost counts as uncertain.
+- **Concurrent duplicates.** Two identical requests in flight at the same time share one HTTP call.
 
 ## Recovery
 
 | Failure | Handling |
 |---|---|
-| 429 rate limit | Not billed. The model's shared gate halves its concurrency and starts a cooldown that every request to that model waits out. Up to 7 attempts, honouring `retry-after`. Three successes in a row raise the concurrency again. |
+| 429 rate limit | Not billed. The model's shared gate halves its concurrency and starts a cooldown that every request to that model waits out. Up to 7 attempts, honouring `retry-after` (capped at 60 s and at the run deadline). Three successes in a row raise the concurrency again. |
 | 429 out of credit | `credit_exhausted`, no retry. |
 | Timeout, 5xx, dropped connection | Up to 3 attempts with exponential backoff. Cost counted as `uncertain`. |
 | Truncated translation (`finish_reason=length`) | Split and translate the halves, up to depth 3. Then `truncated_output`, never a partial result presented as complete. |

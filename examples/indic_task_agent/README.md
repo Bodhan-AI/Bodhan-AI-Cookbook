@@ -119,7 +119,7 @@ Every tool validates its input and returns `{"ok": false, "error": {"code", "mes
 ## Tests
 
 ```bash
-pytest -q                                  # 60+ offline tests, no network or keys needed
+pytest -q                                  # 80+ offline tests, no network or keys needed
 python scripts/run_suite.py                # live: runs evaluation/tasks.json and scores the outputs (costs about ₹5)
 ```
 
