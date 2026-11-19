@@ -139,3 +139,19 @@ async def test_compaction_keeps_shrinking_until_the_request_fits(tmp_path):
     out, rep, trace, md = read_outputs(tmp_path)
     assert rep["status"] in ("completed", "completed_with_warnings"), rep["final_answer"]
     assert any(e["type"] == "context_compacted" for e in trace)
+
+
+# 23. generated speech is delivered together with the text it reads (final4 d1 listed only the MP3)
+async def test_audio_is_delivered_with_its_script(tmp_path):
+    from test_agent_e2e import last_ok
+
+    txt = tmp_path / "summary_en.txt"
+    txt.write_text("The water cycle moves water between the sea, the sky and the land.", encoding="utf-8")
+    plan = ("record_plan", {"steps": ["translate", "speak"], "deliverables": [{"kind": "audio", "language": "ta"}]})
+    chat = ScriptedChat([[plan], [("translate_text", {"path": str(txt), "target_language": "ta", "output_name": "summary_ta"})],
+                         lambda m: [("synthesize_speech", {"path": last_ok(m, "path"), "language": "ta", "format": "wav"})],
+                         lambda m: [("finish", {"status": "completed", "final_answer": "Made the Tamil audio.", "deliverables": [last_ok(m, "path")]})]])
+    await run(args(tmp_path, "Read this summary aloud in Tamil", [txt]), transport=FakeBodhan().transport, llm=PlannerLLM(client=chat, model="s"))
+    out, rep, trace, md = read_outputs(tmp_path)
+    kinds = sorted(d["kind"] for d in rep["deliverables"])
+    assert kinds == ["audio", "translation"] and any(e["type"] == "deliverable_added" for e in trace)

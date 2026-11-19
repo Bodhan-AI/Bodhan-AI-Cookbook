@@ -479,6 +479,13 @@ class Agent:
             (delivered if art is not None and art.path.is_file() else unknown).append(art if art is not None and art.path.is_file() else d)
         if unknown:
             reasons.append(f"deliverables not produced by a tool in this run: {[self._safe(str(u)) for u in unknown]}")
+        for audio in [x for x in delivered if x.kind == "audio"]:
+            # generated speech is always delivered with the text it reads, so the listener can read along
+            for dep in audio.depends_on:
+                script = self.ctx.artifacts.get(dep)
+                if script is not None and script.kind in ("translation", "text") and script not in delivered and self._usable(script):
+                    delivered.append(script)
+                    self.trace.write({"type": "deliverable_added", "step": self.steps, "path": str(script.path), "reason": "text read by delivered audio"})
         unverified = [x.path.name for x in self.ctx.artifacts.values() if x.kind in VERIFIED_KINDS and x.verification is None]
         if unverified:
             reasons.append(f"generated translations/audio without verification: {unverified}; verify them (verify_translation/verify_speech)")
