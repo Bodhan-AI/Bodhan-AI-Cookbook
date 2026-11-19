@@ -67,7 +67,7 @@ def test_resume_after_a_hard_process_kill(tmp_path):
     checkpoint = tmp_path / "out" / ".state" / "checkpoint.json"
     proc = subprocess.Popen([*child, "first", str(tmp_path)], env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     try:
-        deadline = time.monotonic() + 60
+        deadline = time.monotonic() + 180  # generous: a loaded CI machine can be slow to start Python
         while time.monotonic() < deadline:
             try:
                 state = json.loads(checkpoint.read_text(encoding="utf-8"))

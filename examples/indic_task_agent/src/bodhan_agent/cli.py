@@ -21,7 +21,7 @@ from bodhan_mcp.runtime import CostLedger, ResultCache, RunContext
 
 from . import state as checkpoint
 from .llm import LLMConfigError, PlannerLLM
-from .loop import Agent, Outcome, Settings, expand_inputs
+from .loop import MAX_TOOL_RESULT_CHARS, Agent, Outcome, Settings, expand_inputs
 from .report import write_outputs
 from .trace import TraceWriter
 
@@ -128,7 +128,8 @@ async def run(args: argparse.Namespace, *, transport=None, llm: PlannerLLM | Non
             notes.append(cache.warning)
         client = BodhanClient(BodhanKeys.from_env(), ledger, cache, trace.tool_event, timeout=args.call_timeout, concurrency=args.concurrency,
                               transport=transport, deadline=deadline)
-        ctx = RunContext(artifacts_dir=out / "artifacts", ledger=ledger, cache=cache, client=client, read_roots=roots, trace=trace.tool_event)
+        ctx = RunContext(artifacts_dir=out / "artifacts", ledger=ledger, cache=cache, client=client, read_roots=roots, trace=trace.tool_event,
+                         max_result_chars=MAX_TOOL_RESULT_CHARS - 600)  # room for the envelope (ok, cost, budget) added after the tool
         llm_error = None
         if llm is None:
             try:

@@ -317,7 +317,11 @@ class Agent:
                 break
         for c in calls:
             if c.id in results:
-                self.messages.append({"role": "tool", "tool_call_id": c.id, "content": _clip(results[c.id])})
+                content = _clip(results[c.id])
+                r = results[c.id]
+                if c.name == "read_text" and r.get("ok") and len(content) != len(json.dumps(r, ensure_ascii=False, default=str)):
+                    self.ctx.forget_read(r["path"], r["offset"], r["offset"] + r["returned_chars"])  # clipped: not fully seen
+                self.messages.append({"role": "tool", "tool_call_id": c.id, "content": content})
         self._save()
 
     # -------------------------------------------------------------- pieces

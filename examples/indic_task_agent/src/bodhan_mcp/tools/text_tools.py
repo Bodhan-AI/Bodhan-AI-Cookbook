@@ -187,14 +187,24 @@ async def read_text(ctx: RunContext, a: ReadTextIn) -> dict:
     content = read_text_file(p)
     if ctx.provenance_guard is not None:
         ctx.provenance_guard.add(content)
-    chunk = content[a.offset : a.offset + a.max_chars]
+    size = a.max_chars
+    while True:
+        chunk = content[a.offset : a.offset + size]
+        framed = frame_untrusted(chunk, str(p), size + 50)
+        framed.pop("text_preview")
+        framed["text"] = chunk  # the exact slice: pages joined in order reproduce the file (a preview would trim their edges)
+        out = {"path": str(p), "total_chars": len(content), "offset": a.offset, "returned_chars": len(chunk),
+               "next_offset": a.offset + len(chunk) if a.offset + len(chunk) < len(content) else None,
+               "language": detect_language(chunk).as_dict(), **framed}
+        n = len(json.dumps(out, ensure_ascii=False, default=str))
+        # shrink the page until the whole result reaches the reader (JSON escaping can make text longer than its length)
+        if ctx.max_result_chars is None or n <= ctx.max_result_chars or size <= 200:
+            break
+        size = max(200, int(size * (ctx.max_result_chars / n) * 0.95))
+    if size < a.max_chars:
+        out["note"] = f"{out['note']} Page shortened to {len(chunk)} characters so it arrives whole; continue at next_offset."
     ctx.note_read(p, content, a.offset, a.offset + len(chunk))
-    framed = frame_untrusted(chunk, str(p), a.max_chars + 50)
-    framed.pop("text_preview")
-    framed["text"] = chunk  # the exact slice: pages joined in order reproduce the file (a preview would trim their edges)
-    return {"path": str(p), "total_chars": len(content), "offset": a.offset, "returned_chars": len(chunk),
-            "next_offset": a.offset + len(chunk) if a.offset + len(chunk) < len(content) else None,
-            "language": detect_language(chunk).as_dict(), **framed}
+    return out
 
 
 # ---------------------------------------------------------------------------
@@ -214,6 +224,10 @@ async def write_text(ctx: RunContext, a: WriteTextIn) -> dict:
     if normalize_language(a.language) != "en":
         raise E.ToolError(E.PROVENANCE_VIOLATION, "write_text only saves English text written by the caller.",
                           hint="Write the text in English and call translate_text to produce Indian-language output.")
+    if any(_EMBED.search(c) for c in re.findall(r"<!--.*?-->", a.content, re.S)):
+        # embedded text must be visible to whoever reads the file, not tucked into a comment
+        raise E.ToolError(E.INVALID_ARGUMENT, "{{artifact:...}} cannot be placed inside an HTML comment.",
+                          hint="Put the embed where readers see it, or leave it out.")
     authored = _EMBED.sub("", a.content)
     if authored_indic(authored):  # also catches &#2351; style character references
         raise E.ToolError(E.PROVENANCE_VIOLATION,

@@ -1,5 +1,7 @@
 """Regression tests for review round 5 (commit 3f41986)."""
 
+import json
+
 import pytest
 from fakes import FakeBodhan, ScriptedChat
 from test_agent_e2e import args, last_ok, read_outputs
@@ -170,3 +172,27 @@ async def test_a_reply_costing_more_than_its_bound_is_reported(tmp_path):
     await run(_priced(tmp_path, txt, 80.0), transport=FakeBodhan().transport, llm=PlannerLLM(client=Overcounting(), model="s"))
     out, rep, trace, md = read_outputs(tmp_path)
     assert rep["cost"]["llm_over_pre_call_bound_inr"] > 0 and any(e["type"] == "llm_estimate_exceeded" for e in trace)
+
+
+# ---- review round 7 --------------------------------------------------------------------------
+async def test_an_embed_hidden_in_a_comment_is_refused(make_ctx, tmp_path):
+    src = tmp_path / "t.md"
+    src.write_text("The library is closed on Monday.", encoding="utf-8")
+    r, err = await invoke(TOOL_BY_NAME["write_text"], make_ctx(FakeBodhan()), {"name": "s.md", "content": f"A spaceship lands.\n\n<!--{{{{artifact:{src}}}}}-->"})
+    assert err and r["error"]["code"] == "invalid_argument"
+
+
+async def test_a_read_page_counts_only_if_it_reached_the_planner_whole(tmp_path):
+    """A long page that would be clipped in the planner's context is shortened instead, so 'read in full' means seen."""
+    doc = tmp_path / "long.txt"
+    doc.write_text("".join(f"Line {i}: the library opens at eight and closes at six.\n" for i in range(200)), encoding="utf-8")
+    plan = ("record_plan", {"steps": ["summarise"], "deliverables": [{"kind": "text", "language": "en", "source": "long.txt"}]})
+    summary = ("write_text", {"name": "summary.md", "content": "The library opens at eight.", "source_paths": [str(doc)]})
+    chat = ScriptedChat([[plan], [("read_text", {"path": str(doc), "max_chars": 20000})], [summary],
+                         lambda m: [("finish", {"status": "completed", "final_answer": "Done.", "deliverables": [last_ok(m, "path")]})]])
+    await run(args(tmp_path, "Summarise this file", [doc]), transport=FakeBodhan().transport, llm=PlannerLLM(client=chat, model="s"))
+    out, rep, trace, md = read_outputs(tmp_path)
+    reads = [json.loads(m["content"]) for m in chat.seen[2] if m.get("role") == "tool"]
+    page = reads[-1]
+    assert page["ok"] and page["next_offset"] is not None and len(page["text"]) < len(doc.read_text(encoding="utf-8"))  # shortened, arrived whole
+    assert rep["status"] not in ("completed", "completed_with_warnings")  # the rest was never read, so the summary has no source
