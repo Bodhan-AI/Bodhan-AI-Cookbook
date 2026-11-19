@@ -77,7 +77,7 @@ class AudioSummaryTests(unittest.TestCase):
                     self.assertEqual(state["source"], SOURCE)
                     self.assertEqual(state["target_words"], 10 if target == 2 else 15)
                     return answer({"summary": SUMMARY})
-                if system.startswith("Review the English summary"):
+                if system.startswith("Check that an English summary"):
                     self.assertEqual(state["summary"], SUMMARY)
                     return answer({"approved": approve_summary, "explanation": "Grounding verdict."})
                 if system.startswith("Check whether"):

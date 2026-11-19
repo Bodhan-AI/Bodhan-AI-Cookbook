@@ -40,7 +40,7 @@ class Planner(Protocol):
     def decide(self, state: dict) -> Action: ...
     def review(self, source: str, translation: str, language: str) -> TranslationReview: ...
     def summarize(self, source: str, task: str, target_words: int | None) -> str: ...
-    def review_summary(self, source: str, summary: str, task: str) -> TranslationReview: ...
+    def review_summary(self, source: str, summary: str) -> TranslationReview: ...
 
 
 def _normalized(text: str) -> str:
@@ -241,7 +241,7 @@ def _summarize(run: Run, planner: Planner, step: StepTrace, action: Summarize, s
         raise ToolError(f"The English narration has {word_count} words. Revise it to fit {word_limit} words.")
     with run.verify(step, "summary_grounding", method="planner_review", source=action.source,
                     words=word_count, target_words=target_words) as check:
-        review = planner.review_summary(source, summary, run.task)
+        review = planner.review_summary(source, summary)
         check.update(passed=review.approved, explanation=review.explanation)
     if not review.approved:
         raise ToolError("The English summary did not pass grounding review: " + review.explanation)

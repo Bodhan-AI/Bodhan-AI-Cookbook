@@ -41,7 +41,7 @@ class SummaryPlannerTests(unittest.TestCase):
     def test_repairs_summary_review_with_strict_boolean(self):
         planner = self.planner('{"approved":"true","explanation":"Preserved."}',
                                '{"approved":true,"explanation":"Preserved."}')
-        self.assertTrue(planner.review_summary("Source.", "Summary.", "Summarize.").approved)
+        self.assertTrue(planner.review_summary("Source.", "Summary.").approved)
         first, second = self.messages
         self.assertIn('"type":"boolean"', first[0]["content"])
         self.assertIn("bool_type", second[0]["content"])
