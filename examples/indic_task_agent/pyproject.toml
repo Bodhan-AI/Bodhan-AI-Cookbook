@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "indic-task-agent"
+version = "0.1.0"
+description = "MCP server for Bodhan's Indic speech, translation, TTS and OCR models, plus a task agent that plans, verifies and reports."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+# Exact pins live in requirements.txt; these are the direct dependencies.
+dependencies = [
+    "mcp==2.3.0",
+    "openai==3.54.0",
+    "httpx==0.28.1",
+    "pydantic==2.14.3",
+    "numpy>=2.2.6,<2.5.5",
+    "pypdfium2==5.15.2",
+    "pillow==13.0.0",
+    "python-dotenv==1.2.4",
+    "imageio-ffmpeg==0.8.1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest==9.2.0", "pytest-asyncio==1.4.1.post1", "ruff==0.16.8"]
+
+[project.scripts]
+bodhan-mcp = "bodhan_mcp.server:main"
+bodhan-agent = "bodhan_agent.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+markers = ["live: calls the real Bodhan API and LLM (opt-in with RUN_LIVE=1)"]
+
+[tool.ruff]
+line-length = 200
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+# B905: zip() strictness is not needed for these same-length pairings (py3.10 floor).
+ignore = ["E731", "B905"]
