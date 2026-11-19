@@ -77,6 +77,9 @@ _ALIASES.update({
     "hindi": "hi", "tamil": "ta", "telugu": "te", "marathi": "mr", "bengali": "bn", "gujarati": "gu",
     "kannada": "kn", "malayalam": "ml", "urdu": "ur", "nepali": "ne", "assamese": "as", "odia": "or",
     "sanskrit": "sa", "maithili": "mai", "dogri": "doi", "bhojpuri": "bho", "bhili": "bhb",
+    # ISO 639-2/3 codes, which some planners use
+    "hin": "hi", "tam": "ta", "tel": "te", "ben": "bn", "mar": "mr", "guj": "gu", "kan": "kn", "mal": "ml", "pan": "pa",
+    "ori": "or", "ory": "or", "asm": "as", "urd": "ur", "nep": "ne", "npi": "ne", "san": "sa", "eng": "en", "kas": "ks", "snd": "sd",
 })
 # Languages people commonly ask for that Bodhan does not support. Mapped so errors can
 # name the language instead of echoing an opaque code.
@@ -168,6 +171,27 @@ _ENGLISH_HINTS = frozenset("the a an and or of to in on at for with from by is a
 _ENGLISH_AMBIGUOUS = frozenset("a an on as or in to is do so no per but i he".split())
 _ENGLISH_STRONG = _ENGLISH_HINTS - _ENGLISH_AMBIGUOUS
 
+# Function words of the European languages most likely to appear by mistake. Romanized Hindi/Tamil/... share almost
+# none of them, so it stays "unknown" (and translatable) rather than being refused.
+_EUROPEAN_HINTS = {
+    "fr": frozenset("le la les des une un est et du pour avec dans sur que qui pas vous nous sont au aux ce cette il elle ils je ne".split()),
+    "es": frozenset("el los las del una es y por para con que no su al lo como pero muy está son".split()),
+    "de": frozenset("der die das und ist nicht ein eine mit von zu den dem auf für sie ich wir sind".split()),
+    "pt": frozenset("os uma é do da dos das para com não que em um por são está".split()),
+    "it": frozenset("il gli di del della che è non per con una sono un nel alla".split()),
+}
+
+
+def _european_language(tokens: list[str], n_words: int) -> str | None:
+    """A European language when its function words are dense and clearly ahead of the others."""
+    scores = {lang: (len(set(tokens) & hints), sum(t in hints for t in tokens)) for lang, hints in _EUROPEAN_HINTS.items()}
+    ranked = sorted(scores.items(), key=lambda kv: kv[1], reverse=True)
+    (best, (distinct, hits)), second = ranked[0], ranked[1][1][1]
+    if distinct >= 2 and hits >= max(2, n_words / 6) and hits >= 1.5 * second:
+        return best
+    return None
+
+
 _DEVANAGARI_SUFFIXES = {
     "hi": ("ेगा", "ेगी", "ेंगे", "ता है", "ती है", "ाएगा", "ियों", "ाओं"),
     "mr": ("साठी", "पर्यंत", "ाचा", "ाची", "ाचे", "च्या", "ील", "तात", "ाला", "मध्ये", "ून"),
@@ -238,6 +262,10 @@ def detect_language(text: str) -> LanguageGuess:
         # unambiguously English word.
         if any(w in _ENGLISH_STRONG for w in tokens) and en_words >= max(2, n_words // 8):
             return LanguageGuess("en", script, share * 0.9, candidates, "Latin script with English function words")
+        european = _european_language(tokens, n_words)
+        if european:
+            return LanguageGuess(european, script, share * 0.8, candidates,
+                                 f"Latin script with {KNOWN_UNSUPPORTED[european]} function words; not a Bodhan-supported language")
         return LanguageGuess(None, script, share * 0.3, candidates,
                              "Latin script without English function words: could be romanized Indian-language text or a non-Indian language")
     if len(candidates) == 1:

@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from . import errors as E
-from .languages import script_profile
+from .languages import detect_language, script_profile
 from .media import AUDIO_EXT, VIDEO_EXT
 
 IMAGE_EXT = {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tif", ".tiff", ".gif", ".heic", ".heif"}
@@ -82,12 +82,36 @@ def read_text_file(path: Path, max_bytes: int = 5_000_000) -> str:
     if path.stat().st_size > max_bytes:
         raise E.ToolError(E.INVALID_ARGUMENT, f"{path.name} is larger than {max_bytes // 1_000_000} MB.", hint="Split the file.")
     raw = path.read_bytes()
-    for enc in ("utf-8-sig", "utf-16"):
+    return decode_text(raw, path.name)
+
+
+def _looks_utf16(raw: bytes) -> bool:
+    """UTF-16 without a BOM: ASCII-range text leaves a zero byte in every other position."""
+    sample = raw[:4000]
+    if len(sample) < 4:
+        return False
+    zeros_even, zeros_odd = sample[0::2].count(0), sample[1::2].count(0)
+    half = len(sample) / 2
+    return max(zeros_even, zeros_odd) > 0.3 * half and min(zeros_even, zeros_odd) < 0.05 * half
+
+
+def decode_text(raw: bytes, name: str = "the file") -> str:
+    """UTF-8 (with or without BOM); UTF-16 only when it really is UTF-16 (a BOM, or the zero-byte pattern);
+    otherwise Windows-1252, the usual legacy encoding of Windows text files. Decoding arbitrary bytes as UTF-16
+    would turn a Windows-1252 file into CJK characters."""
+    try:
+        return raw.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        pass
+    if raw[:2] in (b"\xff\xfe", b"\xfe\xff") or _looks_utf16(raw):
         try:
-            return raw.decode(enc)
+            return raw.decode("utf-16")
         except UnicodeDecodeError:
-            continue
-    raise E.ToolError(E.UNSUPPORTED_FILE_TYPE, f"{path.name} is not UTF-8/UTF-16 text.", hint="Save the file as UTF-8.")
+            pass
+    try:
+        return raw.decode("cp1252")
+    except UnicodeDecodeError:
+        raise E.ToolError(E.UNSUPPORTED_FILE_TYPE, f"{name} is not UTF-8, UTF-16 or Windows-1252 text.", hint="Save the file as UTF-8.") from None
 
 
 @dataclass
@@ -225,7 +249,13 @@ def text_layer_is_usable(text: str) -> bool:
         return False
     prof = script_profile(text)
     letters = sum(prof.values())
-    return letters / len(stripped) > 0.5
+    if letters / len(stripped) <= 0.5:
+        return False
+    if prof.get("Latin", 0) > 0.8 * letters and detect_language(text).language != "en":
+        # Legacy Hindi fonts (Kruti Dev, Chanakya...) store Devanagari as Latin letters, e.g. "fo|ky; ds Nk=ksa":
+        # a mostly-Latin layer without English evidence is not trusted, so the page is read by OCR instead.
+        return False
+    return True
 
 
 @_pdfium_serialized

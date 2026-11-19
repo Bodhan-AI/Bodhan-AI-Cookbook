@@ -31,10 +31,10 @@ def test_short_english_is_still_english(text):
     assert detect_language(text).language == "en"
 
 
-async def test_french_is_sent_to_the_model_not_copied(make_ctx):
+async def test_french_is_never_copied_as_english(make_ctx):
     fake = FakeBodhan()
     r, err = await invoke(TOOL_BY_NAME["translate_text"], make_ctx(fake), {"text": "On a un chat et on a un chien.", "target_language": "en"})
-    assert not err and fake.calls["translate"] >= 1
+    assert err and r["error"]["code"] == "unsupported_language" and fake.calls["translate"] == 0  # refused, not passed through
 
 
 # 2. a summary written from a translation keeps the translation's source, so a source-bound contract is met

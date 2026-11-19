@@ -6,6 +6,7 @@ import html
 import json
 import re
 import string
+import unicodedata
 from pathlib import Path
 
 from .. import errors as E
@@ -38,26 +39,37 @@ class ProvenanceGuard:
 
     @staticmethod
     def _norm(text: str) -> str:
+        # Compare what a reader sees: one Unicode normal form (a precomposed and a combining nukta are the same letter),
+        # no invisible joiners or soft hyphens, whitespace collapsed.
+        text = unicodedata.normalize("NFC", text).translate(_INVISIBLE)
         return re.sub(r"\s+", " ", text).strip()
 
     def add(self, text: str) -> None:
         if text and indic_fraction(text) > 0:
             self._corpus.append(self._norm(text))
 
-    def check(self, text: str, field: str) -> None:
+    def _known(self, span: str, corpus: str) -> bool:
+        # a whole span quoted verbatim, or a selection of whole known sentences
+        if self._norm(span) in corpus:
+            return True
+        sentences = [x.strip(_EDGE_PUNCT) for x in re.split(r"(?<=[.?!।॥۔᱾])\s+", span)]
+        return len(sentences) > 1 and all(self._norm(x) in corpus for x in sentences if x)
+
+    def unknown_spans(self, text: str) -> list[str]:
         # Check what a reader would see: Markdown/HTML renders numeric and named character
         # references (e.g. &#2351;) as the characters themselves.
-        text = rendered_view(text)
         corpus = " | ".join(self._corpus)
+        return [span for span in indic_spans(rendered_view(text)) if not self._known(span, corpus)]
 
-        def known(span: str) -> bool:
-            # a whole span quoted verbatim, or a selection of whole known sentences
-            if self._norm(span) in corpus:
-                return True
-            sentences = [x.strip(_EDGE_PUNCT) for x in re.split(r"(?<=[.?!।॥۔᱾])\s+", span)]
-            return len(sentences) > 1 and all(self._norm(x) in corpus for x in sentences if x)
+    def redact(self, text: str) -> str:
+        """The text with only its unknown Indian-language spans replaced by a note (the rest is kept)."""
+        out = rendered_view(text)
+        for span in self.unknown_spans(text):
+            out = out.replace(span, "[Indian-language text removed: it did not come from the task, an input or a Bodhan model]")
+        return out
 
-        unknown = [span for span in indic_spans(text) if not known(span)]
+    def check(self, text: str, field: str) -> None:
+        unknown = self.unknown_spans(text)
         if not unknown:
             return
         raise E.ToolError(
@@ -66,6 +78,9 @@ class ProvenanceGuard:
             f"(e.g. {unknown[0][:60]!r}). The planner may not write Indian-language text.",
             hint="Pass the text by `path` (an input file or a tool artifact), or write English and call translate_text.",
         )
+
+
+_INVISIBLE = dict.fromkeys(map(ord, "\u200b\u200c\u200d\u2060\ufeff\u00ad"))  # zero-width space/joiners, word joiner, BOM, soft hyphen
 
 
 def rendered_view(text: str) -> str:

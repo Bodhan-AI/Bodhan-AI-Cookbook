@@ -12,6 +12,7 @@ from .. import errors as E
 from ..documents import read_text_file
 from ..languages import (
     ENGLISH_DEFAULT_VOICES,
+    KNOWN_UNSUPPORTED,
     LANGUAGE_NAMES,
     SPEAK_LANGUAGES,
     SPEAK_STYLES,
@@ -49,6 +50,9 @@ async def translate_text(ctx: RunContext, a: TranslateIn) -> dict:
     source, src_label = resolve_text(ctx, a.text, a.path)
     src_lang, detection = detect_source(source, a.source_language)
     is_srt = src_label.lower().endswith(".srt")
+    if src_lang in KNOWN_UNSUPPORTED:  # e.g. French function words: say so rather than translate it anyway
+        raise E.ToolError(E.UNSUPPORTED_LANGUAGE, f"The source text appears to be {KNOWN_UNSUPPORTED[src_lang]}, which Indic-Translate does not support.",
+                          hint="Report the source language as unsupported; do not guess a translation.", details={"source_detection": detection})
     if src_lang is None and detection.get("script") and (detection.get("confidence") or 0) >= 0.5:
         raise E.ToolError(E.UNSUPPORTED_LANGUAGE,
                           f"The source text is written in {detection['script']} script, which no Bodhan-supported language uses, "

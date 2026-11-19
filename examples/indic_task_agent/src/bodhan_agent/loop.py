@@ -86,7 +86,8 @@ class _Strict(BaseModel):
 class DeliverableSpec(_Strict):
     kind: Literal["audio", "translation", "subtitles", "text", "transcript", "answer"] = Field(
         description="audio, translation, subtitles, text (a written summary/report/list), transcript, or answer (no file: the reply itself)")
-    language: str | None = Field(None, max_length=12, description="Language code of the output, e.g. 'ta' (omit if not language-specific).")
+    language: str | None = Field(None, max_length=16, description="Language code of the output, e.g. 'ta' (omit if not language-specific). "
+                                                                 "For romanized output use the language code (e.g. 'hi') and say so in the description.")
     source: str | None = Field(None, max_length=200, description="Input file name this output is made from, when the task asks for one output per file.")
     optional: bool = Field(False, description="True for conditional outputs that may legitimately not exist (e.g. 'translate the Telugu clips' when none is Telugu).")
     description: str = Field("", max_length=300, description="What this output is, e.g. 'two-minute Tamil summary audio'.")
@@ -94,7 +95,7 @@ class DeliverableSpec(_Strict):
 
 class RecordPlanIn(_Strict):
     steps: list[str] = Field(min_length=1, max_length=40, description="Numbered steps you will take, each naming the tool.")
-    deliverables: list[DeliverableSpec] = Field(min_length=1, max_length=12,
+    deliverables: list[DeliverableSpec] = Field(min_length=1, max_length=40,  # "every supported language" is 23
                                                 description="Every output the task asks for. Use kind 'answer' when the reply itself is the output.")
     assumptions: list[str] = Field(default_factory=list, max_length=20, description="Assumptions made because the task was ambiguous.")
 
@@ -372,6 +373,8 @@ class Agent:
             result, _ = await invoke(spec, self.ctx, {"paths": [str(f) for f in self.files]})
             listed = result.get("files", [])
         for f in self.files:
+            guard.add(f.name)  # a file name is the user's text: the answer may name an Indian-language file
+            guard.add(f.parent.name)
             if classify(f) == "text":
                 try:
                     guard.add(read_text_file(f))
@@ -396,6 +399,10 @@ class Agent:
             return self._control_error(call, "The plan contains Indian-language text you wrote. Write the plan in English.", E.PROVENANCE_VIOLATION)
         for d in plan.deliverables:
             if d.language:
+                base, _, script = d.language.replace("_", "-").partition("-")
+                if script.lower() in ("latn", "roman", "romanized", "latin"):  # a transliteration request: same language, Latin script
+                    d.language = base
+                    d.description = (d.description + " (romanized)").strip()
                 d.language = normalize_language(d.language)
                 if d.language not in LANGUAGE_NAMES:
                     return self._control_error(call, f"Deliverable language {d.language!r} is not a language code Bodhan supports "
@@ -482,13 +489,11 @@ class Agent:
             self.trace.write({"type": "finish_rejected", "step": self.steps, "reasons": reasons})
             return {"ok": False, "error": {"code": "finish_rejected", "message": "Cannot finish yet: " + " | ".join(reasons)}}
         limitations, assumptions = list(a.limitations), list(a.assumptions)
-        if indic_fields:  # never relaxed: replace planner-written Indic text with a code-written English note
-            note = "[removed: the planner wrote Indian-language text here, which this agent does not allow]"
-            if not self._indic_ok(answer):
-                answer = ("The planner's final answer contained Indian-language text it wrote itself, so it was withheld. "
-                          "See the deliverables below; only Bodhan-generated text is delivered.")
-            limitations = [x if self._indic_ok(x) else note for x in limitations]
-            assumptions = [x if self._indic_ok(x) else note for x in assumptions]
+        if indic_fields:  # never relaxed: planner-written Indic text is removed (only that text)
+            if not self._indic_ok(answer):  # keep the planner's English; remove only the text it wrote itself
+                answer = self.ctx.provenance_guard.redact(answer)
+            limitations = [x if self._indic_ok(x) else self.ctx.provenance_guard.redact(x) for x in limitations]
+            assumptions = [x if self._indic_ok(x) else self.ctx.provenance_guard.redact(x) for x in assumptions]
         usable = [x for x in delivered if self._usable(x)]
         if reasons:  # accepted after repeated rejection: downgrade honestly
             limitations += [f"verification gate: {r}" for r in reasons]
