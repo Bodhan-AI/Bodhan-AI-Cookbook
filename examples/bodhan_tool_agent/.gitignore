@@ -41,4 +41,6 @@ scratch/*
 tmp/
 
 # Experiments (development notebooks — not part of submission)
-experiments/
+!experiments/
+experiments/*
+!experiments/09_errors.ipynb

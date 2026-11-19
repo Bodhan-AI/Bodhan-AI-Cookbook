@@ -28,6 +28,100 @@ SUPPORTED_DOCUMENT_EXTENSIONS: set[str] = {
     ".tif",
 }
 
+# Unicode code point ranges for Indic scripts (Devanagari, Bengali, Gurmukhi, Gujarati, Odia, Tamil, Telugu, Kannada, Malayalam)
+INDIC_UNICODE_RANGES: tuple[int, int] = (0x0900, 0x0D7F)
+
+
+def is_valid_indic_or_latin_char(c: str) -> bool:
+    """Check if character is standard ASCII alphanumeric or inside Indic Unicode blocks."""
+    code = ord(c)
+    if (c.isascii() and c.isalnum()) or c in " \t\n\r,.-;:!?\"'()[]{}":
+        return True
+    return INDIC_UNICODE_RANGES[0] <= code <= INDIC_UNICODE_RANGES[1]
+
+
+def evaluate_page_digital_text(page: fitz.Page, min_chars: int = 50) -> tuple[bool, str]:
+    """Multi-signal evaluation: Determines if a PDF page contains true digital text vs scanned/legacy mojibake.
+
+    Checks:
+    1. Digital character count threshold.
+    2. Image coverage area ratio (if a single full-page image covers >= 75% of page bounding area, treated as scan).
+    3. Character block validation (filters out Kruti-Dev / legacy font mojibake where ASCII characters masquerade as Indic glyphs).
+
+    Returns:
+        tuple[bool, str]: (is_digital, extracted_text)
+    """
+    raw_text = page.get_text().strip()
+    if len(raw_text) < min_chars:
+        return False, ""
+
+    # Signal 2: Check full-page image coverage ratio
+    try:
+        page_area = abs(page.rect)
+        images = page.get_images(full=True)
+        if images and page_area > 0:
+            total_img_area = 0.0
+            for img_info in images:
+                xref = img_info[0]
+                for r in page.get_image_rects(xref):
+                    total_img_area += abs(r)
+            # If an image covers >= 75% of page and text is under 200 chars (likely watermark/header), it's a scan
+            if (total_img_area / page_area) >= 0.75 and len(raw_text) < 200:
+                return False, ""
+    except Exception:
+        pass
+
+    # Signal 3: Character block coherence (Indic Unicode + Latin alphanumeric vs mojibake noise)
+    valid_count = sum(1 for c in raw_text if is_valid_indic_or_latin_char(c))
+    if (valid_count / max(len(raw_text), 1)) < 0.65:
+        # High ratio of control/symbol/garbled glyphs -> legacy encoding or scan artifact
+        return False, ""
+
+    return True, raw_text
+
+
+def rasterize_specific_pages(
+    doc_path: str | Path,
+    output_dir: str | Path,
+    page_numbers: list[int],
+    dpi: int = 150,
+) -> list[tuple[int, Path]]:
+    """Rasterize only specific 1-based page numbers from a document for targeted OCR.
+
+    Args:
+        doc_path: Path to the document.
+        output_dir: Target output directory for PNGs.
+        page_numbers: List of 1-based page indices to rasterize (e.g. [2, 5]).
+        dpi: Resolution in dots-per-inch (default 150).
+
+    Returns:
+        List of tuples: (1-based page_num, Path to rendered PNG).
+    """
+    path = Path(doc_path).resolve()
+    out_dir = Path(output_dir).resolve()
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    if not path.exists():
+        raise FileNotFoundError(f"Document file does not exist: {path}")
+
+    doc = fitz.open(str(path))
+    try:
+        rendered: list[tuple[int, Path]] = []
+        zoom = dpi / 72.0
+        matrix = fitz.Matrix(zoom, zoom)
+
+        for p_num in page_numbers:
+            if 1 <= p_num <= len(doc):
+                page = doc.load_page(p_num - 1)
+                pix = page.get_pixmap(matrix=matrix, alpha=False)
+                out_image = out_dir / f"page_{p_num:03d}.png"
+                pix.save(str(out_image))
+                rendered.append((p_num, out_image))
+
+        return rendered
+    finally:
+        doc.close()
+
 # Image formats supported for OCR & vision
 SUPPORTED_IMAGE_EXTENSIONS: set[str] = {
     ".png",

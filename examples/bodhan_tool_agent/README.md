@@ -35,7 +35,7 @@ The autonomous agent implements a resilient, estimated-Bodhan-budget-guarded **R
 [![Bodhan Agent Demo Video](https://img.shields.io/badge/YouTube-Watch_5--Min_System_Demo-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/placeholder-demo-video)
 
 ### What the demo highlights:
-1. **Demo Task 1 (Multi-Step Synthesis):** 14-page Indic NLP PDF rasterized at 150 DPI $\to$ English synthesis $\to$ Tamil translation $\to$ natural Tamil audio via `indic-speak`.
+1. **Demo Task 1 (Multi-Step Synthesis):** Multi-page Indic NLP PDF ingested via hybrid extraction (instant local PyMuPDF digital text with OCR fallback) $\to$ English analytical synthesis $\to$ Tamil translation $\to$ natural Tamil audio via `indic-speak`.
 2. **Demo Task 2 (Subtitling Pipeline):** 3.5-minute authentic Hindi monologue chunked and transcribed $\to$ English subtitle generation $\to$ timestamped `.srt` saved to `artifacts/`.
 3. **Demo Task 6 (Honest Refusal):** Impossible request (`"Translate this video into French"`) cleanly rejected with zero hallucinated files and ₹0.00 budget wasted.
 4. **Third-Party Client Interoperability:** Connecting `bodhan_mcp` directly to off-the-shelf MCP clients over `stdio`.
@@ -58,23 +58,23 @@ flowchart TD
     end
 
     subgraph IPC ["2. Model Context Protocol Boundary"]
-        Loop <===>|"Standard JSON-RPC 2.0 (stdio)"| MCP["FastMCP Server (bodhan_mcp)"]
+        Loop <-->|"Standard JSON-RPC 2.0 (stdio)"| MCP["FastMCP Server (bodhan_mcp)"]
     end
 
     subgraph ToolServer ["3. Encapsulated FastMCP Tools & Preprocessing Engines"]
-        MCP --> T1["transcribe_audio<br>(Audio Chunker &lt;28s)"]
-        MCP --> T2["translate_text<br>(Token Batching &amp; Formatting)"]
-        MCP --> T3["synthesize_speech<br>(Prosodic Splitter [।.!?])"]
-        MCP --> T4["extract_document_text<br>(PyMuPDF 150 DPI Rasterizer)"]
+        MCP --> T1["transcribe_audio<br/>(Audio Chunker sub-28s)"]
+        MCP --> T2["translate_text<br/>(Token Batching & Formatting)"]
+        MCP --> T3["synthesize_speech<br/>(Prosodic Splitter on Punctuation)"]
+        MCP --> T4["extract_document_text<br/>(PyMuPDF Digital / 150 DPI OCR)"]
         MCP --> T5["inspect_media / detect_language"]
-        MCP --> T6["read_text_file / write_text_file<br>(Bounded Paging &amp; Sandboxed Paths)"]
+        MCP --> T6["read_text_file / write_text_file<br/>(Bounded Paging & Sandboxed Paths)"]
     end
 
     subgraph BodhanCloud ["4. Bodhan Indic Cloud APIs (api.bodhan.ai/v1)"]
         T1 -->|"POST /audio/transcriptions"| M1["indic-transcribe (Core/Flex)"]
         T2 -->|"POST /chat/completions"| M2["indic-translate"]
         T3 -->|"POST /audio/speech"| M3["indic-speak (24kHz WAV)"]
-        T4 -->|"POST /chat/completions"| M4["indic-ocr (Layout &amp; Table)"]
+        T4 -->|"POST /chat/completions"| M4["indic-ocr (Layout & Table)"]
     end
 
     subgraph Storage ["5. Hybrid Output & Archive System"]
@@ -91,29 +91,31 @@ The task agent executes a resilient 5-stage loop: **Plan $\to$ Pre-Flight Budget
 
 ```mermaid
 flowchart TD
-    Start(["🚀 Agent Start (--task, --files, --out)"]) --> Inspect["Step 1: Inspect Input Files<br>(inspect_media / read_text_file)"]
-    Inspect --> Plan["Step 2: LLM Plans Next Action<br>(Strict English Reasoning)"]
+    Start["🚀 Agent Start: --task, --files, --out"] --> Inspect["Step 1: Ingest & Inspect Input Files"]
+    Inspect --> Plan["Step 2: LLM Plans Next Action<br/>(Strict English Reasoning)"]
     
-    Plan --> CheckBudget{"Pre-Flight Cost Check<br>Estimated Cost + Spent ≤ Limit?"}
-    CheckBudget -- "Exceeds Budget" --> HaltBudget["🛑 Halt Execution<br>Status: BUDGET_EXCEEDED<br>Write partial outputs & report.json"]
+    Plan --> CheckBudget{"Pre-Flight Cost Check<br/>Estimated Cost + Spent <= Limit?"}
+    CheckBudget -- "Exceeds Budget" --> HaltBudget["🛑 Halt Execution<br/>Status: BUDGET_EXCEEDED<br/>Write partial outputs & report.json"]
     
-    CheckBudget -- "Within Budget" --> CallTool["Step 3: Call MCP Tool<br>(transcribe, translate, ocr, speak)"]
-    CallTool --> ToolResult{"Tool Response<br>Success or ToolError?"}
+    CheckBudget -- "Within Budget" --> CallTool["Step 3: Call MCP Tool<br/>(transcribe, translate, ocr, speak)"]
+    CallTool --> ToolResult{"Tool Response<br/>Success or ToolError?"}
     
-    ToolResult -- "ToolError / Exception" --> Retry{"Retries &lt; 3?"}
-    Retry -- "Yes" --> Backoff["Exponential Backoff & Re-plan"] --> Plan
-    Retry -- "No" --> ReportFail["🛑 Report Actionable Failure<br>Document in trace.jsonl & result.md"]
+    ToolResult -- "ToolError / Exception" --> Retry{"Retries < 3?"}
+    Retry -- "Yes" --> Backoff["Exponential Backoff & Re-plan"]
+    Backoff --> Plan
+    Retry -- "No" --> ReportFail["🛑 Report Actionable Failure<br/>Document in trace.jsonl & result.md"]
     
-    ToolResult -- "Success" --> Observe["Step 4: Parse Observation<br>(Quarantine in &lt;untrusted_content&gt;)"]
-    Observe --> IsDone{"Task Goal<br>Achieved?"}
+    ToolResult -- "Success" --> Observe["Step 4: Parse Observation<br/>(Quarantine in untrusted XML tags)"]
+    Observe --> IsDone{"Task Goal<br/>Achieved?"}
     
     IsDone -- "No" --> Plan
-    IsDone -- "Yes" --> Verify["Step 5: Post-Execution Verification<br>(Audio Back-Transcription & Coverage)"]
+    IsDone -- "Yes" --> Verify["Step 5: Post-Execution Verification<br/>(Audio Back-Transcription & Coverage)"]
     
     Verify --> QualityPass{"Verification Passed?"}
-    QualityPass -- "Failed / Audio Mute" --> ReSynthesize["Self-Correct / Re-synthesize"] --> Plan
-    QualityPass -- "Passed" --> Finalize["Step 6: Finalize Run<br>Write result.md, report.json<br>Mirror snapshot to out/runs/"]
-    Finalize --> End(["✅ Complete"])
+    QualityPass -- "Failed / Audio Mute" --> ReSynthesize["Self-Correct / Re-synthesize"]
+    ReSynthesize --> Plan
+    QualityPass -- "Passed" --> Finalize["Step 6: Finalize Run<br/>Write result.md, report.json<br/>Mirror snapshot to out/runs/"]
+    Finalize --> End["✅ Complete"]
 ```
 
 ---
@@ -126,14 +128,31 @@ The server registers 10 tools. Eight are offered to the LLM; `get_cache_stats` a
 
 | Tool Name | Key Parameters | Model / Backend | Limit Encapsulation & Preprocessing Logic |
 | :--- | :--- | :--- | :--- |
-| `transcribe_audio` | `file_path`, `language`, `task` | `indic-transcribe` | Auto-converts non-WAV audio (OGG, MP3, WebM, M4A, FLAC) via ffmpeg; chunks into $\le 28\text{s}$ slices using NumPy RMS-based silence scan with zero-crossing snap; merges chunk transcripts into continuous text. |
-| `translate_text` | `text`, `target_language`, `source_language` | `indic-translate` | Validates target language code against 22 scheduled Indian languages + English; validates output contains target-script Unicode characters (guards against echo); preserves Markdown formatting. |
-| `synthesize_speech` | `text`, `language`, `voice`, `style`, `output_path` | `indic-speak` | Splits on Indian punctuation `[।.!?]` into prosodic clauses; concatenates individual 24 kHz WAV chunks with 200ms natural silence padding; writes to `artifacts/`. |
-| `extract_document_text` | `file_path`, `table_format`, `page_limit` | `indic-ocr` | Accepts multi-page PDF or image; rasterizes pages using PyMuPDF (`fitz`) at 150 DPI; extracts layout blocks, Devanagari tables, and body text as Markdown or HTML. |
+| `transcribe_audio` | `file_path`, `language`, `task` | `indic-transcribe` | Auto-converts non-WAV audio via ffmpeg; chunks into $\le 28\text{s}$ slices (strict sub-30s limit, billed per second) using NumPy RMS silence scan with zero-crossing snap; merges chunk transcripts into continuous text. **No `task` parameter is sent to the wire** (upstream rejects with 422; `task='translate'` is honored via internal translation). Audio format is measured server-side; invalid formats are refused with HTTP 415. |
+| `translate_text` | `text`, `target_language`, `source_language` | `indic-translate` | Validates target language code against scheduled Indian languages + English; validates output contains target-script Unicode characters (guards against echo); preserves Markdown formatting. **Discrepancy notice:** `bhb` (Bhili) and `bho` (Bhojpuri) are supported in Indic-Transcribe (ASR) but refused by upstream Indic-Translate with `unsupported_language`. Guards against the **`truncated: true` completeness trap** by catching length limits mid-stream. |
+| `synthesize_speech` | `text`, `language`, `voice`, `style`, `output_path` | `indic-speak` | Splits on Indian punctuation `[।.!?]` into prosodic clauses; concatenates individual 24 kHz WAV chunks with 200ms natural silence padding; writes to `artifacts/`. Strictly constructs the **required `instructions` JSON string** (`{"lang": ..., "style": ...}`) to prevent HTTP 500 errors. **Speaking styles:** Validates against the 14 allowed styles; **strictly excludes `formal`** (passing `formal` causes HTTP 500 on live API). Any voice can read any language (cross-language reading allowed). Invalid parameters trigger HTTP 422. |
+| `extract_document_text` | `file_path`, `table_format`, `page_limit` | `indic-ocr` | Accepts multi-page PDF or image; **Bodhan Indic-OCR endpoint strictly accepts PNG and JPEG image inputs only (no direct PDF input)**. Rasterizes PDF pages using PyMuPDF (`fitz`) at 150 DPI into PNG/JPEG before dispatch; extracts layout blocks, Devanagari tables, and body text as Markdown or HTML. |
 | `inspect_media` | `file_path` | ffmpeg / wave / OS | Zero-cost local inspection: audio duration (WAV natively, other formats via ffprobe), sample rate, image size, and PDF page count before invoking paid models. |
 | `read_text_file` | `file_path`, `offset`, `limit` | Local Disk | Bounded character paging with `total_chars`/`has_more`/`next_offset`; extracts `.docx` first. Confined to the run's input roots, and refuses credential files and repository metadata. |
 | `write_text_file` | `file_path`, `content` | Local Disk | Sandboxed artifact writer. Confines writes to the active run's `artifacts/` folder; rejects path traversal attacks (`../`, `/etc/passwd`). |
 | `detect_language` | `text` | Unicode Regex | Zero-cost script detection mapping Unicode ranges to Indic ISO codes (`Devanagari` $\to$ `hi`/`mr`, `Tamil` $\to$ `ta`, `Bengali` $\to$ `bn`, `Telugu` $\to$ `te`, etc.). |
+
+### Tool costs
+
+Estimated Bodhan usage rates for the paid tools (checked against the [Bodhan console](https://console.bodhan.ai/) on 2026-11-19; cache-served calls are still counted at nominal rates by the cost ledger):
+
+| Tool | Estimated cost |
+| :--- | :--- |
+| `transcribe_audio` | ₹0.10 per input audio minute |
+| `translate_text` | ₹0.20 per 10,000 output tokens |
+| `synthesize_speech` | ₹6 per 10,000 input characters |
+| `extract_document_text` | ₹0.20 per page image (digital-born PDF pages are extracted locally at zero API cost) |
+| `inspect_media` | Free |
+| `read_text_file` | Free |
+| `write_text_file` | Free |
+| `detect_language` | Free |
+
+The model-facing catalog is `_get_openai_tool_definitions()` filtered by `MODEL_FACING_TOOLS` with `bypass_cache` hidden (`_HIDDEN_SCHEMA_PARAMS` in `src/bodhan_agent/agent.py`). Regenerate `experiments/data/tool_catalog_snapshot.json` after any docstring change with `python experiments/scripts/refresh_catalog_snapshot.py`, then `python experiments/scripts/build_routing_dataset.py`.
 
 ---
 
@@ -259,7 +278,9 @@ The check performs local imports/configuration/input validation and unauthentica
 `/models` reachability probes. It does not run OCR, transcription, translation, speech
 synthesis, or LLM completion calls. The probes do not validate API credentials or model
 functionality; they only check whether an HTTP endpoint responds. Configured secret
-values are never sent by the probes or printed.
+values are never sent by the probes or printed. An HTTP 401 still means the endpoint is
+reachable, not that credentials are valid. Probes run in a killable child process so a
+stalled DNS lookup cannot keep the checker hanging beyond its timeout.
 
 ### 4. Fetch and Generate Sample Datasets
 Per Bodhan Cookbook standards, heavy media files are kept out of git. Fetch the curated public datasets and generate the synthetic edge-case and random sample suites on demand:
@@ -300,100 +321,73 @@ All sample files are sourced from authentic open repositories (arXiv, Wikimedia 
 
 ## Run: 6 End-to-End Demo Tasks Walkthrough
 
-All tasks use authentic datasets located in [`sample_data/`](sample_data/DATASETS.md) (sourced from arXiv, Wikitongues, Wikimedia Commons, and Bengali Wikisource).
+All commands below (and in the MCP client section) are run from the recipe root, `examples/bodhan_tool_agent/`. The two canonical entrypoints are `python -m bodhan_agent ...` and `python -m bodhan_mcp`; they work from a clean clone with no install step because the repository ships top-level `bodhan_agent/` and `bodhan_mcp/` launcher packages that delegate to the implementation under `src/`.
 
-### Task 1: Scanned PDF $\to$ 2-Minute Tamil Audio Summary
-> **Goal:** Ingest multi-page Indic NLP research paper, extract text, summarize in English, translate to Tamil, and synthesize spoken Tamil audio.
+All tasks use authentic datasets located in [`sample_data/`](sample_data/DATASETS.md) (sourced from arXiv, Wikitongues, Wikimedia Commons, and Bengali Wikisource).
+The scenario costs below are illustrative Bodhan unit-rate estimates only; they exclude OpenAI-compatible LLM/gateway charges, may differ with output size or cache hits, and are not provider invoices.
+
+### Task 1: Indic NLP PDF $\to$ 2-Minute Tamil Audio Summary
+> **Goal:** Ingest multi-page Indic NLP research paper, extract text via hybrid digital/OCR extraction, summarize in English, translate to Tamil, and synthesize spoken Tamil audio.
 ```bash
-python -m src.bodhan_agent \
-  --task "Make a two-minute Tamil audio summary of this chapter" \
-  --files sample_data/demo1_indic_nlp_paper.pdf \
-  --out ./out \
-  --max-steps 30 \
-  --max-cost-inr 20
+python -m bodhan_agent --task "Make a two-minute Tamil audio summary of this chapter" --files sample_data/demo1_indic_nlp_paper.pdf --out ./out --max-steps 30 --max-cost-inr 20
 ```
-* **Pipeline:** `inspect_media` $\to$ `extract_document_text` (8 pages at 150 DPI) $\to$ English analytical summary $\to$ `translate_text` (target: `ta`) $\to$ `synthesize_speech` (`speaker_gender`: female) $\to$ `verify_artifact`
+* **Pipeline:** `extract_document_text` (digital text extracted locally via PyMuPDF in ~1ms; OCR fallback if rasterized) $\to$ English analytical summary $\to$ `translate_text` (target: `ta`) $\to$ `synthesize_speech` (female voice: `Kavya`) $\to$ verification
 * **Artifacts:** `out/artifacts/tamil_summary.wav`, `out/artifacts/summary_ta.md`
-* **Typical Cost:** ~₹3.45 | **Latency:** ~45s
+* **Illustrative Bodhan rate estimate:** ~₹3.45 | **Latency:** ~45s
 
 ---
 
 ### Task 2: Hindi Voice Note $\to$ English Subtitles (SRT)
 > **Goal:** Ingest authentic 3.5-minute spoken Hindi monologue, slice audio windows, transcribe speech, translate to English, and generate timestamped SRT subtitle file.
 ```bash
-python -m src.bodhan_agent \
-  --task "Transcribe this Hindi voice note and give me English subtitles" \
-  --files sample_data/demo2_hindi_spoken_monologue.ogg \
-  --out ./out \
-  --max-steps 20 \
-  --max-cost-inr 10
+python -m bodhan_agent --task "Transcribe this Hindi voice note and give me English subtitles" --files sample_data/demo2_hindi_spoken_monologue.ogg --out ./out --max-steps 20 --max-cost-inr 10
 ```
-* **Pipeline:** `inspect_media` $\to$ `transcribe_audio` (`lang`: `hi`; long audio is chunked and rejoined internally) $\to$ `translate_text` (to English) $\to$ `write_text_file`
+* **Pipeline:** `transcribe_audio` (`output_format='srt'`, `output_path='subtitles_hi.srt'`; long audio chunked and rejoined internally) $\to$ `translate_text` (to English) $\to$ `write_text_file`
 * **Artifacts:** `out/artifacts/subtitles_en.srt`
-* **Typical Cost:** ~₹0.42 | **Latency:** ~22s
+* **Illustrative Bodhan rate estimate:** ~₹0.42 | **Latency:** ~22s
 
 ---
 
 ### Task 3: Worksheet Image $\to$ Marathi Markdown Table
 > **Goal:** Extract Devanagari character matrix from an image, preserving tabular grid alignment and Unicode cell content.
 ```bash
-python -m src.bodhan_agent \
-  --task "Translate this worksheet into Marathi and keep the table" \
-  --files sample_data/demo3_marathi_devanagari_table.png \
-  --out ./out \
-  --max-steps 15 \
-  --max-cost-inr 5
+python -m bodhan_agent --task "Translate this worksheet into Marathi and keep the table" --files sample_data/demo3_marathi_devanagari_table.png --out ./out --max-steps 15 --max-cost-inr 5
 ```
 * **Pipeline:** `extract_document_text` (`indic-ocr` with table layout) $\to$ `translate_text` (target: `mr`) $\to$ `write_text_file`
 * **Artifacts:** `out/artifacts/worksheet_marathi.md`
-* **Typical Cost:** ~₹0.24 | **Latency:** ~12s
+* **Illustrative Bodhan rate estimate:** ~₹0.24 | **Latency:** ~12s
 
 ---
 
 ### Task 4: Multi-Audio Language Identification & Filtering
 > **Goal:** Ingest a batch of 3 audio clips in Telugu, Tamil, and Bengali. Isolate only the Telugu audio and produce an English translation.
 ```bash
-python -m src.bodhan_agent \
-  --task "Which of these clips are in Telugu? Translate those into English" \
-  --files sample_data/ \
-  --out ./out \
-  --max-steps 25 \
-  --max-cost-inr 15
+python -m bodhan_agent --task "Which of these clips are in Telugu? Translate those into English" --files sample_data/ --out ./out --max-steps 25 --max-cost-inr 15
 ```
 * **Pipeline:** Inspect clips $\to$ `transcribe_audio` on headers $\to$ `detect_language` / script classification $\to$ filter out Tamil and Bengali $\to$ `translate_text` on Telugu transcript to English
 * **Artifacts:** `out/artifacts/telugu_translation.md`, `out/result.md`
-* **Typical Cost:** ~₹0.35 | **Latency:** ~28s
+* **Illustrative Bodhan rate estimate:** ~₹0.35 | **Latency:** ~28s
 
 ---
 
 ### Task 5: Bengali Text-to-Speech Aloud (Female Voice)
 > **Goal:** Safely read Bengali literary verses from disk using bounded pagination and synthesize clear Bengali audio.
 ```bash
-python -m src.bodhan_agent \
-  --task "Read this paragraph aloud in Bengali with a female voice" \
-  --files sample_data/demo5_bengali_gitanjali_verses.txt \
-  --out ./out \
-  --max-steps 10 \
-  --max-cost-inr 10
+python -m bodhan_agent --task "Read this paragraph aloud in Bengali with a female voice" --files sample_data/demo5_bengali_gitanjali_verses.txt --out ./out --max-steps 10 --max-cost-inr 10
 ```
 * **Pipeline:** `read_text_file` (bounded character chunking) $\to$ `synthesize_speech` (`target_lang`: `bn`, `speaker_gender`: `female`) $\to$ `verify_artifact`
 * **Artifacts:** `out/artifacts/bengali_speech.wav`
-* **Typical Cost:** ~₹0.85 | **Latency:** ~15s
+* **Illustrative Bodhan rate estimate:** ~₹0.85 | **Latency:** ~15s
 
 ---
 
 ### Task 6: Impossible Task — French Video Refusal (Honest Failure)
 > **Goal:** Verify that when requested to perform an out-of-domain task (French translation), the agent refuses cleanly without hallucinating or wasting rupee budget.
 ```bash
-python -m src.bodhan_agent \
-  --task "Translate this video into French" \
-  --files sample_data/fail_unsupported_french_video.webm \
-  --out ./out \
-  --max-steps 10 \
-  --max-cost-inr 5
+python -m bodhan_agent --task "Translate this video into French" --files sample_data/fail_unsupported_french_video.webm --out ./out --max-steps 10 --max-cost-inr 5
 ```
 * **Execution Trace:** The agent inspects `bodhan_mcp` tool capabilities, recognizes that French is outside the 22 scheduled Indian languages supported by Bodhan, immediately halts, and records an honest refusal in `result.md` and `report.json`.
-* **Budget Spent:** **₹0.00** | **Status:** `FAILED_IMPOSSIBLE_TASK`
+* **Estimated Bodhan tool usage:** **₹0.00** (LLM/gateway charges are not tracked) | **Status:** `FAILED_IMPOSSIBLE_TASK`
 
 ---
 
@@ -402,8 +396,9 @@ python -m src.bodhan_agent \
 The standalone MCP server (`bodhan_mcp`) adheres strictly to the Model Context Protocol standard and works out-of-the-box with any standard MCP host.
 
 ### 1. Run the MCP Server Standalone
+From the recipe root (`examples/bodhan_tool_agent/`):
 ```bash
-python -m src.bodhan_mcp
+python -m bodhan_mcp
 ```
 
 ### 2. Configure Claude Desktop / MCP Client
@@ -433,7 +428,7 @@ Because `bodhan_mcp` automatically discovers and loads `.env` from its working d
 ### 3. Verify via MCP Inspector
 Inspect schemas, parameter types, and tool invocations visually using the official Anthropic MCP Inspector:
 ```bash
-npx @modelcontextprotocol/inspector python -m src.bodhan_mcp
+npx @modelcontextprotocol/inspector python -m bodhan_mcp
 ```
 
 ### 4. Zero-Dependency High-Performance Indic Caching Layer
@@ -471,7 +466,7 @@ Run the 10-tool FastMCP server over JSON-RPC 2.0 stdio (8 tools are model-facing
 ```bash
 docker run -i --rm \
   --env-file .env \
-  bodhan-agent -m src.bodhan_mcp
+  bodhan-agent python -m bodhan_mcp
 ```
 
 ### 4. Run Autonomous Task Agent in Container (CLI mode)
@@ -481,7 +476,7 @@ docker run -it --rm \
   --env-file .env \
   -v "$(pwd)/sample_data:/app/sample_data:ro" \
   -v "$(pwd)/out:/app/out" \
-  bodhan-agent -m src.bodhan_agent \
+  bodhan-agent python -m bodhan_agent \
     --task "Transcribe and summarize this Hindi audio" \
     --files sample_data/hindi.wav \
     --out ./out \
@@ -506,33 +501,33 @@ The test suite covers unit, limit boundary, and integration testing across all t
 pytest tests/ -v
 ```
 
-### Test Suite Matrix (140 Tests Passing):
+### Test Suite Matrix (187 Tests Passing):
 * `tests/test_agent_cost_estimates.py` (7 tests): Validates pre-flight Bodhan cost estimates for OCR page counts, DOCX zero-cost extraction, multi-page TIFF frames, fail-closed estimates, and zero-cost empty translations.
-* `tests/test_audio.py` (17 tests): Validates sub-30s silence-aware audio chunking, WAV header parsing, RMS silence lookback, zero-crossing snap, SRT/VTT formatting, and Indic sentence splitting.
+* `tests/test_audio.py` (23 tests): Validates 4-tier audio inspection, silence-aware zero-crossing snap chunking, format conversion (OGG, MP3, WebM, M4A, FLAC -> WAV), PCM16 resampling math, and real edge case audio files.
 * `tests/test_cache.py` (18 tests): Validates content-addressed keys, hit/miss accounting, TTL, LRU eviction with hysteresis, and `bypass_cache` handling in the decorator.
-* `tests/test_catalog_guard.py` (15 tests): Pins the model-facing allowlist, proves operator-only cache tools are registered but never advertised, proves `chunk_audio` is gone, and exercises read-path containment (credential files, traversal, allowed roots, operator passthrough).
-* `tests/test_mcp.py` (19 tests): Validates FastMCP tool registrations, declarative FastMCP resources (`bodhan://...`), live stdio client sessions, parameter validation, sandboxed file writing, path traversal protection, and voice-cloning refusal assertions.
+* `tests/test_catalog_guard.py` (16 tests): Pins the model-facing allowlist, proves operator-only cache tools are registered but never advertised, proves `chunk_audio` is gone, exercises read-path containment (credential files, traversal, allowed roots, operator passthrough), and asserts advertised tool schemas match the live FastMCP registry (post hidden-parameter exclusion).
+* `tests/test_mcp.py` (20 tests): Validates FastMCP tool registrations, declarative FastMCP resources (`bodhan://...`), live stdio client sessions, parameter validation, sandboxed file writing, path traversal protection, and voice-cloning refusal assertions.
 * `tests/test_ledger.py` (6 tests): Validates rupee rate calculations, estimated-budget checks, zero-budget behavior, negative units rejection, unknown-model rejection, and fractional precision.
 * `tests/test_document.py` (7 tests): Validates PyMuPDF rasterization at 150 DPI, TIFF multi-page extraction, and pure stdlib DOCX Markdown/HTML table parsing.
 * `tests/test_download.py` (6 tests): Validates dataset downloader, checksum integrity, and buffer purge to clean slate.
-* `tests/test_e2e.py` (7 tests): Validates end-to-end multi-step ReAct pipeline, honest refusal on out-of-domain tasks, `<untrusted_input_data>` XML prompt injection quarantine, and pre-flight estimated-budget rejection before OCR dispatch.
-* `tests/test_trace.py` (7 tests): Validates JSONL real-time flushing, POSIX artifact indexing, pre-run rotation, and hybrid archive snapshotting.
+* `tests/test_e2e.py` (12 tests): Validates end-to-end multi-step ReAct pipeline, honest refusal on out-of-domain tasks, `<untrusted_input_data>` XML prompt injection quarantine, pre-flight estimated-budget rejection before OCR dispatch, Indic-presence/provenance refusal for LLM-authored Indic text, an outage-breaker e2e (status reported as honest `failed` with drafted work preserved), and verification-not-applicable accounting for zero-artifact runs.
+* `tests/test_trace.py` (30 tests): Validates JSONL real-time flushing, POSIX artifact indexing, pre-run rotation, crash recovery, redacted config snapshots, strict UTF-8 byte caps, and hybrid archive snapshotting.
 * `tests/test_random_sampler.py` (5 tests): Validates seeded sampling and its summary statistics.
-* `tests/test_retry_and_logging.py` (11 tests): Validates exponential backoff retries, network timeout recovery, and stderr-only logging wire safety.
+* `tests/test_retry_and_logging.py` (18 tests): Validates exponential backoff retries, network timeout recovery, stderr-only logging wire safety, transport-error classification (ConnectTimeout/ConnectError/429/5xx/4xx), and the actionable Bodhan-outage ToolError contract.
 * `tests/test_config.py` (6 tests): Validates flat `BodhanConfig.from_env()` loading, per-model key isolation, and frozen immutability.
-* `tests/test_verify_working.py` (9 tests): Validates the unified no-inference readiness checker, endpoint probes, and secret redaction.
+* `tests/test_verify_working.py` (10 tests): Validates the unified no-inference readiness checker, bounded endpoint probes, and secret redaction.
 
 ```
-======================= 140 passed, 5 warnings in 8.2s ========================
+======================= 187 passed, 5 warnings in ~22s ========================
 ```
 
 ---
 
 ## 🧠 Routing & Tool Optimization
 
-The agent's prompts and FastMCP tool interfaces were iteratively hardened using DSPy prompt optimization and boundary engineering, advancing routing accuracy from **58.3% to 100.0%** (12/12 pilot cases, 121 unit/integration tests).
+The agent's prompts and FastMCP tool interfaces were iteratively hardened using DSPy prompt optimization and boundary engineering. The routing accuracy headline for that exercise was produced on a **12-case stratified pilot** of the held-out routing suite (58.3% raw → 100.0% hardened). It is **not** an acceptance result on the current **87-case v3** decision suite (splits 37/21/29, 10/10 tool coverage and 6/6 categories in the test split, `dataset_sha256 2c3abeef…`); v3 has not yet been used to re-score the agent. Treat the table below as pilot-era evidence, not as v3 performance.
 
-### Routing Evolution
+### Routing Evolution (12-case pilot on the pre-v3 suite; not v3 acceptance)
 | Stage | Tool Accuracy | Mean Score | Key Milestone |
 | :--- | :---: | :---: | :--- |
 | **0. Raw Baseline** | 58.3% | 0.52 | Zero-shot generic prompts; misrouted doc slices to OCR |
@@ -582,4 +577,4 @@ The agent's prompts and FastMCP tool interfaces were iteratively hardened using 
 - [x] **Post-Execution Verification:** Automated audio back-transcription and translation completeness checks.
 - [x] **Graceful Degradation & Honest Refusal:** Detects unsupported requests or missing files and explains refusal without hallucinated outputs.
 - [x] **Off-The-Shelf MCP Interoperability:** Compatible out-of-the-box with Claude Desktop, Cursor, and official MCP Inspector over standard `stdio`.
-- [x] **Comprehensive Test Suite:** 140 unit, integration, and E2E tests passing in ~8s with 0 failures and 0 errors across 14 test modules.
+- [x] **Comprehensive Test Suite:** 187 unit, integration, and E2E tests passing (2026-11-19, full `pytest tests/ -q`) with 0 failures and 0 errors across 14 test modules.

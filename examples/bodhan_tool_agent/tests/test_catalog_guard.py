@@ -26,6 +26,33 @@ from src.common.paths import (
 
 OPERATOR_ONLY_TOOLS = {"get_cache_stats", "clear_cache"}
 
+# Mirror of `_HIDDEN_SCHEMA_PARAMS` in src/bodhan_agent/agent.py: parameters that
+# exist in the server schema (the cache decorator binds them) but must not reach
+# the model. Kept as an independent copy so this guard fails loudly if the two
+# ever disagree.
+_HIDDEN_SCHEMA_PARAMS = frozenset({"bypass_cache"})
+
+
+def _strip_hidden_schema_params(schema: dict) -> dict:
+    """Return a schema copy with operator-only parameters removed.
+
+    Mirrors `agent._strip_hidden_params` semantics independently of that
+    implementation: drop hidden names from `properties` and from `required`.
+    """
+    properties = schema.get("properties") or {}
+    hidden = _HIDDEN_SCHEMA_PARAMS.intersection(properties)
+    if not hidden:
+        return dict(schema)
+    filtered = {key: value for key, value in schema.items() if key != "properties"}
+    filtered["properties"] = {
+        key: value for key, value in properties.items() if key not in hidden
+    }
+    if isinstance(schema.get("required"), list):
+        filtered["required"] = [
+            name for name in schema["required"] if name not in hidden
+        ]
+    return filtered
+
 
 # ---------------------------------------------------------------------------
 # Catalog exposure
@@ -62,6 +89,41 @@ def test_bypass_cache_is_not_advertised():
     for tool in _get_openai_tool_definitions():
         properties = tool["function"]["parameters"].get("properties", {})
         assert "bypass_cache" not in properties, tool["function"]["name"]
+
+
+def test_advertised_catalog_matches_live_server_schema():
+    """The advertised catalog must be an exact projection of the live server.
+
+    `_get_openai_tool_definitions()` builds what the model sees; the FastMCP
+    registry's live FunctionModel (`tool.fn_metadata.arg_model`) is the source of
+    truth. After removing only the hidden operator parameters, the two JSON
+    schemas — and the descriptions — must be identical, so future drift in
+    either direction fails this test rather than shipping silently.
+    """
+    from src.bodhan_agent import agent as agent_module
+
+    # Pin the hidden-params contract this test mirrors.
+    assert set(agent_module._HIDDEN_SCHEMA_PARAMS) == set(_HIDDEN_SCHEMA_PARAMS)
+
+    live = {tool.name: tool for tool in mcp._tool_manager.list_tools()}
+    advertised = {
+        tool["function"]["name"]: tool["function"]
+        for tool in _get_openai_tool_definitions()
+    }
+
+    assert advertised, "model-facing catalog must not be empty"
+    for name, function in advertised.items():
+        server_tool = live.get(name)
+        assert server_tool is not None, (
+            f"advertised tool '{name}' is not registered on the server"
+        )
+        live_schema = server_tool.fn_metadata.arg_model.model_json_schema()
+        assert function["parameters"] == _strip_hidden_schema_params(live_schema), (
+            f"advertised parameters for '{name}' drifted from the live server schema"
+        )
+        assert function["description"] == (server_tool.description or "").strip(), (
+            f"advertised description for '{name}' drifted from the server docstring"
+        )
 
 
 def test_cache_decorator_still_sees_bypass_cache():

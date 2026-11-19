@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import multiprocessing
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
@@ -32,34 +33,87 @@ def test_parser_modes(argv, expected):
     assert verify_working._resolve_mode(args) == expected
 
 
-def test_probe_treats_http_auth_response_as_reachable_without_sending_credentials():
+def test_probe_worker_treats_http_auth_response_as_reachable_without_credentials():
     response = SimpleNamespace(status_code=401)
 
     class FakeClient:
         def __init__(self, *args, **kwargs):
             pass
 
-        async def __aenter__(self):
+        def __enter__(self):
             return self
 
-        async def __aexit__(self, *args):
+        def __exit__(self, *args):
             return False
 
-        async def get(self, url, headers=None):
+        def get(self, url, headers=None):
             assert "Authorization" not in headers
             return response
 
-    with patch("verify_working.httpx.AsyncClient", FakeClient):
-        result = asyncio.run(
-            verify_working.probe_reachability(
-                "https://example.invalid/v1",
-                timeout=1.0,
-            )
-        )
+    receiver, sender = multiprocessing.Pipe(duplex=False)
+    try:
+        with patch("verify_working.httpx.Client", FakeClient):
+            verify_working._probe_worker("https://example.invalid/v1", 1.0, sender)
+        result = receiver.recv()
+    finally:
+        receiver.close()
 
     assert result["reachable"] is True
     assert "HTTP 401" in str(result["detail"])
     assert "no inference or credential validation" in str(result["detail"])
+
+
+def test_probe_terminates_worker_when_dns_or_network_stalls():
+    class FakeConnection:
+        def poll(self, timeout):
+            return False
+
+        def close(self):
+            pass
+
+    class FakeProcess:
+        def __init__(self, *args, **kwargs):
+            self.running = False
+            self.terminated = False
+            self.exitcode = None
+
+        def start(self):
+            self.running = True
+
+        def is_alive(self):
+            return self.running
+
+        def terminate(self):
+            self.terminated = True
+            self.running = False
+
+        def join(self, timeout=None):
+            pass
+
+        def close(self):
+            pass
+
+    class FakeContext:
+        def __init__(self):
+            self.process = FakeProcess()
+
+        def Pipe(self, duplex=False):
+            return FakeConnection(), FakeConnection()
+
+        def Process(self, **kwargs):
+            return self.process
+
+    context = FakeContext()
+    with patch("verify_working.multiprocessing.get_context", return_value=context):
+        result = asyncio.run(
+            verify_working.probe_reachability(
+                "https://example.invalid/v1",
+                timeout=0.01,
+            )
+        )
+
+    assert result == {"reachable": False, "detail": "timeout after 0.01s"}
+    assert context.process.terminated is True
 
 
 def test_agent_mode_uses_default_openai_endpoint_and_hides_secrets(tmp_path: Path, capsys):

@@ -11,7 +11,10 @@ from __future__ import annotations
 import argparse
 import asyncio
 import importlib
+import logging
+import multiprocessing
 import sys
+from multiprocessing.connection import Connection
 from pathlib import Path
 from typing import Iterable
 
@@ -77,30 +80,83 @@ def _print_check(name: str, ok: bool, detail: str = "") -> None:
     print(f"  [{status}] {name}{suffix}")
 
 
+def _probe_worker(base_url: str, timeout: float, sender: Connection) -> None:
+    """Run an HTTP probe in a killable child process to bound DNS stalls."""
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+    logging.getLogger("httpcore").setLevel(logging.WARNING)
+    url = base_url.rstrip("/") + "/models"
+    try:
+        with httpx.Client(timeout=timeout, follow_redirects=True) as client:
+            response = client.get(url, headers={"Accept": "application/json"})
+    except httpx.TimeoutException:
+        result = {"reachable": False, "detail": "timeout"}
+    except httpx.HTTPError as exc:
+        result = {
+            "reachable": False,
+            "detail": f"network error ({type(exc).__name__})",
+        }
+    else:
+        status = response.status_code
+        result = {
+            "reachable": status < 500,
+            "detail": f"/models responded HTTP {status}; no inference or credential validation",
+        }
+
+    sender.send(result)
+    sender.close()
+
+
 async def probe_reachability(
     base_url: str,
     *,
     timeout: float = 5.0,
 ) -> dict[str, object]:
-    """Probe GET /models without credentials or inference."""
+    """Probe GET /models without credentials or inference, with a hard process timeout."""
     if not base_url:
         return {"reachable": False, "detail": "base URL is not configured"}
+    if timeout <= 0:
+        return {"reachable": False, "detail": "timeout must be greater than zero"}
 
-    url = base_url.rstrip("/") + "/models"
+    context = multiprocessing.get_context("spawn")
+    receiver, sender = context.Pipe(duplex=False)
+    process = context.Process(target=_probe_worker, args=(base_url, timeout, sender))
     try:
-        async with httpx.AsyncClient(timeout=timeout, follow_redirects=True) as client:
-            response = await client.get(url, headers={"Accept": "application/json"})
-    except httpx.TimeoutException:
-        return {"reachable": False, "detail": "timeout"}
-    except httpx.HTTPError as exc:
+        process.start()
+    except (OSError, RuntimeError) as exc:
+        receiver.close()
+        sender.close()
         return {
             "reachable": False,
-            "detail": f"network error ({type(exc).__name__})",
+            "detail": f"could not start probe process ({type(exc).__name__})",
         }
 
-    status = response.status_code
-    detail = f"/models responded HTTP {status}; no inference or credential validation"
-    return {"reachable": status < 500, "detail": detail}
+    sender.close()
+    try:
+        if receiver.poll(timeout):
+            try:
+                result = receiver.recv()
+            except EOFError:
+                return {"reachable": False, "detail": "probe process exited without a result"}
+            process.join(timeout=1.0)
+            if process.is_alive():
+                process.terminate()
+                process.join(timeout=1.0)
+            return result
+
+        if process.is_alive():
+            process.terminate()
+            process.join(timeout=1.0)
+            return {"reachable": False, "detail": f"timeout after {timeout:g}s"}
+        return {
+            "reachable": False,
+            "detail": f"probe process exited without a result (exit code {process.exitcode})",
+        }
+    finally:
+        if process.is_alive():
+            process.terminate()
+            process.join(timeout=1.0)
+        receiver.close()
+        process.close()
 
 
 async def verify_mcp() -> int:
@@ -117,13 +173,13 @@ async def verify_mcp() -> int:
 
 
 async def verify_agent(no_network: bool = False, timeout: float = 5.0, input_path: str | None = None) -> int:
-    """Check agent imports, config, input path, endpoint reachability, and auth."""
+    """Check agent imports, config, input path, and endpoint reachability."""
     print("\nAgent readiness")
     print("-" * 30)
     failures = 0
 
     try:
-        agent_module = importlib.import_module("src.bodhan_agent.agent")
+        importlib.import_module("src.bodhan_agent.agent")
         config_module = importlib.import_module("src.common.config")
         _print_check("Agent module import", True)
     except Exception as exc:

@@ -20,6 +20,7 @@ import inspect
 import json
 import os
 from pathlib import Path
+import shutil
 import sqlite3
 import sys
 import time
@@ -98,7 +99,12 @@ def make_transcribe_key(
     output_path: str | None = None,
     **kwargs: Any,
 ) -> str:
-    """Build canonical content-addressed cache key for transcribe_audio."""
+    """Build canonical content-addressed cache key for transcribe_audio.
+
+    output_path is deliberately excluded so identical audio transcribed to a
+    different destination filename hits the cache instead of re-paying.
+    output_format, task, language and file identity remain part of the key.
+    """
     path = resolve_input_path(file_path)
     if not path.is_file():
         raise FileNotFoundError(f"File not found: {file_path}")
@@ -113,8 +119,6 @@ def make_transcribe_key(
         "task": (task or "transcribe").strip().lower(),
         "output_format": (output_format or "text").strip().lower(),
     }
-    if output_path:
-        payload["output_path"] = str(output_path).strip()
     canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
@@ -552,6 +556,9 @@ def indic_cache(
     - Checks BODHAN_CACHE_ENABLED and bypass_cache parameter.
     - Accurately measures elapsed execution time on MISS.
     - Reconstitutes binary audio files (WAV) on HIT for synthesize_speech.
+    - Restores file deliverables (transcribe_audio output_path) on HIT from
+      captured file bytes when available, so destination names can differ
+      between identical calls without a re-paid provider call.
     - All telemetry logged strictly to stderr via get_logger("mcp").
     """
     def decorator(fn: Callable[..., Coroutine[Any, Any, str]]):
@@ -623,6 +630,62 @@ def indic_cache(
                                 "cached": True,
                             })
 
+                        # Non-binary tools with a file deliverable (e.g.
+                        # transcribe_audio with output_path): honor the
+                        # caller's requested destination on a cache HIT by
+                        # materializing the cached payload to that path. The
+                        # tool body does not run on a hit, so without this a
+                        # caller asking for a different output_path would get
+                        # a success envelope but no file at the requested path.
+                        requested_output = call_args.get("output_path")
+                        if requested_output:
+                            try:
+                                from src.bodhan_mcp.server import resolve_artifact_path
+                                out_file = resolve_artifact_path(requested_output)
+                                out_file.parent.mkdir(parents=True, exist_ok=True)
+                                materialized = False
+                                if cached.response_blob:
+                                    if not out_file.is_file() or out_file.stat().st_size != len(cached.response_blob):
+                                        out_file.write_bytes(cached.response_blob)
+                                    materialized = True
+                                else:
+                                    try:
+                                        envelope = json.loads(cached.response_data)
+                                    except Exception:
+                                        envelope = None
+                                    if envelope is None:
+                                        # Raw-text cached payload (stored without
+                                        # an output_path): write it to the file.
+                                        out_file.write_text(cached.response_data, encoding="utf-8")
+                                        materialized = True
+                                    elif isinstance(envelope, dict) and envelope.get("artifact_path"):
+                                        src = Path(str(envelope["artifact_path"]))
+                                        if src.is_file():
+                                            shutil.copyfile(src, out_file)
+                                            materialized = True
+                                if materialized:
+                                    try:
+                                        data = json.loads(cached.response_data)
+                                        if isinstance(data, dict) and "artifact_path" in data:
+                                            data["artifact_path"] = str(out_file)
+                                            data["cached"] = True
+                                            return json.dumps(data, ensure_ascii=False)
+                                    except Exception:
+                                        pass
+                                    return cached.response_data
+                                logger.warning(
+                                    "[CACHE HIT] tool=%s: cached entry predates file-byte capture; cannot materialize output_path '%s'",
+                                    tool_name,
+                                    requested_output,
+                                )
+                            except Exception as mat_err:
+                                logger.warning(
+                                    "[CACHE HIT] tool=%s: failed to materialize output_path '%s': %s",
+                                    tool_name,
+                                    requested_output,
+                                    mat_err,
+                                )
+
                         return cached.response_data
 
                 logger.info("[CACHE MISS] tool=%s", tool_name)
@@ -641,12 +704,15 @@ def indic_cache(
 
                 if cache_key:
                     blob: bytes | None = None
-                    if is_binary_asset:
-                        from src.bodhan_mcp.server import resolve_artifact_path
-                        output_path = call_args.get("output_path") or f"speech_{call_args.get('language', 'out')}.wav"
-                        out_file = resolve_artifact_path(output_path)
-                        if out_file.is_file():
-                            blob = out_file.read_bytes()
+                    if is_binary_asset or call_args.get("output_path"):
+                        try:
+                            from src.bodhan_mcp.server import resolve_artifact_path
+                            output_path = call_args.get("output_path") or f"speech_{call_args.get('language', 'out')}.wav"
+                            out_file = resolve_artifact_path(output_path)
+                            if out_file.is_file():
+                                blob = out_file.read_bytes()
+                        except Exception as blob_err:
+                            logger.debug("Could not capture output file bytes for cache entry: %s", blob_err)
 
                     summary = str(call_args.get("text") or call_args.get("file_path") or "")[:80]
                     manager.put(

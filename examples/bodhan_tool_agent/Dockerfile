@@ -48,12 +48,18 @@ COPY requirements.txt ./
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install -r requirements.txt
 
-# Copy only the application source (datasets/outputs are runtime volumes)
+# Copy the application source and the top-level launcher packages that
+# satisfy the mandated `python -m bodhan_mcp` / `python -m bodhan_agent`
+# entrypoints (datasets/outputs are runtime volumes, never baked in).
 COPY src ./src
+COPY bodhan_mcp ./bodhan_mcp
+COPY bodhan_agent ./bodhan_agent
 
-# Build-time smoke test: FastMCP registry must import cleanly and expose all tools
-RUN python -c "from src.bodhan_mcp.server import mcp; assert len(mcp._tool_manager.list_tools()) == 10"
+# Build-time smoke test: FastMCP registry must import cleanly and expose all
+# tools, and both mandated entrypoint packages must resolve.
+RUN python -c "import bodhan_mcp.__main__, bodhan_agent.__main__; from src.bodhan_mcp.server import mcp; assert len(mcp._tool_manager.list_tools()) == 10"
 
-# Default: run the MCP server over stdio
-ENTRYPOINT ["python"]
-CMD ["-m", "src.bodhan_mcp"]
+# Default: run the MCP server over stdio. No ENTRYPOINT, so the assessment's
+# literal `python -m bodhan_agent ...` / `python -m bodhan_mcp` forms also work:
+#   docker run ... <image> python -m bodhan_mcp
+CMD ["python", "-m", "bodhan_mcp"]

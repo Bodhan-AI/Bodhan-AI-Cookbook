@@ -102,12 +102,12 @@ Both dataset paradigms serve complementary, non-overlapping functions in agentic
 | **Origin & Provenance** | Peer-reviewed publications and public archives: [arXiv:2205.03021](https://arxiv.org/pdf/2205.03021.pdf), Wikitongues / Wikimedia Commons, Unicode Consortium, Bengali Wikisource. | Algorithmically synthesized and curated via Python standard library (`wave`), PyMuPDF (`fitz`), Pillow (`PIL`), and Unicode boundary generators. |
 | **Reproducibility & Offline Portability** | Downloaded via authentic HTTP URLs during environment bootstrapping; cached locally on disk. | **100% reproducible offline** on any air-gapped machine with zero network access; deterministic random seed (`seed=42`). |
 | **Size & Token Economics** | Highly variable ($1.7\text{ KB}$ text to $31.5\text{ MB}$ WebM video); ingestion of raw uncompressed containers can exhaust token budgets if unchunked. | **Micro-footprint** ($155\text{ B}$ to $1.5\text{ MB}$; entire 18-fixture suite $< 3\text{ MB}$); strictly enforces the Small Data Principle to prevent token waste during LLM task planning. |
-| **Caching & Regression Behavior** | Cached after initial remote model invocation; keys derived from SHA-256 of canonicalized payload. | **Guaranteed 100% deterministic cache hit** on repeated CI/CD test runs ($< 5\text{ ms}$ lookup, ₹0.00 spent). |
+| **Caching & Regression Behavior** | Successful model results may be cached; keys derive from canonicalized payloads. | Repeated identical calls can avoid provider requests when a matching cache entry exists; cache hit rate depends on local cache state. |
 | **Asset Count & Disk Footprint** | **8 assets** | **108.46 MB** (due to raw full-length video/audio) | **93 assets** | **37.8 MB** (18 edge cases: 8.28 MB; 73 random samples: 29.5 MB; 2 fail baselines: 0.04 MB) |
 
 ---
 
-## 3. Token Economics, Size Optimization & Cache Protection
+## 3. Token Economics, Size Optimization & Cache Behavior
 
 ### 3.1 The Small Data Principle
 Large media files (e.g., 30 MB raw video clips or 15-page academic scans) rapidly exhaust token windows and blow rupee budgets during multi-agent iterative cycles. Both the **Nuanced Edge Cases Suite** and the **Random Multimodal Sampling Suite** adhere strictly to the Small Data Principle:
@@ -116,13 +116,11 @@ Large media files (e.g., 30 MB raw video clips or 15-page academic scans) rapidl
 - **Images:** Web-optimized PNGs (< 80 KB per image) preserving sub-pixel font features and high contrast.
 - **Text:** Under 2 KB per text fixture, containing concentrated linguistic phenomena (honorifics, nuktas, transliteration).
 
-### 3.2 Zero-Cost Regression with SQLite WAL Caching
+### 3.2 Cache-Backed Regression
 The Bodhan MCP Server features an integrated zero-dependency SQLite Write-Ahead Logging cache (`src/bodhan_mcp/cache.py`):
 1. **Deterministic Keying:** Tool inputs are hashed using SHA-256 over normalized text (`unicodedata.normalize("NFC", ...)`) and binary file streams.
 2. **Side-Effect Restoration:** For tools with disk side effects (`synthesize_speech`), the cache restores both the result metadata and the binary audio bytes on disk.
-3. **Budget Impact:**
-   - First profiling run: Computes and stores tool outputs.
-   - Subsequent test runs & regression suites: **100% Cache HIT rate**, achieving **< 5 ms local latency** (vs 850 ms remote roundtrip) and **₹0.00 rupee expenditure**.
+3. **Provider usage:** A cache hit avoids the Bodhan request for that call; misses still invoke the provider. The agent's rupee ledger currently applies nominal Bodhan rates without observing cache-hit state, so its estimate may count cached calls that incurred no provider request. Check provider usage records for actual charges.
 
 ### 3.3 Inferential Population Bounds under Central Limit Theorem (CLT)
 From the empirical random sample distributions:
@@ -131,7 +129,7 @@ From the empirical random sample distributions:
 - **Text Diversity (TTR):** $n=10$, $\bar{x} = 0.55 \pm 0.13$ ($95\%\text{ CI}: [0.42, 0.68]$).
 - **CLT Workload Projection ($N = 1,000$ queries):**
   $$\text{Uncached Total Cost} = ₹405.00 \pm ₹7.44 \quad (\text{vs. SQLite Cache Total} = ₹8.10)$$
-  Achieving a **98.0% sustained budget saving** on real-world autonomous agent deployments.
+  These are illustrative rate-based projections under the assumed request mix and cache-hit rate, not observed provider charges, an invoice, or a validated deployment forecast. The projected savings apply only if those assumptions hold.
 
 ---
 

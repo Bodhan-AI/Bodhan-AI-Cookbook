@@ -7,3 +7,5 @@ numpy==2.2.3
 python-dotenv==1.0.1
 httpx==0.28.1
 pillow==12.2.0
+soundfile==0.14.0
+imageio-ffmpeg==0.8.1

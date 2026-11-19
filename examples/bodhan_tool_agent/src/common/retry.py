@@ -33,7 +33,7 @@ T = TypeVar("T")
 RETRYABLE_STATUS_CODES: set[int] = {429, 500, 502, 503, 504}
 
 # Non-retryable status codes that should fail immediately with descriptive guidance
-NON_RETRYABLE_STATUS_CODES: set[int] = {400, 401, 403, 404, 422}
+NON_RETRYABLE_STATUS_CODES: set[int] = {400, 401, 403, 404, 415, 422}
 
 # Default network/transport exceptions that warrant retry
 RETRYABLE_NETWORK_EXCEPTIONS: tuple[type[Exception], ...] = (
@@ -153,10 +153,19 @@ def format_non_retryable_error(response: httpx.Response) -> ToolError:
             "Guidance: The request payload was rejected. Check input file format, "
             "parameters, or supported options."
         )
+    elif code == 415:
+        msg = (
+            f"Unsupported Media Type (HTTP 415): {body}. "
+            "Guidance: The media format was rejected by the Bodhan API. "
+            "Indic-Transcribe strictly requires 16kHz mono PCM16 WAV audio (format is measured server-side); "
+            "Indic-OCR strictly accepts PNG or JPEG base64 images (direct PDF input is refused)."
+        )
     elif code == 422:
         msg = (
             f"Unprocessable entity (HTTP 422): {body}. "
-            "Guidance: The payload syntax is valid but semantic parameters failed validation."
+            "Guidance: The payload syntax is valid but semantic parameters failed validation. "
+            "Common causes: unsupported language code (Indic-Translate refuses 'bhb' and 'bho' with unsupported_language), "
+            "invalid voice name, unsupported speaking style, or unexpected parameters (Indic-Transcribe rejects any 'task' parameter)."
         )
     else:
         msg = f"HTTP client error ({code}): {body}."
@@ -264,17 +273,61 @@ async def retry_async(
             await asyncio.sleep(delay)
 
         except RETRYABLE_NETWORK_EXCEPTIONS as err:
-            if attempt >= max_retries:
-                logger.error("Network/timeout error persisted after %d retries: %s", max_retries, err)
+            request = getattr(err, "request", None)
+            target = (
+                f"{request.url.scheme}://{request.url.host}{request.url.path}"
+                if request is not None
+                else "the remote API"
+            )
+            if isinstance(err, (httpx.ConnectError, httpx.ConnectTimeout)):
+                stage = "connection setup"
+                guidance = "Check DNS, routing, TLS, proxy/firewall settings, and API server availability."
+            elif isinstance(err, httpx.ReadTimeout):
+                stage = "waiting for the response"
+                guidance = (
+                    "The server may have received the request. Check API status before retrying "
+                    "to avoid duplicate work or charges."
+                )
+            else:
+                stage = "request processing"
+                guidance = "Check network connectivity and API server availability."
+            detail = str(err) or "no additional error details supplied"
+            is_dns_failure = any(sig in detail.lower() for sig in ("getaddrinfo failed", "nodename nor servname provided", "name or service not known", "[errno 11001]"))
+            if is_dns_failure:
+                logger.error("Permanent DNS resolution failure for %s (%s). Failing immediately without retry.", target, detail)
                 raise ToolError(
-                    f"Network or timeout error after {max_retries} retries ({type(err).__name__}: {str(err)}). "
-                    "Guidance: Check network connectivity and API server availability."
+                    f"Host resolution error for {target} ({detail}). Guidance: Check DNS configuration, hostname spelling, or internet connection."
+                ) from err
+
+            retry_note = (
+                " The server may have received this request; retrying could duplicate work or charges."
+                if isinstance(err, httpx.ReadTimeout)
+                else ""
+            )
+            if attempt >= max_retries:
+                logger.error(
+                    "Network/timeout error persisted after %d retries during %s to %s: %s",
+                    max_retries,
+                    stage,
+                    target,
+                    detail,
+                )
+                raise ToolError(
+                    f"Network or timeout error after {max_retries} retries during {stage} to {target} "
+                    f"({type(err).__name__}: {detail}).{retry_note} Guidance: {guidance}"
                 ) from err
 
             delay = compute_backoff_delay(attempt, initial_delay, backoff_factor, max_delay)
             logger.warning(
-                "Transient network error (%s: %s); retrying in %.2fs (attempt %d/%d)...",
-                type(err).__name__, str(err), delay, attempt + 1, max_retries
+                "Transient network error during %s to %s (%s: %s); retrying in %.2fs (attempt %d/%d)...%s",
+                stage,
+                target,
+                type(err).__name__,
+                detail,
+                delay,
+                attempt + 1,
+                max_retries,
+                retry_note,
             )
             await asyncio.sleep(delay)
 

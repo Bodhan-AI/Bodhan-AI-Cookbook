@@ -5,10 +5,12 @@ from __future__ import annotations
 import asyncio
 import json
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 import pytest
 from mcp.server.fastmcp.exceptions import ToolError
 
+import src.bodhan_mcp.server as server
 from src.bodhan_mcp.server import (
     detect_language,
     extract_document_text,
@@ -156,6 +158,41 @@ async def test_empty_speech_synthesis_raises():
     with pytest.raises(ToolError) as exc_info:
         await synthesize_speech(text="   ", language="hi")
     assert "Text for speech synthesis cannot be empty" in str(exc_info.value)
+
+
+@pytest.mark.asyncio
+async def test_speech_synthesis_cancels_pending_chunks_on_failure(tmp_path: Path, monkeypatch):
+    cancelled: list[str] = []
+    sentences = [f"தமிழ் வாக்கியம் எண் {idx}." for idx in range(5)]
+
+    async def fail_first_request(_post, _url, *, json, **kwargs):
+        if json["input"] == sentences[0]:
+            await asyncio.sleep(0)
+            raise ToolError("speech service unavailable")
+        try:
+            await asyncio.Event().wait()
+        except asyncio.CancelledError:
+            cancelled.append(json["input"])
+            raise
+
+    monkeypatch.setattr(
+        server.BodhanConfig,
+        "from_env",
+        lambda: SimpleNamespace(speak_key="mock-key", base_url="https://example.invalid/v1"),
+    )
+    monkeypatch.setattr(server, "normalize_indic_speech_text", lambda text, language: text)
+    monkeypatch.setattr(server, "split_indic_sentences", lambda text, min_chars: sentences)
+    monkeypatch.setattr(server, "resolve_artifact_path", lambda path: tmp_path / "speech.wav")
+    monkeypatch.setattr(server, "retry_async", fail_first_request)
+
+    with pytest.raises(ToolError, match="speech service unavailable"):
+        await synthesize_speech(
+            text="தமிழ் உரை.",
+            language="ta",
+            output_path="speech.wav",
+        )
+
+    assert cancelled
 
 
 async def test_read_and_write_text_file(tmp_path: Path):
@@ -512,6 +549,7 @@ async def test_transcribe_audio_task_forwarding(tmp_path: Path, monkeypatch: pyt
         result = await transcribe_audio(
             file_path=str(wav),
             task="translate",
+            bypass_cache=True,
         )
 
     assert result == "Translated English text"
@@ -531,5 +569,110 @@ async def test_transcribe_audio_legacy_text_unchanged(tmp_path: Path, monkeypatc
         result = await transcribe_audio(file_path=str(wav))
 
     assert result == "Legacy transcript string."
+
+
+async def test_synthesize_speech_formal_style_rejected():
+    """Verify 'formal' style is rejected upfront to prevent live HTTP 500 error."""
+    with pytest.raises(ToolError) as exc_info:
+        await synthesize_speech(
+            text="कक्षा नौ बजे शुरू होती है।",
+            language="hi",
+            style="formal",
+        )
+    assert "formal" in str(exc_info.value)
+    assert "HTTP 500" in str(exc_info.value)
+
+
+async def test_translate_bhb_bho_discrepancy_rejected():
+    """Verify bhb and bho translation requests are rejected upfront due to upstream refusal."""
+    with pytest.raises(ToolError) as exc_info:
+        await translate_text(
+            text="कक्षा नौ बजे शुरू होती है।",
+            target_language="bho",
+        )
+    assert "bho" in str(exc_info.value)
+    assert "unsupported_language" in str(exc_info.value)
+
+
+async def test_translate_truncated_response_raises_tool_error(monkeypatch: pytest.MonkeyPatch):
+    """Verify truncated translation response triggers ToolError to avoid completeness trap."""
+    import httpx
+    from src.bodhan_mcp import server
+
+    monkeypatch.setenv("BODHAN_TRANSLATE_KEY", "mock-key")
+
+    dummy_req = httpx.Request("POST", "https://api.bodhan.ai/v1/chat/completions")
+    truncated_response = httpx.Response(
+        200,
+        json={
+            "choices": [{
+                "message": {"content": "வகுப்பு ஒன்பது மணிக்கு"},
+                "finish_reason": "length"
+            }]
+        },
+        request=dummy_req,
+    )
+
+    async def mock_post(*args, **kwargs):
+        return truncated_response
+
+    monkeypatch.setattr(server, "_bodhan_paid_request", mock_post)
+
+    with pytest.raises(ToolError) as exc_info:
+        await translate_text(
+            text="Class starts at 9 AM and finishes at 5 PM with a lunch break.",
+            target_language="ta",
+            bypass_cache=True,
+        )
+    assert "truncated" in str(exc_info.value)
+    assert "finish_reason='length'" in str(exc_info.value)
+
+
+async def test_synthesize_speech_retries_transient_sentence_rate_limit(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    """Verify synthesize_speech retries a sentence that hits HTTP 429 rate limit without aborting the batch."""
+    import httpx
+    from types import SimpleNamespace
+    from src.bodhan_mcp import server
+
+    wav_bytes = create_synthetic_wav(tmp_path / "chunk.wav", duration_sec=1.0).read_bytes()
+    sentences = ["தமிழ் வாக்கியம் ஒன்று.", "தமிழ் வாக்கியம் இரண்டு."]
+    attempts = {sentences[0]: 0, sentences[1]: 0}
+
+    dummy_req = httpx.Request("POST", "https://api.bodhan.ai/v1/audio/speech")
+
+    async def mock_paid_request(send, url, *, json, **kwargs):
+        inp = json["input"]
+        attempts[inp] += 1
+        # Sentence 2 fails on first attempt with 429 ToolError, succeeds on retry
+        if inp == sentences[1] and attempts[inp] == 1:
+            err = ToolError("Indic-Speak rate limit reached (HTTP 429) at https://api.bodhan.ai/v1. Rate limit reached. Retryable after a pause.")
+            err.is_rate_limit = True
+            err.retryable = True
+            raise err
+        resp = httpx.Response(200, content=wav_bytes, request=dummy_req)
+        return resp
+
+    monkeypatch.setattr(
+        server.BodhanConfig,
+        "from_env",
+        lambda: SimpleNamespace(speak_key="mock-key", base_url="https://api.bodhan.ai/v1"),
+    )
+    monkeypatch.setattr(server, "normalize_indic_speech_text", lambda text, language: text)
+    monkeypatch.setattr(server, "split_indic_sentences", lambda text, min_chars: sentences)
+    monkeypatch.setattr(server, "resolve_artifact_path", lambda path: tmp_path / "output.wav")
+    monkeypatch.setattr(server, "_bodhan_paid_request", mock_paid_request)
+
+    res = await server.synthesize_speech(
+        text="தமிழ் வாக்கியம் ஒன்று. தமிழ் வாக்கியம் இரண்டு.",
+        language="ta",
+        output_path="output.wav",
+        bypass_cache=True,
+    )
+    data = json.loads(res)
+    assert data["status"] == "success"
+    assert attempts[sentences[0]] == 1
+    assert attempts[sentences[1]] == 2
+    assert Path(data["output_file"]).exists()
+
 
 

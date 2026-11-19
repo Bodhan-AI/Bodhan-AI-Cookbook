@@ -40,9 +40,10 @@ def ensure_windows_asyncio_patch() -> None:
     try:
         test_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         test_sock.bind(("127.0.0.1", 0))
+        test_sock.listen(1)
         test_port = test_sock.getsockname()[1]
         conn_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        conn_sock.settimeout(0.05)
+        conn_sock.settimeout(0.1)
         try:
             conn_sock.connect(("127.0.0.1", test_port))
         except (OSError, TimeoutError):
@@ -135,6 +136,23 @@ class BodhanConfig:
     def load(cls, load_env_file: bool = True) -> BodhanConfig:
         """Alias for from_env for notebook compatibility."""
         return cls.from_env(load_env_file=load_env_file)
+
+    def snapshot(self) -> dict:
+        """Redacted, report-safe view of the configuration.
+
+        Never includes any key material — only base URLs, the model name, and
+        boolean key-presence flags, so it can be embedded in report.json.
+        """
+        return {
+            "base_url": self.base_url,
+            "llm_base_url": self.llm_base_url,
+            "llm_model": self.llm_model,
+            "llm_reasoning_effort": self.llm_reasoning_effort or None,
+            "has_bodhan_keys": bool(
+                self.transcribe_key or self.translate_key or self.speak_key or self.ocr_key
+            ),
+            "has_llm_key": bool(self.llm_api_key),
+        }
 
 
 def load_config(load_env_file: bool = True) -> BodhanConfig:

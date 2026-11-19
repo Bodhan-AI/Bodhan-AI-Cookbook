@@ -175,7 +175,44 @@ async def test_non_retryable_400_fails_immediately():
     assert "Invalid request parameters" in str(exc_info.value)
 
 
-async def test_retry_on_network_timeout():
+async def test_non_retryable_415_unsupported_media_type_fails_immediately():
+    """Verify 415 Unsupported Media Type fails immediately with diagnostic guidance."""
+    call_count = 0
+    dummy_req = httpx.Request("POST", "https://api.bodhan.ai/v1/audio/transcriptions")
+
+    async def bad_media_api() -> httpx.Response:
+        nonlocal call_count
+        call_count += 1
+        return httpx.Response(415, text="Audio format not supported", request=dummy_req)
+
+    with pytest.raises(ToolError) as exc_info:
+        await retry_async(bad_media_api, max_retries=3, initial_delay=0.01)
+
+    assert call_count == 1
+    assert "415" in str(exc_info.value)
+    assert "Unsupported Media Type" in str(exc_info.value)
+    assert "16kHz mono PCM16 WAV" in str(exc_info.value)
+
+
+async def test_non_retryable_422_fails_immediately():
+    """Verify 422 Unprocessable Entity fails immediately with diagnostic guidance."""
+    call_count = 0
+    dummy_req = httpx.Request("POST", "https://api.bodhan.ai/v1/audio/speech")
+
+    async def unprocessable_api() -> httpx.Response:
+        nonlocal call_count
+        call_count += 1
+        return httpx.Response(422, text="unexpected field(s): ['task']", request=dummy_req)
+
+    with pytest.raises(ToolError) as exc_info:
+        await retry_async(unprocessable_api, max_retries=3, initial_delay=0.01)
+
+    assert call_count == 1
+    assert "422" in str(exc_info.value)
+    assert "Unprocessable entity" in str(exc_info.value)
+
+
+async def test_retry_on_network_timeout(capsys: pytest.CaptureFixture[str]):
     """Verify transient network timeouts (httpx.TimeoutException) are retried."""
     call_count = 0
     dummy_req = httpx.Request("POST", "https://api.bodhan.ai/v1/audio/speech")
@@ -190,6 +227,29 @@ async def test_retry_on_network_timeout():
     res = await retry_async(timeout_then_ok, max_retries=2, initial_delay=0.01)
     assert res.status_code == 200
     assert call_count == 2
+    assert "retrying could duplicate work or charges" in capsys.readouterr().err
+
+
+async def test_exhausted_connect_timeout_reports_request_target(capsys: pytest.CaptureFixture[str]):
+    """Verify exhausted connection timeouts identify the endpoint without an empty-only error."""
+    call_count = 0
+    request = httpx.Request("POST", "https://api.bodhan.ai/v1/chat/completions?token=redacted")
+
+    async def always_timeout() -> None:
+        nonlocal call_count
+        call_count += 1
+        raise httpx.ConnectTimeout("", request=request)
+
+    with pytest.raises(ToolError) as exc_info:
+        await retry_async(always_timeout, max_retries=2, initial_delay=0.01)
+
+    assert call_count == 3
+    assert "api.bodhan.ai/v1/chat/completions" in str(exc_info.value)
+    assert "token=" not in str(exc_info.value)
+    assert "ConnectTimeout" in str(exc_info.value)
+    assert "no additional error details supplied" in str(exc_info.value)
+    assert "during connection setup to https://api.bodhan.ai/v1/chat/completions" in str(exc_info.value)
+    assert "during connection setup to https://api.bodhan.ai/v1/chat/completions" in capsys.readouterr().err
 
 
 def test_rate_limit_retry_after_header():
@@ -238,3 +298,220 @@ async def test_concurrency_limiter():
 
     results = await asyncio.gather(*(worker() for _ in range(6)))
     assert max(results) <= 2
+
+
+# ============================================================================
+# C. Bodhan Paid-Call Outage Contract (transport mocked)
+# ============================================================================
+
+_OUTAGE_CHAT_URL = "https://api.bodhan.ai/v1/chat/completions"
+_TRANSLATE_GUIDANCE = (
+    "Do NOT produce Indic text yourself — the target-language text must come from Indic-Translate."
+)
+
+
+async def test_transient_outage_retries_then_tool_error_with_actionable_message(monkeypatch):
+    """A total Bodhan outage (ConnectTimeout) is retried exactly 3 times, then raises an actionable ToolError."""
+    from src.bodhan_mcp import server
+
+    call_count = 0
+    request = httpx.Request("POST", _OUTAGE_CHAT_URL)
+
+    async def always_timeout(_url, **_kwargs):
+        nonlocal call_count
+        call_count += 1
+        raise httpx.ConnectTimeout("", request=request)
+
+    monkeypatch.setattr(server, "_BODHAN_BACKOFF_BASE_S", 0.0)
+
+    with pytest.raises(ToolError) as exc_info:
+        await server._bodhan_paid_request(
+            always_timeout,
+            _OUTAGE_CHAT_URL,
+            service="Indic-Translate",
+            base_url="https://api.bodhan.ai",
+            no_substitute_guidance=_TRANSLATE_GUIDANCE,
+            json={"model": "indic-translate"},
+        )
+
+    assert call_count == 3
+    msg = str(exc_info.value)
+    assert "https://api.bodhan.ai" in msg
+    assert "ConnectTimeout" in msg
+    assert "Do NOT produce Indic text" in msg
+    assert "unreachable" in msg
+
+
+async def test_http_503_retries_then_outage_tool_error(monkeypatch):
+    """Transient HTTP 5xx responses are retried, then surface as the same actionable outage ToolError."""
+    from src.bodhan_mcp import server
+
+    call_count = 0
+    request = httpx.Request("POST", _OUTAGE_CHAT_URL)
+
+    async def always_503(_url, **_kwargs):
+        nonlocal call_count
+        call_count += 1
+        return httpx.Response(503, text="Server Overloaded", request=request)
+
+    monkeypatch.setattr(server, "_BODHAN_BACKOFF_BASE_S", 0.0)
+
+    with pytest.raises(ToolError) as exc_info:
+        await server._bodhan_paid_request(
+            always_503,
+            _OUTAGE_CHAT_URL,
+            service="Indic-Translate",
+            base_url="https://api.bodhan.ai",
+            no_substitute_guidance=_TRANSLATE_GUIDANCE,
+            json={"model": "indic-translate"},
+        )
+
+    assert call_count == 3
+    msg = str(exc_info.value)
+    assert "https://api.bodhan.ai" in msg
+    assert "503" in msg
+    assert "unreachable" in msg
+    assert "Do NOT produce Indic text" in msg
+
+
+async def test_http_401_terminal_without_retry():
+    """Non-retryable 4xx (401) raises immediately with actionable guidance and no retry."""
+    from src.bodhan_mcp import server
+
+    call_count = 0
+    request = httpx.Request("POST", _OUTAGE_CHAT_URL)
+
+    async def unauthorized(_url, **_kwargs):
+        nonlocal call_count
+        call_count += 1
+        return httpx.Response(401, text="Invalid API key", request=request)
+
+    with pytest.raises(ToolError) as exc_info:
+        await server._bodhan_paid_request(
+            unauthorized,
+            _OUTAGE_CHAT_URL,
+            service="Indic-Translate",
+            base_url="https://api.bodhan.ai",
+            no_substitute_guidance=_TRANSLATE_GUIDANCE,
+            json={"model": "indic-translate"},
+        )
+
+    assert call_count == 1
+    msg = str(exc_info.value)
+    assert "401" in msg
+    assert "Authentication failed" in msg
+
+
+async def test_http_429_honors_single_retry_after_cycle():
+    """429 with a sane Retry-After header triggers one wait-then-retry cycle, then success."""
+    from src.bodhan_mcp import server
+
+    call_count = 0
+    request = httpx.Request("POST", _OUTAGE_CHAT_URL)
+
+    async def rate_limited_then_ok(_url, **_kwargs):
+        nonlocal call_count
+        call_count += 1
+        if call_count == 1:
+            return httpx.Response(429, headers={"Retry-After": "0"}, text="slow down", request=request)
+        return httpx.Response(200, json={"status": "ok"}, request=request)
+
+    resp = await server._bodhan_paid_request(
+        rate_limited_then_ok,
+        _OUTAGE_CHAT_URL,
+        service="Indic-Translate",
+        base_url="https://api.bodhan.ai",
+        no_substitute_guidance=_TRANSLATE_GUIDANCE,
+        json={"model": "indic-translate"},
+    )
+
+    assert call_count == 2
+    assert resp.status_code == 200
+
+
+async def test_http_429_single_retry_after_cycle_then_terminal():
+    """A repeated 429 is terminal after one Retry-After cycle — the paid call is not hammered."""
+    from src.bodhan_mcp import server
+
+    call_count = 0
+    request = httpx.Request("POST", _OUTAGE_CHAT_URL)
+
+    async def always_rate_limited(_url, **_kwargs):
+        nonlocal call_count
+        call_count += 1
+        return httpx.Response(429, headers={"Retry-After": "0"}, text="slow down", request=request)
+
+    with pytest.raises(ToolError) as exc_info:
+        await server._bodhan_paid_request(
+            always_rate_limited,
+            _OUTAGE_CHAT_URL,
+            service="Indic-Translate",
+            base_url="https://api.bodhan.ai",
+            no_substitute_guidance=_TRANSLATE_GUIDANCE,
+            json={"model": "indic-translate"},
+        )
+
+    assert call_count == 2  # one Retry-After cycle honored, then terminal
+    assert "429" in str(exc_info.value)
+
+
+async def test_http_429_insane_retry_after_is_terminal_immediately():
+    """429 with Retry-After >= 30s is terminal with actionable guidance — no wait, no retry."""
+    from src.bodhan_mcp import server
+
+    call_count = 0
+    request = httpx.Request("POST", _OUTAGE_CHAT_URL)
+
+    async def always_rate_limited_insane(_url, **_kwargs):
+        nonlocal call_count
+        call_count += 1
+        return httpx.Response(429, headers={"Retry-After": "45"}, text="slow down", request=request)
+
+    with pytest.raises(ToolError) as exc_info:
+        await server._bodhan_paid_request(
+            always_rate_limited_insane,
+            _OUTAGE_CHAT_URL,
+            service="Indic-Translate",
+            base_url="https://api.bodhan.ai",
+            no_substitute_guidance=_TRANSLATE_GUIDANCE,
+            json={"model": "indic-translate"},
+        )
+
+    assert call_count == 1
+    msg = str(exc_info.value)
+    assert "429" in msg
+    assert "Do NOT retry the same paid call repeatedly" in msg
+
+
+async def test_rate_limit_distinguished_from_outage_breaker():
+    """Verify HTTP 429 rate limits are distinct from backend outages and do not trigger outage markers."""
+    from src.bodhan_mcp import server
+    from src.bodhan_agent.agent import _is_outage_observation, _is_rate_limit_observation
+
+    call_count = 0
+    request = httpx.Request("POST", _OUTAGE_CHAT_URL)
+
+    async def rate_limited(_url, **_kwargs):
+        nonlocal call_count
+        call_count += 1
+        return httpx.Response(429, headers={"Retry-After": "45"}, text="slow down", request=request)
+
+    with pytest.raises(ToolError) as exc_info:
+        await server._bodhan_paid_request(
+            rate_limited,
+            _OUTAGE_CHAT_URL,
+            service="Indic-Speak",
+            base_url="https://api.bodhan.ai",
+            no_substitute_guidance="No audio.",
+            json={"model": "indic-speak"},
+        )
+
+    err = exc_info.value
+    err_str = str(err)
+    assert getattr(err, "is_rate_limit", False) is True
+    assert getattr(err, "retryable", False) is True
+    assert getattr(err, "bodhan_outage", False) is False
+    assert "Rate limit reached. Retryable after a pause." in err_str
+    assert _is_rate_limit_observation(err_str) is True
+    assert _is_outage_observation(err_str) is False
+

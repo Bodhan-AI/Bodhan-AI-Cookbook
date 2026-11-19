@@ -14,14 +14,17 @@ get_logger("mcp") which writes to sys.stderr or files.
 
 from __future__ import annotations
 
+import asyncio
 import base64
 from contextvars import ContextVar, Token
 import json
 import os
+import random
 import sys
 import tempfile
+import time
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Callable, Literal
 
 import httpx
 from mcp.server.fastmcp import FastMCP
@@ -37,17 +40,20 @@ from src.common.audio import (
     format_timestamp_vtt,
     format_vtt_content,
     inspect_audio,
+    normalize_indic_speech_text,
     split_indic_sentences,
 )
 from src.common.config import BodhanConfig, ensure_utf8_streams
 from src.common.document import (
     SUPPORTED_DOCUMENT_EXTENSIONS,
     SUPPORTED_IMAGE_EXTENSIONS,
+    evaluate_page_digital_text,
     extract_docx_text,
     get_document_metadata,
     get_pdf_metadata,
     rasterize_document_pages,
     rasterize_pdf_pages,
+    rasterize_specific_pages,
 )
 from src.common.logger import get_logger
 from src.common.paths import resolve_input_path
@@ -176,6 +182,15 @@ DEFAULT_VOICES: dict[str, str] = {
     "or": "Itishree", "sa": "Bharati", "en": "Amit",
 }
 
+# Supported speaking styles for Indic-Speak from official documentation (14 styles)
+# NOTE: The style list excludes 'formal' and 'casual'; passing 'formal' returns HTTP 500 on the live API.
+VALID_SPEAK_STYLES: set[str] = {
+    "news", "AIR style news", "TV style news", "Customer Care",
+    "advertisements", "educational lecture", "children's stories",
+    "single person narration audiobook", "happy", "sad", "anger",
+    "fear", "disgust", "surprise",
+}
+
 # Unicode script blocks per language, used to validate that a translation really
 # is in the target language. Languages with multiple native scripts accept any
 # of their script blocks. Mirrors the detection ranges in detect_language().
@@ -230,6 +245,166 @@ def _get_headers(key: str) -> dict[str, str]:
 
 
 # ============================================================================
+# Shared Bodhan paid-call resilience contract (transport-error classification)
+# ============================================================================
+# TRANSIENT (retryable with backoff + jitter): connection-setup and stream
+# timeouts, connection errors, pool exhaustion, and HTTP 429/5xx responses.
+# TERMINAL (never retried): 4xx other than 429, script-validation failures,
+# missing params. On transient exhaustion the caller receives ToolError naming
+# the provider base_url, the exception class, and explicit anti-substitution
+# guidance. Paid calls NEVER return an empty/success result on failure.
+_TRANSIENT_TRANSPORT_EXCEPTIONS: tuple[type[Exception], ...] = (
+    httpx.ConnectTimeout,
+    httpx.ConnectError,
+    httpx.ReadTimeout,
+    httpx.WriteTimeout,
+    httpx.PoolTimeout,
+)
+_TRANSIENT_STATUS_CODES: frozenset[int] = frozenset({500, 502, 503, 504})
+_BODHAN_MAX_ATTEMPTS = 3
+_BODHAN_BACKOFF_BASE_S = 1.2
+_BODHAN_BACKOFF_FACTOR = 2.0
+_BODHAN_BACKOFF_MAX_S = 8.0
+_BODHAN_TOTAL_BUDGET_S = float(os.environ.get("BODHAN_API_TOTAL_BUDGET_S", "120.0"))
+_RETRY_AFTER_MAX_SANE_S = 30.0
+
+DEFAULT_HTTP_TIMEOUT = httpx.Timeout(
+    connect=30.0,
+    read=120.0,
+    write=60.0,
+    pool=30.0,
+)
+
+
+def _sane_retry_after_seconds(response: httpx.Response) -> float | None:
+    # Returns the Retry-After delay in seconds when present and sane (< 30s),
+    # a conservative default (1.5s) when header is absent, or None if insane (>=30s).
+    header = response.headers.get("Retry-After")
+    if header is None:
+        return 1.5
+    try:
+        value = float(header.strip())
+    except (TypeError, ValueError):
+        return None
+    if 0.0 <= value < _RETRY_AFTER_MAX_SANE_S:
+        return value
+    return None
+
+
+def _retry_backoff_with_jitter(attempt_index: int) -> float:
+    # attempt_index is 0-based; exponential doubling with up to 25% jitter.
+    nominal = min(_BODHAN_BACKOFF_MAX_S, _BODHAN_BACKOFF_BASE_S * (_BODHAN_BACKOFF_FACTOR ** attempt_index))
+    return nominal + random.uniform(0.0, nominal * 0.25)
+
+
+def _bodhan_outage_tool_error(service: str, base_url: str, exc_label: str, no_substitute_guidance: str) -> ToolError:
+    err = ToolError(
+        f"{service} unreachable at {base_url} after {_BODHAN_MAX_ATTEMPTS} attempts ({exc_label}). "
+        f"The Bodhan service may be down. Do NOT retry the same paid call repeatedly; "
+        f"report partial results honestly. {no_substitute_guidance}"
+    )
+    err.bodhan_outage = True  # type: ignore[attr-defined]
+    return err
+
+
+def _is_bodhan_outage_error(err: BaseException) -> bool:
+    if getattr(err, "bodhan_outage", False):
+        return True
+    text = str(err).lower()
+    return "unreachable at" in text or "bodhan service may be down" in text
+
+
+async def _bodhan_paid_request(
+    send: Callable[..., Any],
+    url: str,
+    *,
+    service: str,
+    base_url: str,
+    no_substitute_guidance: str,
+    **kwargs: Any,
+) -> httpx.Response:
+    # Shared retry contract for the four paid model call sites:
+    #   - up to _BODHAN_MAX_ATTEMPTS total attempts, exponential backoff + jitter,
+    #     wall-clock budget _BODHAN_TOTAL_BUDGET_S
+    #   - HTTP 429: a single wait-then-retry cycle honored only when the
+    #     Retry-After header is present and sane (< 30s); otherwise terminal.
+    #   - other 4xx: terminal, raised immediately with actionable guidance.
+    #   - transient exhaustion: ToolError naming base_url + exception class,
+    #     explicitly forbidding repeated paid retries and self-produced Indic text.
+    retry_after_consumed = False
+    start = time.monotonic()
+    last_transient_label = "httpx.TransportError"
+
+    for attempt in range(1, _BODHAN_MAX_ATTEMPTS + 1):
+        remaining_budget = _BODHAN_TOTAL_BUDGET_S - (time.monotonic() - start)
+        if remaining_budget <= 0:
+            logger.error("Bodhan paid-call budget exhausted before attempt %d to %s", attempt, url)
+            break
+        try:
+            resp = await retry_async(
+                send,
+                url,
+                max_retries=0,
+                use_concurrency_limit=True,
+                **kwargs,
+            )
+            # retry_async raises ToolError for any >=400 status it sees, so a
+            # returned response here is 2xx/3xx.
+            return resp
+        except ToolError as err:
+            cause = err.__cause__
+            http_resp = getattr(cause, "response", None)
+            if isinstance(http_resp, httpx.Response):
+                code = http_resp.status_code
+                if code == 429:
+                    retry_after = _sane_retry_after_seconds(http_resp)
+                    if retry_after is not None and not retry_after_consumed:
+                        retry_after_consumed = True
+                        wait = min(retry_after, max(0.0, _BODHAN_TOTAL_BUDGET_S - (time.monotonic() - start)))
+                        logger.warning(
+                            "%s rate limited (HTTP 429) at %s; honoring Retry-After %.2fs once (attempt %d/%d).",
+                            service, url, wait, attempt, _BODHAN_MAX_ATTEMPTS,
+                        )
+                        await asyncio.sleep(wait)
+                        continue
+                    err_429 = ToolError(
+                        f"{service} rate limit reached (HTTP 429) at {base_url}. "
+                        f"Rate limit reached. Retryable after a pause. Do NOT retry the same paid call repeatedly "
+                        f"without pausing; report partial results honestly if limits persist. {no_substitute_guidance}"
+                    )
+                    err_429.is_rate_limit = True  # type: ignore[attr-defined]
+                    err_429.retryable = True  # type: ignore[attr-defined]
+                    raise err_429 from err
+                if code in _TRANSIENT_STATUS_CODES:
+                    last_transient_label = f"HTTP {code}"
+                    if attempt < _BODHAN_MAX_ATTEMPTS and (time.monotonic() - start) < _BODHAN_TOTAL_BUDGET_S:
+                        delay = _retry_backoff_with_jitter(attempt - 1)
+                        logger.warning(
+                            "Transient HTTP %d from %s; retrying in %.2fs (attempt %d/%d).",
+                            code, url, delay, attempt + 1, _BODHAN_MAX_ATTEMPTS,
+                        )
+                        await asyncio.sleep(delay)
+                        continue
+                    raise _bodhan_outage_tool_error(service, base_url, last_transient_label, no_substitute_guidance) from err
+                # Terminal: any other >=400 status (4xx other than 429) — raise immediately.
+                raise
+            if isinstance(cause, _TRANSIENT_TRANSPORT_EXCEPTIONS):
+                last_transient_label = type(cause).__name__
+                if attempt < _BODHAN_MAX_ATTEMPTS and (time.monotonic() - start) < _BODHAN_TOTAL_BUDGET_S:
+                    delay = _retry_backoff_with_jitter(attempt - 1)
+                    logger.warning(
+                        "Transient transport error (%s) during %s; retrying in %.2fs (attempt %d/%d).",
+                        last_transient_label, url, delay, attempt + 1, _BODHAN_MAX_ATTEMPTS,
+                    )
+                    await asyncio.sleep(delay)
+                    continue
+                raise _bodhan_outage_tool_error(service, base_url, last_transient_label, no_substitute_guidance) from err
+            # Non-transport ToolError (terminal 4xx, caller-raised, validation): propagate untouched.
+            raise
+    raise _bodhan_outage_tool_error(service, base_url, last_transient_label, no_substitute_guidance)
+
+
+# ============================================================================
 # FastMCP Resources (Declarative Catalogs & Boundaries)
 # ============================================================================
 @mcp.resource("bodhan://catalog/languages", mime_type="application/json")
@@ -270,7 +445,10 @@ def get_voices_resource() -> str:
         "default_voice_fallback": "Kavya",
         "audio_format": "WAV",
         "sample_rate_hz": 24000,
-        "supported_styles": ["news", "AIR style news", "happy", "formal", "casual"],
+        "supported_styles": sorted(VALID_SPEAK_STYLES),
+        "style_notes": "The style list excludes 'formal' and 'casual' (passing 'formal' triggers HTTP 500 on live API).",
+        "cross_language_voices": True,
+        "voice_guidance": "Any catalog voice can read any supported language. Indic-Speak allows cross-language voice assignment (e.g. Kavya or Amit can read Tamil, Hindi, or English).",
         "voice_cloning": {
             "supported": False,
             "boundary": (
@@ -354,7 +532,9 @@ async def transcribe_audio(
 ) -> str:
     """Transcribe spoken audio in 27 Indian languages plus English (28 codes total) using Indic-Transcribe.
 
-        Used for verbatim ASR, speech-to-English translation, and post-synthesis audio deliverable verification (back-transcribing generated .wav files to confirm speech was synthesized faithfully). Handles files of any duration by auto-chunking <=30s chunks at speech pauses. Never call inspect_media before this tool when transcription is the goal.
+        Estimated cost: ₹0.10 per input audio minute.
+
+        Used for verbatim ASR, speech-to-English translation, and post-synthesis audio deliverable verification (back-transcribing generated .wav files to confirm speech was synthesized faithfully). Handles files of any duration by auto-chunking <=30s chunks at speech pauses.
 
         Supports generating timestamped subtitle files (.srt, .vtt) or text deliverables directly to disk.
 
@@ -367,7 +547,7 @@ async def transcribe_audio(
           * Post-synthesis audio deliverable verification: Back-transcribe generated .wav files to confirm speech was synthesized faithfully.
         - AUTOMATIC CHUNKING: Handles files of any duration by auto-chunking <=30s chunks at speech pauses;
           manual pre-splitting is never required.
-        - NO PRE-INSPECTION: Never call inspect_media before this tool when transcription is the goal.
+        - NO PRE-INSPECTION: Do not call inspect_media first when transcription is the goal.
           Format conversion and audio validation are handled internally at zero cost.
         - OUTPUT FORMATS & DELIVERABLES:
           * `output_format="text"` (default): Returns raw transcript text (or writes to output_path if provided).
@@ -380,6 +560,9 @@ async def transcribe_audio(
             file_path: Path to the audio file on disk (WAV, MP3, AAC, M4A, FLAC, OGG, etc.).
             language: ISO language code (e.g. 'hi', 'ta', 'te'). If omitted, automatically detected.
             task: 'transcribe' for verbatim speech in original language, or 'translate' for direct English.
+                NOTE: the live endpoint rejects a `task` field outright (HTTP 422). With 'translate',
+                the server transcribes in the source language and translates via Indic-Translate; the
+                generated SRT/VTT keeps the original timestamp windows.
             output_format: Deliverable format: 'text', 'srt', or 'vtt'. Default is 'text'.
             output_path: Optional destination file path (e.g. 'artifacts/subtitles.srt').
             bypass_cache: If True, bypasses SQLite cache and invokes models directly.
@@ -447,8 +630,12 @@ async def transcribe_audio(
                 work_path = ensure_wav(path, output_dir=temp_conv_dir)
                 logger.info("Auto-converted %s to PCM16 WAV for transcription", path.name)
             except Exception as conv_err:
-                logger.debug("Auto WAV conversion skipped (%s), proceeding with original file", conv_err)
-                work_path = path
+                logger.error("Auto WAV conversion failed for %s: %s", path.name, conv_err)
+                raise ToolError(
+                    f"Failed to convert '{path.name}' to 16kHz mono WAV for transcription ({conv_err}). "
+                    "Bodhan Indic-Transcribe measures audio format and refuses non-WAV media with HTTP 415. "
+                    "Ensure ffmpeg is installed and the input media file is valid."
+                ) from conv_err
 
         # --- SUBTITLE GENERATION (SRT / VTT) ---
         if eff_format in {"srt", "vtt"}:
@@ -585,20 +772,23 @@ async def _call_transcribe(
     }
     if language:
         data["language"] = language
-    if task:
-        data["task"] = task
+    # NOTE: the live endpoint rejects `task` with HTTP 422 ("unexpected field(s): ['task']").
+    # `task='translate'` is honored by the caller (source-language transcription + Indic-Translate).
 
     file_bytes = file_path.read_bytes()
     files = {"file": (file_path.name, file_bytes, "audio/wav")}
     headers = _get_headers(api_key)
 
-    async with httpx.AsyncClient(timeout=httpx.Timeout(60.0, connect=5.0)) as client:
-        resp = await retry_async(
+    async with httpx.AsyncClient(timeout=DEFAULT_HTTP_TIMEOUT) as client:
+        resp = await _bodhan_paid_request(
             client.post,
             url,
             data=data,
             files=files,
             headers=headers,
+            service="Indic-Transcribe",
+            base_url=base_url,
+            no_substitute_guidance="Do NOT fabricate a transcript yourself — the transcription must come from Indic-Transcribe.",
         )
 
     result = resp.json()
@@ -619,6 +809,9 @@ async def translate_text(
     bypass_cache: bool = False,
 ) -> str:
     """Translate text between 27 Indian languages plus English (28 codes total) using Indic-Translate.
+
+        Estimated cost: ₹0.20 per 10,000 output tokens.
+        Want English subtitles or text from speech? Use transcribe_audio(task='translate'); this tool translates text only, never audio.
 
         ROUTING CONTRACT & BOUNDARIES:
         - 28 INDIC LANGUAGES: Supports 27 Indian languages plus English (28 codes total):
@@ -657,11 +850,26 @@ async def translate_text(
             f"{', '.join(sorted(SUPPORTED_INDIC_LANGS))}. Cannot complete translation."
         )
 
+    # Discrepancy notice: While 'bhb' (Bhili) and 'bho' (Bhojpuri) are recognized in Indic-Transcribe (ASR),
+    # the upstream Bodhan Indic-Translate backend refuses them with 'unsupported_language'.
+    if target_language in {"bhb", "bho"}:
+        raise ToolError(
+            f"Language '{target_language}' is refused by Bodhan Indic-Translate with 'unsupported_language' "
+            f"(discrepancy: supported in Indic-Transcribe ASR, but refused by Indic-Translate). "
+            f"Cannot complete translation into '{target_language}'."
+        )
+
     if source_language and source_language not in SUPPORTED_INDIC_LANGS:
         logger.warning("Unsupported source language for translation: %s", source_language)
         raise ToolError(
             f"Source language '{source_language}' is not supported. Supported Indic languages: "
             f"{', '.join(sorted(SUPPORTED_INDIC_LANGS))}."
+        )
+
+    if source_language in {"bhb", "bho"}:
+        raise ToolError(
+            f"Language '{source_language}' is refused by Bodhan Indic-Translate with 'unsupported_language'. "
+            f"Cannot complete translation from '{source_language}'."
         )
 
     config = BodhanConfig.from_env()
@@ -674,14 +882,10 @@ async def translate_text(
         )
 
     # Map ISO codes to canonical language names for Indic-Translate instruction
+    # Official Bodhan API specification (https://console.bodhan.ai/api-docs/#translation-api)
+    # uses structured target_language_code, target_script='native', and raw text in user message.
+    # Fallback prompt instructions are retained for legacy/offline test harnesses.
     target_name = LANGUAGE_NAMES.get(target_language, target_language)
-    # NOTE: the source language is intentionally NOT embedded in the instruction.
-    # The live indic-translate deployment misbehaves when the source is named: it
-    # echoes the input or answers an unrelated question (verified 2026-11-18:
-    # en->ta echoed, en->hi echoed, ta->en and hi->en returned unrelated text,
-    # while auto-detect with a plain instruction translated correctly). The
-    # script validation below converts any remaining echo cases into honest
-    # ToolErrors the calling agent can self-correct on.
     prompt_instructions = [
         f"Translate the following text into {target_name}:\n\n{clean_text}",
         (
@@ -692,7 +896,7 @@ async def translate_text(
 
     base = config.base_url.rstrip("/")
     chat_url = f"{base}/chat/completions" if base.endswith("/v1") else f"{base}/v1/chat/completions"
-    legacy_url = f"{base}/translate"
+    product_translate_url = f"{base.rsplit('/v1', 1)[0]}/translate" if "/v1" in base else f"{base}/translate"
 
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -705,74 +909,135 @@ async def translate_text(
     validation_note = ""
 
     try:
-        async with httpx.AsyncClient(timeout=httpx.Timeout(60.0, connect=5.0)) as client:
-            # 1. Primary: OpenAI-compatible indic-translate chat completion (live Bodhan API deployment).
-            # A validated echo (output without target-script characters) retries once with a
-            # more forceful instruction before falling through to the legacy endpoints.
-            for instruction in prompt_instructions:
-                try:
-                    logger.info("Attempting translation via indic-translate chat completion at %s...", chat_url)
-                    chat_payload = {
-                        "model": "indic-translate",
-                        "messages": [
-                            {"role": "user", "content": instruction}
-                        ],
-                    }
-                    resp = await retry_async(
-                        client.post,
-                        chat_url,
-                        json=chat_payload,
-                        headers=headers,
+        async with httpx.AsyncClient(timeout=DEFAULT_HTTP_TIMEOUT) as client:
+            # 1. Primary: Official Bodhan indic-translate chat completion with target_language_code
+            try:
+                logger.info("Attempting translation via indic-translate at %s (target=%s)...", chat_url, target_language)
+                official_payload: dict[str, Any] = {
+                    "model": "indic-translate",
+                    "messages": [
+                        {"role": "user", "content": clean_text}
+                    ],
+                    "target_language_code": target_language,
+                    "target_script": "native",
+                }
+
+                resp = await _bodhan_paid_request(
+                    client.post,
+                    chat_url,
+                    json=official_payload,
+                    headers=headers,
+                    service="Indic-Translate",
+                    base_url=base,
+                    no_substitute_guidance="Do NOT produce Indic text yourself — the target-language text must come from Indic-Translate.",
+                )
+                if resp.status_code == 200:
+                    result = resp.json()
+                    choices = result.get("choices", [])
+                    if choices and "message" in choices[0]:
+                        finish_reason = choices[0].get("finish_reason")
+                        if finish_reason == "length":
+                            raise ToolError(
+                                "Translation was truncated by Bodhan Indic-Translate (finish_reason='length'). "
+                                "The output hit token limits mid-sentence and stopped prematurely. "
+                                "Input text must be chunked into smaller segments to guarantee translation completeness."
+                            )
+                        translated = choices[0]["message"].get("content", "").strip()
+                if translated and not _translation_script_ok(translated, target_language):
+                    validation_note = (
+                        f"model returned text with no {target_language} script characters "
+                        f"(likely echoed the input instead of translating)"
                     )
-                    if resp.status_code == 200:
-                        result = resp.json()
-                        choices = result.get("choices", [])
-                        if choices and "message" in choices[0]:
-                            translated = choices[0]["message"].get("content", "").strip()
-                    if translated and not _translation_script_ok(translated, target_language):
-                        validation_note = (
-                            f"model returned text with no {target_language} script characters "
-                            f"(likely echoed the input instead of translating)"
+                    logger.warning("indic-translate validation failed (%s); trying prompt fallback...", validation_note)
+                    translated = ""
+            except ToolError as te:
+                if _is_bodhan_outage_error(te):
+                    raise
+                logger.warning("indic-translate structured call failed (%s), attempting prompt-guided completion...", te)
+                last_err = te
+            except Exception as e:
+                logger.warning("indic-translate structured call failed (%s), attempting prompt-guided completion...", e)
+                last_err = e
+
+            # 2. Secondary fallback: Prompt-guided chat completion (for offline harnesses or environments where target_language_code is unsupported)
+            if not translated and not (last_err and _is_bodhan_outage_error(last_err)):
+                for instruction in prompt_instructions:
+                    try:
+                        logger.info("Attempting translation via prompt instruction at %s...", chat_url)
+                        chat_payload = {
+                            "model": "indic-translate",
+                            "messages": [
+                                {"role": "user", "content": instruction}
+                            ],
+                        }
+                        resp = await _bodhan_paid_request(
+                            client.post,
+                            chat_url,
+                            json=chat_payload,
+                            headers=headers,
+                            service="Indic-Translate",
+                            base_url=base,
+                            no_substitute_guidance="Do NOT produce Indic text yourself — the target-language text must come from Indic-Translate.",
                         )
-                        logger.warning(
-                            "translate_text validation failed (%s); retrying with explicit instruction...",
-                            validation_note,
-                        )
-                        translated = ""
-                except Exception as e:
-                    logger.warning("indic-translate chat completion failed (%s), attempting legacy endpoint...", e)
-                    last_err = e
-                    if any(sig in str(e).lower() for sig in ("connecterror", "getaddrinfo", "timeout error", "network error")):
+                        if resp.status_code == 200:
+                            result = resp.json()
+                            choices = result.get("choices", [])
+                            if choices and "message" in choices[0]:
+                                finish_reason = choices[0].get("finish_reason")
+                                if finish_reason == "length":
+                                    raise ToolError(
+                                        "Translation was truncated by Bodhan Indic-Translate (finish_reason='length'). "
+                                        "The output hit token limits mid-sentence and stopped prematurely. "
+                                        "Input text must be chunked into smaller segments to guarantee translation completeness."
+                                    )
+                                translated = choices[0]["message"].get("content", "").strip()
+                        if translated and not _translation_script_ok(translated, target_language):
+                            translated = ""
+                        if translated:
+                            break
+                    except ToolError:
+                        raise
+                    except Exception as pe:
+                        logger.warning("Prompt-guided translation failed: %s", pe)
+                        last_err = pe
                         break
 
             # 2. Secondary fallback: direct /translate endpoint (for legacy or dedicated test harness).
             # Candidates are script-validated the same way.
             if not translated:
-                if last_err and any(sig in str(last_err).lower() for sig in ("connecterror", "getaddrinfo", "timeout error", "network error")):
+                if last_err and any(sig in str(last_err).lower() for sig in ("connecterror", "getaddrinfo", "timeout error", "network error", "unreachable", "may be down")):
                     logger.warning("Network/DNS failure on primary host; skipping redundant legacy endpoints on same host.")
                 else:
                     candidates = [
-                        legacy_url,
-                        f"{base.replace('/v1', '')}/translate" if "/v1" in base else f"{base}/v1/translate",
+                        product_translate_url,
+                        f"{base}/translate",
                     ]
                     legacy_payload = {
                         "text": clean_text,
                         "target_language": target_language,
+                        "script": "native",
                     }
-                    if source_language:
-                        legacy_payload["source_language"] = source_language
 
                     for url in candidates:
                         try:
                             logger.info("Attempting translation via %s...", url)
-                            resp = await retry_async(
+                            resp = await _bodhan_paid_request(
                                 client.post,
                                 url,
                                 json=legacy_payload,
                                 headers=headers,
+                                service="Indic-Translate",
+                                base_url=base,
+                                no_substitute_guidance="Do NOT produce Indic text yourself — the target-language text must come from Indic-Translate.",
                             )
                             if resp.status_code == 200:
                                 result = resp.json()
+                                if result.get("truncated") is True:
+                                    raise ToolError(
+                                        "Translation was truncated by Bodhan Indic-Translate (truncated: true). "
+                                        "The text reads fluently but stopped prematurely before translating the entire input. "
+                                        "Partition input text into smaller segments to guarantee completeness."
+                                    )
                                 candidate = (
                                     result.get("translation")
                                     or result.get("translated_text")
@@ -786,6 +1051,10 @@ async def translate_text(
                                         f"legacy endpoint returned text with no {target_language} script characters"
                                     )
                                     logger.warning("translate_text validation failed on %s: %s", url, validation_note)
+                        except ToolError:
+                            # Outage or terminal error from the paid call: stop trying
+                            # further endpoints; do not loop on a paid API that is down.
+                            raise
                         except Exception as e:
                             last_err = e
                             continue
@@ -796,6 +1065,8 @@ async def translate_text(
                     f"Translation failed validation: {validation_note}. "
                     f"Cannot pass unverified text off as {target_language}."
                 )
+            if isinstance(last_err, ToolError):
+                raise last_err
             err_msg = resp.text if resp is not None else str(last_err)
             raise ToolError(f"Translation API error: {err_msg}")
 
@@ -823,6 +1094,9 @@ async def synthesize_speech(
 ) -> str:
     """Synthesize 24 kHz WAV speech from Indian-language or English text using Indic-Speak.
 
+        Estimated cost: ₹6 per 10,000 input characters. Long documents may split into many paid parts; split or confirm very long deliverables rather than synthesizing blindly.
+        Valid voice names come from the voice catalog resource (bodhan://catalog/voices); default voices are used per language if omitted.
+
         Uses predefined catalog voices (e.g. Kavya, Amit, Anitha); does NOT support voice cloning or speaker adaptation from reference audio clips (.ogg, .wav). Deliverables requiring spoken audio (.wav) must use this tool directly.
 
         Automatically handles long passages by splitting text along punctuation and Danda ('।')
@@ -839,6 +1113,9 @@ async def synthesize_speech(
           requested to be read aloud, spoken, or narrated, call this tool directly (do NOT translate first
           unless translation is explicitly requested).
         - REQUIRED PARAMETERS: Requires valid text and a supported language ISO code.
+        - REQUIRED INSTRUCTIONS: Indic-Speak strictly requires `instructions` as a JSON string containing `lang` and `style`. Missing `instructions` causes HTTP 500.
+        - CROSS-LANGUAGE VOICES: Any catalog voice can read any language. Indic-Speak allows cross-language voice reading (e.g. Kavya or Amit reading Tamil or English).
+        - SPEAKING STYLES: 14 allowed styles (e.g. 'news', 'AIR style news', 'happy'). The style list excludes 'formal' (passing 'formal' triggers HTTP 500).
         - AUTOMATIC SEGMENTATION: Long text is split internally along prosodic sentence and Danda boundaries;
           manual pre-splitting is unnecessary.
 
@@ -856,12 +1133,43 @@ async def synthesize_speech(
 
     logger.info("synthesize_speech called: lang=%s, style=%s, chars=%d", language, style, len(clean_text))
 
+    # Validate speaking style against allowed catalog (excluding 'formal' which causes HTTP 500)
+    if style:
+        cleaned_style = style.strip()
+        if cleaned_style.lower() == "formal":
+            raise ToolError(
+                "Style 'formal' is excluded from Bodhan Indic-Speak and causes HTTP 500 on the live API. "
+                f"Valid speaking styles are: {', '.join(sorted(VALID_SPEAK_STYLES))}."
+            )
+        matched_style = next((s for s in VALID_SPEAK_STYLES if s.lower() == cleaned_style.lower()), None)
+        if not matched_style:
+            raise ToolError(
+                f"Style '{style}' is not supported by Indic-Speak. "
+                f"Valid speaking styles are: {', '.join(sorted(VALID_SPEAK_STYLES))}. "
+                "Do not use 'formal' (triggers HTTP 500)."
+            )
+        style = matched_style
+
     if language not in SUPPORTED_INDIC_LANGS:
         logger.warning("Unsupported language for speech synthesis: %s", language)
         raise ToolError(
             f"Language '{language}' is not supported for speech synthesis. "
             f"Supported Indic languages: {', '.join(sorted(SUPPORTED_INDIC_LANGS))}."
         )
+
+    # Validation: If target language is an Indian language (not English), ensure text is not pure ASCII/English
+    if language != "en":
+        has_indic_char = any(0x0900 <= ord(c) <= 0x0D7F for c in clean_text)
+        if not has_indic_char and len(clean_text.strip()) > 30:
+            logger.warning(
+                "synthesize_speech rejected: text is in English/Latin script but requested language is '%s'",
+                language,
+            )
+            raise ToolError(
+                f"Cannot synthesize {language} speech from English text. "
+                f"synthesize_speech does not translate text; please translate the text into {language} "
+                f"using translate_text before calling synthesize_speech."
+            )
 
     config = BodhanConfig.from_env()
     api_key = config.speak_key
@@ -877,6 +1185,9 @@ async def synthesize_speech(
     out_file.parent.mkdir(parents=True, exist_ok=True)
 
     try:
+        # Pre-process numbers, currencies, and dates into spoken Indic phonetics
+        clean_text = normalize_indic_speech_text(clean_text, language=language)
+
         # Split into prosodically complete sentences
         sentences = split_indic_sentences(clean_text, min_chars=20)
         logger.info("Synthesizing %d sentences into %s", len(sentences), out_file.name)
@@ -889,23 +1200,94 @@ async def synthesize_speech(
             if style:
                 instructions["style"] = style
 
-            async with httpx.AsyncClient(timeout=httpx.Timeout(60.0, connect=5.0)) as client:
-                for idx, s in enumerate(sentences):
-                    payload = {
-                        "model": "indic-speak",
-                        "input": s,
-                        "voice": chosen_voice,
-                        "instructions": json.dumps(instructions),
-                    }
-                    url = f"{config.base_url}/audio/speech"
-                    resp = await retry_async(
-                        client.post,
-                        url,
-                        json=payload,
-                        headers=_get_headers(api_key),
-                    )
+            async with httpx.AsyncClient(timeout=DEFAULT_HTTP_TIMEOUT) as client:
+                sem = asyncio.Semaphore(1)
+                sentence_max_retries = 3
+
+                async def _synth_sentence(idx: int, s: str) -> tuple[int, bytes]:
+                    async with sem:
+                        payload = {
+                            "model": "indic-speak",
+                            "input": s,
+                            "voice": chosen_voice,
+                            "instructions": json.dumps(instructions),
+                        }
+                        url = f"{config.base_url}/audio/speech"
+                        last_err: Exception | None = None
+
+                        for attempt in range(1, sentence_max_retries + 1):
+                            try:
+                                resp = await _bodhan_paid_request(
+                                    client.post,
+                                    url,
+                                    json=payload,
+                                    headers=_get_headers(api_key),
+                                    service="Indic-Speak",
+                                    base_url=config.base_url,
+                                    no_substitute_guidance="Do NOT fabricate speech audio yourself — the audio must come from Indic-Speak.",
+                                )
+                                # Polite pacing after each sentence request
+                                await asyncio.sleep(0.35)
+                                return (idx, resp.content)
+                            except ToolError as te:
+                                last_err = te
+                                err_msg = str(te)
+                                is_rate_limit = "429" in err_msg or "rate limit" in err_msg.lower()
+                                is_transient = is_rate_limit or any(
+                                    marker in err_msg.lower()
+                                    for marker in ["500", "502", "503", "504", "timeout", "transient"]
+                                )
+                                if is_transient and attempt < sentence_max_retries:
+                                    backoff_s = 2.0 * (2 ** (attempt - 1))  # 2.0s, 4.0s
+                                    logger.warning(
+                                        "Sentence %d/%d encountered retryable error (%s); retrying in %.1fs (attempt %d/%d)...",
+                                        idx + 1,
+                                        len(sentences),
+                                        err_msg[:120],
+                                        backoff_s,
+                                        attempt,
+                                        sentence_max_retries,
+                                    )
+                                    await asyncio.sleep(backoff_s)
+                                    continue
+                                raise
+                            except Exception as exc:
+                                last_err = exc
+                                if attempt < sentence_max_retries:
+                                    backoff_s = 2.0 * (2 ** (attempt - 1))
+                                    logger.warning(
+                                        "Sentence %d/%d encountered unexpected error (%s); retrying in %.1fs (attempt %d/%d)...",
+                                        idx + 1,
+                                        len(sentences),
+                                        str(exc)[:120],
+                                        backoff_s,
+                                        attempt,
+                                        sentence_max_retries,
+                                    )
+                                    await asyncio.sleep(backoff_s)
+                                    continue
+                                raise
+
+                        if last_err:
+                            raise last_err
+                        raise ToolError(f"Failed to synthesize sentence {idx + 1}/{len(sentences)}.")
+
+                tasks = [
+                    asyncio.create_task(_synth_sentence(idx, sentence))
+                    for idx, sentence in enumerate(sentences)
+                ]
+                try:
+                    results = await asyncio.gather(*tasks)
+                except BaseException:
+                    for task in tasks:
+                        if not task.done():
+                            task.cancel()
+                    await asyncio.gather(*tasks, return_exceptions=True)
+                    raise
+                results.sort(key=lambda x: x[0])
+                for idx, content in results:
                     clip_path = Path(tmp_dir) / f"part_{idx:03d}.wav"
-                    clip_path.write_bytes(resp.content)
+                    clip_path.write_bytes(content)
                     temp_clips.append(clip_path)
 
             concatenate_wav_files(temp_clips, out_file)
@@ -939,6 +1321,9 @@ async def extract_document_text(
 ) -> str:
     """Extract full document text and structured tables using Indic-OCR or direct parsing.
 
+        Estimated cost: ₹0.20 per page image. A 40-page scanned PDF is billed page by page; page_limit caps how many pages get processed. Corrupted or unreadable PDFs raise ToolError honestly — do not retry the same file blindly.
+        Digital-born PDF pages are extracted locally via PyMuPDF at zero API cost; only pages sent to Indic-OCR (scanned pages, raster images) bill per page image.
+
         Processes Indian-language documents (.pdf, .docx, .xps, .epub, .tiff) and raster images
         (.png, .jpg, .jpeg, .webp, .bmp, .gif), returning whole-document or page-by-page text.
 
@@ -959,7 +1344,7 @@ async def extract_document_text(
         Args:
             file_path: Path to the document or image file on disk.
             table_format: Format for extracted tables ('markdown' or 'html').
-            page_limit: Maximum pages to process for multi-page documents (optional).
+            page_limit: Maximum number of pages to rasterize/OCR (optional); omitted = all pages.
             bypass_cache: If True, bypasses SQLite cache and invokes models directly.
     """
     logger.info("extract_document_text called: file=%s, table_format=%s, page_limit=%s", file_path, table_format, page_limit)
@@ -981,6 +1366,83 @@ async def extract_document_text(
             logger.error("Error extracting text from DOCX %s: %s", path.name, docx_err, exc_info=True)
             raise ToolError(f"Failed to extract text from DOCX '{file_path}': {docx_err}") from docx_err
 
+    # Multi-signal hybrid extractor for PDF: evaluates each page individually
+    # - Digital pages are extracted directly via PyMuPDF at zero API cost in ~1ms
+    # - Scanned or legacy-font mojibake pages are isolated and sent to Indic-OCR
+    # - Assembles both back in sequential 1-based page order
+    if suffix == ".pdf":
+        try:
+            import fitz
+            doc = fitz.open(str(path))
+            num_pages = len(doc)
+            if page_limit is not None and page_limit > 0:
+                num_pages = min(num_pages, page_limit)
+
+            digital_pages: list[tuple[int, str]] = []
+            scanned_page_nums: list[int] = []
+
+            for page_num in range(num_pages):
+                page = doc.load_page(page_num)
+                is_digital, page_text = evaluate_page_digital_text(page)
+                if is_digital:
+                    digital_pages.append((page_num + 1, page_text))
+                else:
+                    scanned_page_nums.append(page_num + 1)
+
+            doc.close()
+
+            # Case A: 100% digital PDF (zero API cost, instant extraction)
+            if not scanned_page_nums and digital_pages:
+                logger.info(
+                    "Extracted %d pages directly from digital PDF via PyMuPDF (zero API cost): %s",
+                    len(digital_pages),
+                    path.name,
+                )
+                return "\n\n".join(f"<!-- Page {p} -->\n{t}" for p, t in digital_pages)
+
+            # Case B: Hybrid or Fully Scanned PDF
+            if scanned_page_nums:
+                config = BodhanConfig.from_env()
+                api_key = config.ocr_key
+                if not api_key:
+                    logger.error("BODHAN_OCR_KEY or BODHAN_API_KEY is not configured for scanned PDF pages.")
+                    raise ToolError(
+                        "BODHAN_OCR_KEY (or BODHAN_API_KEY) is not configured in the environment. "
+                        "Please check your environment variables or .env file."
+                    )
+
+                logger.info(
+                    "PDF %s has %d digital pages and %d scanned pages requiring Indic-OCR",
+                    path.name,
+                    len(digital_pages),
+                    len(scanned_page_nums),
+                )
+                with tempfile.TemporaryDirectory() as tmp_dir:
+                    rendered_scans = rasterize_specific_pages(path, tmp_dir, scanned_page_nums, dpi=150)
+                    ocr_results_raw = await _ocr_images([p for _, p in rendered_scans], api_key, config.base_url, table_format)
+
+                    # Associate OCR results with their actual page numbers
+                    ocr_blocks = ocr_results_raw.split("<!-- Page ")
+                    ocr_pages: list[tuple[int, str]] = []
+                    for idx, (_, img_path) in enumerate(rendered_scans):
+                        p_actual = scanned_page_nums[idx]
+                        if idx + 1 < len(ocr_blocks):
+                            block_text = ocr_blocks[idx + 1]
+                            if "\n" in block_text:
+                                block_text = block_text.split("\n", 1)[1]
+                            ocr_pages.append((p_actual, block_text.strip()))
+                        else:
+                            ocr_pages.append((p_actual, f"[Warning: OCR text missing for page {p_actual}]"))
+
+                    all_pages = digital_pages + ocr_pages
+                    all_pages.sort(key=lambda x: x[0])
+                    logger.info("Hybrid PDF extraction complete: %d total pages for %s", len(all_pages), path.name)
+                    return "\n\n".join(f"<!-- Page {p} -->\n{t}" for p, t in all_pages)
+        except ToolError:
+            raise
+        except Exception as pdf_err:
+            logger.warning("Hybrid PDF extraction encountered error (%s); falling back to standard pipeline", pdf_err)
+
     config = BodhanConfig.from_env()
     api_key = config.ocr_key
     if not api_key:
@@ -996,8 +1458,14 @@ async def extract_document_text(
                 image_paths = rasterize_document_pages(path, tmp_dir, dpi=150, page_limit=page_limit)
                 logger.info("Rasterized %d document pages for OCR extraction", len(image_paths))
                 return await _ocr_images(image_paths, api_key, config.base_url, table_format)
-        else:
+        elif suffix in SUPPORTED_IMAGE_EXTENSIONS:
             return await _ocr_images([path], api_key, config.base_url, table_format)
+        else:
+            raise ToolError(
+                f"Unsupported file format '{suffix}' for Indic-OCR. "
+                "Bodhan Indic-OCR endpoint strictly accepts PNG and JPEG image inputs only (no direct PDF input). "
+                "Documents (.pdf, .docx, .tiff) are rasterized page-by-page to PNG/JPEG at 150 DPI before OCR dispatch."
+            )
     except ToolError:
         raise
     except Exception as e:
@@ -1014,55 +1482,77 @@ async def _ocr_images(
     page_texts: list[str] = []
     url = f"{base_url}/chat/completions"
 
-    async with httpx.AsyncClient(timeout=httpx.Timeout(90.0, connect=5.0)) as client:
+    async with httpx.AsyncClient(
+        timeout=DEFAULT_HTTP_TIMEOUT,
+        limits=httpx.Limits(max_keepalive_connections=5, max_connections=10),
+    ) as client:
         for idx, img in enumerate(images, 1):
             logger.info("Performing Indic-OCR on page %d/%d (%s)...", idx, len(images), img.name)
             suffix = img.suffix.lower()
+            if suffix not in SUPPORTED_IMAGE_EXTENSIONS:
+                raise ToolError(
+                    f"Unsupported image format '{suffix}' for Indic-OCR page {idx}. "
+                    "Bodhan Indic-OCR strictly accepts PNG and JPEG image inputs only (no direct PDF input)."
+                )
             mime_type = IMAGE_MIME_TYPES.get(suffix, "image/png")
 
-            # Standardize non-web formats (BMP, TIFF, etc.) to PNG via PIL if necessary
-            if suffix in {".bmp", ".tiff", ".tif"} or mime_type not in {"image/png", "image/jpeg", "image/webp", "image/gif"}:
-                try:
-                    import io
-                    from PIL import Image
-                    with Image.open(img) as pil_img:
-                        buf = io.BytesIO()
-                        pil_img.save(buf, format="PNG")
-                        b64_data = base64.b64encode(buf.getvalue()).decode("utf-8")
-                        mime_type = "image/png"
-                except Exception as conv_err:
-                    logger.debug("Image PNG standardization fallback for %s (%s)", img.name, conv_err)
-                    b64_data = base64.b64encode(img.read_bytes()).decode("utf-8")
-            else:
+            # Standardize or compress image to JPEG via PIL to avoid massive payloads
+            try:
+                import io
+                from PIL import Image
+                with Image.open(img) as pil_img:
+                    buf = io.BytesIO()
+                    if pil_img.mode in ("RGBA", "P"):
+                        pil_img = pil_img.convert("RGB")
+                    pil_img.save(buf, format="JPEG", quality=85, optimize=True)
+                    b64_data = base64.b64encode(buf.getvalue()).decode("utf-8")
+                    mime_type = "image/jpeg"
+            except Exception as conv_err:
+                logger.debug("Image compression fallback for %s (%s)", img.name, conv_err)
                 b64_data = base64.b64encode(img.read_bytes()).decode("utf-8")
 
             data_url = f"data:{mime_type};base64,{b64_data}"
-            payload = {
+            payload: dict[str, Any] = {
                 "model": "indic-ocr",
                 "messages": [
                     {
                         "role": "user",
                         "content": [
                             {
-                                "type": "text",
-                                "text": f"Extract all text from this page. Format tables as {table_format}."
-                            },
-                            {
                                 "type": "image_url",
                                 "image_url": {"url": data_url}
                             }
                         ]
                     }
-                ]
+                ],
+                "table_format": table_format,
             }
-            resp = await retry_async(
-                client.post,
-                url,
-                json=payload,
-                headers=_get_headers(api_key),
-            )
-            content = resp.json()["choices"][0]["message"]["content"]
-            page_texts.append(f"<!-- Page {idx} -->\n{content}")
+            try:
+                resp = await _bodhan_paid_request(
+                    client.post,
+                    url,
+                    json=payload,
+                    headers=_get_headers(api_key),
+                    service="Indic-OCR",
+                    base_url=base_url,
+                    no_substitute_guidance="Do NOT fabricate document text yourself — the text must come from Indic-OCR.",
+                )
+                content = resp.json()["choices"][0]["message"]["content"]
+                page_texts.append(f"<!-- Page {idx} -->\n{content}")
+            except ToolError as page_err:
+                if _is_bodhan_outage_error(page_err):
+                    # Outage: abort the whole batch instead of burning every
+                    # remaining page against a down service.
+                    raise
+                if len(images) == 1:
+                    raise
+                logger.warning("OCR failed on page %d: %s. Continuing with remaining pages.", idx, page_err)
+                page_texts.append(f"<!-- Page {idx} -->\n[Warning: OCR processing failed for page {idx}: {page_err}]")
+            except Exception as page_err:
+                if len(images) == 1:
+                    raise
+                logger.warning("OCR failed on page %d: %s. Continuing with remaining pages.", idx, page_err)
+                page_texts.append(f"<!-- Page {idx} -->\n[Warning: OCR processing failed for page {idx}: {page_err}]")
 
     logger.info("Indic-OCR completed for all %d pages", len(images))
     return "\n\n".join(page_texts)
@@ -1246,6 +1736,7 @@ async def write_text_file(file_path: str, content: str) -> str:
           Deliverables requiring spoken audio, voiceovers, or .wav files must use `synthesize_speech`, NOT this tool.
           Never call `write_text_file` when an audio file or .wav deliverable is requested, and never write base64
           or raw bytes to simulate audio files.
+        - INDIC PROVENANCE BOUNDARY: Indic-script content written to artifacts MUST originate from a Bodhan tool result (translate_text, extract_document_text, transcribe_audio outputs). Do not write free-form Indic text you drafted yourself; report infeasibility instead.
 
         Args:
             file_path: Destination path for the file strictly within workspace roots (e.g. 'subtitles.srt' or 'artifacts/subtitles.srt').
@@ -1302,6 +1793,7 @@ async def detect_language(text: str) -> str:
           the language is already known from user instructions, file naming, or preceding steps.
         - SHARED SCRIPT AMBIGUITY: Note that Devanagari script is shared across Hindi, Marathi, Nepali,
           Sanskrit, Maithili, Bhojpuri, and Konkani. Use semantic task context or instructions to disambiguate.
+        - DOMINANT BLOCK ONLY: Reports only the dominant Unicode block. Devanagari covers Hindi/Marathi/Nepali/Sanskrit/etc. and romanized Hinglish/Tanglish reports Latin; never use this call alone to claim a specific language. Record the assumption.
 
         Args:
             text: Text already in context to analyze (provide at least a few words for reliable detection; do NOT pass file paths).

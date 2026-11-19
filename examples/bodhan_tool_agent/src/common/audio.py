@@ -1,9 +1,14 @@
 """Audio Engine and Utilities for Bodhan Indic Models.
 
 Includes:
-1. Indic sentence tokenizer for TTS splitting (handling Danda U+0964, Double Danda U+0965, Khatam U+06D4).
-2. Standard library `wave` + `numpy` audio inspector and PCM16 24kHz concatenator.
-3. Silence-aware audio chunker for ASR 30-second windows.
+1. 4-Tier Lightweight Audio Architecture:
+   - Tier 1: Zero-dependency stdlib `wave` + `numpy` for PCM WAV fast-path.
+   - Tier 2: Dynamic in-process `av` (PyAV) if installed, for 100% universal in-memory decoding.
+   - Tier 3: In-process `soundfile` (`libsndfile`) for WAV, FLAC, OGG, MP3 (bypasses M4A/AAC).
+   - Tier 4: Auto-discovered bundled FFmpeg (`imageio_ffmpeg`) or system FFmpeg with safe subprocess stdio.
+2. Indic sentence tokenizer for TTS splitting (handling Danda U+0964, Double Danda U+0965, Khatam U+06D4).
+3. Silence-aware audio chunker for ASR 30-second windows with zero-crossing snapping.
+4. Subtitle generation formatters (SRT and WebVTT).
 """
 
 from __future__ import annotations
@@ -32,7 +37,12 @@ def _resolve_tool_path(name: str) -> str:
         for scope in ("User", "Machine"):
             try:
                 import winreg
-                key_path = r"Environment" if scope == "User" else r"SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
+
+                key_path = (
+                    r"Environment"
+                    if scope == "User"
+                    else r"SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
+                )
                 root_hkey = winreg.HKEY_CURRENT_USER if scope == "User" else winreg.HKEY_LOCAL_MACHINE
                 with winreg.OpenKey(root_hkey, key_path) as k:
                     val, _ = winreg.QueryValueEx(k, "Path")
@@ -47,6 +57,33 @@ def _resolve_tool_path(name: str) -> str:
             except Exception:
                 pass
     return name
+
+
+def _resolve_ffmpeg_cmd() -> str:
+    """Resolve ffmpeg binary path: bundled imageio_ffmpeg, current PATH, or Windows registry."""
+    try:
+        import imageio_ffmpeg  # type: ignore[import-untyped]
+
+        exe = imageio_ffmpeg.get_ffmpeg_exe()
+        if exe and Path(exe).is_file():
+            return str(exe)
+    except (ImportError, Exception):
+        pass
+    return _resolve_tool_path("ffmpeg")
+
+
+def _resolve_ffprobe_cmd() -> str:
+    """Resolve ffprobe binary path: system PATH or Windows registry."""
+    return _resolve_tool_path("ffprobe")
+
+
+def _get_subprocess_flags() -> dict[str, int]:
+    """Return platform-specific subprocess creation flags to prevent GUI/console window spawning."""
+    flags: dict[str, int] = {}
+    if os.name == "nt":
+        # 0x08000000 = CREATE_NO_WINDOW
+        flags["creationflags"] = getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000)
+    return flags
 
 
 # Indic-aware sentence boundary pattern (including Danda '।' and Double Danda '॥' and Urdu Khatam '۔')
@@ -70,6 +107,7 @@ class AudioMetadata:
     sample_width: int
     num_frames: int
     warnings: tuple[str, ...] = ()
+    backend: str = "wave"
 
     @property
     def is_24khz_mono(self) -> bool:
@@ -87,24 +125,276 @@ class AudioChunkSegment:
     end_sec: float
 
 
+def _generate_audio_warnings(
+    path: Path,
+    sr: int,
+    ch: int,
+    sw: int,
+    duration: float,
+    backend: str,
+) -> tuple[str, ...]:
+    """Generate diagnostic and container warnings for Bodhan models."""
+    diag_warnings: list[str] = []
+    suffix = path.suffix.lower()
+
+    # Container warning (backward compatible string)
+    if suffix != ".wav":
+        diag_warnings.append(
+            f"Compressed/non-WAV container detected ({path.suffix}). Converted via ffmpeg for processing."
+        )
+        # Explicit reliability warnings for M4A/AAC containers
+        if suffix in {".m4a", ".aac"}:
+            if backend == "av":
+                diag_warnings.append(
+                    "M4A/AAC container detected: libsndfile unsupported; decoded in-process via PyAV."
+                )
+            else:
+                diag_warnings.append(
+                    "M4A/AAC container detected: libsndfile unsupported; bypassed libsndfile and used FFmpeg subprocess."
+                )
+
+    if ch > 1:
+        diag_warnings.append(
+            f"Multi-channel audio detected ({ch} channels). Bodhan Indic models expect mono (1 channel). Downmixing required."
+        )
+    if sr == 8000:
+        diag_warnings.append(
+            "Telephony 8kHz sample rate detected. Low acoustic bandwidth may degrade Indic transcription accuracy; 16kHz or 24kHz recommended."
+        )
+    elif sr == 48000:
+        diag_warnings.append(
+            "48kHz high-definition sample rate detected. Exceeds standard 16kHz/24kHz rate for Bodhan models; downsampling recommended to conserve payload bandwidth."
+        )
+    elif sr not in {16000, 24000}:
+        diag_warnings.append(
+            f"Sample rate {sr}Hz differs from recommended 16kHz (Indic-Transcribe) or 24kHz (Indic-Speak)."
+        )
+    if sw != 2:
+        diag_warnings.append(
+            f"Sample width is {sw * 8}-bit ({sw} bytes). Bodhan Indic models require 16-bit signed PCM (PCM16)."
+        )
+    if duration > 30.0:
+        diag_warnings.append(
+            f"Duration {duration:.2f}s exceeds Indic-Transcribe 30.0s chunking limit. Silence-aware slicing required."
+        )
+
+    return tuple(diag_warnings)
+
+
 def _ffprobe_duration(file_path: Path) -> float:
-    """Get audio duration in seconds using ffprobe (for non-WAV formats)."""
-    ffprobe_cmd = _resolve_tool_path("ffprobe")
+    """Get audio duration in seconds using tiered strategy:
+    1. In-process soundfile.info for non-M4A formats (0ms overhead).
+    2. ffprobe CLI with safe Windows stdio.
+    3. ffmpeg CLI duration parsing as fallback.
+    """
+    path = Path(file_path).resolve()
+    suffix = path.suffix.lower()
+
+    # Step 1: In-process soundfile for non-M4A formats
+    if suffix not in {".m4a", ".aac"}:
+        try:
+            import soundfile as sf  # type: ignore[import-untyped]
+
+            info = sf.info(str(path))
+            if info.duration and info.duration > 0.0:
+                return float(info.duration)
+        except (ImportError, Exception):
+            pass
+
+    # Step 2: ffprobe subprocess with safe stdio
+    extra_flags = _get_subprocess_flags()
+    ffprobe_cmd = _resolve_ffprobe_cmd()
     try:
         result = subprocess.run(
             [
                 ffprobe_cmd, "-v", "quiet",
                 "-show_entries", "format=duration",
                 "-of", "csv=p=0",
-                str(file_path),
+                str(path),
             ],
-            capture_output=True, text=True, timeout=15,
+            stdin=subprocess.DEVNULL,
+            capture_output=True,
+            text=True,
+            timeout=15,
+            **extra_flags,
         )
         if result.returncode == 0 and result.stdout.strip():
-            return float(result.stdout.strip())
-    except (subprocess.TimeoutExpired, FileNotFoundError, ValueError):
+            dur = float(result.stdout.strip())
+            if dur > 0.0:
+                return dur
+    except (subprocess.TimeoutExpired, FileNotFoundError, ValueError, OSError):
         pass
+
+    # Step 3: ffmpeg duration parsing fallback from stderr
+    try:
+        ffmpeg_cmd = _resolve_ffmpeg_cmd()
+        result = subprocess.run(
+            [ffmpeg_cmd, "-hide_banner", "-i", str(path)],
+            stdin=subprocess.DEVNULL,
+            capture_output=True,
+            text=True,
+            timeout=15,
+            **extra_flags,
+        )
+        m = re.search(r"Duration:\s*(\d+):(\d+):(\d+(?:\.\d+)?)", result.stderr)
+        if m:
+            h, m_val, s = float(m.group(1)), float(m.group(2)), float(m.group(3))
+            return h * 3600.0 + m_val * 60.0 + s
+    except (subprocess.TimeoutExpired, FileNotFoundError, ValueError, OSError):
+        pass
+
     return 0.0
+
+
+def resample_pcm16(audio: np.ndarray, orig_sr: int, target_sr: int) -> np.ndarray:
+    """Resample a 1D int16 PCM audio array using linear interpolation (pure NumPy, zero external binary)."""
+    if orig_sr <= 0 or target_sr <= 0:
+        raise ValueError(f"Sample rates must be positive integers, got orig_sr={orig_sr}, target_sr={target_sr}")
+    if orig_sr == target_sr or len(audio) == 0:
+        return audio
+    num_orig = len(audio)
+    num_target = int(round(num_orig * target_sr / orig_sr))
+    if num_target == 0:
+        return np.empty(0, dtype=np.int16)
+    orig_indices = np.linspace(0, num_orig - 1, num_orig)
+    target_indices = np.linspace(0, num_orig - 1, num_target)
+    interp = np.interp(target_indices, orig_indices, audio.astype(np.float32))
+    return np.clip(interp, -32768, 32767).astype(np.int16)
+
+
+def load_audio_pcm16(
+    file_path: str | Path,
+    target_sr: int = 16000,
+) -> tuple[np.ndarray, int]:
+    """Load any audio file into a 1D int16 NumPy array (mono PCM16) at target_sr.
+
+    Implements 4-tier lightweight audio architecture:
+    - Tier 1: Zero-dependency stdlib `wave` + `numpy` for PCM WAV fast-path.
+    - Tier 2: Dynamic in-process `av` (PyAV) if installed, for 100% in-memory decoding.
+    - Tier 3: In-process `soundfile` (`libsndfile`) for WAV, FLAC, OGG, MP3 (skips M4A/AAC).
+    - Tier 4: Auto-discovered bundled FFmpeg (`imageio_ffmpeg`) or system FFmpeg with safe subprocess stdio.
+
+    Args:
+        file_path: Path to the audio file.
+        target_sr: Target sample rate in Hz (default 16000).
+
+    Returns:
+        tuple[np.ndarray, int]: (mono int16 numpy array, target_sr).
+
+    Raises:
+        FileNotFoundError: If the audio file does not exist.
+        ValueError: If audio cannot be decoded with any available backend.
+    """
+    path = Path(file_path).resolve()
+    if not path.is_file():
+        raise FileNotFoundError(f"Audio file not found: {path}")
+    if path.stat().st_size == 0:
+        raise ValueError(f"Audio file is empty (0 bytes): {path.name}")
+
+    suffix = path.suffix.lower()
+
+    # --- Tier 1: Zero-dependency stdlib wave + numpy for PCM WAV ---
+    if suffix == ".wav":
+        try:
+            with wave.open(str(path), "rb") as wf:
+                sr = wf.getframerate()
+                ch = wf.getnchannels()
+                sw = wf.getsampwidth()
+                frames = wf.getnframes()
+                raw_bytes = wf.readframes(frames)
+
+            if sw == 2:
+                audio = np.frombuffer(raw_bytes, dtype="<i2")
+            elif sw == 1:
+                raw_u8 = np.frombuffer(raw_bytes, dtype=np.uint8)
+                audio = ((raw_u8.astype(np.int32) - 128) * 256).astype(np.int16)
+            else:
+                raise ValueError(f"Unsupported sample width for stdlib wave: {sw * 8}-bit")
+
+            if ch > 1:
+                audio = audio.reshape(-1, ch).mean(axis=1).astype(np.int16)
+
+            if sr != target_sr:
+                audio = resample_pcm16(audio, sr, target_sr)
+
+            return audio, target_sr
+        except (wave.Error, EOFError, ValueError):
+            pass  # Fall through to subsequent tiers (e.g., 24-bit/32-bit float WAV)
+
+    # --- Tier 2: Dynamic in-process av (PyAV) ---
+    try:
+        import av  # type: ignore[import-untyped]
+
+        with av.open(str(path)) as container:
+            audio_streams = [s for s in container.streams if s.type == "audio"]
+            if audio_streams:
+                stream = audio_streams[0]
+                resampler = av.AudioResampler(format="s16", layout="mono", rate=target_sr)
+                frames_list: list[np.ndarray] = []
+                for frame in container.decode(stream):
+                    for resampled in resampler.resample(frame):
+                        frames_list.append(resampled.to_ndarray())
+                for resampled in resampler.resample(None):
+                    frames_list.append(resampled.to_ndarray())
+
+                if frames_list:
+                    audio = np.concatenate([f.flatten() for f in frames_list]).astype(np.int16)
+                    return audio, target_sr
+    except (ImportError, Exception):
+        pass
+
+    # --- Tier 3: In-process soundfile (libsndfile) for WAV/FLAC/OGG/MP3 ---
+    # Explicitly avoid Tier 3 for M4A/AAC as libsndfile does not support it
+    if suffix not in {".m4a", ".aac"}:
+        try:
+            import soundfile as sf  # type: ignore[import-untyped]
+
+            data, sr = sf.read(str(path), dtype="int16", always_2d=False)
+            if data.ndim > 1:
+                data = data.mean(axis=1).astype(np.int16)
+            if sr != target_sr:
+                data = resample_pcm16(data, sr, target_sr)
+            return data, target_sr
+        except (ImportError, Exception):
+            pass
+
+    # --- Tier 4: FFmpeg pipe with strictly safe Windows stdio ---
+    ffmpeg_cmd = _resolve_ffmpeg_cmd()
+    extra_flags = _get_subprocess_flags()
+    try:
+        result = subprocess.run(
+            [
+                ffmpeg_cmd,
+                "-y",
+                "-hide_banner",
+                "-loglevel", "error",
+                "-i", str(path),
+                "-f", "s16le",
+                "-acodec", "pcm_s16le",
+                "-ar", str(target_sr),
+                "-ac", "1",
+                "pipe:1",
+            ],
+            stdin=subprocess.DEVNULL,
+            capture_output=True,
+            timeout=120,
+            **extra_flags,
+        )
+        if result.returncode == 0 and result.stdout:
+            audio = np.frombuffer(result.stdout, dtype="<i2")
+            return audio, target_sr
+        if result.returncode != 0:
+            err_msg = result.stderr.decode("utf-8", errors="replace")[:300]
+            raise ValueError(f"ffmpeg conversion failed for {path.name}: {err_msg}")
+    except FileNotFoundError:
+        raise ValueError(
+            "ffmpeg not found on PATH or bundled binaries. Install ffmpeg to process non-WAV audio. "
+            "See: https://ffmpeg.org/download.html"
+        )
+    except subprocess.TimeoutExpired:
+        raise ValueError(f"ffmpeg conversion timed out for {path.name}")
+
+    raise ValueError(f"Failed to decode audio file {path.name} with any available backend.")
 
 
 def ensure_wav(
@@ -112,11 +402,11 @@ def ensure_wav(
     output_dir: str | Path | None = None,
     target_sr: int = 16000,
 ) -> Path:
-    """Convert any audio file to 16-bit mono PCM WAV using ffmpeg.
+    """Convert any audio file to 16-bit mono PCM WAV using tiered backends.
 
-    If the input is already a valid PCM WAV, returns it unchanged.
-    Non-WAV formats (OGG, MP3, WebM, M4A, FLAC, OPUS, AAC) are transcoded
-    via a single ffmpeg subprocess call.
+    If the input is already a valid PCM WAV with target sample rate and mono channel,
+    returns it unchanged. Non-WAV or non-conforming formats are loaded via the 4-tier
+    lightweight audio architecture and exported as standard PCM16 mono WAV.
 
     Args:
         input_path: Path to the source audio file.
@@ -128,55 +418,194 @@ def ensure_wav(
 
     Raises:
         FileNotFoundError: If input file does not exist.
-        ValueError: If ffmpeg is not installed or conversion fails.
+        ValueError: If audio conversion fails.
     """
     path = Path(input_path).resolve()
     if not path.is_file():
         raise FileNotFoundError(f"Audio file not found: {path}")
+    if path.stat().st_size == 0:
+        raise ValueError(f"Audio file is empty (0 bytes): {path.name}")
 
-    # Already WAV — verify header is readable; return as-is
+    # Already target PCM16 mono WAV — verify header and return as-is
     if path.suffix.lower() == ".wav":
         try:
             with wave.open(str(path), "rb") as wf:
-                wf.getnframes()
-            return path
-        except wave.Error:
-            pass  # Corrupted WAV header — fall through to ffmpeg reconversion
+                if (
+                    wf.getnchannels() == 1
+                    and wf.getsampwidth() == 2
+                    and wf.getframerate() == target_sr
+                ):
+                    return path
+        except (wave.Error, EOFError):
+            pass  # Corrupted or non-standard WAV header — fall through to reconversion
 
     out_dir = Path(output_dir) if output_dir else path.parent
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / f"{path.stem}_converted.wav"
+    if out_path.resolve() == path.resolve():
+        out_path = out_dir / f"{path.stem}_pcm16.wav"
 
-    ffmpeg_cmd = _resolve_tool_path("ffmpeg")
-    try:
-        result = subprocess.run(
-            [
-                ffmpeg_cmd, "-y", "-hide_banner", "-loglevel", "error",
-                "-i", str(path),
-                "-acodec", "pcm_s16le",
-                "-ar", str(target_sr),
-                "-ac", "1",
-                str(out_path),
-            ],
-            capture_output=True, text=True, timeout=120,
-        )
-    except FileNotFoundError:
-        raise ValueError(
-            "ffmpeg not found on PATH. Install ffmpeg to process non-WAV audio. "
-            "See: https://ffmpeg.org/download.html"
-        )
-    except subprocess.TimeoutExpired:
-        raise ValueError(f"ffmpeg conversion timed out for {path.name}")
+    audio, sr = load_audio_pcm16(path, target_sr=target_sr)
+    if len(audio) == 0:
+        raise ValueError(f"ffmpeg produced empty output for {path.name}")
 
-    if result.returncode != 0:
-        raise ValueError(
-            f"ffmpeg conversion failed for {path.name}: {result.stderr[:300]}"
-        )
+    with wave.open(str(out_path), "wb") as out_wf:
+        out_wf.setnchannels(1)
+        out_wf.setsampwidth(2)
+        out_wf.setframerate(target_sr)
+        out_wf.writeframes(audio.tobytes())
 
     if not out_path.is_file() or out_path.stat().st_size == 0:
         raise ValueError(f"ffmpeg produced empty output for {path.name}")
 
     return out_path
+
+
+# Currency terminology across major Indic languages
+_CURRENCY_EXPANSIONS: dict[str, dict[str, str]] = {
+    "hi": {
+        "inr": "रुपये",
+        "usd": "डॉलर",
+        "eur": "यूरो",
+        "percent": "प्रतिशत",
+    },
+    "ta": {
+        "inr": "ரூபாய்",
+        "usd": "டாலர்",
+        "eur": "யூரோ",
+        "percent": "சதவீதம்",
+    },
+    "mr": {
+        "inr": "रुपये",
+        "usd": "डॉलर",
+        "eur": "युरो",
+        "percent": "टक्के",
+    },
+    "bn": {
+        "inr": "টাকা",
+        "usd": "ডলার",
+        "eur": "ইউরো",
+        "percent": "শতাংশ",
+    },
+    "te": {
+        "inr": "రూపాయలు",
+        "usd": "డాలర్లు",
+        "eur": "యూరో",
+        "percent": "శాతం",
+    },
+    "kn": {
+        "inr": "ರೂಪಾಯಿ",
+        "usd": "ಡಾಲರ್",
+        "eur": "ಯುರೋ",
+        "percent": "ಪ್ರತಿಶತ",
+    },
+    "gu": {
+        "inr": "રૂપિયા",
+        "usd": "ડોલર",
+        "eur": "યુરો",
+        "percent": "ટકા",
+    },
+    "ml": {
+        "inr": "രൂപ",
+        "usd": "ഡോളർ",
+        "eur": "യൂറോ",
+        "percent": "ശതമാനം",
+    },
+    "pa": {
+        "inr": "ਰੁਪਏ",
+        "usd": "ਡਾਲਰ",
+        "eur": "ਯੂਰੋ",
+        "percent": "ਪ੍ਰਤੀਸ਼ਤ",
+    },
+    "en": {
+        "inr": "rupees",
+        "usd": "dollars",
+        "eur": "euros",
+        "percent": "percent",
+    },
+}
+
+_MONTH_NAMES_INDIC: dict[str, dict[int, str]] = {
+    "hi": {
+        1: "जनवरी", 2: "फ़रवरी", 3: "मार्च", 4: "अप्रैल", 5: "मई", 6: "जून",
+        7: "जुलाई", 8: "अगस्त", 9: "सितंबर", 10: "अक्टूबर", 11: "नवंबर", 12: "दिसंबर"
+    },
+    "ta": {
+        1: "ஜனவரி", 2: "பிப்ரவரி", 3: "மார்ச்", 4: "ஏப்ரல்", 5: "மே", 6: "ஜூன்",
+        7: "ஜூலை", 8: "ஆகஸ்ட்", 9: "செப்டம்பர்", 10: "அக்டோபர்", 11: "நவம்பர்", 12: "டிசம்பர்"
+    },
+    "mr": {
+        1: "जानेवारी", 2: "फेब्रुवारी", 3: "मार्च", 4: "एप्रिल", 5: "मे", 6: "जून",
+        7: "जुलै", 8: "ऑगस्ट", 9: "सप्टेंबर", 10: "ऑक्टोबर", 11: "नोव्हेंबर", 12: "डिसेंबर"
+    },
+    "bn": {
+        1: "জানুয়ারি", 2: "ফেব্রুয়ারি", 3: "মার্চ", 4: "এপ্রিল", 5: "মে", 6: "জুন",
+        7: "জুলাই", 8: "আগস্ট", 9: "সেপ্টেম্বর", 10: "অক্টোবর", 11: "নভেম্বর", 12: "ডিসেম্বর"
+    },
+    "en": {
+        1: "January", 2: "February", 3: "March", 4: "April", 5: "May", 6: "June",
+        7: "July", 8: "August", 9: "September", 10: "October", 11: "November", 12: "December"
+    },
+}
+
+
+def normalize_indic_speech_text(text: str, language: str = "hi") -> str:
+    """Pre-process and normalize Indian currency symbols, percentages, and dates into spoken words before TTS.
+
+    Expands:
+    - Currency: ₹500, Rs. 500, INR 500 -> '500 रुपये' (Hindi), '500 ரூபாய்' (Tamil), '500 rupees' (English).
+    - USD / EUR: $50 -> '50 डॉलर', €50 -> '50 यूरो'.
+    - Percentages: 25% -> '25 प्रतिशत', '25 சதவீதம்'.
+    - Dates: 15/08/2026 -> '15 अगस्त 2026' (Hindi) or '15 ஆகஸ்ட் 2026' (Tamil).
+    - Large commas: '1,50,000' or '1,500' -> '150000' / '1500' (prevents TTS pausing on Indian digit commas).
+    """
+    if not text:
+        return text
+
+    lang = language.split("-")[0].lower() if language else "hi"
+    exp = _CURRENCY_EXPANSIONS.get(lang, _CURRENCY_EXPANSIONS["hi"])
+
+    normalized = text
+
+    # 1. Clean digit grouping commas (e.g. 1,50,000 -> 150000, 2,500 -> 2500) so TTS doesn't stumble or pause
+    normalized = re.sub(r'(?<=\d),(?=\d)', '', normalized)
+
+    # 2. Currency: ₹ / Rs. / INR preceding digits (e.g. ₹500, Rs. 1500, ₹ 20)
+    inr_word = exp["inr"]
+    normalized = re.sub(
+        r'(?:₹|Rs\.?|INR)\s*(\d+(?:\.\d+)?)',
+        rf'\1 {inr_word}',
+        normalized,
+        flags=re.IGNORECASE,
+    )
+    # Currency trailing: 500₹ or 500/-
+    normalized = re.sub(r'(\d+(?:\.\d+)?)\s*(?:₹|/-)', rf'\1 {inr_word}', normalized)
+
+    # 3. Dollar ($) and Euro (€)
+    usd_word = exp["usd"]
+    normalized = re.sub(r'\$\s*(\d+(?:\.\d+)?)', rf'\1 {usd_word}', normalized)
+    eur_word = exp["eur"]
+    normalized = re.sub(r'€\s*(\d+(?:\.\d+)?)', rf'\1 {eur_word}', normalized)
+
+    # 4. Percent (%)
+    pct_word = exp["percent"]
+    normalized = re.sub(r'(\d+(?:\.\d+)?)\s*%', rf'\1 {pct_word}', normalized)
+
+    # 5. Date expansion (DD/MM/YYYY or DD-MM-YYYY)
+    months_map = _MONTH_NAMES_INDIC.get(lang, _MONTH_NAMES_INDIC.get("hi", {}))
+
+    def _expand_date(match: re.Match) -> str:
+        d = int(match.group(1))
+        m = int(match.group(2))
+        y = match.group(3)
+        if 1 <= d <= 31 and 1 <= m <= 12:
+            m_name = months_map.get(m, str(m))
+            return f"{d} {m_name} {y}"
+        return match.group(0)
+
+    normalized = re.sub(r'\b(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})\b', _expand_date, normalized)
+
+    return normalized
 
 
 def split_indic_sentences(
@@ -192,7 +621,6 @@ def split_indic_sentences(
     a reasonable size before sending to Indic-Speak, preventing TTS timeouts
     on oversized blocks while preserving prosodically complete clauses.
     """
-    # Nothing to do for empty / whitespace-only input.
     text = text.strip()
     if not text:
         return []
@@ -206,12 +634,9 @@ def split_indic_sentences(
     # Mask decimal numbers (e.g. '2.5' or '99.9%')
     masked = re.sub(r'(\d+)\.(\d+)', r'\1' + _PLACEHOLDER_DOT + r'\2', masked)
 
-    # `INDIC_SENTENCE_REGEX` contains a capturing group, so re.split
-    # returns [part, delim, part, delim, ...] (delimiters interleaved).
     tokens = INDIC_SENTENCE_REGEX.split(masked)
 
-    # --- Step 1: pair each text part with the punctuation that followed it ---
-    # Produces clean, complete sentences like "Hello." or "यह ठीक है।".
+    # Step 1: pair each text part with the punctuation that followed it
     raw: list[str] = []
     i = 0
     while i < len(tokens):
@@ -219,43 +644,35 @@ def split_indic_sentences(
         punct = tokens[i + 1].strip() if i + 1 < len(tokens) else ""
         if part:
             raw.append(f"{part}{punct}".strip())
-        i += 2  # step over the delimiter token too
+        i += 2
 
-    # Unmask placeholder dots back to standard periods
     raw = [s.replace(_PLACEHOLDER_DOT, ".") for s in raw]
 
-    # --- Step 2: greedily merge short fragments, then enforce max_chars ---
-    # Use a LIST buffer instead of string concatenation: appending is O(1)
-    # and we join once per output sentence (O(n) total) instead of rebuilding
-    # a growing string each time (O(n^2)).
+    # Step 2: greedily merge short fragments
     merged: list[str] = []
     buf: list[str] = []
-    buf_len = 0  # tracked incrementally so we never re-len() a growing string
+    buf_len = 0
 
     for s in raw:
         if not buf:
-            # Start a fresh buffer.
             buf.append(s)
             buf_len = len(s)
         elif buf_len < min_chars:
-            # Still too short: glue on the next sentence (no string rebuild).
             buf.append(s)
-            buf_len += 1 + len(s)  # +1 for the joining space
+            buf_len += 1 + len(s)
         else:
-            # Buffer is long enough: emit it and start over with `s`.
             merged.append(" ".join(buf))
             buf = [s]
             buf_len = len(s)
     if buf:
         merged.append(" ".join(buf))
 
-    # --- Step 3: hard-split anything still longer than max_chars ---
-    # Prefer breaking on a space so we don't cut a word in half.
+    # Step 3: hard-split anything still longer than max_chars
     out: list[str] = []
     for s in merged:
         while len(s) > max_chars:
             cut = s.rfind(" ", 0, max_chars)
-            cut = cut if cut > 0 else max_chars  # no space found -> hard cut
+            cut = cut if cut > 0 else max_chars
             chunk = s[:cut].strip()
             if chunk:
                 out.append(chunk)
@@ -267,77 +684,153 @@ def split_indic_sentences(
 
 
 def inspect_audio(wav_path: str | Path) -> AudioMetadata:
-    """Inspect standard PCM WAV file parameters (or non-WAV via ffprobe) and generate diagnostic warnings for Bodhan models."""
-    path = Path(wav_path)
+    """Inspect audio file parameters across 4 tiers and generate diagnostic warnings for Bodhan models.
+
+    Tier 1: stdlib `wave` for standard PCM WAV files.
+    Tier 2: dynamic in-process `av` (PyAV) for in-memory container inspection.
+    Tier 3: `soundfile.info` for WAV, FLAC, OGG, MP3 (skips M4A/AAC).
+    Tier 4: `_ffprobe_duration` / FFmpeg fallback with safe Windows stdio.
+    """
+    path = Path(wav_path).resolve()
+    if not path.is_file():
+        raise FileNotFoundError(f"Audio file not found: {path}")
+    if path.stat().st_size == 0:
+        raise ValueError(f"Audio file is empty (0 bytes): {path.name}")
+
+    suffix = path.suffix.lower()
+    is_wav = (suffix == ".wav")
+
+    # --- Tier 1: stdlib wave for standard PCM WAV files ---
+    if is_wav:
+        try:
+            with wave.open(str(path), "rb") as wf:
+                sr = wf.getframerate()
+                ch = wf.getnchannels()
+                sw = wf.getsampwidth()
+                frames = wf.getnframes()
+                duration = frames / float(sr) if sr > 0 else 0.0
+
+                warnings = _generate_audio_warnings(
+                    path=path,
+                    sr=sr,
+                    ch=ch,
+                    sw=sw,
+                    duration=duration,
+                    backend="wave",
+                )
+                return AudioMetadata(
+                    duration_seconds=round(duration, 3),
+                    sample_rate=sr,
+                    channels=ch,
+                    sample_width=sw,
+                    num_frames=frames,
+                    warnings=warnings,
+                    backend="wave",
+                )
+        except (wave.Error, EOFError):
+            pass  # Corrupted or non-standard WAV header — fall through to next tiers
+
+    # --- Tier 2: Dynamic in-process av (PyAV) ---
     try:
-        with wave.open(str(path), "rb") as wf:
-            sr = wf.getframerate()
-            ch = wf.getnchannels()
-            sw = wf.getsampwidth()
-            frames = wf.getnframes()
-            duration = frames / float(sr) if sr > 0 else 0.0
+        import av  # type: ignore[import-untyped]
 
-            diag_warnings: list[str] = []
-            if ch > 1:
-                diag_warnings.append(
-                    f"Multi-channel audio detected ({ch} channels). Bodhan Indic models expect mono (1 channel). Downmixing required."
-                )
-            if sr == 8000:
-                diag_warnings.append(
-                    "Telephony 8kHz sample rate detected. Low acoustic bandwidth may degrade Indic transcription accuracy; 16kHz or 24kHz recommended."
-                )
-            elif sr == 48000:
-                diag_warnings.append(
-                    "48kHz high-definition sample rate detected. Exceeds standard 16kHz/24kHz rate for Bodhan models; downsampling recommended to conserve payload bandwidth."
-                )
-            elif sr not in {16000, 24000}:
-                diag_warnings.append(
-                    f"Sample rate {sr}Hz differs from recommended 16kHz (Indic-Transcribe) or 24kHz (Indic-Speak)."
-                )
-            if sw != 2:
-                diag_warnings.append(
-                    f"Sample width is {sw * 8}-bit ({sw} bytes). Bodhan Indic models require 16-bit signed PCM (PCM16)."
-                )
-            if duration > 30.0:
-                diag_warnings.append(
-                    f"Duration {duration:.2f}s exceeds Indic-Transcribe 30.0s chunking limit. Silence-aware slicing required."
-                )
+        with av.open(str(path)) as container:
+            audio_streams = [s for s in container.streams if s.type == "audio"]
+            if audio_streams:
+                st = audio_streams[0]
+                sr = st.codec_context.sample_rate or st.sample_rate or 16000
+                ch = st.codec_context.channels or st.channels or 1
+                sw = 2
+                dur = 0.0
+                if container.duration is not None:
+                    dur = float(container.duration) / av.time_base
+                elif st.duration is not None and st.time_base is not None:
+                    dur = float(st.duration * st.time_base)
 
-            return AudioMetadata(
-                duration_seconds=round(duration, 3),
-                sample_rate=sr,
-                channels=ch,
-                sample_width=sw,
-                num_frames=frames,
-                warnings=tuple(diag_warnings),
-            )
-    except Exception:
-        # Fallback to ffprobe if available for non-WAV / compressed media
-        dur = _ffprobe_duration(path)
-        if dur > 0.0:
-            diag_warnings = (
-                f"Compressed/non-WAV container detected ({path.suffix}). Converted via ffmpeg for processing.",
-            )
-            return AudioMetadata(
-                duration_seconds=round(dur, 3),
-                sample_rate=16000,
-                channels=1,
-                sample_width=2,
-                num_frames=int(dur * 16000),
-                warnings=diag_warnings,
-            )
-        raise
+                if dur > 0.0:
+                    frames = int(dur * sr)
+                    warnings = _generate_audio_warnings(
+                        path=path,
+                        sr=sr,
+                        ch=ch,
+                        sw=sw,
+                        duration=dur,
+                        backend="av",
+                    )
+                    return AudioMetadata(
+                        duration_seconds=round(dur, 3),
+                        sample_rate=sr,
+                        channels=ch,
+                        sample_width=sw,
+                        num_frames=frames,
+                        warnings=warnings,
+                        backend="av",
+                    )
+    except (ImportError, Exception):
+        pass
 
+    # --- Tier 3: In-process soundfile.info for non-M4A formats ---
+    if suffix not in {".m4a", ".aac"}:
+        try:
+            import soundfile as sf  # type: ignore[import-untyped]
 
-def resample_pcm16(audio: np.ndarray, orig_sr: int, target_sr: int) -> np.ndarray:
-    """Resample a 1D int16 PCM audio array using linear interpolation (pure NumPy, zero external binary)."""
-    if orig_sr == target_sr:
-        return audio
-    num_orig = len(audio)
-    num_target = int(round(num_orig * target_sr / orig_sr))
-    orig_indices = np.linspace(0, num_orig - 1, num_orig)
-    target_indices = np.linspace(0, num_orig - 1, num_target)
-    return np.interp(target_indices, orig_indices, audio.astype(np.float32)).astype(np.int16)
+            info = sf.info(str(path))
+            if info.duration and info.duration > 0.0:
+                sr = info.samplerate
+                ch = info.channels
+                frames = info.frames
+                dur = float(info.duration)
+                sw = 2
+                subtype = (info.subtype or "").upper()
+                if "24" in subtype:
+                    sw = 3
+                elif "32" in subtype or "FLOAT" in subtype:
+                    sw = 4
+                elif "U8" in subtype or "PCM_S8" in subtype:
+                    sw = 1
+
+                warnings = _generate_audio_warnings(
+                    path=path,
+                    sr=sr,
+                    ch=ch,
+                    sw=sw,
+                    duration=dur,
+                    backend="soundfile",
+                )
+                return AudioMetadata(
+                    duration_seconds=round(dur, 3),
+                    sample_rate=sr,
+                    channels=ch,
+                    sample_width=sw,
+                    num_frames=frames,
+                    warnings=warnings,
+                    backend="soundfile",
+                )
+        except (ImportError, Exception):
+            pass
+
+    # --- Tier 4: FFmpeg / FFprobe fallback ---
+    dur = _ffprobe_duration(path)
+    if dur > 0.0:
+        warnings = _generate_audio_warnings(
+            path=path,
+            sr=16000,
+            ch=1,
+            sw=2,
+            duration=dur,
+            backend="ffmpeg",
+        )
+        return AudioMetadata(
+            duration_seconds=round(dur, 3),
+            sample_rate=16000,
+            channels=1,
+            sample_width=2,
+            num_frames=int(dur * 16000),
+            warnings=warnings,
+            backend="ffmpeg",
+        )
+
+    raise ValueError(f"Unable to inspect or decode audio file: {path.name}")
 
 
 def convert_to_indic_pcm16(
@@ -345,34 +838,15 @@ def convert_to_indic_pcm16(
     output_wav: str | Path,
     target_sr: int = 24000,
 ) -> Path:
-    """Convert an arbitrary WAV file to standardized 24kHz mono PCM16 format for Bodhan models.
-    
-    Performs mono downmixing and linear interpolation resampling with zero external binaries.
+    """Convert an arbitrary WAV (or other audio) file to standardized 24kHz mono PCM16 format for Bodhan models.
+
+    Performs mono downmixing and linear interpolation resampling with zero external binaries for WAV.
     """
     in_path = Path(input_wav)
     out_path = Path(output_wav)
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    with wave.open(str(in_path), "rb") as wf:
-        orig_sr = wf.getframerate()
-        ch = wf.getnchannels()
-        sw = wf.getsampwidth()
-        frames = wf.getnframes()
-        raw_bytes = wf.readframes(frames)
-
-    if sw == 2:
-        audio = np.frombuffer(raw_bytes, dtype="<i2")
-    elif sw == 1:
-        raw_u8 = np.frombuffer(raw_bytes, dtype=np.uint8)
-        audio = ((raw_u8.astype(np.int32) - 128) * 256).astype(np.int16)
-    else:
-        raise ValueError(f"Unsupported bit depth for conversion: {sw * 8}-bit")
-
-    if ch > 1:
-        audio = audio.reshape(-1, ch).mean(axis=1).astype(np.int16)
-
-    if orig_sr != target_sr:
-        audio = resample_pcm16(audio, orig_sr, target_sr)
+    audio, _ = load_audio_pcm16(in_path, target_sr=target_sr)
 
     with wave.open(str(out_path), "wb") as out_wf:
         out_wf.setnchannels(1)
@@ -403,8 +877,12 @@ def concatenate_wav_files(
     out_file.parent.mkdir(parents=True, exist_ok=True)
 
     first_meta = inspect_audio(wav_paths[0])
-    
-    silence_frames = int((silence_gap_ms / 1000.0) * first_meta.sample_rate) if silence_gap_ms > 0 else 0
+
+    silence_frames = (
+        int((silence_gap_ms / 1000.0) * first_meta.sample_rate)
+        if silence_gap_ms > 0
+        else 0
+    )
     silence_bytes = b"\x00" * (silence_frames * first_meta.channels * first_meta.sample_width)
 
     with wave.open(str(out_file), "wb") as out_wf:
@@ -455,7 +933,7 @@ def chunk_wav_silence_aware(
     return_segments: bool = False,
 ) -> list[Path] | list[AudioChunkSegment]:
     """Slice an audio file longer than max_chunk_sec at natural silence boundaries.
-    
+
     Guarantees every chunk is strictly under 30.0 seconds to satisfy Indic-Transcribe.
     Snaps cuts to the nearest zero-crossing within ±5ms to avoid audio pops/clicks.
     Auto-converts non-WAV formats via ensure_wav.
@@ -503,10 +981,8 @@ def chunk_wav_silence_aware(
             remaining_sec = remaining / float(sr)
 
             if remaining_sec <= max_chunk_sec:
-                # Last slice
                 slice_end = total_samples
             else:
-                # Look for minimum RMS in the search window (search_window_start to max_chunk_sec)
                 win_start_samp = int(current_sample + (search_window_start * sr))
                 win_end_samp = int(current_sample + (max_chunk_sec * sr))
                 win_start_samp = min(win_start_samp, total_samples)
@@ -614,3 +1090,28 @@ def format_vtt_content(cues: list[tuple[float, float, str]]) -> str:
     if len(blocks) == 1:
         return "WEBVTT\n"
     return "\n\n".join(blocks) + "\n"
+
+
+__all__ = [
+    "AudioChunkSegment",
+    "AudioMetadata",
+    "chunk_wav_silence_aware",
+    "concatenate_wav_files",
+    "convert_to_indic_pcm16",
+    "ensure_wav",
+    "format_srt_content",
+    "format_timestamp_srt",
+    "format_timestamp_vtt",
+    "format_vtt_content",
+    "inspect_audio",
+    "load_audio_pcm16",
+    "normalize_indic_speech_text",
+    "resample_pcm16",
+    "split_indic_sentences",
+    "INDIC_SENTENCE_REGEX",
+    "KNOWN_HONORIFICS",
+    "_resolve_tool_path",
+    "_resolve_ffmpeg_cmd",
+    "_resolve_ffprobe_cmd",
+    "_ffprobe_duration",
+]
