@@ -1,0 +1,155 @@
+{
+  "models": {
+    "data": [
+      {
+        "id": "indic-translate",
+        "object": "model",
+        "created": 1677610602,
+        "owned_by": "openai"
+      }
+    ],
+    "object": "list"
+  },
+  "indic_translate": {
+    "id": "20261116_bdd6ed6a-1f0b-4f66-b9f0-68f8ec8971f5",
+    "created": 1794831000,
+    "model": "indic-translate",
+    "object": "chat.completion",
+    "system_fingerprint": "vllm-0.27.1-9be2c277",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "सुप्रभात, आप कैसे हैं?",
+          "role": "assistant",
+          "provider_specific_fields": {
+            "reasoning": null,
+            "refusal": null
+          }
+        },
+        "provider_specific_fields": {
+          "routed_experts": null,
+          "stop_reason": 106,
+          "token_ids": null
+        }
+      }
+    ],
+    "usage": {
+      "completion_tokens": 8,
+      "prompt_tokens": 24,
+      "total_tokens": 32
+    }
+  },
+  "indic_translate_with_source_param": {
+    "status": 200,
+    "response": {
+      "id": "20261116_33beedca-5131-4e63-84f9-af18ff97c8a7",
+      "created": 1794831002,
+      "model": "indic-translate",
+      "object": "chat.completion",
+      "system_fingerprint": "vllm-0.27.1-9be2c277",
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "message": {
+            "content": "नमस्ते",
+            "role": "assistant",
+            "provider_specific_fields": {
+              "refusal": null,
+              "reasoning": null
+            }
+          },
+          "provider_specific_fields": {
+            "routed_experts": null,
+            "stop_reason": 106,
+            "token_ids": null
+          }
+        }
+      ],
+      "usage": {
+        "completion_tokens": 2,
+        "prompt_tokens": 18,
+        "total_tokens": 20
+      }
+    }
+  },
+  "indic_speak": {
+    "status": 200,
+    "content_type": "audio/mpeg",
+    "byte_length": 118828
+  },
+  "voices": {
+    "status": 404,
+    "text": "{\"detail\":\"Not Found\"}"
+  },
+  "indic_transcribe_with_lang": {
+    "status": 200,
+    "response": {
+      "text": "नमस्ते यह एक परीक्षण है",
+      "usage": null
+    }
+  },
+  "indic_transcribe_without_lang": {
+    "status": 200,
+    "response": {
+      "text": "नमस्ते यह एक परीक्षण है",
+      "usage": null
+    }
+  },
+  "indic_transcribe_verbose": {
+    "status": 200,
+    "response": {
+      "text": "नमस्ते यह एक परीक्षण है",
+      "usage": null,
+      "language": null,
+      "duration": null,
+      "words": null,
+      "segments": null
+    }
+  },
+  "indic_ocr": {
+    "status": 200,
+    "response": {
+      "id": "indic-ocr-e88e22df0b454b4ea6218c2f6dbcd550",
+      "created": 1794831027,
+      "model": "indic-ocr",
+      "object": "chat.completion",
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "message": {
+            "content": "",
+            "role": "assistant",
+            "provider_specific_fields": {
+              "refusal": null
+            }
+          },
+          "provider_specific_fields": {}
+        }
+      ],
+      "usage": {
+        "completion_tokens": 0,
+        "prompt_tokens": 0,
+        "total_tokens": 0
+      },
+      "blocks": [
+        {
+          "order": 0,
+          "label": "Diagram",
+          "type": "Figure",
+          "bbox_xyxy": [
+            19.2,
+            31.1,
+            71.2,
+            40.8
+          ],
+          "conf": 0.605,
+          "text": ""
+        }
+      ]
+    }
+  }
+}
