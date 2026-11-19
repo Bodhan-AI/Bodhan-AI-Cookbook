@@ -207,6 +207,32 @@ def to_text_protocol(messages: list[dict[str, Any]], tools: list[dict[str, Any]]
 # Client
 # --------------------------------------------------------------------------
 
+# Rate limits on small provider tiers can ask for waits of most of a minute per call
+# (tokens-per-minute quotas), so 429s get their own, longer allowance than other errors.
+RATE_LIMIT_MAX_WAITS = 8
+RATE_LIMIT_MAX_DELAY_S = 65.0
+_TRY_AGAIN = re.compile(r"try again in (?:(\d+)m)?([\d.]+)(ms|s)", re.IGNORECASE)
+
+
+def retry_after_s(err: BaseException) -> float | None:
+    """Seconds the provider asked us to wait, from Retry-After headers or the error text."""
+    response = getattr(err, "response", None)
+    headers = getattr(response, "headers", None) or {}
+    for name, scale in (("retry-after-ms", 0.001), ("retry-after", 1.0)):
+        value = headers.get(name)
+        if value:
+            try:
+                return float(value) * scale
+            except ValueError:
+                pass
+    m = _TRY_AGAIN.search(str(err))
+    if m:
+        minutes = float(m.group(1) or 0)
+        amount = float(m.group(2)) * (0.001 if m.group(3).lower() == "ms" else 1.0)
+        return minutes * 60 + amount
+    return None
+
+
 _RETRYABLE = (
     openai.RateLimitError,
     openai.APIConnectionError,
@@ -276,6 +302,7 @@ class OpenAICompatLLM:
 
     async def complete(self, messages: list[dict[str, Any]], tools: list[dict[str, Any]]) -> LLMResponse:
         attempt = 0
+        rate_waits = 0
         degradations = 0
         while True:
             try:
@@ -297,6 +324,16 @@ class OpenAICompatLLM:
                     status is None or (status < 500 and status != 429)
                 ):
                     raise LLMError(f"LLM request failed: {err}") from err
+                if status == 429:
+                    rate_waits += 1
+                    if rate_waits > max(self.max_retries, RATE_LIMIT_MAX_WAITS):
+                        raise LLMError(f"LLM rate limit persisted after {rate_waits} waits: {err!r}") from err
+                    hinted = retry_after_s(err)
+                    backoff = min(30.0, 2 ** rate_waits) * (0.5 + random.random() / 2)
+                    delay = min(RATE_LIMIT_MAX_DELAY_S, max(backoff, (hinted or 0.0) + 0.5))
+                    log.warning("LLM rate-limited; waiting %.1fs (wait %d)", delay, rate_waits)
+                    await asyncio.sleep(delay)
+                    continue
                 attempt += 1
                 if attempt > self.max_retries:
                     raise LLMError(f"LLM unavailable after {attempt} attempts: {err!r}") from err

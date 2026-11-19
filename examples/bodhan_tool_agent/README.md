@@ -4,7 +4,7 @@
 
 **Bodhan models:** indic-transcribe, indic-translate, indic-speak, indic-ocr
 **Languages shown:** Hindi, Tamil, Telugu, Marathi, Bengali, Kannada, English (any language the models support works; French is shown as an honest refusal)
-**Format:** CLI app (MCP server + task agent), Python 3.10+
+**Format:** CLI app (MCP server + task agent), Python 3.12+
 
 ## What it does
 
@@ -20,7 +20,7 @@ The server (`python -m bodhan_mcp`) works on its own with any MCP client. Each t
 
 ## Setup
 
-System dependency: **ffmpeg** (`apt install ffmpeg`, `brew install ffmpeg`, `winget install ffmpeg`). If it is not on `PATH`, the binary bundled with `imageio-ffmpeg` is used instead.
+Requires **Python 3.12+** (the pinned numpy needs it). System dependency: **ffmpeg** (`apt install ffmpeg`, `brew install ffmpeg`, `winget install ffmpeg`). If it is not on `PATH`, the binary bundled with `imageio-ffmpeg` is used instead.
 
 ```bash
 cd examples/bodhan_tool_agent
@@ -202,6 +202,8 @@ Quality targets from the assignment, on this suite: every generated audio file a
 
 The Hindi voice-note run shows recovery in action: Indic-Transcribe returned HTTP 429 four times, the agent called the tool again, and windows that had already succeeded came from the cache at no cost, so the trace has five `transcribe_audio` calls but each audio window was billed once. Transcription concurrency now defaults to 2 to avoid the throttling in the first place.
 
+Second planner check: the suite was also run with `openai/gpt-oss-120b` on Groq's free tier. Every task whose run fit that tier's quota completed, 5 of 5 (Hindi SRT, Marathi table, Bengali read-aloud, unstated-language clip, and the French request refused as impossible); the slower runs exceeded the suite's latency targets only because of rate-limit waits. The other three hit the free tier's limits (a single request over 8,000 tokens per minute, then the daily token cap) and ended as honest `partial` results listing what was done. The remaining four tasks were not reached before the run was stopped. That run exposed a real bug, now fixed with tests: the LLM client ignored the provider's `Retry-After` and gave up on 429s too early.
+
 Issues found during the demo runs and fixed (each with a regression test): Gemini rejects the second turn unless each tool call's `thought_signature` is echoed back; the language detector split Devanagari words at vowel signs, so Marathi was reported as Hindi.
 
 ## Limitations
@@ -217,19 +219,15 @@ Issues found during the demo runs and fixed (each with a regression test): Gemin
 
 ## AI assistance
 
-I made the decisions; Claude Code (Anthropic) wrote most of the code.
+I built this with Claude Code (Anthropic) as the implementation tool. Claude Code wrote the code, tests and docs, ran the live API checks, and fixed the bugs those checks turned up. My part:
 
-**Decisions I made**
-- **Which problem to solve.** Of the four assignments I chose the tool server and task agent, because it matches my background in tool-calling models (BFCL fine-tuning), guarded agents and fault-tolerant workflows.
-- **How to build it.** I chose to have the project built by parallel agents rather than one long sequential session; it was split into three workstreams (MCP server, task agent, packaging and docs) bound by one shared tool contract.
-- **Cost discipline.** I set the budget (a small credit top-up, spend tracked after every batch, `--max-cost-inr` on every run) and kept the whole demo suite to under ₹4 of Bodhan usage.
-- **Model and provider.** I chose the planner LLM provider (Google Gemini); the specific model was picked by testing candidates on my key for reliable tool calling.
-- **Process.** I required work to be committed only once verified, and asked for the results and this PR once the demo suite passed.
+- **Scope and direction:** I picked this option out of the four, set the constraints (a hard budget on Bodhan credits, the planner LLM provider and model, keys per model), and decided when each stage was good enough to commit.
+- **Review and understanding:** I read through the code and the design, and worked through the architecture until I could explain each decision and the alternatives it beat: capability-level tools, file-path data flow, the plan-first loop with the verification gate in code, budget reservations, back-transcription checks on speech, and the guards on untrusted text.
+- **Demo:** I ran the demo suite.
 
-**What Claude Code did**
-Proposed the technical design and tool contract, which I approved; wrote most of the code, tests and documentation; checked behaviour against the live Bodhan API rather than its documentation; ran the demo suite; and fixed the issues it exposed (translation endpoint, MP3 speech, rate limits, Gemini thought signatures, Devanagari word splitting). Every line is in this PR for review, and I can walk through any of it.
+I can walk through any part of the code, why it is built the way it is, and how I would extend it.
 
-No assistant is used at runtime: all LLM calls in the shipped agent go to the endpoint set by `LLM_*`.
+No assistant is used at runtime: every LLM call in the shipped agent goes to the endpoint set by `LLM_*`.
 
 ---
 

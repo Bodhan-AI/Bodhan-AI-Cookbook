@@ -37,3 +37,6 @@ sample_data/*
 *.flac
 *.ogg
 *.m4a
+
+# Private notes (not part of the recipe)
+/notes/

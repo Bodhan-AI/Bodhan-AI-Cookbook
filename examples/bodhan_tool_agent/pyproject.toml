@@ -7,7 +7,7 @@ name = "bodhan-tool-agent"
 version = "0.1.0"
 description = "MCP server exposing Bodhan's Indic speech, translation, TTS and OCR models as tools, plus a task agent that plans, calls them and verifies its outputs."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 license = { text = "MIT" }
 dependencies = [
     "mcp==2.3.0",

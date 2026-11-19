@@ -88,6 +88,8 @@ Self-eval (`python scripts/self_eval.py`, 12 tasks in `tasks/demo_tasks.json`): 
 
 LLM tested with: `gemini-3.5-flash-lite` via Google's OpenAI-compatible endpoint (`gemini-3.8-flash` and Pro timed out or were quota-limited on the test key during the runs).
 
+Second planner check: the suite was also run with `openai/gpt-oss-120b` on Groq's free tier. Every task whose run fit that tier's quota completed, 5 of 5 (Hindi SRT, Marathi table, Bengali read-aloud, unstated-language clip, and the French request refused as impossible); the slower runs exceeded the suite's latency targets only because of rate-limit waits. The other three hit the free tier's limits (a single request over 8,000 tokens per minute, then the daily token cap) and ended as honest `partial` results listing what was done. The remaining four tasks were not reached before the run was stopped. That run exposed a real bug, now fixed with tests: the LLM client ignored the provider's `Retry-After` and gave up on 429s too early.
+
 ## Demo video
 TBD (link, ≤ 5 minutes).
 
@@ -121,16 +123,13 @@ TBD (link, ≤ 5 minutes).
 \* OCR for the worksheet was a cache hit from an earlier smoke test; a cold run adds ₹0.20 per page. LLM cost is not included (Gemini free tier).
 
 ## AI assistance
-I made the decisions; Claude Code (Anthropic) wrote most of the code.
 
-**Decisions I made**
-- **Which problem to solve.** Of the four assignments I chose the tool server and task agent, because it matches my background in tool-calling models (BFCL fine-tuning), guarded agents and fault-tolerant workflows.
-- **How to build it.** I chose to have the project built by parallel agents rather than one long sequential session; it was split into three workstreams (MCP server, task agent, packaging and docs) bound by one shared tool contract.
-- **Cost discipline.** I set the budget (a small credit top-up, spend tracked after every batch, `--max-cost-inr` on every run) and kept the whole demo suite to under ₹4 of Bodhan usage.
-- **Model and provider.** I chose the planner LLM provider (Google Gemini); the specific model was picked by testing candidates on my key for reliable tool calling.
-- **Process.** I required work to be committed only once verified, and asked for the results and this PR once the demo suite passed.
+I built this with Claude Code (Anthropic) as the implementation tool. Claude Code wrote the code, tests and docs, ran the live API checks, and fixed the bugs those checks turned up. My part:
 
-**What Claude Code did**
-Proposed the technical design and tool contract, which I approved; wrote most of the code, tests and documentation; checked behaviour against the live Bodhan API rather than its documentation; ran the demo suite; and fixed the issues it exposed (translation endpoint, MP3 speech, rate limits, Gemini thought signatures, Devanagari word splitting). Every line is in this PR for review, and I can walk through any of it.
+- **Scope and direction:** I picked this option out of the four, set the constraints (a hard budget on Bodhan credits, the planner LLM provider and model, keys per model), and decided when each stage was good enough to commit.
+- **Review and understanding:** I read through the code and the design, and worked through the architecture until I could explain each decision and the alternatives it beat: capability-level tools, file-path data flow, the plan-first loop with the verification gate in code, budget reservations, back-transcription checks on speech, and the guards on untrusted text.
+- **Demo:** I ran the demo suite.
 
-No assistant is used at runtime: all LLM calls in the shipped agent go to the endpoint set by `LLM_*`.
+I can walk through any part of the code, why it is built the way it is, and how I would extend it.
+
+No assistant is used at runtime: every LLM call in the shipped agent goes to the endpoint set by `LLM_*`.

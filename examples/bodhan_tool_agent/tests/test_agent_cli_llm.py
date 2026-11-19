@@ -80,6 +80,35 @@ def test_server_errors_retry_then_give_up(monkeypatch: pytest.MonkeyPatch) -> No
     assert len(bodies) == 3  # first try + max_retries
 
 
+def test_rate_limits_wait_as_long_as_the_provider_asks(monkeypatch: pytest.MonkeyPatch) -> None:
+    waits: list[float] = []
+
+    async def record_sleep(seconds: float) -> None:
+        waits.append(seconds)
+
+    monkeypatch.setattr("bodhan_agent.llm.asyncio.sleep", record_sleep)
+
+    def handler(req: httpx.Request, n: int) -> httpx.Response:
+        if n == 1:
+            return httpx.Response(429, headers={"retry-after": "20"}, json={"error": {"message": "slow down"}})
+        if n <= 4:  # more 429s than max_retries=2 allows for other errors
+            return httpx.Response(429, json={"error": {"message": "Rate limit reached. Please try again in 14.57s."}})
+        return httpx.Response(200, json=completion({"content": "ok"}))
+
+    llm, bodies = llm_with(handler)
+    asyncio.run(llm.complete([{"role": "user", "content": "hi"}], TOOLS))
+    assert len(bodies) == 5
+    assert waits[0] >= 20 and waits[1] >= 14.5
+
+
+def test_retry_after_parsing() -> None:
+    from bodhan_agent.llm import retry_after_s
+
+    assert retry_after_s(Exception("Please try again in 1m2.5s")) == pytest.approx(62.5)
+    assert retry_after_s(Exception("try again in 450ms")) == pytest.approx(0.45)
+    assert retry_after_s(Exception("no hint")) is None
+
+
 def test_auth_error_is_not_retried() -> None:
     llm, bodies = llm_with(lambda req, n: httpx.Response(401, json={"error": {"message": "bad key"}}))
     with pytest.raises(LLMError):
