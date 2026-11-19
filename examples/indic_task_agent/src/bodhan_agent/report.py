@@ -35,6 +35,18 @@ def _excerpt(path: Path, limit: int = 400) -> str | None:
     return text if len(text) <= limit else text[:limit].rstrip() + " …"
 
 
+def _count_retries(trace: Path) -> int:
+    n = 0
+    try:
+        for line in trace.read_text(encoding="utf-8").splitlines():
+            if '"api_call"' in line and '"attempt": ' in line:
+                e = json.loads(line)
+                n += e.get("type") == "api_call" and int(e.get("attempt") or 1) > 1
+    except (OSError, ValueError):
+        pass
+    return n
+
+
 def build_report(agent: Any, out: Path, started_at: datetime, elapsed: float) -> dict[str, Any]:
     ctx: RunContext = agent.ctx
     outcome = agent.outcome
@@ -45,6 +57,7 @@ def build_report(agent: Any, out: Path, started_at: datetime, elapsed: float) ->
     multi = sum(1 for t in agent.tool_log if t["tool"] in PAID_TOOLS) > 1
     target = MULTI_STEP_TARGET_S if multi else SINGLE_STEP_TARGET_S
     ledger = ctx.ledger.summary()
+    retries = _count_retries(out / "trace.jsonl")
     verifications = [{"artifact": _rel(out, a.path), "kind": a.kind, **(a.verification or {})} for a in arts if a.verification]
     unverified = [_rel(out, a.path) for a in arts if a.kind in ("translation", "audio", "subtitles") and not a.verification]
     injections = sorted({t["result_summary"].get("injection_warning") for t in agent.tool_log
@@ -81,8 +94,10 @@ def build_report(agent: Any, out: Path, started_at: datetime, elapsed: float) ->
                         "note": None if elapsed <= target else "missed: see trace.jsonl latency_s per step (API latency, verification calls, LLM turns)"},
             "budget": {"max_inr": ctx.ledger.max_inr, "counted_inr": round(ctx.ledger.committed, 4), "within_budget": within,
                        "scope": "Bodhan calls (billed + uncertain retries); LLM only if priced via --llm-*-inr-per-1m"},
-            "no_waste": {"cache_hits": ctx.ledger.cache_hits, "bodhan_requests": ctx.ledger.calls,
-                         "note": "identical (model, input, settings) requests are served from the cache instead of re-sent"},
+            "no_waste": {"cache_hits": ctx.ledger.cache_hits, "bodhan_requests": ctx.ledger.calls, "retried_attempts": retries,
+                         "note": "identical (model, input, settings) requests are served from the cache or shared while in flight; "
+                                 "the only repeats are retries of a failed or timed-out attempt (rate limit, 5xx, timeout), "
+                                 "counted here and traced as api_call events with attempt > 1"},
             "verification": {"all_generated_audio_and_translations_checked": not unverified},
             "honest_failure": "unassessed: code cannot judge whether the answer is truthful; see verification results and review the outputs",
         },
