@@ -30,7 +30,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from bodhan_mcp.client import BodhanClient  # noqa: E402
 from bodhan_mcp.config import BodhanKeys, load_env_file  # noqa: E402
-from bodhan_mcp.media import concat_wavs, decode_pcm, ffmpeg_bin, read_wav, wav_bytes  # noqa: E402
+from bodhan_mcp.media import concat_wavs, ffmpeg_bin, read_wav, wav_bytes  # noqa: E402
 from bodhan_mcp.runtime import CostLedger, ResultCache, RunContext  # noqa: E402
 from bodhan_mcp.textutil import pack_segments  # noqa: E402
 from bodhan_mcp.tools.translation import translate_markdown  # noqa: E402
@@ -301,7 +301,7 @@ class Maker:
 
     async def clips(self) -> None:
         d = self.dir("clips")
-        for name, lang, voice, en, fmt in CLIPS:
+        for name, lang, voice, en, _fmt in CLIPS:
             audio = await self.speak(await self.tr(en, lang), lang, voice)
             tmp = d / "_c.wav"
             tmp.write_bytes(audio)
