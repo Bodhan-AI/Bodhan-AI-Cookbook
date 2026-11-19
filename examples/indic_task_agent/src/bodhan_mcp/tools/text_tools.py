@@ -188,6 +188,7 @@ async def read_text(ctx: RunContext, a: ReadTextIn) -> dict:
     if ctx.provenance_guard is not None:
         ctx.provenance_guard.add(content)
     chunk = content[a.offset : a.offset + a.max_chars]
+    ctx.note_read(p, content, a.offset, a.offset + len(chunk))
     framed = frame_untrusted(chunk, str(p), a.max_chars + 50)
     framed.pop("text_preview")
     framed["text"] = chunk  # the exact slice: pages joined in order reproduce the file (a preview would trim their edges)
@@ -202,8 +203,8 @@ class WriteTextIn(_Strict):
     content: str = Field(description="English text or Markdown to save. May embed earlier artifacts with {{artifact:<path>}}, which is replaced by that file's content.")
     language: str = Field("en", description="Language of `content` you wrote. Must be 'en': write English and use translate_text for Indian languages.")
     source_paths: list[str] = Field(default_factory=list, max_length=50,
-                                    description="Files this text is based on (e.g. the English translation you summarised). Recorded as its "
-                                                "sources, so outputs made from it stay linked to the original input.")
+                                    description="Files this text is based on (e.g. the English translation you summarised), each read in full "
+                                                "with read_text first. Recorded as its sources, so outputs made from it stay linked to the original input.")
 
 
 _EMBED = re.compile(r"\{\{artifact:([^}]+)\}\}")
@@ -227,7 +228,14 @@ async def write_text(ctx: RunContext, a: WriteTextIn) -> dict:
         return read_text_file(p).strip()
 
     final = _EMBED.sub(expand, a.content)
-    sources = [str(ctx.resolve_input(sp)) for sp in a.source_paths]  # must exist inside the sandbox, like any input
+    sources = []
+    for sp in a.source_paths:
+        src = ctx.resolve_input(sp)  # must exist inside the sandbox, like any input
+        if not ctx.fully_read(src, read_text_file(src)):
+            # A source is recorded only for text the caller has actually seen, all of it: naming a file is not evidence.
+            raise E.ToolError(E.INVALID_ARGUMENT, f"{src.name} has not been read in full with read_text, so it cannot be recorded as a source.",
+                              hint="Page through it with read_text (follow next_offset to the end), then call write_text again.")
+        sources.append(str(src))
     suffix = ".json" if a.name.lower().endswith(".json") else (".txt" if a.name.lower().endswith(".txt") else ".md")
     if suffix == ".json":
         if embedded:

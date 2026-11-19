@@ -42,7 +42,7 @@ async def test_summary_with_source_paths_satisfies_a_source_bound_contract(tmp_p
     plan = ("record_plan", {"steps": ["summarise in Hindi"], "deliverables": [{"kind": "translation", "language": "hi", "source": "notice.txt"}]})
     summary = lambda m: [("write_text", {"name": "summary_en.md", "content": "The library is closed on Monday.",
                                          "source_paths": [str(a)]})]
-    chat = ScriptedChat([[plan], summary, lambda m: [("translate_text", {"path": last_ok(m, "path"), "target_language": "hi"})],
+    chat = ScriptedChat([[plan], [("read_text", {"path": str(a)})], summary, lambda m: [("translate_text", {"path": last_ok(m, "path"), "target_language": "hi"})],
                          lambda m: [("finish", {"status": "completed", "final_answer": "Summary translated.", "deliverables": [last_ok(m, "path")]})]])
     await run(args(tmp_path, "Summarise the notice in Hindi", [a]), transport=FakeBodhan().transport, llm=PlannerLLM(client=chat, model="s"))
     out, rep, trace, md = read_outputs(tmp_path)
@@ -99,3 +99,46 @@ async def test_planner_retry_is_not_sent_beyond_the_budget(tmp_path):
     out, rep, trace, md = read_outputs(tmp_path)
     assert flaky.sent == 1 and rep["stop_reason"] == "llm_error"
     assert rep["cost"]["total_counted_inr"] <= 20.0 + 1e-9
+
+
+# ---- review round 6 --------------------------------------------------------------------------
+async def test_source_paths_need_the_whole_current_file_to_have_been_read(make_ctx, tmp_path):
+    notice = tmp_path / "notice.txt"
+    notice.write_text("The library will be closed on Monday. " * 20, encoding="utf-8")
+    ctx = make_ctx(FakeBodhan())
+    w = TOOL_BY_NAME["write_text"]
+    args_ = {"name": "s.md", "content": "A spaceship lands on Mars.", "source_paths": [str(notice)]}
+    r, err = await invoke(w, ctx, args_)  # never read: naming a file is not evidence
+    assert err and r["error"]["code"] == "invalid_argument"
+    page, _ = await invoke(TOOL_BY_NAME["read_text"], ctx, {"path": str(notice), "max_chars": 200})
+    r, err = await invoke(w, ctx, args_)  # first page only
+    assert err and page["next_offset"] == 200
+    while page["next_offset"] is not None:
+        page, _ = await invoke(TOOL_BY_NAME["read_text"], ctx, {"path": str(notice), "offset": page["next_offset"], "max_chars": 200})
+    r, err = await invoke(w, ctx, args_)
+    assert not err and r["source_paths"] == [str(notice.resolve())]
+    notice.write_text("Changed after it was read.", encoding="utf-8")  # the content read is no longer the file
+    r, err = await invoke(w, ctx, {**args_, "name": "s2.md"})
+    assert err
+
+
+async def test_an_ascii_hint_does_not_turn_unidentified_speech_into_verified_english(make_ctx, tmp_path):
+    from conftest import speechlike, write_wav
+
+    fake = FakeBodhan(asr_override="Bonjour monsieur merci beaucoup")
+    audio = write_wav(tmp_path / "fr.wav", speechlike(6, 16000))
+    ctx = make_ctx(fake)
+    r, err = await invoke(TOOL_BY_NAME["create_subtitles"], ctx, {"path": str(audio), "subtitle_language": "en", "source_language": "en"})
+    assert err or r["verification"]["status"] != "pass"
+
+
+async def test_a_deadline_during_retry_backoff_charges_only_the_sent_attempt(tmp_path):
+    txt = tmp_path / "p.txt"
+    txt.write_text("Trees grow slowly.", encoding="utf-8")
+    flaky = _Flaky(ScriptedChat([]), fail=99)
+    await run(args(tmp_path, "Detect the language", [txt], max_cost_inr=40.0, max_seconds=1.0, llm_input_inr_per_1m=1000.0,
+                   llm_output_inr_per_1m=1000.0), transport=FakeBodhan().transport, llm=PlannerLLM(client=flaky, model="s"))
+    out, rep, trace, md = read_outputs(tmp_path)
+    assert flaky.sent == 1 and rep["stop_reason"] == "time_limit"  # the 2 s backoff outlives the 1 s deadline
+    charged = [e for e in trace if e["type"] == "llm_uncertain"]
+    assert len(charged) == 1 and charged[0]["attempts"] == 1

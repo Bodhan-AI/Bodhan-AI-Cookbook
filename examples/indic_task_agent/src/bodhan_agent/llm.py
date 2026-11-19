@@ -111,6 +111,9 @@ class PlannerLLM:
             try:
                 resp = await self._create(messages, tools, max_tokens)
                 return self._parse(resp, time.monotonic() - t0, {t["function"]["name"] for t in tools})
+            except asyncio.CancelledError:  # cut off (e.g. by the run deadline) while a request was in flight: it may be billed
+                self.uncertain_attempts += 1
+                raise
             except LLMError:
                 raise
             except Exception as exc:  # network, 429, 5xx, malformed

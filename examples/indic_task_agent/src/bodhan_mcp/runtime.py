@@ -387,6 +387,9 @@ class RunContext:
     verify_by_default: bool = True
     artifacts: dict[str, Artifact] = field(default_factory=dict)
     transcripts: dict[str, Path] = field(default_factory=dict)  # source audio path -> segments JSON made this run
+    # path -> (sha256 of the content read, character spans returned by read_text), so write_text can
+    # accept a file as a summary's source only after the caller has read all of its current content
+    read_spans: dict[str, tuple[str, list[tuple[int, int]]]] = field(default_factory=dict)
     started: float = field(default_factory=time.monotonic)
     # Agent mode: Indic text the LLM is allowed to pass inline (task text + tool outputs).
     provenance_guard: Any = None
@@ -433,6 +436,23 @@ class RunContext:
         if not label or label == "inline":
             return []
         return [Path(label).name]
+
+    def note_read(self, path: Path, content: str, start: int, end: int) -> None:
+        digest = sha256_bytes(content.encode("utf-8"))
+        known, spans = self.read_spans.get(str(path), (digest, []))
+        self.read_spans[str(path)] = (digest, (spans if known == digest else []) + [(start, end)])
+
+    def fully_read(self, path: Path, content: str) -> bool:
+        """True when read_text has returned every character of `content` (the file as it is now)."""
+        digest, spans = self.read_spans.get(str(path), ("", []))
+        if digest != sha256_bytes(content.encode("utf-8")):
+            return False
+        reached = 0
+        for s, e in sorted(spans):
+            if s > reached:
+                return False
+            reached = max(reached, e)
+        return reached >= len(content)
 
     def register(self, artifact: Artifact) -> Artifact:
         self.artifacts[str(artifact.path)] = artifact

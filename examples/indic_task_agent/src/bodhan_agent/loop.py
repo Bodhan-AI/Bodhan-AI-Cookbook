@@ -237,8 +237,9 @@ class Agent:
                 reply = await asyncio.wait_for(self.llm.chat(self.messages, tools, max_tokens=LLM_COMPLETION_RESERVE if est is not None else None,
                                                              can_retry=can_retry), timeout=max(0.0, self._time_left()))
             except TimeoutError:
-                if est is not None:  # the cut-off attempt, and failed ones before it, may have been billed
-                    self._charge_uncertain_llm(est, getattr(self.llm, "uncertain_attempts", 0) + 1, "timeout")
+                sent = getattr(self.llm, "uncertain_attempts", 0)  # includes a request cut off in flight, not one waiting to retry
+                if est is not None and sent:
+                    self._charge_uncertain_llm(est, sent, "timeout")
                 return self._forced_stop(("time_limit", f"Reached the {self.settings.max_seconds:.0f}s time limit during a planner call."))
             except LLMError as exc:
                 sent = getattr(self.llm, "uncertain_attempts", 0)

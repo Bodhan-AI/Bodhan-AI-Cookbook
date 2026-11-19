@@ -101,10 +101,8 @@ async def transcribe_file(ctx: RunContext, path: Path, language: str | None, *, 
     detection = detect_language(text).as_dict() if text else None
     if lang and detection and detection["language"] and detection["language"] != lang:
         notes.append(f"transcript script suggests {detection['language']} although {lang} was used")
-    elif lang and detection and detection["language"] is None and detection["script"] and script_matches_language(text, lang) >= 0.9:
-        # e.g. a short English clip with few function words: the script fits the language it was transcribed in, so keep that
-        detection.update(language=lang, language_name=LANGUAGE_NAMES.get(lang), note=f"{detection['note']}; script consistent with the "
-                         f"transcription language {LANGUAGE_NAMES.get(lang, lang)}, which is used")
+    # An inconclusive transcript stays unidentified even when a language was requested: a hint is not evidence
+    # (French heard with an "en" hint must not become verified English). The hint is reported as language_used.
     return {"text": text, "segments": segments, "duration_s": round(total, 2), "language_used": lang or "auto",
             "detection": detection, "notes": notes}
 

@@ -135,7 +135,7 @@ Resources: `bodhan://voices` (the fixed voice library and styles), `bodhan://lan
 | `synthesize_speech` | indic-speak | Sentence-sized requests, every segment back-transcribed and repaired once, MP3 or WAV, labelled AI-generated. |
 | `ocr_document` | indic-ocr | Photos, multi-page TIFFs and PDFs, page by page. A clean PDF text layer is used for free unless the page also holds a large image. Markdown tables. Truncated pages are retried, then reported as incomplete. |
 | `verify_translation`, `verify_speech` | translate / transcribe | Independent checks for outputs made elsewhere. |
-| `detect_language`, `read_text`, `write_text`, `list_voices` | none | Script-based language ID, paging through artifacts, saving English text (with `source_paths` recording what it was based on), and the voice library. |
+| `detect_language`, `read_text`, `write_text`, `list_voices` | none | Script-based language ID, paging through artifacts, saving English text (with `source_paths` recording files it was based on; each must first be read in full with `read_text`, and after `--resume` it is read again), and the voice library. |
 
 Every tool validates its input and returns `{"ok": false, "error": {"code", "message", "hint", "retryable"}}` on failure. Codes include `unsupported_language`, `unsupported_voice`, `file_not_found`, `budget_exceeded`, `rate_limited`, `provenance_violation` and others. See [docs/design.md](docs/design.md) for why the tools have this granularity and how each one handles its model's limits.
 

@@ -35,7 +35,7 @@ artifact paths that tools return. Never run the same tool on the same input twic
 - Language unknown? transcribe_audio/ocr_document detect it; detect_language is free for text.
 - To understand an Indian-language document (for a summary or answer), translate it to English with translate_text \
 (target_language="en") and read the English (read_text) instead of reading the Indic text.
-- Summaries/answers: write them in English with write_text (list the files you based them on in source_paths), then \
+- Summaries/answers: write them in English with write_text (list the files you based them on, after reading them in full with read_text, in source_paths), then \
 translate_text if another language is needed.
 - Speech length: one minute of Indic-Speak audio carries roughly 120 English source words for Hindi/Bengali/Marathi \
 and roughly 100 for Tamil/Telugu/Kannada/Malayalam (longer words). For an N-minute audio, write about that many \

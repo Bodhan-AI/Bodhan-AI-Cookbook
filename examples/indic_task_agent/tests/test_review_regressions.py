@@ -164,7 +164,7 @@ async def test_priced_llm_is_checked_before_each_call(tmp_path):
 async def test_same_language_subtitles_carry_verification(make_ctx, tmp_path):
     from conftest import speechlike, write_wav
 
-    fake = FakeBodhan(asr_override="hello class please open your books")
+    fake = FakeBodhan(asr_override="the class will open the books and read the first chapter")
     audio = write_wav(tmp_path / "en.wav", speechlike(10, 16000))
     ctx = make_ctx(fake)
     r, err = await call(ctx, "create_subtitles", path=str(audio), subtitle_language="en", source_language="en")
