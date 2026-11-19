@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import shutil
 import sys
 import time
 from pathlib import Path
@@ -25,7 +24,6 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--out", default="./out")
     parser.add_argument("--max-steps", type=int, default=30)
     parser.add_argument("--max-cost-inr", type=float, default=20.0)
-    parser.add_argument("--ui", action="store_true", help="also start the read-only trace viewer (stretch)")
     parser.add_argument("--resume", action="store_true", help="continue an interrupted run in --out: reuse its plan and finished steps")
     args = parser.parse_args(argv)
 
@@ -188,13 +186,6 @@ def main(argv: list[str] | None = None) -> int:
         srt_note=srt_note,
     )
     trace.emit("stop", status=status, cost_inr=spent, duration_s=round(duration, 1))
-    if args.ui:
-        try:
-            from .webui import serve
-
-            serve(str(out), port=8766, block=True)
-        except Exception as exc:  # noqa: BLE001
-            print(f"UI unavailable: {exc}", file=sys.stderr)
     print(json.dumps({"status": status, "cost_inr": spent, "out": str(out)}))
     return 0
 
@@ -328,9 +319,3 @@ def _allocate(text: str, chunks: list[dict[str, Any]]) -> list[dict[str, Any]]:
         if piece:
             cues.append({"start_s": float(chunk.get("start_s") or 0.0), "end_s": float(chunk.get("end_s") or 0.0), "text": piece})
     return cues
-
-
-def _copy_demo_media() -> None:  # pragma: no cover - convenience only
-    media_root = Path(__import__("os").environ.get("BODHAN_DEMO_MEDIA", ""))
-    if media_root.is_dir():
-        shutil.copytree(media_root, Path("demo_tasks/media"), dirs_exist_ok=True)

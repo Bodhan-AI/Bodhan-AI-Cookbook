@@ -65,6 +65,7 @@ PAGE = """<!doctype html>
  .title{font-weight:600}.sub{color:#b6bfd3;margin-top:2px}
  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
  .chip{font-size:12px;padding:2px 9px;border-radius:99px;background:#0e131c;border:1px solid var(--line);color:#b6bfd3}
+ .chip.cache{background:#14392a;color:var(--green);border-color:#2a5a40}
  .tool{font-weight:600;border:0}
  .t-ocr_document{background:#2a2250;color:var(--violet)}.t-transcribe_audio{background:#173458;color:var(--blue)}
  .t-translate_text{background:#14392a;color:var(--green)}.t-speak_text{background:#4a2c14;color:var(--orange)}
@@ -100,7 +101,7 @@ function note(kind,icon,kicker,title,sub,chips){
 function resultChips(e){
   const s=e.summary||{},out=[];
   out.push(chip(rs(e.cost_inr)));out.push(chip(sec(e.latency_ms)));
-  if(e.cache_hit)out.push(chip('from cache'));
+  if(e.cache)out.push(chip(e.cache,'cache'));else if(e.cache_hit)out.push(chip('from cache','cache'));
   if(s.duration_s)out.push(chip(Math.round(s.duration_s)+' s audio'));
   if(s.page_count)out.push(chip(s.page_count+' pages'));
   if(s.chars)out.push(chip(s.chars+' characters'));
@@ -176,7 +177,8 @@ async function show(run){
       checks.card.append(row)}
     else if(e.type==='error'){tl.append(note('bad','✗','Stopped',e.code||'error',e.message||''))}
     else if(e.type==='stop'){
-      tl.append(note(e.status==='completed'?'ok':'bad','■','Finished',e.status==='completed'?'Done':'Ended: '+e.status,null,[chip('Total '+rs(e.cost_inr)),chip(e.duration_s+' s')]))}
+      const fc=[chip('Total '+rs(e.cost_inr)),chip(e.duration_s+' s')];if(report&&report.cache_hits)fc.push(chip(report.cache_hits+' step(s) served from cache','cache'));
+      tl.append(note(e.status==='completed'?'ok':'bad','■','Finished',e.status==='completed'?'Done':'Ended: '+e.status,null,fc))}
   }
   scroller.scrollTop=keep}
 

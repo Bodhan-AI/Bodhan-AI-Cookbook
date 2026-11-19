@@ -92,6 +92,7 @@ class Speech(BaseModel):
     duration_s: float = Field(description="Measured audio duration.")
     chars: int = Field(description="Characters synthesised.")
     clips: int = Field(description="Number of model requests joined.")
+    cache_hits: int = Field(default=0, description="Clips served from cache this call.")
     voice: str = Field(description="Voice name used.")
     language: str = Field(description="Language code requested.")
     format: str = Field(description="wav or mp3.")

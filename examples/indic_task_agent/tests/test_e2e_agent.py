@@ -158,6 +158,9 @@ def test_second_identical_run_costs_nothing(full_run, tmp_path):
     run(tmp_path / "run2", full_run["pdf"])
     second = report_of(tmp_path / "run2")
     assert second["steps"] and second["budget"]["cost_inr"] == 0
+    events = [json.loads(line) for line in (tmp_path / "run2" / "trace.jsonl").read_text(encoding="utf-8").splitlines()]
+    cached = [e for e in events if e["type"] == "tool_result" and e["tool"] != "write_text"]
+    assert cached and all(e["cache_hit"] and "from cache" in (e.get("cache") or "") for e in cached)
 
 
 def test_hindi_voice_note_becomes_an_english_srt(bodhan, monkeypatch, tmp_path, make_audio):

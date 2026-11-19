@@ -308,11 +308,12 @@ def _run_step(step: Step, results: dict[str, dict[str, Any]], out_dir: Path, led
     trace.emit("tool_call", step=step.id, tool=step.tool, intent=step.intent, args=safe_args(call_args), reserved_inr=round(estimate, 4))
     marker = _mark_pending(out_dir, step) if step.tool in _PAID_TOOLS else None
     try:
-        result, cache_hit = _dispatch(step, call_args, trace)
+        result, _ = _dispatch(step, call_args, trace)
         measured = float(_dump(result).get("cost_inr", 0.0))
         ledger.settle(estimate, measured)
         summary = _summarise(result)
-        trace.emit("tool_result", step=step.id, tool=step.tool, ok=True, latency_ms=int((time.monotonic() - started) * 1000), cost_inr=round(measured, 4), cache_hit=cache_hit, summary=summary)
+        cache, cache_hit = _cache_note(step.tool, result)
+        trace.emit("tool_result", step=step.id, tool=step.tool, ok=True, latency_ms=int((time.monotonic() - started) * 1000), cost_inr=round(measured, 4), cache_hit=cache_hit, cache=cache, summary=summary)
         return StepRecord(step.id, step.intent, step.tool, args, True, int((time.monotonic() - started) * 1000), round(measured, 4), cache_hit, _dump(result))
     except BodhanError as exc:
         ledger.settle(estimate, 0.0)
@@ -451,6 +452,28 @@ def _dump(result: Any) -> dict[str, Any]:
     if hasattr(result, "model_dump"):
         return result.model_dump()
     return {"value": str(result)}
+
+
+def _cache_note(tool: str, result: Any) -> tuple[str | None, bool]:
+    """How much of this call the on-disk cache served, in the tool's own units."""
+    data = _dump(result)
+    if tool == "transcribe_audio":
+        total, hits, noun = len(data.get("chunks") or []), int(data.get("cache_hits") or 0), "audio windows"
+    elif tool == "translate_text":
+        total = int(data.get("segments") or 0)
+        hits, noun = max(0, total - int(data.get("requests") or 0)), "segments"
+    elif tool == "ocr_document":
+        pages = data.get("pages") or []
+        total, hits, noun = len(pages), sum(1 for p in pages if p.get("cache_hit")), "pages"
+    elif tool == "speak_text":
+        total, hits, noun = int(data.get("clips") or 0), int(data.get("cache_hits") or 0), "speech clips"
+    else:
+        return None, False
+    if not total or not hits:
+        return None, False
+    if hits >= total:
+        return f"all {total} {noun} from cache", True
+    return f"{hits} of {total} {noun} from cache", False
 
 
 def _summarise(result: Any) -> dict[str, Any]:

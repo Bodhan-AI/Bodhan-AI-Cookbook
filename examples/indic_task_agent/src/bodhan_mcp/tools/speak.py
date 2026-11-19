@@ -80,6 +80,7 @@ def speak_text(
         duration_s=round(duration, 3),
         chars=len(content),
         clips=len(clips),
+        cache_hits=hits,
         voice=chosen,
         language=language,
         format=format,

@@ -20,7 +20,7 @@ cp .env.example .env     # then fill in the keys; .env is gitignored
 ```bash
 # the task agent
 python -m bodhan_agent --task "Make a two-minute Tamil audio summary of this chapter" \
-  --files path/to/inputs/ --out ./out [--max-steps 30] [--max-cost-inr 20] [--ui] [--resume]
+  --files path/to/inputs/ --out ./out [--max-steps 30] [--max-cost-inr 20] [--resume]
 
 # the MCP server on its own: stdio, or streamable HTTP with a bearer token
 python -m bodhan_mcp
@@ -28,6 +28,19 @@ BODHAN_MCP_TOKEN=... python -m bodhan_mcp --transport streamable-http --port 876
 ```
 
 Each run writes `out/result.md`, `out/artifacts/`, `out/trace.jsonl` and `out/report.json`. An impossible or unaffordable task exits 0 with `status: failed` and the reason; exit 2 means the command line was wrong.
+
+### Trace viewer
+
+A read-only browser view of one run or a folder of runs, stdlib only:
+
+```bash
+python -m bodhan_agent.webui ./out          # one run folder, or a folder of run folders
+# -> http://127.0.0.1:8766/
+```
+
+It follows runs live as they are written. Runs one level below the argument are listed,
+so `./out` shows `out/<run>/` but not `out/demo/<run>/`; point it at
+`./out/demo` for a demo folder. Start it in its own terminal: it owns port 8766.
 
 ## Tools
 

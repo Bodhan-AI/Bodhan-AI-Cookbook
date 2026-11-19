@@ -69,3 +69,16 @@ def test_server_tool_wrappers_take_no_inline_text():
     assert len(wrappers) == 6
     for fn in wrappers:
         assert not set(inspect.signature(fn).parameters) & {"text", "content", "body", "transcript"}
+
+
+def test_no_tracked_file_has_a_real_looking_secret():
+    import subprocess
+
+    files = subprocess.run(["git", "ls-files"], cwd=ROOT, capture_output=True, text=True, check=True).stdout.split("\n")
+    bad = []
+    for name in filter(None, files):
+        path = ROOT / name
+        if path.suffix in {".py", ".md", ".json", ".jsonl", ".txt", ".toml", ".yml", ".yaml", ".example", ""} and path.is_file():
+            if SECRET_SHAPES.search(path.read_text(encoding="utf-8", errors="ignore")):
+                bad.append(name)
+    assert bad == []
