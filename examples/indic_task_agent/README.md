@@ -54,7 +54,7 @@ One LLM call writes a JSON plan; Python prices it, reserves cost before every ca
 
 ```bash
 pip install pytest                          # once; tests are not in requirements.txt
-pytest -q                                   # 172 tests, no network, no keys
+pytest                                      # 177 tests, one line each, no network, no keys
 python scripts/cold_read.py                 # stock MCP client against the stdio server
 python scripts/check_media.py               # which demo media is present (free)
 python scripts/eval_suite.py --replay demo_runs   # re-check recorded runs, free
