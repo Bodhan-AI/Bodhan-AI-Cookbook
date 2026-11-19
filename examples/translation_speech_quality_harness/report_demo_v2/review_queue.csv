@@ -1,0 +1,13 @@
+id,lang,category,severity,confidence,source_span,translation_span,source_quote,translation_quote,checks,human_label,human_severity
+health-dose,hi,addition,critical,0.625,"[17, 106]","[26, 27]","For adults, take 500 mg of paracetamol every 6 hours, and never more than 4 g in one day.",",",regen_diff,,
+wmt-103,ta,mistranslation,critical,0.5,"[0, 99]","[0, 145]",FTSE 250 firm famous for sausage rolls and steak bakes plans to rise branch network but not prices.,எஃப்.டி.எஸ்.இ 250 நிறுவனத்தின் புகழ் பெற்ற சாசேஜ் ரோல்ஸ் மற்றும் ஸ்டீக் பேக்ஸ் ஆகியவை விலையை உயர்த்தாமல் கிளை வலையமைப்ப…,judge,,
+wmt-125,ta,term,major,0.5,"[141, 146]","[47, 60]",Jails,சிறைச்சாலைகள்,judge,,
+wmt-130,bn,term,major,0.5,"[0, 14]","[0, 12]",Hailey Ockinga,হেইলি ওকিংগা,judge,,
+wmt-130,hi,term,minor,0.5,"[0, 14]","[0, 11]",Hailey Ockinga,हेली ओकिंगा,judge,,
+wmt-28,ta,mistranslation,minor,0.85,"[122, 141]","[176, 190]",potentially illegal,சட்டவிரோதமானது,judge,,
+wmt-54,bn,term,major,0.5,"[12, 25]","[24, 35]",Thomas Massie,টমাস ম্যাসি,judge,,
+wmt-54,bn,mistranslation,major,0.5,null,"[210, 232]",,"""ঝুঁকিপূর্ণ পরিস্থিতি""",judge,,
+wmt-54,hi,term,major,0.5,"[69, 92]","[54, 76]",most vocal budget hawks,सबसे मुखर बजट समर्थकों,judge,,
+wmt-57,ta,mistranslation,minor,0.5,"[0, 10]","[61, 79]",Regulators,ஒழுங்குமுறை ஆணையம்,judge,,
+wmt-71,bn,term,minor,0.5,"[111, 115]","[104, 107]",Kiev,কিভ,judge,,
+wmt-79,ta,mistranslation,minor,0.5,"[63, 81]","[86, 102]",should be outraged,கோபப்பட வேண்டும்,judge,,

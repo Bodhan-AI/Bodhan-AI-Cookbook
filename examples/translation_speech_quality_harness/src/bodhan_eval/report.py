@@ -116,7 +116,8 @@ def write(out: Path, results: list[dict], skipped: list[dict], meta: dict, log, 
     }
     facts = {"items": summary["items"], "status": summary["status"], "per_category": summary["per_category"],
              "per_language": {lang: {k: v[k] for k in ("status", "flags", "weighted_errors_per_1000_words")} for lang, v in per_lang.items()},
-             "targets": [{k: t[k] for k in ("metric", "value", "target")} for t in summary["targets"]]}
+             # Unmeasured targets (no labels) are left out, or the LLM reports them as missed.
+             "targets": [{k: t[k] for k in ("metric", "value", "target")} for t in summary["targets"] if t["value"] is not None]}
     text = narrate(facts) if narrate else None
     summary["narrative"] = {"text": text, "by": "llm"} if text else {"text": _fixed_narrative(summary), "by": "fixed"}
     if diff is not None:

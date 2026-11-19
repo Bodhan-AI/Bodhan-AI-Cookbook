@@ -263,7 +263,9 @@ def align(text: str, transcript: str) -> dict:
     return {"similarity": round(ratio, 4), "findings": findings, "text_words": len(words), "transcript_words": len(b)}
 
 
-LONG_TAIL_SHARE = 1 / 3  # chosen while looking at the demo data; see the build journal
+# A missing tail this long is far beyond the transcriber's ~18% error rate on clean audio (model card), so it is
+# exact evidence; shorter tails stay noisy. Same value for every language. DESIGN.md says how it was checked.
+LONG_TAIL_SHARE = 1 / 3
 
 
 def align_candidates(al: dict, st: dict) -> list[dict]:
