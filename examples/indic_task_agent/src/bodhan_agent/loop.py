@@ -621,7 +621,10 @@ class Agent:
         worst = (art.verification or {}).get("status")
         if art.kind in VERIFIED_KINDS and art.verification is None:
             worst = "fail"
+        inputs = {str(f) for f in self.files}
         for dep in art.depends_on:
+            if dep in inputs:  # the user's own input file: nothing to verify
+                continue
             child = self.ctx.artifacts.get(dep)
             st = self._effective_status(child, seen) if child is not None else "fail"  # an unknown source cannot vouch
             if order.get(st, 0) > order.get(worst, 0):

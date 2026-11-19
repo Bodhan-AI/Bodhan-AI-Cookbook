@@ -60,7 +60,16 @@ These calls exercise indic-translate only. The other three models are exercised 
 
 ## Stretch goals
 
-TODO(final): one row per bullet, with command, test and run evidence.
+Each extra is shown by a command, a test, and a real run or transcript.
+
+| Brief's stretch goal | Command | Tests | Evidence from a real run |
+|---|---|---|---|
+| Streamable HTTP with simple token authentication | `python -m bodhan_mcp --transport http --port 8765` | `tests/test_mcp_http.py` (official SDK client; missing/wrong token refused) | [`evaluation/clients/inspector.md`](../evaluation/clients/inspector.md): MCP Inspector over HTTP, 401 without or with a wrong token, then tool list and a real Bodhan call with the token |
+| MCP resources or prompts | `bodhan://voices`, `bodhan://languages`, `bodhan://pricing`, `bodhan://errors`; prompt `plan_media_task` | `tests/test_mcp_stdio.py::test_free_tools_and_resources`, `::test_prompt_and_error_catalogue` | Inspector transcript: `resources/list` and `resources/read bodhan://voices` |
+| Self-evaluation script with a pass rate | `python scripts/run_suite.py [--ids ...] [--no-cache]` | `tests/test_scripts.py` (stale or provisional reports and planner outages never count as passes) | the suite summaries linked under Demo tasks, Held-out tasks and Other planner models |
+| Parallel tool calls where steps are independent | independent calls in one planner turn run concurrently (budget reserved per call) | `tests/test_audit_regressions.py::test_independent_calls_in_one_turn_run_in_parallel_with_separate_costs` | d4 (five unlabelled clips), final cold run: the planner issued five `transcribe_audio` calls in one turn. All five live requests started 17.7 s into the run and finished between 18.8 and 19.1 s, instead of about five times as long one after another (see that run's `trace.jsonl` under Demo tasks) |
+| Resumable tasks | `python -m bodhan_agent --resume --out ./out` | `tests/test_research_regressions.py::test_resume_after_a_hard_process_kill` (a child process is killed with no cleanup, then resumed without paying again), `tests/test_tier2_regressions.py::test_an_interrupt_mid_turn_keeps_the_turn_replayable` (Ctrl-C during a tool call, in a child process) | the tests run the real CLI code path in separate processes; every live run also leaves `out/.state/checkpoint.json` and a provisional report while it runs |
+| Thin web UI with the plan and trace live | `python -m bodhan_agent.viewer --out ./out` | `tests/test_viewer.py` | polled during a live d1 run: steps went 3 → 6, artifacts 2 → 5 and Bodhan spend ₹0 → ₹1.11 while the run progressed, ending on its final status |
 
 ## Cost and runtime
 

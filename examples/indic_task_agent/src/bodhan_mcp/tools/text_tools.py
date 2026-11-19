@@ -20,6 +20,7 @@ from ..languages import (
     TRANSLATE_LANGUAGES,
     VOICES,
     detect_language,
+    indic_fraction,
     normalize_language,
 )
 from ..runtime import Artifact, RunContext, settle, sha256_bytes
@@ -268,7 +269,12 @@ async def write_text(ctx: RunContext, a: WriteTextIn) -> dict:
                               hint="Write English and call translate_text; Indian-language text must come from a Bodhan model.")
     dest = ctx.artifact_path(a.name, suffix)
     dest.write_text(final, encoding="utf-8")
-    ctx.register(Artifact(dest, "text", "write_text", "en", "planner (English)" + (" + embedded artifacts" if embedded else ""), None,
+    lang = "en"
+    if embedded:  # the file's language is that of what it shows: mostly embedded Indian-language text is that language
+        guess = detect_language(final)
+        if guess.language and guess.language != "en" and indic_fraction(final) > 0.5:
+            lang = guess.language
+    ctx.register(Artifact(dest, "text", "write_text", lang, "planner (English)" + (" + embedded artifacts" if embedded else ""), None,
                           depends_on=sorted(set(embedded) | {s for s in sources if s in ctx.artifacts}),
                           origin=sorted({o for e in embedded + sources for o in ctx.origin_of(e)})))
     return {"path": str(dest), "chars": len(final), "embedded_artifacts": embedded, "source_paths": sources}

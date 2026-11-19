@@ -383,3 +383,22 @@ async def test_the_short_tool_list_is_used_when_even_the_first_request_is_too_lo
     out, rep, trace, md = read_outputs(tmp_path)
     assert rep["status"] in ("completed", "completed_with_warnings"), rep["final_answer"]
     assert any("short tool list" in a for a in rep["llm"]["adaptations"])
+
+
+# final Sol run, h3 ("Read this out loud", an Odia text file): the planner declared the text next to the audio and
+# made it by embedding the input file; the embed counted as an unverifiable source and the file was labelled English
+async def test_read_aloud_with_the_input_text_as_a_deliverable(tmp_path):
+    from test_agent_e2e import tool_results
+
+    odia = tmp_path / "konark.txt"
+    odia.write_text("କୋଣାର୍କ ସୂର୍ଯ୍ୟ ମନ୍ଦିର ଓଡ଼ିଶାର ଏକ ପ୍ରସିଦ୍ଧ ସ୍ଥାନ। ଏହା ସମୁଦ୍ର କୂଳରେ ଅବସ୍ଥିତ।", encoding="utf-8")
+    plan = ("record_plan", {"steps": ["speak", "text"], "deliverables": [{"kind": "audio", "language": "or", "source": "konark.txt"},
+                                                                         {"kind": "text", "language": "or", "source": "konark.txt"}]})
+    chat = ScriptedChat([[plan], [("synthesize_speech", {"path": str(odia), "language": "or", "format": "wav"})],
+                         lambda m: [("write_text", {"name": "konark_text.md", "content": f"{{{{artifact:{odia}}}}}"})],
+                         lambda m: [("finish", {"status": "completed", "final_answer": "Read aloud.",
+                                                "deliverables": [r["path"] for r in tool_results(m) if r.get("ok") and r.get("path")]})]])
+    await run(args(tmp_path, "Read this out loud", [odia]), transport=FakeBodhan().transport, llm=PlannerLLM(client=chat, model="s"))
+    out, rep, trace, md = read_outputs(tmp_path)
+    assert rep["status"] in ("completed", "completed_with_warnings"), [e.get("reasons") for e in trace if e["type"] == "finish_rejected"]
+    assert sorted(d["language"] for d in rep["deliverables"]) == ["or", "or"]
