@@ -271,6 +271,11 @@ class Agent:
     # ------------------------------------------------------------------ entry point
 
     async def run(self) -> RunState:
+        # A reused --out folder must not show files from an earlier run as if this run produced them.
+        for d in (self.work, self.art):
+            shutil.rmtree(d, ignore_errors=True)
+        for name in ("result.md", "report.json", "trace.jsonl"):
+            (self.out / name).unlink(missing_ok=True)
         for d in (self.out, self.work, self.art):
             d.mkdir(parents=True, exist_ok=True)
         self.trace = Trace(self.out / "trace.jsonl")

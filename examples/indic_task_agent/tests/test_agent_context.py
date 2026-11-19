@@ -226,3 +226,12 @@ async def test_segments_json_is_not_a_deliverable_and_audio_brings_its_text(fake
     exts = sorted(a["path"].rsplit(".", 1)[-1] for a in report["artifacts"])
     assert exts == ["md", "mp3"] or exts == ["mp3", "txt"]  # audio plus the Tamil text it reads
     assert report["status"] == "success"
+
+
+async def test_reused_out_folder_starts_clean(fake, tmp_path):
+    stale = tmp_path / "out" / "artifacts" / "old_result.srt"
+    stale.parent.mkdir(parents=True)
+    stale.write_text("from an earlier run", encoding="utf-8")
+    turns = [lambda s: [("finish", {"status": "impossible", "answer_en": "Nothing to do.", "artifacts": []})]]
+    await _run(fake, tmp_path, "noop", [], ScriptedLLM(PLAN, turns))
+    assert not stale.exists()
