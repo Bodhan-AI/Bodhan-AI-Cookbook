@@ -1,0 +1,57 @@
+{
+  "status": "impossible",
+  "stop_reason": "planner judged the task infeasible",
+  "task": "Translate this video into French",
+  "answer_en": "French is not a supported target language in the available translation tools; only Indian languages listed in translation_targets can be translated to. Hence the requested translation cannot be performed.",
+  "artifacts": [],
+  "assumptions": [],
+  "notes": [
+    "Rough cost to process every input once with its main model: Rs 0.01 (budget Rs 20.00)."
+  ],
+  "security_flags": [],
+  "steps": {
+    "tool_calls": 0,
+    "max_steps": 30,
+    "llm_calls": 1,
+    "duplicate_calls_blocked": 0
+  },
+  "cost": {
+    "total_inr": 0.0,
+    "max_cost_inr": 20.0,
+    "by_model": {},
+    "llm_tokens": {
+      "prompt_tokens": 1695,
+      "completion_tokens": 366
+    },
+    "llm_model": "openai/gpt-oss-20b",
+    "note": "Bodhan costs are computed from the published hosted prices; LLM spend is reported in tokens."
+  },
+  "time": {
+    "elapsed_s": 12.62,
+    "max_wall_s": 900.0
+  },
+  "verification": [],
+  "plan": {
+    "assumptions": null,
+    "deliverables": [],
+    "estimated_cost_inr": 0,
+    "feasible": false,
+    "infeasible_reason": "French is not a supported target language in the available translation tools; only Indian languages listed in translation_targets can be translated to. Hence the requested translation cannot be performed.",
+    "input_languages": "unknown",
+    "steps": [],
+    "understanding": "The user wants the video translated into French, but the system does not support French translation."
+  },
+  "quality_targets": {
+    "budget_respected": true,
+    "all_artifacts_verified": true,
+    "honest_failure": true,
+    "latency_target_s": 30,
+    "latency_met": true,
+    "no_repeat_paid_calls": {
+      "duplicates_blocked": 0,
+      "cache_hits": 0,
+      "paid_tool_calls": 0
+    },
+    "misses": []
+  }
+}

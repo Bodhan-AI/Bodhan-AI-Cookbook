@@ -1,0 +1,99 @@
+{
+  "status": "success",
+  "stop_reason": null,
+  "task": "Translate this worksheet into Marathi and keep the table",
+  "answer_en": "The worksheet image has been OCR‑processed and translated into Marathi, preserving the original table structure.",
+  "artifacts": [
+    {
+      "path": "artifacts\\worksheet_translated.md",
+      "description": "Markdown file containing the Marathi translation of the worksheet with table retained",
+      "produced_by": "translate_text",
+      "verified": true,
+      "verification": {
+        "check": "coverage + structure + target script",
+        "coverage_ok": true,
+        "structure_preserved": true,
+        "target_script_share": 1.0,
+        "units_translated": 20,
+        "units_total": 20
+      }
+    }
+  ],
+  "assumptions": [],
+  "notes": [
+    "Rough cost to process every input once with its main model: Rs 0.20 (budget Rs 20.00)."
+  ],
+  "security_flags": [],
+  "steps": {
+    "tool_calls": 2,
+    "max_steps": 30,
+    "llm_calls": 4,
+    "duplicate_calls_blocked": 0
+  },
+  "cost": {
+    "total_inr": 0.0,
+    "max_cost_inr": 20.0,
+    "by_model": {
+      "indic-ocr": {
+        "calls": 0,
+        "cached": 1,
+        "cost_inr": 0.0
+      },
+      "indic-translate": {
+        "calls": 0,
+        "cached": 19,
+        "cost_inr": 0.0
+      }
+    },
+    "llm_tokens": {
+      "prompt_tokens": 13422,
+      "completion_tokens": 961
+    },
+    "llm_model": "openai/gpt-oss-20b",
+    "note": "Bodhan costs are computed from the published hosted prices; LLM spend is reported in tokens."
+  },
+  "time": {
+    "elapsed_s": 56.94,
+    "max_wall_s": 900.0
+  },
+  "verification": [
+    {
+      "artifact": "artifacts\\worksheet_translated.md",
+      "verified": true,
+      "check": "coverage + structure + target script",
+      "coverage_ok": true,
+      "structure_preserved": true,
+      "target_script_share": 1.0,
+      "units_translated": 20,
+      "units_total": 20
+    }
+  ],
+  "plan": {
+    "assumptions": [],
+    "deliverables": [
+      "translated_worksheet.md"
+    ],
+    "estimated_cost_inr": 0.4,
+    "feasible": true,
+    "infeasible_reason": null,
+    "input_languages": "en",
+    "steps": [
+      "ocr_document",
+      "translate_text"
+    ],
+    "understanding": "Translate the worksheet image into Marathi while preserving the table structure."
+  },
+  "quality_targets": {
+    "budget_respected": true,
+    "all_artifacts_verified": true,
+    "honest_failure": true,
+    "latency_target_s": 300,
+    "latency_met": true,
+    "no_repeat_paid_calls": {
+      "duplicates_blocked": 0,
+      "cache_hits": 20,
+      "paid_tool_calls": 0
+    },
+    "misses": []
+  }
+}
