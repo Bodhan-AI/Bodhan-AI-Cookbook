@@ -75,6 +75,7 @@ class FakeBodhan:
     fail_first: dict[str, list[int]] = field(default_factory=dict)  # path-suffix -> statuses to return first
     retry_after: str = "0"
     speak_garble: set[int] = field(default_factory=set)  # TTS call indices whose audio "says" something else
+    speak_garble_if: str = ""  # TTS inputs containing this text always come back garbled
     ocr_pages: list[str] = field(default_factory=lambda: ["Page text."])
     reflow_tables: bool = False  # whole-table translation loses the table shape
     calls: Counter = field(default_factory=Counter)
@@ -161,7 +162,8 @@ class FakeBodhan:
         text = body["input"]
         idx = self.calls["speech"] - 1
         audio = wav_tone(max(0.5, len(text) * self.speak_seconds_per_char), seed=idx)
-        said = "कुछ और ही बोला गया" if idx in self.speak_garble else text
+        garbled = idx in self.speak_garble or (self.speak_garble_if and self.speak_garble_if in text)
+        said = "कुछ और ही बोला गया" if garbled else text
         self.spoken[hashlib.sha256(audio).hexdigest()] = said
         self.requests.append({"kind": "speak", "voice": voice, "lang": instr["lang"], "text": text})
         return httpx.Response(200, content=audio, headers={"content-type": "audio/mpeg"})  # mislabelled like the live API

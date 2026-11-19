@@ -189,7 +189,8 @@ async def read_text(ctx: RunContext, a: ReadTextIn) -> dict:
         ctx.provenance_guard.add(content)
     chunk = content[a.offset : a.offset + a.max_chars]
     framed = frame_untrusted(chunk, str(p), a.max_chars + 50)
-    framed["text"] = framed.pop("text_preview")
+    framed.pop("text_preview")
+    framed["text"] = chunk  # the exact slice: pages joined in order reproduce the file (a preview would trim their edges)
     return {"path": str(p), "total_chars": len(content), "offset": a.offset, "returned_chars": len(chunk),
             "next_offset": a.offset + len(chunk) if a.offset + len(chunk) < len(content) else None,
             "language": detect_language(chunk).as_dict(), **framed}
