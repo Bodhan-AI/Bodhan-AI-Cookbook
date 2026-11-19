@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
@@ -54,7 +54,7 @@ def build_report(agent: Any, out: Path, started_at: datetime, elapsed: float) ->
         "task": agent.task,
         "inputs": {"files": [str(f) for f in agent.files], "missing": agent.missing},
         "started_at": started_at.isoformat(timespec="seconds"),
-        "finished_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "finished_at": datetime.now(UTC).isoformat(timespec="seconds"),
         "elapsed_s": round(elapsed, 2),
         "steps": {"used": agent.steps, "max": agent.settings.max_steps,
                   "tool_calls": [{k: t.get(k) for k in ("step", "tool", "ok", "latency_s", "cost_inr")} |

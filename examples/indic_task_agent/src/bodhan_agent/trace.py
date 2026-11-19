@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import time
 from contextvars import ContextVar
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -63,7 +63,7 @@ class TraceWriter:
         path.write_text("", encoding="utf-8")
 
     def write(self, event: dict[str, Any]) -> None:
-        record = {"ts": datetime.now(timezone.utc).isoformat(timespec="milliseconds"), "t": round(time.monotonic() - self.t0, 3), **event}
+        record = {"ts": datetime.now(UTC).isoformat(timespec="milliseconds"), "t": round(time.monotonic() - self.t0, 3), **event}
         record.setdefault("step", CURRENT_STEP.get())
         with self.path.open("a", encoding="utf-8") as f:
             f.write(json.dumps(_short(record, 2000), ensure_ascii=False, default=str) + "\n")

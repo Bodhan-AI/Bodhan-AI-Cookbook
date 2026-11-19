@@ -35,6 +35,7 @@ where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 markers = ["live: calls the real Bodhan API and LLM (opt-in with RUN_LIVE=1)"]
 
 [tool.ruff]
