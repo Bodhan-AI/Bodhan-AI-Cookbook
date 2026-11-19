@@ -243,6 +243,9 @@ class Agent:
                 return self._forced_stop(("budget_exhausted", f"Not enough budget left for another planner call (up to about ₹{est:.3f})."))
             # priced: a retry is sent only if the budget still covers it after the attempts that may already have been billed
             can_retry = (lambda e=est: self.ctx.ledger.can_afford(e * (self.llm.uncertain_attempts + 1))) if est is not None else None
+            if est is not None:  # if the process dies during the call, resume charges it from this record
+                self.trace.write({"type": "llm_dispatch", "step": self.steps, "estimate_inr": round(est, 5),
+                                  "max_attempts": getattr(self.llm, "max_attempts", 1)})
             try:
                 reply = await asyncio.wait_for(self.llm.chat(self.messages, tools, max_tokens=LLM_COMPLETION_RESERVE if est is not None else None,
                                                              can_retry=can_retry), timeout=max(0.0, self._time_left()))

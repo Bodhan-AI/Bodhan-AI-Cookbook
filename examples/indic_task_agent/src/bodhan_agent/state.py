@@ -90,6 +90,7 @@ def ledger_from_trace(trace: Path) -> dict[str, Any] | None:
     st: dict[str, Any] = {"billed": 0.0, "uncertain": 0.0, "by_model": {}, "calls": 0, "cache_hits": 0, "llm_prompt_tokens": 0,
                           "llm_completion_tokens": 0, "llm_calls": 0, "llm_cost": 0.0, "llm_priced": False}
     pending: dict[Any, tuple[str, float]] = {}
+    llm_pending = 0.0
 
     def settle_unresolved() -> None:
         for model, amount in pending.values():
@@ -105,6 +106,10 @@ def ledger_from_trace(trace: Path) -> dict[str, Any] | None:
         kind = e.get("type")
         if kind in ("run_start", "run_resumed"):
             settle_unresolved()  # reservation ids restart with each process
+            if llm_pending:  # the previous process died during a priced planner call
+                st["llm_cost"] += llm_pending
+                st["llm_priced"] = True
+                llm_pending = 0.0
         elif kind == "api_dispatch":
             pending[e.get("reservation_id")] = (e.get("model", "?"), float(e.get("amount_inr") or 0))
         elif kind == "api_call":
@@ -123,7 +128,10 @@ def ledger_from_trace(trace: Path) -> dict[str, Any] | None:
             else:
                 continue
             st["by_model"][model] = st["by_model"].get(model, 0.0) + cost
+        elif kind == "llm_dispatch":
+            llm_pending = float(e.get("estimate_inr") or 0) * int(e.get("max_attempts") or 1)
         elif kind == "llm_call":
+            llm_pending = 0.0
             st["llm_calls"] += 1
             st["llm_prompt_tokens"] += int(e.get("prompt_tokens") or 0)
             st["llm_completion_tokens"] += int(e.get("completion_tokens") or 0)
@@ -132,8 +140,13 @@ def ledger_from_trace(trace: Path) -> dict[str, Any] | None:
                 st["llm_priced"] = True
         elif kind == "llm_estimate_exceeded":
             st["llm_over_bound"] = st.get("llm_over_bound", 0.0) + max(0.0, float(e["cost_inr"]) - float(e["estimate_inr"]))
-        elif kind in ("llm_uncertain", "llm_error") and e.get("cost_inr") is not None:  # failed attempts charged conservatively
+        elif kind in ("llm_uncertain", "llm_error"):
+            llm_pending = 0.0
+        if kind in ("llm_uncertain", "llm_error") and e.get("cost_inr") is not None:  # failed attempts charged conservatively
             st["llm_cost"] += float(e["cost_inr"])
             st["llm_priced"] = True
     settle_unresolved()
+    if llm_pending:  # a priced planner call was sent and never settled (process killed): count every attempt it could make
+        st["llm_cost"] += llm_pending
+        st["llm_priced"] = True
     return st

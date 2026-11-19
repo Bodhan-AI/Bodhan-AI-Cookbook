@@ -259,3 +259,15 @@ def test_transparent_images_are_flattened_onto_white(tmp_path):
     import io
 
     assert Image.open(io.BytesIO(data)).convert("RGB").getpixel((5, 5)) == (255, 255, 255)
+
+
+def test_a_priced_planner_call_cut_off_by_a_kill_is_charged_on_resume(tmp_path):
+    from bodhan_agent.state import ledger_from_trace
+
+    t = tmp_path / "trace.jsonl"
+    events = [{"type": "run_start"}, {"type": "llm_dispatch", "estimate_inr": 0.5, "max_attempts": 3},  # killed here
+              {"type": "run_resumed"}, {"type": "llm_dispatch", "estimate_inr": 0.4, "max_attempts": 3},
+              {"type": "llm_call", "prompt_tokens": 10, "completion_tokens": 2, "cost_inr": 0.1}]
+    t.write_text("\n".join(json.dumps(e) for e in events) + "\n", encoding="utf-8")
+    st = ledger_from_trace(t)
+    assert st["llm_cost"] == pytest.approx(0.5 * 3 + 0.1)  # the unsettled call at every attempt it could make, plus the settled one
