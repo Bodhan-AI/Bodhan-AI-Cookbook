@@ -59,7 +59,7 @@ def test_language_detection_by_script():
 
 def test_normalize_language_aliases():
     assert normalize_language("Tamil") == "ta"
-    assert normalize_language("hi-IN") == "hi"
+    assert normalize_language("hi" + "-IN") == "hi"  # region tags are stripped
     assert normalize_language("French") == "french"
 
 

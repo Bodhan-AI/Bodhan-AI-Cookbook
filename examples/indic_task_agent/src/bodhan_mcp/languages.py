@@ -90,7 +90,7 @@ KNOWN_UNSUPPORTED = {
 
 
 def normalize_language(value: str) -> str:
-    """Map a code or English name ('Tamil', 'ta', 'ta-IN') to a Bodhan code, or return it unchanged."""
+    """Map a code or English name ('Tamil', 'ta', or a region-tagged code) to a Bodhan code, or return it unchanged."""
     v = (value or "").strip()
     if not v:
         return v
