@@ -266,3 +266,52 @@ def test_the_same_output_declared_under_two_kinds_shares_its_artifact(tmp_path):
     assert agent._contract_gaps([art], "Done.") == []
     agent.plan = {"deliverables": [{"kind": "translation", "language": "bn"}, {"kind": "translation", "language": "bn"}]}
     assert agent._contract_gaps([art], "Done.")  # two translations still need two artifacts
+
+
+# GPT-6.1 Sol review of the tier 2 diff -------------------------------------------------------
+def test_redaction_by_position_leaves_no_unknown_text():
+    out = ProvenanceGuard().redact("क English क ख")
+    assert "क" not in out and "ख" not in out and "English" in out
+
+
+def test_an_ambiguous_quote_gets_no_guessed_origin(make_ctx):
+    from bodhan_mcp.runtime import Artifact
+    from bodhan_mcp.tools.common import quoted_from
+
+    ctx = make_ctx(FakeBodhan())
+    ctx.artifacts_dir.mkdir(parents=True, exist_ok=True)
+    for name, origin in (("a_ocr.md", "a.pdf"), ("b_ocr.md", "b.pdf")):
+        f = ctx.artifacts_dir / name
+        f.write_text("The annual meeting starts tomorrow at the town hall.", encoding="utf-8")
+        ctx.register(Artifact(f, "ocr", "ocr_document", "en", "indic-ocr", None, origin=[origin]))
+    assert quoted_from(ctx, "The annual meeting starts tomorrow at the town hall.") is None
+
+
+def test_shortening_a_read_page_forgets_that_it_was_read(make_ctx, tmp_path):
+    from bodhan_agent.loop import Agent, Settings
+    from bodhan_agent.trace import TraceWriter
+
+    ctx = make_ctx(FakeBodhan())
+    doc = tmp_path / "doc.txt"
+    content = "The library opens at eight. " * 100
+    doc.write_text(content, encoding="utf-8")
+    ctx.note_read(doc, content, 0, len(content))
+    assert ctx.fully_read(doc, content)
+    agent = Agent("t", ctx, TraceWriter(tmp_path / "t.jsonl"), Settings(), None, [], [], out=None)
+    page = {"ok": True, "path": str(doc), "offset": 0, "returned_chars": len(content), "total_chars": len(content), "text": content}
+    agent.messages = [{"role": "system", "content": "s"}, {"role": "tool", "tool_call_id": "1", "content": json.dumps(page)}]
+    agent._compact(level=2)
+    assert not ctx.fully_read(doc, content)
+
+
+def test_romanized_hindi_with_french_looking_words_is_not_refused():
+    assert detect_language("Un se paise le lo.").language is None
+    assert detect_language("La bibliothèque sera fermée le lundi pour les travaux.").language == "fr"
+
+
+def test_a_plain_english_heading_layer_is_trusted():
+    assert text_layer_is_usable("Invoice Number Customer Name Product Description Quantity Unit Price Total Amount")
+
+
+def test_mostly_utf8_text_with_one_bad_byte_stays_utf8():
+    assert decode_text("The café is open.\n!".encode() + b"\x96").startswith("The café is open.")

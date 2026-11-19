@@ -187,7 +187,10 @@ def _european_language(tokens: list[str], n_words: int) -> str | None:
     scores = {lang: (len(set(tokens) & hints), sum(t in hints for t in tokens)) for lang, hints in _EUROPEAN_HINTS.items()}
     ranked = sorted(scores.items(), key=lambda kv: kv[1], reverse=True)
     (best, (distinct, hits)), second = ranked[0], ranked[1][1][1]
-    if distinct >= 2 and hits >= max(2, n_words / 6) and hits >= 1.5 * second:
+    # Refusing a source is final, so the evidence must be strong: three different function words, or two plus the
+    # accented letters these languages use ("Un se paise le lo" is romanized Hindi with two French-looking words).
+    accents = sum(1 for t in tokens for ch in t if ch in "éèêàâçùûôîïëœñáíóúüöäßãõì")
+    if (distinct >= 3 or (distinct >= 2 and accents)) and hits >= max(2, n_words / 6) and hits >= 1.5 * second:
         return best
     return None
 

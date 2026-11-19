@@ -64,9 +64,10 @@ class ProvenanceGuard:
     def redact(self, text: str) -> str:
         """The text with only its unknown Indian-language spans replaced by a note (the rest is kept)."""
         out = rendered_view(text)
-        for span in self.unknown_spans(text):
-            pattern = r"\s+".join(re.escape(tok) for tok in span.split())  # the span's words, any whitespace between them
-            out = re.sub(pattern, "[Indian-language text removed: it did not come from the task, an input or a Bodhan model]", out)
+        corpus = " | ".join(self._corpus)
+        for s, e in reversed(indic_span_ranges(out)):  # by position, last first, so earlier offsets stay valid
+            if not self._known(" ".join(out[s:e].split()), corpus):
+                out = out[:s] + "[Indian-language text removed: it did not come from the task, an input or a Bodhan model]" + out[e:]
         return out
 
     def check(self, text: str, field: str) -> None:
@@ -98,25 +99,36 @@ def authored_indic(text: str) -> bool:
 _EDGE_PUNCT = string.whitespace +'"\'“”‘’()[]{}:;,.!?।॥-–—'
 
 
-def indic_spans(text: str) -> list[str]:
-    """Maximal runs of words that contain Indian-language letters (punctuation and digits
-    between such words stay inside the run). Every span must be quoted verbatim from a
-    known source; recombining known words into new sentences is still caught."""
-    spans: list[list[str]] = []
-    current: list[str] = []
-    pending: list[str] = []  # non-Indic tokens that may sit inside a span
-    for tok in text.split():
+def indic_span_ranges(text: str) -> list[tuple[int, int]]:
+    """(start, end) of each maximal run of words that contain Indian-language letters (punctuation and digits
+    between such words stay inside the run), edge punctuation excluded."""
+    ranges: list[tuple[int, int]] = []
+    start = end = None
+    for m in re.finditer(r"\S+", text):
+        tok = m.group(0)
         if indic_fraction(tok) > 0:
-            current += pending + [tok]
-            pending = []
-        elif current and not any(ch.isalpha() for ch in tok):
-            pending.append(tok)
-        elif current:
-            spans.append(current)
-            current, pending = [], []
-    if current:
-        spans.append(current)
-    return [" ".join(s).strip(_EDGE_PUNCT) for s in spans if " ".join(s).strip(_EDGE_PUNCT)]
+            start = m.start() if start is None else start
+            end = m.end()
+        elif start is not None and any(ch.isalpha() for ch in tok):
+            ranges.append((start, end))
+            start = end = None
+        # a non-letter token between Indic words may sit inside a run; it is included only if more Indic follows
+    if start is not None:
+        ranges.append((start, end))
+    out = []
+    for s, e in ranges:
+        piece = text[s:e]
+        s += len(piece) - len(piece.lstrip(_EDGE_PUNCT))
+        e -= len(piece) - len(piece.rstrip(_EDGE_PUNCT))
+        if e > s:
+            out.append((s, e))
+    return out
+
+
+def indic_spans(text: str) -> list[str]:
+    """Maximal runs of words that contain Indian-language letters. Every span must be quoted verbatim from a
+    known source; recombining known words into new sentences is still caught."""
+    return [" ".join(text[s:e].split()) for s, e in indic_span_ranges(text)]
 
 
 def resolve_text(ctx: RunContext, text: str | None, path: str | None, field: str = "text", path_field: str = "path") -> tuple[str, str]:
@@ -151,15 +163,18 @@ def quoted_from(ctx: RunContext, text: str) -> str | None:
     needle = ProvenanceGuard._norm(text)
     if len(needle) < 20:
         return None
+    found: list[str] = []
     for path, art in reversed(list(ctx.artifacts.items())):  # newest first
         if art.kind not in ("ocr", "transcript", "translation", "text", "subtitles") or not art.path.is_file():
             continue
         try:
             if needle in ProvenanceGuard._norm(read_text_file(art.path)):
-                return path
+                found.append(path)
         except E.ToolError:
             continue
-    return None
+    origins = {tuple(sorted(ctx.artifacts[p].origin)) for p in found}
+    # Text found in artifacts of different inputs is ambiguous: no origin is guessed (pass `path` to be explicit).
+    return found[0] if found and len(origins) == 1 else None
 
 
 def _text_from_json(raw: str) -> str:

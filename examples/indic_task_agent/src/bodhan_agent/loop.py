@@ -728,6 +728,7 @@ class Agent:
         for i in tool_msgs:
             content = self.messages[i].get("content") or ""
             if i in keep and level == 2 and len(content) > 1500:  # the newest result, shortened but still readable
+                self._forget_page(content)
                 self.messages[i] = {**self.messages[i], "content": content[:1500] + '... [shortened to fit the planner context; use read_text]"'}
                 changed = True
                 continue
@@ -737,6 +738,7 @@ class Agent:
                 r = json.loads(content)
             except ValueError:
                 r = {}
+            self._forget_page(content)
             small: dict[str, Any] = {"compacted": True, "ok": r.get("ok")}
             for k in ("path", "transcript_path", "subtitles_path", "next_offset", "target_language", "language", "duration_s"):
                 if r.get(k) is not None:
@@ -766,6 +768,16 @@ class Agent:
                     calls.append(c)
                 self.messages[i] = {**m, "tool_calls": calls}
         return changed
+
+    def _forget_page(self, content: str) -> None:
+        """A read_text page that is shortened may never reach the planner whole: it no longer counts as read
+        (write_text's source_paths then needs the file to be read again)."""
+        try:
+            r = json.loads(content)
+        except ValueError:
+            return
+        if isinstance(r, dict) and r.get("ok") and {"path", "offset", "returned_chars", "total_chars"} <= set(r):
+            self.ctx.forget_read(r["path"], r["offset"], r["offset"] + r["returned_chars"])
 
     def _charge_uncertain_llm(self, est: float, attempts: int, why: str) -> None:
         """Priced planner attempts that got no usable reply may still have been billed: charge each at the call's estimate."""

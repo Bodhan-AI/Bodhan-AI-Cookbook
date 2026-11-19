@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from . import errors as E
-from .languages import detect_language, script_profile
+from .languages import script_profile
 from .media import AUDIO_EXT, VIDEO_EXT
 
 IMAGE_EXT = {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tif", ".tiff", ".gif", ".heic", ".heif"}
@@ -108,6 +108,11 @@ def decode_text(raw: bytes, name: str = "the file") -> str:
             return raw.decode("utf-16")
         except UnicodeDecodeError:
             pass
+    good = raw.decode("utf-8", errors="replace")
+    valid = sum(ord(ch) > 127 and ch != "\ufffd" for ch in good)  # characters from valid multi-byte UTF-8
+    if valid and valid >= good.count("\ufffd"):
+        # mostly UTF-8 with a few bad bytes: keep the UTF-8 text, the bad bytes show as U+FFFD (cp1252 would garble it all)
+        return good
     try:
         return raw.decode("cp1252")
     except UnicodeDecodeError:
@@ -244,18 +249,32 @@ def text_layer_is_usable(text: str) -> bool:
     stripped = "".join(text.split())
     if len(stripped) < 40:
         return False
-    bad = sum(1 for ch in stripped if ch == "�" or 0xE000 <= ord(ch) <= 0xF8FF or ord(ch) < 32)
+    bad = sum(1 for ch in stripped if ch == "\ufffd" or 0xE000 <= ord(ch) <= 0xF8FF or ord(ch) < 32)
     if bad / len(stripped) > 0.02:
         return False
     prof = script_profile(text)
     letters = sum(prof.values())
     if letters / len(stripped) <= 0.5:
         return False
-    if prof.get("Latin", 0) > 0.8 * letters and detect_language(text).language != "en":
+    if prof.get("Latin", 0) > 0.8 * letters and looks_like_legacy_font(text):
         # Legacy Hindi fonts (Kruti Dev, Chanakya...) store Devanagari as Latin letters, e.g. "fo|ky; ds Nk=ksa":
-        # a mostly-Latin layer without English evidence is not trusted, so the page is read by OCR instead.
+        # such a layer is not trusted, so the page is read by OCR instead.
         return False
     return True
+
+
+_LEGACY_WORDS = frozenset("ds dk dh esa gS gSa vkSj fd us ;g og Fkk Fkh rFkk ,d dks ls".split())
+
+
+def looks_like_legacy_font(text: str) -> bool:
+    """Positive evidence of a legacy Devanagari font: symbols inside words (fo|ky;, Nk=ksa, 'kq:vkr) or the
+    letter patterns that its most common words become (ds, dk, esa, gS, vkSj...). Plain English never has these."""
+    words = [w for w in text.split() if any(ch.isalpha() for ch in w)]
+    if not words:
+        return False
+    inside = sum(1 for w in words if any(ch in ";|{}[]~`^=" for ch in w.strip(".,:!?()\"")))
+    legacy = sum(1 for w in words if w.strip(".,;:!?()\"") in _LEGACY_WORDS)
+    return inside >= max(2, 0.1 * len(words)) or legacy >= max(3, 0.08 * len(words))
 
 
 @_pdfium_serialized
