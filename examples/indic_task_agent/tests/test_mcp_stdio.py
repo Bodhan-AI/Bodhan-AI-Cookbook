@@ -2,6 +2,7 @@
 over stdio. No direct imports of the tool code: this is what a third-party client sees."""
 
 import json
+import os
 import sys
 
 from mcp.client import Client
@@ -9,7 +10,7 @@ from mcp.client.stdio import StdioServerParameters
 
 
 def server(tmp_path, *extra):
-    env = {"PYTHONIOENCODING": "utf-8"}  # deliberately no Bodhan keys
+    env = {"PYTHONIOENCODING": "utf-8", **{k: os.environ[k] for k in ("PYTHONPATH",) if k in os.environ}}  # deliberately no Bodhan keys
     return StdioServerParameters(command=sys.executable, args=["-m", "bodhan_mcp", "--artifacts-dir", str(tmp_path / "art"), "--no-cache", *extra],
                                  env=env, cwd=str(tmp_path))
 
@@ -85,3 +86,15 @@ async def test_unknown_resource_is_a_protocol_error_and_server_survives(tmp_path
         assert raised is not None and raised.error.code == -32602 and "does-not-exist" in raised.error.message
         ok = await c.read_resource("bodhan://voices")
         assert "Anitha" in ok.contents[0].text
+
+
+async def test_prompt_and_error_catalogue(tmp_path):
+    async with Client(server(tmp_path)) as c:
+        prompts = (await c.list_prompts()).prompts
+        assert [p.name for p in prompts] == ["plan_media_task"] and any(a.required for a in prompts[0].arguments)
+        got = await c.get_prompt("plan_media_task", {"task": "Make a Tamil audio summary of this chapter", "files": "chapter.pdf"})
+        text = got.messages[0].content.text
+        assert "Tamil audio summary" in text and "inspect_files" in text and "Never paste Indian-language text" in text
+        errors = json.loads((await c.read_resource("bodhan://errors")).contents[0].text)["errors"]
+        assert {"unsupported_language", "budget_exceeded", "rate_limited", "provenance_violation"} <= set(errors)
+        assert errors["rate_limited"]["retryable"] is True and errors["credit_exhausted"]["retryable"] is False

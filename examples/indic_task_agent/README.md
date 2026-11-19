@@ -127,7 +127,7 @@ npx @modelcontextprotocol/inspector@2.13.0 --cli python -m bodhan_mcp --method t
 
 `tests/test_mcp_stdio.py` and `tests/test_mcp_http.py` also drive the server as a separate process through the official MCP Python SDK client, over stdio and HTTP. They cover schemas, bad input, unknown tools, missing keys, the path sandbox, resources, unknown-resource errors and token checks.
 
-Resources: `bodhan://voices` (the fixed voice library and styles), `bodhan://languages` (codes per model) and `bodhan://pricing`. An unknown resource URI returns the protocol error `-32602`. Each tool advertises an input schema and a typed output schema (`src/bodhan_mcp/tools/schemas.py`), and tests validate real results against them.
+Resources: `bodhan://voices` (the fixed voice library and styles), `bodhan://languages` (codes per model), `bodhan://pricing` and `bodhan://errors` (every error code, whether retrying helps, and what to do). Prompt: `plan_media_task` (arguments `task`, `files`) gives a chat model a ready instruction for running a media task with these tools honestly. An unknown resource URI returns the protocol error `-32602`. Each tool advertises an input schema and a typed output schema (`src/bodhan_mcp/tools/schemas.py`), and tests validate real results against them.
 
 ## Tools
 
