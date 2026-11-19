@@ -117,7 +117,24 @@ Tools take file paths and return artifact paths plus short previews. Audio and i
 | Judging results | Reads `verification` and decides to repair, re-plan or report | The finish gate re-checks the same facts in code. |
 | Final answer (`finish`) | Status and an English explanation | Gate rejects unverified, failing or invented deliverables (including failures inherited through embedded or source artifacts), non-English answers, and `completed` with no evidence of work. An answer-only task may finish without files after tools did real work. After two rejections, the run is accepted and downgraded to `partial` or `failed`, with the gate's reasons listed. |
 
-LLM failure (network, outage, misconfiguration) after three attempts stops the run with status `failed` and a full report. A model that writes a JSON tool call as plain text instead of using `tool_calls` is still understood (`llm.py` fallback). The endpoint needs only `chat.completions` with `tools` and `tool_choice="auto"`, with no provider-specific features.
+LLM failure (network, outage, misconfiguration) after its retries stops the run with status `failed` and a full report. Rate limits are retried up to six times, waiting as long as the provider's `Retry-After` header or "try again in N s" message asks (at most 90 s per wait, always within the run deadline). When the planner fails, code still reports what it checked itself, such as missing input files.
+
+## Planner portability
+
+The graders bring their own planner, so `llm.py` assumes only `chat.completions` with `tools`, and adapts when a provider differs. Each adaptation is listed in `report.json` under `llm.adaptations`.
+
+| Provider behaviour | What the client does |
+|---|---|
+| Extra fields on the reply (Gemini thought signatures in `extra_content`, `reasoning_content`) that must come back on the next turn | Sent back unchanged. Standard OpenAI-only fields such as `refusal` are not echoed, because other providers reject them. Tool-call messages carry `content: null`. |
+| `tool_choice` rejected | Dropped for the rest of the run. |
+| `tools` rejected | The tools are described in the system message and replies are parsed as JSON (text protocol). |
+| A tool call written as text: `{"name": ..., "arguments": ...}`, `<function=NAME>{...}`, bare arguments that fit exactly one tool's schema, arguments as JSON inside a string, names with `functions.` or `<\|channel\|>` around them | Parsed into a normal tool call. |
+| Groq `400 tool_use_failed` with a `failed_generation` | The failed generation is parsed as above. |
+| `null` for an optional argument | Treated as not given. |
+| Context-length rejection or `413` (for example Groq's on-demand tier, which refuses any request over 8,000 tokens) | Older tool results are shortened in steps (keep the last two, keep the last one shortened, shorten every result and the planner's own long arguments) until the request is accepted. Artifacts stay on disk, so `read_text` can reopen anything. Long conversations are also shortened before sending once they pass about 90 kB. |
+| A plain-text final answer after two reminders to call `finish` | Passed to the finish gate as a `finish` call, so the run is judged like any other. |
+
+Live results per planner model are in [evaluation.md](evaluation.md).
 
 ## Indian-language text never comes from the LLM
 
@@ -125,7 +142,9 @@ The prompt states the rule. Code also enforces it in three places:
 
 1. **`ProvenanceGuard`** (`tools/common.py`). In agent runs, every run of Indian-language words that the planner passes inline must be a verbatim quote, or a selection of whole sentences, from the task, an input file or a Bodhan output. The check works span by span, so English padding cannot dilute it. Otherwise the call fails with `provenance_violation`, and the planner must pass text by artifact path.
 2. **`write_text`** refuses any Indian-language letter written by the caller, including unicode escapes inside JSON. Existing artifacts can be embedded by reference: `{{artifact:<path>}}`. The new file records what it embeds, so it inherits their verification.
-3. **The finish gate** never accepts planner-written Indian-language text in the answer, assumptions or limitations. If the planner insists, the text is replaced by a code-written English note.
+3. **The finish gate** never accepts planner-written Indian-language text in the answer, assumptions or limitations. If the planner insists, only that text is removed and replaced by a code-written note; its English stays.
+
+Text is compared as a reader sees it: character references decoded, one Unicode normal form (a precomposed and a combining nukta are the same letter), and no zero-width joiners or soft hyphens. Input file and folder names count as known text, so an answer may name an Indian-language file.
 4. **`create_subtitles`** reuses only transcripts that `transcribe_audio` produced in the same session, so planner-written JSON cannot pass as Indic-Transcribe output.
 
 ## Verification
@@ -210,6 +229,8 @@ Verification results are kept as a history on each artifact. A later check never
 - the provenance record.
 
 It stores no keys. On resume, changed or missing inputs stop the resume with a clear error. Artifacts whose files changed since the checkpoint are dropped. An interrupted turn's calls run again, and finished paid work comes back from the run's own cache for free. The time and step limits carry over from the first session.
+
+A run is never left without a report. Each checkpoint also writes the report that an interruption at that moment would leave: `"provisional": true`, stop reason `interrupted`, the artifacts that passed their checks, and the resume command. Ctrl-C and SIGTERM keep the checkpoint written before the turn (the one whose pending calls `--resume` replays) and refresh only that report. A hard kill leaves the last checkpoint and its report. Tests cover all three, the kill and the interrupt in a real child process.
 
 ## HTTP transport
 

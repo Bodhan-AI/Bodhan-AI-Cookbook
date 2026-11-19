@@ -68,7 +68,7 @@ Optional flags:
 
 - `--max-seconds` sets the wall-clock limit (default 600).
 - `--call-timeout` sets the per-request limit (default 60 s).
-- `--concurrency` sets parallel requests per model (default 4).
+- `--concurrency` sets parallel requests per model (default 8; the API allows 10, and a 429 halves it).
 - `--no-cache` and `--cache-dir` control the result cache.
 - `--env-file` loads the variables from another file.
 - `--llm-input-inr-per-1m` and `--llm-output-inr-per-1m` put the planner's own spend into the budget.
@@ -138,7 +138,7 @@ Resources: `bodhan://voices` (the fixed voice library and styles), `bodhan://lan
 | `create_subtitles` | transcribe + translate | Cue-sized `.srt` in the source and target languages, back-translation checked. |
 | `translate_text` | indic-translate | Text, Markdown or SRT. Paragraph units, tables kept, truncation split, back-translation verified. |
 | `synthesize_speech` | indic-speak | Sentence-sized requests, every segment back-transcribed and repaired once, MP3 or WAV, labelled AI-generated. |
-| `ocr_document` | indic-ocr | Photos, multi-page TIFFs and PDFs, page by page. A clean PDF text layer is used for free unless the page also holds a large image. Markdown tables. Truncated pages are retried, then reported as incomplete. |
+| `ocr_document` | indic-ocr | Photos, multi-page TIFFs and PDFs, page by page. A clean PDF text layer is used for free unless the page also holds a large image, or the layer looks like a legacy Hindi font (Latin letters standing for Devanagari). Markdown tables. Truncated pages are retried, then reported as incomplete. |
 | `verify_translation`, `verify_speech` | translate / transcribe | Independent checks for outputs made elsewhere. |
 | `detect_language`, `read_text`, `write_text`, `list_voices` | none | Script-based language ID, paging through artifacts, saving English text (with `source_paths` recording files it was based on; each must first be read in full with `read_text`, and after `--resume` it is read again), and the voice library. |
 
@@ -155,7 +155,7 @@ Every tool validates its input and returns `{"ok": false, "error": {"code", "mes
 ## Tests
 
 ```bash
-pytest -q                                  # 120+ offline tests, no network or keys needed
+pytest -q                                  # 200+ offline tests, no network or keys needed
 python scripts/run_suite.py                # live self-evaluation: runs evaluation/tasks.json and scores it (exit 1 if any task fails)
 ```
 
@@ -169,7 +169,7 @@ The offline tests use `tests/fakes.py`, a mock of the four endpoints that enforc
 - the viewer;
 - multi-step agent runs through the CLI code path.
 
-`tests/test_review_regressions.py` and `tests/test_audit_regressions.py` hold one test per finding from the independent reviews.
+`tests/test_review*_regressions.py`, `tests/test_audit_regressions.py`, `tests/test_research_regressions.py`, `tests/test_tier2_regressions.py` and `tests/test_portability.py` hold one test per finding from the independent reviews, the offline probes and the live runs with other planners.
 
 `scripts/run_suite.py` is the self-evaluation. A task passes only if the agent exited cleanly, wrote a fresh report for that launch, and met every expectation in `evaluation/tasks.json`. The expectations cover status, deliverable files, kinds and languages, verification, answer text, and budget. These are structural checks, not a quality score; native-speaker review is separate. Live results are in [docs/evaluation.md](docs/evaluation.md).
 
@@ -191,7 +191,7 @@ Media stays out of git. `scripts/make_fixtures.py` generates every input used in
 
 ## AI assistance
 
-Claude Code (Claude Opus 5.5) was the coding assistant for design, implementation, tests and docs. I checked every live run's outputs myself. GPT-6.1 Sol (through Codex) did several independent review rounds, including a full audit against the assignment. Each finding was reproduced, fixed, and covered by a regression test, or documented here as a limitation. The application's planner LLM is a separate, configurable model.
+Claude Code (Claude Opus 5.5) was the coding assistant for design, implementation, tests and docs. During development every live run's outputs were inspected: texts and tables read in full, audio durations and back-transcription results checked. No fluent-speaker review of the Indian-language outputs has been done. GPT-6.1 Sol (through Codex) did several independent review rounds, including a full audit against the assignment. Each finding was reproduced, fixed, and covered by a regression test, or documented here as a limitation. The application's planner LLM is a separate, configurable model.
 
 ## Optional extras
 
@@ -200,7 +200,7 @@ All of the brief's stretch goals are implemented:
 | Stretch goal | Where |
 |---|---|
 | Streamable HTTP with simple token authentication | `python -m bodhan_mcp --transport http` (see above), `tests/test_mcp_http.py` |
-| MCP resources | `bodhan://voices`, `bodhan://languages`, `bodhan://pricing` |
+| MCP resources and prompts | `bodhan://voices`, `bodhan://languages`, `bodhan://pricing`, `bodhan://errors`; prompt `plan_media_task` |
 | Self-evaluation script with a pass rate | `scripts/run_suite.py`, `evaluation/tasks.json` |
 | Parallel tool calls where steps are independent | independent calls in one planner turn run concurrently; `test_independent_calls_*` |
 | Resumable tasks | `--resume`, `src/bodhan_agent/state.py`, `test_resume_*` |
