@@ -150,6 +150,13 @@ _DEVANAGARI_HINTS = {
 }
 
 
+_DEVANAGARI_SUFFIXES = {
+    "hi": ("ेगा", "ेगी", "ेंगे", "ता है", "ती है", "ाएगा", "ियों", "ाओं"),
+    "mr": ("साठी", "पर्यंत", "ाचा", "ाची", "ाचे", "च्या", "ील", "तात", "ाला", "मध्ये", "ून"),
+    "ne": ("हरू", "हरु", "नेछ", "छन्", "थ्यो", "ेको", "ेका"),
+}
+
+
 def script_of_char(ch: str) -> str | None:
     cp = ord(ch)
     for lo, hi, name in SCRIPT_RANGES:
@@ -209,9 +216,12 @@ def detect_language(text: str) -> LanguageGuess:
     words = {w.strip(".,;:!?।॥\"'()[]") for w in text.split()}
     if script == "Devanagari":
         scores = {lang: len(words & hints) for lang, hints in _DEVANAGARI_HINTS.items()}
+        for lang, suffixes in _DEVANAGARI_SUFFIXES.items():
+            scores[lang] += sum(1 for w in words if len(w) > 3 and w.endswith(suffixes))
+        scores["mr"] += 2 * text.count("ळ")  # retroflex ḷa: common in Marathi, rare in Hindi/Nepali
         best = max(scores, key=scores.get)
         if scores[best] == 0:
-            return LanguageGuess("hi", script, share * 0.5, candidates,
+            return LanguageGuess("hi", script, share * 0.4, candidates,
                                  "Devanagari script; no function-word evidence, assumed Hindi (could be Marathi, Nepali, ...)")
         ranked = sorted(scores.values(), reverse=True)
         margin = (ranked[0] - ranked[1]) / max(ranked[0], 1)

@@ -8,7 +8,7 @@ import statistics
 from pathlib import Path
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from .. import errors as E
 from ..documents import classify
@@ -227,11 +227,18 @@ class SpeakIn(_Strict):
     text: str | None = Field(None, description="Short inline text to read aloud.")
     voice: str | None = Field(None, description="Voice name from list_voices (case-insensitive), e.g. 'Ishita'. Overrides gender.")
     gender: Literal["female", "male"] | None = Field(None, description="Pick the language's default female or male voice.")
-    style: str | None = Field(None, description="Optional delivery style, e.g. 'news', 'educational lecture', 'single person narration audiobook'.")
+    style: Literal[tuple(sorted(SPEAK_STYLES))] | None = Field(None, description="Optional delivery style from the fixed list; omit for the voice's neutral delivery.")  # type: ignore[valid-type]
     format: Literal["mp3", "wav"] = Field("mp3", description="Output audio format.")
     verify: bool = Field(True, description="Back-transcribe every segment with Indic-Transcribe and re-synthesise failures (recommended).")
     target_duration_seconds: float | None = Field(None, gt=0, description="If the task asks for a length (e.g. 120 for two minutes), report how close the audio is.")
     output_name: str | None = Field(None, description="File name for the audio artifact.")
+
+    @field_validator("style", mode="before")
+    @classmethod
+    def _canonical_style(cls, v):  # accept 'News' or 'children’s stories' spelled with any case
+        if isinstance(v, str):
+            return next((s for s in SPEAK_STYLES if s.lower() == v.strip().lower().replace("’", "'")), v)
+        return v
 
 
 async def synthesize_speech(ctx: RunContext, a: SpeakIn) -> dict:
@@ -250,11 +257,7 @@ async def synthesize_speech(ctx: RunContext, a: SpeakIn) -> dict:
                           f"not {LANGUAGE_NAMES.get(lang, lang)} ({share:.0%} of letters in the expected script).",
                           hint=f"Translate it first with translate_text(target_language='{lang}') and pass that artifact's path.")
     voice, notes = _resolve_voice(lang, a.voice, a.gender)
-    style = None
-    if a.style:
-        style = next((s for s in SPEAK_STYLES if s.lower() == a.style.strip().lower()), None)
-        if not style:
-            raise E.ToolError(E.INVALID_ARGUMENT, f"Unknown style {a.style!r}.", hint=f"Styles: {sorted(SPEAK_STYLES)}")
+    style = a.style
     segments = pack_segments(text, TTS_SEGMENT_CHARS)
     if not segments:
         raise E.ToolError(E.EMPTY_RESULT, "There is no text to speak.")
