@@ -1,10 +1,10 @@
-"""A read-only run viewer on the standard library.
+"""A read-only run viewer on the standard library: the trace as a plain timeline.
 
     python -m bodhan_agent.webui ./out/demo      # a folder of runs, or one run folder
 
-Open http://127.0.0.1:8766/ and leave it open: it follows the runs live (plan, every
-tool call with cost and latency, verification checks, artifacts you can play or read,
-and the final result.md). It never writes and never starts a run, so it cannot change
+Open http://127.0.0.1:8766/ and leave it open: it follows the runs live as a timeline of
+what the agent did and why (plan, assumptions, each tool call with cost and time, skipped
+steps, checks, the final status). It never writes and never starts a run, so it cannot change
 what a run costs or produces. Only files inside the chosen folder are served.
 """
 from __future__ import annotations
@@ -22,41 +22,27 @@ PAGE = """<!doctype html>
 <style>
  :root{color-scheme:dark}
  *{box-sizing:border-box}
- body{font:15px/1.55 system-ui,Segoe UI,sans-serif;margin:0;background:#12141a;color:#e6e8ee;overflow-x:hidden}
- code,pre,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px}
- #wrap{display:grid;grid-template-columns:240px minmax(0,1fr);height:100vh}
- nav{border-right:1px solid #2a2e3a;padding:14px;background:#0e1016;overflow-y:auto}
- nav h1{font-size:14px;margin:0 0 12px;color:#aab1c5}
- .run{padding:8px 10px;margin:0 0 6px;border-radius:6px;cursor:pointer;border:1px solid transparent;overflow-wrap:anywhere}
- .run:hover{background:#1a1e29}.run.on{background:#1f2535;border-color:#3a4a7a}
+ body{margin:0;background:#14161c;color:#e6e8ee;font:16px/1.55 system-ui,Segoe UI,sans-serif}
+ #wrap{display:grid;grid-template-columns:230px minmax(0,1fr);height:100vh}
+ nav{border-right:1px solid #2a2e3a;padding:16px;overflow-y:auto;background:#0f1116}
+ nav h1{font-size:13px;color:#8b93a7;margin:0 0 12px;font-weight:600}
+ .run{padding:8px 10px;margin:0 0 4px;border-radius:6px;cursor:pointer;overflow-wrap:anywhere}
+ .run:hover{background:#1a1e29}.run.on{background:#232a3d}
  .run small{display:block;color:#8b93a7}
- main{padding:22px 32px 60px;overflow-y:auto;min-width:0}
- .inner{max-width:960px;margin:0 auto}
- main *{overflow-wrap:anywhere;min-width:0}
- h2{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#8b93a7;margin:28px 0 10px;border-bottom:1px solid #232838;padding-bottom:6px}
- .badge{display:inline-block;padding:2px 12px;border-radius:99px;font-weight:700;font-size:12px;letter-spacing:.05em}
+ main{overflow-y:auto;padding:28px 36px 80px;min-width:0}
+ .inner{max-width:820px;margin:0 auto}
+ *{overflow-wrap:anywhere}
+ h1.task{font-size:21px;margin:0 0 4px}
+ .top{color:#aab1c5;margin-bottom:22px}
+ .badge{font-weight:700;padding:1px 10px;border-radius:99px;font-size:13px;margin-right:8px}
  .completed{background:#1c4a2e;color:#8ff0b0}.partial{background:#5a4a14;color:#ffd979}
  .failed{background:#5a1f24;color:#ff9aa2}.running{background:#1f3a5a;color:#9ac9ff}
- .task{font-size:19px;font-weight:600;margin:10px 0 6px}
- .meta{color:#aab1c5}
- .bar{height:6px;background:#232838;border-radius:4px;overflow:hidden;margin:8px 0;max-width:360px}
- .bar i{display:block;height:100%;background:#4f8cff}
- .step{border:1px solid #2a2e3a;border-radius:8px;padding:10px 14px;margin:0 0 8px;background:#161923}
- .step.ok{border-left:4px solid #3fbf6f}.step.bad{border-left:4px solid #e5535d}
- .step.skip{border-left:4px solid #77809a;opacity:.7}.step.run{border-left:4px solid #4f8cff}
- .step b{color:#9ac9ff}.step .why{display:block;margin:3px 0}.step .nums{color:#8b93a7;font-size:13px}
- details{margin-top:4px}summary{cursor:pointer;color:#8b93a7;font-size:13px}
- details pre{margin:6px 0 0}
- .tablewrap{overflow-x:auto}
- table{border-collapse:collapse;width:100%;table-layout:fixed}
- td,th{border-bottom:1px solid #232838;padding:6px 8px;text-align:left;vertical-align:top;font-size:13px}
- th{color:#8b93a7;font-weight:600}
- th:nth-child(1){width:30%}th:nth-child(2){width:14%}th:nth-child(3){width:11%}
- .passed{color:#8ff0b0}.warning{color:#ffd979}.skipped{color:#9aa3b8}.failedc{color:#ff9aa2}
- pre{background:#0e1016;border:1px solid #2a2e3a;border-radius:6px;padding:12px;white-space:pre-wrap;word-break:break-word;overflow:auto;max-height:340px;margin:6px 0}
- .art{border:1px solid #2a2e3a;border-radius:8px;padding:10px 14px;margin:0 0 10px;background:#161923}
- .art audio{width:100%;margin:8px 0 2px}
- a{color:#8bb8ff}
+ .ev{display:grid;grid-template-columns:26px minmax(0,1fr);padding:7px 0;border-bottom:1px solid #1f2330}
+ .ev .ic{color:#8b93a7;text-align:center}
+ .ev.think .ic{color:#9ac9ff}.ev.ok .ic{color:#6fdc98}.ev.bad .ic{color:#ff8a93}.ev.skip .ic{color:#8b93a7}
+ .ev .t{font-weight:600}.ev .d{color:#aab1c5}
+ .ev .n{color:#8b93a7;font-size:14px}
+ .ev.skip{opacity:.7}
  .muted{color:#8b93a7}
 </style></head><body><div id="wrap">
 <nav><h1>Task runs</h1><div id="runs"><span class="muted">no runs yet</span></div></nav>
@@ -64,85 +50,64 @@ PAGE = """<!doctype html>
 <script>
 const $=(t,c,x)=>{const n=document.createElement(t);if(c)n.className=c;if(x!==undefined)n.textContent=x;return n};
 let current=new URLSearchParams(location.search).get('run');
-async function j(u){try{const r=await fetch(u,{cache:'no-store'});return r.ok?await r.json():null}catch(_){return null}}
-async function t(u){try{const r=await fetch(u,{cache:'no-store'});return r.ok?await r.text():null}catch(_){return null}}
-const rs=n=>Number(n||0).toFixed(2);
-function argsText(a){return Object.entries(a||{}).filter(([k])=>k!=='out_dir'&&k!=='max_cost_inr').map(([k,v])=>k+'='+(typeof v==='string'?(v.startsWith('/')?v.split('/').pop():v):JSON.stringify(v))).join('   ')}
-function steps(events,plan){
-  const box=$('div'),byId={};
-  events.forEach(e=>{if(e.step){byId[e.step]=byId[e.step]||{};
-    if(e.type==='tool_call')byId[e.step].call=e;
-    if(e.type==='tool_result')byId[e.step].res=e;
-    if(e.type==='step_skipped')byId[e.step].skip=e;
-    if(e.type==='step_failed')byId[e.step].fail=e;
-    if(e.type==='step_reused')byId[e.step].reused=e}});
-  (plan?plan.steps:[]).forEach(s=>{
-    const st=byId[s.id]||{};let cls='step',tail='waiting',nums='';
-    if(st.skip){cls+=' skip';tail='skipped: '+(st.skip.reason||'')}
-    else if(st.fail){cls+=' bad';tail='FAILED '+JSON.stringify(st.fail.error&&st.fail.error.code||'')}
-    else if(st.res){cls+=st.res.ok?' ok':' bad';tail=st.res.ok?'done':'failed';nums='Rs '+(st.res.cost_inr||0)+' · '+((st.res.latency_ms||0)/1000).toFixed(1)+' s'+(st.res.cache_hit?' · from cache':'')}
-    else if(st.call){cls+=' run';tail='running…';nums='reserved Rs '+(st.call.reserved_inr||0)}
-    else if(st.reused){cls+=' ok';tail='reused from earlier run'}
-    const d=$('div',cls);const h=$('div');h.append($('b',null,s.id+'  '+s.tool),$('span','nums','   '+tail+(nums?'  ·  '+nums:'')));
-    d.append(h,$('span','why',s.intent||''));
-    const w=s.when?'only if '+s.when.ref+' = '+JSON.stringify(s.when.equals):'';
-    const f=s.fit?'fit to '+s.fit.seconds+' s of speech':'';
-    const a=[argsText(s.args),w,f].filter(Boolean).join('   ');
-    if(a.length<=140){if(a)d.append($('span','muted mono',a))}
-    else{const de=$('details');de.append($('summary',null,'arguments'),$('pre',null,a));d.append(de)}
-    if(st.res&&st.res.summary&&st.res.summary.warnings&&st.res.summary.warnings.length)d.append($('span','warning','warnings: '+st.res.summary.warnings.join(', ')));
-    box.append(d)});
-  return box}
-function checks(rows){
-  if(!rows.length)return $('span','muted','no checks yet');
-  const tb=$('table');const h=$('tr');['artifact','check','result','detail'].forEach(x=>h.append($('th',null,x)));tb.append(h);
-  rows.forEach(c=>{const r=$('tr');r.append($('td','mono',(c.artifact||'').split('/').pop()),$('td',null,c.check),$('td',c.result==='failed'?'failedc':c.result,c.result),$('td','muted',c.detail||''));tb.append(r)});
-  const w=$('div','tablewrap');w.append(tb);return w}
-async function arts(run,list){
-  const box=$('div');
-  for(const a of list){
-    const d=$('div','art');d.append($('b',null,a.name),$('span','muted','   '+a.kind+' · '+a.bytes+' bytes'+(a.detail?' · '+a.detail:'')));
-    const u='/run/'+encodeURIComponent(run)+'/artifacts/'+encodeURIComponent(a.name);
-    if(/\\.(mp3|wav)$/i.test(a.name)){const au=$('audio');au.controls=true;au.src=u;d.append(au,$('span','muted','AI-generated speech (Indic-Speak)'))}
-    else if(/\\.(txt|md|srt|json)$/i.test(a.name)&&a.bytes<200000){const x=await t(u);if(x)d.append($('pre',null,x.slice(0,4000)+(x.length>4000?'\\n…':'')))}
-    d.append($('a',null,'open file'));d.lastChild.href=u;d.lastChild.target='_blank';
-    box.append(d)}
-  return box.childNodes.length?box:$('span','muted','none yet')}
+async function g(u,asJson){try{const r=await fetch(u,{cache:'no-store'});if(!r.ok)return null;return asJson?await r.json():await r.text()}catch(_){return null}}
+const rs=n=>'Rs '+Number(n||0).toFixed(2);
+const sec=ms=>((ms||0)/1000).toFixed(1)+' s';
+function row(kind,icon,title,detail,note){
+  const r=$('div','ev '+kind);r.append($('div','ic',icon));
+  const b=$('div');b.append($('div','t',title));
+  if(detail)b.append($('div','d',detail));
+  if(note)b.append($('div','n',note));
+  r.append(b);return r}
+function render(e,plan){
+  switch(e.type){
+    case 'intake':{const f=(e.inventory||[]).map(i=>i.name+' ('+i.kind+(i.duration_s?', '+Math.round(i.duration_s)+' s':'')+(i.pages?', '+i.pages+' pages':'')+')').join(', ');
+      return row('think','•','Looked at the input files for free',f||'no files')}
+    case 'plan':
+      if(e.feasible===false)return row('bad','✗','Decided it cannot be done',e.refusal||'');
+      return row('think','•','Made a plan',e.understanding||'',(e.steps||[]).length+' steps')
+    case 'estimate':return row('think','•','Worked out the cost before spending anything','Estimated '+rs(e.estimated_cost_inr)+' of a '+rs(e.max_cost_inr)+' limit');
+    case 'replan':return row('think','↻','Changed the plan',e.note||e.reason||'');
+    case 'plan_repair':return row('think','↻','Fixed an invalid plan',(e.error||'').slice(0,160));
+    case 'resume':return row('think','↻','Resumed an earlier run','Reusing its plan and finished steps');
+    case 'llm_call':return row('think','•','Asked the language model: '+(e.purpose||'').replace('_',' '),'',sec(e.latency_ms));
+    case 'fit':return row('think','•','Checked speech length before buying speech','Predicted '+e.predicted_s+' s for '+e.wanted_s+' s wanted');
+    case 'tool_call':return row('think','▶',e.step+'  '+e.tool,e.intent||'','reserved '+rs(e.reserved_inr));
+    case 'tool_result':{const s=e.summary||{};const bits=[];
+      if(s.duration_s)bits.push(Math.round(s.duration_s)+' s of audio');if(s.page_count)bits.push(s.page_count+' pages');
+      if(s.chars)bits.push(s.chars+' characters');if(s.output_chars&&!s.chars)bits.push(s.output_chars+' characters out');
+      if(s.language_hint)bits.push('language '+s.language_hint);if(s.chunks)bits.push(s.chunks+' windows');if(s.clips)bits.push(s.clips+' speech clips');
+      if(s.warnings&&s.warnings.length)bits.push('warnings: '+s.warnings.join(', '));
+      return row(e.ok?'ok':'bad',e.ok?'✓':'✗',e.step+' '+(e.ok?'done':'failed'),bits.join(' · '),rs(e.cost_inr)+' · '+sec(e.latency_ms)+(e.cache_hit?' · from cache':''))}
+    case 'step_skipped':return row('skip','–',e.step+' skipped',e.reason||'','no cost');
+    case 'step_reused':return row('ok','↺',e.step+' reused',e.reason||'','no cost');
+    case 'step_failed':return row('bad','✗',e.step+' failed',(e.error&&e.error.message)||'');
+    case 'verify':{const k=e.result==='passed'?'ok':e.result==='failed'?'bad':'skip';
+      return row(k,e.result==='passed'?'✓':e.result==='failed'?'✗':'–','Check: '+e.check+' → '+e.result,e.detail||'',(e.artifact||'').split('/').pop())}
+    case 'error':return row('bad','✗','Stopped: '+(e.code||'error'),e.message||'');
+    case 'stop':return row(e.status==='completed'?'ok':'bad','■','Finished: '+e.status,'Total '+rs(e.cost_inr)+' in '+e.duration_s+' s');
+    default:return null}}
 async function show(run){
-  const main=document.getElementById('main');
-  const raw=await t('/run/'+encodeURIComponent(run)+'/trace.jsonl')||'';
+  const raw=await g('/run/'+encodeURIComponent(run)+'/trace.jsonl')||'';
   const events=raw.split('\\n').filter(Boolean).map(l=>{try{return JSON.parse(l)}catch(_){return null}}).filter(Boolean);
-  const report=await j('/run/'+encodeURIComponent(run)+'/report.json');
-  const plan=[...events].reverse().find(e=>e.type==='plan');
+  const report=await g('/run/'+encodeURIComponent(run)+'/report.json',true);
   const stop=[...events].reverse().find(e=>e.type==='stop');
-  const verifies=events.filter(e=>e.type==='verify');
   const status=report?report.status:(stop?stop.status:'running');
-  main.replaceChildren();
-  const top=$('div');top.append($('span','badge '+status,status.toUpperCase()));
+  const main=document.getElementById('main'),keep=main.parentElement.scrollTop;main.replaceChildren();
+  main.append($('h1','task',report?report.task:run));
   const spent=report?report.budget.cost_inr:events.filter(e=>e.type==='tool_result').reduce((s,e)=>s+(e.cost_inr||0),0);
-  const cap=report?report.budget.max_cost_inr:null;
-  top.append($('span','meta','   spent Rs '+rs(spent)+(cap?' of Rs '+rs(cap):'')+(report?'  ·  '+report.duration_s+' s  ·  '+report.budget.steps_used+' steps':'')));
+  const top=$('div','top');top.append($('span','badge '+status,status.toUpperCase()),document.createTextNode('spent '+rs(spent)+(report?' of '+rs(report.budget.max_cost_inr)+' · '+report.duration_s+' s':'')));
   main.append(top);
-  const intake=events.find(e=>e.type==='intake');
-  main.append($('div','task',report?report.task:(run)));
-  if(cap){const b=$('div','bar');const i=$('i');i.style.width=Math.min(100,spent/cap*100)+'%';b.append(i);main.append(b)}
-  if(plan){main.append($('h2',null,'How the agent understood it'),$('div',null,plan.understanding||''));
-    if((plan.assumptions||[]).length){const de=$('details');de.append($('summary',null,plan.assumptions.length+' assumption(s) the agent recorded'));plan.assumptions.forEach(a=>de.append($('div','muted','• '+a.text)));main.append($('h2',null,'Assumptions'),de)}
-    if(plan.feasible===false)main.append($('h2',null,'Refused'),$('pre',null,plan.refusal||''))}
-  const est=events.find(e=>e.type==='estimate');
-  if(est)main.append($('div','meta','Estimated before spending: Rs '+rs(est.estimated_cost_inr)+' (limit Rs '+rs(est.max_cost_inr)+')'));
-  main.append($('h2',null,'Steps'),plan?steps(events,plan):$('span','muted','planning…'));
-  main.append($('h2',null,'Checks on the outputs'),checks(report?report.verification:verifies));
-  if(report){main.append($('h2',null,'Files produced'),await arts(run,report.artifacts||[]));
-    if((report.errors||[]).length){main.append($('h2',null,'Why it did not complete'));report.errors.forEach(e=>main.append($('pre',null,e.code+': '+e.message+(e.hint?'\\n'+e.hint:''))))}
-    const md=await t('/run/'+encodeURIComponent(run)+'/result.md');if(md){const de=$('details');de.open=true;de.append($('summary',null,'result.md (the written report)'),$('pre',null,md));main.append($('h2',null,'Report'),de)}}
-  else main.append($('h2',null,'Live trace'),$('pre',null,events.slice(-12).map(e=>e.type+(e.step?' '+e.step:'')+(e.tool?' '+e.tool:'')).join('\\n')))}
+  const plan=[...events].reverse().find(e=>e.type==='plan');
+  events.forEach(e=>{const r=render(e,plan);if(r)main.append(r);
+    if(e.type==='plan'&&(e.assumptions||[]).length)e.assumptions.forEach(a=>main.append(row('think','•','Assumed',a.text)))});
+  main.parentElement.scrollTop=keep}
 async function tick(){
-  const runs=await j('/api/runs')||[];
+  const runs=await g('/api/runs',true)||[];
   const nav=document.getElementById('runs');nav.replaceChildren();
   if(!runs.length)nav.append($('span','muted','no runs yet'));
   if(!current&&runs.length)current=runs[0].name;
-  runs.forEach(r=>{const d=$('div','run'+(r.name===current?' on':''));d.append($('div',null,r.name),$('small',null,r.status+(r.cost!==null?' · Rs '+rs(r.cost):'')));d.onclick=()=>{current=r.name;history.replaceState(null,'','?run='+encodeURIComponent(r.name));tick()};nav.append(d)});
+  runs.forEach(r=>{const d=$('div','run'+(r.name===current?' on':''));d.append($('div',null,r.name),$('small',null,r.status+(r.cost!==null?' · '+rs(r.cost):'')));d.onclick=()=>{current=r.name;history.replaceState(null,'','?run='+encodeURIComponent(r.name));tick()};nav.append(d)});
   if(current)await show(current)}
 tick();setInterval(tick,1500);
 </script></body></html>
