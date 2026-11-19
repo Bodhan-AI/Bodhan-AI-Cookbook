@@ -14,8 +14,10 @@ COPY requirements.txt pyproject.toml README.md ./
 COPY src ./src
 RUN pip install --no-cache-dir -r requirements.txt
 
-RUN useradd --create-home agent && mkdir -p /out && chown agent /out
+RUN useradd --create-home agent && mkdir -p /out /work && chown agent /out /work
 USER agent
+# relative paths such as the brief's `--out ./out` land in /work, which the non-root user owns
+WORKDIR /work
 ENV PYTHONUNBUFFERED=1 PYTHONIOENCODING=utf-8
 
 CMD ["python", "-m", "bodhan_mcp", "--artifacts-dir", "/out/mcp_artifacts"]

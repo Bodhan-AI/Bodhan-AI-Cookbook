@@ -13,6 +13,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import time
 from pathlib import Path
 from typing import Any
 
@@ -49,7 +50,14 @@ def save(out: Path, state: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_name(path.name + f".tmp{os.getpid()}")
     tmp.write_text(json.dumps({"version": CHECKPOINT_VERSION, **state}, ensure_ascii=False, default=str), encoding="utf-8")
-    os.replace(tmp, path)  # a reader sees either the old or the new checkpoint, never half of one
+    for attempt in range(20):  # a reader sees either the old or the new checkpoint, never half of one
+        try:
+            os.replace(tmp, path)
+            return
+        except PermissionError:  # Windows: another process has the old file open for a moment
+            if attempt == 19:
+                raise
+            time.sleep(0.05)
 
 
 def load(out: Path) -> dict[str, Any]:

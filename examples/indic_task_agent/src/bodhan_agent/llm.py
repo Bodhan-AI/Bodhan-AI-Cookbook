@@ -56,6 +56,31 @@ def llm_settings() -> tuple[str, str, str]:
     return base, model, key
 
 
+RATE_LIMIT_ATTEMPTS = 6
+MAX_RETRY_WAIT_S = 90.0
+_WAIT_HINT = re.compile(r"(?:try again in|retry after|retry_after|resets_in_seconds)\W{0,3}([0-9]+(?:\.[0-9]+)?)\s*(ms|s|seconds?)?", re.I)
+
+
+def retry_wait(exc: Exception, attempt: int) -> float:
+    """Seconds to wait before retrying: the provider's Retry-After header or "try again in Xs" message when given,
+    else exponential backoff; capped so one call never waits longer than MAX_RETRY_WAIT_S (the run deadline also applies)."""
+    wait = float(2 ** attempt)
+    headers = getattr(getattr(exc, "response", None), "headers", None) or {}
+    hinted = None
+    try:
+        if headers.get("retry-after") is not None:
+            hinted = float(headers["retry-after"])
+    except (TypeError, ValueError):
+        hinted = None
+    if hinted is None:
+        m = _WAIT_HINT.search(str(exc))
+        if m:
+            hinted = float(m.group(1)) / (1000.0 if (m.group(2) or "").lower() == "ms" else 1.0)
+    if hinted is not None:
+        wait = max(wait, hinted + 0.5)
+    return min(wait, MAX_RETRY_WAIT_S)
+
+
 _JSON_CALL = re.compile(r"\{[\s\S]*\}")
 
 
@@ -103,7 +128,9 @@ class PlannerLLM:
         retry, so a priced planner never retries beyond the budget."""
         last_exc: Exception | None = None
         self.uncertain_attempts = 0  # attempts that failed after the request may have reached the provider
-        for attempt in range(1, self.max_attempts + 1):
+        attempt, limit = 0, self.max_attempts
+        while attempt < limit:
+            attempt += 1
             if attempt > 1 and can_retry is not None and not can_retry():
                 raise LLMError(f"Not retrying the planner call: the budget cannot cover another attempt "
                                f"(last error: {type(last_exc).__name__}: {str(last_exc)[:200]})")
@@ -123,8 +150,10 @@ class PlannerLLM:
                     self.uncertain_attempts += 1
                 if status in (400, 401, 403, 404, 422) and attempt == 1 and "tool" not in str(exc).lower():
                     break  # configuration error; retrying will not help
-                if attempt < self.max_attempts:
-                    await asyncio.sleep(2 ** attempt)
+                if status == 429:  # rate limits pass: allow more attempts, waiting as long as the provider asks (capped)
+                    limit = max(limit, RATE_LIMIT_ATTEMPTS)
+                if attempt < limit:
+                    await asyncio.sleep(retry_wait(exc, attempt))
         raise LLMError(f"LLM call failed after retries: {type(last_exc).__name__}: {str(last_exc)[:300]}")
 
     async def _create(self, messages, tools, max_tokens):

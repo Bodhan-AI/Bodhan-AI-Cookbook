@@ -404,7 +404,9 @@ async def test_resume_continues_without_rebilling(tmp_path):
     with pytest.raises(Interrupted):
         await run(args(tmp_path, "Read this aloud in Hindi", [txt]), transport=fake.transport, llm=PlannerLLM(client=first, model="s"))
     translate_calls = fake.calls["translate"]
-    assert translate_calls > 0 and not (tmp_path / "out" / "report.json").exists()
+    provisional = json.loads((tmp_path / "out" / "report.json").read_text(encoding="utf-8"))  # never left without a report
+    assert translate_calls > 0 and provisional["provisional"] and provisional["stop_reason"] == "interrupted"
+    assert "--resume" in provisional["final_answer"]
 
     second = ScriptedChat([
         lambda m: [("synthesize_speech", {"path": last_ok(m, "path"), "language": "hi", "format": "wav"})],

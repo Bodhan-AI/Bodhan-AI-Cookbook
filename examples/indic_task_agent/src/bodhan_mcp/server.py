@@ -16,6 +16,7 @@ import json
 import os
 import secrets
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -113,9 +114,32 @@ def build_server(ctx: RunContext) -> Server:
                   on_list_tools=list_tools, on_call_tool=call_tool, on_list_resources=list_resources, on_read_resource=read_resource)
 
 
+def artifacts_folder(requested: str | None) -> Path:
+    """The requested folder, else ./bodhan_mcp_artifacts, else a folder in the user cache (a desktop client may start the
+    server in an unwritable folder such as /). Never crash before `initialize` because of the default."""
+    if requested:
+        out = Path(requested).expanduser().resolve()
+        try:
+            out.mkdir(parents=True, exist_ok=True)
+        except OSError as exc:
+            raise SystemExit(f"error: cannot create --artifacts-dir {out}: {exc}") from exc
+        return out
+    for out in (Path.cwd() / "bodhan_mcp_artifacts", Path.home() / ".cache" / "bodhan_tool_agent" / "mcp_artifacts",
+                Path(tempfile.gettempdir()) / "bodhan_mcp_artifacts"):
+        try:
+            out.mkdir(parents=True, exist_ok=True)
+            probe = out / ".write_test"
+            probe.write_text("", encoding="utf-8")
+            probe.unlink()
+            return out.resolve()
+        except OSError:
+            continue
+    raise SystemExit("error: no writable folder for generated files; pass --artifacts-dir")
+
+
 def make_context(args: argparse.Namespace) -> RunContext:
-    out = Path(args.artifacts_dir).resolve()
-    out.mkdir(parents=True, exist_ok=True)
+    out = artifacts_folder(args.artifacts_dir)
+    print(f"bodhan_mcp: generated files go to {out}", file=sys.stderr)
     trace_file = out / "server_trace.jsonl"
 
     def trace(event: dict) -> None:
@@ -134,7 +158,9 @@ def make_context(args: argparse.Namespace) -> RunContext:
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(prog="python -m bodhan_mcp", description="Bodhan MCP tool server (stdio by default; optional Streamable HTTP).")
-    p.add_argument("--artifacts-dir", default="bodhan_mcp_artifacts", help="Where generated files are written (default ./bodhan_mcp_artifacts).")
+    p.add_argument("--artifacts-dir", default=None,
+                   help="Where generated files are written (default ./bodhan_mcp_artifacts, or a folder in the user cache when the "
+                        "current folder is not writable, as when a desktop client starts the server from /).")
     p.add_argument("--max-cost-inr", type=float, default=None, help="Optional spending cap for this server session.")
     p.add_argument("--allow-dir", action="append", default=[], help="Restrict readable inputs to these folders (repeatable).")
     p.add_argument("--cache-dir", default="~/.cache/bodhan_tool_agent", help="Result cache so repeated inputs are not re-billed.")

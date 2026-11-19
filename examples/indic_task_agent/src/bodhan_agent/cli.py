@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import shutil
+import signal
 import sys
 import time
 import traceback
@@ -116,7 +117,10 @@ async def run(args: argparse.Namespace, *, transport=None, llm: PlannerLLM | Non
         settings = Settings(max_steps=args.max_steps, max_cost_inr=args.max_cost_inr, max_seconds=args.max_seconds,
                             llm_input_inr_per_1m=args.llm_input_inr_per_1m, llm_output_inr_per_1m=args.llm_output_inr_per_1m)
         deadline = t0 + settings.max_seconds
-        prepare_out(out)
+        try:
+            prepare_out(out)
+        except OSError as exc:
+            raise UsageError(f"Cannot create the output folder {out}: {exc}. Pass a writable --out.") from exc
     started_at = datetime.now(UTC)
     trace = TraceWriter(out / "trace.jsonl", append=bool(resume_state))
     ledger = CostLedger(max_inr=settings.max_cost_inr)
@@ -139,6 +143,7 @@ async def run(args: argparse.Namespace, *, transport=None, llm: PlannerLLM | Non
         agent = Agent(task, ctx, trace, settings, llm, files, missing, llm_error, deadline=deadline, out=out,
                       resume_state=resume_state, notes=notes)
         agent.roots = roots
+        agent.started_at = started_at
     except Exception as exc:  # setup failed: no paid work happened; still write an honest report
         trace.write({"type": "setup_error", "error": repr(exc), "traceback": traceback.format_exc()[-3000:]})
         ctx = RunContext(artifacts_dir=out / "artifacts", ledger=ledger, cache=ResultCache(None), client=None, read_roots=roots)
@@ -147,6 +152,10 @@ async def run(args: argparse.Namespace, *, transport=None, llm: PlannerLLM | Non
         return _finish(agent, ledger, trace, out, started_at, t0)
     try:
         await agent.run()
+    except (KeyboardInterrupt, asyncio.CancelledError):  # Ctrl-C / SIGTERM: keep the run resumable, leave an honest report
+        trace.write({"type": "interrupted", "step": agent.steps})
+        agent._save()  # checkpoint plus the provisional report that says how to resume
+        raise
     except Exception as exc:  # never leave a run without a report; same output rule as any other stop
         trace.write({"type": "internal_error", "error": repr(exc), "traceback": traceback.format_exc()[-3000:]})
         agent.forced_outcome("internal_error", f"The agent hit an internal error: {type(exc).__name__}: {exc}.")
@@ -167,11 +176,16 @@ def main(argv: list[str] | None = None) -> None:
     args = parse_args(argv)
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    if hasattr(signal, "SIGTERM"):  # `docker stop`, a CI timeout: handled like Ctrl-C (report + resumable checkpoint)
+        signal.signal(signal.SIGTERM, lambda *_: (_ for _ in ()).throw(KeyboardInterrupt()))
     try:
         report = asyncio.run(run(args))
     except (UsageError, checkpoint.ResumeError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         sys.exit(2)
+    except KeyboardInterrupt:
+        print(f"interrupted: report and checkpoint are in {Path(args.out).resolve()}; continue with --resume", file=sys.stderr)
+        sys.exit(130)
     c = report["cost"]
     print(f"status={report['status']} stop={report['stop_reason']} steps={report['steps']['used']} "
           f"bodhan_inr={c['total_counted_inr']} elapsed_s={report['elapsed_s']} out={Path(args.out).resolve()}")

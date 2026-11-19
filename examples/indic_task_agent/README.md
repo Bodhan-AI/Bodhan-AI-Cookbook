@@ -35,7 +35,10 @@ Docker is an alternative to the local install:
 ```bash
 docker build -t indic-task-agent .
 docker run --rm -i --env-file .env indic-task-agent    # MCP server on stdio
+docker run --rm --env-file .env -v "$PWD/sample_data:/data" indic-task-agent   python -m bodhan_agent --task "Read this paragraph aloud in Bengali" --files /data/paragraph --out ./out
 ```
+
+The image runs as a non-root user in `/work`, which that user owns, so a relative `--out ./out` works. Mount a folder there to keep the outputs.
 
 ## Run
 
@@ -80,6 +83,8 @@ python -m bodhan_agent --resume --out ./out
 ```
 
 The agent writes a checkpoint to `out/.state/` between planner turns. It holds the conversation, plan, step and spend counters, artifact records with their SHA-256, and the provenance record, but no keys. On `--resume`, the agent first checks that every input file is byte-for-byte unchanged. It then re-runs a turn that was cut off, and continues within the remaining steps, time and budget. Paid results are kept in the run's own cache (`out/.state/cache`), so work finished before the interruption is not billed again. A request that was in flight at the moment of interruption may be sent again; its earlier attempt can't be confirmed either way. A finished run can't be resumed.
+
+A run is never left without a report. At every checkpoint the agent writes the `report.json` and `result.md` that an interruption at that moment would leave (marked `"provisional": true`, stop reason `interrupted`, with the resume command). The final report replaces them. Ctrl-C and SIGTERM (`docker stop`) are handled the same way and leave the run resumable.
 
 ### Watch a run live
 

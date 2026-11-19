@@ -110,8 +110,10 @@ def build_report(agent: Any, out: Path, started_at: datetime, elapsed: float) ->
     }
 
 
-def write_outputs(agent: Any, out: Path, started_at: datetime, elapsed: float) -> dict[str, Any]:
+def write_outputs(agent: Any, out: Path, started_at: datetime, elapsed: float, provisional: bool = False) -> dict[str, Any]:
     report = build_report(agent, out, started_at, elapsed)
+    if provisional:
+        report["provisional"] = True  # written while running; the final report replaces it
     (out / "report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
     (out / "result.md").write_text(render_markdown(report, agent.ctx, out), encoding="utf-8")
     return report

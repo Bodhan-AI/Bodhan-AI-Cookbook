@@ -50,6 +50,8 @@ def score(task: dict, report: dict, out: Path) -> list[str]:
     unknown = set(exp) - KNOWN_EXPECTATIONS
     if unknown:
         fails.append(f"unknown expectation keys {sorted(unknown)} (scorer cannot check them)")
+    if report.get("provisional"):
+        fails.append("the run never finished (only its provisional report exists)")
     if report.get("stop_reason") in INFRASTRUCTURE_STOPS:
         # the planner never got to decide: a "failed" status here is not an honest refusal, whatever the task expects
         fails.append(f"run stopped by {report['stop_reason']} (planner unavailable), so the task was not evaluated")

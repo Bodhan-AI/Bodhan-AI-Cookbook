@@ -271,3 +271,26 @@ def test_a_priced_planner_call_cut_off_by_a_kill_is_charged_on_resume(tmp_path):
     t.write_text("\n".join(json.dumps(e) for e in events) + "\n", encoding="utf-8")
     st = ledger_from_trace(t)
     assert st["llm_cost"] == pytest.approx(0.5 * 3 + 0.1)  # the unsettled call at every attempt it could make, plus the settled one
+
+
+# ---- competitive review, tier 0 --------------------------------------------------------------
+def test_planner_retries_follow_the_providers_wait_hint():
+    from bodhan_agent.llm import MAX_RETRY_WAIT_S, retry_wait
+
+    class RateLimited(Exception):
+        status_code = 429
+
+    assert retry_wait(RateLimited("Rate limit reached. Please try again in 7.5s."), 1) == 8.0
+    assert retry_wait(RateLimited("usage_limit_reached resets_in_seconds: 5007"), 1) == MAX_RETRY_WAIT_S
+    assert retry_wait(RateLimited("busy"), 2) == 4.0
+
+
+def test_the_mcp_server_never_crashes_on_an_unwritable_working_folder(tmp_path, monkeypatch):
+    from bodhan_mcp.server import artifacts_folder
+
+    locked = tmp_path / "locked"
+    locked.write_text("not a folder", encoding="utf-8")  # mkdir under a file fails on every OS
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr("pathlib.Path.cwd", lambda: locked)
+    out = artifacts_folder(None)
+    assert out.is_dir() and "locked" not in str(out)

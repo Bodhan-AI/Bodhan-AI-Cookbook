@@ -597,6 +597,22 @@ class Agent:
             checkpoint.save(self.out, st)
         except OSError as exc:  # a checkpoint is best effort; the run itself continues
             self.trace.write({"type": "checkpoint_error", "error": repr(exc)})
+        if self.outcome is None and getattr(self, "started_at", None) is not None:
+            self.write_provisional()
+
+    def write_provisional(self) -> None:
+        """The report an interruption now would leave: replaced by the real one when the run ends. The checkpoint is
+        not marked finished, so the run can still be resumed."""
+        from .report import write_outputs
+
+        try:
+            self.forced_outcome("interrupted", f"The run was interrupted (stopped or killed) after step {self.steps}, or is still running. "
+                                               f"Continue it with: python -m bodhan_agent --resume --out \"{self.out}\"")
+            write_outputs(self, self.out, self.started_at, self.elapsed_before + (time.monotonic() - self.started), provisional=True)
+        except Exception as exc:  # never let reporting break the run
+            self.trace.write({"type": "report_error", "error": repr(exc)})
+        finally:
+            self.outcome = None
 
     def _restore(self, st: dict[str, Any]) -> dict | None:
         self.steps, self.plan, self.plan_version = st["steps"], st["plan"], st["plan_version"]

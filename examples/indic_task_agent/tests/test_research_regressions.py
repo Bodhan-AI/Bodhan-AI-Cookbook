@@ -83,7 +83,8 @@ def test_resume_after_a_hard_process_kill(tmp_path):
     finally:
         proc.kill()  # SIGKILL / TerminateProcess: nothing in the child gets to clean up
         proc.communicate()
-    assert not (tmp_path / "out" / "report.json").exists()
+    provisional = json.loads((tmp_path / "out" / "report.json").read_text(encoding="utf-8"))  # a killed run still has a report
+    assert provisional["provisional"] and provisional["stop_reason"] == "interrupted"
 
     done = subprocess.run([*child, "resume", str(tmp_path)], env=env, capture_output=True, text=True, encoding="utf-8", timeout=120)
     assert done.returncode == 0, done.stderr
