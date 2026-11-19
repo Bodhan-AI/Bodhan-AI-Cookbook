@@ -245,3 +245,20 @@ async def test_translate_keeps_page_markers_layout_and_same_language_passages(fa
     assert len(sent) == 3 and all("\n\n" not in s for s in sent)  # one paragraph per request
     assert out.count("\n\n") == doc.read_text(encoding="utf-8").count("\n\n")
     assert not r["verification"]["checks"]["numbers"]["missing"]
+
+
+async def test_subtitles_reuse_this_runs_transcript_instead_of_rebilling(fake, make_ctx, tmp_path):
+    audio = write_wav(tmp_path / "note.wav", speechlike(60, 16000, pause_every=20.0))
+    fake.asr_default = " ".join(f"यह वाक्य संख्या {i} है और यह बोला गया।" for i in range(6))  # ~12 chars/s, like real speech
+    ctx = make_ctx(fake)
+    t, err = await call(ctx, "transcribe_audio", path=str(audio), language="hi")
+    assert not err
+    asr_calls = fake.calls["transcriptions"]
+    r, err = await call(ctx, "create_subtitles", path=str(audio), subtitle_language="en", max_cue_seconds=7)
+    assert not err, r
+    assert fake.calls["transcriptions"] == asr_calls  # no second transcription of the same audio
+    from bodhan_mcp.tools.subtitles import parse_srt
+
+    cues = parse_srt(open(r["subtitles_path"], encoding="utf-8").read())
+    assert cues and all(c["end"] - c["start"] <= 7.0 + 0.05 for c in cues)
+    assert ctx.artifacts[r["source_subtitles_path"]].kind == "transcript"  # source SRT is not an unverified translation

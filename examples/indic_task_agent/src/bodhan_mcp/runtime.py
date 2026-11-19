@@ -255,6 +255,7 @@ class RunContext:
     trace: TraceFn | None = None
     verify_by_default: bool = True
     artifacts: dict[str, Artifact] = field(default_factory=dict)
+    transcripts: dict[str, Path] = field(default_factory=dict)  # source audio path -> segments JSON made this run
     started: float = field(default_factory=time.monotonic)
     # Agent mode: Indic text the LLM is allowed to pass inline (task text + tool outputs).
     provenance_guard: Any = None

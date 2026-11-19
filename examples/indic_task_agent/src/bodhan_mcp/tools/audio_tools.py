@@ -124,12 +124,33 @@ async def transcribe_audio(ctx: RunContext, a: TranscribeIn) -> dict:
     lang = (r["detection"] or {}).get("language")
     ctx.register(Artifact(txt, "transcript", "transcribe_audio", lang, "indic-transcribe", None, r["notes"]))
     ctx.register(Artifact(js, "json", "transcribe_audio", lang, "indic-transcribe", None))
+    ctx.transcripts[str(p)] = js
     if ctx.provenance_guard is not None:
         ctx.provenance_guard.add(r["text"])
     return {"source": str(p), "transcript_path": str(txt), "segments_path": str(js), "duration_s": r["duration_s"],
             "segments": len(r["segments"]), "language_used": r.get("language_used"), "detection": r["detection"], "notes": r["notes"],
             "timing_note": "Segment times come from pause-based chunking (~0.3 s precision); the model returns no word timestamps.",
             "transcript": frame_untrusted(r["text"], str(txt), 1500)}
+
+
+def split_cues(segments: list[dict], max_seconds: float) -> list[dict]:
+    """Split segments longer than `max_seconds` at sentence/clause boundaries, giving
+    each piece a share of the segment's time proportional to its length."""
+    out: list[dict] = []
+    for s in segments:
+        dur = s["end"] - s["start"]
+        text = s.get("text") or ""
+        if dur <= max_seconds or len(text.split()) < 2:
+            out.append(s)
+            continue
+        pieces = pack_segments(text, max(8, int(len(text) * max_seconds / dur)))
+        total = sum(len(x) for x in pieces) or 1
+        t = s["start"]
+        for x in pieces:
+            d = dur * len(x) / total
+            out.append({"start": round(t, 2), "end": round(t + d, 2), "text": x})
+            t += d
+    return out
 
 
 # ---------------------------------------------------------------------------
@@ -144,12 +165,15 @@ class SubtitlesIn(_Strict):
 async def create_subtitles(ctx: RunContext, a: SubtitlesIn) -> dict:
     target = check_target(a.subtitle_language)
     p = ctx.resolve_input(a.path)
-    if p.suffix.lower() == ".json":
-        data = json.loads(p.read_text(encoding="utf-8"))
+    reuse = p if p.suffix.lower() == ".json" else ctx.transcripts.get(str(p))
+    if reuse is not None:
+        data = json.loads(reuse.read_text(encoding="utf-8"))
         segments, detection = data.get("segments") or [], data.get("detection")
         if not segments:
-            raise E.ToolError(E.INVALID_ARGUMENT, f"{p.name} has no `segments`.", hint="Pass the *_transcript.json from transcribe_audio, or the audio file.")
-        notes = ["reused existing transcript segments"]
+            raise E.ToolError(E.INVALID_ARGUMENT, f"{reuse.name} has no `segments`.", hint="Pass the *_transcript.json from transcribe_audio, or the audio file.")
+        segments = split_cues(segments, a.max_cue_seconds)
+        notes = ["reused this run's transcript instead of transcribing the audio again; long segments were split into cues "
+                 "with times proportional to text length (approximate)"]
     else:
         r = await transcribe_file(ctx, p, a.source_language, max_segment_seconds=a.max_cue_seconds, min_segment_seconds=1.5)
         segments, detection, notes = r["segments"], r["detection"], r["notes"]
@@ -162,7 +186,7 @@ async def create_subtitles(ctx: RunContext, a: SubtitlesIn) -> dict:
     base = output_name(a.output_name, str(p), "")
     src_srt = ctx.artifact_path(f"{base}_{src_lang or 'source'}", ".srt")
     src_srt.write_text(render_srt(segments), encoding="utf-8")
-    ctx.register(Artifact(src_srt, "subtitles", "create_subtitles", src_lang, "indic-transcribe", None))
+    ctx.register(Artifact(src_srt, "transcript", "create_subtitles", src_lang, "indic-transcribe", None))
 
     verification = None
     if src_lang == target:
@@ -170,7 +194,9 @@ async def create_subtitles(ctx: RunContext, a: SubtitlesIn) -> dict:
         notes.append("speech is already in the subtitle language; no translation")
     else:
         outs = await asyncio.gather(*[_translate_piece(ctx, s["text"], target, "native") for s in segments])
-        out_cues = [{**s, "text": o} for s, (o, _) in zip(segments, outs)]
+        # ASR output has no punctuation, so English cues often arrive lower-case; capitalise the first letter (English only).
+        fix = (lambda t: t[:1].upper() + t[1:]) if target == "en" else (lambda t: t)
+        out_cues = [{**s, "text": fix(o)} for s, (o, _) in zip(segments, outs)]
         units = [Unit("text", s["text"], o) for s, (o, _) in zip(segments, outs)]
         source_all, output_all = "\n".join(u.source for u in units), "\n".join(u.output for u in units)
         verification = await verify_units(ctx, units, source_all, output_all, target, "native", src_lang)
