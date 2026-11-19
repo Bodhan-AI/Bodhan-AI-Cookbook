@@ -49,28 +49,100 @@ flowchart LR
 
 ## Agent flow
 
+**In one sentence:** code checks the inputs, then the LLM and code take turns (the LLM picks one tool, code runs it and reports back) until the LLM says it is done or a budget runs out; finally code double-checks the answer and writes the output files.
+
 ```mermaid
 flowchart TD
-    Start([task + files]) --> Pre{"Preflight in code<br/>input exists? LLM configured?"}
-    Pre -->|no| Fail["status: impossible / stopped<br/>no LLM call, no files"]
-    Pre -->|yes| Manifest["inspect_media → manifest<br/>+ supported languages<br/>+ length target if the task asks for one"]
-    Manifest --> Plan["PLAN: LLM picks a tool<br/>(every call carries a one-line why)"]
-    Plan --> Budget{"steps / time left?"}
-    Budget -->|no| Stop["status: stopped<br/>partial result listed honestly"]
-    Budget -->|yes| Guard{"Guards in code<br/>LLM-written Indian-language text?<br/>bad arguments?"}
-    Guard -->|refused| Observe
-    Guard -->|ok| Act["ACT: run tool<br/>Bodhan call only if not cached<br/>and within the rupee budget"]
-    Act --> Verify["VERIFY inside the tool<br/>speech: transcribe back, CER<br/>translation: coverage, numbers, tables"]
-    Verify -->|bad piece| Retry["redo once<br/>(fresh take / sentence split)"]
-    Retry --> Observe
-    Verify -->|ok| Observe["OBSERVE: short JSON result<br/>file text wrapped as untrusted"]
-    Observe --> Done{"LLM called finish?"}
-    Done -->|no| Plan
-    Done -->|yes| Final["Code checks: claimed files exist,<br/>failed check → partial,<br/>impossible → delete outputs"]
-    Final --> Out([result.md · artifacts/ · trace.jsonl · report.json])
-    Stop --> Out
-    Fail --> Out
+    A(["You run: python -m bodhan_agent --task ... --files ..."]) --> B
+
+    subgraph BEFORE["1 · Before the loop (code only, free)"]
+        B{"Do the input files exist?"}
+        B -->|no| X["Stop: 'impossible'<br/>(the LLM is never called)"]
+        B -->|yes| C["Describe the inputs<br/>(type, length, pages, script)<br/>and write the first message to the LLM"]
+    end
+
+    C --> D
+
+    subgraph LOOP["2 · The loop (repeats once per tool call)"]
+        D["LLM reads everything so far<br/>and picks ONE tool + says why"]
+        D --> E{"Code checks the request<br/>budget left? rules kept?"}
+        E -->|"budget used up"| Y["Stop: 'stopped'"]
+        E -->|"rule broken"| G
+        E -->|ok| F["Code runs the tool<br/>(Bodhan model, with checks inside)"]
+        F --> G["Code sends a short result<br/>back to the LLM"]
+        G --> H{"Did the LLM call finish?"}
+        H -->|no, next step| D
+    end
+
+    H -->|yes| I
+
+    subgraph AFTER["3 · After the loop (code only)"]
+        I["Double-check the answer<br/>files exist? checks passed?"]
+        I --> J["Write result.md, report.json<br/>(trace.jsonl was written step by step)"]
+    end
+
+    X --> J
+    Y --> J
 ```
+
+### Step by step
+
+**1. Before the loop (code, `bodhan_agent/__main__.py` → `run()`)**
+
+- If the `--files` path does not exist, the run ends here as `impossible`. No LLM call, no cost.
+- Otherwise `inspect_media` describes every input file for free: kind (audio, video, image, PDF, text), duration, page count, and the likely language of any text.
+- The first message to the LLM (`agent.py` → `Agent.run()`) contains:
+  - the task,
+  - the input description,
+  - the budgets (steps, rupees, seconds),
+  - the supported languages for each model, so it can refuse French before spending anything,
+  - a word target, if the task asks for a spoken length ("two-minute").
+
+**2. The loop (`agent.py` → `Agent.run()`, `_act()`, `_dispatch()`)**
+
+Each turn is one *step*:
+
+1. **The LLM plans.** It reads the whole conversation so far and answers with one tool call, for example `transcribe_audio(path=clip1.mp3)`. Every tool has a required `why` field, so it must also say why, e.g. "Transcribe clip1 to find its language."
+2. **Code checks before running anything:**
+   - Are steps and time left? If not, the run stops as `stopped`.
+   - Does any argument the LLM wrote contain Indian-language text? If so, it is refused with an explanation (the LLM must pass a file path from a Bodhan tool instead). The refusal goes back to the LLM as the step's result.
+3. **Code runs the tool** through the MCP server. Inside the tool:
+   - the cache is checked first, so a repeated input costs nothing;
+   - the rupee budget is checked before any paid Bodhan call;
+   - the model's limits are handled (audio cut at silences, text split into chunks, PDF split into pages);
+   - the output is checked (speech is transcribed back and compared; translations are checked for missing parts), and a bad piece is redone once.
+4. **Code reports back.** The LLM gets a short JSON result: output file paths, a preview of at most a few hundred words, checks, warnings or an error with a hint. Text that came from input files is wrapped in `<untrusted_content>` tags, so instructions hidden in a file are treated as data. One line is written to `trace.jsonl`.
+5. **Repeat** from 1, until the LLM calls `finish` with its status, English answer, assumptions and the list of output files.
+
+**3. After the loop (code, `agent.py` → `_finish()`, `__main__.py` → `write_outputs()`)**
+
+- The answer must be in English, or `finish` is refused.
+- Every file the LLM claims must really exist; any that don't are listed as "claimed but not found".
+- If any output check failed (for example, the audio is much shorter than asked), `completed` becomes `partial`.
+- If the status is `impossible`, all files from the run are deleted, so nothing fake is left behind.
+- `result.md` (for people) and `report.json` (for machines) are written. `trace.jsonl` was already written one line per step.
+
+### A real example: "Which of these clips are in Telugu? Translate those into English"
+
+From `demo_runs/4_which_clips_telugu/trace.jsonl`:
+
+| Step | LLM picked | Its reason | What came back |
+|---|---|---|---|
+| 1–5 | `transcribe_audio` on clip1 … clip5 | "Transcribe clip1 to determine its language." | each clip's text and its language from the script: te, ta, te, kn, hi |
+| 6 | `translate_text` on clip1's transcript, target `en` | "Translate clip1 transcript into English." | English file + coverage check passed |
+| 7 | `translate_text` on clip3's transcript, target `en` | "Translate clip3 transcript into English." | English file + coverage check passed |
+| 8 | `finish` (status `completed`) | "Successfully identified Telugu clips and translated them into English." | code confirmed both files exist |
+
+Then code wrote `result.md` and `report.json`: 8 steps, ₹0.04, 17 s.
+
+### How a run can end
+
+| Status | When | Files |
+|---|---|---|
+| `completed` | the LLM finished and every check passed | the outputs |
+| `partial` | the LLM finished, but part could not be done (e.g. the budget blocked speech) or a check failed | whatever was made, with the reason |
+| `impossible` | the input is missing, the language or file type is unsupported, or the task is beyond the tools | none (deleted) |
+| `stopped` | the step or time budget ran out, or the LLM could not be reached | whatever was made so far, marked as possibly incomplete |
 
 ## Tool design
 
