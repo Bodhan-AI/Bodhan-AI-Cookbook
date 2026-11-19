@@ -1,0 +1,9 @@
+{
+  "id": "real_hindi_sample",
+  "title": "Real recorded Hindi speech to English subtitles",
+  "task": "Transcribe this Hindi recording and give me English subtitles as an SRT file.",
+  "files": ["../../../sample_data/sample_hindi.wav"],
+  "args": ["--max-cost-inr", "0.5"],
+  "expect": {"status": ["completed"], "artifacts": ["*.srt"], "checks": ["cues", "monotonic"], "max_cost_inr": 0.5},
+  "notes": "The Cookbook's own sample_hindi.wav: the only real (non-synthetic) human speech available, shared by all submissions."
+}

@@ -71,6 +71,7 @@ Ten tasks run against the real models; recordings are in `demo_runs/` (reports, 
 |---|---|---|---|
 | Tamil chapter (8-page scan) to a 2-minute Tamil MP3 and text | completed, audio 124 s vs 120 asked | 0.99 | 252 s |
 | Hindi voice note to English SRT | completed | 0.06 | 21 s |
+| Real recorded Hindi (the Cookbook's `sample_hindi.wav`) to English SRT | completed | 0.02 | 58 s |
 | Marathi worksheet photo to Markdown with the table | completed | 0.20 | 23 s |
 | Which of five clips are Telugu, translated | completed, 3 of 5 translations skipped | 0.05 | 48 s |
 | Bengali paragraph read aloud, female voice | completed | 0.12 | 45 s |
