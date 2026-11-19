@@ -71,3 +71,17 @@ async def test_allow_dir_sandbox(tmp_path):
     async with Client(server(tmp_path, "--allow-dir", str(inside))) as c:
         r = await c.call_tool("read_text", {"path": str(tmp_path / "private.txt")})
         assert r.is_error and r.structured_content["error"]["code"] == "path_not_allowed"
+
+
+async def test_unknown_resource_is_a_protocol_error_and_server_survives(tmp_path):
+    from mcp.shared.exceptions import MCPError
+
+    async with Client(server(tmp_path)) as c:
+        try:
+            await c.read_resource("bodhan://does-not-exist")
+            raised = None
+        except MCPError as exc:
+            raised = exc
+        assert raised is not None and raised.error.code == -32602 and "does-not-exist" in raised.error.message
+        ok = await c.read_resource("bodhan://voices")
+        assert "Anitha" in ok.contents[0].text

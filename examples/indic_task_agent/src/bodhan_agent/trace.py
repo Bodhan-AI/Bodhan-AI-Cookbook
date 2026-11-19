@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import time
 from contextvars import ContextVar
@@ -9,6 +10,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+MAX_ARGS_CHARS = 50_000
 CURRENT_STEP: ContextVar[int] = ContextVar("agent_step", default=0)
 
 _SUMMARY_KEYS = ("path", "transcript_path", "segments_path", "subtitles_path", "source_subtitles_path", "duration_s", "language",
@@ -66,8 +68,14 @@ class TraceWriter:
     def write(self, event: dict[str, Any]) -> None:
         record = {"ts": datetime.now(UTC).isoformat(timespec="milliseconds"), "t": round(time.monotonic() - self.t0, 3), **event}
         record.setdefault("step", CURRENT_STEP.get())
+        args = record.pop("arguments", None)
+        line = _short(record, 2000)
+        if args is not None:  # tool arguments are kept whole so a run can be replayed; huge ones are hashed
+            raw = json.dumps(args, ensure_ascii=False, default=str)
+            line["arguments"] = args if len(raw) <= MAX_ARGS_CHARS else {"sha256": hashlib.sha256(raw.encode()).hexdigest(), "chars": len(raw),
+                                                                          "preview": raw[:500]}
         with self.path.open("a", encoding="utf-8") as f:
-            f.write(json.dumps(_short(record, 2000), ensure_ascii=False, default=str) + "\n")
+            f.write(json.dumps(line, ensure_ascii=False, default=str) + "\n")
         self.events += 1
 
     def tool_event(self, event: dict[str, Any]) -> None:

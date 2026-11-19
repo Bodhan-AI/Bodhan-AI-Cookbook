@@ -149,11 +149,17 @@ class BodhanClient:
         self.deadline = deadline  # monotonic time after which no request may wait or retry (set by the agent)
         self._http = httpx.AsyncClient(timeout=httpx.Timeout(timeout, connect=min(10.0, timeout)), transport=transport)
 
-    async def aclose(self) -> None:
-        for t in list(self._tasks):
+    async def cancel_all(self) -> None:
+        """Cancel every request still in flight and wait until each one has settled its cost
+        (released if never sent, uncertain if sent). Used when the run's deadline passes."""
+        tasks = list(self._tasks)
+        for t in tasks:
             t.cancel()
-        if self._tasks:
-            await asyncio.gather(*self._tasks, return_exceptions=True)
+        if tasks:
+            await asyncio.gather(*tasks, return_exceptions=True)
+
+    async def aclose(self) -> None:
+        await self.cancel_all()
         await self._http.aclose()
 
     # ------------------------------------------------------------------ core

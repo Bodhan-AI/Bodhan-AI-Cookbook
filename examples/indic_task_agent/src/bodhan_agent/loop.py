@@ -347,6 +347,7 @@ class Agent:
             try:  # a tool may not outlive the run's deadline; cancellation releases unsent reservations
                 result, _ = await asyncio.wait_for(invoke(spec, self.ctx, call.arguments, scope=scope), timeout=max(0.0, self._time_left()))
             except TimeoutError:
+                await self.ctx.client.cancel_all()  # the run is ending: settle in-flight requests so this step's cost is known
                 result = {"ok": False, "error": {"code": "time_limit", "message": "The run's time limit was reached while this tool was running.",
                                                  "retryable": False, "hint": "Finish with what you have."}, "cost_inr": round(sum(scope), 5)}
         if not result.get("ok") and (result.get("error") or {}).get("code") == E.BUDGET_EXCEEDED:

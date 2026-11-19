@@ -11,6 +11,9 @@ from urllib.parse import urlparse
 
 from bodhan_mcp import __version__
 from bodhan_mcp.runtime import Artifact, RunContext
+from bodhan_mcp.tools import TOOLS
+
+PAID_TOOLS = {t.name for t in TOOLS if t.paid}
 
 TEXT_KINDS = {"translation", "subtitles", "text", "ocr", "transcript"}
 SINGLE_STEP_TARGET_S, MULTI_STEP_TARGET_S = 30, 300
@@ -38,7 +41,8 @@ def build_report(agent: Any, out: Path, started_at: datetime, elapsed: float) ->
     deliverable_keys = set(outcome.deliverables)
     arts = list(ctx.artifacts.values())
     paid_calls = [t for t in agent.tool_log if t["ok"] and t["cost_inr"]]
-    multi = len({t["tool"] for t in agent.tool_log if t["tool"] not in ("inspect_files", "detect_language", "list_voices", "read_text")}) > 1
+    # multi-step = more than one paid model call (free helpers such as read_text or write_text do not count)
+    multi = sum(1 for t in agent.tool_log if t["tool"] in PAID_TOOLS) > 1
     target = MULTI_STEP_TARGET_S if multi else SINGLE_STEP_TARGET_S
     ledger = ctx.ledger.summary()
     verifications = [{"artifact": _rel(out, a.path), "kind": a.kind, **(a.verification or {})} for a in arts if a.verification]
@@ -80,7 +84,7 @@ def build_report(agent: Any, out: Path, started_at: datetime, elapsed: float) ->
             "no_waste": {"cache_hits": ctx.ledger.cache_hits, "bodhan_requests": ctx.ledger.calls,
                          "note": "identical (model, input, settings) requests are served from the cache instead of re-sent"},
             "verification": {"all_generated_audio_and_translations_checked": not unverified},
-            "honest_failure": outcome.status in ("failed", "unsupported", "partial") or outcome.status.startswith("completed"),
+            "honest_failure": "unassessed: code cannot judge whether the answer is truthful; see verification results and review the outputs",
         },
         "injection_warnings": injections,
         "paid_tool_calls": len(paid_calls),

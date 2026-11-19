@@ -86,6 +86,7 @@ class FakeBodhan:
     ocr_truncate: bool = False  # OCR answers with finish_reason=length
     delay: float = 0.0  # seconds each request takes (to make concurrency observable)
     drop_last_sentence: bool = False  # translation silently omits the final sentence
+    append_text: str = ""  # appended to every non-English translation
 
     @property
     def transport(self) -> httpx.MockTransport:
@@ -139,6 +140,8 @@ class FakeBodhan:
         text = msgs[0]["content"]
         self.requests.append({"kind": "translate", "target": target, "text": text})
         out = pseudo_translate(text, target)
+        if self.append_text and target != 'en':
+            out = out + self.append_text
         if self.drop_last_sentence and target != 'en' and '. ' in text:
             out = pseudo_translate(text.rsplit('. ', 1)[0] + '.', target)
         if self.reflow_tables and "|" in text and "\n" in text:
