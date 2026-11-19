@@ -250,7 +250,7 @@ class Agent:
             tools = openai_tools({"finish"} if last_step else None)
             if last_step:
                 self.messages.append({"role": "user", "content": "Only one step is left: call finish now with what you have (status partial if incomplete)."})
-            if self._compact():
+            if self._compact(level=0):
                 self.trace.write({"type": "context_compacted", "step": self.steps, "reason": "conversation over the context budget"})
             est = self._llm_cost(prompt_token_bound(self.messages, tools), LLM_COMPLETION_RESERVE)
             if est is not None and not self.ctx.ledger.can_afford(est):  # priced planner: check before spending
@@ -269,8 +269,11 @@ class Agent:
                     self._charge_uncertain_llm(est, sent, "timeout")
                 return self._forced_stop(("time_limit", f"Reached the {self.settings.max_seconds:.0f}s time limit during a planner call."))
             except ContextTooLong as exc:
-                if compactions < 2 and self._compact(aggressive=True):
+                shrunk = False
+                while compactions < 3 and not shrunk:  # escalate until a level actually shortens the conversation
                     compactions += 1
+                    shrunk = self._compact(level=compactions)
+                if shrunk:
                     self.trace.write({"type": "context_compacted", "step": self.steps, "reason": str(exc)[:200]})
                     continue
                 sent = getattr(self.llm, "uncertain_attempts", 0)
@@ -283,6 +286,7 @@ class Agent:
                 self.trace.write({"type": "llm_error", "step": self.steps, "error": str(exc), "uncertain_attempts": sent,
                                   "cost_inr": round(est * sent, 5) if est is not None and sent else None})
                 return self._forced_stop(("llm_error", f"The planner LLM failed: {exc}"))
+            compactions = 0  # a reply arrived: the next "too long" rejection may compact again
             if est is not None and getattr(self.llm, "uncertain_attempts", 0):  # failed attempts before this success
                 self._charge_uncertain_llm(est, self.llm.uncertain_attempts, "retried")
             cost = self._llm_cost(reply.prompt_tokens, reply.completion_tokens)
@@ -693,17 +697,23 @@ class Agent:
         return {"max_cost_inr": self.settings.max_cost_inr, "prices": {"indic-transcribe": "₹0.10/min", "indic-translate": "₹0.20/10k output tokens",
                 "indic-speak": "₹6/10k chars", "indic-ocr": "₹0.20/page"}}
 
-    def _compact(self, aggressive: bool = False) -> bool:
+    def _compact(self, level: int = 0) -> bool:
         """Keep the conversation inside small planner context windows: older tool results are replaced by a short
-        record (ok, error code, paths, verification status). Artifacts stay on disk and read_text can reopen them."""
+        record (ok, error code, paths, verification status). Artifacts stay on disk and read_text can reopen them.
+        level 0: only past CONTEXT_BYTES, keep the last 6 results; after a "too long" rejection: 1 keeps the last 2,
+        2 keeps the last 1 shortened, 3 shortens every result (some endpoints cap a request at ~8k tokens)."""
         size = len(json.dumps(self.messages, ensure_ascii=False).encode("utf-8"))
-        if size <= CONTEXT_BYTES and not aggressive:
+        if size <= CONTEXT_BYTES and not level:
             return False
         tool_msgs = [i for i, m in enumerate(self.messages) if m.get("role") == "tool"]
-        keep = set(tool_msgs[-(2 if aggressive else KEEP_RECENT_TOOL_RESULTS):])
+        keep = set(tool_msgs[-{0: KEEP_RECENT_TOOL_RESULTS, 1: 2, 2: 1}.get(level, 0):]) if level < 3 else set()
         changed = False
         for i in tool_msgs:
             content = self.messages[i].get("content") or ""
+            if i in keep and level == 2 and len(content) > 1500:  # the newest result, shortened but still readable
+                self.messages[i] = {**self.messages[i], "content": content[:1500] + '... [shortened to fit the planner context; use read_text]"'}
+                changed = True
+                continue
             if i in keep or content.startswith('{"compacted"'):
                 continue
             try:

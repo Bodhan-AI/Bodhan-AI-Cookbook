@@ -95,3 +95,47 @@ async def test_a_plan_can_declare_romanized_and_many_deliverables(tmp_path):
     declared = rep["plan"]["deliverables"]  # the trace shortens long records; the report keeps the whole plan
     assert declared[0]["language"] == "hi" and "romanized" in declared[0]["description"]
     assert len(declared) == 15 and not [e for e in trace if e["type"] == "control_rejected"] and json.dumps(rep)
+
+
+# Provider error messages can carry account ids; key formats of other providers count as secrets
+def test_export_scrubs_account_ids_and_other_providers_keys(tmp_path):
+    import importlib.util
+    from pathlib import Path
+
+    spec = importlib.util.spec_from_file_location("export_runs", Path(__file__).resolve().parents[1] / "scripts" / "export_runs.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    text = mod.scrub("Request too large for model in organization `org_01exampleexample0000000` service tier", tmp_path, [])
+    assert "org_01example" not in text and "<account-id>" in text
+    assert mod.leaks("key gsk_" + "a" * 40) and mod.leaks("key AIza" + "b" * 35)
+
+
+# Some endpoints cap a whole request at ~8k tokens: compaction keeps shortening until it fits
+async def test_compaction_keeps_shrinking_until_the_request_fits(tmp_path):
+    from fakes import _Obj  # noqa: F401  (fakes provides the scripted planner)
+
+    txt = tmp_path / "p.txt"
+    txt.write_text("The library opens at eight. " * 200, encoding="utf-8")
+    plan = ("record_plan", {"steps": ["read"], "deliverables": [{"kind": "answer"}]})
+    inner = ScriptedChat([[plan], [("read_text", {"path": str(txt)})], [("read_text", {"path": str(txt), "offset": 3000})],
+                          [("finish", {"status": "completed", "final_answer": "It opens at eight."})]])
+
+    class Err(Exception):
+        status_code = 413
+
+    calls = {"n": 0}
+
+    class Capped:
+        def __init__(self):
+            self.chat = self.completions = self
+
+        async def create(self, **kw):
+            calls["n"] += 1
+            if len(json.dumps(kw["messages"])) > 9000:  # "Request too large ... Limit 8000"
+                raise Err("Error code: 413 - Request too large for model on tokens per minute (TPM): Limit 8000, Requested 9029")
+            return await inner.create(**kw)
+
+    await run(args(tmp_path, "When does the library open?", [txt]), transport=FakeBodhan().transport, llm=PlannerLLM(client=Capped(), model="s"))
+    out, rep, trace, md = read_outputs(tmp_path)
+    assert rep["status"] in ("completed", "completed_with_warnings"), rep["final_answer"]
+    assert any(e["type"] == "context_compacted" for e in trace)
