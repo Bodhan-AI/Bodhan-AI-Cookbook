@@ -49,7 +49,7 @@ class TranslationTests(unittest.TestCase):
                 _translate_request(client, "ದೀರ್ಘ ಪಠ್ಯ", "en", "test-key")
 
     def test_rate_limit_does_not_expose_upstream_response_body(self):
-        response = httpx.Response(429, text="Internal detail")
+        response = httpx.Response(429, text="Internal detail", headers={"Retry-After": "90"})
         with httpx.Client(transport=httpx.MockTransport(lambda request: response)) as client:
             with self.assertRaisesRegex(ToolError, r"^rate_limited: Wait before retrying\.$"):
                 _translate_request(client, "Hello", "kn", "test-key")

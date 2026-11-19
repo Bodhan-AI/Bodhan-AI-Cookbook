@@ -17,7 +17,7 @@ from .request_budget import BudgetExhausted, RequestBudget, active_budget
 
 MAX_CONCURRENT_REQUESTS = 4
 MAX_ATTEMPTS = 3
-MAX_RETRY_DELAY_SECONDS = 2
+MAX_RETRY_DELAY_SECONDS = 60
 SLOT_TIMEOUT_SECONDS = 5
 _request_slots = BoundedSemaphore(MAX_CONCURRENT_REQUESTS)
 _PRE_SEND_ERRORS = (httpx.ConnectError, httpx.ConnectTimeout, httpx.PoolTimeout)
@@ -97,7 +97,7 @@ def _post_with_retries(
                     return response, reservation
                 if reservation is not None:
                     budget.settle(reservation, Decimal(0))
-                delay = _retry_delay(attempt, response.headers.get("Retry-After"))
+                delay = _retry_delay(attempt, response.headers.get("Retry-After", str(5 * (attempt + 1))))
                 if attempt == MAX_ATTEMPTS - 1 or delay > MAX_RETRY_DELAY_SECONDS:
                     return response, None
         finally:

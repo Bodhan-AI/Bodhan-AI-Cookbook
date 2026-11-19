@@ -95,7 +95,7 @@ class SubtitleTests(unittest.TestCase):
         self.assertEqual(reviews, translated)
         self.assertEqual(report["verification"][-1]["cues"], 4)
         self.assertTrue(all(check["passed"] for check in report["verification"]))
-        self.assertIn("fixed audio window boundaries", report["assumptions"][0])
+        self.assertIn("audio window boundaries", report["assumptions"][0])
         path, = report["artifacts"]
         self.assertEqual((output / path).read_text(), (
             "1\n00:00:00,000 --> 00:00:08,000\nClass is tomorrow.\n\n"

@@ -2,6 +2,38 @@
 
 The standalone stdio MCP server exposes document translation, audio transcription, text-to-speech, and document OCR. The translation tool calls Indic-Translate on Bodhan's hosted `/v1/chat/completions` endpoint and returns translated text and token usage.
 
+## Architecture
+
+```mermaid
+flowchart LR
+    C[External MCP client] -->|stdio| M[MCP server]
+    CLI[Task CLI] --> E[Python executor]
+    E -->|task, observations, remaining budget| P[Configured planner LLM]
+    P -->|one typed action| E
+    M --> T[Shared Python tools]
+    E --> T
+    T --> B[Bodhan OCR, Translate, Speak, Transcribe]
+    E --> O[Artifacts, result, report, trace]
+```
+
+External clients discover and call the server through MCP. The agent imports
+the same functions so its request budget, media paths and observations stay in one
+process. The planner receives file IDs and bounded text previews. Review and
+English summarization receive the passages needed for their respective checks.
+
+```mermaid
+flowchart TD
+    A[Declare requested outputs and assumptions] --> B[Choose one action]
+    B --> C[Execute within remaining budget]
+    C --> D[Verify translation, audio or subtitles]
+    C --> E[Record observation or error]
+    D --> E
+    E --> B
+    B --> F[Finish decision]
+    F --> G[Check declared outputs and write report]
+    C -->|budget exhausted| G
+```
+
 ## Setup
 
 From this recipe directory, using Python 3.12:
@@ -94,12 +126,12 @@ tempo by up to 15%. The agent uses the final audio's decoded duration and
 reports a miss outside 15% of the requested duration, with a one-second
 minimum tolerance. It can revise the narration before exporting the text.
 
-For SRT, the agent uses eight-second audio windows, translates each nonblank cue
+For SRT, the agent uses audio windows of at most eight seconds and prefers nearby pauses, translates each nonblank cue
 with Bodhan when needed, reviews the translation, and validates cue order and coverage.
 Offsets are window boundaries. A window can split a word or include silence.
 
 Four simultaneous Bodhan HTTP requests are allowed per process. Short rate limits
-and pre-send connection failures get bounded backoff. Identical requests reuse
+and pre-send connection failures get bounded backoff. Numeric provider cooldowns of up to 60 seconds are supported. Identical requests reuse
 successful responses within an agent run. Ambiguously billed attempts keep
 their reservation. Starting another run creates a fresh cache. If OCR
 stops after completing some pages, those pages are saved as a partial Markdown

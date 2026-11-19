@@ -324,7 +324,7 @@ def _execute(run: Run, planner: Planner, inputs: dict[str, Path], action: Action
             raise ToolError("Select an input ID from the inventory.")
         if isinstance(action, Transcribe):
             if any(item.format == "srt" for item in run.deliverables.values()):
-                transcript = transcribe_audio(str(source), action.language, SUBTITLE_WINDOW_SECONDS)
+                transcript = transcribe_audio(str(source), action.language, SUBTITLE_WINDOW_SECONDS, prefer_pauses=True)
             else:
                 transcript = transcribe_audio(str(source), action.language)
             observation = run.remember(transcript.text, action.language)

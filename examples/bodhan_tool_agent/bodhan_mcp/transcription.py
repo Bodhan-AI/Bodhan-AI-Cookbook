@@ -4,6 +4,7 @@ from decimal import Decimal
 import io
 import os
 from pathlib import Path
+from struct import iter_unpack
 import subprocess
 from tempfile import TemporaryDirectory
 from typing import Annotated, Iterator, Literal
@@ -19,6 +20,10 @@ from .request_budget import TRANSCRIBE_PER_SECOND
 TRANSCRIBE_URL = "https://api.bodhan.ai/v1/audio/transcriptions"
 SAMPLE_RATE = 16_000
 MAX_WINDOW_FRAMES = 30 * SAMPLE_RATE
+PAUSE_BLOCK_FRAMES = SAMPLE_RATE // 50
+PAUSE_SEARCH_FRAMES = 2 * SAMPLE_RATE
+MIN_PAUSE_BLOCKS = 6
+QUIET_RMS = 250
 
 SpeechLanguage = Literal[
     "as", "bhb", "bho", "bn", "brx", "doi", "en", "gu", "hi", "kn", "kok", "ks",
@@ -63,7 +68,34 @@ def _normalize(source: Path, destination: Path) -> None:
         raise ToolError("invalid_audio: Provide a readable file with an audio stream.") from None
 
 
-def _wav_windows(path: Path, window_frames: int = MAX_WINDOW_FRAMES) -> Iterator[tuple[float, float, bytes]]:
+def _pause_boundary(pcm: bytes) -> int:
+    """Find the latest pause near the end of a normalized PCM window."""
+    end = len(pcm) // 2
+    search_start = max(end - PAUSE_SEARCH_FRAMES, end // 2)
+    block_frames = PAUSE_BLOCK_FRAMES
+    quiet_blocks = 0
+    pause_start = end
+    pause_end = end
+    for start in range(end - block_frames, search_start - 1, -block_frames):
+        block = pcm[start * 2:(start + block_frames) * 2]
+        energy = sum(sample * sample for (sample,) in iter_unpack("<h", block))
+        if energy <= block_frames * QUIET_RMS**2:
+            if quiet_blocks == 0:
+                pause_end = start + block_frames
+            pause_start = start
+            quiet_blocks += 1
+            continue
+        if quiet_blocks >= MIN_PAUSE_BLOCKS:
+            return (pause_start + pause_end) // 2 if pause_end < end else end
+        quiet_blocks = 0
+    if quiet_blocks >= MIN_PAUSE_BLOCKS and pause_end < end:
+        return (pause_start + pause_end) // 2
+    return end
+
+
+def _wav_windows(
+    path: Path, window_frames: int = MAX_WINDOW_FRAMES, *, prefer_pauses: bool = False,
+) -> Iterator[tuple[float, float, bytes]]:
     if not 0 < window_frames <= MAX_WINDOW_FRAMES:
         raise ToolError("invalid_window: Choose a window of at least one sample and at most 30 seconds.")
     with wave.open(str(path), "rb") as source:
@@ -74,6 +106,10 @@ def _wav_windows(path: Path, window_frames: int = MAX_WINDOW_FRAMES) -> Iterator
             frames = source.readframes(window_frames)
             if not frames:
                 raise ToolError("invalid_audio: The decoded WAV ended unexpectedly.")
+            if prefer_pauses and source.tell() < source.getnframes():
+                kept_frames = _pause_boundary(frames)
+                frames = frames[:kept_frames * 2]
+                source.setpos(start_frame + kept_frames)
             output = io.BytesIO()
             with wave.open(output, "wb") as window:
                 window.setparams(source.getparams())
@@ -120,12 +156,14 @@ def transcribe_audio(
     audio_path: Annotated[str, Field(min_length=1, description="Path to a local audio file.")],
     language: Annotated[SpeechLanguage | None, Field(description="Known spoken language code, such as hi.")] = None,
     window_seconds: Annotated[int, Field(ge=1, le=30, description="Maximum seconds of audio per request.")] = 30,
+    prefer_pauses: Annotated[bool, Field(description="Prefer nearby quiet audio when placing window boundaries.")] = False,
 ) -> TranscriptionResult:
     """Transcribe local audio using Indic-Transcribe.
 
     Pass a file path. The tool splits recordings into windows of up to 30 seconds.
-    Set window_seconds to get shorter windows for subtitles. Window times are
-    audio boundaries. Omit language to let Bodhan infer it.
+    Set window_seconds to get shorter windows for subtitles and prefer_pauses
+    to favor quiet cuts. Window times are audio boundaries. Omit language to
+    let Bodhan infer it.
     """
     source = Path(audio_path).expanduser().absolute()
     if not source.is_file():
@@ -138,7 +176,7 @@ def transcribe_audio(
     with TemporaryDirectory(prefix="bodhan-audio-") as directory, httpx.Client(timeout=30.0) as client:
         wav = Path(directory) / "audio.wav"
         _normalize(source, wav)
-        for start, end, audio in _wav_windows(wav, window_seconds * SAMPLE_RATE):
+        for start, end, audio in _wav_windows(wav, window_seconds * SAMPLE_RATE, prefer_pauses=prefer_pauses):
             try:
                 text = _transcribe_window(client, audio, language, api_key)
             except ToolError as exc:

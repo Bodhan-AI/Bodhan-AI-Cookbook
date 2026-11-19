@@ -1,6 +1,6 @@
 """Render SubRip cues from measured transcription window boundaries."""
 
-from math import ceil, isfinite
+from math import isfinite
 
 from mcp.server.fastmcp.exceptions import ToolError
 
@@ -8,8 +8,8 @@ from bodhan_mcp.transcription import TranscriptionResult
 
 SUBTITLE_WINDOW_SECONDS = 8
 SUBTITLE_TIMING_NOTE = (
-    "Subtitle cues use fixed audio window boundaries. "
-    "Speech within each cue can start or end at a different time, and cuts may split words."
+    "Subtitle cues use audio window boundaries that favor nearby pauses. "
+    "Speech within each cue can start or end at a different time, and some cuts may split words."
 )
 
 
@@ -38,9 +38,8 @@ def render_srt(transcript: TranscriptionResult, captions: dict[int, str]) -> str
         text = " ".join(captions[index].split())
         if not text or "\x00" in text:
             raise ToolError("A subtitle cue has invalid text.")
-        start_ms, end_ms = round(start * 1000), ceil(end * 1000)
-        if start_ms >= end_ms:
-            raise ToolError("A subtitle cue has no duration at millisecond precision.")
+        start_ms = round(start * 1000)
+        end_ms = max(start_ms + 1, round(end * 1000))
         cues.append(f"{len(cues) + 1}\n{_timestamp(start_ms)} --> {_timestamp(end_ms)}\n{text}")
     if previous_end != transcript.duration_seconds:
         raise ToolError("Transcription windows do not cover the recording duration.")

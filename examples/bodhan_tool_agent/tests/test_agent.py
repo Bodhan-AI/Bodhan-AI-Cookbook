@@ -61,7 +61,7 @@ class AgentTests(unittest.TestCase):
             state = json.loads(messages[1]["content"])
             if throttle_finish and any(d.get("artifact") for d in state.get("deliverables", [])):
                 throttle_finish = False
-                return httpx.Response(429, headers={"Retry-After": "2"})
+                return httpx.Response(429, headers={"Retry-After": "23.5"})
             if "Check whether" in messages[0]["content"]:
                 if review_status != 200:
                     return httpx.Response(review_status)
@@ -238,7 +238,7 @@ class AgentTests(unittest.TestCase):
                 {"action": "save_text", "source": "text-1"},
                 {"action": "finish", "status": "completed"},
             ], throttle_finish=True)
-        wait.assert_called_once_with(2)
+        wait.assert_called_once_with(23.5)
         self.assertEqual(report["status"], "completed")
         self.assertEqual(self.reads, ["page-1.png"])
         self.assertEqual(calls, 0)
