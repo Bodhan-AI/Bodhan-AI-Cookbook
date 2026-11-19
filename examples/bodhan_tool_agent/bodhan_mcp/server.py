@@ -10,6 +10,7 @@ from mcp.server.fastmcp import FastMCP
 from mcp.server.fastmcp.exceptions import ToolError
 from pydantic import BaseModel, Field, ValidationError
 
+from .document_chunks import MAX_SOURCE_BYTES, document_parts
 from .ocr import extract_document_text
 from .request_budget import (
     TRANSLATE_PER_TOKEN, TRANSLATION_OUTPUT_LIMIT, active_budget,
@@ -38,12 +39,22 @@ class TokenUsage(BaseModel):
     total_tokens: int = Field(ge=0)
 
 
+class TranslationSegment(BaseModel):
+    """Unicode code-point ranges of one translated source span and its output."""
+
+    source_start: int
+    source_end: int
+    output_start: int
+    output_end: int
+
+
 class TranslationResult(BaseModel):
     translation: str
     target_language: Language
     script: Literal["native", "roman", "codemix"]
     truncated: bool
     usage: TokenUsage
+    segments: list[TranslationSegment] = Field(default_factory=list)
 
 
 class ChatMessage(BaseModel):
@@ -69,11 +80,11 @@ def _translate_request(
         "messages": [{"role": "user", "content": text}],
         "target_language_code": target_language,
         "target_script": "native",
+        "max_output_tokens": TRANSLATION_OUTPUT_LIMIT,
     }
     budget = active_budget.get()
     reservation = None
     if budget is not None:
-        payload["max_output_tokens"] = TRANSLATION_OUTPUT_LIMIT
         reservation = budget.reserve("indic-translate", TRANSLATION_OUTPUT_LIMIT * TRANSLATE_PER_TOKEN)
     try:
         response = client.post(
@@ -91,7 +102,7 @@ def _translate_request(
             400: "invalid_request: Check the source text and target language.",
             401: "authentication_failed: Check the Bodhan translation key.",
             403: "access_denied: Check that the key has translation access.",
-            413: "input_too_large: Pass a shorter passage for this increment.",
+            413: "input_too_large: Try a shorter source passage.",
             429: "rate_limited: Wait before retrying.",
         }
         raise ToolError(
@@ -120,20 +131,57 @@ def _translate_request(
     )
 
 
+def _translate_document(client: httpx.Client, text: str, language: Language, key: str) -> TranslationResult:
+    output = []
+    segments = []
+    usage = TokenUsage(prompt_tokens=0, completion_tokens=0, total_tokens=0)
+    cached: dict[str, str] = {}
+    source_offset = output_offset = 0
+    for part in document_parts(text):
+        rendered = part.value
+        if part.mode is not None:
+            request = part.for_request()
+            if request not in cached:
+                try:
+                    result = _translate_request(client, request, language, key)
+                except ToolError as exc:
+                    raise ToolError(f"Translation segment {len(segments) + 1}: {exc}") from None
+                cached[request] = result.translation
+                usage.prompt_tokens += result.usage.prompt_tokens
+                usage.completion_tokens += result.usage.completion_tokens
+                usage.total_tokens += result.usage.total_tokens
+            rendered = part.render(cached[request])
+            segments.append(TranslationSegment(
+                source_start=source_offset, source_end=source_offset + len(part.value),
+                output_start=output_offset, output_end=output_offset + len(rendered),
+            ))
+        output.append(rendered)
+        source_offset += len(part.value)
+        output_offset += len(rendered)
+    return TranslationResult(
+        translation="".join(output), target_language=language, script="native",
+        truncated=False, usage=usage, segments=segments,
+    )
+
+
 @mcp.tool()
 def translate_text(
-    text: Annotated[str, Field(min_length=1, description="A short, nonblank passage to translate.")],
+    text: Annotated[str, Field(min_length=1, description="Nonblank passage or document text to translate.")],
     target_language: Annotated[Language, Field(description="Target language code, for example kn for Kannada.")],
 ) -> TranslationResult:
-    """Translate a short passage using Indic-Translate. The source language is inferred.
+    """Translate text into the target language using Indic-Translate.
 
-    Returns the translated text, target language, script and token usage.
-    Reports an error if the translation is empty or truncated.
+    Splits long passages inside the tool and preserves common Markdown layout,
+    fenced code, and Markdown and HTML table structure. Returns translated text,
+    aggregate usage, and source/output ranges for each translated segment.
+    An empty, failed, or truncated translation segment stops the call.
     """
     if not text.strip():
         raise ToolError("empty_input: Provide text with at least one non-whitespace character.")
+    if len(text.encode("utf-8")) > MAX_SOURCE_BYTES:
+        raise ToolError("input_too_large: Source text exceeds 128,000 UTF-8 bytes.")
     api_key = os.getenv("BODHAN_TRANSLATE_KEY", "").strip()
     if not api_key:
         raise ToolError("missing_key: Set BODHAN_TRANSLATE_KEY in the recipe's .env file.")
     with httpx.Client(timeout=20.0) as client:
-        return _translate_request(client, text, target_language, api_key)
+        return _translate_document(client, text, target_language, api_key)

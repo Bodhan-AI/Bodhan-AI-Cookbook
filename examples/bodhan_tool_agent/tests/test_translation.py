@@ -20,6 +20,7 @@ class TranslationTests(unittest.TestCase):
                     "messages": [{"role": "user", "content": "There are 3 books."}],
                     "target_language_code": "kn",
                     "target_script": "native",
+                    "max_output_tokens": 2048,
                 },
             )
             return httpx.Response(200, json={

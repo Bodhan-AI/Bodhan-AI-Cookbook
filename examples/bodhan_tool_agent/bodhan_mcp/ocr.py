@@ -1,6 +1,7 @@
 """Read local image and PDF pages using Bodhan Indic-OCR."""
 
 import base64
+from collections.abc import Callable
 import os
 from pathlib import Path
 import re
@@ -123,6 +124,10 @@ def extract_document_text(
     Pass a local file path. The tool renders PDF pages and submits one image per
     request. A blank page may have empty Markdown. PNG and JPEG count as one page.
     """
+    return read_document(document_path)
+
+
+def read_document(document_path: str, on_page: Callable[[OcrPage], None] | None = None) -> OcrResult:
     source = Path(document_path).expanduser().absolute()
     if not source.is_file():
         raise ToolError("missing_document: Provide a path to an existing document.")
@@ -141,5 +146,8 @@ def extract_document_text(
                 markdown = _read_page(client, image, key)
             except ToolError as exc:
                 raise ToolError(f"Page {page_number} of {len(images)}: {exc}") from None
-            pages.append(OcrPage(page_number=page_number, markdown=markdown))
+            page = OcrPage(page_number=page_number, markdown=markdown)
+            pages.append(page)
+            if on_page is not None:
+                on_page(page)
     return OcrResult(pages=pages)

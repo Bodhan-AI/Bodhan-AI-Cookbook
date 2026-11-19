@@ -13,15 +13,20 @@ import unicodedata
 
 from mcp.server.fastmcp.exceptions import ToolError
 
-from bodhan_mcp.ocr import extract_document_text
+from bodhan_mcp.document_chunks import MAX_SOURCE_BYTES, markdown_for_export
+from bodhan_mcp.ocr import OcrPage, read_document
 from bodhan_mcp.request_budget import BudgetExhausted, RequestBudget, active_budget
-from bodhan_mcp.server import translate_text
+from bodhan_mcp.server import TranslationResult, translate_text
 from bodhan_mcp.speech import synthesize_speech
 from bodhan_mcp.transcription import transcribe_audio
 
-from .planner import Action, Finish, PlannerError, Read, Save, Speak, Transcribe, Translate, TranslationReview
+from .planner import (
+    Action, Declare, Deliverable, Finish, PlannerError, Read, Save,
+    Speak, Transcribe, Translate, TranslationReview,
+)
 
-MAX_TEXT_BYTES = 16_000
+MAX_SPEECH_BYTES = 16_000
+REVIEW_BYTES = 6_000
 PREVIEW_CHARS = 320
 
 
@@ -73,6 +78,10 @@ class Run:
     output: Path
     budget: RequestBudget
     texts: dict[str, str] = field(default_factory=dict)
+    text_languages: dict[str, str] = field(default_factory=dict)
+    deliverables: dict[str, Deliverable] = field(default_factory=dict)
+    fulfilled: dict[str, str] = field(default_factory=dict)
+    partial_artifacts: list[str] = field(default_factory=list)
     artifacts: list[str] = field(default_factory=list)
     verification: list[dict] = field(default_factory=list)
     history: list[dict] = field(default_factory=list)
@@ -81,12 +90,39 @@ class Run:
         with (self.output / "trace.jsonl").open("a", encoding="utf-8") as trace:
             trace.write(json.dumps({"event": event, **fields}, ensure_ascii=False, default=str) + "\n")
 
-    def remember(self, text: str) -> dict:
+    def remember(self, text: str, language: str | None = None) -> dict:
         if not text.strip():
             raise ToolError("The selected source returned no text.")
         reference = f"text-{len(self.texts) + 1}"
         self.texts[reference] = text
-        return {"text_id": reference, "characters": len(text), "preview": text[:PREVIEW_CHARS]}
+        if language is not None:
+            self.text_languages[reference] = language
+        return {"text_id": reference, "characters": len(text), "language": language,
+                "preview": text[:PREVIEW_CHARS]}
+
+    def target(self, reference: str, formats: set[str], language: str | None) -> str:
+        requirement = self.deliverables.get(reference)
+        if requirement is None:
+            raise ToolError("Select a declared deliverable ID.")
+        if reference in self.fulfilled:
+            raise ToolError("This deliverable already has an artifact.")
+        if requirement.format not in formats:
+            raise ToolError("The selected operation cannot produce the declared format.")
+        if requirement.language is not None and language != requirement.language:
+            raise ToolError("The output language does not match the declared deliverable.")
+        return f"artifacts/{reference}.{requirement.format}"
+
+    def save_partial(self, path: str, text: str, **details: object) -> None:
+        (self.output / path).write_text(text, encoding="utf-8")
+        self.artifacts.append(path)
+        self.partial_artifacts.append(path)
+        self.record("partial_artifact", artifact=path, **details)
+
+    def deliverable_status(self) -> list[dict]:
+        return [
+            {"id": ref, **item.model_dump(), "artifact": self.fulfilled.get(ref)}
+            for ref, item in self.deliverables.items()
+        ]
 
     @contextmanager
     def verify(self, step: StepTrace, kind: str, **details: object) -> Iterator[dict]:
@@ -109,21 +145,80 @@ class Run:
                         **_request_summary(self.budget.requests[request_start:]))
 
 
+def _review_translation(run: Run, planner: Planner, step: StepTrace,
+                        action: Translate, original: str, result: TranslationResult) -> None:
+    if not result.segments:
+        with run.verify(step, "translation_coverage", method="literal_preservation",
+                        source=action.source, language=action.language) as check:
+            check["passed"] = original == result.translation
+            if not check["passed"]:
+                raise ToolError("Untranslated literal text changed.")
+        return
+
+    first = 0
+    while first < len(result.segments):
+        start = result.segments[first]
+        last = first
+        while last + 1 < len(result.segments):
+            following = result.segments[last + 1]
+            source_size = len(original[start.source_start:following.source_end].encode("utf-8"))
+            if source_size > REVIEW_BYTES:
+                break
+            last += 1
+        end = result.segments[last]
+        source_start, source_end = start.source_start, end.source_end
+        output_start, output_end = start.output_start, end.output_end
+        # Include literal headers, numeric cells and closing markup for a short document.
+        if first == 0 and last == len(result.segments) - 1 and len(original.encode("utf-8")) <= REVIEW_BYTES:
+            source_start, source_end = 0, len(original)
+            output_start, output_end = 0, len(result.translation)
+        with run.verify(step, "translation_coverage", method="planner_review",
+                        source=action.source, language=action.language,
+                        segments=[first + 1, last + 1],
+                        source_range=[source_start, source_end]) as check:
+            review = planner.review(original[source_start:source_end],
+                                    result.translation[output_start:output_end], action.language)
+            check.update(passed=review.approved, explanation=review.explanation)
+        if not review.approved:
+            raise ToolError(f"Translation segments {first + 1}–{last + 1} did not pass review.")
+        first = last + 1
+
+
+def _read_ocr(run: Run, source_id: str, source: Path) -> dict:
+    pages: list[OcrPage] = []
+    try:
+        read_document(str(source), on_page=pages.append)
+    except (BudgetExhausted, ToolError):
+        if pages:
+            path = f"artifacts/partial-{source_id}.md"
+            text = "\n\n".join(f"## Page {page.page_number}\n\n{page.markdown}" for page in pages)
+            run.save_partial(path, text, input=source_id, pages=[page.page_number for page in pages])
+        raise
+
+    text = []
+    ranges = []
+    offset = 0
+    for page in pages:
+        text.append(page.markdown)
+        ranges.append({"page": page.page_number, "start": offset, "end": offset + len(page.markdown)})
+        offset += len(page.markdown) + 2
+    return {**run.remember("\n\n".join(text)), "page_ranges": ranges}
+
+
 def _execute(run: Run, planner: Planner, inputs: dict[str, Path], action: Action, step: StepTrace) -> dict:
     if isinstance(action, (Read, Transcribe)):
         source = inputs.get(action.source)
         if source is None:
             raise ToolError("Select an input ID from the inventory.")
         if isinstance(action, Transcribe):
-            return run.remember(transcribe_audio(str(source), action.language).text)
+            return run.remember(transcribe_audio(str(source), action.language).text, action.language)
         if action.action == "ocr":
-            pages = extract_document_text(str(source)).pages
-            return run.remember("\n\n".join(page.markdown for page in pages))
+            return _read_ocr(run, action.source, source)
         if source.suffix.lower() not in {".txt", ".md"}:
             raise ToolError("Read supports UTF-8 .txt and .md files. Use OCR for documents.")
         with source.open("rb") as file:
-            data = file.read(MAX_TEXT_BYTES + 1)
-        if len(data) > MAX_TEXT_BYTES:
+            data = file.read(MAX_SOURCE_BYTES + 1)
+        if len(data) > MAX_SOURCE_BYTES:
             raise ToolError("Text exceeds this increment's input size limit.")
         return run.remember(data.decode("utf-8"))
 
@@ -131,23 +226,31 @@ def _execute(run: Run, planner: Planner, inputs: dict[str, Path], action: Action
     if text is None:
         raise ToolError("Select an available text ID.")
     if isinstance(action, Save):
-        path = f"artifacts/{action.source}.md"
-        (run.output / path).write_text(text, encoding="utf-8")
+        path = run.target(action.deliverable, {"md", "txt"}, run.text_languages.get(action.source))
+        exported = markdown_for_export(text) if path.endswith(".md") else text
+        (run.output / path).write_text(exported, encoding="utf-8")
         run.artifacts.append(path)
-        return {"artifact": path}
-    if len(text.encode("utf-8")) > MAX_TEXT_BYTES:
-        raise ToolError("Text exceeds this increment's translation or speech input limit.")
+        run.fulfilled[action.deliverable] = path
+        return {"artifact": path, "deliverable": action.deliverable}
     if isinstance(action, Translate):
         result = translate_text(text, action.language)
-        with run.verify(step, "translation_coverage", method="planner_review",
-                        source=action.source, language=action.language) as check:
-            review = planner.review(text, result.translation, action.language)
-            check.update(passed=review.approved, explanation=review.explanation)
-        if not review.approved:
-            raise ToolError("Translation review found a potential completeness or meaning issue.")
-        return run.remember(result.translation)
+        try:
+            _review_translation(run, planner, step, action, text, result)
+        except (PlannerError, ToolError):
+            path = f"artifacts/unverified-{step.number}.md"
+            run.save_partial(path, result.translation, source=action.source,
+                             language=action.language, verification="unverified")
+            raise
+        return {**run.remember(result.translation, action.language), "segments": len(result.segments)}
 
-    path = f"artifacts/speech-{len(run.artifacts) + 1}.wav"
+    if len(text.encode("utf-8")) > MAX_SPEECH_BYTES:
+        raise ToolError("Text exceeds this increment's speech input limit.")
+    known_language = run.text_languages.get(action.source)
+    if known_language is not None and known_language != action.language:
+        raise ToolError("Translate the source into the speech language before synthesis.")
+    path = run.target(action.deliverable, {"wav"}, action.language)
+    if path in run.artifacts:
+        raise ToolError("An existing unverified WAV occupies the deliverable path.")
     synthesis = synthesize_speech(text, action.language, action.voice, str(run.output / path))
     with run.verify(step, "speech_artifact_created", artifact=path, ai_generated=True) as check:
         run.artifacts.append(path)
@@ -163,7 +266,9 @@ def _execute(run: Run, planner: Planner, inputs: dict[str, Path], action: Action
                      transcript_characters=len(heard))
     if not passed:
         raise ToolError("Speech read-back diverged from the source. The WAV is available for review.")
-    return {"artifact": path, "duration_seconds": synthesis.duration_seconds, "ai_generated": True}
+    run.fulfilled[action.deliverable] = path
+    return {"artifact": path, "deliverable": action.deliverable,
+            "duration_seconds": synthesis.duration_seconds, "ai_generated": True}
 
 
 def run_task(task: str, files: list[Path], output: Path, max_steps: int, max_cost: Decimal,
@@ -192,6 +297,7 @@ def run_task(task: str, files: list[Path], output: Path, max_steps: int, max_cos
                 "task": task,
                 "inputs": [{"id": ref, "name": path.name} for ref, path in inputs.items()],
                 "observations": run.history,
+                "deliverables": run.deliverable_status(),
                 "remaining_bodhan_inr": str(max_cost - run.budget.total),
                 "remaining_steps_after_this": max_steps - step,
             })
@@ -199,13 +305,30 @@ def run_task(task: str, files: list[Path], output: Path, max_steps: int, max_cos
             run.record("plan", step=step, reason=action.reason, arguments=arguments,
                        latency_seconds=round(monotonic() - step_start, 3))
             if isinstance(action, Finish):
-                status, explanation, assumptions = action.status, action.reason, action.assumptions
+                status, explanation = action.status, action.reason
+                assumptions = list(dict.fromkeys([*assumptions, *action.assumptions]))
                 if status == "completed" and (
-                    not run.artifacts or any(not item["passed"] for item in run.verification)
+                    not run.deliverables or run.deliverables.keys() != run.fulfilled.keys()
                 ):
                     status = "incomplete"
-                    explanation = "The run lacks a deliverable or has an unresolved verification failure."
+                    explanation = "One or more requested deliverables are missing or unverified."
                 break
+
+            if isinstance(action, Declare):
+                if step != 1:
+                    raise PlannerError("The planner attempted to change the original deliverable declaration.")
+                assumptions = list(action.assumptions)
+                run.deliverables = {f"deliverable-{i}": item
+                                    for i, item in enumerate(action.deliverables, start=1)}
+                unsupported = [item.format for item in action.deliverables
+                               if item.format not in {"md", "txt", "wav"}]
+                if unsupported:
+                    status = "unsupported"
+                    explanation = "Unsupported output format: " + ", ".join(dict.fromkeys(unsupported))
+                    break
+                continue
+            if not run.deliverables:
+                raise PlannerError("The planner must declare the requested deliverables before using tools.")
 
             request_index = len(run.budget.requests)
             tool_start = monotonic()
@@ -245,16 +368,22 @@ def run_task(task: str, files: list[Path], output: Path, max_steps: int, max_cos
         "cost_inr": str(run.budget.total), "max_cost_inr": str(max_cost),
         "cost_scope": "Bodhan requests only. Unknown charges use the reserved amount.",
         "elapsed_seconds": round(monotonic() - started, 3),
-        "artifacts": run.artifacts, "assumptions": assumptions, "explanation": explanation,
+        "artifacts": run.artifacts, "partial_artifacts": run.partial_artifacts,
+        "deliverables": run.deliverable_status(), "assumptions": assumptions, "explanation": explanation,
     }
     run.record("summary", **report)
     (output / "report.json").write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     links = "\n".join(f"- [{Path(path).name}]({path})" for path in run.artifacts) or "No artifacts were produced."
+    deliverable_lines = "\n".join(
+        f"- {item['description']} (`{item['format']}`) — " +
+        (f"[ready]({item['artifact']})" if item["artifact"] else "pending")
+        for item in report["deliverables"]
+    ) or "None declared."
     assumptions_text = "\n".join(f"- {item}" for item in assumptions) or "None recorded."
     markdown = (
         f"# Task result\n\n**{status}**\n\n{explanation}\n\n"
         f"Bodhan cost estimate: ₹{report['cost_inr']}\n\n"
-        f"## Artifacts\n\n{links}\n\n## Assumptions\n\n{assumptions_text}\n\n"
+        f"## Requested deliverables\n\n{deliverable_lines}\n\n## Artifacts\n\n{links}\n\n## Assumptions\n\n{assumptions_text}\n\n"
         "See [report.json](report.json) for verification and [trace.jsonl](trace.jsonl) for the execution trace.\n"
     )
     (output / "result.md").write_text(markdown, encoding="utf-8")

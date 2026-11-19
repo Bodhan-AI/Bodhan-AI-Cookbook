@@ -1,6 +1,6 @@
 # Bodhan Tool Server and Task Agent
 
-The standalone stdio MCP server exposes short text translation, audio transcription, text-to-speech, and document OCR. The translation tool calls Indic-Translate on Bodhan's hosted `/v1/chat/completions` endpoint and returns translated text and token usage.
+The standalone stdio MCP server exposes document translation, audio transcription, text-to-speech, and document OCR. The translation tool calls Indic-Translate on Bodhan's hosted `/v1/chat/completions` endpoint and returns translated text and token usage.
 
 ## Setup
 
@@ -53,7 +53,14 @@ The tool also accepts a PNG or JPEG as a single page. It checks the PDF page cou
 
 Run the offline checks with `.venv/bin/python -m unittest discover -s tests -v`. They use an HTTP test transport to check the request and response mapping, truncation, rate-limit behavior, the exact 30-second audio boundary, TTS chunking, and OCR page counts and ordering.
 
-The translation wrapper sends one short passage per call. Long translation chunking and the task agent are later increments.
+Translation accepts up to 128,000 UTF-8 bytes. It splits at lines, sentences, or
+word boundaries and caps each provider input at 1,200 bytes. These are local
+limits. Common Markdown headings, list markers, fenced code, and Markdown and
+HTML table syntax stay local. Table cells are translated separately, so long
+tables can require many requests. A repeated segment within the same call
+reuses its translation. Output spans map each translated segment to its source
+using Unicode code-point offsets. Translation of arbitrary Markdown syntax and
+context across individually translated paragraphs remains limited.
 
 [Translation API reference](https://console.bodhan.ai/api-docs/#translation-api)
 
@@ -69,10 +76,20 @@ Set `LLM_BASE_URL` (the OpenAI-compatible base, usually ending in `/v1`), `LLM_M
   --max-steps 12 --max-cost-inr 2
 ```
 
-Choose a new or empty output directory. The agent writes `result.md`, `report.json`, `trace.jsonl` and `artifacts/`. The planner selects typed actions referencing known input and text IDs. The executor imports the same Bodhan operations exposed over stdio. It sends media directly to Bodhan and uses text previews for planning. The translation reviewer sees the full source and result for the supported short passages.
+Choose a new or empty output directory. The agent writes `result.md`, `report.json`, `trace.jsonl` and `artifacts/`. The planner selects typed actions referencing known input and text IDs. The executor imports the same Bodhan operations exposed over stdio. It sends media directly to Bodhan and uses text previews for planning. The first planner action declares the requested deliverables. Each published
+file must match its declared format and language, and speech must pass
+read-back before it fulfills a deliverable. The report lists completed and
+pending deliverables. Translation review checks bounded groups of aligned
+source and output segments.
 
 The cost limit covers Bodhan charges at the assignment rates. OCR and speech requests reserve cost before submission, as do each STT window and each translation request. Translation reserves for up to 2,048 output tokens and settles against usage if it is available. Uncertain charges stay reserved. Planner charges are separate. The agent checks translations for coverage through the planner and compares Bodhan's speech read-back to the source. The read-back comparison is a heuristic and can flag ASR variation as a speech mismatch.
 
 The trace records translation review and speech read-back as verification events linked to the planner step that triggered them. Each event has its own latency and Bodhan request costs. Tool events exclude verification latency and costs, so those amounts are counted once. The step count reflects planner decisions and includes the finish decision.
 
-This increment supports short text, transcription, page OCR and WAV output. Long-document translation, English summarization, subtitles, retry and resumable partial work are upcoming. The trace records completed provider requests if a tool aborts mid-call. A page or chunk completed inside a failed call is not yet recoverable as an artifact.
+The agent publishes Markdown, plain text, and WAV. English summarization, MP3,
+subtitles, Bodhan request retries, and resumable work are upcoming. If OCR
+stops after completing some pages, those pages are saved as a partial Markdown
+artifact. Completed translation text is kept as an unverified artifact if
+its coverage review is unavailable or fails. A partial file cannot fulfill
+a requested deliverable. The trace
+records reserved costs even when a tool aborts mid-call.

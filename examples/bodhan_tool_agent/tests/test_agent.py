@@ -44,11 +44,24 @@ class AgentTests(unittest.TestCase):
     def trace(self):
         return [json.loads(line) for line in (self.root / "run" / "trace.jsonl").read_text().splitlines()]
 
-    def invoke(self, actions, *, budget="1", pages=1, steps=8, readback_status=200, review_status=200):
-        decisions = iter(actions)
+    def invoke(self, actions, *, budget="1", pages=1, steps=8, readback_status=200, review_status=200, throttle_finish=False):
+        if actions[0]["action"] != "declare_deliverables":
+            has_speech = any(item["action"] == "speak" for item in actions)
+            deliverable = {"description": "Requested result", "format": "wav" if has_speech else "md"}
+            actions = [{"action": "declare_deliverables", "deliverables": [deliverable]}, *actions]
+        decisions = iter([
+            {**item, "deliverable": item.get("deliverable", "deliverable-1")}
+            if item["action"] in {"speak", "save_text"} else item
+            for item in actions
+        ])
 
         def planner_reply(request):
+            nonlocal throttle_finish
             messages = json.loads(request.content)["messages"]
+            state = json.loads(messages[1]["content"])
+            if throttle_finish and any(d.get("artifact") for d in state.get("deliverables", [])):
+                throttle_finish = False
+                return httpx.Response(429, headers={"Retry-After": "2"})
             if "Check whether" in messages[0]["content"]:
                 if review_status != 200:
                     return httpx.Response(review_status)
@@ -124,7 +137,7 @@ class AgentTests(unittest.TestCase):
 
         trace = self.trace()
         readback = next(event for event in trace if event.get("method") == "back_transcription")
-        speech = next(event for event in trace if event["event"] == "tool" and event["step"] == 3)
+        speech = next(event for event in trace if event["event"] == "tool" and event["step"] == 4)
         coverage = next(event for event in trace if event.get("method") == "planner_review")
         self.assertEqual(readback["step"], speech["step"])
         self.assertEqual(readback["source"], "text-2")
@@ -135,7 +148,7 @@ class AgentTests(unittest.TestCase):
         self.assertGreater(Decimal(readback["cost_inr"]), 0)
         self.assertGreaterEqual(readback["latency_seconds"], 0)
         self.assertEqual([request["model"] for request in speech["provider_requests"]], ["indic-speak"])
-        self.assertEqual(coverage["step"], 2)
+        self.assertEqual(coverage["step"], 3)
         self.assertGreaterEqual(coverage["latency_seconds"], 0)
         self.assertEqual(coverage["provider_requests"], [])
         accounted = sum(Decimal(event["cost_inr"]) for event in trace
@@ -168,6 +181,9 @@ class AgentTests(unittest.TestCase):
         self.assertFalse(review["passed"])
         self.assertIn("403", review["explanation"])
         self.assertGreaterEqual(review["latency_seconds"], 0)
+        path, = report["partial_artifacts"]
+        self.assertEqual((self.root / "run" / path).read_text(), "ನಾಳೆ ತರಗತಿ ಪ್ರಾರಂಭವಾಗುತ್ತದೆ.")
+        self.assertIsNone(report["deliverables"][0]["artifact"])
 
     def test_extract_only_skips_translation_and_synthesis(self):
         report, calls = self.invoke([
@@ -187,8 +203,12 @@ class AgentTests(unittest.TestCase):
         self.assertEqual(calls, 0)
         self.assertEqual(Decimal(report["cost_inr"]), Decimal("0.20"))
         trace = self.trace()
-        self.assertEqual([item["event"] for item in trace], ["start", "plan", "tool", "summary"])
-        self.assertEqual(trace[2]["provider_requests"][0]["model"], "indic-ocr")
+        tool = next(item for item in trace if item["event"] == "tool")
+        self.assertEqual(tool["provider_requests"][0]["model"], "indic-ocr")
+        self.assertEqual(len(report["partial_artifacts"]), 1)
+        partial = self.root / "run" / report["partial_artifacts"][0]
+        self.assertEqual(partial.read_text(), "## Page 1\n\nClass starts tomorrow.")
+        self.assertIsNone(report["deliverables"][0]["artifact"])
 
     def test_planner_retries_transient_service_unavailable_and_timeout(self):
         attempts = []
@@ -211,7 +231,109 @@ class AgentTests(unittest.TestCase):
         self.assertEqual(len(attempts), 3)
         self.assertEqual([args[0] for args, _ in wait.call_args_list], [1.0, 2.0])
 
+    def test_rate_limit_after_save_retries_only_the_planner(self):
+        with patch("bodhan_agent.planner.sleep") as wait:
+            report, calls = self.invoke([
+                {"action": "ocr", "source": "input-1"},
+                {"action": "save_text", "source": "text-1"},
+                {"action": "finish", "status": "completed"},
+            ], throttle_finish=True)
+        wait.assert_called_once_with(2)
+        self.assertEqual(report["status"], "completed")
+        self.assertEqual(self.reads, ["page-1.png"])
+        self.assertEqual(calls, 0)
+        self.assertEqual(Decimal(report["cost_inr"]), Decimal("0.20"))
+
     def test_step_limit_stops_before_another_decision(self):
-        report, _ = self.invoke([{"action": "ocr", "source": "input-1"}], steps=1)
+        report, _ = self.invoke([{"action": "ocr", "source": "input-1"}], steps=2)
         self.assertEqual(report["status"], "step_limit")
-        self.assertEqual(report["steps"], 1)
+        self.assertEqual(report["steps"], 2)
+
+    def test_missing_second_deliverable_cannot_claim_completion(self):
+        report, calls = self.invoke([
+            {"action": "declare_deliverables", "assumptions": ["Use Markdown for the document."],
+             "deliverables": [
+                {"description": "Extracted Markdown", "format": "md"},
+                {"description": "Kannada audio", "format": "wav", "language": "kn"},
+            ]},
+            {"action": "ocr", "source": "input-1"},
+            {"action": "save_text", "source": "text-1", "deliverable": "deliverable-1"},
+            {"action": "finish", "status": "completed"},
+        ])
+        self.assertEqual(report["status"], "incomplete")
+        self.assertEqual(report["assumptions"], ["Use Markdown for the document."])
+        self.assertEqual(calls, 0)
+        text, audio = report["deliverables"]
+        self.assertTrue((self.root / "run" / text["artifact"]).is_file())
+        self.assertIsNone(audio["artifact"])
+
+    def test_planner_corrects_schema_error_with_current_state(self):
+        inputs = []
+
+        def reply(request):
+            data = json.loads(request.content)
+            inputs.append(json.loads(data["messages"][1]["content"]))
+            action = {"action": "save_text", "source": "text-2",
+                      "deliverable": "deliverable-1", "reason": "Save the document."}
+            if len(inputs) == 1:
+                action["format"] = "md"
+            return httpx.Response(200, json={"choices": [{"message": {
+                "content": json.dumps(action),
+            }}]})
+
+        state = {"deliverables": [{"id": "deliverable-1", "format": "md"}]}
+        with httpx.Client(transport=httpx.MockTransport(reply)) as client:
+            action = ChatPlanner(client).decide(state)
+        self.assertEqual(action.action, "save_text")
+        self.assertEqual(inputs[1]["deliverables"], state["deliverables"])
+        self.assertEqual(inputs[1]["action_correction"]["error_types"], ["extra_forbidden"])
+
+    def test_planner_cannot_redeclare_after_deliverables_are_set(self):
+        replies = iter([
+            {"action": "declare_deliverables", "deliverables": [
+                {"description": "New output", "format": "txt"},
+            ], "reason": "Change the output."},
+            {"action": "ocr", "source": "input-1", "reason": "Read the PDF."},
+        ])
+
+        def reply(_request):
+            return httpx.Response(200, json={"choices": [{"message": {
+                "content": json.dumps(next(replies)),
+            }}]})
+
+        with httpx.Client(transport=httpx.MockTransport(reply)) as client:
+            result = ChatPlanner(client).decide({
+                "deliverables": [{"id": "deliverable-1", "format": "md"}],
+                "inputs": [{"id": "input-1", "name": "handout.pdf"}],
+            })
+        self.assertEqual(result.action, "ocr")
+
+    def test_unsupported_declared_format_stops_before_bodhan(self):
+        report, calls = self.invoke([
+            {"action": "declare_deliverables", "deliverables": [
+                {"description": "Requested subtitles", "format": "srt"},
+            ]},
+        ])
+        self.assertEqual(report["status"], "unsupported")
+        self.assertEqual(calls, 0)
+        self.assertEqual(self.reads, [])
+        self.assertEqual(report["cost_inr"], "0")
+
+    def test_document_workflow_publishes_source_and_verified_translation(self):
+        report, _ = self.invoke([
+            {"action": "declare_deliverables", "deliverables": [
+                {"description": "Source Markdown", "format": "md"},
+                {"description": "Kannada Markdown", "format": "md", "language": "kn"},
+            ]},
+            {"action": "ocr", "source": "input-1"},
+            {"action": "save_text", "source": "text-1", "deliverable": "deliverable-1"},
+            {"action": "translate", "source": "text-1", "language": "kn"},
+            {"action": "save_text", "source": "text-2", "deliverable": "deliverable-2"},
+            {"action": "finish", "status": "completed"},
+        ])
+        self.assertEqual(report["status"], "completed")
+        source, translation = report["deliverables"]
+        root = self.root / "run"
+        self.assertEqual((root / source["artifact"]).read_text(), "Class starts tomorrow.")
+        self.assertEqual((root / translation["artifact"]).read_text(), "ನಾಳೆ ತರಗತಿ ಪ್ರಾರಂಭವಾಗುತ್ತದೆ.")
+        self.assertTrue(report["verification"][0]["passed"])
