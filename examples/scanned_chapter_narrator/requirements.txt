@@ -1,0 +1,10 @@
+pydantic==2.12.4
+httpx==0.28.1
+python-dotenv==1.2.4
+pypdfium2==5.15.2
+Pillow==13.0.0
+pyloudnorm==0.1.1
+scipy==1.15.2
+imageio-ffmpeg==0.6.0
+pytest==9.2.0
+ruff==0.17.3
