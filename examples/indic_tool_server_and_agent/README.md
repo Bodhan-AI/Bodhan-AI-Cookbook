@@ -159,7 +159,7 @@ Walkthrough includes:
 | OCR Marathi image → Hindi + English + Hindi audio | `marathi_script.png` | — | ✅ Completed | ₹0.31 | 42s |
 | OCR Marathi image → Gujarati | `marathi_script.png` | — | ✅ Completed | ₹0.00 | 9s |
 | Translate text → Punjabi + Hindi (direct `--text`) | `--text "Good morning…"` | — | ✅ Partial (Rajasthani unsupported — honest) | ₹0.01 | 8s |
-| Transcribe Hindi audio → Punjabi audio | *audio sample coming soon* | — | ✅ Completed | — | — |
+| Transcribe Hindi audio → English, Gujarati & Punjabi (`audio_testing_v1`) | `sample_hindi.wav` | [Artifacts](demo_outputs/audio_testing_v1/artifacts/) · [report](demo_outputs/audio_testing_v1/report.json) | ✅ Completed | ₹0.10 | 19s |
 | Impossible task — unsupported language | Rajasthani (not in model) | — | ✅ Honest failure, no fabricated output | ₹0.00 | 1s |
 
 Full traces and reports for all runs are linked in [`demo_outputs/`](demo_outputs/).
