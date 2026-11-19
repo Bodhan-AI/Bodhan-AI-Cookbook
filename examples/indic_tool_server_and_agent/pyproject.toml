@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bodhan"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+  "mcp[cli]",
+  "fastmcp",
+  "pydantic>=2",
+  "pydantic-settings>=2",
+  "httpx",
+  "python-dotenv",
+  "tenacity",
+  "pydub",
+  "pdf2image",
+  "Pillow",
+  "tiktoken",
+  "openai",
+  "asyncio-throttle",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest",
+  "pytest-asyncio",
+  "respx",
+]
+
+[project.scripts]
+bodhan-mcp = "bodhan_mcp.__main__:main"
+bodhan-agent = "bodhan_agent.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["src"]
