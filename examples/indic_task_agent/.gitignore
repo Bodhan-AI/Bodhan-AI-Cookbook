@@ -5,3 +5,4 @@ __pycache__/
 out/
 bodhan_outputs/
 .ruff_cache/
+video/
