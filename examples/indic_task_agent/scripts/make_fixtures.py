@@ -365,17 +365,32 @@ class Maker:
         (self.dir("foreign_text") / "notice_ja.txt").write_text(FOREIGN_TEXT + "\n", encoding="utf-8")
 
 
+SPEECH_SOURCES = {"clips": [c[3] for c in CLIPS], "video": [VIDEO_EN], "mixed": [MIXED_AUDIO_EN], "voice_note": [VOICE_NOTE_EN]}
+
+
+def estimate(names: list[str]) -> dict:
+    """Approximate speech cost from the English sources (Indic text is usually ~10% longer).
+    Translation and OCR are not billed by fixtures beyond a few paise; they are not estimated."""
+    chars = {n: int(sum(len(t) for t in SPEECH_SOURCES.get(n, [])) * 1.1) for n in names}
+    total = sum(chars.values())
+    return {"approximate_speech_chars": chars, "approximate_speech_total_chars": total,
+            "approximate_speech_inr": round(total * 6 / 10000, 3), "note": "estimate only; nothing was written or sent"}
+
+
 async def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--out", default=str(Path(__file__).resolve().parents[1] / "sample_data"))
     ap.add_argument("--only", default="", help="comma list: chapter,voice_note,worksheet,clips,paragraph,video,notice,kannada,odia,mixed,foreign")
-    ap.add_argument("--dry-run", action="store_true", help="no API calls; print the speech characters that would be billed")
+    ap.add_argument("--dry-run", action="store_true", help="read-only: print an approximate speech cost; writes nothing and calls nothing")
     ap.add_argument("--env-file", default=None)
     a = ap.parse_args()
-    load_env_file(a.env_file)
-    m = Maker(Path(a.out), a.dry_run)
     names = [n for n in (a.only.split(",") if a.only else
                          ["paragraph", "foreign", "odia", "worksheet", "kannada", "notice", "clips", "video", "mixed", "chapter", "voice_note"]) if n]
+    if a.dry_run:  # read-only: no files, no cache, no browser/ffmpeg, no API calls
+        print(json.dumps(estimate(names)))
+        return
+    load_env_file(a.env_file)
+    m = Maker(Path(a.out), dry_run=False)
     for n in names:
         await getattr(m, n)()
         print(f"done: {n}  (speech chars so far {m.spent_chars}, spend ₹{m.client.ledger.committed:.3f})")

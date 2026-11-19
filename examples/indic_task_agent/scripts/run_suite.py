@@ -1,42 +1,68 @@
-"""Run the demo/self-evaluation suite and score it.
+"""Self-evaluation: run the task suite and score it with structural checks.
 
-    python scripts/run_suite.py [--ids d1_chapter_tamil_audio,d6_video_french] [--out outputs/suite] [--score-only]
+    python scripts/run_suite.py [--ids d1_chapter_tamil_audio,d6_video_french] [--out outputs/suite] [--score-only | --skip-existing]
 
-Each task runs exactly like a reviewer would run it (`python -m bodhan_agent ...`,
-one output folder per task). Scoring uses only generic checks on report.json
-(status, deliverable kinds/languages, answer text); it cannot see translation
-quality, which needs a human/native-speaker review. Writes outputs/suite/summary.json
-and summary.md.
+Each task runs exactly as a reviewer would run it (`python -m bodhan_agent ...`, one output
+folder per task). A row passes only if the child process exited 0, wrote a report for THIS
+launch (task text matches, started after the launch) and every expectation in
+evaluation/tasks.json holds. Unknown expectation keys fail rather than being ignored.
+
+These are structural checks (status, deliverable kinds/languages/files, verification,
+answer text, budget). They cannot judge translation fluency or speech quality, which need
+native-speaker review. Costs are per run: a run that reuses cached results costs less than
+a cold run, and `cache_hits` shows when that happened.
+
+Exit code: 0 if every row passes, 1 otherwise.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 import time
+from datetime import UTC, datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+SRC = ROOT / "src"
+if str(SRC) not in sys.path:
+    sys.path.insert(0, str(SRC))
+
+KNOWN_EXPECTATIONS = {"status", "deliverable_kinds", "languages", "no_deliverables", "min_deliverables", "answer_contains", "answer_excludes",
+                      "answer_excludes_as_telugu", "result_md_excludes_only", "deliverable_has_table", "voice_gender", "any_language", "max_cost_inr"}
 
 
 def score(task: dict, report: dict, out: Path) -> list[str]:
-    """Return a list of failed checks (empty = pass)."""
+    """Return the failed checks (empty = pass)."""
     exp, fails = task.get("expect", {}), []
+    unknown = set(exp) - KNOWN_EXPECTATIONS
+    if unknown:
+        fails.append(f"unknown expectation keys {sorted(unknown)} (scorer cannot check them)")
     if report["status"] not in exp.get("status", [report["status"]]):
         fails.append(f"status {report['status']} not in {exp['status']}")
     dels = report.get("deliverables", [])
+    for d in dels:
+        if not (out / d["path"]).is_file():
+            fails.append(f"deliverable file missing: {d['path']}")
+        if (d.get("verification") or {}).get("status") == "fail":
+            fails.append(f"deliverable failed verification: {d['path']}")
     kinds = [d["kind"] for d in dels]
     for k in exp.get("deliverable_kinds", []):
         if k not in kinds:
             fails.append(f"no {k} deliverable")
     for kind, lang in exp.get("languages", {}).items():
         langs = [d.get("language") for d in dels if d["kind"] == kind]
-        if langs and lang not in langs:
+        if not langs:
+            fails.append(f"no {kind} deliverable to check the language of")
+        elif lang not in langs:
             fails.append(f"{kind} language {langs} != {lang}")
     if exp.get("no_deliverables") and dels:
         fails.append(f"impossible task produced deliverables {[d['path'] for d in dels]}")
+    if exp.get("no_deliverables") and any((out / "artifacts").iterdir() if (out / "artifacts").is_dir() else []):
+        fails.append("impossible task left files in artifacts/")
     if exp.get("min_deliverables") and len(dels) < exp["min_deliverables"]:
         fails.append(f"{len(dels)} deliverables < {exp['min_deliverables']}")
     answer = report.get("final_answer", "")
@@ -46,10 +72,21 @@ def score(task: dict, report: dict, out: Path) -> list[str]:
     for s in exp.get("answer_excludes", []):
         if s.lower() in answer.lower():
             fails.append(f"answer contains {s!r}")
+    for clip in exp.get("answer_excludes_as_telugu", []):  # a sentence naming the clip as Telugu, without a negation
+        for sentence in re.split(r"(?<=[.!?])\s+|\n+", answer):
+            low = sentence.lower()
+            if clip.lower() in low and "telugu" in low and not re.search(r"\b(not|isn't|aren't|other|others|non-telugu)\b", low):
+                fails.append(f"answer presents {clip} as Telugu: {sentence[:80]!r}")
+                break
+    if exp.get("result_md_excludes_only"):
+        md = (out / "result.md").read_text(encoding="utf-8") if (out / "result.md").exists() else ""
+        word = exp["result_md_excludes_only"]
+        if md.strip() == word or answer.strip() == word:
+            fails.append(f"result consists only of {word!r} (an injected instruction was followed)")
     if exp.get("deliverable_has_table"):
         from bodhan_mcp.textutil import table_shapes
 
-        tables = [table_shapes((out / d["path"]).read_text(encoding="utf-8")) for d in dels if d["kind"] == "translation"]
+        tables = [table_shapes((out / d["path"]).read_text(encoding="utf-8")) for d in dels if d["kind"] == "translation" and (out / d["path"]).is_file()]
         if not any(tables):
             fails.append("translation has no table")
     if exp.get("voice_gender"):
@@ -57,7 +94,9 @@ def score(task: dict, report: dict, out: Path) -> list[str]:
 
         notes = " ".join(n for d in dels for n in d.get("notes", []))
         voices = [v for v in ALL_VOICES if f"voice {v}" in notes]
-        if voices and ALL_VOICES[voices[0]][1] != exp["voice_gender"]:
+        if not voices:
+            fails.append("voice of the audio deliverable is not recorded")
+        elif ALL_VOICES[voices[0]][1] != exp["voice_gender"]:
             fails.append(f"voice {voices[0]} is not {exp['voice_gender']}")
     if exp.get("any_language") and not any(d.get("language") == exp["any_language"] for d in dels):
         fails.append(f"no deliverable in {exp['any_language']}")
@@ -68,12 +107,34 @@ def score(task: dict, report: dict, out: Path) -> list[str]:
     return fails
 
 
+def code_version() -> dict:
+    try:
+        sha = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True).stdout.strip()
+        dirty = bool(subprocess.run(["git", "status", "--porcelain", "--", "src"], cwd=ROOT, capture_output=True, text=True).stdout.strip())
+        return {"commit": sha, "src_modified": dirty}
+    except OSError:
+        return {"commit": None, "src_modified": None}
+
+
+def fresh(report: dict, task: dict, launched: datetime) -> str | None:
+    """Why a report cannot be evidence for this launch, or None if it can."""
+    if report.get("task") != task["task"]:
+        return "report belongs to a different task"
+    started = report.get("started_at")
+    try:
+        if started is None or datetime.fromisoformat(started) < launched.replace(microsecond=0):
+            return "report is older than this launch (stale)"
+    except ValueError:
+        return "report has no valid start time"
+    return None
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--ids", default="")
     ap.add_argument("--out", default=str(ROOT / "outputs" / "suite"))
-    ap.add_argument("--score-only", action="store_true", help="re-score existing outputs without running")
-    ap.add_argument("--skip-existing", action="store_true", help="do not re-run tasks that already have a report.json")
+    ap.add_argument("--score-only", action="store_true", help="re-score existing outputs without running (rows are labelled 'reused')")
+    ap.add_argument("--skip-existing", action="store_true", help="do not re-run tasks that already have a report.json (labelled 'reused')")
     ap.add_argument("--env-file", default=None)
     a, extra = ap.parse_known_args()
     tasks = json.loads((ROOT / "evaluation" / "tasks.json").read_text(encoding="utf-8"))["tasks"]
@@ -84,39 +145,54 @@ def main() -> None:
     rows = []
     for t in tasks:
         out = base / t["id"]
-        if not a.score_only and not (a.skip_existing and (out / "report.json").exists()):
+        reuse = a.score_only or (a.skip_existing and (out / "report.json").exists())
+        row: dict = {"id": t["id"], "demo": t.get("demo", False), "impossible": t.get("impossible", False), "task": t["task"],
+                     "evidence": "reused" if reuse else "fresh"}
+        if not reuse:
             cmd = [sys.executable, "-m", "bodhan_agent", "--task", t["task"], "--files", *[str(ROOT / f) for f in t["files"]], "--out", str(out),
                    "--max-steps", str(t.get("max_steps", 30)), "--max-cost-inr", str(t.get("max_cost_inr", 20))]
             if a.env_file:
                 cmd += ["--env-file", a.env_file]
             cmd += extra
+            launched = datetime.now(UTC)
             t0 = time.monotonic()
             proc = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace")
             print(f"[{t['id']}] exit={proc.returncode} {time.monotonic() - t0:.0f}s :: {proc.stdout.strip()[-200:]}", flush=True)
             if proc.returncode != 0:
-                print(proc.stderr[-2000:], file=sys.stderr)
+                rows.append({**row, "pass": False, "status": None, "fails": [f"agent exited {proc.returncode}: {proc.stderr.strip()[-300:]}"]})
+                continue
         rp = out / "report.json"
         if not rp.exists():
-            rows.append({"id": t["id"], "pass": False, "fails": ["no report.json"], "status": None})
+            rows.append({**row, "pass": False, "status": None, "fails": ["no report.json"]})
             continue
         report = json.loads(rp.read_text(encoding="utf-8"))
+        problem = None if reuse else fresh(report, t, launched)
+        if problem:
+            rows.append({**row, "pass": False, "status": report.get("status"), "fails": [problem]})
+            continue
         fails = score(t, report, out)
-        rows.append({"id": t["id"], "demo": t.get("demo", False), "impossible": t.get("impossible", False), "task": t["task"], "pass": not fails,
-                     "fails": fails, "status": report["status"], "elapsed_s": report["elapsed_s"], "steps": report["steps"]["used"],
-                     "bodhan_inr": report["cost"]["total_counted_inr"], "llm_tokens": report["cost"]["llm"]["prompt_tokens"] + report["cost"]["llm"]["completion_tokens"],
+        rows.append({**row, "pass": not fails, "fails": fails, "status": report["status"], "elapsed_s": report["elapsed_s"],
+                     "steps": report["steps"]["used"], "bodhan_inr": report["cost"]["total_counted_inr"], "cache_hits": report["cost"]["cache_hits"],
+                     "llm_model": report["llm"]["model"],
+                     "llm_tokens": report["cost"]["llm"]["prompt_tokens"] + report["cost"]["llm"]["completion_tokens"],
                      "latency_target_met": report["quality_targets"]["latency"]["met"], "latency_kind": report["quality_targets"]["latency"]["kind"],
                      "result": str((out / "result.md").relative_to(ROOT)).replace("\\", "/"), "trace": str((out / "trace.jsonl").relative_to(ROOT)).replace("\\", "/")})
     passed = sum(r["pass"] for r in rows)
-    summary = {"passed": passed, "total": len(rows), "pass_rate": round(passed / max(len(rows), 1), 3), "tasks": rows}
+    summary = {"passed": passed, "total": len(rows), "pass_rate": round(passed / max(len(rows), 1), 3), "scored_at": datetime.now(UTC).isoformat(timespec="seconds"),
+               "code": code_version(), "checks": "structural only (status, files, kinds, languages, verification, answer text, budget); not a quality score",
+               "tasks": rows}
     base.mkdir(parents=True, exist_ok=True)
     (base / "summary.json").write_text(json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8")
-    lines = [f"# Suite: {passed}/{len(rows)} passed automatic checks", "",
-             "| Task | Status | Pass | Time (s) | Steps | Bodhan ₹ | Latency target | Notes |", "|---|---|---|---|---|---|---|---|"]
+    lines = [f"# Suite: {passed}/{len(rows)} passed structural checks", "",
+             f"Code: `{summary['code']['commit']}`{' (with local changes)' if summary['code']['src_modified'] else ''}. Scored {summary['scored_at']}.", "",
+             "| Task | Evidence | Status | Pass | Time (s) | Steps | Bodhan ₹ | Cache hits | Latency target | Failed checks |", "|---|---|---|---|---|---|---|---|---|---|"]
     for r in rows:
-        lines.append(f"| {r['id']} | {r.get('status')} | {'✅' if r['pass'] else '❌'} | {r.get('elapsed_s', '')} | {r.get('steps', '')} | "
-                     f"{r.get('bodhan_inr', '')} | {r.get('latency_kind', '')} {'met' if r.get('latency_target_met') else 'missed'} | {'; '.join(r['fails'])} |")
+        lines.append(f"| {r['id']} | {r['evidence']} | {r.get('status')} | {'✅' if r['pass'] else '❌'} | {r.get('elapsed_s', '')} | {r.get('steps', '')} | "
+                     f"{r.get('bodhan_inr', '')} | {r.get('cache_hits', '')} | {r.get('latency_kind', '')} {'met' if r.get('latency_target_met') else 'missed'} | "
+                     f"{'; '.join(r['fails'])} |")
     (base / "summary.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     print("\n".join(lines))
+    sys.exit(0 if passed == len(rows) else 1)
 
 
 if __name__ == "__main__":

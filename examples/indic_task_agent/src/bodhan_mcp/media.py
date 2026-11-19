@@ -270,12 +270,12 @@ def concat_wavs(parts: list[bytes], gap_ms: int = 180) -> tuple[bytes, float]:
 
 def encode_audio(wav: bytes, dest: Path, fmt: str, title: str, comment: str) -> None:
     """Write WAV directly, or encode MP3 with ffmpeg; tag the file as AI-generated."""
-    if fmt == "wav":
-        dest.write_bytes(wav)
+    codec = ["-codec:a", "pcm_s16le"] if fmt == "wav" else ["-codec:a", "libmp3lame", "-b:a", "96k"]
+    r = _run([ffmpeg_bin(), "-hide_banner", "-loglevel", "error", "-y", "-f", "wav", "-i", "pipe:0", *codec, "-metadata", f"title={title}",
+              "-metadata", f"comment={comment}", "-metadata", "artist=AI-generated (Bodhan Indic-Speak)", "-f", fmt, str(dest)], input_bytes=wav)
+    if r.returncode != 0 and fmt == "wav":
+        dest.write_bytes(wav)  # untagged WAV is still valid audio; the label is in the result and report
         return
-    r = _run([ffmpeg_bin(), "-hide_banner", "-loglevel", "error", "-y", "-f", "wav", "-i", "pipe:0", "-codec:a", "libmp3lame",
-              "-b:a", "96k", "-metadata", f"title={title}", "-metadata", f"comment={comment}",
-              "-metadata", "artist=AI-generated (Bodhan Indic-Speak)", str(dest)], input_bytes=wav)
     if r.returncode != 0:
         raise E.ToolError(E.MEDIA_ERROR, f"MP3 encoding failed: {r.stderr.decode('utf-8', 'replace')[-200:]}",
                           hint="Request format='wav' instead.")
