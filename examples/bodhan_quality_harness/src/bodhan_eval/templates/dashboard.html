@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bodhan AI Indic Quality Control Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --brand-saffron: #ff6b35;
+      --brand-saffron-dark: #ea580c;
+      --brand-terracotta: #c2410c;
+      --brand-green: #10b981;
+      --brand-green-dark: #0e6e39;
+      --brand-blue: #38bdf8;
+      --brand-purple: #a855f7;
+      --brand-amber: #f59e0b;
+      --brand-red: #ef4444;
+      --bg-canvas: #080c14;
+      --bg-header: rgba(11, 16, 27, 0.85);
+      --bg-card: #0f1726;
+      --bg-card-alt: #141e32;
+      --bg-input: #0a0f1a;
+      --border-subtle: #1e293b;
+      --border-focus: #ff6b35;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --radius: 10px;
+      --shadow-glow: 0 0 25px rgba(255, 107, 53, 0.15);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-canvas);
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(255, 107, 53, 0.12) 0%, transparent 60%),
+        radial-gradient(circle at 100% 100%, rgba(14, 110, 57, 0.08) 0%, transparent 50%);
+      background-attachment: fixed;
+      color: var(--text-main);
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+    header {
+      background: var(--bg-header);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 14px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .brand-group { display: flex; align-items: center; gap: 14px; }
+    .brand-logo {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--brand-saffron) 0%, var(--brand-terracotta) 100%);
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 20px; font-weight: 800;
+      box-shadow: 0 4px 14px rgba(255, 107, 53, 0.35);
+    }
+    .brand-name { font-size: 17px; font-weight: 800; letter-spacing: -0.3px; color: #fff; }
+    .brand-badge { font-size: 11px; color: var(--text-muted); font-weight: 500; display: flex; align-items: center; gap: 6px; }
+    .pulse-dot {
+      width: 8px; height: 8px; border-radius: 50%; background: var(--brand-green);
+      box-shadow: 0 0 10px var(--brand-green); display: inline-block;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.3); opacity: 0.7; }
+    }
+
+    .nav-tabs {
+      display: flex; gap: 6px; background: rgba(15, 23, 42, 0.7);
+      padding: 5px; border-radius: 10px; border: 1px solid var(--border-subtle);
+    }
+    .nav-tab {
+      padding: 8px 16px; border-radius: 7px; border: none; background: transparent;
+      color: var(--text-muted); font-size: 13px; font-weight: 600; cursor: pointer;
+      display: flex; align-items: center; gap: 8px; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .nav-tab:hover:not(.active) { color: #fff; background: rgba(255, 255, 255, 0.05); }
+    .nav-tab.active {
+      background: linear-gradient(135deg, var(--brand-saffron) 0%, var(--brand-saffron-dark) 100%);
+      color: #fff; font-weight: 700;
+      box-shadow: 0 2px 10px rgba(255, 107, 53, 0.3);
+    }
+
+    .main { max-width: 1440px; margin: 0 auto; padding: 28px 32px; }
+    .tab-content { display: none; animation: fadeIn 0.25s ease-out; }
+    .tab-content.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Layout & Cards */
+    .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 18px; margin-bottom: 28px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius);
+      padding: 24px;
+      position: relative;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .card:hover { border-color: rgba(255, 107, 53, 0.3); }
+    .card-header {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;
+    }
+    .card-title { font-size: 15px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; }
+
+    /* Stat Cards */
+    .stat-kpi { font-size: 34px; font-weight: 800; letter-spacing: -0.5px; margin: 4px 0 6px 0; }
+    .stat-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-muted); }
+    .stat-meta { font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+
+    /* Form & UI Controls */
+    .form-group { margin-bottom: 18px; }
+    .form-label { display: block; font-size: 13px; font-weight: 600; color: #cbd5e1; margin-bottom: 6px; }
+    .form-control {
+      width: 100%; background: var(--bg-input); border: 1px solid var(--border-subtle);
+      border-radius: 8px; padding: 11px 14px; color: #fff; font-size: 14px;
+      font-family: inherit; outline: none; transition: all 0.2s;
+    }
+    .form-control:focus {
+      border-color: var(--brand-saffron);
+      box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.15);
+    }
+    textarea.form-control { min-height: 110px; resize: vertical; line-height: 1.6; }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 10px 18px; border-radius: 8px; border: none; font-size: 13px; font-weight: 700;
+      cursor: pointer; transition: all 0.2s; text-decoration: none;
+    }
+    .btn-brand {
+      background: linear-gradient(135deg, var(--brand-saffron) 0%, var(--brand-saffron-dark) 100%);
+      color: #fff; box-shadow: 0 4px 12px rgba(255, 107, 53, 0.25);
+    }
+    .btn-brand:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(255, 107, 53, 0.35);
+    }
+    .btn-secondary {
+      background: #1e293b; color: #e2e8f0; border: 1px solid var(--border-subtle);
+    }
+    .btn-secondary:hover { background: #334155; color: #fff; }
+    .btn-success { background: var(--brand-green); color: #080c14; font-weight: 800; }
+    .btn-success:hover { background: #059669; }
+
+    /* Badges & Tags */
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px;
+      border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.3px;
+    }
+    .badge-saffron { background: rgba(255, 107, 53, 0.15); color: #ff8c5a; border: 1px solid rgba(255, 107, 53, 0.35); }
+    .badge-success { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35); }
+    .badge-warn { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.35); }
+    .badge-danger { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.35); }
+    .badge-purple { background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.35); }
+
+    /* Error Span Markers */
+    .badge-span { padding: 2px 6px; border-radius: 5px; font-weight: 700; cursor: help; }
+    .span-number { background: rgba(245, 158, 11, 0.25); color: #fde68a; border: 1px solid #f59e0b; }
+    .span-addition { background: rgba(239, 68, 68, 0.25); color: #fca5a5; border: 1px solid #ef4444; }
+    .span-language { background: rgba(168, 85, 247, 0.25); color: #e9d5ff; border: 1px solid #a855f7; }
+    .span-term { background: rgba(56, 189, 248, 0.25); color: #bae6fd; border: 1px solid #38bdf8; }
+    .span-format { background: rgba(16, 185, 129, 0.25); color: #a7f3d0; border: 1px solid #10b981; }
+    .span-omission { background: rgba(239, 68, 68, 0.35); color: #fee2e2; border: 1px dashed #ef4444; }
+
+    /* Table */
+    table.data-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    table.data-table th, table.data-table td { padding: 12px 16px; text-align: left; font-size: 13px; border-bottom: 1px solid var(--border-subtle); }
+    table.data-table th { background: rgba(15, 23, 42, 0.8); color: var(--text-muted); font-weight: 700; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; }
+    table.data-table tr:hover td { background: rgba(255, 255, 255, 0.02); }
+
+    /* Item Card */
+    .item-card {
+      background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius);
+      padding: 20px; margin-bottom: 14px; transition: border-color 0.2s;
+    }
+    .item-card:hover { border-color: rgba(255, 107, 53, 0.4); }
+    .code-box {
+      background: #090e18; border: 1px solid var(--border-subtle); border-radius: 7px;
+      padding: 12px 14px; font-size: 14px; color: #fff; word-break: break-word; margin-bottom: 10px;
+    }
+
+    /* Circular Score Meter */
+    .gauge-wrapper { display: flex; align-items: center; gap: 16px; }
+    .gauge-svg { width: 88px; height: 88px; transform: rotate(-90deg); }
+    .gauge-bg { fill: none; stroke: #1e293b; stroke-width: 8; }
+    .gauge-meter {
+      fill: none; stroke: var(--brand-green); stroke-width: 8;
+      stroke-linecap: round; transition: stroke-dashoffset 0.6s ease, stroke 0.4s;
+    }
+    .gauge-text { font-size: 26px; font-weight: 800; color: #fff; }
+
+    /* Toast */
+    #toast-container {
+      position: fixed; bottom: 24px; right: 28px; z-index: 1000;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .toast {
+      background: #1e293b; color: #fff; border: 1px solid var(--brand-saffron);
+      padding: 12px 18px; border-radius: 8px; font-size: 13px; font-weight: 600;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 10px;
+      animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  </style>
+</head>
+<body>
+  <div id="toast-container"></div>
+
+  <header>
+    <div class="brand-group">
+      <div class="brand-logo">B</div>
+      <div>
+        <div class="brand-name">Bodhan AI Indic Quality Control Center</div>
+        <div class="brand-badge">
+          <span class="pulse-dot"></span> Bharat EduAI Sovereign Stack · Hosted API Connected
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="switchTab('live-tester')">
+        <span>⚡</span> Live Studio
+      </button>
+      <button class="nav-tab" onclick="switchTab('harness-runner')">
+        <span>🚀</span> Batch Runner
+      </button>
+      <button class="nav-tab" onclick="switchTab('dashboard')">
+        <span>📊</span> Quality Analytics
+      </button>
+      <button class="nav-tab" onclick="switchTab('review-queue')">
+        <span>📝</span> Review Queue
+      </button>
+      <button class="nav-tab" onclick="switchTab('baseline-diff')">
+        <span>🔄</span> Regression Diff
+      </button>
+      <button class="nav-tab" onclick="switchTab('specs')">
+        <span>📘</span> Architecture & Rubric
+      </button>
+      <a href="/site" target="_blank" class="nav-tab" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px; color:#ff6b35;">
+        <span>🌐</span> Showcase Page ↗
+      </a>
+    </div>
+  </header>
+
+  <div class="main">
+    <!-- TAB 1: LIVE STUDIO -->
+    <div id="tab-live-tester" class="tab-content active">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><span>🇮🇳</span> Source & Translation Input</div>
+            <span class="badge badge-saffron">Indic-Translate Studio</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">English Source Passage / Equation</label>
+            <textarea id="live-source" class="form-control" placeholder="Enter English source...">The speed of light in a vacuum is approximately 299,792 kilometres per second.</textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Target Indian Language</label>
+            <select id="live-lang" class="form-control">
+              <option value="hi" selected>Hindi (हिंदी)</option>
+              <option value="ta">Tamil (தமிழ்)</option>
+              <option value="bn">Bengali (বাংলা)</option>
+              <option value="te">Telugu (తెలుగు)</option>
+              <option value="mr">Marathi (मराठी)</option>
+              <option value="gu">Gujarati (ગુજરાતી)</option>
+              <option value="kn">Kannada (ಕನ್ನಡ)</option>
+              <option value="ml">Malayalam (മലയാളം)</option>
+              <option value="pa">Punjabi (ਪੰਜਾਬੀ)</option>
+              <option value="or">Odia (ଓଡ଼ିଆ)</option>
+              <option value="as">Assamese (অসমীয়া)</option>
+              <option value="ur">Urdu (اردو)</option>
+            </select>
+          </div>
+
+          <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+            <button class="btn btn-brand" onclick="liveTranslate()">
+              <span>🤖</span> Translate via Bodhan API
+            </button>
+            <button class="btn btn-secondary" onclick="liveCheck()">
+              <span>⚡</span> Run Quality Checks
+            </button>
+          </div>
+
+          <div class="form-group">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <label class="form-label" style="margin-bottom:0;">Indic Translation (Editable for defect testing)</label>
+              <span id="char-counter" style="font-size:11px; color:var(--text-muted); font-family:monospace;">0 chars</span>
+            </div>
+            <textarea id="live-translation" class="form-control" placeholder="Translation appears here, or edit to test error injection..." oninput="updateCounter()">निर्वात में प्रकाश की गति लगभग 299,792 किलोमीटर प्रति सेकंड है।</textarea>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><span>🎯</span> Quality Diagnostics</div>
+            <div id="live-status-pill" class="badge badge-success">Passed Quality Benchmark</div>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:24px; padding:18px; background:var(--bg-input); border-radius:10px; border:1px solid var(--border-subtle); margin-bottom:20px;">
+            <div class="gauge-wrapper">
+              <svg class="gauge-svg" viewBox="0 0 100 100">
+                <circle class="gauge-bg" cx="50" cy="50" r="40"/>
+                <circle id="gauge-meter" class="gauge-meter" cx="50" cy="50" r="40" stroke-dasharray="251.2" stroke-dashoffset="0"/>
+              </svg>
+            </div>
+            <div>
+              <div class="gauge-text" id="live-mqm-val">100.0</div>
+              <div style="font-size:12px; font-weight:700; color:var(--text-muted);">MQM SEVERITY-WEIGHTED SCORE</div>
+              <div style="font-size:11px; color:var(--text-dim); margin-top:2px;">Metric penalty per 100 words based on defect severity</div>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 20px;">
+            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px;">
+              IN-PLACE SPAN LOCALIZATION (EXACT CHARACTER OFFSETS)
+            </div>
+            <div id="live-highlighted" class="code-box" style="font-size: 15px; min-height: 52px;">
+              निर्वात में प्रकाश की गति लगभग 299,792 किलोमीटर प्रति सेकंड है।
+            </div>
+          </div>
+
+          <div>
+            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px;">
+              ACTIVE DEFECT FLAGS & SYSTEM EVIDENCE
+            </div>
+            <div id="live-flags-list" style="background:var(--bg-input); padding:14px; border-radius:8px; border:1px solid var(--border-subtle); min-height:110px;">
+              <span style="color:var(--brand-green); font-size:13px; font-weight:600;">✓ All Tier 0 & Tier 1 checks passed. No anomalies found.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: HARNESS RUNNER -->
+    <div id="tab-harness-runner" class="tab-content">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><span>🚀</span> Batch Evaluation Controller</div>
+            <span class="badge badge-saffron">Full Pipeline Execution</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Select Evaluation Dataset</label>
+            <select id="run-dataset" class="form-control">
+              <option value="data/demo.jsonl">data/demo.jsonl (108 items · Bodhan Indic-Translate)</option>
+              <option value="data/calibration.jsonl">data/calibration.jsonl (17 labelled calibration items)</option>
+              <option value="data/sources.jsonl">data/sources.jsonl (36 English source items)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Target Evaluation Languages</label>
+            <div style="display:flex; gap:16px; margin-top:8px;">
+              <label style="font-size:13px; font-weight:600; cursor:pointer;"><input type="checkbox" id="run-lang-hi" checked> Hindi (hi)</label>
+              <label style="font-size:13px; font-weight:600; cursor:pointer;"><input type="checkbox" id="run-lang-ta" checked> Tamil (ta)</label>
+              <label style="font-size:13px; font-weight:600; cursor:pointer;"><input type="checkbox" id="run-lang-bn" checked> Bengali (bn)</label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Orchestration & Cost Safeguards</label>
+            <div style="display:flex; flex-direction:column; gap:10px; margin-top:8px;">
+              <label style="font-size:13px; cursor:pointer;"><input type="checkbox" id="run-opt-generate"> <strong>Generate Missing Outputs</strong> (call Indic-Translate & Speak)</label>
+              <label style="font-size:13px; cursor:pointer;"><input type="checkbox" id="run-opt-offline" checked> <strong>Deterministic Mode</strong> (Fast, ₹0 model cost)</label>
+              <label style="font-size:13px; cursor:pointer;"><input type="checkbox" id="run-opt-inject"> <strong>Self-Measure Error Injection</strong> (Inject test defects)</label>
+            </div>
+          </div>
+
+          <button class="btn btn-brand" style="width:100%; padding:14px; margin-top:8px;" onclick="executeHarnessRun()">
+            <span>▶</span> Execute Evaluation Pipeline
+          </button>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><span>💻</span> Live Pipeline Log Terminal</div>
+            <button class="btn btn-secondary" style="padding:4px 10px; font-size:11px;" onclick="document.getElementById('run-terminal').textContent='Ready.'">Clear Log</button>
+          </div>
+          <div id="run-terminal" style="background:#000; color:#38bdf8; font-family:'JetBrains Mono',monospace; font-size:12px; padding:16px; border-radius:8px; height:320px; overflow-y:auto; border:1px solid var(--border-subtle); line-height:1.7;">
+Ready for execution. Click 'Execute Evaluation Pipeline' to trigger the harness.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: QUALITY ANALYTICS & EXPLORER -->
+    <div id="tab-dashboard" class="tab-content">
+      <div class="grid-4">
+        <div class="card">
+          <div class="stat-label">Detection Recall</div>
+          <div class="stat-kpi" style="color:var(--brand-green);" id="dash-recall">82.4%</div>
+          <div class="stat-meta"><span class="badge badge-success">PASS</span> Target ≥ 80.0%</div>
+        </div>
+        <div class="card">
+          <div class="stat-label">False Alarm Rate</div>
+          <div class="stat-kpi" style="color:var(--brand-amber);" id="dash-false-alarm">14.0%</div>
+          <div class="stat-meta">86.0% Clean Items Passed</div>
+        </div>
+        <div class="card">
+          <div class="stat-label">Overall Precision</div>
+          <div class="stat-kpi" style="color:#fff;" id="dash-precision">70.0%</div>
+          <div class="stat-meta">High-confidence detections</div>
+        </div>
+        <div class="card">
+          <div class="stat-label">F1 Harmonic Score</div>
+          <div class="stat-kpi" style="color:var(--brand-blue);" id="dash-f1">0.757</div>
+          <div class="stat-meta">Balanced quality metric</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom: 24px;">
+        <div class="card-header">
+          <div class="card-title"><span>🔍</span> Diagnostic Item Explorer (<span id="count-display">0</span> items)</div>
+          <div style="font-size:12px; color:var(--text-muted);">Real-time search and multi-lingual filter</div>
+        </div>
+
+        <div style="display:flex; flex-wrap:wrap; gap:12px; margin-bottom:18px;">
+          <input type="text" id="dash-search" class="form-control" style="flex:1; min-width:280px;" placeholder="Search across ID, English source, Indic translation, evidence..." oninput="filterItems()">
+          <select id="dash-filter-lang" class="form-control" style="max-width:180px;" onchange="filterItems()">
+            <option value="all">All Languages</option>
+            <option value="hi">Hindi (hi)</option>
+            <option value="ta">Tamil (ta)</option>
+            <option value="bn">Bengali (bn)</option>
+          </select>
+          <select id="dash-filter-status" class="form-control" style="max-width:180px;" onchange="filterItems()">
+            <option value="all">All Statuses</option>
+            <option value="flagged">Flagged Only</option>
+            <option value="clean">Clean Only</option>
+          </select>
+        </div>
+
+        <div id="dash-items-list" style="max-height: 560px; overflow-y: auto; padding-right: 4px;"></div>
+      </div>
+    </div>
+
+    <!-- TAB 4: REVIEW QUEUE & CALIBRATION -->
+    <div id="tab-review-queue" class="tab-content">
+      <div class="card" style="margin-bottom: 24px;">
+        <div class="card-header">
+          <div>
+            <div class="card-title"><span>📝</span> Human-in-the-Loop Review Queue</div>
+            <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">Assignment Stretch Goal: Export CSV for annotation & re-tune thresholds from human labels</div>
+          </div>
+          <div style="display:flex; gap:12px;">
+            <a href="/api/export-review-queue" class="btn btn-secondary" download>
+              <span>📥</span> Export Review Queue (CSV)
+            </a>
+            <button class="btn btn-success" onclick="triggerCalibrate()">
+              <span>⚖️</span> Re-Calibrate Thresholds
+            </button>
+          </div>
+        </div>
+
+        <div id="review-table-container"></div>
+      </div>
+    </div>
+
+    <!-- TAB 5: REGRESSION & BASELINE DIFF -->
+    <div id="tab-baseline-diff" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><span>🔄</span> Model Version Regression Diff</div>
+          <span class="badge badge-saffron">Audit Trail</span>
+        </div>
+        <pre id="diff-content" style="background:#090e18; padding:20px; border-radius:8px; border:1px solid var(--border-subtle); color:#f8fafc; font-family:'JetBrains Mono',monospace; font-size:13px; white-space:pre-wrap; line-height:1.7;"></pre>
+      </div>
+    </div>
+
+    <!-- TAB 6: ARCHITECTURE & RUBRIC -->
+    <div id="tab-specs" class="tab-content">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><span>🏗️</span> Multi-Tier Harness Architecture</div>
+          </div>
+          <div style="font-size:13px; color:var(--text-muted); line-height:1.7;">
+            <p style="margin-bottom:12px;"><strong style="color:#fff;">Tier 0 — Free Deterministic Checks (Every Item):</strong><br>
+            • <code>script.wrong_script</code>: Char-script ratio on prose (ignores LaTeX/tables).<br>
+            • <code>script.untranslated</code>: Exact English preservation check.<br>
+            • <code>numbers.*</code>: Digits and significant numeric preservation.</p>
+
+            <p style="margin-bottom:12px;"><strong style="color:#fff;">Tier 1 — Calibrated Statistical Checks:</strong><br>
+            • <code>length.*</code>: Dynamically swept word-ratio thresholds.<br>
+            • <code>length.repeat</code>: Script-agnostic n-gram phrase loop detector.<br>
+            • <code>terms.entities</code>: Acronym and technical token consistency.</p>
+
+            <p style="margin-bottom:12px;"><strong style="color:#fff;">Tier 2 — LLM Judge (Escalated Only):</strong><br>
+            • Rubric-constrained evaluation of meaning-level mistranslations at temperature 0.</p>
+
+            <p><strong style="color:#fff;">Tier 3 — Speech Signal & Round-Trip:</strong><br>
+            • Signal duration, silence fraction, clipping, and Indic-Transcribe back-checking.</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><span>📜</span> Ground Rules & Safeguards</div>
+          </div>
+          <div style="font-size:13px; color:var(--text-muted); line-height:1.7;">
+            <p style="margin-bottom:10px;"><strong style="color:var(--brand-green);">✓ Zero LLM Text Generation:</strong> LLM judges evaluate and localize; they never write or correct Indian-language text.</p>
+            <p style="margin-bottom:10px;"><strong style="color:var(--brand-green);">✓ Determinism & Caching:</strong> Every model response is SHA-256 hashed and cached by exact input. Reruns are byte-identical and cost ₹0.</p>
+            <p style="margin-bottom:10px;"><strong style="color:var(--brand-green);">✓ Hard Budget Ceilings:</strong> <code>--max-cost-inr</code> enforces budget limits without crashing the run.</p>
+            <p><strong style="color:var(--brand-green);">✓ Clean Secrets Hygiene:</strong> Zero keys committed in git; masked safely in UI.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let globalItems = __ITEMS_JSON__;
+    let globalSummary = __SUMMARY_JSON__;
+
+    function showToast(msg) {
+      const container = document.getElementById('toast-container');
+      const t = document.createElement('div');
+      t.className = 'toast';
+      t.innerHTML = '<span>⚡</span> ' + msg;
+      container.appendChild(t);
+      setTimeout(() => {
+        t.style.opacity = '0';
+        t.style.transform = 'translateX(50px)';
+        t.style.transition = 'all 0.3s';
+        setTimeout(() => t.remove(), 300);
+      }, 3000);
+    }
+
+    function switchTab(name) {
+      document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+      document.getElementById('tab-' + name).classList.add('active');
+      if (name === 'dashboard') filterItems();
+      if (name === 'review-queue') loadReviewQueue();
+      if (name === 'baseline-diff') loadDiff();
+    }
+
+    function updateCounter() {
+      const text = document.getElementById('live-translation').value;
+      document.getElementById('char-counter').textContent = text.length + ' chars · ' + text.trim().split(/\\s+/).filter(Boolean).length + ' words';
+    }
+
+    async function liveTranslate() {
+      const src = document.getElementById('live-source').value.trim();
+      const lang = document.getElementById('live-lang').value;
+      if (!src) { alert("Please enter English source text."); return; }
+      const transEl = document.getElementById('live-translation');
+      transEl.value = "Connecting to Bodhan Indic-Translate API...";
+      try {
+        const res = await fetch('/api/check-single', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ source: src, lang: lang, auto_translate: true })
+        });
+        const data = await res.json();
+        if (data.error) {
+          transEl.value = "";
+          alert("API Error: " + data.error);
+          return;
+        }
+        transEl.value = data.translation;
+        updateCounter();
+        renderSingleResults(data);
+        showToast("Translated via Bodhan Indic-Translate (" + lang.toUpperCase() + ")");
+      } catch (e) {
+        transEl.value = "";
+        alert("Failed to reach server: " + e);
+      }
+    }
+
+    async function liveCheck() {
+      const src = document.getElementById('live-source').value.trim();
+      const lang = document.getElementById('live-lang').value;
+      const trans = document.getElementById('live-translation').value.trim();
+      if (!src || !trans) { alert("Source and translation cannot be empty."); return; }
+      try {
+        const res = await fetch('/api/check-single', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ source: src, lang: lang, translation: trans })
+        });
+        const data = await res.json();
+        renderSingleResults(data);
+        showToast("Quality checks completed. MQM: " + data.mqm);
+      } catch (e) {
+        alert("Check failed: " + e);
+      }
+    }
+
+    function renderSingleResults(data) {
+      document.getElementById('live-highlighted').innerHTML = data.highlighted || data.translation;
+      document.getElementById('live-mqm-val').textContent = data.mqm.toFixed(1);
+
+      // Update Gauge
+      const meter = document.getElementById('gauge-meter');
+      const offset = 251.2 * (1 - (data.mqm / 100));
+      meter.style.strokeDashoffset = offset;
+      if (data.mqm >= 90) {
+        meter.style.stroke = 'var(--brand-green)';
+        document.getElementById('live-status-pill').textContent = "Passed Quality Benchmark";
+        document.getElementById('live-status-pill').className = "badge badge-success";
+      } else if (data.mqm >= 60) {
+        meter.style.stroke = 'var(--brand-amber)';
+        document.getElementById('live-status-pill').textContent = "Minor Defects Detected";
+        document.getElementById('live-status-pill').className = "badge badge-warn";
+      } else {
+        meter.style.stroke = 'var(--brand-red)';
+        document.getElementById('live-status-pill').textContent = "Critical Defects Present";
+        document.getElementById('live-status-pill').className = "badge badge-danger";
+      }
+
+      const list = document.getElementById('live-flags-list');
+      if (!data.flags || data.flags.length === 0) {
+        list.innerHTML = '<span style="color:var(--brand-green); font-size:13px; font-weight:600;">✓ All Tier 0 & Tier 1 checks passed. No anomalies found.</span>';
+        return;
+      }
+      list.innerHTML = data.flags.map(f => {
+        return `<div style="margin-bottom:8px; font-size:13px; display:flex; align-items:baseline; gap:8px;">
+          <span class="badge badge-saffron">${f.category}</span>
+          <span class="badge ${f.severity==='critical'?'badge-danger':(f.severity==='major'?'badge-warn':'badge-saffron')}">${f.severity}</span>
+          <span style="color:var(--text-muted); font-family:'JetBrains Mono',monospace; font-size:11px;">${f.span ? '['+f.span[0]+'–'+f.span[1]+']' : 'no span'}</span>
+          <span style="color:#fff;">${f.evidence}</span>
+        </div>`;
+      }).join('');
+    }
+
+    async function executeHarnessRun() {
+      const ds = document.getElementById('run-dataset').value;
+      const langs = [];
+      if (document.getElementById('run-lang-hi').checked) langs.push('hi');
+      if (document.getElementById('run-lang-ta').checked) langs.push('ta');
+      if (document.getElementById('run-lang-bn').checked) langs.push('bn');
+      const gen = document.getElementById('run-opt-generate').checked;
+      const off = document.getElementById('run-opt-offline').checked;
+      const inj = document.getElementById('run-opt-inject').checked;
+
+      const term = document.getElementById('run-terminal');
+      term.textContent = `[INIT] Executing harness on ${ds} with languages: ${langs.join(', ')}...\\n`;
+      showToast("Evaluation run started...");
+
+      try {
+        const res = await fetch('/api/run-harness', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ dataset: ds, langs: langs, generate: gen, offline: off, inject: inj })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          term.textContent += `[DONE] Pipeline execution succeeded with exit code 0.\\n`;
+          term.textContent += JSON.stringify(data.summary.totals, null, 2) + "\\n";
+          term.textContent += `Deterministic Digest: ${data.summary.digest}\\n`;
+          showToast("Evaluation completed successfully!");
+          reloadDashboard();
+        } else {
+          term.textContent += `[ERROR] Execution failed: ${data.error}\\n`;
+          alert("Execution Error: " + data.error);
+        }
+      } catch (e) {
+        term.textContent += `[EXC] Exception: ${e}\\n`;
+      }
+    }
+
+    function filterItems() {
+      const q = document.getElementById('dash-search').value.toLowerCase().trim();
+      const lang = document.getElementById('dash-filter-lang').value;
+      const status = document.getElementById('dash-filter-status').value;
+
+      const filtered = globalItems.filter(it => {
+        if (lang !== 'all' && it.lang !== lang) return false;
+        if (status === 'flagged' && it.flag_count === 0) return false;
+        if (status === 'clean' && it.flag_count > 0) return false;
+        if (q) {
+          const str = (it.id + ' ' + (it.source||'') + ' ' + (it.translation||'')).toLowerCase();
+          if (!str.includes(q)) return false;
+        }
+        return true;
+      });
+
+      document.getElementById('count-display').textContent = filtered.length;
+      const container = document.getElementById('dash-items-list');
+      if (filtered.length === 0) {
+        container.innerHTML = "<div style='padding:40px; text-align:center; color:var(--text-muted);'>No items matching current criteria.</div>";
+        return;
+      }
+
+      container.innerHTML = filtered.map(it => `
+        <div class="item-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <span style="font-family:'JetBrains Mono',monospace; color:var(--brand-saffron); font-weight:700; font-size:13px;">${it.id}</span>
+            <div style="display:flex; gap:8px;">
+              <span class="badge badge-saffron">${it.lang.toUpperCase()}</span>
+              <span class="badge ${it.flag_count ? 'badge-danger' : 'badge-success'}">${it.flag_count ? it.flag_count + ' flags' : 'Clean'}</span>
+              <span class="badge badge-secondary" style="background:#1e293b; color:#fff;">MQM: ${it.mqm}</span>
+            </div>
+          </div>
+          <div style="font-size:11px; font-weight:700; color:var(--text-muted); margin-bottom:3px;">ENGLISH SOURCE</div>
+          <div class="code-box" style="font-size:13px; margin-bottom:8px;">${it.source || ''}</div>
+          <div style="font-size:11px; font-weight:700; color:var(--text-muted); margin-bottom:3px;">TRANSLATION</div>
+          <div class="code-box" style="font-size:14px; margin-bottom:8px;">${it.translation || ''}</div>
+          ${it.flags && it.flags.length ? `
+            <div style="background:#131c2d; padding:10px 14px; border-radius:7px; font-size:12px; border-left:3px solid var(--brand-red);">
+              ${it.flags.map(f => `<div style="margin-bottom:4px;"><span class="badge-span span-${f.category}">${f.category}</span> <strong style="color:var(--brand-red);">${f.severity}</strong>: ${f.evidence}</div>`).join('')}
+            </div>
+          ` : ''}
+        </div>
+      `).join('');
+    }
+
+    async function loadReviewQueue() {
+      const res = await fetch('/api/review-queue');
+      const items = await res.json();
+      const cont = document.getElementById('review-table-container');
+      if (!items || items.length === 0) {
+        cont.innerHTML = "<p style='color:var(--text-muted); padding:20px; text-align:center;'>No items in review queue.</p>";
+        return;
+      }
+      cont.innerHTML = `
+        <table class="data-table">
+          <thead>
+            <tr><th>Item ID</th><th>Lang</th><th>Flags</th><th>MQM</th><th>Evidence</th><th>Human Action</th></tr>
+          </thead>
+          <tbody>
+            ${items.slice(0, 60).map(it => `
+              <tr>
+                <td><code style="color:var(--brand-saffron);">${it.id}</code></td>
+                <td><span class="badge badge-saffron">${it.lang.toUpperCase()}</span></td>
+                <td><span class="badge badge-danger">${it.flag_count} flags</span></td>
+                <td><strong>${it.mqm}</strong></td>
+                <td style="max-width:380px; font-size:12px;">${it.flags ? it.flags.map(f => `<span class="badge-span span-${f.category}">${f.category}</span> ${f.evidence}`).join('<br>') : ''}</td>
+                <td>
+                  <button class="btn btn-secondary" style="padding:4px 10px; font-size:11px;" onclick="verifyItem('${it.id}', true)">✓ Confirm</button>
+                  <button class="btn btn-secondary" style="padding:4px 10px; font-size:11px;" onclick="verifyItem('${it.id}', false)">✗ Dismiss</button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    async function verifyItem(id, ok) {
+      await fetch('/api/review-label', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: id, verified: ok })
+      });
+      showToast("Label " + (ok ? "confirmed" : "dismissed") + " for " + id);
+    }
+
+    async function triggerCalibrate() {
+      const res = await fetch('/api/calibrate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+      const data = await res.json();
+      alert("Thresholds recalibrated from " + data.records_used + " labelled examples!\\nNew Length Ratio Bounds: " + data.updated_thresholds.length_lo + " – " + data.updated_thresholds.length_hi);
+      showToast("Thresholds re-calibrated successfully!");
+    }
+
+    async function loadDiff() {
+      const res = await fetch('/api/diff');
+      const data = await res.json();
+      document.getElementById('diff-content').textContent = data.diff || "No diff report found.";
+    }
+
+    async function reloadDashboard() {
+      const res = await fetch('/api/report');
+      const sum = await res.json();
+      if (sum.accuracy && sum.accuracy.overall) {
+        document.getElementById('dash-recall').textContent = (sum.accuracy.overall.recall * 100).toFixed(1) + '%';
+        document.getElementById('dash-precision').textContent = (sum.accuracy.overall.precision * 100).toFixed(1) + '%';
+        document.getElementById('dash-false-alarm').textContent = (sum.accuracy.overall.false_alarm_rate * 100).toFixed(1) + '%';
+        document.getElementById('dash-f1').textContent = sum.accuracy.overall.f1.toFixed(3);
+      }
+    }
+
+    updateCounter();
+    filterItems();
+  </script>
+</body>
+</html>

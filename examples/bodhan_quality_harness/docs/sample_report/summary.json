@@ -1,0 +1,278 @@
+{
+  "digest": "4535583a6a99fd13",
+  "items_scored": 103,
+  "items_skipped": 0,
+  "languages": [
+    "bn",
+    "hi",
+    "ta"
+  ],
+  "totals": {
+    "flags": 58,
+    "items_with_flags": 46
+  },
+  "per_language": {
+    "bn": {
+      "items": 34,
+      "flags": 22,
+      "flags_per_item": 0.65,
+      "by_category": {
+        "addition": 15,
+        "language": 4,
+        "number": 1,
+        "omission": 1,
+        "term": 1
+      },
+      "by_severity": {
+        "critical": 5,
+        "major": 17
+      }
+    },
+    "hi": {
+      "items": 35,
+      "flags": 15,
+      "flags_per_item": 0.43,
+      "by_category": {
+        "addition": 10,
+        "language": 2,
+        "number": 3
+      },
+      "by_severity": {
+        "critical": 5,
+        "major": 10
+      }
+    },
+    "ta": {
+      "items": 34,
+      "flags": 21,
+      "flags_per_item": 0.62,
+      "by_category": {
+        "addition": 8,
+        "language": 7,
+        "number": 5,
+        "omission": 1
+      },
+      "by_severity": {
+        "critical": 12,
+        "major": 9
+      }
+    }
+  },
+  "accuracy": {
+    "overall": {
+      "precision": 0.741,
+      "recall": 0.935,
+      "f1": 0.827,
+      "false_alarm_rate": 0.035,
+      "clean_items": 57,
+      "flagged_clean": 2,
+      "labels_total": 46,
+      "predictions_total": 58
+    },
+    "per_category": {
+      "addition": {
+        "tp": 24,
+        "fp": 9,
+        "fn": 1,
+        "precision": 0.727,
+        "recall": 0.96,
+        "f1": 0.828,
+        "localization": 1.0,
+        "category_accuracy": 1.0
+      },
+      "language": {
+        "tp": 12,
+        "fp": 1,
+        "fn": 0,
+        "precision": 0.923,
+        "recall": 1.0,
+        "f1": 0.96,
+        "localization": 1.0,
+        "category_accuracy": 1.0
+      },
+      "number": {
+        "tp": 7,
+        "fp": 2,
+        "fn": 1,
+        "precision": 0.778,
+        "recall": 0.875,
+        "f1": 0.824,
+        "localization": 1.0,
+        "category_accuracy": 1.0
+      },
+      "omission": {
+        "tp": 0,
+        "fp": 2,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "localization": null,
+        "category_accuracy": null
+      },
+      "term": {
+        "tp": 0,
+        "fp": 1,
+        "fn": 1,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "localization": null,
+        "category_accuracy": null
+      }
+    }
+  },
+  "calibration": {
+    "length_sweep": {
+      "chosen": {
+        "lo": 0.55,
+        "hi": 1.8,
+        "lo_f1": 0.0,
+        "hi_f1": 0.5294117647058824,
+        "lo_tuned": false,
+        "hi_tuned": true,
+        "n_omission": 0,
+        "n_addition": 25
+      },
+      "lo_sweep": [
+        {
+          "lo": 0.4,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        {
+          "lo": 0.45,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        {
+          "lo": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        {
+          "lo": 0.55,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        {
+          "lo": 0.6,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        {
+          "lo": 0.65,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        {
+          "lo": 0.7,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        {
+          "lo": 0.75,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        }
+      ],
+      "note": "thresholds chosen on labelled data only; rerun after adding labels"
+    },
+    "scoring": {
+      "overall": {
+        "precision": 0.741,
+        "recall": 0.935,
+        "f1": 0.827,
+        "false_alarm_rate": 0.035,
+        "clean_items": 57,
+        "flagged_clean": 2,
+        "labels_total": 46,
+        "predictions_total": 58
+      },
+      "per_category": {
+        "addition": {
+          "tp": 24,
+          "fp": 9,
+          "fn": 1,
+          "precision": 0.727,
+          "recall": 0.96,
+          "f1": 0.828,
+          "localization": 1.0,
+          "category_accuracy": 1.0
+        },
+        "language": {
+          "tp": 12,
+          "fp": 1,
+          "fn": 0,
+          "precision": 0.923,
+          "recall": 1.0,
+          "f1": 0.96,
+          "localization": 1.0,
+          "category_accuracy": 1.0
+        },
+        "number": {
+          "tp": 7,
+          "fp": 2,
+          "fn": 1,
+          "precision": 0.778,
+          "recall": 0.875,
+          "f1": 0.824,
+          "localization": 1.0,
+          "category_accuracy": 1.0
+        },
+        "omission": {
+          "tp": 0,
+          "fp": 2,
+          "fn": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "localization": null,
+          "category_accuracy": null
+        },
+        "term": {
+          "tp": 0,
+          "fp": 1,
+          "fn": 1,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "localization": null,
+          "category_accuracy": null
+        }
+      }
+    },
+    "judge": {
+      "items_judged": 46,
+      "consistency_samples": 45,
+      "consistency": 0.978,
+      "note": "consistency is measured by re-asking with the cache bypassed, so it reflects the model rather than the cache"
+    }
+  },
+  "judge": {
+    "items_judged": 46,
+    "consistency_samples": 45,
+    "consistency": 0.978,
+    "note": "consistency is measured by re-asking with the cache bypassed, so it reflects the model rather than the cache"
+  },
+  "cost": {
+    "total_inr": 0.0,
+    "by_model_inr": {},
+    "calls": {},
+    "budget_inr": null
+  },
+  "cache": {
+    "hits": 6,
+    "misses": 40,
+    "hit_rate": 0.13
+  },
+  "runtime_seconds": 7.6
+}
