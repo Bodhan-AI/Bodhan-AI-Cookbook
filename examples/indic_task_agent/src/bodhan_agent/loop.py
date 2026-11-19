@@ -161,6 +161,8 @@ def expand_inputs(raw: list[str], exclude: Path | None = None) -> tuple[list[Pat
                         continue
                     if ex is not None and (x.resolve() == ex or x.resolve().is_relative_to(ex)):
                         continue
+                    if not x.resolve().is_relative_to(p):  # a link inside the folder pointing elsewhere is not an input
+                        continue
                     files.append(x.resolve())
             else:
                 files.append(p)
@@ -471,7 +473,7 @@ class Agent:
         artifact of a compatible kind and language. Generic: no task-specific rules."""
         if self.plan is None:
             return ["status completed needs a recorded plan with its deliverables"]
-        gaps, used = [], set()
+        gaps, required = [], []
         for spec in self.plan["deliverables"]:
             kind, lang, src = spec["kind"], spec.get("language"), (spec.get("source") or "").strip()
             label = f"{kind}{' (' + lang + ')' if lang else ''}{' from ' + src if src else ''}"                     f"{': ' + spec['description'][:60] if spec.get('description') else ''}"
@@ -479,14 +481,27 @@ class Agent:
                 if not answer or not any(t["ok"] for t in self.tool_log):
                     gaps.append(f"declared deliverable '{label}' needs an answer based on at least one successful tool call")
                 continue
-            # one artifact per declared deliverable; a declared source must be in the artifact's input lineage
-            match = next((x for x in delivered if str(x.path) not in used and x.kind in KIND_MATCH[kind] and (not lang or x.language == lang)
-                          and (not src or Path(src).name.lower() in {o.lower() for o in x.origin}) and self._usable(x)), None)
-            if match is not None:
-                used.add(str(match.path))
-            elif not spec.get("optional"):
-                gaps.append(f"declared deliverable '{label}' has no matching verified artifact among the finish deliverables "
-                            "(each declared deliverable needs its own artifact)")
+            if not spec.get("optional"):  # optional outputs may be absent, so they never block finishing
+                # a declared source must be in the artifact's input lineage
+                fits = [str(x.path) for x in delivered if x.kind in KIND_MATCH[kind] and (not lang or x.language == lang)
+                        and (not src or Path(src).name.lower() in {o.lower() for o in x.origin}) and self._usable(x)]
+                required.append((label, fits))
+        # one artifact per declared deliverable: a maximum matching, so a general deliverable never takes the only
+        # artifact that a more specific one could use while another artifact would have done for it
+        owner: dict[str, int] = {}
+
+        def assign(i: int, seen: set[str]) -> bool:
+            for path in required[i][1]:
+                if path not in seen:
+                    seen.add(path)
+                    if path not in owner or assign(owner[path], seen):
+                        owner[path] = i
+                        return True
+            return False
+
+        matched = {i for i in range(len(required)) if assign(i, set())}
+        gaps += [f"declared deliverable '{label}' has no matching verified artifact among the finish deliverables "
+                 "(each declared deliverable needs its own artifact)" for i, (label, _) in enumerate(required) if i not in matched]
         return gaps
 
     def _usable(self, art: Artifact) -> bool:
@@ -588,8 +603,15 @@ class Agent:
         self.elapsed_before = float(st.get("elapsed_s", 0.0))
         self.ctx.ledger.load_state(st["ledger"])
         rebuilt = checkpoint.ledger_from_trace(self.out / "trace.jsonl") if self.out else None
-        if rebuilt is not None:  # the trace is written as each request settles, so it is the more complete record
-            self.ctx.ledger.load_state(rebuilt)
+        if rebuilt is not None:
+            # The trace is written as each request settles, so it is normally the more complete record; if it was
+            # damaged, the checkpoint still holds. Both under-count at worst, so keep the larger of each amount.
+            saved = self.ctx.ledger.to_state()
+            merged = {k: (max(saved.get(k) or 0, v) if isinstance(v, (int, float)) and not isinstance(v, bool) else v) for k, v in rebuilt.items()}
+            merged["by_model"] = {m: max(saved.get("by_model", {}).get(m, 0.0), rebuilt.get("by_model", {}).get(m, 0.0))
+                                  for m in set(saved.get("by_model", {})) | set(rebuilt.get("by_model", {}))}
+            merged["llm_priced"] = bool(saved.get("llm_priced") or rebuilt.get("llm_priced"))
+            self.ctx.ledger.load_state(merged)
         guard = ProvenanceGuard()
         guard._corpus = list(st.get("provenance", []))
         self.ctx.provenance_guard = guard

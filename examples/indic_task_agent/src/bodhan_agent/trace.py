@@ -64,6 +64,11 @@ class TraceWriter:
         self.events = 0
         if not append:  # a resumed run continues the same trace
             path.write_text("", encoding="utf-8")
+        elif path.exists() and path.stat().st_size:
+            with path.open("rb+") as f:  # a killed run may have left half a line: end it so the next event is its own record
+                f.seek(-1, 2)
+                if f.read(1) != b"\n":
+                    f.write(b"\n")
 
     def write(self, event: dict[str, Any]) -> None:
         record = {"ts": datetime.now(UTC).isoformat(timespec="milliseconds"), "t": round(time.monotonic() - self.t0, 3), **event}

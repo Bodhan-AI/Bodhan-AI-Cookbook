@@ -101,7 +101,7 @@ To serve over Streamable HTTP with simple token authentication instead of stdio:
 python -m bodhan_mcp --transport http --port 8765 [--token-file PATH]
 ```
 
-The endpoint is `http://127.0.0.1:8765/mcp`, bound to loopback unless you pass `--allow-remote`. Every request needs `Authorization: Bearer <token>`. If the token file does not exist, a random token is written there, by default `<artifacts-dir>/.mcp_http_token`. It is a local transport token, never a Bodhan or LLM key. Host and Origin checks against DNS rebinding come from the MCP SDK.
+The endpoint is `http://127.0.0.1:8765/mcp`, bound to loopback unless you pass `--allow-remote`. Every request needs `Authorization: Bearer <token>`. If the token file does not exist, a random token is written there, by default `<artifacts-dir>/.mcp_http_token`. It is a local transport token, never a Bodhan or LLM key. Host and Origin checks against DNS rebinding come from the MCP SDK. The server speaks plain HTTP: with `--allow-remote`, put it behind a TLS-terminating proxy so the token is never sent in clear text.
 
 To use it from an MCP client, add a stdio server with this command. Example for clients that take an `mcpServers` JSON block:
 

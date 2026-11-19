@@ -35,12 +35,24 @@ KNOWN_EXPECTATIONS = {"status", "deliverable_kinds", "languages", "no_deliverabl
                       "answer_excludes_as_telugu", "result_md_excludes_only", "deliverable_has_table", "voice_gender", "any_language", "max_cost_inr"}
 
 
+def _shown(p: Path) -> str:
+    """Recipe-relative when inside the recipe folder, else absolute (a suite may write anywhere)."""
+    p = p.resolve()
+    return (str(p.relative_to(ROOT)) if p.is_relative_to(ROOT) else str(p)).replace("\\", "/")
+
+
+INFRASTRUCTURE_STOPS = {"llm_error", "llm_not_configured", "setup_error", "internal_error"}
+
+
 def score(task: dict, report: dict, out: Path) -> list[str]:
     """Return the failed checks (empty = pass)."""
     exp, fails = task.get("expect", {}), []
     unknown = set(exp) - KNOWN_EXPECTATIONS
     if unknown:
         fails.append(f"unknown expectation keys {sorted(unknown)} (scorer cannot check them)")
+    if report.get("stop_reason") in INFRASTRUCTURE_STOPS:
+        # the planner never got to decide: a "failed" status here is not an honest refusal, whatever the task expects
+        fails.append(f"run stopped by {report['stop_reason']} (planner unavailable), so the task was not evaluated")
     if report["status"] not in exp.get("status", [report["status"]]):
         fails.append(f"status {report['status']} not in {exp['status']}")
     dels = report.get("deliverables", [])
@@ -179,7 +191,7 @@ def main() -> None:
                      "llm_model": report["llm"]["model"],
                      "llm_tokens": report["cost"]["llm"]["prompt_tokens"] + report["cost"]["llm"]["completion_tokens"],
                      "latency_target_met": report["quality_targets"]["latency"]["met"], "latency_kind": report["quality_targets"]["latency"]["kind"],
-                     "result": str((out / "result.md").relative_to(ROOT)).replace("\\", "/"), "trace": str((out / "trace.jsonl").relative_to(ROOT)).replace("\\", "/")})
+                     "result": _shown(out / "result.md"), "trace": _shown(out / "trace.jsonl")})
     passed = sum(r["pass"] for r in rows)
     summary = {"passed": passed, "total": len(rows), "pass_rate": round(passed / max(len(rows), 1), 3), "scored_at": datetime.now(UTC).isoformat(timespec="seconds"),
                "code": code_version(), "checks": "structural only (status, files, kinds, languages, verification, answer text, budget); not a quality score",

@@ -89,7 +89,7 @@ def export(src: Path, dest: Path, media_out: Path, media_base_url: str | None = 
             if not f.is_file() or any(part.startswith(".") for part in rel.parts):  # .state, .previous_runs: private
                 continue
             if f.suffix.lower() in MEDIA_SUFFIXES:
-                name = f"{run.name}__{f.name}"
+                name = "__".join([run.name, *rel.parts])  # unique even when two folders hold the same file name
                 shutil.copy2(f, media_out / name)
                 digest = hashlib.sha256(f.read_bytes()).hexdigest()
                 link = f"[{name}]({media_base_url.rstrip('/')}/{name})" if media_base_url else name
@@ -109,7 +109,11 @@ def export(src: Path, dest: Path, media_out: Path, media_base_url: str | None = 
         log.append(f"exported {run.name}: {len(rows)} media file(s) kept out of git")
     for extra in ("summary.json", "summary.md"):
         if (src / extra).exists():
-            (staging / extra).write_text(scrub((src / extra).read_text(encoding="utf-8"), src, []), encoding="utf-8")
+            text = scrub((src / extra).read_text(encoding="utf-8"), src, [])
+            bad = leaks(text)
+            if bad:
+                raise ExportError(f"{extra}: possible private path or secret left after scrubbing: {bad[:3]}")
+            (staging / extra).write_text(text, encoding="utf-8")
     if dest.exists():
         shutil.rmtree(dest)
     staging.rename(dest)

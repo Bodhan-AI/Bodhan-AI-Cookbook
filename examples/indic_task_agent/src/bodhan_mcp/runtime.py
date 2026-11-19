@@ -438,7 +438,7 @@ class RunContext:
         self.artifacts_dir.mkdir(parents=True, exist_ok=True)
         candidate = self.artifacts_dir / f"{stem}{suffix}"
         i = 2
-        while candidate.exists() or str(candidate) in self.artifacts:
+        while os.path.lexists(candidate) or str(candidate) in self.artifacts:  # lexists: a dangling link is taken too
             candidate = self.artifacts_dir / f"{stem}_{i}{suffix}"
             i += 1
         return candidate

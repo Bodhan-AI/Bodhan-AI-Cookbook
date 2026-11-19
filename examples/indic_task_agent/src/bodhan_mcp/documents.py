@@ -102,7 +102,11 @@ class PageImage:
 def _encode_image(img, prefer_png: bool) -> tuple[bytes, str]:
     from PIL import Image
 
-    if img.mode not in ("RGB", "L"):
+    if img.mode in ("RGBA", "LA", "PA") or (img.mode == "P" and "transparency" in img.info):
+        rgba = img.convert("RGBA")  # transparent areas would turn black (often under black text): put them on white paper
+        img = Image.new("RGB", rgba.size, (255, 255, 255))
+        img.paste(rgba, mask=rgba.split()[-1])
+    elif img.mode not in ("RGB", "L"):
         img = img.convert("RGB")
     w, h = img.size
     scale = min(1.0, MAX_SIDE / max(w, h))

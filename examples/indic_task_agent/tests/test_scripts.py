@@ -84,7 +84,7 @@ def test_export_scrubs_input_and_local_paths(tmp_path):
     text = (tmp_path / "dest" / "r1" / "report.json").read_text(encoding="utf-8")
     assert "Alice" not in text and "D:" not in text and "https://api.bodhan.ai/v1" in text
     media_md = (tmp_path / "dest" / "r1" / "MEDIA.md").read_text(encoding="utf-8")
-    assert "https://example.org/media/r1__a.mp3" in media_md and len(media_md.split("`")[3]) == 64
+    assert "https://example.org/media/r1__artifacts__a.mp3" in media_md and len(media_md.split("`")[3]) == 64
 
 
 def test_fixture_dry_run_writes_and_sends_nothing(tmp_path):
@@ -92,3 +92,10 @@ def test_fixture_dry_run_writes_and_sends_nothing(tmp_path):
     proc = subprocess.run([sys.executable, str(ROOT / "scripts" / "make_fixtures.py"), "--dry-run", "--out", str(out)], capture_output=True, text=True,
                           encoding="utf-8")
     assert proc.returncode == 0 and not out.exists() and json.loads(proc.stdout)["approximate_speech_inr"] > 0
+
+
+def test_a_planner_outage_is_never_scored_as_an_honest_refusal(tmp_path):
+    task = {"expect": {"status": ["failed", "unsupported"], "no_deliverables": True}}
+    outage = report(status="failed", stop_reason="llm_error", final_answer="The planner LLM failed.")
+    assert any("planner unavailable" in f for f in suite.score(task, outage, tmp_path))
+    assert suite.score(task, report(status="failed", stop_reason="finished", final_answer="The file is missing."), tmp_path) == []

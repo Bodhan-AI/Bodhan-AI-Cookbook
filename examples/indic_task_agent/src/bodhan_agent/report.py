@@ -62,7 +62,10 @@ def build_report(agent: Any, out: Path, started_at: datetime, elapsed: float) ->
     unverified = [_rel(out, a.path) for a in arts if a.kind in ("translation", "audio", "subtitles") and not a.verification]
     injections = sorted({t["result_summary"].get("injection_warning") for t in agent.tool_log
                          if isinstance(t.get("result_summary"), dict) and t["result_summary"].get("injection_warning")})
-    llm_host = urlparse(os.environ.get("LLM_BASE_URL", "")).hostname
+    try:
+        llm_host = urlparse(os.environ.get("LLM_BASE_URL", "")).hostname
+    except ValueError:
+        llm_host = None
     within = ctx.ledger.max_inr is None or ctx.ledger.committed <= ctx.ledger.max_inr + 1e-9
     return {
         "status": outcome.status,

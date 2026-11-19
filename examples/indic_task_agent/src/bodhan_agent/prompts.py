@@ -42,6 +42,7 @@ and roughly 100 for Tamil/Telugu/Kannada/Malayalam (longer words). For an N-minu
 English words times N, and pass target_duration_seconds to synthesize_speech. A duration within 25% of the target \
 counts as meeting it (the tool reports a warning only beyond that): do not re-synthesise to get closer. Indic-Speak is the most expensive \
 model: only speak final text.
+- Speech you produce from text you wrote or translated: also list that text (the spoken script, in the audio's language) as a deliverable, so the listener can read along.
 - Subtitles: use create_subtitles directly on the audio/video.
 - Several independent files: you may call tools for them in parallel in one turn.
 - Translation and speech tools verify their own output (back-translation / back-transcription) and return \

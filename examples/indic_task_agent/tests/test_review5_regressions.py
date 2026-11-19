@@ -217,3 +217,45 @@ async def test_a_translation_without_usage_is_labelled_an_estimate(make_ctx):
     meta, _ = await ctx.client.translate("The school opens at nine.", "hi")
     call = [e for e in events if e.get("type") == "api_call" and e.get("cache") == "miss"][-1]
     assert call["cost_basis"] == "bounded_estimate" and ctx.ledger.summary()["bodhan_billed_estimated_inr"] > 0
+
+
+# ---- CodeRabbit review (stable diff) ---------------------------------------------------------
+def test_a_general_deliverable_does_not_take_the_only_artifact_a_specific_one_needs(tmp_path):
+    from bodhan_agent.loop import Agent, Settings
+    from bodhan_agent.trace import TraceWriter
+    from bodhan_mcp.runtime import Artifact, CostLedger, ResultCache, RunContext
+
+    ctx = RunContext(artifacts_dir=tmp_path / "art", ledger=CostLedger(), cache=ResultCache(None))
+    ctx.artifacts_dir.mkdir()
+    arts = []
+    for name, origin in (("a_hi.md", ["a.txt"]), ("b_hi.md", ["b.txt"])):
+        f = ctx.artifacts_dir / name
+        f.write_text("x", encoding="utf-8")
+        art = Artifact(f, "translation", "translate_text", "hi", "indic-translate", {"status": "pass"}, origin=origin)
+        ctx.register(art)
+        arts.append(art)
+    agent = Agent("t", ctx, TraceWriter(tmp_path / "t.jsonl"), Settings(), None, [], [], out=None)
+    agent.plan = {"deliverables": [{"kind": "translation", "language": "hi"}, {"kind": "translation", "language": "hi", "source": "a.txt"}]}
+    assert agent._contract_gaps(arts, "Done.") == []  # greedy order would give a_hi.md to the general one and fail the specific one
+
+
+def test_a_resumed_trace_never_glues_an_event_onto_a_half_written_line(tmp_path):
+    from bodhan_agent.trace import TraceWriter
+
+    t = tmp_path / "trace.jsonl"
+    t.write_text('{"type": "run_start"}\n{"type": "api_ca', encoding="utf-8")  # killed mid-write
+    TraceWriter(t, append=True).write({"type": "run_resumed"})
+    lines = t.read_text(encoding="utf-8").splitlines()
+    assert json.loads(lines[-1])["type"] == "run_resumed"
+
+
+def test_transparent_images_are_flattened_onto_white(tmp_path):
+    from PIL import Image
+
+    from bodhan_mcp.documents import _encode_image
+
+    img = Image.new("RGBA", (40, 40), (0, 0, 0, 0))  # fully transparent: as RGB it would be black
+    data, _ = _encode_image(img, prefer_png=True)
+    import io
+
+    assert Image.open(io.BytesIO(data)).convert("RGB").getpixel((5, 5)) == (255, 255, 255)

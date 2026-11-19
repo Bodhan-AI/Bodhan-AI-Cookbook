@@ -13,6 +13,7 @@ from __future__ import annotations
 import argparse
 import hmac
 import json
+import os
 import secrets
 import sys
 from pathlib import Path
@@ -180,11 +181,9 @@ def load_or_create_token(path: Path) -> str:
         return token
     token = secrets.token_urlsafe(32)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(token, encoding="utf-8")
-    try:
-        path.chmod(0o600)
-    except OSError:
-        pass
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)  # private from the first byte; fails if the file appeared meanwhile
+    with os.fdopen(fd, "w", encoding="utf-8") as f:
+        f.write(token)
     return token
 
 

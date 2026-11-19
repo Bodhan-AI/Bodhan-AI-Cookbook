@@ -27,7 +27,7 @@ from ..languages import (
     supported_list,
 )
 from ..media import ASR_RATE, chunk_audio, concat_wavs, decode_pcm, encode_audio, probe, read_wav, wav_bytes
-from ..runtime import Artifact, RunContext, price_speak, price_transcribe, settle
+from ..runtime import Artifact, RunContext, price_speak, price_transcribe, settle, sha256_bytes
 from ..textutil import extract_numbers, letters_only, pack_segments, similarity
 from .common import frame_untrusted, output_name, resolve_text
 from .subtitles import render_srt
@@ -117,6 +117,7 @@ class TranscribeIn(_Strict):
 
 async def transcribe_audio(ctx: RunContext, a: TranscribeIn) -> dict:
     p = ctx.resolve_input(a.path)
+    source_key = f"{p}#{sha256_bytes(p.read_bytes())}"  # reused only for this exact recording
     r = await transcribe_file(ctx, p, a.language, max_segment_seconds=a.max_segment_seconds)
     base = output_name(a.output_name, str(p), "_transcript")
     txt = ctx.artifact_path(base, ".txt")
@@ -126,7 +127,7 @@ async def transcribe_audio(ctx: RunContext, a: TranscribeIn) -> dict:
     lang = (r["detection"] or {}).get("language")
     ctx.register(Artifact(txt, "transcript", "transcribe_audio", lang, "indic-transcribe", None, r["notes"], origin=ctx.origin_of(str(p))))
     ctx.register(Artifact(js, "json", "transcribe_audio", lang, "indic-transcribe", None, origin=ctx.origin_of(str(p))))
-    ctx.transcripts[str(p)] = js
+    ctx.transcripts[source_key] = js
     if ctx.provenance_guard is not None:
         ctx.provenance_guard.add(r["text"])
     return {"source": str(p), "transcript_path": str(txt), "segments_path": str(js), "duration_s": r["duration_s"],
@@ -167,7 +168,7 @@ class SubtitlesIn(_Strict):
 async def create_subtitles(ctx: RunContext, a: SubtitlesIn) -> dict:
     target = check_target(a.subtitle_language)
     p = ctx.resolve_input(a.path)
-    reuse = p if p.suffix.lower() == ".json" else ctx.transcripts.get(str(p))
+    reuse = p if p.suffix.lower() == ".json" else ctx.transcripts.get(f"{p}#{sha256_bytes(p.read_bytes())}")
     if reuse is not None and not (str(reuse) in ctx.artifacts and ctx.artifacts[str(reuse)].producer == "transcribe_audio"):
         # Only transcripts this server produced may be reused; anything else (e.g. JSON written by a planner)
         # would otherwise be labelled as Indic-Transcribe output without any model call.
@@ -421,6 +422,7 @@ class VerifySpeechIn(_Strict):
 async def verify_speech(ctx: RunContext, a: VerifySpeechIn) -> dict:
     p = ctx.resolve_input(a.audio_path)
     expected, _ = resolve_text(ctx, a.expected_text, a.expected_path, "expected_text")
+    checked = sha256_bytes(p.read_bytes())
     r = await transcribe_file(ctx, p, a.language)
     sim = similarity(expected, r["text"])
     status = "pass" if sim >= SPEECH_PASS else ("warn" if sim >= SPEECH_FAIL else "fail")
@@ -433,6 +435,9 @@ async def verify_speech(ctx: RunContext, a: VerifySpeechIn) -> dict:
                     "similarity": round(sim, 3), "duration_s": r["duration_s"],
                     "problems": [] if status != "fail" else ["audio does not match the expected text"], "warnings": warnings}
     art = ctx.artifacts.get(str(p))
-    if art is not None:
+    if art is not None and art.digest == checked:
         verification = {**verification, "effective_status": art.record_verification(verification)["status"]}  # never upgrades history
+    elif art is not None:  # the file is no longer the audio that was registered: the check says nothing about that artifact
+        verification = {**verification, "effective_status": "fail",
+                        "warnings": [*warnings, "the file changed after it was made; this check was not recorded on the artifact"]}
     return {"audio_path": str(p), "verification": verification, "heard": frame_untrusted(r["text"], str(p), 800)}
