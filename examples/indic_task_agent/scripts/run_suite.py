@@ -161,7 +161,9 @@ def main() -> None:
         out = base / t["id"]
         reuse = a.score_only or (a.skip_existing and (out / "report.json").exists())
         row: dict = {"id": t["id"], "demo": t.get("demo", False), "impossible": t.get("impossible", False), "task": t["task"],
-                     "evidence": "reused" if reuse else "fresh"}
+                     "evidence": "reused" if reuse else "fresh",
+                     # cold = no shared result cache, so every model result in the run was paid for in that run
+                     "cache_mode": "cold" if "--no-cache" in extra else "shared cache"}
         if not reuse:
             cmd = [sys.executable, "-m", "bodhan_agent", "--task", t["task"], "--files", *[str(ROOT / f) for f in t["files"]], "--out", str(out),
                    "--max-steps", str(t.get("max_steps", 30)), "--max-cost-inr", str(t.get("max_cost_inr", 20))]
@@ -188,6 +190,7 @@ def main() -> None:
         fails = score(t, report, out)
         rows.append({**row, "pass": not fails, "fails": fails, "status": report["status"], "elapsed_s": report["elapsed_s"],
                      "steps": report["steps"]["used"], "bodhan_inr": report["cost"]["total_counted_inr"], "cache_hits": report["cost"]["cache_hits"],
+                     "paid_calls": report["cost"]["bodhan_calls"],
                      "llm_model": report["llm"]["model"],
                      "llm_tokens": report["cost"]["llm"]["prompt_tokens"] + report["cost"]["llm"]["completion_tokens"],
                      "latency_target_met": report["quality_targets"]["latency"]["met"], "latency_kind": report["quality_targets"]["latency"]["kind"],
@@ -200,10 +203,12 @@ def main() -> None:
     (base / "summary.json").write_text(json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8")
     lines = [f"# Suite: {passed}/{len(rows)} passed structural checks", "",
              f"Code: `{summary['code']['commit']}`{' (with local changes)' if summary['code']['src_modified'] else ''}. Scored {summary['scored_at']}.", "",
-             "| Task | Evidence | Status | Pass | Time (s) | Steps | Bodhan ₹ | Cache hits | Latency target | Failed checks |", "|---|---|---|---|---|---|---|---|---|---|"]
+             "| Task | Evidence | Cache | Status | Pass | Time (s) | Steps | Bodhan ₹ | Paid calls | Cache hits | Latency target | Failed checks |",
+             "|---|---|---|---|---|---|---|---|---|---|---|---|"]
     for r in rows:
-        lines.append(f"| {r['id']} | {r['evidence']} | {r.get('status')} | {'✅' if r['pass'] else '❌'} | {r.get('elapsed_s', '')} | {r.get('steps', '')} | "
-                     f"{r.get('bodhan_inr', '')} | {r.get('cache_hits', '')} | {r.get('latency_kind', '')} {'met' if r.get('latency_target_met') else 'missed'} | "
+        lines.append(f"| {r['id']} | {r['evidence']} | {r['cache_mode']} | {r.get('status')} | {'✅' if r['pass'] else '❌'} | {r.get('elapsed_s', '')} | "
+                     f"{r.get('steps', '')} | {r.get('bodhan_inr', '')} | {r.get('paid_calls', '')} | {r.get('cache_hits', '')} | "
+                     f"{r.get('latency_kind', '')} {'met' if r.get('latency_target_met') else 'missed'} | "
                      f"{'; '.join(r['fails'])} |")
     (base / "summary.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     print("\n".join(lines))
