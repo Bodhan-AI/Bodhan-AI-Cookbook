@@ -1,0 +1,7 @@
+# Pin every dependency: name==version
+httpx==0.28.1
+numpy==2.5.4
+openai==3.55.1
+
+# test-only
+pytest==9.2.0
