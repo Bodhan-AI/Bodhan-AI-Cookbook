@@ -1,0 +1,51 @@
+{
+  "schema": 1,
+  "task": "Transcribe this recording and translate the transcript into English.",
+  "status": "failed",
+  "started_at": "2026-11-18T14:03:25Z",
+  "duration_s": 8.5,
+  "budget": {
+    "max_steps": 30,
+    "steps_used": 0,
+    "max_cost_inr": 0.3,
+    "cost_inr": 0.0,
+    "reserved_inr": 0.0,
+    "verification_inr": 0.0
+  },
+  "assumptions": [
+    {
+      "text": "The inventory's est_asr_cost_inr of 1.1 for the full 654.94 s file is treated as accurate; a free probe_media call would not change the duration-based arithmetic.",
+      "why": "Transcription cost is duration-driven (Rs0.10/min) and the duration is already reported in the inventory."
+    },
+    {
+      "text": "The audio's language is unknown, but it does not affect feasibility — the budget fails regardless of detected language.",
+      "why": "Transcription cost depends on duration, not language, and translation to English is a supported target."
+    },
+    {
+      "text": "No partial or clipped transcription is offered as a cheaper alternative.",
+      "why": "The task requires the whole recording transcribed and translated; producing a truncated result and calling it done is forbidden."
+    }
+  ],
+  "steps": [],
+  "verification": [],
+  "artifacts": [],
+  "errors": [
+    {
+      "code": "BUDGET_EXCEEDED",
+      "message": "The cheapest honest plan exceeds the budget. Transcription alone is estimated at Rs1.10 (654.94 s ≈ 10.9 min at Rs0.10/min, matching the inventory's est_asr_cost_inr of 1.1). Translating the resulting transcript (~10.9 min of speech ≈ 8,800 characters) adds roughly Rs0.02–0.05 more. Total ≥ Rs1.12, which is nearly 4x the max_cost_inr budget of Rs0.30 — the budget is broken by transcription alone, before any translation. A partial transcript would be a substitute, not the requested full transcription, so no honest plan fits.",
+      "retryable": false,
+      "hint": "No model was called and no output was produced.",
+      "request_id": null
+    }
+  ],
+  "replans": 0,
+  "cache_hits": 0,
+  "quality_targets": {
+    "completion": false,
+    "verification_complete": true,
+    "no_waste": true,
+    "within_budget": true,
+    "latency_ok": true,
+    "notes": []
+  }
+}

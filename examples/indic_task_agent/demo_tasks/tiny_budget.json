@@ -1,0 +1,13 @@
+{
+  "id": "tiny_budget",
+  "title": "A budget too small for the task",
+  "task": "Make a two-minute Tamil audio summary of this chapter.",
+  "files": ["media/chapter.pdf"],
+  "args": ["--max-cost-inr", "0.05"],
+  "expect": {
+    "status": ["failed", "partial"],
+    "max_cost_inr": 0.05,
+    "errors": ["BUDGET_EXCEEDED"]
+  },
+  "notes": "Priced before anything is bought; the refusal names both numbers."
+}

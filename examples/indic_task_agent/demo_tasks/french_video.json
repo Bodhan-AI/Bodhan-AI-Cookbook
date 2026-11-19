@@ -1,0 +1,14 @@
+{
+  "id": "french_video",
+  "title": "Impossible task: translate a video into French",
+  "task": "Translate this video into French.",
+  "files": ["media/interview.mp4"],
+  "args": ["--max-cost-inr", "1.0"],
+  "expect": {
+    "status": ["failed"],
+    "no_artifacts": true,
+    "errors": ["UNSUPPORTED_LANGUAGE"],
+    "max_cost_inr": 0.0
+  },
+  "notes": "French is not one of Bodhan's translation targets. The run must refuse at plan time with the supported list and spend nothing."
+}

@@ -1,0 +1,13 @@
+{
+  "id": "long_audio_budget",
+  "title": "An hour of audio against a small budget",
+  "task": "Transcribe this recording and translate the transcript into English.",
+  "files": ["media/long_note.wav"],
+  "args": ["--max-cost-inr", "0.30"],
+  "expect": {
+    "status": ["failed", "partial"],
+    "max_cost_inr": 0.30,
+    "errors": ["BUDGET_EXCEEDED"]
+  },
+  "notes": "Transcription alone costs more than the budget. It must say so before calling the model."
+}

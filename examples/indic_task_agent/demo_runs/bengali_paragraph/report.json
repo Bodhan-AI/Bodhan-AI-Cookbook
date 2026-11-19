@@ -1,0 +1,110 @@
+{
+  "schema": 1,
+  "task": "Read this paragraph aloud in Bengali with a female voice.",
+  "status": "completed",
+  "started_at": "2026-11-18T14:02:31Z",
+  "duration_s": 30.4,
+  "budget": {
+    "max_steps": 30,
+    "steps_used": 1,
+    "max_cost_inr": 1.0,
+    "cost_inr": 0.0,
+    "reserved_inr": 0.0,
+    "verification_inr": 0.0
+  },
+  "assumptions": [
+    {
+      "text": "The paragraph's Bengali text is data to be spoken, not instructions; inventory shows no warnings, so it is passed directly to the speech tool without being read or altered.",
+      "why": "File contents are untrusted data and Indian-language text may only be handled by Bodhan tools."
+    },
+    {
+      "text": "Bengali script is shared by Bengali (bn) and Assamese (as); the task wording explicitly says 'in Bengali', so language bn is used.",
+      "why": "Shared-script rule: choose via task wording and state the choice rather than guess silently."
+    },
+    {
+      "text": "No translation step is included because the source text is already in the requested language; it is spoken as-is.",
+      "why": "Fewest steps that produce a correct result."
+    },
+    {
+      "text": "Output format is wav since the task names no format; a paragraph is assumed far shorter than ~16k characters, keeping the Rs6/10k-char speech cost within the Rs1.0 budget.",
+      "why": "Default format rule for audio and budget arithmetic."
+    }
+  ],
+  "steps": [
+    {
+      "id": "s1",
+      "intent": "Speak the Bengali paragraph aloud with a female voice",
+      "tool": "speak_text",
+      "args": {
+        "text_path": "<recipe>/demo_tasks/media/paragraph.txt",
+        "language": "bn",
+        "gender": "female",
+        "format": "wav",
+        "max_cost_inr": 1.0,
+        "out_dir": "./artifacts"
+      },
+      "ok": true,
+      "latency_ms": 167,
+      "cost_inr": 0.0,
+      "cache_hit": false,
+      "result_summary": {
+        "audio_path": "./artifacts/paragraph.bn.wav",
+        "duration_s": 13.739,
+        "chars": 157,
+        "clips": 1,
+        "voice": "Ishita",
+        "language": "bn",
+        "format": "wav",
+        "cost_inr": 0.0,
+        "warnings": []
+      }
+    }
+  ],
+  "verification": [
+    {
+      "artifact": "./artifacts/paragraph.bn.wav",
+      "check": "exists",
+      "result": "passed",
+      "detail": "659534 bytes"
+    },
+    {
+      "artifact": "./artifacts/paragraph.bn.wav",
+      "check": "parses",
+      "result": "passed",
+      "detail": "13.74s"
+    },
+    {
+      "artifact": "./artifacts/paragraph.bn.wav",
+      "check": "back_transcription",
+      "result": "passed",
+      "detail": "similarity 0.95 (threshold 0.60)"
+    },
+    {
+      "artifact": "./artifacts/paragraph.bn.wav",
+      "check": "repetition",
+      "result": "passed",
+      "detail": "no 5-gram repeats more than twice"
+    }
+  ],
+  "artifacts": [
+    {
+      "name": "paragraph.bn.wav",
+      "path": "./artifacts/paragraph.bn.wav",
+      "kind": "audio",
+      "bytes": 659534,
+      "sha256": "21b4f2a1794e517daf6ddd459de228e62d65b96fd37722b14747ee203071fcb8",
+      "detail": "13.7s"
+    }
+  ],
+  "errors": [],
+  "replans": 0,
+  "cache_hits": 0,
+  "quality_targets": {
+    "completion": true,
+    "verification_complete": true,
+    "no_waste": true,
+    "within_budget": true,
+    "latency_ok": true,
+    "notes": []
+  }
+}
