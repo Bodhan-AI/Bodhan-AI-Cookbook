@@ -138,6 +138,19 @@ The [`sample_data/`](sample_data/) folder contains ready-to-run inputs:
 
 ---
 
+## Demo Video
+
+📺 **[Watch the 5-Minute Demo Walkthrough (YouTube)](https://youtu.be/u240NsnHyNc)**
+
+Walkthrough includes:
+- Architecture overview & stdio MCP server (`python -m bodhan_mcp`)
+- Multimodal OCR & table translation (`hindi_lang.png` → English & Gujarati markdown tables)
+- Direct text input (`--text`) & speech synthesis with voice fallback
+- Impossible task handling (honest failure on unsupported language, zero hallucination)
+- Test suite execution (98 passing tests)
+
+---
+
 ## Demo Tasks & Results
 
 | Task | Input | Output | Status | Cost | Time |
