@@ -426,3 +426,25 @@ async def test_resume_continues_without_rebilling(tmp_path):
 
 def test_wav_tone_helper_still_works():
     assert len(wav_tone(0.1)) > 44 and io.BytesIO(b"x")
+
+
+# ---- parallel independent calls ----------------------------------------------------------------
+async def test_independent_calls_in_one_turn_run_in_parallel_with_separate_costs(tmp_path):
+    a, b = tmp_path / "a.txt", tmp_path / "b.txt"
+    a.write_text("The first notice is about the library.", encoding="utf-8")
+    b.write_text("The second notice is about the bus.", encoding="utf-8")
+    fake = FakeBodhan(delay=0.4)
+    chat = ScriptedChat([
+        [("record_plan", {"steps": ["translate both"], "deliverables": [{"kind": "translation", "language": "hi"}]})],
+        [("translate_text", {"path": str(a), "target_language": "hi", "verify": False}),
+         ("translate_text", {"path": str(b), "target_language": "hi", "verify": False})],
+        [("finish", {"status": "partial", "final_answer": "Translated both; not verified."})],
+    ])
+    await run(args(tmp_path, "Translate both notices to Hindi", [a, b]), transport=fake.transport, llm=PlannerLLM(client=chat, model="s"))
+    out, rep, trace, md = read_outputs(tmp_path)
+    calls = [e for e in trace if e["type"] == "tool_call"]
+    assert [c["step"] for c in calls] == [2, 3] or sorted(c["step"] for c in calls) == [2, 3]
+    assert all(c["cost_inr"] > 0 for c in calls)
+    # each request takes ~0.4 s: run in parallel they finish together; one after the other they would finish ~0.4 s apart
+    assert abs(calls[0]["t"] - calls[1]["t"]) < 0.25
+    assert len([e for e in trace if e["type"] == "api_call"]) == 2

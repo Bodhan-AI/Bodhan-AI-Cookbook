@@ -11,7 +11,9 @@ crashes on bad input.
 from __future__ import annotations
 
 import argparse
+import hmac
 import json
+import secrets
 import sys
 from pathlib import Path
 from typing import Any
@@ -126,7 +128,7 @@ def make_context(args: argparse.Namespace) -> RunContext:
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    p = argparse.ArgumentParser(prog="python -m bodhan_mcp", description="Bodhan MCP tool server (stdio).")
+    p = argparse.ArgumentParser(prog="python -m bodhan_mcp", description="Bodhan MCP tool server (stdio by default; optional Streamable HTTP).")
     p.add_argument("--artifacts-dir", default="bodhan_mcp_artifacts", help="Where generated files are written (default ./bodhan_mcp_artifacts).")
     p.add_argument("--max-cost-inr", type=float, default=None, help="Optional spending cap for this server session.")
     p.add_argument("--allow-dir", action="append", default=[], help="Restrict readable inputs to these folders (repeatable).")
@@ -135,7 +137,55 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--timeout", type=float, default=60.0, help="Per-request timeout in seconds.")
     p.add_argument("--concurrency", type=int, default=4, help="Parallel requests per model.")
     p.add_argument("--env-file", default=None, help="Optional .env file to load the Bodhan keys from.")
+    p.add_argument("--transport", choices=["stdio", "http"], default="stdio", help="stdio (default) or Streamable HTTP at /mcp.")
+    p.add_argument("--host", default="127.0.0.1", help="HTTP bind address (default loopback only).")
+    p.add_argument("--port", type=int, default=8765, help="HTTP port (default 8765).")
+    p.add_argument("--token-file", default=None,
+                   help="HTTP bearer token file. If it does not exist, a random token is generated and written there "
+                        "(default <artifacts-dir>/.mcp_http_token). The token is never a Bodhan or LLM key.")
+    p.add_argument("--allow-remote", action="store_true", help="Allow binding HTTP to a non-loopback address (token still required).")
     return p.parse_args(argv)
+
+
+class BearerTokenAuth:
+    """Simple token authentication for the HTTP transport: every HTTP request must carry
+    `Authorization: Bearer <token>`, compared in constant time, before the MCP app sees it."""
+
+    def __init__(self, app, token: str):
+        self.app, self.token = app, token
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] == "http":
+            headers = {k.lower(): v for k, v in scope.get("headers", [])}
+            given = headers.get(b"authorization", b"").decode("latin-1")
+            ok = given.startswith("Bearer ") and hmac.compare_digest(given[7:].strip().encode(), self.token.encode())
+            if not ok:
+                body = json.dumps({"error": "unauthorized", "message": "Missing or wrong bearer token."}).encode()
+                await send({"type": "http.response.start", "status": 401,
+                            "headers": [(b"content-type", b"application/json"), (b"www-authenticate", b"Bearer")]})
+                await send({"type": "http.response.body", "body": body})
+                return
+        await self.app(scope, receive, send)
+
+
+def load_or_create_token(path: Path) -> str:
+    if path.is_file():
+        token = path.read_text(encoding="utf-8").strip()
+        if len(token) < 16:
+            raise SystemExit(f"error: the token in {path} is shorter than 16 characters")
+        return token
+    token = secrets.token_urlsafe(32)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(token, encoding="utf-8")
+    try:
+        path.chmod(0o600)
+    except OSError:
+        pass
+    return token
+
+
+def http_app(server: Server, token: str, host: str):
+    return BearerTokenAuth(server.streamable_http_app(host=host), token)
 
 
 async def serve(args: argparse.Namespace) -> None:
@@ -143,8 +193,19 @@ async def serve(args: argparse.Namespace) -> None:
     ctx = make_context(args)
     server = build_server(ctx)
     try:
-        async with stdio_server() as (read, write):
-            await server.run(read, write, server.create_initialization_options())
+        if args.transport == "stdio":
+            async with stdio_server() as (read, write):
+                await server.run(read, write, server.create_initialization_options())
+        else:
+            import uvicorn
+
+            if args.host not in ("127.0.0.1", "localhost", "::1") and not args.allow_remote:
+                raise SystemExit("error: binding to a non-loopback address needs --allow-remote")
+            token_path = Path(args.token_file) if args.token_file else ctx.artifacts_dir / ".mcp_http_token"
+            token = load_or_create_token(token_path)
+            print(f"bodhan-mcp: Streamable HTTP on http://{args.host}:{args.port}/mcp (bearer token in {token_path})", file=sys.stderr, flush=True)
+            config = uvicorn.Config(http_app(server, token, args.host), host=args.host, port=args.port, log_level="warning", lifespan="on")
+            await uvicorn.Server(config).serve()
     finally:
         await ctx.client.aclose()
 
