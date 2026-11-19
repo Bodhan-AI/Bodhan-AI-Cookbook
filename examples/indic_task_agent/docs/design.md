@@ -4,7 +4,7 @@ This page explains how the recipe is built and why. For setup and commands, see 
 
 ## Architecture
 
-Both programs import one tool layer. The MCP server exposes it over stdio. The agent calls the same functions in-process, which the brief allows ("import the same tool code directly"), and which lets one run share one budget, one cache and one trace.
+Both programs import one tool layer. The MCP server exposes it over stdio, or over Streamable HTTP with a bearer token. The agent calls the same functions in-process, which the brief allows ("import the same tool code directly"), and which lets one run share one budget, one cache and one trace.
 
 ```mermaid
 flowchart LR
@@ -13,7 +13,7 @@ flowchart LR
         M["Any MCP client<br/>(MCP Inspector, Claude, Codex, ...)"]
     end
     subgraph server["bodhan_mcp"]
-        S["server.py<br/>MCP stdio server<br/>tools + resources"]
+        S["server.py<br/>MCP server: stdio, or HTTP + token<br/>tools + resources"]
         R["registry.py<br/>validate args → run tool → structured result/error"]
         T["tools/*<br/>12 tools"]
         C["client.py<br/>Bodhan HTTP client<br/>cache · budget reservation · retries · adaptive concurrency"]
@@ -21,9 +21,11 @@ flowchart LR
     end
     LLM["Planner LLM<br/>(any OpenAI-compatible endpoint<br/>with tool calling)"]
     B["Bodhan API<br/>indic-transcribe · indic-translate<br/>indic-speak · indic-ocr"]
-    M -- stdio JSON-RPC --> S --> R
+    M -- "stdio / Streamable HTTP" --> S --> R
     A -- in-process --> R
     A <-- tool calls, English only --> LLM
+    A -- "trace.jsonl, report.json,<br/>.state/checkpoint.json" --> F[("run folder")]
+    V["bodhan_agent.viewer<br/>(read-only live view)"] -- reads --> F
     R --> T --> C --> B
     T --> X
 ```
@@ -35,8 +37,10 @@ flowchart LR
 | `bodhan_mcp/tools/` | The tools. Each one handles its model's limits and verifies its own output. |
 | `bodhan_mcp/client.py` | The only code that talks to Bodhan. Cache lookup, budget reservation, per-model adaptive concurrency, bounded retries, billing classification and trace events. |
 | `bodhan_mcp/runtime.py` | Cost ledger, result cache, artifact registry, run context. |
-| `bodhan_agent/loop.py` | Plan, act, verify, retry, stop. Code-enforced gates around the LLM's decisions. |
+| `bodhan_agent/loop.py` | Plan, act, verify, retry, stop. Typed control calls and code-enforced gates around the LLM's decisions. |
+| `bodhan_agent/state.py` | Checkpoints for `--resume`: atomic JSON in `out/.state/`, input fingerprints, no keys. |
 | `bodhan_agent/report.py` | `result.md` and `report.json`. |
+| `bodhan_agent/viewer.py` | Read-only local page that follows a run's trace and report. |
 
 ## Agent loop
 
@@ -49,7 +53,9 @@ flowchart TD
     llm --> lim{"Step, time or<br/>budget limit hit?"}
     lim -- yes --> forced["Forced stop: partial or failed,<br/>list verified outputs only"]
     lim -- no --> kind{What did it call?}
-    kind -- record_plan --> plan["Store plan v(n)<br/>(paid tools unlock)"] --> llm
+    kind -- record_plan --> plan{"Valid plan?<br/>(typed; English only;<br/>declares deliverables)"}
+    plan -- no --> rejectp["Error; previous plan kept"] --> llm
+    plan -- yes --> planok["Store plan v(n)<br/>(paid tools unlock)"] --> llm
     kind -- "tool(s), maybe parallel" --> gate1{"Paid tool<br/>before a plan?"}
     gate1 -- yes --> reject1["Error: plan_required"] --> llm
     gate1 -- no --> act["Run tool:<br/>validate → reserve budget → call Bodhan<br/>→ retry/back off → verify output"]
@@ -57,14 +63,20 @@ flowchart TD
     res -- "ok + verification pass/warn" --> llm
     res -- "verification fail" --> llm
     res -- "error (rate limit, unsupported,<br/>budget, provenance...)" --> llm
-    kind -- finish --> gate2{"Verification gate:<br/>deliverables exist and were made this run?<br/>translations/audio verified, none failing?<br/>answer in English?"}
+    kind -- finish --> gate2{"Gate: every declared deliverable matched<br/>by an existing artifact from this run<br/>whose checks (and sources') did not fail?<br/>answer in English?"}
     gate2 -- "no (max 2 rejections)" --> llm
     gate2 -- yes --> done["Write result.md, report.json<br/>(trace.jsonl written throughout)"]
     forced --> done
     stopfail --> done
 ```
 
-The LLM picks the next step. Code decides what is allowed and what counts as done. Each "retry" in the chart is one of three kinds:
+The LLM picks the next step. Code decides what is allowed and what counts as done. A few rules hold throughout:
+
+- **Steps.** Every planner call is one step, `record_plan` and `finish` included. A turn can't use more steps than remain: extra calls are refused, not run. When one step is left, only `finish` is offered.
+- **Deadline.** `--max-seconds` starts when the command starts, and covers preflight, planner calls, tools, rate-limit waits and ffmpeg subprocesses.
+- **Checkpoints.** A checkpoint is written before and after each turn's tool calls, so `--resume` can continue the same run.
+
+Each "retry" in the chart is one of three kinds:
 
 - **Transport retry** inside `client.py`: 429, 5xx, timeouts and dropped connections, with backoff. The planner never sees these unless they keep failing.
 - **Repair** inside a tool, with a *different* input: a truncated translation is split in half, a reflowed table is translated cell by cell, a TTS segment that fails back-transcription is re-synthesised split in two or with the other voice of the same gender.
@@ -139,7 +151,7 @@ The LLM never sees audio and never judges Indian-language text. It reads English
 - **Reservation before sending.** `CostLedger.reserve()` takes the worst-case cost of a request before it is sent: exact for audio seconds, characters and images, and `max_output_tokens` for translation. Concurrent calls can therefore never push the total over `--max-cost-inr`. Long jobs (`synthesize_speech`, multi-page `ocr_document`) check the whole job's cost first, so they fail cleanly instead of stopping halfway through.
 - **Billing classes.** `billed` covers success, with cost computed from the response. `uncertain` covers timeouts, 5xx and unreadable bodies after the request was sent. It is counted against the budget, because the request may have been billed. `none` covers 4xx and 429, which are not billed.
 - **LLM spend.** The brief's budget is in rupees and the planner's price is unknown, so LLM tokens are always reported. They are converted into rupees and counted only when you pass `--llm-input-inr-per-1m` and `--llm-output-inr-per-1m`. `report.json` states which applies.
-- **No repeated paid input.** Results are cached by (model, exact input bytes, settings). Within a run, the same input is never sent twice. Across runs, a disk cache (`~/.cache/bodhan_tool_agent`) makes reruns free. Repairs always change the input, for example by splitting text or switching voice. `report.json` shows the cache hits.
+- **No repeated paid input.** Results are cached by (model, exact input bytes, settings). Within a run, an identical request is served from memory, and two identical requests in flight share one HTTP call. The only repeats are retries of a failed or timed-out attempt, which `report.json` counts as `retried_attempts`. Only complete results are written to the disk cache (`~/.cache/bodhan_tool_agent`, plus the run's own `.state/cache`), so reruns are free and a truncated result is retried next time. Repairs always change the input, for example by splitting text or switching voice.
 - **Step, time and call limits.** `--max-steps` counts tool calls. The last step offers only `finish`. `--max-seconds` bounds the whole run: tool calls, planner calls and rate-limit waits are all cut off at the deadline. `--call-timeout` bounds each request.
 - **Cancellation.** A request takes its budget reservation only once it holds a concurrency slot. If it is cancelled before it is sent, the reservation is released. If it was already sent, its cost counts as uncertain.
 - **Concurrent duplicates.** Two identical requests in flight at the same time share one HTTP call.
@@ -164,9 +176,46 @@ The LLM never sees audio and never judges Indian-language text. It reads English
 
 OCR text, transcripts, translations and text files come back wrapped as `{"content_kind": "untrusted_data", "note": ...}`. A heuristic flags instruction-like phrases (`injection_warning`), and the report repeats them under limitations. The real defence is structural. The planner prompt says data is never instruction. The only tools are media tools and writes inside `out/artifacts`, with no shell, no network and no deletion. Reads are confined to the input paths and the run's artifacts folder. The injection test (`h1_notice_injection`) keeps the injected line as translated content and does not follow it.
 
+## What "completed" means
+
+The plan declares the deliverables the task asks for, each with a kind (`audio`, `translation`, `subtitles`, `text`, `transcript`) and an optional language. The kind `answer` means the reply itself is the output, as in "which of these clips are Telugu?". `finish(status="completed")` is accepted only if each declared deliverable is matched by an artifact that meets three conditions:
+
+- It is one of the finish deliverables and exists on disk.
+- A tool made it in this run.
+- Its kind and language fit the declaration.
+- Its own checks, and those of everything it was made from or embeds, did not fail.
+
+An `answer` deliverable needs at least one successful tool call behind it. These rules are generic: they check consistency with the plan, not the meaning of the task. A wrong plan can still be wrong, which is why the plan, the deliverables and every check are in the trace.
+
+Verification results are kept as a history on each artifact. A later check never improves an earlier failure, and a translation can be re-checked only against the source it was made from. To repair an output, the agent makes a new artifact.
+
+## Input boundaries
+
+- **Files.** The agent reads only its input files and its own artifacts. A folder input never includes the run's output folder or hidden folders. An input placed inside `--out` is rejected before anything moves.
+- **Media.** Audio and video are treated as self-contained files. The container is identified from its first bytes and passed to ffmpeg explicitly, with only the `file` and `pipe` protocols allowed. A playlist or concat manifest renamed to `.wav` therefore can't make the decoder read other files.
+- **Documents.** PDF pages and the frames of a multi-page TIFF are pages. A clean PDF text layer is used without OCR unless images cover 15% or more of the page; then the page is OCRed, because a scanned body can sit under a digital header. Page ranges are clipped before they are expanded, and file types are sniffed from a few bytes.
+
+## Resume
+
+`--resume` continues the same run rather than starting a new one from cached results. The checkpoint (`out/.state/checkpoint.json`, replaced atomically) stores the following:
+
+- the task and the SHA-256 of every input;
+- the limits;
+- the conversation and any turn whose tool calls were in progress;
+- the plan and the step counter;
+- the settled spend;
+- the artifact records with their SHA-256;
+- the provenance record.
+
+It stores no keys. On resume, changed or missing inputs stop the resume with a clear error. Artifacts whose files changed since the checkpoint are dropped. An interrupted turn's calls run again, and finished paid work comes back from the run's own cache for free. The time and step limits carry over from the first session.
+
+## HTTP transport
+
+`--transport http` serves the same server through the MCP SDK's Streamable HTTP app at `/mcp`, so protocol negotiation and sessions are the SDK's. A small ASGI wrapper requires `Authorization: Bearer <token>` on every HTTP request and compares it in constant time. The token comes from a file and is generated if missing. It is never one of the seven provider variables. The server binds to loopback by default, and the SDK adds Host and Origin checks against DNS rebinding.
+
 ## Choices I did not make
 
 - **No agent framework.** The loop is about 300 lines. A framework would add dependencies and hide the gates that matter here.
-- **No word-level timestamps.** `indic-transcribe` returns text only. Cue times come from the pause-based cuts, which are accurate to about 0.3 s. The README says so.
+- **No word-level timestamps.** `indic-transcribe` returns text only. Cue boundaries are the pause-based cuts, or a proportional split when an earlier transcript is reused. The speech inside a cue is not aligned. The README says so.
 - **No LLM-written corrections of Indian-language text**, even when a back-translation looks wrong. The agent reports the problem instead.
 - **The agent calls the tools in-process rather than through its own MCP client.** It gets one budget across tool calls and simpler tracing. MCP compatibility is tested separately with an independent client process (`tests/test_mcp_stdio.py`) and with MCP Inspector.

@@ -69,12 +69,39 @@ Optional flags:
 - `--no-cache` and `--cache-dir` control the result cache.
 - `--env-file` loads the variables from another file.
 - `--llm-input-inr-per-1m` and `--llm-output-inr-per-1m` put the planner's own spend into the budget.
+- `--resume` continues an interrupted run in `--out`, with the same task, inputs and limits (see below).
+
+`--max-steps` counts every planner call, `record_plan` and `finish` included. `--max-seconds` counts from the moment the command starts.
+
+### Resume an interrupted run
+
+```bash
+python -m bodhan_agent --resume --out ./out
+```
+
+The agent writes a checkpoint to `out/.state/` between planner turns. It holds the conversation, plan, step and spend counters, artifact records with their SHA-256, and the provenance record, but no keys. On `--resume`, the agent first checks that every input file is byte-for-byte unchanged. It then re-runs a turn that was cut off, and continues within the remaining steps, time and budget. Paid results are kept in the run's own cache (`out/.state/cache`), so work finished before the interruption is not billed again. A request that was in flight at the moment of interruption may be sent again; its earlier attempt can't be confirmed either way. A finished run can't be resumed.
+
+### Watch a run live
+
+```bash
+python -m bodhan_agent.viewer --out ./out        # then open http://127.0.0.1:8766/
+```
+
+The viewer is a read-only page that follows the run's plan, steps, verification results, cost and artifacts once a second. It binds to localhost, renders every value as plain text and serves files only from `out/artifacts/`. The agent never needs it.
 
 ### Run the MCP server
 
 ```bash
 python -m bodhan_mcp [--artifacts-dir DIR] [--max-cost-inr N] [--allow-dir DIR ...]
 ```
+
+To serve over Streamable HTTP with simple token authentication instead of stdio:
+
+```bash
+python -m bodhan_mcp --transport http --port 8765 [--token-file PATH]
+```
+
+The endpoint is `http://127.0.0.1:8765/mcp`, bound to loopback unless you pass `--allow-remote`. Every request needs `Authorization: Bearer <token>`. If the token file does not exist, a random token is written there, by default `<artifacts-dir>/.mcp_http_token`. It is a local transport token, never a Bodhan or LLM key. Host and Origin checks against DNS rebinding come from the MCP SDK.
 
 To use it from an MCP client, add a stdio server with this command. Example for clients that take an `mcpServers` JSON block:
 
@@ -91,18 +118,20 @@ npx @modelcontextprotocol/inspector@2.13.0 --cli python -m bodhan_mcp --method t
   --tool-name translate_text --tool-arg text="The school opens at 9 AM." --tool-arg target_language=ta
 ```
 
-`tests/test_mcp_stdio.py` also drives the server as a separate process through the official MCP Python SDK client. It covers schemas, bad input, unknown tools, missing keys, the path sandbox and resources.
+`tests/test_mcp_stdio.py` and `tests/test_mcp_http.py` also drive the server as a separate process through the official MCP Python SDK client, over stdio and HTTP. They cover schemas, bad input, unknown tools, missing keys, the path sandbox, resources, unknown-resource errors and token checks.
+
+Resources: `bodhan://voices` (the fixed voice library and styles), `bodhan://languages` (codes per model) and `bodhan://pricing`. An unknown resource URI returns the protocol error `-32602`. Each tool advertises an input schema and a typed output schema (`src/bodhan_mcp/tools/schemas.py`), and tests validate real results against them.
 
 ## Tools
 
 | Tool | Bodhan model | What it handles for the caller |
 |---|---|---|
 | `inspect_files` | none | File type, duration, pages, image size and text language. Free. |
-| `transcribe_audio` | indic-transcribe | Any container or length. Cut at pauses into ≤28 s pieces, silence trimmed, language detected from the script. Segment times included. |
+| `transcribe_audio` | indic-transcribe | Any common audio or video container (WAV, MP3, M4A/MP4, OGG/Opus, FLAC, WebM, AAC, AMR and others; playlists and manifests are refused), up to 60 minutes. Cut at pauses into ≤28 s pieces, silence trimmed, language detected from the script. Segment times included. |
 | `create_subtitles` | transcribe + translate | Cue-sized `.srt` in the source and target languages, back-translation checked. |
 | `translate_text` | indic-translate | Text, Markdown or SRT. Paragraph units, tables kept, truncation split, back-translation verified. |
 | `synthesize_speech` | indic-speak | Sentence-sized requests, every segment back-transcribed and repaired once, MP3 or WAV, labelled AI-generated. |
-| `ocr_document` | indic-ocr | Photos and multi-page PDFs page by page. Free use of clean PDF text layers. Markdown tables. |
+| `ocr_document` | indic-ocr | Photos, multi-page TIFFs and PDFs, page by page. A clean PDF text layer is used for free unless the page also holds a large image. Markdown tables. Truncated pages are retried, then reported as incomplete. |
 | `verify_translation`, `verify_speech` | translate / transcribe | Independent checks for outputs made elsewhere. |
 | `detect_language`, `read_text`, `write_text`, `list_voices` | none | Script-based language ID, paging through artifacts, saving English text, and the voice library. |
 
@@ -111,19 +140,31 @@ Every tool validates its input and returns `{"ok": false, "error": {"code", "mes
 ## How it works
 
 1. **Preflight (code).** List the inputs with free metadata, record missing files and check which keys exist.
-2. **Plan (LLM).** `record_plan` writes steps, assumptions and deliverables. Paid tools are refused until a plan exists.
-3. **Act (tools).** Each call reserves its worst-case cost first, then calls Bodhan with retries and adaptive back-off, then verifies its output.
-4. **Verify and repair.** Translations are back-translated and structure-checked. Every audio segment is back-transcribed. Failures are repaired once with a different input, or reported.
-5. **Stop.** `finish` passes a gate in code. Deliverables must be this run's artifacts, verified and not failing, and the answer must be in English. Step, time and budget limits force a truthful partial report.
+2. **Plan (LLM).** `record_plan` writes steps, assumptions and every deliverable the task asks for, each with its kind and language, or `answer` when the reply itself is the output. Paid tools are refused until a valid plan exists.
+3. **Act (tools).** Independent calls in one turn run in parallel. Each call reserves its worst-case cost first, then calls Bodhan with retries and adaptive back-off, then verifies its output.
+4. **Verify and repair.** Translations are back-translated and checked for script, numbers and table structure. Every audio segment is back-transcribed. Failures are repaired once with a different input, or reported.
+5. **Stop.** `finish` passes a gate in code. Each declared deliverable needs a matching artifact from this run whose checks did not fail, including everything it was made from. The answer must be in English. Step, time and budget limits, an outage or a crash end with the same rule for what counts as usable output.
 
 ## Tests
 
 ```bash
-pytest -q                                  # 80+ offline tests, no network or keys needed
-python scripts/run_suite.py                # live: runs evaluation/tasks.json and scores the outputs (costs about ₹5)
+pytest -q                                  # 120+ offline tests, no network or keys needed
+python scripts/run_suite.py                # live self-evaluation: runs evaluation/tasks.json and scores it (exit 1 if any task fails)
 ```
 
-The offline tests use `tests/fakes.py`, a mock of the four endpoints that enforces their limits, and a scripted planner. They cover each tool's chunking and limits, retries and billing, budget reservation under concurrency, the gates, the MCP server as a separate process, and multi-step agent runs through the CLI code path. Live behaviour is shown separately in [docs/evaluation.md](docs/evaluation.md).
+The offline tests use `tests/fakes.py`, a mock of the four endpoints that enforces their limits, and a scripted planner. They cover:
+
+- each tool's chunking and limits;
+- retries and billing;
+- budget reservation under concurrency;
+- the gates and resume;
+- the MCP server as a separate process over stdio and HTTP;
+- the viewer;
+- multi-step agent runs through the CLI code path.
+
+`tests/test_review_regressions.py` and `tests/test_audit_regressions.py` hold one test per finding from the independent reviews.
+
+`scripts/run_suite.py` is the self-evaluation. A task passes only if the agent exited cleanly, wrote a fresh report for that launch, and met every expectation in `evaluation/tasks.json`. The expectations cover status, deliverable files, kinds and languages, verification, answer text, and budget. These are structural checks, not a quality score; native-speaker review is separate. Live results are in [docs/evaluation.md](docs/evaluation.md).
 
 ## Test media
 
@@ -131,7 +172,9 @@ Media stays out of git. `scripts/make_fixtures.py` generates every input used in
 
 ## Limitations
 
-- **Subtitle timing is pause-based.** `indic-transcribe` returns no timestamps, so cue times come from where the audio was cut, accurate to about 0.3 s. Cues are at most 7 s.
+- **Subtitle timing is approximate.** `indic-transcribe` returns no timestamps. When `create_subtitles` transcribes the audio itself, cue boundaries are the pauses where it cut the audio (frame resolution 20 ms; the speech inside a cue is not aligned). When it reuses an earlier transcript, long segments are split with times proportional to text length, which is coarser. Sparse speech can give a cue longer than `max_cue_seconds`; the result says so.
+- **"Never the same input twice" has one exception.** Identical requests are served from the cache or share one in-flight call. The only repeats are retries of a failed or timed-out attempt; `report.json` counts them (`retried_attempts`), and their possible cost is counted as uncertain.
+- **The planner budget is an estimate.** Bodhan spend is a hard cap. If you price the planner, each call is checked against a conservative estimate first. A provider whose tokenizer or output cap differs from that estimate can overshoot by the difference. Planner tokens are always reported.
 - **Verification is automatic, not linguistic.** Back-translation chrF and back-transcription similarity catch omissions, truncation, wrong scripts and garbled audio. They cannot judge fluency or terminology. Native-speaker review is still needed.
 - **Language ID is script-based.** Telugu, Tamil, Bengali and the other single-language scripts are reliable. Devanagari languages (Hindi, Marathi, Nepali and others) are told apart with function words, suffixes and letters such as ळ. Short or unusual texts may be mislabelled, and the result says so with a confidence value.
 - **Tested with one planner model.** The demos ran with `gpt-6.1-sol` behind an OpenAI-compatible local gateway. The code uses only standard `chat.completions` tool calling, and it accepts a JSON tool call written as plain text from weaker models, but other models may plan differently.
@@ -141,4 +184,17 @@ Media stays out of git. `scripts/make_fixtures.py` generates every input used in
 
 ## AI assistance
 
-Written with Claude Code (Claude Opus 5.5) as the coding assistant: design, implementation, tests and docs, with every live run checked by hand. GPT-6.1 Sol (through Codex) did an independent code review. The application's planner LLM is a separate, configurable model.
+Claude Code (Claude Opus 5.5) was the coding assistant for design, implementation, tests and docs. I checked every live run's outputs myself. GPT-6.1 Sol (through Codex) did several independent review rounds, including a full audit against the assignment. Each finding was reproduced, fixed, and covered by a regression test, or documented here as a limitation. The application's planner LLM is a separate, configurable model.
+
+## Optional extras
+
+All of the brief's stretch goals are implemented:
+
+| Stretch goal | Where |
+|---|---|
+| Streamable HTTP with simple token authentication | `python -m bodhan_mcp --transport http` (see above), `tests/test_mcp_http.py` |
+| MCP resources | `bodhan://voices`, `bodhan://languages`, `bodhan://pricing` |
+| Self-evaluation script with a pass rate | `scripts/run_suite.py`, `evaluation/tasks.json` |
+| Parallel tool calls where steps are independent | independent calls in one planner turn run concurrently; `test_independent_calls_*` |
+| Resumable tasks | `--resume`, `src/bodhan_agent/state.py`, `test_resume_*` |
+| Thin web UI with the plan and trace live | `python -m bodhan_agent.viewer`, `tests/test_viewer.py` |

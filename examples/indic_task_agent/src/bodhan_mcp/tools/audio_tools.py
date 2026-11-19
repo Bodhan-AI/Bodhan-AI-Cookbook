@@ -129,7 +129,7 @@ async def transcribe_audio(ctx: RunContext, a: TranscribeIn) -> dict:
         ctx.provenance_guard.add(r["text"])
     return {"source": str(p), "transcript_path": str(txt), "segments_path": str(js), "duration_s": r["duration_s"],
             "segments": len(r["segments"]), "language_used": r.get("language_used"), "detection": r["detection"], "notes": r["notes"],
-            "timing_note": "Segment times come from pause-based chunking (~0.3 s precision); the model returns no word timestamps.",
+            "timing_note": "Segment boundaries are where the audio was cut at pauses; the model returns no word timestamps, so speech inside a segment is not aligned.",
             "transcript": frame_untrusted(r["text"], str(txt), 1500)}
 
 
@@ -218,7 +218,7 @@ async def create_subtitles(ctx: RunContext, a: SubtitlesIn) -> dict:
         ctx.register(Artifact(out_path, "subtitles", "create_subtitles", target, "indic-transcribe + indic-translate", verification, notes))
     sample = render_srt(out_cues[:4])
     return {"subtitles_path": str(out_path), "source_subtitles_path": str(src_srt), "cues": len(out_cues), "source_detection": detection,
-            "verification": verification, "notes": notes, "timing_note": "Cue times come from pause-based chunking (~0.3 s precision).",
+            "verification": verification, "notes": notes, "timing_note": "Cue boundaries are pause-based cuts (or proportional splits of a reused transcript); speech inside a cue is not aligned.",
             "first_cues": frame_untrusted(sample, str(out_path), 900)}
 
 
