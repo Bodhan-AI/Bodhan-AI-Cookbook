@@ -117,6 +117,16 @@ def main() -> None:
     t.record("stdio resources/list", shown + " --method resources/list", f"exit {code}; {uris}", code == 0 and "bodhan://voices" in uris)
     code, out = inspector(server, ["--method", "resources/read", "--uri", "bodhan://voices"])
     t.record("stdio resources/read bodhan://voices", shown + " --method resources/read --uri bodhan://voices", out, code == 0 and "Kavya" in out)
+    code, out = inspector(server, ["--method", "resources/read", "--uri", "bodhan://errors"])
+    t.record("stdio resources/read bodhan://errors", shown + " --method resources/read --uri bodhan://errors", out,
+             code == 0 and "unsupported_language" in out and "retryable" in out)
+    code, out = inspector(server, ["--method", "prompts/list"])
+    names_p = [x["name"] for x in (parsed(out) or {}).get("prompts", [])]
+    t.record("stdio prompts/list", shown + " --method prompts/list", f"exit {code}; {names_p}", code == 0 and "plan_media_task" in names_p)
+    code, out = inspector(server, ["--method", "prompts/get", "--prompt-name", "plan_media_task", "--prompt-args",
+                                   "task=Make a Tamil audio summary of this chapter", "files=chapter.pdf"])
+    t.record("stdio prompts/get plan_media_task", shown + " --method prompts/get --prompt-name plan_media_task --prompt-args task=... files=...",
+             out, code == 0 and "Tamil audio summary" in out)
     code, out = inspector(server, ["--method", "tools/call", "--tool-name", "detect_language", "--tool-arg", "text=நீர் சுழற்சி பாடம்"])
     r = tool_result(out)
     t.record("stdio free call detect_language", shown + " --method tools/call --tool-name detect_language --tool-arg text=...", out,
