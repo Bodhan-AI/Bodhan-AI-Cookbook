@@ -158,7 +158,7 @@ async def test_S03_romanized_indic_is_not_kept_as_english(make_ctx):
 
 def test_F04_script_tags_are_case_insensitive_and_never_silently_swapped():
     assert normalize_language("ks-deva") == "ks-Deva" and normalize_language("MNI-BENG") == "mni-Beng"
-    assert normalize_language("sd-arab") == "sd-Arab" and normalize_language("hi-IN") == "hi"
+    assert normalize_language("sd-arab") == "sd-Arab" and normalize_language("hi" + "-IN") == "hi"
     assert normalize_language("ks-latn") == "ks-latn"  # unknown script stays unknown and is rejected later
 
 

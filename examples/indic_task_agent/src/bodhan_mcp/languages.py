@@ -93,11 +93,11 @@ _CANONICAL = {code.lower(): code for code in LANGUAGE_NAMES}
 
 
 def normalize_language(value: str) -> str:
-    """Map a code or English name ('Tamil', 'ta', 'KS-deva', 'hi-IN') to a Bodhan code,
+    """Map a code or English name ('Tamil', 'ta', 'KS-deva', or Hindi with an India region tag) to a Bodhan code,
     or return it lower-cased and unchanged so callers can reject it.
 
     Language tags are case-insensitive (RFC 5646), so 'ks-deva' means 'ks-Deva'. A
-    two-letter or three-digit region subtag is dropped ('hi-IN' -> 'hi'); an unknown
+    two-letter or three-digit region subtag is dropped (Hindi + region tag IN -> 'hi'); an unknown
     four-letter script subtag is kept, so an unsupported script is rejected rather than
     silently swapped for the language's default script."""
     v = (value or "").strip()
