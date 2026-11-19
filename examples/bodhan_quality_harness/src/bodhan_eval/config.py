@@ -16,9 +16,10 @@ def _refresh_from_env() -> None:
     global TRANSLATE_MODEL, SPEAK_MODEL, TRANSCRIBE_MODEL
     global LLM_BASE_URL, LLM_MODEL, LLM_API_KEY
     BODHAN_BASE_URL = os.environ.get("BODHAN_BASE_URL", "https://api.bodhan.ai/v1")
-    BODHAN_TRANSLATE_KEY = os.environ.get("BODHAN_TRANSLATE_KEY", "")
-    BODHAN_SPEAK_KEY = os.environ.get("BODHAN_SPEAK_KEY", "")
-    BODHAN_TRANSCRIBE_KEY = os.environ.get("BODHAN_TRANSCRIBE_KEY", "")
+    _api_key = os.environ.get("BODHAN_API_KEY", "")
+    BODHAN_TRANSLATE_KEY = os.environ.get("BODHAN_TRANSLATE_KEY") or _api_key
+    BODHAN_SPEAK_KEY = os.environ.get("BODHAN_SPEAK_KEY") or _api_key
+    BODHAN_TRANSCRIBE_KEY = os.environ.get("BODHAN_TRANSCRIBE_KEY") or _api_key
 
     TRANSLATE_MODEL = os.environ.get("BODHAN_TRANSLATE_MODEL", "indic-translate")
     SPEAK_MODEL = os.environ.get("BODHAN_SPEAK_MODEL", "indic-speak")
@@ -45,9 +46,10 @@ def load_env(path: str | Path = ".env") -> None:
 
 # --- Bodhan hosted API --------------------------------------------------------
 BODHAN_BASE_URL = os.environ.get("BODHAN_BASE_URL", "https://api.bodhan.ai/v1")
-BODHAN_TRANSLATE_KEY = os.environ.get("BODHAN_TRANSLATE_KEY", "")
-BODHAN_SPEAK_KEY = os.environ.get("BODHAN_SPEAK_KEY", "")
-BODHAN_TRANSCRIBE_KEY = os.environ.get("BODHAN_TRANSCRIBE_KEY", "")
+_api_key = os.environ.get("BODHAN_API_KEY", "")
+BODHAN_TRANSLATE_KEY = os.environ.get("BODHAN_TRANSLATE_KEY") or _api_key
+BODHAN_SPEAK_KEY = os.environ.get("BODHAN_SPEAK_KEY") or _api_key
+BODHAN_TRANSCRIBE_KEY = os.environ.get("BODHAN_TRANSCRIBE_KEY") or _api_key
 
 TRANSLATE_MODEL = os.environ.get("BODHAN_TRANSLATE_MODEL", "indic-translate")
 SPEAK_MODEL = os.environ.get("BODHAN_SPEAK_MODEL", "indic-speak")

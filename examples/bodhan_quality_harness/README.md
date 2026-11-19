@@ -231,17 +231,17 @@ round-trip; `--max-cost-inr` stops the run before it overspends.
 `data/sources.jsonl` is 36 English items written for this exercise (short sentences,
 numbers and units, a Markdown table, LaTeX, acronyms).
 
-`data/demo.jsonl` is a **development fixture**. Its translations were produced offline
-with a non-Bodhan MT system so the checks, calibration and tests could be built and
-measured without API access. Before submitting, regenerate it so every Indian-language
-string comes from Indic-Translate:
+`data/demo.jsonl` is 108 items across Hindi, Tamil and Bengali, translated from the
+English sources with **Indic-Translate** and then mutated by `tools/make_demo.py` so that
+roughly half carry one labelled, programmatically injected error. Regenerate it with:
 
 ```bash
 python tools/make_demo.py --out data/demo.jsonl --calibration data/calibration.jsonl
 ```
 
-The harness itself never calls anything except Bodhan models and the configured judge;
-the fixture is data, not code.
+The injector never asks a model to write Indian-language text: it deletes spans, changes
+digits, perturbs entities and breaks structure on text Indic-Translate already produced.
+The harness itself never calls anything except Bodhan models and the configured judge.
 
 ## Tests
 

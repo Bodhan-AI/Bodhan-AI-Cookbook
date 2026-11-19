@@ -1,6 +1,6 @@
 {
-  "digest": "4535583a6a99fd13",
-  "items_scored": 103,
+  "digest": "4111fd8c9d903121",
+  "items_scored": 108,
   "items_skipped": 0,
   "languages": [
     "bn",
@@ -8,101 +8,101 @@
     "ta"
   ],
   "totals": {
-    "flags": 58,
-    "items_with_flags": 46
+    "flags": 68,
+    "items_with_flags": 58
   },
   "per_language": {
     "bn": {
-      "items": 34,
-      "flags": 22,
-      "flags_per_item": 0.65,
+      "items": 36,
+      "flags": 21,
+      "flags_per_item": 0.58,
       "by_category": {
-        "addition": 15,
-        "language": 4,
-        "number": 1,
+        "addition": 7,
+        "language": 6,
+        "number": 5,
         "omission": 1,
-        "term": 1
+        "term": 2
       },
       "by_severity": {
-        "critical": 5,
-        "major": 17
+        "critical": 8,
+        "major": 13
       }
     },
     "hi": {
-      "items": 35,
-      "flags": 15,
-      "flags_per_item": 0.43,
+      "items": 36,
+      "flags": 30,
+      "flags_per_item": 0.83,
       "by_category": {
-        "addition": 10,
-        "language": 2,
-        "number": 3
+        "addition": 15,
+        "language": 4,
+        "number": 9,
+        "term": 2
       },
       "by_severity": {
-        "critical": 5,
-        "major": 10
+        "critical": 10,
+        "major": 20
       }
     },
     "ta": {
-      "items": 34,
-      "flags": 21,
-      "flags_per_item": 0.62,
+      "items": 36,
+      "flags": 17,
+      "flags_per_item": 0.47,
       "by_category": {
-        "addition": 8,
-        "language": 7,
-        "number": 5,
-        "omission": 1
+        "addition": 10,
+        "language": 5,
+        "term": 2
       },
       "by_severity": {
-        "critical": 12,
-        "major": 9
+        "critical": 5,
+        "major": 12
       }
     }
   },
   "accuracy": {
     "overall": {
-      "precision": 0.741,
-      "recall": 0.935,
-      "f1": 0.827,
-      "false_alarm_rate": 0.035,
+      "precision": 0.721,
+      "recall": 0.961,
+      "f1": 0.824,
+      "false_alarm_rate": 0.14,
       "clean_items": 57,
-      "flagged_clean": 2,
-      "labels_total": 46,
-      "predictions_total": 58
+      "flagged_clean": 8,
+      "labels_total": 51,
+      "predictions_total": 68
     },
     "per_category": {
       "addition": {
-        "tp": 24,
-        "fp": 9,
-        "fn": 1,
-        "precision": 0.727,
-        "recall": 0.96,
-        "f1": 0.828,
+        "tp": 28,
+        "fp": 4,
+        "fn": 0,
+        "precision": 0.875,
+        "recall": 1.0,
+        "f1": 0.933,
         "localization": 1.0,
         "category_accuracy": 1.0
       },
       "language": {
-        "tp": 12,
-        "fp": 1,
+        "tp": 15,
+        "fp": 0,
         "fn": 0,
-        "precision": 0.923,
+        "precision": 1.0,
         "recall": 1.0,
-        "f1": 0.96,
+        "f1": 1.0,
         "localization": 1.0,
         "category_accuracy": 1.0
       },
       "number": {
-        "tp": 7,
-        "fp": 2,
-        "fn": 1,
-        "precision": 0.778,
-        "recall": 0.875,
-        "f1": 0.824,
+        "tp": 6,
+        "fp": 8,
+        "fn": 2,
+        "precision": 0.429,
+        "recall": 0.75,
+        "f1": 0.545,
         "localization": 1.0,
         "category_accuracy": 1.0
       },
       "omission": {
         "tp": 0,
-        "fp": 2,
+        "fp": 1,
         "fn": 0,
         "precision": 0.0,
         "recall": 0.0,
@@ -112,8 +112,8 @@
       },
       "term": {
         "tp": 0,
-        "fp": 1,
-        "fn": 1,
+        "fp": 6,
+        "fn": 0,
         "precision": 0.0,
         "recall": 0.0,
         "f1": 0.0,
@@ -128,11 +128,11 @@
         "lo": 0.55,
         "hi": 1.8,
         "lo_f1": 0.0,
-        "hi_f1": 0.5294117647058824,
+        "hi_f1": 0.4864864864864865,
         "lo_tuned": false,
         "hi_tuned": true,
         "n_omission": 0,
-        "n_addition": 25
+        "n_addition": 28
       },
       "lo_sweep": [
         {
@@ -188,49 +188,49 @@
     },
     "scoring": {
       "overall": {
-        "precision": 0.741,
-        "recall": 0.935,
-        "f1": 0.827,
-        "false_alarm_rate": 0.035,
+        "precision": 0.721,
+        "recall": 0.961,
+        "f1": 0.824,
+        "false_alarm_rate": 0.14,
         "clean_items": 57,
-        "flagged_clean": 2,
-        "labels_total": 46,
-        "predictions_total": 58
+        "flagged_clean": 8,
+        "labels_total": 51,
+        "predictions_total": 68
       },
       "per_category": {
         "addition": {
-          "tp": 24,
-          "fp": 9,
-          "fn": 1,
-          "precision": 0.727,
-          "recall": 0.96,
-          "f1": 0.828,
+          "tp": 28,
+          "fp": 4,
+          "fn": 0,
+          "precision": 0.875,
+          "recall": 1.0,
+          "f1": 0.933,
           "localization": 1.0,
           "category_accuracy": 1.0
         },
         "language": {
-          "tp": 12,
-          "fp": 1,
+          "tp": 15,
+          "fp": 0,
           "fn": 0,
-          "precision": 0.923,
+          "precision": 1.0,
           "recall": 1.0,
-          "f1": 0.96,
+          "f1": 1.0,
           "localization": 1.0,
           "category_accuracy": 1.0
         },
         "number": {
-          "tp": 7,
-          "fp": 2,
-          "fn": 1,
-          "precision": 0.778,
-          "recall": 0.875,
-          "f1": 0.824,
+          "tp": 6,
+          "fp": 8,
+          "fn": 2,
+          "precision": 0.429,
+          "recall": 0.75,
+          "f1": 0.545,
           "localization": 1.0,
           "category_accuracy": 1.0
         },
         "omission": {
           "tp": 0,
-          "fp": 2,
+          "fp": 1,
           "fn": 0,
           "precision": 0.0,
           "recall": 0.0,
@@ -240,8 +240,8 @@
         },
         "term": {
           "tp": 0,
-          "fp": 1,
-          "fn": 1,
+          "fp": 6,
+          "fn": 0,
           "precision": 0.0,
           "recall": 0.0,
           "f1": 0.0,
@@ -251,16 +251,16 @@
       }
     },
     "judge": {
-      "items_judged": 46,
-      "consistency_samples": 45,
-      "consistency": 0.978,
+      "items_judged": 58,
+      "consistency_samples": 58,
+      "consistency": 1.0,
       "note": "consistency is measured by re-asking with the cache bypassed, so it reflects the model rather than the cache"
     }
   },
   "judge": {
-    "items_judged": 46,
-    "consistency_samples": 45,
-    "consistency": 0.978,
+    "items_judged": 58,
+    "consistency_samples": 58,
+    "consistency": 1.0,
     "note": "consistency is measured by re-asking with the cache bypassed, so it reflects the model rather than the cache"
   },
   "cost": {
@@ -270,9 +270,9 @@
     "budget_inr": null
   },
   "cache": {
-    "hits": 6,
-    "misses": 40,
-    "hit_rate": 0.13
+    "hits": 30,
+    "misses": 28,
+    "hit_rate": 0.517
   },
-  "runtime_seconds": 7.6
+  "runtime_seconds": 8.0
 }

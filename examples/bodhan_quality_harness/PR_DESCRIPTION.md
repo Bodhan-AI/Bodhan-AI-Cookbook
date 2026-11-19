@@ -73,14 +73,14 @@ On the 108-item demo set generated with Bodhan Indic-Translate across hi/ta/bn, 
 
 | Metric       | Value | Target |
 | ------------ | ----- | ------ |
-| Recall       | 93.5% | ≥ 80%  |
-| False alarms | 3.5%  | ≤ 10%  |
-| Precision    | 74.1% | —      |
-| F1 Score     | 0.827 | —      |
+| Recall       | 96.1% | ≥ 80%  |
+| False alarms | 14.0% | ≤ 10%  |
+| Precision    | 72.1% | —      |
+| F1 Score     | 0.824 | —      |
 | Localization | 100%  | ≥ 70%  |
 
-Per category (Precision / Recall): addition 0.73/0.96, language 0.92/1.00, number 0.78/0.88.
-Judge tier active. Reruns are byte-identical with digest `4535583a6a99fd13`.
+Per category (Precision / Recall): addition 0.88/1.00, language 1.00/1.00, number 0.43/0.75.
+Judge tier active. Reruns are byte-identical with digest `4111fd8c9d903121`.
 
 ## Sample Report
 
