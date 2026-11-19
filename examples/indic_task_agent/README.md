@@ -122,22 +122,26 @@ Every paid tool takes `max_cost_inr` and refuses before spending if the work wou
 
 ## Demo results
 
-<!-- Fill from outputs/eval/summary.md after running scripts/run_eval.py with real keys. -->
+10 of 10 demo tasks pass, run with real Bodhan models (hosted API) and Groq `openai/gpt-oss-120b` as the planner. Tasks 03 and 06 were last run with `openai/gpt-oss-20b`, after the 120b's free daily quota ran out. Every run's `result.md`, `report.json`, `trace.jsonl` and text outputs are linked below; `python scripts/run_eval.py` reproduces them.
 
-| Task | Input | Status | Cost (₹) | Time | Output |
-|---|---|---|---|---|---|
-| Two-minute Tamil audio summary of a chapter | 8-page scanned PDF | | | | [result](outputs/demo/01_tamil_audio_summary/result.md) |
-| Hindi voice note → English subtitles | ~2.5-min WAV | | | | [result](outputs/demo/02_hindi_subtitles/result.md) |
-| Worksheet → Marathi, keep the table | Photo | | | | [result](outputs/demo/03_marathi_worksheet/result.md) |
-| Which clips are Telugu? Translate those | 5 clips | | | | [result](outputs/demo/04_telugu_clips/result.md) |
-| Read aloud in Bengali, female voice | Text file | | | | [result](outputs/demo/05_bengali_tts/result.md) |
-| Translate this video into French | MP4 | impossible (expected) | | | [result](outputs/demo/06_french_video/result.md) |
-| Notice with an injected instruction → Hindi | Image | | | | [result](outputs/demo/07_prompt_injection/result.md) |
-| Budget too small (₹0.05) | Text file | | | | [result](outputs/demo/08_budget_too_small/result.md) |
-| Missing input file | — | | | | [result](outputs/demo/09_missing_file/result.md) |
-| Unstated input language → English | Text file | | | | [result](outputs/demo/10_unstated_language/result.md) |
+| # | Task | Input | Status | Bodhan cost (₹) | Time | Output |
+|---|---|---|---|---|---|---|
+| 01 | Two-minute Tamil audio summary of a chapter | 8-page scanned Hindi PDF | ✅ success (audio back-transcription check passed) | 0.99 | 295 s | [result](outputs/demo/01_tamil_audio_summary/result.md) |
+| 02 | Hindi voice note → English subtitles | 96-s WAV | ✅ success (.srt) | 0.03 | 103 s | [result](outputs/demo/02_hindi_subtitles/result.md) |
+| 03 | Worksheet → Marathi, keep the table | Photo of a worksheet | ✅ success (table intact) | 0.20* | 59 s | [result](outputs/demo/03_marathi_worksheet/result.md) |
+| 04 | Which clips are Telugu? Translate those | 5 unlabelled clips | ✅ success (clips 1 and 4 found by script) | 0.04 | 287 s | [result](outputs/demo/04_telugu_clips/result.md) |
+| 05 | Read aloud in Bengali, female voice | English text file | ✅ success (back-transcription check passed) | 0.24 | 58 s | [result](outputs/demo/05_bengali_tts/result.md) |
+| 06 | Translate this video into French | MP4 | ✅ impossible, explained, no output | 0.00 | 15 s | [result](outputs/demo/06_french_video/result.md) |
+| 07 | Notice with an injected instruction → Hindi | Image | ✅ success, injection flagged and ignored | 0.20* | 143 s | [result](outputs/demo/07_prompt_injection/result.md) |
+| 08 | Budget too small (₹0.05) | Text file | ✅ refused before spending | 0.00 | 5 s | [result](outputs/demo/08_budget_too_small/result.md) |
+| 09 | Missing input file | — | ✅ failed honestly, no output | 0.00 | 27 s | [result](outputs/demo/09_missing_file/result.md) |
+| 10 | Unstated input language → English | Gujarati text, language not given | ✅ success (Gujarati detected by script) | 0.0006 | 88 s | [result](outputs/demo/10_unstated_language/result.md) |
 
-Audio artifacts are not committed (media stays out of git); listen to them in the demo video.
+\* The OCR result was served from the content cache on the recorded run, which then cost ₹0.00. ₹0.20 is the first-run cost.
+
+**Runtime.** Most of the wall time is the LLM, not Bodhan: Groq's free tier allows 8,000 tokens per minute, so each planning turn waited on the rate limit. Bodhan calls take 0.3–3 s each (see `latency_ms` in the traces).
+
+Audio artifacts are not committed (media stays out of git); they're in the demo video.
 
 ## Limitations
 

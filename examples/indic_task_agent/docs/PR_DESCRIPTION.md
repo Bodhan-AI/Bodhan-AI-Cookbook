@@ -77,11 +77,19 @@ Hosted API (`https://api.bodhan.ai`).
 
 ## Results
 
-<!-- paste outputs/eval/summary.md -->
+10 of 10 demo tasks pass with real Bodhan models (hosted) and Groq `openai/gpt-oss-120b`. Tasks 03 and 06 were last run with `gpt-oss-20b` after the 120b's daily quota ran out. Per-task outputs and traces: see the **Demo results** table in [examples/indic_task_agent/README.md](examples/indic_task_agent/README.md#demo-results), with links to every `result.md`, `report.json` and `trace.jsonl`.
+
+The live runs found and fixed four real issues (details in [design notes §8b](examples/indic_task_agent/docs/design_notes.md)):
+1. The documented `POST /translate` route returns 404 on the live API; translation now uses `/v1/chat/completions` with `model=indic-translate`, with a fallback.
+2. Groq rejects tool calls whose optional fields are `null`; optional fields now allow null, and validation or parse errors are retried.
+3. Bodhan returned 429s on bursts of short subtitle chunks; concurrency is now 2 with longer backoff, and an incomplete result can be retried with cached chunks reused.
+4. Groq's 8k tokens-per-minute limit is handled by compacting older context and waiting on 429.
+
+`python -m pytest -q` runs 78 offline tests (fake Bodhan API + scripted LLM, plus tests of the real LLM client against a stub).
 
 ## Demo video
 
-<!-- link (≤ 5 min, no sign-in) -->
+<!-- paste the link (≤ 5 min, viewable without sign-in) -->
 
 ## Trade-offs and known limitations
 
@@ -96,10 +104,24 @@ See [design notes §9](examples/indic_task_agent/docs/design_notes.md#9-trade-of
 
 ## Cost and runtime
 
-<!-- per task, from report.json -->
+| Task | Bodhan ₹ | Time |
+|---|---|---|
+| 01 Tamil audio summary (8-page PDF) | 0.99 | 295 s |
+| 02 Hindi voice note → English SRT | 0.03 | 103 s |
+| 03 Worksheet → Marathi | 0.20 (₹0 on cached rerun) | 59 s |
+| 04 Telugu clips | 0.04 | 287 s |
+| 05 Bengali TTS | 0.24 | 58 s |
+| 06 French video (impossible) | 0.00 | 15 s |
+| 07 Prompt-injection notice → Hindi | 0.20 (₹0 on cached rerun) | 143 s |
+| 08 Budget too small | 0.00 | 5 s |
+| 09 Missing file | 0.00 | 27 s |
+| 10 Unstated language → English | 0.0006 | 88 s |
+
+Most of the wall time is waiting on the free Groq tier's rate limits; Bodhan calls take 0.3–3 s each. All 10 runs stayed within `--max-cost-inr` (`budget_respected: true` in every report).
 
 ## AI assistance
 
-<!-- e.g. Claude: scaffolding, test fakes and docs drafts; every line reviewed and explained by me. -->
+<!-- Write this in your own words, and only what is true. Suggested starting point: -->
+I used Claude (claude.ai) heavily. From the assignment brief and my design decisions, it generated most of the initial code, tests and documentation. I set the project up and ran it against the live Bodhan APIs and Groq on Windows. I diagnosed the failures from the traces (the translate route returning 404, Groq's schema validation and rate limits, Bodhan 429s, stale outputs) and iterated on the fixes with it. I have reviewed every module and can explain and extend it.
 
-LLM tested with: <!-- provider / model -->
+LLM tested with: Groq `openai/gpt-oss-120b` (primary) and `openai/gpt-oss-20b`.
