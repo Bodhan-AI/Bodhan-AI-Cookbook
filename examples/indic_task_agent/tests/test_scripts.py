@@ -57,7 +57,7 @@ def test_failed_child_run_is_a_failed_row_even_with_an_old_report(tmp_path):
     run_dir.mkdir(parents=True)
     (run_dir / "report.json").write_text(json.dumps(report(task="Translate this video into French", status="unsupported")), encoding="utf-8")
     proc = subprocess.run([sys.executable, str(ROOT / "scripts" / "run_suite.py"), "--ids", "d6_video_french", "--out", str(out),
-                           "--max-seconds", "not-a-number"], capture_output=True, text=True, cwd=ROOT)
+                           "--max-seconds", "not-a-number"], capture_output=True, text=True, encoding="utf-8", cwd=ROOT)
     summary = json.loads((out / "summary.json").read_text(encoding="utf-8"))
     assert proc.returncode == 1 and summary["passed"] == 0 and "exited 2" in summary["tasks"][0]["fails"][0]
 
@@ -89,5 +89,6 @@ def test_export_scrubs_input_and_local_paths(tmp_path):
 
 def test_fixture_dry_run_writes_and_sends_nothing(tmp_path):
     out = tmp_path / "never_created"
-    proc = subprocess.run([sys.executable, str(ROOT / "scripts" / "make_fixtures.py"), "--dry-run", "--out", str(out)], capture_output=True, text=True)
+    proc = subprocess.run([sys.executable, str(ROOT / "scripts" / "make_fixtures.py"), "--dry-run", "--out", str(out)], capture_output=True, text=True,
+                          encoding="utf-8")
     assert proc.returncode == 0 and not out.exists() and json.loads(proc.stdout)["approximate_speech_inr"] > 0

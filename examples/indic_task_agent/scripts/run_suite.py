@@ -137,6 +137,8 @@ def main() -> None:
     ap.add_argument("--skip-existing", action="store_true", help="do not re-run tasks that already have a report.json (labelled 'reused')")
     ap.add_argument("--env-file", default=None)
     a, extra = ap.parse_known_args()
+    if hasattr(sys.stdout, "reconfigure"):  # the summary contains ₹; never fail on a non-UTF-8 console
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     tasks = json.loads((ROOT / "evaluation" / "tasks.json").read_text(encoding="utf-8"))["tasks"]
     if a.ids:
         wanted = set(a.ids.split(","))
