@@ -128,11 +128,11 @@ The server registers 10 tools. Eight are offered to the LLM; `get_cache_stats` a
 
 | Tool Name | Key Parameters | Model / Backend | Limit Encapsulation & Preprocessing Logic |
 | :--- | :--- | :--- | :--- |
-| `transcribe_audio` | `file_path`, `language`, `task` | `indic-transcribe` | Auto-converts non-WAV audio via ffmpeg; chunks into $\le 28\text{s}$ slices (strict sub-30s limit, billed per second) using NumPy RMS silence scan with zero-crossing snap; merges chunk transcripts into continuous text. **No `task` parameter is sent to the wire** (upstream rejects with 422; `task='translate'` is honored via internal translation). Audio format is measured server-side; invalid formats are refused with HTTP 415. |
+| `transcribe_audio` | `file_path`, `language`, `task` | `indic-transcribe` | Auto-converts non-WAV audio via soundfile / ffmpeg; chunks into $\le 28\text{s}$ slices (strict sub-30s limit, billed per second) using NumPy RMS silence scan with zero-crossing snap; merges chunk transcripts into continuous text. **No `task` parameter is sent to the wire** (upstream rejects with 422; `task='translate'` is honored via internal translation). Audio format is measured server-side; invalid formats are refused with HTTP 415. |
 | `translate_text` | `text`, `target_language`, `source_language` | `indic-translate` | Validates target language code against scheduled Indian languages + English; validates output contains target-script Unicode characters (guards against echo); preserves Markdown formatting. **Discrepancy notice:** `bhb` (Bhili) and `bho` (Bhojpuri) are supported in Indic-Transcribe (ASR) but refused by upstream Indic-Translate with `unsupported_language`. Guards against the **`truncated: true` completeness trap** by catching length limits mid-stream. |
 | `synthesize_speech` | `text`, `language`, `voice`, `style`, `output_path` | `indic-speak` | Splits on Indian punctuation `[।.!?]` into prosodic clauses; concatenates individual 24 kHz WAV chunks with 200ms natural silence padding; writes to `artifacts/`. Strictly constructs the **required `instructions` JSON string** (`{"lang": ..., "style": ...}`) to prevent HTTP 500 errors. **Speaking styles:** Validates against the 14 allowed styles; **strictly excludes `formal`** (passing `formal` causes HTTP 500 on live API). Any voice can read any language (cross-language reading allowed). Invalid parameters trigger HTTP 422. |
 | `extract_document_text` | `file_path`, `table_format`, `page_limit` | `indic-ocr` | Accepts multi-page PDF or image; **Bodhan Indic-OCR endpoint strictly accepts PNG and JPEG image inputs only (no direct PDF input)**. Rasterizes PDF pages using PyMuPDF (`fitz`) at 150 DPI into PNG/JPEG before dispatch; extracts layout blocks, Devanagari tables, and body text as Markdown or HTML. |
-| `inspect_media` | `file_path` | ffmpeg / wave / OS | Zero-cost local inspection: audio duration (WAV natively, other formats via ffprobe), sample rate, image size, and PDF page count before invoking paid models. |
+| `inspect_media` | `file_path` | soundfile / ffmpeg / wave / OS | Zero-cost local inspection: audio duration (WAV natively, other formats via soundfile / ffprobe), sample rate, image size, and PDF page count before invoking paid models. |
 | `read_text_file` | `file_path`, `offset`, `limit` | Local Disk | Bounded character paging with `total_chars`/`has_more`/`next_offset`; extracts `.docx` first. Confined to the run's input roots, and refuses credential files and repository metadata. |
 | `write_text_file` | `file_path`, `content` | Local Disk | Sandboxed artifact writer. Confines writes to the active run's `artifacts/` folder; rejects path traversal attacks (`../`, `/etc/passwd`). |
 | `detect_language` | `text` | Unicode Regex | Zero-cost script detection mapping Unicode ranges to Indic ISO codes (`Devanagari` $\to$ `hi`/`mr`, `Tamil` $\to$ `ta`, `Bengali` $\to$ `bn`, `Telugu` $\to$ `te`, etc.). |
@@ -204,10 +204,12 @@ To prevent sequential CLI runs from overwriting history or mixing stale artifact
 ## Setup
 
 ### 1. Prerequisites
-* **Python:** 3.11, 3.12, or 3.13
-* **System Utilities: FFmpeg & FFprobe (Required for Non-WAV Audio Formats)**
-  - **Native Python Handling (Zero External Binaries):** Standard uncompressed PCM WAV files (`.wav`, 16-bit / 8-bit mono or stereo) are inspected, silence-chunked, and resampled via standard library `wave` and `numpy`.
-  - **Compressed Audio Containers:** Formats such as **MP3 (`.mp3`), OGG (`.ogg`), WebM (`.webm`), M4A (`.m4a`), FLAC (`.flac`), AAC (`.aac`), and OPUS (`.opus`)** require `ffmpeg` and `ffprobe` on the system `PATH`. When present, `ensure_wav()` automatically transcodes them into standard 16-bit mono 16kHz PCM WAV before feeding them into silence-aware chunking and Bodhan transcription tools.
+* **Python:** 3.11, 3.12, or 3.13 (Python 3.11 recommended; `>=3.10` supported)
+* **Audio Backends (4-Tier In-Process & Fallback Architecture):**
+  - **Native PCM WAV (Zero External Binaries):** Standard uncompressed PCM WAV files (`.wav`, 16-bit / 8-bit mono or stereo) are inspected, silence-chunked, and resampled via standard library `wave` and `numpy`.
+  - **In-Process Compressed Audio (`soundfile`):** Common formats such as **MP3 (`.mp3`), OGG (`.ogg`), and FLAC (`.flac`)** are decoded directly in-process via bundled `soundfile` (`libsndfile`), requiring **no external OS binaries**.
+  - **Auto-Discovered Static FFmpeg (`imageio-ffmpeg`):** Complex containers such as **WebM (`.webm`), M4A (`.m4a`), and AAC (`.aac`)** automatically resolve and transcode using bundled `imageio-ffmpeg` static binaries out-of-the-box.
+  - **System FFmpeg & FFprobe (Optional / Accelerator):** If system-level `ffmpeg` and `ffprobe` are installed on the `PATH`, `inspect_audio` and `ensure_wav` will leverage them as an accelerator:
   ```bash
   # Windows (via winget or chocolatey)
   winget install Gyan.FFmpeg
@@ -219,7 +221,7 @@ To prevent sequential CLI runs from overwriting history or mixing stale artifact
   # macOS
   brew install ffmpeg
   ```
-  *(Note: On Windows, after installing via winget/choco, restart your shell or terminal session so `ffmpeg` is visible in your environment).*
+  *(Optional: If installed via winget/choco, restart your terminal so `ffmpeg` is visible in your environment).*
 
 ### 2. Setup Virtual Environment
 ```bash
