@@ -1,9 +1,11 @@
-"""Exam paper reader pipeline: photo of a paper -> text -> translation -> speech.
+"""Exam paper reader pipeline: photo of a paper -> text -> translation -> speech,
+and a spoken answer -> text.
 
 Each step is one Bodhan API call:
-    read_paper()  -> indic-ocr        (POST /v1/chat/completions)
-    translate()   -> indic-translate  (POST /v1/chat/completions)
-    speak()       -> indic-speak      (POST /v1/audio/speech)
+    read_paper()  -> indic-ocr         (POST /v1/chat/completions)
+    translate()   -> indic-translate   (POST /v1/chat/completions)
+    speak()       -> indic-speak       (POST /v1/audio/speech)
+    transcribe()  -> indic-transcribe  (POST /v1/audio/transcriptions)
 
 Run it on one image from the command line:
     python pipeline.py sample_data/sample_paper.png --lang hi
@@ -47,6 +49,7 @@ KEY_VARS = {
     "indic-ocr": "BODHAN_OCR_KEY",
     "indic-translate": "BODHAN_TRANSLATE_KEY",
     "indic-speak": "BODHAN_SPEAK_KEY",
+    "indic-transcribe": "BODHAN_TRANSCRIBE_KEY",
 }
 
 
@@ -61,15 +64,19 @@ def api_key(model: str) -> str:
 RETRY_WAITS = (5, 10, 20, 30)  # seconds to wait after each 429 before trying again
 
 
-def bodhan(path: str, body: dict) -> requests.Response:
-    """POST a JSON body to the Bodhan API. Backs off on 429 and raises readable errors.
+def bodhan(path: str, body: dict, files: dict | None = None) -> requests.Response:
+    """POST to the Bodhan API. Backs off on 429 and raises readable errors.
+
+    The body is sent as JSON, or as form fields next to `files` when there is a file to
+    upload (transcription takes the audio as a multipart form, not JSON).
 
     The rate limit is counted per minute and a retry counts as a request, so the waits
     are long and few: about a minute in total before giving up.
     """
     headers = {"Authorization": f"Bearer {api_key(body['model'])}"}
+    payload = {"data": body, "files": files} if files else {"json": body}
     for wait in (*RETRY_WAITS, None):
-        resp = requests.post(f"{BASE_URL}{path}", headers=headers, json=body, timeout=180)
+        resp = requests.post(f"{BASE_URL}{path}", headers=headers, timeout=180, **payload)
         if resp.status_code != 429 or wait is None:
             break
         retry_after = resp.headers.get("Retry-After", "")
@@ -290,6 +297,65 @@ def speak(text: str, language: str) -> bytes:
         wav.setparams(params)
         wav.writeframes(b"".join(frames))
     return out.getvalue()
+
+
+# A question starts with a number ("3.", "3)", "Q3", "Q. 3", "प्रश्न 3") or ends with "?".
+# "(?!\d)" keeps a decimal such as "3.5 kg" from counting as question 3.
+QUESTION_START = re.compile(r"\s*(\d+\s*[.)](?!\d)|Q\.?\s*\d+|प्रश्न\s*\d+)", re.IGNORECASE)
+
+
+def is_question(text: str) -> bool:
+    """True if a unit of the paper looks like a question the student should answer.
+
+    Checked on the original text, because question numbers survive OCR well.
+    """
+    return bool(QUESTION_START.match(text)) or text.rstrip().endswith("?")
+
+
+MAX_LISTEN_SECONDS = 25  # indic-transcribe takes about 30 s of audio per request
+MAX_ANSWER_SECONDS = 180  # longest recording accepted: every 25 s of it is one paid request
+
+
+def split_wav(audio: bytes, seconds: int = MAX_LISTEN_SECONDS) -> list[bytes]:
+    """Cut a WAV recording into pieces of at most `seconds`, each a complete WAV file.
+
+    The recording comes from a browser, so it is checked before any paid call: it must
+    be a readable PCM WAV file and no longer than MAX_ANSWER_SECONDS.
+    """
+    pieces = []
+    try:
+        with wave.open(io.BytesIO(audio)) as wav:
+            params = wav.getparams()
+            if wav.getnframes() > wav.getframerate() * MAX_ANSWER_SECONDS:
+                raise RuntimeError(
+                    f"The recording is longer than {MAX_ANSWER_SECONDS // 60} minutes. "
+                    "Record the answer in shorter parts."
+                )
+            while frames := wav.readframes(wav.getframerate() * seconds):
+                out = io.BytesIO()
+                with wave.open(out, "wb") as piece:
+                    piece.setparams(params)
+                    piece.writeframes(frames)
+                pieces.append(out.getvalue())
+    except (wave.Error, EOFError) as err:
+        raise RuntimeError("The recording could not be read as a WAV file.") from err
+    return pieces
+
+
+def transcribe(audio: bytes, language: str) -> str:
+    """Turn a spoken answer (a WAV recording) into text. Returns "" if nothing was heard.
+
+    `language` is the language the student speaks; the model takes it as a strong hint.
+    Recordings longer than MAX_LISTEN_SECONDS are sent in pieces and the texts joined.
+    A word cut in half at a piece boundary can come out wrong.
+    """
+    texts = []
+    for n, piece in enumerate(split_wav(audio)):
+        body = {"model": "indic-transcribe", "language": language}
+        files = {"file": (f"answer_{n}.wav", piece, "audio/wav")}
+        result = bodhan("/v1/audio/transcriptions", body, files=files).json()
+        texts.append(str(result.get("text") or "").strip())
+    return " ".join(text for text in texts if text)
 
 
 def main() -> None:

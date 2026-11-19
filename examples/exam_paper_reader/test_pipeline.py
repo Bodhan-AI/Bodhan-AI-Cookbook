@@ -256,3 +256,79 @@ def test_bodhan_waits_and_retries_on_429(monkeypatch):
     resp = pipeline.bodhan("/v1/audio/speech", {"model": "indic-speak"})
     assert resp.status_code == 200
     assert waits == [5, 10]
+
+
+# --- voice answers -------------------------------------------------------------
+
+
+def test_is_question_finds_numbered_questions_only():
+    assert pipeline.is_question("1. Define force.")
+    assert pipeline.is_question("Q3 What is mass")
+    assert pipeline.is_question("प्रश्न 2 न्यूटन का नियम लिखिए")
+    assert pipeline.is_question("Why is the sky blue?")
+    assert not pipeline.is_question("Time: 30 minutes")
+    assert not pipeline.is_question("Class 8 Science")
+
+
+def test_split_wav_cuts_long_recordings_and_keeps_every_frame():
+    audio = make_wav(24000 * 60)  # one minute
+    pieces = pipeline.split_wav(audio, seconds=25)
+    lengths = []
+    for piece in pieces:
+        with wave.open(io.BytesIO(piece)) as w:
+            lengths.append(w.getnframes())
+    assert lengths == [24000 * 25, 24000 * 25, 24000 * 10]
+
+
+def test_transcribe_sends_each_piece_as_a_file_and_joins_the_text(monkeypatch):
+    sent = []
+
+    def fake_bodhan(path, body, files=None):
+        sent.append((path, body, files))
+        return FakeResponse({"text": f" part {len(sent)} "})
+
+    monkeypatch.setattr(pipeline, "bodhan", fake_bodhan)
+    text = pipeline.transcribe(make_wav(24000 * 40), "hi")  # 40 s: two pieces
+
+    assert text == "part 1 part 2"
+    assert [path for path, _, _ in sent] == ["/v1/audio/transcriptions"] * 2
+    assert all(body == {"model": "indic-transcribe", "language": "hi"} for _, body, _ in sent)
+    name, data, mime = sent[0][2]["file"]
+    assert (name, mime) == ("answer_0.wav", "audio/wav")
+    assert data.startswith(b"RIFF")  # a complete WAV file, not raw frames
+
+
+def test_bodhan_sends_a_form_when_there_is_a_file(monkeypatch):
+    monkeypatch.setenv("BODHAN_API_KEY", "test-key")
+    calls = []
+
+    class Reply:
+        status_code, ok, headers = 200, True, {}
+
+    monkeypatch.setattr(pipeline.requests, "post", lambda *a, **k: calls.append(k) or Reply())
+    pipeline.bodhan("/v1/audio/transcriptions", {"model": "indic-transcribe"}, files={"file": b"x"})
+    pipeline.bodhan("/v1/audio/speech", {"model": "indic-speak"})
+
+    assert calls[0]["data"] == {"model": "indic-transcribe"} and "json" not in calls[0]
+    assert calls[1]["json"] == {"model": "indic-speak"} and "files" not in calls[1]
+
+
+def test_is_question_ignores_a_decimal_number():
+    assert not pipeline.is_question("3.5 kg of sugar is dissolved in water")
+    assert pipeline.is_question("3. 5 kg of sugar is dissolved in water. Find the mass.")
+
+
+def test_transcribe_refuses_bad_or_overlong_audio_before_any_paid_call(monkeypatch):
+    def no_calls(*args, **kwargs):
+        raise AssertionError("the API must not be called")
+
+    monkeypatch.setattr(pipeline, "bodhan", no_calls)
+    with pytest.raises(RuntimeError, match="could not be read"):
+        pipeline.transcribe(b"this is not audio", "hi")
+    with pytest.raises(RuntimeError, match="longer than 3 minutes"):
+        pipeline.transcribe(make_wav(24000 * (pipeline.MAX_ANSWER_SECONDS + 1)), "hi")
+
+
+def test_transcribe_returns_empty_text_for_silence(monkeypatch):
+    monkeypatch.setattr(pipeline, "bodhan", lambda *a, **k: FakeResponse({"text": None}))
+    assert pipeline.transcribe(make_wav(24000), "hi") == ""

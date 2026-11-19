@@ -1,14 +1,20 @@
 # Exam paper reader
 
-> Photograph a question paper, then read and hear every question in your own language.
+> Photograph a question paper, read and hear every question in your own language, and answer by speaking.
 
-**Bodhan models:** indic-ocr, indic-translate, indic-speak
+**Bodhan models:** indic-ocr, indic-translate, indic-speak, indic-transcribe
 **Languages shown:** English and Hindi papers in; Hindi, Bengali, Tamil or English out
 **Format:** Streamlit app, plus a command-line script
 
 ## What it does
 
 Many students study in one language and sit exams set in another, and visually impaired students often need someone to read a paper to them. This app takes a photo or scan of one page of a question paper, reads the text with `indic-ocr`, translates every line with `indic-translate`, and reads any question aloud with `indic-speak`. The original line stays under each translation so the student can check it against the paper.
+
+Students who find writing hard, through an injury, dyslexia or low vision, often need a human scribe. Under each question there is an **Answer by voice** recorder: the student speaks an answer in their language, `indic-transcribe` writes it down, and the student can correct the text by hand. **Download my answers** saves every question with its answer as one text file.
+
+A 25-second answer spoken in Hindi, as `indic-transcribe` wrote it down:
+
+![A question in Hindi with a recorded answer and its text below it](screenshots/voice_answer.png)
 
 The included sample paper, read in Hindi and in Bengali:
 
@@ -36,7 +42,7 @@ pip install -r requirements.txt
 cp .env.example .env   # then paste your key from https://console.bodhan.ai
 ```
 
-One key with access to `indic-ocr`, `indic-translate` and `indic-speak` is enough. If your console keys are each limited to one model, fill in `BODHAN_OCR_KEY`, `BODHAN_TRANSLATE_KEY` and `BODHAN_SPEAK_KEY` instead; each one takes priority over `BODHAN_API_KEY` for its model.
+One key with access to `indic-ocr`, `indic-translate`, `indic-speak` and `indic-transcribe` is enough. If your console keys are each limited to one model, fill in `BODHAN_OCR_KEY`, `BODHAN_TRANSLATE_KEY`, `BODHAN_SPEAK_KEY` and `BODHAN_TRANSCRIBE_KEY` instead; each one takes priority over `BODHAN_API_KEY` for its model.
 
 ## Run
 
@@ -46,7 +52,7 @@ The app:
 streamlit run app.py
 ```
 
-Open http://localhost:8501, then upload a photo or click **Try the sample paper**. Pick the language in the sidebar. Audio is generated only when you press a **Read aloud** button.
+Open http://localhost:8501, then upload a photo or click **Try the sample paper**. Pick the language in the sidebar. Audio is generated only when you press a **Read aloud** button. To answer, open **🎤 Answer by voice** under a question and record; the browser asks once for microphone access. Voice answers can be switched off in the sidebar.
 
 The app is served on your own computer only (`.streamlit/config.toml` sets `address = "localhost"`). Keep it that way unless you add a login: anyone who can open the page can spend your API credits.
 
@@ -75,8 +81,9 @@ pytest test_pipeline.py
    - Overlapping layout blocks sometimes return the same text twice in a row; the repeat is dropped.
 4. **Translate each part** with `indic-translate`. Part by part keeps every question paired with its translation and lets the student play one question at a time. The source language is detected automatically. Text already written in the target language's script is not sent at all: asked to translate Hindi into Hindi, the model reworded the text and introduced mistakes.
 5. **Read aloud** with `indic-speak`. A request should hold about 30 seconds of speech, so text is cut at sentence ends (`.`, `?`, `!` and the Devanagari `।`) into pieces of at most 250 characters. Each piece is spoken and the WAV pieces are joined into one file.
+6. **Write down spoken answers** with `indic-transcribe` (`POST /v1/audio/transcriptions`, the recording as a multipart file upload with `language` set to the student's language). A request takes about 30 seconds of audio, so longer recordings are cut into 25-second WAV pieces and the texts joined. A recorder appears under each part that starts with a question number (`3.`, `Q3`, `प्रश्न 3`) or ends with `?`; if a page has none, under every paragraph. Each new recording is added to the end of the answer, so a long answer can be given in parts. Before any paid call the recording is checked: it must be a readable WAV file and at most 3 minutes long, since every 25 seconds is one request.
 
-Streamlit reruns the whole script on every click, so the app keeps translations and audio in `st.session_state`. Changing language or pressing play never repeats a paid call.
+Streamlit reruns the whole script on every click, so the app keeps translations and audio in `st.session_state`. Changing language or pressing play never repeats a paid call. Each recording is transcribed once: the app remembers a hash of the last recording per question.
 
 Translation uses `POST /v1/chat/completions` with `"model": "indic-translate"` and a `target_language` field. The plain `POST /translate` route used elsewhere in this cookbook returned 404 during development (see issue #34).
 
@@ -97,4 +104,9 @@ These come from testing with the API, not from guesses.
 - **Text cut off by the edge of the photo is translated as it stands**, so a half sentence gives a half-right translation. Photograph the whole page.
 - **Numbers and formulas.** The sample's numbers survived translation, but maths notation, chemical formulas and diagrams have not been tested.
 - **Handwriting** has not been tested.
+- **Spoken answers come back without punctuation.** In testing, `indic-transcribe` returned the words of Hindi, Bengali, Tamil and English answers with no full stops or commas, and wrote "Photosynthesis" as "Fotosynthesis". The student can correct the text in the box. These tests used clear speech made with `indic-speak`, including a 37-second Hindi answer sent in two pieces. One real voice was tried (the Hindi answer in the screenshot above), which is too little to give an accuracy figure; expect more mistakes with an accent or a noisy room.
+- **Long spoken answers are cut every 25 seconds.** A word spoken across a cut can come out wrong; pausing briefly, or recording a long answer in parts, avoids it. One recording can be at most 3 minutes.
+- **Answers live in the browser session only.** Recordings are sent to the Bodhan API to be written down and are not saved on disk; the answer text is lost if the page is reloaded, so download the answers before closing the tab.
+- **The microphone needs `localhost` or HTTPS.** Browsers do not allow recording on a plain `http://` address of another machine.
+- **Question detection is a simple pattern.** A question without a number or a `?` gets no recorder, unless the page has no recognised questions at all.
 - **The translation is a machine translation.** It is a study aid, not a replacement for an official paper in the student's language.
