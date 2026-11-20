@@ -241,6 +241,23 @@ Each checkpoint also writes the report an interruption at that moment would leav
 
 `--transport http` serves the same server through the MCP SDK's Streamable HTTP app at `/mcp`, so protocol negotiation and sessions are the SDK's. A small ASGI wrapper requires `Authorization: Bearer <token>` on every request and compares it in constant time. The token comes from a file (generated if missing) and is never a provider key. The server binds to loopback unless you pass `--allow-remote`, and the SDK adds Host and Origin checks against DNS rebinding (the live viewer checks Host the same way). If the token file is missing, a random token is written there, by default `bodhan_mcp/http_token` in the user config folder (`%APPDATA%` or `~/.config`), outside the artifacts folder that tools read and users share. The server speaks plain HTTP, so with `--allow-remote` put it behind a TLS-terminating proxy so the token is never sent in clear text. The token check covers HTTP requests; the app has no WebSocket route and no WebSocket library is installed, so no other request type reaches it.
 
+## Worked trace: d1
+
+One real run, the cold demo d1 ("Make a two-minute Tamil audio summary of this chapter", an 8-page scanned Tamil PDF, planner `gpt-6.1-sol`). Each row is one planner step from [its trace](../evaluation/runs/sol_demos_cold/d1_chapter_tamil_audio/trace.jsonl); "why" quotes the planner's own rationale.
+
+| Step | Planner chose | Why (planner) | What came back | s | ₹ |
+|---|---|---|---|---|---|
+| 1 | `record_plan` | five steps; deliverables: the Tamil audio and the Tamil text it reads | plan recorded; paid tools unlocked | – | 0 |
+| 2 | `ocr_document` | "extract all eight pages so the summary reflects the whole chapter" | 8 pages OCR'd, 3,814 characters, detected Tamil (0.99) | 26.7 | 1.60 |
+| 3 | `translate_text` → en | "translate the extracted chapter into English to accurately identify its main points" | English translation, check **warn**: two passages have fewer sentences than the source | 96.9 | 0.034 |
+| 4 | `read_text` | "read the full English translation; its verification flagged two passages" | the whole translation, as untrusted data | 0 | 0 |
+| 5 | `write_text` | "draft a concise summary covering the water cycle, its importance, and practical ways to conserve water" | 1,295-character English summary (the guard accepts it: no Indic text) | 0 | 0 |
+| 6 | `translate_text` → ta | "translate the final summary into Tamil and verify it before narration" | Tamil summary, check **pass** | 10.9 | 0.014 |
+| 7 | `synthesize_speech` | "generate the audio with a 120-second target and check it" | 9 segments, 125.8 s (+5 %), every segment back-transcribed, mean similarity 0.998, **pass** | 76.1 | 1.15 |
+| 8 | `finish` | `completed` with the MP3 and the Tamil text | gate: both deliverables exist and passed; the warned translation they depend on makes it **completed_with_warnings** | – | 0 |
+
+Total 258 s and ₹2.7972 of Bodhan spend. Code made two decisions the planner did not: it held paid tools until step 1, and it downgraded the result because a source of the deliverables carried a warning.
+
 ## Choices I did not make
 
 - **No agent framework.** The loop is one file (`loop.py`). A framework would add dependencies and hide the gates that matter here.

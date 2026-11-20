@@ -58,3 +58,14 @@ async def test_office_files_and_archives_are_refused_with_a_hint(make_ctx, tmp_p
     r, _ = await call(make_ctx(fake), "inspect_files", paths=[str(f)])
     assert r["files"][0]["kind"] == kind and word in r["files"][0]["note"]
     assert sum(fake.calls.values()) == 0
+
+
+async def test_inspect_results_for_every_kind_match_the_published_schema(make_ctx, tmp_path):
+    import jsonschema
+
+    from bodhan_mcp.tools.schemas import output_schema
+
+    files = [office(tmp_path / "a.docx"), office(tmp_path / "b.zip"), heic(tmp_path / "c.heic")]
+    r, is_error = await call(make_ctx(FakeBodhan()), "inspect_files", paths=[str(f) for f in files])
+    assert not is_error and {f["kind"] for f in r["files"]} == {"office", "archive", "image"}
+    jsonschema.validate(r, output_schema("inspect_files"))
