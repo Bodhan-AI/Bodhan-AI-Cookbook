@@ -81,7 +81,7 @@ def _read_text(path: Path, size: int) -> tuple[str, bool] | None:
 
 
 def _script_facts(text: str) -> dict[str, Any]:
-    script = guards.main_indic_script(text) or dominant_script(text)
+    script = dominant_script(text)
     language, _ = language_from_script(script)
     return {
         "script": script,
@@ -275,7 +275,8 @@ def _save_literal(settings: RunSettings, ledger: Ledger, literal_id: str, text: 
 def _marker(artifact: Artifact, original: str, quoted: bool) -> str:
     if not artifact.indic_text:
         return f"{original} ({artifact.id})"
-    label = f"[{artifact.id}: {artifact.chars:,} chars of {artifact.script or 'Indic'} text]"
+    script = artifact.script if artifact.script in guards.INDIC_SCRIPTS else "Indic"
+    label = f"[{artifact.id}: {artifact.chars:,} chars of {script} text]"
     return f'"{label}"' if quoted else label
 
 
