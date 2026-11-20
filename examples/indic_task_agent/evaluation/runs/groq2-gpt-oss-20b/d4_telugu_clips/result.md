@@ -46,7 +46,7 @@ These translations are provided in the artifacts listed above.
 - Status: `completed` (stop reason: `finished`)
 - Bodhan cost: ₹0.0000 billed; budget ₹20.0
 - Planner LLM: openai/gpt-oss-20b — 13 calls, 81650 prompt + 2488 completion tokens (not priced (no rate supplied); tokens reported only)
-- Time: 549.86 s (multi-step, target 300 s: missed); missed by 250 s (550 s against 300 s); tool calls 0% of the time, mostly step 3 (transcribe_audio, 0 s); planner turns 3% (13 calls, 15 s)
+- Time: 549.86 s (multi-step, target 300 s: missed); missed by 250 s (550 s against 300 s); tool calls 0% of the time (1 s), mostly transcribe_audio (1 s); slowest step 3 (transcribe_audio, 0 s); planner replies 3% of the time (15 s) (13 calls); 97% of the time (534 s) outside tool calls and planner replies (planner retries and their waits, preflight, bookkeeping)
 - Steps: 13 of 30; cache hits: 9
 
 | Step | Tool | OK | Latency (s) | Cost (₹) | Verification |

@@ -194,7 +194,7 @@
       "target_s": 300,
       "actual_s": 338.2,
       "met": false,
-      "note": "missed by 38 s (338 s against 300 s); tool calls 4% of the time, mostly step 6 (ocr_document, 15 s); planner turns 3% (8 calls, 12 s)",
+      "note": "missed by 38 s (338 s against 300 s); tool calls 4% of the time (15 s), mostly ocr_document (15 s); slowest step 6 (ocr_document, 15 s); planner replies 3% of the time (12 s) (8 calls); 92% of the time (312 s) outside tool calls and planner replies (planner retries and their waits, preflight, bookkeeping)",
       "note_source": "recomputed from trace.jsonl by scripts/explain_missed_targets.py"
     },
     "budget": {

@@ -308,7 +308,7 @@
       "target_s": 300,
       "actual_s": 323.0,
       "met": false,
-      "note": "missed by 23 s (323 s against 300 s); tool calls 94% of the time, mostly step 3 (create_subtitles, 185 s); planner turns 6% (4 calls, 19 s); 90 Bodhan requests (indic-translate 60, indic-transcribe 30); 41 attempts refused by rate limits and retried",
+      "note": "missed by 23 s (323 s against 300 s); tool calls 94% of the time (303 s), mostly step 3 (create_subtitles, 185 s); planner replies 6% of the time (19 s) (4 calls); 90 Bodhan requests (indic-translate 60, indic-transcribe 30); 41 attempts refused by rate limits and retried",
       "note_source": "recomputed from trace.jsonl by scripts/explain_missed_targets.py"
     },
     "budget": {

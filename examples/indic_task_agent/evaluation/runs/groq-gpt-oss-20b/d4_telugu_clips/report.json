@@ -62,7 +62,7 @@
       "target_s": 30,
       "actual_s": 456.0,
       "met": false,
-      "note": "missed by 426 s (456 s against 30 s); planner turns 1% (1 calls, 3 s)",
+      "note": "missed by 426 s (456 s against 30 s); planner replies 1% of the time (3 s) (1 calls); 99% of the time (453 s) outside tool calls and planner replies (planner retries and their waits, preflight, bookkeeping)",
       "note_source": "recomputed from trace.jsonl by scripts/explain_missed_targets.py"
     },
     "budget": {

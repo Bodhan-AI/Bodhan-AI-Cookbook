@@ -498,7 +498,7 @@
       "target_s": 300,
       "actual_s": 600.0,
       "met": false,
-      "note": "missed by 300 s (600 s against 300 s); tool calls 79% of the time, mostly step 7 (synthesize_speech, 454 s); planner turns 21% (7 calls, 127 s); 52 Bodhan requests (indic-transcribe 33, indic-speak 11, indic-translate 8); 1 attempt refused by rate limits and retried",
+      "note": "missed by 300 s (600 s against 300 s); tool calls 79% of the time (472 s), mostly step 7 (synthesize_speech, 454 s); planner replies 21% of the time (127 s) (7 calls); 52 Bodhan requests (indic-transcribe 33, indic-speak 11, indic-translate 8); 1 attempt refused by rate limits and retried",
       "note_source": "recomputed from trace.jsonl by scripts/explain_missed_targets.py"
     },
     "budget": {
