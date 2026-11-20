@@ -76,10 +76,11 @@ The graders bring their own planner, so the same tasks (d1–d6 and h1–h4) wer
 
 | Planner | Endpoint | Code | Tasks | Passed | Pass rate | Notes |
 |---|---|---|---|---|---|---|
-| `gpt-6.1-sol` | local gateway (CLIProxyAPI), ChatGPT subscription | `23e9799` | 8 | 8 | 100% | held-out h1-h8 only; demos ran cold at 2245dd2 (6/6). [summary](../evaluation/runs/sol_heldout/summary.md) |
+| `gpt-6.1-sol` | local gateway (CLIProxyAPI), ChatGPT subscription | `23e9799` | 8 | 8 | 100% | Held-out h1–h8; the demos ran cold at `2245dd2` (6/6, above). [summary](../evaluation/runs/sol_heldout/summary.md) |
 | `gemini-3.5-flash-lite` | generativelanguage.googleapis.com/v1beta/openai | `23e9799` | 10 | 10 | 100% |  [summary](../evaluation/runs/gemini-3.5-flash-lite/summary.md) |
+| `gemini-3.5-flash-lite` (final-code check) | same | `bea7e7c` | 9 | 9 | 100% | d2–d6 and h1–h4 on the final code (d1 left out: new speech would have broken the night's spend limit). [summary](../evaluation/runs/final_check_gemini/summary.md) |
 | `gpt-5.6-luna` | local gateway (CLIProxyAPI), ChatGPT subscription | `b2f7c0b` | 10 | 9 | 90% | d1 hit the 600 s limit (partial, reported). [summary](../evaluation/runs/gpt-5.6-luna/summary.md) |
-| `openai/gpt-oss-20b` | api.groq.com/openai/v1, on-demand tier | `23e9799` | 10 | 1 | 10% | 8 of 10 runs stopped by the account limit of 200,000 tokens/day (llm_error, not evaluated); d1 reached step 15 before a request needed 8,245 tokens against the 8,000 cap. [summary](../evaluation/runs/groq-gpt-oss-20b/summary.md) |
+| `openai/gpt-oss-20b` | api.groq.com/openai/v1, on-demand (free) tier | `23e9799` | 10 | — | not evaluated | **Quota-blocked on Groq's free tier** (200,000 tokens/day, 8,000-token request cap), not evaluated. Only d2 (passed) and d1 (partial: at step 15 a request needed 8,245 tokens) ran. The other 8 hit the daily limit before doing any work (`llm_error`), so they say nothing about the model; the scorer's raw count is 1/10. [summary](../evaluation/runs/groq-gpt-oss-20b/summary.md) |
 
 - **`openai/gpt-oss-120b` (Groq)** has no row: its final run stopped at the first task, because earlier runs that night had used up the account's 200,000 tokens/day. An earlier run (commit `88d3305`) completed d2 and showed three gaps, fixed since: the 8k request cap, finish arguments written as bare JSON, and lost lineage for text passed inline.
 - Every live run with a new planner found something. These were the generic fixes, all with regression tests: echoing Gemini's thought signatures; recovering Groq's `tool_use_failed`; reading tool calls written as text or without a name; shortening the conversation and then the tool list for 8k caps; not losing a plain-text answer; tolerating an artifact path with folders missing; not requiring the same output to be declared twice. See [design.md](design.md#planner-portability).
@@ -154,7 +155,7 @@ Earlier evaluation runs are kept, not overwritten. Times are UTC, on 19 November
 | 12:44–12:45 | The planner endpoint returned `usage_limit_reached` (subscription quota). | Runs stopped with `llm_error` and honest reports. They were rerun later. |
 | 13:51–13:57 | The account's Bodhan credit ran out during a suite run. | d1 and d2 stopped `failed` and h4 `partial`, each reporting the credit error. No output was presented as complete. The credit was topped up and those tasks rerun. |
 | 16:39 | Planner quota exhausted again, during h5–h8. | Those runs stopped with `llm_error`. The suite scorer had counted three of them as passes, because "failed" was their expected status. The scorer now fails any run stopped by the planner being unavailable, whatever the task expects. |
-| 21:00–22:45 | Groq's on-demand tier refused requests over 8,000 tokens (`413 Request too large ... tokens per minute`), and after many runs `gpt-oss-120b` reached that account's 200,000 tokens/day limit. | The first finding led to graduated compaction and the short tool list; the daily limit is an account limit, so the `gpt-oss-120b` row below is incomplete. |
+| 21:00–22:45 | Groq's on-demand tier refused requests over 8,000 tokens (`413 Request too large ... tokens per minute`), and after many runs `gpt-oss-120b` reached that account's 200,000 tokens/day limit. | The first finding led to graduated compaction and the short tool list; the daily limit is an account limit, so `gpt-oss-120b` has no final row and `gpt-oss-20b` is marked not evaluated (see Other planner models). |
 
 ## Limits of this evaluation
 
