@@ -346,6 +346,8 @@ class PlannerLLM:
             if fallback:
                 assistant["content"] = None
         elif not content:
-            assistant["content"] = ""
+            # an empty turn carries nothing to continue from; echoing its reasoning alone is refused by some
+            # gateways (seen live: 400 "Expected a(n) 'messages' array element to be an object")
+            assistant = {"role": "assistant", "content": ""}
         return LLMReply(content, calls, getattr(usage, "prompt_tokens", 0) or 0, getattr(usage, "completion_tokens", 0) or 0,
                         latency, choice.finish_reason, assistant, fallback)

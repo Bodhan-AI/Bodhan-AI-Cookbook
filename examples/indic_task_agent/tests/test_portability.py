@@ -52,6 +52,22 @@ async def test_provider_extras_are_echoed_and_tool_call_content_is_null():
     assert "refusal" not in m and "annotations" not in m
 
 
+async def test_an_empty_turn_is_sent_back_without_its_reasoning():
+    def gateway(kw):  # mimics the gateway that refused this shape live (gpt-oss-120b through an OpenAI-compatible proxy)
+        for m in kw["messages"]:
+            if m.get("role") == "assistant" and not m.get("content") and not m.get("tool_calls") and m.get("reasoning_content"):
+                raise Err(400, "Error code: 400 - Expected a(n) 'messages' array element to be an object.")
+        return reply("", [], msg_extra={"reasoning_content": "nothing to say"}) if len(ep.sent) == 1 else reply(None, [("finish", "{}")])
+
+    ep = Endpoint(gateway)
+    llm = PlannerLLM(client=ep, model="m")
+    first = await llm.chat([{"role": "user", "content": "x"}], FINISH_TOOL)
+    assert first.assistant_message == {"role": "assistant", "content": ""}
+    msgs = [{"role": "user", "content": "x"}, first.assistant_message, {"role": "user", "content": "Continue by calling a tool."}]
+    second = await llm.chat(msgs, FINISH_TOOL)
+    assert second.tool_calls[0].name == "finish"
+
+
 async def test_a_groq_tool_use_failed_generation_is_recovered():
     def behave(kw):
         raise Err(400, "Error code: 400 - tool_use_failed", {"error": {"code": "tool_use_failed",
