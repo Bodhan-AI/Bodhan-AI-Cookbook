@@ -164,7 +164,7 @@ async def test_deliverable_paths_with_doubled_backslashes_are_found(tmp_path):
     plan = [("record_plan", {"steps": ["translate"], "deliverables": [{"kind": "translation", "language": "ta"}]})]
     translate = [("translate_text", {"path": str(tmp_path / "source.txt"), "target_language": "ta", "output_name": "source_ta"})]
     doubled = lambda m: [("finish", {"status": "completed", "final_answer": "Done.",  # noqa: E731
-                                     "deliverables": [last_ok(m, "path").replace("\\", "\\\\").replace("/", "//")]})]
+                                     "deliverables": [last_ok(m, "path").replace("\\", "\\\\")]})]  # Windows paths; a POSIX path is unchanged
     report, _, _ = await go(tmp_path, task, [source(tmp_path)], [plan, translate, doubled])
     assert report["status"] == "completed" and report["deliverables"][0]["path"].endswith("source_ta.md")
 
