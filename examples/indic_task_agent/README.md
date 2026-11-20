@@ -77,7 +77,31 @@ python demo/run_demo.py --cold      # empty model cache, so costs and times are 
 
 ## How it works
 
-- Design notes, architecture diagram and agent-loop flow chart: **[docs/DESIGN.md](docs/DESIGN.md)**.
+```mermaid
+flowchart LR
+    subgraph Agent["bodhan_agent (python -m bodhan_agent)"]
+        CLI[CLI: --task --files --out] --> Intake[Intake: inspect every input file in code]
+        Intake --> Loop[Agent loop]
+        Loop <--> LLM[(LLM via LLM_BASE_URL<br/>OpenAI-compatible, tool calling)]
+        Loop --> Guards[Code guards:<br/>budget, step limit, paths,<br/>Indian-language provenance,<br/>finish validation]
+        Loop --> Out[result.md, artifacts/,<br/>trace.jsonl, report.json]
+    end
+
+    subgraph Server["bodhan_mcp (python -m bodhan_mcp, stdio)"]
+        Tools[10 tools] --> Client[BodhanClient:<br/>retries, rate-limit cooldown,<br/>concurrency limit, cache, budget, ledger]
+        Tools --> Media[media helpers:<br/>ffmpeg, pypdfium2, Pillow]
+        Client --> Cache[(disk cache keyed<br/>by exact input)]
+    end
+
+    Guards -- same tool functions and schemas --> Tools
+    MCPClient[Any MCP client] -- stdio --> Tools
+    Client --> T[indic-transcribe]
+    Client --> TR[indic-translate]
+    Client --> S[indic-speak]
+    Client --> O[indic-ocr]
+```
+
+- Design notes and the agent-loop flow chart: **[docs/DESIGN.md](docs/DESIGN.md)**.
 - The agent imports the same tool functions the MCP server publishes, and gives the LLM exactly the server's tool schemas.
 - The LLM plans, picks tools, writes English and judges results. Code enforces what must hold even if the LLM misbehaves:
   budgets, file-path limits, that Indian-language text only comes from Bodhan models, and that finished outputs really exist.
