@@ -4,13 +4,7 @@
 
 ## Answer
 
-Out of the 5 audio clips, clip_1.mp3 and clip_3.ogg are in Telugu. 
-
-Here are their English translations:
-- clip_1.mp3: "the library is open until eight p. m. during exam week"
-- clip_3.ogg: "the bus to school picnic will leave at seven thirty sharp"
-
-(Note: clip_2 is in Tamil, clip_4 is in Hindi, and clip_5 is in Kannada.)
+Out of the five clips, clip_1.mp3 and clip_3.ogg are in Telugu. Their English translations have been successfully generated and verified.
 
 ## Deliverables
 
@@ -29,12 +23,12 @@ Here are their English translations:
 
 ## Intermediate artifacts
 
-- [artifacts/clip_4_transcript.txt](artifacts/clip_4_transcript.txt) — transcript, indic-transcribe
-- [artifacts/clip_4_transcript.json](artifacts/clip_4_transcript.json) — json, indic-transcribe
-- [artifacts/clip_3_transcript.txt](artifacts/clip_3_transcript.txt) — transcript, indic-transcribe
-- [artifacts/clip_3_transcript.json](artifacts/clip_3_transcript.json) — json, indic-transcribe
 - [artifacts/clip_1_transcript.txt](artifacts/clip_1_transcript.txt) — transcript, indic-transcribe
 - [artifacts/clip_1_transcript.json](artifacts/clip_1_transcript.json) — json, indic-transcribe
+- [artifacts/clip_3_transcript.txt](artifacts/clip_3_transcript.txt) — transcript, indic-transcribe
+- [artifacts/clip_3_transcript.json](artifacts/clip_3_transcript.json) — json, indic-transcribe
+- [artifacts/clip_4_transcript.txt](artifacts/clip_4_transcript.txt) — transcript, indic-transcribe
+- [artifacts/clip_4_transcript.json](artifacts/clip_4_transcript.json) — json, indic-transcribe
 - [artifacts/clip_5_transcript.txt](artifacts/clip_5_transcript.txt) — transcript, indic-transcribe
 - [artifacts/clip_5_transcript.json](artifacts/clip_5_transcript.json) — json, indic-transcribe
 - [artifacts/clip_2_transcript.txt](artifacts/clip_2_transcript.txt) — transcript, indic-transcribe
@@ -44,18 +38,18 @@ Here are their English translations:
 
 - Status: `completed` (stop reason: `finished`)
 - Bodhan cost: ₹0.0000 billed; budget ₹20.0
-- Planner LLM: gemini-3.5-flash-lite — 4 calls, 31547 prompt + 1035 completion tokens (not priced (no rate supplied); tokens reported only)
-- Time: 9.67 s (multi-step, target 300 s: met)
+- Planner LLM: gemini-3.5-flash-lite — 4 calls, 31727 prompt + 1020 completion tokens (not priced (no rate supplied); tokens reported only)
+- Time: 11.48 s (multi-step, target 300 s: met)
 - Steps: 9 of 30; cache hits: 9
 
 | Step | Tool | OK | Latency (s) | Cost (₹) | Verification |
 |---|---|---|---|---|---|
-| 5 | `transcribe_audio` | yes | 0.25 | 0 |  |
-| 4 | `transcribe_audio` | yes | 0.25 | 0 |  |
-| 2 | `transcribe_audio` | yes | 0.281 | 0 |  |
-| 6 | `transcribe_audio` | yes | 0.266 | 0 |  |
-| 3 | `transcribe_audio` | yes | 0.281 | 0 |  |
-| 7 | `translate_text` | yes | 0.0 | 0 | pass |
-| 8 | `translate_text` | yes | 0.0 | 0 | pass |
+| 2 | `transcribe_audio` | yes | 0.25 | 0 |  |
+| 4 | `transcribe_audio` | yes | 0.235 | 0 |  |
+| 5 | `transcribe_audio` | yes | 0.235 | 0 |  |
+| 6 | `transcribe_audio` | yes | 0.25 | 0 |  |
+| 3 | `transcribe_audio` | yes | 0.265 | 0 |  |
+| 7 | `translate_text` | yes | 0.031 | 0 | pass |
+| 8 | `translate_text` | yes | 0.047 | 0 | pass |
 
 Full step-by-step trace: [trace.jsonl](trace.jsonl). Machine-readable summary: [report.json](report.json).

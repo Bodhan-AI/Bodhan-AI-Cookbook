@@ -4,4 +4,4 @@ Generated audio is AI-generated speech (Bodhan Indic-Speak).
 
 | Artifact | Size | SHA-256 | File |
 |---|---|---|---|
-| `artifacts/konark_or.mp3` | 183 KB | `5aa5ccd4d54588c404be5144ec10348e9fab9c8af4d5ea500ad272d0288299dd` | h3_read_aloud_unstated_language__artifacts__konark_or.mp3 |
+| `artifacts/konark_audio.mp3` | 183 KB | `304681e173d53051d36e60d75131bd2d410fed69daa2d791b2b63def8387c6cc` | h3_read_aloud_unstated_language__artifacts__konark_audio.mp3 |

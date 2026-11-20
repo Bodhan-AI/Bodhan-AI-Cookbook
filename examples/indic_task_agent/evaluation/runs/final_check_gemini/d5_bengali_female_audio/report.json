@@ -9,9 +9,9 @@
     ],
     "missing": []
   },
-  "started_at": "2026-11-20T06:03:52+00:00",
-  "finished_at": "2026-11-20T06:04:00+00:00",
-  "elapsed_s": 7.84,
+  "started_at": "2026-11-20T08:17:28+00:00",
+  "finished_at": "2026-11-20T08:17:46+00:00",
+  "elapsed_s": 18.56,
   "steps": {
     "used": 4,
     "max": 30,
@@ -20,7 +20,7 @@
         "step": 2,
         "tool": "translate_text",
         "ok": true,
-        "latency_s": 0.0,
+        "latency_s": 0.031,
         "cost_inr": 0,
         "verification": "pass",
         "error": null
@@ -29,7 +29,7 @@
         "step": 3,
         "tool": "synthesize_speech",
         "ok": true,
-        "latency_s": 0.203,
+        "latency_s": 0.25,
         "cost_inr": 0,
         "verification": "warn",
         "error": null
@@ -38,8 +38,8 @@
   },
   "plan": {
     "steps": [
-      "Translate the English paragraph into Bengali using translate_text.",
-      "Synthesize the translated Bengali text into speech using a female voice with synthesize_speech."
+      "Translate the English paragraph to Bengali",
+      "Synthesise the Bengali translation into speech using a female voice"
     ],
     "deliverables": [
       {
@@ -54,15 +54,15 @@
         "language": "bn",
         "source": "paragraph.txt",
         "optional": false,
-        "description": "Spoken Bengali audio of the paragraph read by a female voice"
+        "description": "Bengali speech reading the paragraph with a female voice"
       }
     ],
     "assumptions": []
   },
-  "final_answer": "The input English paragraph has been translated into Bengali and synthesized into speech using a female voice (Ishita) with Bengali text-to-speech. Both the translated text artifact and the audio file are successfully generated and verified.",
+  "final_answer": "The English paragraph was successfully translated into Bengali and synthesized into speech using a female voice (Ishita) in Bengali. Both the translation artifact and the synthesized speech audio artifact have been generated and verified.",
   "assumptions": [],
   "limitations": [
-    "Minor warning during speech verification regarding the number '350' being spoken as words rather than digits in the audio back-transcription, which is common and normal for text-to-speech synthesis."
+    "Speech verification had a minor warning regarding the number '350' (transcribed as words rather than digits in back-transcription), which is common and acceptable for synthesized speech."
   ],
   "deliverables": [
     {
@@ -114,7 +114,7 @@
       ]
     },
     {
-      "path": "artifacts/paragraph_bn_female.mp3",
+      "path": "artifacts/paragraph_bn_speech.mp3",
       "kind": "audio",
       "producer": "synthesize_speech",
       "language": "bn",
@@ -136,7 +136,7 @@
       "embeds": [
         "paragraph_bn.md"
       ],
-      "sha256": "2e04b85f6fbf7fc629df4a61945cc26de60642e885c28022c15285dd12f8f428",
+      "sha256": "9c5c607a44b5578b32f3f1216b7b0b6d2a886bffd7c7acfd9248f9a29b519e69",
       "source_language": null,
       "verification_checks": 1,
       "origin": [
@@ -194,7 +194,7 @@
       ]
     },
     {
-      "path": "artifacts/paragraph_bn_female.mp3",
+      "path": "artifacts/paragraph_bn_speech.mp3",
       "kind": "audio",
       "producer": "synthesize_speech",
       "language": "bn",
@@ -216,7 +216,7 @@
       "embeds": [
         "paragraph_bn.md"
       ],
-      "sha256": "2e04b85f6fbf7fc629df4a61945cc26de60642e885c28022c15285dd12f8f428",
+      "sha256": "9c5c607a44b5578b32f3f1216b7b0b6d2a886bffd7c7acfd9248f9a29b519e69",
       "source_language": null,
       "verification_checks": 1,
       "origin": [
@@ -262,7 +262,7 @@
         }
       },
       {
-        "artifact": "artifacts/paragraph_bn_female.mp3",
+        "artifact": "artifacts/paragraph_bn_speech.mp3",
         "kind": "audio",
         "status": "warn",
         "method": "back-transcription of every segment with Indic-Transcribe; letter-level similarity; speaking-rate outliers",
@@ -290,8 +290,8 @@
     "bodhan_cost_basis": "published unit prices x metered quantity (audio seconds rounded up per request, output tokens from usage, input characters, images); provider dashboard is authoritative",
     "llm": {
       "calls": 4,
-      "prompt_tokens": 24460,
-      "completion_tokens": 535,
+      "prompt_tokens": 24485,
+      "completion_tokens": 501,
       "pricing": "not priced (no rate supplied); tokens reported only"
     }
   },
@@ -304,7 +304,7 @@
     "latency": {
       "kind": "multi-step",
       "target_s": 300,
-      "actual_s": 7.8,
+      "actual_s": 18.6,
       "met": true,
       "note": null
     },
