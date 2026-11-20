@@ -118,6 +118,11 @@ One JSON object per line. Only `id`, `lang` and `source` are required.
  "labels": [{"type": "number", "severity": "major", "span": [18, 21], "annotator": "candidate"}]}
 ```
 
+**Long content is chunked.** Bodhan audio requests are kept to about 30 seconds. Text for
+Indic-Speak is split at sentence boundaries into pieces of about 25 s of speech, and the clips
+are joined. Audio for Indic-Transcribe is cut at its quietest point before 30 s, and the
+transcripts are joined before comparison.
+
 Bad lines (invalid JSON, missing fields, unknown languages, duplicate ids, missing audio files)
 are logged, counted in the report and skipped. They never stop the run. Label types are
 matched loosely ("Term/Entity", "number or unit", "truncation" all work).
