@@ -10,7 +10,7 @@ import unicodedata
 from pathlib import Path
 
 from .. import errors as E
-from ..documents import classify, read_text_file
+from ..documents import NOT_READ_HINT, classify, read_text_file
 from ..languages import indic_fraction
 from ..runtime import RunContext
 from ..textutil import injection_signals, preview
@@ -144,7 +144,7 @@ def resolve_text(ctx: RunContext, text: str | None, path: str | None, field: str
                               hint={"pdf": "Run ocr_document first and pass its Markdown artifact.",
                                     "image": "Run ocr_document first and pass its Markdown artifact.",
                                     "audio": "Run transcribe_audio first and pass its transcript artifact.",
-                                    "video": "Run transcribe_audio first (it extracts the audio track)."}.get(kind, ""))
+                                    "video": "Run transcribe_audio first (it extracts the audio track).", **NOT_READ_HINT}.get(kind, ""))
         content = read_text_file(p)
         if p.suffix.lower() == ".json":
             content = _text_from_json(content)

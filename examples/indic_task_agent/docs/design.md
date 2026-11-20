@@ -98,7 +98,7 @@ flowchart TD
 | `create_subtitles` | transcribe + translate | Cue-sized pieces with times, cue-by-cue translation, back-translation, both `.srt` files. |
 | `translate_text` | indic-translate | Paragraph units, tables kept (cell-by-cell fallback), same-language passages kept, truncation split, SRT timing kept, back-translation. |
 | `synthesize_speech` | indic-speak | ≤220-character requests, voice and style validated before spending, every segment back-transcribed with one repair, MP3/WAV, AI-generated label. |
-| `ocr_document` | indic-ocr | Images (EXIF rotation, downscaling), multi-page TIFFs and PDFs page by page, clean text layers used for free (see [Input boundaries](#input-boundaries)), page markers, retry with a larger `max_tokens`, then an incomplete page is reported. |
+| `ocr_document` | indic-ocr | Images including HEIC/HEIF (EXIF rotation, downscaling), multi-page TIFFs and PDFs page by page, clean text layers used for free (see [Input boundaries](#input-boundaries)), page markers, retry with a larger `max_tokens`, then an incomplete page is reported. |
 | `verify_translation`, `verify_speech` | translate / transcribe | The same checks, for outputs made elsewhere. |
 | `inspect_files`, `detect_language`, `read_text`, `write_text`, `list_voices` | none (free) | Planning metadata, script-based language ID, paging through artifacts, saving English text. `write_text` records the files a text was based on (`source_paths`); each must first be read in full with `read_text`, and again after `--resume`. |
 
@@ -225,6 +225,7 @@ Verification results are a history on each artifact. A later check never improve
 - **Files.** The agent reads only its inputs and its own artifacts. A folder input never includes the output folder or hidden folders; an input inside `--out` is rejected before anything moves.
 - **Media.** The container is identified from its first bytes and passed to ffmpeg explicitly, with only the `file` and `pipe` protocols allowed, so a playlist or concat manifest renamed to `.wav` can't make the decoder read other files.
 - **Documents.** PDF pages and multi-page TIFF frames are pages. A clean PDF text layer is used without OCR unless images cover 15 % or more of the page (a scanned body can sit under a digital header), or the layer looks like a legacy Hindi font. Page ranges are clipped before they are expanded, and file types are sniffed from a few bytes.
+- **File types.** Types are recognised from the extension or the first bytes, so a HEIC photo or a PDF without its extension is still read. Word, Excel and PowerPoint files and archives are refused by every tool with a hint (export to PDF or text; extract the archive).
 - **Size limits.** Each is refused before any request: text files over 5 MB, more than 60 PDF pages in one `ocr_document` call (pass a page range and call again), and audio over 60 minutes. The audio limit needs a duration from the probe; a file whose duration the probe cannot read is bounded only by the ffmpeg timeout and the run deadline.
 - **Run state.** `--resume` trusts `out/.state/checkpoint.json` (plain JSON, no pickle): anyone who can write there already has local write access.
 

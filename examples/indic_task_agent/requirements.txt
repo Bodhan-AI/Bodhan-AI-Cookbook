@@ -29,6 +29,7 @@ openai==3.54.0
 opentelemetry-api==1.45.2
 packaging==26.3
 pillow==13.0.0
+pillow-heif==1.8.1
 pluggy==1.7.0
 pycparser==3.12 ; implementation_name != 'PyPy' and platform_python_implementation != 'PyPy'
 pydantic==2.14.3

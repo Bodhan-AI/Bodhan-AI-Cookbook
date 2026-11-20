@@ -152,7 +152,7 @@ Resources: `bodhan://voices`, `bodhan://languages`, `bodhan://pricing` and `bodh
 | `create_subtitles` | transcribe + translate | Cue-sized `.srt` files in the source and target languages, back-translation checked. |
 | `translate_text` | indic-translate | Text, Markdown or SRT. Paragraph units, tables kept, truncation split, back-translation checked. |
 | `synthesize_speech` | indic-speak | Requests of ≤220 characters, every segment back-transcribed and repaired once, MP3 or WAV, labelled AI-generated. |
-| `ocr_document` | indic-ocr | Photos, multi-page TIFFs and PDFs, page by page, with Markdown tables. A clean PDF text layer is used for free. Truncated pages are retried, then reported. |
+| `ocr_document` | indic-ocr | Photos (including iPhone HEIC), multi-page TIFFs and PDFs, page by page, with Markdown tables. A clean PDF text layer is used for free. Truncated pages are retried, then reported. |
 | `verify_translation`, `verify_speech` | translate / transcribe | The same checks, for outputs made elsewhere. |
 | `detect_language`, `read_text`, `write_text`, `list_voices` | none | Script-based language ID, paging through artifacts, saving English text, and the voice library. |
 
@@ -171,7 +171,7 @@ The flow chart and the reasons behind it are in [docs/design.md](docs/design.md)
 ## Tests
 
 ```bash
-pytest -q                                  # 239 offline tests, no network or keys needed
+pytest -q                                  # 245 offline tests, no network or keys needed
 python scripts/run_suite.py                # live self-evaluation of evaluation/tasks.json (exit 1 if any task fails)
 ```
 
@@ -191,6 +191,7 @@ Media stays out of git. `scripts/make_fixtures.py` generates every demo input in
 - **Latency is dominated by Indic-Speak**, about 20 s per request, so single-step speech tasks often miss the 30 s target (recorded in `report.json`).
 - **Durations are approximate.** A requested length sets the English text length before translation. Missing it by more than ±25 % is a warning, not a retry.
 - **Planners differ.** `gemini-3.5-flash-lite` passed 10/10 and `gpt-5.6-luna` 9/10. `gpt-oss-120b` passed 4/10 through an OpenAI-compatible gateway, where it often returned empty turns instead of finishing. On Groq's free tier (8,000 tokens a request, 200,000 a day) `gpt-oss` ran out of quota before the tasks were done ([results](docs/evaluation.md#other-planner-models)).
+- **Word, Excel, PowerPoint files and archives are not read.** They are refused with a hint to export them to PDF or text, or to extract the archive.
 - **No dubbed video.** The agent can transcribe, translate and subtitle a video's speech, but it cannot re-voice the video.
 
 ## AI assistance

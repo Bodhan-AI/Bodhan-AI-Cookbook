@@ -20,6 +20,12 @@ from .media import AUDIO_EXT, VIDEO_EXT
 IMAGE_EXT = {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tif", ".tiff", ".gif", ".heic", ".heif"}
 TEXT_EXT = {".txt", ".md", ".markdown", ".srt", ".vtt", ".csv", ".tsv", ".json", ".html", ".htm", ".xml", ".rst", ".text"}
 PDF_EXT = {".pdf"}
+OFFICE_EXT = {".docx", ".doc", ".xlsx", ".xls", ".pptx", ".ppt", ".odt", ".ods", ".odp"}
+ARCHIVE_EXT = {".zip", ".tar", ".gz", ".tgz", ".7z", ".rar"}
+_HEIF_BRANDS = (b"heic", b"heix", b"heim", b"heis", b"hevc", b"hevx", b"mif1", b"msf1")
+# tools name the file kinds they refuse; these two are common inputs no tool reads
+NOT_READ_HINT = {"office": "Word, Excel and PowerPoint files are not read: export the file to PDF or plain text and pass that.",
+                 "archive": "Archives are not opened: extract the files and pass the folder."}
 MAX_SIDE = 2400  # px; large phone photos are downscaled before upload
 MAX_PDF_PAGES = 60
 
@@ -39,6 +45,10 @@ def _pdfium_serialized(fn):
 
 def classify(path: Path) -> str:
     ext = path.suffix.lower()
+    if ext in OFFICE_EXT:
+        return "office"
+    if ext in ARCHIVE_EXT:
+        return "archive"
     if ext in PDF_EXT:
         return "pdf"
     if ext in IMAGE_EXT:
@@ -54,6 +64,10 @@ def classify(path: Path) -> str:
         return "pdf"
     if head[:8] == b"\x89PNG\r\n\x1a\n" or head[:3] == b"\xff\xd8\xff":
         return "image"
+    if head[4:8] == b"ftyp" and head[8:12] in _HEIF_BRANDS:  # HEIC/HEIF phone photo without its extension
+        return "image"
+    if head[:4] == b"PK\x03\x04":
+        return "archive"  # ZIP container (an Office file without its extension is one too)
     if head[:4] == b"RIFF" or head[:3] == b"ID3":
         return "audio"
     return "text" if _looks_utf8(_head(path, 65536)) else "unknown"
@@ -151,15 +165,26 @@ def _encode_image(img, prefer_png: bool) -> tuple[bytes, str]:
     return buf.getvalue(), "image/jpeg"
 
 
+def enable_heif() -> None:
+    """Let Pillow open HEIC/HEIF (iPhone photos) through pillow-heif; registering twice is harmless."""
+    try:
+        from pillow_heif import register_heif_opener
+    except ImportError:  # pinned in requirements; without it HEIC fails with a clear error
+        return
+    register_heif_opener()
+
+
 def image_frame_count(path: Path) -> int:
     from PIL import Image
+
+    enable_heif()
 
     try:
         with Image.open(path) as im:
             return max(1, getattr(im, "n_frames", 1)) if path.suffix.lower() in (".tif", ".tiff") or im.format == "TIFF" else 1
     except Exception as exc:
         raise E.ToolError(E.UNSUPPORTED_FILE_TYPE, f"Could not open image {path.name}: {exc}",
-                          hint="Supported: PNG, JPEG, WebP, BMP, TIFF (HEIC only if Pillow can read it).") from exc
+                          hint="Supported: PNG, JPEG, WebP, BMP, TIFF, GIF and HEIC/HEIF.") from exc
 
 
 def load_image(path: Path, frame: int = 1) -> PageImage:
@@ -168,6 +193,7 @@ def load_image(path: Path, frame: int = 1) -> PageImage:
     try:
         from PIL import Image, ImageOps
 
+        enable_heif()
         with Image.open(path) as im:
             if frame > 1:
                 im.seek(frame - 1)
@@ -180,7 +206,7 @@ def load_image(path: Path, frame: int = 1) -> PageImage:
         raise
     except Exception as exc:
         raise E.ToolError(E.UNSUPPORTED_FILE_TYPE, f"Could not open image {path.name}: {exc}",
-                          hint="Supported: PNG, JPEG, WebP, BMP, TIFF (HEIC only if Pillow can read it).") from exc
+                          hint="Supported: PNG, JPEG, WebP, BMP, TIFF, GIF and HEIC/HEIF.") from exc
     w, h = size
     s = min(1.0, MAX_SIDE / max(w, h))
     return PageImage(frame, data, mime, int(w * s), int(h * s))

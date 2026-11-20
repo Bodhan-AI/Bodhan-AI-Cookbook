@@ -11,7 +11,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from .. import errors as E
-from ..documents import classify
+from ..documents import NOT_READ_HINT, classify
 from ..languages import (
     ALL_VOICES,
     ENGLISH_DEFAULT_VOICES,
@@ -58,7 +58,7 @@ async def transcribe_file(ctx: RunContext, path: Path, language: str | None, *, 
     kind = classify(path)
     if kind not in ("audio", "video"):
         raise E.ToolError(E.UNSUPPORTED_FILE_TYPE, f"{path.name} is a {kind} file, not audio or video.",
-                          hint="Use ocr_document for images/PDFs and read_text for text files.")
+                          hint=NOT_READ_HINT.get(kind, "Use ocr_document for images/PDFs and read_text for text files."))
     info = await asyncio.to_thread(probe, path)  # ffmpeg work off the event loop, bounded by the run deadline
     if not info.has_audio:
         raise E.ToolError(E.MEDIA_ERROR, f"{path.name} has no audio track.", hint="Nothing to transcribe.")

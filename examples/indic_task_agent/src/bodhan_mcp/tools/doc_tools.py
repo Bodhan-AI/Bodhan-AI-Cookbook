@@ -11,6 +11,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from .. import errors as E
 from ..documents import (
     MAX_PDF_PAGES,
+    NOT_READ_HINT,
     RASTER_OCR_THRESHOLD,
     classify,
     image_frame_count,
@@ -58,8 +59,13 @@ def _describe(p: Path) -> dict:
         elif kind == "image":
             from PIL import Image
 
+            from ..documents import enable_heif
+
+            enable_heif()
             with Image.open(p) as im:
                 d.update({"width": im.size[0], "height": im.size[1], "suggested_tool": "ocr_document"})
+        elif kind in NOT_READ_HINT:
+            d["note"] = NOT_READ_HINT[kind]
         elif kind == "text":
             text = read_text_file(p)
             d.update({"chars": len(text), "language": detect_language(text).as_dict(), "preview": preview(text, 200),
@@ -128,7 +134,7 @@ async def ocr_document(ctx: RunContext, a: OcrIn) -> dict:
     kind = classify(p)
     if kind not in ("pdf", "image"):
         raise E.ToolError(E.UNSUPPORTED_FILE_TYPE, f"{p.name} is a {kind} file; ocr_document reads images and PDFs.",
-                          hint={"text": "Use read_text.", "audio": "Use transcribe_audio.", "video": "Use transcribe_audio."}.get(kind, ""))
+                          hint={"text": "Use read_text.", "audio": "Use transcribe_audio.", "video": "Use transcribe_audio.", **NOT_READ_HINT}.get(kind, ""))
     pages_out: list[dict] = []
     if kind == "image":
         count = await asyncio.to_thread(image_frame_count, p)  # multi-page TIFFs are documents

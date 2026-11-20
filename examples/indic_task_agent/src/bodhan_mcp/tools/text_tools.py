@@ -185,12 +185,12 @@ class ReadTextIn(_Strict):
 
 async def read_text(ctx: RunContext, a: ReadTextIn) -> dict:
     p = ctx.resolve_input(a.path)
-    from ..documents import classify
+    from ..documents import NOT_READ_HINT, classify
 
     kind = classify(p)
     if kind != "text":
         raise E.ToolError(E.UNSUPPORTED_FILE_TYPE, f"{p.name} is a {kind} file; read_text only reads text.",
-                          hint="Use ocr_document for images/PDFs and transcribe_audio for audio/video.")
+                          hint=NOT_READ_HINT.get(kind, "Use ocr_document for images/PDFs and transcribe_audio for audio/video."))
     content = read_text_file(p)
     if ctx.provenance_guard is not None:
         ctx.provenance_guard.add(content)
