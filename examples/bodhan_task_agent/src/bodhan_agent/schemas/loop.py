@@ -33,5 +33,6 @@ class LoopResult(LoopModel):
     llm_tokens: LlmTokens = Field(default_factory=LlmTokens)
     redactions: int = Field(default=0, ge=0)
     blocked_llm_outputs: int = Field(default=0, ge=0)
+    injection_flags: int = Field(default=0, ge=0, description="Instruction-like lines found in tool output.")
     missed_targets: list[str] = Field(default_factory=list)
     verification_retry_used: bool = False

@@ -597,6 +597,7 @@ class Controller:
         else:
             observation = self.observer.local_result(name, data or {}, artifact_ids)
         self.result.redactions += observation.redactions
+        self.result.injection_flags += len(observation.injection_flags)
         return observation
 
     def register_outputs(self, tool: str, data: dict[str, Any], source: Artifact | None) -> list[str]:
