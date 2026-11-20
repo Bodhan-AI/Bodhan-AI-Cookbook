@@ -5,6 +5,7 @@
 **Bodhan models:** indic-transcribe, indic-translate, indic-speak, indic-ocr (hosted API)
 **Languages shown:** Hindi, Tamil, Bengali, Marathi, Telugu (any language in the Bodhan lists works)
 **Format:** Python package: MCP server over stdio (`python -m bodhan_mcp`) and CLI agent (`python -m bodhan_agent`)
+**Demo video:** https://youtu.be/AtbJL9Lz3_E (3 min 47 s)
 
 ## What it does
 
