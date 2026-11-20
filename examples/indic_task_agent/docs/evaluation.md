@@ -25,12 +25,12 @@ The `h1`–`h8` tasks are my own held-out tasks, written to resemble the kinds o
 
 ### Clean Linux setup (containers)
 
-Checked on 20 November 2026 on `e90080a` (the final code, exported with `git archive`), and on `4b6a4f0`, `588bb9b` and from fresh clones of `53f1c6d`, `66db214`, `94b4891` and earlier `182938e`, with the same results. These are **Linux containers on WSL2 (Docker Desktop 29.9.3, linux/amd64, kernel 6.18.58.1-microsoft-standard-WSL2)**, not a native Linux machine.
+Checked on 20 November 2026 on `148adec` (the final code, exported with `git archive`), and on `e90080a`, `4b6a4f0`, `588bb9b` and from fresh clones of `53f1c6d`, `66db214`, `94b4891` and earlier `182938e`, with the same results. These are **Linux containers on WSL2 (Docker Desktop 29.9.3, linux/amd64, kernel 6.18.58.1-microsoft-standard-WSL2)**, not a native Linux machine.
 
 | Check | Image | Result |
 |---|---|---|
-| `apt-get install ffmpeg`, then `pip install -r requirements.txt`, `pytest tests`, `ruff check .` | `python:3.11-slim` (Debian 13, Python 3.11.18, `sha256:07d48240…`) | install OK; **234 passed** (including the hard-kill and Ctrl-C resume tests, so under real Linux signals); ruff clean |
-| same | `python:3.12-slim` (Debian 13, Python 3.12.16, `sha256:5e2bdb1b…`) | install OK; **234 passed**; ruff clean |
+| `apt-get install ffmpeg`, then `pip install -r requirements.txt`, `pytest tests`, `ruff check .` | `python:3.11-slim` (Debian 13, Python 3.11.18, `sha256:07d48240…`) | install OK; **248 passed** (including the hard-kill and Ctrl-C resume tests, so under real Linux signals); ruff clean |
+| same | `python:3.12-slim` (Debian 13, Python 3.12.16, `sha256:5e2bdb1b…`) | install OK; **248 passed**; ruff clean |
 | root `make check` (`test`, `lint`, `rules`, `validate`) | both images | `lint`, `rules` and `validate` pass. `test` has **one failure that is not this recipe's**: `test_all_shipped_recipes_pass` fails on `examples/AndroidSpeak`, which is already on `main` (it has no Python source file and no `.env.example`). This branch does not touch it. The same failure appears on Windows. |
 | `docker build` of the recipe image | `python:3.12-slim` base | builds (`sha256:955469a5…` at `94b4891`); runs as the non-root user `agent` (uid 1000) in `/work`; no keys or planner settings in the image |
 | The brief's agent command, as the non-root user, with only the seven required variables passed by `--env-file`: `python -m bodhan_agent --task "Translate this worksheet into Marathi and keep the table" --files /data/worksheet --out ./out` | recipe image | `completed` in 19 s; outputs written to `./out`. **Cache-backed**: the host's result cache was mounted, so Bodhan cost ₹0. |
