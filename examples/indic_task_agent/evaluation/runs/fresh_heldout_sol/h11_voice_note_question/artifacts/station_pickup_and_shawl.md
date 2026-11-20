@@ -1,0 +1,2 @@
+- **Station pickup:** Your cousin **Ravi** will pick you up at the **main station in his car**. If your train is late, call him; he will wait.
+- **Grandma's shawl:** Her **blue shawl** is on the **second shelf of the steel wardrobe in the guest room**.

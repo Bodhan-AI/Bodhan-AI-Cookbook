@@ -29,7 +29,7 @@ The brief's six demo tasks, run cold (no cache) with `gpt-6.1-sol` as the planne
 | d5: Read this paragraph aloud in Bengali with a female voice | completed_with_warnings | 0.24 | 51 | [result](evaluation/runs/sol_demos_cold/d5_bengali_female_audio/result.md) · [trace](evaluation/runs/sol_demos_cold/d5_bengali_female_audio/trace.jsonl) · [audio](evaluation/runs/sol_demos_cold/d5_bengali_female_audio/MEDIA.md) |
 | d6: Translate this video into French (impossible: no French model) | unsupported | 0.00 | 9 | [result](evaluation/runs/sol_demos_cold/d6_video_french/result.md) · [trace](evaluation/runs/sol_demos_cold/d6_video_french/trace.jsonl) |
 
-Eight held-out tasks (prompt injection, unstated language, missing file, budget too small and others) and runs with other planners are in [docs/evaluation.md](docs/evaluation.md).
+Eight held-out tasks of my own (prompt injection, unstated language, missing file, budget too small and others), six more written after the code freeze by an independent reviewer (first attempts: 4/6 with each of two planners, failures and fixes reported), and runs with other planners are in [docs/evaluation.md](docs/evaluation.md).
 
 ## Setup
 
@@ -60,7 +60,7 @@ docker run --rm --env-file .env -v "$PWD/../../sample_data:/data:ro" -v "$PWD/ou
   python -m bodhan_agent --task "Transcribe this clip and give me English subtitles" --files /data/sample_hindi.wav --out ./out/smoke
 ```
 
-The image runs as a non-root user (uid 1000) in `/work`. On Linux, that user must be able to write to the `out` folder.
+The image runs as a non-root user (uid 1000) in `/work`. On Linux, that user must be able to write to the `out` folder. In PowerShell, write `${PWD}` for `$PWD`.
 
 ## Run
 
@@ -74,7 +74,13 @@ python -m bodhan_agent \
   --max-steps 30 --max-cost-inr 20
 ```
 
-`--files` takes files, folders or both. Each run writes:
+`--files` takes files, folders or both. The demo inputs are generated (see [Test media](#test-media)); to try the agent straight after setup, use the repository's own 6-second clip (about ₹0.01):
+
+```bash
+python -m bodhan_agent --task "Transcribe this clip and give me English subtitles" --files ../../sample_data/sample_hindi.wav --out ./out/smoke
+```
+
+Each run writes:
 
 ```text
 out/
@@ -124,14 +130,14 @@ The first command serves stdio. The second serves Streamable HTTP at `http://127
 
 The tools read files only below the folder the server starts in, plus their own generated files. Pass `--allow-dir` for your media folder; a server started in `/` or your home folder reads generated files only until you do. Hidden files such as `.env`, network paths and URLs are always refused. `--allow-any-path` turns the folder limit off.
 
-For MCP clients that take an `mcpServers` JSON block:
+For MCP clients that take an `mcpServers` JSON block, set `command` to the virtual environment's Python (`.venv/bin/python`, or `.venv\Scripts\python.exe` on Windows) as an absolute path. A bare `python` from the client's own environment lacks the packages, and the client only reports that the connection closed.
 
 ```json
-{"mcpServers": {"bodhan": {"command": "python", "args": ["-m", "bodhan_mcp", "--artifacts-dir", "/tmp/bodhan", "--allow-dir", "/path/to/your/media"],
+{"mcpServers": {"bodhan": {"command": "/path/to/examples/indic_task_agent/.venv/bin/python", "args": ["-m", "bodhan_mcp", "--artifacts-dir", "/tmp/bodhan", "--allow-dir", "/path/to/your/media"],
                            "env": {"BODHAN_TRANSCRIBE_KEY": "...", "BODHAN_TRANSLATE_KEY": "...", "BODHAN_SPEAK_KEY": "...", "BODHAN_OCR_KEY": "..."}}}}
 ```
 
-**Tested off-the-shelf client: [MCP Inspector](https://github.com/modelcontextprotocol/inspector) CLI 2.13.0.**
+**Tested off-the-shelf client: [MCP Inspector](https://github.com/modelcontextprotocol/inspector) CLI 2.13.0** (needs Node.js; run it with the virtual environment active).
 
 ```bash
 npx @modelcontextprotocol/inspector@2.13.0 --cli python -m bodhan_mcp --method tools/list
@@ -164,14 +170,14 @@ Every tool validates its input and returns `{"ok": false, "error": {"code", "mes
 2. **Plan (LLM):** `record_plan` declares steps, assumptions and every deliverable with its kind and language (`answer` when the reply itself is the output). Paid tools are refused until a valid plan exists.
 3. **Act (tools):** independent calls in one turn run in parallel. Each call reserves its worst-case cost, calls Bodhan with retries, then checks its output.
 4. **Check and repair:** translations are back-translated and checked for script, numbers and tables. Every audio segment is back-transcribed. A failure is repaired with a different input (a speech segment once), or reported.
-5. **Stop:** `finish` passes a gate in code. Each deliverable needs a matching artifact from this run whose checks, and those of its sources, did not fail, and the answer must be in English. Limits, an outage or a crash end the run under the same rule.
+5. **Stop:** `finish` passes a gate in code. Each deliverable needs a matching artifact from this run whose checks, and those of its sources, did not fail, and the answer must be in English. A revised plan cannot silently drop an earlier output, and before `completed` the planner model re-reads the original task, without the plan, against what was delivered. Limits, an outage or a crash end the run under the same rule.
 
 The flow chart and the reasons behind it are in [docs/design.md](docs/design.md).
 
 ## Tests
 
 ```bash
-pytest -q                                  # 248 offline tests, no network or keys needed
+pytest -q                                  # 284 offline tests, no network or keys needed
 python scripts/run_suite.py                # live self-evaluation of evaluation/tasks.json (exit 1 if any task fails)
 python scripts/run_suite.py --score-only --out evaluation/runs/sol_demos_cold --summary-dir /tmp/rescore   # re-score committed evidence offline
 ```
@@ -193,6 +199,7 @@ Media stays out of git. `scripts/make_fixtures.py` generates every demo input in
 - **Durations are approximate.** A requested length sets the English text length before translation. Missing it by more than ±25 % is a warning, not a retry.
 - **Planners differ.** `gemini-3.5-flash-lite` passed 10/10 and `gpt-5.6-luna` 9/10. `gpt-oss-120b` passed 4/10 through an OpenAI-compatible gateway, where it often returned empty turns instead of finishing. On Groq's free tier (8,000 tokens a request, 200,000 a day) `gpt-oss` ran out of quota before the tasks were done ([results](docs/evaluation.md#other-planner-models)).
 - **Word, Excel, PowerPoint files and archives are not read.** They are refused with a hint to export them to PDF or text, or to extract the archive.
+- **Injected text is translated, not removed.** An instruction hidden in a document is never followed, but a faithful translation keeps it as content, so a planner that speaks a whole translated notice reads that line aloud (seen once with Gemini on h10).
 - **No dubbed video.** The agent can transcribe, translate and subtitle a video's speech, but it cannot re-voice the video.
 
 ## AI assistance

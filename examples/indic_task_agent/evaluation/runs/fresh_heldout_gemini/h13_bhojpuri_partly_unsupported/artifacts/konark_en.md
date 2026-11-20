@@ -1,0 +1,1 @@
+The Konark Sun Temple was built in the thirteenth century. It is shaped like a huge chariot with twenty-four stone wheels. Every year, thousands of visitors come to see it.

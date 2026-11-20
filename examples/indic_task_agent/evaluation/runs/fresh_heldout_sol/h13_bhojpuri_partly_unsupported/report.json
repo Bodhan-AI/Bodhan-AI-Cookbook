@@ -1,0 +1,140 @@
+{
+  "status": "unsupported",
+  "stop_reason": "finished",
+  "planner_status": "unsupported",
+  "task": "Our tour group has people from Kerala and from Bihar. Can you make audio of this in Malayalam and in Bhojpuri?",
+  "inputs": {
+    "files": [
+      "<recipe>\\sample_data\\odia_text\\konark.txt"
+    ],
+    "missing": []
+  },
+  "started_at": "2026-11-20T18:04:38+00:00",
+  "finished_at": "2026-11-20T18:05:00+00:00",
+  "elapsed_s": 22.55,
+  "steps": {
+    "used": 3,
+    "max": 30,
+    "tool_calls": [
+      {
+        "step": 2,
+        "tool": "list_voices",
+        "ok": true,
+        "latency_s": 0.0,
+        "cost_inr": 0,
+        "verification": null,
+        "error": null
+      }
+    ]
+  },
+  "plan": {
+    "steps": [
+      "1. Use list_voices to check Malayalam and Bhojpuri speech support.",
+      "2. If both languages are supported, use translate_text to translate the Odia source into Malayalam and Bhojpuri with verification.",
+      "3. Use synthesize_speech for each supported translation and deliver the audio with its translated script; if a requested language is unsupported, report it without substituting another language."
+    ],
+    "deliverables": [
+      {
+        "kind": "translation",
+        "language": "ml",
+        "source": "konark.txt",
+        "optional": false,
+        "description": "Malayalam script accompanying the requested audio"
+      },
+      {
+        "kind": "audio",
+        "language": "ml",
+        "source": "konark.txt",
+        "optional": false,
+        "description": "Malayalam narration"
+      },
+      {
+        "kind": "translation",
+        "language": "bho",
+        "source": "konark.txt",
+        "optional": false,
+        "description": "Bhojpuri script accompanying the requested audio"
+      },
+      {
+        "kind": "audio",
+        "language": "bho",
+        "source": "konark.txt",
+        "optional": false,
+        "description": "Bhojpuri narration"
+      }
+    ],
+    "assumptions": [
+      "Translate the entire supplied Odia text without summarizing.",
+      "Use a default neutral voice; no gender or duration was specified.",
+      "Bhojpuri means Bhojpuri specifically, not Hindi."
+    ],
+    "dropped": []
+  },
+  "final_answer": "I can’t complete the two-language audio request because the available speech tool supports Malayalam but does not support Bhojpuri. I haven’t substituted Hindi or Maithili for Bhojpuri, and no audio files were generated.",
+  "assumptions": [
+    "Bhojpuri must be provided as requested, rather than replaced with Hindi or Maithili."
+  ],
+  "limitations": [
+    "Bhojpuri is absent from the available speech voice library.",
+    "Neither requested audio file nor its accompanying translated script was generated."
+  ],
+  "deliverables": [],
+  "artifacts": [],
+  "verification": {
+    "results": [],
+    "unverified_translations_or_audio": [],
+    "all_checked": true
+  },
+  "cost": {
+    "max_inr": 20.0,
+    "bodhan_billed_inr": 0.0,
+    "bodhan_uncertain_inr": 0.0,
+    "llm_inr": null,
+    "total_counted_inr": 0.0,
+    "by_model_inr": {},
+    "bodhan_calls": 0,
+    "cache_hits": 0,
+    "bodhan_cost_basis": "published unit prices x metered quantity (audio seconds rounded up per request, output tokens from usage, input characters, images); provider dashboard is authoritative",
+    "llm": {
+      "calls": 3,
+      "prompt_tokens": 15216,
+      "completion_tokens": 564,
+      "pricing": "not priced (no rate supplied); tokens reported only"
+    }
+  },
+  "llm": {
+    "model": "gpt-6.1-sol",
+    "endpoint_host": "127.0.0.1",
+    "adaptations": []
+  },
+  "quality_targets": {
+    "latency": {
+      "kind": "single-step",
+      "target_s": 30,
+      "actual_s": 22.5,
+      "met": true,
+      "note": null
+    },
+    "budget": {
+      "max_inr": 20.0,
+      "counted_inr": 0.0,
+      "within_budget": true,
+      "note": null,
+      "scope": "Bodhan calls (billed + uncertain retries); LLM only if priced via --llm-*-inr-per-1m"
+    },
+    "no_waste": {
+      "cache_hits": 0,
+      "bodhan_requests": 0,
+      "retried_attempts": 0,
+      "note": "identical (model, input, settings) requests are served from the cache or shared while in flight; the only repeats are retries of a failed or timed-out attempt (rate limit, 5xx, timeout), counted here and traced as api_call events with attempt > 1"
+    },
+    "verification": {
+      "all_generated_audio_and_translations_checked": true,
+      "note": null
+    },
+    "honest_failure": "unassessed: code cannot judge whether the answer is truthful; see verification results and review the outputs"
+  },
+  "injection_warnings": [],
+  "paid_tool_calls": 0,
+  "version": "0.1.0"
+}

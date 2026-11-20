@@ -1,0 +1,234 @@
+{
+  "status": "partial",
+  "stop_reason": "finished",
+  "planner_status": "partial",
+  "task": "Read this out loud",
+  "inputs": {
+    "files": [
+      "<recipe>\\sample_data\\odia_text\\konark.txt"
+    ],
+    "missing": []
+  },
+  "started_at": "2026-11-20T17:43:24+00:00",
+  "finished_at": "2026-11-20T17:44:00+00:00",
+  "elapsed_s": 35.72,
+  "steps": {
+    "used": 5,
+    "max": 30,
+    "tool_calls": [
+      {
+        "step": 2,
+        "tool": "synthesize_speech",
+        "ok": true,
+        "latency_s": 0.125,
+        "cost_inr": 0,
+        "verification": "pass",
+        "error": null
+      },
+      {
+        "step": 3,
+        "tool": "write_text",
+        "ok": true,
+        "latency_s": 0.015,
+        "cost_inr": 0,
+        "verification": null,
+        "error": null
+      }
+    ]
+  },
+  "plan": {
+    "steps": [
+      "1. Use synthesize_speech on konark.txt in Odia with verification enabled, producing audio and its accompanying text."
+    ],
+    "deliverables": [
+      {
+        "kind": "audio",
+        "language": "or",
+        "source": "konark.txt",
+        "optional": false,
+        "description": "Odia reading of the supplied text."
+      },
+      {
+        "kind": "text",
+        "language": "or",
+        "source": "konark.txt",
+        "optional": false,
+        "description": "Text accompanying the spoken reading, supplied by the speech tool."
+      }
+    ],
+    "assumptions": [
+      "Read the text in its original Odia language, using the default voice and neutral delivery."
+    ],
+    "dropped": []
+  },
+  "final_answer": "Created the requested 15.5-second Odia read-aloud recording using Itishree, the default female voice. The AI-generated audio passed verification, and the accompanying text is included. The automated completion checker could not match the delivered recording to the request, so this run is marked partial despite the audio being available.",
+  "assumptions": [
+    "Read in the original Odia language using the default female voice and neutral delivery."
+  ],
+  "limitations": [
+    "Automated completion matching rejected the completed status, although the requested audio was generated and passed verification."
+  ],
+  "deliverables": [
+    {
+      "path": "artifacts/konark_reading.mp3",
+      "kind": "audio",
+      "producer": "synthesize_speech",
+      "language": "or",
+      "provenance": "indic-speak (Itishree)",
+      "verification": {
+        "status": "pass",
+        "method": "back-transcription of every segment with Indic-Transcribe; letter-level similarity; speaking-rate outliers",
+        "mean_similarity": 1.0,
+        "min_similarity": 1.0,
+        "segments_repaired": 0,
+        "problems": [],
+        "warnings": []
+      },
+      "notes": [
+        "no voice or gender requested; defaulted to a female voice",
+        "AI-generated speech (Bodhan Indic-Speak, voice Itishree, Odia)"
+      ],
+      "embeds": [],
+      "sha256": "5e1f5c38cacabd52c39bfe65537fd6f017ca6371765684fe3b08dbef8c8fbd83",
+      "source_language": null,
+      "verification_checks": 1,
+      "origin": [
+        "konark.txt"
+      ]
+    },
+    {
+      "path": "artifacts/konark_reading_text.txt",
+      "kind": "text",
+      "producer": "write_text",
+      "language": "or",
+      "provenance": "planner (English) + embedded artifacts",
+      "verification": null,
+      "notes": [],
+      "embeds": [
+        "konark.txt"
+      ],
+      "sha256": "6e6061422918361d3f903da2c2fea8dc23af82a04015f8d0fb53a2916f305c72",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "konark.txt"
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "artifacts/konark_reading.mp3",
+      "kind": "audio",
+      "producer": "synthesize_speech",
+      "language": "or",
+      "provenance": "indic-speak (Itishree)",
+      "verification": {
+        "status": "pass",
+        "method": "back-transcription of every segment with Indic-Transcribe; letter-level similarity; speaking-rate outliers",
+        "mean_similarity": 1.0,
+        "min_similarity": 1.0,
+        "segments_repaired": 0,
+        "problems": [],
+        "warnings": []
+      },
+      "notes": [
+        "no voice or gender requested; defaulted to a female voice",
+        "AI-generated speech (Bodhan Indic-Speak, voice Itishree, Odia)"
+      ],
+      "embeds": [],
+      "sha256": "5e1f5c38cacabd52c39bfe65537fd6f017ca6371765684fe3b08dbef8c8fbd83",
+      "source_language": null,
+      "verification_checks": 1,
+      "origin": [
+        "konark.txt"
+      ]
+    },
+    {
+      "path": "artifacts/konark_reading_text.txt",
+      "kind": "text",
+      "producer": "write_text",
+      "language": "or",
+      "provenance": "planner (English) + embedded artifacts",
+      "verification": null,
+      "notes": [],
+      "embeds": [
+        "konark.txt"
+      ],
+      "sha256": "6e6061422918361d3f903da2c2fea8dc23af82a04015f8d0fb53a2916f305c72",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "konark.txt"
+      ]
+    }
+  ],
+  "verification": {
+    "results": [
+      {
+        "artifact": "artifacts/konark_reading.mp3",
+        "kind": "audio",
+        "status": "pass",
+        "method": "back-transcription of every segment with Indic-Transcribe; letter-level similarity; speaking-rate outliers",
+        "mean_similarity": 1.0,
+        "min_similarity": 1.0,
+        "segments_repaired": 0,
+        "problems": [],
+        "warnings": []
+      }
+    ],
+    "unverified_translations_or_audio": [],
+    "all_checked": true
+  },
+  "cost": {
+    "max_inr": 20.0,
+    "bodhan_billed_inr": 0.0,
+    "bodhan_uncertain_inr": 0.0,
+    "llm_inr": null,
+    "total_counted_inr": 0.0,
+    "by_model_inr": {},
+    "bodhan_calls": 0,
+    "cache_hits": 2,
+    "bodhan_cost_basis": "published unit prices x metered quantity (audio seconds rounded up per request, output tokens from usage, input characters, images); provider dashboard is authoritative",
+    "llm": {
+      "calls": 6,
+      "prompt_tokens": 26251,
+      "completion_tokens": 914,
+      "pricing": "not priced (no rate supplied); tokens reported only"
+    }
+  },
+  "llm": {
+    "model": "gpt-6.1-sol",
+    "endpoint_host": "127.0.0.1",
+    "adaptations": []
+  },
+  "quality_targets": {
+    "latency": {
+      "kind": "single-step",
+      "target_s": 30,
+      "actual_s": 35.7,
+      "met": false,
+      "note": "missed by 6 s (36 s against 30 s); tool calls 0% of the time (0 s), mostly step 2 (synthesize_speech, 0 s); planner replies 86% of the time (31 s) (5 calls); 13% of the time (5 s) outside tool calls and planner replies (planner retries and their waits, preflight, bookkeeping)"
+    },
+    "budget": {
+      "max_inr": 20.0,
+      "counted_inr": 0.0,
+      "within_budget": true,
+      "note": null,
+      "scope": "Bodhan calls (billed + uncertain retries); LLM only if priced via --llm-*-inr-per-1m"
+    },
+    "no_waste": {
+      "cache_hits": 2,
+      "bodhan_requests": 0,
+      "retried_attempts": 0,
+      "note": "identical (model, input, settings) requests are served from the cache or shared while in flight; the only repeats are retries of a failed or timed-out attempt (rate limit, 5xx, timeout), counted here and traced as api_call events with attempt > 1"
+    },
+    "verification": {
+      "all_generated_audio_and_translations_checked": true,
+      "note": null
+    },
+    "honest_failure": "unassessed: code cannot judge whether the answer is truthful; see verification results and review the outputs"
+  },
+  "injection_warnings": [],
+  "paid_tool_calls": 0,
+  "version": "0.1.0"
+}

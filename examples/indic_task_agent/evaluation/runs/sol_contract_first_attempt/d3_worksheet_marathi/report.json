@@ -1,0 +1,311 @@
+{
+  "status": "partial",
+  "stop_reason": "finished",
+  "planner_status": "partial",
+  "task": "Translate this worksheet into Marathi and keep the table",
+  "inputs": {
+    "files": [
+      "<recipe>\\sample_data\\worksheet\\worksheet_photo.jpg"
+    ],
+    "missing": []
+  },
+  "started_at": "2026-11-20T17:38:46+00:00",
+  "finished_at": "2026-11-20T17:39:20+00:00",
+  "elapsed_s": 34.67,
+  "steps": {
+    "used": 5,
+    "max": 30,
+    "tool_calls": [
+      {
+        "step": 2,
+        "tool": "ocr_document",
+        "ok": true,
+        "latency_s": 0.047,
+        "cost_inr": 0,
+        "verification": null,
+        "error": null
+      },
+      {
+        "step": 3,
+        "tool": "translate_text",
+        "ok": true,
+        "latency_s": 0.015,
+        "cost_inr": 0,
+        "verification": "pass",
+        "error": null
+      }
+    ]
+  },
+  "plan": {
+    "steps": [
+      "1. Use ocr_document to extract the worksheet as Markdown with its table.",
+      "2. Use translate_text with verification to translate the extracted worksheet into Marathi and preserve the table.",
+      "3. Use finish to deliver the Marathi worksheet artifact and report any caveats."
+    ],
+    "deliverables": [
+      {
+        "kind": "translation",
+        "language": "mr",
+        "source": "worksheet_photo.jpg",
+        "optional": false,
+        "description": "Marathi worksheet in Markdown preserving the table."
+      }
+    ],
+    "assumptions": [
+      "The requested table preservation means retaining rows and columns in a Markdown table, not reproducing the photograph's exact visual layout.",
+      "Use native Devanagari script for Marathi."
+    ],
+    "dropped": []
+  },
+  "final_answer": "The Marathi worksheet is available in the attached Markdown file, with the table retained. Translation verification passed, including checks of the table structure and numbers. However, the final automated completion check did not accept the deliverable as fully satisfying the request, so this run is marked partial.",
+  "assumptions": [
+    "The table is preserved in Markdown rather than reproducing the photograph's exact layout.",
+    "Marathi is written in native Devanagari script."
+  ],
+  "limitations": [
+    "The final automated completion check rejected full completion despite the translation artifact passing its verification checks."
+  ],
+  "deliverables": [
+    {
+      "path": "artifacts/worksheet_marathi.md",
+      "kind": "translation",
+      "producer": "translate_text",
+      "language": "mr",
+      "provenance": "indic-translate",
+      "verification": {
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 15,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [
+              [
+                6,
+                4
+              ]
+            ],
+            "output": [
+              [
+                6,
+                4
+              ]
+            ]
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.037,
+            "output": 0.092
+          },
+          "back_translation": {
+            "language": "en",
+            "mean_chrf": 0.937,
+            "min_chrf": 0.828,
+            "min_length_ratio": 0.93,
+            "passages": 8
+          }
+        }
+      },
+      "notes": [],
+      "embeds": [
+        "worksheet_source.md"
+      ],
+      "sha256": "1e25aeb67fed73c5f99ea9bf7f5a9c1508dc914669832e3bddc7d651925c315e",
+      "source_language": "en",
+      "verification_checks": 1,
+      "origin": [
+        "worksheet_photo.jpg"
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "artifacts/worksheet_source.md",
+      "kind": "ocr",
+      "producer": "ocr_document",
+      "language": "en",
+      "provenance": "indic-ocr",
+      "verification": null,
+      "notes": [],
+      "embeds": [],
+      "sha256": "74ce0e31914240c4c044ed74dd288f04a06847f80c61ce332e1f56793a71d081",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "worksheet_photo.jpg"
+      ]
+    },
+    {
+      "path": "artifacts/worksheet_marathi.md",
+      "kind": "translation",
+      "producer": "translate_text",
+      "language": "mr",
+      "provenance": "indic-translate",
+      "verification": {
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 15,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [
+              [
+                6,
+                4
+              ]
+            ],
+            "output": [
+              [
+                6,
+                4
+              ]
+            ]
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.037,
+            "output": 0.092
+          },
+          "back_translation": {
+            "language": "en",
+            "mean_chrf": 0.937,
+            "min_chrf": 0.828,
+            "min_length_ratio": 0.93,
+            "passages": 8
+          }
+        }
+      },
+      "notes": [],
+      "embeds": [
+        "worksheet_source.md"
+      ],
+      "sha256": "1e25aeb67fed73c5f99ea9bf7f5a9c1508dc914669832e3bddc7d651925c315e",
+      "source_language": "en",
+      "verification_checks": 1,
+      "origin": [
+        "worksheet_photo.jpg"
+      ]
+    }
+  ],
+  "verification": {
+    "results": [
+      {
+        "artifact": "artifacts/worksheet_marathi.md",
+        "kind": "translation",
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 15,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [
+              [
+                6,
+                4
+              ]
+            ],
+            "output": [
+              [
+                6,
+                4
+              ]
+            ]
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.037,
+            "output": 0.092
+          },
+          "back_translation": {
+            "language": "en",
+            "mean_chrf": 0.937,
+            "min_chrf": 0.828,
+            "min_length_ratio": 0.93,
+            "passages": 8
+          }
+        }
+      }
+    ],
+    "unverified_translations_or_audio": [],
+    "all_checked": true
+  },
+  "cost": {
+    "max_inr": 20.0,
+    "bodhan_billed_inr": 0.0,
+    "bodhan_uncertain_inr": 0.0,
+    "llm_inr": null,
+    "total_counted_inr": 0.0,
+    "by_model_inr": {},
+    "bodhan_calls": 0,
+    "cache_hits": 17,
+    "bodhan_cost_basis": "published unit prices x metered quantity (audio seconds rounded up per request, output tokens from usage, input characters, images); provider dashboard is authoritative",
+    "llm": {
+      "calls": 6,
+      "prompt_tokens": 27117,
+      "completion_tokens": 849,
+      "pricing": "not priced (no rate supplied); tokens reported only"
+    }
+  },
+  "llm": {
+    "model": "gpt-6.1-sol",
+    "endpoint_host": "127.0.0.1",
+    "adaptations": []
+  },
+  "quality_targets": {
+    "latency": {
+      "kind": "multi-step",
+      "target_s": 300,
+      "actual_s": 34.7,
+      "met": true,
+      "note": null
+    },
+    "budget": {
+      "max_inr": 20.0,
+      "counted_inr": 0.0,
+      "within_budget": true,
+      "note": null,
+      "scope": "Bodhan calls (billed + uncertain retries); LLM only if priced via --llm-*-inr-per-1m"
+    },
+    "no_waste": {
+      "cache_hits": 17,
+      "bodhan_requests": 0,
+      "retried_attempts": 0,
+      "note": "identical (model, input, settings) requests are served from the cache or shared while in flight; the only repeats are retries of a failed or timed-out attempt (rate limit, 5xx, timeout), counted here and traced as api_call events with attempt > 1"
+    },
+    "verification": {
+      "all_generated_audio_and_translations_checked": true,
+      "note": null
+    },
+    "honest_failure": "unassessed: code cannot judge whether the answer is truthful; see verification results and review the outputs"
+  },
+  "injection_warnings": [],
+  "paid_tool_calls": 0,
+  "version": "0.1.0"
+}

@@ -1,0 +1,341 @@
+{
+  "status": "partial",
+  "stop_reason": "finished",
+  "planner_status": "partial",
+  "task": "Read this paragraph aloud in Bengali with a female voice",
+  "inputs": {
+    "files": [
+      "<recipe>\\sample_data\\paragraph\\paragraph.txt"
+    ],
+    "missing": []
+  },
+  "started_at": "2026-11-20T17:40:25+00:00",
+  "finished_at": "2026-11-20T17:41:03+00:00",
+  "elapsed_s": 37.8,
+  "steps": {
+    "used": 5,
+    "max": 30,
+    "tool_calls": [
+      {
+        "step": 2,
+        "tool": "translate_text",
+        "ok": true,
+        "latency_s": 0.0,
+        "cost_inr": 0,
+        "verification": "pass",
+        "error": null
+      },
+      {
+        "step": 3,
+        "tool": "synthesize_speech",
+        "ok": true,
+        "latency_s": 0.187,
+        "cost_inr": 0,
+        "verification": "warn",
+        "error": null
+      }
+    ]
+  },
+  "plan": {
+    "steps": [
+      "1. Translate paragraph.txt to Bengali using translate_text with verification.",
+      "2. Generate Bengali audio using synthesize_speech with a female voice and verification.",
+      "3. Deliver the Bengali text and audio using finish."
+    ],
+    "deliverables": [
+      {
+        "kind": "translation",
+        "language": "bn",
+        "source": "paragraph.txt",
+        "optional": false,
+        "description": "Bengali translation of the paragraph and text read aloud."
+      },
+      {
+        "kind": "audio",
+        "language": "bn",
+        "source": "paragraph.txt",
+        "optional": false,
+        "description": "Bengali reading with a female voice."
+      }
+    ],
+    "assumptions": [
+      "Translate the English paragraph into Bengali before reading it.",
+      "Use the default Bengali female voice and neutral delivery."
+    ],
+    "dropped": []
+  },
+  "final_answer": "Created the Bengali reading with the female voice Ishita (28 seconds), along with the Bengali text. Both files are attached.\n\nThe translation passed verification. Speech verification found 98% similarity but could not confirm the number “350,” possibly because it was transcribed as words. The automated completion check did not recognize the delivered audio as satisfying the request, so this run is reported as partial.",
+  "assumptions": [
+    "Translated the English paragraph to Bengali and used the default female voice, Ishita."
+  ],
+  "limitations": [
+    "Audio verification could not confirm the number “350”; overall similarity was 98%.",
+    "The automated completion check rejected completed status despite the generated Bengali female-voice audio."
+  ],
+  "deliverables": [
+    {
+      "path": "artifacts/paragraph_bn.md",
+      "kind": "translation",
+      "producer": "translate_text",
+      "language": "bn",
+      "provenance": "indic-translate",
+      "verification": {
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 1,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.0
+          },
+          "back_translation": {
+            "language": "en",
+            "mean_chrf": 0.888,
+            "min_chrf": 0.888,
+            "min_length_ratio": 0.95,
+            "passages": 1
+          }
+        }
+      },
+      "notes": [],
+      "embeds": [],
+      "sha256": "eb4910021a72dff2730abb8ddef3f0941bed307d48b10cf3f4528fb45d0f0543",
+      "source_language": "en",
+      "verification_checks": 1,
+      "origin": [
+        "paragraph.txt"
+      ]
+    },
+    {
+      "path": "artifacts/paragraph_bn_female.mp3",
+      "kind": "audio",
+      "producer": "synthesize_speech",
+      "language": "bn",
+      "provenance": "indic-speak (Ishita)",
+      "verification": {
+        "status": "warn",
+        "method": "back-transcription of every segment with Indic-Transcribe; letter-level similarity; speaking-rate outliers",
+        "mean_similarity": 0.98,
+        "min_similarity": 0.961,
+        "segments_repaired": 0,
+        "problems": [],
+        "warnings": [
+          "segments [1]: numbers ['350'] in the text are not confirmed by back-transcription (missing, or transcribed as words)"
+        ]
+      },
+      "notes": [
+        "AI-generated speech (Bodhan Indic-Speak, voice Ishita, Bengali)"
+      ],
+      "embeds": [
+        "paragraph_bn.md"
+      ],
+      "sha256": "2e04b85f6fbf7fc629df4a61945cc26de60642e885c28022c15285dd12f8f428",
+      "source_language": null,
+      "verification_checks": 1,
+      "origin": [
+        "paragraph.txt"
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "artifacts/paragraph_bn.md",
+      "kind": "translation",
+      "producer": "translate_text",
+      "language": "bn",
+      "provenance": "indic-translate",
+      "verification": {
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 1,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.0
+          },
+          "back_translation": {
+            "language": "en",
+            "mean_chrf": 0.888,
+            "min_chrf": 0.888,
+            "min_length_ratio": 0.95,
+            "passages": 1
+          }
+        }
+      },
+      "notes": [],
+      "embeds": [],
+      "sha256": "eb4910021a72dff2730abb8ddef3f0941bed307d48b10cf3f4528fb45d0f0543",
+      "source_language": "en",
+      "verification_checks": 1,
+      "origin": [
+        "paragraph.txt"
+      ]
+    },
+    {
+      "path": "artifacts/paragraph_bn_female.mp3",
+      "kind": "audio",
+      "producer": "synthesize_speech",
+      "language": "bn",
+      "provenance": "indic-speak (Ishita)",
+      "verification": {
+        "status": "warn",
+        "method": "back-transcription of every segment with Indic-Transcribe; letter-level similarity; speaking-rate outliers",
+        "mean_similarity": 0.98,
+        "min_similarity": 0.961,
+        "segments_repaired": 0,
+        "problems": [],
+        "warnings": [
+          "segments [1]: numbers ['350'] in the text are not confirmed by back-transcription (missing, or transcribed as words)"
+        ]
+      },
+      "notes": [
+        "AI-generated speech (Bodhan Indic-Speak, voice Ishita, Bengali)"
+      ],
+      "embeds": [
+        "paragraph_bn.md"
+      ],
+      "sha256": "2e04b85f6fbf7fc629df4a61945cc26de60642e885c28022c15285dd12f8f428",
+      "source_language": null,
+      "verification_checks": 1,
+      "origin": [
+        "paragraph.txt"
+      ]
+    }
+  ],
+  "verification": {
+    "results": [
+      {
+        "artifact": "artifacts/paragraph_bn.md",
+        "kind": "translation",
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 1,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.0
+          },
+          "back_translation": {
+            "language": "en",
+            "mean_chrf": 0.888,
+            "min_chrf": 0.888,
+            "min_length_ratio": 0.95,
+            "passages": 1
+          }
+        }
+      },
+      {
+        "artifact": "artifacts/paragraph_bn_female.mp3",
+        "kind": "audio",
+        "status": "warn",
+        "method": "back-transcription of every segment with Indic-Transcribe; letter-level similarity; speaking-rate outliers",
+        "mean_similarity": 0.98,
+        "min_similarity": 0.961,
+        "segments_repaired": 0,
+        "problems": [],
+        "warnings": [
+          "segments [1]: numbers ['350'] in the text are not confirmed by back-transcription (missing, or transcribed as words)"
+        ]
+      }
+    ],
+    "unverified_translations_or_audio": [],
+    "all_checked": true
+  },
+  "cost": {
+    "max_inr": 20.0,
+    "bodhan_billed_inr": 0.0,
+    "bodhan_uncertain_inr": 0.0,
+    "llm_inr": null,
+    "total_counted_inr": 0.0,
+    "by_model_inr": {},
+    "bodhan_calls": 0,
+    "cache_hits": 6,
+    "bodhan_cost_basis": "published unit prices x metered quantity (audio seconds rounded up per request, output tokens from usage, input characters, images); provider dashboard is authoritative",
+    "llm": {
+      "calls": 6,
+      "prompt_tokens": 27247,
+      "completion_tokens": 961,
+      "pricing": "not priced (no rate supplied); tokens reported only"
+    }
+  },
+  "llm": {
+    "model": "gpt-6.1-sol",
+    "endpoint_host": "127.0.0.1",
+    "adaptations": []
+  },
+  "quality_targets": {
+    "latency": {
+      "kind": "multi-step",
+      "target_s": 300,
+      "actual_s": 37.8,
+      "met": true,
+      "note": null
+    },
+    "budget": {
+      "max_inr": 20.0,
+      "counted_inr": 0.0,
+      "within_budget": true,
+      "note": null,
+      "scope": "Bodhan calls (billed + uncertain retries); LLM only if priced via --llm-*-inr-per-1m"
+    },
+    "no_waste": {
+      "cache_hits": 6,
+      "bodhan_requests": 0,
+      "retried_attempts": 0,
+      "note": "identical (model, input, settings) requests are served from the cache or shared while in flight; the only repeats are retries of a failed or timed-out attempt (rate limit, 5xx, timeout), counted here and traced as api_call events with attempt > 1"
+    },
+    "verification": {
+      "all_generated_audio_and_translations_checked": true,
+      "note": null
+    },
+    "honest_failure": "unassessed: code cannot judge whether the answer is truthful; see verification results and review the outputs"
+  },
+  "injection_warnings": [],
+  "paid_tool_calls": 0,
+  "version": "0.1.0"
+}

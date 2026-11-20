@@ -6,7 +6,7 @@ How the recipe is built and why. Setup and commands are in the [README](../READM
 >
 > - **One tool layer, two programs.** `bodhan_mcp` (MCP server, stdio or HTTP with a token) and `bodhan_agent` (CLI agent) call the same `registry.invoke()`. The agent calls it in-process, so a run has one budget, one cache and one trace.
 > - **12 tools, one level above the models.** Each tool owns its model's limits (≤28 s audio pieces, ≤220-character speech requests, one OCR page per request, paragraph-sized translation) and verifies its own output. The planner owns the task.
-> - **The LLM decides, code permits.** Paid tools stay locked until a typed plan declares its deliverables. Each request reserves its worst-case cost first. `finish` passes only if every declared deliverable matches a verified artifact from this run.
+> - **The LLM decides, code permits.** Paid tools stay locked until a typed plan declares its deliverables. Each request reserves its worst-case cost first. `finish` passes only if every declared deliverable matches a verified artifact from this run, and a fresh reading of the task finds nothing missing.
 > - **No Indian-language text from the LLM.** A provenance guard, `write_text` and the finish gate enforce it in code.
 > - **Every output is checked.** Translations are back-translated (chrF), and every speech segment is back-transcribed. A failure is repaired with a different input (a speech segment once, a truncated translation by splitting up to three levels), or reported.
 > - **Any OpenAI-compatible planner.** Provider differences are adapted in `llm.py` and listed in `report.json`.
@@ -73,7 +73,7 @@ flowchart TD
     res -- "ok + verification pass/warn" --> llm
     res -- "verification fail" --> llm
     res -- "error (rate limit, unsupported,<br/>budget, provenance...)" --> llm
-    kind -- finish --> gate2{"Gate: every declared deliverable matched<br/>by an existing artifact from this run<br/>whose checks (and sources') did not fail?<br/>answer in English?"}
+    kind -- finish --> gate2{"Gate: every declared deliverable matched<br/>by an existing artifact from this run<br/>whose checks (and sources') did not fail?<br/>task re-read: nothing missing?<br/>answer in English?"}
     gate2 -- "no (max 2 rejections)" --> llm
     gate2 -- yes --> done["Write result.md, report.json<br/>(trace.jsonl written throughout)"]
     forced --> done
@@ -216,7 +216,14 @@ The plan declares the deliverables the task asks for, each with a kind (`audio`,
 - fits the declared kind and language;
 - did not fail its own checks, nor did anything it was made from or embeds.
 
-An `answer` needs at least one successful tool call behind it. These rules check consistency with the plan, not the meaning of the task; a wrong plan can still be wrong, which is why the plan, the deliverables and every check are in the trace.
+An `answer` needs at least one successful tool call behind it.
+
+The plan alone is not trusted to describe the task, for two reasons:
+
+- **A revised plan cannot erase an output.** Every required output of an earlier plan stays an obligation. A new plan must keep it (a deliverable an artifact for it would also satisfy) or list it under `dropped` with a reason; otherwise the plan is refused and the old one stays. Dropped outputs appear under limitations, and the run is at best `completed_with_warnings`.
+- **The task is checked, not only the plan.** Before `completed` is accepted, one more call to the planner model gets only the original task and the delivered items (no plan, no conversation) and names the delivered item that provides each requested output. An output with no listed item refuses `completed`, and so does a check that cannot confirm coverage: an empty or malformed reply, a failed call, or no budget for it. After two refusals the run ends `partial` with its usable outputs.
+
+This check is the same model reading the task again with fresh context. It catches an output the plan never declared, but it can miss a gap or invent one, and it does not judge quality. The plan, the deliverables, every check and the coverage reply are in the trace.
 
 Verification results are a history on each artifact. A later check never improves an earlier failure, and a translation can be re-checked only against its own source. To repair an output, the agent makes a new artifact.
 

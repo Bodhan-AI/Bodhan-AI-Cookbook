@@ -1,0 +1,1 @@
+Health Camp Notice: A free health camp will be organized at the panchayat office on Saturday from 9 am to 4 pm. Doctors will check blood pressure, sugar level, and eyes. Please bring your Aadhaar card with you.
