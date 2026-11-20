@@ -9,9 +9,9 @@
     ],
     "missing": []
   },
-  "started_at": "2026-11-20T09:23:58+00:00",
-  "finished_at": "2026-11-20T09:24:19+00:00",
-  "elapsed_s": 21.08,
+  "started_at": "2026-11-20T12:26:30+00:00",
+  "finished_at": "2026-11-20T12:26:50+00:00",
+  "elapsed_s": 19.78,
   "steps": {
     "used": 3,
     "max": 30,
@@ -19,24 +19,22 @@
   },
   "plan": {
     "steps": [
-      "Record plan for unsupported French task"
+      "Check language support for French"
     ],
     "deliverables": [
       {
-        "kind": "translation",
+        "kind": "answer",
         "language": null,
         "source": null,
-        "optional": true,
-        "description": "French translation output"
+        "optional": false,
+        "description": "French translation requested, but French is not a supported language for translation/outputs in Bodhan"
       }
     ],
     "assumptions": []
   },
-  "final_answer": "The requested target language (French) is unsupported by Bodhan tools, which only support translation between English and 22 Indian languages. Therefore, the task cannot be fulfilled.",
+  "final_answer": "The task asked to translate the video into French. However, French is not one of the Indian languages supported by the Bodhan translation tools (which support 22 Indian languages and English). Therefore, this task cannot be fulfilled using the available tools.",
   "assumptions": [],
-  "limitations": [
-    "French is an unsupported language for Bodhan tools."
-  ],
+  "limitations": [],
   "deliverables": [],
   "artifacts": [],
   "verification": {
@@ -56,8 +54,8 @@
     "bodhan_cost_basis": "published unit prices x metered quantity (audio seconds rounded up per request, output tokens from usage, input characters, images); provider dashboard is authoritative",
     "llm": {
       "calls": 3,
-      "prompt_tokens": 16630,
-      "completion_tokens": 172,
+      "prompt_tokens": 16699,
+      "completion_tokens": 199,
       "pricing": "not priced (no rate supplied); tokens reported only"
     }
   },
@@ -70,7 +68,7 @@
     "latency": {
       "kind": "single-step",
       "target_s": 30,
-      "actual_s": 21.1,
+      "actual_s": 19.8,
       "met": true,
       "note": null
     },
@@ -78,8 +76,8 @@
       "max_inr": 20.0,
       "counted_inr": 0.0,
       "within_budget": true,
-      "scope": "Bodhan calls (billed + uncertain retries); LLM only if priced via --llm-*-inr-per-1m",
-      "note": null
+      "note": null,
+      "scope": "Bodhan calls (billed + uncertain retries); LLM only if priced via --llm-*-inr-per-1m"
     },
     "no_waste": {
       "cache_hits": 0,

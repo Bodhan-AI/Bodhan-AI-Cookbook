@@ -4,11 +4,11 @@
 
 ## Answer
 
-The Hindi voice note has been successfully transcribed and translated into English subtitles (.srt), verified with a passing status.
+I have successfully transcribed the Hindi voice note and generated the English subtitles as requested. The resulting SRT file is provided as a deliverable.
 
 ## Deliverables
 
-- [artifacts/voice_note_hindi_en_subtitles_en.srt](artifacts/voice_note_hindi_en_subtitles_en.srt) — subtitles (en); produced by `create_subtitles` via indic-transcribe + indic-translate; verification: PASS, back-translation chrF 0.763
+- [artifacts/voice_note_hindi_subtitles_en_en.srt](artifacts/voice_note_hindi_subtitles_en_en.srt) — subtitles (en); produced by `create_subtitles` via indic-transcribe + indic-translate; verification: PASS, back-translation chrF 0.763
 
   ```text
   1
@@ -38,18 +38,18 @@ The Hindi voice note has been successfully transcribed and translated into Engli
 
 ## Intermediate artifacts
 
-- [artifacts/voice_note_hindi_en_subtitles_hi.srt](artifacts/voice_note_hindi_en_subtitles_hi.srt) — transcript, indic-transcribe
+- [artifacts/voice_note_hindi_subtitles_en_hi.srt](artifacts/voice_note_hindi_subtitles_en_hi.srt) — transcript, indic-transcribe
 
 ## Cost, time and steps
 
 - Status: `completed` (stop reason: `finished`)
 - Bodhan cost: ₹0.0000 billed; budget ₹20.0
-- Planner LLM: gemini-3.5-flash-lite — 3 calls, 17478 prompt + 273 completion tokens (not priced (no rate supplied); tokens reported only)
-- Time: 6.92 s (single-step, target 30 s: met)
+- Planner LLM: gemini-3.5-flash-lite — 3 calls, 17475 prompt + 271 completion tokens (not priced (no rate supplied); tokens reported only)
+- Time: 19.5 s (single-step, target 30 s: met)
 - Steps: 3 of 30; cache hits: 90
 
 | Step | Tool | OK | Latency (s) | Cost (₹) | Verification |
 |---|---|---|---|---|---|
-| 2 | `create_subtitles` | yes | 0.812 | 0 | pass |
+| 2 | `create_subtitles` | yes | 0.265 | 0 | pass |
 
 Full step-by-step trace: [trace.jsonl](trace.jsonl). Machine-readable summary: [report.json](report.json).

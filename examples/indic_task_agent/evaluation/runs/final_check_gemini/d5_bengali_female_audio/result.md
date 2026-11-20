@@ -4,7 +4,7 @@
 
 ## Answer
 
-The English paragraph has been successfully translated into Bengali and synthesized into speech using a female voice in Bengali (voice: Ishita). Both the translation artifact and the audio file have been generated and verified.
+The English paragraph has been successfully translated to Bengali and synthesized into speech using a female voice (Ishita).
 
 ## Deliverables
 
@@ -21,19 +21,19 @@ The English paragraph has been successfully translated into Bengali and synthesi
 
 ## Limitations
 
-- Minor warning in speech verification regarding numeric transcription of '350' (normal when numbers are spoken as words).
+- Audio synthesis passed with a warning regarding number back-transcription for '350', which is common as numbers are typically spelled out in pronunciation.
 
 ## Cost, time and steps
 
 - Status: `completed_with_warnings` (stop reason: `finished`)
 - Bodhan cost: ₹0.0000 billed; budget ₹20.0
-- Planner LLM: gemini-3.5-flash-lite — 4 calls, 24531 prompt + 506 completion tokens (not priced (no rate supplied); tokens reported only)
-- Time: 8.58 s (multi-step, target 300 s: met)
+- Planner LLM: gemini-3.5-flash-lite — 4 calls, 24363 prompt + 401 completion tokens (not priced (no rate supplied); tokens reported only)
+- Time: 26.59 s (multi-step, target 300 s: met)
 - Steps: 4 of 30; cache hits: 6
 
 | Step | Tool | OK | Latency (s) | Cost (₹) | Verification |
 |---|---|---|---|---|---|
-| 2 | `translate_text` | yes | 0.016 | 0 | pass |
+| 2 | `translate_text` | yes | 0.015 | 0 | pass |
 | 3 | `synthesize_speech` | yes | 0.187 | 0 | warn |
 
 Full step-by-step trace: [trace.jsonl](trace.jsonl). Machine-readable summary: [report.json](report.json).

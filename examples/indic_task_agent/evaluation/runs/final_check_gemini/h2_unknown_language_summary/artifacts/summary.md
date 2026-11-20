@@ -1,3 +1,3 @@
-- Bees live in colonial groups consisting of a queen, male bees, and thousands of worker bees that collect nectar and pollen.
-- Worker bees facilitate pollination while foraging, which is crucial for plant reproduction and accounts for about one-third of the food we consume.
-- Farmers support pollination by placing beehives near fields and are increasingly adopting natural methods instead of chemical pesticides to protect bees.
+- Bees live in colonies consisting of a queen bee, male bees, and thousands of worker bees that collect nectar and pollen.
+- Worker bees facilitate pollination while gathering food, which is essential for plant reproduction and accounts for about one-third of the human food supply.
+- Farmers use beehives to improve crop yields but are increasingly adopting natural methods instead of chemical pesticides to protect bees.

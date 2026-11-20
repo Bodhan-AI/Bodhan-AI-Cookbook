@@ -9,9 +9,9 @@
     ],
     "missing": []
   },
-  "started_at": "2026-11-20T09:23:31+00:00",
-  "finished_at": "2026-11-20T09:23:38+00:00",
-  "elapsed_s": 7.06,
+  "started_at": "2026-11-20T12:24:48+00:00",
+  "finished_at": "2026-11-20T12:25:17+00:00",
+  "elapsed_s": 28.49,
   "steps": {
     "used": 4,
     "max": 30,
@@ -38,8 +38,8 @@
   },
   "plan": {
     "steps": [
-      "Run OCR on the worksheet image to extract text and tables as Markdown",
-      "Translate the extracted Markdown into Marathi keeping the table structure"
+      "1. Run ocr_document on worksheet_photo.jpg to extract the worksheet text and tables into Markdown.",
+      "2. Run translate_text on the extracted Markdown to translate it into Marathi while preserving the table structure."
     ],
     "deliverables": [
       {
@@ -47,12 +47,12 @@
         "language": "mr",
         "source": "worksheet_photo.jpg",
         "optional": false,
-        "description": "Marathi translation of the worksheet keeping the table format"
+        "description": "Marathi translation of the worksheet maintaining the table structure"
       }
     ],
     "assumptions": []
   },
-  "final_answer": "Successfully extracted text and table from the worksheet image via OCR, translated the worksheet into Marathi while preserving the markdown table structure, and verified the translation.",
+  "final_answer": "Successfully extracted the worksheet using OCR and translated it into Marathi while fully preserving the Markdown table structure and questions.",
   "assumptions": [],
   "limitations": [],
   "deliverables": [
@@ -258,8 +258,8 @@
     "bodhan_cost_basis": "published unit prices x metered quantity (audio seconds rounded up per request, output tokens from usage, input characters, images); provider dashboard is authoritative",
     "llm": {
       "calls": 4,
-      "prompt_tokens": 24131,
-      "completion_tokens": 367,
+      "prompt_tokens": 24186,
+      "completion_tokens": 372,
       "pricing": "not priced (no rate supplied); tokens reported only"
     }
   },
@@ -272,7 +272,7 @@
     "latency": {
       "kind": "multi-step",
       "target_s": 300,
-      "actual_s": 7.1,
+      "actual_s": 28.5,
       "met": true,
       "note": null
     },
@@ -280,8 +280,8 @@
       "max_inr": 20.0,
       "counted_inr": 0.0,
       "within_budget": true,
-      "scope": "Bodhan calls (billed + uncertain retries); LLM only if priced via --llm-*-inr-per-1m",
-      "note": null
+      "note": null,
+      "scope": "Bodhan calls (billed + uncertain retries); LLM only if priced via --llm-*-inr-per-1m"
     },
     "no_waste": {
       "cache_hits": 17,

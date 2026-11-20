@@ -4,11 +4,11 @@
 
 ## Answer
 
-The Odia text about the Konark Sun Temple has been successfully read aloud and synthesized into natural-sounding speech (konark_speech.mp3) using Bodhan Indic-Speak with verification passing successfully.
+The Odia text from konark.txt has been successfully read aloud into an audio file using Bodhan Indic-Speak with a verified pass status.
 
 ## Deliverables
 
-- [artifacts/konark_speech.mp3](artifacts/konark_speech.mp3) — audio (or); produced by `synthesize_speech` via indic-speak (Itishree); verification: PASS, back-transcription similarity 1.0
+- [artifacts/konark_audio.mp3](artifacts/konark_audio.mp3) — audio (or); produced by `synthesize_speech` via indic-speak (Itishree); verification: PASS, back-transcription similarity 1.0
   - no voice or gender requested; defaulted to a female voice
   - AI-generated speech (Bodhan Indic-Speak, voice Itishree, Odia)
 
@@ -18,12 +18,12 @@ The Odia text about the Konark Sun Temple has been successfully read aloud and s
 
 - Status: `completed` (stop reason: `finished`)
 - Bodhan cost: ₹0.0000 billed; budget ₹20.0
-- Planner LLM: gemini-3.5-flash-lite — 3 calls, 17369 prompt + 298 completion tokens (not priced (no rate supplied); tokens reported only)
-- Time: 7.14 s (single-step, target 30 s: met)
+- Planner LLM: gemini-3.5-flash-lite — 3 calls, 17333 prompt + 256 completion tokens (not priced (no rate supplied); tokens reported only)
+- Time: 5.94 s (single-step, target 30 s: met)
 - Steps: 3 of 30; cache hits: 2
 
 | Step | Tool | OK | Latency (s) | Cost (₹) | Verification |
 |---|---|---|---|---|---|
-| 2 | `synthesize_speech` | yes | 0.14 | 0 | pass |
+| 2 | `synthesize_speech` | yes | 0.141 | 0 | pass |
 
 Full step-by-step trace: [trace.jsonl](trace.jsonl). Machine-readable summary: [report.json](report.json).

@@ -9,9 +9,9 @@
     ],
     "missing": []
   },
-  "started_at": "2026-11-20T09:23:48+00:00",
-  "finished_at": "2026-11-20T09:23:57+00:00",
-  "elapsed_s": 8.58,
+  "started_at": "2026-11-20T12:26:03+00:00",
+  "finished_at": "2026-11-20T12:26:29+00:00",
+  "elapsed_s": 26.59,
   "steps": {
     "used": 4,
     "max": 30,
@@ -20,7 +20,7 @@
         "step": 2,
         "tool": "translate_text",
         "ok": true,
-        "latency_s": 0.016,
+        "latency_s": 0.015,
         "cost_inr": 0,
         "verification": "pass",
         "error": null
@@ -38,31 +38,24 @@
   },
   "plan": {
     "steps": [
-      "Translate the English paragraph to Bengali using translate_text.",
-      "Synthesize the translated Bengali text into speech using synthesize_speech with a female voice."
+      "Translate the English paragraph to Bengali using translate_text",
+      "Synthesize the Bengali translation into speech using synthesize_speech with a female voice"
     ],
     "deliverables": [
-      {
-        "kind": "translation",
-        "language": "bn",
-        "source": "paragraph.txt",
-        "optional": false,
-        "description": "Bengali translation of the paragraph"
-      },
       {
         "kind": "audio",
         "language": "bn",
         "source": "paragraph.txt",
         "optional": false,
-        "description": "Bengali audio reading of the paragraph with a female voice"
+        "description": "Bengali audio of the paragraph read aloud with a female voice"
       }
     ],
     "assumptions": []
   },
-  "final_answer": "The English paragraph has been successfully translated into Bengali and synthesized into speech using a female voice in Bengali (voice: Ishita). Both the translation artifact and the audio file have been generated and verified.",
+  "final_answer": "The English paragraph has been successfully translated to Bengali and synthesized into speech using a female voice (Ishita).",
   "assumptions": [],
   "limitations": [
-    "Minor warning in speech verification regarding numeric transcription of '350' (normal when numbers are spoken as words)."
+    "Audio synthesis passed with a warning regarding number back-transcription for '350', which is common as numbers are typically spelled out in pronunciation."
   ],
   "deliverables": [
     {
@@ -290,8 +283,8 @@
     "bodhan_cost_basis": "published unit prices x metered quantity (audio seconds rounded up per request, output tokens from usage, input characters, images); provider dashboard is authoritative",
     "llm": {
       "calls": 4,
-      "prompt_tokens": 24531,
-      "completion_tokens": 506,
+      "prompt_tokens": 24363,
+      "completion_tokens": 401,
       "pricing": "not priced (no rate supplied); tokens reported only"
     }
   },
@@ -304,7 +297,7 @@
     "latency": {
       "kind": "multi-step",
       "target_s": 300,
-      "actual_s": 8.6,
+      "actual_s": 26.6,
       "met": true,
       "note": null
     },
@@ -312,8 +305,8 @@
       "max_inr": 20.0,
       "counted_inr": 0.0,
       "within_budget": true,
-      "scope": "Bodhan calls (billed + uncertain retries); LLM only if priced via --llm-*-inr-per-1m",
-      "note": null
+      "note": null,
+      "scope": "Bodhan calls (billed + uncertain retries); LLM only if priced via --llm-*-inr-per-1m"
     },
     "no_waste": {
       "cache_hits": 6,

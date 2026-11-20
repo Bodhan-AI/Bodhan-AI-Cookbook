@@ -9,9 +9,9 @@
     ],
     "missing": []
   },
-  "started_at": "2026-11-20T09:23:23+00:00",
-  "finished_at": "2026-11-20T09:23:30+00:00",
-  "elapsed_s": 6.92,
+  "started_at": "2026-11-20T12:24:28+00:00",
+  "finished_at": "2026-11-20T12:24:47+00:00",
+  "elapsed_s": 19.5,
   "steps": {
     "used": 3,
     "max": 30,
@@ -20,7 +20,7 @@
         "step": 2,
         "tool": "create_subtitles",
         "ok": true,
-        "latency_s": 0.812,
+        "latency_s": 0.265,
         "cost_inr": 0,
         "verification": "pass",
         "error": null
@@ -37,17 +37,17 @@
         "language": "en",
         "source": "voice_note_hindi.wav",
         "optional": false,
-        "description": "English subtitles (.srt) for the Hindi voice note"
+        "description": "English subtitles for the Hindi voice note"
       }
     ],
     "assumptions": []
   },
-  "final_answer": "The Hindi voice note has been successfully transcribed and translated into English subtitles (.srt), verified with a passing status.",
+  "final_answer": "I have successfully transcribed the Hindi voice note and generated the English subtitles as requested. The resulting SRT file is provided as a deliverable.",
   "assumptions": [],
   "limitations": [],
   "deliverables": [
     {
-      "path": "artifacts/voice_note_hindi_en_subtitles_en.srt",
+      "path": "artifacts/voice_note_hindi_subtitles_en_en.srt",
       "kind": "subtitles",
       "producer": "create_subtitles",
       "language": "en",
@@ -97,7 +97,7 @@
   ],
   "artifacts": [
     {
-      "path": "artifacts/voice_note_hindi_en_subtitles_hi.srt",
+      "path": "artifacts/voice_note_hindi_subtitles_en_hi.srt",
       "kind": "transcript",
       "producer": "create_subtitles",
       "language": "hi",
@@ -113,7 +113,7 @@
       ]
     },
     {
-      "path": "artifacts/voice_note_hindi_en_subtitles_en.srt",
+      "path": "artifacts/voice_note_hindi_subtitles_en_en.srt",
       "kind": "subtitles",
       "producer": "create_subtitles",
       "language": "en",
@@ -164,7 +164,7 @@
   "verification": {
     "results": [
       {
-        "artifact": "artifacts/voice_note_hindi_en_subtitles_en.srt",
+        "artifact": "artifacts/voice_note_hindi_subtitles_en_en.srt",
         "kind": "subtitles",
         "status": "pass",
         "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
@@ -214,8 +214,8 @@
     "bodhan_cost_basis": "published unit prices x metered quantity (audio seconds rounded up per request, output tokens from usage, input characters, images); provider dashboard is authoritative",
     "llm": {
       "calls": 3,
-      "prompt_tokens": 17478,
-      "completion_tokens": 273,
+      "prompt_tokens": 17475,
+      "completion_tokens": 271,
       "pricing": "not priced (no rate supplied); tokens reported only"
     }
   },
@@ -228,7 +228,7 @@
     "latency": {
       "kind": "single-step",
       "target_s": 30,
-      "actual_s": 6.9,
+      "actual_s": 19.5,
       "met": true,
       "note": null
     },
@@ -236,8 +236,8 @@
       "max_inr": 20.0,
       "counted_inr": 0.0,
       "within_budget": true,
-      "scope": "Bodhan calls (billed + uncertain retries); LLM only if priced via --llm-*-inr-per-1m",
-      "note": null
+      "note": null,
+      "scope": "Bodhan calls (billed + uncertain retries); LLM only if priced via --llm-*-inr-per-1m"
     },
     "no_waste": {
       "cache_hits": 90,

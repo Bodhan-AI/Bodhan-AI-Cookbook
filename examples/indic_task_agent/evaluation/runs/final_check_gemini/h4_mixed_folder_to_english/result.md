@@ -4,10 +4,7 @@
 
 ## Answer
 
-Successfully processed and translated all files in the folder into English:
-1. health_camp.pdf (Hindi OCR -> English translation)
-2. market_note.txt (Gujarati text -> English translation)
-3. water_announcement.mp3 (Marathi audio transcription -> English translation)
+Successfully provided English versions of all files in the folder: health_camp.pdf (Hindi OCR and translation), market_note.txt (Gujarati translation), and water_announcement.mp3 (Marathi transcription and translation).
 
 ## Deliverables
 
@@ -48,16 +45,16 @@ Successfully processed and translated all files in the folder into English:
 
 - Status: `completed` (stop reason: `finished`)
 - Bodhan cost: ₹0.0000 billed; budget ₹20.0
-- Planner LLM: gemini-3.5-flash-lite — 4 calls, 29151 prompt + 872 completion tokens (not priced (no rate supplied); tokens reported only)
-- Time: 16.19 s (multi-step, target 300 s: met)
+- Planner LLM: gemini-3.5-flash-lite — 4 calls, 29106 prompt + 843 completion tokens (not priced (no rate supplied); tokens reported only)
+- Time: 42.97 s (multi-step, target 300 s: met)
 - Steps: 7 of 30; cache hits: 15
 
 | Step | Tool | OK | Latency (s) | Cost (₹) | Verification |
 |---|---|---|---|---|---|
-| 3 | `translate_text` | yes | 0.032 | 0 | pass |
-| 4 | `transcribe_audio` | yes | 0.141 | 0 |  |
-| 2 | `ocr_document` | yes | 3.953 | 0 |  |
-| 5 | `translate_text` | yes | 0.078 | 0 | pass |
-| 6 | `translate_text` | yes | 0.078 | 0 | pass |
+| 3 | `translate_text` | yes | 0.016 | 0 | pass |
+| 4 | `transcribe_audio` | yes | 0.156 | 0 |  |
+| 2 | `ocr_document` | yes | 4.219 | 0 |  |
+| 5 | `translate_text` | yes | 0.016 | 0 | pass |
+| 6 | `translate_text` | yes | 0.016 | 0 | pass |
 
 Full step-by-step trace: [trace.jsonl](trace.jsonl). Machine-readable summary: [report.json](report.json).

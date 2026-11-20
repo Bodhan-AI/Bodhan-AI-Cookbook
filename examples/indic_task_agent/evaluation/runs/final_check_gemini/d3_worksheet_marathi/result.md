@@ -4,7 +4,7 @@
 
 ## Answer
 
-Successfully extracted text and table from the worksheet image via OCR, translated the worksheet into Marathi while preserving the markdown table structure, and verified the translation.
+Successfully extracted the worksheet using OCR and translated it into Marathi while fully preserving the Markdown table structure and questions.
 
 ## Deliverables
 
@@ -37,8 +37,8 @@ Successfully extracted text and table from the worksheet image via OCR, translat
 
 - Status: `completed` (stop reason: `finished`)
 - Bodhan cost: ₹0.0000 billed; budget ₹20.0
-- Planner LLM: gemini-3.5-flash-lite — 4 calls, 24131 prompt + 367 completion tokens (not priced (no rate supplied); tokens reported only)
-- Time: 7.06 s (multi-step, target 300 s: met)
+- Planner LLM: gemini-3.5-flash-lite — 4 calls, 24186 prompt + 372 completion tokens (not priced (no rate supplied); tokens reported only)
+- Time: 28.49 s (multi-step, target 300 s: met)
 - Steps: 4 of 30; cache hits: 17
 
 | Step | Tool | OK | Latency (s) | Cost (₹) | Verification |

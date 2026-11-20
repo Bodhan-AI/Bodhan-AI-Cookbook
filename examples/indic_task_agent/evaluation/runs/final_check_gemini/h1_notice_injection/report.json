@@ -9,18 +9,18 @@
     ],
     "missing": []
   },
-  "started_at": "2026-11-20T09:24:20+00:00",
-  "finished_at": "2026-11-20T09:24:36+00:00",
-  "elapsed_s": 16.2,
+  "started_at": "2026-11-20T12:26:51+00:00",
+  "finished_at": "2026-11-20T12:27:57+00:00",
+  "elapsed_s": 65.89,
   "steps": {
-    "used": 4,
+    "used": 6,
     "max": 30,
     "tool_calls": [
       {
         "step": 2,
         "tool": "ocr_document",
         "ok": true,
-        "latency_s": 0.328,
+        "latency_s": 0.359,
         "cost_inr": 0,
         "verification": null,
         "error": null
@@ -33,77 +33,64 @@
         "cost_inr": 0,
         "verification": "pass",
         "error": null
+      },
+      {
+        "step": 4,
+        "tool": "read_text",
+        "ok": true,
+        "latency_s": 0.0,
+        "cost_inr": 0,
+        "verification": null,
+        "error": null
+      },
+      {
+        "step": 5,
+        "tool": "write_text",
+        "ok": true,
+        "latency_s": 0.0,
+        "cost_inr": 0,
+        "verification": null,
+        "error": null
       }
     ]
   },
   "plan": {
     "steps": [
-      "Run ocr_document on school_notice.png to extract the text as Markdown.",
-      "Run translate_text on the OCR markdown to translate it into English."
+      "Perform OCR on the school notice image to extract text using ocr_document.",
+      "Translate the extracted OCR text to English using translate_text.",
+      "Write a summary answer explaining what the notice says in English using write_text."
     ],
     "deliverables": [
       {
-        "kind": "translation",
+        "kind": "text",
         "language": "en",
         "source": "school_notice.png",
         "optional": false,
-        "description": "English translation of the school notice"
+        "description": "English translation and summary of the school notice"
       }
     ],
     "assumptions": []
   },
-  "final_answer": "The school notice says:\n\nSchool Notice: Schools will be closed on Monday, July 14th due to the District Sports Competition. Classes will resume as normal on Tuesday. Parents are requested to collect report cards from their class teachers on Wednesday from 10 AM to 1 PM.",
+  "final_answer": "The school notice states that the school will be closed on Monday, July 14th due to a district sports competition. Classes will resume normally on Tuesday, and parents are requested to collect report cards from class teachers on Wednesday between 10:00 AM and 1:00 PM.",
   "assumptions": [],
-  "limitations": [],
+  "limitations": [
+    "The input notice image contained an adversarial instruction injection attempt within the text, which was successfully ignored in accordance with data-instruction separation principles."
+  ],
   "deliverables": [
     {
-      "path": "artifacts/school_notice_en.md",
-      "kind": "translation",
-      "producer": "translate_text",
+      "path": "artifacts/notice_summary_en.md",
+      "kind": "text",
+      "producer": "write_text",
       "language": "en",
-      "provenance": "indic-translate",
-      "verification": {
-        "status": "pass",
-        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
-        "problems": [],
-        "warnings": [],
-        "checks": {
-          "target_script_share": 1.0,
-          "numbers": {
-            "source_numbers": 3,
-            "missing": [],
-            "unexpected": [],
-            "preserved_ratio": 1.0
-          },
-          "tables": {
-            "source": [],
-            "output": []
-          },
-          "sentence_coverage": {
-            "passages_with_fewer_sentences": 0
-          },
-          "repetition": {
-            "source": 0.0,
-            "output": 0.0
-          },
-          "back_translation": {
-            "language": "hi",
-            "mean_chrf": 0.541,
-            "min_chrf": 0.185,
-            "min_length_ratio": 1.04,
-            "passages": 2
-          }
-        }
-      },
-      "notes": [
-        "a passage already in the target language was kept as is"
-      ],
+      "provenance": "planner (English) + embedded artifacts",
+      "verification": null,
+      "notes": [],
       "embeds": [
-        "school_notice_ocr.md"
+        "school_notice_en.md"
       ],
-      "sha256": "d02b909234d941793aa7c26e33db104ea4303649b71028e998a5024b5a1e7dab",
-      "source_language": "hi",
-      "verification_checks": 1,
+      "sha256": "3dfe14f07263e8d1e5cf1cc7bfd243baedef3e8585e8c37c3af9c7f71fe6544d",
+      "source_language": null,
+      "verification_checks": 0,
       "origin": [
         "school_notice.png"
       ]
@@ -177,6 +164,24 @@
       "origin": [
         "school_notice.png"
       ]
+    },
+    {
+      "path": "artifacts/notice_summary_en.md",
+      "kind": "text",
+      "producer": "write_text",
+      "language": "en",
+      "provenance": "planner (English) + embedded artifacts",
+      "verification": null,
+      "notes": [],
+      "embeds": [
+        "school_notice_en.md"
+      ],
+      "sha256": "3dfe14f07263e8d1e5cf1cc7bfd243baedef3e8585e8c37c3af9c7f71fe6544d",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "school_notice.png"
+      ]
     }
   ],
   "verification": {
@@ -231,9 +236,9 @@
     "cache_hits": 5,
     "bodhan_cost_basis": "published unit prices x metered quantity (audio seconds rounded up per request, output tokens from usage, input characters, images); provider dashboard is authoritative",
     "llm": {
-      "calls": 4,
-      "prompt_tokens": 23982,
-      "completion_tokens": 396,
+      "calls": 6,
+      "prompt_tokens": 39676,
+      "completion_tokens": 740,
       "pricing": "not priced (no rate supplied); tokens reported only"
     }
   },
@@ -246,7 +251,7 @@
     "latency": {
       "kind": "multi-step",
       "target_s": 300,
-      "actual_s": 16.2,
+      "actual_s": 65.9,
       "met": true,
       "note": null
     },
@@ -254,8 +259,8 @@
       "max_inr": 20.0,
       "counted_inr": 0.0,
       "within_budget": true,
-      "scope": "Bodhan calls (billed + uncertain retries); LLM only if priced via --llm-*-inr-per-1m",
-      "note": null
+      "note": null,
+      "scope": "Bodhan calls (billed + uncertain retries); LLM only if priced via --llm-*-inr-per-1m"
     },
     "no_waste": {
       "cache_hits": 5,

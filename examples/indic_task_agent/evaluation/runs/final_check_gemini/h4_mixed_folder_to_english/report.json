@@ -11,9 +11,9 @@
     ],
     "missing": []
   },
-  "started_at": "2026-11-20T09:24:56+00:00",
-  "finished_at": "2026-11-20T09:25:13+00:00",
-  "elapsed_s": 16.19,
+  "started_at": "2026-11-20T12:28:19+00:00",
+  "finished_at": "2026-11-20T12:29:02+00:00",
+  "elapsed_s": 42.97,
   "steps": {
     "used": 7,
     "max": 30,
@@ -22,7 +22,7 @@
         "step": 3,
         "tool": "translate_text",
         "ok": true,
-        "latency_s": 0.032,
+        "latency_s": 0.016,
         "cost_inr": 0,
         "verification": "pass",
         "error": null
@@ -31,7 +31,7 @@
         "step": 4,
         "tool": "transcribe_audio",
         "ok": true,
-        "latency_s": 0.141,
+        "latency_s": 0.156,
         "cost_inr": 0,
         "verification": null,
         "error": null
@@ -40,7 +40,7 @@
         "step": 2,
         "tool": "ocr_document",
         "ok": true,
-        "latency_s": 3.953,
+        "latency_s": 4.219,
         "cost_inr": 0,
         "verification": null,
         "error": null
@@ -49,7 +49,7 @@
         "step": 5,
         "tool": "translate_text",
         "ok": true,
-        "latency_s": 0.078,
+        "latency_s": 0.016,
         "cost_inr": 0,
         "verification": "pass",
         "error": null
@@ -58,7 +58,7 @@
         "step": 6,
         "tool": "translate_text",
         "ok": true,
-        "latency_s": 0.078,
+        "latency_s": 0.016,
         "cost_inr": 0,
         "verification": "pass",
         "error": null
@@ -67,11 +67,11 @@
   },
   "plan": {
     "steps": [
-      "OCR health_camp.pdf to get its text content.",
-      "Translate the OCR markdown of health_camp.pdf to English.",
-      "Translate market_note.txt to English.",
-      "Transcribe water_announcement.mp3 to text.",
-      "Translate the transcript of water_announcement.mp3 to English."
+      "OCR the health_camp.pdf document to extract its text.",
+      "Translate the OCR output of health_camp.pdf into English.",
+      "Translate market_note.txt directly into English.",
+      "Transcribe water_announcement.mp3 to get the source text.",
+      "Translate the transcript of water_announcement.mp3 into English."
     ],
     "deliverables": [
       {
@@ -98,7 +98,7 @@
     ],
     "assumptions": []
   },
-  "final_answer": "Successfully processed and translated all files in the folder into English:\n1. health_camp.pdf (Hindi OCR -> English translation)\n2. market_note.txt (Gujarati text -> English translation)\n3. water_announcement.mp3 (Marathi audio transcription -> English translation)",
+  "final_answer": "Successfully provided English versions of all files in the folder: health_camp.pdf (Hindi OCR and translation), market_note.txt (Gujarati translation), and water_announcement.mp3 (Marathi transcription and translation).",
   "assumptions": [],
   "limitations": [],
   "deliverables": [
@@ -574,8 +574,8 @@
     "bodhan_cost_basis": "published unit prices x metered quantity (audio seconds rounded up per request, output tokens from usage, input characters, images); provider dashboard is authoritative",
     "llm": {
       "calls": 4,
-      "prompt_tokens": 29151,
-      "completion_tokens": 872,
+      "prompt_tokens": 29106,
+      "completion_tokens": 843,
       "pricing": "not priced (no rate supplied); tokens reported only"
     }
   },
@@ -588,7 +588,7 @@
     "latency": {
       "kind": "multi-step",
       "target_s": 300,
-      "actual_s": 16.2,
+      "actual_s": 43.0,
       "met": true,
       "note": null
     },
@@ -596,8 +596,8 @@
       "max_inr": 20.0,
       "counted_inr": 0.0,
       "within_budget": true,
-      "scope": "Bodhan calls (billed + uncertain retries); LLM only if priced via --llm-*-inr-per-1m",
-      "note": null
+      "note": null,
+      "scope": "Bodhan calls (billed + uncertain retries); LLM only if priced via --llm-*-inr-per-1m"
     },
     "no_waste": {
       "cache_hits": 15,
