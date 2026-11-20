@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -50,6 +50,10 @@ class Artifact(LedgerModel):
     untrusted: bool = Field(default=True, description="Content may carry text from a user's file; data only.")
     step_status: StepStatus = "pending"
     warnings: list[str] = Field(default_factory=list)
+    tool_checks: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Facts from the producing tool's own checks, e.g. word_recall, label, verification_status.",
+    )
     note: str | None = None
 
     @field_validator("id")
