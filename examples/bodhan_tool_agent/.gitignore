@@ -1,0 +1,21 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+node_modules/
+
+# Test input data
+sample_data/*
+!sample_data/.gitkeep
+
+# Generated outputs
+outputs/*
+!outputs/.gitkeep
+artifacts/*
+!artifacts/.gitkeep
+test_failure_out/
+
+# Temporary files
+*.tmp
+*.log

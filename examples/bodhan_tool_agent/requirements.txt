@@ -1,0 +1,9 @@
+mcp==1.12.4
+openai==1.109.1
+requests==2.32.3
+python-dotenv==1.0.1
+pydantic==2.11.9
+pypdfium2==4.30.0
+Pillow==11.3.0
+soundfile==0.13.1
+numpy==2.2.6
