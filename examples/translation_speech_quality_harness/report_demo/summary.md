@@ -2,19 +2,19 @@
 
 Items scored: **120** · skipped: **0** · model cost: **₹1.30**
 
-The highest weighted error rate is in Bengali (78.9 errors per 1,000 words), making it the worst‑performing language. Across all languages, the “format” category has the most issues (11 total flags), so it is the weakest error type. All five quality targets are satisfied (detection recall 0.951, false alarms 0.0, localization 0.935, category accuracy 0.914, judge consistency 0.945). *(Written by the LLM from the numbers below.)*
+Bengali (bn) has the highest weighted error rate at 86.0 errors per 1,000 words, making it the worst‑performing language. The “format” category has the most errors overall (10 across all languages), so it is the weakest error type. All five quality targets were achieved: detection recall = 1.0, false‑alarm rate = 0.0, localization = 0.984, category accuracy = 0.951, and judge consistency = 0.945. *(Written by the LLM from the numbers below.)*
 
 ## Headline
 
-- Worst language: **bn**, 78.9 weighted errors per 1,000 source words.
-- Most frequent error: **format**, 11 flags.
+- Worst language: **bn**, 86.0 weighted errors per 1,000 source words.
+- Most frequent error: **format**, 10 flags.
 
 ## Per language
 
 | Language | clean | flagged | review | unscored | flags | weighted / 1k words |
 | --- | --- | --- | --- | --- | --- | --- |
-| bn | 20 | 18 | 2 | 0 | 18 | 78.9 |
-| hi | 16 | 20 | 4 | 0 | 21 | 67.4 |
+| bn | 18 | 20 | 2 | 0 | 20 | 86.0 |
+| hi | 15 | 21 | 4 | 0 | 22 | 71.0 |
 | ta | 12 | 20 | 8 | 0 | 21 | 73.8 |
 
 Weights: minor 1, major 5, critical 10. Lower is better.
@@ -23,15 +23,15 @@ Weights: minor 1, major 5, critical 10. Lower is better.
 
 | Category | bn | hi | ta | total |
 | --- | --- | --- | --- | --- |
-| format | 2 | 6 | 3 | 11 |
+| format | 2 | 5 | 3 | 10 |
+| addition | 3 | 2 | 2 | 7 |
 | mistranslation | 3 | 2 | 2 | 7 |
-| omission | 3 | 2 | 2 | 7 |
+| garbled | 2 | 2 | 2 | 6 |
+| omission | 2 | 2 | 2 | 6 |
 | speech_omission | 2 | 2 | 2 | 6 |
+| speech_repetition | 2 | 2 | 2 | 6 |
 | wrong_language | 2 | 2 | 2 | 6 |
-| addition | 2 | 1 | 2 | 5 |
-| garbled | 1 | 2 | 2 | 5 |
 | number | 2 | 1 | 2 | 5 |
-| speech_repetition | 1 | 1 | 2 | 4 |
 | term | 0 | 2 | 2 | 4 |
 
 ## Top failures
@@ -39,8 +39,8 @@ Weights: minor 1, major 5, critical 10. Lower is better.
 - **wmt-125 / bn**: wrong_language, critical, confidence 0.99, found by judge, regen_diff, script
   - source: “state prisons”
   - translation: “घर के करीब, वाशिंगटन ने हाल ही में राज्य की जेलों, पुलिस, स्कूलों और अन्य संस्थाओं की स्वतंत्र निगरानी स्थापित या विस्त…”
-- **wmt-28 / bn**: omission, critical, confidence 0.99, found by back_translation, judge, regen_diff
-  - source: “and not beer”
+- **wmt-28 / bn**: addition, critical, confidence 0.99, found by back_translation, judge, regen_diff
+  - source: “European brewers have warned that exempting wine and not beer from deposit return schemes and reuse targets is unfair a…”
   - translation: “তবে ঋষি সুনাকের দৃষ্টিভঙ্গিতে সমস্যা রয়েছে।”
 - **sci-boiling / ta**: mistranslation, critical, confidence 0.94, found by judge, regen_diff
   - source: “boils”
@@ -58,22 +58,22 @@ Weights: minor 1, major 5, critical 10. Lower is better.
 
 | Metric | Value | Target | Met |
 | --- | --- | --- | --- |
-| Detection recall | 95% | >= 80% | yes |
+| Detection recall | 100% | >= 80% | yes |
 | False alarms on clean items | 0% | <= 10% | yes |
-| Localization | 94% | >= 70% | yes |
-| Category accuracy | 91% | >= 70% | yes |
+| Localization | 98% | >= 70% | yes |
+| Category accuracy | 95% | >= 70% | yes |
 | Judge consistency | 94% | >= 90% | yes |
 
 | Category | Recall | Precision | Found / labelled |
 | --- | --- | --- | --- |
-| addition | 67% | 80% | 4 / 6 |
-| format | 100% | 73% | 8 / 8 |
-| garbled | 83% | 100% | 5 / 6 |
+| addition | 100% | 86% | 6 / 6 |
+| format | 100% | 80% | 8 / 8 |
+| garbled | 100% | 100% | 6 / 6 |
 | mistranslation | 83% | 71% | 5 / 6 |
 | number | 83% | 100% | 5 / 6 |
-| omission | 100% | 86% | 6 / 6 |
+| omission | 100% | 100% | 6 / 6 |
 | speech_omission | 100% | 100% | 6 / 6 |
-| speech_repetition | 67% | 100% | 4 / 6 |
+| speech_repetition | 100% | 100% | 6 / 6 |
 | term | 67% | 100% | 4 / 6 |
 | wrong_language | 100% | 100% | 6 / 6 |
 

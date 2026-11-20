@@ -182,6 +182,33 @@ def test_recheck_clears_omission_heard_in_the_cut():
     assert calls[0] < len(cs.wav_bytes(x, 24000))  # only a cut was sent
 
 
+def _syllables(seconds, sr=16000, seed=0):
+    """Speech-like sound: voiced syllables with a different pitch each, separated by short gaps."""
+    rng = np.random.default_rng(seed)
+    out = []
+    while sum(map(len, out)) < seconds * sr:
+        n = int(rng.uniform(0.12, 0.25) * sr)
+        t = np.arange(n) / sr
+        f0 = rng.uniform(90, 220)
+        f1, f2 = rng.uniform(300, 900), rng.uniform(900, 2800)  # two formants: each syllable its own vowel
+        amp = lambda f: np.exp(-((f - f1) / 120) ** 2) + np.exp(-((f - f2) / 180) ** 2) + 0.01  # noqa: E731
+        tone = sum(amp(f0 * h) * np.sin(2 * np.pi * f0 * h * t + rng.uniform(0, 6)) for h in range(1, 40) if f0 * h < sr / 2)
+        out += [0.2 * tone * np.hanning(n), np.zeros(int(0.04 * sr))]
+    return np.concatenate(out).astype(np.float32)[: int(seconds * sr)], sr
+
+
+def test_sound_alone_finds_noise_and_copied_stretches():
+    x, sr = _syllables(6)
+    assert cs.sound_candidates(x, sr, "x" * 60) == []  # clean speech: nothing
+    noisy = x.copy()
+    noisy[2 * sr:3 * sr] = np.random.default_rng(1).normal(0, 0.15, sr)
+    [g] = cs.sound_candidates(noisy, sr, "x" * 60)
+    assert g["category"] == "garbled" and g["class"] == "exact" and 1.9 <= g["audio_span_s"][0] <= 2.1
+    copied = np.concatenate([x[:3 * sr], x[2 * sr:3 * sr], x[3 * sr:]])  # one second spoken twice
+    [r] = cs.sound_candidates(copied, sr, "x" * 60)
+    assert r["category"] == "speech_repetition" and r["translation_span"] is not None
+
+
 def test_recheck_confirms_a_repeat_heard_again_in_the_cut():
     text = "इस कदम से भूमि को बदलने में भी मदद मिलेगी।"
     al = cs.align(text, "इस कदम से भूमि को बदलने में भी मदद को बदलने में भी मदद मिलेगी")

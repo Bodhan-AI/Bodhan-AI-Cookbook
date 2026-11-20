@@ -86,6 +86,13 @@ def decide(g: list[dict], judge_verdict: str | None) -> str:
     return "drop"
 
 
+def _extra_content_only(cands: list[dict]) -> bool:
+    """Every exact candidate is a format finding that only reports extra content (formulas, code), nothing lost."""
+    exact = [c for c in cands if c["class"] == "exact"]
+    return bool(exact) and all(c["category"] == "format" and c["evidence"].get("extra") and c["evidence"].get("missing") == []
+                               for c in exact)
+
+
 def merge(g: list[dict]) -> dict:
     g = sorted(g, key=lambda c: (_RANK[c["class"]], -c["strength"], c["check"]))
     deciding = [c for c in g if c["class"] != "weak"] or g
@@ -93,10 +100,13 @@ def merge(g: list[dict]) -> dict:
     order = SPEECH_PRECEDENCE if speech else TEXT_PRECEDENCE
     exact_cats = [c["category"] for c in deciding if c["class"] == "exact"]
     judge_cats = [c["category"] for c in deciding if c["class"] == "judge"]
-    if exact_cats:
+    others = lambda cat: len({c["check"] for c in deciding if c["category"] == cat and c["class"] != "judge"})  # noqa: E731
+    if exact_cats and _extra_content_only(deciding) and (others("addition") or "addition" in judge_cats):
+        category = "addition"  # a formula that is only extra came with an added sentence: an addition, not broken structure
+    elif exact_cats:
         category = min(exact_cats, key=lambda x: order.index(x) if x in order else 99)
-    elif judge_cats:  # the judge reads meaning; prefer its category over the diff's guess
-        category = judge_cats[0]
+    elif judge_cats:  # the judge reads meaning; prefer its category over the diff's guess, and among its own the best-backed
+        category = max(dict.fromkeys(judge_cats), key=others)
     else:
         # Noisy only: the category most independent checks agree on ("number missing" inside a dropped sentence is
         # the omission's side effect); precedence breaks ties.

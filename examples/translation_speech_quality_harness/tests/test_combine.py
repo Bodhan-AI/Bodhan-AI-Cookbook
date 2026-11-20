@@ -50,6 +50,19 @@ def test_clean_text_verdict_does_not_veto_speech():
     assert combine([rep, again], "clean")[0] == "flagged"
 
 
+def test_judge_category_backed_by_other_checks_wins():
+    g = [judge("omission"), judge("addition"), noisy("back_translation", "addition"), noisy("regen_diff", "addition")]
+    assert merge(g)["category"] == "addition"
+
+
+def test_extra_formula_inside_an_added_sentence_is_an_addition():
+    fmt = cand("format", "format", "exact", 0.95, S, S, extra=["$r$"], missing=[])
+    assert merge([fmt, noisy("back_translation", "addition")])["category"] == "addition"
+    assert merge([fmt])["category"] == "format"  # nothing else says addition
+    lost = cand("format", "format", "exact", 0.95, S, S, extra=[], missing=["$r$"])
+    assert merge([lost, noisy("back_translation", "addition")])["category"] == "format"  # something was lost: format
+
+
 def test_name_on_the_source_side_makes_a_term():
     from bodhan_eval.combine import is_name
     src = "Regulators said SEC Chair Gary Gensler met Kiev officials."

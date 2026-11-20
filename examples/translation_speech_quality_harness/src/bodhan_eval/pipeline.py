@@ -177,6 +177,8 @@ def run(args, bodhan=None, llm=None, env=os.environ) -> int:
             return
         x, sr, st = got
         res["_cands"] += cs.stats_candidates(st)
+        if st["peak_rms"] >= 0.003:
+            res["_cands"] += cs.sound_candidates(x, sr, item["translation"] or "")
         res["audio"] = {k: st[k] for k in ("duration_s", "voiced_s", "longest_silence_s", "clipped_share", "contrast")}
         if not item["translation"]:
             res["checks_run"]["transcript"] = "not_applicable"  # nothing to compare the speech with

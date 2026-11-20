@@ -2,21 +2,21 @@
 
 Items scored: **120** · skipped: **0** · model cost: **₹1.32**
 
-Hindi shows the highest weighted error rate (70.3 errors per 1,000 words), so it is the worst language. The most common error type is “format” errors, with a total of nine occurrences across languages. All five quality targets were met, as each metric’s value meets or exceeds its specified threshold. *(Written by the LLM from the numbers below.)*
+Hindi shows the highest weighted error rate (73.8 errors per 1,000 words), making it the worst language. The most common error type is “format” errors, with a total of nine occurrences across all languages. All five quality targets were met, as each metric’s value meets or exceeds its specified threshold. *(Written by the LLM from the numbers below.)*
 
 ## Headline
 
-- Worst language: **hi**, 70.3 weighted errors per 1,000 source words.
+- Worst language: **hi**, 73.8 weighted errors per 1,000 source words.
 - Most frequent error: **format**, 9 flags.
-- Against the baseline: **48** items regressed, **53** improved (see `diff.md`).
+- Against the baseline: **53** items regressed, **55** improved (see `diff.md`).
 
 ## Per language
 
 | Language | clean | flagged | review | unscored | flags | weighted / 1k words |
 | --- | --- | --- | --- | --- | --- | --- |
-| bn | 19 | 17 | 4 | 0 | 18 | 59.5 |
-| hi | 12 | 20 | 8 | 0 | 20 | 70.3 |
-| ta | 12 | 17 | 11 | 0 | 17 | 55.2 |
+| bn | 17 | 19 | 4 | 0 | 20 | 66.7 |
+| hi | 12 | 21 | 7 | 0 | 21 | 73.8 |
+| ta | 12 | 20 | 8 | 0 | 20 | 65.9 |
 
 Weights: minor 1, major 5, critical 10. Lower is better.
 
@@ -25,15 +25,15 @@ Weights: minor 1, major 5, critical 10. Lower is better.
 | Category | bn | hi | ta | total |
 | --- | --- | --- | --- | --- |
 | format | 3 | 4 | 2 | 9 |
-| addition | 2 | 3 | 2 | 7 |
-| mistranslation | 2 | 1 | 3 | 6 |
+| mistranslation | 2 | 2 | 3 | 7 |
+| addition | 2 | 2 | 2 | 6 |
+| garbled | 2 | 2 | 2 | 6 |
 | number | 2 | 2 | 2 | 6 |
 | omission | 2 | 2 | 2 | 6 |
 | speech_omission | 2 | 2 | 2 | 6 |
+| speech_repetition | 2 | 2 | 2 | 6 |
 | wrong_language | 2 | 2 | 2 | 6 |
-| garbled | 2 | 2 | 0 | 4 |
 | term | 1 | 1 | 1 | 3 |
-| speech_repetition | 0 | 1 | 1 | 2 |
 
 ## Top failures
 
@@ -59,22 +59,22 @@ Weights: minor 1, major 5, critical 10. Lower is better.
 
 | Metric | Value | Target | Met |
 | --- | --- | --- | --- |
-| Detection recall | 88% | >= 80% | yes |
+| Detection recall | 98% | >= 80% | yes |
 | False alarms on clean items | 2% | <= 10% | yes |
-| Localization | 85% | >= 70% | yes |
-| Category accuracy | 94% | >= 70% | yes |
+| Localization | 93% | >= 70% | yes |
+| Category accuracy | 96% | >= 70% | yes |
 | Judge consistency | 93% | >= 90% | yes |
 
 | Category | Recall | Precision | Found / labelled |
 | --- | --- | --- | --- |
-| addition | 100% | 86% | 6 / 6 |
+| addition | 100% | 100% | 6 / 6 |
 | format | 100% | 67% | 6 / 6 |
-| garbled | 67% | 100% | 4 / 6 |
-| mistranslation | 67% | 67% | 4 / 6 |
+| garbled | 100% | 100% | 6 / 6 |
+| mistranslation | 67% | 57% | 4 / 6 |
 | number | 83% | 83% | 5 / 6 |
 | omission | 100% | 100% | 6 / 6 |
 | speech_omission | 100% | 100% | 6 / 6 |
-| speech_repetition | 33% | 100% | 2 / 6 |
+| speech_repetition | 100% | 100% | 6 / 6 |
 | term | 50% | 100% | 3 / 6 |
 | wrong_language | 100% | 100% | 6 / 6 |
 

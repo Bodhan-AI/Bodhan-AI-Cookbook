@@ -134,6 +134,80 @@ def stats_candidates(st: dict) -> list[dict]:
     return c
 
 
+NOISE_FLATNESS = 0.3  # spectral flatness: white noise is near 1, voiced speech near 0.01-0.1
+NOISE_RUN_S = 0.5  # the longest noise-like speech sound (a long "s") lasts about 0.2 s
+COPY_SIMILARITY = 0.995  # a stretch this close to the one just before it was copied, not spoken again
+
+
+def _frames(x: np.ndarray, sr: int, hop_s: float) -> tuple[np.ndarray, int]:
+    n, hop = int(FRAME_S * sr), max(1, int(hop_s * sr))
+    m = max(0, (len(x) - n) // hop)
+    idx = np.arange(n)[None, :] + hop * np.arange(m)[:, None]
+    return np.abs(np.fft.rfft(x[idx] * np.hanning(n), axis=1)) ** 2 + 1e-12, hop
+
+
+def noise_stretches(x: np.ndarray, sr: int) -> list[tuple[float, float]]:
+    """Stretches of at least NOISE_RUN_S where the sound is loud and spectrally flat: noise, not speech."""
+    p, hop = _frames(x, sr, FRAME_S)
+    if len(p) == 0:
+        return []
+    flat = np.exp(np.log(p).mean(axis=1)) / p.mean(axis=1)
+    level = np.sqrt(p.mean(axis=1))
+    voiced = level[level > 0.02 * level.max()]
+    if voiced.size == 0 or level.max() < 1e-4:
+        return []
+    noisy = (flat > NOISE_FLATNESS) & (level > 0.1 * np.median(voiced))
+    out, start = [], None
+    for i, v in enumerate(list(noisy) + [False]):
+        if v and start is None:
+            start = i
+        elif not v and start is not None:
+            if (i - start) * hop / sr >= NOISE_RUN_S:
+                out.append((round(start * hop / sr, 2), round(i * hop / sr, 2)))
+            start = None
+    return out
+
+
+def copied_stretch(x: np.ndarray, sr: int, win_s: float = 0.3, hop_s: float = 0.005) -> tuple[float, float, float]:
+    """(similarity, start of the first copy, end of the second copy) for the closest pair of 0.3 s stretches 0.25-3 s
+    apart. Similarity is the mean cosine of mean-removed log band energies, frame by frame."""
+    p, hop = _frames(x, sr, hop_s)
+    m, w = len(p), int(win_s / hop_s)
+    if m < w + int(0.25 / hop_s):
+        return 0.0, 0.0, 0.0
+    f = np.log(np.stack([p[:, b].sum(axis=1) for b in np.array_split(np.arange(p.shape[1]), 40)], axis=1))
+    loud = f.max(axis=1) > np.percentile(f.max(axis=1), 30)
+    f = f - f.mean(axis=1, keepdims=True)
+    f /= np.linalg.norm(f, axis=1, keepdims=True) + 1e-9
+    best = (0.0, 0.0, 0.0)
+    for lag in range(int(0.25 / hop_s), min(m - w, int(3 / hop_s))):
+        both = loud[:-lag] & loud[lag:]
+        n_loud = np.convolve(both, np.ones(w), mode="valid")
+        run = np.convolve((f[:-lag] * f[lag:]).sum(axis=1) * both, np.ones(w), mode="valid") / np.maximum(n_loud, 1)
+        run[n_loud < w / 2] = 0  # mostly quiet windows say nothing
+        k = int(np.argmax(run))
+        if run[k] > best[0]:
+            best = (round(float(run[k]), 4), round(k * hop / sr, 2), round((k + lag + w) * hop / sr, 2))
+    return best
+
+
+def sound_candidates(x: np.ndarray, sr: int, text: str) -> list[dict]:
+    """Noise and copied stretches, found in the sound alone, with a text span estimated from their time."""
+    dur = len(x) / sr or 1.0
+    at = lambda a, b: (int(a / dur * len(text)), max(int(b / dur * len(text)), int(a / dur * len(text)) + 1))  # noqa: E731
+    c = []
+    for a, b in noise_stretches(x, sr):
+        c.append(cand("audio_stats", "garbled", "exact", 0.9, None, at(a, b) if text else None, "major",
+                      detail=f"{b - a:.1f} s of noise instead of speech", audio_span_s=[a, b]))
+    sim, a, b = copied_stretch(x, sr)
+    if sim >= COPY_SIMILARITY:
+        c.append(cand("audio_stats", "speech_repetition", "exact", 0.9, None, at(a, b) if text else None, "major",
+                      detail="a stretch of audio is an exact copy of the one before it", similarity=sim, audio_span_s=[a, b]))
+    for x_ in c:
+        x_["audio_span_s"] = x_["evidence"].pop("audio_span_s", None)
+    return c
+
+
 # ---------------------------------------------------------------- text that was spoken
 
 def spoken_tokens(text: str) -> list[tuple[str, tuple[int, int]]]:
