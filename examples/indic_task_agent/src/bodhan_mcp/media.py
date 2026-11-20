@@ -93,7 +93,7 @@ def find_silences(wav: Path, noise_db: int = -35, min_silence_s: float = 0.3) ->
          "-f", "null", "-"], capture_output=True, text=True, encoding="utf-8", errors="replace")
     starts = [float(x) for x in re.findall(r"silence_start: ([\d.]+)", p.stderr)]
     ends = [float(x) for x in re.findall(r"silence_end: ([\d.]+)", p.stderr)]
-    return list(zip(starts, ends))  # a trailing unmatched start is ignored
+    return list(zip(starts, ends,strict=False))  # a trailing unmatched start is ignored
 
 
 def plan_chunks(duration: float, silences: list[tuple[float, float]],
@@ -159,4 +159,12 @@ def join_wavs(parts: list[bytes], dst: Path, gap_ms: int = 250) -> Path:
 def wav_to_mp3(src: Path, dst: Path) -> Path:
     dst.parent.mkdir(parents=True, exist_ok=True)
     _run([_need("ffmpeg"), "-y", "-i", str(src), "-codec:a", "libmp3lame", "-q:a", "4", str(dst)])
+    return dst
+
+
+
+def to_png(src: Path, dst: Path) -> Path:
+    """Convert any image ffmpeg can read (webp, bmp, tiff...) to PNG."""
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    _run([_need("ffmpeg"), "-y", "-i", str(src), str(dst)])
     return dst

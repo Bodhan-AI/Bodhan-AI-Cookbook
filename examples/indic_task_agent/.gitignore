@@ -11,3 +11,4 @@ sample_data/*
 outputs/*
 !outputs/.gitkeep
 out/
+bodhan_out/

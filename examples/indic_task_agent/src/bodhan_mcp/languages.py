@@ -68,7 +68,7 @@ for _c, _n in LANGUAGE_NAMES.items():  # "Kashmiri (Devanagari)" -> also usable 
 
 
 def normalize_language(value: str | None) -> str | None:
-    """'Hindi', 'hindi', 'HI', 'hi-IN' and 'ks-deva' all map to a canonical code, else None."""
+    """'Hindi', 'hindi', 'HI', 'hi_IN' and 'ks-deva' all map to a canonical code, else None."""
     if not value:
         return None
     v = value.strip().lower().replace("_", "-")
@@ -76,7 +76,7 @@ def normalize_language(value: str | None) -> str | None:
         return _CODES[v]
     if v in _NAME_TO_CODE:
         return _NAME_TO_CODE[v]
-    base = v.split("-")[0]  # "hi-in" -> "hi"
+    base = v.split("-")[0]  # a region tag is dropped: "hi-xx" -> "hi"
     return _CODES.get(base)
 
 
@@ -163,3 +163,9 @@ def detect_language(text: str) -> dict[str, Any]:
         "confidence": round(counts[script] / total, 3),
         "note": "Script identifies the writing system, not always the language." if len(cands) > 1 else "",
     }
+    
+
+
+def expected_scripts(code: str) -> set[str]:
+    """Scripts a correct output in this language may be written in (used for sanity checks)."""
+    return {script for script, langs in _SCRIPT_LANGS.items() if code in langs}

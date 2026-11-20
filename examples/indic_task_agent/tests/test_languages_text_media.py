@@ -19,7 +19,7 @@ needs_ffmpeg = pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="ffmpeg
 
 # ---- languages ---------------------------------------------------------------------------
 @pytest.mark.parametrize("raw,code", [
-    ("Hindi", "hi"), ("hindi", "hi"), ("HI", "hi"), ("hi-IN", "hi"), ("Tamil", "ta"),
+    ("Hindi", "hi"), ("hindi", "hi"), ("HI", "hi"), ("hi_IN", "hi"), ("Tamil", "ta"),
     ("ks-deva", "ks-Deva"), ("Bangla", "bn"), ("Oriya", "or"), ("Kashmiri", "ks"),
 ])
 def test_normalize_language(raw, code):
