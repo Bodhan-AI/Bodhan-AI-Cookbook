@@ -175,9 +175,7 @@ subtitles, a translation into a language, or an answer to a question). For each,
 provides it, by its name only (the part before the colon: "answer" or a file name), or null if none does. An item provides an output only if it has the requested form \
 (spoken output needs audio; subtitles need an .srt; "a file" needs a file) and the requested language. A conditional \
 request ("translate the Telugu ones") is provided by the answer when it explains that nothing qualified. Do not list \
-outputs the task did not ask for, and do not judge quality. When the task asks for outputs only for the inputs that \
-meet a condition, use the answer's own account of each input: an input it excluded whose stated facts meet the \
-condition still needs its output, so list that output with null."""
+outputs the task did not ask for, and do not judge quality."""
 
 
 class FinishIn(_Strict):
