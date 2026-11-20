@@ -110,3 +110,7 @@ class LocalResult(BaseModel):
 
     data: dict[str, Any] = Field(default_factory=dict, description="Fields shown to the LLM; 'text' is wrapped.")
     artifact_ids: list[str] = Field(default_factory=list, description="Ledger ids created or used by the tool.")
+    usage: dict[str, Any] | None = Field(
+        default=None,
+        description="Bodhan usage summed over the MCP calls the tool made, in the server's usage shape.",
+    )
