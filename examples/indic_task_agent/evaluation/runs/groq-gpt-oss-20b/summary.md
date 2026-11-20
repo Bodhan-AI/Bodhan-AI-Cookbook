@@ -1,6 +1,6 @@
 # Suite: 1/10 passed structural checks
 
-Code: `23e9799d14c39ddd021ddc4f828218a25d98e2c8`. Scored 2026-11-19T23:57:34+00:00.
+Code: `94b489168e53a027a44f8149a28166589b7f51bd` (relabelled after the history rewrite of 20 November 2026; the run used the pre-rewrite commit `23e9799`, same code). Scored 2026-11-19T23:57:34+00:00.
 
 | Task | Evidence | Cache | Status | Pass | Time (s) | Steps | Bodhan ₹ | Paid calls | Cache hits | Latency target | Failed checks |
 |---|---|---|---|---|---|---|---|---|---|---|---|

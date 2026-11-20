@@ -4,8 +4,9 @@
   "pass_rate": 0.1,
   "scored_at": "2026-11-19T23:57:34+00:00",
   "code": {
-    "commit": "23e9799d14c39ddd021ddc4f828218a25d98e2c8",
-    "src_modified": false
+    "commit": "94b489168e53a027a44f8149a28166589b7f51bd",
+    "src_modified": false,
+    "commit_before_history_rewrite": "23e9799d14c39ddd021ddc4f828218a25d98e2c8"
   },
   "checks": "structural only (status, files, kinds, languages, verification, answer text, budget); not a quality score",
   "tasks": [

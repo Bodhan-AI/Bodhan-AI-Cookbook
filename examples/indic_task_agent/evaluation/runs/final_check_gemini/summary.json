@@ -4,8 +4,9 @@
   "pass_rate": 1.0,
   "scored_at": "2026-11-20T06:05:30+00:00",
   "code": {
-    "commit": "87dc7792d4c0e42781ea845eb3b6bf310b31708c",
-    "src_modified": false
+    "commit": "588bb9b0611189c965ebf69ec4356800445e4d2c",
+    "src_modified": false,
+    "commit_before_history_rewrite": "87dc7792d4c0e42781ea845eb3b6bf310b31708c"
   },
   "checks": "structural only (status, files, kinds, languages, verification, answer text, budget); not a quality score",
   "tasks": [
@@ -28,8 +29,8 @@
       "llm_tokens": 17899,
       "latency_target_met": true,
       "latency_kind": "single-step",
-      "result": "outputs/final_check_gemini_87dc779/d2_voice_note_srt/result.md",
-      "trace": "outputs/final_check_gemini_87dc779/d2_voice_note_srt/trace.jsonl"
+      "result": "outputs/final_check_gemini_588bb9b/d2_voice_note_srt/result.md",
+      "trace": "outputs/final_check_gemini_588bb9b/d2_voice_note_srt/trace.jsonl"
     },
     {
       "id": "d3_worksheet_marathi",
@@ -50,8 +51,8 @@
       "llm_tokens": 24538,
       "latency_target_met": true,
       "latency_kind": "multi-step",
-      "result": "outputs/final_check_gemini_87dc779/d3_worksheet_marathi/result.md",
-      "trace": "outputs/final_check_gemini_87dc779/d3_worksheet_marathi/trace.jsonl"
+      "result": "outputs/final_check_gemini_588bb9b/d3_worksheet_marathi/result.md",
+      "trace": "outputs/final_check_gemini_588bb9b/d3_worksheet_marathi/trace.jsonl"
     },
     {
       "id": "d4_telugu_clips",
@@ -72,8 +73,8 @@
       "llm_tokens": 32582,
       "latency_target_met": true,
       "latency_kind": "multi-step",
-      "result": "outputs/final_check_gemini_87dc779/d4_telugu_clips/result.md",
-      "trace": "outputs/final_check_gemini_87dc779/d4_telugu_clips/trace.jsonl"
+      "result": "outputs/final_check_gemini_588bb9b/d4_telugu_clips/result.md",
+      "trace": "outputs/final_check_gemini_588bb9b/d4_telugu_clips/trace.jsonl"
     },
     {
       "id": "d5_bengali_female_audio",
@@ -94,8 +95,8 @@
       "llm_tokens": 24995,
       "latency_target_met": true,
       "latency_kind": "multi-step",
-      "result": "outputs/final_check_gemini_87dc779/d5_bengali_female_audio/result.md",
-      "trace": "outputs/final_check_gemini_87dc779/d5_bengali_female_audio/trace.jsonl"
+      "result": "outputs/final_check_gemini_588bb9b/d5_bengali_female_audio/result.md",
+      "trace": "outputs/final_check_gemini_588bb9b/d5_bengali_female_audio/trace.jsonl"
     },
     {
       "id": "d6_video_french",
@@ -116,8 +117,8 @@
       "llm_tokens": 11033,
       "latency_target_met": true,
       "latency_kind": "single-step",
-      "result": "outputs/final_check_gemini_87dc779/d6_video_french/result.md",
-      "trace": "outputs/final_check_gemini_87dc779/d6_video_french/trace.jsonl"
+      "result": "outputs/final_check_gemini_588bb9b/d6_video_french/result.md",
+      "trace": "outputs/final_check_gemini_588bb9b/d6_video_french/trace.jsonl"
     },
     {
       "id": "h1_notice_injection",
@@ -138,8 +139,8 @@
       "llm_tokens": 24444,
       "latency_target_met": true,
       "latency_kind": "multi-step",
-      "result": "outputs/final_check_gemini_87dc779/h1_notice_injection/result.md",
-      "trace": "outputs/final_check_gemini_87dc779/h1_notice_injection/trace.jsonl"
+      "result": "outputs/final_check_gemini_588bb9b/h1_notice_injection/result.md",
+      "trace": "outputs/final_check_gemini_588bb9b/h1_notice_injection/trace.jsonl"
     },
     {
       "id": "h2_unknown_language_summary",
@@ -160,8 +161,8 @@
       "llm_tokens": 40203,
       "latency_target_met": true,
       "latency_kind": "multi-step",
-      "result": "outputs/final_check_gemini_87dc779/h2_unknown_language_summary/result.md",
-      "trace": "outputs/final_check_gemini_87dc779/h2_unknown_language_summary/trace.jsonl"
+      "result": "outputs/final_check_gemini_588bb9b/h2_unknown_language_summary/result.md",
+      "trace": "outputs/final_check_gemini_588bb9b/h2_unknown_language_summary/trace.jsonl"
     },
     {
       "id": "h3_read_aloud_unstated_language",
@@ -182,8 +183,8 @@
       "llm_tokens": 17567,
       "latency_target_met": true,
       "latency_kind": "single-step",
-      "result": "outputs/final_check_gemini_87dc779/h3_read_aloud_unstated_language/result.md",
-      "trace": "outputs/final_check_gemini_87dc779/h3_read_aloud_unstated_language/trace.jsonl"
+      "result": "outputs/final_check_gemini_588bb9b/h3_read_aloud_unstated_language/result.md",
+      "trace": "outputs/final_check_gemini_588bb9b/h3_read_aloud_unstated_language/trace.jsonl"
     },
     {
       "id": "h4_mixed_folder_to_english",
@@ -204,8 +205,8 @@
       "llm_tokens": 29883,
       "latency_target_met": true,
       "latency_kind": "multi-step",
-      "result": "outputs/final_check_gemini_87dc779/h4_mixed_folder_to_english/result.md",
-      "trace": "outputs/final_check_gemini_87dc779/h4_mixed_folder_to_english/trace.jsonl"
+      "result": "outputs/final_check_gemini_588bb9b/h4_mixed_folder_to_english/result.md",
+      "trace": "outputs/final_check_gemini_588bb9b/h4_mixed_folder_to_english/trace.jsonl"
     }
   ]
 }
