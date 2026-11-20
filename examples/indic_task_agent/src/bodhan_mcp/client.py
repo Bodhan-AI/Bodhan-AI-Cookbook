@@ -34,6 +34,36 @@ def _safe_json(r: httpx.Response) -> Any:
         return r.text[:300]
 
 
+def _body(r: httpx.Response, model: str) -> dict[str, Any]:
+    """Parse a successful response. A 200 whose body is not a JSON object is reported
+    as a structured error instead of crashing later with a TypeError."""
+    try:
+        d = r.json()
+    except ValueError:
+        d = None
+    if not isinstance(d, dict):
+        raise BodhanError(
+            "bad_response",
+            f"{model} returned HTTP {r.status_code} with an unexpected body: {r.text[:200]!r}",
+            status=r.status_code, model=model,
+            hint="Retry once. If it repeats, check the input (size, format) and the API status.",
+        )
+    return d
+
+
+def _dig(d: Any, model: str, *path: Any) -> Any:
+    """Follow d[path[0]][path[1]]... or raise a structured error naming the missing part."""
+    cur = d
+    for key in path:
+        try:
+            cur = cur[key]
+        except (KeyError, IndexError, TypeError):
+            raise BodhanError(
+                "bad_response", f"{model} response is missing '{'/'.join(map(str, path))}'.", model=model
+            ) from None
+    return cur
+
+
 def wav_duration_s(data: bytes) -> float | None:
     try:
         with wave.open(BytesIO(data)) as w:
@@ -41,7 +71,23 @@ def wav_duration_s(data: bytes) -> float | None:
     except (wave.Error, EOFError):
         return None
 
+PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
+JPEG_MAGIC = b"\xff\xd8\xff"
 
+
+def image_mime(data: bytes, name: str) -> str:
+    """Identify an image by its first bytes (not its extension). Empty or unreadable files
+    are rejected here, before any money is spent."""
+    if not data:
+        raise BodhanError("empty_file", f"{name} is empty (0 bytes).",
+                          hint="Re-save or re-export the image, then try again.")
+    if data.startswith(PNG_MAGIC):
+        return "image/png"
+    if data.startswith(JPEG_MAGIC):
+        return "image/jpeg"
+    raise BodhanError("unsupported_image", f"{name} is not a valid PNG or JPEG image.",
+                      hint="Convert the image to PNG or JPEG.")
+    
 class BodhanClient:
     def __init__(
         self,
@@ -128,9 +174,9 @@ class BodhanClient:
                 body = {"text": text, "target_language": target_language}
                 if script != "native":
                     body["script"] = script
-                d = self._request("translate", "/translate", json_body=body).json()
+                d = _body(self._request("translate", "/translate", json_body=body), "translate")
                 out = {
-                    "text": d["translation"],
+                    "text": _dig(d, "translate", "translation"),
                     "truncated": bool(d.get("truncated")),
                     "output_tokens": (d.get("usage") or {}).get("completion_tokens", 0),
                     "route": "translate",
@@ -147,10 +193,10 @@ class BodhanClient:
             }
             if script != "native":
                 body["script"] = script
-            d = self._request("translate", "/v1/chat/completions", json_body=body).json()
-            choice = d["choices"][0]
+            d = _body(self._request("translate", "/v1/chat/completions", json_body=body), "translate")
+            choice = _dig(d, "translate", "choices", 0)
             out = {
-                "text": choice["message"]["content"],
+                "text": _dig(choice, "translate", "message", "content") or "",
                 "truncated": choice.get("finish_reason") == "length",
                 "output_tokens": (d.get("usage") or {}).get("completion_tokens", 0),
                 "route": "chat",
@@ -200,8 +246,8 @@ class BodhanClient:
         self.tracker.check("transcribe", inr)
         data = {"model": "indic-transcribe", **({"language": language} if language else {})}
         files = {"file": (path.name, audio, "audio/wav")}
-        d = self._request("transcribe", "/v1/audio/transcriptions", files=files, data=data).json()
-        out = {"text": d["text"], "seconds": round(seconds, 2)}
+        d = _body(self._request("transcribe", "/v1/audio/transcriptions", files=files, data=data), "transcribe")
+        out = {"text": _dig(d, "transcribe", "text") or "", "seconds": round(seconds, 2)}
         self.tracker.add("transcribe", inr, cached=False, seconds=round(seconds, 2))
         self.cache.put_json(key, out)
         return {**out, "cached": False}
@@ -213,6 +259,7 @@ class BodhanClient:
     ) -> dict[str, Any]:
         path = Path(image_path)
         img = path.read_bytes()
+        mime = image_mime(img, path.name)
         key = make_key("ocr", img, table_format, max_tokens)
         hit = self.cache.get_json(key)
         if hit is not None:
@@ -220,7 +267,7 @@ class BodhanClient:
             return {**hit, "cached": True}
 
         self.tracker.check("ocr", costs.OCR_PER_IMAGE)
-        mime = "image/png" if path.suffix.lower() == ".png" else "image/jpeg"
+       # mime = "image/png" if path.suffix.lower() == ".png" else "image/jpeg"
         body: dict[str, Any] = {
             "model": "indic-ocr",
             "messages": [{"role": "user", "content": [
@@ -231,10 +278,10 @@ class BodhanClient:
         }
         if max_tokens:
             body["max_tokens"] = max_tokens
-        d = self._request("ocr", "/v1/chat/completions", json_body=body, max_attempts=max_attempts).json()
+        d = _body(self._request("ocr", "/v1/chat/completions", json_body=body, max_attempts=max_attempts), "ocr")
         out = {
-            "text": d["choices"][0]["message"]["content"],
-            "blocks": d.get("blocks", []),
+            "text": _dig(d, "ocr", "choices", 0, "message", "content") or "",
+            "blocks": d.get("blocks") or [],
             "usage": d.get("usage"),
         }
         self.tracker.add("ocr", costs.OCR_PER_IMAGE, cached=False)

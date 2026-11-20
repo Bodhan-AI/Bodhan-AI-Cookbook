@@ -13,6 +13,7 @@ from bodhan_mcp.costs import BudgetExceeded, CostTracker
 from bodhan_mcp.errors import BodhanError, ConfigError
 
 KEYS = {"BODHAN_API_KEY": "test-key"}
+PNG = b"\x89PNG\r\n\x1a\n" + b"fake image body"
 
 
 def make_wav(seconds: float = 1.0, rate: int = 24000) -> bytes:
@@ -153,7 +154,7 @@ def test_transcribe_charges_by_audio_length(tmp_path):
 
 def test_ocr_returns_text_and_blocks(tmp_path):
     img = tmp_path / "p.png"
-    img.write_bytes(b"\x89PNG fake")
+    img.write_bytes(PNG)
 
     def handler(req):
         body = json.loads(req.content)
@@ -196,3 +197,68 @@ def test_auth_error_right_after_success_is_retried(tmp_path):
     client, _ = build(handler, tmp_path)
     client.translate("one", "ta")
     assert client.translate("two", "ta")["text"] == "ok"  # the 401 was treated as transient
+    
+
+
+@pytest.mark.parametrize("body", [None, [], "text", {"unexpected": 1}])
+def test_odd_200_responses_become_structured_errors_not_crashes(tmp_path, body):
+    img = tmp_path / "p.png"
+    img.write_bytes(PNG)
+    client, _ = build(lambda req: httpx.Response(200, json=body), tmp_path)
+    with pytest.raises(BodhanError) as e:
+        client.ocr(img)
+    assert e.value.code == "bad_response" and e.value.model == "ocr"
+
+
+def test_null_content_is_treated_as_empty_text(tmp_path):
+    img = tmp_path / "p.png"
+    img.write_bytes(PNG)
+    handler = lambda req: httpx.Response(200, json={"choices": [{"message": {"content": None}}]})  # noqa: E731
+    client, _ = build(handler, tmp_path)
+    assert client.ocr(img)["text"] == ""
+
+
+def test_translate_missing_field_is_structured(tmp_path):
+    client, _ = build(lambda req: httpx.Response(200, json={"truncated": False}), tmp_path)
+    with pytest.raises(BodhanError) as e:
+        client.translate("hi", "ta")
+    assert e.value.code == "bad_response" and "translation" in e.value.message
+    
+
+
+def test_empty_image_is_rejected_before_any_network_use(tmp_path):
+    n = {"c": 0}
+
+    def handler(req):
+        n["c"] += 1
+        return httpx.Response(200, json=None)
+
+    img = tmp_path / "page.png"
+    img.write_bytes(b"")
+    client, _ = build(handler, tmp_path)
+    with pytest.raises(BodhanError) as e:
+        client.ocr(img)
+    assert e.value.code == "empty_file" and n["c"] == 0 and client.tracker.total == 0
+
+
+def test_non_image_file_is_rejected_even_with_png_extension(tmp_path):
+    img = tmp_path / "fake.png"
+    img.write_bytes(b"this is text, not an image")
+    client, _ = build(lambda req: httpx.Response(200, json={}), tmp_path)
+    with pytest.raises(BodhanError) as e:
+        client.ocr(img)
+    assert e.value.code == "unsupported_image"
+
+
+def test_mime_comes_from_content_not_extension(tmp_path):
+    img = tmp_path / "photo.png"  # wrongly named: it is really a JPEG
+    img.write_bytes(b"\xff\xd8\xff\xe0 jpeg body")
+    seen = {}
+
+    def handler(req):
+        seen.update(json.loads(req.content))
+        return httpx.Response(200, json={"choices": [{"message": {"content": "x"}}]})
+
+    client, _ = build(handler, tmp_path)
+    client.ocr(img)
+    assert seen["messages"][0]["content"][0]["image_url"]["url"].startswith("data:image/jpeg;base64,")
