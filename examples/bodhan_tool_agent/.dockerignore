@@ -1,0 +1,12 @@
+.env
+.venv
+.bodhan_cache
+bodhan_outputs
+out
+runs
+demo_runs
+sample_data
+outputs
+**/__pycache__
+.pytest_cache
+.ruff_cache
