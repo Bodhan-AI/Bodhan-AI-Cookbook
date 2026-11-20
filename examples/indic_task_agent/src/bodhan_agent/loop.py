@@ -33,7 +33,7 @@ from bodhan_mcp.config import BodhanKeys
 from bodhan_mcp.documents import classify, read_text_file
 from bodhan_mcp.languages import LANGUAGE_NAMES, normalize_language
 from bodhan_mcp.registry import clean_schema, invoke
-from bodhan_mcp.runtime import RUN_DEADLINE, Artifact, RunContext
+from bodhan_mcp.runtime import RUN_DEADLINE, Artifact, RunContext, is_network_path
 from bodhan_mcp.tools import TOOL_BY_NAME, TOOLS
 from bodhan_mcp.tools.common import ProvenanceGuard
 
@@ -49,7 +49,9 @@ FINISH_STATUSES = ["completed", "partial", "failed", "unsupported"]
 MAX_TOOL_RESULT_CHARS = 7000
 CONTEXT_BYTES = 90_000  # about 24k tokens of English: older tool results are shortened beyond this (fits 32k-context planners)
 KEEP_RECENT_TOOL_RESULTS = 6
-LLM_COMPLETION_RESERVE = 4000  # completion tokens allowed per planner call when its price is known
+LLM_COMPLETION_RESERVE = 4000
+COVERAGE_COMPLETION_RESERVE = 1000  # the coverage check's reply is a short list
+COVERAGE_TIMEOUT_S = 90.0  # completion tokens allowed per planner call when its price is known
 # Upper bound on a priced planner call's prompt tokens: byte-level BPE and byte-fallback tokenizers never make a token
 # smaller than one UTF-8 byte, so tokens <= bytes. Margins cover per-message special tokens and the provider's own
 # formatting of the tool list. (A character count is not a bound: one Indic character is 3 bytes and may be 3 tokens.)
@@ -75,6 +77,24 @@ KIND_MATCH = {"audio": {"audio"}, "translation": {"translation", "subtitles"}, "
               "text": {"text", "translation", "ocr", "transcript"}, "transcript": {"transcript", "subtitles"}}
 
 
+def _src(spec: dict) -> str:
+    return Path((spec.get("source") or "").strip()).name.lower()
+
+
+def _keeps(new: dict, old: dict) -> bool:
+    """True when an artifact that satisfies the required deliverable `new` also satisfies the earlier obligation `old`."""
+    return (not new.get("optional") and new["kind"] in KIND_MATCH.get(old["kind"], {old["kind"]})
+            and new.get("language") == old.get("language") and (not _src(old) or _src(new) == _src(old)))
+
+
+def _names(dropped: dict, old: dict) -> bool:
+    return dropped["kind"] == old["kind"] and dropped.get("language") == old.get("language")
+
+
+def _label(spec: dict) -> str:
+    return f"{spec['kind']}{' (' + spec['language'] + ')' if spec.get('language') else ''}{' from ' + spec['source'] if spec.get('source') else ''}"
+
+
 # ---------------------------------------------------------------------------
 # Typed control calls
 # ---------------------------------------------------------------------------
@@ -93,11 +113,41 @@ class DeliverableSpec(_Strict):
     description: str = Field("", max_length=300, description="What this output is, e.g. 'two-minute Tamil summary audio'.")
 
 
+class DroppedSpec(_Strict):
+    kind: Literal["audio", "translation", "subtitles", "text", "transcript"]
+    language: str | None = Field(None, max_length=16)
+    reason: str = Field(min_length=1, max_length=300, description="Why this output from an earlier plan is no longer produced.")
+
+
 class RecordPlanIn(_Strict):
     steps: list[str] = Field(min_length=1, max_length=40, description="Numbered steps you will take, each naming the tool.")
     deliverables: list[DeliverableSpec] = Field(min_length=1, max_length=40,  # "every supported language" is 23
                                                 description="Every output the task asks for. Use kind 'answer' when the reply itself is the output.")
     assumptions: list[str] = Field(default_factory=list, max_length=20, description="Assumptions made because the task was ambiguous.")
+    dropped: list[DroppedSpec] = Field(default_factory=list, max_length=40, description=(
+        "When revising a plan: each required output of an earlier plan that this plan no longer produces, with the reason. "
+        "Dropped outputs are reported to the user."))
+
+
+class CoverageItem(_Strict):
+    request: str = Field(max_length=300, description="The words of the task that ask for this output.")
+    covered_by: str | None = Field(None, max_length=300, description="The delivered item that provides it, exactly as listed, or null.")
+
+
+class CoverageIn(_Strict):
+    outputs: list[CoverageItem] = Field(max_length=40, description="One entry per distinct output the task asks for.")
+
+
+COVERAGE_TOOL = {"type": "function", "function": {"name": "report_coverage", "description": "Report which requested outputs were delivered.",
+                                                  "parameters": clean_schema(CoverageIn.model_json_schema())}}
+COVERAGE_PROMPT = """\
+You check a finished task for an unattended agent. You did not do the work. Read the user's task and the list of \
+delivered items, then call report_coverage with one entry for each distinct output the task asks for (a file, audio, \
+subtitles, a translation into a language, or an answer to a question). For each, give the delivered item that \
+provides it, exactly as listed, or null if none does. An item provides an output only if it has the requested form \
+(spoken output needs audio; subtitles need an .srt; "a file" needs a file) and the requested language. A conditional \
+request ("translate the Telugu ones") is provided by the answer when it explains that nothing qualified. Do not list \
+outputs the task did not ask for, and do not judge quality."""
 
 
 class FinishIn(_Strict):
@@ -218,6 +268,9 @@ class Agent:
         self.steps = 0
         self.plan: dict[str, Any] | None = None
         self.plan_version = 0
+        # Required outputs of every plan so far: a revised plan may not leave one out silently (see _record_plan)
+        self.obligations: list[dict[str, Any]] = []
+        self.dropped: list[dict[str, Any]] = []
         self.outcome: Outcome | None = None
         self.finish_rejections = 0
         self.budget_errors = 0
@@ -387,7 +440,7 @@ class Agent:
             results.update({c.id: o for c, o in zip(work, outs)})
         for c in finishes:
             self.steps += 1
-            results[c.id] = self._finish(c, others_in_turn=bool(work) or len(finishes) > 1)
+            results[c.id] = await self._finish(c, others_in_turn=bool(work) or len(finishes) > 1)
             if self.outcome is not None:
                 break
         for c in calls:
@@ -442,9 +495,24 @@ class Agent:
                 if d.language not in LANGUAGE_NAMES:
                     return self._control_error(call, f"Deliverable language {d.language!r} is not a language code Bodhan supports "
                                                "(use e.g. 'ta', 'hi', 'en'). If the task asks for an unsupported language, finish as unsupported.")
+        for d in plan.dropped:
+            d.language = normalize_language(d.language) if d.language else None
+        if not all(self._indic_ok(d.reason) for d in plan.dropped):
+            return self._control_error(call, "The dropped reasons contain Indian-language text you wrote. Write them in English.", E.PROVENANCE_VIOLATION)
+        new = [d.model_dump() for d in plan.deliverables]
+        dropped = [d.model_dump() for d in plan.dropped]
+        left_out = [o for o in self.obligations if not any(_keeps(n, o) for n in new) and not any(_names(x, o) for x in dropped)]
+        if left_out:
+            return self._control_error(call, "This plan leaves out required outputs of your earlier plan: "
+                                       + "; ".join(_label(o) for o in left_out) + ". Keep them, or list each under `dropped` with the reason "
+                                       "(it is impossible, or the task did not ask for it). The previous plan is unchanged.")
+        self.dropped += [x for x in dropped if any(_names(x, o) for o in self.obligations)]
+        self.obligations = [o for o in self.obligations if not any(_names(x, o) for x in self.dropped)]
+        self.obligations += [n for n in new if n["kind"] != "answer" and not n.get("optional")
+                             and not any(_keeps(n, o) and _keeps(o, n) for o in self.obligations)]
         self.plan = plan.model_dump()
         self.plan_version += 1
-        self.trace.write({"type": "plan", "step": self.steps, "version": self.plan_version, **self.plan})
+        self.trace.write({"type": "plan", "step": self.steps, "version": self.plan_version, **self.plan, "obligations": self.obligations})
         return {"ok": True, "plan_version": self.plan_version, "note": "Plan recorded. Execute it."}
 
     def _control_error(self, call: ToolCall, message: str, code: str = E.INVALID_ARGUMENT) -> dict:
@@ -481,6 +549,8 @@ class Agent:
 
     def _resolve_deliverable(self, raw: str) -> Artifact | None:
         raw = str(raw).strip()
+        if not raw or is_network_path(raw):
+            return None  # a UNC/device/URL form is never this run's artifact; checked before any filesystem call
         arts = self.ctx.artifacts
         cand = Path(raw)
         for key in (str(cand), str(cand.resolve()) if cand.is_absolute() else "", str((self.ctx.artifacts_dir / cand.name).resolve()),
@@ -489,7 +559,7 @@ class Agent:
                 return arts[key]
         return None
 
-    def _finish(self, call: ToolCall, *, others_in_turn: bool) -> dict:
+    async def _finish(self, call: ToolCall, *, others_in_turn: bool) -> dict:
         if call.parse_error:
             return self._control_error(call, f"Arguments are not valid JSON: {call.parse_error}.")
         try:
@@ -526,6 +596,8 @@ class Agent:
                 reasons.append("deliverables failed verification (directly or through what they were made from): "
                                + "; ".join(x.path.name for x in failing) + ". Repair them differently, or finish with status partial and explain.")
             reasons += self._contract_gaps(delivered, answer)
+            if not reasons:
+                reasons += await self._coverage_gaps([x for x in delivered if self._usable(x)], answer)
         if reasons and self.finish_rejections < 2:
             self.finish_rejections += 1
             self.trace.write({"type": "finish_rejected", "step": self.steps, "reasons": reasons})
@@ -541,8 +613,9 @@ class Agent:
             limitations += [f"verification gate: {r}" for r in reasons]
             if status == "completed":
                 status = "partial" if usable else "failed"
+        limitations += [f"plan change: {_label(x)} from an earlier plan was dropped: {x['reason']}" for x in self.dropped]
         final = status
-        if status == "completed" and any(self._effective_status(x) == "warn" for x in usable):
+        if status == "completed" and (self.dropped or any(self._effective_status(x) == "warn" for x in usable)):
             final = "completed_with_warnings"
         for x in delivered:
             if x not in usable:
@@ -597,6 +670,54 @@ class Agent:
         gaps += [f"declared deliverable '{label}' has no matching verified artifact among the finish deliverables "
                  "(each declared deliverable needs its own artifact)" for i, (label, _, _) in enumerate(required) if i not in matched]
         return gaps
+
+    async def _coverage_gaps(self, delivered: list[Artifact], answer: str) -> list[str]:
+        """Before "completed": a fresh-context call to the planner model reads the original task and the delivered items
+        and lists each requested output with the item that provides it. It sees neither the plan nor the conversation,
+        so an output the plan never declared, or dropped on a replan, can still be found missing. It is the same model
+        cross-checking itself, not an independent linguistic check: it can miss a gap or invent one. A check that cannot
+        run, or lists nothing, does not confirm coverage, so "completed" is refused then too."""
+        names = ["answer"] + [x.path.name for x in delivered]
+        listing = [f"- answer: the reply text: {answer[:1500]}"] + [
+            f"- {x.path.name}: {x.kind}{', ' + LANGUAGE_NAMES.get(x.language, x.language) if x.language else ''}"
+            f"{', made from ' + ', '.join(sorted({Path(o).name for o in x.origin})) if x.origin else ''}" for x in delivered]
+        messages = [{"role": "system", "content": COVERAGE_PROMPT},
+                    {"role": "user", "content": f"Task:\n{self.task}\n\nDelivered items:\n" + "\n".join(listing)}]
+        tools = [COVERAGE_TOOL]
+        est = self._llm_cost(prompt_token_bound(messages, tools), COVERAGE_COMPLETION_RESERVE)
+        why, outputs, t0 = None, None, time.monotonic()
+        if est is not None and not self.ctx.ledger.can_afford(est):
+            why = "not enough budget left for it"
+        else:
+            try:
+                reply = await asyncio.wait_for(self.llm.chat(messages, tools, max_tokens=COVERAGE_COMPLETION_RESERVE if est is not None else None),
+                                               timeout=max(0.0, min(self._time_left(), COVERAGE_TIMEOUT_S)))
+            except (TimeoutError, LLMError) as exc:
+                why = f"the planner call failed ({type(exc).__name__})"
+                if est is not None and getattr(self.llm, "uncertain_attempts", 0):
+                    self._charge_uncertain_llm(est, self.llm.uncertain_attempts, "coverage_check")
+            else:
+                cost = self._llm_cost(reply.prompt_tokens, reply.completion_tokens)
+                self.ctx.ledger.add_llm(reply.prompt_tokens, reply.completion_tokens, cost)
+                call = next((c for c in reply.tool_calls if c.name == "report_coverage"), None)
+                try:
+                    outputs = CoverageIn.model_validate(_without_nulls(call.arguments)).outputs if call and not call.parse_error else None
+                except ValidationError:
+                    outputs = None
+                if outputs is None:
+                    why = "the reply had no valid report_coverage call"
+                elif not outputs:
+                    why = "it listed no requested outputs"
+        missing = [o.request for o in outputs or [] if (o.covered_by or "").strip() not in names]
+        self.trace.write({"type": "coverage_check", "step": self.steps, "latency_s": round(time.monotonic() - t0, 2),
+                          "outputs": [o.model_dump() for o in outputs] if outputs is not None else None, "missing": missing, "unavailable": why})
+        if why:  # unconfirmed is not confirmed: "completed" needs the check, so call finish again or finish partial
+            return [f"the check of the task against the delivered items could not run ({why}); call finish again to retry it, "
+                    "or finish with status partial"]
+        if missing:
+            return ["an independent reading of the task found requested outputs with no matching delivered item: "
+                    + "; ".join(self._safe(m) for m in missing) + ". Produce them and deliver them, or finish with status partial and say why"]
+        return []
 
     def _usable(self, art: Artifact) -> bool:
         """The one rule for presenting an artifact as a usable output, on every stop path."""
@@ -684,6 +805,7 @@ class Agent:
         guard = self.ctx.provenance_guard
         st = {"task": self.task, "inputs": self._inputs_fp or [], "missing": self.missing, "roots": [str(r) for r in self.roots], "settings": self.settings.__dict__,
               "llm_model": getattr(self.llm, "model", None), "steps": self.steps, "plan": self.plan, "plan_version": self.plan_version,
+              "obligations": self.obligations, "dropped": self.dropped,
               "finish_rejections": self.finish_rejections, "budget_errors": self.budget_errors, "tool_log": self.tool_log,
               "messages": self.messages, "inventory": self.inventory, "pending": pending, "ledger": self.ctx.ledger.to_state(),
               "artifacts": [a.to_state() for a in self.ctx.artifacts.values()], "transcripts": {k: str(v) for k, v in self.ctx.transcripts.items()},
@@ -713,6 +835,7 @@ class Agent:
 
     def _restore(self, st: dict[str, Any]) -> dict | None:
         self.steps, self.plan, self.plan_version = st["steps"], st["plan"], st["plan_version"]
+        self.obligations, self.dropped = st.get("obligations", []), st.get("dropped", [])
         self.finish_rejections, self.budget_errors = st["finish_rejections"], st["budget_errors"]
         self.tool_log, self.messages, self.inventory = st["tool_log"], st["messages"], st.get("inventory", {})
         self.missing, self._inputs_fp = st.get("missing", []), st.get("inputs", [])

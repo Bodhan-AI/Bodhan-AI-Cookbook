@@ -208,10 +208,34 @@ class ScriptedChat:
     """Stands in for openai.AsyncOpenAI().chat.completions. `script` is a list of
     callables(messages) -> list of (tool_name, args) or a str (plain content)."""
 
-    def __init__(self, script: list):
+    def __init__(self, script: list, coverage: list | None = None):
         self.script = list(script)
+        # Replies to the finish-time coverage check (a request whose only tool is report_coverage), kept apart from the
+        # planner script. Each entry: a list of {"request", "covered_by"} dicts, a str (plain text, no tool call),
+        # an Exception to raise, or a callable(messages) returning one of those. With none left, every listed item is
+        # reported as covering itself: the happy path, stated explicitly; tests of the gate script their own replies.
+        self.coverage = list(coverage or [])
+        self.coverage_seen: list[list[dict]] = []
         self.seen: list[list[dict]] = []
         self.completions = self
+
+    def _coverage_reply(self, messages: list[dict]):
+        self.coverage_seen.append([dict(m) for m in messages])
+        step = self.coverage.pop(0) if self.coverage else None
+        if callable(step):
+            step = step(messages)
+        if isinstance(step, Exception):
+            raise step
+        if step is None:
+            listed = [line[2:].split(":", 1)[0] for line in messages[-1]["content"].splitlines() if line.startswith("- ")]
+            step = [{"request": name, "covered_by": name} for name in listed]
+        if isinstance(step, str):
+            msg = _Obj(content=step, tool_calls=None)
+        else:
+            args = step if isinstance(step, dict) else {"outputs": step}
+            msg = _Obj(content="", tool_calls=[_Obj(id=f"cov{len(self.coverage_seen)}", function=_Obj(name="report_coverage",
+                                                                                                    arguments=json.dumps(args, ensure_ascii=False)))])
+        return _Obj(choices=[_Obj(message=msg, finish_reason="tool_calls")], usage=_Obj(prompt_tokens=50, completion_tokens=10))
 
     @property
     def chat(self):
@@ -219,6 +243,8 @@ class ScriptedChat:
 
     async def create(self, *, model: str, messages: list[dict], tools: list[dict] | None = None, tool_choice: str | None = None, **extra):
         self.extra = extra
+        if tools and [t["function"]["name"] for t in tools] == ["report_coverage"]:
+            return self._coverage_reply(messages)
         self.seen.append([dict(m) for m in messages])
         step = self.script.pop(0) if self.script else [("finish", {"status": "failed", "final_answer": "script exhausted"})]
         if callable(step):

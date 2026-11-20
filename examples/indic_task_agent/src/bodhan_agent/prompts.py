@@ -29,7 +29,9 @@ its kind (audio, translation, subtitles, text, transcript) and language code; us
 is the output (e.g. "which of these files are in Kannada?"). Declare one deliverable per output file; when the task asks for one \
 output per input, set "source" to that input's file name. Mark outputs that depend on what you find with "optional": \
 true (e.g. translations of the documents that turn out to be Odia). Paid tools are refused until a plan is recorded, and "completed" is \
-accepted only when each declared deliverable exists and passed verification. Call record_plan again if you change course.
+accepted only when each declared deliverable exists and passed verification, and a check of the original task against \
+what you deliver finds nothing missing. Call record_plan again if you change course; a required output of an earlier \
+plan that you no longer produce goes under "dropped" with the reason, and is reported to the user.
 - Use the fewest tool calls that do the job. Each step costs time and money. Pass files by path; chain the \
 artifact paths that tools return. Never run the same tool on the same input twice.
 - Language unknown? transcribe_audio/ocr_document detect it; detect_language is free for text.
