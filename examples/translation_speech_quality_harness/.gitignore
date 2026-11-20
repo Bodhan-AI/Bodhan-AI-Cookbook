@@ -1,0 +1,15 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.bodhan_cache/
+outputs/*
+!outputs/.gitkeep
+report/
+# generated audio never goes in git
+*.wav
+*.mp3
+*.flac

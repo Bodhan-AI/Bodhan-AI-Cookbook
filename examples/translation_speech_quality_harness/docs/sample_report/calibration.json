@@ -1,0 +1,160 @@
+{
+  "mode": "calibrate",
+  "thresholds": {
+    "omission": 0.45,
+    "addition": 0.5,
+    "mistranslation": 0.45,
+    "number": 0.5,
+    "term": 0.5,
+    "format": 0.5,
+    "wrong_language": 0.5,
+    "speech_omission": 0.5,
+    "speech_repetition": 0.5,
+    "speech_garbled": 0.5
+  },
+  "defaults": {
+    "omission": 0.5,
+    "addition": 0.5,
+    "mistranslation": 0.5,
+    "number": 0.5,
+    "term": 0.5,
+    "format": 0.5,
+    "wrong_language": 0.5,
+    "speech_omission": 0.5,
+    "speech_repetition": 0.5,
+    "speech_garbled": 0.5
+  },
+  "notes": {
+    "omission": "calibrated",
+    "addition": "calibrated",
+    "mistranslation": "calibrated",
+    "number": "calibrated",
+    "term": "calibrated",
+    "format": "kept default: 0 label(s) < 3",
+    "wrong_language": "calibrated",
+    "speech_omission": "calibrated",
+    "speech_repetition": "calibrated",
+    "speech_garbled": "calibrated"
+  },
+  "labels": {
+    "omission": 8,
+    "addition": 13,
+    "mistranslation": 9,
+    "number": 3,
+    "term": 8,
+    "format": 0,
+    "wrong_language": 14,
+    "speech_omission": 5,
+    "speech_repetition": 4,
+    "speech_garbled": 7
+  },
+  "items": {
+    "total": 108,
+    "by_scope": {
+      "assumed_clean": 22,
+      "injected": 56,
+      "complete": 30
+    }
+  },
+  "metrics": {
+    "per_category": {
+      "omission": {
+        "tp": 7,
+        "fp": 1,
+        "fn": 1,
+        "labels": 8,
+        "precision": 0.875,
+        "recall": 0.875,
+        "f1": 0.875
+      },
+      "addition": {
+        "tp": 13,
+        "fp": 0,
+        "fn": 0,
+        "labels": 13,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "mistranslation": {
+        "tp": 8,
+        "fp": 0,
+        "fn": 1,
+        "labels": 9,
+        "precision": 1.0,
+        "recall": 0.8888888888888888,
+        "f1": 0.9411764705882353
+      },
+      "number": {
+        "tp": 3,
+        "fp": 0,
+        "fn": 0,
+        "labels": 3,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "term": {
+        "tp": 3,
+        "fp": 0,
+        "fn": 5,
+        "labels": 8,
+        "precision": 1.0,
+        "recall": 0.375,
+        "f1": 0.5454545454545454
+      },
+      "format": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "labels": 0,
+        "precision": null,
+        "recall": null,
+        "f1": null
+      },
+      "wrong_language": {
+        "tp": 14,
+        "fp": 0,
+        "fn": 0,
+        "labels": 14,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "speech_omission": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 0,
+        "labels": 5,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "speech_repetition": {
+        "tp": 3,
+        "fp": 0,
+        "fn": 1,
+        "labels": 4,
+        "precision": 1.0,
+        "recall": 0.75,
+        "f1": 0.8571428571428571
+      },
+      "speech_garbled": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 2,
+        "labels": 7,
+        "precision": 1.0,
+        "recall": 0.7142857142857143,
+        "f1": 0.8333333333333333
+      }
+    },
+    "clean_items": 39,
+    "clean_flag_rate": 0.02564102564102564,
+    "span_iou_mean": 0.8802,
+    "span_overlap_rate": 0.9836
+  },
+  "category_accuracy": 0.9403,
+  "max_clean_flag_rate": 0.1,
+  "in_sample": true
+}

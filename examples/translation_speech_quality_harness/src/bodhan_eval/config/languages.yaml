@@ -1,0 +1,45 @@
+# Language registry. Adding a language here is the ONLY change needed to evaluate it.
+#
+#   name:              display name
+#   scripts:           ISO 15924 scripts accepted as correct output (first = expected default)
+#   translate_code:    code sent to Indic-Translate `target_language` (defaults to the key)
+#   speech_code:       code sent to Indic-Speak `lang` / Indic-Transcribe `language` (defaults to the key)
+#   tier:              Indic-Speak tier from the model card: production (13 languages) or preview
+#   voice:             default Indic-Speak voice (console.bodhan.ai/api-docs lists one female and
+#                      one male voice per language; the female one is used). Override with --voice.
+#   chars_per_second:  prior speaking rate for the duration sanity check. Only a prior: the
+#                      harness re-estimates it from the data in each run (median of clean-looking items).
+#
+# Codes follow Bodhan's API docs (plain ISO codes, script suffixes only where the API defines them).
+
+defaults:
+  chars_per_second: 13.0
+  voice: Kavya            # used for languages without a listed voice (e.g. en)
+
+languages:
+  as:       {name: Assamese,          scripts: [Beng], tier: production, voice: Prastuti}
+  bn:       {name: Bengali,           scripts: [Beng], tier: production, voice: Ishita}
+  brx:      {name: Bodo,              scripts: [Deva], tier: preview, voice: Gwrbw}
+  doi:      {name: Dogri,             scripts: [Deva], tier: preview, voice: Preeti}
+  en:       {name: English,           scripts: [Latn], tier: production}
+  gu:       {name: Gujarati,          scripts: [Gujr], tier: production, voice: Dhara}
+  hi:       {name: Hindi,             scripts: [Deva], tier: production, voice: Kavya}
+  kn:       {name: Kannada,           scripts: [Knda], tier: production, voice: Deepika}
+  kok:      {name: Konkani,           scripts: [Deva], tier: preview, voice: Anjali}
+  ks:       {name: Kashmiri,          scripts: [Arab, Deva], tier: preview, voice: Zoon}
+  ks-Deva:  {name: Kashmiri (Devanagari), scripts: [Deva], speech_code: ks, tier: preview, voice: Zoon}
+  mai:      {name: Maithili,          scripts: [Deva], tier: preview, voice: Vaidehi}
+  ml:       {name: Malayalam,         scripts: [Mlym], tier: production, voice: Lakshmi}
+  mni:      {name: Manipuri,          scripts: [Mtei, Beng], tier: preview, voice: Thoibi}
+  mni-Beng: {name: Manipuri (Bengali script), scripts: [Beng], speech_code: mni, tier: preview, voice: Thoibi}
+  mr:       {name: Marathi,           scripts: [Deva], tier: production, voice: Anagha}
+  ne:       {name: Nepali,            scripts: [Deva], tier: preview, voice: Srijana}
+  or:       {name: Odia,              scripts: [Orya], tier: production, voice: Itishree}
+  pa:       {name: Punjabi,           scripts: [Guru], tier: production, voice: Kaur}
+  sa:       {name: Sanskrit,          scripts: [Deva], tier: preview, voice: Bharati}
+  sat:      {name: Santali,           scripts: [Olck], tier: preview, voice: Phulmani}
+  sd:       {name: Sindhi,            scripts: [Deva, Arab], tier: preview, voice: Moomal}
+  sd-Arab:  {name: Sindhi (Arabic),   scripts: [Arab], speech_code: sd, tier: preview, voice: Moomal}
+  ta:       {name: Tamil,             scripts: [Taml], tier: production, voice: Anitha}
+  te:       {name: Telugu,            scripts: [Telu], tier: production, voice: Sravani}
+  ur:       {name: Urdu,              scripts: [Arab], tier: production, voice: Saba}

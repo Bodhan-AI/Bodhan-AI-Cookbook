@@ -1,0 +1,240 @@
+{
+  "items": 108,
+  "skipped_items": 0,
+  "filtered_out_by_lang": 0,
+  "problems": [],
+  "verdicts": {
+    "clean": 44,
+    "critical": 17,
+    "major": 41,
+    "minor": 6
+  },
+  "by_lang": {
+    "bn": {
+      "clean": 14,
+      "items": 36,
+      "critical": 6,
+      "major": 13,
+      "minor": 3
+    },
+    "hi": {
+      "clean": 17,
+      "items": 36,
+      "major": 11,
+      "critical": 7,
+      "minor": 1
+    },
+    "ta": {
+      "major": 17,
+      "items": 36,
+      "clean": 13,
+      "critical": 4,
+      "minor": 2
+    }
+  },
+  "flags_by_category": {
+    "omission": 16,
+    "mistranslation": 15,
+    "wrong_language": 14,
+    "addition": 13,
+    "speech_omission": 8,
+    "speech_garbled": 5,
+    "term": 4,
+    "speech_repetition": 3,
+    "number": 3,
+    "format": 2
+  },
+  "skipped_steps": {},
+  "judge_consistency": {
+    "ran": true,
+    "items": 11,
+    "repeats": 3,
+    "verdict_agreement": 1.0,
+    "flag_agreement": 0.9091
+  },
+  "cost": {
+    "total_inr": 0.0,
+    "max_inr": null,
+    "services": {
+      "llm": {
+        "calls": 0,
+        "cached": 141,
+        "units": 0.0,
+        "inr": 0.0
+      },
+      "transcribe": {
+        "calls": 0,
+        "cached": 58,
+        "units": 0.0,
+        "inr": 0.0
+      },
+      "translate": {
+        "calls": 0,
+        "cached": 256,
+        "units": 0.0,
+        "inr": 0.0
+      }
+    },
+    "llm_tokens": {
+      "input": 0,
+      "output": 0
+    }
+  },
+  "cache": {
+    "hits": 455,
+    "misses": 10
+  },
+  "calibration": {
+    "mode": "calibrate",
+    "thresholds": {
+      "omission": 0.45,
+      "addition": 0.5,
+      "mistranslation": 0.45,
+      "number": 0.5,
+      "term": 0.5,
+      "format": 0.5,
+      "wrong_language": 0.5,
+      "speech_omission": 0.5,
+      "speech_repetition": 0.5,
+      "speech_garbled": 0.5
+    },
+    "category_accuracy": 0.9403,
+    "max_clean_flag_rate": 0.1,
+    "metrics": {
+      "per_category": {
+        "omission": {
+          "tp": 7,
+          "fp": 1,
+          "fn": 1,
+          "labels": 8,
+          "precision": 0.875,
+          "recall": 0.875,
+          "f1": 0.875
+        },
+        "addition": {
+          "tp": 13,
+          "fp": 0,
+          "fn": 0,
+          "labels": 13,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "mistranslation": {
+          "tp": 8,
+          "fp": 0,
+          "fn": 1,
+          "labels": 9,
+          "precision": 1.0,
+          "recall": 0.8888888888888888,
+          "f1": 0.9411764705882353
+        },
+        "number": {
+          "tp": 3,
+          "fp": 0,
+          "fn": 0,
+          "labels": 3,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "term": {
+          "tp": 3,
+          "fp": 0,
+          "fn": 5,
+          "labels": 8,
+          "precision": 1.0,
+          "recall": 0.375,
+          "f1": 0.5454545454545454
+        },
+        "format": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "labels": 0,
+          "precision": null,
+          "recall": null,
+          "f1": null
+        },
+        "wrong_language": {
+          "tp": 14,
+          "fp": 0,
+          "fn": 0,
+          "labels": 14,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "speech_omission": {
+          "tp": 5,
+          "fp": 0,
+          "fn": 0,
+          "labels": 5,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "speech_repetition": {
+          "tp": 3,
+          "fp": 0,
+          "fn": 1,
+          "labels": 4,
+          "precision": 1.0,
+          "recall": 0.75,
+          "f1": 0.8571428571428571
+        },
+        "speech_garbled": {
+          "tp": 5,
+          "fp": 0,
+          "fn": 2,
+          "labels": 7,
+          "precision": 1.0,
+          "recall": 0.7142857142857143,
+          "f1": 0.8333333333333333
+        }
+      },
+      "clean_items": 39,
+      "clean_flag_rate": 0.02564102564102564,
+      "span_iou_mean": 0.8802,
+      "span_overlap_rate": 0.9836
+    }
+  },
+  "quality": {
+    "overall": 87.17,
+    "by_lang": {
+      "bn": 86.37,
+      "hi": 88.22,
+      "ta": 86.87
+    },
+    "definition": "100 * (1 - sum(severity weights of final flags) / source words); weights minor=1 major=5 critical=10"
+  },
+  "diff": {
+    "counts": {
+      "new": 30,
+      "fixed": 0,
+      "changed": 0,
+      "unchanged": 53
+    },
+    "quality": {
+      "current": 87.17,
+      "baseline": 89.88,
+      "delta": -2.71,
+      "by_lang": {
+        "bn": {
+          "current": 86.37,
+          "baseline": 88.03
+        },
+        "hi": {
+          "current": 88.22,
+          "baseline": 90.97
+        },
+        "ta": {
+          "current": 86.87,
+          "baseline": 90.5
+        }
+      }
+    },
+    "only_in_current": [],
+    "only_in_baseline": []
+  }
+}
