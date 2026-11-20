@@ -72,6 +72,8 @@ def decide(g: list[dict], judge_verdict: str | None) -> str:
     if "exact" in classes:
         return "flag"
     if judge_agreed:
+        if classes == {"judge"}:
+            return "review"  # the judge alone: on labelled data these were mostly false alarms, so a human decides
         return "flag" if any(c["severity_hint"] in ("major", "critical") for c in judge_agreed) else "review"
     if len(noisy_checks) >= 2:
         return "review" if judge_verdict == "clean" else "flag"  # two independent signals against a clean verdict: ask a human

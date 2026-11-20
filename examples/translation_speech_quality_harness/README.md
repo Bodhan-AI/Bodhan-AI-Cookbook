@@ -98,7 +98,7 @@ There are three tiers. Each check emits candidates with a strength: exact, noisy
 | 2, Bodhan | Regeneration diff | Words that differ from a fresh greedy translation | Exact if this run reproduces most items, else noisy |
 | 2, code | Audio statistics | Silence, clipping, long pauses, noise, speaking rate, abrupt end | Exact to weak |
 | 2, Bodhan | Back-transcription | Missing tail, skipped words, repeated or looped phrases, garbled stretches | By shape of the mismatch, never by error rate |
-| 3, LLM | Judge | Mistranslation, omission, addition, term, with quotes | Two passes; counts only if both agree and every quote is found in the text |
+| 3, LLM | Judge | Mistranslation, omission, addition, term, with quotes | Two passes; counts only if both agree and every quote is found in the text. Flags only with another check beside it; alone, it goes to the review queue |
 
 The LLM never writes Indian-language text. It quotes, code finds the quote, and Indian-script characters are stripped from its explanations. Thresholds come from statistics of the current run and from the labels you pass in, never from constants tuned on the demo. Details are in [`DESIGN.md`](DESIGN.md).
 
@@ -108,18 +108,16 @@ The demo set has 120 rows: 40 sources in Hindi, Tamil and Bengali, with 60 injec
 
 | Run | Recall (≥ 80%) | False alarms (≤ 10%) | Localization (≥ 70%) | Category acc. (≥ 70%) |
 | --- | --- | --- | --- | --- |
-| Full demo, all 120 rows | **92%** | 15% | **90%** | **88%** |
-| Half B, all checks | **93%** | 19% | **93%** | **88%** |
+| Full demo, all 120 rows | **90%** | **0%** | **89%** | **89%** |
+| Half B, all checks | **93%** | **3%** | **93%** | **88%** |
 | Half B, judge off | 69% | **3%** | 70% | **90%** |
-| Half B, regeneration diff off\* | **83%** | 19% | **84%** | **97%** |
-
-\* One item's judge call was cut off by the provider's daily quota.
+| Half B, regeneration diff off | 69% | **3%** | 70% | **93%** |
 
 - Judge consistency is 94%, against a 90% target: re-judging gave the same verdict.
 - Determinism: a rerun from cache gives byte-identical report files at no cost.
 - Per language on the full demo:
-  - Recall: Hindi 90%, Tamil 95%, Bengali 90%.
-  - False alarms: Hindi 16%, Tamil 20%, Bengali 10%.
+  - Recall: Hindi 90%, Tamil 90%, Bengali 90%.
+  - False alarms: 0% in every language.
 - Per category, from `report_demo/summary.md`:
   - 100% on format, omission, speech omission and wrong language.
   - 83% on garbled, mistranslation and number.
@@ -127,7 +125,7 @@ The demo set has 120 rows: 40 sources in Hindi, Tamil and Bengali, with 60 injec
   - 50% on term.
   - 17% on speech repetition.
 
-**The false-alarm target is missed.** Every false alarm comes from a flag the judge raised alone, on a row labelled clean only because no error was injected into it. Several of these are real model errors: "vegan" became शाकाहारी (vegetarian), and "Swimming Pool" became পুকুর (pond). `summary.md` quotes every such flag so a reader can decide. A judge-only finding still flags, because the regeneration diff cannot see an error the model makes every time.
+**The judge flags only with support.** In an earlier version, a finding from the judge alone became a flag. On the full demo that gave 12 flags, none of them on an injected error, and a 15% false-alarm rate. Several were real model errors on rows labelled clean only because nothing was injected into them: "vegan" became शाकाहारी (vegetarian), and "Swimming Pool" became পুকুর (pond). Judge-only findings now go to `review_queue.csv`, where both of these examples are, so a person decides. The cost shows in the regen-diff-off row: without the diff, nothing else backs the judge on meaning errors, and recall falls to the judge-off level.
 
 **Speech repetition is weak.** The transcript is the only independent speech signal, and one noisy signal goes to the review queue, not to a flag.
 

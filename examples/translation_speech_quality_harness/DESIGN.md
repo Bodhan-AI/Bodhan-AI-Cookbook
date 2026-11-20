@@ -171,7 +171,7 @@ The judge is the only part that understands meaning. It reads the source, the tr
 1. **Group.** Candidates on one item whose spans overlap, on either side, form one group. Text and speech never mix.
 2. **Decide.**
    - An exact candidate flags.
-   - A judge finding agreed in both passes flags if it is major or critical, and goes to review if minor.
+   - A judge finding agreed in both passes flags if it is major or critical and another check sits in the same group, even a weak one. It goes to review if it is minor, or if the judge is alone. On the demo, the judge alone raised 12 flags, none on an injected error.
    - Two different noisy checks flag, unless the judge called the item clean in every pass, which sends it to review.
    - One noisy check flags only with a weak signal beside it. Otherwise it goes to review, or is dropped as checker noise if the judge called the item clean.
    - Weak signals alone are dropped.
@@ -195,7 +195,7 @@ The judge is the only part that understands meaning. It reads the source, the tr
   - per-check thresholds;
   - judge consistency;
   - how often the judge overturned a code suspicion, and how often code overruled a clean verdict;
-  - the precision of flags the judge raised alone;
+  - the precision of flags the judge raised alone (always 0 flags now, since those go to review);
   - how many suspicions were dropped as checker noise.
 - **Matching.** An item is detected if it has any flag. A label is located by a flag whose span overlaps it on either side. Speech labels, which have no text span, match by category.
 - **Holdout.** `tools/holdout.py` splits items by SHA-256 of the id, so all languages of one source land in the same half. It calibrates on half A and scores half B; the README reports half B. The one constant that was chosen while looking at demo data is the one-third missing-tail cut-off for exact truncation. It is the same for every language, and on half B it raised no false alarm.

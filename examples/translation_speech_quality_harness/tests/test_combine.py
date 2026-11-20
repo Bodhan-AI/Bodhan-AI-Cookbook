@@ -31,6 +31,8 @@ def judge(cat="omission", sev="major", span=S):
     ([noisy(), noisy("regen_diff")], "clean", "review"),            # ... but the judge disagrees: a human decides
     ([noisy(), judge()], None, "flagged"),                          # one noisy check plus the judge
     ([noisy(), judge(sev="minor")], None, "review"),                # judge says minor
+    ([judge(sev="critical")], None, "review"),                      # the judge alone never flags
+    ([judge(), weak()], None, "flagged"),                           # the judge plus a weak signal
     ([noisy(), weak()], None, "flagged"),                           # noisy plus a weak signal
     ([noisy()], None, "review"),                                    # one noisy check, nothing else
     ([noisy()], "clean", "clean"),                                  # one noisy check rejected by the judge: noise

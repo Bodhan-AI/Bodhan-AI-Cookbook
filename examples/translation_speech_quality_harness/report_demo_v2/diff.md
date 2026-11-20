@@ -3,14 +3,14 @@
 Baseline: `report_demo`
 
 Compared **120** items (only in baseline: 0, only in this run: 0).
-**49** items regressed (51 new flags; 44 items with a new major or critical one).
+**47** items regressed (48 new flags; 42 items with a new major or critical one).
 **51** items improved (52 flags gone).
 
 | Language | weighted / 1k words, baseline | this run |
 | --- | --- | --- |
-| bn | 89.6 | 70.3 |
-| hi | 78.1 | 91.8 |
-| ta | 84.6 | 73.1 |
+| bn | 78.9 | 59.5 |
+| hi | 63.8 | 66.7 |
+| ta | 66.7 | 51.6 |
 
 | Category | new | fixed |
 | --- | --- | --- |
@@ -19,13 +19,13 @@ Compared **120** items (only in baseline: 0, only in this run: 0).
 | garbled | 4 | 5 |
 | mistranslation | 6 | 8 |
 | number | 6 | 5 |
-| omission | 7 | 7 |
+| omission | 6 | 7 |
 | speech_omission | 5 | 5 |
 | speech_repetition | 0 | 1 |
-| term | 5 | 3 |
+| term | 3 | 3 |
 | wrong_language | 5 | 5 |
 
-Status changes: clean → flagged: 18, flagged → clean: 14, flagged → review: 4.
+Status changes: clean → flagged: 18, flagged → clean: 14, flagged → review: 8, review → flagged: 1.
 
 ## Regressions
 
@@ -38,8 +38,6 @@ Status changes: clean → flagged: 18, flagged → clean: 14, flagged → review
 - **wmt-95 / hi**: mistranslation, critical, confidence 0.94, found by judge, regen_diff
   - source: “Of course, if there was an obvious simple solution to a problem somebody with more knowledge and understanding of the p…”
   - translation: “कम ज्ञान और समझ रखने वाला व्यक्ति पहले ही उसे लागू कर चुका होता”
-- **wmt-28 / hi**: omission, critical, confidence 0.85, found by judge
-  - source: “and not beer”
 - **ent-bank / hi**: number, major, confidence 0.99, found by judge, numbers, regen_diff
   - source: “4.5”
   - translation: “4.5”
@@ -52,6 +50,9 @@ Status changes: clean → flagged: 18, flagged → clean: 14, flagged → review
 - **math-area / ta**: omission, major, confidence 0.99, found by back_translation, judge, regen_diff
   - source: “If the radius is doubled, the area becomes four times larger.”
   - translation: “உதாரணமாக, 7 செ.மீ ஆரம் கொண்ட ஒரு வட்டத்தின் பரப்பளவு சுமார் 154 செ.மீ² ஆகும்.”
+- **math-percent / hi**: omission, major, confidence 0.99, found by back_translation, judge, length, numbers, regen_diff
+  - source: “During a sale the price is reduced by 25%, so the new price is ₹900.”
+  - translation: “एक शर्ट की कीमत ₹1,200 है।”
 
 ## Improvements
 
