@@ -1,0 +1,526 @@
+{
+ "cost": {
+  "per_service_inr": {
+   "speak": 3.954,
+   "transcribe": 0.9567
+  },
+  "total_inr": 4.9107,
+  "unique_model_calls": 102
+ },
+ "items": [
+  {
+   "id": "ent-bank",
+   "lang": "bn",
+   "problems": [],
+   "s_per_char": 0.1358,
+   "seconds": 16.7,
+   "similarity": 0.8571,
+   "voice": "Ishita"
+  },
+  {
+   "id": "ent-bank",
+   "lang": "bn",
+   "problems": [],
+   "s_per_char": 0.1268,
+   "seconds": 15.6,
+   "similarity": 0.8571,
+   "voice": "Sourav"
+  },
+  {
+   "id": "ent-isro",
+   "lang": "bn",
+   "problems": [],
+   "s_per_char": 0.1383,
+   "seconds": 15.08,
+   "similarity": 0.8,
+   "voice": "Ishita"
+  },
+  {
+   "id": "ent-isro",
+   "lang": "bn",
+   "problems": [],
+   "s_per_char": 0.1268,
+   "seconds": 13.82,
+   "similarity": 0.7727,
+   "voice": "Sourav"
+  },
+  {
+   "id": "wmt-103",
+   "lang": "bn",
+   "problems": [],
+   "s_per_char": 0.1321,
+   "seconds": 12.02,
+   "similarity": 0.8205,
+   "voice": "Ishita"
+  },
+  {
+   "id": "wmt-103",
+   "lang": "bn",
+   "problems": [],
+   "s_per_char": 0.1209,
+   "seconds": 11.0,
+   "similarity": 0.8889,
+   "voice": "Sourav"
+  },
+  {
+   "id": "wmt-2",
+   "lang": "bn",
+   "problems": [
+    "speech_omission"
+   ],
+   "s_per_char": 0.103,
+   "seconds": 12.98,
+   "similarity": 0.7727,
+   "voice": "Ishita"
+  },
+  {
+   "id": "wmt-2",
+   "lang": "bn",
+   "problems": [
+    "speech_omission"
+   ],
+   "s_per_char": 0.0865,
+   "seconds": 10.9,
+   "similarity": 0.8182,
+   "voice": "Sourav"
+  },
+  {
+   "id": "wmt-48",
+   "lang": "bn",
+   "problems": [
+    "speech_omission"
+   ],
+   "s_per_char": 0.1054,
+   "seconds": 21.82,
+   "similarity": 0.7368,
+   "voice": "Ishita"
+  },
+  {
+   "id": "wmt-48",
+   "lang": "bn",
+   "problems": [],
+   "s_per_char": 0.1011,
+   "seconds": 20.92,
+   "similarity": 0.8354,
+   "voice": "Sourav"
+  },
+  {
+   "id": "wmt-69",
+   "lang": "bn",
+   "problems": [],
+   "s_per_char": 0.1189,
+   "seconds": 8.68,
+   "similarity": 0.8462,
+   "voice": "Ishita"
+  },
+  {
+   "id": "wmt-69",
+   "lang": "bn",
+   "problems": [],
+   "s_per_char": 0.1038,
+   "seconds": 7.58,
+   "similarity": 0.8462,
+   "voice": "Sourav"
+  },
+  {
+   "id": "wmt-79",
+   "lang": "bn",
+   "problems": [],
+   "s_per_char": 0.1017,
+   "seconds": 7.12,
+   "similarity": 0.8,
+   "voice": "Ishita"
+  },
+  {
+   "id": "wmt-79",
+   "lang": "bn",
+   "problems": [],
+   "s_per_char": 0.0891,
+   "seconds": 6.24,
+   "similarity": 0.88,
+   "voice": "Sourav"
+  },
+  {
+   "id": "wmt-87",
+   "lang": "bn",
+   "problems": [],
+   "s_per_char": 0.103,
+   "seconds": 7.52,
+   "similarity": 0.9091,
+   "voice": "Ishita"
+  },
+  {
+   "id": "wmt-87",
+   "lang": "bn",
+   "problems": [],
+   "s_per_char": 0.0937,
+   "seconds": 6.84,
+   "similarity": 0.9091,
+   "voice": "Sourav"
+  },
+  {
+   "id": "ent-bank",
+   "lang": "hi",
+   "problems": [],
+   "s_per_char": 0.1386,
+   "seconds": 8.18,
+   "similarity": 0.8824,
+   "voice": "Amit"
+  },
+  {
+   "id": "ent-bank",
+   "lang": "hi",
+   "problems": [],
+   "s_per_char": 0.1261,
+   "seconds": 7.44,
+   "similarity": 0.8824,
+   "voice": "Kavya"
+  },
+  {
+   "id": "ent-isro",
+   "lang": "hi",
+   "problems": [],
+   "s_per_char": 0.161,
+   "seconds": 15.78,
+   "similarity": 0.8077,
+   "voice": "Amit"
+  },
+  {
+   "id": "ent-isro",
+   "lang": "hi",
+   "problems": [],
+   "s_per_char": 0.138,
+   "seconds": 13.52,
+   "similarity": 0.7547,
+   "voice": "Kavya"
+  },
+  {
+   "id": "wmt-103",
+   "lang": "hi",
+   "problems": [],
+   "s_per_char": 0.1223,
+   "seconds": 11.86,
+   "similarity": 0.8,
+   "voice": "Amit"
+  },
+  {
+   "id": "wmt-103",
+   "lang": "hi",
+   "problems": [],
+   "s_per_char": 0.119,
+   "seconds": 11.54,
+   "similarity": 0.8364,
+   "voice": "Kavya"
+  },
+  {
+   "id": "wmt-2",
+   "lang": "hi",
+   "problems": [
+    "speech_omission"
+   ],
+   "s_per_char": 0.1011,
+   "seconds": 11.32,
+   "similarity": 0.8627,
+   "voice": "Amit"
+  },
+  {
+   "id": "wmt-2",
+   "lang": "hi",
+   "problems": [
+    "speech_omission"
+   ],
+   "s_per_char": 0.1046,
+   "seconds": 11.72,
+   "similarity": 0.8077,
+   "voice": "Kavya"
+  },
+  {
+   "id": "wmt-48",
+   "lang": "hi",
+   "problems": [],
+   "s_per_char": 0.1185,
+   "seconds": 23.1,
+   "similarity": 0.8958,
+   "voice": "Amit"
+  },
+  {
+   "id": "wmt-48",
+   "lang": "hi",
+   "problems": [],
+   "s_per_char": 0.1153,
+   "seconds": 22.48,
+   "similarity": 0.875,
+   "voice": "Kavya"
+  },
+  {
+   "id": "wmt-69",
+   "lang": "hi",
+   "problems": [],
+   "s_per_char": 0.1375,
+   "seconds": 8.8,
+   "similarity": 0.8485,
+   "voice": "Amit"
+  },
+  {
+   "id": "wmt-69",
+   "lang": "hi",
+   "problems": [],
+   "s_per_char": 0.115,
+   "seconds": 7.36,
+   "similarity": 0.8485,
+   "voice": "Kavya"
+  },
+  {
+   "id": "wmt-79",
+   "lang": "hi",
+   "problems": [],
+   "s_per_char": 0.1078,
+   "seconds": 7.98,
+   "similarity": 1.0,
+   "voice": "Amit"
+  },
+  {
+   "id": "wmt-79",
+   "lang": "hi",
+   "problems": [],
+   "s_per_char": 0.0949,
+   "seconds": 7.02,
+   "similarity": 0.8421,
+   "voice": "Kavya"
+  },
+  {
+   "id": "wmt-87",
+   "lang": "hi",
+   "problems": [],
+   "s_per_char": 0.102,
+   "seconds": 6.22,
+   "similarity": 0.9333,
+   "voice": "Amit"
+  },
+  {
+   "id": "wmt-87",
+   "lang": "hi",
+   "problems": [],
+   "s_per_char": 0.102,
+   "seconds": 6.22,
+   "similarity": 0.8387,
+   "voice": "Kavya"
+  },
+  {
+   "id": "ent-bank",
+   "lang": "ta",
+   "problems": [],
+   "s_per_char": 0.1173,
+   "seconds": 16.66,
+   "similarity": 0.8519,
+   "voice": "Anitha"
+  },
+  {
+   "id": "ent-bank",
+   "lang": "ta",
+   "problems": [],
+   "s_per_char": 0.1008,
+   "seconds": 14.32,
+   "similarity": 0.8519,
+   "voice": "Arun"
+  },
+  {
+   "id": "ent-isro",
+   "lang": "ta",
+   "problems": [],
+   "s_per_char": 0.1375,
+   "seconds": 17.6,
+   "similarity": 0.6667,
+   "voice": "Anitha"
+  },
+  {
+   "id": "ent-isro",
+   "lang": "ta",
+   "problems": [],
+   "s_per_char": 0.1153,
+   "seconds": 14.76,
+   "similarity": 0.7143,
+   "voice": "Arun"
+  },
+  {
+   "id": "wmt-103",
+   "lang": "ta",
+   "problems": [],
+   "s_per_char": 0.1075,
+   "seconds": 13.22,
+   "similarity": 0.6842,
+   "voice": "Anitha"
+  },
+  {
+   "id": "wmt-103",
+   "lang": "ta",
+   "problems": [],
+   "s_per_char": 0.0876,
+   "seconds": 10.78,
+   "similarity": 0.6842,
+   "voice": "Arun"
+  },
+  {
+   "id": "wmt-2",
+   "lang": "ta",
+   "problems": [
+    "speech_omission"
+   ],
+   "s_per_char": 0.0759,
+   "seconds": 13.2,
+   "similarity": 0.56,
+   "voice": "Anitha"
+  },
+  {
+   "id": "wmt-2",
+   "lang": "ta",
+   "problems": [
+    "speech_omission"
+   ],
+   "s_per_char": 0.0757,
+   "seconds": 13.18,
+   "similarity": 0.56,
+   "voice": "Arun"
+  },
+  {
+   "id": "wmt-69",
+   "lang": "ta",
+   "problems": [],
+   "s_per_char": 0.1096,
+   "seconds": 8.88,
+   "similarity": 0.7143,
+   "voice": "Anitha"
+  },
+  {
+   "id": "wmt-69",
+   "lang": "ta",
+   "problems": [],
+   "s_per_char": 0.1002,
+   "seconds": 8.12,
+   "similarity": 0.8148,
+   "voice": "Arun"
+  },
+  {
+   "id": "wmt-71",
+   "lang": "ta",
+   "problems": [],
+   "s_per_char": 0.0907,
+   "seconds": 20.14,
+   "similarity": 0.9286,
+   "voice": "Anitha"
+  },
+  {
+   "id": "wmt-71",
+   "lang": "ta",
+   "problems": [],
+   "s_per_char": 0.0834,
+   "seconds": 18.52,
+   "similarity": 0.9286,
+   "voice": "Arun"
+  },
+  {
+   "id": "wmt-79",
+   "lang": "ta",
+   "problems": [],
+   "s_per_char": 0.093,
+   "seconds": 8.46,
+   "similarity": 0.9091,
+   "voice": "Anitha"
+  },
+  {
+   "id": "wmt-79",
+   "lang": "ta",
+   "problems": [],
+   "s_per_char": 0.0743,
+   "seconds": 6.76,
+   "similarity": 0.9091,
+   "voice": "Arun"
+  },
+  {
+   "id": "wmt-87",
+   "lang": "ta",
+   "problems": [],
+   "s_per_char": 0.0833,
+   "seconds": 6.0,
+   "similarity": 0.8,
+   "voice": "Anitha"
+  },
+  {
+   "id": "wmt-87",
+   "lang": "ta",
+   "problems": [],
+   "s_per_char": 0.065,
+   "seconds": 4.68,
+   "similarity": 0.9,
+   "voice": "Arun"
+  }
+ ],
+ "per_language": {
+  "bn": {
+   "Ishita": {
+    "items": 8,
+    "items_with_problems": 2,
+    "median_seconds_per_char": 0.112,
+    "median_transcript_similarity": 0.81,
+    "not_run": 0,
+    "problems": {
+     "speech_omission": 2
+    }
+   },
+   "Sourav": {
+    "items": 8,
+    "items_with_problems": 1,
+    "median_seconds_per_char": 0.102,
+    "median_transcript_similarity": 0.852,
+    "not_run": 0,
+    "problems": {
+     "speech_omission": 1
+    }
+   }
+  },
+  "hi": {
+   "Amit": {
+    "items": 8,
+    "items_with_problems": 1,
+    "median_seconds_per_char": 0.12,
+    "median_transcript_similarity": 0.873,
+    "not_run": 0,
+    "problems": {
+     "speech_omission": 1
+    }
+   },
+   "Kavya": {
+    "items": 8,
+    "items_with_problems": 1,
+    "median_seconds_per_char": 0.115,
+    "median_transcript_similarity": 0.84,
+    "not_run": 0,
+    "problems": {
+     "speech_omission": 1
+    }
+   }
+  },
+  "ta": {
+   "Anitha": {
+    "items": 8,
+    "items_with_problems": 1,
+    "median_seconds_per_char": 0.1,
+    "median_transcript_similarity": 0.757,
+    "not_run": 0,
+    "problems": {
+     "speech_omission": 1
+    }
+   },
+   "Arun": {
+    "items": 8,
+    "items_with_problems": 1,
+    "median_seconds_per_char": 0.085,
+    "median_transcript_similarity": 0.833,
+    "not_run": 0,
+    "problems": {
+     "speech_omission": 1
+    }
+   }
+  }
+ }
+}

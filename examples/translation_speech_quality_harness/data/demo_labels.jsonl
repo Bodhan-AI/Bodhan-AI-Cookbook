@@ -1,0 +1,30 @@
+{"id": "civics-election", "lang": "ta", "labels": [], "checked": ["number", "format", "wrong_language", "untranslated_english"], "annotator": "candidate"}
+{"id": "ent-isro", "lang": "bn", "labels": [], "checked": ["number", "format", "wrong_language", "untranslated_english"], "annotator": "candidate"}
+{"id": "ent-metro", "lang": "bn", "labels": [], "checked": ["number", "format", "wrong_language", "untranslated_english"], "annotator": "candidate"}
+{"id": "ent-price", "lang": "bn", "labels": [], "checked": ["number", "format", "wrong_language", "untranslated_english"], "annotator": "candidate"}
+{"id": "ent-price", "lang": "hi", "labels": [], "checked": ["number", "format", "wrong_language", "untranslated_english"], "annotator": "candidate"}
+{"id": "ent-price", "lang": "ta", "labels": [], "checked": ["number", "format", "wrong_language", "untranslated_english"], "annotator": "candidate"}
+{"id": "health-dose", "lang": "hi", "labels": [{"type": "format", "severity": "minor", "span": [0, 15], "source_span": [0, 15], "translation_span": [0, 10], "origin": "human", "annotator": "candidate", "note": "Heading ### dropped and merged into the first paragraph"}], "checked": ["number", "format", "wrong_language", "untranslated_english"], "annotator": "candidate"}
+{"id": "health-dose", "lang": "ta", "labels": [], "checked": ["number", "format", "wrong_language", "untranslated_english"], "annotator": "candidate"}
+{"id": "math-area", "lang": "bn", "labels": [], "checked": ["number", "format", "wrong_language", "untranslated_english"], "annotator": "candidate"}
+{"id": "math-area", "lang": "hi", "labels": [], "checked": ["number", "format", "wrong_language", "untranslated_english"], "annotator": "candidate"}
+{"id": "math-percent", "lang": "bn", "labels": [], "checked": ["number", "format", "wrong_language", "untranslated_english"], "annotator": "candidate"}
+{"id": "math-percent", "lang": "hi", "labels": [], "checked": ["number", "format", "wrong_language", "untranslated_english"], "annotator": "candidate"}
+{"id": "math-percent", "lang": "ta", "labels": [], "checked": ["number", "format", "wrong_language", "untranslated_english"], "annotator": "candidate"}
+{"id": "math-speed", "lang": "bn", "labels": [], "checked": ["number", "format", "wrong_language", "untranslated_english"], "annotator": "candidate"}
+{"id": "math-speed", "lang": "hi", "labels": [], "checked": ["number", "format", "wrong_language", "untranslated_english"], "annotator": "candidate"}
+{"id": "math-speed", "lang": "ta", "labels": [{"type": "format", "severity": "minor", "span": [0, 28], "source_span": [0, 28], "translation_span": [0, 26], "origin": "human", "annotator": "candidate", "note": "Markdown heading marker ### dropped"}], "checked": ["number", "format", "wrong_language", "untranslated_english"], "annotator": "candidate"}
+{"id": "sci-boiling", "lang": "ta", "labels": [], "checked": ["number", "format", "wrong_language", "untranslated_english"], "annotator": "candidate"}
+{"id": "sci-heart", "lang": "bn", "labels": [], "checked": ["number", "format", "wrong_language", "untranslated_english"], "annotator": "candidate"}
+{"id": "sci-heart", "lang": "ta", "labels": [], "checked": ["number", "format", "wrong_language", "untranslated_english"], "annotator": "candidate"}
+{"id": "sci-photosynthesis", "lang": "bn", "labels": [], "checked": ["number", "format", "wrong_language", "untranslated_english"], "annotator": "candidate"}
+{"id": "sci-photosynthesis", "lang": "hi", "labels": [], "checked": ["number", "format", "wrong_language", "untranslated_english"], "annotator": "candidate"}
+{"id": "sci-photosynthesis", "lang": "ta", "labels": [], "checked": ["number", "format", "wrong_language", "untranslated_english"], "annotator": "candidate"}
+{"id": "sci-states", "lang": "bn", "labels": [], "checked": ["number", "format", "wrong_language", "untranslated_english"], "annotator": "candidate"}
+{"id": "wmt-2", "lang": "bn", "labels": [], "checked": ["number", "format", "wrong_language", "untranslated_english"], "annotator": "candidate"}
+{"id": "wmt-29", "lang": "ta", "labels": [], "checked": ["number", "format", "wrong_language", "untranslated_english"], "annotator": "candidate"}
+{"id": "wmt-48", "lang": "bn", "labels": [], "checked": ["number", "format", "wrong_language", "untranslated_english"], "annotator": "candidate"}
+{"id": "wmt-50", "lang": "bn", "labels": [], "checked": ["number", "format", "wrong_language", "untranslated_english"], "annotator": "candidate"}
+{"id": "wmt-57", "lang": "ta", "labels": [], "checked": ["number", "format", "wrong_language", "untranslated_english"], "annotator": "candidate"}
+{"id": "wmt-60", "lang": "bn", "labels": [], "checked": ["number", "format", "wrong_language", "untranslated_english"], "annotator": "candidate"}
+{"id": "wmt-71", "lang": "bn", "labels": [], "checked": ["number", "format", "wrong_language", "untranslated_english"], "annotator": "candidate"}
