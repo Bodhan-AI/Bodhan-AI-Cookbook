@@ -211,3 +211,29 @@ async def test_an_echoed_field_the_provider_refuses_is_dropped():
     msgs += [first.assistant_message, {"role": "tool", "tool_call_id": first.tool_calls[0].id, "content": "{}"}]
     second = await llm.chat(msgs, FINISH_TOOL)
     assert second.tool_calls and "diagnostic" not in json.dumps(msgs) and llm.notes
+
+
+async def test_a_groq_parsing_failure_is_sampled_again_not_treated_as_configuration(monkeypatch):
+    # live, Groq openai/gpt-oss-20b on d793862 (d2): "400 - Parsing failed. The model generated output that could not
+    # be parsed" ended the run at once, because a 400 without "tool" in its text counted as a configuration error
+    monkeypatch.setattr("bodhan_agent.llm.retry_wait", lambda exc, attempt: 0)
+
+    def behave(kw):
+        if len(ep.sent) == 1:
+            raise Err(400, "Error code: 400 - Parsing failed. The model generated output that could not be parsed. Please adjust "
+                      "your prompt. See 'failed_generation' for more details.", {"error": {"failed_generation": "<|channel|>analysis..."}})
+        return reply(None, [("finish", '{"status": "completed", "final_answer": "Done."}')])
+
+    ep = Endpoint(behave)
+    r = await PlannerLLM(client=ep, model="m").chat([{"role": "user", "content": "x"}], FINISH_TOOL)
+    assert len(ep.sent) == 2 and r.tool_calls[0].name == "finish"
+
+
+async def test_a_plain_bad_request_is_still_not_retried():
+    def behave(kw):
+        raise Err(400, "Error code: 400 - model 'nope' does not exist")
+
+    ep = Endpoint(behave)
+    with pytest.raises(LLMError):
+        await PlannerLLM(client=ep, model="m").chat([{"role": "user", "content": "x"}], FINISH_TOOL)
+    assert len(ep.sent) == 1

@@ -248,8 +248,11 @@ class PlannerLLM:
                 err, text = _error_body(exc), str(exc).lower()
                 if status == 413 or (status in (400, 422) and any(h in text for h in _CONTEXT_HINTS)):
                     raise ContextTooLong(f"the planner's context is too long: {str(exc)[:200]}") from exc
-                if status == 400 and (err.get("code") == "tool_use_failed" or "tool_use_failed" in text) and err.get("failed_generation"):
-                    # Groq and others: the model's tool call did not match the schema; its text is often a usable call
+                # the provider refused the model's own output (Groq: tool_use_failed, or "Parsing failed ... could not be
+                # parsed" with failed_generation): a sampling problem, not a configuration error
+                malformed = status == 400 and bool(err.get("failed_generation") or "could not be parsed" in text or "tool_use_failed" in text)
+                if malformed and err.get("failed_generation"):
+                    # its text is often a usable call
                     fb = _fallback_tool_call(str(err["failed_generation"]), known)
                     if fb is not None:
                         self.uncertain_attempts += 1  # the failed generation was produced (and possibly billed)
@@ -283,7 +286,7 @@ class PlannerLLM:
                     self.notes.append("the planner endpoint rejected native tool calling; tools are described in text and replies parsed as JSON")
                     limit += 1
                     continue
-                if status in (400, 401, 403, 404, 422) and attempt == 1 and "tool" not in text:
+                if status in (400, 401, 403, 404, 422) and attempt == 1 and "tool" not in text and not malformed:
                     break  # configuration error; retrying will not help
                 if status == 429:  # rate limits pass: allow more attempts, waiting as long as the provider asks (capped)
                     limit = max(limit, RATE_LIMIT_ATTEMPTS)
