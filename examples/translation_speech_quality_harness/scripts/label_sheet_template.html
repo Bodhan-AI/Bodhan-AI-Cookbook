@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Label Sheet</title>
+<style>
+:root { --bg:#fafaf8; --card:#fff; --fg:#1d1d1b; --muted:#6b6b66; --line:#e3e2dc;
+  --accent:#2f5d8a; --flag:#fde7c8; --flag-line:#d9902b; --ok:#2e7d4f; --bad:#b3402f;
+  --mine:#d8e8f7; --mine-line:#2f5d8a; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg:#171716; --card:#202020; --fg:#ecebe6; --muted:#a09f99; --line:#34332f;
+  --accent:#8db6e0; --flag:#4a3519; --flag-line:#e0a54d; --ok:#6cc08f; --bad:#e3826f;
+  --mine:#1e3550; --mine-line:#8db6e0; } }
+* { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--fg);
+  font: 15px/1.55 system-ui, -apple-system, "Segoe UI", "Noto Sans", sans-serif; }
+header { position:sticky; top:0; z-index:5; background:var(--bg); border-bottom:1px solid var(--line);
+  padding:12px 16px; display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+header h1 { font-size:17px; margin:0 auto 0 0; }
+button { font:inherit; border:1px solid var(--line); background:var(--card); color:var(--fg);
+  border-radius:6px; padding:5px 11px; cursor:pointer; }
+button.primary { background:var(--accent); color:var(--bg); border-color:var(--accent); }
+button.on-ok { border-color:var(--ok); color:var(--ok); font-weight:600; }
+button.on-bad { border-color:var(--bad); color:var(--bad); font-weight:600; }
+main { max-width:900px; margin:0 auto; padding:16px; }
+.help { color:var(--muted); font-size:14px; margin:4px 0 18px; }
+.card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px; margin-bottom:18px; }
+.card.done { border-color:var(--ok); }
+.meta { display:flex; gap:10px; align-items:center; color:var(--muted); font-size:13px; margin-bottom:8px; flex-wrap:wrap; }
+.meta b { color:var(--fg); }
+.label { font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); margin:10px 0 2px; }
+.text { white-space:pre-wrap; overflow-wrap:anywhere; }
+.tr { font-size:17px; line-height:1.8; padding:8px 10px; border:1px dashed var(--line); border-radius:6px; cursor:text; }
+mark.f { background:var(--flag); border-bottom:2px solid var(--flag-line); color:inherit; }
+mark.m { background:var(--mine); border-bottom:2px solid var(--mine-line); color:inherit; }
+.row { display:flex; gap:8px; align-items:flex-start; padding:8px 0; border-top:1px solid var(--line); flex-wrap:wrap; }
+.row .ev { flex:1 1 320px; font-size:14px; }
+.row .ev small { color:var(--muted); }
+select { font:inherit; padding:4px; border-radius:6px; border:1px solid var(--line); background:var(--card); color:var(--fg); }
+.add { display:none; gap:8px; align-items:center; flex-wrap:wrap; margin-top:8px; padding:8px; border-radius:6px; background:var(--mine); }
+.add.show { display:flex; }
+.foot { display:flex; gap:10px; align-items:center; margin-top:10px; flex-wrap:wrap; }
+audio { width:100%; max-width:420px; height:36px; }
+.count { font-variant-numeric: tabular-nums; color:var(--muted); }
+</style></head><body>
+<header><h1>Label sheet</h1><span class="count" id="count"></span>
+<button class="primary" id="export">Export labels</button></header>
+<main>
+<p class="help">For each item: mark every highlighted flag <b>Correct</b> or <b>Wrong</b> (fix the category if
+needed), add any error the harness missed by <b>selecting words in the translation</b>, then press
+<b>Done</b>. Only items marked Done are exported. Speech flags refer to the audio; listen before judging.
+Progress is saved in this browser.</p>
+<div id="items"></div></main>
+<script>
+const ITEMS = __DATA__;
+const CATS = __CATS__;
+const KEY = "label-sheet:" + __KEY__;
+let state = {};
+try { state = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) { state = {}; }
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} };
+const esc = s => s.replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function st(id) { return state[id] ||= {verdicts:{}, cats:{}, added:[], done:false}; }
+
+function highlighted(text, spans) {
+  // spans: [{s,e,cls}] -> HTML with <mark>; overlapping spans are drawn in order
+  const pts = new Set([0, text.length]);
+  spans.forEach(x => { pts.add(x.s); pts.add(x.e); });
+  const cuts = [...pts].sort((a,b)=>a-b);
+  let out = "";
+  for (let i = 0; i < cuts.length - 1; i++) {
+    const a = cuts[i], b = cuts[i+1];
+    const hit = spans.filter(x => x.s <= a && b <= x.e && x.e > x.s);
+    const piece = esc(text.slice(a, b));
+    out += hit.length ? `<mark class="${hit.some(h=>h.cls==="m")?"m":"f"}">${piece}</mark>` : piece;
+  }
+  return out;
+}
+
+function render() {
+  const box = document.getElementById("items");
+  box.innerHTML = "";
+  ITEMS.forEach((it, idx) => {
+    const s = st(it.id);
+    const spans = it.flags.filter(f => f.span).map(f => ({s:f.span[0], e:Math.max(f.span[1], f.span[0]+1), cls:"f"}))
+      .concat(s.added.map(a => ({s:a.span[0], e:a.span[1], cls:"m"})));
+    const card = document.createElement("section");
+    card.className = "card" + (s.done ? " done" : "");
+    card.innerHTML = `
+      <div class="meta"><b>${idx+1}/${ITEMS.length}</b><span>${esc(it.id)}</span><span>${esc(it.lang)}</span>
+        <span>${it.flags.length ? it.flags.length + " flag(s)" : "no flags"}</span></div>
+      <div class="label">English source</div><div class="text">${esc(it.source)}</div>
+      <div class="label">Translation (select words to add an error)</div>
+      <div class="text tr" data-id="${esc(it.id)}">${highlighted(it.translation, spans)}</div>
+      ${it.audio ? `<div class="label">Audio</div><audio controls preload="none" src="${esc(it.audio)}"></audio>` : ""}
+      <div class="add" data-add="${esc(it.id)}">
+        <span>Add: “<span class="sel"></span>”</span>
+        <select class="acat">${CATS.map(c=>`<option>${c}</option>`).join("")}</select>
+        <select class="asev"><option>minor</option><option selected>major</option><option>critical</option></select>
+        <button class="aok">Add error</button><button class="acancel">Cancel</button></div>
+      <div class="flags"></div>
+      <div class="foot"><button class="done">${s.done ? "✓ Done (click to reopen)" : "Done"}</button>
+        <span class="count">${s.added.length ? s.added.length + " error(s) added" : ""}</span></div>`;
+    const fl = card.querySelector(".flags");
+    it.flags.forEach((f, k) => {
+      const v = s.verdicts[k];
+      const row = document.createElement("div");
+      row.className = "row";
+      const where = f.span ? it.translation.slice(f.span[0], f.span[1]) : "";
+      row.innerHTML = `<div class="ev"><b>${esc(s.cats[k] || f.category)}</b> · ${f.severity} · ${f.confidence.toFixed(2)}
+          <small>(${esc(f.checks.join(", "))})</small><br>${esc(f.evidence)}${where ? `<br><small>at: “${esc(where.slice(0,80))}”</small>` : ""}</div>
+        <select class="cat">${CATS.map(c=>`<option ${c===(s.cats[k]||f.category)?"selected":""}>${c}</option>`).join("")}</select>
+        <button class="ok ${v==="ok"?"on-ok":""}">Correct</button><button class="bad ${v==="bad"?"on-bad":""}">Wrong</button>`;
+      row.querySelector(".ok").onclick = () => { s.verdicts[k] = "ok"; save(); render(); };
+      row.querySelector(".bad").onclick = () => { s.verdicts[k] = "bad"; save(); render(); };
+      row.querySelector(".cat").onchange = e => { s.cats[k] = e.target.value; save(); render(); };
+      fl.appendChild(row);
+    });
+    s.added.forEach((a, k) => {
+      const row = document.createElement("div");
+      row.className = "row";
+      row.innerHTML = `<div class="ev"><b>${esc(a.type)}</b> · ${a.severity} <small>(added by you)</small><br>“${esc(it.translation.slice(a.span[0], a.span[1]).slice(0,80))}”</div><button>Remove</button>`;
+      row.querySelector("button").onclick = () => { s.added.splice(k, 1); save(); render(); };
+      fl.appendChild(row);
+    });
+    card.querySelector(".done").onclick = () => {
+      const open = it.flags.some((f, k) => !s.verdicts[k]);
+      if (!s.done && open && !confirm("Some flags are not marked Correct/Wrong. Unmarked flags count as wrong. Mark done?")) return;
+      s.done = !s.done; save(); render();
+    };
+    box.appendChild(card);
+  });
+  const n = ITEMS.filter(i => st(i.id).done).length;
+  document.getElementById("count").textContent = `${n}/${ITEMS.length} done`;
+}
+
+function offsetIn(container, node, off) {
+  // character offset of (node, off) within container's text
+  const r = document.createRange(); r.selectNodeContents(container); r.setEnd(node, off);
+  return r.toString().length;
+}
+let pending = null;
+document.addEventListener("mouseup", () => {
+  const sel = window.getSelection();
+  if (!sel || sel.isCollapsed) return;
+  const tr = sel.anchorNode && sel.anchorNode.parentElement && sel.anchorNode.parentElement.closest(".tr");
+  if (!tr || !tr.contains(sel.focusNode)) return;
+  let a = offsetIn(tr, sel.anchorNode, sel.anchorOffset), b = offsetIn(tr, sel.focusNode, sel.focusOffset);
+  if (a > b) [a, b] = [b, a];
+  const it = ITEMS.find(i => i.id === tr.dataset.id);
+  while (a < b && /\s/.test(it.translation[a])) a++;
+  while (b > a && /\s/.test(it.translation[b-1])) b--;
+  if (a === b) return;
+  pending = {id: it.id, span: [a, b]};
+  document.querySelectorAll(".add").forEach(x => x.classList.remove("show"));
+  const box = document.querySelector(`.add[data-add="${CSS.escape(it.id)}"]`);
+  box.querySelector(".sel").textContent = it.translation.slice(a, b).slice(0, 60);
+  box.classList.add("show");
+  box.querySelector(".aok").onclick = () => {
+    st(pending.id).added.push({type: box.querySelector(".acat").value, severity: box.querySelector(".asev").value, span: pending.span});
+    pending = null; save(); render();
+  };
+  box.querySelector(".acancel").onclick = () => { box.classList.remove("show"); pending = null; };
+});
+
+document.getElementById("export").onclick = () => {
+  const lines = [];
+  ITEMS.forEach(it => {
+    const s = st(it.id);
+    if (!s.done) return;
+    const labels = [];
+    it.flags.forEach((f, k) => {
+      if (s.verdicts[k] !== "ok") return;
+      const cat = s.cats[k] || f.category;
+      labels.push({type: cat, severity: f.severity, span: f.span, annotator: "candidate",
+                   ...(cat.startsWith("speech_") ? {area: "speech"} : {})});
+    });
+    s.added.forEach(a => labels.push({type: a.type, severity: a.severity, span: a.span, annotator: "candidate",
+                                      ...(a.type.startsWith("speech_") ? {area: "speech"} : {})}));
+    lines.push(JSON.stringify({id: it.id, labels}));
+  });
+  if (!lines.length) { alert("No item is marked Done yet."); return; }
+  const blob = new Blob([lines.join("\n") + "\n"], {type: "application/jsonl"});
+  const url = URL.createObjectURL(blob);
+  const link = Object.assign(document.createElement("a"), {href: url, download: "human_labels.jsonl"});
+  document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url);
+};
+render();
+</script></body></html>

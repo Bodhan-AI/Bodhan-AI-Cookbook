@@ -1,0 +1,12 @@
+httpx==0.28.1
+openai==3.55.1
+anthropic==2.11.0
+numpy==2.5.5
+soundfile==0.14.0
+sacrebleu==2.6.0
+rapidfuzz==3.14.6
+pyyaml==6.0.3
+python-dotenv==1.2.4
+pytest==9.2.0
+ruff==0.17.6
+-e .

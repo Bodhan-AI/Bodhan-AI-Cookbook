@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bodhan-eval"
+version = "0.1.0"
+description = "Agentic quality harness for Bodhan Indic-Translate and Indic-Speak outputs"
+readme = "README.md"
+requires-python = ">=3.10"
+# Exact pins live in requirements.txt (Cookbook convention); ranges here keep `pip install -e .` flexible.
+dependencies = [
+    "httpx>=0.27,<1",
+    "openai>=1.40",
+    "anthropic>=2.11,<3",
+    "numpy>=1.26",
+    "soundfile>=0.12",
+    "sacrebleu>=2.4,<3",
+    "rapidfuzz>=3.6,<4",
+    "pyyaml>=6",
+    "python-dotenv>=1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.5"]
+
+[project.scripts]
+bodhan-eval = "bodhan_eval.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+bodhan_eval = ["config/*.yaml", "judge/*.md"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM"]
+ignore = ["SIM905"]

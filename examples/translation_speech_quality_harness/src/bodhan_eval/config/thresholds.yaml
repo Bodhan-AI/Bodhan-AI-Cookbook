@@ -1,0 +1,61 @@
+# Default check thresholds. These are generic priors, NOT tuned to any dataset.
+# `--calibration` (or calibration on injected data) overrides them per run and records the
+# chosen values in calibration.json. Every value here applies to all languages.
+
+script:
+  min_letters: 3              # below this many letters, the script check has no signal
+  min_target_share: 0.5       # whole text: < this share of letters in an accepted script => wrong language
+  segment_min_letters: 8      # per sentence: only judge segments with at least this many letters
+  segment_max_target_share: 0.3   # per sentence: <= this share in accepted script => segment untranslated / wrong
+  untranslated_overlap: 0.5   # share of a Latin segment's words found in the source => "left untranslated"
+
+number:
+  scale_words_lower_confidence: true  # "1.5 million" may become "15 lakh" legitimately
+
+term:
+  min_foreign_latin_len: 3    # ignore Latin tokens shorter than this when looking for invented terms
+
+format:
+  enabled: true
+
+audio:
+  frame_ms: 20
+  silence_floor_db: -50       # absolute floor: frames quieter than this are silence
+  silence_rel_db: 35          # ...or this far below the loud-speech level (90th percentile frame)
+  max_edge_silence_s: 1.5     # leading / trailing silence longer than this is flagged
+  max_internal_silence_s: 1.2 # a pause inside speech longer than this is flagged
+  clip_level: 0.999           # |sample| at or above this counts as clipped
+  clip_min_run: 3             # consecutive clipped samples needed (single peaks are fine)
+  clip_ratio_minor: 0.001     # share of samples in clipped runs
+  clip_ratio_major: 0.01
+  noise_flatness: 0.45        # spectral flatness above this in a loud frame looks like noise, not speech
+  noise_min_s: 0.4            # a noisy stretch must last this long
+  duration_low: 0.55          # speech duration / expected duration below this => likely missing speech
+  duration_high: 1.8          # above this => likely repetition / stalls
+
+backtranslation:
+  match_min_chrf: 30          # source sentence vs back-translation (symmetric chrF++, 0-100) to count as aligned
+  omission_min_content_words: 3   # unmatched sentences shorter than this get low confidence (headings, fragments)
+  partial_min_missing_run: 4  # contiguous content words missing inside an aligned pair => partial omission/addition
+  partial_coverage_max: 0.6   # ...and at most this share of the sentence's content words survived
+  entity_min_similarity: 85   # fuzzy partial match (0-100) for a source entity in the back-translation
+
+reference:
+  low_sentence_chrf: 30       # chrF++ below this marks a sentence as low (signal only, never a flag)
+  align_min_chrf: 10          # translation vs reference sentence similarity needed to pair them
+
+speech:
+  omission_min_tokens: 4      # deleted tokens in one contiguous run needed for speech_omission (ASR drops single words)
+  omission_min_del_share: 0.5 # ...and at least this share of the run must be deletions, not substitutions
+  garbled_window: 6           # tokens per window when looking for garbled stretches
+  garbled_min_error: 0.6      # share of wrong tokens in a window => garbled candidate
+
+combine:
+  merge_iou: 0.5              # candidates of different categories merge when their spans overlap this much
+  default_threshold: 0.5      # merged confidence needed to report a flag (calibration sets per-category values)
+  thresholds: {}              # per-category overrides, e.g. {omission: 0.6}; written by calibration
+  reliability: {}             # per-check weight overrides for choosing the category (see combine.py)
+
+calibration:
+  max_clean_flag_rate: 0.10   # at most this share of clean items may carry any flag
+  min_labels: 3               # categories with fewer labels keep their default threshold
