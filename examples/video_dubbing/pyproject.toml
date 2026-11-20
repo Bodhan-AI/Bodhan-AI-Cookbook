@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools==81.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bodhan-dub"
+version = "0.1.0"
+description = "Bodhan AI Cookbook video dubbing recipe"
+requires-python = ">=3.10"
+dependencies = ["PyYAML==6.0.3"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
