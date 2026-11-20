@@ -1,0 +1,9 @@
+.env
+.env.*
+!.env.example
+/outputs/*
+!/outputs/.gitkeep
+/sample_data/*
+!/sample_data/.gitkeep
+/.bodhan-dub-state/
+/out/
