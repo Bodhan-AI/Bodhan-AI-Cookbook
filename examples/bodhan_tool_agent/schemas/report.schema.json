@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Bodhan Task Run Report",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "run_id",
+    "task",
+    "status",
+    "completion_status",
+    "started_at",
+    "finished_at",
+    "steps",
+    "max_steps",
+    "estimated_cost_inr",
+    "actual_cost_inr",
+    "cost_budget_inr",
+    "budget_overrun_inr",
+    "duration_seconds",
+    "api_call_count",
+    "tool_invocation_count",
+    "provider_submission_count",
+    "bodhan_provider_submission_count",
+    "llm_provider_submission_count",
+    "cache_hit_count",
+    "estimated_charges_inr",
+    "retry_count",
+    "total_retry_count",
+    "llm_request_count",
+    "llm_cost_inr",
+    "verification",
+    "operation_costs",
+    "artifacts",
+    "summary",
+    "assumptions",
+    "warnings",
+    "failed_operations",
+    "partial_completion",
+    "quality_reasons",
+    "input_files",
+    "error_codes"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.1"},
+    "run_id": {"type": "string", "minLength": 1},
+    "task": {"type": "string"},
+    "status": {
+      "enum": ["completed", "partial", "failed", "impossible", "needs_user_input"]
+    },
+    "completion_status": {
+      "enum": ["completed", "partial", "failed", "impossible", "needs_user_input"]
+    },
+    "started_at": {"type": "string", "format": "date-time"},
+    "finished_at": {"type": "string", "format": "date-time"},
+    "steps": {"type": "integer", "minimum": 0},
+    "max_steps": {"type": "integer", "minimum": 1},
+    "cost_inr": {"type": "number", "minimum": 0},
+    "estimated_cost_inr": {"type": "number", "minimum": 0},
+    "actual_cost_inr": {"type": ["number", "null"], "minimum": 0},
+    "llm_cost_inr": {
+      "type": ["number", "null"],
+      "minimum": 0,
+      "description": "LLM cost when reported by the provider; null when unavailable."
+    },
+    "cost_budget_inr": {"type": "number", "minimum": 0},
+    "budget_overrun_inr": {"type": "number", "minimum": 0},
+    "cost_scope": {"type": "string"},
+    "duration_seconds": {"type": "number", "minimum": 0},
+    "api_call_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Total Bodhan provider submissions plus LLM request attempts."
+    },
+    "tool_invocation_count": {"type": "integer", "minimum": 0},
+    "provider_submission_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Bodhan provider submissions only; LLM requests are reported separately."
+    },
+    "bodhan_provider_submission_count": {"type": "integer", "minimum": 0},
+    "llm_provider_submission_count": {"type": "integer", "minimum": 0},
+    "cache_hit_count": {"type": "integer", "minimum": 0},
+    "estimated_charges_inr": {"type": "number", "minimum": 0},
+    "bodhan_api_call_count": {"type": "integer", "minimum": 0},
+    "llm_request_count": {"type": "integer", "minimum": 0},
+    "retry_count": {"type": "integer", "minimum": 0},
+    "total_retry_count": {"type": "integer", "minimum": 0},
+    "bodhan_retry_count": {"type": "integer", "minimum": 0},
+    "llm_retry_count": {"type": "integer", "minimum": 0},
+    "operation_costs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "step",
+          "tool",
+          "estimated_cost_inr",
+          "actual_cost_inr",
+          "estimated_charges_inr",
+          "provider_submissions",
+          "cache_hit"
+        ],
+        "properties": {
+          "step": {"type": "integer", "minimum": 1},
+          "tool": {"type": "string"},
+          "estimated_cost_inr": {"type": "number", "minimum": 0},
+          "actual_cost_inr": {"type": ["number", "null"], "minimum": 0},
+          "estimated_charges_inr": {"type": "number", "minimum": 0},
+          "provider_submissions": {"type": ["integer", "null"], "minimum": 0},
+          "cache_hit": {"type": "boolean"},
+          "cost_basis": {"type": ["string", "null"]},
+          "input_fingerprint": {"type": ["string", "null"]}
+        },
+        "additionalProperties": false
+      }
+    },
+    "verification": {"type": "array", "items": {"type": "object"}},
+    "artifacts": {"type": "array", "items": {"type": "string"}},
+    "summary": {"type": "string"},
+    "assumptions": {"type": "array", "items": {"type": "string"}},
+    "warnings": {"type": "array", "items": {"type": "string"}},
+    "failed_operations": {"type": "array", "items": {"type": "object"}},
+    "partial_completion": {
+      "type": "object",
+      "required": ["is_partial", "completed_steps", "failed_steps", "artifacts_preserved", "reason"],
+      "properties": {
+        "is_partial": {"type": "boolean"},
+        "completed_steps": {"type": "integer", "minimum": 0},
+        "failed_steps": {"type": "integer", "minimum": 0},
+        "artifacts_preserved": {"type": "array", "items": {"type": "string"}},
+        "reason": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "quality_reasons": {"type": "array", "items": {"type": "string"}},
+    "input_files": {"type": "array", "items": {"type": "object"}},
+    "error_codes": {"type": "array", "items": {"type": "string"}}
+  },
+  "additionalProperties": false
+}

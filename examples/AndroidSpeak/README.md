@@ -36,6 +36,13 @@ when you'd rather not speak out loud.
    `EncryptedSharedPreferences`, not plain text), pick "My language" and "Local language," then
    go back to start talking.
 
+## Run
+
+Open the project in Android Studio, sync Gradle, select the `app` run
+configuration, and launch it on a device or emulator with microphone access.
+On first launch, enter the Bodhan keys and language choices in Settings. This
+app does not read a `.env` file.
+
 ## Assumptions worth double-checking against Bodhan's actual docs
 
 I built this from the three code samples you shared, and inferred a few details that aren't

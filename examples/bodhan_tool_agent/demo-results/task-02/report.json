@@ -1,0 +1,82 @@
+{
+  "schema_version": "1.1",
+  "run_id": "1282244967ff484eba341d9c9e7d0104",
+  "task": "Transcribe this Hindi audio and save a plain transcript. Do not create SRT timestamps.",
+  "status": "completed",
+  "completion_status": "completed",
+  "started_at": "2026-11-18T20:43:00.003427+00:00",
+  "finished_at": "2026-11-18T20:43:50.109312+00:00",
+  "steps": 1,
+  "max_steps": 30,
+  "cost_inr": 0.0329578231292517,
+  "estimated_cost_inr": 0.0329578231292517,
+  "actual_cost_inr": null,
+  "llm_cost_inr": null,
+  "cost_budget_inr": 20.0,
+  "budget_overrun_inr": 0.0,
+  "cost_scope": "Bodhan model cost estimates only; provider billing data is unavailable and LLM charges are excluded.",
+  "duration_seconds": 50.106,
+  "api_call_count": 4,
+  "tool_invocation_count": 1,
+  "provider_submission_count": 1,
+  "bodhan_provider_submission_count": 1,
+  "llm_provider_submission_count": 3,
+  "cache_hit_count": 0,
+  "estimated_charges_inr": 0.0329578231292517,
+  "bodhan_api_call_count": 1,
+  "llm_request_count": 3,
+  "retry_count": 1,
+  "total_retry_count": 1,
+  "bodhan_retry_count": 0,
+  "llm_retry_count": 1,
+  "operation_costs": [
+    {
+      "step": 1,
+      "tool": "transcribe_audio",
+      "estimated_cost_inr": 0.0329578231292517,
+      "actual_cost_inr": null,
+      "estimated_charges_inr": 0.0329578231292517,
+      "provider_submissions": 1,
+      "cache_hit": false,
+      "cost_basis": "measured audio duration at assignment rate",
+      "input_fingerprint": "2b8c28cbc49130b09f7bc44dcf7deae8852190d13e2261f9ceb634a3c031b3df"
+    }
+  ],
+  "verification": [],
+  "artifacts": [
+    "artifacts/transcript-ce771531.md"
+  ],
+  "summary": "Transcribed the Hindi audio (19.78s, 1 chunk) and saved a plain transcript (no SRT timestamps) at: artifacts/transcript-ce771531.md",
+  "assumptions": [
+    "Language is treated as Hindi per the task; script-based detection returned Devanagari (unknown language, not definitive).",
+    "Output saved as a plain Markdown transcript; no subtitle timing was generated."
+  ],
+  "warnings": [
+    "Language detection is based on output script and may be inconclusive."
+  ],
+  "failed_operations": [],
+  "partial_completion": {
+    "is_partial": false,
+    "completed_steps": 1,
+    "failed_steps": 0,
+    "artifacts_preserved": [],
+    "reason": null
+  },
+  "quality_reasons": [],
+  "input_files": [
+    {
+      "name": "hindi_audio.mp3",
+      "extension": ".mp3",
+      "size_bytes": 319275,
+      "inspection": {
+        "status": "ok",
+        "kind": "audio",
+        "format": "MP3",
+        "duration_seconds": 19.783,
+        "sample_rate_hz": 44100,
+        "channels": 1
+      }
+    }
+  ],
+  "error_codes": []
+}

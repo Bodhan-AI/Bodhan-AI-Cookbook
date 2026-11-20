@@ -1,0 +1,1 @@
+The Little Lantern is a short story about kindness, courage, and shared light. In a quiet village, a boy named Aarav helps his grandfather light lanterns along the road to the river one rainy evening. When a strong wind blows out all the l,
