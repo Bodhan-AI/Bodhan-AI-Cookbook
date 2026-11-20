@@ -62,7 +62,7 @@ RESOURCES = {
 PROMPTS = {
     "plan_media_task": ("Plan an Indian-language media task",
                         "A ready-made instruction for a chat model: how to use these tools for a task such as "
-                        "'make a Tamil audio summary of this PDF', with the rules that keep the output honest."),
+                        "'make a Bengali audio summary of this PDF', with the rules that keep the output honest."),
 }
 
 

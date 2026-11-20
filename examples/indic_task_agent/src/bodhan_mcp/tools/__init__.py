@@ -48,7 +48,7 @@ TOOLS: list[ToolSpec] = [
         "Translate text or a Markdown/SRT file between English and 22 Indian languages (any pair) with Bodhan Indic-Translate. "
         "Long documents are split into passages; Markdown tables are kept as tables (rebuilt cell by cell if needed); SRT "
         "timing is kept; truncated output is re-split, never returned partially. With verify=true it back-translates and "
-        "checks script, numbers and table shape, returning a pass/warn/fail verification. Unsupported languages (e.g. French) "
+        "checks script, numbers and table shape, returning a pass/warn/fail verification. Unsupported languages (e.g. German) "
         "return an `unsupported_language` error: report that, do not substitute. Cost: ₹0.20 per 10k output tokens." + _FILES,
         TranslateIn, translate_text, paid=True),
     ToolSpec(
