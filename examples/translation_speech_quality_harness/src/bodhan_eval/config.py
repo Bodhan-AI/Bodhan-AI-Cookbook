@@ -58,6 +58,11 @@ def default_voice(code: str) -> str | None:
     return _LANGS[code][2]
 
 
+def voices(code: str) -> list[str]:
+    """The two Indic-Speak voices for a language, default first."""
+    return [v for v in _LANGS[code][2:4] if v]
+
+
 def speak_lang(code: str) -> str | None:
     return _LANGS[code][4]
 

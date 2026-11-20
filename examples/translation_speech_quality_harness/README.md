@@ -78,9 +78,18 @@ The error injector plants labelled errors into clean items:
 python -m bodhan_eval.inject --dataset clean.jsonl --out injected.jsonl --rate 0.5 --seed 7 --env-file .env
 ```
 
-`tools/holdout.py` calibrates on half the items and scores the other half. `tools/cost_runtime.py report_demo` prints cost and runtime per 100 items.
+Voice comparison speaks the same translations with each Indic-Speak voice and scores every recording with the same speech checks:
 
-Run the tests with `pytest` (234 tests, offline, about 12 seconds).
+```bash
+python -m bodhan_eval.voices --dataset data/demo.jsonl --langs hi,ta,bn --out report_voices --per-lang 8 --env-file .env
+```
+
+Tools:
+- `tools/holdout.py` calibrates on half the items and scores the other half.
+- `tools/build_unseen.py` builds an injected test set in languages the demo does not use.
+- `tools/cost_runtime.py report_demo` prints cost and runtime per 100 items.
+
+Run the tests with `pytest` (239 tests, offline, about 12 seconds). A run prints one progress line per stage on stderr.
 
 Report files: `summary.md`, `summary.json`, `items.jsonl`, `calibration.json`, `diff.md` (with `--baseline`), plus `review_queue.csv`, `dashboard.html` and `run_log.jsonl`. Every flag in `items.jsonl` lists its category, severity, spans on both sides, quotes, and the evidence from each check. `run_log.jsonl` records every model call with its cache key, so any flag can be traced back to the calls behind it.
 

@@ -43,10 +43,10 @@ def pieces(text: str, limit: int = MAX_SPEAK_CHARS) -> list[str]:
     return [p for p in out if p]
 
 
-def speak_long(text: str, lang: str, bodhan, ctx=None) -> bytes:
+def speak_long(text: str, lang: str, bodhan, ctx=None, voice: str | None = None) -> bytes:
     parts, sr = [], None
     for p in pieces(text):
-        x, rate = read_samples(bodhan.speak(p, lang, ctx=ctx))
+        x, rate = read_samples(bodhan.speak(p, lang, voice=voice, ctx=ctx))
         if sr is not None and rate != sr:
             raise ValueError(f"sample rate changed between pieces ({sr} -> {rate})")
         sr = rate
