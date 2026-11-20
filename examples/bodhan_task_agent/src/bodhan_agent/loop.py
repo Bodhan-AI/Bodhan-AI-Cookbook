@@ -153,6 +153,31 @@ def register_outputs(
     return ids
 
 
+def same_language_problem(source: Artifact, target: str) -> str | None:
+    if _base(target) == "en":
+        if source.indic_text or source.script not in (None, "Latin"):
+            return None
+        sample = text_sample(Path(source.path))
+        if sample is None or not sample.strip() or guards.romanized_indic_words(sample):
+            return None
+        return f"{source.id} is already English; read it with read instead of translating it to English."
+    if (
+        source.language
+        and source.language_source in ("requested", "detected")
+        and _base(source.language) == _base(target)
+    ):
+        return f"{source.id} is already in '{source.language}'; use it as it is."
+    return None
+
+
+def text_sample(path: Path, limit: int = 20_000) -> str | None:
+    try:
+        with path.open(encoding="utf-8-sig") as handle:
+            return handle.read(limit)
+    except (OSError, UnicodeDecodeError):
+        return None
+
+
 @dataclass
 class PendingCall:
     call: ToolCall
@@ -467,6 +492,10 @@ class Controller:
                 problem_text = guards.speech_source_problem(source, str(args.get("language", "")))
                 if problem_text is not None:
                     return await self.deny(call, "speech_source", problem_text, None)
+            if call.name == "translate_text":
+                same = same_language_problem(source, str(args.get("target_language", "")))
+                if same is not None:
+                    return await self.deny(call, "same_language", same, "No paid call is needed for this.")
         if call.name in MCP_TOOLS:
             args = guards.harden_tool_args(call.name, args)
         digest = self.digest(call.name, args)

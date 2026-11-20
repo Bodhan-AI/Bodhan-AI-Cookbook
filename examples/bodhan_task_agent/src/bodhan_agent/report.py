@@ -51,6 +51,10 @@ NO_ANSWER = "No English answer was produced."
 WITHHELD_ANSWER = "The proposed answer was withheld because it failed verification."
 
 
+def inr(value: float) -> str:
+    return f"Rs {value:.2f}" if value == 0 or abs(value) >= 0.1 else f"Rs {value:.4f}"
+
+
 def _add_tokens(left: LlmTokens, right: LlmTokens) -> LlmTokens:
     def add(a: int | None, b: int | None) -> int | None:
         return b if a is None else a if b is None else a + b
@@ -128,7 +132,7 @@ def _missed(loop: LoopResult | None, cost: Usage, time: Usage) -> list[MissedTar
         target = prefix.strip() if prefix.strip() in MISSED_PREFIXES else "no_waste"
         missed.append(MissedTarget(target=target, detail=(detail or entry).strip() or entry))  # type: ignore[arg-type]
     if cost.exceeded:
-        missed.append(MissedTarget(target="budget", detail=f"Bodhan cost Rs {cost.used:.2f} exceeded the limit."))
+        missed.append(MissedTarget(target="budget", detail=f"Bodhan cost {inr(cost.used)} exceeded the limit."))
     if time.exceeded:
         missed.append(MissedTarget(target="latency", detail=f"The run took {time.used:.0f} s."))
     return missed
@@ -371,8 +375,8 @@ class Finalizer:
         lines += [
             "## Cost and time",
             "",
-            f"- Bodhan cost: Rs {cost.bodhan_inr:.2f} of Rs {report.budgets.cost_inr.limit or 0:.2f}"
-            + (f" (plus Rs {cost.reserved_unsettled_inr:.2f} unsettled)" if cost.reserved_unsettled_inr else "")
+            f"- Bodhan cost: {inr(cost.bodhan_inr)} of {inr(report.budgets.cost_inr.limit or 0)}"
+            + (f" (plus {inr(cost.reserved_unsettled_inr)} unsettled)" if cost.reserved_unsettled_inr else "")
             + (" — some charges are uncertain" if cost.billing_uncertain else ""),
             f"- LLM usage (not part of the Bodhan budget): {token_text}",
             f"- Steps: {report.budgets.steps.used} of {report.budgets.steps.limit}; "
