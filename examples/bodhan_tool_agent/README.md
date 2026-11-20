@@ -234,10 +234,8 @@ recovery/error details, and recording checklist; the
 ## Demo video
 
 A public recording of five minutes or less is required before submission.
-The supplied [Google Drive video](https://drive.google.com/file/d/1ZyBMrgxfROON7VtOpBXK6x4hlY5utdWQ/view?usp=drive_link)
-is linked as requested. Its MP4 download contains the embedded text “This is a
-test box, please ignore,” so I cannot verify that it demonstrates the recipe.
-Replace it with a confirmed recording if this is not the intended demo.
+The [demo video](https://drive.google.com/file/d/1ZyBMrgxfROON7VtOpBXK6x4hlY5utdWQ/view?usp=sharing)
+is publicly available on Google Drive.
 
 Prices use the assignment's estimates: transcription ₹0.10/audio-minute, translation ₹0.20/10,000 output tokens, speech ₹6/10,000 input characters, OCR ₹0.20/page. These are estimates, not a billing guarantee. Translation uses the documented usage when supplied; other tools conservatively estimate from input size/duration. `--max-cost-inr` bounds Bodhan model charges using those published estimates; LLM charges are not included because evaluator LLM pricing is provider-specific and not supplied. Every paid request reserves an estimated amount before execution, and the same successful model/input/options request is cached within a run.
 
