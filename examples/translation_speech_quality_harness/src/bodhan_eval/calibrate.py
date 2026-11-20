@@ -87,12 +87,16 @@ def evaluate(items: list[CalItem], threshold: dict[str, float]) -> dict[str, Any
     per: dict[str, dict[str, float]] = {c: {"tp": 0, "fp": 0, "fn": 0} for c in CATEGORIES}
     clean_flagged = clean_total = 0
     ious = []
+    located = with_span = 0
     for it in items:
         pairs, extra, missed = match_item(it, threshold)
         for lab, f in pairs:
             per[lab.category]["tp"] += 1
             if lab.span and f.span and lab.span[0] != lab.span[1] and not lab.approx:
                 ious.append(_iou(lab.span, f.span))
+            if lab.span and f.span:
+                with_span += 1
+                located += _overlaps(lab.span, f.span)
         for lab in missed:
             per[lab.category]["fn"] += 1
         if it.scope != "injected":
@@ -114,7 +118,16 @@ def evaluate(items: list[CalItem], threshold: dict[str, float]) -> dict[str, Any
         "clean_items": clean_total,
         "clean_flag_rate": clean_flagged / clean_total if clean_total else None,
         "span_iou_mean": round(sum(ious) / len(ious), 4) if ious else None,
+        # share of detections whose span really overlaps the label (no tolerance);
+        # a zero-width label (deletion point) counts when it lies inside the flagged span
+        "span_overlap_rate": round(located / with_span, 4) if with_span else None,
     }
+
+
+def _overlaps(ls: tuple[int, int], fs: tuple[int, int]) -> bool:
+    if ls[0] == ls[1]:
+        return fs[0] <= ls[0] <= fs[1]
+    return min(ls[1], fs[1]) > max(ls[0], fs[0])
 
 
 def category_accuracy(items: list[CalItem]) -> float | None:

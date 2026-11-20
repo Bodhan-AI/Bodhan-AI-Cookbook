@@ -83,3 +83,21 @@ def test_regression_exit_code(tmp_path, monkeypatch):
     assert s["diff"]["counts"]["new"] >= 1 and s["diff"]["quality"]["delta"] < -0.5
     assert "diff.md" in {p.name for p in (tmp_path / "cur").iterdir()}
     assert NUM_TR  # imported fixture text still matches the shared dataset
+
+
+def test_targets_section_marks_misses_with_reasons():
+    from bodhan_eval.report import _targets_section
+
+    per = {
+        "number": {"tp": 9, "fp": 0, "fn": 1, "labels": 10, "recall": 0.9},
+        "term": {"tp": 1, "fp": 0, "fn": 4, "labels": 5, "recall": 0.2},
+    }
+    cal = {
+        "metrics": {"per_category": per, "clean_flag_rate": 0.25, "span_overlap_rate": 0.9},
+        "category_accuracy": 0.8,
+    }
+    md = "\n".join(_targets_section(cal, {"ran": True, "verdict_agreement": 0.95}))
+    rows = {line.split("|")[1].strip(): line for line in md.splitlines() if line.startswith("| ")}
+    assert "**missed**" in rows["Detection recall"] and "term 20%" in rows["Detection recall"]
+    assert "**missed**" in rows["False alarms"]
+    assert "| met |" in rows["Localization"] and "| met |" in rows["Judge consistency"]

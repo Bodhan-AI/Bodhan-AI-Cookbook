@@ -19,17 +19,34 @@ the facts they rest on, and what is still open.
 
 ```mermaid
 flowchart TB
-  subgraph checks [Checks propose candidates]
-    A[script / language] & N[numbers / units] & TM[terms / verbatim] & FM[format] & L[length]
-    BT[back-translation]
-    SP[speech: waveform + ASR]
-    J[LLM judge]
+  subgraph checks ["Checks propose candidates"]
+    A["script / language"] & N["numbers / units"] & TM["terms / verbatim"] & FM["format"] & L["length"]
+    BT["back-translation"]
+    SP["speech: waveform + ASR"]
+    J["LLM judge"]
   end
-  checks --> CB[combine: group overlapping spans,<br/>reliability-weighted category vote,<br/>noisy-OR over agreeing checks]
-  CB --> TH[thresholds per category]
-  CAL[calibration on labelled items] --> TH
-  TH --> OUT[final flags → reports]
+  subgraph models ["Paid model calls"]
+    TR["Indic-Translate"]
+    TTS["Indic-Speak"]
+    ASR["Indic-Transcribe"]
+    LLM["LLM (OpenAI-compatible)"]
+  end
+  CACHE[("cache.sqlite<br/>keyed by exact request<br/>or audio sha256")]
+  BUD["budget + rate gate<br/>+ retries"]
+  BT --> CACHE
+  SP --> CACHE
+  J --> CACHE
+  CACHE -->|"miss (not with --offline)"| BUD
+  BUD --> TR & TTS & ASR & LLM
+  checks --> CB["combine: group overlapping spans,<br/>reliability-weighted category vote,<br/>noisy-OR over agreeing checks"]
+  CB --> TH["thresholds per category"]
+  CAL["calibration on labelled items"] --> TH
+  TH --> OUT["final flags → reports"]
 ```
+
+Every paid call goes through the cache first. On a miss, the budget reserves the estimated
+cost, the per-service rate gate paces the request, and retries with backoff handle 429s and
+5xx errors. With `--offline` a miss skips the step instead, so a cached re-run costs nothing.
 
 | Module | Role |
 |---|---|

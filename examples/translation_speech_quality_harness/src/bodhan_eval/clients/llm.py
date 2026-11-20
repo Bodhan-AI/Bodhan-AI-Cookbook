@@ -1,7 +1,8 @@
 """OpenAI-compatible LLM client for the judge and orchestration decisions.
 
 Reads LLM_BASE_URL, LLM_MODEL, LLM_API_KEY. Uses only portable chat-completions features:
-JSON mode is attempted once and silently dropped if the provider rejects it.
+JSON mode, temperature 0 and `max_tokens` are each dropped (or renamed) if the provider
+rejects them, so the judge still runs on providers that support none of them.
 The LLM only READS Indian-language text; prompts never ask it to produce any.
 """
 
@@ -65,6 +66,8 @@ class LLMClient:
         )
         self._sem = asyncio.Semaphore(concurrency)
         self._json_mode = True
+        self._temperature = True
+        self._max_tokens_param = "max_tokens"
 
     @property
     def configured(self) -> bool:
@@ -114,12 +117,35 @@ class LLMClient:
         return parsed, False
 
     async def _create(self, messages, max_tokens):
-        kwargs = dict(model=self.model, messages=messages, temperature=0, max_tokens=max_tokens)
-        if self._json_mode:
+        """Send the request, degrading gracefully when the provider rejects a parameter:
+        `temperature` (some reasoning / newer models only accept the default), `max_tokens`
+        (some want `max_completion_tokens`) and JSON mode. Each fallback is remembered for
+        the rest of the run, so it costs at most one rejected request."""
+        while True:
+            kwargs: dict[str, Any] = {"model": self.model, "messages": messages}
+            kwargs[self._max_tokens_param] = max_tokens
+            if self._temperature:
+                kwargs["temperature"] = 0
+            if self._json_mode:
+                kwargs["response_format"] = {"type": "json_object"}
             try:
-                return await self._client.chat.completions.create(
-                    **kwargs, response_format={"type": "json_object"}
-                )
-            except openai.BadRequestError:
-                self._json_mode = False  # provider lacks JSON mode; fall back to prompt-only
-        return await self._client.chat.completions.create(**kwargs)
+                return await self._client.chat.completions.create(**kwargs)
+            except openai.BadRequestError as e:
+                if not self._drop_unsupported(str(e).lower(), kwargs):
+                    raise
+
+    def _drop_unsupported(self, msg: str, sent: dict[str, Any]) -> bool:
+        """Turn off the parameter a 400 complains about; True means "retry".
+
+        Decided from what this request *sent*, not from the shared flags: with concurrent
+        calls, another task may already have turned the flag off while this request was in
+        flight, and it must still retry rather than raise."""
+        if "temperature" in sent and "temperature" in msg:
+            self._temperature = False
+        elif "max_tokens" in sent and "max_tokens" in msg:
+            self._max_tokens_param = "max_completion_tokens"
+        elif "response_format" in sent:
+            self._json_mode = False  # provider lacks JSON mode; fall back to prompt-only
+        else:
+            return False
+        return True

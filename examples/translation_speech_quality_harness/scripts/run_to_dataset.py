@@ -9,6 +9,7 @@ generated outputs can be fed to the injector or re-evaluated without regeneratin
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -20,6 +21,11 @@ def main(src: str, dst: str) -> int:
     for line in Path(src).read_text(encoding="utf-8").splitlines():
         r = json.loads(line)
         row = {k: r[k] for k in KEEP if r.get(k) is not None}
+        if "audio" in row:  # items.jsonl paths are relative to the working directory;
+            # the dataset loader resolves them relative to the dataset file
+            row["audio"] = Path(
+                os.path.relpath(Path(row["audio"]).resolve(), Path(dst).resolve().parent)
+            ).as_posix()
         rows.append(row)
     Path(dst).parent.mkdir(parents=True, exist_ok=True)
     Path(dst).write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), "utf-8")

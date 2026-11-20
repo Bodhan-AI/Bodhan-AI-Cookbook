@@ -19,21 +19,31 @@ agreed. No language-specific rules: a new language is one line in
 
 ## Setup
 
-Requires Python 3.10+.
+Requires Python 3.10+. No system packages: the `soundfile` wheel bundles libsndfile, and
+ffmpeg isn't used.
 
 ```bash
 cd examples/translation_speech_quality_harness
 python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt
+.venv/bin/pip install -r requirements.txt     # pinned; also installs the package (-e .)
 cp .env.example .env
+```
+
+Or with Docker:
+
+```bash
+docker build -t bodhan-eval .
+docker run --rm --env-file .env -v "$PWD/report:/app/report" bodhan-eval \
+  --dataset sample_data/demo_injected.jsonl --langs hi,ta,bn --out ./report
 ```
 
 Edit `.env`:
 
 | Variable | Needed for |
 |---|---|
-| `BODHAN_API_KEY` (or `BODHAN_TRANSLATE_KEY` / `_SPEAK_KEY` / `_TRANSCRIBE_KEY`) | back-translation, `--generate`, speech checks |
-| `ANTHROPIC_API_KEY` + `LLM_MODEL` (e.g. `claude-haiku-5-5`) | the LLM judge (or any OpenAI-compatible API via `LLM_BASE_URL` / `LLM_API_KEY`) |
+| `BODHAN_TRANSLATE_KEY`, `BODHAN_SPEAK_KEY`, `BODHAN_TRANSCRIBE_KEY` (or one `BODHAN_API_KEY` for all three) | back-translation, `--generate`, speech checks |
+| `LLM_BASE_URL`, `LLM_MODEL`, `LLM_API_KEY` | the LLM judge, through any OpenAI-compatible chat API |
+| `ANTHROPIC_API_KEY` (optional, instead of the three above) | the judge through the Anthropic SDK; used only when `LLM_BASE_URL` is unset |
 | `BODHAN_TRANSLATE_RPM` (optional) | steady pacing under the translate rate limit |
 
 Check the keys and API formats with one tiny call per model (under ₹0.10):
@@ -46,12 +56,23 @@ No keys at all? `make check` / `pytest` and the offline end-to-end test still ru
 
 ## Run
 
-Evaluate a dataset that already has translations:
+The interface (extra flags are optional):
 
 ```bash
-.venv/bin/bodhan-eval --dataset sample_data/demo.jsonl --langs hi,ta,bn \
-  --out outputs/run --max-cost-inr 5
+.venv/bin/python -m bodhan_eval --dataset path/to/data.jsonl --langs hi,ta,bn --out ./report \
+  [--generate] [--baseline ./previous_report] [--calibration labels.jsonl] [--max-cost-inr 50]
 ```
+
+`bodhan-eval` is the same command. Evaluate the demo set with its supplied translations and
+planted errors, calibrating on the hand labels:
+
+```bash
+.venv/bin/python -m bodhan_eval --dataset sample_data/demo_injected.jsonl --langs hi,ta,bn \
+  --out ./report --calibration sample_data/human_labels.jsonl --max-cost-inr 5
+```
+
+For the speech checks, unzip the [demo audio](#demo-data-sample-report-and-audio) into
+`sample_data/` first. Without it, the audio items are logged and scored as text only.
 
 Generate missing translations and audio with Bodhan first, then evaluate them
 (speech on half the items):
@@ -169,7 +190,28 @@ paid call. A paid step that can't run (out of budget, rate limited, API error, t
 declining) is skipped and recorded for that item; the run never aborts. After a rate-limit
 response, all calls to that service back off together.
 
-See [`docs/design.md`](docs/design.md) for the design decisions and their reasons.
+**Documentation:** the flow chart above, the architecture diagram and design notes (each
+check, the judge rubric, calibration against human labels, and how results combine into flags)
+are in [`docs/design.md`](docs/design.md). The judge rubric itself is
+[`judge/rubric.md`](src/bodhan_eval/judge/rubric.md).
+
+## Demo data, sample report and audio
+
+| File | What it is |
+|---|---|
+| [`sample_data/demo.jsonl`](sample_data/demo.jsonl) | the 108 English source items (36 each for hi / ta / bn), text only |
+| [`sample_data/demo_injected.jsonl`](sample_data/demo_injected.jsonl) | the same items with Bodhan translations; 56 carry a planted error with its label (`"annotator": "injector"`), 52 are untouched controls |
+| [`sample_data/human_labels.jsonl`](sample_data/human_labels.jsonl) | my hand labels for 30 controls (`"annotator": "candidate"`), used with `--calibration` |
+| [`docs/sample_report/`](docs/sample_report/) | the report from the demo run: [`summary.md`](docs/sample_report/summary.md), [`diff.md`](docs/sample_report/diff.md) (against the run before hand labels), `summary.json`, `calibration.json`, `items.jsonl` |
+| [Demo audio (zip, 32 MB)](AUDIO_LINK) | the 54 Indic-Speak clips (untouched and with planted audio errors). Unzip into `sample_data/` so `audio/<id>.wav` resolves. Generated audio is kept out of git |
+
+The Cookbook keeps datasets in `sample_data/`, so the demo set lives there rather than in the
+`data/` folder the assignment's default layout suggests.
+
+## Demo video
+
+[Watch the demo (≤ 5 min)](VIDEO_LINK): a full run on the demo dataset and a walk through the
+report.
 
 ## Results on the demo set
 
@@ -209,15 +251,29 @@ threshold until recall was 0%. With the 30 hand-labelled controls, mistranslatio
   contain real errors.
 - Speech spans of injected audio errors are approximate in the text (exact in time).
 - Back-translation adds paraphrase noise, which is why its candidates get modest confidence.
+- **Runtime target likely missed** on a cold cache: 200 items with speech in under 30 min.
+  Back-translation runs per sentence, because Bodhan merges lines sent in one batch.
+  Indic-Translate allowed about 25 requests/min in our tests, so about 900 calls take
+  35-40 min. Speech requests (~17 s each) run in parallel and add little. Cached re-runs take
+  seconds.
+- Which items get speech checks is a seeded sample (`--speech-sample`), not a decision by the
+  LLM or the cheap checks.
+
+**What I'd do next:** route speech checks to the items where they pay off (numbers, names,
+long text, or items the cheap checks are unsure about) instead of a random sample; add a
+transliteration check for names to lift term recall; and calibrate on a held-out labelled set
+to get out-of-sample numbers.
 
 ## Tests
 
 ```bash
-make check                   # or: .venv/bin/python -m pytest -q && .venv/bin/ruff check src tests
+.venv/bin/python -m pytest -q && .venv/bin/ruff check src tests scripts
 ```
 
 `tests/test_e2e_offline.py` runs the real CLI on 10 recorded items with no network and no keys,
-and checks that two runs produce identical reports. Re-record its fixture with
+and checks that two runs produce identical reports. The other tests cover normalization, span
+alignment, each deterministic check, the combiner, calibration, the injector, the clients
+(retries, budget, provider fallbacks) and the reports. Re-record its fixture with
 `scripts/record_e2e_fixture.py` after changing a prompt.
 
 ## Credits and licenses

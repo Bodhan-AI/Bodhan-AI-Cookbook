@@ -21,6 +21,7 @@ import logging
 import sys
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
 from bodhan_eval import report
@@ -63,6 +64,18 @@ SOFT_ERRORS = (BudgetExceeded, CacheMiss, APIError, LLMOutputError)
 HINT_MIN_CONFIDENCE = 0.3
 
 
+def _portable_path(p: str | Path | None) -> str | None:
+    """Audio paths in reports: relative to the working directory when inside it, so a
+    report holds no machine-specific absolute paths and stays identical across clones."""
+    if not p:
+        return None
+    path = Path(p)
+    try:
+        return path.resolve().relative_to(Path.cwd().resolve()).as_posix()
+    except ValueError:
+        return str(p)
+
+
 @dataclass
 class ItemResult:
     item: Item
@@ -85,7 +98,7 @@ class ItemResult:
             "translation": self.translation,
             "translation_generated": self.translation_generated,
             "spoken_text": self.spoken_text,
-            "audio": self.audio_path or (str(it.audio) if it.audio else None),
+            "audio": _portable_path(self.audio_path or it.audio),
             **item_verdict(self.flags),
             "flags": [f.to_dict() for f in self.flags],
             "candidates": [f.to_dict() for f in self.candidates],
@@ -153,6 +166,18 @@ class Runner:
                 log,
                 "step_skipped",
                 logging.WARNING,
+                item_id=r.item.id,
+                step=step,
+                reason=r.skipped[step],
+            )
+            return None
+        except Exception as e:  # noqa: BLE001 - any other failure skips this step, never the run
+            r.skipped[step] = f"error: {type(e).__name__}: {str(e)[:200]}"
+            log.exception("step %s failed on %s", step, r.item.id)
+            event(
+                log,
+                "step_skipped",
+                logging.ERROR,
                 item_id=r.item.id,
                 step=step,
                 reason=r.skipped[step],
@@ -345,6 +370,10 @@ class Runner:
                 )
             except SOFT_ERRORS as e:
                 per_item[r.item.id] = {"skipped": _soft_reason(e)}
+                continue
+            except Exception as e:  # noqa: BLE001 - a failed re-judgement never stops the run
+                log.exception("judge consistency failed on %s", r.item.id)
+                per_item[r.item.id] = {"skipped": f"error: {type(e).__name__}"}
                 continue
             per_item[r.item.id] = ag
         done = [a for a in per_item.values() if a.get("verdict") is not None]

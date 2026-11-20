@@ -186,6 +186,84 @@ def test_llm_json_and_cache(tmp_path):
     assert cost.llm_tokens_in == 200
 
 
+def _bad_request(msg):
+    import openai
+
+    req = httpx.Request("POST", "https://llm.test/v1/chat/completions")
+    return openai.BadRequestError(msg, response=httpx.Response(400, request=req), body=None)
+
+
+def test_llm_drops_parameters_the_provider_rejects(tmp_path):
+    """A provider that rejects temperature, max_tokens and JSON mode still gets a judge call."""
+
+    class Picky:
+        def __init__(self):
+            self.sent = []
+
+        async def create(self, **kw):
+            self.sent.append(sorted(kw))
+            if "temperature" in kw:
+                raise _bad_request("temperature is not supported with this model")
+            if "max_tokens" in kw:
+                raise _bad_request("Unsupported parameter: 'max_tokens'; use another one")
+            if "response_format" in kw:
+                raise _bad_request("response_format json_object is not supported")
+            return await _FakeCompletions().create(**kw)
+
+    picky = Picky()
+
+    class Fake:
+        chat = type("chat", (), {"completions": picky})()
+
+    async def go():
+        llm = LLMClient(Cache(tmp_path / "c.sqlite"), CostMeter(), model="m", client=Fake())
+        first = await llm.chat_json([{"role": "user", "content": "a"}])
+        n = len(picky.sent)
+        await llm.chat_json([{"role": "user", "content": "b"}])
+        return first, n
+
+    first, n = asyncio.run(go())
+    assert first == ({"errors": []}, False)
+    assert n == 4  # three rejections, then success
+    assert picky.sent[-1] == ["max_completion_tokens", "messages", "model"]
+    assert len(picky.sent) == 5  # the fallbacks are remembered: one call for the second item
+
+
+def test_llm_fallback_is_safe_under_concurrency(tmp_path):
+    """Calls already in flight when another call turns a parameter off must retry, not raise."""
+
+    class Slow:
+        async def create(self, **kw):
+            await asyncio.sleep(0)  # let every task send its first request before any fails
+            if "temperature" in kw:
+                raise _bad_request("temperature: only the default value is supported")
+            return await _FakeCompletions().create(**kw)
+
+    class Fake:
+        chat = type("chat", (), {"completions": Slow()})()
+
+    async def go():
+        llm = LLMClient(Cache(tmp_path / "c.sqlite"), CostMeter(), model="m", client=Fake())
+        return await asyncio.gather(
+            *(llm.chat_json([{"role": "user", "content": str(i)}]) for i in range(6))
+        )
+
+    assert all(r == ({"errors": []}, False) for r in asyncio.run(go()))
+
+
+def test_llm_unrelated_bad_request_is_raised(tmp_path):
+    class Broken:
+        async def create(self, **kw):
+            raise _bad_request("messages: content too long")
+
+    class Fake:
+        chat = type("chat", (), {"completions": Broken()})()
+
+    llm = LLMClient(Cache(tmp_path / "c.sqlite"), CostMeter(), model="m", client=Fake())
+    with pytest.raises(Exception, match="too long"):
+        asyncio.run(llm.chat_json([{"role": "user", "content": "a"}]))
+
+
 def test_parse_json_object_tolerant():
     assert parse_json_object('Sure! {"a": 1} done') == {"a": 1}
     assert parse_json_object("[1, 2]") == [1, 2]

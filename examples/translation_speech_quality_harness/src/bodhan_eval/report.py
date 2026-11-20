@@ -82,6 +82,64 @@ def _md_table(header: list[str], rows: list[list[Any]]) -> list[str]:
     return out
 
 
+def _targets_section(cal: dict[str, Any], jc: dict[str, Any]) -> list[str]:
+    """The assignment's quality targets vs this run, with a short reason for each miss."""
+    m = cal["metrics"]
+    per = m["per_category"]
+    tp = sum(x["tp"] for x in per.values())
+    labels = sum(x["labels"] for x in per.values())
+    recall = tp / labels if labels else None
+    weakest = sorted(
+        (c for c, x in per.items() if x["labels"] and (x["recall"] or 0) < 0.8),
+        key=lambda c: per[c]["recall"] or 0,
+    )
+    why_recall = (
+        "lowest: " + ", ".join(f"{c} {_pct(per[c]['recall'])}" for c in weakest[:3])
+        if weakest
+        else ""
+    )
+    rows: list[list[Any]] = []
+
+    def add(name, target, value, ok, why=""):
+        status = "n/a" if ok is None else ("met" if ok else "**missed**")
+        rows.append([name, target, value, status, why if ok is False else ""])
+
+    add("Detection recall", "≥ 80% of labelled errors", f"{_pct(recall)} ({tp}/{labels})",
+        None if recall is None else recall >= 0.8, why_recall)  # fmt: skip
+    cfr = m.get("clean_flag_rate")
+    add("False alarms", "≤ 10% of clean items flagged", _pct(cfr),
+        None if cfr is None else cfr <= 0.10,
+        "real errors in 'assumed clean' controls count as false alarms")  # fmt: skip
+    ov = m.get("span_overlap_rate")
+    add("Localization", "≥ 70% of detections overlap the error", _pct(ov),
+        None if ov is None else ov >= 0.70,
+        "omission flags point at the gap, next to the missing text")  # fmt: skip
+    ca = cal.get("category_accuracy")
+    add("Category accuracy", "≥ 70% of detected errors", _pct(ca),
+        None if ca is None else ca >= 0.70)  # fmt: skip
+    va = jc.get("verdict_agreement") if jc.get("ran") else None
+    add("Judge consistency", "≥ 90% same verdict on re-judging",
+        _pct(va) if va is not None else "not measured (--judge-repeats < 2)",
+        None if va is None else va >= 0.90,
+        "the judge changes its verdict on re-reads of borderline items")  # fmt: skip
+    out = ["## Quality targets", ""]
+    out += _md_table(["Check", "Target", "This run", "Status", "Why missed"], rows)
+    out += [
+        "",
+        "_Determinism (identical report from cache at no cost) is checked by "
+        "`tests/test_e2e_offline.py`; runtime is in `logs/run.jsonl`, not here, so cached "
+        "re-runs stay byte-identical._",
+        "",
+        "_Runtime target (200 items in 3 languages with speech in < 30 min): **likely missed** "
+        "on a cold cache. Back-translation runs per sentence (Bodhan merges batched lines), "
+        "and Indic-Translate allowed about 25 requests/min in our tests, so ~900 calls take "
+        "~35-40 min. Speech (~17 s per request) runs in parallel and adds little. "
+        "Cached re-runs take seconds._",
+        "",
+    ]
+    return out
+
+
 def render_summary(
     summary: dict[str, Any], rows: list[dict[str, Any]], dataset: str | None = None
 ) -> str:
@@ -162,6 +220,7 @@ def render_summary(
                 "optimistic. Re-run held-out data with `--thresholds calibration.json`._",
             ]
         L.append("")
+        L += _targets_section(cal, jc)
 
     # --- top failures ----------------------------------------------------------------------
     worst = sorted((r for r in rows if r["flags"]), key=lambda r: (-item_penalty(r), r["id"]))

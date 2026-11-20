@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import io
 import json
+import os
 import random
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -38,7 +39,7 @@ def item_row(it: Item, base: Path | None = None) -> dict[str, Any]:
     if it.translation is not None:
         row["translation"] = it.translation
     if it.audio is not None:
-        row["audio"] = str(it.audio.resolve())
+        row["audio"] = it.audio.resolve().as_posix()  # made relative to out_dir on write
     if it.labels is not None:
         row["labels"] = [lb.raw for lb in it.labels]
     row.update(it.extra)
@@ -154,7 +155,7 @@ def _inject_audio(it: Item, row: dict, rng: random.Random, out_dir: Path) -> str
         _write_wav(path, y, sr)
         row.update(
             id=new_id,
-            audio=str(path.resolve()),
+            audio=path.resolve().as_posix(),
             labels=[label],
             label_scope="injected",
             injected_from=it.id,
@@ -164,7 +165,13 @@ def _inject_audio(it: Item, row: dict, rng: random.Random, out_dir: Path) -> str
 
 
 def write_rows(rows: list[dict[str, Any]], path: Path) -> None:
+    """Write the dataset; audio paths become relative to its folder (portable, and what the
+    dataset loader expects)."""
     path.parent.mkdir(parents=True, exist_ok=True)
+    base = path.resolve().parent
     with path.open("w", encoding="utf-8") as fh:
         for r in rows:
+            if r.get("audio"):
+                rel = os.path.relpath(Path(r["audio"]).resolve(), base)
+                r = {**r, "audio": Path(rel).as_posix()}
             fh.write(json.dumps(r, ensure_ascii=False) + "\n")

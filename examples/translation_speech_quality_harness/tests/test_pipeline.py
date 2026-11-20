@@ -168,6 +168,38 @@ def test_pipeline_no_judge_and_no_speech_sample(tmp_path, monkeypatch):
     assert [f["category"] for f in items["num"]["flags"]] == ["number"]
 
 
+def test_pipeline_survives_an_unexpected_judge_error(tmp_path, monkeypatch):
+    """A provider error the harness doesn't know (e.g. an SDK exception) skips the judge for
+    that item; the run still finishes and writes every report."""
+
+    class BrokenLLM(FakeLLM):
+        async def chat_json(self, messages, **kw):
+            raise RuntimeError("provider exploded")
+
+    monkeypatch.setattr(pipeline, "make_llm_client", BrokenLLM)
+    monkeypatch.setattr(pipeline, "BodhanClient", FakeBodhan)
+    ds = tmp_path / "d.jsonl"
+    ds.write_text(json.dumps({"id": "n", "lang": "hi", "source": NUM_SRC, "translation": NUM_TR}))
+    out = tmp_path / "out"
+    args = build_parser().parse_args(
+        [
+            "--dataset",
+            str(ds),
+            "--out",
+            str(out),
+            "--cache-dir",
+            str(tmp_path / "c"),
+            "--log-level",
+            "CRITICAL",
+        ]  # fmt: skip
+    )
+    assert pipeline.run(args) == 0
+    item = json.loads((out / "items.jsonl").read_text())
+    assert item["skipped"]["judge"].startswith("error: RuntimeError")
+    assert [f["category"] for f in item["flags"]] == ["number"]  # rule-based check still flags
+    assert (out / "summary.md").exists()
+
+
 def test_pipeline_calibrates_and_reuses_thresholds(tmp_path, monkeypatch):
     s = NUM_TR.index("1898")
     labels = tmp_path / "human.jsonl"
