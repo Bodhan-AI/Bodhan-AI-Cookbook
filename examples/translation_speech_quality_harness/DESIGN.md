@@ -162,7 +162,7 @@ The judge is the only part that understands meaning. It reads the source, the tr
 - Every quote must be found in the text after normalization, or the finding is dropped and logged.
 - Explanations have every Indian-script character removed. There is no output field for a correction. The LLM never writes Indian-language text.
 
-**Consistency.** A finding counts as judge evidence only when both passes report the same category at overlapping positions. The share of items with the same verdict in both passes is reported per language as judge consistency: 94% on the demo.
+**Consistency.** A finding counts as judge evidence only when both passes report the same category at overlapping positions. The share of items with the same verdict in both passes is reported per language as judge consistency: 95% on the demo.
 
 **Other LLM uses.** One English paragraph at the top of `summary.md`. It gets only the numbers, has a Latin-only guard, and falls back to a fixed sentence. The error injector never uses the LLM.
 

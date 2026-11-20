@@ -20,7 +20,7 @@ Links:
 - Baseline diff: [`report_demo_v2/diff.md`](report_demo_v2/diff.md)
 - Design notes, [architecture diagram](DESIGN.md#architecture) and [flow chart](DESIGN.md#flow-from-dataset-to-report): [`DESIGN.md`](DESIGN.md)
 - Demo data and attribution: [`data/README.md`](data/README.md)
-- Demo video: DEMO_VIDEO_LINK
+- Demo video (2 min 43 s): [quality_harness_demo.mp4](https://github.com/Achindra2003/Bodhan-AI-Cookbook/releases/download/quality-harness-demo-assets/quality_harness_demo.mp4)
 
 ## Setup
 
@@ -113,7 +113,7 @@ The demo set has 120 rows: 40 sources in Hindi, Tamil and Bengali, with 60 injec
 | Half B, judge off | 71% | **3%** | 72% | **90%** |
 | Half B, regeneration diff off | 71% | **3%** | 72% | **94%** |
 
-- Judge consistency is 94%, against a 90% target: re-judging gave the same verdict.
+- Judge consistency is 95%, against a 90% target: re-judging gave the same verdict.
 - Determinism: a rerun from cache gives byte-identical report files at no cost.
 - Per language on the full demo:
   - Recall: Hindi 95%, Tamil 100%, Bengali 90%.
@@ -137,7 +137,12 @@ Measured from the cache with `tools/cost_runtime.py`, at hosted prices:
 | Without speech checks | ₹0.22 |
 | Generating audio too (`--generate`) | ₹9 to ₹20, depending on text length (measured: ₹4.17 for 45 short items, ₹1.00 for 5 long passages) |
 
-Runtime: 5 Telugu items with `--generate`, full checks and the judge took 3 min 12 s at concurrency 1. Most of that is speech generation and the LLM's per-minute token limit on a free tier. Raise `--concurrency` on a paid endpoint. A rerun from cache takes seconds.
+**Runtime**, measured on 20 Nov 2026 from an empty cache: the full demo (120 items, with speech checks, judge off, concurrency 4) took **17.7 minutes**. It made 292 Bodhan calls and cost ₹1.28.
+- **Model time is small.** The calls themselves took about 2 minutes: a median of 0.5 s per translation and 0.8 s per transcription.
+- **Rate limits took the rest.** The rest was waiting on Bodhan rate limits for our key: 59 translation retries and 37 transcription retries, each honouring the server's `Retry-After`. One transcription still failed after 8 attempts. It is reported as `not_run`, and the run carried on.
+- **200 items on our key:** about 30 minutes, plus the judge. **Without throttling:** about 4 minutes of model time.
+- **The judge:** on a free-tier endpoint with an 8,000 tokens-per-minute limit, it adds most of the remaining time. Raise `--concurrency` on a paid endpoint.
+- **Reruns:** a rerun from cache takes seconds.
 
 ## Limitations
 

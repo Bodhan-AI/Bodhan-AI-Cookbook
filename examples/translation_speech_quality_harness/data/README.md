@@ -7,7 +7,7 @@
 | `demo.jsonl` | The demo set: `demo_clean.jsonl` with 60 errors injected (seed 7), 2 per category per language. The other 60 rows are clean |
 | `demo_v2.jsonl` | The same items with different injected errors (seed 11), for the `--baseline` diff |
 | `demo_labels.jsonl` | Hand checks of 30 untouched rows (see below) |
-| `audio/` | Indic-Speak audio for 45 short items, 15 per language, plus injected variants. Not in git (48 MB): download it from AUDIO_LINK and unpack it here |
+| `audio/` | Indic-Speak audio for 45 short items, 15 per language, plus injected variants. Not in git (48 MB): download [quality_harness_demo_audio.zip](https://github.com/Achindra2003/Bodhan-AI-Cookbook/releases/download/quality-harness-demo-assets/quality_harness_demo_audio.zip) and unzip it inside `data/` |
 
 Without `audio/`, the speech checks on those rows report `not_run: audio file not found`, and every other check still runs.
 
