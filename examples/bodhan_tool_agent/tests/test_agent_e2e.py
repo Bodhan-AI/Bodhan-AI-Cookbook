@@ -124,15 +124,21 @@ async def test_budget_too_small_stops_cleanly(tmp_path, settings, fake):
     src.write_text("নমস্কার। " * 400, encoding="utf-8")
     plan = {"goal": "audio", "feasible": True, "deliverables": [{"kind": "audio"}]}
     llm = ScriptedLLM(plan, [
+        lambda m: [("write_text_artifact", {"filename": "notes.txt", "content": "Intermediate notes."})],
         lambda m: [("synthesize_speech", {"language": "bn", "input_path": str(src)})],
-        lambda m: [("finish", {"status": "failed", "answer": last_result(m)["error"]["message"]})],
+        lambda m: [("finish", {"status": "partial", "answer": last_result(m)["error"]["message"],
+                               "deliverables": [{"path": last_result(m, "output_path")["output_path"],
+                                                 "description": "Intermediate notes"}]})],
+        lambda m: [("finish", {"status": "failed", "answer": "The audio is over budget."})],
     ])
     agent, out = make_agent(tmp_path, settings, fake, "Read this aloud", [src], llm, max_cost_inr=0.05)
     rep = await agent.run()
     assert fake.calls["speak"] == 0
     assert rep["status"] == "failed" and rep["cost"]["total_inr"] <= 0.05 and rep["artifacts"] == []
-    errs = [json.loads(m["content"]) for m in llm.seen[-1] if m.get("role") == "tool"]
-    assert errs[0]["error"]["code"] == "budget_exceeded"
+    errors = [json.loads(m["content"]).get("error", {}) for m in llm.seen[-1] if m.get("role") == "tool"]
+    assert any(error.get("code") == "budget_exceeded" for error in errors)
+    assert any(error.get("code") == "finish_rejected"
+               and "does not match a planned deliverable" in error["problems"][0] for error in errors)
 
 
 async def test_step_limit_stops_with_report(tmp_path, settings, fake):

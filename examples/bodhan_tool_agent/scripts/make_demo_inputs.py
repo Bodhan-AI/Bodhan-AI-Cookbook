@@ -133,13 +133,17 @@ section {{ page-break-after: always; }} h1 {{ font-size: 21pt; }} footer {{ marg
     with tempfile.TemporaryDirectory() as td:
         src, pdf = Path(td) / "c.html", Path(td) / "c.pdf"
         src.write_text(doc, encoding="utf-8")
-        subprocess.run([browser, "--headless", "--disable-gpu", "--no-pdf-header-footer", f"--print-to-pdf={pdf}", src.as_uri()],
-                       check=True, capture_output=True, timeout=120)
+        subprocess.run(
+            [browser, "--headless=new", "--disable-gpu", "--no-first-run", "--no-default-browser-check",
+             f"--user-data-dir={Path(td) / 'browser-profile'}", "--no-pdf-header-footer", f"--print-to-pdf={pdf}", src.as_uri()],
+            check=True, capture_output=True, timeout=120,
+        )
         import pypdfium2 as pdfium
 
         pdfdoc = pdfium.PdfDocument(str(pdf))
         imgs = [scanify(pdfdoc[i].render(scale=150 / 72).to_pil(), i) for i in range(len(pdfdoc))]
         pdfdoc.close()
+    Image.init()
     imgs[0].save(out, save_all=True, append_images=imgs[1:], resolution=150)
 
 
@@ -230,8 +234,13 @@ async def main() -> None:
             for r in translated:
                 head, _, body = r["translation"].partition("\n")
                 sections.append((head.strip(), body.strip()))
-            chapter_pdf_browser(browser, sections, out / "chapter" / "chapter.pdf")
-            print("chapter.pdf: 8 scanned pages in Hindi (Indic-Translate, rendered by", Path(browser).name + ")")
+            try:
+                chapter_pdf_browser(browser, sections, out / "chapter" / "chapter.pdf")
+            except (OSError, subprocess.SubprocessError):
+                chapter_pdf_pillow(CHAPTER, out / "chapter" / "chapter.pdf")
+                print("chapter.pdf: 8 scanned pages in English (browser rendering failed)")
+            else:
+                print("chapter.pdf: 8 scanned pages in Hindi (Indic-Translate, rendered by", Path(browser).name + ")")
         else:
             chapter_pdf_pillow(CHAPTER, out / "chapter" / "chapter.pdf")
             print("chapter.pdf: 8 scanned pages in English (no browser found for Indic rendering)")

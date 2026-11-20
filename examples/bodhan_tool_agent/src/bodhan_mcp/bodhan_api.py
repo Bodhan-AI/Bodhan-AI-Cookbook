@@ -122,6 +122,10 @@ class BodhanAPI:
         self._sems: dict[str, asyncio.Semaphore] = {}
         self._inflight: dict[str, asyncio.Future] = {}
         self._key_ok: set[str] = set()
+        self._translate_route: str | None = None
+        self._translate_lock = asyncio.Lock()
+        self._next_request: dict[str, float] = {}
+        self._model_spacing: dict[str, float] = {}
 
     # -- plumbing ---------------------------------------------------------------------------
 
@@ -164,6 +168,16 @@ class BodhanAPI:
         base = self.settings.backoff_base_s * (2 ** attempt)
         return min(self.settings.backoff_cap_s, base) * (0.5 + random.random() / 2)
 
+    async def _wait_for_request_slot(self, model: str) -> None:
+        loop = asyncio.get_running_loop()
+        while True:
+            now = loop.time()
+            delay = self._next_request.get(model, 0.0) - now
+            if delay <= 0:
+                self._next_request[model] = now + self._model_spacing.get(model, 0.0)
+                return
+            await asyncio.sleep(delay)
+
     @staticmethod
     def _envelope(resp: httpx.Response) -> tuple[str | None, str, str | None]:
         try:
@@ -187,6 +201,7 @@ class BodhanAPI:
         while True:
             try:
                 async with self._sem(model):
+                    await self._wait_for_request_slot(model)
                     resp = await self._http().request(
                         method, path, headers={"Authorization": f"Bearer {key}"}, timeout=timeout, **kw
                     )
@@ -223,7 +238,16 @@ class BodhanAPI:
                 raise ToolFailure(AUTH_FAILED, f"{model} rejected the API key: {message}",
                                   hint=f"Check {KEY_ENV[model]}; keys are per model.", details=details)
 
-            budget_hit = status == 429 and any(w in message.lower() for w in ("budget", "quota", "credit", "balance"))
+            budget_hit = status == 429 and any(w in message.lower() for w in (
+                "insufficient credit", "credit balance", "insufficient balance", "out of credit", "budget exhausted",
+            ))
+            if status == 429 and not budget_hit:
+                retry_after = resp.headers.get("retry-after")
+                cooldown = self._backoff(attempt, retry_after) if retry_after else min(45.0, self.settings.backoff_cap_s)
+                self._model_spacing[model] = min(4.2, self.settings.backoff_cap_s)
+                self._next_request[model] = max(
+                    self._next_request.get(model, 0.0), asyncio.get_running_loop().time() + cooldown,
+                )
             retryable = (status == 429 and not budget_hit) or status >= 500
             if retryable and status not in no_retry_status and attempt < self.settings.max_retries:
                 await asyncio.sleep(self._backoff(attempt, resp.headers.get("retry-after")))
@@ -309,18 +333,30 @@ class BodhanAPI:
         ckey = self.cache.key(TRANSLATE, body)
 
         async def produce():
-            try:
-                resp, retries = await self._send(TRANSLATE, "POST", "/translate", json=body)
-            except ToolFailure as exc:
-                if (exc.details or {}).get("status") != 404:
-                    raise
+            result = None
+            if self._translate_route is None:
+                async with self._translate_lock:
+                    if self._translate_route is None:
+                        try:
+                            result = await self._send(TRANSLATE, "POST", "/translate", json=body)
+                        except ToolFailure as exc:
+                            if (exc.details or {}).get("status") != 404:
+                                raise
+                            self._translate_route = "/v1/chat/completions"
+                        else:
+                            self._translate_route = "/translate"
+            if result is None:
                 chat_body = {
                     "model": TRANSLATE,
                     "messages": [{"role": "user", "content": text}],
                     "target_language_code": target,
                     **{key: body[key] for key in ("script", "max_output_tokens") if key in body},
                 }
-                resp, retries = await self._send(TRANSLATE, "POST", "/v1/chat/completions", json=chat_body)
+                result = await self._send(
+                    TRANSLATE, "POST", self._translate_route or "/translate",
+                    json=body if self._translate_route == "/translate" else chat_body,
+                )
+            resp, retries = result
             data = resp.json()
             if not isinstance(data.get("translation"), str) and data.get("choices"):
                 choice = data["choices"][0]

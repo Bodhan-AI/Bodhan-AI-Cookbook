@@ -33,7 +33,7 @@ PAID_TOOLS = {"transcribe_audio", "translate_text", "synthesize_speech", "verify
 PATH_KEYS = {"path", "input_path", "segments_path", "audio_path", "expected_text_path"}
 INLINE_TEXT_KEYS = {"text", "expected_text"}
 AUDIO_EXT = {".mp3", ".wav", ".ogg", ".flac"}
-KIND_EXT = {"audio": AUDIO_EXT, "subtitles": {".srt", ".vtt"}, "markdown": {".md"}}
+KIND_EXT = {"audio": AUDIO_EXT, "subtitles": {".srt", ".vtt"}, "markdown": {".md"}, "text": {".txt", ".md"}}
 MAX_NUDGES = 2
 MAX_FINISH_REJECTIONS = 2
 
@@ -489,17 +489,27 @@ class Agent:
         checks: list[dict] = []
         resolved: list[tuple[Path, dict]] = []
         if status in ("completed", "partial"):
+            planned = {
+                str(item.get("kind", "")).lower()
+                for item in ((self.state.plan or {}).get("deliverables") or [])
+                if isinstance(item, dict)
+            }
+            file_kinds = planned - {"answer"}
             for d in delivs:
                 p = Path(self._resolve_path(str(d["path"])))
-                if not p.exists():
+                if not p.is_file():
                     problems.append(f"Deliverable not found: {d['path']}")
+                    continue
+                if file_kinds and file_kinds <= KIND_EXT.keys() and all(
+                    p.suffix.lower() not in KIND_EXT[kind] for kind in file_kinds
+                ):
+                    problems.append(f"File does not match a planned deliverable: {p.name}")
                     continue
                 resolved.append((p, d))
                 checks.append(await self._verify_deliverable(p))
             failed = [c for c in checks if not c.get("passed")]
             if failed and status == "completed":
                 problems.append("Verification failed for: " + "; ".join(f"{c['artifact']} ({c['check']}: {c.get('details')})" for c in failed))
-            planned = [str(x.get("kind", "")).lower() for x in ((self.state.plan or {}).get("deliverables") or []) if isinstance(x, dict)]
             if status == "completed":
                 for kind, exts in KIND_EXT.items():
                     if kind in planned and not any(p.suffix.lower() in exts for p, _ in resolved):
@@ -529,7 +539,8 @@ class Agent:
         self.state.assumptions.extend(str(a) for a in args.get("assumptions") or [] if str(a) not in self.state.assumptions)
         self.state.limitations.extend(str(x) for x in args.get("limitations") or [])
         if status in ("completed", "partial"):
-            self._publish(resolved, checks)
+            verified = [(file, delivery) for (file, delivery), check in zip(resolved, checks, strict=True) if check["passed"]]
+            self._publish(verified, checks)
         return json.dumps({"ok": True, "status": status})
 
     def _publish(self, resolved: list[tuple[Path, dict]], checks: list[dict]) -> None:
