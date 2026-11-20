@@ -121,8 +121,8 @@ with weights minor 1, major 5, critical 10. 100 means no flags.
 ```mermaid
 flowchart LR
   D[dataset.jsonl] --> G{translation?}
-  G -- missing + --generate --> T[Indic-Translate]
-  G -- present --> F
+  G -->|"missing, with --generate"| T[Indic-Translate]
+  G -->|"present"| F
   T --> F[Free checks<br/>script · numbers · terms<br/>format · length · chrF++]
   F --> B[Back-translation<br/>Indic-Translate → English]
   B --> S[Speech<br/>waveform + Indic-Transcribe]
