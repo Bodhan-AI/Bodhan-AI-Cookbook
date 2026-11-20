@@ -1,0 +1,95 @@
+{
+  "status": "unsupported",
+  "stop_reason": "finished",
+  "planner_status": "unsupported",
+  "task": "Translate this video into French",
+  "inputs": {
+    "files": [
+      "<input>\\fractions_lesson.mp4"
+    ],
+    "missing": []
+  },
+  "started_at": "2026-11-20T02:40:43+00:00",
+  "finished_at": "2026-11-20T02:41:07+00:00",
+  "elapsed_s": 23.92,
+  "steps": {
+    "used": 3,
+    "max": 30,
+    "tool_calls": []
+  },
+  "plan": {
+    "steps": [
+      "Finish with unsupported status because French is not supported"
+    ],
+    "deliverables": [
+      {
+        "kind": "answer",
+        "language": null,
+        "source": null,
+        "optional": false,
+        "description": "Unsupported French translation request"
+      }
+    ],
+    "assumptions": []
+  },
+  "final_answer": "The requested target language (French) is not supported by Bodhan tools. Bodhan supports translation and processing only for English and 22 Indian languages. Therefore, the task cannot be fulfilled.",
+  "assumptions": [],
+  "limitations": [],
+  "deliverables": [],
+  "artifacts": [],
+  "verification": {
+    "results": [],
+    "unverified_translations_or_audio": [],
+    "all_checked": true
+  },
+  "cost": {
+    "max_inr": 20.0,
+    "bodhan_billed_inr": 0.0,
+    "bodhan_uncertain_inr": 0.0,
+    "llm_inr": null,
+    "total_counted_inr": 0.0,
+    "by_model_inr": {},
+    "bodhan_calls": 0,
+    "cache_hits": 0,
+    "bodhan_cost_basis": "published unit prices x metered quantity (audio seconds rounded up per request, output tokens from usage, input characters, images); provider dashboard is authoritative",
+    "llm": {
+      "calls": 3,
+      "prompt_tokens": 16624,
+      "completion_tokens": 153,
+      "pricing": "not priced (no rate supplied); tokens reported only"
+    }
+  },
+  "llm": {
+    "model": "gemini-3.5-flash-lite",
+    "endpoint_host": "generativelanguage.googleapis.com",
+    "adaptations": []
+  },
+  "quality_targets": {
+    "latency": {
+      "kind": "single-step",
+      "target_s": 30,
+      "actual_s": 23.9,
+      "met": true,
+      "note": null
+    },
+    "budget": {
+      "max_inr": 20.0,
+      "counted_inr": 0.0,
+      "within_budget": true,
+      "scope": "Bodhan calls (billed + uncertain retries); LLM only if priced via --llm-*-inr-per-1m"
+    },
+    "no_waste": {
+      "cache_hits": 0,
+      "bodhan_requests": 0,
+      "retried_attempts": 0,
+      "note": "identical (model, input, settings) requests are served from the cache or shared while in flight; the only repeats are retries of a failed or timed-out attempt (rate limit, 5xx, timeout), counted here and traced as api_call events with attempt > 1"
+    },
+    "verification": {
+      "all_generated_audio_and_translations_checked": true
+    },
+    "honest_failure": "unassessed: code cannot judge whether the answer is truthful; see verification results and review the outputs"
+  },
+  "injection_warnings": [],
+  "paid_tool_calls": 0,
+  "version": "0.1.0"
+}
