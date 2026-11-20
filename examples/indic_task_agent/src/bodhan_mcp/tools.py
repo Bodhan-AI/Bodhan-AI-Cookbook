@@ -536,7 +536,7 @@ def make_tools(ctx: Context) -> list[Callable[..., dict]]:
         content = p.read_text(encoding="utf-8", errors="replace")
         chunk = content[offset : offset + max_chars]
         end = offset + len(chunk)
-        return {
+        result = {
             "ok": True,
             "path": str(p),
             "text": chunk,
@@ -544,6 +544,11 @@ def make_tools(ctx: Context) -> list[Callable[..., dict]]:
             "next_offset": end if end < len(content) else None,
             "total_chars": len(content),
         }
+        script = textops.detect_script(chunk[:4000])["dominant_script"]
+        if script and script != "latin":
+            result["note"] = (f"This text is in {script} script. To use its meaning (a summary, an answer), translate it into English "
+                              "with translate_text first and work from that. Do not paraphrase it yourself.")
+        return result
 
     return [
         list_languages,

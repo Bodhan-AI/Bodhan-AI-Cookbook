@@ -4,27 +4,26 @@
 
 ## Answer
 
-Created a ~2-minute Tamil audio summary for the chapter 'Lines and Angles' (duration ~113 seconds). Please note that the audio generated is AI-generated speech.
+Created a two-minute Tamil audio summary of Chapter 6 (Lines and Angles). The generated audio file is available at summary.ta.anitha.wav (duration: ~126 seconds). Note that the spoken audio is AI-generated speech.
 
 ## Assumptions
 
-- Used default female Tamil voice (Anitha) for text-to-speech synthesis.
+- Target length set to approximately 2 minutes (achieved 126 seconds).
+- Selected Tamil female voice 'Anitha' for speech synthesis.
 
 ## Outputs
 
-- [artifacts/summary_en.md](artifacts/summary_en.md): check not checked
-- [artifacts/summary_ta.ta.md](artifacts/summary_ta.ta.md): check passed
-- [artifacts/tamil_summary.ta.anitha.wav](artifacts/tamil_summary.ta.anitha.wav): check passed
+- [artifacts/summary.ta.anitha.wav](artifacts/summary.ta.anitha.wav): check passed
 
 Audio files are AI-generated speech (Indic-Speak), not recordings of a real person.
 
 ## Notes
 
-All checks passed successfully.
+All steps (OCR, English summarization, Tamil translation, and speech synthesis) completed successfully and verified.
 
 ## Run
 
-- Steps: 7 of 30
-- Bodhan cost: INR 2.6746 of 20.00 (26 paid calls, 0 from cache)
-- Time: 157.78 s
+- Steps: 6 of 30
+- Bodhan cost: INR 2.7157 of 20.00 (25 paid calls, 0 from cache)
+- Time: 165.34 s
 - Trace: [trace.jsonl](trace.jsonl), report: [report.json](report.json)

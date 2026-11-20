@@ -2,11 +2,11 @@
   "status": "completed",
   "stopped_by": "agent",
   "task": "Transcribe this Hindi voice note and give me English subtitles",
-  "finished_at": "2026-11-18T16:25:55+00:00",
-  "duration_s": 23.89,
+  "finished_at": "2026-11-20T05:04:55+00:00",
+  "duration_s": 16.02,
   "steps_used": 2,
   "max_steps": 30,
-  "cost_inr": 0.2766,
+  "cost_inr": 0.2765,
   "max_cost_inr": 20.0,
   "within_budget": true,
   "bodhan_calls": {
@@ -30,8 +30,8 @@
   "llm": {
     "model": "gemini-3.5-flash",
     "calls": 2,
-    "prompt_tokens": 7163,
-    "completion_tokens": 229
+    "prompt_tokens": 7289,
+    "completion_tokens": 247
   },
   "artifacts": [
     "artifacts/voice-note.en.srt",
@@ -55,7 +55,7 @@
   ],
   "all_checks_passed": true,
   "assumptions": [
-    "Source language was set to Hindi (hi) based on the user request."
+    "Source language specified in prompt as Hindi ('hi')."
   ],
   "targets": {
     "verification": "met",

@@ -29,6 +29,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--llm-timeout", type=float, default=120.0, help="seconds per LLM call")
     parser.add_argument("--cache-dir", default=None, help="model-output cache (default ~/.cache/bodhan_mcp/cache)")
     parser.add_argument("--keep-work", action="store_true", help="keep intermediate audio and page images in out/.work")
+    parser.add_argument("--quiet", action="store_true", help="do not print a line per step (the trace is written either way)")
     args = parser.parse_args(argv)
 
     load_dotenv(find_dotenv(usecwd=True))
@@ -45,7 +46,8 @@ def main(argv: list[str] | None = None) -> int:
         llm_error = exc.message
 
     config = RunConfig(task=args.task, inputs=[Path(f) for f in args.files], out_dir=out, max_steps=args.max_steps,
-                       max_cost_inr=args.max_cost_inr, keep_work=args.keep_work)
+                       max_cost_inr=args.max_cost_inr, keep_work=args.keep_work,
+                       progress=None if args.quiet else (lambda line: print(line, file=sys.stderr, flush=True)))
     report = Agent(config, llm=llm, client=client, llm_error=llm_error).run()
     print(f"status: {report['status']}  steps: {report['steps_used']}  cost: INR {report['cost_inr']:.4f}  time: {report['duration_s']} s")
     print(f"result: {out / 'result.md'}")

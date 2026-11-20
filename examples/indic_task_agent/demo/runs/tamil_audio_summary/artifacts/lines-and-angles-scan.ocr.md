@@ -307,7 +307,7 @@ Fig. 6.12
 
 So, (2) becomes
 
-$\angle TOS + \angle SOR + \angle QOR = 180^{\circ}$                                                                                                                            (3)
+$\angle TOS + \angle SOR + \angle QOR = 180^{\circ}$ (3)
 
 Now, adding (1) and (3), you get
 

@@ -2,11 +2,11 @@
   "status": "completed",
   "stopped_by": "agent",
   "task": "Read this paragraph aloud in Bengali with a female voice",
-  "finished_at": "2026-11-18T04:41:42+00:00",
-  "duration_s": 51.99,
+  "finished_at": "2026-11-20T05:01:39+00:00",
+  "duration_s": 54.7,
   "steps_used": 4,
   "max_steps": 30,
-  "cost_inr": 0.3646,
+  "cost_inr": 0.3591,
   "max_cost_inr": 20.0,
   "within_budget": true,
   "bodhan_calls": {
@@ -22,7 +22,7 @@
       "indic-speak": {
         "calls": 3,
         "cache_hits": 0,
-        "cost_inr": 0.2862
+        "cost_inr": 0.2808
       },
       "indic-transcribe": {
         "calls": 2,
@@ -35,8 +35,8 @@
   "llm": {
     "model": "deepseek-chat",
     "calls": 4,
-    "prompt_tokens": 15955,
-    "completion_tokens": 659
+    "prompt_tokens": 16294,
+    "completion_tokens": 618
   },
   "artifacts": [
     "artifacts/water_bn_female.bn.ishita.mp3",
@@ -52,7 +52,7 @@
         "chunks": 3,
         "similarity": 1.0,
         "length_ratio": 1.0,
-        "back_transcript_preview": "পৃথিবীর সবচেয়ে মূল্যবান সম্পদগুলোর মধ্যে জল অন্যতম যদিও আমাদের গ্রহের বেশিরভাগ অংশ জল দ্বারা আবৃত এর মধ্যে খুব সামান্য অংশই মিষ্টি জল যা আমরা পান করতে পারি নদী"
+        "back_transcript_preview": "পৃথিবীর সবচেয়ে মূল্যবান সম্পদগুলোর মধ্যে জল অন্যতম যদিও আমাদের গ্রহের বেশিরভাগ অংশই জল দ্বারা আবৃত এর একটি ছোট অংশই মিষ্টি জল যা আমরা পান করতে পারি নদী হ্রদ এব"
       }
     },
     {
@@ -71,9 +71,8 @@
   ],
   "all_checks_passed": true,
   "assumptions": [
-    "The input paragraph is English, so it was translated to Bengali before speaking.",
-    "A female Bengali voice was requested; the default female voice (Ishita) was used.",
-    "MP3 output format was chosen for a compact audio file."
+    "The input paragraph was in English, so it was translated into Bengali before speaking.",
+    "Output format mp3 was chosen for the audio."
   ],
   "targets": {
     "verification": "met",

@@ -1,7 +1,0 @@
-This chapter introduces the fundamental concepts of lines and angles in geometry. A line segment has two endpoints, a ray has one endpoint, and a line extends infinitely in both directions. Points lying on the same line are called collinear points, while points not on the same line are non-collinear.
-
-An angle is formed when two rays originate from a common vertex. Depending on their degree measurement, angles are classified into five main types: acute angles, right angles, obtuse angles, straight angles, and reflex angles. Complementary angles add up to 90 degrees, while supplementary angles sum to 180 degrees.
-
-When two angles share a common vertex and arm, they are called adjacent angles. If the non-common arms form a straight line, the adjacent angles form a linear pair, and their sum is equal to 180 degrees. This principle is known as the Linear Pair Axiom.
-
-Lines can be intersecting or parallel. When two straight lines intersect each other at a point, they create vertically opposite angles, which are equal. Furthermore, the sum of all angles formed around a single point is always 360 degrees. These fundamental rules and theorems form the foundation for solving geometric problems and understanding real-life applications.

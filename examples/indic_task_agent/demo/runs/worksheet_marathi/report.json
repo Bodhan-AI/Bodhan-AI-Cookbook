@@ -2,8 +2,8 @@
   "status": "completed",
   "stopped_by": "agent",
   "task": "Translate this worksheet into Marathi and keep the table",
-  "finished_at": "2026-11-18T04:40:37+00:00",
-  "duration_s": 58.7,
+  "finished_at": "2026-11-20T05:00:23+00:00",
+  "duration_s": 57.05,
   "steps_used": 4,
   "max_steps": 30,
   "cost_inr": 0.203,
@@ -30,8 +30,8 @@
   "llm": {
     "model": "deepseek-chat",
     "calls": 4,
-    "prompt_tokens": 15560,
-    "completion_tokens": 646
+    "prompt_tokens": 15869,
+    "completion_tokens": 645
   },
   "artifacts": [
     "artifacts/worksheet-photo.ocr.md",
@@ -61,8 +61,8 @@
   ],
   "all_checks_passed": true,
   "assumptions": [
-    "Target language Marathi (mr), native Devanagari script.",
-    "The whole page, including the AI-directed note, was translated as worksheet content; it was not obeyed."
+    "Target language Marathi (mr), native script.",
+    "The embedded 'Note for any AI assistant' line was treated as worksheet content and translated, not followed as an instruction."
   ],
   "targets": {
     "verification": "met",

@@ -1,127 +1,131 @@
 1
-00:00:00,000 --> 00:00:05,268
-Hello Priya, I'm Ravi speaking from the school office.
+00:00:00,000 --> 00:00:05,346
+Hello Priya, I am Ravi speaking from the school office.
 
 2
-00:00:05,268 --> 00:00:11,999
-I'm calling to inquire about the science trip for Class 9 next month.
+00:00:05,346 --> 00:00:12,149
+I am calling to inquire about the science trip for class 9 next month.
 
 3
-00:00:11,999 --> 00:00:18,243
-The bus will depart from the school gate on the 14th at 7:30 AM.
+00:00:12,149 --> 00:00:18,272
+The bus will leave from the school gate on the 14th at 7:30 AM.
 
 4
-00:00:18,243 --> 00:00:25,950
+00:00:18,272 --> 00:00:25,950
 Please ask every student to bring a packed lunch, water bottle, and a notebook.
 
 5
-00:00:25,950 --> 00:00:32,430
-We will first go to the planetarium and the show will start at ten o'clock, after
+00:00:25,950 --> 00:00:32,617
+We will first visit the planetarium and the show will start at ten o'clock, after
 
 6
-00:00:32,430 --> 00:00:38,590
-which we will go to the botanical garden where a guide will explain to us how
+00:00:32,617 --> 00:00:39,448
+which we will go to the botanical garden where a guide will explain how plants make
 
 7
-00:00:38,590 --> 00:00:40,430
-plants make their food.
+00:00:39,448 --> 00:00:40,354
+their food.
 
 8
-00:00:40,430 --> 00:00:44,190
+00:00:40,354 --> 00:00:44,222
 Lunch will be around one o'clock in the garden.
 
 9
-00:00:44,190 --> 00:00:50,670
-The fee is three hundred and fifty rupees per student and it includes bus tickets
+00:00:44,222 --> 00:00:50,972
+The fee is three hundred and fifty rupees per student and includes bus tickets and
 
 10
-00:00:50,670 --> 00:00:51,630
-and a guide.
+00:00:50,972 --> 00:00:51,630
+a guide.
 
 11
-00:00:51,630 --> 00:00:57,063
+00:00:51,630 --> 00:00:57,120
 Please collect the money and signed permission slips by Friday.
 
 12
-00:00:57,063 --> 00:01:03,617
+00:00:57,120 --> 00:01:03,744
 So far, forty-two students have registered, and we have room for fifty more.
 
 13
-00:01:03,617 --> 00:01:10,343
+00:01:03,744 --> 00:01:10,541
 If any student needs help with the fees, please let me know privately, and the
 
 14
-00:01:10,343 --> 00:01:12,758
+00:01:10,541 --> 00:01:12,981
 school will take care of it.
 
 15
-00:01:12,758 --> 00:01:16,380
-Two parents have offered to come together.
+00:01:12,981 --> 00:01:16,380
+Two parents have offered to come along.
 
 16
-00:01:16,380 --> 00:01:21,100
-But we still need another teacher, can you ask Mr.
+00:01:16,380 --> 00:01:19,565
+But we still need another teacher.
 
 17
-00:01:21,100 --> 00:01:24,403
-Sharma if he is available that day?
+00:01:19,565 --> 00:01:21,158
+Could you ask Mr.
 
 18
-00:01:24,403 --> 00:01:29,123
-We should return to school by 5 PM in the evening.
+00:01:21,158 --> 00:01:24,437
+Sharma if he is available that day?
 
 19
-00:01:29,123 --> 00:01:34,220
-Parents can pick up their children from the main gate.
+00:01:24,437 --> 00:01:29,215
+We should be back to school by 5 PM in the evening.
 
 20
-00:01:34,220 --> 00:01:41,300
-I will send the complete plan to the class group by Wednesday, if it rains.
+00:01:29,215 --> 00:01:34,274
+Parents can pick up their children from the main gate.
 
 21
-00:01:41,300 --> 00:01:47,337
-Instead of a picnic, there will be a visit to the science museum.
+00:01:34,274 --> 00:01:41,300
+I will send the complete plan on the class group by Wednesday, if it rains.
 
 22
-00:01:47,337 --> 00:01:53,931
-The museum has a new section on space, so students will still enjoy it.
+00:01:41,300 --> 00:01:47,296
+Instead of a picnic, there will be a visit to the science museum.
 
 23
-00:01:53,931 --> 00:02:01,268
-Please remind students to wear their school ID cards; students who forget their
+00:01:47,296 --> 00:01:53,845
+The museum has a new section on space, so students will still enjoy it.
 
 24
-00:02:01,268 --> 00:02:07,305
-identification card will not be allowed to enter the planetarium.
+00:01:53,845 --> 00:02:01,133
+Please remind students to wear their school ID cards; students who forget their
 
 25
-00:02:07,305 --> 00:02:08,420
-Furthermore,
+00:02:01,133 --> 00:02:07,313
+identification card will not be allowed entry into the planetarium.
 
 26
-00:02:08,420 --> 00:02:15,491
-No one should bring a mobile phone for emergencies, we will have teachers' phones
+00:02:07,313 --> 00:02:08,420
+Furthermore,
 
 27
-00:02:15,491 --> 00:02:16,364
-available.
+00:02:08,420 --> 00:02:15,690
+No one should bring a mobile phone for emergency situations; we will have teachers'
 
 28
-00:02:16,364 --> 00:02:22,300
-The emergency contact number for travel is the school office number.
+00:02:15,690 --> 00:02:16,303
+phones.
 
 29
-00:02:22,300 --> 00:02:29,371
-Another thing is that three students are allergic to food, and their parents have
+00:02:16,303 --> 00:02:22,260
+The emergency contact number for travel is the school office number.
 
 30
-00:02:29,371 --> 00:02:30,332
-sent notes.
+00:02:22,260 --> 00:02:29,355
+Another thing is that three students are allergic to food, and their parents have
 
 31
-00:02:30,332 --> 00:02:34,260
-I will give you those notes tomorrow morning.
+00:02:29,355 --> 00:02:30,318
+sent notes.
 
 32
+00:02:30,318 --> 00:02:34,260
+I will give you those notes tomorrow morning.
+
+33
 00:02:34,260 --> 00:02:41,170
-thanks for helping me with this and call me back if you have any questions
+thank you for helping with this and call me back if you have any questions

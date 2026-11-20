@@ -2,8 +2,8 @@
   "status": "impossible",
   "stopped_by": "agent",
   "task": "Translate this video into French",
-  "finished_at": "2026-11-18T16:28:32+00:00",
-  "duration_s": 9.62,
+  "finished_at": "2026-11-20T05:07:38+00:00",
+  "duration_s": 10.28,
   "steps_used": 4,
   "max_steps": 30,
   "cost_inr": 0.0,
@@ -19,8 +19,8 @@
   "llm": {
     "model": "gemini-3.5-flash",
     "calls": 4,
-    "prompt_tokens": 14475,
-    "completion_tokens": 135
+    "prompt_tokens": 15416,
+    "completion_tokens": 170
   },
   "artifacts": [],
   "verification": [],

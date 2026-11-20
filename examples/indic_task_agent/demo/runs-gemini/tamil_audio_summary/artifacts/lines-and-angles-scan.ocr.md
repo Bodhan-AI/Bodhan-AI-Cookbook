@@ -63,7 +63,7 @@ the **vertex** of the angle. You have studied different types of angles, such as
 angle, right angle, obtuse angle, straight angle and reflex angle in earlier classes
 (see Fig. 6.1).
 
-(i) acute angle : $0^\circ < x < 90^\circ$
+(i) acute angle : $0^{\circ} < x < 90^{\circ}$
 
 (ii) right angle : $y = 90^\circ$
 
@@ -307,7 +307,7 @@ Fig. 6.12
 
 So, (2) becomes
 
-$\angle TOS + \angle SOR + \angle QOR = 180^{\circ}$ (3)
+$\angle TOS + \angle SOR + \angle QOR = 180^{\circ}$                                                                                                                            (3)
 
 Now, adding (1) and (3), you get
 

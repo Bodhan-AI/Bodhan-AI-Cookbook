@@ -4,20 +4,24 @@
 
 ## Answer
 
-The Hindi voice note has been transcribed and translated into English subtitles (.srt). Both the English subtitle file and the original Hindi subtitle file have been generated successfully.
+The Hindi voice note has been transcribed and translated to English subtitles. Subtitle files in both English (.en.srt) and Hindi (.hi.srt) have been generated.
 
 ## Assumptions
 
-- Source language was set to Hindi (hi) based on the user request.
+- Source language specified in prompt as Hindi ('hi').
 
 ## Outputs
 
 - [artifacts/voice-note.en.srt](artifacts/voice-note.en.srt): check passed
 - [artifacts/voice-note.hi.srt](artifacts/voice-note.hi.srt): check passed
 
+## Notes
+
+Subtitles generated successfully with 33 cues across 161.17 seconds.
+
 ## Run
 
 - Steps: 2 of 30
-- Bodhan cost: INR 0.2766 of 20.00 (14 paid calls, 0 from cache)
-- Time: 23.89 s
+- Bodhan cost: INR 0.2765 of 20.00 (14 paid calls, 0 from cache)
+- Time: 16.02 s
 - Trace: [trace.jsonl](trace.jsonl), report: [report.json](report.json)

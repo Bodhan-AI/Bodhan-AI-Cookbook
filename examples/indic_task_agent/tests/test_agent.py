@@ -375,3 +375,14 @@ def test_read_text_reaches_the_llm_in_full_and_loops_get_a_warning(tmp_path):
 
     report, _, _ = run_agent(tmp_path, script, files=[src.parent])
     assert report["status"] == "failed"
+
+
+def test_progress_lines_follow_the_run():
+    from bodhan_agent.runlog import progress_line
+
+    assert progress_line("llm", {"step": 2, "latency_ms": 1500, "tool_calls": [{"name": "make_subtitles"}]}) == "step 2  LLM 1.5 s -> make_subtitles"
+    line = progress_line("tool", {"tool": "make_subtitles", "ok": True, "latency_ms": 9000, "cost_inr": 0.31,
+                                  "result": {"ok": True, "cues": 37, "passed": True, "subtitles_path": "x.srt"}})
+    assert "make_subtitles" in line and "cues=37" in line and "passed=True" in line and "INR 0.3100" in line
+    assert "refused" in progress_line("tool", {"tool": "finish", "ok": False, "result": {"error": {"code": "missing_artifact"}}})
+    assert progress_line("tool_detail", {}) is None

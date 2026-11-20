@@ -2,8 +2,8 @@
   "status": "completed",
   "stopped_by": "agent",
   "task": "Which of these clips are in Telugu? Translate those into English",
-  "finished_at": "2026-11-18T04:40:49+00:00",
-  "duration_s": 12.27,
+  "finished_at": "2026-11-20T05:00:42+00:00",
+  "duration_s": 16.87,
   "steps_used": 6,
   "max_steps": 30,
   "cost_inr": 0.0609,
@@ -30,17 +30,17 @@
   "llm": {
     "model": "deepseek-chat",
     "calls": 6,
-    "prompt_tokens": 32276,
-    "completion_tokens": 1710
+    "prompt_tokens": 32874,
+    "completion_tokens": 1817
   },
   "artifacts": [
-    "artifacts/clip1_translation.en.md",
-    "artifacts/clip3_translation.en.md",
-    "artifacts/telugu_clips_summary.en.md"
+    "artifacts/clip1_en.en.md",
+    "artifacts/clip3_en.en.md",
+    "artifacts/telugu_clips_summary.md"
   ],
   "verification": [
     {
-      "artifact": "artifacts/clip1_translation.en.md",
+      "artifact": "artifacts/clip1_en.en.md",
       "tool": "translate_text",
       "passed": true,
       "warnings": [],
@@ -53,7 +53,7 @@
       }
     },
     {
-      "artifact": "artifacts/clip3_translation.en.md",
+      "artifact": "artifacts/clip3_en.en.md",
       "tool": "translate_text",
       "passed": true,
       "warnings": [],
@@ -66,7 +66,7 @@
       }
     },
     {
-      "artifact": "artifacts/telugu_clips_summary.en.md",
+      "artifact": "artifacts/telugu_clips_summary.md",
       "tool": "save_english_text",
       "passed": null,
       "warnings": [],
@@ -77,8 +77,8 @@
   ],
   "all_checks_passed": true,
   "assumptions": [
-    "clip2 (Devanagari) was treated as Hindi and clip5 (Bengali script) as Bengali; neither was translated since the task only asked for Telugu clips.",
-    "The Telugu transcripts are the tool's output and were not edited."
+    "clip2 and clip5 were treated as non-Telugu based on script detection (Devanagari and Bengali); their exact language was not pinned down since it did not affect the task.",
+    "Only the two Telugu clips were transcribed and translated, as requested."
   ],
   "targets": {
     "verification": "met",

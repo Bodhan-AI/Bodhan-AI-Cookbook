@@ -4,14 +4,12 @@
 
 ## Answer
 
-Done. The Hindi voice note (2 min 41 s) was transcribed and translated into 32 English subtitle cues, plus a Hindi transcript .srt. Checks passed with no warnings.
-
-Content summary: a school office caller (Ravi) tells Priya about a class-nine science trip — departure 14th at 7:30 AM, planetarium and botanical garden visits, ₹350 fee, permission slips by Friday, 42 students registered, a rain backup plan (science museum), ID-card and phone rules, and allergy notes.
+Transcribed the Hindi voice note and produced English subtitles (32 cues, 2:41). The English .srt passed the tool's checks with no warnings. The Hindi transcript .srt was also saved as a by-product. The note is a school office call to a teacher about a class-nine science trip (bus, fees, permission slips, rain plan, ID cards, allergies).
 
 ## Assumptions
 
 - Source language assumed Hindi (as stated in the task); no language identification was run.
-- Subtitles were produced with make_subtitles, which also generated the original-language transcript as a .srt.
+- Subtitles were produced with make_subtitles, which transcribes and translates in one step, so no separate transcript file was requested.
 
 ## Outputs
 
@@ -20,11 +18,11 @@ Content summary: a school office caller (Ravi) tells Priya about a class-nine sc
 
 ## Notes
 
-Cue text is machine-translated and split by length within transcription windows, so a few cues break mid-sentence (e.g. cues 5-7, 16-17, 25-27). No audio was generated in this task.
+Cue 25 ("Furthermore,") and cue 26 read slightly awkwardly where the translation split a sentence; text was left exactly as the tool returned it.
 
 ## Run
 
 - Steps: 3 of 30
 - Bodhan cost: INR 0.2765 of 20.00 (14 paid calls, 0 from cache)
-- Time: 13.97 s
+- Time: 17.42 s
 - Trace: [trace.jsonl](trace.jsonl), report: [report.json](report.json)

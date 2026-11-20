@@ -2,17 +2,17 @@
   "status": "completed",
   "stopped_by": "agent",
   "task": "Make a two-minute Tamil audio summary of this chapter",
-  "finished_at": "2026-11-18T04:39:23+00:00",
-  "duration_s": 162.45,
-  "steps_used": 9,
+  "finished_at": "2026-11-20T04:59:04+00:00",
+  "duration_s": 222.86,
+  "steps_used": 6,
   "max_steps": 30,
-  "cost_inr": 2.8572,
+  "cost_inr": 2.8768,
   "max_cost_inr": 20.0,
   "within_budget": true,
   "bodhan_calls": {
-    "total": 32,
-    "paid": 31,
-    "cache_hits": 1,
+    "total": 28,
+    "paid": 28,
+    "cache_hits": 0,
     "by_model": {
       "indic-ocr": {
         "calls": 8,
@@ -20,68 +20,58 @@
         "cost_inr": 1.6
       },
       "indic-translate": {
-        "calls": 8,
-        "cache_hits": 1,
-        "cost_inr": 0.0182
+        "calls": 4,
+        "cache_hits": 0,
+        "cost_inr": 0.0089
       },
       "indic-speak": {
-        "calls": 11,
+        "calls": 10,
         "cache_hits": 0,
-        "cost_inr": 1.0212
+        "cost_inr": 1.0218
       },
       "indic-transcribe": {
-        "calls": 5,
+        "calls": 6,
         "cache_hits": 0,
-        "cost_inr": 0.2177
+        "cost_inr": 0.2461
       }
     }
   },
   "translate_route": "/v1/chat/completions",
   "llm": {
     "model": "deepseek-chat",
-    "calls": 9,
-    "prompt_tokens": 75572,
-    "completion_tokens": 1920
+    "calls": 6,
+    "prompt_tokens": 43441,
+    "completion_tokens": 1270
   },
   "artifacts": [
-    "artifacts/chapter6_summary_ta.ta.anitha.mp3",
-    "artifacts/chapter6_summary_short.ta.md",
-    "artifacts/chapter6_summary_short.en.md",
+    "artifacts/tamil_chapter6_summary.ta.anitha.mp3",
+    "artifacts/tamil_summary.ta.md",
     "artifacts/lines-and-angles-scan.ocr.md"
   ],
   "verification": [
     {
-      "artifact": "artifacts/chapter6_summary_ta.ta.anitha.mp3",
+      "artifact": "artifacts/tamil_chapter6_summary.ta.anitha.mp3",
       "tool": "speak_text",
       "passed": true,
       "warnings": [],
       "checks": {
-        "chunks": 11,
-        "similarity": 0.983,
-        "length_ratio": 1.01,
-        "back_transcript_preview": "அத்தியாயம் சிக்ஸ் கோடுகளும் கோணங்களும் சுருக்கம் இந்த அத்தியாயம் கோடுகள் சந்திக்கும்போது உருவாகும் கோணங்களைப் பற்றியது இது அடிப்படை சொற்களை நினைவுபடுத்துகிறது ஒ"
+        "chunks": 10,
+        "similarity": 0.925,
+        "length_ratio": 1.14,
+        "back_transcript_preview": "இது அத்தியாயம் சிக்ஸ் இன் சுருக்கம் கோடுகள் மற்றும் கோணங்கள் அத்தியாயம் தொடங்கும்போது உண்மையான வாழ்க்கையில் கோடுகள் மற்றும் கோணங்கள் ஏன் முக்கியம் என்பதைக் காட்"
       }
     },
     {
-      "artifact": "artifacts/chapter6_summary_short.ta.md",
+      "artifact": "artifacts/tamil_summary.ta.md",
       "tool": "translate_text",
       "passed": true,
       "warnings": [],
       "checks": {
-        "sentences_in": 10,
-        "sentences_out": 10,
+        "sentences_in": 13,
+        "sentences_out": 13,
         "structure_preserved": true,
         "numbers_preserved": true,
         "truncated_fragments": 0
-      }
-    },
-    {
-      "artifact": "artifacts/chapter6_summary_short.en.md",
-      "tool": "save_english_text",
-      "passed": null,
-      "warnings": [],
-      "checks": {
-        "written_by": "llm (English)"
       }
     },
     {
@@ -94,9 +84,9 @@
   ],
   "all_checks_passed": true,
   "assumptions": [
-    "Two minutes was treated as a target with normal tolerance; the final audio is 130.7 s.",
-    "A female Tamil voice (Anitha) was used since no voice was specified.",
-    "The summary covers the whole chapter (sections 6.1-6.4, Axioms 6.1-6.2, Theorem 6.1 and the worked examples), not the exercise problems."
+    "Target length treated as ~120 s; the 147.7 s result was accepted because it is within the 30% tolerance.",
+    "Summary covers the whole chapter (introduction, basic terms, Linear Pair Axiom, Theorem 6.1, examples) rather than only part of it.",
+    "Female Tamil voice (Anitha) used as the default."
   ],
   "targets": {
     "verification": "met",

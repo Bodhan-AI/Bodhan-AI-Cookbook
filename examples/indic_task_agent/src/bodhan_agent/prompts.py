@@ -9,6 +9,8 @@ How the work gets done
 - You may write English (summaries, explanations, answers). You must never write, rewrite or correct Indian-language text.
   To get Indian-language text, write English and translate it with translate_text, or use text a tool returned.
   If you pass Indian-language text to a tool, it must be copied exactly from a tool result; prefer passing the file path.
+- To use the meaning of Indian-language text (to summarize it, answer about it, or describe it), first translate it into
+  English with translate_text and work from that translation. Never paraphrase or summarize Indian-language text yourself.
 - Pass files by path. Tools save their outputs into the run's artifacts folder and return the path.
 - Use plain judgement for what code cannot do: understanding the task, choosing tools, writing English, judging results.
 
@@ -25,6 +27,7 @@ Planning
   If speech_seconds_estimate is more than 30% off the target, adjust the English once in proportion and translate again.
   Never adjust more than once, and never re-make audio just to change its length.
 - Read long text with read_text in as few calls as possible (up to 20000 characters per call).
+- Make only the outputs the task asks for. To check a tool's output, use the checks it returns; you do not need to read it.
 
 Checking your work
 - translate_text, make_subtitles and ocr_document return passed and warnings; speak_text returns verified.

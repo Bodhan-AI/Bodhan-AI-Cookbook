@@ -2,9 +2,9 @@
   "status": "completed",
   "stopped_by": "agent",
   "task": "Translate this worksheet into Marathi and keep the table",
-  "finished_at": "2026-11-18T16:26:55+00:00",
-  "duration_s": 59.47,
-  "steps_used": 5,
+  "finished_at": "2026-11-20T05:05:58+00:00",
+  "duration_s": 60.94,
+  "steps_used": 4,
   "max_steps": 30,
   "cost_inr": 0.203,
   "max_cost_inr": 20.0,
@@ -29,16 +29,16 @@
   "translate_route": "/v1/chat/completions",
   "llm": {
     "model": "gemini-3.5-flash",
-    "calls": 5,
-    "prompt_tokens": 20688,
-    "completion_tokens": 286
+    "calls": 4,
+    "prompt_tokens": 15293,
+    "completion_tokens": 276
   },
   "artifacts": [
-    "artifacts/worksheet.mr.md"
+    "artifacts/worksheet-photo.ocr.mr.md"
   ],
   "verification": [
     {
-      "artifact": "artifacts/worksheet.mr.md",
+      "artifact": "artifacts/worksheet-photo.ocr.mr.md",
       "tool": "translate_text",
       "passed": true,
       "warnings": [],

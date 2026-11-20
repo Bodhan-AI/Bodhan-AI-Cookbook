@@ -90,6 +90,7 @@ and never raises to the client. Media never passes through the LLM context as ba
 | Structure, number and length checks | Code | Deterministic; no point paying an LLM. |
 | Budget, step limit, file-path limits | Code | Must hold even if the LLM misbehaves. |
 | Indian-language text in tool arguments or the answer | Code | Refused unless copied from tool output (the LLM may never write it). |
+| Understanding Indian-language text (to summarize or answer about it) | Prompt + tool note | Translate it to English with Indic-Translate first. Not enforceable in code: the LLM still sees such text, for example to tell Hindi from Marathi. |
 | Whether `finish` is valid | Code | Listed files must exist in `artifacts/`; "impossible" must list none. |
 
 If the LLM fails (network, rate limit, bad response) after retries, the run stops with status `failed` and still writes the report and any outputs made so far.

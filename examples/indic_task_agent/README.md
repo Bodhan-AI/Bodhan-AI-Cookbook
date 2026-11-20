@@ -47,9 +47,10 @@ python -m bodhan_agent \
   --task "Make a two-minute Tamil audio summary of this chapter" \
   --files path/to/inputs/ \
   --out ./out \
-  [--max-steps 30] [--max-cost-inr 20] [--call-timeout 90] [--llm-timeout 120] [--keep-work]
+  [--max-steps 30] [--max-cost-inr 20] [--call-timeout 90] [--llm-timeout 120] [--keep-work] [--quiet]
 ```
 
+It prints one line per step as it runs (`--quiet` turns this off; the trace is written either way).
 Exit code: `0` done (completed, or honestly reported impossible), `2` stopped early (partial, budget or step limit), `1` failed.
 
 The MCP server on its own (stdio):
@@ -105,26 +106,26 @@ Audio, video and images are not committed; rerun the suite to regenerate them.
 
 | Task | Input | Result | Outputs | Turns | Cost (INR) | Time (s) | Run |
 |---|---|---|---|---|---|---|---|
-| Make a two-minute Tamil audio summary of this chapter | Scanned PDF, 8 pages | completed (checks passed) | .mp3, .md, .md, .md | 9 | 2.86 | 162 | [result](demo/runs/tamil_audio_summary/result.md), [trace](demo/runs/tamil_audio_summary/trace.jsonl), [report](demo/runs/tamil_audio_summary/report.json) |
-| Transcribe this Hindi voice note and give me English subtitles | Hindi WAV, 2 min 41 s | completed (checks passed) | .srt, .srt | 3 | 0.28 | 14 | [result](demo/runs/hindi_note_english_srt/result.md), [trace](demo/runs/hindi_note_english_srt/trace.jsonl), [report](demo/runs/hindi_note_english_srt/report.json) |
-| Translate this worksheet into Marathi and keep the table | Photo of a worksheet (with an embedded prompt injection) | completed (checks passed) | .md, .md | 4 | 0.20 | 59 | [result](demo/runs/worksheet_marathi/result.md), [trace](demo/runs/worksheet_marathi/trace.jsonl), [report](demo/runs/worksheet_marathi/report.json) |
-| Which of these clips are in Telugu? Translate those into English | Five short clips (te, hi, te, ta, bn) | completed (checks passed) | .md, .md, .md | 6 | 0.06 | 12 | [result](demo/runs/telugu_clips/result.md), [trace](demo/runs/telugu_clips/trace.jsonl), [report](demo/runs/telugu_clips/report.json) |
-| Read this paragraph aloud in Bengali with a female voice | English text file | completed (checks passed) | .mp3, .md | 4 | 0.36 | 52 | [result](demo/runs/bengali_paragraph/result.md), [trace](demo/runs/bengali_paragraph/trace.jsonl), [report](demo/runs/bengali_paragraph/report.json) |
+| Make a two-minute Tamil audio summary of this chapter | Scanned PDF, 8 pages | completed (checks passed) | .mp3, .md, .md | 6 | 2.88 | 223 | [result](demo/runs/tamil_audio_summary/result.md), [trace](demo/runs/tamil_audio_summary/trace.jsonl), [report](demo/runs/tamil_audio_summary/report.json) |
+| Transcribe this Hindi voice note and give me English subtitles | Hindi WAV, 2 min 41 s | completed (checks passed) | .srt, .srt | 3 | 0.28 | 17 | [result](demo/runs/hindi_note_english_srt/result.md), [trace](demo/runs/hindi_note_english_srt/trace.jsonl), [report](demo/runs/hindi_note_english_srt/report.json) |
+| Translate this worksheet into Marathi and keep the table | Photo of a worksheet (with an embedded prompt injection) | completed (checks passed) | .md, .md | 4 | 0.20 | 57 | [result](demo/runs/worksheet_marathi/result.md), [trace](demo/runs/worksheet_marathi/trace.jsonl), [report](demo/runs/worksheet_marathi/report.json) |
+| Which of these clips are in Telugu? Translate those into English | Five short clips (te, hi, te, ta, bn) | completed (checks passed) | .md, .md, .md | 6 | 0.06 | 17 | [result](demo/runs/telugu_clips/result.md), [trace](demo/runs/telugu_clips/trace.jsonl), [report](demo/runs/telugu_clips/report.json) |
+| Read this paragraph aloud in Bengali with a female voice | English text file | completed (checks passed) | .mp3, .md | 4 | 0.36 | 55 | [result](demo/runs/bengali_paragraph/result.md), [trace](demo/runs/bengali_paragraph/trace.jsonl), [report](demo/runs/bengali_paragraph/report.json) |
 | Translate this video into French | English MP4 | impossible | none | 4 | 0.01 | 6 | [result](demo/runs/video_french/result.md), [trace](demo/runs/video_french/trace.jsonl), [report](demo/runs/video_french/report.json) |
 
-All six pass the suite's checks ([demo/results.md](demo/results.md)), on an empty model cache so every call was paid for: INR 3.77 in total. Every multi-step task finished in under 5 minutes. The suite's checks are simple and independent of the agent: expected status, the output types the task asks for, all output checks passed, audio length where the task names one, and a few facts in the answer or the English outputs.
+All six pass the suite's checks ([demo/results.md](demo/results.md)), on an empty model cache so every call was paid for: INR 3.79 in total. The Tamil audio is 2 min 28 s with a back-check of 0.93. Every multi-step task finished in under 5 minutes. The suite's checks are simple and independent of the agent: expected status, the output types the task asks for, all output checks passed, audio length where the task names one, and a few facts in the answer or the English outputs.
 
 ### Same tasks with a second LLM
 
-The same six tasks with Google Gemini (`gemini-3.5-flash`), also on an empty cache, to check the agent does not depend on one model. All six pass ([demo/runs-gemini/results.md](demo/runs-gemini/results.md)).
+The same six tasks with Google Gemini (`gemini-3.5-flash`), also on an empty cache, to check the agent does not depend on one model. All six pass, INR 3.62 in total ([demo/runs-gemini/results.md](demo/runs-gemini/results.md)).
 
 | Task | Result | Turns | Cost (INR) | Time (s) | Run |
 |---|---|---|---|---|---|
-| Tamil audio summary | completed: 1 min 53 s audio, back-check 0.96 | 7 | 2.67 | 158 | [result](demo/runs-gemini/tamil_audio_summary/result.md) |
-| Hindi note, English subtitles | completed | 2 | 0.28 | 24 | [result](demo/runs-gemini/hindi_note_english_srt/result.md) |
-| Worksheet into Marathi | completed | 5 | 0.20 | 60 | [result](demo/runs-gemini/worksheet_marathi/result.md) |
-| Telugu clips | completed: clip1 and clip3 | 7 | 0.06 | 25 | [result](demo/runs-gemini/telugu_clips/result.md) |
-| Bengali paragraph aloud | completed: back-check 1.0 | 5 | 0.37 | 63 | [result](demo/runs-gemini/bengali_paragraph/result.md) |
+| Tamil audio summary | completed: 2 min 6 s audio, back-check 0.92 | 6 | 2.72 | 165 | [result](demo/runs-gemini/tamil_audio_summary/result.md) |
+| Hindi note, English subtitles | completed | 2 | 0.28 | 16 | [result](demo/runs-gemini/hindi_note_english_srt/result.md) |
+| Worksheet into Marathi | completed | 4 | 0.20 | 61 | [result](demo/runs-gemini/worksheet_marathi/result.md) |
+| Telugu clips | completed: clip1 and clip3 | 7 | 0.06 | 22 | [result](demo/runs-gemini/telugu_clips/result.md) |
+| Bengali paragraph aloud | completed: back-check 1.0 | 5 | 0.36 | 59 | [result](demo/runs-gemini/bengali_paragraph/result.md) |
 | Video into French | impossible | 4 | 0.00 | 10 | [result](demo/runs-gemini/video_french/result.md) |
 
 To run the suite with another LLM, set `LLM_*` in the environment and keep its runs apart: `python demo/run_demo.py --cold --runs-dir runs-<name>`.
@@ -148,3 +149,5 @@ To run the suite with another LLM, set `LLM_*` in the environment and keep its r
 - Tested with two LLMs (DeepSeek and Gemini). The client only uses standard chat-completions fields, drops `temperature` if a model rejects it,
   and waits out a busy provider (6 tries, `Retry-After` honoured). Gemini's free tier (20 requests a day per model) is too small for the suite.
 - OCR doubt flags use layout confidence, which scores block detection rather than reading accuracy.
+- The LLM can still see Indian-language text (for example to tell Hindi from Marathi). The rule that it must translate such text with Bodhan
+  before summarizing it is in the prompt and in a `read_text` note, not enforced in code.

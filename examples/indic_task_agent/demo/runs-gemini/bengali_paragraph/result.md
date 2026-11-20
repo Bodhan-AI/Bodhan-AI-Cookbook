@@ -4,26 +4,26 @@
 
 ## Answer
 
-The paragraph about water was translated into Bengali and spoken aloud using a female AI voice (Ishita). The generated audio file is available in the artifacts. Please note that the speech is AI-generated.
+The English paragraph about water was translated into Bengali and read aloud using a female Bengali voice (Ishita). The generated audio has been verified and saved. Please note that the audio is AI-generated.
 
 ## Assumptions
 
-- Used female voice 'Ishita' for Bengali text-to-speech synthesis.
+- Used female Bengali voice 'Ishita' for text-to-speech rendering.
 
 ## Outputs
 
+- [artifacts/water_bengali_female.bn.ishita.wav](artifacts/water_bengali_female.bn.ishita.wav): check passed
 - [artifacts/water.bn.md](artifacts/water.bn.md): check passed
-- [artifacts/water.bn.bn.ishita.wav](artifacts/water.bn.bn.ishita.wav): check passed
 
 Audio files are AI-generated speech (Indic-Speak), not recordings of a real person.
 
 ## Notes
 
-All translation checks and speech verification checks passed successfully.
+All translation and speech verification checks passed successfully.
 
 ## Run
 
 - Steps: 5 of 30
-- Bodhan cost: INR 0.3659 of 20.00 (6 paid calls, 0 from cache)
-- Time: 62.38 s
+- Bodhan cost: INR 0.3602 of 20.00 (6 paid calls, 0 from cache)
+- Time: 58.71 s
 - Trace: [trace.jsonl](trace.jsonl), report: [report.json](report.json)

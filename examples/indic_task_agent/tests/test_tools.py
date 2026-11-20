@@ -221,3 +221,13 @@ def test_output_name_controls_file_name(make_ctx):
     ctx = make_ctx(fake_bodhan({}))
     res = tool(ctx, "translate_text")(target_language="ta", text="Hello there.", output_name="summary")
     assert res["output_path"].endswith("summary.ta.md")
+
+
+def test_read_text_points_indic_text_to_translation(tmp_path):
+    tools = {f.__name__: f for f in make_tools(Context(client=None, work_dir=tmp_path, tmp_root=tmp_path / ".work"))}
+    hindi = tmp_path / "note.hi.srt"
+    hindi.write_text("1\n00:00:00,000 --> 00:00:02,000\nनमस्ते प्रिया, मैं रवि बोल रहा हूँ\n", encoding="utf-8")
+    english = tmp_path / "note.en.md"
+    english.write_text("Hello Priya, this is Ravi.", encoding="utf-8")
+    assert "translate_text" in tools["read_text"](path=str(hindi))["note"]
+    assert "note" not in tools["read_text"](path=str(english))

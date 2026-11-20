@@ -11,6 +11,7 @@ import json
 import re
 import shutil
 import time
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -83,6 +84,7 @@ class RunConfig:
     max_steps: int = 30
     max_cost_inr: float = 20.0
     keep_work: bool = False
+    progress: Callable[[str], None] | None = None  # receives one line per step, for watching a run live
 
 
 def _err(code: str, message: str) -> dict:
@@ -104,7 +106,7 @@ class Agent:
         self.ctx = Context(client=client, work_dir=self.out, tmp_root=self.out / ".work")
         self.functions = {f.__name__: f for f in make_tools(self.ctx)}
         self.schemas, self.params = self._schemas()
-        self.log = RunLog(self.out)
+        self.log = RunLog(self.out, progress=config.progress)
         self.corpus: list[str] = []
         self.checks: dict[str, dict] = {}
         self.roots = [p.expanduser().resolve() for p in config.inputs if p.expanduser().exists()] + [self.out.resolve()]

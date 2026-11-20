@@ -2,16 +2,16 @@
   "status": "completed",
   "stopped_by": "agent",
   "task": "Make a two-minute Tamil audio summary of this chapter",
-  "finished_at": "2026-11-18T16:25:30+00:00",
-  "duration_s": 157.78,
-  "steps_used": 7,
+  "finished_at": "2026-11-20T05:04:36+00:00",
+  "duration_s": 165.34,
+  "steps_used": 6,
   "max_steps": 30,
-  "cost_inr": 2.6746,
+  "cost_inr": 2.7157,
   "max_cost_inr": 20.0,
   "within_budget": true,
   "bodhan_calls": {
-    "total": 26,
-    "paid": 26,
+    "total": 25,
+    "paid": 25,
     "cache_hits": 0,
     "by_model": {
       "indic-ocr": {
@@ -20,73 +20,50 @@
         "cost_inr": 1.6
       },
       "indic-translate": {
-        "calls": 4,
+        "calls": 3,
         "cache_hits": 0,
-        "cost_inr": 0.0076
+        "cost_inr": 0.0082
       },
       "indic-speak": {
         "calls": 9,
         "cache_hits": 0,
-        "cost_inr": 0.8784
+        "cost_inr": 0.8976
       },
       "indic-transcribe": {
         "calls": 5,
         "cache_hits": 0,
-        "cost_inr": 0.1887
+        "cost_inr": 0.21
       }
     }
   },
   "translate_route": "/v1/chat/completions",
   "llm": {
     "model": "gemini-3.5-flash",
-    "calls": 7,
-    "prompt_tokens": 60840,
-    "completion_tokens": 898
+    "calls": 6,
+    "prompt_tokens": 47591,
+    "completion_tokens": 747
   },
   "artifacts": [
-    "artifacts/summary_en.md",
-    "artifacts/summary_ta.ta.md",
-    "artifacts/tamil_summary.ta.anitha.wav"
+    "artifacts/summary.ta.anitha.wav"
   ],
   "verification": [
     {
-      "artifact": "artifacts/summary_en.md",
-      "tool": "save_english_text",
-      "passed": null,
-      "warnings": [],
-      "checks": {
-        "written_by": "llm (English)"
-      }
-    },
-    {
-      "artifact": "artifacts/summary_ta.ta.md",
-      "tool": "translate_text",
-      "passed": true,
-      "warnings": [],
-      "checks": {
-        "sentences_in": 13,
-        "sentences_out": 13,
-        "structure_preserved": true,
-        "numbers_preserved": true,
-        "truncated_fragments": 0
-      }
-    },
-    {
-      "artifact": "artifacts/tamil_summary.ta.anitha.wav",
+      "artifact": "artifacts/summary.ta.anitha.wav",
       "tool": "speak_text",
       "passed": true,
       "warnings": [],
       "checks": {
         "chunks": 9,
-        "similarity": 0.962,
-        "length_ratio": 1.05,
-        "back_transcript_preview": "இந்த அத்தியாயம் வடிவியலில் உள்ள கோடுகள் மற்றும் கோணங்களின் அடிப்படை கருத்துக்களை அறிமுகப்படுத்துகிறது ஒரு கோட்டுத் துண்டு இரண்டு முனைகளைக் கொண்டுள்ளது கதிர் ஒரு"
+        "similarity": 0.92,
+        "length_ratio": 1.11,
+        "back_transcript_preview": "இந்த அத்தியாயம் வடிவியலில் கோடுகள் மற்றும் கோணங்களின் அடிப்படை கோட்பாடுகளை உள்ளடக்கியது ஒரு கோட்டுத் துண்டு இரண்டு இறுதிப் புள்ளிகளைக் கொண்டுள்ளது கதிர் ஒரு இறு"
       }
     }
   ],
   "all_checks_passed": true,
   "assumptions": [
-    "Used default female Tamil voice (Anitha) for text-to-speech synthesis."
+    "Target length set to approximately 2 minutes (achieved 126 seconds).",
+    "Selected Tamil female voice 'Anitha' for speech synthesis."
   ],
   "targets": {
     "verification": "met",
