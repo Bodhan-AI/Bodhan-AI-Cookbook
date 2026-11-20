@@ -13,16 +13,17 @@
 
 param(
     [switch]$Fresh,
-    [switch]$NonInteractive
+    [switch]$NonInteractive,
+    [switch]$Auto
 )
 
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Continue"
 
 Write-Host "==========================================================================" -ForegroundColor Cyan
 Write-Host "       BODHAN INDIC MULTIMODAL AGENT - VIDEO RECORDING RUNNER             " -ForegroundColor Cyan
 Write-Host "==========================================================================" -ForegroundColor Cyan
 Write-Host "Mode: $(if ($Fresh) { 'FRESH (Cache Cleared - Live Calls)' } else { 'STANDARD (Cache Enabled)' })" -ForegroundColor Yellow
-Write-Host "Interactive: $(if ($NonInteractive) { 'NO (Automated)' } else { 'YES (Press Enter between steps)' })" -ForegroundColor Yellow
+Write-Host "Interactive: $(if ($NonInteractive -or $Auto) { 'NO (Automated)' } else { 'YES (Press Enter between steps)' })" -ForegroundColor Yellow
 Write-Host ""
 
 if ($Fresh) {
@@ -49,8 +50,12 @@ function Prompt-NextStep($stepName, $cmdStr) {
     Write-Host "NEXT STEP: $stepName" -ForegroundColor Cyan
     Write-Host "COMMAND:   $cmdStr" -ForegroundColor Gray
     Write-Host "--------------------------------------------------------------------------" -ForegroundColor DarkGray
-    if (-not $NonInteractive) {
-        Read-Host "Press [Enter] to execute this step..."
+    if (-not $NonInteractive -and -not $Auto) {
+        try {
+            Read-Host "Press [Enter] to execute this step..."
+        } catch {
+            Write-Host "[Auto-continuing in non-interactive runner]" -ForegroundColor DarkGray
+        }
     }
     Write-Host ""
 }
@@ -246,3 +251,4 @@ $summary | Format-Table -AutoSize
 Write-Host "--------------------------------------------------------------------------" -ForegroundColor DarkGray
 Write-Host "TOTAL DEMO SPEND: INR $($totalCost.ToString('0.0000'))" -ForegroundColor Green
 Write-Host "==========================================================================" -ForegroundColor Cyan
+
