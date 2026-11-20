@@ -33,3 +33,27 @@ def test_a_checksum_that_does_not_match_the_report_fails(tmp_path):
     media.write_text(media.read_text(encoding="utf-8").replace("315df1128af784a7", "0000000000000000"), encoding="utf-8")
     s = rescore(runs, tmp_path / "summary", code=1)
     assert s["passed"] == 0 and "deliverable file missing: artifacts/paragraph_bengali_female.mp3" in s["tasks"][0]["fails"]
+
+
+def test_an_empty_or_mistyped_evidence_folder_is_an_error_not_a_pass(tmp_path):
+    (tmp_path / "empty").mkdir()
+    for folder in (tmp_path / "empty", tmp_path / "no_such_folder"):
+        proc = subprocess.run([sys.executable, str(ROOT / "scripts" / "run_suite.py"), "--score-only", "--out", str(folder),
+                               "--summary-dir", str(tmp_path / "summary")], capture_output=True, text=True, encoding="utf-8", cwd=ROOT)
+        assert proc.returncode == 2 and "no task reports found" in proc.stderr
+        assert not (tmp_path / "summary" / "summary.json").exists()
+
+
+def test_the_media_checksum_exception_does_not_excuse_a_missing_text_output(tmp_path):
+    import hashlib
+
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from run_suite import score
+    out = tmp_path / "run"
+    out.mkdir()
+    digest = hashlib.sha256(b"x").hexdigest()
+    (out / "MEDIA.md").write_text(f"| `artifacts/missing.md` | text | `{digest}` |\n| `artifacts/a.mp3` | audio | `{digest}` |\n", encoding="utf-8")
+    report = {"status": "completed", "deliverables": [{"path": "artifacts/missing.md", "kind": "translation", "sha256": digest},
+                                                      {"path": "artifacts/a.mp3", "kind": "audio", "sha256": digest}],
+              "verification": {"all_checked": True}}
+    assert score({"expect": {}}, report, out) == ["deliverable file missing: artifacts/missing.md"]

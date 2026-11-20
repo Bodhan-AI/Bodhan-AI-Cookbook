@@ -37,13 +37,11 @@ def _excerpt(path: Path, limit: int = 400) -> str | None:
 
 def _count_retries(trace: Path) -> int:
     n = 0
-    try:
-        for line in trace.read_text(encoding="utf-8").splitlines():
-            if '"api_call"' in line and '"attempt": ' in line:
-                e = json.loads(line)
-                n += e.get("type") == "api_call" and int(e.get("attempt") or 1) > 1
-    except (OSError, ValueError):
-        pass
+    for e in _events(trace):
+        try:
+            n += e.get("type") == "api_call" and int(e.get("attempt") or 1) > 1
+        except (TypeError, ValueError):
+            continue
     return n
 
 
@@ -51,49 +49,86 @@ CACHED = ("this_run", "previous_run", "in_flight")
 
 
 def _events(trace: Path) -> list[dict]:
+    """The trace's complete events. Lines are decoded one by one, so a tail cut off mid-character (a crash while
+    writing Indic text) loses only that line."""
     out = []
     try:
-        for line in trace.read_text(encoding="utf-8").splitlines():
-            try:
-                out.append(json.loads(line))
-            except ValueError:
-                continue  # a line being written right now
+        raw = trace.read_bytes()
     except OSError:
-        pass
+        return out
+    for line in raw.splitlines():
+        try:
+            e = json.loads(line.decode("utf-8"))
+        except ValueError:  # includes UnicodeDecodeError: a line being written right now
+            continue
+        if isinstance(e, dict):
+            out.append(e)
     return out
 
 
+def _wall(events: list[dict]) -> float | None:
+    """Wall-clock seconds covered by these events' [end - latency, end] intervals, overlaps counted once
+    (parallel tool calls run at the same time). None if an event has no timestamp."""
+    spans = []
+    for e in events:
+        try:
+            end = datetime.fromisoformat(str(e["ts"])).timestamp()
+        except (KeyError, ValueError):
+            return None
+        spans.append((end - float(e.get("latency_s") or 0), end))
+    total, cur = 0.0, None
+    for a, b in sorted(spans):
+        if cur is None or a > cur[1]:
+            total += cur[1] - cur[0] if cur else 0.0
+            cur = [a, b]
+        else:
+            cur[1] = max(cur[1], b)
+    return total + (cur[1] - cur[0] if cur else 0.0)
+
+
 def latency_reason(events: list[dict], elapsed: float, target: float) -> str:
-    """Why a run missed its latency target, from its own trace: where the time went (planner turns vs tool calls),
-    the slowest step, the Bodhan requests behind it and how many attempts rate limits refused."""
+    """Why a run missed its latency target, from its own trace: where the wall-clock time went (tool calls, planner
+    replies, and the rest), the slowest step, the Bodhan requests behind it and how many attempts rate limits refused.
+    Parallel calls are counted once; time no event accounts for (planner retries and their waits, preflight,
+    bookkeeping) is reported as such, not attributed to a step."""
     llm = [e for e in events if e.get("type") == "llm_call"]
     tools = [e for e in events if e.get("type") == "tool_call"]
     sent = [e for e in events if e.get("type") == "api_call" and e.get("cache") not in CACHED]
     lat = lambda e: float(e.get("latency_s") or 0)  # noqa: E731
     pct = lambda x: round(100 * x / elapsed) if elapsed > 0 else 0  # noqa: E731
+    timed = _wall(tools + llm) is not None
+    wall = lambda evs: _wall(evs) if timed else sum(map(lat, evs))  # noqa: E731
+    share = (lambda x: f"{pct(x)}% of the time ({x:.0f} s)") if timed else (lambda x: f"{x:.0f} s in total")  # noqa: E731
     parts = [f"missed by {elapsed - target:.0f} s ({elapsed:.0f} s against {target:.0f} s)"]
     if tools:
         by_tool: dict[str, float] = {}
-        for e in tools:
-            by_tool[str(e.get("tool"))] = by_tool.get(str(e.get("tool")), 0.0) + lat(e)
-        top = max(by_tool, key=by_tool.get)
+        for name in {str(e.get("tool")) for e in tools}:
+            by_tool[name] = wall([e for e in tools if str(e.get("tool")) == name])
+        top = max(sorted(by_tool), key=by_tool.get)
         slow = max(tools, key=lat)
-        share = f"tool calls {pct(sum(by_tool.values()))}% of the time"
-        if slow.get("tool") == top and abs(by_tool[top] - lat(slow)) < 0.5:  # one call holds all of that tool's time
-            parts.append(f"{share}, mostly step {slow.get('step')} ({top}, {lat(slow):.0f} s)")
+        head = f"tool calls {share(wall(tools))}"
+        if sum(1 for e in tools if str(e.get("tool")) == top) == 1 and slow.get("tool") == top:  # one call holds all of that tool's time
+            parts.append(f"{head}, mostly step {slow.get('step')} ({top}, {lat(slow):.0f} s)")
         else:
-            parts.append(f"{share}, mostly {top} ({by_tool[top]:.0f} s); slowest step {slow.get('step')} ({slow.get('tool')}, {lat(slow):.0f} s)")
+            parts.append(f"{head}, mostly {top} ({by_tool[top]:.0f} s); slowest step {slow.get('step')} ({slow.get('tool')}, {lat(slow):.0f} s)")
     if llm:
-        parts.append(f"planner turns {pct(sum(map(lat, llm)))}% ({len(llm)} calls, {sum(map(lat, llm)):.0f} s)")
+        parts.append(f"planner replies {share(wall(llm))} ({len(llm)} calls)")
+    if timed and elapsed > 0:
+        rest = elapsed - _wall(tools + llm)
+        if rest >= max(1.0, 0.05 * elapsed):
+            parts.append(f"{share(rest)} outside tool calls and planner replies (planner retries and their waits, preflight, bookkeeping)")
     done = [e for e in sent if e.get("status") != 429]
     if done:
         models: dict[str, int] = {}
         for e in done:
             models[str(e.get("model"))] = models.get(str(e.get("model")), 0) + 1
         parts.append(f"{len(done)} Bodhan requests (" + ", ".join(f"{m} {n}" for m, n in sorted(models.items(), key=lambda x: -x[1])) + ")")
-    limited = sum(1 for e in sent if e.get("status") == 429)
-    if limited:
-        parts.append(f"{limited} attempt{'s' if limited > 1 else ''} refused by rate limits and retried")
+    retried = sum(1 for e in sent if e.get("status") == 429 and e.get("will_retry", True))
+    final = sum(1 for e in sent if e.get("status") == 429 and not e.get("will_retry", True))
+    if retried:
+        parts.append(f"{retried} attempt{'s' if retried > 1 else ''} refused by rate limits and retried")
+    if final:
+        parts.append(f"{final} request{'s' if final > 1 else ''} refused by rate limits and not retried")
     return "; ".join(parts)
 
 

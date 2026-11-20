@@ -5,8 +5,9 @@
 Runs made before the agent wrote these notes itself carry a generic latency note. For every report.json under
 the given folders, this recomputes quality_targets.latency.note (where the time went), budget.note and
 verification.note with the same functions the agent now uses, marks each recomputed note with `note_source`,
-and appends the latency note to the "Time:" line of result.md. Nothing is rerun and no other field changes.
-Running it twice changes nothing.
+and puts the latency note on the "Time:" line of result.md. Notes this script wrote earlier are recomputed with
+the current functions; notes the agent wrote during its run are kept. Nothing is rerun and no other field
+changes. Running it twice changes nothing.
 """
 
 from __future__ import annotations
@@ -28,7 +29,8 @@ def explain(run: Path) -> bool:
     r = json.loads(rp.read_text(encoding="utf-8"))
     q, before = r["quality_targets"], json.dumps(r["quality_targets"], sort_keys=True)
     lat = q["latency"]
-    if not lat["met"] and not lat.get("note_source") and not str(lat.get("note") or "").startswith("missed by "):
+    agent_wrote = not lat.get("note_source") and str(lat.get("note") or "").startswith("missed by ")
+    if not lat["met"] and not agent_wrote:
         lat["note"] = latency_reason(_events(run / "trace.jsonl"), float(r["elapsed_s"]), float(lat["target_s"]))
         lat["note_source"] = SOURCE
     if "note" not in q["budget"]:
@@ -37,22 +39,25 @@ def explain(run: Path) -> bool:
             q["budget"]["note_source"] = SOURCE
     if "note" not in q["verification"]:
         unverified = r["verification"]["unverified_translations_or_audio"]
-        failed = [(a["path"], "; ".join(map(str, (a.get("verification") or {}).get("problems") or [])[:2]) or "see its verification record")
+        failed = [(a["path"], "; ".join([str(x) for x in (a.get("verification") or {}).get("problems") or []][:2]) or "see its verification record")
                   for a in r["artifacts"] if a["kind"] in ("translation", "audio", "subtitles") and (a.get("verification") or {}).get("status") == "fail"]
         q["verification"]["note"] = verification_reason(unverified, failed)
         if q["verification"]["note"]:
             q["verification"]["note_source"] = SOURCE
-    if json.dumps(q, sort_keys=True) == before:
-        return False
-    rp.write_text(json.dumps(r, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
+    changed = json.dumps(q, sort_keys=True) != before
+    if changed:
+        rp.write_text(json.dumps(r, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
     md = run / "result.md"
-    if lat.get("note") and md.is_file():
-        lines = md.read_text(encoding="utf-8").split("\n")
+    if lat.get("note") and not lat["met"] and md.is_file():  # kept in step even when report.json was already current
+        text = md.read_text(encoding="utf-8")
+        lines = text.split("\n")
         for i, line in enumerate(lines):
-            if line.startswith("- Time: ") and line.rstrip().endswith("missed)"):
-                lines[i] = line.rstrip() + f"; {lat['note']}"
-        md.write_text("\n".join(lines), encoding="utf-8")
-    return True
+            if line.startswith("- Time: ") and "missed)" in line:
+                lines[i] = line[:line.index("missed)") + len("missed)")] + f"; {lat['note']}"
+        if "\n".join(lines) != text:
+            md.write_text("\n".join(lines), encoding="utf-8")
+            changed = True
+    return changed
 
 
 def main(argv: list[str]) -> int:

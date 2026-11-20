@@ -44,6 +44,9 @@ def _shown(p: Path) -> str:
 INFRASTRUCTURE_STOPS = {"llm_error", "llm_not_configured", "setup_error", "internal_error"}
 
 
+MEDIA_SUFFIXES = {".mp3", ".wav", ".m4a", ".ogg", ".flac", ".opus", ".mp4", ".mkv", ".webm", ".mov"}
+
+
 def media_listed(out: Path) -> dict[str, str]:
     """Exported runs keep media out of git: MEDIA.md lists each file with its SHA-256 (path -> digest)."""
     md = out / "MEDIA.md"
@@ -69,8 +72,10 @@ def score(task: dict, report: dict, out: Path) -> list[str]:
     dels = report.get("deliverables", [])
     listed = media_listed(out)
     for d in dels:
-        # an exported run without its media still proves the file existed: MEDIA.md lists the same SHA-256 the run recorded
-        if not (out / d["path"]).is_file() and not (d.get("sha256") and listed.get(d["path"]) == d["sha256"]):
+        # an exported run without its media still proves the file existed: MEDIA.md lists the same SHA-256 the run recorded.
+        # Only media leaves git; text outputs are always exported, so a missing one is missing.
+        media = Path(d["path"]).suffix.lower() in MEDIA_SUFFIXES
+        if not (out / d["path"]).is_file() and not (media and d.get("sha256") and listed.get(d["path"]) == d["sha256"]):
             fails.append(f"deliverable file missing: {d['path']}")
         if (d.get("verification") or {}).get("status") == "fail":
             fails.append(f"deliverable failed verification: {d['path']}")
@@ -173,6 +178,12 @@ def main() -> None:
     base = Path(a.out).resolve()
     if a.score_only and not a.ids:  # re-score what is there (an exported suite holds only some of the tasks)
         tasks = [t for t in tasks if (base / t["id"] / "report.json").is_file()]
+        if not tasks:  # a mistyped folder must not look like a clean 0/0 pass
+            print(f"no task reports found under {base}; nothing to score", file=sys.stderr)
+            sys.exit(2)
+    if not tasks:
+        print(f"no tasks match --ids {a.ids}", file=sys.stderr)
+        sys.exit(2)
     rows = []
     for t in tasks:
         out = base / t["id"]
