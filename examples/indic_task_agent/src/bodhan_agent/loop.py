@@ -91,6 +91,13 @@ def _names(dropped: dict, old: dict) -> bool:
     return dropped["kind"] == old["kind"] and dropped.get("language") == old.get("language")
 
 
+def _item_name(text: str | None) -> str:
+    """The item name in a coverage reply: models often echo the whole listed line ("x_mr.md: translation, Marathi")."""
+    t = (text or "").strip().strip("`'\"").removeprefix("- ").strip()
+    t = t.replace("\\", "/").rsplit("/", 1)[-1]  # a full path: its file name
+    return t.split(":", 1)[0].strip().strip("`'\"") if ":" in t else t
+
+
 def _label(spec: dict) -> str:
     return f"{spec['kind']}{' (' + spec['language'] + ')' if spec.get('language') else ''}{' from ' + spec['source'] if spec.get('source') else ''}"
 
@@ -129,12 +136,12 @@ class RecordPlanIn(_Strict):
         "Dropped outputs are reported to the user."))
 
 
-class CoverageItem(_Strict):
+class CoverageItem(BaseModel):  # a reply to parse, not a planner action: extra keys are ignored
     request: str = Field(max_length=300, description="The words of the task that ask for this output.")
-    covered_by: str | None = Field(None, max_length=300, description="The delivered item that provides it, exactly as listed, or null.")
+    covered_by: str | list[str] | None = Field(None, max_length=300, description="The name of the delivered item that provides it (e.g. 'answer' or a file name), or null.")
 
 
-class CoverageIn(_Strict):
+class CoverageIn(BaseModel):
     outputs: list[CoverageItem] = Field(max_length=40, description="One entry per distinct output the task asks for.")
 
 
@@ -144,7 +151,7 @@ COVERAGE_PROMPT = """\
 You check a finished task for an unattended agent. You did not do the work. Read the user's task and the list of \
 delivered items, then call report_coverage with one entry for each distinct output the task asks for (a file, audio, \
 subtitles, a translation into a language, or an answer to a question). For each, give the delivered item that \
-provides it, exactly as listed, or null if none does. An item provides an output only if it has the requested form \
+provides it, by its name only (the part before the colon: "answer" or a file name), or null if none does. An item provides an output only if it has the requested form \
 (spoken output needs audio; subtitles need an .srt; "a file" needs a file) and the requested language. A conditional \
 request ("translate the Telugu ones") is provided by the answer when it explains that nothing qualified. Do not list \
 outputs the task did not ask for, and do not judge quality."""
@@ -678,14 +685,14 @@ class Agent:
         cross-checking itself, not an independent linguistic check: it can miss a gap or invent one. A check that cannot
         run, or lists nothing, does not confirm coverage, so "completed" is refused then too."""
         names = ["answer"] + [x.path.name for x in delivered]
-        listing = [f"- answer: the reply text: {answer[:1500]}"] + [
+        listing = [f"- answer: the reply text: \"{' '.join(answer.split())[:1500]}\""] + [
             f"- {x.path.name}: {x.kind}{', ' + LANGUAGE_NAMES.get(x.language, x.language) if x.language else ''}"
             f"{', made from ' + ', '.join(sorted({Path(o).name for o in x.origin})) if x.origin else ''}" for x in delivered]
         messages = [{"role": "system", "content": COVERAGE_PROMPT},
                     {"role": "user", "content": f"Task:\n{self.task}\n\nDelivered items:\n" + "\n".join(listing)}]
         tools = [COVERAGE_TOOL]
         est = self._llm_cost(prompt_token_bound(messages, tools), COVERAGE_COMPLETION_RESERVE)
-        why, outputs, t0 = None, None, time.monotonic()
+        why, outputs, raw, t0 = None, None, None, time.monotonic()
         if est is not None and not self.ctx.ledger.can_afford(est):
             why = "not enough budget left for it"
         else:
@@ -700,6 +707,7 @@ class Agent:
                 cost = self._llm_cost(reply.prompt_tokens, reply.completion_tokens)
                 self.ctx.ledger.add_llm(reply.prompt_tokens, reply.completion_tokens, cost)
                 call = next((c for c in reply.tool_calls if c.name == "report_coverage"), None)
+                raw = (call.raw_arguments if call else reply.content)[:500]
                 try:
                     outputs = CoverageIn.model_validate(_without_nulls(call.arguments)).outputs if call and not call.parse_error else None
                 except ValidationError:
@@ -708,9 +716,11 @@ class Agent:
                     why = "the reply had no valid report_coverage call"
                 elif not outputs:
                     why = "it listed no requested outputs"
-        missing = [o.request for o in outputs or [] if (o.covered_by or "").strip() not in names]
+        missing = [o.request for o in outputs or []
+                   if not any(_item_name(c) in names for c in (o.covered_by if isinstance(o.covered_by, list) else [o.covered_by]))]
         self.trace.write({"type": "coverage_check", "step": self.steps, "latency_s": round(time.monotonic() - t0, 2),
-                          "outputs": [o.model_dump() for o in outputs] if outputs is not None else None, "missing": missing, "unavailable": why})
+                          "outputs": [o.model_dump() for o in outputs] if outputs is not None else None, "missing": missing, "unavailable": why,
+                          **({"raw_reply": raw} if why else {})})
         if why:  # unconfirmed is not confirmed: "completed" needs the check, so call finish again or finish partial
             return [f"the check of the task against the delivered items could not run ({why}); call finish again to retry it, "
                     "or finish with status partial"]

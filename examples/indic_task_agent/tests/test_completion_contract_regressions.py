@@ -130,3 +130,15 @@ async def test_an_unconfirmed_coverage_check_never_permits_completed(tmp_path, r
     assert rep["deliverables"] and (out / rep["deliverables"][0]["path"]).is_file()  # the usable translation is still delivered
     checks = [e for e in trace if e["type"] == "coverage_check"]
     assert len(checks) == 3 and all(e["unavailable"] or e["missing"] for e in checks)
+
+
+@pytest.mark.parametrize("covered_by", ["source_ta.md", "source_ta.md: translation, Tamil, made from source.txt", "`source_ta.md`",
+                                        "E:\out\artifacts\source_ta.md", ["source_ta.md", "answer"]])
+async def test_the_ways_a_model_names_a_delivered_item_are_accepted(tmp_path, covered_by):
+    # seen live: models echo the whole listed line rather than the name alone
+    task = "Translate the whole source into Tamil."
+    plan = [("record_plan", {"steps": ["translate"], "deliverables": [{"kind": "translation", "language": "ta"}]})]
+    translate = [("translate_text", {"path": str(tmp_path / "source.txt"), "target_language": "ta", "output_name": "source_ta"})]
+    reply = [{"request": "Translate the whole source into Tamil", "covered_by": covered_by, "note": "extra keys are ignored"}]
+    report, _, _ = await go(tmp_path, task, [source(tmp_path)], [plan, translate, finish(answer="Done.\n- one line\n- another")], coverage=[reply])
+    assert report["status"] == "completed"
