@@ -199,7 +199,7 @@ Media stays out of git. `scripts/make_fixtures.py` generates every demo input in
 
 ## AI assistance
 
-Claude Code (Claude Opus 5.5) was the coding assistant for design, implementation, tests and docs. During development the outputs of the final runs were read in full, and each audio file's duration and back-transcription were checked. No fluent speaker has reviewed the Indian-language outputs yet. GPT-6.1 Sol (through Codex) and CodeRabbit reviewed the code in several rounds, including a full audit against the brief. Each finding was reproduced, then fixed with a regression test or listed as a limitation. The agent's planner LLM is a separate, configurable model.
+Claude Code (Claude Opus 5.5) was the coding assistant for design, implementation, tests and docs. During development the outputs of the final runs were read in full, and each audio file's duration and back-transcription were checked. No fluent speaker has reviewed the Indian-language outputs yet. GPT-6.1 Sol (through Codex) and CodeRabbit reviewed the code in several rounds, including a full audit against the brief, and a separate Claude Opus session did a read-only security review. Each finding was reproduced, then fixed with a regression test or listed as a limitation. The agent's planner LLM is a separate, configurable model.
 
 ## Optional extras
 
