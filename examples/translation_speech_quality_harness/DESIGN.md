@@ -201,6 +201,38 @@ The judge is the only part that understands meaning. It reads the source, the tr
 - **Matching.** An item is detected if it has any flag. A label is located by a flag whose span overlaps it on either side. Speech labels, which have no text span, match by category.
 - **Holdout.** `tools/holdout.py` splits items by SHA-256 of the id, so all languages of one source land in the same half. It calibrates on half A and scores half B; the README reports half B. The one constant that was chosen while looking at demo data is the one-third missing-tail cut-off for exact truncation. It is the same for every language, and on half B it raised no false alarm.
 
+## Adding a check
+
+A check is a function that returns candidates. The combiner, calibration, the report and the dashboard pick it up without changes.
+
+1. **Decide its evidence class.**
+   - `exact`: clean output cannot produce it. It may flag alone.
+   - `noisy`: it is often right, but it needs a second, independent signal.
+   - `weak`: it only supports other findings.
+2. **Write it** in `checks_text.py` (code only) or `checks_speech.py` (audio). Return `cand(check, category, class, strength, source_span, translation_span, severity, **evidence)`. For example, a question in the source that became a statement:
+
+   ```python
+   def check_question(item) -> list[dict]:
+       src, tr = item["source"], item["translation"]
+       asked = [(s, e) for s, e in sentence_spans(src) if src[s:e].rstrip().endswith("?")]
+       if asked and not any(q in tr for q in "?？؟"):  # Latin, full-width and Arabic question marks
+           return [cand("question", "mistranslation", "noisy", 0.6, asked[0], None, "minor",
+                        detail="a question in the source is a statement in the translation")]
+       return []
+
+   TEXT_CHECKS["question"] = check_question
+   ```
+3. **Register it.**
+   - A per-item text check goes in `TEXT_CHECKS`.
+   - A check that needs the whole run, such as in-run statistics or a model call, goes into its tier in `pipeline.py`, inside `run_check`. A failure there becomes `not_run`, never a crash.
+4. **Test it** in `tests/`: one case that fires, one that must not, and one in a script it was not written for.
+5. **Measure it.**
+   - Run the holdout: `tools/holdout.py --dataset data/demo.jsonl --out report_holdout`.
+   - `calibration.json` gets the check's own threshold and its precision.
+   - For a comparison run, `--skip question` turns it off. Every text check in `TEXT_CHECKS` can be skipped by name.
+
+Because the example is `noisy`, it flags only when the judge or the regeneration diff points at the same sentence. Otherwise it goes to the review queue.
+
 ## Reproducibility and failure
 
 - The cache key is a fingerprint of the exact request: model, route, parameters and input bytes. API keys are not part of it.

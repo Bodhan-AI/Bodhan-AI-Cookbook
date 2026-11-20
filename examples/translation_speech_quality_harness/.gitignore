@@ -16,3 +16,4 @@ outputs/*
 *.flac
 *.ogg
 report_holdout*/
+data_unseen/

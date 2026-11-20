@@ -77,10 +77,11 @@ def test_stale_diff_removed_without_baseline(tmp_path, fake_bodhan, fake_llm):
 
 
 def test_skip_switches_checks_off(tmp_path, fake_bodhan, fake_llm):
-    out = run(tmp_path, fake_bodhan, fake_llm, skip="judge,regen_diff,bogus")
+    out = run(tmp_path, fake_bodhan, fake_llm, skip="judge,regen_diff,format,bogus")
     rows = [json.loads(line) for line in (out / "items.jsonl").read_text(encoding="utf-8").splitlines()]
     assert all(r["checks_run"].get("judge", "not_run: disabled by --skip") == "not_run: disabled by --skip" for r in rows)
     assert any(r["checks_run"].get("regen_diff") == "not_run: disabled by --skip" for r in rows)
+    assert all(r["checks_run"]["format"] == "not_run: disabled by --skip" for r in rows)
     assert "bogus" in json.loads((out / "summary.json").read_text(encoding="utf-8"))["warnings"][0]
 
 

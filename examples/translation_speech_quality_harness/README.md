@@ -68,7 +68,7 @@ Extra flags:
 | Flag | What it does |
 | --- | --- |
 | `--fail-on-regression N` | With `--baseline`: exit 1 when more than N items gain a major or critical flag (CI mode) |
-| `--skip CHECKS` | Switch off checks for comparison runs: `back_translation`, `regen_diff`, `audio_stats`, `transcript`, `judge` |
+| `--skip CHECKS` | Switch off checks for comparison runs: `numbers`, `format`, `script`, `back_translation`, `regen_diff`, `audio_stats`, `transcript`, `judge` |
 | `--cache-dir`, `--concurrency` | Where model outputs are cached (default `.bodhan_eval_cache/`); parallel calls per model (default 4) |
 | `--calibration` | Human labels as JSONL, or a filled-in `review_queue.csv` from an earlier report |
 

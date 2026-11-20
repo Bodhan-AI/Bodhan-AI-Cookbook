@@ -28,6 +28,17 @@ def test_retries_429_and_transient_403(tmp_path, fake_bodhan, fake_llm):
     assert bodhan.log.calls()[0]["retries"] == 3
 
 
+def test_a_rate_limit_pauses_the_other_workers_too(tmp_path, fake_bodhan, fake_llm):
+    bodhan, _ = make_clients(tmp_path, fake_bodhan, fake_llm)
+    slept = []
+    bodhan.sleep = slept.append
+    fake_bodhan.queue = [(429, {"error": {}}, {"Retry-After": "3"})]
+    bodhan.translate("One.", "hi")
+    before = len(slept)
+    bodhan.translate("Two.", "hi")  # another call on the same model, inside the window the server closed
+    assert len(slept) > before and 0 < slept[-1] <= 3
+
+
 def test_model_access_denied_is_not_retried(tmp_path, fake_bodhan, fake_llm):
     bodhan, _ = make_clients(tmp_path, fake_bodhan, fake_llm)
     fake_bodhan.queue = [(403, {"error": {"type": "key_model_access_denied"}}, None)]

@@ -2,6 +2,8 @@
 
 import json
 import os
+import sys
+import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -40,7 +42,7 @@ def parse_langs(value: str) -> tuple[set[str], list[str]]:
 
 
 SYSTEMATIC_SIMILARITY = 0.5  # median regeneration similarity below this: warn that the whole language looks different
-SKIPPABLE = {"back_translation", "regen_diff", "audio_stats", "transcript", "judge"}
+SKIPPABLE = {"back_translation", "regen_diff", "audio_stats", "transcript", "judge"} | set(TEXT_CHECKS)
 
 
 def build_clients(args, log: RunLog, cache: Cache, env=os.environ):
@@ -63,6 +65,14 @@ def run(args, bodhan=None, llm=None, env=os.environ) -> int:
     if not langs:
         warnings.append("--langs named no supported language; nothing scored")
     items, skipped = dataset.load(args.dataset, langs)
+    t0 = time.monotonic()
+
+    def stage(what):  # progress on stderr; the report files never depend on it
+        calls = log.calls()
+        print(f"[{time.monotonic() - t0:6.1f}s] {what} · {len(calls)} model calls ({sum(c['cache'] == 'hit' for c in calls)} cached) · "
+              f"INR {bodhan.budget.spent:.2f} spent", file=sys.stderr, flush=True)
+
+    stage(f"loaded {len(items)} items in {', '.join(sorted({it['lang'] for it in items})) or 'no language'}; skipped {len(skipped)}")
     missing = [name for svc, name in KEY_ENV.items() if not bodhan.keys.get(svc)]
     if missing:
         warnings.append("missing Bodhan keys, related checks not run: " + ", ".join(missing))
@@ -103,7 +113,9 @@ def run(args, bodhan=None, llm=None, env=os.environ) -> int:
     with_tr = [i for i, it in enumerate(items) if it["translation"]]
     for item, res in zip(items, results, strict=True):
         for name, fn in TEXT_CHECKS.items():
-            if item["translation"]:
+            if name in skip:
+                res["checks_run"][name] = "not_run: disabled by --skip"
+            elif item["translation"]:
                 res["_cands"] += run_check(name, lambda fn=fn, item=item: fn(item), item, res) or []
             else:
                 res["checks_run"][name] = "not_applicable"
@@ -139,8 +151,10 @@ def run(args, bodhan=None, llm=None, env=os.environ) -> int:
             if rg:
                 regens[i] = rg
 
+    stage("tier 1 (code checks) done; tier 2: back-translation and regeneration diff")
     with ThreadPoolExecutor(max_workers=max(1, args.concurrency)) as pool:
         list(pool.map(tier2, with_tr))
+    stage("tier 2 round trips done; speech checks")
     agree = {}
     for lang in sorted({items[i]["lang"] for i in regens}):
         agree[lang] = agreement([regens[i] for i in sorted(regens) if items[i]["lang"] == lang])
@@ -252,6 +266,7 @@ def run(args, bodhan=None, llm=None, env=os.environ) -> int:
             res["_cands"] += j["candidates"]
             res["judge"] = {"pass1": j["pass1"], "pass2": j["pass2"], "consistent": j["consistent"]}
 
+    stage("speech checks done; tier 3: LLM judge")
     if llm.available:
         with ThreadPoolExecutor(max_workers=max(1, args.concurrency)) as pool:
             list(pool.map(tier3, with_tr))
@@ -264,6 +279,7 @@ def run(args, bodhan=None, llm=None, env=os.environ) -> int:
             judged.setdefault(res["lang"], []).append(res["judge"]["consistent"])
     consistency = {lang: {"items": len(v), "same_verdict": round(sum(v) / len(v), 3)} for lang, v in sorted(judged.items())}
 
+    stage("judge done; calibrating and writing the report")
     # Calibrate on labelled items, then decide every item with the same thresholds.
     labels, label_sources, label_warnings = calibrate.collect(items, args.calibration)
     warnings += label_warnings

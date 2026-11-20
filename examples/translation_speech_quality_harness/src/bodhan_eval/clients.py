@@ -128,6 +128,14 @@ class Bodhan(_Base):
         self.keys, self.budget, self.sleep = keys, budget, sleep
         self.http = httpx.Client(base_url=base_url, timeout=timeout, transport=transport, headers={"User-Agent": "bodhan-eval"})
         self.sem = {s: Gate(concurrency) for s in KEY_ENV}
+        # When the server rate-limits one call, every worker on that model waits it out, instead of each spending its
+        # own retries against the same closed window.
+        self.paused_until = {s: 0.0 for s in KEY_ENV}
+        self._pause_lock = threading.Lock()
+
+    def _pause(self, service, seconds):
+        with self._pause_lock:
+            self.paused_until[service] = max(self.paused_until[service], time.monotonic() + seconds)
 
     def _post(self, service, path, **kw):
         key = self.keys.get(service)
@@ -136,6 +144,9 @@ class Bodhan(_Base):
         last = ""
         for attempt in range(MAX_ATTEMPTS):
             wait = min(30.0, 2**attempt) * (0.5 + random.random() / 2)
+            ahead = self.paused_until[service] - time.monotonic()
+            if ahead > 0:
+                self.sleep(min(ahead, 60.0))
             try:
                 with self.sem[service]:
                     r = self.http.post(path, headers={"Authorization": f"Bearer {key}"}, **kw)
@@ -157,6 +168,8 @@ class Bodhan(_Base):
                     wait = max(wait, float(r.headers.get("retry-after", 0)))
                 except ValueError:
                     pass
+                if r.status_code in (403, 429):
+                    self._pause(service, min(wait, 60.0))
             if attempt < MAX_ATTEMPTS - 1:
                 self.sleep(min(wait, 60.0))
         raise NotRun(f"api: {service} failed after {MAX_ATTEMPTS} attempts ({last})")
