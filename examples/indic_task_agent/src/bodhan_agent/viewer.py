@@ -120,7 +120,8 @@ def make_handler(out: Path):
 
         def do_GET(self):  # noqa: N802 (http.server API)
             port = self.server.server_address[1]
-            if self.headers.get("Host", "").lower() not in (f"127.0.0.1:{port}", f"localhost:{port}"):
+            hosts = {f"127.0.0.1:{port}", f"localhost:{port}"} | ({"127.0.0.1", "localhost"} if port == 80 else set())
+            if self.headers.get("Host", "").lower() not in hosts:  # a browser omits the default port 80
                 # DNS rebinding: a web page whose name now points at 127.0.0.1 still sends its own Host header
                 return self._send(403, b"forbidden host", "text/plain; charset=utf-8")
             path = unquote(urlparse(self.path).path)
@@ -129,8 +130,13 @@ def make_handler(out: Path):
             if path == "/api/state":
                 return self._send(200, json.dumps(read_state(out), ensure_ascii=False).encode("utf-8"), "application/json; charset=utf-8")
             if path.startswith("/artifacts/"):
-                target = (arts / path[len("/artifacts/"):]).resolve()
-                if target.parent == arts and target.is_file():  # only direct children of artifacts/, no traversal
+                name = path[len("/artifacts/"):]
+                # a plain file name only, matched against the folder listing: a joined "\\host\share" or "//host/share"
+                # would be a UNC path, and resolving it opens an SMB connection; any web page can request this URL
+                plain = name and not any(c in name for c in "/\\:") and name not in (".", "..")
+                listed = plain and arts.is_dir() and name in {f.name for f in arts.iterdir()}
+                target = (arts / name).resolve() if listed else None
+                if target is not None and target.parent == arts and target.is_file():  # a link out of artifacts/ is not served
                     ctype = mimetypes.guess_type(target.name)[0] or "application/octet-stream"
                     if ctype.startswith("text/") or target.suffix in (".md", ".srt", ".json"):
                         ctype = "text/plain; charset=utf-8"  # never rendered as HTML

@@ -115,3 +115,87 @@ def test_l1_the_viewer_refuses_a_foreign_host_header(tmp_path):
             assert r.status_code == 200 and r.text == "private translation"
     finally:
         httpd.shutdown()
+
+
+# --- 20 November 2026 code review of the fixes above (GPT-6.1 Sol and the audit) ---------------------------------
+
+NETWORK_FORMS = [r"/\attacker.example\share\x.txt", r"\/attacker.example/share/x.txt", r"\\?\UNC\attacker.example\share\x.txt",
+                 r"\\.\pipe\x", r"\\attacker.example\share\x.txt", "//attacker.example/share/x.txt", "FILE://attacker.example/x.txt"]
+
+
+def network_resolves(monkeypatch):
+    """Record every Path.resolve of a network form (a Windows SMB lookup), while letting local paths resolve."""
+    seen, real = [], pathlib.Path.resolve
+
+    def resolve(self, *a, **k):
+        if str(self).replace("\\", "/").startswith("//"):
+            seen.append(str(self))
+            raise AssertionError(f"network path reached the filesystem: {self}")
+        return real(self, *a, **k)
+    monkeypatch.setattr(pathlib.Path, "resolve", resolve)
+    return seen
+
+
+@pytest.mark.parametrize("raw", NETWORK_FORMS)
+def test_mixed_separator_and_device_forms_are_refused_before_any_filesystem_call(make_ctx, monkeypatch, raw):
+    ctx = make_ctx(FakeBodhan())
+    touched = []
+    for name in ("resolve", "exists", "is_file"):
+        monkeypatch.setattr(pathlib.Path, name, lambda self, *a, _n=name, **k: touched.append(_n))
+    with pytest.raises(E.ToolError) as exc:
+        ctx.resolve_input(raw)
+    assert exc.value.code == E.PATH_NOT_ALLOWED and touched == []
+
+
+async def test_finish_never_resolves_a_network_deliverable_path(tmp_path, monkeypatch):
+    from fakes import ScriptedChat
+    from test_agent_e2e import args, last_ok
+
+    from bodhan_agent.cli import run
+    from bodhan_agent.llm import PlannerLLM
+    for k in ("BODHAN_TRANSCRIBE_KEY", "BODHAN_TRANSLATE_KEY", "BODHAN_SPEAK_KEY", "BODHAN_OCR_KEY"):
+        monkeypatch.setenv(k, "test-key")
+    src = tmp_path / "note.txt"
+    src.write_text("A note.", encoding="utf-8")
+    plan = [("record_plan", {"steps": ["write"], "deliverables": [{"kind": "text", "language": "en"}]})]
+    write = [("write_text", {"name": "summary.md", "content": "A short English summary."})]
+    bad = [("finish", {"status": "completed", "final_answer": "Done.", "deliverables": NETWORK_FORMS})]
+    good = lambda m: [("finish", {"status": "completed", "final_answer": "Done.", "deliverables": [last_ok(m, "path")]})]  # noqa: E731
+    seen = network_resolves(monkeypatch)
+    report = await run(args(tmp_path, "Summarise this note in English", [src]), transport=FakeBodhan().transport,
+                       llm=PlannerLLM(client=ScriptedChat([plan, write, bad, good]), model="scripted"))
+    assert seen == []
+    assert report["status"] == "completed" and report["deliverables"][0]["path"].endswith("summary.md")  # a valid local output still resolves
+
+
+def test_viewer_artifact_urls_cannot_form_a_network_path(tmp_path, monkeypatch):
+    out = tmp_path / "out"
+    (out / "artifacts").mkdir(parents=True)
+    (out / "artifacts" / "summary.md").write_text("private translation", encoding="utf-8")
+    httpd = serve(out, 0)
+    seen = network_resolves(monkeypatch)
+    threading.Thread(target=httpd.serve_forever, daemon=True).start()
+    base, host = f"http://127.0.0.1:{httpd.server_port}", {"Host": f"127.0.0.1:{httpd.server_port}"}
+    try:
+        # any web page can request these (the browser sends the right Host): each joined onto artifacts/ would be a UNC path
+        for path in ("%5C%5Cattacker.example%5Cshare%5Cx.mp3", "//attacker.example/share/x.mp3", "%2F%5Cattacker.example%5Cs%5Cx",
+                     "..%5C..%5Csecret.txt", "C:%5Cx.txt"):
+            assert httpx.get(f"{base}/artifacts/{path}", headers=host).status_code == 404, path
+        assert httpx.get(f"{base}/artifacts/summary.md", headers=host).text == "private translation"
+        assert seen == []
+    finally:
+        httpd.shutdown()
+
+
+def test_viewer_on_port_80_accepts_the_host_header_a_browser_sends(tmp_path):
+    out = tmp_path / "out"
+    (out / "artifacts").mkdir(parents=True)
+    httpd = serve(out, 0)
+    port = httpd.server_port
+    httpd.server_address = ("127.0.0.1", 80)  # the handler reads the port from here; a real bind to 80 needs privileges
+    threading.Thread(target=httpd.serve_forever, daemon=True).start()
+    try:
+        for host, code in (("localhost", 200), ("127.0.0.1", 200), ("localhost:80", 200), ("attacker.example", 403), ("localhost:8080", 403)):
+            assert httpx.get(f"http://127.0.0.1:{port}/", headers={"Host": host}).status_code == code, host
+    finally:
+        httpd.shutdown()

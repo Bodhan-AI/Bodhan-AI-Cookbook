@@ -216,6 +216,13 @@ class CostLedger:
 # Content-addressed cache of model outputs
 # ---------------------------------------------------------------------------
 
+def is_network_path(text: str) -> bool:
+    """A UNC, device or URL form. Windows treats "\\\\", "//", "/\\" and "\\/" alike, so separators are
+    normalised before the check; callers refuse these before any filesystem call (an SMB lookup can leak an NTLM hash)."""
+    t = str(text).strip().strip('"').replace("\\", "/")
+    return t.startswith("//") or "://" in t
+
+
 def sha256_bytes(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
@@ -417,7 +424,7 @@ class RunContext:
         if not raw or not str(raw).strip():
             raise E.ToolError(E.INVALID_ARGUMENT, "A file path is required.", hint="Pass the path of an input file or an artifact returned by an earlier tool.")
         text = str(raw).strip().strip('"')
-        if text.startswith(("\\\\", "//")) or "://" in text:
+        if is_network_path(text):
             # refused before any filesystem call: resolving a UNC path on Windows opens an SMB connection (and can leak an NTLM hash)
             raise E.ToolError(E.PATH_NOT_ALLOWED, f"Network paths and URLs are not readable: {raw}",
                               hint="Use a local input file or an artifact path returned by a tool.")
