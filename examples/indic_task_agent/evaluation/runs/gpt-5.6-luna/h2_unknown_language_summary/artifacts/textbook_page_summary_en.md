@@ -1,0 +1,3 @@
+- Bees live in colonies organized around a queen, hundreds of male bees, and thousands of worker bees; workers gather nectar and pollen.
+- By carrying pollen between flowers, bees support pollination, helping plants produce seeds and fruit; about one-third of human food depends on bees and other insects.
+- Farmers may place beehives near fields to improve harvests, while reducing chemical pesticides and using natural crop-protection methods helps protect bees.

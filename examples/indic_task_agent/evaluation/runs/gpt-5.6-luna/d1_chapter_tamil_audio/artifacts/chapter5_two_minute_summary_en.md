@@ -1,0 +1,7 @@
+Chapter 5, “The Journey of a Water Drop,” explains that water is constantly moving through a cycle powered by the sun’s heat and gravity. Water on Earth may have been in a river, ocean cloud, or polar ice long ago.
+
+First, sunlight heats oceans, lakes, rivers, and ponds, changing some liquid water into invisible water vapor. Plants also release vapor through their leaves; this process is called transpiration. Warm, moist air rises and cools. Because cool air cannot hold as much vapor, the vapor changes into tiny droplets. This condensation forms clouds around dust particles.
+
+When cloud droplets join together and become heavy, they fall as precipitation—rain, snow, or hail. Rainwater runs over land into streams, rivers, lakes, and eventually the sea. Some seeps into the ground and becomes groundwater, filling wells and springs. Lakes and ponds can store water for use during dry seasons.
+
+The water cycle supplies drinking water and water for farming and industry, influences weather, and moves heat around Earth. Since only about three percent of Earth’s water is fresh, and much of it is frozen, every drop matters. Cutting forests can reduce local rainfall. We can conserve water by closing taps while brushing, collecting rainwater, repairing leaks, and reusing vegetable-washing water for plants. Traditional steps and check dams also help store rainwater.
