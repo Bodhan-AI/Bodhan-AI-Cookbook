@@ -1,0 +1,5 @@
+httpx==0.28.1
+mcp==1.30.0
+pillow==13.0.0
+pypdfium2==5.15.2
+python-dotenv==1.2.4

@@ -1,0 +1,87 @@
+{
+  "status": "completed",
+  "stopped_by": "agent",
+  "task": "Which of these clips are in Telugu? Translate those into English",
+  "finished_at": "2026-11-20T05:06:23+00:00",
+  "duration_s": 22.24,
+  "steps_used": 7,
+  "max_steps": 30,
+  "cost_inr": 0.0609,
+  "max_cost_inr": 20.0,
+  "within_budget": true,
+  "bodhan_calls": {
+    "total": 9,
+    "paid": 9,
+    "cache_hits": 0,
+    "by_model": {
+      "indic-transcribe": {
+        "calls": 7,
+        "cache_hits": 0,
+        "cost_inr": 0.0604
+      },
+      "indic-translate": {
+        "calls": 2,
+        "cache_hits": 0,
+        "cost_inr": 0.0006
+      }
+    }
+  },
+  "translate_route": "/v1/chat/completions",
+  "llm": {
+    "model": "gemini-3.5-flash",
+    "calls": 7,
+    "prompt_tokens": 38860,
+    "completion_tokens": 970
+  },
+  "artifacts": [
+    "artifacts/text-7b9f6f.en.md",
+    "artifacts/text-d8dd01.en.md",
+    "artifacts/telugu_translations.en.md"
+  ],
+  "verification": [
+    {
+      "artifact": "artifacts/text-7b9f6f.en.md",
+      "tool": "translate_text",
+      "passed": true,
+      "warnings": [],
+      "checks": {
+        "sentences_in": 1,
+        "sentences_out": 1,
+        "structure_preserved": true,
+        "numbers_preserved": true,
+        "truncated_fragments": 0
+      }
+    },
+    {
+      "artifact": "artifacts/text-d8dd01.en.md",
+      "tool": "translate_text",
+      "passed": true,
+      "warnings": [],
+      "checks": {
+        "sentences_in": 1,
+        "sentences_out": 1,
+        "structure_preserved": true,
+        "numbers_preserved": true,
+        "truncated_fragments": 0
+      }
+    },
+    {
+      "artifact": "artifacts/telugu_translations.en.md",
+      "tool": "save_english_text",
+      "passed": null,
+      "warnings": [],
+      "checks": {
+        "written_by": "llm (English)"
+      }
+    }
+  ],
+  "all_checks_passed": true,
+  "assumptions": [
+    "Language identification determined clip1 and clip3 are in Telugu, clip2 is Hindi, clip4 is Tamil, and clip5 is Bengali."
+  ],
+  "targets": {
+    "verification": "met",
+    "budget": "met",
+    "no_waste": "met (each input sent to a model at most once; repeats come from the cache)"
+  }
+}
