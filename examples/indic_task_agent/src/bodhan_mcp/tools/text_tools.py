@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+from pathlib import Path
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -270,10 +271,16 @@ async def write_text(ctx: RunContext, a: WriteTextIn) -> dict:
     dest = ctx.artifact_path(a.name, suffix)
     dest.write_text(final, encoding="utf-8")
     lang = "en"
-    if embedded:  # the file's language is that of what it shows: mostly embedded Indian-language text is that language
-        guess = detect_language(final)
-        if guess.language and guess.language != "en" and indic_fraction(final) > 0.5:
-            lang = guess.language
+    if embedded and indic_fraction(final) > 0.5:
+        # The file's language is that of what it shows. A registered artifact's language is known (script-based detection
+        # reads Sanskrit or Marathi as Hindi); only an embedded input file, which has no label, is detected.
+        known = {(ctx.artifacts[e].language if e in ctx.artifacts else detect_language(read_text_file(Path(e))).language)
+                 for e in embedded}
+        known.discard("en")
+        known.discard(None)
+        guess = known.pop() if len(known) == 1 else detect_language(final).language
+        if guess and guess != "en":
+            lang = guess
     ctx.register(Artifact(dest, "text", "write_text", lang, "planner (English)" + (" + embedded artifacts" if embedded else ""), None,
                           depends_on=sorted(set(embedded) | {s for s in sources if s in ctx.artifacts}),
                           origin=sorted({o for e in embedded + sources for o in ctx.origin_of(e)})))

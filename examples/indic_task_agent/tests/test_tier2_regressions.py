@@ -424,3 +424,17 @@ def test_the_short_tool_list_keeps_a_field_named_description():
     plan = next(t for t in openai_tools(None, compact=True) if t["function"]["name"] == "record_plan")["function"]["parameters"]
     items = plan["properties"]["deliverables"]["items"]
     assert "description" in items["properties"] and "description" not in items["properties"]["kind"]
+
+
+# GPT-6.1 Sol (post-freeze diff): embedding a verified Sanskrit artifact gave a file labelled Hindi, because the label
+# came from script-based detection, which reads short Devanagari text as Hindi; a known source language must win
+async def test_an_embedded_artifact_keeps_its_known_language(make_ctx):
+    from bodhan_mcp.runtime import Artifact
+
+    ctx = make_ctx(FakeBodhan())
+    src = ctx.artifacts_dir / "sanskrit.md"
+    src.write_text("सर्वे भवन्तु सुखिनः। सर्वे सन्तु निरामयाः।", encoding="utf-8")
+    ctx.register(Artifact(src, "translation", "translate_text", language="sa", verification={"status": "pass"}))
+    r, err = await invoke(TOOL_BY_NAME["write_text"], ctx, {"name": "copy.md", "content": "{{artifact:" + str(src) + "}}"})
+    assert not err
+    assert ctx.artifacts[r["path"]].language == "sa"
