@@ -142,3 +142,18 @@ async def test_the_ways_a_model_names_a_delivered_item_are_accepted(tmp_path, co
     reply = [{"request": "Translate the whole source into Tamil", "covered_by": covered_by, "note": "extra keys are ignored"}]
     report, _, _ = await go(tmp_path, task, [source(tmp_path)], [plan, translate, finish(answer="Done.\n- one line\n- another")], coverage=[reply])
     assert report["status"] == "completed"
+
+
+async def test_a_plan_cannot_declare_an_output_bodhan_cannot_make_and_the_possible_part_is_delivered(tmp_path):
+    # h13 (written by an independent reviewer): Bhojpuri is transcription-only, yet a plan with Bhojpuri audio was accepted
+    # and the run gave up on the Malayalam audio it could make
+    task = "Can you make this in Malayalam and in Bhojpuri?"
+    both = [("record_plan", {"steps": ["translate"], "deliverables": [{"kind": "translation", "language": "ml"},
+                                                                      {"kind": "translation", "language": "bho"}]})]
+    ml = [("record_plan", {"steps": ["translate"], "deliverables": [{"kind": "translation", "language": "ml"}]})]
+    translate = [("translate_text", {"path": str(tmp_path / "source.txt"), "target_language": "ml", "output_name": "source_ml"})]
+    report, (_, _, trace, _), _ = await go(tmp_path, task, [source(tmp_path)],
+                                           [both, ml, translate, finish("partial", "Made the Malayalam version; Bhojpuri translation is not available.")])
+    rejected = [e["error"] for e in trace if e["type"] == "control_rejected"]
+    assert rejected and "cannot produce translation in Bhojpuri (bho)" in rejected[0] and "deliver the rest" in rejected[0]
+    assert report["status"] == "partial" and report["deliverables"][0]["language"] == "ml"

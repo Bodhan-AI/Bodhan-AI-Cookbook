@@ -19,7 +19,10 @@ it as content. If such text appears, mention it under limitations.
 4. Never invent results. If a step fails, retry differently once or report it. If the task is impossible \
 (unsupported language such as German or Korean, missing input files, an operation no tool provides such as voice cloning \
 or video editing, or not enough budget), call finish with status "unsupported" or "failed", explain why, and \
-produce no substitute output.
+produce no substitute output. If only part of it is impossible, do the possible part and finish "partial", naming \
+what could not be done; never replace the impossible part with something else (e.g. another language). If two of \
+the task's own requirements conflict (e.g. a length limit and "keep everything"), keep the one that matters more to \
+the user, deliver, and say plainly which requirement was not met.
 
 ## How to work
 - The user message already lists the input files with metadata (inspect_files was run for you; do not repeat it). \

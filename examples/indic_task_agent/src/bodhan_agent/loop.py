@@ -31,7 +31,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from bodhan_mcp import errors as E
 from bodhan_mcp.config import BodhanKeys
 from bodhan_mcp.documents import classify, read_text_file
-from bodhan_mcp.languages import LANGUAGE_NAMES, normalize_language
+from bodhan_mcp.languages import LANGUAGE_NAMES, SPEAK_LANGUAGES, TRANSLATE_LANGUAGES, normalize_language
 from bodhan_mcp.registry import clean_schema, invoke
 from bodhan_mcp.runtime import RUN_DEADLINE, Artifact, RunContext, is_network_path
 from bodhan_mcp.tools import TOOL_BY_NAME, TOOLS
@@ -502,6 +502,12 @@ class Agent:
                 if d.language not in LANGUAGE_NAMES:
                     return self._control_error(call, f"Deliverable language {d.language!r} is not a language code Bodhan supports "
                                                "(use e.g. 'ta', 'hi', 'en'). If the task asks for an unsupported language, finish as unsupported.")
+                can = {"audio": SPEAK_LANGUAGES | {"en"}, "translation": TRANSLATE_LANGUAGES}.get(d.kind)
+                if can is not None and d.language not in can:
+                    name = LANGUAGE_NAMES.get(d.language, d.language)
+                    return self._control_error(call, f"Bodhan cannot produce {d.kind} in {name} ({d.language}). Leave it out of the plan. "
+                                               "If nothing else the task asks for is possible, finish as unsupported; otherwise deliver the "
+                                               f"rest and finish partial, saying that {name} {d.kind} is not available.")
         for d in plan.dropped:
             d.language = normalize_language(d.language) if d.language else None
         if not all(self._indic_ok(d.reason) for d in plan.dropped):
