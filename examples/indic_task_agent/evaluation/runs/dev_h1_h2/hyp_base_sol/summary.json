@@ -1,0 +1,119 @@
+{
+  "passed": 0,
+  "total": 4,
+  "pass_rate": 0.0,
+  "scored_at": "2026-11-20T20:08:45+00:00",
+  "code": {
+    "commit": "7a5f8ce2b080fc9cd63d658060b210fe9d6ce47a",
+    "src_modified": false
+  },
+  "checks": "structural only (status, files, kinds, languages, verification, answer text, budget); not a quality score",
+  "tasks": [
+    {
+      "id": "H1P2_text_message",
+      "demo": false,
+      "impossible": false,
+      "task": "Turn this notice into a short Tamil text message I can paste into the parents' WhatsApp group.",
+      "evidence": "fresh",
+      "cache_mode": "shared cache",
+      "pass": false,
+      "fails": [
+        "run stopped by llm_error (planner unavailable), so the task was not evaluated",
+        "status partial not in ['completed', 'completed_with_warnings']"
+      ],
+      "status": "partial",
+      "elapsed_s": 577.59,
+      "steps": 7,
+      "bodhan_inr": 0.0026,
+      "cache_hits": 5,
+      "paid_calls": 2,
+      "llm_model": "gpt-6.1-sol",
+      "llm_tokens": 42311,
+      "latency_target_met": false,
+      "latency_kind": "multi-step",
+      "result": "outputs/hyp_base_sol/H1P2_text_message/result.md",
+      "trace": "outputs/hyp_base_sol/H1P2_text_message/trace.jsonl"
+    },
+    {
+      "id": "H1C_verbatim_translation",
+      "demo": false,
+      "impossible": false,
+      "task": "Translate this notice into Tamil word for word, including everything printed on it.",
+      "evidence": "fresh",
+      "cache_mode": "shared cache",
+      "pass": false,
+      "fails": [
+        "run stopped by llm_error (planner unavailable), so the task was not evaluated",
+        "status failed not in ['completed', 'completed_with_warnings']",
+        "no translation deliverable",
+        "no translation deliverable to check the language of"
+      ],
+      "status": "failed",
+      "elapsed_s": 451.41,
+      "steps": 0,
+      "bodhan_inr": 0.0,
+      "cache_hits": 0,
+      "paid_calls": 0,
+      "llm_model": "gpt-6.1-sol",
+      "llm_tokens": 0,
+      "latency_target_met": false,
+      "latency_kind": "single-step",
+      "result": "outputs/hyp_base_sol/H1C_verbatim_translation/result.md",
+      "trace": "outputs/hyp_base_sol/H1C_verbatim_translation/trace.jsonl"
+    },
+    {
+      "id": "H2P_h14_weekday_filter",
+      "demo": false,
+      "impossible": false,
+      "task": "I only care about things that are happening on a specific day of the week. Find those in this folder and give me Punjabi versions of just those.",
+      "evidence": "fresh",
+      "cache_mode": "shared cache",
+      "pass": false,
+      "fails": [
+        "run stopped by llm_error (planner unavailable), so the task was not evaluated",
+        "status failed not in ['completed', 'completed_with_warnings']",
+        "no translation deliverable to check the language of",
+        "0 deliverables < 2",
+        "answer lacks 'health_camp'",
+        "answer lacks 'market_note'"
+      ],
+      "status": "failed",
+      "elapsed_s": 451.44,
+      "steps": 0,
+      "bodhan_inr": 0.0,
+      "cache_hits": 0,
+      "paid_calls": 0,
+      "llm_model": "gpt-6.1-sol",
+      "llm_tokens": 0,
+      "latency_target_met": false,
+      "latency_kind": "single-step",
+      "result": "outputs/hyp_base_sol/H2P_h14_weekday_filter/result.md",
+      "trace": "outputs/hyp_base_sol/H2P_h14_weekday_filter/trace.jsonl"
+    },
+    {
+      "id": "H2C_zero_matches",
+      "demo": false,
+      "impossible": false,
+      "task": "Find the items in this folder about something happening on a Sunday and give me Punjabi versions of just those.",
+      "evidence": "fresh",
+      "cache_mode": "shared cache",
+      "pass": false,
+      "fails": [
+        "run stopped by llm_error (planner unavailable), so the task was not evaluated",
+        "status failed not in ['completed', 'completed_with_warnings']"
+      ],
+      "status": "failed",
+      "elapsed_s": 451.39,
+      "steps": 0,
+      "bodhan_inr": 0.0,
+      "cache_hits": 0,
+      "paid_calls": 0,
+      "llm_model": "gpt-6.1-sol",
+      "llm_tokens": 0,
+      "latency_target_met": false,
+      "latency_kind": "single-step",
+      "result": "outputs/hyp_base_sol/H2C_zero_matches/result.md",
+      "trace": "outputs/hyp_base_sol/H2C_zero_matches/trace.jsonl"
+    }
+  ]
+}

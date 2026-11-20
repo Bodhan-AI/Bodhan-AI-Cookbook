@@ -1,0 +1,1 @@
+School Notice: Due to the district sports competition, the school will remain closed on Monday, 14th July. Classes will resume at normal timings from Tuesday. Parents are requested to collect the report cards from the class teacher on Wednesday between 10:00 AM and 1:00 PM.

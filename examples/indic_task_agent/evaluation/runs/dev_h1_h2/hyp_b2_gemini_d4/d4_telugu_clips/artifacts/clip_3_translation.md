@@ -1,0 +1,1 @@
+the bus to school picnic will leave at seven thirty sharp
