@@ -5,7 +5,7 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![Bodhan Indic Models](https://img.shields.io/badge/Bodhan-Indic--OCR%20%7C%20Translate%20%7C%20Speak%20%7C%20Transcribe-orange.svg)](https://bodhan.ai)
 [![Audio Standard](https://img.shields.io/badge/Loudness--16%20LUFS%20%C2%B1%201-green.svg)](https://en.wikipedia.org/wiki/EBU_R_128)
-[![Tests Passing](https://img.shields.io/badge/tests-15%2F15%20passing-brightgreen.svg)](tests/)
+[![Tests Passing](https://img.shields.io/badge/tests-29%2F29%20passing-brightgreen.svg)](tests/)
 
 ---
 
@@ -48,6 +48,35 @@ flowchart TD
         M --> N["Final Outputs & Financial Report (out/report.json)"]
     end
 ```
+
+### Multi-Agent Evaluator-Optimizer Architecture
+
+Unlike standard linear pipelines, `bodhan_lesson` employs an **Agentic Evaluator-Optimizer Pattern** with closed-loop reflection and self-healing:
+
+```mermaid
+flowchart LR
+    subgraph AgenticLoop["Evaluator-Optimizer Closed-Loop Self-Healing"]
+        direction TB
+        TriageAgent["1. Document Triage Agent<br/>(Block classification & margin isolation)"]
+        CurriculumAgent["2. Curriculum Planning Agent<br/>(Pedagogical narration & formula grounding)"]
+        AudioDirector["3. Audio Director Agent<br/>(Safe chunking & -16 LUFS synthesis)"]
+        EvaluatorAgent["4. Evaluator QA Agent<br/>(Indic-Transcribe ASR 3D audit)"]
+        Reflection["Self-Healing Optimizer<br/>(Reflective diagnosis & script repair)"]
+
+        TriageAgent --> CurriculumAgent
+        CurriculumAgent --> AudioDirector
+        AudioDirector --> EvaluatorAgent
+        EvaluatorAgent -- "QA Failed (Loop / Truncation)" --> Reflection
+        Reflection -- "Repaired Script (Tight Chunks)" --> AudioDirector
+        EvaluatorAgent -- "QA Passed / Unavailable" --> FinalArtifacts["Lesson Audio & Artifacts"]
+    end
+```
+
+The system orchestrates four specialized agents:
+1. **Document Triage Agent (`ChapterNarratorAgent.triage_blocks`)**: Classifies raw OCR blocks into narrative content, exercises, doubtful low-confidence blocks, and isolates handwritten margin notes into `annotations.json`.
+2. **Curriculum Planning Agent (`ChapterNarratorAgent.plan_narration_script`)**: Generates an engaging spoken lesson script in English grounded strictly in block IDs (`grounding_references`), vocalizing formulas and diagrams for audio delivery.
+3. **Audio Director Agent (`AudioSynthesizer`)**: Controls acoustic pacing, converts equations to phonetically stable utterances, segments text into safe chunks ($\le 220$ characters), and enforces BS.1770-4 loudness compliance (-16 LUFS $\pm$ 1).
+4. **Evaluator-Optimizer QA Agent (`AudioVerifier` + `diagnose_qa_result` + `plan_audio_repair`)**: Audits synthesized audio against reference text via ASR. If vocoder loops, phrase repetitions, or severe truncation occur, it autonomously diagnoses the acoustic defect, rewrites the spoken script to eliminate repetitive triggers, and re-synthesizes until quality certification is achieved.
 
 ### Workflow & Decision Points
 

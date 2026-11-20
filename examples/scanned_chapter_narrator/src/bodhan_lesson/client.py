@@ -365,12 +365,26 @@ class BodhanClient:
                 if attempt < retries - 1 and e.response.status_code in (500, 502, 503, 504):
                     time.sleep(2.0 * (attempt + 1))
                     continue
+                if e.response.status_code in (500, 502, 503, 504):
+                    self._transcribe_circuit_broken = True
+                    self._transcribe_circuit_broken_time = time.time()
+                    self._transcribe_consecutive_failures += 3
+                    logging.getLogger("bodhan_lesson").warning(
+                        f"Indic-Transcribe returned HTTP {e.response.status_code} server error. "
+                        "Circuit breaker opened: skipping remaining QA requests for 60s cooldown to protect pipeline runtime."
+                    )
+                    return {
+                        "text": "",
+                        "duration_seconds": 0.0,
+                        "status": "skipped_due_to_service_unavailability",
+                        "error": str(e),
+                    }
                 self._transcribe_consecutive_failures += 1
                 if self._transcribe_consecutive_failures >= 3:
                     self._transcribe_circuit_broken = True
                     self._transcribe_circuit_broken_time = time.time()
                     logging.getLogger("bodhan_lesson").warning(
-                        "Indic-Transcribe returned consecutive 502/503 server errors. "
+                        "Indic-Transcribe returned consecutive errors. "
                         "Circuit breaker opened: skipping remaining QA requests for 60s cooldown to protect pipeline runtime."
                     )
                 else:
@@ -401,7 +415,11 @@ class BodhanClient:
                     "error": str(e),
                 }
 
-        return {"text": "", "duration_seconds": 0.0, "status": "failed"}
+        return {
+            "text": "",
+            "duration_seconds": 0.0,
+            "status": "skipped_due_to_service_unavailability" if self._transcribe_circuit_broken else "failed",
+        }
 
 
 bodhan_client = BodhanClient()

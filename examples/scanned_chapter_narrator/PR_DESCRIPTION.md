@@ -87,6 +87,34 @@ flowchart TD
     end
 ```
 
+### Multi-Agent Evaluator-Optimizer Architecture
+
+`bodhan_lesson` orchestrates four specialized agents in an **Evaluator-Optimizer Pattern** with closed-loop reflection & self-healing:
+
+```mermaid
+flowchart LR
+    subgraph AgenticLoop["Evaluator-Optimizer Closed-Loop Self-Healing"]
+        direction TB
+        TriageAgent["1. Document Triage Agent<br/>(Block classification & margin isolation)"]
+        CurriculumAgent["2. Curriculum Planning Agent<br/>(Pedagogical narration & formula grounding)"]
+        AudioDirector["3. Audio Director Agent<br/>(Safe chunking & -16 LUFS synthesis)"]
+        EvaluatorAgent["4. Evaluator QA Agent<br/>(Indic-Transcribe ASR 3D audit)"]
+        Reflection["Self-Healing Optimizer<br/>(Reflective diagnosis & script repair)"]
+
+        TriageAgent --> CurriculumAgent
+        CurriculumAgent --> AudioDirector
+        AudioDirector --> EvaluatorAgent
+        EvaluatorAgent -- "QA Failed (Loop / Truncation)" --> Reflection
+        Reflection -- "Repaired Script (Tight Chunks)" --> AudioDirector
+        EvaluatorAgent -- "QA Passed / Unavailable" --> FinalArtifacts["Lesson Audio & Artifacts"]
+    end
+```
+
+1. **Document Triage Agent (`ChapterNarratorAgent.triage_blocks`)**: Audits layout blocks, separating core narrative content from exercise questions and low-confidence OCR regions, and routing margin notes into `annotations.json`.
+2. **Curriculum Planning Agent (`ChapterNarratorAgent.plan_narration_script`)**: Plans natural spoken pedagogical lesson scripts in English strictly grounded to block IDs (`grounding_references`), vocalizing formulas and diagrams for audio delivery.
+3. **Audio Director Agent (`AudioSynthesizer`)**: Controls acoustic pacing, converts equations to phonetically stable utterances, segments text into safe chunks ($\le 220$ characters), and enforces BS.1770-4 loudness compliance (-16 LUFS $\pm$ 1).
+4. **Evaluator-Optimizer QA Agent (`AudioVerifier` + `diagnose_qa_result` + `plan_audio_repair`)**: Closed-loop verification using Indic-Transcribe ASR to audit Coverage, CER/WER, and repetition loops. Autonomously reflects, diagnoses failure modes, rewrites spoken scripts to break vocoder loops, and re-synthesizes until quality standards are met.
+
 ### Pipeline Stages (One Line per Stage):
 1. **Page Ingestion**: Rasterizes PDF scans at native 300 DPI images using pure rendering without relying on PDF text DOM.
 2. **Indic-OCR**: Extracts page text blocks, tables, and LaTeX equations preserving natural reading order and confidence scores.
@@ -213,24 +241,65 @@ Figures are grounded in their captions and textual references rather than halluc
 
 ## Results
 
-### 1. NCERT Class 9 Mathematics Chapter 6 (*Lines and Angles*)
-- **Input**: 3-page scanned chapter containing 6 geometry equations, 2 diagram figures, and Aspirations Institute website footers.
-- **Languages**: Hindi (`hi`), Tamil (`ta`), Bengali (`bn`).
-- **Highlights**:
-  - All website footer watermarks dropped across all pages.
-  - Geometry equations (`\angle AOB = 180^\circ`, `AB \parallel CD`) preserved 100% in markdown and verbalized into spoken Hindi/Tamil/Bengali.
-  - Audio duration: 124.97 seconds continuous lesson normalized to **-16.0 LUFS**.
-  - Total API Cost: **₹1.46 INR**.
+The pipeline was validated across four diverse real-world textbook datasets spanning Mathematics, Physics, Zoology, and Organic Chemistry to benchmark OCR fidelity, equation verbalization, multi-language speech synthesis, and financial cost tracking:
 
-### 2. Physics Chapter: Magnetism and Matter (`Sample_document.pdf`)
-- **Input**: 3-page PDF with 13 equations, 1 table, and 3-level section headings (`5.6.1 Diamagnetism`, `5.6.2 Paramagnetism`, `5.6.3 Ferromagnetism`).
-- **Language**: Tamil (`ta`).
-- **Highlights**:
-  - Segmented into 4 logical sections.
-  - Spoken math handled formulas including Curie's law ($M = C \frac{B_0}{T}$) and permeability ($\mu_r = 1 + \chi$).
-  - Full chapter continuous audio: **612.09 seconds** (10m 12s) at **-16.0 LUFS**.
-  - Total API Cost: **₹6.45 INR**.
-  - Zero repetition incidents.
+| Dataset / Chapter | Domain | Pages | Sections | Equations | Target Languages | Audio Generated | Total Runtime | Total Cost (INR) |
+| :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Demo 3: Lines & Angles** | NCERT Class 9 Maths | **8** | 4 | 30 | `ta` (Tamil), `bn` (Bengali) | **1,925.5s** (~32.1 min) | 2,416.57s (~40.2 min) | **₹18.9982** |
+| **Demo 1: Magnetism & Matter** | Class 12 Physics | **3** | 3 | 14 | `ta` (Tamil) | **681.7s** (~11.4 min) | 799.89s (~13.3 min) | **₹7.1836** |
+| **Demo 2: Animal Kingdom** | Zoology | **3** | 1 | 2 | `hi` (Hindi), `en` (English) | **482.2s** (~8.0 min) | 864.58s (~14.4 min) | **₹5.3107** |
+| **Demo 4: Dihydric Phenols** | Organic Chemistry | **1** | 1 | 6 | `ta` (Tamil) | **174.6s** (~2.9 min) | 224.27s (~3.7 min) | **₹1.9116** |
+
+---
+
+### Detailed Benchmark Analysis
+
+#### 1. NCERT Class 9 Mathematics: *Lines and Angles* (`demo3/maths_lesson1`)
+- **Input**: 8 scanned textbook pages, 1,987 words, 30 LaTeX equations, geometry diagrams, and recurring website footer watermarks (`www.aspirationsinstitute.com`).
+- **Languages Produced**: Tamil (`ta`), Bengali (`bn`).
+- **Sections Assembled**: 
+  - `6.1 Introduction`
+  - `6.2 Basic Terms and Definitions`
+  - `6.3 Intersecting Lines and Non-intersecting Lines`
+  - `6.4 Pairs of Angles`
+- **Key Highlights**:
+  - **100% Watermark Stripping**: Automatically identified and dropped recurring website footers across all 8 pages without human regex rules.
+  - **Complex Geometry Math Vocalization**: All 30 equations (e.g. `\angle AOB + \angle BOC = 180^\circ`, `AB \parallel CD`) verbalized into natural spoken pedagogical Tamil and Bengali.
+  - **Full Audio Output**: Stitched continuous chapter audio tracks totaling **1,925.46 seconds** (~32.1 minutes of broadcast audio) normalized strictly to **-16.0 LUFS**.
+  - **Financial Cost**: ₹1.60 OCR + ₹0.12 Translation + ₹14.07 TTS + ₹3.21 ASR = **₹18.9982 INR** total.
+
+#### 2. Physics Chapter: *Magnetism and Matter* (`demo1/Physics_lesson2`)
+- **Input**: 3-page scanned PDF with 1,318 words, 14 dense formulas, and 3-level numbered sections.
+- **Languages Produced**: Tamil (`ta`).
+- **Sections Assembled**: 
+  - `5.6.1 Diamagnetism`
+  - `5.6.2 Paramagnetism`
+  - `5.6.3 Ferromagnetism`
+- **Key Highlights**:
+  - **STEM Physics Vocalization**: Accurately converted formulas including Curie’s Law ($M = C \frac{B_0}{T}$) and relative permeability ($\mu_r = 1 + \chi_m$) into spoken natural language.
+  - **Safe Utterance Chunking**: Text split into safe $\le 220$-character chunks with 150ms natural pauses, eliminating vocoder runaway loops.
+  - **Full Audio Output**: **681.70 seconds** (~11.4 minutes) of continuous lesson audio normalized to **-16.0 LUFS**.
+  - **Financial Cost**: ₹0.60 OCR + ₹0.05 Translation + ₹5.40 TTS + ₹1.14 ASR = **₹7.1836 INR** total.
+
+#### 3. Zoology Chapter (`demo2/zoology_lesson1`)
+- **Input**: 3-page scanned chapter containing 351 words, 2 equations, and 22 handwritten/margin callouts.
+- **Languages Produced**: Hindi (`hi`), English (`en`).
+- **Key Highlights**:
+  - **Margin Note Isolation (Stretch Goal 3)**: Document Triage Agent successfully detected and isolated all 22 handwritten margin annotations into `annotations.json`, preventing marginalia from polluting the primary narration audio track.
+  - **Fault-Tolerant ASR Handling**: When upstream Indic-Transcribe encountered transient server downtime, the circuit breaker tripped gracefully, logging `"skipped_due_to_service_unavailability"` and preventing wasteful 4.5-minute re-synthesis loops while preserving all synthesized WAV/MP3 tracks.
+  - **Full Audio Output**: **482.15 seconds** (~8.0 minutes) normalized to **-16.0 LUFS**.
+  - **Financial Cost**: ₹0.60 OCR + ₹0.03 Translation + ₹3.87 TTS + ₹0.80 ASR = **₹5.3107 INR** total.
+
+#### 4. Organic Chemistry: *Dihydric Phenols* (`demo4/chem_lesson1`)
+- **Input**: 1-page scanned chapter, 133 words, 6 chemical formulas/functional groups, and doubtful OCR block tags.
+- **Languages Produced**: Tamil (`ta`).
+- **Sections Assembled**: 
+  - `11. Dihydric phenols`
+- **Key Highlights**:
+  - **Chemical Notation & Functional Group Grounding**: Converted organic chemistry nomenclature, benzene ring attachments, and dihydric -OH groups into clear pedagogical spoken Tamil.
+  - **Circuit Breaker Live Verification**: Successfully defended pipeline runtime when upstream Indic-Transcribe returned HTTP 502 Bad Gateway; the circuit breaker cleanly tripped after 3 attempts, logging `skipped_due_to_service_unavailability`.
+  - **Zero Wasteful Re-synthesis**: Verified that the Evaluator-Optimizer correctly distinguished external server downtime from audio defects, completing all TTS generation, -16 LUFS loudness normalization, and audio stitching in just **224.27 seconds** (~3.7 minutes).
+  - **Financial Cost**: ₹0.20 OCR + ₹0.01 Translation + ₹1.41 TTS + ₹0.29 ASR = **₹1.9116 INR** total.
 
 ---
 

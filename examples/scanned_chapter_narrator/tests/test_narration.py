@@ -1,7 +1,17 @@
 """Unit tests for equation math verbalization and narration planning."""
 
-from bodhan_lesson.narration import narration_planner, verbalize_equation_math
+from bodhan_lesson.narration import clean_spoken_text, narration_planner, verbalize_equation_math
 from bodhan_lesson.schemas import BlockType, LessonSection, OCRBlock
+
+
+def test_clean_spoken_text_sanitization():
+    raw_text = "Refer to http://hyperphysics.phy-astr.gsu.edu for details. The magnetic field is \\mathbf{B} = 10^{-5} T."
+    cleaned = clean_spoken_text(raw_text)
+    assert "http" not in cleaned
+    assert "hyperphysics" not in cleaned
+    assert "10 to the power of -5" in cleaned
+    assert "\\mathbf" not in cleaned
+    assert "B" in cleaned
 
 
 def test_verbalize_equation_math():

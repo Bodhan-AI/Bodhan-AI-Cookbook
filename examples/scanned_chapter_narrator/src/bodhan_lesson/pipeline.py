@@ -249,7 +249,54 @@ class LessonPipeline:
                             reference_script=narration_item.target_script,
                             section_id=sec_id,
                             language=lang,
+                        )
+
+                        # Autonomous Evaluator-Optimizer Reflection & Repair Loop
+                        if (
+                            not qa_res.passed
+                            and qa_res.qa_status == "failed"
+                            and qa_res.qa_status != "skipped_due_to_service_unavailability"
+                        ):
+                            diagnosis = chapter_narrator_agent.diagnose_qa_result(
+                                coverage=qa_res.coverage_score,
+                                cer=qa_res.cer,
+                                wer=qa_res.wer,
+                                repetition=qa_res.repetition_detected,
                             )
+                            logger.info(f"[Agentic QA Self-Healing] Section {sec_id} failure diagnosis: {diagnosis}")
+                            repaired_script = chapter_narrator_agent.plan_audio_repair(
+                                script_text=narration_item.target_script,
+                                qa_result=qa_res,
+                            )
+
+                            if repaired_script != narration_item.target_script or qa_res.repetition_detected:
+                                logger.info(f"[Agentic QA Self-Healing] Executing autonomous repair re-synthesis for Section {sec_id}...")
+                                rep_duration, rep_lufs = synthesizer.synthesize_section(
+                                    script_text=repaired_script,
+                                    lang=lang,
+                                    output_wav_path=wav_path,
+                                    output_mp3_path=mp3_path,
+                                    voice=resolved_voice,
+                                    target_lufs=-16.0,
+                                    max_chars=250,  # Tighter safe chunks to break vocoder loops
+                                )
+                                rep_qa_res = audio_verifier.verify_section_audio(
+                                    audio_bytes=wav_path.read_bytes(),
+                                    reference_script=repaired_script,
+                                    section_id=sec_id,
+                                    language=lang,
+                                )
+                                rep_qa_res.retry_count = 1
+                                if rep_qa_res.passed:
+                                    logger.info(f"[Agentic QA Self-Healing] Section {sec_id} repair SUCCEEDED! QA certified.")
+                                    narration_item.target_script = repaired_script
+                                    narration_item.duration_seconds = rep_duration
+                                    narration_item.loudness_lufs = round(rep_lufs, 2)
+                                    qa_res = rep_qa_res
+                                else:
+                                    logger.info(f"[Agentic QA Self-Healing] Section {sec_id} repair attempt recorded: {rep_qa_res.qa_status}")
+                                    qa_res = rep_qa_res
+
                         lang_qa.append(qa_res)
 
                 # 5. Concatenate Sections into Full Lesson Audio Track

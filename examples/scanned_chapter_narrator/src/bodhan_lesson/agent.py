@@ -234,7 +234,7 @@ class ChapterNarratorAgent:
         return " ".join(sentences)
 
     # -------------------------------------------------------------------------
-    # 4. QA Audio Verification Diagnosis
+    # 4. QA Audio Verification Diagnosis & Autonomous Repair
     # -------------------------------------------------------------------------
     def diagnose_qa_result(
         self,
@@ -254,6 +254,45 @@ class ChapterNarratorAgent:
         if not diagnostics:
             return "Audio QA passed all quality targets."
         return " | ".join(diagnostics)
+
+    def plan_audio_repair(
+        self,
+        script_text: str,
+        qa_result: Any,
+    ) -> str:
+        """Autonomously repair script text based on QA failure diagnosis to resolve TTS loops or mis-transcription."""
+        repaired = script_text
+        repetition_detected = getattr(qa_result, "repetition_detected", False)
+        repetition_phrases = getattr(qa_result, "repetition_phrases", [])
+        cer = getattr(qa_result, "cer", 0.0)
+
+        # 1. If runaway repetition loops detected: strip duplicate phrase loops
+        if repetition_detected:
+            # Clean reported repetition phrases
+            for phrase in repetition_phrases:
+                p_clean = phrase.strip()
+                if p_clean:
+                    words = p_clean.split()
+                    if len(words) >= 2 and words[: len(words) // 2] == words[len(words) // 2 :]:
+                        p_sub = " ".join(words[: len(words) // 2])
+                        pat = re.compile(rf"\b({re.escape(p_sub)})(?:\s+\1)+\b", re.IGNORECASE)
+                        repaired = pat.sub(r"\1", repaired)
+                    pat = re.compile(rf"\b({re.escape(p_clean)})(?:\s+\1)+\b", re.IGNORECASE)
+                    repaired = pat.sub(r"\1", repaired)
+
+            # Clean any general consecutive 1-to-4 word phrase loops (e.g. "word word word")
+            pat_general = re.compile(r"\b(\w+(?:\s+\w+){0,3})(?:\s+\1)+\b", re.IGNORECASE)
+            repaired = pat_general.sub(r"\1", repaired)
+
+        # 2. If high CER: sanitize any lingering LaTeX, control characters, or awkward punctuation that trips TTS vocoders
+        if cer > 0.40:
+            repaired = clean_spoken_text(repaired)
+            repaired = re.sub(r"[\u2018\u2019]", "'", repaired)
+            repaired = re.sub(r"[\u201C\u201D]", '"', repaired)
+            repaired = re.sub(r"[\u2013\u2014]", ", ", repaired)
+            repaired = re.sub(r"\s+", " ", repaired).strip()
+
+        return repaired
 
 
 chapter_narrator_agent = ChapterNarratorAgent()

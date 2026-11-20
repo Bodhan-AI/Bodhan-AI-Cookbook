@@ -78,3 +78,25 @@ def test_agent_plan_narration_grounded():
     narration = chapter_narrator_agent.plan_narration(sec, code_mixed=True)
     assert len(narration) > 30
     assert "Welcome to this section on Diamagnetism" in narration or "Diamagnetism" in narration
+
+
+def test_agent_plan_audio_repair():
+    from bodhan_lesson.schemas import QAReportSection
+
+    qa_fail = QAReportSection(
+        section_id="01",
+        language="hi",
+        coverage_score=0.90,
+        repetition_detected=True,
+        repetition_phrases=["magnetic field magnetic field"],
+        cer=0.45,
+        wer=0.50,
+        passed=False,
+        qa_status="failed",
+    )
+
+    script = "In this section, we study the magnetic field magnetic field magnetic field and force."
+    repaired = chapter_narrator_agent.plan_audio_repair(script, qa_fail)
+    assert repaired != script
+    # Repetition loop should be compressed
+    assert "magnetic field magnetic field magnetic field" not in repaired

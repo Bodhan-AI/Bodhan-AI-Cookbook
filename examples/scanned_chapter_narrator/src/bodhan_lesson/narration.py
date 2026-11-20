@@ -104,24 +104,29 @@ def clean_spoken_text(text: str) -> str:
     # 1. Remove URLs (http://..., https://..., www....)
     text = re.sub(r"https?://\S+|www\.\S+", "", text)
 
-    # 2. Convert inline LaTeX math: $...$ using verbalize_equation_math
+    # 2. Unwrap formatting wrappers upfront so math/prose within is cleanly processed
+    text = re.sub(r"\\(?:mathbf|mathit|mathrm|textbf|textit|text)\{([^}]+)\}", r"\1", text)
+
+    # 3. Vocalize scientific powers (e.g. 10^{-5}, 10^5, 10^{-11})
+    text = re.sub(r"10\^\{?(-?\d+)\}?", r"10 to the power of \1", text)
+
+    # 4. Convert inline LaTeX math: $...$ using verbalize_equation_math
     def replace_inline_math(match: re.Match) -> str:
         return verbalize_equation_math(match.group(0))
 
     text = re.sub(r"(?<!\\)\$[^$\n]+?\$", replace_inline_math, text)
 
-    # 3. Strip markdown syntax (bold, italics, code, table rows, headers)
+    # 5. Strip markdown syntax (bold, italics, code, table rows, headers)
     text = re.sub(r"[*_`#]", "", text)
     text = re.sub(r"(?m)^\s*\|.*\|", "", text)
     text = text.replace("|", " ")
 
-    # 4. Strip leftover LaTeX tags, metadata, and wrappers
+    # 6. Strip leftover LaTeX tags, metadata, and wrappers
     text = re.sub(r"\\tag\{[^}]*\}", "", text)
     text = re.sub(r"\\eqno\([^)]*\)", "", text)
     text = re.sub(r"\\label\{[^}]*\}", "", text)
-    text = re.sub(r"\\(?:mathbf|mathit|mathrm|textbf|textit|text)\{([^}]+)\}", r"\1", text)
 
-    # 5. Common comparison and math symbols in prose
+    # 7. Common comparison and math symbols in prose
     text = text.replace(">>", " is much greater than ")
     text = text.replace("<<", " is much less than ")
     text = text.replace(">=", " is greater than or equal to ")
@@ -129,11 +134,11 @@ def clean_spoken_text(text: str) -> str:
     text = text.replace("%", " percent ")
     text = text.replace("&", " and ")
 
-    # 6. Strip remaining LaTeX backslash commands and braces
+    # 8. Strip remaining LaTeX backslash commands and braces
     text = re.sub(r"\\[a-zA-Z]+", "", text)
     text = text.replace("{", "").replace("}", "").replace("\\", "")
 
-    # 7. Collapse spaces
+    # 9. Collapse spaces
     text = re.sub(r"\s+", " ", text).strip()
     return text
 

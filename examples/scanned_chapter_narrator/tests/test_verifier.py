@@ -68,3 +68,29 @@ def test_verifier_circuit_breaker_handling(monkeypatch):
     assert res.passed is False
     assert res.qa_status == "skipped_due_to_service_unavailability"
     assert "skipped" in res.failure_notes.lower()
+
+
+def test_client_circuit_breaker_on_502(monkeypatch):
+    import time
+
+    import bodhan_lesson.client
+    import httpx
+    from bodhan_lesson.client import BodhanClient
+
+    monkeypatch.setattr(bodhan_lesson.client, "is_mock_mode", lambda: False)
+    monkeypatch.setattr(time, "sleep", lambda s: None)
+
+    client = BodhanClient()
+    client._transcribe_circuit_broken = False
+    client._transcribe_consecutive_failures = 0
+
+    def mock_post(*args, **kwargs):
+        req = httpx.Request("POST", "http://test")
+        resp = httpx.Response(502, request=req)
+        raise httpx.HTTPStatusError("502 Bad Gateway", request=req, response=resp)
+
+    monkeypatch.setattr(httpx.Client, "post", mock_post)
+
+    result = client.transcribe_audio(b"audio", language="hi")
+    assert result["status"] == "skipped_due_to_service_unavailability"
+    assert client._transcribe_circuit_broken is True
