@@ -305,7 +305,7 @@ The pipeline was validated across four diverse real-world textbook datasets span
 
 ## Demo video
 
-- **Link**: [Watch 5-Minute Demo Video Walkthrough](https://loom.com/share/placeholder-bodhan-lesson-demo) *(replace with your hosted video recording link)*
+- **Link**: [Watch 5-Minute Demo Video Walkthrough](https://drive.google.com/drive/folders/1aKH5G08_0rHnmPDXx-AIFjSrlAsKQVLT?usp=sharing) *(replace with your hosted video recording link)*
 
 ---
 
