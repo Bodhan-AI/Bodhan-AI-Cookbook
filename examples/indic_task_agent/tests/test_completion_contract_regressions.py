@@ -157,3 +157,13 @@ async def test_a_plan_cannot_declare_an_output_bodhan_cannot_make_and_the_possib
     rejected = [e["error"] for e in trace if e["type"] == "control_rejected"]
     assert rejected and "cannot produce translation in Bhojpuri (bho)" in rejected[0] and "deliver the rest" in rejected[0]
     assert report["status"] == "partial" and report["deliverables"][0]["language"] == "ml"
+
+
+async def test_deliverable_paths_with_doubled_backslashes_are_found(tmp_path):
+    task = "Translate the whole source into Tamil."
+    plan = [("record_plan", {"steps": ["translate"], "deliverables": [{"kind": "translation", "language": "ta"}]})]
+    translate = [("translate_text", {"path": str(tmp_path / "source.txt"), "target_language": "ta", "output_name": "source_ta"})]
+    doubled = lambda m: [("finish", {"status": "completed", "final_answer": "Done.",  # noqa: E731
+                                     "deliverables": [last_ok(m, "path").replace("\\", "\\\\").replace("/", "//")]})]
+    report, _, _ = await go(tmp_path, task, [source(tmp_path)], [plan, translate, doubled])
+    assert report["status"] == "completed" and report["deliverables"][0]["path"].endswith("source_ta.md")

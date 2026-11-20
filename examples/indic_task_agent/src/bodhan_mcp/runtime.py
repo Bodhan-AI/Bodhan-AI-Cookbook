@@ -220,7 +220,9 @@ def is_network_path(text: str) -> bool:
     """A UNC, device or URL form. Windows treats "\\\\", "//", "/\\" and "\\/" alike, so separators are
     normalised before the check; callers refuse these before any filesystem call (an SMB lookup can leak an NTLM hash)."""
     t = str(text).strip().strip('"').replace("\\", "/")
-    return t.startswith("//") or "://" in t
+    # a URL scheme has two or more letters, so a drive letter is not one: "E:\\\\out" (doubled backslashes, which
+    # some planners send) becomes "E://out" here and is still a local path
+    return t.startswith("//") or re.match(r"[A-Za-z][A-Za-z0-9+.-]+://", t) is not None
 
 
 def sha256_bytes(data: bytes) -> str:

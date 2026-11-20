@@ -199,3 +199,11 @@ def test_viewer_on_port_80_accepts_the_host_header_a_browser_sends(tmp_path):
             assert httpx.get(f"http://127.0.0.1:{port}/", headers={"Host": host}).status_code == code, host
     finally:
         httpd.shutdown()
+
+
+def test_a_doubled_backslash_windows_path_is_local_not_a_url(tmp_path):
+    # h12/h13 with gemini-3.5-flash-lite (e2c1302): the planner sent deliverable paths as "E:\\out\\a.mp3"; normalising
+    # separators turned that into "E://out//a.mp3", which the URL check refused, so real artifacts were "not produced"
+    from bodhan_mcp.runtime import is_network_path
+    assert not is_network_path(r"E:\\out\\artifacts\\a.mp3") and not is_network_path("C://work/a.md")
+    assert is_network_path("file://host/x") and is_network_path("https://example.org/x") and is_network_path(r"\\host\share")
