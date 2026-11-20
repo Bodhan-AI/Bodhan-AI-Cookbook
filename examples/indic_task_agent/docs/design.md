@@ -10,7 +10,7 @@ How the recipe is built and why. Setup and commands are in the [README](../READM
 > - **No Indian-language text from the LLM.** A provenance guard, `write_text` and the finish gate enforce it in code.
 > - **Every output is checked.** Translations are back-translated (chrF), and every speech segment is back-transcribed. A failure is repaired once with a different input, or reported.
 > - **Any OpenAI-compatible planner.** Provider differences are adapted in `llm.py` and listed in `report.json`.
-> - **Never without a report.** Each checkpoint writes a provisional report, and `--resume` continues the same run.
+> - **A report at every checkpoint.** Each checkpoint writes a provisional report, and `--resume` continues the same run.
 
 ## Architecture
 
@@ -94,15 +94,15 @@ flowchart TD
 
 | Tool | Model | What the tool hides from the caller |
 |---|---|---|
-| `transcribe_audio` | indic-transcribe | Any container (also video), 16 kHz mono, pause-aware cuts into ≤28 s pieces, silence trimmed so it is not billed, language detected from the first piece. |
+| `transcribe_audio` | indic-transcribe | Common audio and video containers up to 60 minutes (WAV, MP3, M4A/MP4, OGG/Opus, FLAC, WebM, AAC, AMR and others; playlists and manifests refused), 16 kHz mono, pause-aware cuts into ≤28 s pieces, silence trimmed so it is not billed, language detected from the script of the first piece, segment times. |
 | `create_subtitles` | transcribe + translate | Cue-sized pieces with times, cue-by-cue translation, back-translation, both `.srt` files. |
 | `translate_text` | indic-translate | Paragraph units, tables kept (cell-by-cell fallback), same-language passages kept, truncation split, SRT timing kept, back-translation. |
 | `synthesize_speech` | indic-speak | ≤220-character requests, voice and style validated before spending, every segment back-transcribed with one repair, MP3/WAV, AI-generated label. |
-| `ocr_document` | indic-ocr | Images (EXIF rotation, downscaling) and PDFs page by page, clean text layers used for free, page markers, retry with a larger `max_tokens`. |
+| `ocr_document` | indic-ocr | Images (EXIF rotation, downscaling), multi-page TIFFs and PDFs page by page, clean text layers used for free (see [Input boundaries](#input-boundaries)), page markers, retry with a larger `max_tokens`, then an incomplete page is reported. |
 | `verify_translation`, `verify_speech` | translate / transcribe | The same checks, for outputs made elsewhere. |
-| `inspect_files`, `detect_language`, `read_text`, `write_text`, `list_voices` | none (free) | Planning metadata, script-based language ID, paging through artifacts, saving English text. |
+| `inspect_files`, `detect_language`, `read_text`, `write_text`, `list_voices` | none (free) | Planning metadata, script-based language ID, paging through artifacts, saving English text. `write_text` records the files a text was based on (`source_paths`); each must first be read in full with `read_text`, and again after `--resume`. |
 
-**Why 12 tools and not about six.** Five tools are the capabilities (four models plus subtitles). The other seven are for the agent. The two verifiers give outputs made elsewhere the same checks. The five free helpers let the planner look before it spends, page through a long artifact without flooding its context, and write English through a tool that refuses Indian-language text. Folding them into the model tools would hide those steps from the trace and make each schema harder for a planner to fill.
+**Why 12 tools.** Five do the work: the four models plus subtitles. Seven serve the planner: two verifiers for outputs made elsewhere, and five free helpers to look before spending, page through long artifacts and write English through a tool that refuses Indic text. Folding the helpers into the model tools would hide those steps from the trace and make each schema harder to fill.
 
 Two other shapes were rejected:
 
@@ -123,7 +123,7 @@ Two other shapes were rejected:
 | Judging results | Reads `verification` and decides to repair, re-plan or report | The finish gate re-checks the same facts in code. |
 | Final answer (`finish`) | Status and an English explanation | The gate rejects unverified, failing or invented deliverables (including failures inherited from embedded or source artifacts), non-English answers, and `completed` with no work behind it. After two rejections the run is downgraded to `partial` or `failed`, with the reasons listed. |
 
-If the planner itself fails (network, outage, misconfiguration) after its retries, the run stops `failed` with a full report, which still includes what code checked itself, such as missing files. Rate limits are retried up to six times, waiting as long as the provider's `Retry-After` or "try again in N s" asks (at most 90 s per wait, always within the deadline).
+Planner rate limits are retried up to six times, waiting as long as the provider asks (`Retry-After` or "try again in N s"), at most 90 s per wait and never past the deadline. Bodhan rate limits are handled separately in `client.py` (see [Recovery](#recovery)). If the planner still fails (network, outage, misconfiguration), the run stops `failed` with a full report, which includes what code checked itself, such as missing files.
 
 ## Planner portability
 
@@ -147,7 +147,7 @@ Live results per planner are in [evaluation.md](evaluation.md#other-planner-mode
 
 The prompt states the rule, and code enforces it in four places:
 
-1. **`ProvenanceGuard`** (`tools/common.py`). In agent runs, every run of Indian-language words the planner passes inline must be a verbatim quote, or a selection of whole sentences, from the task, an input file or a Bodhan output. The check works span by span, so English padding cannot dilute it. Otherwise the call fails with `provenance_violation` and the planner must pass text by artifact path.
+1. **`ProvenanceGuard`** (`tools/common.py`). In agent runs, any Indian-language text the planner passes inline must be copied unchanged from the task, an input file or a Bodhan output, either as one passage or as whole sentences. Each Indic passage is checked on its own, so surrounding English cannot hide an invented one. The planner may choose which Bodhan sentences to use; it cannot change a word. Otherwise the call fails with `provenance_violation`, and the planner must pass the text by artifact path.
 2. **`write_text`** refuses any Indian-language letter written by the caller, including unicode escapes inside JSON. Existing artifacts are embedded by reference, `{{artifact:<path>}}`, and the new file inherits their verification.
 3. **The finish gate** never accepts planner-written Indian-language text in the answer, assumptions or limitations. Only that text is removed, replaced by a code-written note; the English stays.
 4. **`create_subtitles`** reuses only transcripts that `transcribe_audio` produced in the same session, so planner-written JSON cannot pass as Indic-Transcribe output.
@@ -177,8 +177,9 @@ The LLM never sees audio and never judges Indian-language text. It reads English
 - **Bodhan prices are the published ones; usage is metered per request.** The unit prices in `runtime.py` match [console.bodhan.ai](https://console.bodhan.ai/) as checked on 19 November 2026: ₹0.10 per audio minute, ₹0.20 per 10,000 output tokens, ₹6 per 10,000 input characters, ₹0.20 per image. Audio seconds are rounded up per request (the provider bills per second but does not publish how fractions round), so this side is conservative. Translation uses the reply's `completion_tokens`; a reply without usage is priced at its token cap and reported as `bodhan_billed_estimated_inr`. Verification and repair calls are counted; cache hits cost nothing. The Bodhan dashboard is the authority for actual debits.
 - **Reservation before sending.** `CostLedger.reserve()` takes a request's worst-case cost before it is sent: exact for audio seconds, characters and images, `max_output_tokens` for translation. A request reserves only once it holds a concurrency slot, and a cancelled one releases it. Concurrent calls can never push the total over `--max-cost-inr`. Long jobs (`synthesize_speech`, multi-page `ocr_document`) check the whole job's cost first, so they fail cleanly instead of stopping halfway.
 - **Billing classes.** `billed`: success, cost from the response. `uncertain`: timeout, 5xx or unreadable body after sending; counted against the budget because it may have been billed. `none`: 4xx and 429, not billed.
-- **Planner spend.** Its provider, model and billing mode are the runner's choice (a subscription gateway is not per-token billing), so no planner price is built in. Tokens are always reported, and count in rupees only with `--llm-input-inr-per-1m` and `--llm-output-inr-per-1m`. When priced, each call is admitted on an upper bound, not an average: prompt tokens ≤ the request's UTF-8 bytes plus per-message and tool margins, output ≤ `max_tokens`. (One Indic character is 3 bytes and may be 3 tokens, so a characters-per-token average is no bound.) Each retry is checked again; attempts that failed after sending are charged at the bound (`llm_uncertain` / `llm_error`), and any reply over its bound is reported.
-- **No repeated paid input.** Results are cached by (model, exact input bytes, settings). An identical request in a run is served from memory, and two in flight share one HTTP call. The only repeats are retries of a failed or timed-out attempt, counted as `retried_attempts`. Only complete results go to the disk cache (`~/.cache/bodhan_tool_agent` and the run's `.state/cache`), so reruns are free and a truncated result is retried. Repairs always change the input.
+- **Planner spend.** The runner chooses the planner's provider and billing (a subscription gateway is not billed per token), so no planner price is built in. Tokens are always reported. They count in rupees only with `--llm-input-inr-per-1m` and `--llm-output-inr-per-1m`.
+- **Priced planner calls use an upper bound.** A call is sent only if the budget covers prompt tokens ≤ the request's UTF-8 bytes plus per-message and tool margins, and output ≤ `max_tokens`. No byte-level tokenizer makes a token smaller than a byte, while one Indic character is 3 bytes and may be 3 tokens, so a characters-per-token average is no bound. On 14 recorded runs the bound was 4.9–5.4× the provider's reported prompt tokens, so a priced planner stops earlier than needed. The bound assumes the provider honours `max_tokens` (reasoning tokens included) and adds no large hidden prompt. A reply that still costs more is reported as `llm_over_pre_call_bound_inr` and an `llm_estimate_exceeded` trace event. Retries are checked again, and attempts that failed after sending are charged at the bound (`llm_uncertain`, `llm_error`).
+- **No repeated paid input.** Results are cached by model, exact input bytes and settings. An identical request is served from the cache, and two in flight share one HTTP call. The only repeats are retries of a failed or timed-out attempt, counted as `retried_attempts` and charged as uncertain. Only complete results go to the disk cache (`~/.cache/bodhan_tool_agent` and the run's `.state/cache`). Repairs always change the input.
 
 ## Recovery
 
@@ -195,6 +196,10 @@ The LLM never sees audio and never judges Indian-language text. It reads English
 | Unsupported language, voice or file type | Structured error before any spending; no substitute output. |
 | Missing files | Listed in the preflight inventory and `report.json`. |
 | Budget too small | `budget_exceeded` with the needed and remaining amounts; the run finishes cleanly. |
+
+## Language identification
+
+`detect_language` and `inspect_files` identify languages from the script. Single-language scripts such as Telugu, Tamil and Bengali are reliable. Devanagari languages (Hindi, Marathi, Nepali and others) are told apart with function words, suffixes and letters such as ळ. Latin script counts as English only with English function words, at least one of which is not shared with French or romanized Hindi ("a", "on", "as" and "to" are shared). A short English line made only of shared words is left unidentified, so it is translated or flagged rather than passed through. A European-language source is refused only on strong evidence: three distinct function words, or two plus accented letters. Short or unusual texts may be mislabelled, and the result says so with a confidence value.
 
 ## Untrusted content
 
@@ -223,17 +228,18 @@ Verification results are a history on each artifact. A later check never improve
 
 `--resume` continues the same run rather than starting a new one from cached results. The checkpoint (`out/.state/checkpoint.json`, replaced atomically) holds the task and the SHA-256 of every input, the limits, the conversation and any turn whose tool calls were in progress, the plan and step counter, the settled spend, the artifact records with their SHA-256, and the provenance record. It holds no keys.
 
-On resume, a changed or missing input stops with a clear error, and artifacts whose files changed are dropped. An interrupted turn's calls run again; finished paid work comes back from the run's own cache for free. Time and step limits carry over.
+On resume, a changed or missing input stops with a clear error, and artifacts whose files changed are dropped. An interrupted turn's calls run again. Finished paid work comes back from the run's own cache for free; a request that was in flight at the interruption may be sent again, because its first attempt can't be confirmed. Time and step limits carry over.
 
 Each checkpoint also writes the report an interruption at that moment would leave: `"provisional": true`, stop reason `interrupted`, the artifacts that passed their checks, and the resume command. Ctrl-C and SIGTERM keep the checkpoint written before the turn and refresh only that report; a hard kill leaves the last checkpoint and its report. Tests cover all three, the kill and the interrupt in a real child process.
 
 ## HTTP transport
 
-`--transport http` serves the same server through the MCP SDK's Streamable HTTP app at `/mcp`, so protocol negotiation and sessions are the SDK's. A small ASGI wrapper requires `Authorization: Bearer <token>` on every request and compares it in constant time. The token comes from a file (generated if missing) and is never a provider key. The server binds to loopback by default, and the SDK adds Host and Origin checks against DNS rebinding.
+`--transport http` serves the same server through the MCP SDK's Streamable HTTP app at `/mcp`, so protocol negotiation and sessions are the SDK's. A small ASGI wrapper requires `Authorization: Bearer <token>` on every request and compares it in constant time. The token comes from a file (generated if missing) and is never a provider key. The server binds to loopback unless you pass `--allow-remote`, and the SDK adds Host and Origin checks against DNS rebinding. If the token file is missing, a random token is written there, by default `<artifacts-dir>/.mcp_http_token`. The server speaks plain HTTP, so with `--allow-remote` put it behind a TLS-terminating proxy so the token is never sent in clear text.
 
 ## Choices I did not make
 
 - **No agent framework.** The loop is one file (`loop.py`). A framework would add dependencies and hide the gates that matter here.
 - **No word-level timestamps.** `indic-transcribe` returns text only, so cue boundaries are the pause-based cuts, or a proportional split when an earlier transcript is reused.
 - **No LLM-written corrections of Indian-language text**, even when a back-translation looks wrong. The agent reports the problem instead.
+- **No special cases for the demo tasks.** No code branches on task wording. Examples in the prompt and the field descriptions (French video, Telugu clips, a two-minute Tamil summary) are illustrative.
 - **No MCP client inside the agent.** In-process calls give one budget across tools and simpler tracing. MCP compatibility is tested separately with an independent client process (`tests/test_mcp_stdio.py`) and with MCP Inspector.

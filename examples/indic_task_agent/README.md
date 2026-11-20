@@ -1,15 +1,39 @@
-# Indic task agent: Bodhan MCP tool server and task agent
+# Indic task agent
 
-Two programs that share one tool layer:
+> An MCP server for Bodhan's four Indic models, and a command-line agent that uses it to finish multi-step language tasks.
 
-- **`python -m bodhan_mcp`** is an MCP server on stdio. It exposes Bodhan's four Indic models (speech-to-text, translation, speech synthesis and OCR) as 12 typed tools that any MCP client can use.
-- **`python -m bodhan_agent`** is a non-interactive agent. It takes a plain-language task and input files, plans, calls the tools, verifies every translation and audio file, stays inside step, time and rupee budgets, and writes a report.
+**Bodhan models:** indic-transcribe, indic-translate, indic-speak, indic-ocr
+**Languages shown:** Tamil, Hindi, Marathi, Telugu, Bengali, Kannada, Odia, Gujarati (and English)
+**Format:** CLI agent + MCP server (stdio, or Streamable HTTP with a token)
+**Demo video:** TODO (link added before the PR is opened) · **Results:** [docs/evaluation.md](docs/evaluation.md)
 
-Every speech-recognition, translation, speech-synthesis and OCR operation goes to a Bodhan model. The planner LLM, any OpenAI-compatible endpoint with tool calling, only plans, writes English and judges results. Code enforces that it never writes Indian-language text.
+## What it does
 
-- Design notes with the architecture diagram and the agent-loop flow chart: [docs/design.md](docs/design.md)
-- Observed API behaviour, including where it differs from the published docs: [docs/api_notes.md](docs/api_notes.md)
-- Demo and evaluation results with links to every output and trace: [docs/evaluation.md](docs/evaluation.md)
+- **`python -m bodhan_mcp`** is an MCP server. It exposes Bodhan's speech-to-text, translation, speech synthesis and OCR as 12 typed tools that any MCP client can use.
+- **`python -m bodhan_agent`** takes a plain-language task and input files, plans with an LLM, calls the tools, checks every translation and generated audio file, stays inside step, time and rupee budgets, and writes a report.
+
+The planner can be any OpenAI-compatible endpoint with tool calling. It plans, writes English and judges results. Bodhan models do all speech recognition, translation, speech synthesis and OCR, and code refuses Indian-language text written by the planner.
+
+More detail:
+
+- [docs/design.md](docs/design.md): the architecture diagram, the agent-loop flow chart, and why each part is built the way it is.
+- [docs/api_notes.md](docs/api_notes.md): observed API behaviour, including where it differs from the published docs.
+- [docs/evaluation.md](docs/evaluation.md): every run, with links to its outputs and traces.
+
+## Results at a glance
+
+The brief's six demo tasks, run cold (no cache) with `gpt-6.1-sol` as the planner. Each passed the structural checks of `scripts/run_suite.py`.
+
+| Task | Status | Bodhan ₹ | Time (s) | Files |
+|---|---|---|---|---|
+| d1: Make a two-minute Tamil audio summary of this chapter (8-page scan) | completed_with_warnings | 2.80 | 258 | [result](evaluation/runs/sol_demos_cold/d1_chapter_tamil_audio/result.md) · [trace](evaluation/runs/sol_demos_cold/d1_chapter_tamil_audio/trace.jsonl) · [audio](evaluation/runs/sol_demos_cold/d1_chapter_tamil_audio/MEDIA.md) |
+| d2: Transcribe this Hindi voice note and give me English subtitles (2 min 50 s) | completed | 0.31 | 323 | [result](evaluation/runs/sol_demos_cold/d2_voice_note_srt/result.md) · [trace](evaluation/runs/sol_demos_cold/d2_voice_note_srt/trace.jsonl) |
+| d3: Translate this worksheet into Marathi and keep the table | completed | 0.21 | 59 | [result](evaluation/runs/sol_demos_cold/d3_worksheet_marathi/result.md) · [trace](evaluation/runs/sol_demos_cold/d3_worksheet_marathi/trace.jsonl) |
+| d4: Which of these clips are in Telugu? Translate those into English | completed | 0.05 | 34 | [result](evaluation/runs/sol_demos_cold/d4_telugu_clips/result.md) · [trace](evaluation/runs/sol_demos_cold/d4_telugu_clips/trace.jsonl) |
+| d5: Read this paragraph aloud in Bengali with a female voice | completed_with_warnings | 0.24 | 51 | [result](evaluation/runs/sol_demos_cold/d5_bengali_female_audio/result.md) · [trace](evaluation/runs/sol_demos_cold/d5_bengali_female_audio/trace.jsonl) · [audio](evaluation/runs/sol_demos_cold/d5_bengali_female_audio/MEDIA.md) |
+| d6: Translate this video into French (impossible: no French model) | unsupported | 0.00 | 9 | [result](evaluation/runs/sol_demos_cold/d6_video_french/result.md) · [trace](evaluation/runs/sol_demos_cold/d6_video_french/trace.jsonl) |
+
+Eight held-out tasks (prompt injection, unstated language, missing file, budget too small and others) and runs with other planners are in [docs/evaluation.md](docs/evaluation.md).
 
 ## Setup
 
@@ -28,17 +52,19 @@ cp .env.example .env               # then fill in the seven values
 | Variable | Used for |
 |---|---|
 | `BODHAN_TRANSCRIBE_KEY`, `BODHAN_TRANSLATE_KEY`, `BODHAN_SPEAK_KEY`, `BODHAN_OCR_KEY` | One key per Bodhan model, from [console.bodhan.ai](https://console.bodhan.ai/) |
-| `LLM_BASE_URL`, `LLM_MODEL`, `LLM_API_KEY` | The planner. Any OpenAI-compatible `chat.completions` endpoint that supports `tools`. |
+| `LLM_BASE_URL`, `LLM_MODEL`, `LLM_API_KEY` | The planner: any OpenAI-compatible `chat.completions` endpoint that supports `tools` |
 
-Docker is an alternative to the local install:
+To use Docker instead, run these commands from `examples/indic_task_agent`. The agent example uses the repository's own `sample_data/sample_hindi.wav`:
 
 ```bash
 docker build -t indic-task-agent .
 docker run --rm -i --env-file .env indic-task-agent    # MCP server on stdio
-docker run --rm --env-file .env -v "$PWD/sample_data:/data" indic-task-agent   python -m bodhan_agent --task "Read this paragraph aloud in Bengali" --files /data/paragraph --out ./out
+mkdir -p out
+docker run --rm --env-file .env -v "$PWD/../../sample_data:/data:ro" -v "$PWD/out:/work/out" indic-task-agent \
+  python -m bodhan_agent --task "Transcribe this clip and give me English subtitles" --files /data/sample_hindi.wav --out ./out/smoke
 ```
 
-The image runs as a non-root user in `/work`, which that user owns, so a relative `--out ./out` works. Mount a folder there to keep the outputs.
+The image runs as a non-root user (uid 1000) in `/work`. On Linux, that user must be able to write to the `out` folder.
 
 ## Run
 
@@ -56,25 +82,24 @@ python -m bodhan_agent \
 
 ```text
 out/
-  result.md      the answer, deliverables with verification results, assumptions, limitations, cost and time
+  result.md      the answer, deliverables with their check results, assumptions, limitations, cost and time
   artifacts/     audio, subtitles, Markdown and transcripts
-  trace.jsonl    one line per event: plan, LLM decision with its rationale, tool call with arguments, result summary, latency, cost, plus every API attempt
-  report.json    status, steps, verification results, cost breakdown, time and quality-target checks
+  trace.jsonl    one line per event: plan, LLM decision with its rationale, tool call with arguments, result summary, latency, cost, and every API attempt
+  report.json    status, steps, check results, cost breakdown, time and quality-target checks
 ```
 
 `status` is one of `completed`, `completed_with_warnings`, `partial`, `failed` or `unsupported`. The process exits 0 whenever it wrote a report, including for honest failures.
 
-Optional flags:
+Other flags:
 
-- `--max-seconds` sets the wall-clock limit (default 600).
-- `--call-timeout` sets the per-request limit (default 60 s).
-- `--concurrency` sets parallel requests per model (default 8; the API allows 10, and a 429 halves it).
+- `--max-seconds` sets the wall-clock limit for the whole run (default 600). A slow planner may need 900.
+- `--call-timeout` sets the limit per request (default 60 s).
+- `--concurrency` sets parallel requests per model (default 8). The API allows 10, and a 429 halves it.
 - `--no-cache` and `--cache-dir` control the result cache.
 - `--env-file` loads the variables from another file.
-- `--llm-input-inr-per-1m` and `--llm-output-inr-per-1m` put the planner's own spend into the budget.
-- `--resume` continues an interrupted run in `--out`, with the same task, inputs and limits (see below).
+- `--llm-input-inr-per-1m` and `--llm-output-inr-per-1m` count the planner's own spend in the budget.
 
-`--max-steps` counts every planner call, `record_plan` and `finish` included. `--max-seconds` counts from the moment the command starts.
+`--max-steps` counts every planner call, `record_plan` and `finish` included.
 
 ### Resume an interrupted run
 
@@ -82,9 +107,7 @@ Optional flags:
 python -m bodhan_agent --resume --out ./out
 ```
 
-The agent checkpoints to `out/.state/` around every planner turn (no keys). `--resume` checks that every input is byte-for-byte unchanged, re-runs a turn that was cut off, and continues within the remaining steps, time and budget. Finished paid work comes back from the run's own cache (`out/.state/cache`), so it is not billed again; a request in flight at the moment of interruption may be sent again. A finished run can't be resumed.
-
-A run is never left without a report: each checkpoint writes the `report.json` and `result.md` an interruption would leave (`"provisional": true`, with the resume command), and the final report replaces them. Ctrl-C and SIGTERM (`docker stop`) leave the run resumable. Details: [design.md](docs/design.md#resume).
+The agent checkpoints to `out/.state/` around every planner turn, without keys. `--resume` checks that the inputs are unchanged, re-runs a turn that was cut off, and continues within the remaining limits. Finished paid work comes back from the run's own cache, not billed again. Each checkpoint also writes a provisional `report.json` and `result.md`, so a run stopped by Ctrl-C, SIGTERM (`docker stop`) or a crash still has a report ([details](docs/design.md#resume)).
 
 ### Watch a run live
 
@@ -92,30 +115,25 @@ A run is never left without a report: each checkpoint writes the `report.json` a
 python -m bodhan_agent.viewer --out ./out        # then open http://127.0.0.1:8766/
 ```
 
-The viewer is a read-only page that follows the run's plan, steps, verification results, cost and artifacts once a second. It binds to localhost, renders every value as plain text and serves files only from `out/artifacts/`. The agent never needs it.
+The viewer is a read-only page with the run's plan, steps, check results, cost and artifacts, refreshed once a second. It binds to localhost.
 
 ### Run the MCP server
 
 ```bash
 python -m bodhan_mcp [--artifacts-dir DIR] [--max-cost-inr N] [--allow-dir DIR ...]
-```
-
-To serve over Streamable HTTP with simple token authentication instead of stdio:
-
-```bash
 python -m bodhan_mcp --transport http --port 8765 [--token-file PATH]
 ```
 
-The endpoint is `http://127.0.0.1:8765/mcp`, bound to loopback unless you pass `--allow-remote`. Every request needs `Authorization: Bearer <token>`. A missing token file gets a random token, by default at `<artifacts-dir>/.mcp_http_token`; it is never a Bodhan or LLM key. Host and Origin checks come from the MCP SDK. The server speaks plain HTTP, so with `--allow-remote` put it behind a TLS-terminating proxy.
+The first command serves stdio. The second serves Streamable HTTP at `http://127.0.0.1:8765/mcp`; every request needs `Authorization: Bearer <token>`, and a missing token file gets a random token ([details](docs/design.md#http-transport)).
 
-To use it from an MCP client, add a stdio server with this command. Example for clients that take an `mcpServers` JSON block:
+For MCP clients that take an `mcpServers` JSON block:
 
 ```json
 {"mcpServers": {"bodhan": {"command": "python", "args": ["-m", "bodhan_mcp", "--artifacts-dir", "/tmp/bodhan"],
                            "env": {"BODHAN_TRANSCRIBE_KEY": "...", "BODHAN_TRANSLATE_KEY": "...", "BODHAN_SPEAK_KEY": "...", "BODHAN_OCR_KEY": "..."}}}}
 ```
 
-**Tested off-the-shelf client: [MCP Inspector](https://github.com/modelcontextprotocol/inspector) CLI 2.13.0.** For example:
+**Tested off-the-shelf client: [MCP Inspector](https://github.com/modelcontextprotocol/inspector) CLI 2.13.0.**
 
 ```bash
 npx @modelcontextprotocol/inspector@2.13.0 --cli python -m bodhan_mcp --method tools/list
@@ -123,77 +141,70 @@ npx @modelcontextprotocol/inspector@2.13.0 --cli python -m bodhan_mcp --method t
   --tool-name translate_text --tool-arg text="The school opens at 9 AM." --tool-arg target_language=ta
 ```
 
-`python scripts/client_check.py [--paid --env-file .env]` runs a fixed set of checks through that client over stdio and HTTP (tools, resources, the prompt, bad inputs, missing and wrong tokens; with `--paid`, one real translation per transport) and saves the transcript to `evaluation/clients/inspector.md`. Keys stay in the env file, never on a command line or in the transcript. `tests/test_mcp_stdio.py` and `tests/test_mcp_http.py` drive the server as a separate process through the official MCP Python SDK client: schemas, bad input, unknown tools, missing keys, the path sandbox, resources and token checks.
+`python scripts/client_check.py [--paid --env-file .env]` runs a fixed set of Inspector checks over stdio and HTTP and saves the transcript to [evaluation/clients/inspector.md](evaluation/clients/inspector.md).
 
-Resources: `bodhan://voices` (the fixed voice library and styles), `bodhan://languages` (codes per model), `bodhan://pricing` and `bodhan://errors` (every error code, whether retrying helps, and what to do). Prompt: `plan_media_task` (arguments `task`, `files`) gives a chat model a ready instruction for running a media task with these tools honestly. An unknown resource URI returns the protocol error `-32602`. Each tool advertises an input schema and a typed output schema (`src/bodhan_mcp/tools/schemas.py`), and tests validate real results against them.
+Resources: `bodhan://voices`, `bodhan://languages`, `bodhan://pricing` and `bodhan://errors` (every error code and what to do). Prompt: `plan_media_task` (arguments `task` and `files`). Each tool has an input schema and a typed output schema (`src/bodhan_mcp/tools/schemas.py`).
 
 ## Tools
 
 | Tool | Bodhan model | What it handles for the caller |
 |---|---|---|
 | `inspect_files` | none | File type, duration, pages, image size and text language. Free. |
-| `transcribe_audio` | indic-transcribe | Any common audio or video container (WAV, MP3, M4A/MP4, OGG/Opus, FLAC, WebM, AAC, AMR and others; playlists and manifests are refused), up to 60 minutes. Cut at pauses into ≤28 s pieces, silence trimmed, language detected from the script. Segment times included. |
-| `create_subtitles` | transcribe + translate | Cue-sized `.srt` in the source and target languages, back-translation checked. |
-| `translate_text` | indic-translate | Text, Markdown or SRT. Paragraph units, tables kept, truncation split, back-translation verified. |
-| `synthesize_speech` | indic-speak | Sentence-sized requests, every segment back-transcribed and repaired once, MP3 or WAV, labelled AI-generated. |
-| `ocr_document` | indic-ocr | Photos, multi-page TIFFs and PDFs, page by page. A clean PDF text layer is used for free unless the page also holds a large image, or the layer looks like a legacy Hindi font (Latin letters standing for Devanagari). Markdown tables. Truncated pages are retried, then reported as incomplete. |
-| `verify_translation`, `verify_speech` | translate / transcribe | Independent checks for outputs made elsewhere. |
-| `detect_language`, `read_text`, `write_text`, `list_voices` | none | Script-based language ID, paging through artifacts, saving English text (with `source_paths` recording files it was based on; each must first be read in full with `read_text`, and after `--resume` it is read again), and the voice library. |
+| `transcribe_audio` | indic-transcribe | Common audio and video containers up to 60 minutes. Cuts at pauses into ≤28 s pieces, trims silence, and detects the language from the script of the first piece. |
+| `create_subtitles` | transcribe + translate | Cue-sized `.srt` files in the source and target languages, back-translation checked. |
+| `translate_text` | indic-translate | Text, Markdown or SRT. Paragraph units, tables kept, truncation split, back-translation checked. |
+| `synthesize_speech` | indic-speak | Requests of ≤220 characters, every segment back-transcribed and repaired once, MP3 or WAV, labelled AI-generated. |
+| `ocr_document` | indic-ocr | Photos, multi-page TIFFs and PDFs, page by page, with Markdown tables. A clean PDF text layer is used for free. Truncated pages are retried, then reported. |
+| `verify_translation`, `verify_speech` | translate / transcribe | The same checks, for outputs made elsewhere. |
+| `detect_language`, `read_text`, `write_text`, `list_voices` | none | Script-based language ID, paging through artifacts, saving English text, and the voice library. |
 
-Every tool validates its input and returns `{"ok": false, "error": {"code", "message", "hint", "retryable"}}` on failure. Codes include `unsupported_language`, `unsupported_voice`, `file_not_found`, `budget_exceeded`, `rate_limited`, `provenance_violation` and others. See [docs/design.md](docs/design.md) for why the tools have this granularity and how each one handles its model's limits.
+Every tool validates its input and returns `{"ok": false, "error": {"code", "message", "hint", "retryable"}}` on failure, for example `unsupported_language` or `budget_exceeded`. Why the tools have this shape is in [design.md](docs/design.md#tool-granularity).
 
 ## How it works
 
-1. **Preflight (code):** list the inputs with free metadata, note missing files, check keys.
+1. **Preflight (code):** list the inputs with free metadata, note missing files, check the keys.
 2. **Plan (LLM):** `record_plan` declares steps, assumptions and every deliverable with its kind and language (`answer` when the reply itself is the output). Paid tools are refused until a valid plan exists.
-3. **Act (tools):** independent calls in one turn run in parallel. Each reserves its worst-case cost, calls Bodhan with retries, then verifies its output.
-4. **Verify and repair:** translations are back-translated and checked for script, numbers and tables; every audio segment is back-transcribed. A failure is repaired once with a different input, or reported.
-5. **Stop:** `finish` passes a gate in code. Each deliverable needs a matching artifact from this run whose checks, and its sources', did not fail, and the answer must be English. Limits, an outage or a crash end with the same rule.
+3. **Act (tools):** independent calls in one turn run in parallel. Each call reserves its worst-case cost, calls Bodhan with retries, then checks its output.
+4. **Check and repair:** translations are back-translated and checked for script, numbers and tables. Every audio segment is back-transcribed. A failure is repaired once with a different input, or reported.
+5. **Stop:** `finish` passes a gate in code. Each deliverable needs a matching artifact from this run whose checks, and those of its sources, did not fail, and the answer must be in English. Limits, an outage or a crash end the run under the same rule.
 
 The flow chart and the reasons behind it are in [docs/design.md](docs/design.md).
 
 ## Tests
 
 ```bash
-pytest -q                                  # 200+ offline tests, no network or keys needed
-python scripts/run_suite.py                # live self-evaluation: runs evaluation/tasks.json and scores it (exit 1 if any task fails)
+pytest -q                                  # 221 offline tests, no network or keys needed
+python scripts/run_suite.py                # live self-evaluation of evaluation/tasks.json (exit 1 if any task fails)
 ```
 
-The offline tests use `tests/fakes.py`, a mock of the four endpoints that enforces their limits, and a scripted planner. They cover each tool's chunking and limits, retries and billing, budget reservation under concurrency, the gates, resume, the MCP server as a separate process over stdio and HTTP, the viewer, and multi-step agent runs through the CLI code path.
-
-`tests/test_review*_regressions.py`, `tests/test_audit_regressions.py`, `tests/test_research_regressions.py`, `tests/test_tier2_regressions.py` and `tests/test_portability.py` hold one test per finding from the independent reviews, the offline probes and the live runs with other planners.
-
-`scripts/run_suite.py` is the self-evaluation. A task passes only if the agent exited cleanly, wrote a fresh report for that launch, and met every expectation in `evaluation/tasks.json`. The expectations cover status, deliverable files, kinds and languages, verification, answer text, and budget. These are structural checks, not a quality score; native-speaker review is separate. Live results are in [docs/evaluation.md](docs/evaluation.md).
+The offline tests run against `tests/fakes.py`, a mock of the four endpoints that enforces their limits, with a scripted planner. They cover each tool's chunking and limits, retries and billing, budgets under concurrency, the gates, resume, the MCP server as a separate process, and multi-step runs through the CLI. The `tests/test_*_regressions.py` files hold one test per review finding. `scripts/run_suite.py` checks status, deliverables, languages, checks, answer text and budget per task: structural checks, not a quality score.
 
 ## Test media
 
-Media stays out of git. `scripts/make_fixtures.py` generates every input used in the demos into `sample_data/`. It needs the Bodhan keys, ffmpeg and Chrome or Edge, and costs about ₹1.6. All content is original English text written for this recipe. Bodhan translates it and speaks it with its fixed voices. Pages are rendered with a headless browser, for correct Indic text shaping, and then degraded to look like scans or phone photos. The repository's own `sample_data/sample_hindi.wav` is used for smoke tests.
+Media stays out of git. `scripts/make_fixtures.py` generates every demo input into `sample_data/` (it needs the Bodhan keys, ffmpeg and Chrome or Edge, and costs about ₹1.6). The content is original English text written for this recipe, which Bodhan translates and speaks. A headless browser renders the pages, which are then degraded to look like scans or phone photos. Every demo audio input is therefore synthetic speech.
 
 ## Limitations
 
-- **Subtitle timing is approximate.** `indic-transcribe` returns no timestamps. When `create_subtitles` transcribes the audio itself, cue boundaries are the pauses where it cut the audio (frame resolution 20 ms; the speech inside a cue is not aligned). When it reuses an earlier transcript, long segments are split with times proportional to text length, which is coarser. Sparse speech can give a cue longer than `max_cue_seconds`; the result says so.
-- **"Never the same input twice" has one exception.** Identical requests are served from the cache or share one in-flight call. The only repeats are retries of a failed or timed-out attempt; `report.json` counts them (`retried_attempts`), and their possible cost is counted as uncertain.
-- **The planner's rupee cost is bounded, not measured in advance.** Bodhan spend is a hard cap. Planner tokens are always reported, and count toward `--max-cost-inr` only if you pass `--llm-*-inr-per-1m` prices. When priced, a call is sent only if the budget covers its upper bound: the request's UTF-8 bytes plus fixed margins as prompt tokens (no byte-level or byte-fallback tokenizer makes a token smaller than a byte), and `max_tokens` as output. On 14 recorded runs that bound was 4.9–5.4× the provider's reported prompt tokens, so a priced planner stops earlier than strictly needed. The bound assumes the provider honours `max_tokens` (including any reasoning tokens) and adds no large hidden prompt. If a reply still costs more, the excess is shown as `llm_over_pre_call_bound_inr` in `report.json` and as an `llm_estimate_exceeded` trace event.
-- **Verification is automatic, not linguistic.** Back-translation chrF and back-transcription similarity catch omissions, truncation, wrong scripts and garbled audio. They cannot judge fluency or terminology. Native-speaker review is still needed.
-- **Language ID is script-based.** Telugu, Tamil, Bengali and the other single-language scripts are reliable. Devanagari languages (Hindi, Marathi, Nepali and others) are told apart with function words, suffixes and letters such as ळ. Latin script counts as English only with English function words, at least one of which is not shared with French or romanized Hindi ("a", "on", "as", "to"); a short English line made only of such words is left unidentified, so it is translated or flagged rather than passed through. Short or unusual texts may be mislabelled, and the result says so with a confidence value.
-- **Planner models differ.** The demos ran with `gpt-6.1-sol` behind an OpenAI-compatible local gateway; the same suites ran with `gemini-3.5-flash-lite` and `gpt-5.6-luna`, changing only the three `LLM_*` variables ([results per model](docs/evaluation.md#other-planner-models)). Each new planner found gaps that are now fixed ([design.md](docs/design.md#planner-portability)). Groq's free on-demand tier (8,000-token request cap, 200,000 tokens a day) was too small to evaluate `gpt-oss-20b` and `gpt-oss-120b`: longer tasks stop there with `llm_error` however much the conversation is shortened.
-- **Latency is dominated by Indic-Speak.** About 20 s per 200-character request, plus planner turns. Single-step speech tasks often miss the 30 s target. `report.json` records each miss.
-- **Durations are approximate.** A requested length such as "two minutes" is met by choosing the English summary length before translation, then checked. More than ±25 % is reported as a warning, not retried automatically.
-- **No video output.** The agent can transcribe, translate and subtitle a video's speech, but it does not produce dubbed or edited video.
+- **Subtitles cost one request per cue.** Cues are about 7 s long. The 2 min 50 s voice note in d2 needed 90 Bodhan requests and met 41 rate limits (323 s against a 300 s target), so long audio is slow.
+- **Subtitle timing is approximate.** `indic-transcribe` returns no timestamps, so cue boundaries are the pauses where the audio was cut.
+- **The checks are automatic, not linguistic.** Back-translation and back-transcription catch omissions, truncation, wrong scripts and garbled audio. They cannot judge fluency or terminology, and no fluent speaker has reviewed the outputs yet.
+- **Language ID is script-based.** Single-language scripts such as Telugu and Tamil are reliable. Devanagari languages and short Latin-script lines can be mislabelled; the result gives a confidence ([details](docs/design.md#language-identification)).
+- **Planner cost is bounded, not measured in advance.** With planner prices given, a call is sent only if the budget covers its upper bound, about 5× the real prompt size, so a priced planner stops early ([details](docs/design.md#budgets-cost-and-caching)).
+- **Latency is dominated by Indic-Speak**, about 20 s per request. Single-step speech tasks often miss the 30 s target, and `report.json` records each miss.
+- **Durations are approximate.** A requested length sets the English text length before translation. Missing it by more than ±25 % is a warning, not a retry.
+- **Planners differ.** The demos ran with `gpt-6.1-sol`; the same tasks ran with `gemini-3.5-flash-lite` and `gpt-5.6-luna` ([results](docs/evaluation.md#other-planner-models)). Groq's free tier (8,000-token request cap, 200,000 tokens a day) was too small to evaluate `gpt-oss-20b` and `gpt-oss-120b`.
+- **No dubbed video.** The agent can transcribe, translate and subtitle a video's speech, but it cannot re-voice the video.
 
 ## AI assistance
 
-Claude Code (Claude Opus 5.5) was the coding assistant for design, implementation, tests and docs. During development every live run's outputs were inspected: texts and tables read in full, audio durations and back-transcription results checked. No fluent-speaker review of the Indian-language outputs has been done. GPT-6.1 Sol (through Codex) did several independent review rounds, including a full audit against the assignment. Each finding was reproduced, fixed, and covered by a regression test, or documented here as a limitation. The application's planner LLM is a separate, configurable model.
+Claude Code (Claude Opus 5.5) was the coding assistant for design, implementation, tests and docs. During development the outputs of the final runs were read in full, and each audio file's duration and back-transcription were checked. No fluent speaker has reviewed the Indian-language outputs yet. GPT-6.1 Sol (through Codex) and CodeRabbit reviewed the code in several rounds, including a full audit against the brief. Each finding was reproduced, then fixed with a regression test or listed as a limitation. The agent's planner LLM is a separate, configurable model.
 
 ## Optional extras
 
-All of the brief's stretch goals are implemented:
+Every stretch goal in the brief is implemented, each with a test and a live run or transcript ([evidence](docs/evaluation.md#stretch-goals)):
 
-| Stretch goal | Where |
-|---|---|
-| Streamable HTTP with simple token authentication | `python -m bodhan_mcp --transport http` (see above), `tests/test_mcp_http.py` |
-| MCP resources and prompts | `bodhan://voices`, `bodhan://languages`, `bodhan://pricing`, `bodhan://errors`; prompt `plan_media_task` |
-| Self-evaluation script with a pass rate | `scripts/run_suite.py`, `evaluation/tasks.json` |
-| Parallel tool calls where steps are independent | independent calls in one planner turn run concurrently; `test_independent_calls_*` |
-| Resumable tasks | `--resume`, `src/bodhan_agent/state.py`, `test_resume_*` |
-| Thin web UI with the plan and trace live | `python -m bodhan_agent.viewer`, `tests/test_viewer.py` |
+- Streamable HTTP with token authentication: `python -m bodhan_mcp --transport http`.
+- MCP resources and a prompt: `bodhan://voices`, `bodhan://languages`, `bodhan://pricing`, `bodhan://errors` and `plan_media_task`.
+- A self-evaluation script with a pass rate: `scripts/run_suite.py`.
+- Parallel tool calls and resumable tasks: independent calls in one turn run together; `--resume`.
+- A thin live web UI: `python -m bodhan_agent.viewer`.
