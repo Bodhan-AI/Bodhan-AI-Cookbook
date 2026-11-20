@@ -162,6 +162,7 @@ def fresh(report: dict, task: dict, launched: datetime) -> str | None:
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--ids", default="")
+    ap.add_argument("--tasks", default=str(ROOT / "evaluation" / "tasks.json"), help="task file (default evaluation/tasks.json)")
     ap.add_argument("--out", default=str(ROOT / "outputs" / "suite"))
     ap.add_argument("--score-only", action="store_true", help="re-score existing outputs without running (rows are labelled 'reused')")
     ap.add_argument("--skip-existing", action="store_true", help="do not re-run tasks that already have a report.json (labelled 'reused')")
@@ -171,7 +172,7 @@ def main() -> None:
     a, extra = ap.parse_known_args()
     if hasattr(sys.stdout, "reconfigure"):  # the summary contains ₹; never fail on a non-UTF-8 console
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-    tasks = json.loads((ROOT / "evaluation" / "tasks.json").read_text(encoding="utf-8"))["tasks"]
+    tasks = json.loads(Path(a.tasks).read_text(encoding="utf-8"))["tasks"]
     if a.ids:
         wanted = set(a.ids.split(","))
         tasks = [t for t in tasks if t["id"] in wanted]
