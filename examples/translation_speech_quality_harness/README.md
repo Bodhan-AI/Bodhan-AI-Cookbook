@@ -3,7 +3,7 @@
 Finds, locates and explains errors in Indic-Translate translations and Indic-Speak audio, with evidence for every flag.
 
 **Bodhan models:** Indic-Translate, Indic-Speak, Indic-Transcribe
-**Languages shown:** Hindi, Tamil, Bengali (any Indic-Speak production language works; tested on Telugu too)
+**Languages shown:** Hindi, Tamil, Bengali (any Indic-Speak production language works; also tested on Telugu, Urdu and Marathi)
 **Format:** CLI
 
 ## What it does
@@ -106,6 +106,7 @@ There are three tiers. Each check emits candidates with a strength: exact, noisy
 | 2, Bodhan | Back-translation | Source sentences missing from the round trip, extra sentences | Noisy; re-checked sentence by sentence |
 | 2, Bodhan | Regeneration diff | Words that differ from a fresh greedy translation | Exact if this run reproduces most items, else noisy |
 | 2, code | Audio statistics | Silence, clipping, long pauses, noise, speaking rate, abrupt end | Exact to weak |
+| 2, code | Sound alone | Half a second or more of noise instead of speech; a stretch that is a copy of the one before it | Exact |
 | 2, Bodhan | Back-transcription | Missing tail, skipped words, repeated or looped phrases, garbled stretches | By shape of the mismatch, never by error rate. A suspected skip or repeat is re-transcribed on its own as a second signal |
 | 3, LLM | Judge | Mistranslation, omission, addition, term, with quotes | Two passes; counts only if both agree and every quote is found in the text. Flags only with another check beside it; alone, it goes to the review queue |
 
@@ -117,24 +118,32 @@ The demo set has 120 rows: 40 sources in Hindi, Tamil and Bengali, with 60 injec
 
 | Run | Recall (≥ 80%) | False alarms (≤ 10%) | Localization (≥ 70%) | Category acc. (≥ 70%) |
 | --- | --- | --- | --- | --- |
-| Full demo, all 120 rows | **95%** | **0%** | **94%** | **91%** |
-| Half B, all checks | **95%** | **3%** | **95%** | **90%** |
-| Half B, judge off | 71% | **3%** | 72% | **90%** |
-| Half B, regeneration diff off | 71% | **3%** | 72% | **94%** |
+| Full demo, all 120 rows | **100%** | **0%** | **98%** | **95%** |
+| Half B, all checks | **100%** | **3%** | **100%** | **95%** |
+| Half B, judge off | 76% | **3%** | 77% | **94%** |
+| Half B, regeneration diff off | 76% | **3%** | 77% | **97%** |
+| `demo_v2` (other injected errors, seed 11) | **98%** | **2%** | **93%** | **96%** |
+| **Unseen languages: Urdu and Marathi**, smaller judge (40 rows) | **100%** | **0%** | **95%** | **95%** |
 
 - Judge consistency is 95%, against a 90% target: re-judging gave the same verdict.
 - Determinism: a rerun from cache gives byte-identical report files at no cost.
-- Per language on the full demo:
-  - Recall: Hindi 95%, Tamil 100%, Bengali 90%.
-  - False alarms: 0% in every language.
+- Per language on the full demo: recall is 100% in Hindi, Tamil and Bengali, and false alarms are 0% in every language.
 - Per category, from `report_demo/summary.md`:
-  - 100% on format, omission, speech omission and wrong language.
-  - 83% on garbled, mistranslation and number.
-  - 67% on addition, term and speech repetition.
+  - 100% on addition, format, garbled, omission, speech omission, speech repetition and wrong language.
+  - 83% on mistranslation and number.
+  - 67% on term.
+- Unseen languages: [`report_unseen/`](report_unseen/summary.md) was built with `tools/build_unseen.py`. Urdu is right-to-left, with its own script and digits; Marathi shares Hindi's script. Nothing in the code changed for them. The judge was a smaller model, `qwen/qwen3.8-27b`.
+- Voices: [`report_voices/voices.md`](report_voices/voices.md) compares the two Indic-Speak voices of each language on the same 8 texts.
 
 **The judge flags only with support.** In an earlier version, a finding from the judge alone became a flag. On the full demo that gave 12 flags, none of them on an injected error, and a 15% false-alarm rate. Several were real model errors on rows labelled clean only because nothing was injected into them: "vegan" became शाकाहारी (vegetarian), and "Swimming Pool" became পুকুর (pond). Judge-only findings now go to `review_queue.csv`, where both of these examples are, so a person decides. The cost shows in the regen-diff-off row: without the diff, nothing else backs the judge on meaning errors, and recall falls to the judge-off level.
 
-**Speech repetition needs a second hearing.** A repeat in the transcript may be the transcriber looping, so it is one noisy signal. The harness transcribes just that stretch again, and a repeat heard in that separate cut is the second signal. The judge's verdict does not count against speech findings, because the judge reads the text and never hears the audio. Repeats that land beside a number read aloud, or that the transcriber blurs, are still missed.
+**Speech is checked by ear and by sound.**
+- **The transcript.** A repeat or skip seen in the transcript may be the transcriber's own mistake, so it is one noisy signal. The harness transcribes just that stretch again, and hearing it again in that separate cut is the second signal.
+- **The sound alone, with no model.**
+  - Half a second or more of loud, spectrally flat sound is noise, not speech. The longest speech sound like it, an "s", lasts about 0.2 s.
+  - A 0.3 s stretch that nearly matches the one just before it was copied, not spoken again. On the 80 demo recordings, clean speech scored at most 0.975 on this measure, and every copied stretch scored 1.0. The cut-off is 0.995.
+- **What it catches and misses.** These detectors catch noise and copies however the transcriber hears them. A repeat that was synthesised again rather than copied, or quiet coloured noise, rests on the transcript alone.
+- **The judge has no say on speech.** Its verdict does not count against speech findings, because it reads the text and never hears the audio.
 
 ## Cost and runtime
 
@@ -142,7 +151,7 @@ Measured from the cache with `tools/cost_runtime.py`, at hosted prices:
 
 | | Per 100 items |
 | --- | --- |
-| With speech checks | ₹1.05 |
+| With speech checks | ₹1.09 |
 | Without speech checks | ₹0.22 |
 | Generating audio too (`--generate`) | ₹9 to ₹20, depending on text length (measured: ₹4.17 for 45 short items, ₹1.00 for 5 long passages) |
 
@@ -151,6 +160,7 @@ Measured from the cache with `tools/cost_runtime.py`, at hosted prices:
 - **Rate limits took the rest.** The rest was waiting on Bodhan rate limits for our key: 59 translation retries and 37 transcription retries, each honouring the server's `Retry-After`. One transcription still failed after 8 attempts. It is reported as `not_run`, and the run carried on.
 - **200 items on our key:** about 30 minutes, plus the judge. **Without throttling:** about 4 minutes of model time.
 - **The judge:** on a free-tier endpoint with an 8,000 tokens-per-minute limit, it adds most of the remaining time. Raise `--concurrency` on a paid endpoint.
+- **Shared pause:** that run was measured before rate-limit pauses were shared between workers. Now one 429 pauses every worker on that model until `Retry-After`, so they no longer spend retries against the same closed window. A run prints one progress line per stage on stderr.
 - **Reruns:** a rerun from cache takes seconds.
 
 ## Limitations
@@ -163,11 +173,13 @@ Measured from the cache with `tools/cost_runtime.py`, at hosted prices:
 - In-run statistics need at least 8 items per language. Smaller languages are pooled together.
 - The cut-off that makes a missing audio tail exact evidence (a third of the text) was picked while looking at the demo data. It is the same for every language, and it caused no false alarm on half B.
 - Hand labels cover only checks that need no reading of the language: numbers, format, script and English left in. See [`data/README.md`](data/README.md).
+- A name swapped in for an ordinary word ("Dosage note" becoming "Pune note") is found, but categorised by the judge as a mistranslation rather than a term. Fixing it means changing the judge's rubric, which would redo every judge call.
+- The sound-only detectors were checked against our injector's noise and splices. Other kinds of damage rest on the transcript.
 
 ## What I would do next
 
 - Raise the judge's precision per language with a few labelled clean examples from each new language.
-- Add a voice-comparison mode for Indic-Speak.
+- Teach the rubric that a name appearing where the source has an ordinary word is a term error.
 - Get word timestamps, if the API offers them, so speech errors have exact times.
 
 ## AI assistance

@@ -136,6 +136,10 @@ Every check returns **candidates**: a category, a strength class (exact, noisy o
   - inner pauses over 2 s;
   - contrast, since speech has gaps between syllables and steady noise has none;
   - speaking rate and end energy, compared with the language's median.
+- **The sound alone** gives two exact findings, also with no model:
+  - **Noise:** 0.5 s or more of frames that are loud and spectrally flat. Spectral flatness is above 0.3; white noise is near 1, and voiced speech is near 0.01–0.1. This is garbled audio.
+  - **A copy:** a 0.3 s stretch whose frame-by-frame log band energies nearly match those of a stretch 0.25–3 s later (mean cosine 0.995 or more). That stretch was copied, not spoken again, so it is repetition.
+  - **How the cut-offs were chosen:** from what speech physically does, then checked on all 80 demo recordings. Clean speech peaked at 0.975 on the copy measure and at 0.04 s of noise-like sound. Every injected copy and noise burst was found, and nothing else.
 - **Back-transcription** is done in pieces under 30 s. The transcript is aligned word by word with the translation; numbers and formulas become wildcards, because they are read out unpredictably. Mismatches are classified by **shape**, never by error rate. Indic-Speak's model card reports about 18% character error on clean audio, so a rate threshold would flag clean speech.
   - Missing tail: truncation. Exact if it is at least a third of the text, else noisy.
   - Missing middle: omission. The stretch is re-transcribed alone, and if it is heard there, the suspect is checker noise.
@@ -199,7 +203,12 @@ The judge is the only part that understands meaning. It reads the source, the tr
   - the precision of flags the judge raised alone (always 0 flags now, since those go to review);
   - how many suspicions were dropped as checker noise.
 - **Matching.** An item is detected if it has any flag. A label is located by a flag whose span overlaps it on either side. Speech labels, which have no text span, match by category.
-- **Holdout.** `tools/holdout.py` splits items by SHA-256 of the id, so all languages of one source land in the same half. It calibrates on half A and scores half B; the README reports half B. The one constant that was chosen while looking at demo data is the one-third missing-tail cut-off for exact truncation. It is the same for every language, and on half B it raised no false alarm.
+- **Holdout.** `tools/holdout.py` splits items by SHA-256 of the id, so all languages of one source land in the same half. It calibrates on half A and scores half B; the README reports half B. Three constants were checked against the demo recordings:
+- the one-third missing-tail cut-off for exact truncation;
+- the noise run of 0.5 s;
+- the copy similarity of 0.995.
+
+The last two come from speech physics, with wide margins on the demo. All three are the same for every language. None raised a false alarm on half B, or on the Urdu and Marathi set the demo never saw.
 
 ## Adding a check
 
