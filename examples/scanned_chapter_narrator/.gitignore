@@ -1,0 +1,9 @@
+.env
+outputs/*
+!outputs/.gitkeep
+sample_data/*
+!sample_data/.gitkeep
+!sample_data/README.md
+__pycache__/
+*.pyc
+.bodhan_cache/
