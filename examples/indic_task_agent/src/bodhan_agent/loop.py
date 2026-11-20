@@ -134,9 +134,13 @@ def _first_sentence(text: str) -> str:
     return (text[: end + 1] if end > 0 else text)[:200]
 
 
-def _without_descriptions(node: Any) -> Any:
+def _without_descriptions(node: Any, field_names: bool = False) -> Any:
+    """Drop "description" annotations from a schema. In a "properties" map the keys are field names, and a field
+    may itself be called "description", so those keys are all kept."""
     if isinstance(node, dict):
-        return {k: _without_descriptions(v) for k, v in node.items() if k != "description"}
+        if field_names:
+            return {k: _without_descriptions(v) for k, v in node.items()}
+        return {k: _without_descriptions(v, field_names=(k == "properties")) for k, v in node.items() if k != "description"}
     if isinstance(node, list):
         return [_without_descriptions(x) for x in node]
     return node

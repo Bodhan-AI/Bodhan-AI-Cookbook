@@ -415,3 +415,12 @@ async def test_a_garbled_artifact_path_still_finds_this_runs_artifact(make_ctx, 
     assert not err and "water cycle" in r["text"]
     r, err = await invoke(TOOL_BY_NAME["read_text"], ctx, {"path": str(tmp_path / "elsewhere" / "secret.txt")})
     assert err  # an unknown name is still refused
+
+
+# CodeRabbit (post-freeze diff): the short tool list must keep fields that are themselves called "description"
+def test_the_short_tool_list_keeps_a_field_named_description():
+    from bodhan_agent.loop import openai_tools
+
+    plan = next(t for t in openai_tools(None, compact=True) if t["function"]["name"] == "record_plan")["function"]["parameters"]
+    items = plan["properties"]["deliverables"]["items"]
+    assert "description" in items["properties"] and "description" not in items["properties"]["kind"]
