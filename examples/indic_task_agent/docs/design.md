@@ -42,7 +42,7 @@ The brief allows the agent to "import the same tool code directly", which is wha
 
 | Part | Job |
 |---|---|
-| `bodhan_mcp/server.py` | Lists tools with input and output schemas, returns `structuredContent` plus the same JSON as text, maps every failure to `isError: true` with `{code, message, hint, retryable}`. Resources `bodhan://voices`, `bodhan://languages`, `bodhan://pricing`, `bodhan://errors`; prompt `plan_media_task`. |
+| `bodhan_mcp/server.py` | Lists tools with input and output schemas, returns `structuredContent` plus the same JSON as text, maps every failure to `isError: true` with `{code, message, retryable, hint?, details?}`. Resources `bodhan://voices`, `bodhan://languages`, `bodhan://pricing`, `bodhan://errors`; prompt `plan_media_task`. |
 | `bodhan_mcp/registry.py` | One `invoke()` for both callers: pydantic validation, the handler, and a last-resort guard, so bad input never crashes a client. |
 | `bodhan_mcp/tools/` | The tools. Each handles its model's limits and verifies its own output. |
 | `bodhan_mcp/client.py` | The only code that talks to Bodhan: cache, budget reservation, per-model adaptive concurrency, bounded retries, billing classification, trace events. |
@@ -153,6 +153,8 @@ The prompt states the rule, and code enforces it in four places:
 4. **`create_subtitles`** reuses only transcripts that `transcribe_audio` produced in the same session, so planner-written JSON cannot pass as Indic-Transcribe output.
 
 Text is compared as a reader sees it: character references decoded, one Unicode normal form (a precomposed and a combining nukta are the same letter), no zero-width joiners or soft hyphens. Input file and folder names count as known text, so an answer may name an Indian-language file.
+
+The checks look for Indic-script letters. Indian-language text written in Latin script (romanized Hindi, for example) is not caught; the prompt rule is the only defence there.
 
 ## Verification
 

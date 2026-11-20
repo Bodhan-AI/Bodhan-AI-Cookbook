@@ -10,9 +10,9 @@
 ## What it does
 
 - **`python -m bodhan_mcp`** is an MCP server. It exposes Bodhan's speech-to-text, translation, speech synthesis and OCR as 12 typed tools that any MCP client can use.
-- **`python -m bodhan_agent`** takes a plain-language task and input files, plans with an LLM, calls the tools, checks every translation and generated audio file, stays inside step, time and rupee budgets, and writes a report.
+- **`python -m bodhan_agent`** takes a plain-language task and input files, plans with an LLM, calls the tools, verifies translations and generated audio (on by default), stays inside step, time and rupee budgets, and writes a report.
 
-The planner can be any OpenAI-compatible endpoint with tool calling. It plans, writes English and judges results. Bodhan models do all speech recognition, translation, speech synthesis and OCR, and code refuses Indian-language text written by the planner.
+The planner can be any OpenAI-compatible endpoint with tool calling. It plans, writes English and judges results. Bodhan models do all speech recognition, translation, speech synthesis and OCR, and code refuses Indic-script text written by the planner (romanized text is not caught).
 
 More detail: [docs/design.md](docs/design.md) (diagrams and design reasons), [docs/api_notes.md](docs/api_notes.md) (observed API behaviour) and [docs/evaluation.md](docs/evaluation.md) (every run, with outputs and traces).
 
@@ -156,7 +156,7 @@ Resources: `bodhan://voices`, `bodhan://languages`, `bodhan://pricing` and `bodh
 | `verify_translation`, `verify_speech` | translate / transcribe | The same checks, for outputs made elsewhere. |
 | `detect_language`, `read_text`, `write_text`, `list_voices` | none | Script-based language ID, paging through artifacts, saving English text, and the voice library. |
 
-Every tool validates its input and returns `{"ok": false, "error": {"code", "message", "hint", "retryable"}}` on failure, for example `unsupported_language` or `budget_exceeded`. Why the tools have this shape is in [design.md](docs/design.md#tool-granularity).
+Every tool validates its input and returns `{"ok": false, "error": {"code", "message", "retryable", "hint"?, "details"?}}` on failure, for example `unsupported_language` or `budget_exceeded`. Why the tools have this shape is in [design.md](docs/design.md#tool-granularity).
 
 ## How it works
 
@@ -195,7 +195,7 @@ Media stays out of git. `scripts/make_fixtures.py` generates every demo input in
 
 ## AI assistance
 
-Claude Code (Claude Opus 5.5) was the coding assistant for design, implementation, tests and docs. I read every `result.md`, `report.json` and English text artifact of the demo and held-out runs, listened to the generated audio, and checked each audio file's duration and back-transcription in its report. I do not read all of these languages, so I did not judge the fluency of the Indian-language text or speech; no fluent speaker has reviewed them yet. GPT-6.1 Sol (through Codex) and CodeRabbit reviewed the code in several rounds, including a full audit against the brief, and a separate Claude Opus session did a read-only security review. Each finding was reproduced, then fixed with a regression test or listed as a limitation. The agent's planner LLM is a separate, configurable model.
+Claude Code (Claude Opus 5.5) was the coding assistant for design, implementation, tests and docs. I read every `result.md`, `report.json` and English text artifact of the demo and held-out runs, listened to the generated audio, and checked each audio file's duration and back-transcription in its report. I did not judge the fluency of the Indian-language outputs, and no fluent speaker has reviewed them yet. GPT-6.1 Sol (through Codex) and CodeRabbit reviewed the code in several rounds, including a full audit against the brief, and a separate Claude Opus session did a read-only security review. Each finding was reproduced, then fixed with a regression test or listed as a limitation. The agent's planner LLM is a separate, configurable model.
 
 ## Optional extras
 
