@@ -4,7 +4,9 @@
 
 ## Answer
 
-The school notice states that the school will remain closed on Monday, July 14th due to a district sports competition, and classes will resume normally on Tuesday. Additionally, parents are requested to collect report cards from the class teacher on Wednesday between 10:00 AM and 1:00 PM.
+The school notice says:
+
+School Notice: Schools will be closed on Monday, July 14th due to the District Sports Competition. Classes will resume as normal on Tuesday. Parents are requested to collect report cards from their class teachers on Wednesday from 10 AM to 1 PM.
 
 ## Deliverables
 
@@ -33,13 +35,13 @@ The school notice states that the school will remain closed on Monday, July 14th
 
 - Status: `completed` (stop reason: `finished`)
 - Bodhan cost: ₹0.0000 billed; budget ₹20.0
-- Planner LLM: gemini-3.5-flash-lite — 4 calls, 24039 prompt + 378 completion tokens (not priced (no rate supplied); tokens reported only)
-- Time: 29.17 s (multi-step, target 300 s: met)
+- Planner LLM: gemini-3.5-flash-lite — 4 calls, 23982 prompt + 396 completion tokens (not priced (no rate supplied); tokens reported only)
+- Time: 16.2 s (multi-step, target 300 s: met)
 - Steps: 4 of 30; cache hits: 5
 
 | Step | Tool | OK | Latency (s) | Cost (₹) | Verification |
 |---|---|---|---|---|---|
-| 2 | `ocr_document` | yes | 0.343 | 0 |  |
-| 3 | `translate_text` | yes | 0.063 | 0 | pass |
+| 2 | `ocr_document` | yes | 0.328 | 0 |  |
+| 3 | `translate_text` | yes | 0.016 | 0 | pass |
 
 Full step-by-step trace: [trace.jsonl](trace.jsonl). Machine-readable summary: [report.json](report.json).

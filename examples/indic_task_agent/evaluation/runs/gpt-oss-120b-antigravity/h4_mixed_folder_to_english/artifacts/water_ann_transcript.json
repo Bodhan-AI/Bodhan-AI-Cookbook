@@ -1,0 +1,37 @@
+{
+ "source": "water_announcement.mp3",
+ "text": "पाईपलाईन दुरुस्तीसाठी उद्या सकाळी दहा ते दुपारी दोन वाजेपर्यंत पाणीपुरवठा बंद राहील",
+ "segments": [
+  {
+   "index": 0,
+   "start": 0.0,
+   "end": 7.08,
+   "text": "पाईपलाईन दुरुस्तीसाठी उद्या सकाळी दहा ते दुपारी दोन वाजेपर्यंत पाणीपुरवठा बंद राहील"
+  }
+ ],
+ "duration_s": 7.08,
+ "language_used": "mr",
+ "detection": {
+  "language": "mr",
+  "language_name": "Marathi",
+  "script": "Devanagari",
+  "confidence": 1.0,
+  "candidates": [
+   "hi",
+   "mr",
+   "ne",
+   "mai",
+   "sa",
+   "doi",
+   "kok",
+   "brx",
+   "bho",
+   "sd",
+   "ks-Deva"
+  ],
+  "note": "Devanagari script; function words suggest Marathi ({'hi': 0, 'mr': 5, 'ne': 0})"
+ },
+ "notes": [
+  "language auto-detected from first segment: Marathi (Devanagari script; function words suggest Marathi ({'hi': 0, 'mr': 5, 'ne': 0}))"
+ ]
+}

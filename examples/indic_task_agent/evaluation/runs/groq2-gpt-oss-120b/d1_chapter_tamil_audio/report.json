@@ -1,0 +1,263 @@
+{
+  "status": "partial",
+  "stop_reason": "time_limit",
+  "planner_status": null,
+  "task": "Make a two-minute Tamil audio summary of this chapter",
+  "inputs": {
+    "files": [
+      "<recipe>\\sample_data\\chapter_scan\\chapter5_tamil_scan.pdf"
+    ],
+    "missing": []
+  },
+  "started_at": "2026-11-20T08:50:22+00:00",
+  "finished_at": "2026-11-20T09:00:22+00:00",
+  "elapsed_s": 600.01,
+  "steps": {
+    "used": 13,
+    "max": 30,
+    "tool_calls": [
+      {
+        "step": 2,
+        "tool": "ocr_document",
+        "ok": true,
+        "latency_s": 14.718,
+        "cost_inr": 0,
+        "verification": null,
+        "error": null
+      },
+      {
+        "step": 3,
+        "tool": "read_text",
+        "ok": true,
+        "latency_s": 0.0,
+        "cost_inr": 0,
+        "verification": null,
+        "error": null
+      },
+      {
+        "step": 4,
+        "tool": "write_text",
+        "ok": false,
+        "latency_s": 0.0,
+        "cost_inr": 0,
+        "verification": null,
+        "error": "invalid_argument"
+      },
+      {
+        "step": 5,
+        "tool": "read_text",
+        "ok": true,
+        "latency_s": 0.0,
+        "cost_inr": 0,
+        "verification": null,
+        "error": null
+      },
+      {
+        "step": 6,
+        "tool": "read_text",
+        "ok": true,
+        "latency_s": 0.0,
+        "cost_inr": 0,
+        "verification": null,
+        "error": null
+      },
+      {
+        "step": 7,
+        "tool": "write_text",
+        "ok": false,
+        "latency_s": 0.016,
+        "cost_inr": 0,
+        "verification": null,
+        "error": "invalid_argument"
+      },
+      {
+        "step": 8,
+        "tool": "read_text",
+        "ok": true,
+        "latency_s": 0.016,
+        "cost_inr": 0,
+        "verification": null,
+        "error": null
+      },
+      {
+        "step": 9,
+        "tool": "write_text",
+        "ok": false,
+        "latency_s": 0.016,
+        "cost_inr": 0,
+        "verification": null,
+        "error": "invalid_argument"
+      },
+      {
+        "step": 10,
+        "tool": "read_text",
+        "ok": true,
+        "latency_s": 0.016,
+        "cost_inr": 0,
+        "verification": null,
+        "error": null
+      },
+      {
+        "step": 11,
+        "tool": "write_text",
+        "ok": false,
+        "latency_s": 0.0,
+        "cost_inr": 0,
+        "verification": null,
+        "error": "invalid_argument"
+      },
+      {
+        "step": 12,
+        "tool": "write_text",
+        "ok": false,
+        "latency_s": 0.0,
+        "cost_inr": 0,
+        "verification": null,
+        "error": "invalid_argument"
+      },
+      {
+        "step": 13,
+        "tool": "read_text",
+        "ok": false,
+        "latency_s": 0.0,
+        "cost_inr": 0,
+        "verification": null,
+        "error": "invalid_argument"
+      }
+    ]
+  },
+  "plan": {
+    "steps": [
+      "OCR the PDF to extract the Tamil text (ocr_document).",
+      "Read the OCR‑extracted text to understand chapter content (read_text).",
+      "Write an English summary of the chapter (write_text).",
+      "Translate the English summary into Tamil (translate_text).",
+      "Synthesize a two‑minute Tamil audio file from the translated summary (synthesize_speech)."
+    ],
+    "deliverables": [
+      {
+        "kind": "audio",
+        "language": "ta",
+        "source": "chapter5_tamil_scan.pdf",
+        "optional": false,
+        "description": "Two‑minute Tamil audio summary of the chapter"
+      },
+      {
+        "kind": "translation",
+        "language": "ta",
+        "source": "chapter5_tamil_scan.pdf",
+        "optional": true,
+        "description": "Tamil text of the summary"
+      }
+    ],
+    "assumptions": [
+      "The PDF contains scanned images without a clean text layer, requiring OCR.",
+      "The user expects a roughly two‑minute Tamil audio (≈120 s) summarising the chapter content.",
+      "A concise summary of about 180‑200 Tamil words (~500 characters) will fit the duration.",
+      "No specific voice style requested; default female voice for Tamil will be used."
+    ]
+  },
+  "final_answer": "The run stopped before the planner finished: Reached the 600s time limit during a planner call. 1 artifact(s) passed their checks and are listed below; they may not fully answer the task.",
+  "assumptions": [
+    "The PDF contains scanned images without a clean text layer, requiring OCR.",
+    "The user expects a roughly two‑minute Tamil audio (≈120 s) summarising the chapter content.",
+    "A concise summary of about 180‑200 Tamil words (~500 characters) will fit the duration.",
+    "No specific voice style requested; default female voice for Tamil will be used."
+  ],
+  "limitations": [
+    "Stopped early (time_limit); outputs were not confirmed complete by the planner."
+  ],
+  "deliverables": [
+    {
+      "path": "artifacts/chapter5_ocr.md",
+      "kind": "ocr",
+      "producer": "ocr_document",
+      "language": "ta",
+      "provenance": "indic-ocr",
+      "verification": null,
+      "notes": [],
+      "embeds": [],
+      "sha256": "5c93771d5d99a4de15c005e616af6b47b6e18ae470627cb3118e3d1afb49ebcc",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "chapter5_tamil_scan.pdf"
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "artifacts/chapter5_ocr.md",
+      "kind": "ocr",
+      "producer": "ocr_document",
+      "language": "ta",
+      "provenance": "indic-ocr",
+      "verification": null,
+      "notes": [],
+      "embeds": [],
+      "sha256": "5c93771d5d99a4de15c005e616af6b47b6e18ae470627cb3118e3d1afb49ebcc",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "chapter5_tamil_scan.pdf"
+      ]
+    }
+  ],
+  "verification": {
+    "results": [],
+    "unverified_translations_or_audio": [],
+    "all_checked": true
+  },
+  "cost": {
+    "max_inr": 20.0,
+    "bodhan_billed_inr": 0.0,
+    "bodhan_uncertain_inr": 0.0,
+    "llm_inr": null,
+    "total_counted_inr": 0.0,
+    "by_model_inr": {},
+    "bodhan_calls": 0,
+    "cache_hits": 8,
+    "bodhan_cost_basis": "published unit prices x metered quantity (audio seconds rounded up per request, output tokens from usage, input characters, images); provider dashboard is authoritative",
+    "llm": {
+      "calls": 13,
+      "prompt_tokens": 78270,
+      "completion_tokens": 3676,
+      "pricing": "not priced (no rate supplied); tokens reported only"
+    }
+  },
+  "llm": {
+    "model": "openai/gpt-oss-120b",
+    "endpoint_host": "api.groq.com",
+    "adaptations": [
+      "the planner endpoint refused long requests; the short tool list is used"
+    ]
+  },
+  "quality_targets": {
+    "latency": {
+      "kind": "single-step",
+      "target_s": 30,
+      "actual_s": 600.0,
+      "met": false,
+      "note": "missed: see trace.jsonl latency_s per step (API latency, verification calls, LLM turns)"
+    },
+    "budget": {
+      "max_inr": 20.0,
+      "counted_inr": 0.0,
+      "within_budget": true,
+      "scope": "Bodhan calls (billed + uncertain retries); LLM only if priced via --llm-*-inr-per-1m"
+    },
+    "no_waste": {
+      "cache_hits": 8,
+      "bodhan_requests": 0,
+      "retried_attempts": 0,
+      "note": "identical (model, input, settings) requests are served from the cache or shared while in flight; the only repeats are retries of a failed or timed-out attempt (rate limit, 5xx, timeout), counted here and traced as api_call events with attempt > 1"
+    },
+    "verification": {
+      "all_generated_audio_and_translations_checked": true
+    },
+    "honest_failure": "unassessed: code cannot judge whether the answer is truthful; see verification results and review the outputs"
+  },
+  "injection_warnings": [],
+  "paid_tool_calls": 0,
+  "version": "0.1.0"
+}

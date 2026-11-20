@@ -95,3 +95,56 @@ def test_resume_after_a_hard_process_kill(tmp_path):
     assert any(e["type"] == "run_resumed" for e in trace)
     paid = [e for e in trace if e["type"] == "api_call" and e.get("model") == "indic-translate" and e.get("cache") == "miss"]
     assert paid and rep["cost"]["bodhan_billed_inr"] >= sum(e.get("cost_inr") or 0 for e in paid) - 1e-9
+
+
+# ---- size limits: refused before any Bodhan request -------------------------------------------------
+
+
+async def _invoke(ctx, tool, **a):
+    from bodhan_mcp.registry import invoke
+    from bodhan_mcp.tools import TOOL_BY_NAME
+
+    return await invoke(TOOL_BY_NAME[tool], ctx, a)
+
+
+async def test_a_text_file_over_5_mb_is_refused_unread(make_ctx, tmp_path):
+    from fakes import FakeBodhan
+
+    big = tmp_path / "big.txt"
+    with big.open("wb") as f:
+        f.truncate(5_000_001)
+    fake = FakeBodhan()
+    r, is_error = await _invoke(make_ctx(fake), "read_text", path=str(big))
+    assert is_error and r["error"]["code"] == "invalid_argument" and "5 MB" in r["error"]["message"]
+
+
+async def test_more_than_60_pdf_pages_in_one_call_is_refused(make_ctx, tmp_path):
+    import pypdfium2 as pdfium
+    from fakes import FakeBodhan
+
+    pdf = pdfium.PdfDocument.new()
+    for _ in range(61):
+        pdf.new_page(200, 200)
+    path = tmp_path / "long.pdf"
+    pdf.save(str(path))
+    fake = FakeBodhan()
+    r, is_error = await _invoke(make_ctx(fake), "ocr_document", path=str(path))
+    assert is_error and r["error"]["code"] == "invalid_argument" and "limit is 60" in r["error"]["message"]
+    assert fake.requests == [] and sum(fake.calls.values()) == 0
+
+
+async def test_audio_over_60_minutes_is_refused_before_decoding(make_ctx, tmp_path, monkeypatch):
+    import numpy as np
+    from conftest import write_wav
+    from fakes import FakeBodhan
+
+    from bodhan_mcp.media import MediaInfo
+    from bodhan_mcp.tools import audio_tools
+
+    wav = write_wav(tmp_path / "long.wav", np.zeros(16000, dtype=np.float32))
+    monkeypatch.setattr(audio_tools, "probe", lambda p: MediaInfo(3601.0, True, False, "pcm_s16le", 16000, 1, "wav"))
+    monkeypatch.setattr(audio_tools, "decode_pcm", lambda *a, **k: (_ for _ in ()).throw(AssertionError("decoded")))
+    fake = FakeBodhan()
+    r, is_error = await _invoke(make_ctx(fake), "transcribe_audio", path=str(wav))
+    assert is_error and r["error"]["code"] == "invalid_argument" and "limit is 60" in r["error"]["message"]
+    assert sum(fake.calls.values()) == 0

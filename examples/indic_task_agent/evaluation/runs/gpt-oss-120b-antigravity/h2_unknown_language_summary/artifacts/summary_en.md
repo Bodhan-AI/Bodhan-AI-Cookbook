@@ -1,0 +1,3 @@
+- Bees live in colonies composed of a queen, several hundred male bees, and thousands of worker bees.
+- Worker bees pollinate flowers, a process essential for about one‑third of the food we consume.
+- Excessive chemical pesticides threaten bees, leading many farmers to adopt natural methods such as placing beehives near their fields.

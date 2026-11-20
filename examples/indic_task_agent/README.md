@@ -171,7 +171,7 @@ The flow chart and the reasons behind it are in [docs/design.md](docs/design.md)
 ## Tests
 
 ```bash
-pytest -q                                  # 230 offline tests, no network or keys needed
+pytest -q                                  # 234 offline tests, no network or keys needed
 python scripts/run_suite.py                # live self-evaluation of evaluation/tasks.json (exit 1 if any task fails)
 ```
 
@@ -190,7 +190,7 @@ Media stays out of git. `scripts/make_fixtures.py` generates every demo input in
 - **Planner cost is bounded, not measured in advance.** With planner prices given, a call is sent only if the budget covers its upper bound, about 5× the real prompt size, so a priced planner stops early ([details](docs/design.md#budgets-cost-and-caching)).
 - **Latency is dominated by Indic-Speak**, about 20 s per request, so single-step speech tasks often miss the 30 s target (recorded in `report.json`).
 - **Durations are approximate.** A requested length sets the English text length before translation. Missing it by more than ±25 % is a warning, not a retry.
-- **Planners differ.** `gemini-3.5-flash-lite` and `gpt-5.6-luna` also ran the tasks; Groq's free tier was too small to evaluate `gpt-oss` ([results](docs/evaluation.md#other-planner-models)).
+- **Planners differ.** `gemini-3.5-flash-lite` passed 10/10 and `gpt-5.6-luna` 9/10. `gpt-oss-120b` passed 4/10 through a subscription gateway, where it often returned empty turns instead of finishing. On Groq's free tier (8,000 tokens a request, 200,000 a day) `gpt-oss` ran out of quota before the tasks were done ([results](docs/evaluation.md#other-planner-models)).
 - **No dubbed video.** The agent can transcribe, translate and subtitle a video's speech, but it cannot re-voice the video.
 
 ## AI assistance

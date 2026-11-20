@@ -1,0 +1,1 @@
+the water supply will be off tomorrow morning from ten am to two pm for pipeline repair

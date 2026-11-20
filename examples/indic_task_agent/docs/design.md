@@ -223,6 +223,8 @@ Verification results are a history on each artifact. A later check never improve
 - **Files.** The agent reads only its inputs and its own artifacts. A folder input never includes the output folder or hidden folders; an input inside `--out` is rejected before anything moves.
 - **Media.** The container is identified from its first bytes and passed to ffmpeg explicitly, with only the `file` and `pipe` protocols allowed, so a playlist or concat manifest renamed to `.wav` can't make the decoder read other files.
 - **Documents.** PDF pages and multi-page TIFF frames are pages. A clean PDF text layer is used without OCR unless images cover 15 % or more of the page (a scanned body can sit under a digital header), or the layer looks like a legacy Hindi font. Page ranges are clipped before they are expanded, and file types are sniffed from a few bytes.
+- **Size limits.** Each is refused before any request: text files over 5 MB, more than 60 PDF pages in one `ocr_document` call (pass a page range and call again), and audio over 60 minutes. The audio limit needs a duration from the probe; a file whose duration the probe cannot read is bounded only by the ffmpeg timeout and the run deadline.
+- **Run state.** `--resume` trusts `out/.state/checkpoint.json` (plain JSON, no pickle): anyone who can write there already has local write access.
 
 ## Resume
 
@@ -234,7 +236,7 @@ Each checkpoint also writes the report an interruption at that moment would leav
 
 ## HTTP transport
 
-`--transport http` serves the same server through the MCP SDK's Streamable HTTP app at `/mcp`, so protocol negotiation and sessions are the SDK's. A small ASGI wrapper requires `Authorization: Bearer <token>` on every request and compares it in constant time. The token comes from a file (generated if missing) and is never a provider key. The server binds to loopback unless you pass `--allow-remote`, and the SDK adds Host and Origin checks against DNS rebinding (the live viewer checks Host the same way). If the token file is missing, a random token is written there, by default `bodhan_mcp/http_token` in the user config folder (`%APPDATA%` or `~/.config`), outside the artifacts folder that tools read and users share. The server speaks plain HTTP, so with `--allow-remote` put it behind a TLS-terminating proxy so the token is never sent in clear text.
+`--transport http` serves the same server through the MCP SDK's Streamable HTTP app at `/mcp`, so protocol negotiation and sessions are the SDK's. A small ASGI wrapper requires `Authorization: Bearer <token>` on every request and compares it in constant time. The token comes from a file (generated if missing) and is never a provider key. The server binds to loopback unless you pass `--allow-remote`, and the SDK adds Host and Origin checks against DNS rebinding (the live viewer checks Host the same way). If the token file is missing, a random token is written there, by default `bodhan_mcp/http_token` in the user config folder (`%APPDATA%` or `~/.config`), outside the artifacts folder that tools read and users share. The server speaks plain HTTP, so with `--allow-remote` put it behind a TLS-terminating proxy so the token is never sent in clear text. The token check covers HTTP requests; the app has no WebSocket route and no WebSocket library is installed, so no other request type reaches it.
 
 ## Choices I did not make
 
