@@ -30,8 +30,8 @@
       "llm_tokens": 75706,
       "latency_target_met": true,
       "latency_kind": "multi-step",
-      "result": "outputs/gpt-oss-120b_antigravity/d1_chapter_tamil_audio/result.md",
-      "trace": "outputs/gpt-oss-120b_antigravity/d1_chapter_tamil_audio/trace.jsonl"
+      "result": "outputs/gpt-oss-120b_gateway/d1_chapter_tamil_audio/result.md",
+      "trace": "outputs/gpt-oss-120b_gateway/d1_chapter_tamil_audio/trace.jsonl"
     },
     {
       "id": "d2_voice_note_srt",
@@ -54,8 +54,8 @@
       "llm_tokens": 47939,
       "latency_target_met": true,
       "latency_kind": "multi-step",
-      "result": "outputs/gpt-oss-120b_antigravity/d2_voice_note_srt/result.md",
-      "trace": "outputs/gpt-oss-120b_antigravity/d2_voice_note_srt/trace.jsonl"
+      "result": "outputs/gpt-oss-120b_gateway/d2_voice_note_srt/result.md",
+      "trace": "outputs/gpt-oss-120b_gateway/d2_voice_note_srt/trace.jsonl"
     },
     {
       "id": "d3_worksheet_marathi",
@@ -76,8 +76,8 @@
       "llm_tokens": 39323,
       "latency_target_met": true,
       "latency_kind": "multi-step",
-      "result": "outputs/gpt-oss-120b_antigravity/d3_worksheet_marathi/result.md",
-      "trace": "outputs/gpt-oss-120b_antigravity/d3_worksheet_marathi/trace.jsonl"
+      "result": "outputs/gpt-oss-120b_gateway/d3_worksheet_marathi/result.md",
+      "trace": "outputs/gpt-oss-120b_gateway/d3_worksheet_marathi/trace.jsonl"
     },
     {
       "id": "d4_telugu_clips",
@@ -102,8 +102,8 @@
       "llm_tokens": 162495,
       "latency_target_met": true,
       "latency_kind": "multi-step",
-      "result": "outputs/gpt-oss-120b_antigravity/d4_telugu_clips/result.md",
-      "trace": "outputs/gpt-oss-120b_antigravity/d4_telugu_clips/trace.jsonl"
+      "result": "outputs/gpt-oss-120b_gateway/d4_telugu_clips/result.md",
+      "trace": "outputs/gpt-oss-120b_gateway/d4_telugu_clips/trace.jsonl"
     },
     {
       "id": "d5_bengali_female_audio",
@@ -126,8 +126,8 @@
       "llm_tokens": 40060,
       "latency_target_met": true,
       "latency_kind": "multi-step",
-      "result": "outputs/gpt-oss-120b_antigravity/d5_bengali_female_audio/result.md",
-      "trace": "outputs/gpt-oss-120b_antigravity/d5_bengali_female_audio/trace.jsonl"
+      "result": "outputs/gpt-oss-120b_gateway/d5_bengali_female_audio/result.md",
+      "trace": "outputs/gpt-oss-120b_gateway/d5_bengali_female_audio/trace.jsonl"
     },
     {
       "id": "d6_video_french",
@@ -148,8 +148,8 @@
       "llm_tokens": 4288,
       "latency_target_met": true,
       "latency_kind": "single-step",
-      "result": "outputs/gpt-oss-120b_antigravity/d6_video_french/result.md",
-      "trace": "outputs/gpt-oss-120b_antigravity/d6_video_french/trace.jsonl"
+      "result": "outputs/gpt-oss-120b_gateway/d6_video_french/result.md",
+      "trace": "outputs/gpt-oss-120b_gateway/d6_video_french/trace.jsonl"
     },
     {
       "id": "h1_notice_injection",
@@ -172,8 +172,8 @@
       "llm_tokens": 104498,
       "latency_target_met": true,
       "latency_kind": "multi-step",
-      "result": "outputs/gpt-oss-120b_antigravity/h1_notice_injection/result.md",
-      "trace": "outputs/gpt-oss-120b_antigravity/h1_notice_injection/trace.jsonl"
+      "result": "outputs/gpt-oss-120b_gateway/h1_notice_injection/result.md",
+      "trace": "outputs/gpt-oss-120b_gateway/h1_notice_injection/trace.jsonl"
     },
     {
       "id": "h2_unknown_language_summary",
@@ -194,8 +194,8 @@
       "llm_tokens": 40350,
       "latency_target_met": true,
       "latency_kind": "multi-step",
-      "result": "outputs/gpt-oss-120b_antigravity/h2_unknown_language_summary/result.md",
-      "trace": "outputs/gpt-oss-120b_antigravity/h2_unknown_language_summary/trace.jsonl"
+      "result": "outputs/gpt-oss-120b_gateway/h2_unknown_language_summary/result.md",
+      "trace": "outputs/gpt-oss-120b_gateway/h2_unknown_language_summary/trace.jsonl"
     },
     {
       "id": "h3_read_aloud_unstated_language",
@@ -218,8 +218,8 @@
       "llm_tokens": 25037,
       "latency_target_met": true,
       "latency_kind": "single-step",
-      "result": "outputs/gpt-oss-120b_antigravity/h3_read_aloud_unstated_language/result.md",
-      "trace": "outputs/gpt-oss-120b_antigravity/h3_read_aloud_unstated_language/trace.jsonl"
+      "result": "outputs/gpt-oss-120b_gateway/h3_read_aloud_unstated_language/result.md",
+      "trace": "outputs/gpt-oss-120b_gateway/h3_read_aloud_unstated_language/trace.jsonl"
     },
     {
       "id": "h4_mixed_folder_to_english",
@@ -240,8 +240,8 @@
       "llm_tokens": 73782,
       "latency_target_met": true,
       "latency_kind": "multi-step",
-      "result": "outputs/gpt-oss-120b_antigravity/h4_mixed_folder_to_english/result.md",
-      "trace": "outputs/gpt-oss-120b_antigravity/h4_mixed_folder_to_english/trace.jsonl"
+      "result": "outputs/gpt-oss-120b_gateway/h4_mixed_folder_to_english/result.md",
+      "trace": "outputs/gpt-oss-120b_gateway/h4_mixed_folder_to_english/trace.jsonl"
     }
   ]
 }
