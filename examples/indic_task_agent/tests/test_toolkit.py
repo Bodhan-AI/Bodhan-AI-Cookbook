@@ -246,9 +246,69 @@ def test_ocr_pdf_reads_each_page(kit, api, tmp_path):
     make_pdf(pdf, 3)
     r = kit().ocr_document(str(pdf))
     assert api.count("/v1/chat/completions") == 3 and r["pages_read"] == 3
-    assert open(r["markdown_file"], encoding="utf-8").read().count("Page text") == 3
+    assert open(r["text_file"], encoding="utf-8").read().count("Page text") == 3
     url = api.requests[0][1]["messages"][0]["content"][0]["image_url"]["url"]
     assert url.startswith("data:image/png;base64,")
+
+
+
+# ---- passing text between tools by file path ----------------------------------------------
+def test_every_text_result_is_also_a_file(kit, api):
+    r = kit().translate_text("hi", text="Hello")
+    assert r["text"] == open(r["text_file"], encoding="utf-8").read()  # same content, by path
+
+
+def test_save_text_copies_a_result_into_deliverables_without_retyping(kit, api):
+    k = kit()
+    r = k.translate_text("hi", text="Hello")
+    saved = k.save_text("answer.hi.md", text_file=r["text_file"])
+    assert open(saved["path"], encoding="utf-8").read() == r["text"]
+    assert saved["path"].endswith("answer.hi.md") and "artifacts" in saved["path"]
+
+
+def test_save_text_rejects_odd_extensions_and_escapes(kit):
+    k = kit()
+    for path, code in [("run.exe", "unsupported_format"), ("../../x.txt", "path_outside_workspace")]:
+        with pytest.raises(BodhanError) as e:
+            k.save_text(path, text="x")
+        assert e.value.code == code
+
+
+def test_translate_segments_keeps_timings_and_makes_a_file(kit, api):
+    api.translate_fn = lambda text, n: {"translation": "नमस्ते", "usage": {"completion_tokens": 2}}
+    segs = [{"start": 0.0, "end": 2.5, "text": "Hello"}, {"start": 2.5, "end": 5.0, "text": "World"},
+            {"start": 5.0, "end": 6.0, "text": ""}]
+    r = kit().translate_segments("hi", segments=segs)
+    assert [(s["start"], s["end"]) for s in r["segments"]] == [(0.0, 2.5), (2.5, 5.0), (5.0, 6.0)]
+    assert r["segments"][2]["text"] == "" and r["api_calls"] == 2  # empty segment costs nothing
+    assert json.loads(open(r["segments_file"], encoding="utf-8").read()) == r["segments"]
+
+
+def test_translate_segments_rejects_unsupported_language_and_bad_input(kit, api):
+    k = kit()
+    with pytest.raises(BodhanError) as e:
+        k.translate_segments("French", segments=[{"start": 0, "end": 1, "text": "x"}])
+    assert e.value.code == "unsupported_language"
+    with pytest.raises(BodhanError) as e:
+        k.translate_segments("hi", segments=[{"start": 0, "text": "x"}])
+    assert e.value.code == "invalid_segments"
+    assert api.requests == []
+
+
+def test_subtitles_from_segments_file(kit, tmp_path):
+    f = tmp_path / "segs.json"
+    f.write_text(json.dumps([{"start": 0, "end": 1.5, "text": "Hi"}]), encoding="utf-8")
+    r = kit().write_subtitles(segments_file=str(f), out_path="a.srt")
+    assert "00:00:00,000 --> 00:00:01,500" in open(r["path"], encoding="utf-8").read()
+
+
+@needs_ffmpeg
+def test_transcribe_always_returns_a_segments_file(kit, api, tmp_path):
+    audio = tmp_path / "a.wav"
+    audio.write_bytes(wav_bytes(2.0, 16000))
+    r = kit().transcribe_audio(str(audio), "hi")
+    assert json.loads(open(r["segments_file"], encoding="utf-8").read())[0]["text"] == "नमस्ते दुनिया"
+    assert r["text_file"] and r["segment_count"] == 1
 
 
 def test_ocr_respects_max_pages_and_reports_skipped(kit, api, tmp_path):

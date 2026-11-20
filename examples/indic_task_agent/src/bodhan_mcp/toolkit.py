@@ -39,6 +39,7 @@ INLINE_LIMIT = 3000        # longer text is saved to a file; only a preview is r
 TRANSLATE_PIECE_CHARS = 1000
 SPEAK_PIECE_CHARS = 220    # ~ a sentence or two, well under the ~30 s speech limit
 PDF_DPI = 160
+_TEXT_EXT = {".txt", ".md", ".srt", ".vtt", ".json", ".html", ".csv"}
 _TABLE_ROW = re.compile(r"^\s*(\||<tr|<table|</table)", re.I)
 
 
@@ -84,13 +85,39 @@ class Toolkit:
             return text
         raise BodhanError("missing_input", "Give either `text` or `text_file`.")
 
+    def _work_file(self, name: str, content: str) -> Path:
+        path = self.out_dir / "work" / "text" / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content, encoding="utf-8")
+        return path
+
     def _text_result(self, text: str, stem: str) -> dict[str, Any]:
-        """Small text inline; large text saved to a file with a preview."""
+        """Always save the text to a file (so tools can pass it by PATH, never by retyping it).
+        Short text is also returned inline; long text only as a preview."""
+        path = self._work_file(f"{stem}.txt", text)
         if len(text) <= INLINE_LIMIT:
-            return {"text": text, "chars": len(text)}
-        path = self._out(f"{stem}.txt")
-        path.write_text(text, encoding="utf-8")
+            return {"text": text, "text_file": str(path), "chars": len(text)}
         return {"text_file": str(path), "preview": text[:300], "chars": len(text)}
+
+    def _load_segments(self, segments: list[dict[str, Any]] | None, segments_file: str | None) -> list[dict[str, Any]]:
+        if segments_file:
+            try:
+                segments = json.loads(self._in(segments_file).read_text(encoding="utf-8"))
+            except ValueError as e:
+                raise BodhanError("invalid_segments", f"{segments_file} is not valid JSON: {e}") from e
+        if not segments or not isinstance(segments, list):
+            raise BodhanError("missing_input", "Give `segments` or `segments_file` (a non-empty list).")
+        for i, seg in enumerate(segments, 1):
+            if not isinstance(seg, dict) or not {"start", "end", "text"} <= seg.keys():
+                raise BodhanError("invalid_segments", f"Segment {i} needs start, end and text.")
+        return segments
+
+    def _segments_result(self, segs: list[dict[str, Any]], stem: str) -> dict[str, Any]:
+        path = self._work_file(f"{stem}.segments.json", json.dumps(segs, ensure_ascii=False))
+        out: dict[str, Any] = {"segments_file": str(path), "segment_count": len(segs)}
+        if len(segs) <= 20:
+            out["segments"] = segs
+        return out
 
     @staticmethod
     def _require(model: str, code: str | None, raw: str, action: str) -> str:
@@ -125,9 +152,9 @@ class Toolkit:
                 "budget_inr": t.max_cost_inr, "remaining_inr": None if t.remaining is None else round(t.remaining, 4),
                 "calls": len(t.calls), "cached_calls": sum(1 for c in t.calls if c.get("cached"))}
 
-    def write_subtitles(self, segments: list[dict[str, Any]], out_path: str = "subtitles.srt") -> dict[str, Any]:
-        if not segments:
-            raise BodhanError("missing_input", "No segments to write.")
+    def write_subtitles(self, segments: list[dict[str, Any]] | None = None, out_path: str = "subtitles.srt",
+                        segments_file: str | None = None) -> dict[str, Any]:
+        segments = self._load_segments(segments, segments_file)
         lines = []
         for i, s in enumerate(segments, 1):
             try:
@@ -138,6 +165,16 @@ class Toolkit:
         dst = self._out(out_path)
         dst.write_text("\n".join(lines), encoding="utf-8")
         return {"ok": True, "path": str(dst), "segments": len(segments)}
+
+    def save_text(self, out_path: str, text: str | None = None, text_file: str | None = None) -> dict[str, Any]:
+        """Copy text into the deliverables folder under a chosen name. Use this to publish a
+        result (e.g. a translation) WITHOUT retyping it: pass the text_file of the tool result."""
+        if Path(out_path).suffix.lower() not in _TEXT_EXT:
+            raise BodhanError("unsupported_format", f"out_path must end in one of {sorted(_TEXT_EXT)}.")
+        content = self._resolve_text(text, text_file)
+        dst = self._out(out_path)
+        dst.write_text(content, encoding="utf-8")
+        return {"ok": True, "path": str(dst), "chars": len(content)}
 
     # ---- tool: transcribe ------------------------------------------------
     def _transcribe_full(self, src: Path, code: str | None) -> tuple[list[dict[str, Any]], float]:
@@ -160,12 +197,7 @@ class Toolkit:
         out: dict[str, Any] = {"ok": True, "duration_s": round(total, 2), "chunks": len(segs),
                                "language_requested": code, "detected": detect_language(text),
                                **self._text_result(text, f"{self._tag(src)}.transcript")}
-        if len(segs) <= 60:
-            out["segments"] = segs
-        else:
-            sp = self._out(f"{self._tag(src)}.segments.json")
-            sp.write_text(json.dumps(segs, ensure_ascii=False), encoding="utf-8")
-            out["segments_file"] = str(sp)
+        out.update(self._segments_result(segs, self._tag(src)))
         return out
 
     # ---- tool: translate -------------------------------------------------
@@ -221,6 +253,24 @@ class Toolkit:
                 "api_calls": stats["calls"], "cached_calls": stats["cached"],
                 "truncation_retries": stats["retried"],
                 **self._text_result(result, f"translation-{code}-{hashlib.sha1(src.encode()).hexdigest()[:6]}")}
+
+    def translate_segments(self, target_language: str, segments: list[dict[str, Any]] | None = None,
+                           segments_file: str | None = None, script: str = "native") -> dict[str, Any]:
+        """Translate the text of each timed segment, keeping start/end times (for subtitles)."""
+        code = self._require("translate", normalize_language(target_language), target_language, "translation")
+        segs = self._load_segments(segments, segments_file)
+        stats = {"calls": 0, "cached": 0, "retried": 0}
+        out = []
+        for s in segs:
+            text = str(s["text"]).strip()
+            translated = self._translate_unit(text, code, script, stats) if text else ""
+            out.append({"start": s["start"], "end": s["end"], "text": translated})
+        joined = " ".join(o["text"] for o in out)
+        scripts = expected_scripts(code) if script == "native" else None
+        return {"ok": True, "target_language": code, "script_ok": None if scripts is None else (
+                    detect_language(joined)["script"] in scripts),
+                "api_calls": stats["calls"], "cached_calls": stats["cached"],
+                **self._segments_result(out, f"translated-{code}-{hashlib.sha1(joined.encode()).hexdigest()[:6]}")}
 
     # ---- tool: speak -----------------------------------------------------
     def speak_text(self, language: str, text: str | None = None, text_file: str | None = None,
@@ -305,15 +355,10 @@ class Toolkit:
             pages.append({"page": i, "chars": len(r["text"]), "blocks": len(r["blocks"]),
                           "empty": not r["text"].strip(), "cached": r["cached"]})
         combined = "\n\n".join(t for t in texts if t)
-        art = self._out(f"{src.stem}.ocr.md")
-        art.write_text(combined, encoding="utf-8")
         out = {"ok": True, "pages_read": len(images), "pages_total": total_pages,
                "pages_skipped": total_pages - len(images), "pages": pages,
-               "markdown_file": str(art), "detected": detect_language(combined)}
-        if len(combined) <= INLINE_LIMIT:
-            out.update(text=combined, chars=len(combined))
-        else:
-            out.update(preview=combined[:300], chars=len(combined))
+               "detected": detect_language(combined),
+               **self._text_result(combined, f"{self._tag(src)}.ocr")}
         return out
 
 

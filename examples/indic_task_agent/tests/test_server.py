@@ -14,7 +14,8 @@ from bodhan_mcp.server import build_server
 from bodhan_mcp.toolkit import Toolkit
 
 EXPECTED = {"language_support", "detect_text_language", "inspect_file", "transcribe_audio",
-            "translate_text", "speak_text", "verify_speech", "ocr_document", "write_subtitles", "get_usage"}
+            "translate_text", "translate_segments", "speak_text", "verify_speech", "ocr_document",
+            "write_subtitles", "save_text", "get_usage"}
 
 
 def test_all_tools_registered_with_descriptions(tmp_path):

@@ -111,9 +111,28 @@ def build_server(tk: Toolkit | None = None) -> MCPServer:
 
     @server.tool()
     @_tool_errors
-    def write_subtitles(segments: list[dict[str, Any]], out_path: str = "subtitles.srt") -> dict[str, Any]:
-        """Write an SRT subtitle file from segments [{start, end, text}] (times in seconds). Free."""
-        return tk.write_subtitles(segments, out_path)
+    def translate_segments(target_language: str, segments: list[dict[str, Any]] | None = None,
+                           segments_file: str | None = None, script: str = "native") -> dict[str, Any]:
+        """Translate each timed segment [{start, end, text}] (or a segments_file from
+        transcribe_audio) and keep the timings. Use it to make subtitles in another language.
+        Returns a new segments_file. Costs about Rs 0.20 per 10,000 output tokens."""
+        return tk.translate_segments(target_language, segments, segments_file, script)
+
+    @server.tool()
+    @_tool_errors
+    def write_subtitles(segments: list[dict[str, Any]] | None = None, out_path: str = "subtitles.srt",
+                        segments_file: str | None = None) -> dict[str, Any]:
+        """Write an SRT subtitle file from segments [{start, end, text}] or a segments_file
+        (times in seconds). Free."""
+        return tk.write_subtitles(segments, out_path, segments_file)
+
+    @server.tool()
+    @_tool_errors
+    def save_text(out_path: str, text: str | None = None, text_file: str | None = None) -> dict[str, Any]:
+        """Save text into the deliverables folder under a name you choose (.txt .md .srt .json
+        .html .csv). Pass the `text_file` of an earlier result so the text is copied exactly,
+        never retyped. Free."""
+        return tk.save_text(out_path, text, text_file)
 
     @server.tool()
     @_tool_errors
