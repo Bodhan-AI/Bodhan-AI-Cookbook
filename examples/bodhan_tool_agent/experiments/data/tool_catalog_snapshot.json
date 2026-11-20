@@ -1,0 +1,411 @@
+{
+  "generated_at": "2026-11-19T17:28:33+00:00",
+  "model_facing_tools": [
+    "detect_language",
+    "extract_document_text",
+    "inspect_media",
+    "read_text_file",
+    "synthesize_speech",
+    "transcribe_audio",
+    "translate_text",
+    "write_text_file"
+  ],
+  "operator_only_tools": [
+    "clear_cache",
+    "get_cache_stats"
+  ],
+  "mcp_tools": [
+    {
+      "name": "transcribe_audio",
+      "description": "Transcribe spoken audio in 27 Indian languages plus English (28 codes total) using Indic-Transcribe.\n\nUse when: speech in an audio or video file must become text or timestamped subtitles (.srt, .vtt). Handles files of any duration by auto-slicing <=30s chunks and writes subtitle deliverables directly to output_path.\nDo NOT use when: the caller only needs duration/format metadata without speech-to-text, or the deliverable is spoken audio.\nCost: paid, about INR 0.10 per audio minute.\n\nEstimated cost: ₹0.10 per input audio minute.\n\nUsed for verbatim ASR, speech-to-English translation, and post-synthesis audio deliverable verification (back-transcribing generated .wav files to confirm speech was synthesized faithfully). Handles files of any duration by auto-chunking <=30s chunks at speech pauses.\n\nSupports generating timestamped subtitle files (.srt, .vtt) or text deliverables directly to disk.\n\nROUTING CONTRACT & BOUNDARIES:\n- SUPPORTED LANGUAGES: 27 Indian languages plus English (28 codes total) (as, bhb, bho, bn, brx, doi, en, gu, hi,\n  kn, kok, ks, ks-Deva, mai, ml, mni, mni-Beng, mr, ne, or, pa, sa, sat, sd, sd-Arab, ta, te, ur).\n- TASK MODES & VERIFICATION:\n  * `task=\"transcribe\"` (default): Verbatim speech-to-text in original spoken language.\n  * `task=\"translate\"`: Direct speech-to-text translation yielding English text directly.\n  * Post-synthesis audio deliverable verification: Back-transcribe generated .wav files to confirm speech was synthesized faithfully.\n- AUTOMATIC CHUNKING: Handles files of any duration by auto-chunking <=30s chunks at speech pauses;\n  manual pre-splitting is never required.\n- NO PRE-INSPECTION: Do not call inspect_media first when transcription is the goal.\n  Format conversion and audio validation are handled internally at zero cost.\n- OUTPUT FORMATS & DELIVERABLES:\n  * `output_format=\"text\"` (default): Returns raw transcript text (or writes to output_path if provided).\n  * `output_format=\"srt\"`: Assembles SubRip subtitle file (.srt) with accurate millisecond timecodes.\n  * `output_format=\"vtt\"`: Assembles WebVTT subtitle file (.vtt) with accurate millisecond timecodes.\n  * If `output_path` ends with `.srt` or `.vtt`, subtitle format is automatically inferred.\n  * When a subtitle or file deliverable is generated, writes UTF-8 file to disk and returns a JSON metadata envelope.\n\nArgs:\n    file_path: Path to the audio file on disk (WAV, MP3, AAC, M4A, FLAC, OGG, etc.).\n    language: ISO language code (e.g. 'hi', 'ta', 'te'). If omitted, automatically detected.\n    task: 'transcribe' for verbatim speech in original language, or 'translate' for direct English.\n        NOTE: the live endpoint rejects a `task` field outright (HTTP 422). With 'translate',\n        the server transcribes in the source language and translates via Indic-Translate; the\n        generated SRT/VTT keeps the original timestamp windows.\n    output_format: Deliverable format: 'text', 'srt', or 'vtt'. Default is 'text'.\n    output_path: Optional destination file path (e.g. 'artifacts/subtitles.srt').\n    bypass_cache: If True, bypasses SQLite cache and invokes models directly.\n\nReturns:\n    If output_format='text' and output_path is None: raw transcript text string.\n    Otherwise: JSON metadata envelope string containing status, artifact_path, output_format,\n    cues_count, duration_seconds, and preview.",
+      "parameters": {
+        "required": [
+          "file_path"
+        ],
+        "title": "transcribe_audioArguments",
+        "type": "object",
+        "properties": {
+          "file_path": {
+            "title": "File Path",
+            "type": "string"
+          },
+          "language": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Language"
+          },
+          "task": {
+            "default": "transcribe",
+            "enum": [
+              "transcribe",
+              "translate"
+            ],
+            "title": "Task",
+            "type": "string"
+          },
+          "output_format": {
+            "default": "text",
+            "enum": [
+              "text",
+              "srt",
+              "vtt"
+            ],
+            "title": "Output Format",
+            "type": "string"
+          },
+          "output_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Output Path"
+          }
+        }
+      },
+      "source": "mcp"
+    },
+    {
+      "name": "translate_text",
+      "description": "Translate text between 27 Indian languages plus English (28 codes total) using Indic-Translate.\n\nUse when: text already exists in context and must be translated into one of 28 supported Indian languages or English. Source language should be omitted for auto-detection.\nDo NOT use when: the input is a file path or audio; or the deliverable is spoken audio (.wav); or the target language is unsupported non-Indic.\nCost: paid, about INR 0.20 per 10k tokens.\n\nEstimated cost: ₹0.20 per 10,000 output tokens.\nWant English subtitles or text from speech? Use transcribe_audio(task='translate'); this tool translates text only, never audio.\n\nROUTING CONTRACT & BOUNDARIES:\n- 28 INDIC LANGUAGES: Supports 27 Indian languages plus English (28 codes total):\n  as, bhb, bho, bn, brx, doi, en, gu, hi, kn, kok, ks, ks-Deva, mai, ml, mni, mni-Beng,\n  mr, ne, or, pa, sa, sat, sd, sd-Arab, ta, te, ur. Unsupported language pairs must be rejected\n  immediately with status='impossible'.\n- SCRIPT SUBTAGS: Always specify exact script subtags where applicable:\n  * `ks-Deva`: Kashmiri in Devanagari script (default `ks` is Perso-Arabic).\n  * `sd-Arab`: Sindhi in Arabic script (default `sd` is Devanagari or Arabic).\n  * `mni-Beng`: Manipuri in Bengali script (default `mni` is Meitei Mayek).\n  * Standard ISO codes for others (e.g. `ta` for Tamil, `mr` for Marathi, `hi` for Hindi, `en` for English).\n- OMIT SOURCE_LANGUAGE: Always omit `source_language` (leave None or unset) to enable automatic\n  source language detection and prevent live service input echoing.\n- OUTPUT SCRIPT VALIDATION: Output is strictly validated to contain target-script characters;\n  input echoing or failure raises an honest ToolError.\n\nArgs:\n    text: Source text to translate.\n    target_language: Target ISO code with script subtag where applicable (e.g. 'en', 'hi', 'ta', 'mr', 'ks-Deva', 'sd-Arab', 'mni-Beng').\n    source_language: Source ISO code, optional. Always omit (leave None or unset) to allow automatic detection and avoid live service input echoing.\n    bypass_cache: If True, bypasses SQLite cache and invokes models directly.",
+      "parameters": {
+        "required": [
+          "text",
+          "target_language"
+        ],
+        "title": "translate_textArguments",
+        "type": "object",
+        "properties": {
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "target_language": {
+            "title": "Target Language",
+            "type": "string"
+          },
+          "source_language": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Source Language"
+          }
+        }
+      },
+      "source": "mcp"
+    },
+    {
+      "name": "synthesize_speech",
+      "description": "Synthesize 24 kHz WAV speech from Indian-language or English text using Indic-Speak.\n\nUse when: the requested deliverable is spoken audio (.wav file) or reading text aloud. Text is already in the target Indian language or English.\nDo NOT use when: the text requires translation first; or the caller only wants text/SRT saved to disk.\nCost: paid, about INR 6.00 per 10k characters.\n\nEstimated cost: ₹6 per 10,000 input characters. Long documents may split into many paid parts; split or confirm very long deliverables rather than synthesizing blindly.\nValid voice names come from the voice catalog resource (bodhan://catalog/voices); default voices are used per language if omitted.\n\nUses predefined catalog voices (e.g. Kavya, Amit, Anitha); does NOT support voice cloning or speaker adaptation from reference audio clips (.ogg, .wav). Deliverables requiring spoken audio (.wav) must use this tool directly.\n\nAutomatically handles long passages by splitting text along punctuation and Danda ('।')\nboundaries into prosodic segments and concatenating the resulting 24 kHz audio clips into one file.\n\nROUTING CONTRACT & BOUNDARIES:\n- PREDEFINED VOICES & NO VOICE CLONING: Uses predefined catalog voices (e.g. Kavya, Amit, Anitha);\n  does NOT support voice cloning or speaker adaptation from reference audio clips (.ogg, .wav).\n  Requests to clone a voice or speak in the voice of a reference audio clip are impossible.\n- AUDIO DELIVERABLES: Deliverables requiring spoken audio (.wav) must use this tool directly.\n  This tool is the exclusive generator for spoken audio and .wav deliverables.\n  Never call `write_text_file` when audio deliverables are requested.\n- DIRECT SPEECH / NO UNNECESSARY TRANSLATION: When text is already in the target language and\n  requested to be read aloud, spoken, or narrated, call this tool directly (do NOT translate first\n  unless translation is explicitly requested).\n- REQUIRED PARAMETERS: Requires valid text and a supported language ISO code.\n- REQUIRED INSTRUCTIONS: Indic-Speak strictly requires `instructions` as a JSON string containing `lang` and `style`. Missing `instructions` causes HTTP 500.\n- CROSS-LANGUAGE VOICES: Any catalog voice can read any language. Indic-Speak allows cross-language voice reading (e.g. Kavya or Amit reading Tamil or English).\n- SPEAKING STYLES: 14 allowed styles (e.g. 'news', 'AIR style news', 'happy'). The style list excludes 'formal' (passing 'formal' triggers HTTP 500).\n- AUTOMATIC SEGMENTATION: Long text is split internally along prosodic sentence and Danda boundaries;\n  manual pre-splitting is unnecessary.\n\nArgs:\n    text: Indian-language or English text to speak.\n    language: ISO code (e.g. 'ta', 'hi', 'bn', 'mr', 'te', 'en').\n    voice: Preferred voice name from the Bodhan voice catalog (optional).\n    style: Speaking style (e.g. 'AIR style news', 'news', 'happy').\n    output_path: Where to save the WAV file. Defaults to speech_{language}.wav.\n    bypass_cache: If True, bypasses SQLite cache and invokes models directly.",
+      "parameters": {
+        "required": [
+          "text",
+          "language"
+        ],
+        "title": "synthesize_speechArguments",
+        "type": "object",
+        "properties": {
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "language": {
+            "title": "Language",
+            "type": "string"
+          },
+          "voice": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Voice"
+          },
+          "style": {
+            "default": "news",
+            "title": "Style",
+            "type": "string"
+          },
+          "output_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Output Path"
+          }
+        }
+      },
+      "source": "mcp"
+    },
+    {
+      "name": "extract_document_text",
+      "description": "Extract full document text and structured tables using Indic-OCR or direct parsing.\n\nUse when: rendered documents (.pdf, .xps, .epub, .tiff) or raster images (.png, .jpg) must become text via Indic-OCR; or local whole .docx parsing.\nDo NOT use when: the file is plain text (.txt, .md, .csv, .json, .srt), or bounded character pagination/slices are required (call read_text_file).\nCost: paid, about INR 0.20 per page image; DOCX fast path is free.\n\nEstimated cost: ₹0.20 per page image. A 40-page scanned PDF is billed page by page; page_limit caps how many pages get processed. Corrupted or unreadable PDFs raise ToolError honestly — do not retry the same file blindly.\nDigital-born PDF pages are extracted locally via PyMuPDF at zero API cost; only pages sent to Indic-OCR (scanned pages, raster images) bill per page image.\n\nProcesses Indian-language documents (.pdf, .docx, .xps, .epub, .tiff) and raster images\n(.png, .jpg, .jpeg, .webp, .bmp, .gif), returning whole-document or page-by-page text.\n\nROUTING CONTRACT & BOUNDARIES:\n- WHOLE-DOCUMENT OCR ONLY: Always extracts the complete document or page-by-page text via Indic-OCR.\n  Multi-page rendered documents (PDF, TIFF, etc.) and raster images are rasterized and extracted completely.\n- NO CHARACTER PAGINATION BOUNDARY: Returns full document/page text and does NOT support character-level\n  offset pagination. For bounded character slices or ranges (e.g. characters 4,000–5,999) on ANY\n  file—including .docx—always call `read_text_file` with the zero-based pagination formula:\n  `offset = start`, `limit = end - start + 1` (e.g. characters 4,000–5,999 require `offset=4000, limit=2000`).\n  NEVER call `extract_document_text` for bounded windows or character slices; it returns the entire document.\n- LOCAL DOCX FAST-PATH: For .docx files, paragraphs and tables are extracted directly and locally\n  with zero external API cost, formatting tables as Markdown or HTML.\n- NEVER use this tool for raw source code or plain text files (.txt, .md, .csv, .json, .srt);\n  use `read_text_file` instead.\n- NEVER call `inspect_media` as a prerequisite before this tool.\n\nArgs:\n    file_path: Path to the document or image file on disk.\n    table_format: Format for extracted tables ('markdown' or 'html').\n    page_limit: Maximum number of pages to rasterize/OCR (optional); omitted = all pages.\n    bypass_cache: If True, bypasses SQLite cache and invokes models directly.",
+      "parameters": {
+        "required": [
+          "file_path"
+        ],
+        "title": "extract_document_textArguments",
+        "type": "object",
+        "properties": {
+          "file_path": {
+            "title": "File Path",
+            "type": "string"
+          },
+          "table_format": {
+            "default": "markdown",
+            "enum": [
+              "markdown",
+              "html"
+            ],
+            "title": "Table Format",
+            "type": "string"
+          },
+          "page_limit": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Page Limit"
+          }
+        }
+      },
+      "source": "mcp"
+    },
+    {
+      "name": "inspect_media",
+      "description": "Fast, free metadata inspection (duration, sample rate, format, page count, image dimensions). Call ONLY when metadata is explicitly requested; never call as a prerequisite before transcribe_audio or extract_document_text.\n\nUse when: checking audio duration, sample rate, image dimensions, format, or document page count before spending money on costly models.\nDo NOT use when: the task needs actual text, transcripts, or translations extracted.\nCost: free (zero API cost).\n\nProvides fast, free inspection of audio duration, sample rate, channels, image dimensions/format,\nor document page count without extracting text or incurring API cost.\n\nROUTING CONTRACT & BOUNDARIES:\n- CALL ONLY WHEN EXPLICITLY REQUESTED: Fast, free metadata inspection (duration, sample rate, format, page count, image dimensions).\n  Call ONLY when metadata is explicitly requested.\n- NEVER A PREREQUISITE: Never call as a prerequisite before transcribe_audio or extract_document_text.\n  Downstream tools automatically handle audio chunking, format conversion, and document rasterization internally.\n- METADATA ONLY: Does NOT extract text, transcribe speech, or run OCR.\n- NO REDUNDANT CALLS: Do not call repeatedly if file metadata is already known from prior steps\n  or tool outputs.\n\nArgs:\n    file_path: Path to the media file on disk.",
+      "parameters": {
+        "properties": {
+          "file_path": {
+            "title": "File Path",
+            "type": "string"
+          }
+        },
+        "required": [
+          "file_path"
+        ],
+        "title": "inspect_mediaArguments",
+        "type": "object"
+      },
+      "source": "mcp"
+    },
+    {
+      "name": "read_text_file",
+      "description": "Read a text file from disk safely within workspace roots using bounded character pagination.\n\nUse when: reading plain text (.txt, .md, .csv, .json, .srt, .py) or bounded character pagination on ANY file including .docx using offset and limit.\nDo NOT use when: the file is a PDF or raster image requiring OCR.\nCost: free (zero API cost).\n\nShields caller context windows from flooding when opening large text files, transcripts,\nor subtitles. Returns JSON with metadata including total file size, current offset, character\ncount returned, whether more text remains (has_more), next_offset, and the text slice. Free of charge (zero API cost).\n\nROUTING CONTRACT & BOUNDARIES:\n- ZERO-BASED CHARACTER PAGINATION FORMULA (offset=start, limit=end-start+1):\n  Supports exact zero-based character offset and limit. When reading a character slice or window\n  from `start` to `end` (inclusive) on ANY file—including .docx—always call this tool using the formula:\n  `offset = start`, `limit = end - start + 1`\n  (e.g. to read characters 4,000–5,999: pass `offset=4000, limit=2000` because 5999 - 4000 + 1 = 2000).\n  Always call this tool whenever bounded slices, character ranges, or windows are requested.\n- DOCX SUPPORT: Automatically extracts structured text from local .docx files as well,\n  honoring the exact zero-based pagination formula (`offset=start, limit=end-start+1`) for character-level pagination.\n- WORKSPACE CONTAINMENT: Reads text files safely strictly within permitted workspace roots.\n  Never reads outside workspace boundaries or sensitive files (.env, keys).\n- PLAIN TEXT & CODE: Always use this tool for raw text or code files (.txt, .md, .csv, .json, .srt, .py).\n  NEVER use `extract_document_text` (OCR) for raw text or code files.\n\nArgs:\n    file_path: Path to the text file on disk (or .docx file).\n    offset: Zero-based character start index (default 0). Formula: `offset = start`.\n    limit: Number of characters to read (default 10,000). Formula: `limit = end - start + 1`.",
+      "parameters": {
+        "properties": {
+          "file_path": {
+            "title": "File Path",
+            "type": "string"
+          },
+          "offset": {
+            "default": 0,
+            "title": "Offset",
+            "type": "integer"
+          },
+          "limit": {
+            "default": 10000,
+            "title": "Limit",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "file_path"
+        ],
+        "title": "read_text_fileArguments",
+        "type": "object"
+      },
+      "source": "mcp"
+    },
+    {
+      "name": "write_text_file",
+      "description": "Write text content to a file on disk strictly within workspace boundaries.\n\nUse when: saving translated markdown, summaries, reports, or preexisting text in context safely inside the authorized workspace root.\nDo NOT use when: the deliverable is spoken audio (.wav) (use synthesize_speech), subtitles from an audio file (use transcribe_audio with output_format='srt'), or the destination path attempts directory traversal (..).\nCost: free (zero API cost).\n\nSaves generated text artifacts: SRT subtitles, translated Markdown, summaries, transcripts,\nor reports. Automatically creates parent directories. Free of charge (zero API cost).\n\nROUTING CONTRACT & BOUNDARIES:\n- WORKSPACE CONTAINMENT: Writes text files strictly within the active workspace root.\n  All target paths are validated to stay within workspace containment.\n- REJECTION OF PATH TRAVERSAL (..): Strictly rejects path traversal ('..') that attempts to escape\n  workspace boundaries with a ToolError.\n- REJECTION OF AUDIO FILES: Intended strictly for UTF-8 text files. Strictly rejects audio deliverables.\n  Deliverables requiring spoken audio, voiceovers, or .wav files must use `synthesize_speech`, NOT this tool.\n  Never call `write_text_file` when an audio file or .wav deliverable is requested, and never write base64\n  or raw bytes to simulate audio files.\n- INDIC PROVENANCE BOUNDARY: Indic-script content written to artifacts MUST originate from a Bodhan tool result (translate_text, extract_document_text, transcribe_audio outputs). Do not write free-form Indic text you drafted yourself; report infeasibility instead.\n\nArgs:\n    file_path: Destination path for the file strictly within workspace roots (e.g. 'subtitles.srt' or 'artifacts/subtitles.srt').\n    content: Text content to write (UTF-8 encoded).",
+      "parameters": {
+        "properties": {
+          "file_path": {
+            "title": "File Path",
+            "type": "string"
+          },
+          "content": {
+            "title": "Content",
+            "type": "string"
+          }
+        },
+        "required": [
+          "file_path",
+          "content"
+        ],
+        "title": "write_text_fileArguments",
+        "type": "object"
+      },
+      "source": "mcp"
+    },
+    {
+      "name": "detect_language",
+      "description": "Detect the script and likely language of text using Unicode block analysis.\n\nUse when: text is already in context and you need to identify the script and plausible ISO codes using Unicode block analysis.\nDo NOT use when: input is a file path or audio file (read or transcribe first); or language is already known from task context.\nCost: free (zero API cost).\n\nPerforms Unicode block analysis locally on text already in context (pass string text directly,\nnever file paths) without external API cost.\nIdentifies the dominant Indic script block (Devanagari, Tamil, Bengali, Gurmukhi,\nGujarati, Odia, Telugu, Kannada, Malayalam, Arabic, Ol Chiki, Meitei Mayek) or Latin.\nFree of charge (zero API cost).\n\nROUTING CONTRACT & BOUNDARIES:\n- UNICODE BLOCK ANALYSIS ON IN-CONTEXT TEXT: Operates via Unicode block analysis strictly on text\n  already present in context. Pass text strings directly; do NOT pass file paths.\n- SCRIPT & LANGUAGE DETECTION: Returns the dominant script, character count, and candidate ISO codes.\n- UNSTATED LANGUAGE HELPER ONLY: Useful when input language is unstated or ambiguous. Do NOT call if\n  the language is already known from user instructions, file naming, or preceding steps.\n- SHARED SCRIPT AMBIGUITY: Note that Devanagari script is shared across Hindi, Marathi, Nepali,\n  Sanskrit, Maithili, Bhojpuri, and Konkani. Use semantic task context or instructions to disambiguate.\n- DOMINANT BLOCK ONLY: Reports only the dominant Unicode block. Devanagari covers Hindi/Marathi/Nepali/Sanskrit/etc. and romanized Hinglish/Tanglish reports Latin; never use this call alone to claim a specific language. Record the assumption.\n\nArgs:\n    text: Text already in context to analyze (provide at least a few words for reliable detection; do NOT pass file paths).",
+      "parameters": {
+        "properties": {
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "title": "detect_languageArguments",
+        "type": "object"
+      },
+      "source": "mcp"
+    }
+  ],
+  "control_tools": [
+    {
+      "name": "submit_plan",
+      "description": "Submit structured execution plan assessing feasibility, steps, and assumptions before tool execution.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "goal": {
+            "type": "string",
+            "description": "Goal statement for the task."
+          },
+          "feasible": {
+            "type": "boolean",
+            "description": "Whether the task is feasible with Indic AI capabilities."
+          },
+          "infeasibility_reason": {
+            "type": "string",
+            "description": "Reason why the task is infeasible, if feasible=false."
+          },
+          "assumptions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Key assumptions made before execution."
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Planned sequential execution steps."
+          },
+          "target_language": {
+            "type": "string",
+            "description": "Target language code (e.g. 'hi', 'mr', 'ta', 'en')."
+          }
+        },
+        "required": [
+          "goal",
+          "feasible",
+          "steps"
+        ]
+      },
+      "source": "control"
+    },
+    {
+      "name": "finish",
+      "description": "Conclude task execution with status, final answer, generated artifacts, and validated assumptions.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "completed",
+              "impossible",
+              "failed"
+            ],
+            "description": "Execution status."
+          },
+          "answer": {
+            "type": "string",
+            "description": "Final detailed answer or summary of results."
+          },
+          "artifacts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of generated artifact file paths."
+          },
+          "assumptions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Assumptions maintained or validated during execution."
+          }
+        },
+        "required": [
+          "status",
+          "answer"
+        ]
+      },
+      "source": "control"
+    }
+  ],
+  "supported_langs": [
+    "as",
+    "bhb",
+    "bho",
+    "bn",
+    "brx",
+    "doi",
+    "en",
+    "gu",
+    "hi",
+    "kn",
+    "kok",
+    "ks",
+    "ks-Deva",
+    "mai",
+    "ml",
+    "mni",
+    "mni-Beng",
+    "mr",
+    "ne",
+    "or",
+    "pa",
+    "sa",
+    "sat",
+    "sd",
+    "sd-Arab",
+    "ta",
+    "te",
+    "ur"
+  ]
+}

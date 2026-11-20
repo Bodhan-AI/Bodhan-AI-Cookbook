@@ -40,7 +40,11 @@ scratch/*
 !scratch/.gitkeep
 tmp/
 
-# Experiments (development notebooks — not part of submission)
-!experiments/
-experiments/*
-!experiments/09_errors.ipynb
+# Experiments execution artifacts, run logs, and caches (notebooks, docs, and benchmarks are tracked)
+experiments/out/
+experiments/outputs/
+experiments/**/__pycache__/
+experiments/**/.ipynb_checkpoints/
+experiments/**/*.db
+experiments/**/*.sqlite
+experiments/**/*.sqlite3

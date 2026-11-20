@@ -1,0 +1,12 @@
+Field notes from the Kolar pilot, 14 March.
+
+The ASR pass mis-heard "solar pump" as "solar bump" in eleven of the forty clips.
+We corrected the glossary, re-ran the affected files, and the error rate fell from
+9.4 percent to 3.1 percent. The remaining misses are mostly code-switched sentences
+where the speaker switches from Kannada to English mid-clause.
+
+Action items before the next pilot:
+1. Add the corrected glossary to the shared prompt template.
+2. Ask the field team to record two minutes of silence between interviews so the
+   silence-aware splitter has clean boundaries to work with.
+3. Re-check the Telugu clips, which nobody has reviewed yet.

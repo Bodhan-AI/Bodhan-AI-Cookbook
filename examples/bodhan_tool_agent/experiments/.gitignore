@@ -1,0 +1,21 @@
+# Execution artifacts, run traces, and outputs
+out/
+outputs/
+
+# Temporary caches, databases, and checkpoints
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+*.db
+*.sqlite
+*.sqlite3
+
+# Audio and media generated during interactive runs
+*.wav
+*.mp3
+*.ogg
+*.webm
+*.flac
+*.m4a
+*.srt
+*.log

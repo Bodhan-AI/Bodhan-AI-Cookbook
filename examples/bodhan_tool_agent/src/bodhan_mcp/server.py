@@ -532,6 +532,10 @@ async def transcribe_audio(
 ) -> str:
     """Transcribe spoken audio in 27 Indian languages plus English (28 codes total) using Indic-Transcribe.
 
+        Use when: speech in an audio or video file must become text or timestamped subtitles (.srt, .vtt). Handles files of any duration by auto-slicing <=30s chunks and writes subtitle deliverables directly to output_path.
+        Do NOT use when: the caller only needs duration/format metadata without speech-to-text, or the deliverable is spoken audio.
+        Cost: paid, about INR 0.10 per audio minute.
+
         Estimated cost: ₹0.10 per input audio minute.
 
         Used for verbatim ASR, speech-to-English translation, and post-synthesis audio deliverable verification (back-transcribing generated .wav files to confirm speech was synthesized faithfully). Handles files of any duration by auto-chunking <=30s chunks at speech pauses.
@@ -809,6 +813,10 @@ async def translate_text(
     bypass_cache: bool = False,
 ) -> str:
     """Translate text between 27 Indian languages plus English (28 codes total) using Indic-Translate.
+
+        Use when: text already exists in context and must be translated into one of 28 supported Indian languages or English. Source language should be omitted for auto-detection.
+        Do NOT use when: the input is a file path or audio; or the deliverable is spoken audio (.wav); or the target language is unsupported non-Indic.
+        Cost: paid, about INR 0.20 per 10k tokens.
 
         Estimated cost: ₹0.20 per 10,000 output tokens.
         Want English subtitles or text from speech? Use transcribe_audio(task='translate'); this tool translates text only, never audio.
@@ -1094,6 +1102,10 @@ async def synthesize_speech(
 ) -> str:
     """Synthesize 24 kHz WAV speech from Indian-language or English text using Indic-Speak.
 
+        Use when: the requested deliverable is spoken audio (.wav file) or reading text aloud. Text is already in the target Indian language or English.
+        Do NOT use when: the text requires translation first; or the caller only wants text/SRT saved to disk.
+        Cost: paid, about INR 6.00 per 10k characters.
+
         Estimated cost: ₹6 per 10,000 input characters. Long documents may split into many paid parts; split or confirm very long deliverables rather than synthesizing blindly.
         Valid voice names come from the voice catalog resource (bodhan://catalog/voices); default voices are used per language if omitted.
 
@@ -1320,6 +1332,10 @@ async def extract_document_text(
     bypass_cache: bool = False,
 ) -> str:
     """Extract full document text and structured tables using Indic-OCR or direct parsing.
+
+        Use when: rendered documents (.pdf, .xps, .epub, .tiff) or raster images (.png, .jpg) must become text via Indic-OCR; or local whole .docx parsing.
+        Do NOT use when: the file is plain text (.txt, .md, .csv, .json, .srt), or bounded character pagination/slices are required (call read_text_file).
+        Cost: paid, about INR 0.20 per page image; DOCX fast path is free.
 
         Estimated cost: ₹0.20 per page image. A 40-page scanned PDF is billed page by page; page_limit caps how many pages get processed. Corrupted or unreadable PDFs raise ToolError honestly — do not retry the same file blindly.
         Digital-born PDF pages are extracted locally via PyMuPDF at zero API cost; only pages sent to Indic-OCR (scanned pages, raster images) bill per page image.
@@ -1565,6 +1581,10 @@ async def _ocr_images(
 async def inspect_media(file_path: str) -> str:
     """Fast, free metadata inspection (duration, sample rate, format, page count, image dimensions). Call ONLY when metadata is explicitly requested; never call as a prerequisite before transcribe_audio or extract_document_text.
 
+        Use when: checking audio duration, sample rate, image dimensions, format, or document page count before spending money on costly models.
+        Do NOT use when: the task needs actual text, transcripts, or translations extracted.
+        Cost: free (zero API cost).
+
         Provides fast, free inspection of audio duration, sample rate, channels, image dimensions/format,
         or document page count without extracting text or incurring API cost.
 
@@ -1654,6 +1674,10 @@ async def read_text_file(
 ) -> str:
     """Read a text file from disk safely within workspace roots using bounded character pagination.
 
+        Use when: reading plain text (.txt, .md, .csv, .json, .srt, .py) or bounded character pagination on ANY file including .docx using offset and limit.
+        Do NOT use when: the file is a PDF or raster image requiring OCR.
+        Cost: free (zero API cost).
+
         Shields caller context windows from flooding when opening large text files, transcripts,
         or subtitles. Returns JSON with metadata including total file size, current offset, character
         count returned, whether more text remains (has_more), next_offset, and the text slice. Free of charge (zero API cost).
@@ -1724,6 +1748,10 @@ async def read_text_file(
 async def write_text_file(file_path: str, content: str) -> str:
     """Write text content to a file on disk strictly within workspace boundaries.
 
+        Use when: saving translated markdown, summaries, reports, or preexisting text in context safely inside the authorized workspace root.
+        Do NOT use when: the deliverable is spoken audio (.wav) (use synthesize_speech), subtitles from an audio file (use transcribe_audio with output_format='srt'), or the destination path attempts directory traversal (..).
+        Cost: free (zero API cost).
+
         Saves generated text artifacts: SRT subtitles, translated Markdown, summaries, transcripts,
         or reports. Automatically creates parent directories. Free of charge (zero API cost).
 
@@ -1778,6 +1806,10 @@ _SCRIPT_RANGES: list[tuple[int, int, str, list[str]]] = [
 @mcp.tool()
 async def detect_language(text: str) -> str:
     """Detect the script and likely language of text using Unicode block analysis.
+
+        Use when: text is already in context and you need to identify the script and plausible ISO codes using Unicode block analysis.
+        Do NOT use when: input is a file path or audio file (read or transcribe first); or language is already known from task context.
+        Cost: free (zero API cost).
 
         Performs Unicode block analysis locally on text already in context (pass string text directly,
         never file paths) without external API cost.

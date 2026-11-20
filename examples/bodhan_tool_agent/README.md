@@ -1,6 +1,6 @@
 # Bodhan Tool Server & Autonomous Task Agent
 
-[![Demo Walkthrough](https://img.shields.io/badge/Demo_Video-Watch_5--Min_Walkthrough-red?style=for-the-badge&logo=youtube)](https://youtu.be/placeholder-demo-video)
+[![Demo Walkthrough](https://img.shields.io/badge/Demo_Video-Watch_5--Min_Walkthrough-red?style=for-the-badge&logo=youtube)](https://youtu.be/4QsKQ_k5JFU?si=5O8l05JU66l5vhol)
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11%20%7C%203.12%20%7C%203.13-3776AB?style=for-the-badge&logo=python&logoColor=white)](pyproject.toml)
 [![FastMCP](https://img.shields.io/badge/MCP-FastMCP%20stdio%202.0-blueviolet?style=for-the-badge&logo=anthropic)](https://github.com/jlowin/fastmcp)
 [![Models Covered](https://img.shields.io/badge/Bodhan_Models-4_Indic_Engines-008080?style=for-the-badge)](https://console.bodhan.ai/)
@@ -32,7 +32,7 @@ The autonomous agent implements a resilient, estimated-Bodhan-budget-guarded **R
 
 > An end-to-end 5-minute technical recording demonstrating CLI execution, pre-flight budget circuit breaking, multi-step Indic pipelines, and honest refusal on out-of-domain tasks.
 
-[![Bodhan Agent Demo Video](https://img.shields.io/badge/YouTube-Watch_5--Min_System_Demo-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/placeholder-demo-video)
+[![Bodhan Agent Demo Video](https://img.shields.io/badge/YouTube-Watch_5--Min_System_Demo-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/4QsKQ_k5JFU?si=5O8l05JU66l5vhol)
 
 ### What the demo highlights:
 1. **Demo Task 1 (Multi-Step Synthesis):** Multi-page Indic NLP PDF ingested via hybrid extraction (instant local PyMuPDF digital text with OCR fallback) $\to$ English analytical synthesis $\to$ Tamil translation $\to$ natural Tamil audio via `indic-speak`.
@@ -45,6 +45,8 @@ The autonomous agent implements a resilient, estimated-Bodhan-budget-guarded **R
 ## 🔄 System Architecture
 
 The architecture completely decouples the autonomous ReAct reasoning agent (`bodhan_agent`) from the tool provider (`bodhan_mcp`) via the standard Model Context Protocol.
+
+![Bodhan Tool Agent & FastMCP Server Architecture](assets/architecture.jpg)
 
 ```mermaid
 flowchart TD
