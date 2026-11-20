@@ -103,10 +103,12 @@ def main() -> None:
     ap.add_argument("--out", default=str(ROOT / "evaluation" / "clients" / "inspector.md"))
     a = ap.parse_args()
     tmp = Path(tempfile.mkdtemp(prefix="client_check_"))
+    (tmp / ".env").write_text("DECOY=not-a-key\n", encoding="utf-8")
     t = Transcript(tmp)
     env_args = ["--env-file", str(Path(a.env_file).resolve())] if a.env_file else []
-    server = [sys.executable, "-m", "bodhan_mcp", "--artifacts-dir", str(tmp / "art"), "--no-cache", *env_args]
-    shown = "npx " + INSPECTOR + " --cli python -m bodhan_mcp --artifacts-dir <tmp>/art --no-cache" + (" --env-file <env-file>" if env_args else "")
+    server = [sys.executable, "-m", "bodhan_mcp", "--artifacts-dir", str(tmp / "art"), "--allow-dir", str(tmp), "--no-cache", *env_args]
+    shown = ("npx " + INSPECTOR + " --cli python -m bodhan_mcp --artifacts-dir <tmp>/art --allow-dir <tmp> --no-cache"
+             + (" --env-file <env-file>" if env_args else ""))
 
     # ---- stdio ------------------------------------------------------------------
     code, out = inspector(server, ["--method", "tools/list"])
@@ -133,6 +135,8 @@ def main() -> None:
              code == 0 and (r.get("detection") or {}).get("language") == "ta")
     bad = [("unsupported target language", ["--tool-name", "translate_text", "--tool-arg", "text=Hello", "--tool-arg", "target_language=fr"], "unsupported_language"),
            ("missing file", ["--tool-name", "ocr_document", "--tool-arg", f"path={tmp / 'missing.png'}"], "file_not_found"),
+           # the read sandbox refuses hidden files even inside --allow-dir (a decoy .env, so a regression could not leak a real key)
+           ("hidden file .env", ["--tool-name", "read_text", "--tool-arg", f"path={tmp / '.env'}"], "path_not_allowed"),
            ("unknown voice", ["--tool-name", "synthesize_speech", "--tool-arg", "text=নমস্কার", "--tool-arg", "language=bn", "--tool-arg", "voice=Nobody"],
             "unsupported_voice"),
            # Inspector checks the name against tools/list and refuses before sending; the server's own unknown_tool
