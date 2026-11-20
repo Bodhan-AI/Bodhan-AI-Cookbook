@@ -21,7 +21,7 @@ The `h1`–`h8` tasks are my own held-out tasks, written to resemble the kinds o
 
 ### Clean Linux setup (containers)
 
-Checked on 20 November 2026 on `7b55815` (the final code, exported with `git archive`), and on `4b6a4f0`, `588bb9b` and from fresh clones of `53f1c6d`, `66db214`, `94b4891` and earlier `182938e`, with the same results. These are **Linux containers on WSL2 (Docker Desktop 29.9.3, linux/amd64, kernel 6.18.58.1-microsoft-standard-WSL2)**, not a native Linux machine.
+Checked on 20 November 2026 on `e90080a` (the final code, exported with `git archive`), and on `4b6a4f0`, `588bb9b` and from fresh clones of `53f1c6d`, `66db214`, `94b4891` and earlier `182938e`, with the same results. These are **Linux containers on WSL2 (Docker Desktop 29.9.3, linux/amd64, kernel 6.18.58.1-microsoft-standard-WSL2)**, not a native Linux machine.
 
 | Check | Image | Result |
 |---|---|---|
