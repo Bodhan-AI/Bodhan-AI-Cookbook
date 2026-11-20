@@ -213,6 +213,35 @@ def recheck_omission(x: np.ndarray, sr: int, text: str, finding: dict, lang: str
     return sum(w in heard for w in missing) / max(1, len(missing))
 
 
+REPEAT_PAD_S = 3.0  # wider than for omissions: the extra copy itself shifts everything after it, and both copies must be in the cut
+
+
+def _count(seq: list[str], phrase: list[str]) -> int:
+    n = len(phrase)
+    return sum(seq[k:k + n] == phrase for k in range(len(seq) - n + 1))
+
+
+def recheck_repetition(x: np.ndarray, sr: int, text: str, finding: dict, lang: str, bodhan, ctx=None) -> bool:
+    """Transcribe only the stretch around a suspected repeat. A transcriber loop depends on its context, so a repeat that
+    is heard again in a separate cut is in the audio. Returns True when the cut confirms it."""
+    phrase = finding["repeated"]
+    toks = spoken_tokens(text)
+    a = [t for t, _ in toks]
+    span = finding["span"]
+    if span is None:  # a loop found by n-gram counts: locate the phrase in the text
+        k = next((k for k in range(len(a) - len(phrase) + 1) if a[k:k + len(phrase)] == phrase), None)
+        if k is None:
+            return False
+        span = (toks[k][1][0], toks[k + len(phrase) - 1][1][1])
+    s, e = span
+    dur = len(x) / sr
+    per_char = dur / max(1, len(text))
+    t0 = max(0.0, s * per_char - REPEAT_PAD_S)
+    t1 = min(dur, e * per_char + (e - s) * per_char + REPEAT_PAD_S)  # room for the second copy
+    piece = bodhan.transcribe(wav_bytes(x[int(t0 * sr):int(t1 * sr)], sr), lang, ctx=ctx)
+    return _count(transcript_tokens(piece), phrase) > max(1, _count(a, phrase))  # heard more often than written, at least twice
+
+
 # ---------------------------------------------------------------- alignment
 
 def _is_repeat(inserted: list[str], context: list[str]) -> bool:
@@ -259,6 +288,12 @@ def align(text: str, transcript: str) -> dict:
     loops = [g for g, c in counts.items() if c > 1 and c > text_str.count(f" {' '.join(g)} ") and PLACEHOLDER not in g]
     if loops and not any(f["shape"] == "repetition" for f in findings):
         findings.append({"shape": "repetition", "span": None, "repeated": list(max(loops, key=len))})
+    for f in findings:  # a repeat is located where its phrase is written, not at the word before the extra copy
+        if f["shape"] == "repetition":
+            n = len(f["repeated"])
+            k = next((k for k in range(len(a) - n + 1) if a[k:k + n] == f["repeated"]), None)
+            if k is not None:
+                f["span"] = (toks[k][1][0], toks[k + n - 1][1][1])
     ratio = difflib.SequenceMatcher(a=words, b=b, autojunk=False).ratio() if words else 1.0
     return {"similarity": round(ratio, 4), "findings": findings, "text_words": len(words), "transcript_words": len(b)}
 

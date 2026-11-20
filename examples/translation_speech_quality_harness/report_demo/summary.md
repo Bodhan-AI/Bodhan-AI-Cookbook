@@ -1,8 +1,8 @@
 # Quality report
 
-Items scored: **120** · skipped: **0** · model cost: **₹1.27**
+Items scored: **120** · skipped: **0** · model cost: **₹1.30**
 
-The worst language is Bengali (bn), which has the highest weighted error rate at 78.9 errors per 1,000 words. The most problematic error category overall is format errors, with 11 instances across all languages. All five quality targets were met: detection recall 0.902 (≥ 80 %), false alarms on clean items 0.0 (≤ 10 %), localization 0.887 (≥ 70 %), category accuracy 0.891 (≥ 70 %), and judge consistency 0.945 (≥ 90 %). *(Written by the LLM from the numbers below.)*
+The highest weighted error rate is in Bengali (78.9 errors per 1,000 words), making it the worst‑performing language. Across all languages, the “format” category has the most issues (11 total flags), so it is the weakest error type. All five quality targets are satisfied (detection recall 0.951, false alarms 0.0, localization 0.935, category accuracy 0.914, judge consistency 0.945). *(Written by the LLM from the numbers below.)*
 
 ## Headline
 
@@ -14,8 +14,8 @@ The worst language is Bengali (bn), which has the highest weighted error rate at
 | Language | clean | flagged | review | unscored | flags | weighted / 1k words |
 | --- | --- | --- | --- | --- | --- | --- |
 | bn | 20 | 18 | 2 | 0 | 18 | 78.9 |
-| hi | 17 | 19 | 4 | 0 | 20 | 63.8 |
-| ta | 14 | 18 | 8 | 0 | 19 | 66.7 |
+| hi | 16 | 20 | 4 | 0 | 21 | 67.4 |
+| ta | 12 | 20 | 8 | 0 | 21 | 73.8 |
 
 Weights: minor 1, major 5, critical 10. Lower is better.
 
@@ -24,15 +24,15 @@ Weights: minor 1, major 5, critical 10. Lower is better.
 | Category | bn | hi | ta | total |
 | --- | --- | --- | --- | --- |
 | format | 2 | 6 | 3 | 11 |
-| mistranslation | 3 | 3 | 2 | 8 |
+| mistranslation | 3 | 2 | 2 | 7 |
 | omission | 3 | 2 | 2 | 7 |
 | speech_omission | 2 | 2 | 2 | 6 |
 | wrong_language | 2 | 2 | 2 | 6 |
 | addition | 2 | 1 | 2 | 5 |
 | garbled | 1 | 2 | 2 | 5 |
 | number | 2 | 1 | 2 | 5 |
-| term | 0 | 1 | 2 | 3 |
-| speech_repetition | 1 | 0 | 0 | 1 |
+| speech_repetition | 1 | 1 | 2 | 4 |
+| term | 0 | 2 | 2 | 4 |
 
 ## Top failures
 
@@ -58,10 +58,10 @@ Weights: minor 1, major 5, critical 10. Lower is better.
 
 | Metric | Value | Target | Met |
 | --- | --- | --- | --- |
-| Detection recall | 90% | >= 80% | yes |
+| Detection recall | 95% | >= 80% | yes |
 | False alarms on clean items | 0% | <= 10% | yes |
-| Localization | 89% | >= 70% | yes |
-| Category accuracy | 89% | >= 70% | yes |
+| Localization | 94% | >= 70% | yes |
+| Category accuracy | 91% | >= 70% | yes |
 | Judge consistency | 94% | >= 90% | yes |
 
 | Category | Recall | Precision | Found / labelled |
@@ -69,12 +69,12 @@ Weights: minor 1, major 5, critical 10. Lower is better.
 | addition | 67% | 80% | 4 / 6 |
 | format | 100% | 73% | 8 / 8 |
 | garbled | 83% | 100% | 5 / 6 |
-| mistranslation | 83% | 62% | 5 / 6 |
+| mistranslation | 83% | 71% | 5 / 6 |
 | number | 83% | 100% | 5 / 6 |
 | omission | 100% | 86% | 6 / 6 |
 | speech_omission | 100% | 100% | 6 / 6 |
-| speech_repetition | 17% | 100% | 1 / 6 |
-| term | 50% | 100% | 3 / 6 |
+| speech_repetition | 67% | 100% | 4 / 6 |
+| term | 67% | 100% | 4 / 6 |
 | wrong_language | 100% | 100% | 6 / 6 |
 
 22 uncertain findings are in `review_queue.csv`. Fill `human_label` (a category, or `clean`) and pass the file back with `--calibration` to re-calibrate.

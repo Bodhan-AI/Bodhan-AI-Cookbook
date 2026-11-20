@@ -180,3 +180,20 @@ def test_recheck_clears_omission_heard_in_the_cut():
     assert cs.recheck_omission(x, 24000, s["text"], f, "hi", Fake(" ".join(words[6:15]))) >= cs.RECHECK_HEARD
     assert cs.recheck_omission(x, 24000, s["text"], f, "hi", Fake("कुछ और")) == 0
     assert calls[0] < len(cs.wav_bytes(x, 24000))  # only a cut was sent
+
+
+def test_recheck_confirms_a_repeat_heard_again_in_the_cut():
+    text = "इस कदम से भूमि को बदलने में भी मदद मिलेगी।"
+    al = cs.align(text, "इस कदम से भूमि को बदलने में भी मदद को बदलने में भी मदद मिलेगी")
+    f = next(f for f in al["findings"] if f["shape"] == "repetition")
+    x = np.zeros(24000 * 8, dtype=np.float32)
+
+    class Fake:
+        def __init__(self, reply):
+            self.reply = reply
+
+        def transcribe(self, wav, lang, ctx=None):
+            return self.reply
+
+    assert cs.recheck_repetition(x, 24000, text, f, "hi", Fake("भूमि को बदलने में भी मदद को बदलने में भी मदद मिलेगी"))
+    assert not cs.recheck_repetition(x, 24000, text, f, "hi", Fake("भूमि को बदलने में भी मदद मिलेगी"))  # heard once: transcriber loop

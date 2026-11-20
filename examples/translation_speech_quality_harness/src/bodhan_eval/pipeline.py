@@ -200,6 +200,15 @@ def run(args, bodhan=None, llm=None, env=os.environ) -> int:
                     al["findings"].remove(f)
                     res["_speech_noise"] = res.get("_speech_noise", 0) + 1
             res["_cands"] += cs.align_candidates(al, st)
+            for f in [f for f in al["findings"] if f["shape"] == "repetition"]:
+                # Second, independent signal: the repeat heard again when only its stretch is transcribed.
+                try:
+                    if cs.recheck_repetition(x, sr, item["translation"], f, item["lang"], bodhan, {**ctx, "check": "transcript_recheck"}):
+                        res["_cands"].append(cs.cand("transcript_recheck", "speech_repetition", "noisy", 0.6, None, f["span"], "major",
+                                                     detail="repeat heard again in a separate transcription of its stretch",
+                                                     repeated=" ".join(f["repeated"])[:200]))
+                except NotRun:
+                    pass
             res["scores"]["speech_similarity"] = al["similarity"]
             res["audio"]["transcript"] = tr[0]
             sims.append((i, al["similarity"], bool(al["findings"])))

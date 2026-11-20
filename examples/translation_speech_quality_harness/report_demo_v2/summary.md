@@ -1,22 +1,22 @@
 # Quality report
 
-Items scored: **120** · skipped: **0** · model cost: **₹1.29**
+Items scored: **120** · skipped: **0** · model cost: **₹1.32**
 
-Hindi has the highest weighted error rate (66.7 errors per 1,000 words), making it the worst language, and “format” errors are the most frequent category with nine occurrences across languages. All five quality targets—detection recall (0.85 ≥ 80 %), false alarms on clean items (1.7 % ≤ 10 %), localization (0.817 ≥ 70 %), category accuracy (0.939 ≥ 70 %), and judge consistency (0.933 ≥ 90 %)—are met. *(Written by the LLM from the numbers below.)*
+Hindi shows the highest weighted error rate (70.3 errors per 1,000 words), so it is the worst language. The most common error type is “format” errors, with a total of nine occurrences across languages. All five quality targets were met, as each metric’s value meets or exceeds its specified threshold. *(Written by the LLM from the numbers below.)*
 
 ## Headline
 
-- Worst language: **hi**, 66.7 weighted errors per 1,000 source words.
+- Worst language: **hi**, 70.3 weighted errors per 1,000 source words.
 - Most frequent error: **format**, 9 flags.
-- Against the baseline: **47** items regressed, **51** improved (see `diff.md`).
+- Against the baseline: **48** items regressed, **53** improved (see `diff.md`).
 
 ## Per language
 
 | Language | clean | flagged | review | unscored | flags | weighted / 1k words |
 | --- | --- | --- | --- | --- | --- | --- |
 | bn | 19 | 17 | 4 | 0 | 18 | 59.5 |
-| hi | 14 | 19 | 7 | 0 | 19 | 66.7 |
-| ta | 14 | 16 | 10 | 0 | 16 | 51.6 |
+| hi | 12 | 20 | 8 | 0 | 20 | 70.3 |
+| ta | 12 | 17 | 11 | 0 | 17 | 55.2 |
 
 Weights: minor 1, major 5, critical 10. Lower is better.
 
@@ -33,6 +33,7 @@ Weights: minor 1, major 5, critical 10. Lower is better.
 | wrong_language | 2 | 2 | 2 | 6 |
 | garbled | 2 | 2 | 0 | 4 |
 | term | 1 | 1 | 1 | 3 |
+| speech_repetition | 0 | 1 | 1 | 2 |
 
 ## Top failures
 
@@ -58,9 +59,9 @@ Weights: minor 1, major 5, critical 10. Lower is better.
 
 | Metric | Value | Target | Met |
 | --- | --- | --- | --- |
-| Detection recall | 85% | >= 80% | yes |
+| Detection recall | 88% | >= 80% | yes |
 | False alarms on clean items | 2% | <= 10% | yes |
-| Localization | 82% | >= 70% | yes |
+| Localization | 85% | >= 70% | yes |
 | Category accuracy | 94% | >= 70% | yes |
 | Judge consistency | 93% | >= 90% | yes |
 
@@ -73,7 +74,7 @@ Weights: minor 1, major 5, critical 10. Lower is better.
 | number | 83% | 83% | 5 / 6 |
 | omission | 100% | 100% | 6 / 6 |
 | speech_omission | 100% | 100% | 6 / 6 |
-| speech_repetition | 0% | n/a | 0 / 6 |
+| speech_repetition | 33% | 100% | 2 / 6 |
 | term | 50% | 100% | 3 / 6 |
 | wrong_language | 100% | 100% | 6 / 6 |
 
@@ -85,4 +86,4 @@ Counted as false alarms. Labels that only record injected errors leave real mode
   - source: “## E”
   - translation: “की उम्र 21 से घटाकर 18 वर्ष कर दी गई थी।⟦⟧”
 
-27 uncertain findings are in `review_queue.csv`. Fill `human_label` (a category, or `clean`) and pass the file back with `--calibration` to re-calibrate.
+29 uncertain findings are in `review_queue.csv`. Fill `human_label` (a category, or `clean`) and pass the file back with `--calibration` to re-calibrate.

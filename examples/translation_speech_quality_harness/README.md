@@ -80,7 +80,7 @@ python -m bodhan_eval.inject --dataset clean.jsonl --out injected.jsonl --rate 0
 
 `tools/holdout.py` calibrates on half the items and scores the other half. `tools/cost_runtime.py report_demo` prints cost and runtime per 100 items.
 
-Run the tests with `pytest` (229 tests, offline, about 12 seconds).
+Run the tests with `pytest` (234 tests, offline, about 12 seconds).
 
 Report files: `summary.md`, `summary.json`, `items.jsonl`, `calibration.json`, `diff.md` (with `--baseline`), plus `review_queue.csv`, `dashboard.html` and `run_log.jsonl`. Every flag in `items.jsonl` lists its category, severity, spans on both sides, quotes, and the evidence from each check. `run_log.jsonl` records every model call with its cache key, so any flag can be traced back to the calls behind it.
 
@@ -97,7 +97,7 @@ There are three tiers. Each check emits candidates with a strength: exact, noisy
 | 2, Bodhan | Back-translation | Source sentences missing from the round trip, extra sentences | Noisy; re-checked sentence by sentence |
 | 2, Bodhan | Regeneration diff | Words that differ from a fresh greedy translation | Exact if this run reproduces most items, else noisy |
 | 2, code | Audio statistics | Silence, clipping, long pauses, noise, speaking rate, abrupt end | Exact to weak |
-| 2, Bodhan | Back-transcription | Missing tail, skipped words, repeated or looped phrases, garbled stretches | By shape of the mismatch, never by error rate |
+| 2, Bodhan | Back-transcription | Missing tail, skipped words, repeated or looped phrases, garbled stretches | By shape of the mismatch, never by error rate. A suspected skip or repeat is re-transcribed on its own as a second signal |
 | 3, LLM | Judge | Mistranslation, omission, addition, term, with quotes | Two passes; counts only if both agree and every quote is found in the text. Flags only with another check beside it; alone, it goes to the review queue |
 
 The LLM never writes Indian-language text. It quotes, code finds the quote, and Indian-script characters are stripped from its explanations. Thresholds come from statistics of the current run and from the labels you pass in, never from constants tuned on the demo. Details are in [`DESIGN.md`](DESIGN.md).
@@ -108,26 +108,24 @@ The demo set has 120 rows: 40 sources in Hindi, Tamil and Bengali, with 60 injec
 
 | Run | Recall (≥ 80%) | False alarms (≤ 10%) | Localization (≥ 70%) | Category acc. (≥ 70%) |
 | --- | --- | --- | --- | --- |
-| Full demo, all 120 rows | **90%** | **0%** | **89%** | **89%** |
-| Half B, all checks | **93%** | **3%** | **93%** | **88%** |
-| Half B, judge off | 69% | **3%** | 70% | **90%** |
-| Half B, regeneration diff off | 69% | **3%** | 70% | **93%** |
+| Full demo, all 120 rows | **95%** | **0%** | **94%** | **91%** |
+| Half B, all checks | **95%** | **3%** | **95%** | **90%** |
+| Half B, judge off | 71% | **3%** | 72% | **90%** |
+| Half B, regeneration diff off | 71% | **3%** | 72% | **94%** |
 
 - Judge consistency is 94%, against a 90% target: re-judging gave the same verdict.
 - Determinism: a rerun from cache gives byte-identical report files at no cost.
 - Per language on the full demo:
-  - Recall: Hindi 90%, Tamil 90%, Bengali 90%.
+  - Recall: Hindi 95%, Tamil 100%, Bengali 90%.
   - False alarms: 0% in every language.
 - Per category, from `report_demo/summary.md`:
   - 100% on format, omission, speech omission and wrong language.
   - 83% on garbled, mistranslation and number.
-  - 67% on addition.
-  - 50% on term.
-  - 17% on speech repetition.
+  - 67% on addition, term and speech repetition.
 
 **The judge flags only with support.** In an earlier version, a finding from the judge alone became a flag. On the full demo that gave 12 flags, none of them on an injected error, and a 15% false-alarm rate. Several were real model errors on rows labelled clean only because nothing was injected into them: "vegan" became शाकाहारी (vegetarian), and "Swimming Pool" became পুকুর (pond). Judge-only findings now go to `review_queue.csv`, where both of these examples are, so a person decides. The cost shows in the regen-diff-off row: without the diff, nothing else backs the judge on meaning errors, and recall falls to the judge-off level.
 
-**Speech repetition is weak.** The transcript is the only independent speech signal, and one noisy signal goes to the review queue, not to a flag.
+**Speech repetition needs a second hearing.** A repeat in the transcript may be the transcriber looping, so it is one noisy signal. The harness transcribes just that stretch again, and a repeat heard in that separate cut is the second signal. The judge's verdict does not count against speech findings, because the judge reads the text and never hears the audio. Repeats that land beside a number read aloud, or that the transcriber blurs, are still missed.
 
 ## Cost and runtime
 

@@ -139,7 +139,7 @@ Every check returns **candidates**: a category, a strength class (exact, noisy o
 - **Back-transcription** is done in pieces under 30 s. The transcript is aligned word by word with the translation; numbers and formulas become wildcards, because they are read out unpredictably. Mismatches are classified by **shape**, never by error rate. Indic-Speak's model card reports about 18% character error on clean audio, so a rate threshold would flag clean speech.
   - Missing tail: truncation. Exact if it is at least a third of the text, else noisy.
   - Missing middle: omission. The stretch is re-transcribed alone, and if it is heard there, the suspect is checker noise.
-  - Extra words that copy their neighbours, or a phrase heard more often than it is written: repetition.
+  - Extra words that copy their neighbours, or a phrase heard more often than it is written: repetition. It is located where the phrase is written. The stretch is then re-transcribed alone, with 3 s on each side. If the phrase is heard there more often than it is written, that is a second, independent signal (`transcript_recheck`), because a transcriber loop depends on its context.
   - Almost no words for more than 2 s of audio, or similarity far below the language's own floor: garbled.
   - Single-word slips are ignored as transcriber noise.
 
@@ -175,8 +175,9 @@ The judge is the only part that understands meaning. It reads the source, the tr
    - Two different noisy checks flag, unless the judge called the item clean in every pass, which sends it to review.
    - One noisy check flags only with a weak signal beside it. Otherwise it goes to review, or is dropped as checker noise if the judge called the item clean.
    - Weak signals alone are dropped.
+   - The judge's clean verdict never counts against a speech group. The judge reads the text, not the audio.
 3. **Merge.**
-   - Category: the exact check's category, else the one most checks agree on, else the judge's.
+   - Category: the exact check's category, else the one most checks agree on, else the judge's. A mistranslation whose source side is a name or acronym becomes a term. That means one to four capitalised Latin words, excluding a lone capitalised word that starts a sentence.
    - Severity: the judge's, else the highest hint. Rules raise a changed dose, money amount or date to critical, and a lost negation to critical. A single dropped or added word is minor.
    - Span: the narrowest from the strongest class.
    - Confidence: 1 − ∏(1 − strength) over the different checks.

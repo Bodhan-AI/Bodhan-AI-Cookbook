@@ -3,29 +3,29 @@
 Baseline: `report_demo`
 
 Compared **120** items (only in baseline: 0, only in this run: 0).
-**47** items regressed (48 new flags; 42 items with a new major or critical one).
-**51** items improved (52 flags gone).
+**48** items regressed (49 new flags; 43 items with a new major or critical one).
+**53** items improved (54 flags gone).
 
 | Language | weighted / 1k words, baseline | this run |
 | --- | --- | --- |
 | bn | 78.9 | 59.5 |
-| hi | 63.8 | 66.7 |
-| ta | 66.7 | 51.6 |
+| hi | 67.4 | 70.3 |
+| ta | 73.8 | 55.2 |
 
 | Category | new | fixed |
 | --- | --- | --- |
 | addition | 6 | 4 |
 | format | 7 | 9 |
 | garbled | 4 | 5 |
-| mistranslation | 6 | 8 |
+| mistranslation | 6 | 7 |
 | number | 6 | 5 |
 | omission | 6 | 7 |
 | speech_omission | 5 | 5 |
-| speech_repetition | 0 | 1 |
-| term | 3 | 3 |
+| speech_repetition | 2 | 4 |
+| term | 2 | 3 |
 | wrong_language | 5 | 5 |
 
-Status changes: clean → flagged: 18, flagged → clean: 14, flagged → review: 8, review → flagged: 1.
+Status changes: clean → flagged: 18, clean → review: 2, flagged → clean: 15, flagged → review: 9, review → flagged: 2.
 
 ## Regressions
 

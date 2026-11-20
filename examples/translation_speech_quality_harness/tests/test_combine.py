@@ -43,6 +43,21 @@ def test_decision_table(cands, verdict, status):
     assert combine(cands, verdict)[0] == status
 
 
+def test_clean_text_verdict_does_not_veto_speech():
+    rep = cand("transcript", "speech_repetition", "noisy", 0.6, None, S)
+    again = cand("transcript_recheck", "speech_repetition", "noisy", 0.6, None, S)
+    assert combine([rep], "clean")[0] == "review"
+    assert combine([rep, again], "clean")[0] == "flagged"
+
+
+def test_name_on_the_source_side_makes_a_term():
+    from bodhan_eval.combine import is_name
+    src = "Regulators said SEC Chair Gary Gensler met Kiev officials."
+    span = lambda w: (src.index(w), src.index(w) + len(w))  # noqa: E731
+    assert is_name(src, span("Gary Gensler")) and is_name(src, span("SEC")) and is_name(src, span("Kiev"))
+    assert not is_name(src, span("Regulators")) and not is_name(src, span("officials")) and not is_name(src, None)
+
+
 def test_noise_is_counted():
     assert combine([noisy()], "clean")[3] == 1
 

@@ -8,6 +8,8 @@ wmt-125,ta,term,major,0.5,"[141, 146]","[47, 60]",Jails,சிறைச்சா
 wmt-130,bn,term,major,0.5,"[0, 14]","[0, 12]",Hailey Ockinga,হেইলি ওকিংগা,judge,,
 wmt-130,hi,term,minor,0.5,"[0, 14]","[0, 11]",Hailey Ockinga,हेली ओकिंगा,judge,,
 wmt-2,bn,mistranslation,major,0.85,"[0, 38]","[12, 36]","""People Swimming in the Swimming Pool""",পুকুরে সাঁতার কাটা মানুষ,judge,,
+wmt-2,hi,speech_omission,major,0.7,null,"[123, 148]",,फोटो सौजन्य: विसेंटे सिसो,transcript,,
+wmt-2,ta,speech_omission,major,0.7,null,"[175, 211]",,புகைப்படம் Vicente Siso-வுக்கு நன்றி,transcript,,
 wmt-28,hi,term,major,0.85,"[0, 16]","[0, 32]",European brewers,यूरोपीय शराब बनाने वाली कंपनियों,judge,,
 wmt-28,hi,omission,critical,0.85,"[49, 61]",null,and not beer,,judge,,
 wmt-28,ta,term,major,0.85,"[0, 16]","[0, 32]",European brewers,ஐரோப்பிய மதுபான உற்பத்தியாளர்கள்,judge,,

@@ -66,6 +66,8 @@ def group(candidates: list[dict]) -> list[list[dict]]:
 
 def decide(g: list[dict], judge_verdict: str | None) -> str:
     """'flag', 'review' or 'drop' for one group."""
+    if all(c["category"] in SPEECH for c in g):
+        judge_verdict = None  # the judge reads the text and never hears the audio: its verdict says nothing about speech
     classes = {c["class"] for c in g}
     noisy_checks = {c["check"] for c in g if c["class"] == "noisy"}
     judge_agreed = [c for c in g if c["class"] == "judge"]
@@ -144,6 +146,18 @@ def combine(candidates: list[dict], judge_verdict: str | None = None) -> tuple[s
     return ("flagged" if flags else "review" if review else "clean"), flags, review, dropped
 
 
+def is_name(source: str, span) -> bool:
+    """The span is a proper name or acronym: one to four Latin words, all capitalised, and not just a capitalised
+    sentence opener ("Regulators said...")."""
+    if not span:
+        return False
+    words = re.findall(r"[A-Za-z][\w'-]*", source[span[0]:span[1]])
+    if not 1 <= len(words) <= 4 or not all(w[0].isupper() for w in words):
+        return False
+    opener = not source[:span[0]].strip() or source[:span[0]].rstrip()[-1] in ".!?:\n#"
+    return len(words) >= 2 or words[0].isupper() and len(words[0]) > 1 or not opener
+
+
 _NEGATION = re.compile(r"\b(not|never|no|none|nothing|without|cannot|neither|nor)\b|n't\b", re.I)
 
 
@@ -152,6 +166,8 @@ def adjust_severity(flag: dict, source: str, translation: str) -> dict:
     addition of a single word, with no judge severity, is minor."""
     sv, tv = flag.get("source_span"), flag.get("translation_span")
     src_text = source[sv[0]:sv[1]] if sv else ""
+    if flag["category"] == "mistranslation" and is_name(source, sv):
+        flag["category"], flag["category_reason"] = "term", "the source side is a name or acronym"
     if flag["category"] in ("omission", "addition", "mistranslation") and _NEGATION.search(src_text):
         flag["severity"], flag["severity_reason"] = "critical", "negation involved"
         return flag
