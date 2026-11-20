@@ -1,4 +1,4 @@
-"""Regression tests for review round 5 (commit 3f41986)."""
+"""Language identification, planner billing and source provenance (regressions from review round 5, commit 3f41986)."""
 
 import json
 
@@ -274,7 +274,7 @@ def test_a_priced_planner_call_cut_off_by_a_kill_is_charged_on_resume(tmp_path):
     assert st["llm_cost"] == pytest.approx(0.5 * 3 + 0.1)  # the unsettled call at every attempt it could make, plus the settled one
 
 
-# ---- competitive review, tier 0 --------------------------------------------------------------
+# ---- offline probes of hidden-task shapes --------------------------------------------------------------
 def test_planner_retries_follow_the_providers_wait_hint():
     from bodhan_agent.llm import MAX_RETRY_WAIT_S, retry_wait
 

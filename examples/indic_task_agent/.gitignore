@@ -14,7 +14,6 @@ __pycache__/
 # Generated media and run outputs (media stays out of git; see README "Test media")
 sample_data/*
 !sample_data/.gitkeep
-!sample_data/README.md
 outputs/*
 !outputs/.gitkeep
 bodhan_mcp_artifacts/

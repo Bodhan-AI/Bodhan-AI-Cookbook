@@ -1,4 +1,4 @@
-"""Hidden-task cases found by offline probes (competitive review, tier 2)."""
+"""Hidden-task cases found by offline probes of task shapes the brief does not list."""
 
 import json
 import unicodedata
@@ -191,7 +191,7 @@ async def test_verify_speech_error_names_the_real_field(make_ctx, tmp_path):
     assert err and "expected_path" in r["error"]["message"]
 
 
-# CodeRabbit (tier 0-2 diff) ------------------------------------------------------------------
+# CodeRabbit (offline-probe fixes) ------------------------------------------------------------------
 def test_redaction_ignores_how_the_words_are_spaced():
     g = ProvenanceGuard()
     out = g.redact("Answer: नई\nबात  यहाँ, done.")
@@ -268,7 +268,7 @@ def test_the_same_output_declared_under_two_kinds_shares_its_artifact(tmp_path):
     assert agent._contract_gaps([art], "Done.")  # two translations still need two artifacts
 
 
-# GPT-6.1 Sol review of the tier 2 diff -------------------------------------------------------
+# GPT-6.1 Sol review of the offline-probe fixes -------------------------------------------------------
 def test_redaction_by_position_leaves_no_unknown_text():
     out = ProvenanceGuard().redact("क English क ख")
     assert "क" not in out and "ख" not in out and "English" in out

@@ -1,4 +1,4 @@
-"""Cases from the review of other submissions: middle pages, a corrupted audio tail, and a hard process kill."""
+"""Robustness cases: middle pages of a long scan, a corrupted audio tail, and a hard process kill."""
 
 import json
 import os

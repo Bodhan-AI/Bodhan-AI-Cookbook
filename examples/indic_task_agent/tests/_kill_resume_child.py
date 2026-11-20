@@ -1,4 +1,4 @@
-"""Child process for test_research_regressions.test_resume_after_a_hard_process_kill.
+"""Child process for test_robustness_regressions.test_resume_after_a_hard_process_kill.
 
     python _kill_resume_child.py first|resume <tmp_path>
 

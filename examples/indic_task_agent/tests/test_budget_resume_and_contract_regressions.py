@@ -1,4 +1,4 @@
-"""Regression tests for review round 4 (commit 37f5bd2)."""
+"""Budgets, resume, deliverable contracts and cancellation (regressions from review round 4, commit 37f5bd2)."""
 
 import asyncio
 import json

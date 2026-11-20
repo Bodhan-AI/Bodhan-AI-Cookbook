@@ -14,11 +14,7 @@
 
 The planner can be any OpenAI-compatible endpoint with tool calling. It plans, writes English and judges results. Bodhan models do all speech recognition, translation, speech synthesis and OCR, and code refuses Indian-language text written by the planner.
 
-More detail:
-
-- [docs/design.md](docs/design.md): the architecture diagram, the agent-loop flow chart, and why each part is built the way it is.
-- [docs/api_notes.md](docs/api_notes.md): observed API behaviour, including where it differs from the published docs.
-- [docs/evaluation.md](docs/evaluation.md): every run, with links to its outputs and traces.
+More detail: [docs/design.md](docs/design.md) (diagrams and design reasons), [docs/api_notes.md](docs/api_notes.md) (observed API behaviour) and [docs/evaluation.md](docs/evaluation.md) (every run, with outputs and traces).
 
 ## Results at a glance
 
@@ -93,7 +89,7 @@ out/
 Other flags:
 
 - `--max-seconds` sets the wall-clock limit for the whole run (default 600). A slow planner may need 900.
-- `--call-timeout` sets the limit per request (default 60 s).
+- `--call-timeout` sets the limit per Bodhan request (default 60 s), and `--llm-timeout` per planner request (default 120 s).
 - `--concurrency` sets parallel requests per model (default 8). The API allows 10, and a 429 halves it.
 - `--no-cache` and `--cache-dir` control the result cache.
 - `--env-file` loads the variables from another file.
@@ -107,7 +103,7 @@ Other flags:
 python -m bodhan_agent --resume --out ./out
 ```
 
-The agent checkpoints to `out/.state/` around every planner turn, without keys. `--resume` checks that the inputs are unchanged, re-runs a turn that was cut off, and continues within the remaining limits. Finished paid work comes back from the run's own cache, not billed again. Each checkpoint also writes a provisional `report.json` and `result.md`, so a run stopped by Ctrl-C, SIGTERM (`docker stop`) or a crash still has a report ([details](docs/design.md#resume)).
+The agent checkpoints to `out/.state/` around every planner turn, without keys. `--resume` checks that the inputs are unchanged, re-runs a cut-off turn and continues within the remaining limits; finished paid work comes from the run's cache. Each checkpoint also writes a provisional `report.json` and `result.md`, so a run stopped by Ctrl-C, SIGTERM (`docker stop`) or a crash still has a report ([details](docs/design.md#resume)).
 
 ### Watch a run live
 
@@ -179,7 +175,7 @@ pytest -q                                  # 230 offline tests, no network or ke
 python scripts/run_suite.py                # live self-evaluation of evaluation/tasks.json (exit 1 if any task fails)
 ```
 
-The offline tests run against `tests/fakes.py`, a mock of the four endpoints that enforces their limits, with a scripted planner. They cover each tool's chunking and limits, retries and billing, budgets under concurrency, the gates, resume, the MCP server as a separate process, and multi-step runs through the CLI. The `tests/test_*_regressions.py` files hold one test per review finding. `scripts/run_suite.py` checks status, deliverables, languages, checks, answer text and budget per task: structural checks, not a quality score.
+The offline tests run against `tests/fakes.py`, a mock of the four endpoints that enforces their limits, with a scripted planner. They cover chunking, retries, billing, budgets under concurrency, the gates, resume, the MCP server as a separate process, and multi-step CLI runs. The `tests/test_*_regressions.py` files hold one test per review finding. `scripts/run_suite.py` checks status, deliverables, languages, checks, answer text and budget per task: structural checks, not a quality score.
 
 ## Test media
 
@@ -187,14 +183,14 @@ Media stays out of git. `scripts/make_fixtures.py` generates every demo input in
 
 ## Limitations
 
-- **Subtitles cost three requests per cue** (transcription, translation and back-translation), and cues are about 7 s long. The 2 min 50 s voice note in d2 had 30 cues: 90 Bodhan requests, plus 41 attempts refused by rate limits (323 s against a 300 s target). Long audio is slow.
+- **Subtitles cost three requests per cue** (transcription, translation, back-translation), and cues are about 7 s. d2's 2 min 50 s voice note had 30 cues: 90 requests plus 41 rate-limited attempts, 323 s against a 300 s target.
 - **Subtitle timing is approximate.** `indic-transcribe` returns no timestamps, so cue boundaries are the pauses where the audio was cut.
 - **The checks are automatic, not linguistic.** Back-translation and back-transcription catch omissions, truncation, wrong scripts and garbled audio. They cannot judge fluency or terminology, and no fluent speaker has reviewed the outputs yet.
 - **Language ID is script-based.** Single-language scripts such as Telugu and Tamil are reliable. Devanagari languages and short Latin-script lines can be mislabelled; the result gives a confidence ([details](docs/design.md#language-identification)).
 - **Planner cost is bounded, not measured in advance.** With planner prices given, a call is sent only if the budget covers its upper bound, about 5× the real prompt size, so a priced planner stops early ([details](docs/design.md#budgets-cost-and-caching)).
-- **Latency is dominated by Indic-Speak**, about 20 s per request. Single-step speech tasks often miss the 30 s target, and `report.json` records each miss.
+- **Latency is dominated by Indic-Speak**, about 20 s per request, so single-step speech tasks often miss the 30 s target (recorded in `report.json`).
 - **Durations are approximate.** A requested length sets the English text length before translation. Missing it by more than ±25 % is a warning, not a retry.
-- **Planners differ.** The demos ran with `gpt-6.1-sol`; the same tasks ran with `gemini-3.5-flash-lite` and `gpt-5.6-luna` ([results](docs/evaluation.md#other-planner-models)). Groq's free tier (8,000-token request cap, 200,000 tokens a day) was too small to evaluate `gpt-oss-20b` and `gpt-oss-120b`.
+- **Planners differ.** `gemini-3.5-flash-lite` and `gpt-5.6-luna` also ran the tasks; Groq's free tier was too small to evaluate `gpt-oss` ([results](docs/evaluation.md#other-planner-models)).
 - **No dubbed video.** The agent can transcribe, translate and subtitle a video's speech, but it cannot re-voice the video.
 
 ## AI assistance
