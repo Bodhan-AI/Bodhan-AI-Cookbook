@@ -193,5 +193,5 @@ class RunSettings:
             }
         )
         for name in LLM_ENV:
-            env.pop(name, None)
+            env[name] = ""
         return env
