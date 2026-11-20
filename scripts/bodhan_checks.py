@@ -24,7 +24,10 @@ from pathlib import Path
 
 from bodhan_rules import allowed_models, deprecated_models, load_rules
 
-SOURCE_SUFFIXES = {".py", ".ipynb", ".js", ".ts", ".tsx", ".jsx", ".sh", ".md", ".txt", ".toml", ".yaml", ".yml", ".json", ".env", ".example"}
+SOURCE_SUFFIXES = {
+    ".py", ".ipynb", ".js", ".ts", ".tsx", ".jsx", ".kt", ".sh", ".md",
+    ".txt", ".toml", ".yaml", ".yml", ".json", ".env", ".example",
+}
 SKIP_DIRS = {".git", "node_modules", ".venv", "venv", "__pycache__", ".ipynb_checkpoints", "outputs", "sample_data", ".next", "dist", "build"}
 MAX_SCAN_BYTES = 2_000_000
 
@@ -45,7 +48,7 @@ PLACEHOLDER_HINTS = ("your", "xxx", "placeholder", "example", "replace", "<", "$
 MODEL_LITERAL = re.compile(
     r"""["'](?:model|model_id)["']?\s*[:=]\s*["']([A-Za-z0-9._/-]+)["']"""  # "model": "x" / model="x" in JSON/dicts
     r"""|-F\s+["']?model=([A-Za-z0-9._/-]+)"""  # curl -F model=x
-    r"""|model\s*=\s*["']([A-Za-z0-9._/-]+)["']"""  # model="x" kwargs
+    r"""|model(?:\s*:\s*[\w.<>?]+)?\s*=\s*["']([A-Za-z0-9._/-]+)["']"""  # model="x" kwargs
 )
 BCP47_IN = re.compile(r"""["'](?:[a-z]{2,3})-IN["']""")
 NON_BODHAN_BASE = re.compile(r"https://api\.(?:openai|sarvam|anthropic|groq|together)\.[a-z.]+")
@@ -141,7 +144,10 @@ def check_structure(root: Path, *, require_env_example: bool = True) -> Iterator
         if "<one-line description" in text or "<Recipe title>" in text:
             yield Finding("error", "structure", str(readme), "README still contains template placeholders")
 
-    code_files = [p for p in _iter_files(root) if p.suffix in {".ipynb", ".py", ".js", ".ts", ".tsx"}]
+    code_files = [
+        p for p in _iter_files(root)
+        if p.suffix in {".ipynb", ".py", ".js", ".ts", ".tsx", ".kt"}
+    ]
     if not code_files:
         yield Finding("error", "structure", rel_root, "no notebook or source file found (.ipynb/.py/.js/.ts)")
 
@@ -199,7 +205,7 @@ def check_api(root: Path, rules: dict | None = None) -> Iterator[Finding]:
     allowed = allowed_models(rules)
     deprecated = deprecated_models(rules)
     for path in _iter_files(root):
-        if path.suffix not in {".py", ".ipynb", ".js", ".ts", ".tsx", ".sh", ".md"}:
+        if path.suffix not in {".py", ".ipynb", ".js", ".ts", ".tsx", ".kt", ".sh", ".md"}:
             continue
         text = _read_text(path)
         if text is None:

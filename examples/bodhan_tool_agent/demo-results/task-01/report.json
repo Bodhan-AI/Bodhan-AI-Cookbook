@@ -1,0 +1,198 @@
+{
+  "schema_version": "1.1",
+  "run_id": "c4e74f13ba4b4648bc88e8821b91e437",
+  "task": "OCR a scanned PDF, summarize its English content, translate the summary into Tamil with Indic-Translate, and create verified Tamil speech.",
+  "status": "completed",
+  "completion_status": "completed",
+  "started_at": "2026-11-18T20:34:38.819737+00:00",
+  "finished_at": "2026-11-18T20:37:57.754510+00:00",
+  "steps": 4,
+  "max_steps": 30,
+  "cost_inr": 0.40376666666666666,
+  "estimated_cost_inr": 0.40376666666666666,
+  "actual_cost_inr": null,
+  "llm_cost_inr": null,
+  "cost_budget_inr": 20.0,
+  "budget_overrun_inr": 0.0,
+  "cost_scope": "Bodhan model cost estimates only; provider billing data is unavailable and LLM charges are excluded.",
+  "duration_seconds": 198.935,
+  "api_call_count": 11,
+  "tool_invocation_count": 4,
+  "provider_submission_count": 4,
+  "bodhan_provider_submission_count": 4,
+  "llm_provider_submission_count": 7,
+  "cache_hit_count": 0,
+  "estimated_charges_inr": 0.40376666666666666,
+  "bodhan_api_call_count": 4,
+  "llm_request_count": 7,
+  "retry_count": 2,
+  "total_retry_count": 2,
+  "bodhan_retry_count": 0,
+  "llm_retry_count": 2,
+  "operation_costs": [
+    {
+      "step": 1,
+      "tool": "ocr_document",
+      "estimated_cost_inr": 0.2,
+      "actual_cost_inr": null,
+      "estimated_charges_inr": 0.2,
+      "provider_submissions": 1,
+      "cache_hit": false,
+      "cost_basis": "page count at assignment rate",
+      "input_fingerprint": "b816a9dd272b5ad623c810fe4239ad92f238db2906ed3dd4c4d0be9fd4ef364a"
+    },
+    {
+      "step": 2,
+      "tool": "translate_text",
+      "estimated_cost_inr": 0.0,
+      "actual_cost_inr": null,
+      "estimated_charges_inr": 0.0,
+      "provider_submissions": 0,
+      "cache_hit": false,
+      "cost_basis": null,
+      "input_fingerprint": null
+    },
+    {
+      "step": 3,
+      "tool": "translate_text",
+      "estimated_cost_inr": 0.00138,
+      "actual_cost_inr": null,
+      "estimated_charges_inr": 0.00138,
+      "provider_submissions": 1,
+      "cache_hit": false,
+      "cost_basis": "reported output-token usage",
+      "input_fingerprint": "9076f51cd883c2b5d43be08546c1403a8b62f62b7eb744cfe3f74e6fb3b352d1"
+    },
+    {
+      "step": 4,
+      "tool": "generate_speech",
+      "estimated_cost_inr": 0.20238666666666666,
+      "actual_cost_inr": null,
+      "estimated_charges_inr": 0.20238666666666666,
+      "provider_submissions": 2,
+      "cache_hit": false,
+      "cost_basis": "input characters at assignment rate, plus verification transcription",
+      "input_fingerprint": "0f16cd2d2026dce307822c1d12db6605ccc0e619db431e7ab11ff4d6337c605e"
+    }
+  ],
+  "verification": [
+    {
+      "tool": "ocr_document",
+      "name": "ocr_page_coverage",
+      "status": "passed",
+      "checks": {
+        "expected_pages": 1,
+        "processed_pages": [
+          1
+        ],
+        "page_order_preserved": true,
+        "duplicate_pages": false,
+        "empty_pages": []
+      },
+      "failed_checks": [],
+      "warnings": [
+        "Table structure is preserved only to the extent returned by Bodhan OCR."
+      ]
+    },
+    {
+      "tool": "translate_text",
+      "name": "translation_chunk_coverage",
+      "status": "passed",
+      "checks": {
+        "source_chunks": 1,
+        "translated_chunks": 1,
+        "chunk_order_preserved": true,
+        "empty_outputs": false,
+        "truncation_detected": false
+      },
+      "failed_checks": [],
+      "warnings": [
+        "Semantic translation accuracy is not automatically verified."
+      ]
+    },
+    {
+      "tool": "generate_speech",
+      "status": "passed",
+      "method": "Bodhan Indic-Transcribe back-transcription",
+      "name": "speech_back_transcription",
+      "token_coverage": 0.971,
+      "sequence_similarity": 0.971,
+      "length_ratio": 1.0,
+      "expected_tokens": 35,
+      "back_transcribed_tokens": 35,
+      "repeated_or_extra_tokens": 1,
+      "missing_tokens": 1,
+      "checks": {
+        "audio_exists_and_nonempty": true,
+        "audio_decodes": true,
+        "duration_positive": true,
+        "chunk_order_checked_by_full_output_back_transcription": true
+      },
+      "failed_checks": [],
+      "warnings": [
+        "Back-transcription is a consistency check, not a pronunciation or semantic quality guarantee."
+      ],
+      "transcript_artifact": "artifacts/transcript-80113702.md"
+    }
+  ],
+  "artifacts": [
+    "artifacts/english-summary.md",
+    "artifacts/ocr-5607768f.md",
+    "artifacts/speech-4dd5f687.wav",
+    "artifacts/translation-ea12eb36.md"
+  ],
+  "summary": "OCR'd the 1-page scanned PDF chapter.pdf and produced Tamil speech from an English summary translated with Indic-Translate.\n\nArtifacts:\n- OCR text: artifacts/ocr-5607768f.md\n-English",
+  "assumptions": [
+    "The PDF's text is in English as indicated by OCR output; no specific language was forced on OCR.",
+    "The speech duration (~21 seconds) is the measured length of the generated WAV, not an exact content target."
+  ],
+  "warnings": [
+    "Back-transcription is a consistency check, not a pronunciation or semantic quality guarantee.",
+    "Semantic translation accuracy is not automatically verified.",
+    "Table structure is preserved only to the extent returned by Bodhan OCR."
+  ],
+  "failed_operations": [
+    {
+      "step": 2,
+      "tool": "translate_text",
+      "error": {
+        "code": "summary_too_short",
+        "message": "The proposed summary has 3 words, but the source is long enough to require at least 26. Write a concise summary of the source's main content, key events, and conclusion—not just its title—then translate that summary.",
+        "retryable": true,
+        "http_status": null,
+        "provider_code": null,
+        "retry_count": 0
+      },
+      "artifact_path": null
+    }
+  ],
+  "partial_completion": {
+    "is_partial": false,
+    "completed_steps": 3,
+    "failed_steps": 1,
+    "artifacts_preserved": [],
+    "reason": null
+  },
+  "quality_reasons": [
+    "Back-transcription is a consistency check, not a pronunciation or semantic quality guarantee.",
+    "Semantic translation accuracy is not automatically verified.",
+    "Table structure is preserved only to the extent returned by Bodhan OCR.",
+    "The proposed summary has 3 words, but the source is long enough to require at least 26. Write a concise summary of the source's main content, key events, and conclusion—not just its title—then translate that summary."
+  ],
+  "input_files": [
+    {
+      "name": "chapter.pdf",
+      "extension": ".pdf",
+      "size_bytes": 28717,
+      "inspection": {
+        "status": "ok",
+        "kind": "document",
+        "format": "PDF",
+        "page_count": 1
+      }
+    }
+  ],
+  "error_codes": [
+    "summary_too_short"
+  ]
+}
