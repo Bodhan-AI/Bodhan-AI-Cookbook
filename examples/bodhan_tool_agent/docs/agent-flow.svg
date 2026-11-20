@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 700" width="100%" height="100%" style="background:#0b0f19; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <defs>
+    <linearGradient id="stepGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <linearGradient id="gateGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#371b28"/>
+      <stop offset="100%" stop-color="#1f1019"/>
+    </linearGradient>
+    <linearGradient id="successGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#064e3b"/>
+      <stop offset="100%" stop-color="#022c22"/>
+    </linearGradient>
+    <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 8 5 L 0 9 z" fill="#38bdf8"/>
+    </marker>
+    <marker id="arrowRed" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 8 5 L 0 9 z" fill="#f43f5e"/>
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="480" y="40" text-anchor="middle" fill="#f8fafc" font-size="22" font-weight="700">Bodhan Task Agent Execution Flow</text>
+  <text x="480" y="62" text-anchor="middle" fill="#94a3b8" font-size="13">End-to-End Task Lifecycle: Deterministic Gates, Spend Control &amp; Verifications (SPEC §10)</text>
+
+  <!-- Flow Steps -->
+  <!-- 1. Task & Input Directory -->
+  <rect x="330" y="85" width="300" height="48" rx="8" fill="#1e293b" stroke="#38bdf8" stroke-width="1.5"/>
+  <text x="480" y="105" text-anchor="middle" fill="#ffffff" font-size="12" font-weight="bold">1. Task Input &amp; Files Directory</text>
+  <text x="480" y="122" text-anchor="middle" fill="#94a3b8" font-size="10">CLI invocation: --task, --files, --out, --max-cost-inr</text>
+
+  <!-- Arrow -->
+  <line x1="480" y1="133" x2="480" y2="155" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- 2. Resolver -->
+  <rect x="310" y="155" width="340" height="60" rx="8" fill="#1e293b" stroke="#38bdf8" stroke-width="1.5"/>
+  <text x="480" y="177" text-anchor="middle" fill="#38bdf8" font-size="12" font-weight="bold">2. Input Resolution (resolver.py)</text>
+  <text x="480" y="193" text-anchor="middle" fill="#cbd5e1" font-size="10">inspect_media cached · Exact match / ordinal / plural</text>
+  <text x="480" y="206" text-anchor="middle" fill="#94a3b8" font-size="9">Assign abstract IDs (A, B, C...) · Path traversal rejected</text>
+
+  <!-- Arrow -->
+  <line x1="480" y1="215" x2="480" y2="238" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- 3. Pre-flight Check Gate -->
+  <polygon points="480,238 600,278 480,318 360,278" fill="url(#gateGrad)" stroke="#f43f5e" stroke-width="1.5"/>
+  <text x="480" y="274" text-anchor="middle" fill="#fda4af" font-size="11" font-weight="bold">3. Pre-Flight Budget?</text>
+  <text x="480" y="288" text-anchor="middle" fill="#fecdd3" font-size="9">Estimate from metadata + 10% buffer</text>
+
+  <!-- Refusal Path -->
+  <line x1="600" y1="278" x2="730" y2="278" stroke="#f43f5e" stroke-width="2" marker-end="url(#arrowRed)"/>
+  <rect x="730" y="255" width="180" height="50" rx="6" fill="#1e1019" stroke="#f43f5e" stroke-width="1.5"/>
+  <text x="820" y="275" text-anchor="middle" fill="#fda4af" font-size="11" font-weight="bold">Refuse Immediately (C6)</text>
+  <text x="820" y="292" text-anchor="middle" fill="#cbd5e1" font-size="9">status="budget_exhausted" (₹0 spend)</text>
+
+  <!-- Pass Path Arrow -->
+  <line x1="480" y1="318" x2="480" y2="340" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="495" y="333" fill="#38bdf8" font-size="10" font-weight="bold">PASS</text>
+
+  <!-- 4. Plan Generation & Validation -->
+  <rect x="300" y="340" width="360" height="60" rx="8" fill="#1e293b" stroke="#38bdf8" stroke-width="1.5"/>
+  <text x="480" y="362" text-anchor="middle" fill="#38bdf8" font-size="12" font-weight="bold">4. Plan Generation &amp; Validation (planner.py)</text>
+  <text x="480" y="378" text-anchor="middle" fill="#cbd5e1" font-size="10">LLM sees IDs only (C4) · Validates tool registration</text>
+  <text x="480" y="392" text-anchor="middle" fill="#94a3b8" font-size="9">Rejects Indic Unicode (C2) &amp; paths · Deterministic fallback</text>
+
+  <!-- Arrow -->
+  <line x1="480" y1="400" x2="480" y2="422" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- 5. Step Loop & Executor -->
+  <rect x="290" y="422" width="380" height="62" rx="8" fill="#1e293b" stroke="#38bdf8" stroke-width="1.5"/>
+  <text x="480" y="444" text-anchor="middle" fill="#38bdf8" font-size="12" font-weight="bold">5. MCP Execution Loop (executor.py &amp; loop.py)</text>
+  <text x="480" y="460" text-anchor="middle" fill="#cbd5e1" font-size="10">Map ID → path (code-side) · Dispatch FastMCP tool call</text>
+  <text x="480" y="474" text-anchor="middle" fill="#94a3b8" font-size="9">Mid-run budget check · Record latency &amp; cost in trace.jsonl</text>
+
+  <!-- Arrow -->
+  <line x1="480" y1="484" x2="480" y2="506" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- 6. Security Scan & Untrusted Wrapping -->
+  <rect x="290" y="506" width="380" height="52" rx="8" fill="#1e293b" stroke="#a855f7" stroke-width="1.5"/>
+  <text x="480" y="527" text-anchor="middle" fill="#c084fc" font-size="12" font-weight="bold">6. Untrusted Wrapping &amp; Injection Scan (untrusted.py)</text>
+  <text x="480" y="545" text-anchor="middle" fill="#e2e8f0" font-size="10">Wrap text in demarcations · Hits logged to trace · Never executed (C8)</text>
+
+  <!-- Arrow -->
+  <line x1="480" y1="558" x2="480" y2="580" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- 7. Verifications -->
+  <rect x="290" y="580" width="380" height="52" rx="8" fill="#1e293b" stroke="#10b981" stroke-width="1.5"/>
+  <text x="480" y="601" text-anchor="middle" fill="#34d399" font-size="12" font-weight="bold">7. Artifact Verifications (verifier.py)</text>
+  <text x="480" y="619" text-anchor="middle" fill="#e2e8f0" font-size="10">Audio back-transcribe (≥0.85) · Segment coverage · Table parity · SRT cues</text>
+
+  <!-- Arrow -->
+  <line x1="480" y1="632" x2="480" y2="652" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- 8. Reporting & Outputs -->
+  <rect x="250" y="652" width="460" height="40" rx="8" fill="url(#successGrad)" stroke="#10b981" stroke-width="1.5"/>
+  <text x="480" y="677" text-anchor="middle" fill="#ffffff" font-size="12" font-weight="bold">8. Standard Artifacts: result.md · report.json · trace.jsonl · artifacts/</text>
+</svg>

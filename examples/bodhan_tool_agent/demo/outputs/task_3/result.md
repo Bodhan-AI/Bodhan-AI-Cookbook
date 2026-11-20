@@ -1,0 +1,24 @@
+# Execution Result
+
+**Task:** Translate worksheet_table.png to Marathi Markdown with table intact
+**Status:** `success`
+
+## Summary of Actions
+Deterministic fallback plan generated for task: 'Translate worksheet_table.png to Marathi Markdown with table intact'.
+
+## Final Output
+# विज्ञान कार्यपत्रिका: ग्रहांची वैशिष्ट्ये
+
+| ग्रह | व्यास (किमी) | चंद्र |
+| --- | --- | --- |
+| बुध | 4,879 | 0 |
+| शुक्र | 12,104 | 0 |
+| पृथ्वी | 12,742 | 1 |
+| मंगळ | 6,779 | 2 |
+
+## Assumptions & Trade-offs
+- Used deterministic fallback planner for canonical workflow.
+
+## Generated Artifacts
+- [s1_extracted.md](artifacts\s1_extracted.md)
+- [s2_translated.txt](artifacts\s2_translated.txt)

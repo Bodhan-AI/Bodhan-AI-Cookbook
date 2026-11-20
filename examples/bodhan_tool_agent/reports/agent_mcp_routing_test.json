@@ -1,0 +1,343 @@
+{
+  "timestamp": 1795173833.3364303,
+  "total_tests": 10,
+  "passed": 10,
+  "model": "openai/gpt-oss-120b",
+  "discovered_tools": [
+    "transcribe_audio",
+    "inspect_media",
+    "chunk_audio",
+    "get_voice_library",
+    "translate_text",
+    "synthesize_speech",
+    "ocr_page",
+    "ocr_document"
+  ],
+  "results": [
+    {
+      "id": "TC-01",
+      "name": "Audio Speech Transcription",
+      "task": "Transcribe the recorded Hindi speech clip to text with timestamps.",
+      "expected_tools": [
+        "transcribe_audio"
+      ],
+      "routed_tools": [
+        "transcribe_audio"
+      ],
+      "status": "success",
+      "passed": true,
+      "error": null,
+      "latency_ms": 1609.53,
+      "plan_rationale": "The user wants a Hindi speech clip transcribed with timestamps. The audio file is identified as A. Using the transcribe_audio tool with a Hindi language hint will produce the required timestamped transcription.",
+      "steps": [
+        {
+          "id": "s1",
+          "tool": "transcribe_audio",
+          "args": {
+            "input_path": "A",
+            "language_hint": "hi"
+          },
+          "depends_on": [],
+          "verify": null
+        }
+      ]
+    },
+    {
+      "id": "TC-02",
+      "name": "Audio Transcription + English Subtitles",
+      "task": "Transcribe speech_compressed.mp3 and translate it to English subtitles.",
+      "expected_tools": [
+        "transcribe_audio",
+        "translate_text"
+      ],
+      "routed_tools": [
+        "transcribe_audio",
+        "translate_text"
+      ],
+      "status": "success",
+      "passed": true,
+      "error": null,
+      "latency_ms": 1901.03,
+      "plan_rationale": "First transcribe the audio file (ID A) to obtain the spoken content with timestamps. Then translate the transcribed text from its original language (auto-detected) into English subtitles.",
+      "steps": [
+        {
+          "id": "s1",
+          "tool": "transcribe_audio",
+          "args": {
+            "input_path": "A",
+            "language_hint": null
+          },
+          "depends_on": [],
+          "verify": null
+        },
+        {
+          "id": "s2",
+          "tool": "translate_text",
+          "args": {
+            "text": {
+              "from_step": "s1"
+            },
+            "source_lang": "auto",
+            "target_lang": "en"
+          },
+          "depends_on": [
+            "s1"
+          ],
+          "verify": null
+        }
+      ]
+    },
+    {
+      "id": "TC-03",
+      "name": "Indic-to-Indic Text Translation",
+      "task": "Translate the public health notice in press_release_hindi.txt from Hindi to Tamil.",
+      "expected_tools": [
+        "translate_text"
+      ],
+      "routed_tools": [
+        "translate_text"
+      ],
+      "status": "success",
+      "passed": true,
+      "error": null,
+      "latency_ms": 1676.2,
+      "plan_rationale": "The user wants the Hindi press release (file A) translated into Tamil. Using the translate_text tool with the file ID loads the Hindi text automatically, and specifying source_lang='hi' and target_lang='ta' performs the required translation while adhering to all constraints.",
+      "steps": [
+        {
+          "id": "s1",
+          "tool": "translate_text",
+          "args": {
+            "file_id": "A",
+            "source_lang": "hi",
+            "target_lang": "ta"
+          },
+          "depends_on": [],
+          "verify": null
+        }
+      ]
+    },
+    {
+      "id": "TC-04",
+      "name": "Text to Speech Synthesis",
+      "task": "Synthesize speech for announcement_tamil.txt in Tamil using a female voice.",
+      "expected_tools": [
+        "synthesize_speech"
+      ],
+      "routed_tools": [
+        "get_voice_library",
+        "synthesize_speech"
+      ],
+      "status": "success",
+      "passed": true,
+      "error": null,
+      "latency_ms": 1677.32,
+      "plan_rationale": "First retrieve the list of available Tamil voices (including female options) with get_voice_library. Then synthesize the Tamil announcement text (file A) using a female Tamil voice selected from the previous step's output.",
+      "steps": [
+        {
+          "id": "s1",
+          "tool": "get_voice_library",
+          "args": {},
+          "depends_on": [],
+          "verify": null
+        },
+        {
+          "id": "s2",
+          "tool": "synthesize_speech",
+          "args": {
+            "file_id": "A",
+            "language": "Tamil",
+            "voice_id": {
+              "from_step": "s1"
+            }
+          },
+          "depends_on": [
+            "s1"
+          ],
+          "verify": null
+        }
+      ]
+    },
+    {
+      "id": "TC-05",
+      "name": "Multi-Page Document OCR",
+      "task": "Perform OCR on legal_circular.pdf to extract all text and Markdown tables.",
+      "expected_tools": [
+        "ocr_document"
+      ],
+      "routed_tools": [
+        "ocr_document"
+      ],
+      "status": "success",
+      "passed": true,
+      "error": null,
+      "latency_ms": 1027.48,
+      "plan_rationale": "The user wants to extract all text and any Markdown tables from the PDF file 'legal_circular.pdf'. Using the ocr_document tool on the provided PDF (identified by ID A) will return the full document content in Markdown format, preserving tables. No prior steps are required.",
+      "steps": [
+        {
+          "id": "s1",
+          "tool": "ocr_document",
+          "args": {
+            "pdf_path": "A"
+          },
+          "depends_on": [],
+          "verify": null
+        }
+      ]
+    },
+    {
+      "id": "TC-06",
+      "name": "Single Image Table OCR",
+      "task": "Extract the worksheet table from receipt_table.png into clean Markdown.",
+      "expected_tools": [
+        "ocr_page"
+      ],
+      "routed_tools": [
+        "ocr_page"
+      ],
+      "status": "success",
+      "passed": true,
+      "error": null,
+      "latency_ms": 1868.26,
+      "plan_rationale": "The user wants to extract the worksheet table from the image receipt_table.png and present it as clean Markdown. The appropriate tool is ocr_page, which extracts Markdown text and pipe tables from a single image. We reference the image by its assigned ID \"A\" (per constraint C4) and no prior steps are needed.",
+      "steps": [
+        {
+          "id": "s1",
+          "tool": "ocr_page",
+          "args": {
+            "image_path": "A"
+          },
+          "depends_on": [],
+          "verify": null
+        }
+      ]
+    },
+    {
+      "id": "TC-07",
+      "name": "Full End-to-End Pipeline (OCR -> Translate -> TTS)",
+      "task": "Extract text from annual_report.pdf, translate it into Marathi, and create an audio summary.",
+      "expected_tools": [
+        "ocr_document",
+        "translate_text",
+        "synthesize_speech"
+      ],
+      "routed_tools": [
+        "ocr_document",
+        "translate_text",
+        "synthesize_speech"
+      ],
+      "status": "success",
+      "passed": true,
+      "error": null,
+      "latency_ms": 2198.56,
+      "plan_rationale": "Step s1 extracts the full text from the provided PDF (ID A) using OCR. Step s2 translates the extracted English text into Marathi while preserving any Markdown structure. Step s3 converts the Marathi translation into spoken audio using a default Marathi voice. The steps are ordered to satisfy data dependencies.",
+      "steps": [
+        {
+          "id": "s1",
+          "tool": "ocr_document",
+          "args": {
+            "pdf_path": {
+              "file_id": "A"
+            }
+          },
+          "depends_on": [],
+          "verify": null
+        },
+        {
+          "id": "s2",
+          "tool": "translate_text",
+          "args": {
+            "text": {
+              "from_step": "s1"
+            },
+            "source_lang": "en",
+            "target_lang": "mr"
+          },
+          "depends_on": [
+            "s1"
+          ],
+          "verify": null
+        },
+        {
+          "id": "s3",
+          "tool": "synthesize_speech",
+          "args": {
+            "text": {
+              "from_step": "s2"
+            },
+            "language": "mr",
+            "voice_id": "default"
+          },
+          "depends_on": [
+            "s2"
+          ],
+          "verify": null
+        }
+      ]
+    },
+    {
+      "id": "TC-08",
+      "name": "Audio Chunking Helper Tool",
+      "task": "Inspect lecture_long_45s.wav and chunk the audio into slices under 30 seconds.",
+      "expected_tools": [
+        "chunk_audio"
+      ],
+      "routed_tools": [
+        "inspect_media",
+        "chunk_audio"
+      ],
+      "status": "success",
+      "passed": true,
+      "error": null,
+      "latency_ms": 1294.01,
+      "plan_rationale": "First inspect the audio file A to confirm its metadata (duration, format, etc.). Then chunk the 45\u2011second audio into segments no longer than 30 seconds using the chunk_audio tool.",
+      "steps": [
+        {
+          "id": "s1",
+          "tool": "inspect_media",
+          "args": {
+            "file_id": "A"
+          },
+          "depends_on": [],
+          "verify": null
+        },
+        {
+          "id": "s2",
+          "tool": "chunk_audio",
+          "args": {
+            "file_id": "A"
+          },
+          "depends_on": [
+            "s1"
+          ],
+          "verify": null
+        }
+      ]
+    },
+    {
+      "id": "TC-09",
+      "name": "Impossible Task: Missing File Refusal (Constraint C8)",
+      "task": "Transcribe missing_interview_2024.wav to Hindi text.",
+      "expected_tools": [],
+      "routed_tools": [],
+      "status": "impossible",
+      "passed": true,
+      "error": null,
+      "latency_ms": 0.0,
+      "plan_rationale": "",
+      "steps": []
+    },
+    {
+      "id": "TC-10",
+      "name": "Impossible Task: Unsupported Foreign Language (Constraint C8)",
+      "task": "Translate document.pdf into German.",
+      "expected_tools": [],
+      "routed_tools": [],
+      "status": "impossible",
+      "passed": true,
+      "error": null,
+      "latency_ms": 0.0,
+      "plan_rationale": "",
+      "steps": []
+    }
+  ]
+}

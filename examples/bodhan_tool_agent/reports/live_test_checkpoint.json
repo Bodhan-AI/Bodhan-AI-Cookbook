@@ -1,0 +1,450 @@
+{
+  "LIVE-01": {
+    "id": "LIVE-01",
+    "name": "Live Audio Speech Transcription (indic-transcribe)",
+    "task": "Transcribe speech_hindi.wav to Hindi text with timestamps.",
+    "live_model": "indic-transcribe",
+    "status": "success",
+    "passed": true,
+    "cost_inr": 0.0174,
+    "latency_ms": 0.0,
+    "groq_planner_log": {
+      "chosen_model": "openai/gpt-oss-120b",
+      "latency_ms": 3132.03,
+      "attempts": [
+        {
+          "model": "openai/gpt-oss-120b",
+          "attempt": 1,
+          "latency_ms": 3132.03,
+          "raw_response": "{\n  \"steps\": [\n    {\n      \"id\": \"s1\",\n      \"tool\": \"transcribe_audio\",\n      \"args\": {\n        \"input_path\": \"A\",\n        \"language_hint\": \"hi\"\n      },\n      \"depends_on\": [],\n      \"verify\": null\n    }\n  ],\n  \"rationale\": \"The user wants a Hindi transcription with timestamps for the audio file i",
+          "success": true,
+          "error": null
+        }
+      ],
+      "plan": {
+        "steps": [
+          {
+            "id": "s1",
+            "tool": "transcribe_audio",
+            "args": {
+              "input_path": "A",
+              "language_hint": "hi"
+            },
+            "depends_on": [],
+            "verify": null
+          }
+        ],
+        "rationale": "The user wants a Hindi transcription with timestamps for the audio file identified as A. Using the transcribe_audio tool with a Hindi language hint will produce the required timestamped Hindi text.",
+        "is_fallback": false
+      }
+    },
+    "execution_steps": [
+      {
+        "step_id": "s1",
+        "tool": "transcribe_audio",
+        "latency_ms": 1436.61,
+        "cost_inr": 0.0174,
+        "summary": "hi transcript (10.435s, 0 segments): '\u0939\u0940 \u0939\u094b\u092a\u094d\u0921 \u0926\u0947\u0930 \u0935\u0941\u0921 \u092c\u0940 \u0938\u094d\u091f\u0947\u0935 \u092b\u0949\u0930 \u0921\u093f\u0928\u0930 \u091f\u0930\u094d\u0928\u093f...'",
+        "error": null
+      }
+    ],
+    "error": null,
+    "completed": true
+  },
+  "LIVE-02": {
+    "id": "LIVE-02",
+    "name": "Live Speech Transcription + English Translation (indic-transcribe + indic-translate)",
+    "task": "Transcribe speech_hindi.wav and translate it to English.",
+    "live_model": "indic-transcribe + indic-translate",
+    "status": "success",
+    "passed": true,
+    "cost_inr": 0.001,
+    "latency_ms": 0.0,
+    "groq_planner_log": {
+      "chosen_model": "openai/gpt-oss-120b",
+      "latency_ms": 2383.79,
+      "attempts": [
+        {
+          "model": "openai/gpt-oss-120b",
+          "attempt": 1,
+          "latency_ms": 2383.79,
+          "raw_response": "{\n  \"steps\": [\n    {\n      \"id\": \"s1\",\n      \"tool\": \"transcribe_audio\",\n      \"args\": {\n        \"input_path\": \"A\",\n        \"language_hint\": \"hi\"\n      },\n      \"depends_on\": [],\n      \"verify\": null\n    },\n    {\n      \"id\": \"s2\",\n      \"tool\": \"translate_text\",\n      \"args\": {\n        \"text\": { \"fr",
+          "success": true,
+          "error": null
+        }
+      ],
+      "plan": {
+        "steps": [
+          {
+            "id": "s1",
+            "tool": "transcribe_audio",
+            "args": {
+              "input_path": "A",
+              "language_hint": "hi"
+            },
+            "depends_on": [],
+            "verify": null
+          },
+          {
+            "id": "s2",
+            "tool": "translate_text",
+            "args": {
+              "text": {
+                "from_step": "s1"
+              },
+              "source_lang": "hi",
+              "target_lang": "en"
+            },
+            "depends_on": [
+              "s1"
+            ],
+            "verify": null
+          }
+        ],
+        "rationale": "First, transcribe the Hindi audio file (ID A) to obtain the spoken text. Then, translate that transcribed Hindi text into English using the translate_text tool.",
+        "is_fallback": false
+      }
+    },
+    "execution_steps": [
+      {
+        "step_id": "s1",
+        "tool": "transcribe_audio",
+        "latency_ms": 3.75,
+        "cost_inr": 0.0,
+        "summary": "hi transcript (10.435s, 0 segments): '\u0939\u0940 \u0939\u094b\u092a\u094d\u0921 \u0926\u0947\u0930 \u0935\u0941\u0921 \u092c\u0940 \u0938\u094d\u091f\u0947\u0935 \u092b\u0949\u0930 \u0921\u093f\u0928\u0930 \u091f\u0930\u094d\u0928\u093f...'",
+        "error": null
+      },
+      {
+        "step_id": "s2",
+        "tool": "translate_text",
+        "latency_ms": 344.36,
+        "cost_inr": 0.001,
+        "summary": "Translated 161 chars: 'This hoped-for would be stewed for dinne...'",
+        "error": null
+      }
+    ],
+    "error": null,
+    "completed": true
+  },
+  "LIVE-03": {
+    "id": "LIVE-03",
+    "name": "Live Indic-to-Indic Text Translation (Hindi -> Tamil)",
+    "task": "Translate the public health notice in press_release_hindi.txt from Hindi to Tamil.",
+    "live_model": "indic-translate",
+    "status": "success",
+    "passed": true,
+    "cost_inr": 0.0006,
+    "latency_ms": 0.0,
+    "groq_planner_log": {
+      "chosen_model": "openai/gpt-oss-120b",
+      "latency_ms": 2079.28,
+      "attempts": [
+        {
+          "model": "openai/gpt-oss-120b",
+          "attempt": 1,
+          "latency_ms": 2079.28,
+          "raw_response": "{\n  \"steps\": [\n    {\n      \"id\": \"s1\",\n      \"tool\": \"translate_text\",\n      \"args\": {\n        \"file_id\": \"A\",\n        \"source_lang\": \"hi\",\n        \"target_lang\": \"ta\"\n      },\n      \"depends_on\": [],\n      \"verify\": null\n    }\n  ],\n  \"rationale\": \"The task is to translate the Hindi press release (t",
+          "success": true,
+          "error": null
+        }
+      ],
+      "plan": {
+        "steps": [
+          {
+            "id": "s1",
+            "tool": "translate_text",
+            "args": {
+              "file_id": "A",
+              "source_lang": "hi",
+              "target_lang": "ta"
+            },
+            "depends_on": [],
+            "verify": null
+          }
+        ],
+        "rationale": "The task is to translate the Hindi press release (text file A) into Tamil. Using the translate_text tool with the file identifier allows the system to load the Hindi content and produce a Tamil translation while complying with the constraints that no Hindi script be written directly.",
+        "is_fallback": false
+      }
+    },
+    "execution_steps": [
+      {
+        "step_id": "s1",
+        "tool": "translate_text",
+        "latency_ms": 270.35,
+        "cost_inr": 0.0006,
+        "summary": "Translated 118 chars: '\u0b87\u0ba8\u0bcd\u0ba4\u0bbf\u0baf \u0b85\u0bb0\u0b9a\u0bc1 \u0b87\u0ba9\u0bcd\u0bb1\u0bc1 \u0baa\u0bc1\u0ba4\u0bbf\u0baf \u0b9f\u0bbf\u0b9c\u0bbf\u0b9f\u0bcd\u0b9f\u0bb2\u0bcd \u0b95\u0bb2\u0bcd\u0bb5\u0bbf ...'",
+        "error": null
+      }
+    ],
+    "error": null,
+    "completed": true
+  },
+  "LIVE-04": {
+    "id": "LIVE-04",
+    "name": "Live English-to-Hindi Text Translation (indic-translate)",
+    "task": "Translate the announcement in english_notice.txt to Hindi.",
+    "live_model": "indic-translate",
+    "status": "success",
+    "passed": true,
+    "cost_inr": 0.0007,
+    "latency_ms": 0.0,
+    "groq_planner_log": {
+      "chosen_model": "openai/gpt-oss-120b",
+      "latency_ms": 2642.33,
+      "attempts": [
+        {
+          "model": "openai/gpt-oss-120b",
+          "attempt": 1,
+          "latency_ms": 2642.33,
+          "raw_response": "{\n  \"steps\": [\n    {\n      \"id\": \"s1\",\n      \"tool\": \"translate_text\",\n      \"args\": {\n        \"file_id\": \"B\",\n        \"source_lang\": \"en\",\n        \"target_lang\": \"hi\"\n      },\n      \"depends_on\": [],\n      \"verify\": null\n    }\n  ],\n  \"rationale\": \"The task is to translate the English announcement i",
+          "success": true,
+          "error": null
+        }
+      ],
+      "plan": {
+        "steps": [
+          {
+            "id": "s1",
+            "tool": "translate_text",
+            "args": {
+              "file_id": "B",
+              "source_lang": "en",
+              "target_lang": "hi"
+            },
+            "depends_on": [],
+            "verify": null
+          }
+        ],
+        "rationale": "The task is to translate the English announcement in the text file B into Hindi while preserving any markdown structure. Using the translate_text tool with the file ID directly ensures the content is loaded and translated correctly without manually handling the text.",
+        "is_fallback": false
+      }
+    },
+    "execution_steps": [
+      {
+        "step_id": "s1",
+        "tool": "translate_text",
+        "latency_ms": 289.28,
+        "cost_inr": 0.0007,
+        "summary": "Translated 93 chars: '\u092d\u093e\u0930\u0924 \u092e\u0947\u0902 \u0921\u093f\u091c\u093f\u091f\u0932 \u092a\u0939\u0932\u094b\u0902 \u0915\u0947 \u0906\u0927\u093f\u0915\u093e\u0930\u093f\u0915 \u092a\u094b\u0930\u094d\u091f\u0932...'",
+        "error": null
+      }
+    ],
+    "error": null,
+    "completed": true
+  },
+  "LIVE-05": {
+    "id": "LIVE-05",
+    "name": "Pre-flight Budget Guard Test (Exhaustion Refusal)",
+    "task": "Transcribe speech_hindi.wav to Hindi text.",
+    "live_model": "none (pre-flight stop)",
+    "status": "budget_exhausted",
+    "passed": true,
+    "cost_inr": 0.0,
+    "latency_ms": 0.0,
+    "groq_planner_log": {},
+    "execution_steps": [],
+    "error": null,
+    "completed": true
+  },
+  "LIVE-06": {
+    "id": "LIVE-06",
+    "name": "Missing File Guard Test (Constraint C8)",
+    "task": "Transcribe non_existent_recording_2026.wav to Hindi text.",
+    "live_model": "none (resolver stop)",
+    "status": "impossible",
+    "passed": true,
+    "cost_inr": 0.0,
+    "latency_ms": 0.0,
+    "groq_planner_log": {},
+    "execution_steps": [],
+    "error": null,
+    "completed": true
+  },
+  "LIVE-07": {
+    "id": "LIVE-07",
+    "name": "Corrupt Media Error Handling (UNREADABLE_MEDIA)",
+    "task": "Transcribe corrupt_sample.wav to Hindi text.",
+    "live_model": "none (local reject)",
+    "status": "success",
+    "passed": true,
+    "cost_inr": 0.0,
+    "latency_ms": 0.0,
+    "groq_planner_log": {
+      "chosen_model": "openai/gpt-oss-120b",
+      "latency_ms": 2491.5,
+      "attempts": [
+        {
+          "model": "openai/gpt-oss-120b",
+          "attempt": 1,
+          "latency_ms": 2491.5,
+          "raw_response": "{\n  \"steps\": [\n    {\n      \"id\": \"s1\",\n      \"tool\": \"transcribe_audio\",\n      \"args\": {\n        \"input_path\": \"A\",\n        \"language_hint\": \"hi\"\n      },\n      \"depends_on\": [],\n      \"verify\": null\n    }\n  ],\n  \"rationale\": \"The user wants a Hindi transcription of the provided audio file A. Using ",
+          "success": true,
+          "error": null
+        }
+      ],
+      "plan": {
+        "steps": [
+          {
+            "id": "s1",
+            "tool": "transcribe_audio",
+            "args": {
+              "input_path": "A",
+              "language_hint": "hi"
+            },
+            "depends_on": [],
+            "verify": null
+          }
+        ],
+        "rationale": "The user wants a Hindi transcription of the provided audio file A. Using the transcribe_audio tool with a Hindi language hint will generate the required Hindi text directly from the audio, complying with all constraints.",
+        "is_fallback": false
+      }
+    },
+    "execution_steps": [
+      {
+        "step_id": "s1",
+        "tool": "transcribe_audio",
+        "latency_ms": 1.44,
+        "cost_inr": 0.0,
+        "summary": "Error: UNREADABLE_MEDIA - Failed to read audio file: Unreadable audio media at D:\\bodhi_ai\\demo\\inputs\\test_suite_10\\case_01_audio_transcribe\\corrupt_sample.wav: Error opening 'D:\\\\bodhi_ai\\\\demo\\\\inputs\\\\test_suite_10\\\\case_01_audio_transcribe\\\\corrupt_sample.wav': Format not recognised.",
+        "error": "Failed to read audio file: Unreadable audio media at D:\\bodhi_ai\\demo\\inputs\\test_suite_10\\case_01_audio_transcribe\\corrupt_sample.wav: Error opening 'D:\\\\bodhi_ai\\\\demo\\\\inputs\\\\test_suite_10\\\\case_01_audio_transcribe\\\\corrupt_sample.wav': Format not recognised."
+      }
+    ],
+    "error": null,
+    "completed": true
+  },
+  "LIVE-08": {
+    "id": "LIVE-08",
+    "name": "Unsupported Language Refusal (Constraint C8)",
+    "task": "Translate press_release_hindi.txt into German.",
+    "live_model": "none (pre-flight stop)",
+    "status": "impossible",
+    "passed": true,
+    "cost_inr": 0.0,
+    "latency_ms": 0.0,
+    "groq_planner_log": {},
+    "execution_steps": [],
+    "error": null,
+    "completed": true
+  },
+  "LIVE-09": {
+    "id": "LIVE-09",
+    "name": "Local Audio Chunking & Inspection (Free Tool Verification)",
+    "task": "Inspect lecture_long_45s.wav and chunk the audio into slices under 30 seconds.",
+    "live_model": "local_tools (inspect_media, chunk_audio)",
+    "status": "success",
+    "passed": true,
+    "cost_inr": 0.0,
+    "latency_ms": 0.0,
+    "groq_planner_log": {
+      "chosen_model": "openai/gpt-oss-120b",
+      "latency_ms": 1915.29,
+      "attempts": [
+        {
+          "model": "openai/gpt-oss-120b",
+          "attempt": 1,
+          "latency_ms": 1915.29,
+          "raw_response": "{\n  \"steps\": [\n    {\n      \"id\": \"s1\",\n      \"tool\": \"inspect_media\",\n      \"args\": {\n        \"path\": \"A\"\n      },\n      \"depends_on\": [],\n      \"verify\": null\n    },\n    {\n      \"id\": \"s2\",\n      \"tool\": \"chunk_audio\",\n      \"args\": {\n        \"path\": \"A\"\n      },\n      \"depends_on\": [\"s1\"],\n      \"",
+          "success": true,
+          "error": null
+        }
+      ],
+      "plan": {
+        "steps": [
+          {
+            "id": "s1",
+            "tool": "inspect_media",
+            "args": {
+              "path": "A"
+            },
+            "depends_on": [],
+            "verify": null
+          },
+          {
+            "id": "s2",
+            "tool": "chunk_audio",
+            "args": {
+              "path": "A"
+            },
+            "depends_on": [
+              "s1"
+            ],
+            "verify": null
+          }
+        ],
+        "rationale": "First inspect the audio file (ID A) to confirm its metadata (duration 45\u202fs). Then chunk the audio into segments no longer than 30\u202fseconds using the chunk_audio tool. The chunking step depends on the inspection step to ensure the file is valid before processing.",
+        "is_fallback": false
+      }
+    },
+    "execution_steps": [
+      {
+        "step_id": "s1",
+        "tool": "inspect_media",
+        "latency_ms": 1.32,
+        "cost_inr": 0.0,
+        "summary": "audio media (wav, 1.373MB)",
+        "error": null
+      },
+      {
+        "step_id": "s2",
+        "tool": "chunk_audio",
+        "latency_ms": 27.19,
+        "cost_inr": 0.0,
+        "summary": "2 audio chunks created",
+        "error": null
+      }
+    ],
+    "error": null,
+    "completed": true
+  },
+  "LIVE-10": {
+    "id": "LIVE-10",
+    "name": "Upstream 500 Handling & Graceful Degradation (Constraint C6)",
+    "task": "Perform OCR on legal_circular.pdf to extract all text.",
+    "live_model": "indic-ocr (live upstream probe)",
+    "status": "success",
+    "passed": true,
+    "cost_inr": 0.0,
+    "latency_ms": 0.0,
+    "groq_planner_log": {
+      "chosen_model": "openai/gpt-oss-120b",
+      "latency_ms": 1853.54,
+      "attempts": [
+        {
+          "model": "openai/gpt-oss-120b",
+          "attempt": 1,
+          "latency_ms": 1853.54,
+          "raw_response": "{\n  \"steps\": [\n    {\n      \"id\": \"s1\",\n      \"tool\": \"ocr_document\",\n      \"args\": {\n        \"pdf_path\": \"A\"\n      },\n      \"depends_on\": [],\n      \"verify\": null\n    }\n  ],\n  \"rationale\": \"The user wants to extract all text from the PDF legal_circular.pdf (media ID A). Using the ocr_document tool d",
+          "success": true,
+          "error": null
+        }
+      ],
+      "plan": {
+        "steps": [
+          {
+            "id": "s1",
+            "tool": "ocr_document",
+            "args": {
+              "pdf_path": "A"
+            },
+            "depends_on": [],
+            "verify": null
+          }
+        ],
+        "rationale": "The user wants to extract all text from the PDF legal_circular.pdf (media ID A). Using the ocr_document tool directly on the PDF will return the full Markdown text, satisfying the request.",
+        "is_fallback": false
+      }
+    },
+    "execution_steps": [
+      {
+        "step_id": "s1",
+        "tool": "ocr_document",
+        "latency_ms": 18287.91,
+        "cost_inr": 0.0,
+        "summary": "Error: INTERNAL - OCR failed on image: Server error '500 Internal Server Error' for url 'https://api.bodhan.ai/v1/ocr'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500",
+        "error": "OCR failed on image: Server error '500 Internal Server Error' for url 'https://api.bodhan.ai/v1/ocr'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500"
+      }
+    ],
+    "error": null,
+    "completed": true
+  }
+}
