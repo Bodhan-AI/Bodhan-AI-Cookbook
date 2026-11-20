@@ -203,7 +203,7 @@ The LLM never sees audio and never judges Indian-language text. It reads English
 
 ## Untrusted content
 
-OCR text, transcripts, translations and text files come back wrapped as `{"content_kind": "untrusted_data", "note": ...}`. A heuristic flags instruction-like phrases (`injection_warning`), and the report repeats them under limitations. The real defence is structural: the prompt says data is never instruction, and the only tools are media tools and writes inside `out/artifacts`, with no shell, network or deletion. Reads are confined to the input paths and the run's artifacts. The held-out injection task (`h1_notice_injection`) keeps the injected line as translated content and does not follow it.
+OCR text, transcripts, translations and text files come back wrapped as `{"content_kind": "untrusted_data", "note": ...}`. A heuristic flags instruction-like phrases (`injection_warning`), and the report repeats them under limitations. The real defence is structural: the prompt says data is never instruction, and the only tools are media tools and writes inside `out/artifacts`, with no shell, network or deletion. In agent mode, reads are confined to the input paths and the run's artifacts. The standalone server reads only below its starting folder (none when that is `/` or the home folder) unless you pass `--allow-dir` or `--allow-any-path`. In both modes, hidden files and folders (`.env`, `.git`) are refused, and network paths and URLs are refused before any filesystem call, so a Windows UNC path never opens an SMB connection. The held-out injection task (`h1_notice_injection`) keeps the injected line as translated content and does not follow it.
 
 ## What "completed" means
 
@@ -234,7 +234,7 @@ Each checkpoint also writes the report an interruption at that moment would leav
 
 ## HTTP transport
 
-`--transport http` serves the same server through the MCP SDK's Streamable HTTP app at `/mcp`, so protocol negotiation and sessions are the SDK's. A small ASGI wrapper requires `Authorization: Bearer <token>` on every request and compares it in constant time. The token comes from a file (generated if missing) and is never a provider key. The server binds to loopback unless you pass `--allow-remote`, and the SDK adds Host and Origin checks against DNS rebinding. If the token file is missing, a random token is written there, by default `<artifacts-dir>/.mcp_http_token`. The server speaks plain HTTP, so with `--allow-remote` put it behind a TLS-terminating proxy so the token is never sent in clear text.
+`--transport http` serves the same server through the MCP SDK's Streamable HTTP app at `/mcp`, so protocol negotiation and sessions are the SDK's. A small ASGI wrapper requires `Authorization: Bearer <token>` on every request and compares it in constant time. The token comes from a file (generated if missing) and is never a provider key. The server binds to loopback unless you pass `--allow-remote`, and the SDK adds Host and Origin checks against DNS rebinding (the live viewer checks Host the same way). If the token file is missing, a random token is written there, by default `bodhan_mcp/http_token` in the user config folder (`%APPDATA%` or `~/.config`), outside the artifacts folder that tools read and users share. The server speaks plain HTTP, so with `--allow-remote` put it behind a TLS-terminating proxy so the token is never sent in clear text.
 
 ## Choices I did not make
 

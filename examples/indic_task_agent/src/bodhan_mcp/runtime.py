@@ -394,7 +394,7 @@ class RunContext:
     ledger: CostLedger
     cache: ResultCache
     client: Any = None  # BodhanClient (typed loosely to avoid an import cycle)
-    read_roots: list[Path] | None = None  # None = any readable path (standalone server default)
+    read_roots: list[Path] | None = None  # None = any non-hidden path (the server's --allow-any-path); the server defaults to its cwd
     trace: TraceFn | None = None
     verify_by_default: bool = True
     artifacts: dict[str, Artifact] = field(default_factory=dict)
@@ -416,7 +416,12 @@ class RunContext:
     def resolve_input(self, raw: str) -> Path:
         if not raw or not str(raw).strip():
             raise E.ToolError(E.INVALID_ARGUMENT, "A file path is required.", hint="Pass the path of an input file or an artifact returned by an earlier tool.")
-        p = Path(str(raw).strip().strip('"')).expanduser()
+        text = str(raw).strip().strip('"')
+        if text.startswith(("\\\\", "//")) or "://" in text:
+            # refused before any filesystem call: resolving a UNC path on Windows opens an SMB connection (and can leak an NTLM hash)
+            raise E.ToolError(E.PATH_NOT_ALLOWED, f"Network paths and URLs are not readable: {raw}",
+                              hint="Use a local input file or an artifact path returned by a tool.")
+        p = Path(text).expanduser()
         if not p.is_absolute():
             # relative paths resolve against the artifacts dir, then the input folders, then cwd
             options = [self.artifacts_dir / p] + [r / p for r in (self.read_roots or []) if r.is_dir()]
@@ -427,11 +432,17 @@ class RunContext:
             # "examples\\indic_task_agent\\") still means this run's artifact of that name; nothing outside the sandbox
             self.emit({"type": "path_corrected", "given": str(raw), "used": str(self.artifacts_dir / p.name)})
             p = (self.artifacts_dir / p.name).resolve()
-        if self.read_roots is not None:
-            roots = [r.resolve() for r in self.read_roots] + [self.artifacts_dir.resolve()]
-            if not any(p == r or p.is_relative_to(r) for r in roots):
-                raise E.ToolError(E.PATH_NOT_ALLOWED, f"Path is outside the allowed input folders: {raw}",
-                                  hint="Use one of the task's input files or an artifact path returned by a tool.")
+        roots = [self.artifacts_dir.resolve()] + [r.resolve() for r in (self.read_roots or [])]
+        inside = [r for r in roots if p == r or p.is_relative_to(r)]
+        if self.read_roots is not None and not inside:
+            raise E.ToolError(E.PATH_NOT_ALLOWED, f"Path is outside the allowed input folders: {raw}",
+                              hint="Use one of the task's input files or an artifact path returned by a tool.")
+        # hidden files and folders below the allowed folder (.env, .git, .mcp_http_token, .state) are never inputs;
+        # with no read roots at all (--allow-any-path) the whole path is checked
+        below = p.relative_to(max(inside, key=lambda r: len(r.parts))).parts if inside else p.parts[1:]
+        if any(part.startswith(".") for part in below):
+            raise E.ToolError(E.PATH_NOT_ALLOWED, f"Hidden files and folders are not readable: {raw}",
+                              hint="Use one of the task's input files or an artifact path returned by a tool.")
         if not p.exists():
             raise E.ToolError(E.FILE_NOT_FOUND, f"File not found: {raw}", hint="Check the path; list inputs with inspect_files.")
         return p

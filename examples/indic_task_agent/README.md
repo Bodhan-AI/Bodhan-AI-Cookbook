@@ -115,21 +115,23 @@ The agent checkpoints to `out/.state/` around every planner turn, without keys. 
 python -m bodhan_agent.viewer --out ./out        # then open http://127.0.0.1:8766/
 ```
 
-The viewer is a read-only page with the run's plan, steps, check results, cost and artifacts, refreshed once a second. It binds to localhost.
+The viewer is a read-only page with the run's plan, steps, check results, cost and artifacts, refreshed once a second. It binds to localhost and refuses requests with any other Host header.
 
 ### Run the MCP server
 
 ```bash
-python -m bodhan_mcp [--artifacts-dir DIR] [--max-cost-inr N] [--allow-dir DIR ...]
+python -m bodhan_mcp [--artifacts-dir DIR] [--max-cost-inr N] [--allow-dir DIR ... | --allow-any-path]
 python -m bodhan_mcp --transport http --port 8765 [--token-file PATH]
 ```
 
 The first command serves stdio. The second serves Streamable HTTP at `http://127.0.0.1:8765/mcp`; every request needs `Authorization: Bearer <token>`, and a missing token file gets a random token ([details](docs/design.md#http-transport)).
 
+The tools read files only below the folder the server starts in, plus their own generated files. Pass `--allow-dir` for your media folder; a server started in `/` or your home folder reads generated files only until you do. Hidden files such as `.env`, network paths and URLs are always refused. `--allow-any-path` turns the folder limit off.
+
 For MCP clients that take an `mcpServers` JSON block:
 
 ```json
-{"mcpServers": {"bodhan": {"command": "python", "args": ["-m", "bodhan_mcp", "--artifacts-dir", "/tmp/bodhan"],
+{"mcpServers": {"bodhan": {"command": "python", "args": ["-m", "bodhan_mcp", "--artifacts-dir", "/tmp/bodhan", "--allow-dir", "/path/to/your/media"],
                            "env": {"BODHAN_TRANSCRIBE_KEY": "...", "BODHAN_TRANSLATE_KEY": "...", "BODHAN_SPEAK_KEY": "...", "BODHAN_OCR_KEY": "..."}}}}
 ```
 
@@ -173,7 +175,7 @@ The flow chart and the reasons behind it are in [docs/design.md](docs/design.md)
 ## Tests
 
 ```bash
-pytest -q                                  # 221 offline tests, no network or keys needed
+pytest -q                                  # 230 offline tests, no network or keys needed
 python scripts/run_suite.py                # live self-evaluation of evaluation/tasks.json (exit 1 if any task fails)
 ```
 

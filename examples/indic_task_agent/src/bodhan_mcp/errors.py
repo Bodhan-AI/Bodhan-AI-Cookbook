@@ -53,7 +53,7 @@ INTERNAL_ERROR = "internal_error"
 CATALOGUE: dict[str, tuple[bool, str]] = {
     INVALID_ARGUMENT: (False, "An argument is missing, of the wrong type or out of range. Fix the call using `details.problems` and the tool's schema."),
     FILE_NOT_FOUND: (False, "The path does not exist. Use a path returned by an earlier tool or an input file."),
-    PATH_NOT_ALLOWED: (False, "The path is outside the folders this server may read (--allow-dir)."),
+    PATH_NOT_ALLOWED: (False, "The path is outside the folders this server may read (its working folder, or --allow-dir), is hidden, or is a network path."),
     UNSUPPORTED_FILE_TYPE: (False, "The file is not a kind this tool reads; `hint` names the tool that does."),
     UNSUPPORTED_LANGUAGE: (False, "The language is not supported by the Bodhan model. Report it; do not substitute another language."),
     UNSUPPORTED_VOICE: (False, "Unknown voice for this language. `details.voices_for_language` lists the valid ones (or read bodhan://voices)."),

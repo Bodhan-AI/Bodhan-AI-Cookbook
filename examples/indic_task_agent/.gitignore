@@ -19,3 +19,12 @@ outputs/*
 !outputs/.gitkeep
 bodhan_mcp_artifacts/
 out/
+
+# Raw run state, traces, tokens and media (scripts/export_runs.py writes the scrubbed evidence)
+**/.state/
+**/.previous_runs/
+.mcp_http_token
+server_trace.jsonl
+evaluation/runs/**/*.mp3
+evaluation/runs/**/*.wav
+*.bin

@@ -1,6 +1,6 @@
 """MCP stdio server exposing the Bodhan tools.
 
-    python -m bodhan_mcp [--artifacts-dir DIR] [--max-cost-inr N] [--allow-dir DIR ...]
+    python -m bodhan_mcp [--artifacts-dir DIR] [--max-cost-inr N] [--allow-dir DIR ... | --allow-any-path]
 
 Each tool returns `structuredContent` (the JSON result) plus the same JSON as text
 for clients that only read text. Failures come back as `isError: true` with a
@@ -181,6 +181,26 @@ def artifacts_folder(requested: str | None) -> Path:
     raise SystemExit("error: no writable folder for generated files; pass --artifacts-dir")
 
 
+def default_read_roots() -> list[Path]:
+    """Without --allow-dir the server reads only below its working folder. A desktop client may start it in / or the
+    home folder, which would expose everything (~/.ssh, ~/.aws), so there it reads generated files only."""
+    cwd = Path.cwd().resolve()
+    try:
+        home = Path.home().resolve()
+    except RuntimeError:  # no HOME / USERPROFILE in the environment a client gave us
+        home = None
+    return [] if cwd == Path(cwd.anchor) or cwd == home else [cwd]
+
+
+def default_token_path() -> Path:
+    """The HTTP token lives in the user's config folder, outside the artifacts folder that tools can read and users share."""
+    if os.name == "nt":
+        base = Path(os.environ.get("APPDATA") or Path.home() / "AppData" / "Roaming")
+    else:
+        base = Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config")
+    return base / "bodhan_mcp" / "http_token"
+
+
 def make_context(args: argparse.Namespace) -> RunContext:
     out = artifacts_folder(args.artifacts_dir)
     print(f"bodhan_mcp: generated files go to {out}", file=sys.stderr)
@@ -196,7 +216,9 @@ def make_context(args: argparse.Namespace) -> RunContext:
     ledger = CostLedger(max_inr=args.max_cost_inr)
     cache = ResultCache(None if args.no_cache else Path(args.cache_dir).expanduser())
     client = BodhanClient(BodhanKeys.from_env(), ledger, cache, trace, timeout=args.timeout, concurrency=args.concurrency)
-    roots = [Path(d) for d in args.allow_dir] if args.allow_dir else None
+    roots = None if args.allow_any_path else [Path(d) for d in args.allow_dir] if args.allow_dir else default_read_roots()
+    where = "any non-hidden path" if roots is None else ", ".join(str(r) for r in roots) or "the artifacts folder only"
+    print(f"bodhan_mcp: reads allowed from {where} (plus generated files)", file=sys.stderr)
     return RunContext(artifacts_dir=out, ledger=ledger, cache=cache, client=client, read_roots=roots, trace=trace)
 
 
@@ -206,7 +228,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
                    help="Where generated files are written (default ./bodhan_mcp_artifacts, or a folder in the user cache when the "
                         "current folder is not writable, as when a desktop client starts the server from /).")
     p.add_argument("--max-cost-inr", type=float, default=None, help="Optional spending cap for this server session.")
-    p.add_argument("--allow-dir", action="append", default=[], help="Restrict readable inputs to these folders (repeatable).")
+    p.add_argument("--allow-dir", action="append", default=[],
+                   help="Folders the tools may read (repeatable). Default: the current folder, or generated files only when "
+                        "the current folder is / or the home folder. Hidden files and network paths are never read.")
+    p.add_argument("--allow-any-path", action="store_true", help="Opt out of the read sandbox: any non-hidden local path is readable.")
     p.add_argument("--cache-dir", default="~/.cache/bodhan_tool_agent", help="Result cache so repeated inputs are not re-billed.")
     p.add_argument("--no-cache", action="store_true", help="Disable the on-disk cache.")
     p.add_argument("--timeout", type=float, default=60.0, help="Per-request timeout in seconds.")
@@ -217,7 +242,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--port", type=int, default=8765, help="HTTP port (default 8765).")
     p.add_argument("--token-file", default=None,
                    help="HTTP bearer token file. If it does not exist, a random token is generated and written there "
-                        "(default <artifacts-dir>/.mcp_http_token). The token is never a Bodhan or LLM key.")
+                        "(default: bodhan_mcp/http_token in the user config folder). The token is never a Bodhan or LLM key.")
     p.add_argument("--allow-remote", action="store_true", help="Allow binding HTTP to a non-loopback address (token still required).")
     return p.parse_args(argv)
 
@@ -245,6 +270,8 @@ class BearerTokenAuth:
 
 def load_or_create_token(path: Path) -> str:
     if path.is_file():
+        if os.name != "nt" and path.stat().st_mode & 0o077:
+            print(f"bodhan_mcp: warning: {path} is readable by other users; run chmod 600 on it", file=sys.stderr)
         token = path.read_text(encoding="utf-8").strip()
         if len(token) < 16:
             raise SystemExit(f"error: the token in {path} is shorter than 16 characters")
@@ -274,7 +301,7 @@ async def serve(args: argparse.Namespace) -> None:
 
             if args.host not in ("127.0.0.1", "localhost", "::1") and not args.allow_remote:
                 raise SystemExit("error: binding to a non-loopback address needs --allow-remote")
-            token_path = Path(args.token_file) if args.token_file else ctx.artifacts_dir / ".mcp_http_token"
+            token_path = Path(args.token_file).expanduser() if args.token_file else default_token_path()
             token = load_or_create_token(token_path)
             print(f"bodhan-mcp: Streamable HTTP on http://{args.host}:{args.port}/mcp (bearer token in {token_path})", file=sys.stderr, flush=True)
             config = uvicorn.Config(http_app(server, token, args.host), host=args.host, port=args.port, log_level="warning", lifespan="on")

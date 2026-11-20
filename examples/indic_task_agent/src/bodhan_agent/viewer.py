@@ -3,7 +3,7 @@
     python -m bodhan_agent.viewer --out ./out [--port 8766]
 
 Open the printed URL while the agent runs (or afterwards). The page polls the run's
-trace.jsonl and report.json once a second. It binds to localhost only, never calls a
+trace.jsonl and report.json once a second. It binds to localhost only, refuses other Host headers (DNS rebinding), never calls a
 model, never shows keys (none are in the trace), renders every value as plain text
 (textContent, never innerHTML), and serves files only from <out>/artifacts.
 """
@@ -119,6 +119,10 @@ def make_handler(out: Path):
             self.wfile.write(body)
 
         def do_GET(self):  # noqa: N802 (http.server API)
+            port = self.server.server_address[1]
+            if self.headers.get("Host", "").lower() not in (f"127.0.0.1:{port}", f"localhost:{port}"):
+                # DNS rebinding: a web page whose name now points at 127.0.0.1 still sends its own Host header
+                return self._send(403, b"forbidden host", "text/plain; charset=utf-8")
             path = unquote(urlparse(self.path).path)
             if path == "/":
                 return self._send(200, PAGE.encode("utf-8"), "text/html; charset=utf-8")
