@@ -5,31 +5,22 @@
   "task": "Read this out loud",
   "inputs": {
     "files": [
-      "<input>\\konark.txt"
+      "<recipe>\\sample_data\\odia_text\\konark.txt"
     ],
     "missing": []
   },
-  "started_at": "2026-11-20T02:42:40+00:00",
-  "finished_at": "2026-11-20T02:42:48+00:00",
-  "elapsed_s": 7.58,
+  "started_at": "2026-11-20T06:05:03+00:00",
+  "finished_at": "2026-11-20T06:05:15+00:00",
+  "elapsed_s": 12.38,
   "steps": {
-    "used": 4,
+    "used": 3,
     "max": 30,
     "tool_calls": [
       {
         "step": 2,
-        "tool": "list_voices",
-        "ok": true,
-        "latency_s": 0.0,
-        "cost_inr": 0,
-        "verification": null,
-        "error": null
-      },
-      {
-        "step": 3,
         "tool": "synthesize_speech",
         "ok": true,
-        "latency_s": 0.125,
+        "latency_s": 0.141,
         "cost_inr": 0,
         "verification": "pass",
         "error": null
@@ -38,8 +29,7 @@
   },
   "plan": {
     "steps": [
-      "List voices for Odia to select a voice for synthesize_speech",
-      "Synthesize the text in konark.txt into Odia speech using synthesize_speech"
+      "Synthesize speech for konark.txt in Odia using synthesize_speech."
     ],
     "deliverables": [
       {
@@ -47,17 +37,17 @@
         "language": "or",
         "source": "konark.txt",
         "optional": false,
-        "description": "Spoken Odia audio of the Konark text"
+        "description": "Odia speech reading of konark.txt"
       }
     ],
     "assumptions": []
   },
-  "final_answer": "Successfully read the Odia text about the Konark Sun Temple aloud into an audio file using the Odia female voice Itishree.",
+  "final_answer": "Successfully synthesized the Odia text from konark.txt into spoken audio using the Bodhan Indic-Speak model.",
   "assumptions": [],
   "limitations": [],
   "deliverables": [
     {
-      "path": "artifacts/konark_audio.mp3",
+      "path": "artifacts/konark_or.mp3",
       "kind": "audio",
       "producer": "synthesize_speech",
       "language": "or",
@@ -72,10 +62,11 @@
         "warnings": []
       },
       "notes": [
+        "no voice or gender requested; defaulted to a female voice",
         "AI-generated speech (Bodhan Indic-Speak, voice Itishree, Odia)"
       ],
       "embeds": [],
-      "sha256": "304681e173d53051d36e60d75131bd2d410fed69daa2d791b2b63def8387c6cc",
+      "sha256": "5aa5ccd4d54588c404be5144ec10348e9fab9c8af4d5ea500ad272d0288299dd",
       "source_language": null,
       "verification_checks": 1,
       "origin": [
@@ -85,7 +76,7 @@
   ],
   "artifacts": [
     {
-      "path": "artifacts/konark_audio.mp3",
+      "path": "artifacts/konark_or.mp3",
       "kind": "audio",
       "producer": "synthesize_speech",
       "language": "or",
@@ -100,10 +91,11 @@
         "warnings": []
       },
       "notes": [
+        "no voice or gender requested; defaulted to a female voice",
         "AI-generated speech (Bodhan Indic-Speak, voice Itishree, Odia)"
       ],
       "embeds": [],
-      "sha256": "304681e173d53051d36e60d75131bd2d410fed69daa2d791b2b63def8387c6cc",
+      "sha256": "5aa5ccd4d54588c404be5144ec10348e9fab9c8af4d5ea500ad272d0288299dd",
       "source_language": null,
       "verification_checks": 1,
       "origin": [
@@ -114,7 +106,7 @@
   "verification": {
     "results": [
       {
-        "artifact": "artifacts/konark_audio.mp3",
+        "artifact": "artifacts/konark_or.mp3",
         "kind": "audio",
         "status": "pass",
         "method": "back-transcription of every segment with Indic-Transcribe; letter-level similarity; speaking-rate outliers",
@@ -139,9 +131,9 @@
     "cache_hits": 2,
     "bodhan_cost_basis": "published unit prices x metered quantity (audio seconds rounded up per request, output tokens from usage, input characters, images); provider dashboard is authoritative",
     "llm": {
-      "calls": 4,
-      "prompt_tokens": 23353,
-      "completion_tokens": 290,
+      "calls": 3,
+      "prompt_tokens": 17317,
+      "completion_tokens": 250,
       "pricing": "not priced (no rate supplied); tokens reported only"
     }
   },
@@ -154,7 +146,7 @@
     "latency": {
       "kind": "single-step",
       "target_s": 30,
-      "actual_s": 7.6,
+      "actual_s": 12.4,
       "met": true,
       "note": null
     },

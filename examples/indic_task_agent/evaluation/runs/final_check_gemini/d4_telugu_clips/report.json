@@ -5,35 +5,26 @@
   "task": "Which of these clips are in Telugu? Translate those into English",
   "inputs": {
     "files": [
-      "<input>\\clip_1.mp3",
-      "<input>\\clip_2.wav",
-      "<input>\\clip_3.ogg",
-      "<input>\\clip_4.m4a",
-      "<input>\\clip_5.flac"
+      "<recipe>\\sample_data\\clips\\clip_1.mp3",
+      "<recipe>\\sample_data\\clips\\clip_2.wav",
+      "<recipe>\\sample_data\\clips\\clip_3.ogg",
+      "<recipe>\\sample_data\\clips\\clip_4.m4a",
+      "<recipe>\\sample_data\\clips\\clip_5.flac"
     ],
     "missing": []
   },
-  "started_at": "2026-11-20T02:39:55+00:00",
-  "finished_at": "2026-11-20T02:40:12+00:00",
-  "elapsed_s": 16.22,
+  "started_at": "2026-11-20T06:03:41+00:00",
+  "finished_at": "2026-11-20T06:03:50+00:00",
+  "elapsed_s": 9.67,
   "steps": {
     "used": 9,
     "max": 30,
     "tool_calls": [
       {
-        "step": 2,
-        "tool": "transcribe_audio",
-        "ok": true,
-        "latency_s": 0.187,
-        "cost_inr": 0,
-        "verification": null,
-        "error": null
-      },
-      {
         "step": 5,
         "tool": "transcribe_audio",
         "ok": true,
-        "latency_s": 0.187,
+        "latency_s": 0.25,
         "cost_inr": 0,
         "verification": null,
         "error": null
@@ -42,7 +33,16 @@
         "step": 4,
         "tool": "transcribe_audio",
         "ok": true,
-        "latency_s": 0.203,
+        "latency_s": 0.25,
+        "cost_inr": 0,
+        "verification": null,
+        "error": null
+      },
+      {
+        "step": 2,
+        "tool": "transcribe_audio",
+        "ok": true,
+        "latency_s": 0.281,
         "cost_inr": 0,
         "verification": null,
         "error": null
@@ -51,7 +51,7 @@
         "step": 6,
         "tool": "transcribe_audio",
         "ok": true,
-        "latency_s": 0.219,
+        "latency_s": 0.266,
         "cost_inr": 0,
         "verification": null,
         "error": null
@@ -60,7 +60,7 @@
         "step": 3,
         "tool": "transcribe_audio",
         "ok": true,
-        "latency_s": 0.234,
+        "latency_s": 0.281,
         "cost_inr": 0,
         "verification": null,
         "error": null
@@ -69,7 +69,7 @@
         "step": 7,
         "tool": "translate_text",
         "ok": true,
-        "latency_s": 0.016,
+        "latency_s": 0.0,
         "cost_inr": 0,
         "verification": "pass",
         "error": null
@@ -78,7 +78,7 @@
         "step": 8,
         "tool": "translate_text",
         "ok": true,
-        "latency_s": 0.016,
+        "latency_s": 0.0,
         "cost_inr": 0,
         "verification": "pass",
         "error": null
@@ -87,9 +87,10 @@
   },
   "plan": {
     "steps": [
-      "Transcribe all five audio clips to detect their spoken language and obtain transcripts.",
-      "Translate any Telugu clips into English.",
-      "Write the final answer identifying which clips are Telugu and providing their translations."
+      "Transcribe all clips to detect their languages",
+      "Check which transcripts are in Telugu (te)",
+      "Translate the Telugu clips into English",
+      "Finish and report which clips were Telugu and provide their translations"
     ],
     "deliverables": [
       {
@@ -97,47 +98,47 @@
         "language": null,
         "source": null,
         "optional": false,
-        "description": "Which clips are Telugu and their English translations"
+        "description": "List of clips that are in Telugu and their English translations"
       },
       {
         "kind": "translation",
         "language": "en",
         "source": "clip_1.mp3",
         "optional": true,
-        "description": "English translation of Telugu clip 1"
+        "description": "English translation of clip_1 if Telugu"
       },
       {
         "kind": "translation",
         "language": "en",
         "source": "clip_2.wav",
         "optional": true,
-        "description": "English translation of Telugu clip 2"
+        "description": "English translation of clip_2 if Telugu"
       },
       {
         "kind": "translation",
         "language": "en",
         "source": "clip_3.ogg",
         "optional": true,
-        "description": "English translation of Telugu clip 3"
+        "description": "English translation of clip_3 if Telugu"
       },
       {
         "kind": "translation",
         "language": "en",
         "source": "clip_4.m4a",
         "optional": true,
-        "description": "English translation of Telugu clip 4"
+        "description": "English translation of clip_4 if Telugu"
       },
       {
         "kind": "translation",
         "language": "en",
         "source": "clip_5.flac",
         "optional": true,
-        "description": "English translation of Telugu clip 5"
+        "description": "English translation of clip_5 if Telugu"
       }
     ],
     "assumptions": []
   },
-  "final_answer": "Out of the five audio clips, clip_1.mp3 and clip_3.ogg are in Telugu. Here are their English translations:\n\n1. clip_1.mp3 (Telugu):\n\"the library is open until eight p. m. during exam week\"\n\n2. clip_3.ogg (Telugu):\n\"the bus to school picnic will leave at seven thirty sharp\"\n\n(Note: clip_2 is in Tamil, clip_4 is in Hindi, and clip_5 is in Kannada.)",
+  "final_answer": "Out of the 5 audio clips, clip_1.mp3 and clip_3.ogg are in Telugu. \n\nHere are their English translations:\n- clip_1.mp3: \"the library is open until eight p. m. during exam week\"\n- clip_3.ogg: \"the bus to school picnic will leave at seven thirty sharp\"\n\n(Note: clip_2 is in Tamil, clip_4 is in Hindi, and clip_5 is in Kannada.)",
   "assumptions": [],
   "limitations": [],
   "deliverables": [
@@ -244,40 +245,6 @@
   ],
   "artifacts": [
     {
-      "path": "artifacts/clip_1_transcript.txt",
-      "kind": "transcript",
-      "producer": "transcribe_audio",
-      "language": "te",
-      "provenance": "indic-transcribe",
-      "verification": null,
-      "notes": [
-        "language auto-detected from first segment: Telugu (identified by Telugu script)"
-      ],
-      "embeds": [],
-      "sha256": "905a2e52379ea64afbea3e4c5ada93302aa8a8fd829c53f436703c6264f423c7",
-      "source_language": null,
-      "verification_checks": 0,
-      "origin": [
-        "clip_1.mp3"
-      ]
-    },
-    {
-      "path": "artifacts/clip_1_transcript.json",
-      "kind": "json",
-      "producer": "transcribe_audio",
-      "language": "te",
-      "provenance": "indic-transcribe",
-      "verification": null,
-      "notes": [],
-      "embeds": [],
-      "sha256": "83e5f2ae095c066048ccef9206a6610c046c599b5bfa2d13ea9c6e9f057800d5",
-      "source_language": null,
-      "verification_checks": 0,
-      "origin": [
-        "clip_1.mp3"
-      ]
-    },
-    {
       "path": "artifacts/clip_4_transcript.txt",
       "kind": "transcript",
       "producer": "transcribe_audio",
@@ -343,6 +310,40 @@
       "verification_checks": 0,
       "origin": [
         "clip_3.ogg"
+      ]
+    },
+    {
+      "path": "artifacts/clip_1_transcript.txt",
+      "kind": "transcript",
+      "producer": "transcribe_audio",
+      "language": "te",
+      "provenance": "indic-transcribe",
+      "verification": null,
+      "notes": [
+        "language auto-detected from first segment: Telugu (identified by Telugu script)"
+      ],
+      "embeds": [],
+      "sha256": "905a2e52379ea64afbea3e4c5ada93302aa8a8fd829c53f436703c6264f423c7",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "clip_1.mp3"
+      ]
+    },
+    {
+      "path": "artifacts/clip_1_transcript.json",
+      "kind": "json",
+      "producer": "transcribe_audio",
+      "language": "te",
+      "provenance": "indic-transcribe",
+      "verification": null,
+      "notes": [],
+      "embeds": [],
+      "sha256": "83e5f2ae095c066048ccef9206a6610c046c599b5bfa2d13ea9c6e9f057800d5",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "clip_1.mp3"
       ]
     },
     {
@@ -602,8 +603,8 @@
     "bodhan_cost_basis": "published unit prices x metered quantity (audio seconds rounded up per request, output tokens from usage, input characters, images); provider dashboard is authoritative",
     "llm": {
       "calls": 4,
-      "prompt_tokens": 31320,
-      "completion_tokens": 1015,
+      "prompt_tokens": 31547,
+      "completion_tokens": 1035,
       "pricing": "not priced (no rate supplied); tokens reported only"
     }
   },
@@ -616,7 +617,7 @@
     "latency": {
       "kind": "multi-step",
       "target_s": 300,
-      "actual_s": 16.2,
+      "actual_s": 9.7,
       "met": true,
       "note": null
     },

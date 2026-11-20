@@ -1,3 +1,3 @@
-- Bees live in colonies consisting of a queen bee, male bees, and worker bees that collect nectar and pollen.
-- Worker bees facilitate pollination, which is essential for plant reproduction and produces about one-third of our food.
-- Farmers use beehives for better crop yields and are shifting towards natural pest control methods to protect bees from harmful chemical pesticides.
+- Bees live in colonies consisting of a queen bee, male bees, and thousands of worker bees that collect nectar and pollen.
+- Bee pollination plays a vital role in agriculture, supporting the production of seeds and fruits and accounting for about one-third of the food we eat.
+- Farmers often place beehives near fields for better crop yields and are increasingly using natural methods instead of chemical pesticides to protect bees.

@@ -5,13 +5,13 @@
   "task": "Transcribe this Hindi voice note and give me English subtitles",
   "inputs": {
     "files": [
-      "<input>\\voice_note_hindi.wav"
+      "<recipe>\\sample_data\\voice_note\\voice_note_hindi.wav"
     ],
     "missing": []
   },
-  "started_at": "2026-11-20T02:39:33+00:00",
-  "finished_at": "2026-11-20T02:39:42+00:00",
-  "elapsed_s": 9.25,
+  "started_at": "2026-11-20T06:03:25+00:00",
+  "finished_at": "2026-11-20T06:03:31+00:00",
+  "elapsed_s": 6.33,
   "steps": {
     "used": 3,
     "max": 30,
@@ -20,7 +20,7 @@
         "step": 2,
         "tool": "create_subtitles",
         "ok": true,
-        "latency_s": 0.265,
+        "latency_s": 0.266,
         "cost_inr": 0,
         "verification": "pass",
         "error": null
@@ -29,25 +29,48 @@
   },
   "plan": {
     "steps": [
-      "Call create_subtitles on voice_note_hindi.wav to generate English subtitles."
+      "Transcribe the Hindi voice note and generate English subtitles in one step using create_subtitles"
     ],
     "deliverables": [
+      {
+        "kind": "transcript",
+        "language": "hi",
+        "source": "voice_note_hindi.wav",
+        "optional": false,
+        "description": "Hindi transcript of the voice note"
+      },
       {
         "kind": "subtitles",
         "language": "en",
         "source": "voice_note_hindi.wav",
         "optional": false,
-        "description": "English subtitles (.srt) for the Hindi voice note"
+        "description": "English subtitles for the voice note"
       }
     ],
     "assumptions": []
   },
-  "final_answer": "I have transcribed the Hindi voice note and generated English subtitles successfully. The resulting SRT file is available as an artifact.",
+  "final_answer": "Successfully transcribed the Hindi voice note and generated both the Hindi transcript and the English subtitle file (.srt).",
   "assumptions": [],
   "limitations": [],
   "deliverables": [
     {
-      "path": "artifacts/voice_note_hindi_subtitles_en_en.srt",
+      "path": "artifacts/voice_note_hindi_subtitles_hi.srt",
+      "kind": "transcript",
+      "producer": "create_subtitles",
+      "language": "hi",
+      "provenance": "indic-transcribe",
+      "verification": null,
+      "notes": [],
+      "embeds": [],
+      "sha256": "ecfe43a41033bcccff73ace784177c0d6d2e7af354fb792265863bff62c3e568",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "voice_note_hindi.wav"
+      ]
+    },
+    {
+      "path": "artifacts/voice_note_hindi_subtitles_en.srt",
       "kind": "subtitles",
       "producer": "create_subtitles",
       "language": "en",
@@ -97,7 +120,7 @@
   ],
   "artifacts": [
     {
-      "path": "artifacts/voice_note_hindi_subtitles_en_hi.srt",
+      "path": "artifacts/voice_note_hindi_subtitles_hi.srt",
       "kind": "transcript",
       "producer": "create_subtitles",
       "language": "hi",
@@ -113,7 +136,7 @@
       ]
     },
     {
-      "path": "artifacts/voice_note_hindi_subtitles_en_en.srt",
+      "path": "artifacts/voice_note_hindi_subtitles_en.srt",
       "kind": "subtitles",
       "producer": "create_subtitles",
       "language": "en",
@@ -164,7 +187,7 @@
   "verification": {
     "results": [
       {
-        "artifact": "artifacts/voice_note_hindi_subtitles_en_en.srt",
+        "artifact": "artifacts/voice_note_hindi_subtitles_en.srt",
         "kind": "subtitles",
         "status": "pass",
         "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
@@ -214,8 +237,8 @@
     "bodhan_cost_basis": "published unit prices x metered quantity (audio seconds rounded up per request, output tokens from usage, input characters, images); provider dashboard is authoritative",
     "llm": {
       "calls": 3,
-      "prompt_tokens": 17463,
-      "completion_tokens": 270,
+      "prompt_tokens": 17535,
+      "completion_tokens": 364,
       "pricing": "not priced (no rate supplied); tokens reported only"
     }
   },
@@ -228,7 +251,7 @@
     "latency": {
       "kind": "single-step",
       "target_s": 30,
-      "actual_s": 9.2,
+      "actual_s": 6.3,
       "met": true,
       "note": null
     },

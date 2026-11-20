@@ -5,21 +5,21 @@
   "task": "Translate this video into French",
   "inputs": {
     "files": [
-      "<input>\\fractions_lesson.mp4"
+      "<recipe>\\sample_data\\video\\fractions_lesson.mp4"
     ],
     "missing": []
   },
-  "started_at": "2026-11-20T02:40:43+00:00",
-  "finished_at": "2026-11-20T02:41:07+00:00",
-  "elapsed_s": 23.92,
+  "started_at": "2026-11-20T06:04:01+00:00",
+  "finished_at": "2026-11-20T06:04:10+00:00",
+  "elapsed_s": 9.19,
   "steps": {
-    "used": 3,
+    "used": 2,
     "max": 30,
     "tool_calls": []
   },
   "plan": {
     "steps": [
-      "Finish with unsupported status because French is not supported"
+      "Call record_plan and finish because French is an unsupported language."
     ],
     "deliverables": [
       {
@@ -27,12 +27,12 @@
         "language": null,
         "source": null,
         "optional": false,
-        "description": "Unsupported French translation request"
+        "description": "French translation or unsupported status"
       }
     ],
     "assumptions": []
   },
-  "final_answer": "The requested target language (French) is not supported by Bodhan tools. Bodhan supports translation and processing only for English and 22 Indian languages. Therefore, the task cannot be fulfilled.",
+  "final_answer": "The task requests translation into French, which is an unsupported language. Bodhan models only support English and 22 Indian languages. Therefore, the task cannot be fulfilled.",
   "assumptions": [],
   "limitations": [],
   "deliverables": [],
@@ -53,9 +53,9 @@
     "cache_hits": 0,
     "bodhan_cost_basis": "published unit prices x metered quantity (audio seconds rounded up per request, output tokens from usage, input characters, images); provider dashboard is authoritative",
     "llm": {
-      "calls": 3,
-      "prompt_tokens": 16624,
-      "completion_tokens": 153,
+      "calls": 2,
+      "prompt_tokens": 10925,
+      "completion_tokens": 108,
       "pricing": "not priced (no rate supplied); tokens reported only"
     }
   },
@@ -68,7 +68,7 @@
     "latency": {
       "kind": "single-step",
       "target_s": 30,
-      "actual_s": 23.9,
+      "actual_s": 9.2,
       "met": true,
       "note": null
     },

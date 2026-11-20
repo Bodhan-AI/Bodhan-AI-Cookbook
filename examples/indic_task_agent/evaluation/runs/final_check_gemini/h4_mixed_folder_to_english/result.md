@@ -4,10 +4,10 @@
 
 ## Answer
 
-Successfully translated all items in the folder into English:
-1. health_camp.pdf OCRed and translated to English (health_camp_en.md)
-2. market_note.txt translated from Gujarati to English (market_note_en.md)
-3. water_announcement.mp3 transcribed from Marathi and translated into English subtitles (water_announcement_en_en.srt)
+Successfully translated all files in the folder to English:
+1. health_camp.pdf (Hindi OCR -> English translation)
+2. market_note.txt (Gujarati -> English translation)
+3. water_announcement.mp3 (Marathi Audio Transcription -> English translation)
 
 ## Deliverables
 
@@ -15,20 +15,6 @@ Successfully translated all items in the folder into English:
 
   ```text
   This week, the weekly market will be held on Thursday instead of Friday due to the festival.
-  ```
-
-- [artifacts/water_announcement_en_en.srt](artifacts/water_announcement_en_en.srt) — subtitles (en); produced by `create_subtitles` via indic-transcribe + indic-translate; verification: PASS, back-translation chrF 0.869
-  - language auto-detected from first segment: Marathi (Devanagari script; function words suggest Marathi ({'hi': 0, 'mr': 4, 'ne': 0}))
-
-  ```text
-  1
-  00:00:00,000 --> 00:00:05,180
-  For pipeline repair tomorrow morning ten
-  am to two pm
-  
-  2
-  00:00:05,260 --> 00:00:07,080
-  Water supply will be off
   ```
 
 - [artifacts/health_camp_en.md](artifacts/health_camp_en.md) — translation (en); produced by `translate_text` via indic-translate; verification: PASS, back-translation chrF 0.901
@@ -45,25 +31,33 @@ Successfully translated all items in the folder into English:
   Children under five will be given polio drops from ten in the morning to twelve noon. Pregnant women can meet the nurse for chec …
   ```
 
+- [artifacts/water_announcement_en.md](artifacts/water_announcement_en.md) — translation (en); produced by `translate_text` via indic-translate; verification: PASS, back-translation chrF 0.973
+
+  ```text
+  the water supply will be off tomorrow morning from ten am to two pm for pipeline repair
+  ```
+
 
 ## Intermediate artifacts
 
-- [artifacts/water_announcement_en_mr.srt](artifacts/water_announcement_en_mr.srt) — transcript, indic-transcribe
+- [artifacts/water_announcement_transcript.txt](artifacts/water_announcement_transcript.txt) — transcript, indic-transcribe
+- [artifacts/water_announcement_transcript.json](artifacts/water_announcement_transcript.json) — json, indic-transcribe
 - [artifacts/health_camp_ocr.md](artifacts/health_camp_ocr.md) — ocr, indic-ocr
 
 ## Cost, time and steps
 
 - Status: `completed` (stop reason: `finished`)
 - Bodhan cost: ₹0.0000 billed; budget ₹20.0
-- Planner LLM: gemini-3.5-flash-lite — 4 calls, 28687 prompt + 767 completion tokens (not priced (no rate supplied); tokens reported only)
-- Time: 35.61 s (multi-step, target 300 s: met)
-- Steps: 6 of 30; cache hits: 18
+- Planner LLM: gemini-3.5-flash-lite — 4 calls, 29059 prompt + 824 completion tokens (not priced (no rate supplied); tokens reported only)
+- Time: 13.44 s (multi-step, target 300 s: met)
+- Steps: 7 of 30; cache hits: 15
 
 | Step | Tool | OK | Latency (s) | Cost (₹) | Verification |
 |---|---|---|---|---|---|
 | 3 | `translate_text` | yes | 0.016 | 0 | pass |
-| 4 | `create_subtitles` | yes | 0.141 | 0 | pass |
-| 2 | `ocr_document` | yes | 3.938 | 0 |  |
-| 5 | `translate_text` | yes | 0.015 | 0 | pass |
+| 4 | `transcribe_audio` | yes | 0.141 | 0 |  |
+| 2 | `ocr_document` | yes | 3.953 | 0 |  |
+| 5 | `translate_text` | yes | 0.031 | 0 | pass |
+| 6 | `translate_text` | yes | 0.031 | 0 | pass |
 
 Full step-by-step trace: [trace.jsonl](trace.jsonl). Machine-readable summary: [report.json](report.json).

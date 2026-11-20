@@ -5,13 +5,13 @@
   "task": "Summarise this page in three bullet points in English",
   "inputs": {
     "files": [
-      "<input>\\textbook_page.jpg"
+      "<recipe>\\sample_data\\kannada_page\\textbook_page.jpg"
     ],
     "missing": []
   },
-  "started_at": "2026-11-20T02:41:53+00:00",
-  "finished_at": "2026-11-20T02:42:39+00:00",
-  "elapsed_s": 46.2,
+  "started_at": "2026-11-20T06:04:37+00:00",
+  "finished_at": "2026-11-20T06:05:02+00:00",
+  "elapsed_s": 24.88,
   "steps": {
     "used": 6,
     "max": 30,
@@ -56,9 +56,9 @@
   },
   "plan": {
     "steps": [
-      "1. Run OCR on the textbook page image to extract Kannada text.",
-      "2. Translate the extracted Kannada text to English.",
-      "3. Read the translated English text and write a three-bullet summary in English."
+      "OCR the Kannada textbook page image to Markdown text",
+      "Translate the OCR Markdown text to English",
+      "Read the English translation and write a three-bullet-point summary in English"
     ],
     "deliverables": [
       {
@@ -66,12 +66,12 @@
         "language": null,
         "source": null,
         "optional": false,
-        "description": "Three-bullet English summary of the Kannada textbook page"
+        "description": "English three-bullet-point summary of the Kannada textbook page"
       }
     ],
     "assumptions": []
   },
-  "final_answer": "Here is the three-bullet summary of the Kannada textbook page in English:\n- Bees live in colonies consisting of a queen bee, male bees, and worker bees that collect nectar and pollen.\n- Worker bees facilitate pollination, which is essential for plant reproduction and produces about one-third of our food.\n- Farmers use beehives for better crop yields and are shifting towards natural pest control methods to protect bees from harmful chemical pesticides.",
+  "final_answer": "Here is the three-bullet-point summary of the Kannada textbook page in English:\n\n- Bees live in colonies consisting of a queen bee, male bees, and thousands of worker bees that collect nectar and pollen.\n- Bee pollination plays a vital role in agriculture, supporting the production of seeds and fruits and accounting for about one-third of the food we eat.\n- Farmers often place beehives near fields for better crop yields and are increasingly using natural methods instead of chemical pesticides to protect bees.",
   "assumptions": [],
   "limitations": [],
   "deliverables": [
@@ -86,7 +86,7 @@
       "embeds": [
         "translation_en.md"
       ],
-      "sha256": "2679df54297e638b030dfe0856b951c6a60b990b2e7cc18fa8dcddedca1b6e60",
+      "sha256": "1c818b2cedc380e05dbf3e3ae2894556a9290f1a1a851500214563e74350fb7b",
       "source_language": null,
       "verification_checks": 0,
       "origin": [
@@ -96,7 +96,7 @@
   ],
   "artifacts": [
     {
-      "path": "artifacts/ocr_kannada.md",
+      "path": "artifacts/ocr_output.md",
       "kind": "ocr",
       "producer": "ocr_document",
       "language": "kn",
@@ -152,7 +152,7 @@
       },
       "notes": [],
       "embeds": [
-        "ocr_kannada.md"
+        "ocr_output.md"
       ],
       "sha256": "bbef84e3ef770b2fb56fcd61bb00a9bdbc42459d5de93010c9ca80f218dcb4c6",
       "source_language": "kn",
@@ -172,7 +172,7 @@
       "embeds": [
         "translation_en.md"
       ],
-      "sha256": "2679df54297e638b030dfe0856b951c6a60b990b2e7cc18fa8dcddedca1b6e60",
+      "sha256": "1c818b2cedc380e05dbf3e3ae2894556a9290f1a1a851500214563e74350fb7b",
       "source_language": null,
       "verification_checks": 0,
       "origin": [
@@ -233,8 +233,8 @@
     "bodhan_cost_basis": "published unit prices x metered quantity (audio seconds rounded up per request, output tokens from usage, input characters, images); provider dashboard is authoritative",
     "llm": {
       "calls": 6,
-      "prompt_tokens": 39519,
-      "completion_tokens": 623,
+      "prompt_tokens": 39532,
+      "completion_tokens": 671,
       "pricing": "not priced (no rate supplied); tokens reported only"
     }
   },
@@ -247,7 +247,7 @@
     "latency": {
       "kind": "multi-step",
       "target_s": 300,
-      "actual_s": 46.2,
+      "actual_s": 24.9,
       "met": true,
       "note": null
     },

@@ -5,13 +5,13 @@
   "task": "Translate this worksheet into Marathi and keep the table",
   "inputs": {
     "files": [
-      "<input>\\worksheet_photo.jpg"
+      "<recipe>\\sample_data\\worksheet\\worksheet_photo.jpg"
     ],
     "missing": []
   },
-  "started_at": "2026-11-20T02:39:43+00:00",
-  "finished_at": "2026-11-20T02:39:54+00:00",
-  "elapsed_s": 11.36,
+  "started_at": "2026-11-20T06:03:32+00:00",
+  "finished_at": "2026-11-20T06:03:39+00:00",
+  "elapsed_s": 7.16,
   "steps": {
     "used": 4,
     "max": 30,
@@ -20,7 +20,7 @@
         "step": 2,
         "tool": "ocr_document",
         "ok": true,
-        "latency_s": 0.047,
+        "latency_s": 0.031,
         "cost_inr": 0,
         "verification": null,
         "error": null
@@ -29,7 +29,7 @@
         "step": 3,
         "tool": "translate_text",
         "ok": true,
-        "latency_s": 0.016,
+        "latency_s": 0.032,
         "cost_inr": 0,
         "verification": "pass",
         "error": null
@@ -38,8 +38,8 @@
   },
   "plan": {
     "steps": [
-      "OCR the worksheet image to extract text and tables into Markdown.",
-      "Translate the extracted Markdown worksheet into Marathi, preserving the table structure."
+      "1. Run OCR on worksheet_photo.jpg to extract text and tables as Markdown",
+      "2. Translate the extracted Markdown to Marathi using translate_text while keeping the table structure"
     ],
     "deliverables": [
       {
@@ -47,17 +47,17 @@
         "language": "mr",
         "source": "worksheet_photo.jpg",
         "optional": false,
-        "description": "Worksheet translated into Marathi keeping the table"
+        "description": "Worksheet translated into Marathi keeping the table structure"
       }
     ],
     "assumptions": []
   },
-  "final_answer": "Successfully OCRed the worksheet image and translated it into Marathi while fully preserving the Markdown table structure and questions.",
+  "final_answer": "The worksheet image was successfully OCR'd and translated into Marathi while fully preserving the Markdown table structure and numbers.",
   "assumptions": [],
   "limitations": [],
   "deliverables": [
     {
-      "path": "artifacts/worksheet_marathi.md",
+      "path": "artifacts/worksheet_mr.md",
       "kind": "translation",
       "producer": "translate_text",
       "language": "mr",
@@ -135,7 +135,7 @@
       ]
     },
     {
-      "path": "artifacts/worksheet_marathi.md",
+      "path": "artifacts/worksheet_mr.md",
       "kind": "translation",
       "producer": "translate_text",
       "language": "mr",
@@ -198,7 +198,7 @@
   "verification": {
     "results": [
       {
-        "artifact": "artifacts/worksheet_marathi.md",
+        "artifact": "artifacts/worksheet_mr.md",
         "kind": "translation",
         "status": "pass",
         "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
@@ -258,8 +258,8 @@
     "bodhan_cost_basis": "published unit prices x metered quantity (audio seconds rounded up per request, output tokens from usage, input characters, images); provider dashboard is authoritative",
     "llm": {
       "calls": 4,
-      "prompt_tokens": 24082,
-      "completion_tokens": 342,
+      "prompt_tokens": 24183,
+      "completion_tokens": 355,
       "pricing": "not priced (no rate supplied); tokens reported only"
     }
   },
@@ -272,7 +272,7 @@
     "latency": {
       "kind": "multi-step",
       "target_s": 300,
-      "actual_s": 11.4,
+      "actual_s": 7.2,
       "met": true,
       "note": null
     },
