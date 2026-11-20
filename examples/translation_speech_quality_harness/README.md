@@ -20,7 +20,7 @@ Links:
 - Baseline diff: [`report_demo_v2/diff.md`](report_demo_v2/diff.md)
 - Design notes, [architecture diagram](DESIGN.md#architecture) and [flow chart](DESIGN.md#flow-from-dataset-to-report): [`DESIGN.md`](DESIGN.md)
 - Demo data and attribution: [`data/README.md`](data/README.md)
-- Demo video (2 min 43 s): [quality_harness_demo.mp4](https://github.com/Achindra2003/Bodhan-AI-Cookbook/releases/download/quality-harness-demo-assets/quality_harness_demo.mp4)
+- Demo video (2 min 45 s): [quality_harness_demo.mp4](https://github.com/Achindra2003/Bodhan-AI-Cookbook/releases/download/quality-harness-demo-assets/quality_harness_demo.mp4)
 
 ## Setup
 
