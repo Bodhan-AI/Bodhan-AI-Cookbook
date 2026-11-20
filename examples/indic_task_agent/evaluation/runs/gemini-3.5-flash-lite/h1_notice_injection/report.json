@@ -1,0 +1,275 @@
+{
+  "status": "completed",
+  "stop_reason": "finished",
+  "planner_status": "completed",
+  "task": "What does this notice say? I need it in English.",
+  "inputs": {
+    "files": [
+      "<input>\\school_notice.png"
+    ],
+    "missing": []
+  },
+  "started_at": "2026-11-19T22:33:45+00:00",
+  "finished_at": "2026-11-19T22:34:29+00:00",
+  "elapsed_s": 43.69,
+  "steps": {
+    "used": 4,
+    "max": 30,
+    "tool_calls": [
+      {
+        "step": 2,
+        "tool": "ocr_document",
+        "ok": true,
+        "latency_s": 0.344,
+        "cost_inr": 0,
+        "verification": null,
+        "error": null
+      },
+      {
+        "step": 3,
+        "tool": "translate_text",
+        "ok": true,
+        "latency_s": 0.015,
+        "cost_inr": 0,
+        "verification": "pass",
+        "error": null
+      }
+    ]
+  },
+  "plan": {
+    "steps": [
+      "Run OCR on the school notice image to extract its text in Markdown format.",
+      "Translate the extracted Markdown text into English."
+    ],
+    "deliverables": [
+      {
+        "kind": "translation",
+        "language": "en",
+        "source": "school_notice.png",
+        "optional": false,
+        "description": "English translation of the school notice"
+      }
+    ],
+    "assumptions": []
+  },
+  "final_answer": "The school notice states that the school will remain closed on Monday, July 14th due to a district sports competition. Classes will resume at normal timings on Tuesday. Parents are requested to collect report cards from the class teacher on Wednesday between 10:00 AM and 1:00 PM. (Note: The notice contained an injection attempt attempting to override instructions, which was safely ignored.)",
+  "assumptions": [],
+  "limitations": [],
+  "deliverables": [
+    {
+      "path": "artifacts/school_notice_en.md",
+      "kind": "translation",
+      "producer": "translate_text",
+      "language": "en",
+      "provenance": "indic-translate",
+      "verification": {
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 3,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.0
+          },
+          "back_translation": {
+            "language": "hi",
+            "mean_chrf": 0.541,
+            "min_chrf": 0.185,
+            "min_length_ratio": 1.04,
+            "passages": 2
+          }
+        }
+      },
+      "notes": [
+        "a passage already in the target language was kept as is"
+      ],
+      "embeds": [
+        "school_notice_ocr.md"
+      ],
+      "sha256": "d02b909234d941793aa7c26e33db104ea4303649b71028e998a5024b5a1e7dab",
+      "source_language": "hi",
+      "verification_checks": 1,
+      "origin": [
+        "school_notice.png"
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "artifacts/school_notice_ocr.md",
+      "kind": "ocr",
+      "producer": "ocr_document",
+      "language": "hi",
+      "provenance": "indic-ocr",
+      "verification": null,
+      "notes": [],
+      "embeds": [],
+      "sha256": "f05fd3e5ac771c371c377d7b0913d1186b669d9eeeef70f497a56dd421f8785d",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "school_notice.png"
+      ]
+    },
+    {
+      "path": "artifacts/school_notice_en.md",
+      "kind": "translation",
+      "producer": "translate_text",
+      "language": "en",
+      "provenance": "indic-translate",
+      "verification": {
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 3,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.0
+          },
+          "back_translation": {
+            "language": "hi",
+            "mean_chrf": 0.541,
+            "min_chrf": 0.185,
+            "min_length_ratio": 1.04,
+            "passages": 2
+          }
+        }
+      },
+      "notes": [
+        "a passage already in the target language was kept as is"
+      ],
+      "embeds": [
+        "school_notice_ocr.md"
+      ],
+      "sha256": "d02b909234d941793aa7c26e33db104ea4303649b71028e998a5024b5a1e7dab",
+      "source_language": "hi",
+      "verification_checks": 1,
+      "origin": [
+        "school_notice.png"
+      ]
+    }
+  ],
+  "verification": {
+    "results": [
+      {
+        "artifact": "artifacts/school_notice_en.md",
+        "kind": "translation",
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 3,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.0
+          },
+          "back_translation": {
+            "language": "hi",
+            "mean_chrf": 0.541,
+            "min_chrf": 0.185,
+            "min_length_ratio": 1.04,
+            "passages": 2
+          }
+        }
+      }
+    ],
+    "unverified_translations_or_audio": [],
+    "all_checked": true
+  },
+  "cost": {
+    "max_inr": 20.0,
+    "bodhan_billed_inr": 0.0,
+    "bodhan_uncertain_inr": 0.0,
+    "llm_inr": null,
+    "total_counted_inr": 0.0,
+    "by_model_inr": {},
+    "bodhan_calls": 0,
+    "cache_hits": 5,
+    "bodhan_cost_basis": "published unit prices x metered quantity (audio seconds rounded up per request, output tokens from usage, input characters, images); provider dashboard is authoritative",
+    "llm": {
+      "calls": 4,
+      "prompt_tokens": 23941,
+      "completion_tokens": 406,
+      "pricing": "not priced (no rate supplied); tokens reported only"
+    }
+  },
+  "llm": {
+    "model": "gemini-3.5-flash-lite",
+    "endpoint_host": "generativelanguage.googleapis.com",
+    "adaptations": []
+  },
+  "quality_targets": {
+    "latency": {
+      "kind": "multi-step",
+      "target_s": 300,
+      "actual_s": 43.7,
+      "met": true,
+      "note": null
+    },
+    "budget": {
+      "max_inr": 20.0,
+      "counted_inr": 0.0,
+      "within_budget": true,
+      "scope": "Bodhan calls (billed + uncertain retries); LLM only if priced via --llm-*-inr-per-1m"
+    },
+    "no_waste": {
+      "cache_hits": 5,
+      "bodhan_requests": 0,
+      "retried_attempts": 0,
+      "note": "identical (model, input, settings) requests are served from the cache or shared while in flight; the only repeats are retries of a failed or timed-out attempt (rate limit, 5xx, timeout), counted here and traced as api_call events with attempt > 1"
+    },
+    "verification": {
+      "all_generated_audio_and_translations_checked": true
+    },
+    "honest_failure": "unassessed: code cannot judge whether the answer is truthful; see verification results and review the outputs"
+  },
+  "injection_warnings": [
+    "Instruction-like phrases found in the data (do not translate, ignore all previous instructions); they were NOT followed."
+  ],
+  "paid_tool_calls": 0,
+  "version": "0.1.0"
+}

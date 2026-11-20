@@ -1,0 +1,652 @@
+{
+  "status": "completed",
+  "stop_reason": "finished",
+  "planner_status": "completed",
+  "task": "Which of these clips are in Telugu? Translate those into English",
+  "inputs": {
+    "files": [
+      "<input>\\clip_1.mp3",
+      "<input>\\clip_2.wav",
+      "<input>\\clip_3.ogg",
+      "<input>\\clip_4.m4a",
+      "<input>\\clip_5.flac"
+    ],
+    "missing": []
+  },
+  "started_at": "2026-11-19T22:23:05+00:00",
+  "finished_at": "2026-11-19T22:23:39+00:00",
+  "elapsed_s": 33.97,
+  "steps": {
+    "used": 9,
+    "max": 30,
+    "tool_calls": [
+      {
+        "step": 3,
+        "tool": "transcribe_audio",
+        "ok": true,
+        "latency_s": 1.172,
+        "cost_inr": 0.00833,
+        "verification": null,
+        "error": null
+      },
+      {
+        "step": 5,
+        "tool": "transcribe_audio",
+        "ok": true,
+        "latency_s": 1.219,
+        "cost_inr": 0.00667,
+        "verification": null,
+        "error": null
+      },
+      {
+        "step": 6,
+        "tool": "transcribe_audio",
+        "ok": true,
+        "latency_s": 1.235,
+        "cost_inr": 0.01167,
+        "verification": null,
+        "error": null
+      },
+      {
+        "step": 2,
+        "tool": "transcribe_audio",
+        "ok": true,
+        "latency_s": 1.25,
+        "cost_inr": 0.01,
+        "verification": null,
+        "error": null
+      },
+      {
+        "step": 4,
+        "tool": "transcribe_audio",
+        "ok": true,
+        "latency_s": 1.454,
+        "cost_inr": 0.01167,
+        "verification": null,
+        "error": null
+      },
+      {
+        "step": 7,
+        "tool": "translate_text",
+        "ok": true,
+        "latency_s": 0.594,
+        "cost_inr": 0.00076,
+        "verification": "pass",
+        "error": null
+      },
+      {
+        "step": 8,
+        "tool": "translate_text",
+        "ok": true,
+        "latency_s": 0.641,
+        "cost_inr": 0.0007,
+        "verification": "pass",
+        "error": null
+      }
+    ]
+  },
+  "plan": {
+    "steps": [
+      "1. Use transcribe_audio with automatic language detection on all five clips.",
+      "2. Use translate_text to translate each Telugu transcript into English with verification.",
+      "3. Use finish to identify the Telugu clips and deliver their English translations."
+    ],
+    "deliverables": [
+      {
+        "kind": "answer",
+        "language": "en",
+        "source": null,
+        "optional": false,
+        "description": "Identify which of the five clips are Telugu."
+      },
+      {
+        "kind": "translation",
+        "language": "en",
+        "source": "clip_1.mp3",
+        "optional": true,
+        "description": "English translation if the clip is Telugu."
+      },
+      {
+        "kind": "translation",
+        "language": "en",
+        "source": "clip_2.wav",
+        "optional": true,
+        "description": "English translation if the clip is Telugu."
+      },
+      {
+        "kind": "translation",
+        "language": "en",
+        "source": "clip_3.ogg",
+        "optional": true,
+        "description": "English translation if the clip is Telugu."
+      },
+      {
+        "kind": "translation",
+        "language": "en",
+        "source": "clip_4.m4a",
+        "optional": true,
+        "description": "English translation if the clip is Telugu."
+      },
+      {
+        "kind": "translation",
+        "language": "en",
+        "source": "clip_5.flac",
+        "optional": true,
+        "description": "English translation if the clip is Telugu."
+      }
+    ],
+    "assumptions": [
+      "Use automatic speech-language detection to classify each clip.",
+      "Provide English text translations, not dubbed audio or subtitles."
+    ]
+  },
+  "final_answer": "The Telugu clips are clip_1.mp3 and clip_3.ogg.\n\nEnglish translations:\n- clip_1.mp3: “the library is open until eight p. m. during exam week”\n- clip_3.ogg: “the bus to school picnic will leave at seven thirty sharp”\n\nThe other clips were detected as Tamil (clip_2.wav), Hindi (clip_4.m4a), and Kannada (clip_5.flac), so they were not translated.\n\nBoth English translations passed verification. Translation files are attached.",
+  "assumptions": [
+    "Language identification is based on automatic transcription and script detection.",
+    "English text translations were requested, rather than dubbed audio or subtitles."
+  ],
+  "limitations": [],
+  "deliverables": [
+    {
+      "path": "artifacts/clip_1_english.md",
+      "kind": "translation",
+      "producer": "translate_text",
+      "language": "en",
+      "provenance": "indic-translate",
+      "verification": {
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 0,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.0
+          },
+          "back_translation": {
+            "language": "te",
+            "mean_chrf": 0.741,
+            "min_chrf": 0.741,
+            "min_length_ratio": 0.91,
+            "passages": 1
+          }
+        }
+      },
+      "notes": [],
+      "embeds": [
+        "clip_1_transcript.txt"
+      ],
+      "sha256": "3eea3f4b37a36312b818d90aedf876c184255b62b05c55602ab824b474b8b68a",
+      "source_language": "te",
+      "verification_checks": 1,
+      "origin": [
+        "clip_1.mp3"
+      ]
+    },
+    {
+      "path": "artifacts/clip_3_english.md",
+      "kind": "translation",
+      "producer": "translate_text",
+      "language": "en",
+      "provenance": "indic-translate",
+      "verification": {
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 0,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.0
+          },
+          "back_translation": {
+            "language": "te",
+            "mean_chrf": 0.745,
+            "min_chrf": 0.745,
+            "min_length_ratio": 0.76,
+            "passages": 1
+          }
+        }
+      },
+      "notes": [],
+      "embeds": [
+        "clip_3_transcript.txt"
+      ],
+      "sha256": "7a2345a778759e7278b816578f379ae9a5a71494cf94a07e92b233bc39be46b3",
+      "source_language": "te",
+      "verification_checks": 1,
+      "origin": [
+        "clip_3.ogg"
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "artifacts/clip_2_transcript.txt",
+      "kind": "transcript",
+      "producer": "transcribe_audio",
+      "language": "ta",
+      "provenance": "indic-transcribe",
+      "verification": null,
+      "notes": [
+        "language auto-detected from first segment: Tamil (identified by Tamil script)"
+      ],
+      "embeds": [],
+      "sha256": "15b6ea2a8445149ade7efb70765b097b0390f102cf3dbfde787cb3f7d1ca00ff",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "clip_2.wav"
+      ]
+    },
+    {
+      "path": "artifacts/clip_2_transcript.json",
+      "kind": "json",
+      "producer": "transcribe_audio",
+      "language": "ta",
+      "provenance": "indic-transcribe",
+      "verification": null,
+      "notes": [],
+      "embeds": [],
+      "sha256": "11491d187ca2a24f6d3dd080433489492ba1670d4ea743df3144efd44054d164",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "clip_2.wav"
+      ]
+    },
+    {
+      "path": "artifacts/clip_4_transcript.txt",
+      "kind": "transcript",
+      "producer": "transcribe_audio",
+      "language": "hi",
+      "provenance": "indic-transcribe",
+      "verification": null,
+      "notes": [
+        "language auto-detected from first segment: Hindi (Devanagari script; function words suggest Hindi ({'hi': 1, 'mr': 0, 'ne': 0}))"
+      ],
+      "embeds": [],
+      "sha256": "3475acd751a8b510d1cf7f2da14e5b8e906ec67b5f93346908ebf568ee75ae15",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "clip_4.m4a"
+      ]
+    },
+    {
+      "path": "artifacts/clip_4_transcript.json",
+      "kind": "json",
+      "producer": "transcribe_audio",
+      "language": "hi",
+      "provenance": "indic-transcribe",
+      "verification": null,
+      "notes": [],
+      "embeds": [],
+      "sha256": "fcce759fed07cb2f808f55f9044e23d8986749dd85259f4d3e22e217850b56b7",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "clip_4.m4a"
+      ]
+    },
+    {
+      "path": "artifacts/clip_5_transcript.txt",
+      "kind": "transcript",
+      "producer": "transcribe_audio",
+      "language": "kn",
+      "provenance": "indic-transcribe",
+      "verification": null,
+      "notes": [
+        "language auto-detected from first segment: Kannada (identified by Kannada script)"
+      ],
+      "embeds": [],
+      "sha256": "be76b493adcefa0215bc0810dac4960426fb9604e2c160b80e542e8de0c3c38a",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "clip_5.flac"
+      ]
+    },
+    {
+      "path": "artifacts/clip_5_transcript.json",
+      "kind": "json",
+      "producer": "transcribe_audio",
+      "language": "kn",
+      "provenance": "indic-transcribe",
+      "verification": null,
+      "notes": [],
+      "embeds": [],
+      "sha256": "26e2aea5141f5e6a0d2f85e68247bbf3a4e2eaaa20f5bdb755adf05be926250e",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "clip_5.flac"
+      ]
+    },
+    {
+      "path": "artifacts/clip_1_transcript.txt",
+      "kind": "transcript",
+      "producer": "transcribe_audio",
+      "language": "te",
+      "provenance": "indic-transcribe",
+      "verification": null,
+      "notes": [
+        "language auto-detected from first segment: Telugu (identified by Telugu script)"
+      ],
+      "embeds": [],
+      "sha256": "905a2e52379ea64afbea3e4c5ada93302aa8a8fd829c53f436703c6264f423c7",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "clip_1.mp3"
+      ]
+    },
+    {
+      "path": "artifacts/clip_1_transcript.json",
+      "kind": "json",
+      "producer": "transcribe_audio",
+      "language": "te",
+      "provenance": "indic-transcribe",
+      "verification": null,
+      "notes": [],
+      "embeds": [],
+      "sha256": "83e5f2ae095c066048ccef9206a6610c046c599b5bfa2d13ea9c6e9f057800d5",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "clip_1.mp3"
+      ]
+    },
+    {
+      "path": "artifacts/clip_3_transcript.txt",
+      "kind": "transcript",
+      "producer": "transcribe_audio",
+      "language": "te",
+      "provenance": "indic-transcribe",
+      "verification": null,
+      "notes": [
+        "language auto-detected from first segment: Telugu (identified by Telugu script)"
+      ],
+      "embeds": [],
+      "sha256": "61cab51bd9bd961b8ff79bccca7ec12a18e1e68f38a875ec9d561b9e2fac952f",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "clip_3.ogg"
+      ]
+    },
+    {
+      "path": "artifacts/clip_3_transcript.json",
+      "kind": "json",
+      "producer": "transcribe_audio",
+      "language": "te",
+      "provenance": "indic-transcribe",
+      "verification": null,
+      "notes": [],
+      "embeds": [],
+      "sha256": "3f54942053f141d8ee2d48153274e5fab113eec3c2e1af2f6c98ad5459b20476",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "clip_3.ogg"
+      ]
+    },
+    {
+      "path": "artifacts/clip_1_english.md",
+      "kind": "translation",
+      "producer": "translate_text",
+      "language": "en",
+      "provenance": "indic-translate",
+      "verification": {
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 0,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.0
+          },
+          "back_translation": {
+            "language": "te",
+            "mean_chrf": 0.741,
+            "min_chrf": 0.741,
+            "min_length_ratio": 0.91,
+            "passages": 1
+          }
+        }
+      },
+      "notes": [],
+      "embeds": [
+        "clip_1_transcript.txt"
+      ],
+      "sha256": "3eea3f4b37a36312b818d90aedf876c184255b62b05c55602ab824b474b8b68a",
+      "source_language": "te",
+      "verification_checks": 1,
+      "origin": [
+        "clip_1.mp3"
+      ]
+    },
+    {
+      "path": "artifacts/clip_3_english.md",
+      "kind": "translation",
+      "producer": "translate_text",
+      "language": "en",
+      "provenance": "indic-translate",
+      "verification": {
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 0,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.0
+          },
+          "back_translation": {
+            "language": "te",
+            "mean_chrf": 0.745,
+            "min_chrf": 0.745,
+            "min_length_ratio": 0.76,
+            "passages": 1
+          }
+        }
+      },
+      "notes": [],
+      "embeds": [
+        "clip_3_transcript.txt"
+      ],
+      "sha256": "7a2345a778759e7278b816578f379ae9a5a71494cf94a07e92b233bc39be46b3",
+      "source_language": "te",
+      "verification_checks": 1,
+      "origin": [
+        "clip_3.ogg"
+      ]
+    }
+  ],
+  "verification": {
+    "results": [
+      {
+        "artifact": "artifacts/clip_1_english.md",
+        "kind": "translation",
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 0,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.0
+          },
+          "back_translation": {
+            "language": "te",
+            "mean_chrf": 0.741,
+            "min_chrf": 0.741,
+            "min_length_ratio": 0.91,
+            "passages": 1
+          }
+        }
+      },
+      {
+        "artifact": "artifacts/clip_3_english.md",
+        "kind": "translation",
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 0,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.0
+          },
+          "back_translation": {
+            "language": "te",
+            "mean_chrf": 0.745,
+            "min_chrf": 0.745,
+            "min_length_ratio": 0.76,
+            "passages": 1
+          }
+        }
+      }
+    ],
+    "unverified_translations_or_audio": [],
+    "all_checked": true
+  },
+  "cost": {
+    "max_inr": 20.0,
+    "bodhan_billed_inr": 0.0498,
+    "bodhan_uncertain_inr": 0.0,
+    "llm_inr": null,
+    "total_counted_inr": 0.0498,
+    "by_model_inr": {
+      "indic-transcribe": 0.0483,
+      "indic-translate": 0.0015
+    },
+    "bodhan_calls": 9,
+    "cache_hits": 0,
+    "bodhan_cost_basis": "published unit prices x metered quantity (audio seconds rounded up per request, output tokens from usage, input characters, images); provider dashboard is authoritative",
+    "llm": {
+      "calls": 4,
+      "prompt_tokens": 26081,
+      "completion_tokens": 1102,
+      "pricing": "not priced (no rate supplied); tokens reported only"
+    }
+  },
+  "llm": {
+    "model": "gpt-6.1-sol",
+    "endpoint_host": "127.0.0.1",
+    "adaptations": []
+  },
+  "quality_targets": {
+    "latency": {
+      "kind": "multi-step",
+      "target_s": 300,
+      "actual_s": 34.0,
+      "met": true,
+      "note": null
+    },
+    "budget": {
+      "max_inr": 20.0,
+      "counted_inr": 0.0498,
+      "within_budget": true,
+      "scope": "Bodhan calls (billed + uncertain retries); LLM only if priced via --llm-*-inr-per-1m"
+    },
+    "no_waste": {
+      "cache_hits": 0,
+      "bodhan_requests": 9,
+      "retried_attempts": 0,
+      "note": "identical (model, input, settings) requests are served from the cache or shared while in flight; the only repeats are retries of a failed or timed-out attempt (rate limit, 5xx, timeout), counted here and traced as api_call events with attempt > 1"
+    },
+    "verification": {
+      "all_generated_audio_and_translations_checked": true
+    },
+    "honest_failure": "unassessed: code cannot judge whether the answer is truthful; see verification results and review the outputs"
+  },
+  "injection_warnings": [],
+  "paid_tool_calls": 7,
+  "version": "0.1.0"
+}

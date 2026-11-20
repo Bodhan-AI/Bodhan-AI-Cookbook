@@ -1,0 +1,5 @@
+Summary of Chapter 5: The Journey of a Water Drop
+
+Chapter 5 explores the fascinating journey of water on Earth, tracing how every drop circulates continuously through the water cycle. The chapter covers the main stages of the cycle: evaporation, where the sun's heat converts surface water from oceans, lakes, and plants into water vapor; condensation, where rising warm air cools and forms clouds of tiny water droplets; precipitation, where heavy droplets fall as rain, snow, or hail; and collection, where water flows into streams, rivers, oceans, and groundwater reserves. 
+
+The chapter highlights the vital importance of the water cycle for weather, ecosystems, and agriculture. Since only about three percent of Earth's water is freshwater, conservation is essential. Simple actions like turning off taps while brushing teeth, harvesting rainwater, and fixing leaks can save significant amounts of water. Finally, the chapter includes exercises and activities to help students observe evaporation and practice water conservation in daily life.

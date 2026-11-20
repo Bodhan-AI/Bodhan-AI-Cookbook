@@ -422,6 +422,11 @@ class RunContext:
             options = [self.artifacts_dir / p] + [r / p for r in (self.read_roots or []) if r.is_dir()]
             p = next((c for c in options if c.exists()), Path.cwd() / p)
         p = p.resolve()
+        if not p.exists() and p.name and (self.artifacts_dir / p.name).is_file():
+            # a planner that garbles the folder part of an artifact path it was given (seen live: a dropped
+            # "examples\\indic_task_agent\\") still means this run's artifact of that name; nothing outside the sandbox
+            self.emit({"type": "path_corrected", "given": str(raw), "used": str(self.artifacts_dir / p.name)})
+            p = (self.artifacts_dir / p.name).resolve()
         if self.read_roots is not None:
             roots = [r.resolve() for r in self.read_roots] + [self.artifacts_dir.resolve()]
             if not any(p == r or p.is_relative_to(r) for r in roots):

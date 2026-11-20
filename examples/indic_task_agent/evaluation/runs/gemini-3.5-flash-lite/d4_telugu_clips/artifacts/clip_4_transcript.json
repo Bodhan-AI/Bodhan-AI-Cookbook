@@ -1,0 +1,37 @@
+{
+ "source": "clip_4.m4a",
+ "text": "आज का क्रिकेट मैच भारी बारिश के कारण रद्द कर दिया गया",
+ "segments": [
+  {
+   "index": 0,
+   "start": 0.0,
+   "end": 3.92,
+   "text": "आज का क्रिकेट मैच भारी बारिश के कारण रद्द कर दिया गया"
+  }
+ ],
+ "duration_s": 3.93,
+ "language_used": "hi",
+ "detection": {
+  "language": "hi",
+  "language_name": "Hindi",
+  "script": "Devanagari",
+  "confidence": 1.0,
+  "candidates": [
+   "hi",
+   "mr",
+   "ne",
+   "mai",
+   "sa",
+   "doi",
+   "kok",
+   "brx",
+   "bho",
+   "sd",
+   "ks-Deva"
+  ],
+  "note": "Devanagari script; function words suggest Hindi ({'hi': 1, 'mr': 0, 'ne': 0})"
+ },
+ "notes": [
+  "language auto-detected from first segment: Hindi (Devanagari script; function words suggest Hindi ({'hi': 1, 'mr': 0, 'ne': 0}))"
+ ]
+}

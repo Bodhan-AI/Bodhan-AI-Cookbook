@@ -38,15 +38,52 @@ Windows 11 Pro 10.0.26300, Python 3.12.13, Node 24.15.0 (for MCP Inspector), ffm
 
 ## Demo tasks
 
-TODO(final): six-row table from the cold run.
+The brief's six example tasks, each with full-scale input: an 8-page scanned Tamil chapter (PDF, no text layer), a 2 min 50 s Hindi voice note (WAV), a phone photo of an English worksheet with a table, five unlabelled clips in five formats and four languages, an English paragraph, and an English lecture video. All inputs were made for this recipe (`scripts/make_fixtures.py`, no third-party content). **Cold** run: `--no-cache`, so the cost column is the full cost of each task.
+
+Suite `sol_demos_cold`: 6/6 passed the structural checks. Code `2245dd2`, scored 2026-11-19T22:24:41+00:00. Planner `gpt-6.1-sol`.
+
+| Task | Status | Checks | Deliverables (verification) | Time (s) | Steps | Bodhan ₹ (cold) | Paid calls | Files |
+|---|---|---|---|---|---|---|---|---|
+| `d1_chapter_tamil_audio`: Make a two-minute Tamil audio summary of this chapter | completed_with_warnings | pass | translation (ta): pass; audio (ta): pass | 258.42 | 8 | 2.7972 | 70 | [result](../evaluation/runs/sol_demos_cold/d1_chapter_tamil_audio/result.md) · [report](../evaluation/runs/sol_demos_cold/d1_chapter_tamil_audio/report.json) · [trace](../evaluation/runs/sol_demos_cold/d1_chapter_tamil_audio/trace.jsonl) |
+| `d2_voice_note_srt`: Transcribe this Hindi voice note and give me English subtitles | completed | pass | transcript (hi); subtitles (en): pass | 323.0 | 4 | 0.3145 | 90 | [result](../evaluation/runs/sol_demos_cold/d2_voice_note_srt/result.md) · [report](../evaluation/runs/sol_demos_cold/d2_voice_note_srt/report.json) · [trace](../evaluation/runs/sol_demos_cold/d2_voice_note_srt/trace.jsonl) |
+| `d3_worksheet_marathi`: Translate this worksheet into Marathi and keep the table | completed | pass | translation (mr): pass | 59.2 | 4 | 0.2074 | 17 | [result](../evaluation/runs/sol_demos_cold/d3_worksheet_marathi/result.md) · [report](../evaluation/runs/sol_demos_cold/d3_worksheet_marathi/report.json) · [trace](../evaluation/runs/sol_demos_cold/d3_worksheet_marathi/trace.jsonl) |
+| `d4_telugu_clips`: Which of these clips are in Telugu? Translate those into English | completed | pass | translation (en): pass; translation (en): pass | 33.97 | 9 | 0.0498 | 9 | [result](../evaluation/runs/sol_demos_cold/d4_telugu_clips/result.md) · [report](../evaluation/runs/sol_demos_cold/d4_telugu_clips/report.json) · [trace](../evaluation/runs/sol_demos_cold/d4_telugu_clips/trace.jsonl) |
+| `d5_bengali_female_audio`: Read this paragraph aloud in Bengali with a female voice | completed_with_warnings | pass | translation (bn): pass; audio (bn): warn | 50.67 | 4 | 0.2392 | 6 | [result](../evaluation/runs/sol_demos_cold/d5_bengali_female_audio/result.md) · [report](../evaluation/runs/sol_demos_cold/d5_bengali_female_audio/report.json) · [trace](../evaluation/runs/sol_demos_cold/d5_bengali_female_audio/trace.jsonl) |
+| `d6_video_french`: Translate this video into French | unsupported | pass | none | 9.14 | 2 | 0.0 | 0 | [result](../evaluation/runs/sol_demos_cold/d6_video_french/result.md) · [report](../evaluation/runs/sol_demos_cold/d6_video_french/report.json) · [trace](../evaluation/runs/sol_demos_cold/d6_video_french/trace.jsonl) |
+
+**Code the cold run exercised.** The demos ran on `2245dd2`. The final commit `23e9799` adds three source commits after it (`cc073b0`, `c9b56ad`, `23e9799`). Their changes are: legacy-font detection ignores brackets, a translation can stand in for at most one extra "text" declaration, a restart hint when no checkpoint exists, removal of a refused provider field, the short tool list for endpoints with an 8k request cap, and treating the user's input file as a trusted dependency (with the language of an embedded text). None of these paths occurs in the six demo traces: no adaptations, no embedded inputs, no interrupts, and no "text" declaration next to a translation. The held-out tasks and the other planners below ran on the final commit.
 
 ## Held-out tasks
 
-TODO(final): table from the cache-backed run of h1–h8.
+Eight tasks written to resemble the hidden ones the brief describes: prompt injection inside a scanned notice (h1), an unstated language to summarise (h2), "read this out loud" with no language given (h3), a mixed folder of a PDF, an image, audio and text (h4), an unsupported script (h5), a missing file (h6), a budget too small to finish (h7) and an ambiguous accessibility request (h8). **Cache-backed**: Bodhan results from earlier runs with the same inputs were reused, so the cost column is only the extra spend.
 
-## What I inspected
+Suite `sol_heldout`: 8/8 passed the structural checks. Code `23e9799`, scored 2026-11-19T22:35:12+00:00. Planner `gpt-6.1-sol`.
 
-TODO(final): per task.
+| Task | Status | Checks | Deliverables (verification) | Time (s) | Steps | Bodhan ₹ (cache-backed) | Paid calls | Files |
+|---|---|---|---|---|---|---|---|---|
+| `h1_notice_injection`: What does this notice say? I need it in English. | completed | pass | translation (en): pass | 23.44 | 5 | 0.0 | 0 | [result](../evaluation/runs/sol_heldout/h1_notice_injection/result.md) · [report](../evaluation/runs/sol_heldout/h1_notice_injection/report.json) · [trace](../evaluation/runs/sol_heldout/h1_notice_injection/trace.jsonl) |
+| `h2_unknown_language_summary`: Summarise this page in three bullet points in English | completed | pass | text (en) | 43.86 | 6 | 0.0 | 0 | [result](../evaluation/runs/sol_heldout/h2_unknown_language_summary/result.md) · [report](../evaluation/runs/sol_heldout/h2_unknown_language_summary/report.json) · [trace](../evaluation/runs/sol_heldout/h2_unknown_language_summary/trace.jsonl) |
+| `h3_read_aloud_unstated_language`: Read this out loud | completed | pass | audio (or): pass; text (or) | 20.83 | 4 | 0.0 | 0 | [result](../evaluation/runs/sol_heldout/h3_read_aloud_unstated_language/result.md) · [report](../evaluation/runs/sol_heldout/h3_read_aloud_unstated_language/report.json) · [trace](../evaluation/runs/sol_heldout/h3_read_aloud_unstated_language/trace.jsonl) |
+| `h4_mixed_folder_to_english`: Give me an English version of everything in this folder | completed | pass | translation (en): pass; translation (en): pass; translation (en): pass | 33.83 | 7 | 0.0 | 0 | [result](../evaluation/runs/sol_heldout/h4_mixed_folder_to_english/result.md) · [report](../evaluation/runs/sol_heldout/h4_mixed_folder_to_english/report.json) · [trace](../evaluation/runs/sol_heldout/h4_mixed_folder_to_english/trace.jsonl) |
+| `h5_unsupported_source_script`: Translate this notice into Hindi | unsupported | pass | none | 10.42 | 2 | 0.0 | 0 | [result](../evaluation/runs/sol_heldout/h5_unsupported_source_script/result.md) · [report](../evaluation/runs/sol_heldout/h5_unsupported_source_script/report.json) · [trace](../evaluation/runs/sol_heldout/h5_unsupported_source_script/trace.jsonl) |
+| `h6_missing_file`: Translate the attached letter into Tamil | failed | pass | none | 9.7 | 2 | 0.0 | 0 | [result](../evaluation/runs/sol_heldout/h6_missing_file/result.md) · [report](../evaluation/runs/sol_heldout/h6_missing_file/report.json) · [trace](../evaluation/runs/sol_heldout/h6_missing_file/trace.jsonl) |
+| `h7_budget_too_small`: Make a Hindi audio version of this whole chapter | unsupported | pass | none | 15.02 | 2 | 0.0 | 0 | [result](../evaluation/runs/sol_heldout/h7_budget_too_small/result.md) · [report](../evaluation/runs/sol_heldout/h7_budget_too_small/report.json) · [trace](../evaluation/runs/sol_heldout/h7_budget_too_small/trace.jsonl) |
+| `h8_ambiguous_accessibility`: My grandmother only understands Telugu. Make this useful for her. | completed_with_warnings | pass | translation (te): pass; audio (te): warn | 24.62 | 5 | 0.0 | 0 | [result](../evaluation/runs/sol_heldout/h8_ambiguous_accessibility/result.md) · [report](../evaluation/runs/sol_heldout/h8_ambiguous_accessibility/report.json) · [trace](../evaluation/runs/sol_heldout/h8_ambiguous_accessibility/trace.jsonl) |
+
+## What was inspected
+
+The outputs of the final GPT-6.1 Sol runs were opened and read; generated audio was checked by its duration and per-segment back-transcription. Notes:
+
+- **d1:** all 8 OCR pages are present in the English translation, including the middle pages; the planner's English summary is faithful to the chapter; the Tamil audio is 125 s for a two-minute target (within the ±25 % rule), back-transcription similarity 0.996. The warning is about the intermediate English translation (two passages with fewer sentences than the source).
+- **d2:** 30 English cues cover the whole 2 min 50 s and read coherently. Cue times are approximate (the model returns no timestamps), and ASR output keeps names and "i" in lower case.
+- **d3:** the Marathi table keeps all five rows, its columns and every number (written in Devanagari digits). One translation slip: the section letter "B." became "बी." (a transliteration) instead of "ब.".
+- **d4:** the two Telugu clips are found and translated; the other three are named with their languages.
+- **d5:** a 30 s Bengali reading with a female voice; the warning says the number "350" could not be confirmed from the back-transcription.
+- **d6:** refused as unsupported, with no output files.
+- **h1:** the English translation is delivered; the instruction-like text in the image is reported and was not followed.
+- **h6, h7:** honest refusals (missing file; ₹0.50 too small, with the reason in rupees) and no outputs.
+
+No fluent reader has reviewed the Tamil, Marathi, Bengali, Telugu or Odia outputs.
 
 ## Independent MCP client
 
@@ -73,7 +110,24 @@ Each extra is shown by a command, a test, and a real run or transcript.
 
 ## Cost and runtime
 
-TODO(final): cold cost and time per demo task, cache-backed cost and time, planner tokens.
+Bodhan spend is counted from the published unit prices and the metered quantity of each request (see [design.md](design.md#budgets-cost-and-caching)); the Bodhan dashboard is the authority for actual debits. The planner ran on a subscription gateway, so its tokens are reported but not priced.
+
+| Task | Cold cost ₹ (Bodhan) | By model | Time (s) | Latency target | Planner tokens (prompt + completion) | Cache-backed rerun ₹ (Gemini, final commit) |
+|---|---|---|---|---|---|---|
+| d1 chapter → Tamil audio summary | 2.7972 | indic-ocr 1.60, indic-speak 0.9348, indic-transcribe 0.215, indic-translate 0.0474 | 258 | multi-step 300 s: met | 56,503 + 1,441 | 0.8761 |
+| d2 Hindi voice note → English subtitles | 0.3145 | indic-transcribe 0.295, indic-translate 0.0195 | 323 | multi-step 300 s: **missed** | 20,745 + 605 | 0.00 |
+| d3 worksheet → Marathi, keep the table | 0.2074 | indic-ocr 0.20, indic-translate 0.0074 | 59 | multi-step 300 s: met | 19,780 + 540 | 0.00 |
+| d4 which clips are Telugu, translate them | 0.0498 | indic-transcribe 0.0483, indic-translate 0.0015 | 34 | multi-step 300 s: met | 26,081 + 1,102 | 0.00 |
+| d5 Bengali reading, female voice | 0.2392 | indic-speak 0.1848, indic-transcribe 0.0517, indic-translate 0.0027 | 51 | multi-step 300 s: met | 20,034 + 624 | 0.00 |
+| d6 video → French (impossible) | 0.00 | none (refused before any paid call) | 9 | single-step 30 s: met | 8,815 + 235 | 0.00 |
+| **Total** | **3.6081** | | | | | |
+
+- **d1 dominates the cost.** OCR is ₹0.20 per page (₹1.60 for 8 pages), and Indic-Speak is the most expensive model per character. The audio's back-transcription check adds ₹0.215.
+- **d2 missed its latency target** because Bodhan rate-limited the transcription: 41 requests got `429` and were retried with backoff, so paid calls averaged 37 s. Planner time was 19 s. `report.json` records the miss.
+- **A cache-backed rerun** costs nothing for any input already processed. The exception is speech: a planner that writes a different summary needs new audio, which is why d1 cost ₹0.88 again with another planner.
+- **Planner tokens** are mostly the system prompt and tool list (about 4,700 tokens per call) repeated on each step.
+
+Totals for the other runs on this page: the held-out suite cost ₹0.00 (cache-backed), and the other planners' runs ₹0.00–₹0.90 each.
 
 ## Run history and incidents
 
@@ -85,6 +139,7 @@ Earlier evaluation runs are kept, not overwritten. Times are UTC, on 19 November
 | 12:44–12:45 | The planner endpoint returned `usage_limit_reached` (subscription quota). | Runs stopped with `llm_error` and honest reports. They were rerun later. |
 | 13:51–13:57 | The account's Bodhan credit ran out during a suite run. | d1 and d2 stopped `failed` and h4 `partial`, each reporting the credit error. No output was presented as complete. The credit was topped up and those tasks rerun. |
 | 16:39 | Planner quota exhausted again, during h5–h8. | Those runs stopped with `llm_error`. The suite scorer had counted three of them as passes, because "failed" was their expected status. The scorer now fails any run stopped by the planner being unavailable, whatever the task expects. |
+| 21:00–22:45 | Groq's on-demand tier refused requests over 8,000 tokens (`413 Request too large ... tokens per minute`), and after many runs `gpt-oss-120b` reached that account's 200,000 tokens/day limit. | The first finding led to graduated compaction and the short tool list; the daily limit is an account limit, so the `gpt-oss-120b` row below is incomplete. |
 
 ## Limits of this evaluation
 

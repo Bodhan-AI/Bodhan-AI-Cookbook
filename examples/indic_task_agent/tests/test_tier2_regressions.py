@@ -402,3 +402,16 @@ async def test_read_aloud_with_the_input_text_as_a_deliverable(tmp_path):
     out, rep, trace, md = read_outputs(tmp_path)
     assert rep["status"] in ("completed", "completed_with_warnings"), [e.get("reasons") for e in trace if e["type"] == "finish_rejected"]
     assert sorted(d["language"] for d in rep["deliverables"]) == ["or", "or"]
+
+
+# live gpt-5.6-luna, d1: the planner dropped two folders from artifact paths it had been given
+async def test_a_garbled_artifact_path_still_finds_this_runs_artifact(make_ctx, tmp_path):
+    ctx = make_ctx(FakeBodhan(), read_roots=[tmp_path / "inputs"])
+    (tmp_path / "inputs").mkdir()
+    ctx.artifacts_dir.mkdir(parents=True, exist_ok=True)
+    (ctx.artifacts_dir / "summary_ta.md").write_text("The water cycle never stops.", encoding="utf-8")
+    garbled = tmp_path / "elsewhere" / "artifacts" / "summary_ta.md"
+    r, err = await invoke(TOOL_BY_NAME["read_text"], ctx, {"path": str(garbled)})
+    assert not err and "water cycle" in r["text"]
+    r, err = await invoke(TOOL_BY_NAME["read_text"], ctx, {"path": str(tmp_path / "elsewhere" / "secret.txt")})
+    assert err  # an unknown name is still refused
