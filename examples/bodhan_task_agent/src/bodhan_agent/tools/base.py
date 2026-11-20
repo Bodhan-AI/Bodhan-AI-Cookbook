@@ -12,6 +12,7 @@ from pydantic import BaseModel, ValidationError
 from bodhan_agent import guards
 from bodhan_agent.config import RunSettings
 from bodhan_agent.schemas.ledger import Artifact, ArtifactKind, Ledger, Producer
+from bodhan_agent.schemas.plan import Plan
 from bodhan_agent.schemas.tools import LocalResult
 from bodhan_mcp.exceptions import BodhanToolError
 from bodhan_mcp.utils.files import write_bytes_atomic
@@ -56,6 +57,7 @@ class ToolContext:
     budget: BudgetManager | None = None
     deadline: float | None = None
     seq: int | None = None
+    plan: Plan | None = None
 
 
 def _inline(node: Any, defs: dict[str, Any]) -> Any:
