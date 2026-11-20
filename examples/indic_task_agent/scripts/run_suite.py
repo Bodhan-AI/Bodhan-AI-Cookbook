@@ -44,6 +44,15 @@ def _shown(p: Path) -> str:
 INFRASTRUCTURE_STOPS = {"llm_error", "llm_not_configured", "setup_error", "internal_error"}
 
 
+def media_listed(out: Path) -> dict[str, str]:
+    """Exported runs keep media out of git: MEDIA.md lists each file with its SHA-256 (path -> digest)."""
+    md = out / "MEDIA.md"
+    if not md.is_file():
+        return {}
+    rows = re.findall(r"^\| `([^`]+)` \| [^|]+ \| `([0-9a-f]{64})` \|", md.read_text(encoding="utf-8"), re.M)
+    return dict(rows)
+
+
 def score(task: dict, report: dict, out: Path) -> list[str]:
     """Return the failed checks (empty = pass)."""
     exp, fails = task.get("expect", {}), []
@@ -58,8 +67,10 @@ def score(task: dict, report: dict, out: Path) -> list[str]:
     if report["status"] not in exp.get("status", [report["status"]]):
         fails.append(f"status {report['status']} not in {exp['status']}")
     dels = report.get("deliverables", [])
+    listed = media_listed(out)
     for d in dels:
-        if not (out / d["path"]).is_file():
+        # an exported run without its media still proves the file existed: MEDIA.md lists the same SHA-256 the run recorded
+        if not (out / d["path"]).is_file() and not (d.get("sha256") and listed.get(d["path"]) == d["sha256"]):
             fails.append(f"deliverable file missing: {d['path']}")
         if (d.get("verification") or {}).get("status") == "fail":
             fails.append(f"deliverable failed verification: {d['path']}")
@@ -150,6 +161,8 @@ def main() -> None:
     ap.add_argument("--score-only", action="store_true", help="re-score existing outputs without running (rows are labelled 'reused')")
     ap.add_argument("--skip-existing", action="store_true", help="do not re-run tasks that already have a report.json (labelled 'reused')")
     ap.add_argument("--env-file", default=None)
+    ap.add_argument("--summary-dir", default=None,
+                    help="where summary.json/summary.md go (default --out); use it to re-score committed evidence without overwriting it")
     a, extra = ap.parse_known_args()
     if hasattr(sys.stdout, "reconfigure"):  # the summary contains ₹; never fail on a non-UTF-8 console
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -158,6 +171,8 @@ def main() -> None:
         wanted = set(a.ids.split(","))
         tasks = [t for t in tasks if t["id"] in wanted]
     base = Path(a.out).resolve()
+    if a.score_only and not a.ids:  # re-score what is there (an exported suite holds only some of the tasks)
+        tasks = [t for t in tasks if (base / t["id"] / "report.json").is_file()]
     rows = []
     for t in tasks:
         out = base / t["id"]
@@ -201,8 +216,9 @@ def main() -> None:
     summary = {"passed": passed, "total": len(rows), "pass_rate": round(passed / max(len(rows), 1), 3), "scored_at": datetime.now(UTC).isoformat(timespec="seconds"),
                "code": code_version(), "checks": "structural only (status, files, kinds, languages, verification, answer text, budget); not a quality score",
                "tasks": rows}
-    base.mkdir(parents=True, exist_ok=True)
-    (base / "summary.json").write_text(json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8")
+    dest = Path(a.summary_dir).resolve() if a.summary_dir else base
+    dest.mkdir(parents=True, exist_ok=True)
+    (dest / "summary.json").write_text(json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8")
     lines = [f"# Suite: {passed}/{len(rows)} passed structural checks", "",
              f"Code: `{summary['code']['commit']}`{' (with local changes)' if summary['code']['src_modified'] else ''}. Scored {summary['scored_at']}.", "",
              "| Task | Evidence | Cache | Status | Pass | Time (s) | Steps | Bodhan ₹ | Paid calls | Cache hits | Latency target | Failed checks |",
@@ -212,7 +228,7 @@ def main() -> None:
                      f"{r.get('steps', '')} | {r.get('bodhan_inr', '')} | {r.get('paid_calls', '')} | {r.get('cache_hits', '')} | "
                      f"{r.get('latency_kind', '')} {'met' if r.get('latency_target_met') else 'missed'} | "
                      f"{'; '.join(r['fails'])} |")
-    (base / "summary.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    (dest / "summary.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     print("\n".join(lines))
     sys.exit(0 if passed == len(rows) else 1)
 

@@ -171,8 +171,9 @@ The flow chart and the reasons behind it are in [docs/design.md](docs/design.md)
 ## Tests
 
 ```bash
-pytest -q                                  # 246 offline tests, no network or keys needed
+pytest -q                                  # 248 offline tests, no network or keys needed
 python scripts/run_suite.py                # live self-evaluation of evaluation/tasks.json (exit 1 if any task fails)
+python scripts/run_suite.py --score-only --out evaluation/runs/sol_demos_cold --summary-dir /tmp/rescore   # re-score committed evidence offline
 ```
 
 The offline tests run against `tests/fakes.py`, a mock of the four endpoints that enforces their limits, with a scripted planner. They cover chunking, retries, billing, budgets under concurrency, the gates, resume, the MCP server as a separate process, and multi-step CLI runs. The `tests/test_*_regressions.py` files hold one test per review finding. `scripts/run_suite.py` checks status, deliverables, languages, checks, answer text and budget per task: structural checks, not a quality score.
