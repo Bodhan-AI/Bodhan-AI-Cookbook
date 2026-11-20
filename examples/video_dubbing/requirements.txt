@@ -1,0 +1,50 @@
+# Every dependency pinned (generated with pip freeze). Install: pip install -r requirements.txt
+# CPU-only torch (Silero VAD and Demucs need it; the default PyPI build bundles CUDA and is several GB).
+--extra-index-url https://download.pytorch.org/whl/cpu
+annotated-types==0.8.0
+anyio==4.16.0
+certifi==2026.10.23
+charset-normalizer==3.5.2
+click==8.5.1
+demucs==4.1.0
+einops==0.8.2
+filelock==4.2.12
+fsspec==2026.9.0
+h11==0.16.0
+hf-xet==1.8.0
+httpcore2==2.16.2
+httpx2==2.16.2
+huggingface_hub==2.4.0
+idna==3.20
+iniconfig==2.3.1
+Jinja2==3.1.6
+jiter==0.19.0
+julius==0.2.8
+lameenc==1.9.0
+MarkupSafe==3.0.4
+mpmath==1.3.0
+networkx==3.7
+numpy==2.5.5
+openai==3.55.1
+packaging==26.3
+pluggy==1.7.0
+pydantic==2.14.3
+pydantic_core==2.50.4
+Pygments==2.21.0
+pytest==9.2.0
+python-dotenv==1.0.1
+PyYAML==6.0.3
+requests==2.32.3
+safetensors==0.8.0
+setuptools==84.2.1
+silero-vad==6.2.3
+sniffio==1.3.1
+sphn==0.2.1
+sympy==1.14.0
+torch==2.15.0+cpu
+tqdm==4.70.1
+truststore==0.10.5
+typing-inspection==0.4.5
+typing_extensions==4.16.0
+urllib3==2.8.0
+-e .
