@@ -67,7 +67,7 @@ The run stopped before the planner finished: Reached the 600s time limit. 4 arti
 - Status: `partial` (stop reason: `time_limit`)
 - Bodhan cost: ₹1.0083 billed + ₹0.6950 possibly billed (failed/timed-out attempts); budget ₹20.0
 - Planner LLM: gpt-5.6-luna — 7 calls, 47079 prompt + 1451 completion tokens (not priced (no rate supplied); tokens reported only)
-- Time: 600.03 s (multi-step, target 300 s: missed)
+- Time: 600.03 s (multi-step, target 300 s: missed); missed by 300 s (600 s against 300 s); tool calls 79% of the time, mostly step 7 (synthesize_speech, 454 s); planner turns 21% (7 calls, 127 s); 52 Bodhan requests (indic-transcribe 33, indic-speak 11, indic-translate 8); 1 attempt refused by rate limits and retried
 - Steps: 7 of 30; cache hits: 40
 
 | Step | Tool | OK | Latency (s) | Cost (₹) | Verification |

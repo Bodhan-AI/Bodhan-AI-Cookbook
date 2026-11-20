@@ -81,7 +81,7 @@ out/
   result.md      the answer, deliverables with their check results, assumptions, limitations, cost and time
   artifacts/     audio, subtitles, Markdown and transcripts
   trace.jsonl    one line per event: plan, LLM decision with its rationale, tool call with arguments, result summary, latency, cost, and every API attempt
-  report.json    status, steps, check results, cost breakdown, time and quality-target checks
+  report.json    status, steps, check results, cost breakdown, time, and each quality target with why it was missed
 ```
 
 `status` is one of `completed`, `completed_with_warnings`, `partial`, `failed` or `unsupported`. The process exits 0 whenever it wrote a report, including for honest failures.
@@ -171,7 +171,7 @@ The flow chart and the reasons behind it are in [docs/design.md](docs/design.md)
 ## Tests
 
 ```bash
-pytest -q                                  # 234 offline tests, no network or keys needed
+pytest -q                                  # 239 offline tests, no network or keys needed
 python scripts/run_suite.py                # live self-evaluation of evaluation/tasks.json (exit 1 if any task fails)
 ```
 

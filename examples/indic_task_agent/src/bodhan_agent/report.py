@@ -47,6 +47,75 @@ def _count_retries(trace: Path) -> int:
     return n
 
 
+CACHED = ("this_run", "previous_run", "in_flight")
+
+
+def _events(trace: Path) -> list[dict]:
+    out = []
+    try:
+        for line in trace.read_text(encoding="utf-8").splitlines():
+            try:
+                out.append(json.loads(line))
+            except ValueError:
+                continue  # a line being written right now
+    except OSError:
+        pass
+    return out
+
+
+def latency_reason(events: list[dict], elapsed: float, target: float) -> str:
+    """Why a run missed its latency target, from its own trace: where the time went (planner turns vs tool calls),
+    the slowest step, the Bodhan requests behind it and how many attempts rate limits refused."""
+    llm = [e for e in events if e.get("type") == "llm_call"]
+    tools = [e for e in events if e.get("type") == "tool_call"]
+    sent = [e for e in events if e.get("type") == "api_call" and e.get("cache") not in CACHED]
+    lat = lambda e: float(e.get("latency_s") or 0)  # noqa: E731
+    pct = lambda x: round(100 * x / elapsed) if elapsed > 0 else 0  # noqa: E731
+    parts = [f"missed by {elapsed - target:.0f} s ({elapsed:.0f} s against {target:.0f} s)"]
+    if tools:
+        by_tool: dict[str, float] = {}
+        for e in tools:
+            by_tool[str(e.get("tool"))] = by_tool.get(str(e.get("tool")), 0.0) + lat(e)
+        top = max(by_tool, key=by_tool.get)
+        slow = max(tools, key=lat)
+        share = f"tool calls {pct(sum(by_tool.values()))}% of the time"
+        if slow.get("tool") == top and abs(by_tool[top] - lat(slow)) < 0.5:  # one call holds all of that tool's time
+            parts.append(f"{share}, mostly step {slow.get('step')} ({top}, {lat(slow):.0f} s)")
+        else:
+            parts.append(f"{share}, mostly {top} ({by_tool[top]:.0f} s); slowest step {slow.get('step')} ({slow.get('tool')}, {lat(slow):.0f} s)")
+    if llm:
+        parts.append(f"planner turns {pct(sum(map(lat, llm)))}% ({len(llm)} calls, {sum(map(lat, llm)):.0f} s)")
+    done = [e for e in sent if e.get("status") != 429]
+    if done:
+        models: dict[str, int] = {}
+        for e in done:
+            models[str(e.get("model"))] = models.get(str(e.get("model")), 0) + 1
+        parts.append(f"{len(done)} Bodhan requests (" + ", ".join(f"{m} {n}" for m, n in sorted(models.items(), key=lambda x: -x[1])) + ")")
+    limited = sum(1 for e in sent if e.get("status") == 429)
+    if limited:
+        parts.append(f"{limited} attempt{'s' if limited > 1 else ''} refused by rate limits and retried")
+    return "; ".join(parts)
+
+
+def budget_reason(ledger: dict[str, Any]) -> str:
+    over = ledger["total_counted_inr"] - (ledger["max_inr"] or 0)
+    bits = [f"₹{ledger['bodhan_billed_inr']:.4f} billed by Bodhan"]
+    if ledger.get("bodhan_uncertain_inr"):
+        bits.append(f"₹{ledger['bodhan_uncertain_inr']:.4f} for failed or timed-out attempts that may have been billed (counted to be safe)")
+    if ledger.get("llm_inr"):
+        bits.append(f"₹{ledger['llm_inr']:.4f} for planner calls")
+    return f"over the ₹{ledger['max_inr']} cap by ₹{over:.4f}: " + ", ".join(bits)
+
+
+def verification_reason(unverified: list[str], failed: list[tuple[str, str]]) -> str | None:
+    bits = []
+    if unverified:
+        bits.append("not checked: " + ", ".join(unverified) + " (no check ran on them; see the tool calls in trace.jsonl)")
+    if failed:
+        bits.append("failed its check: " + "; ".join(f"{p} ({why})" for p, why in failed))
+    return "; ".join(bits) or None
+
+
 def build_report(agent: Any, out: Path, started_at: datetime, elapsed: float) -> dict[str, Any]:
     ctx: RunContext = agent.ctx
     outcome = agent.outcome
@@ -67,6 +136,8 @@ def build_report(agent: Any, out: Path, started_at: datetime, elapsed: float) ->
     except ValueError:
         llm_host = None
     within = ctx.ledger.max_inr is None or ctx.ledger.committed <= ctx.ledger.max_inr + 1e-9
+    failed = [(_rel(out, a.path), "; ".join(map(str, (a.verification.get("problems") or [])[:2])) or "see its verification record")
+              for a in arts if a.kind in ("translation", "audio", "subtitles") and (a.verification or {}).get("status") == "fail"]
     return {
         "status": outcome.status,
         "stop_reason": outcome.stop_reason,
@@ -95,14 +166,16 @@ def build_report(agent: Any, out: Path, started_at: datetime, elapsed: float) ->
         "quality_targets": {
             "latency": {"kind": "multi-step" if multi else "single-step", "target_s": target, "actual_s": round(elapsed, 1),
                         "met": elapsed <= target,
-                        "note": None if elapsed <= target else "missed: see trace.jsonl latency_s per step (API latency, verification calls, LLM turns)"},
+                        "note": None if elapsed <= target else latency_reason(_events(out / "trace.jsonl"), elapsed, target)},
             "budget": {"max_inr": ctx.ledger.max_inr, "counted_inr": round(ctx.ledger.committed, 4), "within_budget": within,
+                       "note": None if within else budget_reason(ledger),
                        "scope": "Bodhan calls (billed + uncertain retries); LLM only if priced via --llm-*-inr-per-1m"},
             "no_waste": {"cache_hits": ctx.ledger.cache_hits, "bodhan_requests": ctx.ledger.calls, "retried_attempts": retries,
                          "note": "identical (model, input, settings) requests are served from the cache or shared while in flight; "
                                  "the only repeats are retries of a failed or timed-out attempt (rate limit, 5xx, timeout), "
                                  "counted here and traced as api_call events with attempt > 1"},
-            "verification": {"all_generated_audio_and_translations_checked": not unverified},
+            "verification": {"all_generated_audio_and_translations_checked": not unverified,
+                             "note": verification_reason(unverified, failed)},
             "honest_failure": "unassessed: code cannot judge whether the answer is truthful; see verification results and review the outputs",
         },
         "injection_warnings": injections,
@@ -175,7 +248,8 @@ def render_markdown(r: dict[str, Any], ctx: RunContext, out: Path) -> str:
               + (f"; budget ₹{c['max_inr']}" if c["max_inr"] is not None else "; no budget cap"),
               f"- Planner LLM: {r['llm']['model']} — {c['llm']['calls']} calls, {c['llm']['prompt_tokens']} prompt + {c['llm']['completion_tokens']} completion tokens ({c['llm']['pricing']})",
               f"- Time: {r['elapsed_s']} s ({r['quality_targets']['latency']['kind']}, target {r['quality_targets']['latency']['target_s']} s: "
-              + ("met" if r["quality_targets"]["latency"]["met"] else "missed") + ")",
+              + ("met" if r["quality_targets"]["latency"]["met"] else "missed") + ")"
+              + (f"; {r['quality_targets']['latency']['note']}" if r["quality_targets"]["latency"].get("note") else ""),
               f"- Steps: {r['steps']['used']} of {r['steps']['max']}; cache hits: {c['cache_hits']}", "",
               "| Step | Tool | OK | Latency (s) | Cost (₹) | Verification |", "|---|---|---|---|---|---|"]
     for t in r["steps"]["tool_calls"]:

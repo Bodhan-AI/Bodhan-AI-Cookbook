@@ -15,6 +15,8 @@ Every run below is a real execution of `python -m bodhan_agent` against the host
 
 **Commit SHAs.** On 20 November 2026 the branch history was rewritten to remove a provider account id from one test fixture. Every commit was kept one to one, with the same code; only that test string changed. The SHAs on this page and in the exported summaries are the rewritten ones. The runs themselves were made on the matching pre-rewrite commits, which each summary also names.
 
+**Missed-target notes.** Since this change, each `report.json` says why a quality target was missed, from the run's own trace (where the time went, the slowest step, the Bodhan requests and the attempts refused by rate limits). The exported runs predate it, so `scripts/explain_missed_targets.py` recomputed those notes from each run's `trace.jsonl` with the same code; each recomputed note carries `note_source`. Nothing was rerun and no other field changed.
+
 The `h1`–`h8` tasks are my own held-out tasks, written to resemble the kinds of hidden tasks the brief describes. They are not the employer's hidden tests.
 
 ## Environment

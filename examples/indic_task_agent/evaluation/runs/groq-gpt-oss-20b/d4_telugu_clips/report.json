@@ -62,13 +62,15 @@
       "target_s": 30,
       "actual_s": 456.0,
       "met": false,
-      "note": "missed: see trace.jsonl latency_s per step (API latency, verification calls, LLM turns)"
+      "note": "missed by 426 s (456 s against 30 s); planner turns 1% (1 calls, 3 s)",
+      "note_source": "recomputed from trace.jsonl by scripts/explain_missed_targets.py"
     },
     "budget": {
       "max_inr": 20.0,
       "counted_inr": 0.0,
       "within_budget": true,
-      "scope": "Bodhan calls (billed + uncertain retries); LLM only if priced via --llm-*-inr-per-1m"
+      "scope": "Bodhan calls (billed + uncertain retries); LLM only if priced via --llm-*-inr-per-1m",
+      "note": null
     },
     "no_waste": {
       "cache_hits": 0,
@@ -77,7 +79,8 @@
       "note": "identical (model, input, settings) requests are served from the cache or shared while in flight; the only repeats are retries of a failed or timed-out attempt (rate limit, 5xx, timeout), counted here and traced as api_call events with attempt > 1"
     },
     "verification": {
-      "all_generated_audio_and_translations_checked": true
+      "all_generated_audio_and_translations_checked": true,
+      "note": null
     },
     "honest_failure": "unassessed: code cannot judge whether the answer is truthful; see verification results and review the outputs"
   },

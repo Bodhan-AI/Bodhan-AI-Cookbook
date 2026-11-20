@@ -127,7 +127,7 @@ The run stopped before the planner finished: The planner LLM failed: the planner
 - Status: `partial` (stop reason: `llm_error`)
 - Bodhan cost: ₹0.2587 billed; budget ₹20.0
 - Planner LLM: openai/gpt-oss-20b — 15 calls, 96732 prompt + 5083 completion tokens (not priced (no rate supplied); tokens reported only)
-- Time: 565.33 s (multi-step, target 300 s: missed)
+- Time: 565.33 s (multi-step, target 300 s: missed); missed by 265 s (565 s against 300 s); tool calls 15% of the time, mostly translate_text (49 s); slowest step 11 (translate_text, 43 s); planner turns 3% (15 calls, 19 s); 32 Bodhan requests (indic-translate 28, indic-speak 2, indic-transcribe 2); 8 attempts refused by rate limits and retried
 - Steps: 15 of 30; cache hits: 14
 
 | Step | Tool | OK | Latency (s) | Cost (₹) | Verification |

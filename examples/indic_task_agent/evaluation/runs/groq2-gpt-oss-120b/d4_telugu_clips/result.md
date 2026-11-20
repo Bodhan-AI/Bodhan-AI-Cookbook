@@ -80,7 +80,7 @@ The run stopped before the planner finished: Reached the 600s time limit during 
 - Status: `partial` (stop reason: `time_limit`)
 - Bodhan cost: ₹0.0000 billed; budget ₹20.0
 - Planner LLM: openai/gpt-oss-120b — 15 calls, 96797 prompt + 1492 completion tokens (not priced (no rate supplied); tokens reported only)
-- Time: 600.02 s (multi-step, target 300 s: missed)
+- Time: 600.02 s (multi-step, target 300 s: missed); missed by 300 s (600 s against 300 s); tool calls 0% of the time, mostly step 2 (transcribe_audio, 1 s); planner turns 3% (15 calls, 20 s)
 - Steps: 15 of 30; cache hits: 9
 
 | Step | Tool | OK | Latency (s) | Cost (₹) | Verification |

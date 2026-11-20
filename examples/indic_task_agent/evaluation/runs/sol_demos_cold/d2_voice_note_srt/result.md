@@ -62,7 +62,7 @@ The English translation passed automated verification. Subtitle timing is based 
 - Status: `completed` (stop reason: `finished`)
 - Bodhan cost: ₹0.3145 billed; budget ₹20.0
 - Planner LLM: gpt-6.1-sol — 4 calls, 20745 prompt + 605 completion tokens (not priced (no rate supplied); tokens reported only)
-- Time: 323.0 s (multi-step, target 300 s: missed)
+- Time: 323.0 s (multi-step, target 300 s: missed); missed by 23 s (323 s against 300 s); tool calls 94% of the time, mostly step 3 (create_subtitles, 185 s); planner turns 6% (4 calls, 19 s); 90 Bodhan requests (indic-translate 60, indic-transcribe 30); 41 attempts refused by rate limits and retried
 - Steps: 4 of 30; cache hits: 0
 
 | Step | Tool | OK | Latency (s) | Cost (₹) | Verification |

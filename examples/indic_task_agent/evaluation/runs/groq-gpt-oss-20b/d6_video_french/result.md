@@ -19,7 +19,7 @@ _None. No output files are presented as results of this task._
 - Status: `failed` (stop reason: `llm_error`)
 - Bodhan cost: ₹0.0000 billed; budget ₹20.0
 - Planner LLM: openai/gpt-oss-20b — 0 calls, 0 prompt + 0 completion tokens (not priced (no rate supplied); tokens reported only)
-- Time: 453.17 s (single-step, target 30 s: missed)
+- Time: 453.17 s (single-step, target 30 s: missed); missed by 423 s (453 s against 30 s)
 - Steps: 0 of 30; cache hits: 0
 
 | Step | Tool | OK | Latency (s) | Cost (₹) | Verification |
