@@ -527,9 +527,8 @@ def create_markdown_sample_examples():
     ex_dir = Path("sample_data")
     ex_dir.mkdir(parents=True, exist_ok=True)
 
-    # 1. Rural Census Table
-    census_file = ex_dir / "rural_census_table.md"
-    census_file.write_text(
+    # 1. Rural / Village Census Table
+    census_text = (
         "# Maharashtra District Census Data - 2026\n\n"
         "| Taluka | District | Total Population | Literacy Rate (%) | Primary Schools | Functional Wells |\n"
         "| :--- | :--- | :--- | :--- | :--- | :--- |\n"
@@ -537,9 +536,10 @@ def create_markdown_sample_examples():
         "| Junnar | Pune | 3,92,000 | 86.1% | 118 | 650 |\n"
         "| Shirur | Pune | 3,85,000 | 88.0% | 125 | 710 |\n"
         "| Indapur | Pune | 3,55,000 | 84.7% | 108 | 590 |\n"
-        "| Bhor | Pune | 1,86,000 | 91.2% | 84 | 430 |\n",
-        encoding="utf-8"
+        "| Bhor | Pune | 1,86,000 | 91.2% | 84 | 430 |\n"
     )
+    (ex_dir / "village_census.md").write_text(census_text, encoding="utf-8")
+    (ex_dir / "rural_census_table.md").write_text(census_text, encoding="utf-8")
 
     # 2. Healthcare Inventory with Adversarial Injection
     inj_file = ex_dir / "hospital_inventory_injection.md"
