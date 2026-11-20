@@ -1,0 +1,34 @@
+# The Bodhan console's palette: brand #ff5500 (links and hovers #c94400), ink #18181b,
+# white ground, #fafafa panels, #e7e7ea hairlines, Poppins headings over Inter text.
+[theme]
+base = "light"
+primaryColor = "#ff5500"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#fafafa"
+textColor = "#18181b"
+linkColor = "#c94400"
+borderColor = "#e7e7ea"
+dataframeBorderColor = "#efeff1"
+showWidgetBorder = true
+showSidebarBorder = true
+baseRadius = "9px"
+buttonRadius = "9px"
+baseFontSize = 15
+font = "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+headingFont = "Poppins:https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&display=swap"
+headingFontWeights = 600
+headingFontSizes = ["2.3rem", "1.5rem", "1.15rem"]
+codeFont = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+
+[theme.sidebar]
+backgroundColor = "#fafafa"
+
+[client]
+toolbarMode = "minimal"
+showErrorDetails = "none"
+
+[server]
+maxUploadSize = 500
+
+[browser]
+gatherUsageStats = false
