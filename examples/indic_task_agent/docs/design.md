@@ -8,7 +8,7 @@ How the recipe is built and why. Setup and commands are in the [README](../READM
 > - **12 tools, one level above the models.** Each tool owns its model's limits (≤28 s audio pieces, ≤220-character speech requests, one OCR page per request, paragraph-sized translation) and verifies its own output. The planner owns the task.
 > - **The LLM decides, code permits.** Paid tools stay locked until a typed plan declares its deliverables. Each request reserves its worst-case cost first. `finish` passes only if every declared deliverable matches a verified artifact from this run.
 > - **No Indian-language text from the LLM.** A provenance guard, `write_text` and the finish gate enforce it in code.
-> - **Every output is checked.** Translations are back-translated (chrF), and every speech segment is back-transcribed. A failure is repaired once with a different input, or reported.
+> - **Every output is checked.** Translations are back-translated (chrF), and every speech segment is back-transcribed. A failure is repaired with a different input (a speech segment once, a truncated translation by splitting up to three levels), or reported.
 > - **Any OpenAI-compatible planner.** Provider differences are adapted in `llm.py` and listed in `report.json`.
 > - **A report at every checkpoint.** Each checkpoint writes a provisional report, and `--resume` continues the same run.
 
@@ -123,7 +123,7 @@ Two other shapes were rejected:
 | Judging results | Reads `verification` and decides to repair, re-plan or report | The finish gate re-checks the same facts in code. |
 | Final answer (`finish`) | Status and an English explanation | The gate rejects unverified, failing or invented deliverables (including failures inherited from embedded or source artifacts), non-English answers, and `completed` with no work behind it. After two rejections the run is downgraded to `partial` or `failed`, with the reasons listed. |
 
-Planner rate limits are retried up to six times, waiting as long as the provider asks (`Retry-After` or "try again in N s"), at most 90 s per wait and never past the deadline. Bodhan rate limits are handled separately in `client.py` (see [Recovery](#recovery)). If the planner still fails (network, outage, misconfiguration), the run stops `failed` with a full report, which includes what code checked itself, such as missing files.
+A planner request that hits a rate limit gets up to six attempts, waiting as long as the provider asks (`Retry-After` or "try again in N s"), at most 90 s per wait and never past the deadline. Other transient planner errors get three attempts. Bodhan rate limits are handled separately in `client.py` (see [Recovery](#recovery)). If the planner still fails (network, outage, misconfiguration), the run stops with a full report: `partial` when usable checked artifacts exist, otherwise `failed`. The report includes what code checked itself, such as missing files.
 
 ## Planner portability
 

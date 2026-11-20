@@ -165,7 +165,7 @@ Every tool validates its input and returns `{"ok": false, "error": {"code", "mes
 1. **Preflight (code):** list the inputs with free metadata, note missing files, check the keys.
 2. **Plan (LLM):** `record_plan` declares steps, assumptions and every deliverable with its kind and language (`answer` when the reply itself is the output). Paid tools are refused until a valid plan exists.
 3. **Act (tools):** independent calls in one turn run in parallel. Each call reserves its worst-case cost, calls Bodhan with retries, then checks its output.
-4. **Check and repair:** translations are back-translated and checked for script, numbers and tables. Every audio segment is back-transcribed. A failure is repaired once with a different input, or reported.
+4. **Check and repair:** translations are back-translated and checked for script, numbers and tables. Every audio segment is back-transcribed. A failure is repaired with a different input (a speech segment once), or reported.
 5. **Stop:** `finish` passes a gate in code. Each deliverable needs a matching artifact from this run whose checks, and those of its sources, did not fail, and the answer must be in English. Limits, an outage or a crash end the run under the same rule.
 
 The flow chart and the reasons behind it are in [docs/design.md](docs/design.md).
@@ -185,7 +185,7 @@ Media stays out of git. `scripts/make_fixtures.py` generates every demo input in
 
 ## Limitations
 
-- **Subtitles cost one request per cue.** Cues are about 7 s long. The 2 min 50 s voice note in d2 needed 90 Bodhan requests and met 41 rate limits (323 s against a 300 s target), so long audio is slow.
+- **Subtitles cost three requests per cue** (transcription, translation and back-translation), and cues are about 7 s long. The 2 min 50 s voice note in d2 had 30 cues: 90 Bodhan requests, plus 41 attempts refused by rate limits (323 s against a 300 s target). Long audio is slow.
 - **Subtitle timing is approximate.** `indic-transcribe` returns no timestamps, so cue boundaries are the pauses where the audio was cut.
 - **The checks are automatic, not linguistic.** Back-translation and back-transcription catch omissions, truncation, wrong scripts and garbled audio. They cannot judge fluency or terminology, and no fluent speaker has reviewed the outputs yet.
 - **Language ID is script-based.** Single-language scripts such as Telugu and Tamil are reliable. Devanagari languages and short Latin-script lines can be mislabelled; the result gives a confidence ([details](docs/design.md#language-identification)).
