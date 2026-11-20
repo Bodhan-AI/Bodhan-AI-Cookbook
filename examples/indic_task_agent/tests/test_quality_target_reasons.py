@@ -148,3 +148,10 @@ def test_backfill_names_a_failed_check_and_keeps_result_md_in_step(tmp_path):
     assert "1 report(s) updated" in subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8").stdout
     assert q["latency"]["note"] in (run / "result.md").read_text(encoding="utf-8")
     assert "0 report(s) updated" in subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8").stdout
+
+
+def test_the_finish_time_coverage_check_counts_as_planner_time():
+    events = [{"type": "llm_call", "latency_s": 1.0, "ts": at(1)}, {"type": "tool_call", "step": 2, "tool": "write_text", "latency_s": 1.0, "ts": at(2)},
+              {"type": "coverage_check", "latency_s": 60.0, "ts": at(62)}]
+    note = latency_reason(events, 62.0, 30)
+    assert "planner replies 98% of the time (61 s) (2 calls)" in note and "outside tool calls" not in note

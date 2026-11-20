@@ -167,3 +167,82 @@ async def test_deliverable_paths_with_doubled_backslashes_are_found(tmp_path):
                                      "deliverables": [last_ok(m, "path").replace("\\", "\\\\").replace("/", "//")]})]
     report, _, _ = await go(tmp_path, task, [source(tmp_path)], [plan, translate, doubled])
     assert report["status"] == "completed" and report["deliverables"][0]["path"].endswith("source_ta.md")
+
+
+# --- GPT-6.1 Sol HIGH review of 14c2275..178afa2 (the completion contract above) ---------------------------------
+
+def unit_agent(tmp_path, coverage=None, max_inr=20.0, client=None):
+    from bodhan_agent.loop import Agent, Settings
+    from bodhan_mcp.runtime import CostLedger, ResultCache, RunContext
+    from bodhan_mcp.tools.common import ProvenanceGuard
+
+    class Trace:
+        def __init__(self):
+            self.events = []
+
+        def write(self, e):
+            self.events.append(e)
+
+    ctx = RunContext(tmp_path, CostLedger(max_inr=max_inr), ResultCache(None))
+    ctx.provenance_guard = ProvenanceGuard()
+    llm = PlannerLLM(client=client or ScriptedChat([], coverage=coverage), model="scripted", max_attempts=3)
+    return Agent("Write an English note.", ctx, Trace(), Settings(), llm, [], [])
+
+
+def record(agent, deliverables, dropped=None):
+    import json
+
+    from bodhan_agent.llm import ToolCall
+    a = {"steps": ["write_text"], "deliverables": deliverables, **({"dropped": dropped} if dropped else {})}
+    return agent._record_plan(ToolCall("p", "record_plan", a, json.dumps(a)))
+
+
+async def test_coverage_retries_stay_inside_the_budget_and_failed_attempts_are_counted(tmp_path):
+    from unittest.mock import patch
+    attempts = 0
+    chat = ScriptedChat([], coverage=[[{"request": "English note", "covered_by": "answer"}]])
+    real = chat.create
+
+    async def flaky(**kw):
+        nonlocal attempts
+        attempts += 1
+        if attempts < 3:
+            raise RuntimeError("connection lost after the request was sent")
+        return await real(**kw)
+    chat.create = flaky
+    a = unit_agent(tmp_path, max_inr=1.0, client=chat)
+    a.settings.llm_input_inr_per_1m, a.settings.llm_output_inr_per_1m = 0.0, 800.0  # a coverage call may cost up to ₹0.80
+    with patch("bodhan_agent.llm.retry_wait", return_value=0):
+        gaps = await a._coverage_gaps([], "An English note.")
+    assert attempts == 1  # a second ₹0.80 attempt does not fit in ₹1
+    assert a.ctx.ledger.to_state()["llm_cost"] >= 0.8 and gaps and "could not run" in gaps[0]
+
+
+async def test_a_blank_coverage_entry_and_an_empty_answer_certify_nothing(tmp_path):
+    a = unit_agent(tmp_path, coverage=[[{"request": "   ", "covered_by": "answer"}]])
+    gaps = await a._coverage_gaps([], " ")
+    assert gaps and "listed no requested outputs" in gaps[0]
+    a = unit_agent(tmp_path / "b", coverage=[[{"request": "a note", "covered_by": "answer"}]])
+    gaps = await a._coverage_gaps([], " ")  # "answer" is not a delivered item when the answer is empty
+    assert gaps and "no matching delivered item: a note" in gaps[0]
+
+
+def test_one_revised_deliverable_cannot_stand_in_for_two_earlier_ones(tmp_path):
+    a = unit_agent(tmp_path)
+    two = [{"kind": "text", "language": "en", "description": "first file"}, {"kind": "text", "language": "en", "description": "second file"}]
+    assert record(a, two)["ok"]
+    r = record(a, two[:1])
+    assert not r["ok"] and "leaves out required outputs" in r["error"]["message"] and len(a.plan["deliverables"]) == 2
+    assert record(a, two[:1], dropped=[{"kind": "text", "language": "en", "reason": "the task asks for one file"}])["ok"]
+
+
+def test_naming_the_language_of_an_earlier_language_neutral_output_is_not_a_drop(tmp_path):
+    a = unit_agent(tmp_path)
+    assert record(a, [{"kind": "text"}])["ok"] and record(a, [{"kind": "text", "language": "en"}])["ok"]
+
+
+@pytest.mark.parametrize("name", ["- `note.md`", "- 'note.md'", "`- note.md`", "* note.md"])
+def test_quoted_bullet_names_are_recognised_but_near_misses_are_not(name):
+    from bodhan_agent.loop import _item_name
+    assert _item_name(name) == "note.md"
+    assert {_item_name(x) for x in ("note_final.md", "xnote.md", "note.md_extra")}.isdisjoint({"note.md"})

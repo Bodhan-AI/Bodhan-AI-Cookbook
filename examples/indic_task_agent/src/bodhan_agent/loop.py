@@ -84,7 +84,25 @@ def _src(spec: dict) -> str:
 def _keeps(new: dict, old: dict) -> bool:
     """True when an artifact that satisfies the required deliverable `new` also satisfies the earlier obligation `old`."""
     return (not new.get("optional") and new["kind"] in KIND_MATCH.get(old["kind"], {old["kind"]})
-            and new.get("language") == old.get("language") and (not _src(old) or _src(new) == _src(old)))
+            and (old.get("language") is None or new.get("language") == old.get("language"))
+            and (not _src(old) or _src(new) == _src(old)))
+
+
+def _unmatched(old: list[dict], new: list[dict]) -> list[dict]:
+    """Earlier obligations with no new deliverable of their own: a maximum matching, so one revised deliverable
+    cannot stand in for two earlier ones."""
+    owner: dict[int, int] = {}
+
+    def assign(i: int, seen: set[int]) -> bool:
+        for j, n in enumerate(new):
+            if j not in seen and _keeps(n, old[i]):
+                seen.add(j)
+                if j not in owner or assign(owner[j], seen):
+                    owner[j] = i
+                    return True
+        return False
+
+    return [o for i, o in enumerate(old) if not assign(i, set())]
 
 
 def _names(dropped: dict, old: dict) -> bool:
@@ -93,9 +111,12 @@ def _names(dropped: dict, old: dict) -> bool:
 
 def _item_name(text: str | None) -> str:
     """The item name in a coverage reply: models often echo the whole listed line ("x_mr.md: translation, Marathi")."""
-    t = (text or "").strip().strip("`'\"").removeprefix("- ").strip()
-    t = t.replace("\\", "/").rsplit("/", 1)[-1]  # a full path: its file name
-    return t.split(":", 1)[0].strip().strip("`'\"") if ":" in t else t
+    t = (text or "").replace("\\", "/").rsplit("/", 1)[-1]  # a full path: its file name
+    t = t.split(":", 1)[0] if ":" in t else t
+    prev = None
+    while prev != t:  # "- `note.md`", "'- note.md'", "* note.md" ...
+        prev, t = t, t.strip().strip("`'\"*").removeprefix("- ").removeprefix("• ")
+    return t
 
 
 def _label(spec: dict) -> str:
@@ -514,15 +535,14 @@ class Agent:
             return self._control_error(call, "The dropped reasons contain Indian-language text you wrote. Write them in English.", E.PROVENANCE_VIOLATION)
         new = [d.model_dump() for d in plan.deliverables]
         dropped = [d.model_dump() for d in plan.dropped]
-        left_out = [o for o in self.obligations if not any(_keeps(n, o) for n in new) and not any(_names(x, o) for x in dropped)]
+        required = [n for n in new if n["kind"] != "answer" and not n.get("optional")]
+        left_out = [o for o in _unmatched(self.obligations, required) if not any(_names(x, o) for x in dropped)]
         if left_out:
             return self._control_error(call, "This plan leaves out required outputs of your earlier plan: "
                                        + "; ".join(_label(o) for o in left_out) + ". Keep them, or list each under `dropped` with the reason "
                                        "(it is impossible, or the task did not ask for it). The previous plan is unchanged.")
         self.dropped += [x for x in dropped if any(_names(x, o) for o in self.obligations)]
-        self.obligations = [o for o in self.obligations if not any(_names(x, o) for x in self.dropped)]
-        self.obligations += [n for n in new if n["kind"] != "answer" and not n.get("optional")
-                             and not any(_keeps(n, o) and _keeps(o, n) for o in self.obligations)]
+        self.obligations = required  # every earlier obligation is now matched by one of these, or dropped
         self.plan = plan.model_dump()
         self.plan_version += 1
         self.trace.write({"type": "plan", "step": self.steps, "version": self.plan_version, **self.plan, "obligations": self.obligations})
@@ -690,7 +710,7 @@ class Agent:
         so an output the plan never declared, or dropped on a replan, can still be found missing. It is the same model
         cross-checking itself, not an independent linguistic check: it can miss a gap or invent one. A check that cannot
         run, or lists nothing, does not confirm coverage, so "completed" is refused then too."""
-        names = ["answer"] + [x.path.name for x in delivered]
+        names = (["answer"] if answer.strip() else []) + [x.path.name for x in delivered]
         listing = [f"- answer: the reply text: \"{' '.join(answer.split())[:1500]}\""] + [
             f"- {x.path.name}: {x.kind}{', ' + LANGUAGE_NAMES.get(x.language, x.language) if x.language else ''}"
             f"{', made from ' + ', '.join(sorted({Path(o).name for o in x.origin})) if x.origin else ''}" for x in delivered]
@@ -703,13 +723,17 @@ class Agent:
             why = "not enough budget left for it"
         else:
             try:
-                reply = await asyncio.wait_for(self.llm.chat(messages, tools, max_tokens=COVERAGE_COMPLETION_RESERVE if est is not None else None),
+                can_retry = (lambda e=est: self.ctx.ledger.can_afford(e * (self.llm.uncertain_attempts + 1))) if est is not None else None
+                reply = await asyncio.wait_for(self.llm.chat(messages, tools, max_tokens=COVERAGE_COMPLETION_RESERVE if est is not None else None,
+                                                             can_retry=can_retry),
                                                timeout=max(0.0, min(self._time_left(), COVERAGE_TIMEOUT_S)))
             except (TimeoutError, LLMError) as exc:
                 why = f"the planner call failed ({type(exc).__name__})"
                 if est is not None and getattr(self.llm, "uncertain_attempts", 0):
                     self._charge_uncertain_llm(est, self.llm.uncertain_attempts, "coverage_check")
             else:
+                if est is not None and getattr(self.llm, "uncertain_attempts", 0):  # failed attempts before this success
+                    self._charge_uncertain_llm(est, self.llm.uncertain_attempts, "coverage_check_retried")
                 cost = self._llm_cost(reply.prompt_tokens, reply.completion_tokens)
                 self.ctx.ledger.add_llm(reply.prompt_tokens, reply.completion_tokens, cost)
                 call = next((c for c in reply.tool_calls if c.name == "report_coverage"), None)
@@ -718,6 +742,8 @@ class Agent:
                     outputs = CoverageIn.model_validate(_without_nulls(call.arguments)).outputs if call and not call.parse_error else None
                 except ValidationError:
                     outputs = None
+                if outputs is not None:
+                    outputs = [o for o in outputs if o.request.strip()]  # an entry naming no requested output certifies nothing
                 if outputs is None:
                     why = "the reply had no valid report_coverage call"
                 elif not outputs:

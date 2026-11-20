@@ -91,7 +91,7 @@ def latency_reason(events: list[dict], elapsed: float, target: float) -> str:
     replies, and the rest), the slowest step, the Bodhan requests behind it and how many attempts rate limits refused.
     Parallel calls are counted once; time no event accounts for (planner retries and their waits, preflight,
     bookkeeping) is reported as such, not attributed to a step."""
-    llm = [e for e in events if e.get("type") == "llm_call"]
+    llm = [e for e in events if e.get("type") in ("llm_call", "coverage_check")]  # the coverage check is a planner-model call too
     tools = [e for e in events if e.get("type") == "tool_call"]
     sent = [e for e in events if e.get("type") == "api_call" and e.get("cache") not in CACHED]
     lat = lambda e: float(e.get("latency_s") or 0)  # noqa: E731
