@@ -309,9 +309,24 @@ class BodhanAPI:
         ckey = self.cache.key(TRANSLATE, body)
 
         async def produce():
-            resp, retries = await self._send(TRANSLATE, "POST", "/translate", json=body)
+            try:
+                resp, retries = await self._send(TRANSLATE, "POST", "/translate", json=body)
+            except ToolFailure as exc:
+                if (exc.details or {}).get("status") != 404:
+                    raise
+                chat_body = {
+                    "model": TRANSLATE,
+                    "messages": [{"role": "user", "content": text}],
+                    "target_language_code": target,
+                    **{key: body[key] for key in ("script", "max_output_tokens") if key in body},
+                }
+                resp, retries = await self._send(TRANSLATE, "POST", "/v1/chat/completions", json=chat_body)
             data = resp.json()
-            if "translation" not in data:
+            if not isinstance(data.get("translation"), str) and data.get("choices"):
+                choice = data["choices"][0]
+                data["translation"] = choice.get("message", {}).get("content")
+                data["truncated"] = choice.get("finish_reason") in {"length", "max_tokens"}
+            if not isinstance(data.get("translation"), str):
                 raise ToolFailure(UPSTREAM_ERROR, "indic-translate returned no translation field.", retryable=True,
                                   details={"response": str(data)[:300]})
             usage = data.get("usage") or {}
@@ -334,7 +349,8 @@ class BodhanAPI:
         instructions: dict[str, str] = {"lang": language}
         if style:
             instructions["style"] = style
-        body = {"model": SPEAK, "input": text, "voice": voice, "instructions": json.dumps(instructions, ensure_ascii=False)}
+        body = {"model": SPEAK, "input": text, "voice": voice, "response_format": "wav",
+                "instructions": json.dumps(instructions, ensure_ascii=False)}
         ckey = self.cache.key(SPEAK, body)
 
         async def produce():

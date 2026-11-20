@@ -132,16 +132,17 @@ class LLM:
             kwargs: dict[str, Any] = {"model": self.cfg.model, "messages": messages}
             if self.use_temperature and self.cfg.temperature is not None:
                 kwargs["temperature"] = self.cfg.temperature
-            send_messages = messages
             if tools:
                 if self.native_tools:
                     kwargs["tools"] = tools
                     kwargs["tool_choice"] = "auto"
                 else:
                     schema = json.dumps([t["function"] for t in tools], ensure_ascii=False)
-                    send_messages = [*messages[:1], {"role": "system", "content": TEXT_PROTOCOL + schema}, *messages[1:]]
-                    send_messages = [_flatten_tool_messages(m) for m in send_messages]
-                    kwargs["messages"] = send_messages
+                    system_text = "\n\n".join(m.get("content", "") for m in messages if m.get("role") == "system")
+                    kwargs["messages"] = [
+                        {"role": "system", "content": system_text + "\n\n" + TEXT_PROTOCOL + schema},
+                        *(_flatten_tool_messages(m) for m in messages if m.get("role") != "system"),
+                    ]
             try:
                 resp = await self._get().chat.completions.create(**kwargs)
             except openai.BadRequestError as exc:
@@ -149,10 +150,12 @@ class LLM:
                 if "temperature" in msg and self.use_temperature:
                     self.use_temperature = False
                     continue
-                if tools and self.native_tools and ("tool" in msg or "function" in msg):
+                if tools and self.native_tools:
+                    # Some compatible gateways return an opaque 400 for native tool history.
+                    # Replay the same conversation once with the portable text protocol.
                     self.native_tools = False
                     continue
-                raise LLMError(f"LLM rejected the request: {exc}") from exc
+                raise LLMError("LLM rejected the request (HTTP 400)") from exc
             except (openai.APITimeoutError, openai.APIConnectionError, openai.RateLimitError, openai.InternalServerError) as exc:
                 last = exc
                 await asyncio.sleep(min(30.0, 2.0 * (2 ** attempt)) * (0.5 + random.random() / 2))
