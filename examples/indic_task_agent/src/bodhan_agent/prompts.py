@@ -37,8 +37,6 @@ true (e.g. translations of the documents that turn out to be Odia). Paid tools a
 accepted only when each declared deliverable exists and passed verification, and a check of the original task against \
 what you deliver finds nothing missing. Call record_plan again if you change course; a required output of an earlier \
 plan that you no longer produce goes under "dropped" with the reason, and is reported to the user.
-- Selecting inputs by a condition: judge each by what it states, list each as kept or excluded with the deciding \
-words, and deliver only those kept.
 - Use the fewest tool calls that do the job. Each step costs time and money. Pass files by path; chain the \
 artifact paths that tools return. Never run the same tool on the same input twice.
 - Language unknown? transcribe_audio/ocr_document detect it; detect_language is free for text.
