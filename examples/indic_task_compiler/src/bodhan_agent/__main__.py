@@ -28,7 +28,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--out", required=True, help="Output folder for result.md, artifacts/, trace.jsonl, report.json.")
     parser.add_argument("--max-steps", type=int, default=30, help="Maximum LLM + tool steps (default: 30).")
     parser.add_argument("--max-cost-inr", type=float, default=20.0, help="Hard spend cap in INR (default: 20.0).")
-    parser.add_argument("--timeout-s", type=float, default=90.0, help="Per-call timeout in seconds (default: 90).")
+    parser.add_argument("--timeout-s", type=float, default=150.0, help="Per-call timeout in seconds (default: 150).")
     parser.add_argument("--cache-dir", default=None, help="Optional Bodhan cache directory override.")
     parser.add_argument(
         "--in-process",

@@ -148,19 +148,43 @@ class BodhanClient:
 
     @staticmethod
     def _parse_error(resp: httpx.Response) -> tuple[str, str, str | None]:
+        header_req_id = resp.headers.get("x-request-id") or resp.headers.get("llm_provider-x-request-id")
         try:
             body = resp.json()
-            err = body.get("error", {}) if isinstance(body, dict) else {}
-            if isinstance(err, dict) and err.get("message"):
-                return (
-                    str(err.get("code") or f"http_{resp.status_code}"),
-                    str(err["message"]),
-                    err.get("request_id"),
-                )
+            if isinstance(body, dict):
+                err = body.get("error")
+                if isinstance(err, dict) and err.get("message"):
+                    raw_code = err.get("code")
+                    err_type = err.get("type")
+                    # Live gateway often sends numeric code ("400") + semantic type ("invalid_request_error").
+                    if raw_code is not None and str(raw_code).strip() and not str(raw_code).strip().isdigit():
+                        code = str(raw_code).strip()
+                    elif err_type:
+                        code = str(err_type).strip()
+                    else:
+                        code = f"http_{resp.status_code}"
+                    return (
+                        code,
+                        str(err["message"]),
+                        err.get("request_id") or header_req_id,
+                    )
+                detail = body.get("detail")
+                if isinstance(detail, str) and detail.strip():
+                    return f"http_{resp.status_code}", detail.strip(), header_req_id
+                if isinstance(detail, list) and detail:
+                    parts: list[str] = []
+                    for item in detail[:5]:
+                        if isinstance(item, dict):
+                            loc = ".".join(str(x) for x in (item.get("loc") or []))
+                            msg = str(item.get("msg") or item.get("type") or "invalid")
+                            parts.append(f"{loc}: {msg}" if loc else msg)
+                        else:
+                            parts.append(str(item))
+                    return "validation_error", "; ".join(parts), header_req_id
         except Exception:
             pass
         snippet = (resp.text or "")[:300].strip()
-        return f"http_{resp.status_code}", snippet or f"HTTP {resp.status_code}", None
+        return f"http_{resp.status_code}", snippet or f"HTTP {resp.status_code}", header_req_id
 
     async def _send_with_retry(
         self,
@@ -310,6 +334,13 @@ class BodhanClient:
             detail=f"transcribe {filename} ({duration_s:.1f}s)",
         )
         payload = resp.json()
+        if not isinstance(payload, dict) or "text" not in payload:
+            raise BodhanAPIError(
+                code="invalid_response",
+                message=f"Bodhan {model} returned unexpected payload shape.",
+                status_code=resp.status_code,
+                retryable=True,
+            )
         actual_cost = est_cost
         if self._dev_ledger is not None:
             self._dev_ledger.record(model, actual_cost, f"{filename} {duration_s:.1f}s")
@@ -332,9 +363,10 @@ class BodhanClient:
         max_output_tokens: int | None = None,
     ) -> BodhanCallResult:
         model = "indic-translate"
+        effective_script = "native" if target_language == "en" else script
         params: dict[str, Any] = {
             "target_language": target_language,
-            "script": script,
+            "script": effective_script,
             "max_output_tokens": max_output_tokens,
         }
         cache_key = make_cache_key(model, params, sha256_text(text))
@@ -344,29 +376,66 @@ class BodhanClient:
 
         est_tokens = estimate_output_tokens(text)
         est_cost = cost_translate(est_tokens)
+        # Live Bodhan gateway serves indic-translate on OpenAI-compatible POST /v1/chat/completions
+        # (POST /translate currently returns 404). Passing target_language (+ script for non-English)
+        # instructs the gateway to wrap the prompt identically and returns finish_reason + usage.
         body: dict[str, Any] = {
-            "text": text,
+            "model": "indic-translate",
+            "messages": [{"role": "user", "content": text}],
             "target_language": target_language,
-            "script": script,
         }
+        if target_language != "en" and effective_script:
+            body["script"] = effective_script
         if max_output_tokens is not None:
             body["max_output_tokens"] = max_output_tokens
 
         resp, latency_ms, attempts = await self._send_with_retry(
             model,
             "POST",
-            "/translate",
+            "/v1/chat/completions",
             json_body=body,
             estimated_cost_inr=est_cost,
             detail=f"translate -> {target_language} ({len(text)} chars)",
         )
-        payload = resp.json()
-        usage = payload.get("usage") or {}
+        raw_payload = resp.json()
+        if not isinstance(raw_payload, dict):
+            raise BodhanAPIError(
+                code="invalid_response",
+                message=f"Bodhan {model} returned non-object JSON payload.",
+                status_code=resp.status_code,
+                retryable=True,
+            )
+
+        if isinstance(raw_payload.get("choices"), list) and raw_payload["choices"]:
+            first = raw_payload["choices"][0] or {}
+            msg = first.get("message") or {}
+            translated_text = str(msg.get("content") or "")
+            truncated = first.get("finish_reason") == "length"
+        elif "translation" in raw_payload:
+            translated_text = str(raw_payload.get("translation") or "")
+            truncated = bool(raw_payload.get("truncated", False))
+        else:
+            raise BodhanAPIError(
+                code="invalid_response",
+                message=f"Bodhan {model} response missing 'choices' or 'translation'.",
+                status_code=resp.status_code,
+                retryable=True,
+            )
+
+        usage = raw_payload.get("usage") if isinstance(raw_payload.get("usage"), dict) else {}
         out_tokens = (
-            usage.get("output_tokens")
-            or usage.get("completion_tokens")
-            or estimate_output_tokens(payload.get("translation", ""))
+            usage.get("completion_tokens")
+            or usage.get("output_tokens")
+            or estimate_output_tokens(translated_text)
         )
+        payload = {
+            "translation": translated_text,
+            "target_language": target_language,
+            "script": effective_script,
+            "truncated": truncated,
+            "usage": usage,
+            "id": raw_payload.get("id"),
+        }
         actual_cost = cost_translate(int(out_tokens))
         if self._dev_ledger is not None:
             self._dev_ledger.record(model, actual_cost, f"-> {target_language} {out_tokens} tok")
@@ -471,7 +540,23 @@ class BodhanClient:
             detail=f"speak {language}/{voice} ({len(text)} chars)",
         )
         audio_bytes = resp.content
-        payload = {"voice": voice, "language": language, "style": style, "bytes": len(audio_bytes)}
+        if not audio_bytes:
+            raise BodhanAPIError(
+                code="empty_audio",
+                message=f"Bodhan {model} returned empty audio response.",
+                status_code=resp.status_code,
+                retryable=True,
+            )
+        # Live API returns Content-Type: audio/mpeg even when payload bytes are RIFF/WAVE PCM16.
+        is_riff_wav = len(audio_bytes) >= 12 and audio_bytes[:4] == b"RIFF" and audio_bytes[8:12] == b"WAVE"
+        payload = {
+            "voice": voice,
+            "language": language,
+            "style": style,
+            "bytes": len(audio_bytes),
+            "audio_format": "wav" if is_riff_wav else "mp3",
+            "content_type": resp.headers.get("content-type"),
+        }
         actual_cost = est_cost
         if self._dev_ledger is not None:
             self._dev_ledger.record(model, actual_cost, f"{language}/{voice} {len(text)} chars")
@@ -530,6 +615,21 @@ class BodhanClient:
             detail=f"ocr page ({len(image_bytes)} bytes)",
         )
         payload = resp.json()
+        if (
+            not isinstance(payload, dict)
+            or not isinstance(payload.get("choices"), list)
+            or not payload["choices"]
+            or not isinstance((payload["choices"][0] or {}).get("message"), dict)
+            or (payload["choices"][0]["message"].get("content") is None)
+        ):
+            raise BodhanAPIError(
+                code="invalid_response",
+                message=f"Bodhan {model} returned empty or malformed OCR response (HTTP {resp.status_code}).",
+                status_code=resp.status_code,
+                retryable=True,
+            )
+        if payload.get("blocks") is None:
+            payload["blocks"] = []
         actual_cost = est_cost
         if self._dev_ledger is not None:
             self._dev_ledger.record(model, actual_cost, f"ocr {len(image_bytes)} bytes")

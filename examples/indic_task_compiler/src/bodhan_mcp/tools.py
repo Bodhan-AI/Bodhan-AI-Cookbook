@@ -676,11 +676,19 @@ class BodhanToolkit:
                 any_cache_miss |= not res.cache_hit
                 if not res.binary:
                     return err_response("empty_audio", f"indic-speak returned empty audio for chunk {idx}.")
+                is_riff = len(res.binary) >= 12 and res.binary[:4] == b"RIFF" and res.binary[8:12] == b"WAVE"
                 chunk_wav = chunk_dir / f"chunk_{idx:04d}.wav"
-                chunk_wav.write_bytes(res.binary)
+                if is_riff:
+                    chunk_wav.write_bytes(res.binary)
+                    dur = wav_duration_s(chunk_wav)
+                else:
+                    raw_chunk = chunk_dir / f"chunk_{idx:04d}.audio"
+                    raw_chunk.write_bytes(res.binary)
+                    convert_to_wav_16k_mono(raw_chunk, chunk_wav)
+                    raw_chunk.unlink(missing_ok=True)
+                    dur = wav_duration_s(chunk_wav)
                 chunk_txt = chunk_dir / f"chunk_{idx:04d}.txt"
                 chunk_txt.write_text(sentence, encoding="utf-8")
-                dur = wav_duration_s(chunk_wav)
                 wav_paths.append(chunk_wav)
                 chunk_infos.append(
                     SpeechChunkInfo(
@@ -938,7 +946,7 @@ class BodhanToolkit:
                 total_cost += res.cost_inr
                 any_cache_miss |= not res.cache_hit
                 md = str(res.payload["choices"][0]["message"]["content"]).strip()
-                return md, list(res.payload.get("blocks", [])), "direct"
+                return md, list(res.payload.get("blocks") or []), "direct"
             except BodhanAPIError as exc:
                 if exc.status_code != 502:
                     raise
@@ -949,7 +957,7 @@ class BodhanToolkit:
                 total_cost += res.cost_inr
                 any_cache_miss |= not res.cache_hit
                 md = str(res.payload["choices"][0]["message"]["content"]).strip()
-                return md, list(res.payload.get("blocks", [])), "retry_max_tokens"
+                return md, list(res.payload.get("blocks") or []), "retry_max_tokens"
             except BodhanAPIError as exc:
                 if exc.status_code != 502:
                     raise
@@ -962,7 +970,7 @@ class BodhanToolkit:
                 total_cost += res.cost_inr
                 any_cache_miss |= not res.cache_hit
                 md = str(res.payload["choices"][0]["message"]["content"]).strip()
-                return md, list(res.payload.get("blocks", [])), "retry_downscale"
+                return md, list(res.payload.get("blocks") or []), "retry_downscale"
             except BodhanAPIError as exc:
                 if exc.status_code != 502:
                     raise
@@ -979,7 +987,7 @@ class BodhanToolkit:
             any_cache_miss |= not res_bot.cache_hit
             md_top = str(res_top.payload["choices"][0]["message"]["content"]).strip()
             md_bot = str(res_bot.payload["choices"][0]["message"]["content"]).strip()
-            blocks = list(res_top.payload.get("blocks", [])) + list(res_bot.payload.get("blocks", []))
+            blocks = list(res_top.payload.get("blocks") or []) + list(res_bot.payload.get("blocks") or [])
             return f"{md_top}\n\n{md_bot}".strip(), blocks, "retry_split_halves"
 
         page_summaries: list[dict[str, Any]] = []

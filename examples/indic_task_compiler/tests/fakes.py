@@ -156,7 +156,40 @@ def make_fake_bodhan_transport(state: FakeBodhanState | None = None) -> tuple[ht
                 text = CANNED_BY_LANG[lang]
             else:
                 text = CANNED_BY_LANG["hi"]
-            return httpx.Response(200, json={"text": text})
+            return httpx.Response(200, json={"text": text, "usage": None})
+
+        def _fake_translate_text(src: str, tgt: str) -> str:
+            if tgt in st.translate_map:
+                return st.translate_map[tgt]
+            if "|" in src and "---" in src:
+                marker = CANNED_BY_LANG.get(tgt, "Translated").split()[0]
+                out_lines = []
+                for ln in src.splitlines():
+                    s = ln.strip()
+                    if s.startswith("|") and s.endswith("|"):
+                        cells = [c.strip() for c in s.strip("|").split("|")]
+                        if all(set(c) <= set("-: ") for c in cells if c):
+                            out_lines.append(ln)
+                        else:
+                            new_cells = [
+                                c if any(ch.isdigit() for ch in c) else f"{marker} {c}" if tgt == "en" else f"{marker}"
+                                for c in cells
+                            ]
+                            out_lines.append("| " + " | ".join(new_cells) + " |")
+                    else:
+                        out_lines.append(CANNED_BY_LANG.get(tgt, f"[{tgt}] {ln}"))
+                return "\n".join(out_lines)
+            if tgt == "en":
+                lines_in = [ln.strip() for ln in src.splitlines() if ln.strip()]
+                if len(lines_in) > 1:
+                    return "\n".join(
+                        f"English translation of line {i + 1} ({len(ln)} chars): water conservation and agriculture in 2026."
+                        for i, ln in enumerate(lines_in)
+                    )
+                return f"English translation of segment ({len(src)} chars): the chapter explains water conservation and agriculture in 2026."
+            base = CANNED_BY_LANG.get(tgt, f"[{tgt}]")
+            digits = "".join(ch for ch in src if ch.isdigit())
+            return f"{base} {digits}".strip()
 
         if path == "/translate":
             body = json.loads(request.content.decode("utf-8"))
@@ -175,41 +208,7 @@ def make_fake_bodhan_transport(state: FakeBodhanState | None = None) -> tuple[ht
                         "usage": {"output_tokens": 20},
                     },
                 )
-            if tgt in st.translate_map:
-                translated = st.translate_map[tgt]
-            elif "|" in src and "---" in src:
-                # Preserve Markdown table structure + digits while translating text cells into target script.
-                marker = CANNED_BY_LANG.get(tgt, "Translated").split()[0]
-                out_lines = []
-                for ln in src.splitlines():
-                    s = ln.strip()
-                    if s.startswith("|") and s.endswith("|"):
-                        cells = [c.strip() for c in s.strip("|").split("|")]
-                        if all(set(c) <= set("-: ") for c in cells if c):
-                            out_lines.append(ln)
-                        else:
-                            new_cells = [
-                                c if any(ch.isdigit() for ch in c) else f"{marker} {c}" if tgt == "en" else f"{marker}"
-                                for c in cells
-                            ]
-                            out_lines.append("| " + " | ".join(new_cells) + " |")
-                    else:
-                        out_lines.append(CANNED_BY_LANG.get(tgt, f"[{tgt}] {ln}"))
-                translated = "\n".join(out_lines)
-            elif tgt == "en":
-                lines_in = [ln.strip() for ln in src.splitlines() if ln.strip()]
-                if len(lines_in) > 1:
-                    translated = "\n".join(
-                        f"English translation of line {i + 1} ({len(ln)} chars): water conservation and agriculture in 2026."
-                        for i, ln in enumerate(lines_in)
-                    )
-                else:
-                    translated = f"English translation of segment ({len(src)} chars): the chapter explains water conservation and agriculture in 2026."
-            else:
-                base = CANNED_BY_LANG.get(tgt, f"[{tgt}]")
-                # Keep digits from source so coverage check passes realistically.
-                digits = "".join(ch for ch in src if ch.isdigit())
-                translated = f"{base} {digits}".strip()
+            translated = _fake_translate_text(src, tgt)
             return httpx.Response(
                 200,
                 json={
@@ -221,25 +220,61 @@ def make_fake_bodhan_transport(state: FakeBodhanState | None = None) -> tuple[ht
                 },
             )
 
-        if path == "/transliterate":
-            body = json.loads(request.content.decode("utf-8"))
-            lang = body["language"]
-            script = body.get("script", "roman")
-            out = "namaste bharat" if script == "roman" else CANNED_BY_LANG.get(lang, body["text"])
-            return httpx.Response(
-                200,
-                json={"transliteration": out, "language": lang, "script": script, "truncated": False},
-            )
-
         if path == "/v1/audio/speech":
             body = json.loads(request.content.decode("utf-8"))
             txt = body.get("input", "")
             # Realistic duration proportional to text length (~12 chars/sec) unless overridden.
             dur = max(0.8, min(15.0, len(txt) / 12.0)) if st.speak_duration_s <= 0 else st.speak_duration_s
             wav_bytes = make_sine_wav_bytes(duration_s=dur, sample_rate=24000)
-            return httpx.Response(200, content=wav_bytes, headers={"content-type": "audio/wav"})
+            # Matches real Bodhan API: Content-Type is audio/mpeg while body bytes are RIFF/WAVE PCM16.
+            return httpx.Response(200, content=wav_bytes, headers={"content-type": "audio/mpeg"})
 
         if path == "/v1/chat/completions":
+            body = json.loads(request.content.decode("utf-8"))
+            req_model = body.get("model", "indic-ocr")
+            if req_model == "indic-translate":
+                msgs = body.get("messages") or []
+                src = str((msgs[-1] or {}).get("content") or "") if msgs else ""
+                tgt = str(body.get("target_language") or "hi")
+                if st.translate_truncate_once and not trunc_used["done"]:
+                    trunc_used["done"] = True
+                    return httpx.Response(
+                        200,
+                        json={
+                            "id": "fake_tr_trunc",
+                            "created": 1795247400,
+                            "model": "indic-translate",
+                            "object": "chat.completion",
+                            "choices": [
+                                {
+                                    "finish_reason": "length",
+                                    "index": 0,
+                                    "message": {"content": src[:20], "role": "assistant"},
+                                }
+                            ],
+                            "usage": {"completion_tokens": 20, "prompt_tokens": 30, "total_tokens": 50},
+                        },
+                    )
+                translated = _fake_translate_text(src, tgt)
+                comp_tok = max(10, len(translated) // 2)
+                return httpx.Response(
+                    200,
+                    json={
+                        "id": "fake_tr_ok",
+                        "created": 1795247400,
+                        "model": "indic-translate",
+                        "object": "chat.completion",
+                        "choices": [
+                            {
+                                "finish_reason": "stop",
+                                "index": 0,
+                                "message": {"content": translated, "role": "assistant"},
+                            }
+                        ],
+                        "usage": {"completion_tokens": comp_tok, "prompt_tokens": 25, "total_tokens": 25 + comp_tok},
+                    },
+                )
+
             if st.ocr_502_remaining > 0:
                 st.ocr_502_remaining -= 1
                 return httpx.Response(
@@ -255,10 +290,15 @@ def make_fake_bodhan_transport(state: FakeBodhanState | None = None) -> tuple[ht
             return httpx.Response(
                 200,
                 json={
-                    "choices": [{"message": {"content": md}}],
+                    "id": "indic-ocr-fake",
+                    "created": 1795247361,
+                    "model": "indic-ocr",
+                    "object": "chat.completion",
+                    "choices": [{"finish_reason": "stop", "index": 0, "message": {"content": md, "role": "assistant"}}],
+                    "usage": {"completion_tokens": 30, "prompt_tokens": 250, "total_tokens": 280},
                     "blocks": [
-                        {"order": 0, "label": "title", "bbox_xyxy": [10, 10, 400, 60], "conf": 0.96, "text": md[:40]},
-                        {"order": 1, "label": "paragraph", "bbox_xyxy": [10, 70, 580, 300], "conf": 0.92, "text": md},
+                        {"order": 0, "label": "Title", "type": "Text", "bbox_xyxy": [10.0, 10.0, 400.0, 60.0], "conf": 0.96, "text": md[:40]},
+                        {"order": 1, "label": "Paragraph", "type": "Text", "bbox_xyxy": [10.0, 70.0, 580.0, 300.0], "conf": 0.92, "text": md},
                     ],
                 },
             )

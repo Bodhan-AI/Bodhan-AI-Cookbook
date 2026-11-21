@@ -30,7 +30,7 @@ class RunConfig:
     out_dir: Path
     max_steps: int = 30
     max_cost_inr: float = 20.0
-    timeout_s: float = 90.0
+    timeout_s: float = 150.0
     max_replans: int = 2
     cer_threshold: float = 0.45
     use_stdio_mcp: bool = True

@@ -2,12 +2,25 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
+import logging
 import os
+import random
 import re
 from typing import Any, Protocol
 
-from openai import AsyncOpenAI, BadRequestError
+from openai import (
+    APIConnectionError,
+    APIStatusError,
+    APITimeoutError,
+    AsyncOpenAI,
+    BadRequestError,
+    InternalServerError,
+    RateLimitError,
+)
+
+logger = logging.getLogger("bodhan_agent.llm")
 
 
 class LLMProtocol(Protocol):
@@ -95,12 +108,16 @@ class OpenAICompatibleLLM:
         base_url: str | None = None,
         model: str | None = None,
         api_key: str | None = None,
-        timeout_s: float = 60.0,
+        timeout_s: float = 150.0,
+        max_retries: int = 3,
+        base_backoff_s: float = 2.0,
     ) -> None:
         self.base_url = (base_url or os.environ.get("LLM_BASE_URL") or "").strip()
         self.model = (model or os.environ.get("LLM_MODEL") or "").strip()
         self.api_key = (api_key or os.environ.get("LLM_API_KEY") or "").strip()
-        self.timeout_s = timeout_s
+        self.timeout_s = max(120.0, float(timeout_s)) if timeout_s > 0 else 150.0
+        self.max_retries = max_retries
+        self.base_backoff_s = base_backoff_s
         self.recorded_calls: list[dict[str, Any]] = []
         self._json_mode_supported = True
         self._client: AsyncOpenAI | None = None
@@ -114,11 +131,39 @@ class OpenAICompatibleLLM:
                 "LLM credentials not configured. Set LLM_BASE_URL, LLM_MODEL, and LLM_API_KEY."
             )
         if self._client is None:
-            kwargs: dict[str, Any] = {"api_key": self.api_key, "timeout": self.timeout_s}
+            kwargs: dict[str, Any] = {
+                "api_key": self.api_key,
+                "timeout": self.timeout_s,
+                "max_retries": 0,  # Retries handled explicitly with backoff/jitter below.
+            }
             if self.base_url:
                 kwargs["base_url"] = self.base_url
             self._client = AsyncOpenAI(**kwargs)
         return self._client
+
+    async def _create_with_retry(self, **kwargs: Any) -> Any:
+        client = self._get_client()
+        for attempt in range(self.max_retries + 1):
+            try:
+                return await client.chat.completions.create(**kwargs)
+            except (RateLimitError, InternalServerError, APITimeoutError, APIConnectionError) as exc:
+                if attempt >= self.max_retries:
+                    raise
+                delay = self.base_backoff_s * (2**attempt) + random.uniform(0, 0.5)
+                resp = getattr(exc, "response", None)
+                if resp is not None:
+                    ra = resp.headers.get("retry-after")
+                    if ra and ra.replace(".", "", 1).isdigit():
+                        delay = min(float(ra), 45.0)
+                logger.warning("Transient LLM error (%s); retry %d in %.1fs", type(exc).__name__, attempt + 1, delay)
+                await asyncio.sleep(delay)
+            except APIStatusError as exc:
+                if exc.status_code in (429, 500, 502, 503, 504) and attempt < self.max_retries:
+                    delay = self.base_backoff_s * (2**attempt) + random.uniform(0, 0.5)
+                    logger.warning("LLM HTTP %d; retry %d in %.1fs", exc.status_code, attempt + 1, delay)
+                    await asyncio.sleep(delay)
+                    continue
+                raise
 
     async def complete_json(
         self,
@@ -136,7 +181,6 @@ class OpenAICompatibleLLM:
                 "user_prompt": user_prompt,
             }
         )
-        client = self._get_client()
         messages = [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
@@ -145,9 +189,9 @@ class OpenAICompatibleLLM:
         raw_content = ""
         if self._json_mode_supported:
             try:
-                resp = await client.chat.completions.create(
+                resp = await self._create_with_retry(
                     model=self.model,
-                    messages=messages,  # type: ignore[arg-type]
+                    messages=messages,
                     temperature=temperature,
                     response_format={"type": "json_object"},
                 )
@@ -157,12 +201,22 @@ class OpenAICompatibleLLM:
                 # Provider does not support response_format json_object -> fall back cleanly.
                 self._json_mode_supported = False
             except ValueError:
-                pass
+                # Response arrived but was not valid JSON -> repair directly without repeating full prompt.
+                repair_messages = [
+                    {"role": "system", "content": "Return ONLY a valid JSON object matching the schema. No prose."},
+                    {"role": "user", "content": f"Fix this into valid JSON:\n{raw_content[:3000]}"},
+                ]
+                repair_resp = await self._create_with_retry(
+                    model=self.model,
+                    messages=repair_messages,
+                    temperature=0.0,
+                )
+                return extract_first_json_object(repair_resp.choices[0].message.content or "")
 
         # Fallback: plain completion + JSON extraction + 1 repair retry if malformed.
-        resp = await client.chat.completions.create(
+        resp = await self._create_with_retry(
             model=self.model,
-            messages=messages,  # type: ignore[arg-type]
+            messages=messages,
             temperature=temperature,
         )
         raw_content = resp.choices[0].message.content or ""
@@ -173,9 +227,9 @@ class OpenAICompatibleLLM:
                 {"role": "system", "content": "Return ONLY a valid JSON object matching the user's schema. No prose."},
                 {"role": "user", "content": f"Fix this into valid JSON:\n{raw_content[:3000]}"},
             ]
-            repair_resp = await client.chat.completions.create(
+            repair_resp = await self._create_with_retry(
                 model=self.model,
-                messages=repair_messages,  # type: ignore[arg-type]
+                messages=repair_messages,
                 temperature=0.0,
             )
             return extract_first_json_object(repair_resp.choices[0].message.content or "")
@@ -196,8 +250,7 @@ class OpenAICompatibleLLM:
                 "user_prompt": user_prompt,
             }
         )
-        client = self._get_client()
-        resp = await client.chat.completions.create(
+        resp = await self._create_with_retry(
             model=self.model,
             messages=[
                 {"role": "system", "content": system_prompt},

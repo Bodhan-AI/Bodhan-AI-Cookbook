@@ -158,6 +158,22 @@ async def run_epoch_a(
     return _normalize_task_spec_languages(spec)
 
 
+def _compact_tool_catalog(tool_catalog: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Produce a compact parameter summary for P-LLM prompts while keeping full schemas on the MCP server."""
+    compact: list[dict[str, Any]] = []
+    for t in tool_catalog:
+        schema = t.get("input_schema") or {}
+        props = schema.get("properties") or {}
+        req = set(schema.get("required") or [])
+        args_summary = {
+            k: ("required" if k in req else "optional")
+            for k in props
+        }
+        desc = str(t.get("description") or "").split(".")[0].strip()
+        compact.append({"name": t["name"], "summary": desc, "args": args_summary})
+    return compact
+
+
 async def run_epoch_b(
     llm: LLMProtocol,
     *,
@@ -176,7 +192,7 @@ async def run_epoch_b(
         "task_spec": task_spec.model_dump(exclude_none=True),
         "file_facts": [f.model_dump(exclude_none=True) for f in file_facts],
         "probe_facts": [p.model_dump(exclude_none=True) for p in probe_facts],
-        "tool_catalog": tool_catalog,
+        "tool_catalog": _compact_tool_catalog(tool_catalog),
     }
     if compile_errors:
         payload["previous_compile_errors_to_fix"] = compile_errors
@@ -184,7 +200,7 @@ async def run_epoch_b(
     raw = await llm.complete_json(
         role_tag="p_llm_epoch_b_repair" if compile_errors else "p_llm_epoch_b",
         system_prompt=EPOCH_B_SYSTEM,
-        user_prompt=json.dumps(payload, ensure_ascii=False, indent=2),
+        user_prompt=json.dumps(payload, ensure_ascii=False),
     )
     return RawPlan.model_validate(raw)
 
@@ -206,11 +222,11 @@ async def run_epoch_c(
         "task_spec": task_spec.model_dump(exclude_none=True),
         "available_step_handles": existing_step_handles,
         "failed_verifications": [v.model_dump() for v in failed_verifications],
-        "tool_catalog": tool_catalog,
+        "tool_catalog": _compact_tool_catalog(tool_catalog),
     }
     raw = await llm.complete_json(
         role_tag=f"p_llm_epoch_c_round_{replan_round}",
         system_prompt=EPOCH_C_SYSTEM,
-        user_prompt=json.dumps(payload, ensure_ascii=False, indent=2),
+        user_prompt=json.dumps(payload, ensure_ascii=False),
     )
     return RawPlan.model_validate(raw)
