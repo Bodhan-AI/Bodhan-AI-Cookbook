@@ -1,4 +1,4 @@
-"""Language identification, planner billing and source provenance (regressions from review round 5, commit 3f41986)."""
+"""Language identification, planner billing and source provenance."""
 
 import json
 
@@ -104,7 +104,7 @@ async def test_planner_retry_is_not_sent_beyond_the_budget(tmp_path):
     assert rep["cost"]["total_counted_inr"] <= 40.0 + 1e-9
 
 
-# ---- review round 6 --------------------------------------------------------------------------
+# ---- whole-file reads, unidentified speech and retry deadlines ----------------------------
 async def test_source_paths_need_the_whole_current_file_to_have_been_read(make_ctx, tmp_path):
     notice = tmp_path / "notice.txt"
     notice.write_text("The library will be closed on Monday. " * 20, encoding="utf-8")
@@ -175,7 +175,7 @@ async def test_a_reply_costing_more_than_its_bound_is_reported(tmp_path):
     assert rep["cost"]["llm_over_pre_call_bound_inr"] > 0 and any(e["type"] == "llm_estimate_exceeded" for e in trace)
 
 
-# ---- review round 7 --------------------------------------------------------------------------
+# ---- hidden embeds, whole read pages and estimated usage ----------------------------------
 async def test_an_embed_hidden_in_a_comment_is_refused(make_ctx, tmp_path):
     src = tmp_path / "t.md"
     src.write_text("The library is closed on Monday.", encoding="utf-8")
@@ -220,7 +220,7 @@ async def test_a_translation_without_usage_is_labelled_an_estimate(make_ctx):
     assert call["cost_basis"] == "bounded_estimate" and ctx.ledger.summary()["bodhan_billed_estimated_inr"] > 0
 
 
-# ---- CodeRabbit review (stable diff) ---------------------------------------------------------
+# ---- deliverable matching, resumed traces and transparent images ----------------------------
 def test_a_general_deliverable_does_not_take_the_only_artifact_a_specific_one_needs(tmp_path):
     from bodhan_agent.loop import Agent, Settings
     from bodhan_agent.trace import TraceWriter

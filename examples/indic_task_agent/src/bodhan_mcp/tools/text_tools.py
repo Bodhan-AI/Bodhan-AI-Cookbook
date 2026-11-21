@@ -216,7 +216,7 @@ async def read_text(ctx: RunContext, a: ReadTextIn) -> dict:
 
 # ---------------------------------------------------------------------------
 class WriteTextIn(_Strict):
-    name: str = Field(description="File name for the artifact, e.g. 'summary_en.md' or 'telugu_clips.md'.")
+    name: str = Field(description="File name for the artifact, e.g. 'summary_en.md' or 'kannada_files.md'.")
     content: str = Field(description="English text or Markdown to save. May embed earlier artifacts with {{artifact:<path>}}, which is replaced by that file's content.")
     language: str = Field("en", description="Language of `content` you wrote. Must be 'en': write English and use translate_text for Indian languages.")
     source_paths: list[str] = Field(default_factory=list, max_length=50,

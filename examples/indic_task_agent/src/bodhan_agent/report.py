@@ -268,7 +268,7 @@ def render_markdown(r: dict[str, Any], ctx: RunContext, out: Path) -> str:
         lines += ["## Assumptions", "", *[f"- {a}" for a in r["assumptions"]], ""]
     lim = list(r["limitations"])
     if r["injection_warnings"]:
-        lim += [f"Input content contained instruction-like text, treated as data and not followed: {w}" for w in r["injection_warnings"]]
+        lim += [f"Input content contains text that looks like an instruction; the tools return it as data: {w}" for w in r["injection_warnings"]]
     if r["verification"]["unverified_translations_or_audio"]:
         lim.append(f"Not verified: {r['verification']['unverified_translations_or_audio']}")
     if lim:

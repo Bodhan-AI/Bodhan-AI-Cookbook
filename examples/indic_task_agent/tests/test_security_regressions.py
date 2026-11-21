@@ -117,7 +117,7 @@ def test_l1_the_viewer_refuses_a_foreign_host_header(tmp_path):
         httpd.shutdown()
 
 
-# --- 20 November 2026 code review of the fixes above (GPT-6.1 Sol and the audit) ---------------------------------
+# --- mixed-separator and device paths, finish and viewer ---------------------------------------------------------
 
 NETWORK_FORMS = [r"/\attacker.example\share\x.txt", r"\/attacker.example/share/x.txt", r"\\?\UNC\attacker.example\share\x.txt",
                  r"\\.\pipe\x", r"\\attacker.example\share\x.txt", "//attacker.example/share/x.txt", "FILE://attacker.example/x.txt"]

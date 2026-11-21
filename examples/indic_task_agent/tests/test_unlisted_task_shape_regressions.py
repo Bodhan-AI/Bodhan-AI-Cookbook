@@ -1,4 +1,4 @@
-"""Hidden-task cases found by offline probes of task shapes the brief does not list."""
+"""Task shapes the brief's examples do not cover, found by offline probes."""
 
 import json
 import unicodedata
@@ -191,7 +191,7 @@ async def test_verify_speech_error_names_the_real_field(make_ctx, tmp_path):
     assert err and "expected_path" in r["error"]["message"]
 
 
-# CodeRabbit (offline-probe fixes) ------------------------------------------------------------------
+# redaction spacing, interrupted turns and deliverable counts -------------------------------------
 def test_redaction_ignores_how_the_words_are_spaced():
     g = ProvenanceGuard()
     out = g.redact("Answer: नई\nबात  यहाँ, done.")
@@ -268,7 +268,7 @@ def test_the_same_output_declared_under_two_kinds_shares_its_artifact(tmp_path):
     assert agent._contract_gaps([art], "Done.")  # two translations still need two artifacts
 
 
-# GPT-6.1 Sol review of the offline-probe fixes -------------------------------------------------------
+# redaction by position, quote origin and read pages ---------------------------------------------------
 def test_redaction_by_position_leaves_no_unknown_text():
     out = ProvenanceGuard().redact("क English क ख")
     assert "क" not in out and "ख" not in out and "English" in out
@@ -317,7 +317,7 @@ def test_mostly_utf8_text_with_one_bad_byte_stays_utf8():
     assert decode_text("The café is open.\n!".encode() + b"\x96").startswith("The café is open.")
 
 
-# CodeRabbit (final diff) ----------------------------------------------------------------------
+# legacy-font detection, shared text declarations and provisional reports ---------------------
 def test_bracketed_english_is_not_legacy_font_evidence():
     from bodhan_mcp.documents import looks_like_legacy_font
 
@@ -417,7 +417,7 @@ async def test_a_garbled_artifact_path_still_finds_this_runs_artifact(make_ctx, 
     assert err  # an unknown name is still refused
 
 
-# CodeRabbit (post-freeze diff): the short tool list must keep fields that are themselves called "description"
+# the short tool list must keep fields that are themselves called "description"
 def test_the_short_tool_list_keeps_a_field_named_description():
     from bodhan_agent.loop import openai_tools
 
@@ -426,7 +426,7 @@ def test_the_short_tool_list_keeps_a_field_named_description():
     assert "description" in items["properties"] and "description" not in items["properties"]["kind"]
 
 
-# GPT-6.1 Sol (post-freeze diff): embedding a verified Sanskrit artifact gave a file labelled Hindi, because the label
+# embedding a verified Sanskrit artifact gave a file labelled Hindi, because the label
 # came from script-based detection, which reads short Devanagari text as Hindi; a known source language must win
 async def test_an_embedded_artifact_keeps_its_known_language(make_ctx):
     from bodhan_mcp.runtime import Artifact

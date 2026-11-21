@@ -69,5 +69,5 @@ CATALOGUE: dict[str, tuple[bool, str]] = {
     EMPTY_RESULT: (False, "The model returned nothing usable (e.g. no speech in the audio)."),
     MEDIA_ERROR: (False, "The media file could not be decoded."),
     PROVENANCE_VIOLATION: (False, "Indian-language text was written by the caller. Pass such text by path or write English and translate it."),
-    INTERNAL_ERROR: (False, "A bug in this server. The server keeps running; the message says what failed."),
+    INTERNAL_ERROR: (False, "An unexpected error in this server. The server keeps running; the message says what failed."),
 }

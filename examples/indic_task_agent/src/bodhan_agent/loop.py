@@ -137,8 +137,8 @@ class DeliverableSpec(_Strict):
     language: str | None = Field(None, max_length=16, description="Language code of the output, e.g. 'ta' (omit if not language-specific). "
                                                                  "For romanized output use the language code (e.g. 'hi') and say so in the description.")
     source: str | None = Field(None, max_length=200, description="Input file name this output is made from, when the task asks for one output per file.")
-    optional: bool = Field(False, description="True for conditional outputs that may legitimately not exist (e.g. 'translate the Telugu clips' when none is Telugu).")
-    description: str = Field("", max_length=300, description="What this output is, e.g. 'two-minute Tamil summary audio'.")
+    optional: bool = Field(False, description="True for conditional outputs that may legitimately not exist (e.g. 'translate the Odia ones' when none is Odia).")
+    description: str = Field("", max_length=300, description="What this output is, e.g. 'one-minute Kannada summary audio'.")
 
 
 class DroppedSpec(_Strict):

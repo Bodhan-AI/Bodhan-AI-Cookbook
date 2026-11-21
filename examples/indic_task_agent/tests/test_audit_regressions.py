@@ -1,6 +1,5 @@
-"""Regression tests for the independent side audit of commit 518ed85 (finding IDs in the
-test names: S = specification, N = deep review, E = engineering, F = boundary review).
-Each test reproduces the reported scenario with synthetic data and the offline fakes."""
+"""Regression tests for specification, engineering and boundary cases (the letter in each test
+name groups them). Each test reproduces the failure scenario with synthetic data and the offline fakes."""
 
 import asyncio
 import io

@@ -31,7 +31,7 @@ TOOLS: list[ToolSpec] = [
         InspectIn, inspect_files, read_only=True),
     ToolSpec(
         "transcribe_audio", "Speech to text (Indic-Transcribe)",
-        "Transcribe speech from an audio or video file of any length with Bodhan Indic-Transcribe. The tool decodes the file, "
+        "Transcribe speech from an audio or video file of up to 60 minutes with Bodhan Indic-Transcribe. The tool decodes the file, "
         "splits it at pauses into pieces of at most 28 s (the model's 30 s limit), trims silence so it is not billed, and "
         "detects the language from the script when language='auto'. Returns a transcript .txt and a segments .json with "
         "start/end times, plus the detected language. Use it to identify which language a clip is in. Cost: ₹0.10 per audio minute." + _FILES,
@@ -67,7 +67,7 @@ TOOLS: list[ToolSpec] = [
         OcrIn, ocr_document, paid=True),
     ToolSpec(
         "verify_translation", "Check a translation",
-        "Independently check a translation file against its source: target script share, numbers, table structure, repetition "
+        "Check a translation file against its source: target script share, numbers, table structure, repetition "
         "and Indic-Translate back-translation agreement. Use for translations not produced by translate_text(verify=true)." + _FILES,
         VerifyTranslationIn, verify_translation, paid=True),
     ToolSpec(

@@ -1,5 +1,5 @@
-"""Regression tests for the independent code review (GPT-6.1 Sol, commit 756011e).
-Each test reproduces a reported failure scenario and asserts the fixed behaviour."""
+"""Regression tests for provenance, verification and budget edge cases.
+Each test reproduces a failure scenario and asserts the fixed behaviour."""
 
 import asyncio
 import json
@@ -173,7 +173,7 @@ async def test_same_language_subtitles_carry_verification(make_ctx, tmp_path):
     assert art.kind == "subtitles" and art.verification["status"] == "pass", art.verification
 
 
-# ---- second review round (commit 92cb72f) ----------------------------------------------
+# ---- escaped text, planner-written transcripts and cancelled requests ----------------------
 
 async def test_json_unicode_escapes_cannot_smuggle_indic_text(fake, make_ctx):
     escaped = json.dumps({"text": "यह मैंने लिखा है"}, ensure_ascii=True)  # only ASCII characters on the wire

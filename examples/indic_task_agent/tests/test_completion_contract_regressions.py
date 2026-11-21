@@ -145,7 +145,7 @@ async def test_the_ways_a_model_names_a_delivered_item_are_accepted(tmp_path, co
 
 
 async def test_a_plan_cannot_declare_an_output_bodhan_cannot_make_and_the_possible_part_is_delivered(tmp_path):
-    # h13 (written by an independent reviewer): Bhojpuri is transcription-only, yet a plan with Bhojpuri audio was accepted
+    # h13 (written by a separate AI agent): Bhojpuri is transcription-only, yet a plan with Bhojpuri audio was accepted
     # and the run gave up on the Malayalam audio it could make
     task = "Can you make this in Malayalam and in Bhojpuri?"
     both = [("record_plan", {"steps": ["translate"], "deliverables": [{"kind": "translation", "language": "ml"},
@@ -169,7 +169,7 @@ async def test_deliverable_paths_with_doubled_backslashes_are_found(tmp_path):
     assert report["status"] == "completed" and report["deliverables"][0]["path"].endswith("source_ta.md")
 
 
-# --- GPT-6.1 Sol HIGH review of 14c2275..178afa2 (the completion contract above) ---------------------------------
+# --- the completion contract's own retries, blank entries and one-to-one obligations ------------------------------
 
 def unit_agent(tmp_path, coverage=None, max_inr=20.0, client=None):
     from bodhan_agent.loop import Agent, Settings

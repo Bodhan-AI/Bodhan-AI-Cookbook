@@ -53,7 +53,7 @@ async def test_provider_extras_are_echoed_and_tool_call_content_is_null():
 
 
 async def test_an_empty_turn_is_sent_back_without_its_reasoning():
-    def gateway(kw):  # mimics the gateway that refused this shape live (gpt-oss-120b through an OpenAI-compatible proxy)
+    def gateway(kw):  # mimics an OpenAI-compatible endpoint that refused this message shape
         for m in kw["messages"]:
             if m.get("role") == "assistant" and not m.get("content") and not m.get("tool_calls") and m.get("reasoning_content"):
                 raise Err(400, "Error code: 400 - Expected a(n) 'messages' array element to be an object.")
