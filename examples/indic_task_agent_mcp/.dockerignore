@@ -1,0 +1,10 @@
+.env
+.venv
+.bodhan_cache
+out
+outputs
+demo_inputs
+__pycache__
+*.egg-info
+.pytest_cache
+.ruff_cache

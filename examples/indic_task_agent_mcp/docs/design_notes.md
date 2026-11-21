@@ -1,0 +1,104 @@
+# Design notes
+
+## Goals and the rules that shape everything
+
+1. Every speech-to-text, translation, speech synthesis and OCR operation goes to a Bodhan model, through the MCP tools.
+   There is no other ASR, MT, TTS or OCR anywhere, not even as a fallback.
+2. The LLM never writes Indian-language text. This is enforced in code, not by prompt alone (see "Guards").
+3. Status comes from checks, not from the LLM's claim. Impossible tasks end with an explanation and no files.
+4. A small, reliable tool set beats a large one.
+
+## Tool granularity
+
+Three options were considered:
+
+| Option | Example | Problem |
+| --- | --- | --- |
+| One tool per raw endpoint | `transcribe_window(wav ≤ 30 s)` | Every caller must chunk audio, split sentences, render PDFs. Third-party clients get it wrong. |
+| One tool per task | `make_audio_summary(pdf, lang, minutes)` | Hides control; fails on any task shape not foreseen; untestable against hidden tasks. |
+| **One tool per model capability, limits handled inside** | `transcribe_audio(path, language?)` | Chosen. |
+
+Each of the four model tools owns its model's limits (30 s windows, short TTS inputs, translation size and silent
+truncation, one image per OCR request, no PDFs) and its own self-check. The planner still decides order and
+arguments, which is what lets one agent handle summaries, subtitles, read-alouds and language identification without
+code changes. `translate_segments` exists separately from `translate_text` because subtitles need timings carried
+through translation, which plain text loses. Helpers (`inspect_file`, `read_text`, `write_text`, `write_subtitles`)
+are free and local; `write_text` gives the LLM a sanctioned way to put English it wrote into the pipeline.
+
+Media moves only as paths. Results carry a 500-character preview at most, so a 30-page OCR job or a 15-minute
+transcript never floods the context; `read_text` pages through files when the LLM needs more.
+
+## Verification
+
+| Output | Check | Where |
+| --- | --- | --- |
+| Speech | Each chunk is back-transcribed with Indic-Transcribe; character error rate against the chunk text; repetition (back-transcript much longer than the text, or repeated 4-grams) and omission (much shorter) are flagged | `synthesize_speech` |
+| Speech recovery | A flagged chunk is re-split into smaller pieces and re-synthesized once; the take with lower CER is kept; what remains flagged is reported, never hidden | `synthesize_speech` |
+| Translation | Numbers in source and output compared after mapping all Indic digit sets to ASCII; share of letters in the target script; output/source length ratio; `truncated` flag | `translate_text` |
+| Tables | Row and column counts of each Markdown table before and after; a broken grid is rebuilt cell by cell | `translate_text` |
+| OCR | Low-confidence blocks, empty pages, garbled text, per page | `ocr_document` |
+| Deliverables | Exists and non-empty; audio was produced with verification on and has no flagged chunk; translations pass the checks above; SRT parses with ordered timestamps; a duration named in the task ("two-minute") is met within ±25% | `bodhan_agent/verify.py` |
+| Task fit | An LLM judge reads the task, answer, deliverable metadata and short previews and lists concrete problems | `agent._judge` |
+
+Any failure goes back to the LLM once with the exact problems. After that the run ends as `partial`, and the
+problems are listed in `result.md` and `report.json`.
+
+## Budgets
+
+- **Steps:** every tool call counts; identical repeat calls are answered from memory and do not count.
+- **Rupees:** one ledger is shared by the agent and the server. Every Bodhan call reserves its estimated cost first
+  and is refused (`budget_exceeded`) if that would pass `--max-cost-inr`. Whole jobs (a narration, a PDF, a long
+  recording) are estimated up front, so a job that cannot fit is refused before any part of it is paid for.
+- **Time:** `--max-minutes` for the run and `--tool-timeout-s` per tool call; HTTP timeouts per Bodhan request.
+- **No waste:** every response is cached under a SHA-256 of model, endpoint, parameters and input bytes, so the same
+  input is never sent to the same model twice, within a run or across reruns. Cache hits are counted in `report.json`.
+
+## Error recovery
+
+| Failure | Response |
+| --- | --- |
+| 429, 5xx, timeouts | Exponential backoff with jitter, honouring `Retry-After`; at most 4 retries per request |
+| Bad arguments | Structured error with a hint; the LLM fixes and retries |
+| Translation truncated | Re-sent in halves, up to 3 levels |
+| OCR 502 (block too long) | The page is retried as two overlapping halves; a page that still fails is flagged, the rest continue |
+| TTS repeats or omits | Re-split and re-synthesize once, keep the better take, report the rest |
+| LLM rejects `tools` or writes tool calls as text | Switch to a JSON-in-text tool protocol and keep going |
+| LLM unavailable | Retries with backoff, then the run ends as `failed` with partial outputs, trace and report written |
+
+## Where the LLM decides
+
+| Decision | Why the LLM | Fallback |
+| --- | --- | --- |
+| Plan: feasibility, assumptions, steps, target languages | Ambiguous wording, unstated languages | One retry asking for JSON only; then act without a written plan and record that |
+| Next tool and arguments | Unseen task shapes | Structured tool errors it can correct |
+| Choosing among Devanagari or Bengali-script languages when a clip's language is ambiguous | Reading the transcript and the task context | Script default (Hindi, Bengali) recorded as an assumption |
+| English summaries and explanations | Its real strength | n/a |
+| Hitting a length target | Draft English, measure the real audio, adjust once | Accept within ±25% (the verification threshold) and report the miss |
+| Whether the task is satisfied | Catches "answered a different question" | Code checks alone decide the status |
+
+Everything else is deterministic code: inputs, file types, language support, chunking, budgets, number and script
+checks, SRT timing, final status.
+
+## Guards and untrusted content
+
+- Any free-text argument the LLM writes (`text`, `content`, the final `answer`) that contains an Indic script is refused
+  with an explanation. Paths, language codes and voice names are exempt. So every Indian-language word in the output
+  provably came from Indic-Translate, Indic-Transcribe or Indic-OCR.
+- File contents, transcripts and OCR text reach the LLM only inside `<untrusted_content>` tags. A pattern check flags
+  instruction-like text ("ignore previous instructions", requests for keys or email), adds a warning inside the tag and
+  records it in `report.json`.
+- The agent has no shell, network, delete or email tool, and writes only into the run's output folder; the server
+  reads only from allowed folders. An injected instruction has nothing dangerous to call.
+
+## Language support
+
+Language codes and names resolve through one table mirroring the Cookbook's `scripts/bodhan_api_rules.json`. A task
+asking for output in a language no model supports ("into French") is refused in preflight. Indic-Speak's preview-tier
+languages work but produce a quality warning.
+
+## What I would do next
+
+- Word-level subtitle timing by aligning back-transcripts of sub-windows.
+- A video dubbing tool (mux translated speech back into the video), since "translate this video" is a natural ask.
+- A judge-consistency check (judge twice, compare) and a small labelled set to calibrate the CER threshold per language.
+- Streamable HTTP transport with token auth, and a small web UI that shows the live trace.
