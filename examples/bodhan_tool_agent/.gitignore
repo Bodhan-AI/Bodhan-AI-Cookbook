@@ -40,11 +40,5 @@ scratch/*
 !scratch/.gitkeep
 tmp/
 
-# Experiments execution artifacts, run logs, and caches (notebooks, docs, and benchmarks are tracked)
-experiments/out/
-experiments/outputs/
-experiments/**/__pycache__/
-experiments/**/.ipynb_checkpoints/
-experiments/**/*.db
-experiments/**/*.sqlite
-experiments/**/*.sqlite3
+# Experiments (development notebooks & datasets — kept locally, not part of cookbook submission)
+experiments/
