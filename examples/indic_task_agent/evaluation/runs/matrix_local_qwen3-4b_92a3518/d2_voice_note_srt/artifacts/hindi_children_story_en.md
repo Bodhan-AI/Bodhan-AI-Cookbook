@@ -1,0 +1,1 @@
+Once upon a time, in a land far away, there lived a little rabbit named Chitti. Chitti loved to hop through the fields and chase butterflies. One sunny day, Chitti found a magical seed that grew into a tree with fruits of happiness. With each fruit, he felt more joyful. Chitti's happiness spread to all his friends.

@@ -1,0 +1,1 @@
+The processed content summary in English is ready for the Tamil translation step.

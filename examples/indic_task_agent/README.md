@@ -14,7 +14,7 @@
 
 The planner can be any OpenAI-compatible endpoint with tool calling. It plans, writes English and judges results. Bodhan models do all speech recognition, translation, speech synthesis and OCR, and code refuses Indic-script text written by the planner (romanized text is not caught).
 
-More detail: [docs/design.md](docs/design.md) (diagrams and design reasons), [docs/api_notes.md](docs/api_notes.md) (observed API behaviour) and [docs/evaluation.md](docs/evaluation.md) (every run, with outputs and traces).
+More detail: [docs/design.md](docs/design.md) (the [architecture diagram](docs/design.md#architecture), the [agent-loop flow chart](docs/design.md#agent-loop) and the design notes), [docs/api_notes.md](docs/api_notes.md) (observed API behaviour) and [docs/evaluation.md](docs/evaluation.md) (every run, with outputs and traces).
 
 ## Results at a glance
 
@@ -172,12 +172,12 @@ Every tool validates its input and returns `{"ok": false, "error": {"code", "mes
 4. **Check and repair:** translations are back-translated and checked for script, numbers and tables. Every audio segment is back-transcribed. A failure is repaired with a different input (a speech segment once), or reported.
 5. **Stop:** `finish` passes a gate in code. Each deliverable needs a matching artifact from this run whose checks, and those of its sources, did not fail, and the answer must be in English. A revised plan cannot silently drop an earlier output, and before `completed` the planner model re-reads the original task, without the plan, against what was delivered. Limits, an outage or a crash end the run under the same rule.
 
-The flow chart and the reasons behind it are in [docs/design.md](docs/design.md).
+The flow chart and the reasons behind it are in [docs/design.md](docs/design.md#agent-loop).
 
 ## Tests
 
 ```bash
-pytest -q                                  # 295 offline tests, no network or keys needed
+pytest -q                                  # 296 offline tests, no network or keys needed
 python scripts/run_suite.py                # live self-evaluation of evaluation/tasks.json (exit 1 if any task fails)
 python scripts/run_suite.py --score-only --out evaluation/runs/sol_demos_cold --summary-dir /tmp/rescore   # re-score committed evidence offline
 ```
@@ -197,7 +197,7 @@ Media stays out of git. `scripts/make_fixtures.py` generates every demo input in
 - **Planner cost is bounded, not measured in advance.** With planner prices given, a call is sent only if the budget covers its upper bound, about 5× the real prompt size, so a priced planner stops early ([details](docs/design.md#budgets-cost-and-caching)).
 - **Latency is dominated by Indic-Speak**, about 20 s per request, so single-step speech tasks often miss the 30 s target (recorded in `report.json`).
 - **Durations are approximate.** A requested length sets the English text length before translation. Missing it by more than ±25 % is a warning, not a retry.
-- **Planners differ.** `gemini-3.5-flash-lite` passed 10/10 and `gpt-5.6-luna` 9/10. `gpt-oss-120b` passed 4/10 through an OpenAI-compatible gateway, where it often returned empty turns instead of finishing. On the final code, Gemini passed 13/14 main tasks. On Groq's free tier, the 8,000-tokens-per-minute cap allows about one planner call a minute, so tasks that need more than nine calls hit the 600 s limit (`gpt-oss-120b` 4/7; `gpt-oss-20b` is too slow there to be listed) ([results](docs/evaluation.md#other-planner-models)).
+- **Planners differ.** On the final code, `gpt-6.1-sol` passed all 14 main tasks and `gemini-3.5-flash-lite` 13/14. On a seven-task portability subset, `claude-sonnet-4-6` and `gpt-oss-120b` passed 6/7, Mistral Large 4 3/7 (its provider timed out on three tasks) and a local `qwen3:4b` 1/7 ([portability table](docs/evaluation.md#planner-portability-final-code)). On earlier code, `gpt-5.6-luna` passed 9/10, and `gpt-oss-120b` passed 4/10 through an OpenAI-compatible gateway, where it often returned empty turns instead of finishing. On Groq's free tier, the 8,000-tokens-per-minute cap allows about one planner call a minute, so tasks that need more than about nine calls hit the 600 s limit.
 - **Word, Excel, PowerPoint files and archives are not read.** They are refused with a hint to export them to PDF or text, or to extract the archive.
 - **Injected text is translated, not removed.** An instruction hidden in a document is never followed, but a faithful translation keeps it as content, so a planner that speaks a whole translated notice reads that line aloud (seen once with Gemini on h10).
 - **No dubbed video.** The agent can transcribe, translate and subtitle a video's speech, but it cannot re-voice the video.

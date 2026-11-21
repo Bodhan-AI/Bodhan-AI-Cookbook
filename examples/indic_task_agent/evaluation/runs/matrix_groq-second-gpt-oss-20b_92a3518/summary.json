@@ -1,0 +1,63 @@
+{
+  "passed": 1,
+  "total": 2,
+  "pass_rate": 0.5,
+  "scored_at": "2026-11-21T15:22:32+05:30",
+  "code": {
+    "commit": "3998fb419690336548ec8182c7d869c50edc7625",
+    "src_modified": false
+  },
+  "checks": "structural only (status, files, kinds, languages, verification, answer text, budget); not a quality score",
+  "tasks": [
+    {
+      "id": "h7_budget_too_small",
+      "demo": false,
+      "impossible": true,
+      "task": "Make a Hindi audio version of this whole chapter",
+      "evidence": "fresh",
+      "cache_mode": "shared cache",
+      "pass": true,
+      "fails": [],
+      "status": "failed",
+      "elapsed_s": 600.0,
+      "steps": 1,
+      "bodhan_inr": 0.0,
+      "cache_hits": 0,
+      "paid_calls": 0,
+      "llm_model": "openai/gpt-oss-20b",
+      "llm_tokens": 0,
+      "latency_target_met": false,
+      "latency_kind": "single-step",
+      "result": "outputs/matrix_groq_second_gpt-oss-20b_92a3518/h7_budget_too_small/result.md",
+      "trace": "outputs/matrix_groq_second_gpt-oss-20b_92a3518/h7_budget_too_small/trace.jsonl"
+    },
+    {
+      "id": "d5_bengali_female_audio",
+      "demo": true,
+      "impossible": false,
+      "task": "Read this paragraph aloud in Bengali with a female voice",
+      "evidence": "fresh",
+      "cache_mode": "shared cache",
+      "pass": false,
+      "fails": [
+        "run stopped by llm_error (planner unavailable), so the task was not evaluated",
+        "status failed not in ['completed', 'completed_with_warnings']",
+        "no audio deliverable",
+        "no audio deliverable to check the language of",
+        "voice of the audio deliverable is not recorded"
+      ],
+      "status": "failed",
+      "elapsed_s": 455.23,
+      "steps": 0,
+      "bodhan_inr": 0.0,
+      "cache_hits": 0,
+      "paid_calls": 0,
+      "llm_model": "openai/gpt-oss-20b",
+      "llm_tokens": 0,
+      "latency_target_met": false,
+      "latency_kind": "single-step",
+      "result": "outputs/matrix_groq_second_gpt-oss-20b_92a3518/d5_bengali_female_audio/result.md",
+      "trace": "outputs/matrix_groq_second_gpt-oss-20b_92a3518/d5_bengali_female_audio/trace.jsonl"
+    }
+  ]
+}

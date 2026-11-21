@@ -1,0 +1,1 @@
+Summary: Pip, a tiny frog who loves hopping in the rain, discovers a magical garden where flowers dance and butterflies sing. His kindness and curiosity make the world brighter.

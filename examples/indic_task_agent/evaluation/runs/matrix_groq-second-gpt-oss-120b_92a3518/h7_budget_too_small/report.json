@@ -1,0 +1,88 @@
+{
+  "status": "unsupported",
+  "stop_reason": "finished",
+  "planner_status": "unsupported",
+  "task": "Make a Hindi audio version of this whole chapter",
+  "inputs": {
+    "files": [
+      "<recipe>\\sample_data\\chapter_scan\\chapter5_tamil_scan.pdf"
+    ],
+    "missing": []
+  },
+  "started_at": "2026-11-21T09:30:46+00:00",
+  "finished_at": "2026-11-21T09:30:49+00:00",
+  "elapsed_s": 2.81,
+  "steps": {
+    "used": 1,
+    "max": 30,
+    "tool_calls": []
+  },
+  "plan": null,
+  "final_answer": "I cannot complete the request because the required processing exceeds the budget you set. OCRing the 8‑page Tamil PDF costs ₹0.20 per page, for a total of ₹1.60, which is already more than the maximum budget of ₹0.50. The subsequent translation and speech synthesis would add further costs. Since the budget is insufficient to perform the needed steps, I am unable to produce the Hindi audio version of the chapter.",
+  "assumptions": [
+    "The PDF contains only scanned images of Tamil text and has no usable text layer.",
+    "Creating a Hindi audio version requires OCR, translation, and speech synthesis, all of which incur costs."
+  ],
+  "limitations": [
+    "Budget constraint (₹0.50) is lower than the cost of OCR alone (₹1.60)."
+  ],
+  "deliverables": [],
+  "artifacts": [],
+  "verification": {
+    "results": [],
+    "unverified_translations_or_audio": [],
+    "all_checked": true
+  },
+  "cost": {
+    "max_inr": 0.5,
+    "bodhan_billed_inr": 0.0,
+    "bodhan_uncertain_inr": 0.0,
+    "llm_inr": null,
+    "total_counted_inr": 0.0,
+    "by_model_inr": {},
+    "bodhan_calls": 0,
+    "cache_hits": 0,
+    "bodhan_cost_basis": "published unit prices x metered quantity (audio seconds rounded up per request, output tokens from usage, input characters, images); provider dashboard is authoritative",
+    "llm": {
+      "calls": 1,
+      "prompt_tokens": 5042,
+      "completion_tokens": 329,
+      "pricing": "not priced (no rate supplied); tokens reported only"
+    }
+  },
+  "llm": {
+    "model": "openai/gpt-oss-120b",
+    "endpoint_host": "api.groq.com",
+    "adaptations": []
+  },
+  "quality_targets": {
+    "latency": {
+      "kind": "single-step",
+      "target_s": 30,
+      "actual_s": 2.8,
+      "met": true,
+      "note": null
+    },
+    "budget": {
+      "max_inr": 0.5,
+      "counted_inr": 0.0,
+      "within_budget": true,
+      "note": null,
+      "scope": "Bodhan calls (billed + uncertain retries); LLM only if priced via --llm-*-inr-per-1m"
+    },
+    "no_waste": {
+      "cache_hits": 0,
+      "bodhan_requests": 0,
+      "retried_attempts": 0,
+      "note": "identical (model, input, settings) requests are served from the cache or shared while in flight; the only repeats are retries of a failed or timed-out attempt (rate limit, 5xx, timeout), counted here and traced as api_call events with attempt > 1"
+    },
+    "verification": {
+      "all_generated_audio_and_translations_checked": true,
+      "note": null
+    },
+    "honest_failure": "unassessed: code cannot judge whether the answer is truthful; see verification results and review the outputs"
+  },
+  "injection_warnings": [],
+  "paid_tool_calls": 0,
+  "version": "0.1.0"
+}
