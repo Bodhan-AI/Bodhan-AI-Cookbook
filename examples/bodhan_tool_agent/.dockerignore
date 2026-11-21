@@ -1,0 +1,37 @@
+# VCS / IDE
+.git
+.gitignore
+.idea
+.vscode
+
+# Python environments & caches
+.venv/
+.venv-optim/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Secrets — never bake into image layers
+.env
+.env.*
+*.pem
+*.key
+
+# Local datasets & generated artifacts (mounted as volumes at runtime)
+sample_data/
+out/
+outputs/
+experiments/
+runs/
+scratch/
+tmp/
+
+# Dev-only files
+tests/
+verify_mcp.py
+walkthrough.ipynb
+README.md
+*.log
