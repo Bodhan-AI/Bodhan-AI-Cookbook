@@ -99,7 +99,7 @@ class BodhanOCRLoader(BaseLoader):
             raise BodhanValidationError(f"File is empty (0 bytes): '{self.file_path}'", parameter="file_path")
 
         ext = self.file_path.suffix.lower()
-        if ext == ".webp":
+        if ext in (".webp", ".gif", ".svg"):
             raise BodhanValidationError(
                 f"Unsupported image format '{ext}' for file '{self.file_path.name}'. Bodhan indic-ocr accepts PNG and JPEG images only. "
                 f"Please convert your image to PNG or JPEG before submission.",

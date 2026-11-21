@@ -8,6 +8,7 @@ import math
 import mimetypes
 import os
 from pathlib import Path
+import re
 from typing import Any, Literal
 
 import httpx
@@ -63,71 +64,163 @@ def _validate_language_code(lang: str) -> None:
         )
 
 
+def _detect_image_mime(data: bytes, source_desc: str = "image") -> str:
+    """Inspect raw binary bytes and return 'image/png' or 'image/jpeg', or raise BodhanValidationError."""
+    if not data:
+        raise BodhanValidationError(f"{source_desc} cannot be empty (0 bytes).", parameter="image")
+
+    # WebP check: RIFF....WEBP
+    if data.startswith(b"RIFF") and b"WEBP" in data[:16]:
+        raise BodhanValidationError(
+            f"Unsupported image format 'image/webp' for {source_desc}. Bodhan indic-ocr accepts PNG and JPEG images only. "
+            f"Please convert your image to PNG or JPEG before submission.",
+            parameter="image",
+        )
+
+    # GIF check: GIF87a or GIF89a
+    if data.startswith(b"GIF87a") or data.startswith(b"GIF89a"):
+        raise BodhanValidationError(
+            f"Unsupported image format 'image/gif' for {source_desc}. Bodhan indic-ocr accepts PNG and JPEG images only. "
+            f"Please convert your image to PNG or JPEG before submission.",
+            parameter="image",
+        )
+
+    # SVG check: XML / <svg
+    stripped_start = data.lstrip()[:100].lower()
+    if stripped_start.startswith(b"<?xml") or stripped_start.startswith(b"<svg") or b"<svg" in stripped_start:
+        raise BodhanValidationError(
+            f"Unsupported image format 'image/svg+xml' for {source_desc}. Bodhan indic-ocr accepts PNG and JPEG images only. "
+            f"Please convert your image to PNG or JPEG before submission.",
+            parameter="image",
+        )
+
+    # Valid PNG: 8-byte magic \x89PNG\r\n\x1a\n
+    if data.startswith(b"\x89PNG\r\n\x1a\n"):
+        return "image/png"
+
+    # Valid JPEG: 3-byte SOI marker \xff\xd8\xff
+    if data.startswith(b"\xff\xd8\xff"):
+        return "image/jpeg"
+
+    raise BodhanValidationError(
+        f"Invalid or unrecognized image binary signature for {source_desc}. Bodhan indic-ocr accepts valid PNG and JPEG images only.",
+        parameter="image",
+    )
+
+
 def _prepare_image_data_url(image: bytes | str | Path) -> str:
-    """Convert raw image bytes, a file path, or a base64 string into a data URL for indic-ocr."""
+    """Convert raw image bytes, a file path, or a base64 string into a validated data URL for indic-ocr.
+
+    Validates:
+    - Supported formats: PNG and JPEG only.
+    - Explicitly rejects WebP, GIF, SVG, and unsupported formats with descriptive errors.
+    - Verifies declared MIME types against decoded binary signatures.
+    - Rejects empty, corrupted, or malformed image inputs.
+    - Never logs base64 payload contents.
+    """
     if isinstance(image, bytes):
-        if not image:
-            raise BodhanValidationError("Image bytes cannot be empty.", parameter="image")
-        if image.startswith(b"RIFF") and b"WEBP" in image[:16]:
-            raise BodhanValidationError(
-                "Unsupported image format 'image/webp' for indic-ocr. Bodhan indic-ocr accepts PNG and JPEG images only. "
-                "Please convert your image to PNG or JPEG before submission.",
-                parameter="image",
-            )
-        if image.startswith(b"\xff\xd8\xff"):
-            mime = "image/jpeg"
-        elif image.startswith(b"\x89PNG\r\n\x1a\n"):
-            mime = "image/png"
-        else:
-            raise BodhanValidationError(
-                "Unrecognized image binary format. Bodhan indic-ocr accepts valid PNG and JPEG images only.",
-                parameter="image",
-            )
+        mime = _detect_image_mime(image, "Image bytes")
         b64 = base64.b64encode(image).decode("ascii")
         return f"data:{mime};base64,{b64}"
 
-    if isinstance(image, Path) or (isinstance(image, str) and not image.startswith("data:") and len(image) < 4096):
+    if isinstance(image, Path) or (
+        isinstance(image, str) and not image.startswith("data:") and len(image) < 4096 and "\n" not in image
+    ):
         path = Path(image)
-        if not path.exists():
+        if path.exists():
+            if not path.is_file():
+                raise BodhanValidationError(f"Path is not a regular file: '{path}'", parameter="image")
+            if path.stat().st_size == 0:
+                raise BodhanValidationError(f"Image file '{path.name}' is empty (0 bytes).", parameter="image")
+
+            ext = path.suffix.lower()
+            if ext in (".webp", ".gif", ".svg"):
+                raise BodhanValidationError(
+                    f"Unsupported image format '{ext}' for file '{path.name}'. Bodhan indic-ocr accepts PNG and JPEG images only. "
+                    f"Please convert your image to PNG or JPEG before submission.",
+                    parameter="image",
+                )
+
+            data = path.read_bytes()
+            mime = _detect_image_mime(data, f"file '{path.name}'")
+            b64 = base64.b64encode(data).decode("ascii")
+            return f"data:{mime};base64,{b64}"
+
+        if isinstance(image, Path) or any(image.endswith(ext) for ext in (".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg", ".bmp", ".pdf")) or "/" in str(image) or "\\" in str(image):
             raise FileNotFoundError(f"Image file not found: '{path}'")
-        if not path.is_file():
-            raise BodhanValidationError(f"Path is not a regular file: '{path}'", parameter="image")
-        data = path.read_bytes()
-        if not data:
-            raise BodhanValidationError(f"Image file '{path}' is empty (0 bytes).", parameter="image")
-        ext = path.suffix.lower()
-        if ext == ".webp" or (data.startswith(b"RIFF") and b"WEBP" in data[:16]):
-            raise BodhanValidationError(
-                f"Unsupported image format '{ext}' for file '{path.name}'. Bodhan indic-ocr accepts PNG and JPEG images only. "
-                f"Please convert your image to PNG or JPEG before submission.",
-                parameter="image",
-            )
-        if data.startswith(b"\xff\xd8\xff"):
-            mime = "image/jpeg"
-        elif data.startswith(b"\x89PNG\r\n\x1a\n"):
-            mime = "image/png"
-        else:
-            raise BodhanValidationError(
-                f"Invalid or unrecognized image format for '{path.name}'. Bodhan indic-ocr accepts valid PNG and JPEG images only.",
-                parameter="image",
-            )
-        b64 = base64.b64encode(data).decode("ascii")
-        return f"data:{mime};base64,{b64}"
 
     if isinstance(image, str):
         trimmed = image.strip()
         if not trimmed:
             raise BodhanValidationError("Image string cannot be empty.", parameter="image")
-        if trimmed.startswith("data:image/webp;"):
-            raise BodhanValidationError(
-                "Unsupported image format 'image/webp' for indic-ocr. Bodhan indic-ocr accepts PNG and JPEG images only. "
-                "Please convert your image to PNG or JPEG before submission.",
-                parameter="image",
-            )
-        if trimmed.startswith("data:image/"):
-            return trimmed
-        # Assume bare base64 string
-        return f"data:image/png;base64,{trimmed}"
+
+        if trimmed.startswith("data:"):
+            match = re.match(r"^data:([^;,]+);base64,(.*)$", trimmed, flags=re.DOTALL)
+            if not match:
+                raise BodhanValidationError(
+                    "Malformed data URL for image. Expected format: 'data:<mime>;base64,<payload>'.",
+                    parameter="image",
+                )
+
+            declared_mime = match.group(1).strip().lower()
+            payload = match.group(2).strip()
+
+            if not payload:
+                raise BodhanValidationError("Image data URL contains an empty base64 payload.", parameter="image")
+
+            if declared_mime == "image/webp":
+                raise BodhanValidationError(
+                    "Unsupported image format 'image/webp' for indic-ocr. Bodhan indic-ocr accepts PNG and JPEG images only. "
+                    "Please convert your image to PNG or JPEG before submission.",
+                    parameter="image",
+                )
+            if declared_mime == "image/gif":
+                raise BodhanValidationError(
+                    "Unsupported image format 'image/gif' for indic-ocr. Bodhan indic-ocr accepts PNG and JPEG images only. "
+                    "Please convert your image to PNG or JPEG before submission.",
+                    parameter="image",
+                )
+            if declared_mime in ("image/svg+xml", "image/svg"):
+                raise BodhanValidationError(
+                    "Unsupported image format 'image/svg+xml' for indic-ocr. Bodhan indic-ocr accepts PNG and JPEG images only. "
+                    "Please convert your image to PNG or JPEG before submission.",
+                    parameter="image",
+                )
+            if declared_mime not in ("image/png", "image/jpeg", "image/jpg"):
+                raise BodhanValidationError(
+                    f"Unsupported MIME type '{declared_mime}' for indic-ocr. Bodhan indic-ocr accepts PNG and JPEG images only.",
+                    parameter="image",
+                )
+
+            try:
+                decoded = base64.b64decode(payload, validate=True)
+            except Exception:
+                raise BodhanValidationError("Invalid base64 encoding in image data URL.", parameter="image")
+
+            if not decoded:
+                raise BodhanValidationError("Image data URL payload decoded to 0 bytes.", parameter="image")
+
+            detected_mime = _detect_image_mime(decoded, "data URL payload")
+            expected_mime = "image/jpeg" if declared_mime == "image/jpg" else declared_mime
+            if detected_mime != expected_mime:
+                raise BodhanValidationError(
+                    f"MIME type mismatch: declared '{declared_mime}' but image signature indicates '{detected_mime}'.",
+                    parameter="image",
+                )
+
+            return f"data:{detected_mime};base64,{payload}"
+
+        # Bare base64 string
+        try:
+            decoded = base64.b64decode(trimmed, validate=True)
+        except Exception:
+            raise BodhanValidationError("Invalid base64 image data.", parameter="image")
+
+        if not decoded:
+            raise BodhanValidationError("Image base64 payload is empty (0 bytes).", parameter="image")
+
+        detected_mime = _detect_image_mime(decoded, "base64 string")
+        return f"data:{detected_mime};base64,{trimmed}"
 
     raise BodhanValidationError(
         f"Unsupported image input type '{type(image).__name__}'. Expected bytes, Path, or base64 str.",

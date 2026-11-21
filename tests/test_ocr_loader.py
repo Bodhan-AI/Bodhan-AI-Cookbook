@@ -239,6 +239,32 @@ def test_loader_rejects_webp(tmp_path: Path) -> None:
     assert "PNG and JPEG" in str(exc.value)
 
 
+def test_loader_rejects_gif_and_svg(tmp_path: Path) -> None:
+    """Verify that GIF and SVG files are rejected with actionable error messages."""
+    gif_path = tmp_path / "sample.gif"
+    gif_path.write_bytes(b"GIF89a\x01\x00\x01\x00")
+    client = BodhanClient(api_key=DUMMY_KEY, http_client=httpx.Client())
+    with pytest.raises(BodhanValidationError) as exc:
+        BodhanOCRLoader(gif_path, client=client).load()
+    assert "Unsupported image format '.gif'" in str(exc.value)
+
+    svg_path = tmp_path / "sample.svg"
+    svg_path.write_text("<svg></svg>")
+    with pytest.raises(BodhanValidationError) as exc2:
+        BodhanOCRLoader(svg_path, client=client).load()
+    assert "Unsupported image format '.svg'" in str(exc2.value)
+
+
+def test_loader_rejects_empty_file(tmp_path: Path) -> None:
+    """Verify that empty files are rejected."""
+    empty_png = tmp_path / "empty.png"
+    empty_png.touch()
+    client = BodhanClient(api_key=DUMMY_KEY, http_client=httpx.Client())
+    with pytest.raises(BodhanValidationError) as exc:
+        BodhanOCRLoader(empty_png, client=client).load()
+    assert "empty (0 bytes)" in str(exc.value)
+
+
 def test_loader_client_lifecycle_internally_owned_closed(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Verify that an internally instantiated client is cleanly closed after lazy_load completes."""
     png_path = tmp_path / "valid.png"

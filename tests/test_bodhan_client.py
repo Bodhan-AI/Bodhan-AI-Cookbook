@@ -874,3 +874,94 @@ async def test_async_ocr_block_metadata_integrity() -> None:
     assert block.type == "heading"
     assert block.bbox_xyxy == [1.5, 2.5, 3.5, 4.5]
     assert block.conf == 0.92
+
+
+def test_image_input_validation_and_security(tmp_path: Path) -> None:
+    """Comprehensive test suite for image input security and validation."""
+    from bodhan_langchain.client import _prepare_image_data_url
+    import base64
+
+    valid_png_bytes = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15c4"
+    valid_jpeg_bytes = b"\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x01\x00`\x00`\x00\x00\xff\xdb\x00C\x00\xff\xd9"
+    webp_bytes = b"RIFF\x18\x00\x00\x00WEBPVP8 \x0c\x00\x00\x00/\x00\x00\x00\x10\x07\x00\x9d\x01*"
+    gif_bytes = b"GIF89a\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\xff\xff\xff!\xf9\x04\x01\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;"
+    svg_bytes = b"<svg xmlns='http://www.w3.org/2000/svg'><circle r='5'/></svg>"
+
+    png_b64 = base64.b64encode(valid_png_bytes).decode("ascii")
+    jpeg_b64 = base64.b64encode(valid_jpeg_bytes).decode("ascii")
+    webp_b64 = base64.b64encode(webp_bytes).decode("ascii")
+    gif_b64 = base64.b64encode(gif_bytes).decode("ascii")
+    svg_b64 = base64.b64encode(svg_bytes).decode("ascii")
+
+    # 1. Valid PNG bytes
+    url = _prepare_image_data_url(valid_png_bytes)
+    assert url.startswith("data:image/png;base64,")
+
+    # 2. Valid JPEG bytes
+    url = _prepare_image_data_url(valid_jpeg_bytes)
+    assert url.startswith("data:image/jpeg;base64,")
+
+    # 3. Valid PNG data URL
+    url = _prepare_image_data_url(f"data:image/png;base64,{png_b64}")
+    assert url.startswith("data:image/png;base64,")
+
+    # 4. Valid JPEG data URL
+    url = _prepare_image_data_url(f"data:image/jpeg;base64,{jpeg_b64}")
+    assert url.startswith("data:image/jpeg;base64,")
+
+    # 5. Wrong MIME declaration (unsupported MIME)
+    with pytest.raises(BodhanValidationError) as exc:
+        _prepare_image_data_url(f"data:image/bmp;base64,{png_b64}")
+    assert "Unsupported MIME type 'image/bmp'" in str(exc.value)
+
+    # 6. MIME and file signature mismatch (declared png, but payload is jpeg)
+    with pytest.raises(BodhanValidationError) as exc:
+        _prepare_image_data_url(f"data:image/png;base64,{jpeg_b64}")
+    assert "MIME type mismatch" in str(exc.value)
+
+    # 7. Invalid base64 in data URL
+    with pytest.raises(BodhanValidationError) as exc:
+        _prepare_image_data_url("data:image/png;base64,not-valid-base64-payload!!!")
+    assert "Invalid base64 encoding" in str(exc.value)
+
+    # 8. WebP data URL rejected
+    with pytest.raises(BodhanValidationError) as exc:
+        _prepare_image_data_url(f"data:image/webp;base64,{webp_b64}")
+    assert "Unsupported image format 'image/webp'" in str(exc.value)
+
+    # 9. GIF data URL rejected
+    with pytest.raises(BodhanValidationError) as exc:
+        _prepare_image_data_url(f"data:image/gif;base64,{gif_b64}")
+    assert "Unsupported image format 'image/gif'" in str(exc.value)
+
+    # 10. SVG data URL rejected
+    with pytest.raises(BodhanValidationError) as exc:
+        _prepare_image_data_url(f"data:image/svg+xml;base64,{svg_b64}")
+    assert "Unsupported image format 'image/svg+xml'" in str(exc.value)
+
+    # 11. Empty content
+    with pytest.raises(BodhanValidationError) as exc:
+        _prepare_image_data_url(b"")
+    assert "cannot be empty" in str(exc.value)
+
+    with pytest.raises(BodhanValidationError) as exc:
+        _prepare_image_data_url("data:image/png;base64,")
+    assert "empty base64 payload" in str(exc.value) or "cannot be empty" in str(exc.value)
+
+    # 12. Corrupted image bytes
+    with pytest.raises(BodhanValidationError) as exc:
+        _prepare_image_data_url(b"corrupted_random_garbage_bytes_123456789")
+    assert "Invalid or unrecognized image binary signature" in str(exc.value)
+
+    # 13. File path with mismatched extension but valid image signature (e.g. .bin with valid PNG)
+    bin_file = tmp_path / "valid_image.bin"
+    bin_file.write_bytes(valid_png_bytes)
+    url = _prepare_image_data_url(bin_file)
+    assert url.startswith("data:image/png;base64,")
+
+    # 14. File path with .webp extension rejected
+    webp_file = tmp_path / "test.webp"
+    webp_file.write_bytes(webp_bytes)
+    with pytest.raises(BodhanValidationError) as exc:
+        _prepare_image_data_url(webp_file)
+    assert "Unsupported image format '.webp'" in str(exc.value)
