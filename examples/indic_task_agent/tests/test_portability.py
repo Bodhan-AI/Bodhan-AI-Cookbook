@@ -214,7 +214,7 @@ async def test_an_echoed_field_the_provider_refuses_is_dropped():
 
 
 async def test_a_groq_parsing_failure_is_sampled_again_not_treated_as_configuration(monkeypatch):
-    # live, Groq openai/gpt-oss-20b on d793862 (d2): "400 - Parsing failed. The model generated output that could not
+    # seen live: "400 - Parsing failed. The model generated output that could not
     # be parsed" ended the run at once, because a 400 without "tool" in its text counted as a configuration error
     monkeypatch.setattr("bodhan_agent.llm.retry_wait", lambda exc, attempt: 0)
 

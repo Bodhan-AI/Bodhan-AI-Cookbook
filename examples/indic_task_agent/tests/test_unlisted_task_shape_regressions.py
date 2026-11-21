@@ -355,7 +355,7 @@ def test_a_provisional_report_before_any_checkpoint_says_restart(tmp_path, make_
     assert "run the same command again" in rep["final_answer"] and "--resume" not in rep["final_answer"]
 
 
-# live gpt-oss-20b on Groq: even the first request (system prompt + tools + inventory) was over the 8k cap
+# seen live: even the first request (system prompt + tools + inventory) was over an endpoint's 8k cap
 async def test_the_short_tool_list_is_used_when_even_the_first_request_is_too_long(tmp_path):
     from bodhan_agent.loop import openai_tools
 

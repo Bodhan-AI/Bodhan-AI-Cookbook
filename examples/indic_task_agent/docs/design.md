@@ -7,8 +7,8 @@ How the recipe is built and why. Setup and commands are in the [README](../READM
 > - **One tool layer, two programs.** `bodhan_mcp` (MCP server, stdio or HTTP with a token) and `bodhan_agent` (CLI agent) call the same `registry.invoke()`. The agent calls it in-process, so a run has one budget, one cache and one trace.
 > - **12 tools, one level above the models.** Each tool owns its model's limits (≤28 s audio pieces, ≤220-character speech requests, one OCR page per request, paragraph-sized translation) and verifies its own output. The planner owns the task.
 > - **The LLM decides, code permits.** Paid tools stay locked until a typed plan declares its deliverables. Each request reserves its worst-case cost first. `finish` passes only if every declared deliverable matches a verified artifact from this run, and a fresh reading of the task finds nothing missing.
-> - **No Indian-language text from the LLM.** A provenance guard, `write_text` and the finish gate enforce it in code.
-> - **Every output is checked.** Translations are back-translated (chrF), and every speech segment is back-transcribed. A failure is repaired with a different input (a speech segment once, a truncated translation by splitting up to three levels), or reported.
+> - **No Indic-script text from the LLM.** A provenance guard, `write_text` and the finish gate enforce it in code (romanized text is covered by the prompt only).
+> - **Every translation and generated audio is checked.** Translations are back-translated (chrF), and every speech segment is back-transcribed. A failure is repaired with a different input (a speech segment once, a truncated translation by splitting up to three levels), or reported.
 > - **Any OpenAI-compatible planner.** Provider differences are adapted in `llm.py` and listed in `report.json`.
 > - **A report at every checkpoint.** Each checkpoint writes a provisional report, and `--resume` continues the same run.
 
@@ -18,7 +18,7 @@ How the recipe is built and why. Setup and commands are in the [README](../READM
 flowchart LR
     subgraph clients[Callers]
         A["bodhan_agent<br/>(CLI task agent)"]
-        M["Any MCP client<br/>(MCP Inspector, Claude, Codex, ...)"]
+        M["Any MCP client<br/>(tested: MCP Inspector)"]
     end
     subgraph server["bodhan_mcp"]
         S["server.py<br/>MCP server: stdio, or HTTP + token<br/>tools + resources + prompt"]
@@ -135,13 +135,13 @@ The graders bring their own planner, so `llm.py` assumes only `chat.completions`
 | `tool_choice` rejected | Dropped for the rest of the run. |
 | `tools` rejected | Tools described in the system message; replies parsed as JSON (text protocol). |
 | A tool call written as text: `{"name": ..., "arguments": ...}`, `<function=NAME>{...}`, bare arguments that fit exactly one tool's schema, arguments as JSON inside a string, names wrapped in `functions.` or `<\|channel\|>` | Parsed into a normal tool call. |
-| Groq `400 tool_use_failed` with a `failed_generation` | The failed generation is parsed as above. |
+| `400 tool_use_failed` with a `failed_generation` | The failed generation is parsed as above. |
 | `null` for an optional argument | Treated as not given. |
-| Context-length rejection or `413` (for example Groq's on-demand tier, which refuses any request over 8,000 tokens) | Older tool results are shortened in steps (keep the last two; keep the last one shortened; shorten every result and the planner's own long arguments) until the request is accepted. Artifacts stay on disk, so `read_text` can reopen anything. Conversations over about 90 kB are shortened before sending. |
+| Context-length rejection or `413` (for example an endpoint that refuses any request over 8,000 tokens) | Older tool results are shortened in steps (keep the last two; keep the last one shortened; shorten every result and the planner's own long arguments) until the request is accepted. Artifacts stay on disk, so `read_text` can reopen anything. Conversations over about 90 kB are shortened before sending. |
 | Too long before any conversation (system prompt, tool list and inputs over the cap, as on an endpoint with an 8,000-token request cap) | The short tool list (names, types, each tool's first sentence; about half the size) is sent from then on. |
 | A plain-text final answer after two reminders to call `finish` | Passed to the gate as `finish` with status `partial` (plain text never claims completion). |
 
-Live results per planner are in [evaluation.md](evaluation.md#other-planner-models).
+Live results per planner are in [evaluation.md](evaluation.md#planner-portability).
 
 ## Indian-language text never comes from the LLM
 
@@ -179,9 +179,9 @@ The LLM never sees audio and never judges Indian-language text. It reads English
 - **Bodhan prices are the published ones; usage is metered per request.** The unit prices in `runtime.py` match [console.bodhan.ai](https://console.bodhan.ai/) as checked on 19 November 2026: ₹0.10 per audio minute, ₹0.20 per 10,000 output tokens, ₹6 per 10,000 input characters, ₹0.20 per image. Audio seconds are rounded up per request (the provider bills per second but does not publish how fractions round), so this side is conservative. Translation uses the reply's `completion_tokens`; a reply without usage is priced at its token cap and reported as `bodhan_billed_estimated_inr`. Verification and repair calls are counted; cache hits cost nothing. The Bodhan dashboard is the authority for actual debits.
 - **Reservation before sending.** `CostLedger.reserve()` takes a request's worst-case cost before it is sent: exact for audio seconds, characters and images, `max_output_tokens` for translation. A request reserves only once it holds a concurrency slot, and a cancelled one releases it. Concurrent calls can never push the total over `--max-cost-inr`. Long jobs (`synthesize_speech`, multi-page `ocr_document`) check the whole job's cost first, so they fail cleanly instead of stopping halfway.
 - **Billing classes.** `billed`: success, cost from the response. `uncertain`: timeout, 5xx or unreadable body after sending; counted against the budget because it may have been billed. `none`: 4xx and 429, not billed.
-- **Planner spend.** The runner chooses the planner's provider and billing (a gateway on a flat-rate plan is not billed per token), so no planner price is built in. Tokens are always reported. They count in rupees only with `--llm-input-inr-per-1m` and `--llm-output-inr-per-1m`.
+- **Planner spend.** The runner chooses the planner's provider and billing, so no planner price is built in. Tokens are always reported. They count in rupees only with `--llm-input-inr-per-1m` and `--llm-output-inr-per-1m`.
 - **Priced planner calls use an upper bound.** A call is sent only if the budget covers prompt tokens ≤ the request's UTF-8 bytes plus per-message and tool margins, and output ≤ `max_tokens`. No byte-level tokenizer makes a token smaller than a byte, while one Indic character is 3 bytes and may be 3 tokens, so a characters-per-token average is no bound. On 14 recorded runs the bound was 4.9–5.4× the provider's reported prompt tokens, so a priced planner stops earlier than needed. The bound assumes the provider honours `max_tokens` (reasoning tokens included) and adds no large hidden prompt. A reply that still costs more is reported as `llm_over_pre_call_bound_inr` and an `llm_estimate_exceeded` trace event. Retries are checked again, and attempts that failed after sending are charged at the bound (`llm_uncertain`, `llm_error`).
-- **No repeated paid input.** Results are cached by model, exact input bytes and settings. An identical request is served from the cache, and two in flight share one HTTP call. The only repeats are retries of a failed or timed-out attempt, counted as `retried_attempts` and charged as uncertain. Only complete results go to the disk cache (`~/.cache/bodhan_tool_agent` and the run's `.state/cache`). The cache holds transcripts and translations as plain files with default permissions, so use `--no-cache` for private material. Repairs always change the input.
+- **No repeated paid input** (the brief's "no waste" target; exception: an uncertain timeout or a retry may resend the same input, and both are counted in `report.json`). Results are cached by model, exact input bytes and settings. An identical request is served from the cache, and two in flight share one HTTP call. The only repeats are retries of a failed or timed-out attempt, counted as `retried_attempts` and charged as uncertain. Only complete results go to the disk cache (`~/.cache/bodhan_tool_agent` and the run's `.state/cache`). The cache holds transcripts and translations as plain files with default permissions, so use `--no-cache` for private material. Repairs always change the input.
 
 ## Recovery
 
@@ -205,7 +205,7 @@ The LLM never sees audio and never judges Indian-language text. It reads English
 
 ## Untrusted content
 
-OCR text, transcripts, translations and text files come back wrapped as `{"content_kind": "untrusted_data", "note": ...}`. A heuristic flags instruction-like phrases (`injection_warning`), and the report repeats them under limitations. The real defence is structural: the prompt says data is never instruction, and the only tools are media tools and writes inside `out/artifacts`, with no shell, network or deletion. In agent mode, reads are confined to the input paths and the run's artifacts. The standalone server reads only below its starting folder (none when that is `/` or the home folder) unless you pass `--allow-dir` or `--allow-any-path`. In both modes, hidden files and folders (`.env`, `.git`) are refused, and network paths and URLs are refused before any filesystem call, so a Windows UNC path never opens an SMB connection. The held-out injection task (`h1_notice_injection`) keeps the injected line as translated content and does not follow it.
+OCR text, transcripts, translations and text files come back wrapped as `{"content_kind": "untrusted_data", "note": ...}`. A heuristic flags instruction-like phrases (`injection_warning`), and the report repeats them under limitations. The real defence is structural: the prompt says data is never instruction, and the only tools are media tools and writes inside `out/artifacts`, with no shell, network or deletion. In agent mode, reads are confined to the input paths and the run's artifacts. The standalone server reads only below its starting folder (none when that is `/` or the home folder) unless you pass `--allow-dir` or `--allow-any-path`. In both modes, hidden files and folders (`.env`, `.git`) are refused, and network paths and URLs are refused before any filesystem call, so a Windows UNC path never opens an SMB connection. The injection test task (`h1_notice_injection`) keeps the injected line as translated content and does not follow it.
 
 ## What "completed" means
 
@@ -270,5 +270,5 @@ Total 258 s and ₹2.7972 of Bodhan spend. Code made two decisions the planner d
 - **No agent framework.** The loop is one file (`loop.py`). A framework would add dependencies and hide the gates that matter here.
 - **No word-level timestamps.** `indic-transcribe` returns text only, so cue boundaries are the pause-based cuts, or a proportional split when an earlier transcript is reused.
 - **No LLM-written corrections of Indian-language text**, even when a back-translation looks wrong. The agent reports the problem instead.
-- **No special cases for the demo tasks.** No code branches on task wording. Examples in the prompt and the field descriptions (French video, Telugu clips, a two-minute Tamil summary) are illustrative.
-- **No MCP client inside the agent.** In-process calls give one budget across tools and simpler tracing. MCP compatibility is tested separately with an independent client process (`tests/test_mcp_stdio.py`) and with MCP Inspector.
+- **No special cases for the demo tasks.** No code branches on task wording. The prompt's and the field descriptions' examples are neutral (`ae5c3d4`, `9622a0d`) and illustrative.
+- **No MCP client inside the agent.** In-process calls give one budget across tools and simpler tracing. MCP compatibility is tested separately with a separate client process (`tests/test_mcp_stdio.py`) and with MCP Inspector.

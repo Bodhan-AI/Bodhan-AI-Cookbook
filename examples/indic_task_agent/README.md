@@ -29,7 +29,17 @@ The brief's six demo tasks, run cold (no cache) with `gpt-6.1-sol` as the planne
 | d5: Read this paragraph aloud in Bengali with a female voice | completed_with_warnings | 0.24 | 51 | [result](evaluation/runs/sol_demos_cold/d5_bengali_female_audio/result.md) · [trace](evaluation/runs/sol_demos_cold/d5_bengali_female_audio/trace.jsonl) · [audio](evaluation/runs/sol_demos_cold/d5_bengali_female_audio/MEDIA.md) |
 | d6: Translate this video into French (impossible: no French model) | unsupported | 0.00 | 9 | [result](evaluation/runs/sol_demos_cold/d6_video_french/result.md) · [trace](evaluation/runs/sol_demos_cold/d6_video_french/trace.jsonl) |
 
-Eight held-out tasks of my own (prompt injection, unstated language, missing file, budget too small and others), six more written after the code freeze by an independent reviewer (first attempts: 4/6 with each of two planners, failures and fixes reported), and runs with other planners are in [docs/evaluation.md](docs/evaluation.md).
+The demo runs ran on `e648654`; every main task passed again on `92a3518` ([14/14](evaluation/runs/portability_gpt-6.1-sol/summary.md)), and the final source `9622a0d` changes only field-description and message wording (spot-checked).
+
+Eight test tasks of my own (prompt injection, unstated language, missing file, budget too small and others), six more written by a separate AI agent (Claude Opus) that had not seen our prompts or code (first attempts: 4/6 with each of two planners, failures and fixes reported), and runs with other planners are in [docs/evaluation.md](docs/evaluation.md).
+
+**Three commands** (details under Setup and Run):
+
+```bash
+pip install -r requirements.txt                    # in a Python 3.11+ virtual environment; keys go in .env
+python -m bodhan_agent --task "Transcribe this clip and give me English subtitles" --files ../../sample_data/sample_hindi.wav --out ./out
+python -m bodhan_mcp                               # the MCP server on stdio
+```
 
 ## Setup
 
@@ -182,7 +192,7 @@ python scripts/run_suite.py                # live self-evaluation of evaluation/
 python scripts/run_suite.py --score-only --out evaluation/runs/sol_demos_cold --summary-dir /tmp/rescore   # re-score committed evidence offline
 ```
 
-The offline tests run against `tests/fakes.py`, a mock of the four endpoints that enforces their limits, with a scripted planner. They cover chunking, retries, billing, budgets under concurrency, the gates, resume, the MCP server as a separate process, and multi-step CLI runs. The `tests/test_*_regressions.py` files hold one test per review finding. `scripts/run_suite.py` checks status, deliverables, languages, checks, answer text and budget per task: structural checks, not a quality score.
+The offline tests run against `tests/fakes.py`, a mock of the four endpoints that enforces their limits, with a scripted planner. They cover chunking, retries, billing, budgets under concurrency, the gates, resume, the MCP server as a separate process, and multi-step CLI runs. The `tests/test_*_regressions.py` files each pin a fixed bug or edge case. `scripts/run_suite.py` checks status, deliverables, languages, checks, answer text and budget per task: structural checks, not a quality score.
 
 ## Test media
 
@@ -190,21 +200,26 @@ Media stays out of git. `scripts/make_fixtures.py` generates every demo input in
 
 ## Limitations
 
-- **Subtitles cost three requests per cue** (transcription, translation, back-translation), and cues are about 7 s. d2's 2 min 50 s voice note had 30 cues: 90 requests plus 41 rate-limited attempts, 323 s against a 300 s target.
-- **Subtitle timing is approximate.** `indic-transcribe` returns no timestamps, so cue boundaries are the pauses where the audio was cut.
-- **The checks are automatic, not linguistic.** Back-translation and back-transcription catch omissions, truncation, wrong scripts and garbled audio. They cannot judge fluency or terminology, and no fluent speaker has reviewed the outputs yet.
-- **Language ID is script-based.** Single-language scripts such as Telugu and Tamil are reliable. Devanagari languages and short Latin-script lines can be mislabelled; the result gives a confidence ([details](docs/design.md#language-identification)).
-- **Planner cost is bounded, not measured in advance.** With planner prices given, a call is sent only if the budget covers its upper bound, about 5× the real prompt size, so a priced planner stops early ([details](docs/design.md#budgets-cost-and-caching)).
-- **Latency is dominated by Indic-Speak**, about 20 s per request, so single-step speech tasks often miss the 30 s target (recorded in `report.json`).
-- **Durations are approximate.** A requested length sets the English text length before translation. Missing it by more than ±25 % is a warning, not a retry.
-- **Planners differ.** On the final code, `gpt-6.1-sol` passed all 14 main tasks and `gemini-3.5-flash-lite` 13/14. On a seven-task portability subset, `claude-sonnet-4-6` and `gpt-oss-120b` passed 6/7 ([portability table](docs/evaluation.md#planner-portability-final-code)). On earlier code, `gpt-5.6-luna` passed 9/10, and `gpt-oss-120b` passed 4/10 through an OpenAI-compatible gateway, where it often returned empty turns instead of finishing. On Groq's free tier, the 8,000-tokens-per-minute cap allows about one planner call a minute, so tasks that need more than about nine calls hit the 600 s limit.
+Each item says what falls short, what is delivered, and why a further fix was not made.
+
+- **Romanized Indian-language text is checked by the prompt only.** Code refuses Indic-script text the planner writes, but a romanized line would pass. Catching it would need language ID on short Latin-script text, which is unreliable.
+- **Selecting inputs by a condition can miss or add a file** (Gemini on h14). The run delivers the files it chose and names them. Letting the finish-time check read every input could catch it, but would put untrusted document text into that check.
+- **No fluent speaker has reviewed the outputs yet.** Back-translation and back-transcription catch omissions, truncation, wrong scripts and garbled audio; they cannot judge fluency or terminology.
+- **The completion re-read is the same planner model checking itself.** It catches dropped outputs, but it is not independent; a second model would need configuration beyond the three `LLM_*` variables.
+- **Speech and subtitle timing are approximate.** A requested length sets the English text length; missing it by more than ±25 % is a warning, not a new synthesis with the most expensive model. Cue times come from pause cuts, because `indic-transcribe` returns no timestamps.
+- **d2 missed its latency target when run cold: 323 s against 300 s.** Subtitles take three requests per cue (transcribe, translate, back-translate): its 30 cues needed 90 requests plus 41 rate-limited attempts. All 30 cues were delivered and verified; dropping the back-translation to save time was rejected.
+- **No waste, with one exception.** An identical request is not paid twice in a run, except that an uncertain timeout or a retry may resend the same input; `report.json` counts retries and uncertain attempts.
+- **Language ID is script-based.** Single-language scripts such as Telugu and Tamil are reliable; Devanagari languages and short Latin-script lines can be mislabelled, and the result gives a confidence ([details](docs/design.md#language-identification)).
+- **Planner cost is bounded, not measured in advance.** With planner prices set, each call reserves an upper bound (about 5× the real prompt), so a tight budget ends a run earlier than its exact cost would ([details](docs/design.md#budgets-cost-and-caching)).
+- **Indic-Speak dominates latency**, about 20 s per request, so single-step speech tasks often miss the 30 s target (recorded in `report.json`).
+- **Planners differ.** On the seven-task portability subset, `gpt-6.1-sol` and `gemini-3.5-flash-lite` passed 7/7 and `claude-sonnet-4-6` 6/7 ([portability table](docs/evaluation.md#planner-portability)). On earlier code, `gpt-5.6-luna` passed 9/10, and `gpt-oss-120b` (medium) passed 4/10, often returning empty turns instead of finishing.
 - **Word, Excel, PowerPoint files and archives are not read.** They are refused with a hint to export them to PDF or text, or to extract the archive.
-- **Injected text is translated, not removed.** An instruction hidden in a document is never followed, but a faithful translation keeps it as content, so a planner that speaks a whole translated notice reads that line aloud (seen once with Gemini on h10).
-- **No dubbed video.** The agent can transcribe, translate and subtitle a video's speech, but it cannot re-voice the video.
+- **Injected text is kept in faithful translations.** In the recorded runs no injected instruction was followed. Messages the planner composes leave it out; a faithful translation, transcript or quote keeps it as content.
+- **No dubbed video.** The agent transcribes, translates and subtitles a video's speech, but cannot re-voice the video.
 
 ## AI assistance
 
-Claude Code (Claude Opus 5.5) was the coding assistant for design, implementation, tests and docs. I read every `result.md`, `report.json` and English text artifact of the demo and held-out runs, listened to the generated audio, and checked each audio file's duration and back-transcription in its report. I did not judge the fluency of the Indian-language outputs, and no fluent speaker has reviewed them yet. GPT-6.1 Sol (through Codex) and CodeRabbit reviewed the code in several rounds, including a full audit against the brief, and a separate Claude Opus session did a read-only security review. Each finding was reproduced, then fixed with a regression test or listed as a limitation. The agent's planner LLM is a separate, configurable model.
+Claude Code (Claude Opus 5.5) was the coding assistant for design, implementation, tests and docs. I read every `result.md`, `report.json` and English text artifact of the demo and test runs, listened to the generated audio, and checked each audio file's duration and back-transcription in its report. I did not judge the fluency of the Indian-language outputs, and no fluent speaker has reviewed them yet. GPT-6.1 Sol (through Codex) and CodeRabbit reviewed the code in several rounds, including a full audit against the brief, and a separate Claude Opus session did a read-only security review. Each finding was reproduced, then fixed with a regression test or listed as a limitation. The agent's planner LLM is a separate, configurable model.
 
 ## Optional extras
 

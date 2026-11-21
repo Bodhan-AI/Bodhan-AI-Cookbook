@@ -1,6 +1,6 @@
 # claude-sonnet-4-6, portability subset: 6/7 passed structural checks
 
-Agent source `92a3518`; scored with the current scorer (`c0afd6a`, which fails a row that a time or step limit ended before the planner decided). OpenAI-compatible gateway (flat-rate plan), 21 Nov.
+Agent source `92a3518`; scored with the current scorer (`c0afd6a`, which fails a row that a time or step limit ended before the planner decided). an OpenAI-compatible endpoint, 21 Nov.
 
 Combined from: [`matrix_claude-sonnet-4-6_92a3518`](../matrix_claude-sonnet-4-6_92a3518/summary.md). The source folders are unchanged.
 

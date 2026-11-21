@@ -11,7 +11,7 @@
   "combined_from": [
     "matrix_claude-sonnet-4-6_92a3518"
   ],
-  "note": "OpenAI-compatible gateway (flat-rate plan), 21 Nov.",
+  "note": "an OpenAI-compatible endpoint, 21 Nov.",
   "checks": "structural only (status, files, kinds, languages, verification, answer text, budget); not a quality score",
   "tasks": [
     {
