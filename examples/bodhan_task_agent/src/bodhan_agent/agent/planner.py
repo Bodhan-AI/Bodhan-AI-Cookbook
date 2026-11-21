@@ -14,14 +14,14 @@ from bodhan_agent.clients.mcp_session import McpSession
 from bodhan_agent.core import guards
 from bodhan_agent.core.budget import DOCUMENT_KINDS, MEDIA_KINDS, BudgetManager, minimum_cost, quote_tool
 from bodhan_agent.core.config import RunSettings
+from bodhan_agent.core.guards import deliverable_language_problem
 from bodhan_agent.core.trace import TraceWriter
 from bodhan_agent.pipeline.verify import apply_step, step_verdict
 from bodhan_agent.schemas.ledger import Artifact, Ledger
-from bodhan_agent.schemas.plan import TEXT_DELIVERABLES, TEXT_PRODUCERS, Deliverable, GateResult, Plan, PlanOutcome
+from bodhan_agent.schemas.plan import TEXT_DELIVERABLES, TEXT_PRODUCERS, GateResult, Plan, PlanOutcome
 from bodhan_agent.schemas.preflight import PreflightResult
 from bodhan_agent.schemas.report import StopReason
 from bodhan_agent.schemas.trace import LlmTokens, TraceError
-from bodhan_mcp.core.languages import SPEAK_LANGUAGES, TRANSCRIBE_LANGUAGES, TRANSLATE_TARGETS
 
 MAX_PLAN_ATTEMPTS = 2
 KNOWN_TOOLS: tuple[str, ...] = (*MCP_TOOLS, *local_tools())
@@ -40,26 +40,6 @@ class PlannerError(Exception):
         super().__init__(message)
         self.stop_reason = stop_reason
         self.message = message
-
-
-def _supported(code: str, table: dict[str, str]) -> bool:
-    return code in table or code.split("-", 1)[0].lower() in table
-
-
-def deliverable_language_problem(item: Deliverable) -> str | None:
-    if item.language is None or item.kind == "answer":
-        return None
-    language = item.language
-    if item.kind == "audio":
-        supported = _supported(language, SPEAK_LANGUAGES)
-        model = "Bodhan speech synthesis"
-    elif item.kind == "subtitles":
-        supported = _supported(language, TRANSLATE_TARGETS) or _supported(language, TRANSCRIBE_LANGUAGES)
-        model = "Bodhan translation or transcription"
-    else:
-        supported = _supported(language, TRANSLATE_TARGETS)
-        model = "Bodhan translation"
-    return None if supported else f"{item.id} needs '{language}', which {model} does not support."
 
 
 def extract_json(text: str) -> dict[str, Any]:
@@ -237,6 +217,8 @@ class Planner:
         for item in plan.deliverables:
             if item.kind == "answer" and item.language and item.language.split("-", 1)[0] != "en":
                 notes.append(f"{item.id} is answered in English; an Indian-language version needs a file deliverable.")
+        files = [item for item in plan.deliverables if item.kind != "answer"]
+        nothing_doable = bool(language_problems) and len(language_problems) == len(files)
         inputs = [artifact for artifact_id in preflight.input_ids if (artifact := self.ledger.get(artifact_id))]
         usable = [artifact for artifact in inputs if artifact.usable]
         input_problems = self._input_problems(plan, usable, preflight)
@@ -245,21 +227,23 @@ class Planner:
             reason = declared.reason_code or "beyond_tools"
             confirmed = (
                 reason in ("beyond_tools", "unsupported_input")
-                or (reason == "unsupported_language" and language_problems)
+                or (reason == "unsupported_language" and nothing_doable)
                 or (reason == "missing_input" and (input_problems or not plan.deliverables))
             )
             if confirmed or not plan.deliverables:
                 details = {"unsupported_language": language_problems, "missing_input": input_problems}.get(reason, [])
                 explanation = " ".join([declared.explanation or "The planner marked the task infeasible.", *details])
                 return GateResult(feasible=False, stop_reason=CAPABILITY_REASONS[reason], explanation=explanation)
-            notes.append(
-                f"The planner judged the task infeasible ({reason}), but code checks found no such problem; "
-                "the run continues."
-            )
-        if language_problems:
+            if not (reason == "unsupported_language" and language_problems):
+                notes.append(
+                    f"The planner judged the task infeasible ({reason}), but code checks found no such problem; "
+                    "the run continues."
+                )
+        if nothing_doable:
             return GateResult(
                 feasible=False, stop_reason="unsupported_language", explanation=" ".join(language_problems)
             )
+        notes.extend(f"Not produced: {problem} The other deliverables go ahead." for problem in language_problems)
         if input_problems:
             return GateResult(feasible=False, stop_reason="missing_input", explanation=" ".join(input_problems))
         planned_tools = {step.tool for step in plan.steps if step.tool}

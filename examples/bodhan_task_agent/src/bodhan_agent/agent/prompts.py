@@ -102,8 +102,9 @@ PLANNER_PROMPT = """
     - Deliverables: only what the user asked for (audio, subtitles, markdown, text), plus an 'answer' only when
       they want something told to them in English. Intermediate files and extras "to be helpful" (such as
       unrequested audio) are not deliverables. Keep the input's medium unless the task names another: "this
-      audio in English" is English audio. A spoken summary also delivers its summary text. Keep the requested
-      language even if you think it is unsupported (code checks support). Set constraints only when stated.
+      audio in English" is English audio. A spoken summary also delivers its summary text. Give each requested
+      language a deliverable, even if unsupported: code checks it and still makes the rest. Set constraints
+      only when stated.
     - produced_by names the tool whose file is delivered as is. A transcript, translation or OCR text is that
       Bodhan file, never retyped with write. Use markdown only when tables or structure must survive.
     - input_notes: what the inputs tell you, what is unknown (such as the language of a scan) and how that

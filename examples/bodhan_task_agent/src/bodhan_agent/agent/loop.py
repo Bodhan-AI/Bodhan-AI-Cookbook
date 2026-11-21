@@ -257,6 +257,7 @@ class Controller:
         self.bad_replies = 0
         self.idle_turns = 0
         self.budget_blocked = False
+        self.unsupported = {item.id for item in plan.deliverables if guards.deliverable_language_problem(item)}
         self.tracker = tracker or PlanTracker(settings, ledger, plan, self.input_ids)
 
     async def publish_plan(self, message: str, changed: list[str] | None = None) -> None:
@@ -553,6 +554,18 @@ class Controller:
     def target_languages(self) -> list[str]:
         return sorted({f"'{item.language}'" for item in self.plan.deliverables if item.language})
 
+    def stray_target(self, target: Any) -> tuple[str, str] | None:
+        files = [item for item in self.plan.deliverables if item.kind != "answer"]
+        if not isinstance(target, str) or _base(target) == "en" or any(item.language is None for item in files):
+            return None
+        wanted = sorted({_base(item.language or "") for item in files if item.id not in self.unsupported})
+        if not wanted or _base(target) in wanted:
+            return None
+        return (
+            f"No deliverable is in '{target}'.",
+            f"Translate only into English or {', '.join(wanted)}; leave out deliverables that cannot be made.",
+        )
+
     def needs_english(self) -> bool:
         if any(item.kind == "answer" or _base(item.language or "") == "en" for item in self.plan.deliverables):
             return True
@@ -641,6 +654,9 @@ class Controller:
                         "the deliverable's language.",
                         "Call translate_text with target_language " + " or ".join(self.target_languages()) + ".",
                     )  # fmt: skip
+                stray = self.stray_target(args.get("target_language"))
+                if stray is not None:
+                    return await self.deny(call, "target_not_planned", *stray)
         if call.name in MCP_TOOLS or call.name == "make_subtitles":
             problem = self.output_path_problem(args.get("output_path"))
             if problem is not None:
@@ -834,6 +850,8 @@ class Controller:
     def inferred(self) -> dict[str, str | None]:
         mapping: dict[str, str | None] = {}
         for item in self.plan.deliverables:
+            if item.id in self.unsupported:
+                continue
             artifact = self.candidate(item)
             if item.kind == "answer" or artifact is not None:
                 mapping[item.id] = None if artifact is None else artifact.id
@@ -844,7 +862,7 @@ class Controller:
         for item in self.plan.deliverables:
             artifact_id = mapping.get(item.id)
             artifact = self.ledger.get(artifact_id) if artifact_id else None
-            if item.kind != "answer" and item.id not in mapping:
+            if item.id in self.unsupported or (item.kind != "answer" and item.id not in mapping):
                 verdict = Verdict(status="missing")
             else:
                 verdict = verify_deliverable(self.ledger, item, artifact, answer_en)
@@ -880,13 +898,16 @@ class Controller:
 
     async def conclude(self, proposal: FinishProposal) -> LoopResult | None:
         verdicts = await self.verify_all(proposal.deliverables, proposal.answer_en)
-        problems = self.problems(verdicts)
+        problems = self.problems({key: value for key, value in verdicts.items() if key not in self.unsupported})
         if problems and self.can_retry():
             self.result.verification_retry_used = True
             self.history.append(prompts.verification_feedback(problems))
             return None
         self.result.finish = proposal
-        self.result.deliverables = {item.id: proposal.deliverables.get(item.id) for item in self.plan.deliverables}
+        self.result.deliverables = {
+            item.id: None if item.id in self.unsupported else proposal.deliverables.get(item.id)
+            for item in self.plan.deliverables
+        }
         self.result.verdicts = verdicts
         reason: StopReason = "budget_exhausted" if problems and self.budget_blocked else "finished"
         self.result.stop_reason = reason

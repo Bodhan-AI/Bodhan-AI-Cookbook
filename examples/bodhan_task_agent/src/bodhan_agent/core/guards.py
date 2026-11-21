@@ -8,7 +8,14 @@ from html import escape
 from typing import Any
 
 from bodhan_agent.schemas.ledger import Artifact, Ledger
-from bodhan_mcp.core.languages import LANGUAGE_SCRIPTS, SCRIPT_RANGES
+from bodhan_agent.schemas.plan import Deliverable
+from bodhan_mcp.core.languages import (
+    LANGUAGE_SCRIPTS,
+    SCRIPT_RANGES,
+    SPEAK_LANGUAGES,
+    TRANSCRIBE_LANGUAGES,
+    TRANSLATE_TARGETS,
+)
 from bodhan_mcp.utils.script import script_counts, script_of
 
 INDIC_SCRIPTS: frozenset[str] = frozenset(script for _, _, script in SCRIPT_RANGES) - {"Latin"}
@@ -296,3 +303,23 @@ def scrub_secrets(text: str, secrets: Iterable[str]) -> str:
     for secret in sorted({item for item in secrets if len(item) >= _MIN_SECRET_CHARS}, key=len, reverse=True):
         text = text.replace(secret, "[secret]")
     return _BEARER_RE.sub("Bearer [secret]", text)
+
+
+def _supported(code: str, table: dict[str, str]) -> bool:
+    return code in table or code.split("-", 1)[0].lower() in table
+
+
+def deliverable_language_problem(item: Deliverable) -> str | None:
+    if item.language is None or item.kind == "answer":
+        return None
+    language = item.language
+    if item.kind == "audio":
+        supported = _supported(language, SPEAK_LANGUAGES)
+        model = "Bodhan speech synthesis"
+    elif item.kind == "subtitles":
+        supported = _supported(language, TRANSLATE_TARGETS) or _supported(language, TRANSCRIBE_LANGUAGES)
+        model = "Bodhan translation or transcription"
+    else:
+        supported = _supported(language, TRANSLATE_TARGETS)
+        model = "Bodhan translation"
+    return None if supported else f"{item.id} needs '{language}', which {model} does not support."
