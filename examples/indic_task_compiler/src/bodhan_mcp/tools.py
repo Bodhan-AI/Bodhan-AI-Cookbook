@@ -408,10 +408,9 @@ class BodhanToolkit:
             seg_dir = out_dir / f"{run_tag}_segments"
             seg_dir.mkdir(parents=True, exist_ok=True)
 
-            segments: list[TranscriptSegment] = []
-            texts: list[str] = []
+            # Slice non-silent windows first, then transcribe concurrently (bounded by client semaphore).
+            pending_windows: list[tuple[Any, bytes]] = []
             dropped_silence_count = 0
-
             for win in windows:
                 chunk_wav = seg_dir / f"chunk_{win.index:04d}.wav"
                 _, rms = slice_wav(work_wav, win.start_s, win.end_s, chunk_wav)
@@ -419,15 +418,25 @@ class BodhanToolkit:
                     dropped_silence_count += 1
                     chunk_wav.unlink(missing_ok=True)
                     continue
-
                 audio_bytes = chunk_wav.read_bytes()
                 chunk_wav.unlink(missing_ok=True)
+                pending_windows.append((win, audio_bytes))
+
+            async def _asr_window(win: Any, audio_bytes: bytes) -> tuple[Any, Any]:
                 res = await self.client.transcribe(
                     audio_bytes,
                     filename=f"{run_tag}_{win.index:04d}.wav",
                     duration_s=win.duration_s,
                     language=resolved_lang,
                 )
+                return win, res
+
+            asr_results = await asyncio.gather(*(_asr_window(w, b) for w, b in pending_windows))
+            asr_results.sort(key=lambda item: item[0].index)
+
+            segments: list[TranscriptSegment] = []
+            texts: list[str] = []
+            for win, res in asr_results:
                 total_cost += res.cost_inr
                 any_cache_miss |= not res.cache_hit
                 seg_text = str(res.payload.get("text", "")).strip()
@@ -665,13 +674,19 @@ class BodhanToolkit:
         chunk_infos: list[SpeechChunkInfo] = []
 
         try:
-            for idx, sentence in enumerate(chunks):
+            async def _speak_chunk(idx: int, sentence: str) -> tuple[int, str, Any]:
                 res = await self.client.speak(
                     sentence,
                     voice=selected_voice,
                     language=iso.split("-")[0],
                     style=style,
                 )
+                return idx, sentence, res
+
+            speak_results = await asyncio.gather(*(_speak_chunk(i, s) for i, s in enumerate(chunks)))
+            speak_results.sort(key=lambda item: item[0])
+
+            for idx, sentence, res in speak_results:
                 total_cost += res.cost_inr
                 any_cache_miss |= not res.cache_hit
                 if not res.binary:

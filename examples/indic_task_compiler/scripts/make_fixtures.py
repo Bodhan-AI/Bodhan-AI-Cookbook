@@ -109,6 +109,16 @@ HINDI_VOICE_SCRIPT_EN = (
     "Thank you for listening. Please share this voice note with neighbors who may have missed today's announcement."
 )
 
+HINDI_VOICE_SCRIPT_PART2_EN = (
+    "Sixth, the village dairy cooperative has installed a new solar-powered milk chiller near the eastern crossroads. "
+    "Morning collection starts at six fifteen and evening collection runs from five thirty until seven o'clock. "
+    "Digital fat testing receipts will be printed immediately for every member household so payments remain completely clear. "
+    "Seventh, the block horticulture office is distributing drought-tolerant mango, guava, and drumstick saplings next Wednesday morning. "
+    "Families who submitted their land parcel numbers last month can collect up to fifteen saplings per household at no charge. "
+    "Finally, volunteers are organizing a weekend cleanup around the canal embankment starting at seven in the morning. "
+    "Drinking water and shaded rest tents will be arranged near the banyan tree. Thank you all for your cooperation and support."
+)
+
 CLIP_SCRIPTS_EN: list[tuple[str, str, str]] = [
     (
         "clip_01.wav",
@@ -290,7 +300,7 @@ async def generate_fixtures(*, offline: bool = False) -> dict[str, object]:
         )
 
     client = BodhanClient(
-        cache=DiskCache(),
+        cache=DiskCache(enabled=not offline),
         transport=transport,
         dev_ledger=ledger,
     )
@@ -326,9 +336,18 @@ async def generate_fixtures(*, offline: bool = False) -> dict[str, object]:
         if not hi_tr["ok"]:
             raise RuntimeError(f"Failed translating Hindi voice script: {hi_tr['error']}")
         total_cost += float(hi_tr["cost_inr"])
+        hi_tr2 = await tk.translate_text("hi", text=HINDI_VOICE_SCRIPT_PART2_EN)
+        if not hi_tr2["ok"]:
+            raise RuntimeError(f"Failed translating Hindi voice script part 2: {hi_tr2['error']}")
+        total_cost += float(hi_tr2["cost_inr"])
+        combined_hi = (
+            Path(hi_tr["data"]["text_path"]).read_text(encoding="utf-8").strip()
+            + "\n\n"
+            + Path(hi_tr2["data"]["text_path"]).read_text(encoding="utf-8").strip()
+        )
         hi_sp = await tk.synthesize_speech(
             "hi",
-            path=hi_tr["data"]["text_path"],
+            text=combined_hi,
             voice="Amit",
             style="news",
             format="wav",
