@@ -17,6 +17,7 @@ from .models import (
     TranslationResponse,
 )
 from .ocr_loader import BodhanOCRLoader
+from .tools import BodhanTranslationInput, BodhanTranslationTool
 from .translation import BodhanTranslationTransformer
 
 __all__ = [
@@ -24,6 +25,8 @@ __all__ = [
     "BodhanAsyncClient",
     "BodhanOCRLoader",
     "BodhanTranslationTransformer",
+    "BodhanTranslationTool",
+    "BodhanTranslationInput",
     "BodhanError",
     "BodhanAPIError",
     "BodhanAuthenticationError",
