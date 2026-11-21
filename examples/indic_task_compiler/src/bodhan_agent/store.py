@@ -6,9 +6,10 @@ import shutil
 from pathlib import Path
 from typing import Any
 
-from bodhan_agent.models import ProvenanceRecord
 from bodhan_mcp.cache import sha256_bytes, sha256_text
 from bodhan_mcp.text_utils import contains_indic_script
+
+from bodhan_agent.models import ProvenanceRecord
 
 # Keys stripped from any tool response before anything can reach P-LLM context.
 CONTENT_STRIP_KEYS = frozenset({"preview", "text", "translation", "transliteration", "content", "raw_text"})

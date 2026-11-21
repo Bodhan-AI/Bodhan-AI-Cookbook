@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import httpx
-
 from bodhan_mcp.server import build_http_app, build_mcp_server
 
 

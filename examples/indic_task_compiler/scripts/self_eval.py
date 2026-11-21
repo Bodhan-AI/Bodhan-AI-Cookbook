@@ -16,7 +16,6 @@ import sys
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
 
 RECIPE_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RECIPE_DIR / "src"))

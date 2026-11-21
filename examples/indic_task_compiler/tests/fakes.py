@@ -5,7 +5,6 @@ Zero non-Bodhan ASR, MT, TTS, or OCR systems are used anywhere here.
 
 from __future__ import annotations
 
-import base64
 import contextlib
 import io
 import json
