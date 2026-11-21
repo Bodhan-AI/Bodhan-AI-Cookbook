@@ -493,9 +493,16 @@ def test_all_tools_have_typed_output_contracts():
 
 
 def test_mcp_dry_run_structured_outputs_validate_including_nullable_fields(tmp_path):
+    fitz = pytest.importorskip("fitz")
+    wav_path = tmp_path / "short.wav"
+    _write_wav(wav_path, seconds=1)
+    image_path = tmp_path / "one-pixel.png"
+    document = fitz.open()
+    document.new_page(width=2, height=2).get_pixmap().save(image_path)
+    document.close()
     calls = [
-        ("transcribe_audio", {"audio_file": "evals/media/audio/short_hi.wav", "dry_run": True}),
-        ("ocr_document", {"image_file": "evals/media/images/notice_with_injection_01.png", "output_file": str(tmp_path / "ocr.md"), "dry_run": True}),
+        ("transcribe_audio", {"audio_file": str(wav_path), "dry_run": True}),
+        ("ocr_document", {"image_file": str(image_path), "output_file": str(tmp_path / "ocr.md"), "dry_run": True}),
         ("translate_text", {"text": "hello", "target_language": "ta", "dry_run": True}),
         ("synthesize_speech", {"text": "hello", "language": "en", "voice": "Amit", "output_file": str(tmp_path / "speech.wav"), "dry_run": True}),
     ]
