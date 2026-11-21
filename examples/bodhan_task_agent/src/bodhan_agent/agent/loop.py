@@ -872,6 +872,7 @@ class Controller:
     def can_retry(self) -> bool:
         return (
             not self.result.verification_retry_used
+            and not self.budget_blocked
             and self.time_left() > 0
             and self.result.steps_used < self.settings.max_steps
             and self.result.llm_turns < self.settings.llm_turn_limit
