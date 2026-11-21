@@ -1,0 +1,23 @@
+[build-system]
+requires = ["hatchling==1.27.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "language-task-agent"
+version = "0.1.0"
+description = "Bounded Bodhan language tools, independent MCP server and CLI task agent"
+requires-python = ">=3.10"
+dependencies = ["httpx==0.28.1", "mcp==1.22.0", "pydantic==2.12.4", "python-dotenv==1.0.1", "PyMuPDF==1.26.6", "Pillow==12.0.0", "beautifulsoup4==4.14.2"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/bodhan_core", "src/bodhan_agent", "src/bodhan_mcp"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+
+[tool.ruff]
+line-length = 100
+
+[dependency-groups]
+dev = ["pytest==8.4.2", "pytest-asyncio==1.3.0", "ruff==0.14.5"]

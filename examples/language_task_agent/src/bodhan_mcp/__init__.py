@@ -1,0 +1,1 @@
+"""Independent stdio MCP interface."""
