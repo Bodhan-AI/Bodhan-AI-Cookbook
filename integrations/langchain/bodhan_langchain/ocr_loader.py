@@ -15,14 +15,15 @@ from .models import OCRBlock
 
 logger = logging.getLogger(__name__)
 
-SUPPORTED_IMAGE_EXTENSIONS = frozenset({".png", ".jpg", ".jpeg", ".webp"})
+# Bodhan indic-ocr accepts PNG and JPEG image formats
+SUPPORTED_IMAGE_EXTENSIONS = frozenset({".png", ".jpg", ".jpeg"})
 PageErrorHandling = Literal["raise", "ignore", "warn"]
 
 
 class BodhanOCRLoader(BaseLoader):
     """Document loader that extracts Markdown and layout blocks using Bodhan indic-ocr.
 
-    Supports single scanned images (PNG, JPEG, WebP) and multi-page PDF documents.
+    Supports single scanned images (PNG, JPEG) and multi-page PDF documents.
     Multi-page PDFs are rasterized page-by-page using PyMuPDF and sent as individual
     page OCR requests to Bodhan's OpenAI-compatible API.
 
@@ -72,15 +73,17 @@ class BodhanOCRLoader(BaseLoader):
                 parameter="page_error_handling",
             )
 
-    def _get_client(self) -> BodhanClient:
+    def _get_client(self) -> tuple[BodhanClient, bool]:
+        """Return a client instance and a boolean indicating whether it is owned internally."""
         if self._client is not None:
-            return self._client
-        return BodhanClient()
+            return self._client, False
+        return BodhanClient(), True
 
-    def _get_async_client(self) -> BodhanAsyncClient:
+    def _get_async_client(self) -> tuple[BodhanAsyncClient, bool]:
+        """Return an async client instance and a boolean indicating whether it is owned internally."""
         if self._async_client is not None:
-            return self._async_client
-        return BodhanAsyncClient()
+            return self._async_client, False
+        return BodhanAsyncClient(), True
 
     def _validate_file(self) -> str:
         """Validate that the file exists, is non-empty, and has a supported extension.
@@ -96,6 +99,12 @@ class BodhanOCRLoader(BaseLoader):
             raise BodhanValidationError(f"File is empty (0 bytes): '{self.file_path}'", parameter="file_path")
 
         ext = self.file_path.suffix.lower()
+        if ext == ".webp":
+            raise BodhanValidationError(
+                f"Unsupported image format '{ext}' for file '{self.file_path.name}'. Bodhan indic-ocr accepts PNG and JPEG images only. "
+                f"Please convert your image to PNG or JPEG before submission.",
+                parameter="file_path",
+            )
         if ext != ".pdf" and ext not in SUPPORTED_IMAGE_EXTENSIONS:
             supported = [".pdf"] + sorted(SUPPORTED_IMAGE_EXTENSIONS)
             raise BodhanValidationError(
@@ -124,168 +133,192 @@ class BodhanOCRLoader(BaseLoader):
             Document: LangChain Document for each page.
         """
         ext = self._validate_file()
-        client = self._get_client()
-
-        if ext in SUPPORTED_IMAGE_EXTENSIONS:
-            try:
-                ocr_resp = client.ocr(
-                    self.file_path,
-                    table_format=self.table_format,
-                    max_tokens=self.max_tokens,
-                )
-            except Exception as e:
-                if self.page_error_handling == "raise":
-                    raise
-                if self.page_error_handling == "warn":
-                    logger.warning(f"OCR failed for image '{self.file_path}': {e}")
-                return
-
-            yield Document(
-                page_content=ocr_resp.text,
-                metadata={
-                    "source": str(self.file_path),
-                    "page": 1,
-                    "total_pages": 1,
-                    "model": ocr_resp.model,
-                    "truncated": ocr_resp.truncated,
-                    "finish_reason": ocr_resp.finish_reason,
-                    "blocks": self._blocks_to_metadata(ocr_resp.blocks),
-                },
-            )
-            return
-
-        # PDF processing via PyMuPDF
-        try:
-            import pymupdf
-        except ImportError as exc:
-            raise ImportError("PyMuPDF is required for PDF OCR loading. Install it via `pip install pymupdf`.") from exc
+        client, owns_client = self._get_client()
 
         try:
-            doc = pymupdf.open(str(self.file_path))
-        except Exception as exc:
-            raise BodhanValidationError(f"Failed to open PDF document '{self.file_path}': {exc}") from exc
-
-        try:
-            total_doc_pages = len(doc)
-            if total_doc_pages == 0:
-                raise BodhanValidationError(f"PDF document '{self.file_path}' has 0 pages.")
-
-            pages_to_process = min(total_doc_pages, self.max_pages) if self.max_pages is not None else total_doc_pages
-
-            for page_idx in range(pages_to_process):
-                page_num = page_idx + 1
+            if ext in SUPPORTED_IMAGE_EXTENSIONS:
                 try:
-                    page = doc[page_idx]
-                    pix = page.get_pixmap(dpi=self.dpi)
-                    png_bytes = pix.tobytes("png")
-                    if not png_bytes:
-                        raise BodhanValidationError(f"Failed to rasterize page {page_num} of '{self.file_path}'")
-
                     ocr_resp = client.ocr(
-                        png_bytes,
+                        self.file_path,
                         table_format=self.table_format,
                         max_tokens=self.max_tokens,
                     )
-
-                    yield Document(
-                        page_content=ocr_resp.text,
-                        metadata={
-                            "source": str(self.file_path),
-                            "page": page_num,
-                            "total_pages": total_doc_pages,
-                            "model": ocr_resp.model,
-                            "truncated": ocr_resp.truncated,
-                            "finish_reason": ocr_resp.finish_reason,
-                            "blocks": self._blocks_to_metadata(ocr_resp.blocks),
-                        },
-                    )
-                except Exception as exc:
+                except Exception as e:
                     if self.page_error_handling == "raise":
                         raise
                     if self.page_error_handling == "warn":
-                        logger.warning(f"Error processing page {page_num} of '{self.file_path}': {exc}")
+                        logger.warning(f"OCR failed for image '{self.file_path}': {e}")
+                    return
+
+                yield Document(
+                    page_content=ocr_resp.text,
+                    metadata={
+                        "source": str(self.file_path),
+                        "page": 1,
+                        "page_number": 1,
+                        "total_pages": 1,
+                        "model": ocr_resp.model,
+                        "truncated": ocr_resp.truncated,
+                        "finish_reason": ocr_resp.finish_reason,
+                        "blocks": self._blocks_to_metadata(ocr_resp.blocks),
+                    },
+                )
+                return
+
+            # PDF processing via PyMuPDF
+            try:
+                import pymupdf
+            except ImportError as exc:
+                raise ImportError(
+                    "PyMuPDF is required for PDF OCR loading. Install it via `pip install pymupdf`."
+                ) from exc
+
+            try:
+                pdf_doc = pymupdf.open(str(self.file_path))
+            except Exception as exc:
+                raise BodhanValidationError(f"Failed to open PDF document '{self.file_path}': {exc}") from exc
+
+            try:
+                total_doc_pages = len(pdf_doc)
+                if total_doc_pages == 0:
+                    raise BodhanValidationError(f"PDF document '{self.file_path}' has 0 pages.")
+
+                pages_to_process = (
+                    min(total_doc_pages, self.max_pages)
+                    if self.max_pages is not None
+                    else total_doc_pages
+                )
+
+                for page_idx in range(pages_to_process):
+                    page_num = page_idx + 1
+                    try:
+                        page = pdf_doc[page_idx]
+                        pix = page.get_pixmap(dpi=self.dpi)
+                        png_bytes = pix.tobytes("png")
+                        if not png_bytes:
+                            raise BodhanValidationError(f"Failed to rasterize page {page_num} of '{self.file_path}'")
+
+                        ocr_resp = client.ocr(
+                            png_bytes,
+                            table_format=self.table_format,
+                            max_tokens=self.max_tokens,
+                        )
+
+                        yield Document(
+                            page_content=ocr_resp.text,
+                            metadata={
+                                "source": str(self.file_path),
+                                "page": page_num,
+                                "page_number": page_num,
+                                "total_pages": total_doc_pages,
+                                "model": ocr_resp.model,
+                                "truncated": ocr_resp.truncated,
+                                "finish_reason": ocr_resp.finish_reason,
+                                "blocks": self._blocks_to_metadata(ocr_resp.blocks),
+                            },
+                        )
+                    except Exception as exc:
+                        if self.page_error_handling == "raise":
+                            raise
+                        if self.page_error_handling == "warn":
+                            logger.warning(f"Error processing page {page_num} of '{self.file_path}': {exc}")
+            finally:
+                pdf_doc.close()
         finally:
-            doc.close()
+            if owns_client:
+                client.close()
 
     async def alazy_load(self) -> AsyncIterator[Document]:
         """Asynchronously and lazily load documents page-by-page."""
         ext = self._validate_file()
-        async_client = self._get_async_client()
-
-        if ext in SUPPORTED_IMAGE_EXTENSIONS:
-            try:
-                ocr_resp = await async_client.ocr(
-                    self.file_path,
-                    table_format=self.table_format,
-                    max_tokens=self.max_tokens,
-                )
-            except Exception as e:
-                if self.page_error_handling == "raise":
-                    raise
-                if self.page_error_handling == "warn":
-                    logger.warning(f"Async OCR failed for image '{self.file_path}': {e}")
-                return
-
-            yield Document(
-                page_content=ocr_resp.text,
-                metadata={
-                    "source": str(self.file_path),
-                    "page": 1,
-                    "total_pages": 1,
-                    "model": ocr_resp.model,
-                    "truncated": ocr_resp.truncated,
-                    "finish_reason": ocr_resp.finish_reason,
-                    "blocks": self._blocks_to_metadata(ocr_resp.blocks),
-                },
-            )
-            return
+        async_client, owns_client = self._get_async_client()
 
         try:
-            import pymupdf
-        except ImportError as exc:
-            raise ImportError("PyMuPDF is required for PDF OCR loading. Install it via `pip install pymupdf`.") from exc
-
-        try:
-            doc = pymupdf.open(str(self.file_path))
-        except Exception as exc:
-            raise BodhanValidationError(f"Failed to open PDF document '{self.file_path}': {exc}") from exc
-
-        try:
-            total_doc_pages = len(doc)
-            if total_doc_pages == 0:
-                raise BodhanValidationError(f"PDF document '{self.file_path}' has 0 pages.")
-
-            pages_to_process = min(total_doc_pages, self.max_pages) if self.max_pages is not None else total_doc_pages
-
-            for page_idx in range(pages_to_process):
-                page_num = page_idx + 1
+            if ext in SUPPORTED_IMAGE_EXTENSIONS:
                 try:
-                    page = doc[page_idx]
-                    pix = page.get_pixmap(dpi=self.dpi)
-                    png_bytes = pix.tobytes("png")
-
                     ocr_resp = await async_client.ocr(
-                        png_bytes,
+                        self.file_path,
                         table_format=self.table_format,
                         max_tokens=self.max_tokens,
                     )
-
-                    yield Document(
-                        page_content=ocr_resp.text,
-                        metadata={
-                            "source": str(self.file_path),
-                            "page": page_num,
-                            "total_pages": total_doc_pages,
-                            "model": ocr_resp.model,
-                            "truncated": ocr_resp.truncated,
-                            "finish_reason": ocr_resp.finish_reason,
-                            "blocks": self._blocks_to_metadata(ocr_resp.blocks),
-                        },
-                    )
-                except Exception as exc:
+                except Exception as e:
                     if self.page_error_handling == "raise":
                         raise
                     if self.page_error_handling == "warn":
-                        logger.warning(f"Error processing page {page_num} of '{self.file_path}': {exc}")
+                        logger.warning(f"Async OCR failed for image '{self.file_path}': {e}")
+                    return
+
+                yield Document(
+                    page_content=ocr_resp.text,
+                    metadata={
+                        "source": str(self.file_path),
+                        "page": 1,
+                        "page_number": 1,
+                        "total_pages": 1,
+                        "model": ocr_resp.model,
+                        "truncated": ocr_resp.truncated,
+                        "finish_reason": ocr_resp.finish_reason,
+                        "blocks": self._blocks_to_metadata(ocr_resp.blocks),
+                    },
+                )
+                return
+
+            try:
+                import pymupdf
+            except ImportError as exc:
+                raise ImportError(
+                    "PyMuPDF is required for PDF OCR loading. Install it via `pip install pymupdf`."
+                ) from exc
+
+            try:
+                pdf_doc = pymupdf.open(str(self.file_path))
+            except Exception as exc:
+                raise BodhanValidationError(f"Failed to open PDF document '{self.file_path}': {exc}") from exc
+
+            try:
+                total_doc_pages = len(pdf_doc)
+                if total_doc_pages == 0:
+                    raise BodhanValidationError(f"PDF document '{self.file_path}' has 0 pages.")
+
+                pages_to_process = (
+                    min(total_doc_pages, self.max_pages)
+                    if self.max_pages is not None
+                    else total_doc_pages
+                )
+
+                for page_idx in range(pages_to_process):
+                    page_num = page_idx + 1
+                    try:
+                        page = pdf_doc[page_idx]
+                        pix = page.get_pixmap(dpi=self.dpi)
+                        png_bytes = pix.tobytes("png")
+
+                        ocr_resp = await async_client.ocr(
+                            png_bytes,
+                            table_format=self.table_format,
+                            max_tokens=self.max_tokens,
+                        )
+
+                        yield Document(
+                            page_content=ocr_resp.text,
+                            metadata={
+                                "source": str(self.file_path),
+                                "page": page_num,
+                                "page_number": page_num,
+                                "total_pages": total_doc_pages,
+                                "model": ocr_resp.model,
+                                "truncated": ocr_resp.truncated,
+                                "finish_reason": ocr_resp.finish_reason,
+                                "blocks": self._blocks_to_metadata(ocr_resp.blocks),
+                            },
+                        )
+                    except Exception as exc:
+                        if self.page_error_handling == "raise":
+                            raise
+                        if self.page_error_handling == "warn":
+                            logger.warning(f"Error processing page {page_num} of '{self.file_path}': {exc}")
+            finally:
+                pdf_doc.close()
         finally:
-            doc.close()
+            if owns_client:
+                await async_client.aclose()

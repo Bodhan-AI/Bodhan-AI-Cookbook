@@ -57,9 +57,9 @@ class OCRBlock:
 
     order: int
     label: str
-    bbox_xyxy: list[int]
-    conf: float
-    text: str
+    bbox_xyxy: list[int] | None = None
+    conf: float | None = None
+    text: str = ""
     raw: dict[str, Any] = field(default_factory=dict)
 
 

@@ -83,6 +83,7 @@ def test_loader_single_png_success(sample_png: Path) -> None:
     doc = docs[0]
     assert doc.page_content == "# PNG Extracted Text"
     assert doc.metadata["page"] == 1
+    assert doc.metadata["page_number"] == 1
     assert doc.metadata["total_pages"] == 1
     assert doc.metadata["model"] == "indic-ocr"
     assert len(doc.metadata["blocks"]) == 1
@@ -215,4 +216,51 @@ async def test_loader_async_loading(sample_pdf: Path) -> None:
     assert len(docs) == 2
     assert docs[0].page_content == "Async Page Content"
     assert docs[0].metadata["page"] == 1
+    assert docs[0].metadata["page_number"] == 1
     assert docs[1].metadata["page"] == 2
+    assert docs[1].metadata["page_number"] == 2
+
+
+def test_loader_rejects_webp(tmp_path: Path) -> None:
+    """Verify that WebP images are explicitly rejected with an actionable BodhanValidationError."""
+    webp_path = tmp_path / "sample.webp"
+    webp_path.write_bytes(b"RIFF\x18\x00\x00\x00WEBPVP8 \x0c\x00\x00\x00/\x00\x00\x00\x10\x07\x00\x9d\x01*")
+
+    client = BodhanClient(api_key=DUMMY_KEY, http_client=httpx.Client())
+    loader = BodhanOCRLoader(webp_path, client=client)
+
+    with pytest.raises(BodhanValidationError) as exc:
+        loader.load()
+    assert "Unsupported image format '.webp'" in str(exc.value)
+    assert "PNG and JPEG" in str(exc.value)
+
+
+def test_loader_client_lifecycle_internally_owned_closed(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Verify that an internally instantiated client is cleanly closed after lazy_load completes."""
+    png_path = tmp_path / "valid.png"
+    # Create minimal valid 1x1 PNG bytes
+    png_bytes = (
+        b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00"
+        b"\x1f\x15c4\x00\x00\x00\rIDATx\x9cc\xf8\xff\xff?\x00\x05\xfe\x02\xfe\xa76u\xa4\x00\x00\x00\x00IEND\xaeB`\x82"
+    )
+    png_path.write_bytes(png_bytes)
+
+    closed_internally = False
+
+    class MockInternalClient:
+        def __init__(self, *args, **kwargs):
+            pass
+        def ocr(self, *args, **kwargs):
+            from bodhan_langchain.models import OCRResponse
+            return OCRResponse(text="Mocked Text", blocks=[])
+        def close(self):
+            nonlocal closed_internally
+            closed_internally = True
+
+    monkeypatch.setattr("bodhan_langchain.ocr_loader.BodhanClient", MockInternalClient)
+
+    loader = BodhanOCRLoader(png_path)
+    docs = loader.load()
+
+    assert len(docs) == 1
+    assert closed_internally is True

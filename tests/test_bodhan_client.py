@@ -501,10 +501,10 @@ def test_ocr_metadata_defensive_parsing_null_conf_and_coords() -> None:
     assert res.truncated is True
     assert res.finish_reason == "length"
     assert len(res.blocks) == 2
-    assert res.blocks[0].conf == 0.0  # Safely defaulted from None
+    assert res.blocks[0].conf is None  # Preserved as None without fabricating 0.0
     assert res.blocks[0].bbox_xyxy == [10, 20, 30, 40]
-    assert res.blocks[1].conf == 0.0  # Safely defaulted from 'invalid'
-    assert res.blocks[1].bbox_xyxy == [0, 0, 0, 0]  # Safely defaulted from 'bad'
+    assert res.blocks[1].conf is None  # Invalid string gracefully parsed as None
+    assert res.blocks[1].bbox_xyxy is None  # Malformed bbox gracefully parsed as None without fabricating [0,0,0,0]
     assert res.blocks[1].text == ""  # Safely defaulted from None
 
 

@@ -54,39 +54,70 @@ def _validate_language_code(lang: str) -> None:
 
 
 def _prepare_image_data_url(image: bytes | str | Path) -> str:
-    """Convert raw image bytes, a file path, or a base64 string into a data URL."""
+    """Convert raw image bytes, a file path, or a base64 string into a data URL for indic-ocr."""
     if isinstance(image, bytes):
         if not image:
             raise BodhanValidationError("Image bytes cannot be empty.", parameter="image")
-        # Default to image/png for raw bytes if not inspectable
-        mime = "image/png"
+        if image.startswith(b"RIFF") and b"WEBP" in image[:16]:
+            raise BodhanValidationError(
+                "Unsupported image format 'image/webp' for indic-ocr. Bodhan indic-ocr accepts PNG and JPEG images only. "
+                "Please convert your image to PNG or JPEG before submission.",
+                parameter="image",
+            )
         if image.startswith(b"\xff\xd8\xff"):
             mime = "image/jpeg"
         elif image.startswith(b"\x89PNG\r\n\x1a\n"):
             mime = "image/png"
-        elif image.startswith(b"RIFF") and b"WEBP" in image[:16]:
-            mime = "image/webp"
+        else:
+            raise BodhanValidationError(
+                "Unrecognized image binary format. Bodhan indic-ocr accepts valid PNG and JPEG images only.",
+                parameter="image",
+            )
         b64 = base64.b64encode(image).decode("ascii")
         return f"data:{mime};base64,{b64}"
 
     if isinstance(image, Path) or (isinstance(image, str) and not image.startswith("data:") and len(image) < 4096):
         path = Path(image)
-        if path.exists() and path.is_file():
-            data = path.read_bytes()
-            if not data:
-                raise BodhanValidationError(f"Image file '{path}' is empty.", parameter="image")
-            mime, _ = mimetypes.guess_type(str(path))
-            mime = mime or "image/png"
-            b64 = base64.b64encode(data).decode("ascii")
-            return f"data:{mime};base64,{b64}"
+        if not path.exists():
+            raise FileNotFoundError(f"Image file not found: '{path}'")
+        if not path.is_file():
+            raise BodhanValidationError(f"Path is not a regular file: '{path}'", parameter="image")
+        data = path.read_bytes()
+        if not data:
+            raise BodhanValidationError(f"Image file '{path}' is empty (0 bytes).", parameter="image")
+        ext = path.suffix.lower()
+        if ext == ".webp" or (data.startswith(b"RIFF") and b"WEBP" in data[:16]):
+            raise BodhanValidationError(
+                f"Unsupported image format '{ext}' for file '{path.name}'. Bodhan indic-ocr accepts PNG and JPEG images only. "
+                f"Please convert your image to PNG or JPEG before submission.",
+                parameter="image",
+            )
+        if data.startswith(b"\xff\xd8\xff"):
+            mime = "image/jpeg"
+        elif data.startswith(b"\x89PNG\r\n\x1a\n"):
+            mime = "image/png"
+        else:
+            raise BodhanValidationError(
+                f"Invalid or unrecognized image format for '{path.name}'. Bodhan indic-ocr accepts valid PNG and JPEG images only.",
+                parameter="image",
+            )
+        b64 = base64.b64encode(data).decode("ascii")
+        return f"data:{mime};base64,{b64}"
 
     if isinstance(image, str):
-        if not image.strip():
+        trimmed = image.strip()
+        if not trimmed:
             raise BodhanValidationError("Image string cannot be empty.", parameter="image")
-        if image.startswith("data:image/"):
-            return image.strip()
+        if trimmed.startswith("data:image/webp;"):
+            raise BodhanValidationError(
+                "Unsupported image format 'image/webp' for indic-ocr. Bodhan indic-ocr accepts PNG and JPEG images only. "
+                "Please convert your image to PNG or JPEG before submission.",
+                parameter="image",
+            )
+        if trimmed.startswith("data:image/"):
+            return trimmed
         # Assume bare base64 string
-        return f"data:image/png;base64,{image.strip()}"
+        return f"data:image/png;base64,{trimmed}"
 
     raise BodhanValidationError(
         f"Unsupported image input type '{type(image).__name__}'. Expected bytes, Path, or base64 str.",
@@ -380,18 +411,18 @@ class BodhanClient:
                 if isinstance(b, dict):
                     raw_conf = b.get("conf")
                     try:
-                        conf = float(raw_conf) if raw_conf is not None else 0.0
+                        conf = float(raw_conf) if raw_conf is not None else None
                     except (TypeError, ValueError):
-                        conf = 0.0
+                        conf = None
 
                     raw_bbox = b.get("bbox_xyxy")
                     if isinstance(raw_bbox, (list, tuple)) and len(raw_bbox) == 4:
                         try:
                             bbox = [int(coord) for coord in raw_bbox]
                         except (TypeError, ValueError):
-                            bbox = [0, 0, 0, 0]
+                            bbox = None
                     else:
-                        bbox = [0, 0, 0, 0]
+                        bbox = None
 
                     raw_text = b.get("text")
                     text_str = str(raw_text) if raw_text is not None else ""
@@ -786,18 +817,18 @@ class BodhanAsyncClient:
                 if isinstance(b, dict):
                     raw_conf = b.get("conf")
                     try:
-                        conf = float(raw_conf) if raw_conf is not None else 0.0
+                        conf = float(raw_conf) if raw_conf is not None else None
                     except (TypeError, ValueError):
-                        conf = 0.0
+                        conf = None
 
                     raw_bbox = b.get("bbox_xyxy")
                     if isinstance(raw_bbox, (list, tuple)) and len(raw_bbox) == 4:
                         try:
                             bbox = [int(coord) for coord in raw_bbox]
                         except (TypeError, ValueError):
-                            bbox = [0, 0, 0, 0]
+                            bbox = None
                     else:
-                        bbox = [0, 0, 0, 0]
+                        bbox = None
 
                     raw_text = b.get("text")
                     text_str = str(raw_text) if raw_text is not None else ""
