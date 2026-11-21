@@ -1,0 +1,31 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Run outputs, caches and local media
+out/
+outputs/*
+!outputs/.gitkeep
+sample_data/*
+!sample_data/.gitkeep
+.cache/
+bodhan_mcp_out/
+*.wav
+*.mp3
+*.mp4
+*.m4a
+
+# Python
+__pycache__/
+*.egg-info/
+.venv/
+.pytest_cache/
+
+# API probe recordings
+probes/out/
+
+# Self-eval runs and generated demo inputs
+evals/runs/
+sample_data/.work/
+.ruff_cache/
