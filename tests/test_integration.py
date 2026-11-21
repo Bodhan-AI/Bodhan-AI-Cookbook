@@ -23,6 +23,14 @@ def test_multilingual_rag_end_to_end(capsys: pytest.CaptureFixture[str]) -> None
     """Verify that the multilingual RAG pipeline executes from end-to-end with mocked responses."""
     def handler(request: httpx.Request) -> httpx.Response:
         url_path = request.url.path
+        if url_path == "/translate":
+            data = json.loads(request.content)
+            target = data.get("target_language")
+            text = data.get("text", "")
+            if target == "hi":
+                return httpx.Response(200, json={"translation": "पात्रता 55% अंक और ₹12,000 प्रति वर्ष सहायता।", "source_language": "en"})
+            return httpx.Response(200, json={"translation": f"Scholarship eligibility is 55% marks with assistance of ₹12,000 per year: {text}", "source_language": "hi"})
+
         if url_path == "/v1/chat/completions":
             data = json.loads(request.content)
             model = data.get("model")
@@ -36,10 +44,10 @@ def test_multilingual_rag_end_to_end(capsys: pytest.CaptureFixture[str]) -> None
                 src = data["messages"][0]["content"]
                 if target == "hi":
                     return httpx.Response(200, json={
-                        "choices": [{"message": {"content": "बोधन एआई बहुभाषी सहायक का उपयोग करने के लिए धन्यवाद।"}}],
+                        "choices": [{"message": {"content": "पात्रता 55% अंक और ₹12,000 प्रति वर्ष सहायता।"}}],
                     })
                 return httpx.Response(200, json={
-                    "choices": [{"message": {"content": f"English: {src}"}}],
+                    "choices": [{"message": {"content": f"Scholarship eligibility is 55% marks with assistance of ₹12,000 per year: {src}"}}],
                     "source_language": "hi",
                 })
         return httpx.Response(404)
@@ -53,8 +61,11 @@ def test_multilingual_rag_end_to_end(capsys: pytest.CaptureFixture[str]) -> None
 
     captured = capsys.readouterr().out
     assert "Ingesting" in captured
-    assert "Translating documents to English" in captured
-    assert "Splitting translated documents" in captured
+    assert "Translating" in captured
+    assert "Splitting" in captured
     assert "Vector indexing complete" in captured
-    assert "Executing Multilingual Retrieval & Grounded Q&A" in captured
+    assert "Executing End-to-End Multilingual Question Answering" in captured
+    assert "Generated Answer" in captured
+    assert "Citation:" in captured
+    assert "Insufficient context" in captured
     assert "MULTILINGUAL RAG PIPELINE DEMONSTRATION COMPLETE" in captured
