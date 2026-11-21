@@ -248,7 +248,7 @@ class PlannerLLM:
                 err, text = _error_body(exc), str(exc).lower()
                 if status == 413 or (status in (400, 422) and any(h in text for h in _CONTEXT_HINTS)):
                     raise ContextTooLong(f"the planner's context is too long: {str(exc)[:200]}") from exc
-                # the provider refused the model's own output (Groq: tool_use_failed, or "Parsing failed ... could not be
+                # the provider refused the model's own output (tool_use_failed, or "Parsing failed ... could not be
                 # parsed" with failed_generation): a sampling problem, not a configuration error
                 malformed = status == 400 and bool(err.get("failed_generation") or "could not be parsed" in text or "tool_use_failed" in text)
                 if malformed and err.get("failed_generation"):
@@ -350,7 +350,7 @@ class PlannerLLM:
                 assistant["content"] = None
         elif not content:
             # an empty turn carries nothing to continue from; echoing its reasoning alone is refused by some
-            # gateways (seen live: 400 "Expected a(n) 'messages' array element to be an object")
+            # endpoints (seen live: 400 "Expected a(n) 'messages' array element to be an object")
             assistant = {"role": "assistant", "content": ""}
         return LLMReply(content, calls, getattr(usage, "prompt_tokens", 0) or 0, getattr(usage, "completion_tokens", 0) or 0,
                         latency, choice.finish_reason, assistant, fallback)

@@ -1,4 +1,4 @@
-"""Planner portability: providers other than the one the demos used (Groq, Gemini, small open models)."""
+"""Planner portability: endpoint message shapes, caps and recovery."""
 
 import json
 
@@ -53,13 +53,13 @@ async def test_provider_extras_are_echoed_and_tool_call_content_is_null():
 
 
 async def test_an_empty_turn_is_sent_back_without_its_reasoning():
-    def gateway(kw):  # mimics an OpenAI-compatible endpoint that refused this message shape
+    def endpoint_reply(kw):  # mimics an OpenAI-compatible endpoint that refused this message shape
         for m in kw["messages"]:
             if m.get("role") == "assistant" and not m.get("content") and not m.get("tool_calls") and m.get("reasoning_content"):
                 raise Err(400, "Error code: 400 - Expected a(n) 'messages' array element to be an object.")
         return reply("", [], msg_extra={"reasoning_content": "nothing to say"}) if len(ep.sent) == 1 else reply(None, [("finish", "{}")])
 
-    ep = Endpoint(gateway)
+    ep = Endpoint(endpoint_reply)
     llm = PlannerLLM(client=ep, model="m")
     first = await llm.chat([{"role": "user", "content": "x"}], FINISH_TOOL)
     assert first.assistant_message == {"role": "assistant", "content": ""}
@@ -68,7 +68,7 @@ async def test_an_empty_turn_is_sent_back_without_its_reasoning():
     assert second.tool_calls[0].name == "finish"
 
 
-async def test_a_groq_tool_use_failed_generation_is_recovered():
+async def test_a_tool_use_failed_generation_is_recovered():
     def behave(kw):
         raise Err(400, "Error code: 400 - tool_use_failed", {"error": {"code": "tool_use_failed",
                   "failed_generation": '<function=finish>{"status": "unsupported", "final_answer": "No."}</function>'}})
@@ -213,7 +213,7 @@ async def test_an_echoed_field_the_provider_refuses_is_dropped():
     assert second.tool_calls and "diagnostic" not in json.dumps(msgs) and llm.notes
 
 
-async def test_a_groq_parsing_failure_is_sampled_again_not_treated_as_configuration(monkeypatch):
+async def test_a_parsing_failure_is_sampled_again_not_treated_as_configuration(monkeypatch):
     # seen live: "400 - Parsing failed. The model generated output that could not
     # be parsed" ended the run at once, because a 400 without "tool" in its text counted as a configuration error
     monkeypatch.setattr("bodhan_agent.llm.retry_wait", lambda exc, attempt: 0)

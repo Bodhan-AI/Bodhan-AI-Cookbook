@@ -29,10 +29,10 @@ def frame_untrusted(text: str, source: str, limit: int) -> dict:
 
 
 class ProvenanceGuard:
-    """Agent mode: Indic text passed inline by the LLM must already exist in the task
-    text, an input file, or a Bodhan tool output. This enforces in code that the
-    general LLM never authors Indian-language text; it can only move such text
-    around by reference."""
+    """Agent mode: Indic-script text passed inline by the LLM must already exist in the
+    task text, an input file, or a Bodhan tool output. This enforces provenance for
+    Indic-script text in code: the general LLM can only move such text around by
+    reference. Romanized Indian-language text is covered by the prompt only."""
 
     def __init__(self) -> None:
         self._corpus: list[str] = []

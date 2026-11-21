@@ -60,7 +60,7 @@ def test_the_media_checksum_exception_does_not_excuse_a_missing_text_output(tmp_
 
 
 def test_a_refusal_counts_only_when_the_planner_made_it(tmp_path):
-    # seen live (gpt-oss-20b, h7): the planner's only plan was rejected, then the run hit the 600 s limit while waiting on the
+    # seen live (a rate-limited planner, h7): the planner's only plan was rejected, then the run hit the 600 s limit while waiting on the
     # provider's rate limit. Status "failed" with no output matched the impossible task's expectation and scored as a pass.
     sys.path.insert(0, str(ROOT / "scripts"))
     from run_suite import score
