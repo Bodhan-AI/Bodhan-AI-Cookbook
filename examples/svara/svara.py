@@ -337,6 +337,8 @@ MULTILINGUAL_BOARDS: dict[str, list[dict[str, Any]]] = {
     ],
 }
 
+DEFAULT_CATEGORIES = MULTILINGUAL_BOARDS["hi"]
+
 
 class SvaraClient:
     """Client for Bodhan Indic-Speak TTS with caching and resilient backoff."""
