@@ -150,9 +150,12 @@ def _split_oversized_text(text: str, max_chunk_chars: int) -> list[str]:
             final_guaranteed.append(chunk)
         else:
             for k in range(0, len(chunk), max_chunk_chars):
-                final_guaranteed.append(chunk[k:k + max_chunk_chars])
+                piece = chunk[k:k + max_chunk_chars]
+                if piece:
+                    final_guaranteed.append(piece)
 
-    return final_guaranteed if final_guaranteed else [text]
+    clean_guaranteed = [c for c in final_guaranteed if c.strip()]
+    return clean_guaranteed if clean_guaranteed else [text]
 
 
 class BodhanTranslationTransformer(BaseDocumentTransformer):
@@ -196,10 +199,10 @@ class BodhanTranslationTransformer(BaseDocumentTransformer):
         self.script = script
         self.preserve_original_content = preserve_original_content
         self.chunk_paragraphs = chunk_paragraphs
-        self.max_chunk_chars = max(5, max_chunk_chars)
+        self.max_chunk_chars = _validate_positive_int(max_chunk_chars, "max_chunk_chars")
         self.error_handling = error_handling
         self.max_output_tokens = max_output_tokens if max_output_tokens is not None else max_tokens
-        self.max_concurrency = max(1, max_concurrency)
+        self.max_concurrency = _validate_positive_int(max_concurrency, "max_concurrency")
         self._client = client
         self._async_client = async_client
 

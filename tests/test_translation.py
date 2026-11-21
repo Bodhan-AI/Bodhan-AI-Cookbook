@@ -232,3 +232,85 @@ def test_transformer_client_lifecycle_internally_owned(monkeypatch: pytest.Monke
 
     assert len(docs) == 1
     assert closed is True
+
+
+def test_transformer_invalid_chunk_and_concurrency_configuration() -> None:
+    """Verify validation of max_chunk_chars and max_concurrency, rejecting booleans, 0, and negatives."""
+    # Invalid max_chunk_chars
+    with pytest.raises(BodhanValidationError) as exc:
+        BodhanTranslationTransformer(target_language="en", max_chunk_chars=True)  # type: ignore[arg-type]
+    assert "max_chunk_chars must be a positive integer" in str(exc.value)
+
+    with pytest.raises(BodhanValidationError) as exc:
+        BodhanTranslationTransformer(target_language="en", max_chunk_chars=0)
+    assert "max_chunk_chars must be a positive integer" in str(exc.value)
+
+    with pytest.raises(BodhanValidationError) as exc:
+        BodhanTranslationTransformer(target_language="en", max_chunk_chars=-50)
+    assert "max_chunk_chars must be a positive integer" in str(exc.value)
+
+    # Invalid max_concurrency
+    with pytest.raises(BodhanValidationError) as exc:
+        BodhanTranslationTransformer(target_language="en", max_concurrency=False)  # type: ignore[arg-type]
+    assert "max_concurrency must be a positive integer" in str(exc.value)
+
+    with pytest.raises(BodhanValidationError) as exc:
+        BodhanTranslationTransformer(target_language="en", max_concurrency=0)
+    assert "max_concurrency must be a positive integer" in str(exc.value)
+
+    with pytest.raises(BodhanValidationError) as exc:
+        BodhanTranslationTransformer(target_language="en", max_concurrency=-2)
+    assert "max_concurrency must be a positive integer" in str(exc.value)
+
+
+def test_transformer_chunking_edge_cases_and_order_preservation() -> None:
+    """Verify splitting, character fallback for unbroken tokens, Indic punctuation, and reassembly order."""
+    from bodhan_langchain.translation import _split_oversized_text
+
+    # 1. Long unbroken token (no spaces) exceeding max_chunk_chars -> character fallback
+    unbroken_token = "A" * 125
+    chunks = _split_oversized_text(unbroken_token, max_chunk_chars=50)
+    assert len(chunks) == 3
+    assert chunks[0] == "A" * 50
+    assert chunks[1] == "A" * 50
+    assert chunks[2] == "A" * 25
+    assert "".join(chunks) == unbroken_token
+
+    # 2. Indic punctuation (danda । and double danda ॥)
+    indic_text = "पहला वाक्य है। दूसरा वाक्य भी है॥ तीसरा वाक्य यहाँ है।"
+    indic_chunks = _split_oversized_text(indic_text, max_chunk_chars=25)
+    assert all(len(c) <= 25 for c in indic_chunks)
+    assert any("।" in c for c in indic_chunks)
+    assert any("॥" in c for c in indic_chunks)
+
+    # 3. Maximum boundary exact match
+    exact_text = "ExactTwentyCharacters!"
+    exact_chunks = _split_oversized_text(exact_text, max_chunk_chars=len(exact_text))
+    assert len(exact_chunks) == 1
+    assert exact_chunks[0] == exact_text
+
+    # 4. End-to-end transformation reassembly order preservation
+    received_order: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        data = json.loads(request.content)
+        t = data.get("text") or data["messages"][0]["content"]
+        received_order.append(t)
+        return httpx.Response(200, json={"translation": f"[{t}]"})
+
+    mock_http_client = httpx.Client(transport=httpx.MockTransport(handler), base_url="https://api.bodhan.ai")
+    bodhan_client = BodhanClient(api_key=DUMMY_KEY, http_client=mock_http_client)
+    transformer = BodhanTranslationTransformer(
+        target_language="en",
+        client=bodhan_client,
+        chunk_paragraphs=True,
+        max_chunk_chars=20,
+    )
+
+    doc_text = "PartOne 12345.\n\nPartTwo 67890.\n\nPartThree 99999."
+    doc = Document(page_content=doc_text)
+    transformed = transformer.transform_documents([doc])
+
+    assert len(transformed) == 1
+    assert received_order == ["PartOne 12345.", "PartTwo 67890.", "PartThree 99999."]
+    assert transformed[0].page_content == "[PartOne 12345.]\n\n[PartTwo 67890.]\n\n[PartThree 99999.]"
