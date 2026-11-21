@@ -92,7 +92,7 @@ LLM tested with: `gemini-3.5-flash-lite` via Google's OpenAI-compatible endpoint
 Second planner check: the suite was also run with `openai/gpt-oss-120b` on Groq's free tier. Every task whose run fit that tier's quota completed, 5 of 5 (Hindi SRT, Marathi table, Bengali read-aloud, unstated-language clip, and the French request refused as impossible); the slower runs exceeded the suite's latency targets only because of rate-limit waits. The other three hit the free tier's limits (a single request over 8,000 tokens per minute, then the daily token cap) and ended as honest `partial` results listing what was done. The remaining four tasks were not reached before the run was stopped. That run exposed a real bug, now fixed with tests: the LLM client ignored the provider's `Retry-After` and gave up on 429s too early.
 
 ## Demo video
-TBD (link, ≤ 5 minutes).
+[bodhan_demo.mp4](https://github.com/CyberRik/Bodhan-AI-Cookbook/releases/download/demo-video/bodhan_demo.mp4) (3:18, English subtitles burned in; opens without signing in). Two live runs in the web UI (the impossible French request, and Hindi audio to English subtitles), replays of the prompt-injection worksheet and the Tamil audio summary, then the results.
 
 ## Trade-offs and known limitations
 - Capability-level tools mean the server makes chunking decisions the caller cannot override beyond the exposed parameters.
@@ -129,7 +129,7 @@ I built this with Claude Code (Anthropic) as the implementation tool. Claude Cod
 
 - **Scope and direction:** I picked this option out of the four, set the constraints (a hard budget on Bodhan credits, the planner LLM provider and model, keys per model), and decided when each stage was good enough to commit.
 - **Review and understanding:** I read through the code and the design, and worked through the architecture until I could explain each decision and the alternatives it beat: capability-level tools, file-path data flow, the plan-first loop with the verification gate in code, budget reservations, back-transcription checks on speech, and the guards on untrusted text.
-- **Demo:** I ran the demo suite.
+- **Demo:** I ran the demo suite and recorded the demo video.
 
 I can walk through any part of the code, why it is built the way it is, and how I would extend it.
 

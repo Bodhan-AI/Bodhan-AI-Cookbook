@@ -205,7 +205,7 @@ Run on 2026-11-16/17 against the hosted Bodhan API, with **`gemini-3.5-flash-lit
 
 \* The worksheet's OCR call was a cache hit from an earlier smoke test; a cold run adds ₹0.20 for one page.
 
-Self-eval pass rate: **12/12**, total Bodhan cost **₹3.74** for the suite. Demo video (≤ 5 min): **TBD (link)**.
+Self-eval pass rate: **12/12**, total Bodhan cost **₹3.74** for the suite. Demo video (3:18, English subtitles burned in): **[bodhan_demo.mp4](https://github.com/CyberRik/Bodhan-AI-Cookbook/releases/download/demo-video/bodhan_demo.mp4)** ([release page](https://github.com/CyberRik/Bodhan-AI-Cookbook/releases/tag/demo-video)). It shows two live runs in the web UI (the impossible French request and Hindi audio to English subtitles), replays of the prompt-injection worksheet and the Tamil audio summary, and the results.
 
 Quality targets from the assignment, on this suite: every generated audio file and translation passed verification before the run finished; no paid input was sent to the same model twice within a run (cache); no run exceeded its `--max-cost-inr`; single-step tasks finished well under 30 s and multi-step tasks under 5 minutes (slowest: 94 s).
 
@@ -232,7 +232,7 @@ I built this with Claude Code (Anthropic) as the implementation tool. Claude Cod
 
 - **Scope and direction:** I picked this option out of the four, set the constraints (a hard budget on Bodhan credits, the planner LLM provider and model, keys per model), and decided when each stage was good enough to commit.
 - **Review and understanding:** I read through the code and the design, and worked through the architecture until I could explain each decision and the alternatives it beat: capability-level tools, file-path data flow, the plan-first loop with the verification gate in code, budget reservations, back-transcription checks on speech, and the guards on untrusted text.
-- **Demo:** I ran the demo suite.
+- **Demo:** I ran the demo suite and recorded the demo video.
 
 I can walk through any part of the code, why it is built the way it is, and how I would extend it.
 
