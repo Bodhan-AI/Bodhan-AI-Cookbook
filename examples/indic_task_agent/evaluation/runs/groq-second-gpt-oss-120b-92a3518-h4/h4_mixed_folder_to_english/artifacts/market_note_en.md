@@ -1,0 +1,1 @@
+This week, the weekly market will be held on Thursday instead of Friday due to the festival.

@@ -1,0 +1,7 @@
+Chapter 5 explores the fascinating journey of a water drop through the endless water cycle, which is driven by the sun and gravity. Every drop of water on Earth is ancient, having traveled through oceans, rivers, and ice caps.
+
+The journey begins with evaporation, where the sun heats water from oceans, lakes, and rivers, turning it into invisible water vapor. Plants also contribute through transpiration, with a large tree releasing over a hundred liters a day. As warm air rises, it cools down and turns water vapor back into tiny droplets through condensation, forming clouds around dust particles.
+
+When these droplets become too heavy, they fall back to the Earth as precipitation, such as rain, snow, or hail. In India, much of this rainfall comes from the monsoon between June and September. Once on the ground, water flows into streams, rivers, and seas, while some seeps underground to fill groundwater supplies.
+
+The water cycle is vital because only three percent of Earth's water is fresh water, and much of it is frozen in glaciers. Protecting this precious resource is crucial. We can conserve water by turning off taps while brushing teeth, collecting rainwater, and repairing leaks. Simple actions at home and in our communities ensure that fresh water remains available for generations to come.

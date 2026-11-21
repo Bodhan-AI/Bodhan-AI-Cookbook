@@ -1,0 +1,3 @@
+- Bees live in colonies composed of a queen, male drones, and thousands of worker bees.
+- Worker bees pollinate plants by carrying pollen between flowers, essential for about one‑third of the food we eat.
+- Overuse of chemical pesticides harms bees, prompting many farmers to adopt natural, bee‑friendly farming methods.

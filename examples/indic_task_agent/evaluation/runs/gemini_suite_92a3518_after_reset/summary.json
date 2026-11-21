@@ -1,0 +1,57 @@
+{
+  "passed": 2,
+  "total": 2,
+  "pass_rate": 1.0,
+  "scored_at": "2026-11-21T13:59:13+05:30",
+  "code": {
+    "commit": "e783f6fa5c1f71ed78673c63a81e471f89325a2a",
+    "src_modified": false
+  },
+  "checks": "structural only (status, files, kinds, languages, verification, answer text, budget); not a quality score",
+  "tasks": [
+    {
+      "id": "h5_unsupported_source_script",
+      "demo": false,
+      "impossible": true,
+      "task": "Translate this notice into Hindi",
+      "evidence": "fresh",
+      "cache_mode": "shared cache",
+      "pass": true,
+      "fails": [],
+      "status": "unsupported",
+      "elapsed_s": 6.69,
+      "steps": 4,
+      "bodhan_inr": 0.0,
+      "cache_hits": 0,
+      "paid_calls": 0,
+      "llm_model": "gemini-3.5-flash-lite",
+      "llm_tokens": 24434,
+      "latency_target_met": true,
+      "latency_kind": "single-step",
+      "result": "outputs/gemini_suite_92a3518_after_reset/h5_unsupported_source_script/result.md",
+      "trace": "outputs/gemini_suite_92a3518_after_reset/h5_unsupported_source_script/trace.jsonl"
+    },
+    {
+      "id": "h7_budget_too_small",
+      "demo": false,
+      "impossible": true,
+      "task": "Make a Hindi audio version of this whole chapter",
+      "evidence": "fresh",
+      "cache_mode": "shared cache",
+      "pass": true,
+      "fails": [],
+      "status": "partial",
+      "elapsed_s": 30.81,
+      "steps": 8,
+      "bodhan_inr": 0.0,
+      "cache_hits": 40,
+      "paid_calls": 0,
+      "llm_model": "gemini-3.5-flash-lite",
+      "llm_tokens": 65304,
+      "latency_target_met": true,
+      "latency_kind": "multi-step",
+      "result": "outputs/gemini_suite_92a3518_after_reset/h7_budget_too_small/result.md",
+      "trace": "outputs/gemini_suite_92a3518_after_reset/h7_budget_too_small/trace.jsonl"
+    }
+  ]
+}

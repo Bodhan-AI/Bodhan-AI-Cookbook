@@ -1,0 +1,3 @@
+- Bees live in colonies with a queen, male drones, and thousands of worker bees.
+- Workers pollinate plants by carrying pollen while foraging, supporting roughly one‑third of global food supplies.
+- Farmers use beehives to boost yields, but excessive pesticide use harms bees, prompting a shift to natural protection methods.

@@ -1,0 +1,264 @@
+{
+  "status": "completed",
+  "stop_reason": "finished",
+  "planner_status": "completed",
+  "task": "Transcribe this Hindi voice note and give me English subtitles",
+  "inputs": {
+    "files": [
+      "<recipe>\\sample_data\\voice_note\\voice_note_hindi.wav"
+    ],
+    "missing": []
+  },
+  "started_at": "2026-11-21T07:51:23+00:00",
+  "finished_at": "2026-11-21T07:52:49+00:00",
+  "elapsed_s": 86.23,
+  "steps": {
+    "used": 3,
+    "max": 30,
+    "tool_calls": [
+      {
+        "step": 2,
+        "tool": "create_subtitles",
+        "ok": true,
+        "latency_s": 1.359,
+        "cost_inr": 0.01,
+        "verification": "pass",
+        "error": null
+      }
+    ]
+  },
+  "plan": {
+    "steps": [
+      "create_subtitles"
+    ],
+    "deliverables": [
+      {
+        "kind": "subtitles",
+        "language": "en",
+        "source": "voice_note_hindi.wav",
+        "optional": false,
+        "description": "English subtitles for the Hindi voice note"
+      }
+    ],
+    "assumptions": [],
+    "dropped": []
+  },
+  "final_answer": "The English subtitles for the Hindi voice note have been generated and saved to the artifact path shown above. Each subtitle entry is aligned with the spoken content.",
+  "assumptions": [],
+  "limitations": [],
+  "deliverables": [
+    {
+      "path": "artifacts/voice_note_hindi_en.srt",
+      "kind": "subtitles",
+      "producer": "create_subtitles",
+      "language": "en",
+      "provenance": "indic-transcribe + indic-translate",
+      "verification": {
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 0,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.0
+          },
+          "back_translation": {
+            "language": "hi",
+            "mean_chrf": 0.763,
+            "min_chrf": 0.366,
+            "min_length_ratio": 0.84,
+            "passages": 30
+          }
+        }
+      },
+      "notes": [
+        "language auto-detected from first segment: Hindi (Devanagari script; function words suggest Hindi ({'hi': 3, 'mr': 0, 'ne': 0}))"
+      ],
+      "embeds": [],
+      "sha256": "4b59482faaa5a747c9494371936714eb6e1f04d4d61fddce191d8bf83188043c",
+      "source_language": null,
+      "verification_checks": 1,
+      "origin": [
+        "voice_note_hindi.wav"
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "artifacts/voice_note_hindi_hi.srt",
+      "kind": "transcript",
+      "producer": "create_subtitles",
+      "language": "hi",
+      "provenance": "indic-transcribe",
+      "verification": null,
+      "notes": [],
+      "embeds": [],
+      "sha256": "ecfe43a41033bcccff73ace784177c0d6d2e7af354fb792265863bff62c3e568",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "voice_note_hindi.wav"
+      ]
+    },
+    {
+      "path": "artifacts/voice_note_hindi_en.srt",
+      "kind": "subtitles",
+      "producer": "create_subtitles",
+      "language": "en",
+      "provenance": "indic-transcribe + indic-translate",
+      "verification": {
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 0,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.0
+          },
+          "back_translation": {
+            "language": "hi",
+            "mean_chrf": 0.763,
+            "min_chrf": 0.366,
+            "min_length_ratio": 0.84,
+            "passages": 30
+          }
+        }
+      },
+      "notes": [
+        "language auto-detected from first segment: Hindi (Devanagari script; function words suggest Hindi ({'hi': 3, 'mr': 0, 'ne': 0}))"
+      ],
+      "embeds": [],
+      "sha256": "4b59482faaa5a747c9494371936714eb6e1f04d4d61fddce191d8bf83188043c",
+      "source_language": null,
+      "verification_checks": 1,
+      "origin": [
+        "voice_note_hindi.wav"
+      ]
+    }
+  ],
+  "verification": {
+    "results": [
+      {
+        "artifact": "artifacts/voice_note_hindi_en.srt",
+        "kind": "subtitles",
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 0,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.0
+          },
+          "back_translation": {
+            "language": "hi",
+            "mean_chrf": 0.763,
+            "min_chrf": 0.366,
+            "min_length_ratio": 0.84,
+            "passages": 30
+          }
+        }
+      }
+    ],
+    "unverified_translations_or_audio": [],
+    "all_checked": true
+  },
+  "cost": {
+    "max_inr": 20.0,
+    "bodhan_billed_inr": 0.01,
+    "bodhan_uncertain_inr": 0.0,
+    "llm_inr": null,
+    "total_counted_inr": 0.01,
+    "by_model_inr": {
+      "indic-transcribe": 0.01
+    },
+    "bodhan_calls": 1,
+    "cache_hits": 89,
+    "bodhan_cost_basis": "published unit prices x metered quantity (audio seconds rounded up per request, output tokens from usage, input characters, images); provider dashboard is authoritative",
+    "llm": {
+      "calls": 4,
+      "prompt_tokens": 17863,
+      "completion_tokens": 1145,
+      "pricing": "not priced (no rate supplied); tokens reported only"
+    }
+  },
+  "llm": {
+    "model": "openai/gpt-oss-20b",
+    "endpoint_host": "api.groq.com",
+    "adaptations": []
+  },
+  "quality_targets": {
+    "latency": {
+      "kind": "single-step",
+      "target_s": 30,
+      "actual_s": 86.2,
+      "met": false,
+      "note": "missed by 56 s (86 s against 30 s); tool calls 2% of the time (1 s), mostly step 2 (create_subtitles, 1 s); planner replies 5% of the time (4 s) (4 calls); 94% of the time (81 s) outside tool calls and planner replies (planner retries and their waits, preflight, bookkeeping); 1 Bodhan requests (indic-transcribe 1)"
+    },
+    "budget": {
+      "max_inr": 20.0,
+      "counted_inr": 0.01,
+      "within_budget": true,
+      "note": null,
+      "scope": "Bodhan calls (billed + uncertain retries); LLM only if priced via --llm-*-inr-per-1m"
+    },
+    "no_waste": {
+      "cache_hits": 89,
+      "bodhan_requests": 1,
+      "retried_attempts": 0,
+      "note": "identical (model, input, settings) requests are served from the cache or shared while in flight; the only repeats are retries of a failed or timed-out attempt (rate limit, 5xx, timeout), counted here and traced as api_call events with attempt > 1"
+    },
+    "verification": {
+      "all_generated_audio_and_translations_checked": true,
+      "note": null
+    },
+    "honest_failure": "unassessed: code cannot judge whether the answer is truthful; see verification results and review the outputs"
+  },
+  "injection_warnings": [],
+  "paid_tool_calls": 1,
+  "version": "0.1.0"
+}

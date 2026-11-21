@@ -1,0 +1,37 @@
+{
+  "passed": 0,
+  "total": 1,
+  "pass_rate": 0.0,
+  "scored_at": "2026-11-21T13:21:22+05:30",
+  "code": {
+    "commit": "e783f6fa5c1f71ed78673c63a81e471f89325a2a",
+    "src_modified": false
+  },
+  "checks": "structural only (status, files, kinds, languages, verification, answer text, budget); not a quality score",
+  "tasks": [
+    {
+      "id": "h4_mixed_folder_to_english",
+      "demo": false,
+      "impossible": false,
+      "task": "Give me an English version of everything in this folder",
+      "evidence": "fresh",
+      "cache_mode": "shared cache",
+      "pass": false,
+      "fails": [
+        "status partial not in ['completed', 'completed_with_warnings']"
+      ],
+      "status": "partial",
+      "elapsed_s": 600.0,
+      "steps": 15,
+      "bodhan_inr": 0.0,
+      "cache_hits": 15,
+      "paid_calls": 0,
+      "llm_model": "openai/gpt-oss-120b",
+      "llm_tokens": 101574,
+      "latency_target_met": false,
+      "latency_kind": "multi-step",
+      "result": "outputs/groq_second_gpt-oss-120b_92a3518_h4/h4_mixed_folder_to_english/result.md",
+      "trace": "outputs/groq_second_gpt-oss-120b_92a3518_h4/h4_mixed_folder_to_english/trace.jsonl"
+    }
+  ]
+}

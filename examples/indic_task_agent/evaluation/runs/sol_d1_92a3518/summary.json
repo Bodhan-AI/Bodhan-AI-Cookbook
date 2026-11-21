@@ -1,0 +1,35 @@
+{
+  "passed": 1,
+  "total": 1,
+  "pass_rate": 1.0,
+  "scored_at": "2026-11-21T12:40:30+05:30",
+  "code": {
+    "commit": "e783f6fa5c1f71ed78673c63a81e471f89325a2a",
+    "src_modified": false
+  },
+  "checks": "structural only (status, files, kinds, languages, verification, answer text, budget); not a quality score",
+  "tasks": [
+    {
+      "id": "d1_chapter_tamil_audio",
+      "demo": true,
+      "impossible": false,
+      "task": "Make a two-minute Tamil audio summary of this chapter",
+      "evidence": "fresh",
+      "cache_mode": "shared cache",
+      "pass": true,
+      "fails": [],
+      "status": "completed_with_warnings",
+      "elapsed_s": 91.38,
+      "steps": 8,
+      "bodhan_inr": 1.0171,
+      "cache_hits": 43,
+      "paid_calls": 29,
+      "llm_model": "gpt-6.1-sol",
+      "llm_tokens": 60343,
+      "latency_target_met": true,
+      "latency_kind": "multi-step",
+      "result": "outputs/sol_d1_92a3518_normal/d1_chapter_tamil_audio/result.md",
+      "trace": "outputs/sol_d1_92a3518_normal/d1_chapter_tamil_audio/trace.jsonl"
+    }
+  ]
+}
