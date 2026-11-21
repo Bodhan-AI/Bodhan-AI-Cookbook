@@ -89,6 +89,12 @@ The composer defaults to **Estimate only**. It forces all Bodhan model tools to 
 
 See [task-agent architecture and evaluation](agent/README.md) for run isolation, concurrency semantics, benchmark design, current coverage, and next steps.
 
+## Recorded web UI sample
+
+The [20-second Brag preview](https://huggingface.co/datasets/1rsh/bodhan-setu-mcp-evals/resolve/main/demos/2026-11-21/bodhan-setu-brag.mp4) shows the local web UI translating the public [synthetic Hindi sample video](https://huggingface.co/datasets/1rsh/bodhan-setu-mcp-evals/resolve/main/media/video/hindi_interview.mp4) to Assamese. The original 6.485-second picture is preserved; the Bodhan call cost ₹0.06694. The agent marked the task partial because its advisory translation-quality review flagged the generated wording, so the clip labels it as a draft for Assamese-speaker review. The six task-agent demo reports and traces are linked in [demos/README.md](demos/README.md).
+
+The [1:27 assignment recording](https://huggingface.co/datasets/1rsh/bodhan-setu-mcp-evals/resolve/main/demos/2026-11-21/bodhan-setu-multitask-demo.mp4) combines this web UI run with the existing synthetic task-agent runs, including the unsupported-language honest stop.
+
 ## How it works
 
 The task agent uses the LLM for planning and tool selection, then runs tools through the local stdio MCP server. Python enforces file references, schemas, cost and step budgets, retries, checkpoints, and output verification. The [architecture diagram, agent-flow chart, and design notes](agent/README.md) explain those boundaries.

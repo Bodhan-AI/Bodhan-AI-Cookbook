@@ -2,6 +2,8 @@
 
 These runs used the existing public synthetic fixtures from the Hugging Face evaluation dataset and the task-agent CLI (`python -m bodhan_agent`). Paid model calls were dry-run estimated by the agent and bounded by each run’s `--max-cost-inr`. The planner was the locally configured `lfm2.5:8b`; Bodhan results and reported costs are taken from each run report. Cache-hit cases are identified explicitly.
 
+**Recorded assignment demo (1:27):** [watch the public headless-browser render](https://huggingface.co/datasets/1rsh/bodhan-setu-mcp-evals/resolve/main/demos/2026-11-21/bodhan-setu-multitask-demo.mp4). It combines the six task-agent runs below with the separate web UI Assamese video-translation run; that web run is documented in the parent [README](../README.md#recorded-web-ui-sample). The video includes an impossible unsupported-language request and clearly labels the partial Assamese result for human review.
+
 | Demo | Result | Status | Bodhan cost |
 | --- | --- | --- | --- |
 | **Unknown-language voice note transcription**<br>Transcribed the synthetic clip with no language supplied; the API did not report an identified-language label. | [result](runs/01-unknown-language-transcription/20261121-220706-transcribe-this-voice-note-the-language-is-unkno-01ee2d/result.md) · [report](runs/01-unknown-language-transcription/20261121-220706-transcribe-this-voice-note-the-language-is-unkno-01ee2d/report.json) · [trace](runs/01-unknown-language-transcription/20261121-220706-transcribe-this-voice-note-the-language-is-unkno-01ee2d/trace.jsonl) | completed | ₹0.004500 |

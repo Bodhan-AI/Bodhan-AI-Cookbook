@@ -77,9 +77,13 @@ The [demo index](demos/README.md) links each result, report, and trace. These se
 | Hindi translation and generated speech | Completed; Hindi WAV generated and back-transcribed for an advisory check. | [result](demos/runs/11-notice-hindi-speech-repaired/20261121-221744-translate-this-english-community-library-notice--f1f0a6/result.md) · [report](demos/runs/11-notice-hindi-speech-repaired/20261121-221744-translate-this-english-community-library-notice--f1f0a6/report.json) · [trace](demos/runs/11-notice-hindi-speech-repaired/20261121-221744-translate-this-english-community-library-notice--f1f0a6/trace.jsonl) |
 | Impossible request: translate to French | Correctly stopped as unsupported; zero Bodhan calls. | [result](demos/runs/08-impossible-unsupported-french/20261121-221356-translate-this-notice-into-french-96fe91/result.md) · [report](demos/runs/08-impossible-unsupported-french/20261121-221356-translate-this-notice-into-french-96fe91/report.json) · [trace](demos/runs/08-impossible-unsupported-french/20261121-221356-translate-this-notice-into-french-96fe91/trace.jsonl) |
 
+The web UI sample translates the [synthetic Hindi video](https://huggingface.co/datasets/1rsh/bodhan-setu-mcp-evals/resolve/main/media/video/hindi_interview.mp4) into an Assamese audio draft. The 6.485-second picture is preserved; the reported Bodhan cost is ₹0.066940. Its advisory translation-quality check flagged the wording, so the result is partial and should be reviewed by an Assamese speaker. The recording shows this run; the six task-agent run reports and traces are linked in [demos/README.md](demos/README.md).
+
 ## Demo video
 
-**Pending:** record and host a video of five minutes or less showing several tasks end to end, including the unsupported-language stop. Add a publicly accessible link here and to the [README](README.md) before submission.
+**Assignment demo (1:27):** [watch the public multi-task MP4](https://huggingface.co/datasets/1rsh/bodhan-setu-mcp-evals/resolve/main/demos/2026-11-21/bodhan-setu-multitask-demo.mp4). It was rendered in a headless browser from six existing synthetic task-agent run reports plus the live web UI video run. It demonstrates unknown-language transcription, multipage PDF OCR/cache reuse, untrusted OCR content, long-audio chunking and translation, Hindi speech synthesis, an unsupported French request stopping before Bodhan, and the partial Assamese video result with its review caveat. No additional model calls were made to create the recording. The source reports and traces are linked in [demos/README.md](demos/README.md).
+
+**20-second Brag preview:** [watch the public MP4](https://huggingface.co/datasets/1rsh/bodhan-setu-mcp-evals/resolve/main/demos/2026-11-21/bodhan-setu-brag.mp4). It focuses on the real web UI video-translation workflow.
 
 ## Trade-offs and known limitations
 
@@ -103,7 +107,10 @@ Costs are Bodhan-reported values from each demo's `report.json`; the two marked 
 | English notice translated to Hindi | ₹0.000000 (cache hit) | 15.568 s |
 | Hindi translation and generated speech | ₹0.112880 | 46.120 s |
 | Unsupported French request | ₹0.000000 | 0.353 s |
-| **Total** | **₹0.432427** | — |
+| Web UI Hindi video → Assamese audio draft (separate run) | ₹0.066940 | 65.316 s |
+| **Combined reported Bodhan total** | **₹0.499367** | — |
+
+The web UI run cost and runtime are separate from the seven task-agent CLI demo runs. Both figures exclude LLM provider cost; the local Ollama planner's cost was not metered.
 
 ## AI assistance
 
