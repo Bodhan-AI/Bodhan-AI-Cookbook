@@ -177,7 +177,7 @@ The flow chart and the reasons behind it are in [docs/design.md](docs/design.md)
 ## Tests
 
 ```bash
-pytest -q                                  # 293 offline tests, no network or keys needed
+pytest -q                                  # 295 offline tests, no network or keys needed
 python scripts/run_suite.py                # live self-evaluation of evaluation/tasks.json (exit 1 if any task fails)
 python scripts/run_suite.py --score-only --out evaluation/runs/sol_demos_cold --summary-dir /tmp/rescore   # re-score committed evidence offline
 ```
