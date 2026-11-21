@@ -1,0 +1,8 @@
+.env
+outputs/*
+!outputs/.gitkeep
+audio_cache/*
+!audio_cache/.gitkeep
+__pycache__/
+.cache/
+*.pyc
