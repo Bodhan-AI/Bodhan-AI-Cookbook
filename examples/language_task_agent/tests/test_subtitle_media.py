@@ -53,7 +53,16 @@ def test_readable_cues_preserve_words_and_cover_the_source_window():
     for cue in cues:
         assert 0 < cue["end"] - cue["start"] <= 6
         assert len(cue["text"].splitlines()) <= 2
-        assert all(len(line) <= 42 for line in cue["text"].splitlines())
+        assert all(len(line) <= 48 for line in cue["text"].splitlines())
+
+
+def test_dialogue_does_not_leave_a_tiny_tail_after_a_rushed_cue():
+    text = "I have to go to school, right? No, Mom, let's go to school. It's not an excuse, let's go."
+    cues = media.subtitle_cues(text, 4.94, 9.88)
+    assert len(cues) == 1
+    assert cues[0]["start"] == 4.94 and cues[0]["end"] == 9.88
+    assert " ".join(cues[0]["text"].split()) == text
+    assert len(cues[0]["text"].splitlines()) == 2
     assert all(a["end"] == b["start"] for a, b in zip(cues, cues[1:]))
 
 

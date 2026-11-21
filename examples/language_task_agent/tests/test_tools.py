@@ -352,7 +352,7 @@ async def test_subtitles_all_chunks_checked(tools, run):
     path = run.input_root / "note.wav"
     path.write_bytes(wav_bytes(55, 16000))
     result = await tools.call(
-        "subtitles", {"source": run.register(path, "input"), "source_language": "hi"}
+        "subtitles", {"source": run.register(path, "input"), "source_language": "hi", "timing_window_seconds": 20}
     )
     assert result["ok"] and result["segments"] == 3
     assert "00:00:50,000 --> 00:00:55,000" in run.resolve(result["ref"]).read_text()

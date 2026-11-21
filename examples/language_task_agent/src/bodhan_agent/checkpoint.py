@@ -18,6 +18,7 @@ def config_fingerprint():
             k: os.environ.get(k, "")
             for k in (
                 "BODHAN_CACHE_ONLY",
+                "BODHAN_MIN_INTERVAL_SECONDS",
                 "LLM_BASE_URL",
                 "LLM_MODEL",
                 "LLM_INPUT_INR_PER_MILLION",

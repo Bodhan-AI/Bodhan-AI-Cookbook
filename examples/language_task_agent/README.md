@@ -10,7 +10,7 @@ The original synthetic fixtures are supplemented by a licensed natural Hindi
 recording and a 115.456s Tamil summary. These are automated screens, not native-speaker
 certification or a hidden-task pass rate. Candidate review and rehearsal remain pending.
 
-[4:15 narrated walkthrough](https://github.com/BishalJena/Bodhan-AI-Cookbook/releases/download/tool-agent-film-20261121/bodhan-guided-demo.mp4) · [Original 1:38 terminal capture](https://github.com/BishalJena/Bodhan-AI-Cookbook/releases/download/tool-agent-review-20261121/demo_recording.mp4) · [Outputs, traces, inputs and ledger](https://github.com/BishalJena/Bodhan-AI-Cookbook/releases/tag/tool-agent-review-20261121) ·
+[4:15 narrated walkthrough](https://github.com/BishalJena/Bodhan-AI-Cookbook/releases/download/tool-agent-timing-20261121/bodhan-guided-demo.mp4) · [Original 1:38 terminal capture](https://github.com/BishalJena/Bodhan-AI-Cookbook/releases/download/tool-agent-review-20261121/demo_recording.mp4) · [Outputs, traces, inputs and ledger](https://github.com/BishalJena/Bodhan-AI-Cookbook/releases/tag/tool-agent-review-20261121) ·
 [Fresh review results](docs/REVIEW_RESULTS.md) · [Original demos](docs/DEMOS.md) · [Design](docs/DESIGN.md) ·
 [Acceptance](docs/ACCEPTANCE.md) · [Walkthrough](docs/WALKTHROUGH.md)
 
@@ -182,8 +182,15 @@ prove arbitrary wording, language, voice or semantic task satisfaction.
 
 The latest chapter MP3 measures 115.456s within the explicit 115–125s target;
 the earlier 90.88s output remains historical. The latest Hindi SRT covers a natural
-180s recording, replacing the earlier synthetic loop. Subtitle cue times are estimated within ASR windows, not word-aligned. Shared scripts can remain unknown. The original clip batch has a disclosed
-duplicate; the later supplement uses five distinct clips. [Current review results and
+180s recording, replacing the earlier synthetic loop. Subtitles retain 20s source
+context and use balanced windows of at most5s for Bodhan ASR timing anchors.
+Weak short-window alignment permits one wider Bodhan recognition pass, capped
+at twice the requested window and30s. Code aligns original source words, then translates/verifies plain
+phrases. Times remain estimates within those short windows, not word timestamps.
+Failed isolated translations may regroup at most two neighbouring source
+phrases; the combined translation must pass. Weak alignment or unresolved
+translation failure blocks output. Shared scripts can remain unknown. The original clip batch has a disclosed
+duplicate; the later supplement uses five distinct clips. [Subtitle timing correction](docs/SUBTITLE_TIMING.md) and [current review results and
 all failed attempts](docs/REVIEW_RESULTS.md) are documented. Fluent assessment
 belongs to the assignment's assessors; no completed native review is claimed.
 
@@ -197,7 +204,7 @@ make check
 python scripts/validate_recipe.py examples/language_task_agent
 ```
 
-143 local regression tests use fake model transports plus real media conversion
+158 local regression tests use fake model transports plus real media conversion
 and actual stdio subprocesses. Live evidence is separate. Cookbook recipe validation,
 lint and API rules pass. Exact `make check` fails on existing AndroidSpeak structure;
 the same failure is reproduced on untouched upstream SHA
@@ -208,7 +215,8 @@ and the cache-only subtitle replay. Native review and hidden-task accuracy remai
 unmeasured. [WALKTHROUGH.md](docs/WALKTHROUGH.md) prepares the candidate's own review
 and live-change rehearsal; it does not claim either has happened.
 
-The refreshed source has 143 tests, including four duration-range regressions
+The refreshed source has 158 tests, including source-aligned subtitle timing,
+four duration-range regressions
 and nine planner-control cases. [Latest review evidence](docs/REVIEW_RESULTS.md)
 records both completed supplements and all earlier misses. The previous 116-test
 snapshot and exhausted-budget response remain historical evidence.

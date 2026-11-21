@@ -1,4 +1,4 @@
-Current review update: [REVIEW_RESULTS.md](REVIEW_RESULTS.md) records the 37-cue
+Current review update: [REVIEW_RESULTS.md](REVIEW_RESULTS.md) records the corrected35-cue
 subtitle refinement, fresh suites and direct terminal recording. The earlier
 results below remain historical.
 

@@ -9,6 +9,7 @@ import wave
 import math
 import textwrap
 import time
+import difflib
 from pathlib import Path
 
 from .runtime import ToolError, digest
@@ -129,11 +130,114 @@ def audio_chunks(
     return segments
 
 
+def timing_audio_windows(path: Path, work: Path, seconds: int = 5) -> list[tuple[Path, float, float]]:
+    """Balanced exact PCM windows; the caller supplies an already decoded WAV."""
+    if type(seconds) is not int or not 5 <= seconds <= 30:
+        raise ToolError("audio_window", "Timing windows must be integer seconds between 5 and 30.")
+    folder = work / (digest(path.read_bytes())[:16] + f"_timing_{seconds}")
+    folder.mkdir(exist_ok=True)
+    windows = []
+    with wave.open(str(path), "rb") as source:
+        frames, rate = source.getnframes(), source.getframerate()
+        if not frames:
+            raise ToolError("invalid_media", "Timing source WAV is empty.")
+        count = math.ceil(frames / (seconds * rate))
+        start = 0
+        for index in range(count):
+            end = round(frames * (index + 1) / count)
+            target = folder / f"{index:05d}.wav"
+            with wave.open(str(target), "wb") as output:
+                output.setparams(source.getparams())
+                output.writeframes(source.readframes(end - start))
+            windows.append((target, start / rate, end / rate))
+            start = end
+    return windows
+
+
+def align_text_windows(reference: str, anchors: list[dict]) -> list[dict]:
+    """Copy contextual words into monotonic recognized windows, never invent times."""
+    words = reference.split()
+
+    def normalized(value):
+        return "".join(
+            c for c in unicodedata.normalize("NFKC", value).casefold()
+            if unicodedata.category(c)[0] in "LNM"
+        )
+
+    observed, owners = [], []
+    last = 0.0
+    for index, anchor in enumerate(anchors):
+        start, end = anchor["start"], anchor["end"]
+        if not math.isfinite(start) or not math.isfinite(end) or start < last or end <= start:
+            raise ToolError("subtitle_alignment", "Timing anchors must be finite and ordered.")
+        tokens = anchor["text"].split()
+        observed.extend(tokens)
+        owners.extend([index] * len(tokens))
+        last = end
+    if not words or not observed:
+        raise ToolError("subtitle_alignment", "Nonempty reference and recognized anchors are required.")
+    a, b = list(map(normalized, words)), list(map(normalized, observed))
+    if len(a) * len(b) > 250000:
+        raise ToolError("subtitle_alignment", "Timing anchor text exceeds the bounded alignment work limit.")
+    rows = [[j for j in range(len(b) + 1)]]
+    for i in range(1, len(a) + 1):
+        row = [i]
+        for j in range(1, len(b) + 1):
+            row.append(min(rows[-1][j - 1] + (a[i - 1] != b[j - 1]), rows[-1][j] + 1, row[-1] + 1))
+        rows.append(row)
+    mapping = [None] * len(a)
+    i, j, matched = len(a), len(b), 0
+    while i or j:
+        if i and j and rows[i][j] == rows[i - 1][j - 1] + (a[i - 1] != b[j - 1]):
+            mapping[i - 1] = owners[j - 1]
+            matched += a[i - 1] == b[j - 1]
+            i, j = i - 1, j - 1
+        elif i and rows[i][j] == rows[i - 1][j] + 1:
+            i -= 1
+        else:
+            j -= 1
+    if matched / max(len(a), len(b)) < 0.45:
+        raise ToolError("subtitle_alignment", "Recognized anchors do not sufficiently support the contextual text.")
+    # Missing contextual words follow the next recognized word, preserving articles
+    # with the following phrase; trailing words stay with the last supported window.
+    following = next((owner for owner in reversed(mapping) if owner is not None), None)
+    for index in reversed(range(len(mapping))):
+        if mapping[index] is None:
+            mapping[index] = following
+        else:
+            following = mapping[index]
+    grouped = [[] for _ in anchors]
+    for word, owner in zip(words, mapping):
+        if owner is None:
+            raise ToolError("subtitle_alignment", "A contextual word has no recognized timing anchor.")
+        grouped[owner].append(word)
+    # Edit-distance substitutions can strand a short sentence opening before its
+    # supported phrase. Keep that fragment with the following nonempty window;
+    # punctuation and original words supply the boundary, not language generation.
+    occupied = [index for index, tokens in enumerate(grouped) if tokens]
+    for previous, following in zip(occupied, occupied[1:]):
+        tokens = grouped[previous]
+        endings = [i for i, token in enumerate(tokens) if re.search(r"[.!?।॥][\"'’”)]*$", token)]
+        if endings:
+            boundary = endings[-1] + 1
+            if 0 < len(tokens) - boundary <= 2:
+                grouped[following][:0] = tokens[boundary:]
+                del tokens[boundary:]
+    result = []
+    for anchor, tokens in zip(anchors, grouped):
+        if tokens:
+            similarity = difflib.SequenceMatcher(None, list(map(normalized, tokens)), list(map(normalized, anchor["text"].split()))).ratio()
+            if similarity < 0.3:
+                raise ToolError("subtitle_alignment", "A timing anchor is too weak for its contextual phrase.")
+            result.append({"start": anchor["start"], "end": anchor["end"], "text": " ".join(tokens)})
+    return result
+
+
 def subtitle_cues(text: str, start: float, end: float) -> list[dict]:
     """Readable verbatim text with estimated timing, never word alignment."""
     if not math.isfinite(start) or not math.isfinite(end) or not 0 <= start < end:
         raise ToolError("subtitle_timing", "Subtitle source window must have positive finite duration.")
-    lines = textwrap.wrap(plain_text(text), 42, break_long_words=False, break_on_hyphens=False)
+    lines = textwrap.wrap(plain_text(text), 48, break_long_words=False, break_on_hyphens=False)
     if not lines:
         raise ToolError("empty_translation", "Cannot create a caption from empty translated text.")
     groups = [" ".join(lines[i:i + 2]) for i in range(0, len(lines), 2)]
@@ -156,7 +260,7 @@ def subtitle_cues(text: str, start: float, end: float) -> list[dict]:
         {
             "start": (first + round((last - first) * i / len(groups))) / 1000,
             "end": (first + round((last - first) * (i + 1) / len(groups))) / 1000,
-            "text": "\n".join(textwrap.wrap(value, 42, break_long_words=False, break_on_hyphens=False)),
+            "text": "\n".join(textwrap.wrap(value, 48, break_long_words=False, break_on_hyphens=False)),
         }
         for i, value in enumerate(groups)
     ]

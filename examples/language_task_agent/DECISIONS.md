@@ -749,13 +749,17 @@ and linked evidence; preserve prior releases/SHAs. That status reply does not
 authorize sending email. Native review belongs to assessors. Candidate review and
 rehearsal are not claimed. No development attribution or co-author trailer is added.
 
-## D051 - 2026-11-21 - Required assistance disclosure
+## D051 - 2026-11-21 - Owner authorizes the required assistance disclosure
 
-Document Codex use for implementation, review, tests, debugging, documentation
-and evaluation tooling in README and the assignment PR. Candidate understanding
-and rehearsal are not claimed. Automatic co-author trailers are not added.
-Current review references identify115.456s Tamil, natural180s Hindi and the later
-distinct clip batch; original reports and releases remain historical.
+The owner explicitly asks to resolve the missing brief disclosure and strengthen
+presentation, generalization evidence and output quality. This supersedes the
+earlier omission preference for a short README/PR assistance section. Name Codex
+and its actual use for implementation, review, tests, debugging, docs and evaluation
+tooling. Do not invent candidate review or add automated co-author trailers.
+Correct the native-review handoff to identify current115.456s Tamil/natural180s
+Hindi and the distinct later clip batch. Keep older reports/releases unchanged.
+Run fresh declared evaluations and improve actual outputs without claiming access
+to the assessors' hidden set or substituting a human native-language review.
 
 ## D052 - 2026-11-21 - Improve subtitle context and readable estimated cues
 
@@ -907,3 +911,90 @@ listening/explanation labels. All caption midpoints pass the150px control-band
 layout check. Two contrast warnings select canvasblue behind the white Tamil
 panel; actual encoded pixels show white, yielding6.49:1label/13.89:1body contrast.
 No visual change is needed. Standard contrast check is clean; retain both reports.
+
+## D058 - 2026-11-21 - Correct subtitle phrase timing after viewer feedback
+
+The owner hears the whole wrong-way heading begin where the film only shows
+“wash hands.” Confirm a real output defect: the old subtitle code spreads translated
+words evenly through a14.82s context, so the preceding words appear prematurely.
+Preserve that37-cue export and film as superseded evidence, not current quality.
+
+Use long-context Bodhan ASR, balanced <=5s exact-PCM recognition windows, and
+bounded monotonic source-word alignment. Copy source words verbatim; translate
+plain phrases through Bodhan with all existing verification.
+Return alignment evidence separately from translation checks. English translations
+are newly generated from anchored source phrases, not manually rewritten. A first
+approach matching separately translated English wording rejects valid paraphrases;
+retain that failed live attempt and replace the approach with source-only alignment.
+Never weaken verification merely to make the example pass. All times remain
+estimates within windows, not word timestamps or native semantic approval.
+
+Add fourteen synthetic regressions, including late speech, noisy anchors, bounded work,
+sample preservation, checked paraphrases, failure rejection and optional per-model
+pacing. Default dispatch spacing remains0; configured spacing applies per process,
+not across clients. Retain provider503/429 responses and accounting; explicit429
+is unbilled and can be retried after cooldown. Never retry ambiguous pending calls.
+The157-test suite and lint pass locally. Complete live/full-film validation and
+append measured results before publication. No email or payment action is implied.
+
+D058 implementation review: indexed-table anchor translation can lose row markup,
+including on a single-row request. Retain both failed table probes. Simplify the
+final method to checked plain-phrase translations; code alone owns structure. Do
+not suppress structural failures or delete failed verification records to claim
+completion. This also avoids fragile matching of English paraphrases.
+
+D058 context recovery: an isolated phrase can end mid-sentence and fail its screen.
+Permit regrouping at most two neighbouring source phrases within the same
+source context. Keep each rejected candidate/check in trace, publish only newly
+passing translations, and report the actual maximum translated-phrase span. Never
+merge the entire recording or bypass a failed combined check. Two additional
+regressions cover successful checked recovery and bounded failure.
+
+D058 pause handling: bound recovery by two source phrases, not their wall-clock
+span. An unmatched recognition window can lie between them (music/pause/noisy
+recognition); count each original assigned phrase once, retain that gap in audit,
+and report the measured combined span. Prefer following context to complete a
+trailing fragment. A thirteenth regression reproduces this real gap case.
+
+D058 recognition recovery: a5s ASR response near158s consists of repetitive marks,
+while long-context transcription contains the actual sentence. Retain the failure.
+Allow one wider Bodhan recognition pass per source context (2x requested window,
+capped30s); changed PCM content is a new bounded request, not a retry of the same
+billed payload. Both passes remain in alignment evidence. Report the actual
+maximum anchor size separately from the requested default. A fourteenth regression
+requires this recovery while preserving the full source words.
+
+D058 mixed recognition: the wider pass improves the first half of a context while
+its second half still has repetitive marks; retain good fine windows elsewhere.
+Enumerate only complete nonoverlapping partitions from the two code-owned passes
+(at most8 alternatives for a30s context), preferring fewer wider replacements.
+Every candidate still faces the same lexical alignment thresholds. The synthetic
+recovery regression now requires mixed10s/5s/5s evidence. An initial missing import
+in this path is caught by the regression; retain its zero-dispatch MCP failure.
+
+D058 full live result: real Bodhan MCP returns40cues/36accepted anchors/29passing
+translation checks across180s. Source words are all retained; max5s cues,2lines,
+42characters. Wrong-way phrase starts9.880s as the viewer expects. One context
+uses mixed10s/5s/5s recognition; largest translated phrase spans13.8684375s.
+Retain caption-free intervals and estimated subdivisions. Final tool call66.688s
+with INR0.0164878125new cost is cache-assisted, not cold latency. The client's
+post-generation read exceeds8000limit and is rejected; retain it and validate
+the completed artifact independently. Follow with a real cache-only CLI replay.
+
+D058 final readability: frame QA flags17words in2.47s followed by a tiny dialogue
+tail. Increase the two-line wrap limit from42to48characters so the complete
+89-character dialogue holds for its4.94s recognized interval. Do not slow or
+retime source audio. A failing regression reproduces this. The final158-test
+source creates35cues, with the same source words/translations and29passing
+checks; all cues remain<=5s. The intermediate40-cue/42-character export is kept.
+Regenerate through the real MCP in enforced cache-only mode, adding no model cost.
+
+D058 final export: actual cache-only CLI24922d6 completes3.999s/INR0and publishes
+the same35-cue SRT. All158tests/lint pass locally and in both Linux containers.
+Current scene/caption QA has0errors/0warnings. Independent visual review finds
+no confirmed P0/P1. Rebuild the film/three VoiceStudio takes and compensate5ms
+limiter latency in the audio master. Decode from the start for exact waveform
+comparison; fast seeking AAC gave a misleading probe. Final encoded excerpts
+match originals at zero lag (correlations>0.9998), with no speed change. Keep
+all raw probes and releases. Additional correction accounting INR0.5004153125;
+lifetime known/reserved INR17.8665852083, not wallet balance.

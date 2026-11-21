@@ -1,4 +1,6 @@
-Current video-production accounting: [DEMO_FILM.md](DEMO_FILM.md) adds INR0.4586133333 for narrator QA; lifetime known/reserved INR17.3661698958. Earlier task-phase accounting below remains historical.
+Current subtitle-correction accounting: [SUBTITLE_TIMING.md](SUBTITLE_TIMING.md) and the linked release retain all attempts. New timing work plus3replacement narrator checks add INR0.5004153125; lifetime known/reserved INR17.8665852083, not wallet balance.
+
+Previous video-production accounting: [DEMO_FILM.md](DEMO_FILM.md) adds INR0.4586133333 for narrator QA; lifetime known/reserved INR17.3661698958. Earlier task-phase accounting below remains historical.
 
 # Cost accounting and retained failures
 

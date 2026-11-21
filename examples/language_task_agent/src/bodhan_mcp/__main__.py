@@ -124,10 +124,11 @@ async def ocr(
 async def subtitles(
     source: str, target_language: str = "en", source_language: str | None = None,
     window_seconds: int = 20,
+    timing_window_seconds: int = 5,
 ) -> SubtitlesResult | ErrorResult:
     return await safe_call(
         "subtitles",
-        {"source": source, "target_language": target_language, "source_language": source_language, "window_seconds": window_seconds},
+        {"source": source, "target_language": target_language, "source_language": source_language, "window_seconds": window_seconds, "timing_window_seconds": timing_window_seconds},
     )
 
 

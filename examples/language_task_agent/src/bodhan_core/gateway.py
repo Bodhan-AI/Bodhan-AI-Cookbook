@@ -22,6 +22,7 @@ class Gateway:
         self.run = run
         self.client = httpx.AsyncClient(transport=transport, follow_redirects=False)
         self.last_planner_dispatch = 0.0
+        self.last_model_dispatch: dict[str, float] = {}
         self.lock = asyncio.Lock()  # concurrency limit = 1, including reservations
         self.cache_dir = run.output.parent / ".bodhan-cache"
         self.cache_dir.mkdir(mode=0o700, exist_ok=True)
@@ -112,6 +113,21 @@ class Gateway:
                         self.run.event("planner_pacing", seconds=round(delay, 3))
                         await asyncio.sleep(delay)
                     self.last_planner_dispatch = time.monotonic()
+                else:
+                    try:
+                        interval = float(os.environ.get("BODHAN_MIN_INTERVAL_SECONDS", "0"))
+                    except ValueError:
+                        interval = float("nan")
+                    if not math.isfinite(interval) or not 0 <= interval <= 60:
+                        raise ToolError("model_config", "Model interval must be finite and between 0 and 60 seconds.")
+                    delay = max(0, self.last_model_dispatch.get(model, 0) + interval - time.monotonic())
+                    if delay >= self.run.remaining_time():
+                        raise ToolError("time_budget", "Model pacing exceeds remaining run time.")
+                    self.run.check_window(delay + self.run.limits.call_timeout + 2)
+                    if delay:
+                        self.run.event("model_pacing", model=model, seconds=round(delay, 3))
+                        await asyncio.sleep(delay)
+                    self.last_model_dispatch[model] = time.monotonic()
                 self.run.check_window(self.run.limits.call_timeout + 2)
                 index = self.run.reserve(reserve, model)
                 # Exclusive creation prevents two processes from dispatching the same input.

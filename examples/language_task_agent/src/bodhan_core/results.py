@@ -95,6 +95,9 @@ class SubtitlesResult(Result):
     segments: int
     cues: int
     timing: str
+    timing_anchors: int
+    timing_verification: dict
+    alignment_ref: str
 
 
 OUTPUT_MODELS = {

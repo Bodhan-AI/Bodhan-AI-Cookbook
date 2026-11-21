@@ -39,6 +39,7 @@ def fake_credentials(monkeypatch):
     monkeypatch.delenv("LLM_REASONING_EFFORT", raising=False)
     monkeypatch.delenv("LLM_MAX_OUTPUT_TOKENS", raising=False)
     monkeypatch.setenv("BODHAN_CACHE_ONLY", "0")
+    monkeypatch.setenv("BODHAN_MIN_INTERVAL_SECONDS", "0")
     for name, value in {
         "BODHAN_MAX_COST_INR": "20",
         "BODHAN_MAX_STEPS": "30",

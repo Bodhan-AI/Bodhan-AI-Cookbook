@@ -24,8 +24,8 @@ The final evidence contains the exact inputs/outputs/hashes for review:
 - Telugu: the later five-clip batch has distinct hashes; clips1/4 are selected
   with script evidence and verbatim English translations. The older duplicate
   fixture is historical. Ambiguous shared scripts remain unknown.
-- Hindi: a licensed continuous natural180s recording; 37 readable SRT cues
-  cover 0–180s with estimated timing. The earlier synthetic loop remains historical.
+- Hindi: a licensed continuous natural180s recording; 35readable SRT cues after processing the full180s; source anchors, caption-free
+  intervals and estimated phrase timing are disclosed. The earlier synthetic loop remains historical.
 - Bengali:8.96s Ishita WAV plus source/text, with the partial/corrected lineage.
 
 A fluent reviewer should compare source/target meaning, names/numbers, omissions,

@@ -7,22 +7,24 @@ This is declared development evaluation, not access to the assessors' hidden set
 
 ## Output quality
 
-The current natural Hindi SRT has **37 contiguous cues covering 0–180s**, maximum
-**5 seconds, two lines and 42 characters per line**. The earlier eight-window SRT
-remains historical. All ten source-window translation checks pass. The fresh run
-uses Bodhan ASR/translation and takes **84.061s / INR0.3135721875**.
+The corrected natural Hindi SRT has **35 cues** after processing the full180s,
+with **36accepted recognition anchors and29passing final translation checks**.
+The complete wrong-way heading begins at9.880s. Cues stay within5s, two lines and
+48characters. Three caption-free intervals remain visible in the audit.
 
-ASR defaults remain 25s; callers may request 5–30s. Subtitle default 20s uses detected
-pauses when available. On this recording, an initial 14.82s pause separates the
-wrong/correct headings. English review confirms those labels now remain separate;
-the old “clothes on our hands” wording is replaced by “germs.” Code wraps the
-unchanged Bodhan translation words, with no manual language correction.
+Code matches contextual source words against short Bodhan ASR, then translates
+and checks the anchored phrases. One later context needs mixed10s/5s/5s recognition
+because a short response is repetitive noise. Failed isolated translations may
+use at most two neighbouring source phrases; the longest resulting phrase spans
+13.8684375s, with estimated readable subdivisions. These are not word timestamps.
+All contextual source words are retained. See [timing audit](SUBTITLE_TIMING.md).
 
-An earlier 30s experiment and a contextual-table probe pass lexical checks but
-misstate the contrast. They remain retained and are rejected by later quality
-review. Model checks are screens, not semantic proof. Cue times are estimated
-subdivisions of ASR windows, never word alignment. Native-language assessment
-remains with the assignment's reviewers.
+The earlier37-cue run (84.061s/INR0.3135721875) passed translation checks but failed
+later viewer timing review; preserve it and the original film as superseded evidence.
+Earlier30s/context-table experiments and all new failed probes remain retained.
+The final real MCP correction is66.688s/INR0.0164878125incremental with cache use;
+that is not cold latency or total development cost. Model checks do not certify
+meaning or native-language quality.
 
 Tamil remains the verified 115.456s MP3, with matching source/text and nine passed
 back-ASR chunk checks. The fresh suite also adds a new two-page OCR register with
@@ -68,7 +70,7 @@ the existing free Flash-Lite with medium effort/4096 output tokens.
 
 Exact JSON comparison checks both values and shape, so merely mentioning the
 expected numbers cannot pass. Prose checks and generated-artifact verification
-remain independent. All 142 regression tests and lint pass locally and in both
+remain independent. The earlier142-test snapshot passed locally and in both
 Linux containers (amd64 emulated); mocks and real model evidence are distinct.
 
 ## Presentation and provenance
@@ -95,7 +97,12 @@ unchanged; exported provider identifiers may be redacted with both checksums kep
 Previous releases and source commits remain historical. No email has been sent
 from this workspace.
 
-A final frame-accounting regression brings the source suite to143tests. ASR
+The earlier frame-accounting regression brought that snapshot to143tests. ASR
 reservations now use the actual WAV frame count/rate rather than subtracting
 floating-point timestamps. The142-test terminal capture and all original model
 reports remain unchanged; only accounting precision changes in the final source.
+
+The timing-correction source has158regression tests. New subtitle and video
+production attempts add INR0.5004153125, bringing lifetime known/reserved accounting
+to INR17.8665852083. This includes failed timing probes and3replacement narrator
+checks, in addition to the earlier film QA. It is not wallet balance.
