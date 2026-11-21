@@ -1,16 +1,19 @@
-"""
-CLI entry helpers for the narrated-lesson pipeline.
-Parses command-line flags and prepares the output folder layout.
+"""CLI entry helpers for the narrated-lesson pipeline.
 
+Parses command-line flags, prepares page images, and writes a stub report.
 """
+
 from __future__ import annotations
 
 import argparse
 import json
 from pathlib import Path
 
+from bodhan_lesson.render_pages import prepare_page_images
+
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    """Read CLI flags into a simple args object."""
     parser = argparse.ArgumentParser(
         prog="bodhan_lesson",
         description="Scanned chapter → translated, narrated lesson (Bodhan Assignment 2).",
@@ -42,19 +45,26 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 
 def ensure_output_dirs(out_dir: Path, langs: list[str]) -> None:
-    """Create the output layout the assignment expects (empty shells for now)."""
+    """Create the output layout the assignment expects."""
     (out_dir / "source" / "pages").mkdir(parents=True, exist_ok=True)
     for lang in langs:
         lang_dir = out_dir / lang
         (lang_dir / "narration").mkdir(parents=True, exist_ok=True)
 
 
-def write_stub_report(out_dir: Path, args: argparse.Namespace, langs: list[str]) -> Path:
+def write_stub_report(
+    out_dir: Path,
+    args: argparse.Namespace,
+    langs: list[str],
+    page_count: int,
+) -> Path:
+    """Write a starter report.json (filled more in later phases)."""
     report = {
-        "status": "stub",
-        "phase": 0,
-        "message": "CLI skeleton only — pipeline not implemented yet",
+        "status": "pages_ready",
+        "phase": 1,
+        "message": "Page images prepared — OCR/translate/narration not implemented yet",
         "input": str(Path(args.input).resolve()),
+        "page_count": page_count,
         "langs": langs,
         "source_lang": args.source_lang,
         "code_mixed": bool(args.code_mixed),
@@ -71,6 +81,7 @@ def write_stub_report(out_dir: Path, args: argparse.Namespace, langs: list[str])
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Run Phase 0+1: parse flags, prepare page images, write stub report."""
     args = parse_args(argv)
 
     input_path = Path(args.input)
@@ -81,15 +92,20 @@ def main(argv: list[str] | None = None) -> int:
         print("error: --langs must list at least one language code, e.g. hi,ta,bn")
         return 2
 
-    if not input_path.exists():
-        # Phase 0: warn but still create stub dirs so you can test the CLI wiring
-        print(f"warning: input path does not exist yet: {input_path}")
-
     ensure_output_dirs(out_dir, langs)
-    report_path = write_stub_report(out_dir, args, langs)
+    pages_dir = out_dir / "source" / "pages"
 
-    print(f"Phase 0 OK")
+    try:
+        page_paths = prepare_page_images(input_path, pages_dir)
+    except (FileNotFoundError, ValueError, RuntimeError) as exc:
+        print(f"error: {exc}")
+        return 2
+
+    report_path = write_stub_report(out_dir, args, langs, page_count=len(page_paths))
+
+    print("Phase 1 OK")
     print(f"  input : {input_path}")
+    print(f"  pages : {len(page_paths)} -> {pages_dir}")
     print(f"  langs : {langs}")
     print(f"  out   : {out_dir.resolve()}")
     print(f"  report: {report_path}")
