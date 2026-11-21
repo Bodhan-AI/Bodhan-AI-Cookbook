@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import base64
 import logging
+import math
 import mimetypes
 import os
 from pathlib import Path
@@ -213,6 +214,68 @@ def _parse_error_response(response: httpx.Response) -> BodhanAPIError:
     )
 
 
+def _parse_ocr_blocks(raw_blocks: Any) -> list[OCRBlock]:
+    """Parse raw layout blocks from OCR API response, validating metadata and preserving float precision."""
+    if not isinstance(raw_blocks, list):
+        return []
+
+    parsed_blocks: list[OCRBlock] = []
+    for b in raw_blocks:
+        if not isinstance(b, dict):
+            continue
+
+        raw_order = b.get("order")
+        if isinstance(raw_order, bool):
+            order = 0
+        elif isinstance(raw_order, int):
+            order = raw_order
+        elif isinstance(raw_order, str) and raw_order.isdigit():
+            order = int(raw_order)
+        else:
+            order = 0
+
+        raw_label = b.get("label")
+        label = str(raw_label) if raw_label is not None else "unknown"
+
+        raw_type = b.get("type")
+        block_type = str(raw_type) if raw_type is not None else None
+
+        raw_bbox = b.get("bbox_xyxy")
+        bbox: list[float | int] | None = None
+        if isinstance(raw_bbox, (list, tuple)) and len(raw_bbox) == 4:
+            valid = True
+            coords: list[float | int] = []
+            for coord in raw_bbox:
+                if isinstance(coord, bool) or not isinstance(coord, (int, float)) or not math.isfinite(coord):
+                    valid = False
+                    break
+                coords.append(coord)
+            if valid:
+                bbox = coords
+
+        raw_conf = b.get("conf")
+        conf: float | None = None
+        if raw_conf is not None and not isinstance(raw_conf, bool) and isinstance(raw_conf, (int, float)):
+            if math.isfinite(raw_conf) and 0.0 <= raw_conf <= 1.0:
+                conf = float(raw_conf)
+
+        raw_text = b.get("text")
+        text_str = str(raw_text) if raw_text is not None else ""
+
+        parsed_blocks.append(
+            OCRBlock(
+                order=order,
+                label=label,
+                type=block_type,
+                bbox_xyxy=bbox,
+                conf=conf,
+                text=text_str,
+                raw=b,
+            )
+        )
+    return parsed_blocks
+
+
 class BodhanClient:
     """Synchronous HTTP client for Bodhan AI services.
 
@@ -420,39 +483,7 @@ class BodhanClient:
         finish_reason = choice.get("finish_reason")
         truncated = bool(finish_reason == "length")
 
-        raw_blocks = data.get("blocks", [])
-        parsed_blocks: list[OCRBlock] = []
-        if isinstance(raw_blocks, list):
-            for b in raw_blocks:
-                if isinstance(b, dict):
-                    raw_conf = b.get("conf")
-                    try:
-                        conf = float(raw_conf) if raw_conf is not None else None
-                    except (TypeError, ValueError):
-                        conf = None
-
-                    raw_bbox = b.get("bbox_xyxy")
-                    if isinstance(raw_bbox, (list, tuple)) and len(raw_bbox) == 4:
-                        try:
-                            bbox = [int(coord) for coord in raw_bbox]
-                        except (TypeError, ValueError):
-                            bbox = None
-                    else:
-                        bbox = None
-
-                    raw_text = b.get("text")
-                    text_str = str(raw_text) if raw_text is not None else ""
-
-                    parsed_blocks.append(
-                        OCRBlock(
-                            order=int(b.get("order") or 0) if str(b.get("order", 0)).isdigit() else 0,
-                            label=str(b.get("label") or "unknown"),
-                            bbox_xyxy=bbox,
-                            conf=conf,
-                            text=text_str,
-                            raw=b,
-                        )
-                    )
+        parsed_blocks = _parse_ocr_blocks(data.get("blocks", []))
 
         return OCRResponse(
             text=content,
@@ -843,39 +874,7 @@ class BodhanAsyncClient:
         finish_reason = choice.get("finish_reason")
         truncated = bool(finish_reason == "length")
 
-        raw_blocks = data.get("blocks", [])
-        parsed_blocks: list[OCRBlock] = []
-        if isinstance(raw_blocks, list):
-            for b in raw_blocks:
-                if isinstance(b, dict):
-                    raw_conf = b.get("conf")
-                    try:
-                        conf = float(raw_conf) if raw_conf is not None else None
-                    except (TypeError, ValueError):
-                        conf = None
-
-                    raw_bbox = b.get("bbox_xyxy")
-                    if isinstance(raw_bbox, (list, tuple)) and len(raw_bbox) == 4:
-                        try:
-                            bbox = [int(coord) for coord in raw_bbox]
-                        except (TypeError, ValueError):
-                            bbox = None
-                    else:
-                        bbox = None
-
-                    raw_text = b.get("text")
-                    text_str = str(raw_text) if raw_text is not None else ""
-
-                    parsed_blocks.append(
-                        OCRBlock(
-                            order=int(b.get("order") or 0) if str(b.get("order", 0)).isdigit() else 0,
-                            label=str(b.get("label") or "unknown"),
-                            bbox_xyxy=bbox,
-                            conf=conf,
-                            text=text_str,
-                            raw=b,
-                        )
-                    )
+        parsed_blocks = _parse_ocr_blocks(data.get("blocks", []))
 
         return OCRResponse(
             text=content,

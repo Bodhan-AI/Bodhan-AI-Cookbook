@@ -740,3 +740,137 @@ def test_token_parameter_validation_and_payload_isolation() -> None:
         client.ocr(PNG_HEADER, max_tokens=300)
         assert recorded_requests[-1]["max_tokens"] == 300
         assert "max_output_tokens" not in recorded_requests[-1]
+
+
+def test_ocr_block_metadata_integrity_and_float_precision() -> None:
+    """Verify OCRBlock preserves type, float coordinates, valid confidence, and handles malformed metadata."""
+    mock_payload = {
+        "choices": [{"message": {"content": "# Extracted Markdown"}}],
+        "blocks": [
+            # 1. Full valid block with float coordinates and type
+            {
+                "order": 1,
+                "label": "title",
+                "type": "header_block",
+                "bbox_xyxy": [12.5, 24.75, 300.125, 80.5],
+                "conf": 0.985,
+                "text": "Heading Text",
+            },
+            # 2. Block with missing type, null confidence, integer coords
+            {
+                "order": 2,
+                "label": "paragraph",
+                "bbox_xyxy": [10, 20, 100, 200],
+                "conf": None,
+                "text": "Paragraph text",
+            },
+            # 3. Block with invalid confidence (> 1.0, < 0.0, bool, non-numeric)
+            {
+                "order": 3,
+                "label": "table",
+                "type": "table",
+                "bbox_xyxy": [0, 0, 100, 100],
+                "conf": 1.5,  # Out of range -> should become None
+                "text": "Table text",
+            },
+            {
+                "order": 4,
+                "label": "formula",
+                "bbox_xyxy": [0, 0, 100, 100],
+                "conf": True,  # Boolean -> should become None
+                "text": "Formula text",
+            },
+            # 4. Block with malformed bbox (bool coord, wrong length, non-numeric)
+            {
+                "order": 5,
+                "label": "bad_bbox_bool",
+                "bbox_xyxy": [True, 10.0, 20.0, 30.0],
+                "conf": 0.5,
+                "text": "Bad bbox bool",
+            },
+            {
+                "order": 6,
+                "label": "bad_bbox_len",
+                "bbox_xyxy": [10, 20, 30],
+                "conf": 0.5,
+                "text": "Bad bbox length",
+            },
+            # 5. Non-dictionary blocks (must be skipped without crashing)
+            None,
+            "corrupted_block_string",
+            123,
+            # 6. Block with null text and missing label
+            {
+                "order": 7,
+                "text": None,
+            },
+        ],
+    }
+
+    def handler(_: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json=mock_payload)
+
+    mock_client = httpx.Client(transport=httpx.MockTransport(handler), base_url="https://api.bodhan.ai")
+    with BodhanClient(api_key=DUMMY_KEY, http_client=mock_client) as client:
+        res = client.ocr(PNG_HEADER)
+
+    assert res.text == "# Extracted Markdown"
+    assert len(res.blocks) == 7  # 7 valid dict blocks, 3 non-dict skipped
+
+    b1 = res.blocks[0]
+    assert b1.order == 1
+    assert b1.label == "title"
+    assert b1.type == "header_block"
+    assert b1.bbox_xyxy == [12.5, 24.75, 300.125, 80.5]
+    assert isinstance(b1.bbox_xyxy[0], float)
+    assert b1.conf == 0.985
+    assert b1.text == "Heading Text"
+
+    b2 = res.blocks[1]
+    assert b2.type is None
+    assert b2.conf is None
+    assert b2.bbox_xyxy == [10, 20, 100, 200]
+
+    b3 = res.blocks[2]
+    assert b3.conf is None  # 1.5 rejected
+
+    b4 = res.blocks[3]
+    assert b4.conf is None  # True rejected
+
+    b5 = res.blocks[4]
+    assert b5.bbox_xyxy is None  # Boolean coordinate rejected
+
+    b6 = res.blocks[5]
+    assert b6.bbox_xyxy is None  # 3 coords rejected
+
+    b7 = res.blocks[6]
+    assert b7.text == ""
+    assert b7.label == "unknown"
+
+
+@pytest.mark.asyncio
+async def test_async_ocr_block_metadata_integrity() -> None:
+    """Verify async OCR parser has complete parity with sync layout block parsing."""
+    mock_payload = {
+        "choices": [{"message": {"content": "Async OCR Content"}}],
+        "blocks": [
+            {
+                "order": 1,
+                "label": "title",
+                "type": "heading",
+                "bbox_xyxy": [1.5, 2.5, 3.5, 4.5],
+                "conf": 0.92,
+                "text": "Async Title",
+            }
+        ],
+    }
+
+    mock_client = httpx.AsyncClient(transport=httpx.MockTransport(lambda _: httpx.Response(200, json=mock_payload)), base_url="https://api.bodhan.ai")
+    async with BodhanAsyncClient(api_key=DUMMY_KEY, http_client=mock_client) as client:
+        res = await client.ocr(PNG_HEADER)
+
+    assert len(res.blocks) == 1
+    block = res.blocks[0]
+    assert block.type == "heading"
+    assert block.bbox_xyxy == [1.5, 2.5, 3.5, 4.5]
+    assert block.conf == 0.92

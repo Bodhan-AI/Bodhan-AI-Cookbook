@@ -67,7 +67,7 @@ def test_loader_single_png_success(sample_png: Path) -> None:
     """Verify loading a single PNG image into a LangChain Document."""
     mock_payload = {
         "choices": [{"message": {"content": "# PNG Extracted Text"}}],
-        "blocks": [{"order": 1, "label": "header", "bbox_xyxy": [10, 10, 100, 30], "conf": 0.99, "text": "PNG Extracted Text"}],
+        "blocks": [{"order": 1, "label": "header", "type": "heading", "bbox_xyxy": [10.5, 10.25, 100.75, 30.5], "conf": 0.99, "text": "PNG Extracted Text"}],
     }
 
     def handler(request: httpx.Request) -> httpx.Response:
@@ -87,7 +87,11 @@ def test_loader_single_png_success(sample_png: Path) -> None:
     assert doc.metadata["total_pages"] == 1
     assert doc.metadata["model"] == "indic-ocr"
     assert len(doc.metadata["blocks"]) == 1
-    assert doc.metadata["blocks"][0]["label"] == "header"
+    block_meta = doc.metadata["blocks"][0]
+    assert block_meta["label"] == "header"
+    assert block_meta["type"] == "heading"
+    assert block_meta["bbox_xyxy"] == [10.5, 10.25, 100.75, 30.5]
+    assert block_meta["conf"] == 0.99
 
 
 def test_loader_single_jpeg_success(sample_jpeg: Path) -> None:

@@ -120,6 +120,7 @@ class BodhanOCRLoader(BaseLoader):
             serializable.append({
                 "order": b.order,
                 "label": b.label,
+                "type": b.type,
                 "bbox_xyxy": b.bbox_xyxy,
                 "conf": b.conf,
                 "text": b.text,

@@ -103,7 +103,8 @@ class OCRBlock:
     Attributes:
         order: Reading order sequence number.
         label: Semantic label (e.g., 'title', 'paragraph', 'table', 'figure').
-        bbox_xyxy: Pixel bounding box as [x1, y1, x2, y2].
+        type: Documented API block type (e.g., 'text', 'table', 'formula', or None).
+        bbox_xyxy: Pixel bounding box as [x1, y1, x2, y2] preserving numeric float precision.
         conf: Model confidence score between 0.0 and 1.0.
         text: Extracted text within the bounding block.
         raw: Full dictionary returned by the API for this block.
@@ -111,7 +112,8 @@ class OCRBlock:
 
     order: int
     label: str
-    bbox_xyxy: list[int] | None = None
+    type: str | None = None
+    bbox_xyxy: list[float | int] | None = None
     conf: float | None = None
     text: str = ""
     raw: dict[str, Any] = field(default_factory=dict)
