@@ -12,8 +12,10 @@ def sanitize_sensitive_text(text: str, max_chars: int = 200) -> str:
         return ""
     # Redact Bodhan/OpenAI-style keys
     sanitized = re.sub(r"\bsk-[A-Za-z0-9_-]{10,}\b", "sk-***[REDACTED]", text)
-    # Redact Bearer tokens
-    sanitized = re.sub(r"(Bearer\s+)[A-Za-z0-9_.-]+", r"\1***[REDACTED]", sanitized, flags=re.IGNORECASE)
+    # Redact Authorization Bearer tokens and headers
+    sanitized = re.sub(r"(?i)(bearer\s+)[A-Za-z0-9_.-]+", r"\1***[REDACTED]", sanitized)
+    sanitized = re.sub(r"(?i)(authorization['\":\s]+bearer\s+)[A-Za-z0-9_.-]+", r"\1***[REDACTED]", sanitized)
+    sanitized = re.sub(r"(?i)(api[_-]?key['\":\s]+)[A-Za-z0-9_.-]+", r"\1***[REDACTED]", sanitized)
     # Redact base64 data URLs
     sanitized = re.sub(r"data:image/[a-zA-Z0-9.+_-]+;base64,[A-Za-z0-9+/=]+", "data:image/...;base64,***[REDACTED]", sanitized)
     # Redact long bare base64 chunks
@@ -21,6 +23,45 @@ def sanitize_sensitive_text(text: str, max_chars: int = 200) -> str:
     if len(sanitized) > max_chars:
         sanitized = sanitized[:max_chars] + "..."
     return sanitized
+
+
+def sanitize_response_body(body: Any, max_string_chars: int = 200, max_items: int = 20) -> Any:
+    """Sanitize and bound raw response bodies stored on exceptions to prevent credential/payload leaks."""
+    if body is None:
+        return None
+
+    if isinstance(body, str):
+        return sanitize_sensitive_text(body, max_chars=max_string_chars)
+
+    if isinstance(body, dict):
+        sanitized_dict: dict[str, Any] = {}
+        for idx, (k, v) in enumerate(body.items()):
+            if idx >= max_items:
+                sanitized_dict["_truncated"] = f"... ({len(body) - max_items} more items truncated)"
+                break
+            k_lower = str(k).lower()
+            if any(secret in k_lower for secret in ("key", "token", "auth", "secret", "password", "bearer")):
+                sanitized_dict[str(k)] = "***[REDACTED]***"
+            elif any(img in k_lower for img in ("image", "image_url", "data_url")):
+                sanitized_dict[str(k)] = "data:image/...;base64,***[REDACTED]***"
+            elif isinstance(v, (dict, list)):
+                sanitized_dict[str(k)] = sanitize_response_body(v, max_string_chars=max_string_chars, max_items=10)
+            elif isinstance(v, str):
+                sanitized_dict[str(k)] = sanitize_sensitive_text(v, max_chars=max_string_chars)
+            else:
+                sanitized_dict[str(k)] = v
+        return sanitized_dict
+
+    if isinstance(body, list):
+        sanitized_list: list[Any] = []
+        for idx, item in enumerate(body):
+            if idx >= max_items:
+                sanitized_list.append(f"... ({len(body) - max_items} more items truncated)")
+                break
+            sanitized_list.append(sanitize_response_body(item, max_string_chars=max_string_chars, max_items=10))
+        return sanitized_list
+
+    return body
 
 
 class BodhanError(Exception):
@@ -58,7 +99,7 @@ class BodhanAPIError(BodhanError):
         self.status_code = status_code
         self.error_code = error_code
         self.request_id = request_id
-        self.response_body = response_body
+        self.response_body = sanitize_response_body(response_body)
 
     def __str__(self) -> str:
         details: list[str] = [self.message]

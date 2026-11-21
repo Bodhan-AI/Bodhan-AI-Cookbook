@@ -965,3 +965,42 @@ def test_image_input_validation_and_security(tmp_path: Path) -> None:
     with pytest.raises(BodhanValidationError) as exc:
         _prepare_image_data_url(webp_file)
     assert "Unsupported image format '.webp'" in str(exc.value)
+
+
+def test_exception_response_body_sanitization_and_bounded_diagnostics() -> None:
+    """Verify that BodhanAPIError sanitizes credentials and bounds arbitrary response bodies."""
+    dummy_key = "sk-" + "1234567890abcdef12345"
+    leakable_payload = {
+        "authorization": f"Bearer {dummy_key}",
+        "api_key": "my-secret-key-9999",
+        "image_url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+        "document_text": "A" * 1000,
+        "nested": {
+            "token": "secret_token_value",
+            "content": "Valid diagnostic message",
+        },
+        "large_list": list(range(50)),
+    }
+
+    err = BodhanAPIError(
+        message=f"API failure occurred with sensitive headers Authorization: Bearer {dummy_key}",
+        status_code=500,
+        response_body=leakable_payload,
+    )
+
+    # 1. Message string is sanitized
+    err_str = str(err)
+    assert dummy_key not in err_str
+    assert "Bearer ***[REDACTED]" in err_str
+
+    # 2. Response body dictionary is sanitized and bounded
+    body = err.response_body
+    assert isinstance(body, dict)
+    assert body["authorization"] == "***[REDACTED]***"
+    assert body["api_key"] == "***[REDACTED]***"
+    assert body["image_url"] == "data:image/...;base64,***[REDACTED]***"
+    assert len(body["document_text"]) <= 205
+    assert body["nested"]["token"] == "***[REDACTED]***"
+    assert body["nested"]["content"] == "Valid diagnostic message"
+    assert len(body["large_list"]) <= 21
+    assert "truncated" in str(body["large_list"][-1])

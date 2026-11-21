@@ -434,8 +434,14 @@ class BodhanClient:
 
     def close(self) -> None:
         """Close the underlying HTTP client if managed by this instance."""
-        if not self._custom_client:
+        if not self._custom_client and hasattr(self, "_client"):
             self._client.close()
+
+    def __del__(self) -> None:
+        try:
+            self.close()
+        except Exception:
+            pass
 
     def __enter__(self) -> BodhanClient:
         return self
@@ -838,7 +844,7 @@ class BodhanAsyncClient:
 
     async def aclose(self) -> None:
         """Close the underlying HTTP client if managed by this instance."""
-        if not self._custom_client:
+        if not self._custom_client and hasattr(self, "_client"):
             await self._client.aclose()
 
     async def __aenter__(self) -> BodhanAsyncClient:

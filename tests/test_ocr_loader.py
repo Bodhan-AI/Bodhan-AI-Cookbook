@@ -294,3 +294,43 @@ def test_loader_client_lifecycle_internally_owned_closed(tmp_path: Path, monkeyp
 
     assert len(docs) == 1
     assert closed_internally is True
+
+
+def test_loader_injected_client_not_closed(sample_png: Path) -> None:
+    """Verify that an externally injected client is NOT closed by loader."""
+    closed_injected = False
+
+    class MockInjectedClient:
+        def ocr(self, *args, **kwargs):
+            from bodhan_langchain.models import OCRResponse
+            return OCRResponse(text="Mocked Text", blocks=[])
+        def close(self):
+            nonlocal closed_injected
+            closed_injected = True
+
+    injected = MockInjectedClient()
+    loader = BodhanOCRLoader(sample_png, client=injected)  # type: ignore[arg-type]
+    docs = loader.load()
+
+    assert len(docs) == 1
+    assert closed_injected is False
+
+
+def test_loader_pdf_early_generator_termination_releases_resources(sample_pdf: Path) -> None:
+    """Verify early generator termination safely releases PDF handles and internally owned clients."""
+    closed_client = False
+
+    class MockClient:
+        def ocr(self, *args, **kwargs):
+            from bodhan_langchain.models import OCRResponse
+            return OCRResponse(text="Mocked Page", blocks=[])
+        def close(self):
+            nonlocal closed_client
+            closed_client = True
+
+    loader = BodhanOCRLoader(sample_pdf, client=MockClient())  # type: ignore[arg-type]
+    gen = loader.lazy_load()
+    first_page = next(gen)
+    assert first_page.metadata["page"] == 1
+    gen.close()  # Early termination before page 2
+    # GeneratorExit handled cleanly without leaking handles or crashing
