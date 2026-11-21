@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from bodhan_mcp.pricing import cost_ocr, cost_speak, cost_transcribe, cost_translate
-from bodhan_mcp.rules import is_language_supported, resolve_language
+from bodhan_mcp.rules import is_language_supported, resolve_language, select_voice, supported_styles
 from bodhan_mcp.schemas import FileFact
 from bodhan_mcp.text_utils import contains_indic_script
 
@@ -300,6 +300,26 @@ def compile_plan(
                         )
                 # Normalize language argument to canonical ISO code!
                 step.args[lang_key] = iso
+
+        # Static validation of synthesize_speech style and voice against vendored Bodhan rules.
+        if step.tool == "synthesize_speech":
+            raw_style = step.args.get("style")
+            if isinstance(raw_style, str) and raw_style.strip():
+                allowed_styles = supported_styles()
+                lower_styles = {s.lower(): s for s in allowed_styles}
+                if raw_style.strip().lower() not in lower_styles:
+                    errors.append(
+                        f"Step '{step.id}' (synthesize_speech): unsupported style '{raw_style}'. "
+                        f"Omit 'style' for default narration, or choose one of: {allowed_styles}."
+                    )
+                else:
+                    step.args["style"] = lower_styles[raw_style.strip().lower()]
+            raw_voice = step.args.get("voice")
+            lang_for_voice = step.args.get("language")
+            if isinstance(raw_voice, str) and raw_voice.strip() and isinstance(lang_for_voice, str):
+                _, v_err = select_voice(lang_for_voice, voice=raw_voice)
+                if v_err:
+                    errors.append(f"Step '{step.id}' (synthesize_speech): {v_err}")
 
         # Scope lock on file paths & output filenames.
         for arg_k, arg_v in step.args.items():

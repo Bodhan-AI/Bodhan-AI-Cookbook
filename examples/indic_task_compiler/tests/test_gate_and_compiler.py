@@ -129,6 +129,16 @@ async def test_compiler_enforces_scope_lock_and_rejects_planner_indic_text(tmp_p
         compile_plan(bad_field_plan, task_spec=spec, file_facts=[fact], probe_facts=[], tool_catalog=catalog, allowed_inputs={inp.resolve()})
     assert "invalid field '$s1.wrong_field'" in " ".join(ei4.value.errors)
 
+    # 5. Unsupported synthesize_speech style rejected at compile time!
+    bad_style_plan = RawPlan(
+        steps=[
+            PlanStep(id="s1", tool="synthesize_speech", args={"path": str(inp), "language": "ta", "style": "neutral"}),
+        ]
+    )
+    with pytest.raises(PlanCompileError) as ei5:
+        compile_plan(bad_style_plan, task_spec=spec, file_facts=[fact], probe_facts=[], tool_catalog=catalog, allowed_inputs={inp.resolve()})
+    assert "unsupported style 'neutral'" in " ".join(ei5.value.errors)
+
 
 async def test_compiler_infers_parallel_waves_foreach_and_auto_verify_speech(tmp_path: Path) -> None:
     catalog = await _full_catalog()
