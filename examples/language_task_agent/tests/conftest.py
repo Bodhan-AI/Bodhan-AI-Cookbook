@@ -36,6 +36,8 @@ def fake_credentials(monkeypatch):
     # Keep mocked tests independent; individual configuration tests override these.
     monkeypatch.setenv("LLM_MIN_INTERVAL_SECONDS", "0")
     monkeypatch.setenv("LLM_TOKEN_LIMIT_FIELD", "max_tokens")
+    monkeypatch.delenv("LLM_REASONING_EFFORT", raising=False)
+    monkeypatch.delenv("LLM_MAX_OUTPUT_TOKENS", raising=False)
     monkeypatch.setenv("BODHAN_CACHE_ONLY", "0")
     for name, value in {
         "BODHAN_MAX_COST_INR": "20",

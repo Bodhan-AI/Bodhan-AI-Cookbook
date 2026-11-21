@@ -1,6 +1,8 @@
-# Selected technical decision history
+# Decision log (append only)
 
-Technical excerpts from the complete private append-only log. Omitted entries concern private development administration; numbering is preserved. Current acceptance is in docs/ACCEPTANCE.md.
+New entries may supersede an earlier choice. Keep the earlier entry and link the
+replacement. This record explains what changed and why, not a retrospective story
+that everything worked first time.
 
 ## D001 - 2026-11-16 - Small shared Python core
 
@@ -67,6 +69,20 @@ AndroidSpeak structure. Reproduced on untouched upstream SHA
 `ae51852960911cc78bd71401842308ecc5217510`. Do not modify unrelated files or claim all
 checks passed. Record baseline failure and the recipe's separate evidence.
 
+## D010 - 2026-11-16 - Account/credit scope changed by the owner
+
+Initially private code and mock tests only. The owner later selected one Bodhan
+account, then explicitly allowed available development-credit use without per-call
+approval. One account was created and confirmed to have INR 10 with INR 0 used.
+No card/top-up/out-of-pocket payment or paid planner is included. Additional accounts
+are not needed now. No public repo/PR/submission/email has been authorized.
+
+## D011 - 2026-11-16 - Candidate-readable project continuity
+
+Owner requested exact `AGENTS.md`, full selected `assignments.md`, and append-only
+`DECISIONS.md`. Added them alongside the design, acceptance map and interview guide.
+These are instructions/history for this project, not claims of completed live demos.
+
 ## D012 - 2026-11-16 - Live translation transport overrides stale docs
 
 The first real probe OCR succeeded, but native `POST /translate` returned HTTP 404.
@@ -78,6 +94,17 @@ checks and normalized response shape. Updated fake transport tests to that contr
 The previously successful OCR was read from cache, not billed again. This supersedes
 the initial native-route preference from public docs/Cookbook. Keep the mismatch
 visible; do not claim documentation and production were identical.
+
+## D013 - 2026-11-16 - First real four-model probe is evidence, not completion
+
+Original synthetic English page -> Bodhan OCR -> Tamil translation -> Tamil TTS ->
+Bodhan back-ASR completed. Translation English-pivot similarity 0.8696; audio
+back-transcription similarity 1.0. These are automated checks, not native review.
+Total development ledger across three attempts: INR 0.2276289583; dashboard rounds
+it to INR 0.23 used / INR 9.77 remaining. No card/top-up, planner call or public upload.
+Only small adapters have real evidence. Six task-agent demos, planner compatibility,
+long-document output quality, video and candidate walkthrough are still pending.
+
 
 ## D014 - 2026-11-16 - Independent review corrections
 
@@ -98,6 +125,22 @@ Set verified conservative rates and provider-side limits before paid deployment.
 own execution uses only the approved verified free tier with zero configured rates.
 This supersedes the extra-variable requirement, not the no-paid-resource gate.
 
+## D015 - 2026-11-16 - Original, deterministic demo inputs
+
+Added a local generator for eight synthetic scanned teaching pages, worksheet table,
+paragraph and a silent one-second video. Original documents contain no personal data.
+Optional Hindi fixture loops the Cookbook sample to 180 seconds and copies its license.
+It is an artificial chunking fixture, NOT a natural three-minute note. A hash/rights
+manifest distinguishes these inputs. Worksheet and chapter rendering were visually
+inspected. Generated media remains git-ignored; no model call is needed to create it.
+
+Bengali-script detection remains intentionally unknown without a hint because Assamese
+shares it. Do not label Bengali confidently from that shared block alone. Speech now
+also returns an explicit warning on mismatched back-transcription. ASR reservations
+use exact submitted PCM duration under documented per-second pricing; rounding or
+changed vendor metering is not independently detectable without returned usage, so
+reconcile dashboard totals and never claim that local accounting proves vendor billing.
+
 ## D016 - 2026-11-16 - Bounded planner token-parameter negotiation
 
 Focused re-review accepted the critical/high corrections and asked for a safe default
@@ -112,6 +155,49 @@ and added session cleanup/account-budget caveats. Unknown-provider accounting st
 retains a conservative reservation (roughly INR 18 for a typical first planner turn)
 on uncertain billing under a default INR 20 limit; this is deliberate, not actual cost.
 
+
+## D017 - 2026-11-16 - Keep partial fixture failures and generation costs
+
+Prepared five numbered clips using verified Telugu/Tamil synthetic speech, existing
+licensed Cookbook Hindi, a Telugu speech chunk and verified English synthetic speech.
+Original Hindi translation request returned403 with an upstream authentication detail
+after adjacent calls succeeded using the same model key. No key rotation/new account
+or blind retry. Preserve that partial attempt. Fixture generation counts as real credit
+usage, not task-agent demos. All five development reports total INR0.3672891667; most
+recent dashboard reconciliation predates fixture prep. Held-out language labels stay
+outside input folders. Owner-approved free Gemini setup is awaiting Google phone
+verification, not yet a usable planner. No paid fallback or six-demo claim.
+
+## D018 - 2026-11-16 - Real free planner and current account verification
+
+Gemini API setup completed under the selected account. Billing page explicitly says
+No billing account, API keys page Free tier. No billing activation. Current model-list
+API accepts the key, but listing does not prove generation availability: 2.5 Flash-Lite
+is retired for new users (explicit404). First3.8Flash request timed out and was not
+blindly repeated. Actual3.5Flash-Lite tool-calling works; current pricing says free
+input/output on the Free tier. Configure its verified-zero accounting rates explicitly.
+Source: https://aistudio.google.com/docs/pricing and /docs/openai. Account rate-limit
+page later loaded:3.5FlashLite15RPM/250KTPM/500RPD. No paid fallback. Optional planner
+pacing at5seconds/request keeps tests below observed quota; generic default is0.
+
+## D019 - 2026-11-16 - Preserve actual live failures and cache provenance
+
+Real autonomous CLI runs completed Marathi table translation, Bengali female narration,
+Telugu-clip selection/translation and full180s Hindi English subtitles. French-video
+request was honestly refused. Inputs are synthetic except the licensed Hindi sample;
+the180s note is looped, not natural. These do not establish hidden-test/native quality.
+Mixed/subtitle completed reruns reused successful cached Bodhan calls from preceding
+partial runs; no manually staged outputs were supplied to the agent. All earlier
+charges remain in the development ledger. Bengali first attempt was externally
+interrupted during planner waiting; explicitly marked partial, no Bodhan spend there.
+
+The chapter remains partial. All8pages were OCR'd; a checked47.5s Tamil audio was made
+in one run, but it was too short for2minutes and the planner attempted expansion.
+Bounded100-110s foreground execution windows expired. Do not present the partial audio
+as a2minute completed deliverable or keep repeating fresh paid runs. One uncertain
+speech call's reservation/tombstone remains. Combined development ledger across all
+reports:INR4.2087198958 known/reserved; last dashboard reconciliation predates these
+runs, so do not describe that ledger as a fresh dashboard balance.
 
 ## D020 - 2026-11-16 - Live-driven diagnostics and speech granularity
 
@@ -184,6 +270,50 @@ carry. New code hard-stops401/403before another planning turn; a test asserts on
 one requested-language call. The chapter remains an83.592-second selected MP3,
 which is partial against approximately two minutes. No silence padding, speed
 changes or manually staged summary/audio were used.
+
+## D025 - Enforced cache-only recording and current service recheck
+
+The user requested remaining work again at22:47Nov16. One small synthetic current
+Tamil service probe forwarded successfully but mandatory back-translation rejected
+with403. CostINR0.00058, no retry, no alternate-language probing. Current console
+showedINR5.02used/4.98remaining, so empty credit was not the cause established here.
+Closed chapter correction and uncertain tombstones remain untouched.
+
+For a reproducible end-to-end recording without more Bodhan churn, add optional
+BODHAN_CACHE_ONLY=1. Known responses are reused normally; an uncached Bodhan request
+fails before any reservation/dispatch. Planner remains configurable and live/cache
+behavior is logged. Cache-only mode is part of the continuation config fingerprint
+so a paused no-network run cannot silently become a paid run on resume. Unit test
+asserts zero HTTP calls/reservations on a miss. No fake/model fallback responses.
+
+Actual new CLI executions completed worksheet Markdown and Hindi English SRT and
+refused French. An initial worksheet defaultHTMLcachemiss and Bengali uncachedvoice
+attempt remain failed/partial. The timestamped subprocess/trace capture is rendered
+with explicit reading pauses, not represented as an uninterrupted desktop screen.
+
+## D026 - Keep video and live model evidence together
+
+Independent review accepted the139secondactualCLIcaptureagainst the brief's literal
+several-tasks/impossible-case/time requirement. No desktop reshoot is needed.
+README/PRdraft link the owner-only recording together with DEMOS and original/new
+live evidence/ledgers, so cached zero-new-cost runs cannot replace actual model
+proof. Publishing a view-without-sign-in link, repository or submission remains
+separately gated. Current private links require the owner's signed-in account.
+
+## D027 - 2026-11-17 - Private development repository and review baseline
+
+The owner selected BishalJena/mcp-bodh as the development repository and authorized
+pushes and PRs targeting it. Bootstrap main with ignore rules, then propose the
+source import on a feature branch. This does not submit to the Cookbook or send
+email. Keep the assignment brief intact as the external requirements document.
+
+Fresh uv sync --frozen, 69 local tests, lint and CLI help pass. Docker daemon
+responds on this host; no image build has been run during this review. Two small
+mock-only probes expose unresolved gaps: an unrelated English translation passes
+self-comparison at 1.0, and an English text artifact can satisfy finish for a Bengali
+narration task without audio/checks. These are review findings, not live-model
+quality results or implemented fixes. Private original live evidence is not bundled
+in this extracted source checkout.
 
 ## D028 - 2026-11-17 - Independent comparison for English translation
 
@@ -293,6 +423,23 @@ checks pass. No model calls/spend. The previous source-only clean extraction pas
 setup/87tests/lint/CLI help. Private archives/checkpoints exclude .env, caches/media
 and retain reports/ledger separately. Old chapter state is absent and not reopened.
 
+## D034 - 2026-11-17 - Owner-authorized closeout and local acceptance inputs
+
+The owner authorized merging the stack and finishing the project except their own
+review/understanding. PRs1-7 were merged in dependency order with head-SHA checks.
+Browser/Drive access was unavailable, and the owner then explicitly prohibited Drive
+access. No archive was downloaded. Keep old closed water-cycle attempts and unknown
+billing history untouched; build a distinct original eight-page school-garden case
+and synthetic local fixtures. All further activity is rooted in this folder.
+
+The first new chapter stopped within its INR3.10 cap at INR2.8844847917. The speech
+headroom still reserved INR0.20 for ASR despite rejecting chunks over30s. Correct it
+to the documented30s maximum cost INR0.05. Remove fixed English-word duration claims
+from generic planner guidance. A shorter independent task attempt reuses cached OCR,
+finishes in142.299s at INR0.8716667708, and produces90.88s Tamil MP3+text. This is at
+the low end of declared90-150s approximate timing, not exactly two minutes. Both
+attempts remain in the development ledger; combined attempts exceed five minutes.
+
 ## D035 - 2026-11-17 - Table context, definite truncation and source clauses
 
 The real worksheet hit429backoff and a low short-title similarity with per-cell
@@ -313,6 +460,62 @@ failed first, then pass. Final Hindi replay is enforced cache-only with zero new
 Bodhan cost; the prior live ASR/translation/recovery runs are retained. No hidden
 score or live-first-attempt claim follows. Full local/container suite103passed.
 Guard-removal mutation checks fail for active markup and the resplit bound.
+
+## D036 - 2026-11-17 - Complete local evidence with explicit provenance
+
+A fixture request returned403upstream-auth detail. The same key authenticated the
+read-only model list at200; current public docs allow a bounded auth retry after
+recent success. One retained retry produced verified Telugu/Tamil/Hindi, then stopped
+at the next403. No rotation/new account or automatic auth loop. Native /translate
+was also checked once against the current documented route and returned404, zero
+settled cost. Runtime remains on the live-supported Bodhan chat transport.
+
+Assemble the remaining clip inputs offline from verified speech: clip4 duplicates
+clip1, clip5 reuses the verified Bengali output. Hindi is an artificial180s synthetic
+loop, not a natural note. Labels remain outside model input folders. This is input
+fixture preparation, not manually staged agent outputs. All five supported case
+shapes now have mechanically checked results, plus honest French refusal. Bengali
+retains its budget-carried correction; subtitles' final replay is cache-only.
+
+All new final-suite charges, failed attempts and fixture prep total INR4.5575117708;
+with the earlier INR5.1493689583 baseline, accounting is INR9.7068807292 known/reserved.
+This is not a fresh dashboard balance. The original INR10 credit allocation was not
+increased. No top-up/card/paid planner. A3:32recording renders actual CLI captures and
+traces with clear timing/provenance labels. Fluent/candidate review remains pending.
+Cookbook validation/lint/rules pass; make check retains the independently reproduced
+AndroidSpeak baseline failure. Publication bundles must exclude keys/cache/private
+source and keep original failure evidence. The assignment brief stays private.
+
+## D037 - 2026-11-17 - Publish the fixed submission and preserve handoff
+
+Owner instructions authorize completing the project and merging development PRs.
+PRs1–8 are merged in the private development repository. Publish the self-contained
+recipe in the public Cookbook fork and open upstream PR21 at exact commit
+2a99a3392f08bc5b5ca95cdbb8e6ce18d32886b1. Preserve that evaluation commit; upstream
+merging remains the maintainers' choice. Public export excludes the private brief,
+internal instructions, keys, caches and source media; selected technical decisions
+are explicitly labeled excerpts, while this complete log remains append-only.
+
+The release tool-agent-demo-20261117 holds the212second recording and complete
+evidence ZIP. Anonymous downloads returned200 and matched local hashes; all220
+evidence manifest entries match. Actual configured credentials were absent from
+published sources, PR text, evidence and private Git history. Fresh recipe export
+and private source archive extraction each pass103tests. Docker remains103passed.
+Exact final Cookbook make check again fails only at the documented AndroidSpeak
+baseline; explicit recipe validation/lint/rules pass.
+
+No email was sent: the original assignment thread is unavailable. Prepare an exact
+PR/SHA reply in docs/SUBMISSION.md. Candidate understanding/rehearsal, native review,
+hidden evaluation and maintainer review cannot be claimed. No further paid model
+calls; ledger remains INR9.7068807292 known/reserved, not a reconciled balance.
+
+## D038 - 2026-11-17 - Distinguish public check status from local evidence
+
+Both public Socket Security checks pass. GitHub validate run44002395770 reports
+action_required with no jobs executed at the submitted SHA. Do not label this a
+successful CI run. Record maintainer-side action separately from the local
+103tests, recipe validator and known full-check baseline failure. Do not alter
+the fixed submitted commit to bypass upstream workflow policy.
 
 ## D039 - 2026-11-17 - Expand actual compositions after owner requests completion
 
@@ -384,3 +587,164 @@ and appends60seconds of later actual trace/output playback, with provenance labe
 The final release contains both original and expanded evidence plus the prepared
 human-review packet. No hidden/native score, candidate participation or email send
 is claimed. Record the new exact source SHA in the private handoff/email draft.
+
+## D043 - 2026-11-17 - Final pre-email revision and source extraction
+
+Cookbook PR21 is updated to 2fcb3537096ed62d4e0584fd33e42d21fd78e72b after the
+owner's explicit unsent-email confirmation. The final release contains the 272.04s
+demo, original evidence, 181-file expanded manifest, prepared human-review packet
+and exact source archive. Credential/manifest checks pass. Clean source extraction
+passes frozen setup, 116 tests, lint and both CLI helps. Docker arm64/amd64 checks
+pass (amd64 emulated). Both Socket checks pass; validation workflow 44020192987 is
+action_required with no jobs. The unrelated full-Cookbook baseline failure remains.
+
+Private development PR10 is merged. Update the handoff/email draft to the new SHA;
+preserve old commits/assets as history and never imply an email was sent. Remaining
+credit/output/naturalness limits, native/candidate review and maintainer action are
+explicit. The human-review packet is preparation only.
+
+All five final release assets were fetched without authentication with HTTP 200
+and matched their local SHA256 hashes. The current public PR head was read back
+as the exact final SHA. Source/runtime code matches the verified extraction; the
+last private change records handoff metadata only.
+
+## D044 - 2026-11-21 - Separate optional review, input preparation and live cost
+
+Owner asks what prevents improving Tamil timing, Hindi input and fluent review,
+correctly noting that opening the Cookbook PR fulfills the submission mechanism.
+Upstream merging is not a submission prerequisite. The brief assigns native review
+to its assessors; our own fluent reviewer would be optional assurance. Earlier
+readiness language bundled these with engineering work too broadly.
+
+Prepare a continuous Hindi input from HealthPhone's published recording, creator
+Nand Wadhwani, under CC BY-SA4.0 with source checksum/attribution and modifications.
+Keep the source and provenance outside the model input folder. Initial container
+seeking gives179.9565625s and is rejected; exact decoded-sample trimming produces
+180s/2,880,000 frames without looping, padding or speed changes. No model calls or
+charges. This is input preparation, not a completed ASR/SRT demo.
+
+Fresh180s ASR alone needs at least INR0.30, exceeding the approximately INR0.21
+recorded headroom; wallet balance is unknown because supplied model keys cannot
+access management budgets. Tamil's closer120s result similarly needs real generation
+and verification, not cosmetic duration manipulation. Original Bodhan speech
+weights are gated; no local copies or configured Hugging Face access are present.
+No new account/terms acceptance/top-up/paid planner. Preserve the current public
+evaluation SHA and deliver this preparation via the private development PR workflow.
+
+Export the retained Tamil summary's Bodhan English roundtrip in enforced cache-only
+mode, with zero new dispatches/cost. English-side review finds all eight topic groups
+recognizable, with compost/fertilizer ambiguity and awkward sentence joins. These
+may be back-translation artifacts and do not establish Tamil errors or native review.
+Retain the findings, original-report hash and90.88s timing limitation explicitly.
+
+## D045 - 2026-11-21 - Run until actual credit refusal rather than infer exhaustion
+
+Owner explicitly directs running the natural Hindi SRT task and Tamil timing
+revision, then clarifies to continue useful model work until the API indicates
+exhausted balance. This supersedes treating the historical INR10 allocation minus
+our conservative ledger as a hard remaining-wallet limit. Keep all prior uncertain
+reservations; no tombstones are erased and no hidden reconciliation is claimed.
+
+Start actual CLI/capture runs with bounded budgets: Hindi INR0.80/300s/35steps and
+Tamil INR2.20/300s/40steps. Use existing keys and the configured free planner. No card,
+top-up, paid planner or extra account is authorized. Record accepted calls, actual
+costs and reservations even if the combined development estimate exceeds the old
+starter allocation. A service refusal, not an inferred balance, will establish a
+credit blocker. Non-credit errors remain distinct and uncertain requests are never
+blindly re-sent. Preserve every attempt and verify actual artifacts before success.
+
+## D046 - 2026-11-21 - Actual provider credit exhaustion observed
+
+Both authorized fresh runs execute real model calls and receive HTTP 429
+ExceededBudget with no Retry-After. Hindi accepts six 25s ASR requests (150 of 180s,
+INR0.25) before the next request is refused. Tamil reuses all eight OCR pages,
+writes a new English summary and accepts INR0.00462 of translation, then its next
+translation/verification request is refused. No new Tamil speech or full Hindi SRT
+is produced; both original CLI reports are retained as failed, not completed.
+
+The provider reports Spend=INR10.041874062499994, Budget=INR10.0. Our combined
+known/reserved ledger becomes INR10.0418740625 after INR0.25462 of new calls, matching
+provider spend to rounding. This is an actual service-side exhausted-budget signal,
+not the earlier inferred headroom. Stop new paid calls as instructed. No card,
+top-up or paid planner; no uncertain reservations or pending markers are erased.
+
+Recover the first 150 seconds through the same Bodhan transcription tool in enforced
+cache-only mode, using all six retained real responses at zero new cost. Its report
+is explicitly partial: 30 seconds and English subtitles remain missing. Full original
+reports/captures remain unchanged. Keep raw provider user identifiers private;
+the handoff includes a redacted exhaustion proof and complete local ledger.
+
+## D047 - 2026-11-21 - Enforce explicit timing ranges before completion
+
+The fresh task explicitly asks for 115–125 seconds, but deterministic finish parsing
+previously retained 90–150 seconds from approximate two-minute wording. Four tests
+fail before correction: to/hyphen/en-dash intervals including decimal minutes and
+rejection of 90.88s against 115–125s. Explicit numeric output bounds now override
+approximate timing. This is generic validation, not demo-task routing. Actual live
+attempts above predate this private fix and remain failed on provider budget; no
+successful new speech is implied. Full local regression suite: 120 passed and lint
+passes; Linux arm64 and amd64 container suites also pass all 120 tests and lint
+(amd64 under local emulation). Published evaluation SHA remains unchanged by the private development fix.
+
+## D048 - 2026-11-21 - Owner replaces exhausted development credentials
+
+The owner supplies four replacement keys through a local TextEdit entry file and
+confirms saving. Apply only the four Bodhan settings to the ignored environment
+file; validate all four values without displaying them, preserve planner settings
+and keep owner-only file permissions. No key, environment file or private cache
+belongs in source, PRs or evidence archives. No account or payment action is taken.
+
+Resume actual CLI work with the new keys and the existing successful response
+cache. Keep all earlier failures, costs and uncertain pending markers. The previous
+provider budget refusal remains true for that earlier run; accepted requests with
+replacement credentials establish usable access, not a verified new wallet balance.
+
+The natural Hindi correction completes with eight verified English SRT windows
+covering 0–180 seconds. Its report carries INR0.25 and 19.522s from the earlier
+failed attempt: cumulative case accounting INR0.32626 and 91.444s. Incremental
+new accounting is INR0.07626, not another INR0.32626. A marked rate-limit refusal
+with Retry-After 52 is waited out; it is distinct from credit exhaustion. Timing
+remains coarse 25-second windows, and verification is not fluent-language review.
+
+## D049 - 2026-11-21 - Bound optional planner reasoning and output capacity
+
+The replacement-key Tamil run produces verified renders of 101.717333, 128.768,
+108.629333 and 110.677333 seconds, all outside the strict 115–125s target. It stops
+partial at its 600-second cap with INR4.4370455208333333 retained. A changed-limit
+budget carry is rejected before dispatch; preserve that guard. A separate calibrated
+attempt stops on a free-planner timeout at zero new cost; keep its pending marker.
+Later calibrated attempts are independent and all costs remain in the lifetime ledger.
+
+Google's current migration guidance recommends medium/high thinking for autonomous
+tool-calling agents; the configured Flash-Lite model defaults to minimal. Add optional
+provider-neutral LLM_REASONING_EFFORT and LLM_MAX_OUTPUT_TOKENS. Omitted effort and
+1500 tokens remain defaults. Validate effort values and the integer128–32768 range
+before dispatch. Reserve the full configured output cap, retain it on the one allowed
+explicit token-parameter switch, and bind both settings to continuation fingerprints.
+Nine regression cases fail before correction and pass after; full local suite129
+passes with lint clean. This does not establish hidden-task or fluent-language scores.
+
+Sources: https://ai.google.dev/gemini-api/docs/generate-content/whats-new-gemini-3.6
+and https://ai.google.dev/gemini-api/docs/openai . The pricing page still lists this
+model's free tier, including thinking tokens: https://ai.google.dev/gemini-api/docs/pricing .
+No model, account or billing-plan switch is made. Test medium effort/4096 tokens with
+the already configured free planner; preserve every earlier failed attempt.
+
+## D050 - 2026-11-21 - Verified natural Hindi and timed Tamil; refresh unsent submission
+
+Medium-effort correction completes in 240.763s/30 steps for INR1.1771269792. Its
+selected MP3 measures 115.456s within 115–125s. All translation and nine back-ASR
+checks pass. Independent PCM comparison confirms an exact join of generated chunks.
+All eight OCR pages and final matching text refs remain retained. Natural Hindi
+produces checked English SRT covering 0–180s.
+
+Replacement-key accounting adds INR5.7592725; lifetime known/reserved accounting
+is INR15.8011465625. Count carried Hindi cost once. Preserve the rejected carry,
+free-planner timeout, step-limit partial, four full timing misses and partial work.
+Final-run latency passes; cumulative attempts exceed five minutes. All 129 tests
+and lint pass locally and in Linux arm64/amd64 (amd64 emulated).
+
+Owner reconfirms no assignment email was sent. Refresh the existing Cookbook PR
+and linked evidence; preserve prior releases/SHAs. That status reply does not
+authorize sending email. Native review belongs to assessors. Candidate review and
+rehearsal are not claimed. No development attribution or co-author trailer is added.

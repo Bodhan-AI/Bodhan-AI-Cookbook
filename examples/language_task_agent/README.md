@@ -6,10 +6,11 @@ code handles media, model limits, verification, budgets, cache and structured er
 Every OCR, ASR, translation and speech operation uses Bodhan.
 
 The six documented fixture cases have checked outputs or an honest French refusal.
-These are automated screens on synthetic inputs, not native-speaker certification
-or a hidden-task pass rate. Candidate review and rehearsal remain pending.
+The original synthetic fixtures are supplemented by a licensed natural Hindi
+recording and a 115.456s Tamil summary. These are automated screens, not native-speaker
+certification or a hidden-task pass rate. Candidate review and rehearsal remain pending.
 
-[4:32 recorded execution and correction](https://github.com/BishalJena/Bodhan-AI-Cookbook/releases/download/tool-agent-final-20261117/demo_recording.mp4) · [Outputs, traces, inputs and ledger](https://github.com/BishalJena/Bodhan-AI-Cookbook/releases/tag/tool-agent-final-20261117) ·
+[4:59 recorded execution and correction](https://github.com/BishalJena/Bodhan-AI-Cookbook/releases/download/tool-agent-live-20261121/demo_recording.mp4) · [Outputs, traces, inputs and ledger](https://github.com/BishalJena/Bodhan-AI-Cookbook/releases/tag/tool-agent-live-20261121) ·
 [Results and provenance](docs/DEMOS.md) · [Design](docs/DESIGN.md) ·
 [Acceptance](docs/ACCEPTANCE.md) · [Walkthrough](docs/WALKTHROUGH.md)
 
@@ -38,6 +39,15 @@ rates and the previously verified free configuration. No billing change was made
 `LLM_TOKEN_LIMIT_FIELD` optionally selects `max_tokens` (default),
 `max_completion_tokens` or `max_output_tokens`. One parameter switch is allowed only
 after an explicit HTTP 400 rejecting `max_tokens`; timeouts/5xx are not retried.
+
+`LLM_REASONING_EFFORT` optionally sends a provider-supported reasoning effort
+(`none`, `minimal`, `low`, `medium`, `high`, `xhigh`); omitted by default.
+`LLM_MAX_OUTPUT_TOKENS` defaults to 1500 and accepts integers 128–32768. Its full
+cap is reserved before dispatch, including on a negotiated token-field switch.
+Both settings are included in continuation configuration checks. For multi-step
+Gemini Flash-Lite planning, the recorded correction uses medium effort and 4096
+tokens on the existing free configuration. Check provider support and pricing;
+unsupported options stop honestly, with no automatic model fallback.
 `LLM_MIN_INTERVAL_SECONDS` optionally paces planner calls; default is zero.
 
 ## Run
@@ -161,10 +171,13 @@ clauses and matching checked/passing verification. Format/duration must hold on 
 same audio. The planner gets at most two finish corrections. The parser does not
 prove arbitrary wording, language, voice or semantic task satisfaction.
 
-The chapter MP3 is 90.88s, at the lower end of the declared approximate two-minute
-range (90-150s), not exactly 120s. SRT uses coarse 25-second windows. Shared scripts
-can remain unknown. Hindi is a synthetic loop. The original clip batch has a disclosed
-duplicate; the later supplement uses five distinct clips. [Fluent review is unperformed](docs/NATIVE_REVIEW.md).
+The latest chapter MP3 measures 115.456s within the explicit 115–125s target;
+the earlier 90.88s output remains historical. The latest Hindi SRT covers a natural
+180s recording, replacing the earlier synthetic loop. SRT windows remain coarse
+25s. Shared scripts can remain unknown. The original clip batch has a disclosed
+duplicate; the later supplement uses five distinct clips. [Live completion and
+all failed attempts](docs/LIVE_COMPLETION.md) are documented. Fluent assessment
+belongs to the assignment's assessors; no completed native review is claimed.
 
 ## Checks and results
 
@@ -176,7 +189,7 @@ make check
 python scripts/validate_recipe.py examples/language_task_agent
 ```
 
-116 local regression tests use fake model transports plus real media conversion
+129 local regression tests use fake model transports plus real media conversion
 and actual stdio subprocesses. Live evidence is separate. Cookbook recipe validation,
 lint and API rules pass. Exact `make check` fails on existing AndroidSpeak structure;
 the same failure is reproduced on untouched upstream SHA
@@ -186,6 +199,11 @@ the same failure is reproduced on untouched upstream SHA
 and the cache-only subtitle replay. Native review and hidden-task accuracy remain
 unmeasured. [WALKTHROUGH.md](docs/WALKTHROUGH.md) prepares the candidate's own review
 and live-change rehearsal; it does not claim either has happened.
+
+The refreshed submission has 129 tests, including four duration-range regressions
+and nine planner-control cases. [Latest live evidence](docs/LIVE_COMPLETION.md)
+records both completed supplements and all earlier misses. The previous 116-test
+snapshot and exhausted-budget response remain historical evidence.
 
 [EVALUATION.md](docs/EVALUATION.md) records ten additional declared compositions and
 the live-discovered final-list publication bug, its regression and corrected

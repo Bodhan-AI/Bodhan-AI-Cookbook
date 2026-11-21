@@ -48,6 +48,14 @@ def requirements(task):
                         result["audio_seconds"] = [
                             seconds * (1 - tolerance), seconds * (1 + tolerance)
                         ]
+                interval = re.search(
+                    r"\b(\d+(?:\.\d+)?)\s*(?:to|[-–])\s*(\d+(?:\.\d+)?)\s*(second|minute|hour)s?\b",
+                    output,
+                )
+                if interval:
+                    # Explicit numeric bounds supersede approximate timing.
+                    scale = {"second": 1, "minute": 60, "hour": 3600}[interval[3]]
+                    result["audio_seconds"] = [float(interval[1]) * scale, float(interval[2]) * scale]
                 for fmt in ("mp3", "wav", "flac", "ogg"):
                     if re.search(r"\b" + fmt + r"\b", output):
                         result["audio_format"] = "." + fmt

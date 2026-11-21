@@ -376,3 +376,52 @@ async def test_long_speech_chunk_is_never_marked_verified(tools, run, fake):
     assert not result["ok"] and result["error"]["code"] == "speech_chunk_too_long"
     assert any(c["kind"] == "audio" and not c["passed"] for c in run.checks)
     fake.speech_audio = previous
+
+@pytest.mark.asyncio
+async def test_optional_planner_reasoning_and_token_cap_are_sent(tools, run, fake, monkeypatch):
+    input_ref(run)
+    monkeypatch.setenv("LLM_REASONING_EFFORT", "medium")
+    monkeypatch.setenv("LLM_MAX_OUTPUT_TOKENS", "4096")
+    fake.planner = lambda request: tool_response("finish", {
+        "status": "partial", "explanation": "Configuration fixture only.",
+        "outputs": [], "assumptions": [],
+    }, 1)
+    report = await execute("Inspect configuration.", run, tools.gateway)
+    assert report["status"] == "partial"
+    payload = json.loads(fake.requests[0].content)
+    assert payload["reasoning_effort"] == "medium"
+    assert payload["max_tokens"] == 4096
+
+
+@pytest.mark.asyncio
+async def test_larger_planner_cap_is_reserved_before_dispatch(tools, run, fake, monkeypatch):
+    input_ref(run)
+    monkeypatch.setenv("LLM_MAX_OUTPUT_TOKENS", "4096")
+    monkeypatch.setenv("LLM_INPUT_INR_PER_MILLION", "0")
+    monkeypatch.setenv("LLM_OUTPUT_INR_PER_MILLION", "1000")
+    run.limits.max_cost = Decimal("2")
+    fake.planner = lambda request: tool_response("finish", {
+        "status": "partial", "explanation": "Configuration fixture only.",
+        "outputs": [], "assumptions": [],
+    }, 1)
+    report = await execute("Inspect configuration.", run, tools.gateway)
+    assert report["status"] == "failed"
+    assert "cost_budget" in report["explanation"]
+    assert not fake.requests
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("name,value", [
+    ("LLM_MAX_OUTPUT_TOKENS", "0"),
+    ("LLM_MAX_OUTPUT_TOKENS", "abc"),
+    ("LLM_MAX_OUTPUT_TOKENS", "65537"),
+    ("LLM_MAX_OUTPUT_TOKENS", "-1"),
+    ("LLM_REASONING_EFFORT", "impossible"),
+])
+async def test_invalid_planner_controls_fail_before_dispatch(tools, run, fake, monkeypatch, name, value):
+    input_ref(run)
+    monkeypatch.setenv(name, value)
+    report = await execute("Inspect configuration.", run, tools.gateway)
+    assert report["status"] == "failed"
+    assert "planner_config" in report["explanation"]
+    assert not fake.requests

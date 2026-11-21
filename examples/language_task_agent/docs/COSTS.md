@@ -40,3 +40,25 @@ later acceptance review rejects. Additional accounting INR0.0803733333; combined
 known/reserved development usage **INR9.7872540625**, not a fresh billing balance.
 About INR0.21 remains against the historical allocation. No further full speech
 production fits that headroom; do not purchase or assume additional credit.
+
+## November 21 explicit run-until-refusal authorization
+
+The owner explicitly instructs useful calls until actual credit exhaustion rather
+than treating estimated headroom as a hard wallet cap. The Hindi SRT attempt adds
+INR0.25 for six 25s ASR chunks; the Tamil timing attempt adds INR0.00462 before both
+stop on HTTP 429 ExceededBudget. A cache-only 150s partial transcript recovery adds 0.
+Total new cost INR0.25462; combined known/reserved accounting **INR10.0418740625**.
+
+The provider's final refusal reports spending INR10.041874062499994 against its
+INR10.0 user budget. That matches the development ledger to rounding and confirms
+the service-side budget limit. It is not a dashboard invoice. No top-up/card/paid
+planner or deletion of pending reservations; no further paid calls after refusal.
+
+## November 21 replacement-key completion
+
+New accounting is INR5.7592725, including every new failed attempt. Lifetime
+known/reserved accounting is INR15.8011465625. Hindi's INR0.25 carried amount was
+already counted; only INR0.07626 is added again. Final Tamil adds INR1.1771269792;
+earlier replacement-key Tamil attempts add INR4.5058855208. This is lifetime
+accounting, not available balance. No payment/account action was performed by this
+workspace. See LIVE_COMPLETION.md and the released ledger.

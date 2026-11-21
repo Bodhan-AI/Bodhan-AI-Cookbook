@@ -172,3 +172,14 @@ def test_resume_refuses_switching_cache_only_into_paid_mode(run, monkeypatch):
     monkeypatch.setenv("BODHAN_CACHE_ONLY", "0")
     with pytest.raises(ToolError):
         restore(run.input_root, run.output, run.limits, "A task.")
+
+@pytest.mark.parametrize("setting,value", [
+    ("LLM_REASONING_EFFORT", "medium"),
+    ("LLM_MAX_OUTPUT_TOKENS", "4096"),
+])
+def test_resume_rejects_changed_planner_controls(run, monkeypatch, setting, value):
+    input_ref(run)
+    save(run, "A task.", [])
+    monkeypatch.setenv(setting, value)
+    with pytest.raises(ToolError):
+        restore(run.input_root, run.output, run.limits, "A task.")

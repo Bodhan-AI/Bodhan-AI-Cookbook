@@ -113,6 +113,15 @@ async def execute(task: str, run: Run, gateway: Gateway | None = None) -> dict:
             raise ToolError(
                 "planner_config", "Set LLM_MODEL to the provider's tool-calling model id."
             )
+        effort = os.environ.get("LLM_REASONING_EFFORT", "").strip()
+        if effort and effort not in {"none", "minimal", "low", "medium", "high", "xhigh"}:
+            raise ToolError("planner_config", "Unsupported LLM_REASONING_EFFORT value.")
+        try:
+            output_cap = int(os.environ.get("LLM_MAX_OUTPUT_TOKENS") or "1500")
+        except ValueError:
+            raise ToolError("planner_config", "LLM_MAX_OUTPUT_TOKENS must be an integer.") from None
+        if not 128 <= output_cap <= 32768:
+            raise ToolError("planner_config", "LLM_MAX_OUTPUT_TOKENS must be between 128 and 32768.")
         # The evaluator supplies only the seven required settings. These optional rates
         # are explicit accounting assumptions, not a claim about an unknown provider.
         # Owners must verify their provider's price before wallet-bearing deployment.
@@ -128,6 +137,8 @@ async def execute(task: str, run: Run, gateway: Gateway | None = None) -> dict:
             "planner_accounting",
             input_inr_per_million=str(input_rate),
             output_inr_per_million=str(output_rate),
+            reasoning_effort=effort or "provider_default",
+            max_output_tokens=output_cap,
         )
         messages = getattr(run, "continuation_messages", None) or [
             {"role": "system", "content": SYSTEM},
@@ -179,8 +190,10 @@ async def execute(task: str, run: Run, gateway: Gateway | None = None) -> dict:
                     "messages": messages,
                     "tools": schemas() + [FINISH],
                     "tool_choice": "auto",
-                    token_field: 1500,
+                    token_field: output_cap,
                 }
+                if effort:
+                    payload["reasoning_effort"] = effort
                 # UTF-8 bytes conservatively bound tokens for ordinary OpenAI-compatible tokenizers.
                 # Extra overhead covers chat framing. Provider-specific unusual metering must be verified.
                 upper_input = len(json.dumps(payload, ensure_ascii=False).encode("utf-8")) + 4096
@@ -190,7 +203,7 @@ async def execute(task: str, run: Run, gateway: Gateway | None = None) -> dict:
                         "Planner context exceeds local 150 KB bound; partial work retained.",
                     )
                 reserve = (
-                    Decimal(upper_input) * input_rate + Decimal(1500) * output_rate
+                    Decimal(upper_input) * input_rate + Decimal(output_cap) * output_rate
                 ) / 1000000
 
                 def actual_cost(body):
@@ -251,7 +264,7 @@ async def execute(task: str, run: Run, gateway: Gateway | None = None) -> dict:
                     )
                     token_field = alternate
                     run.planner_state = {"token_field": token_field, "token_fallback_used": True}
-                    payload[token_field] = 1500
+                    payload[token_field] = output_cap
                     body = await request_plan()
                 choice = body["choices"][0]
                 if choice.get("finish_reason") == "length":

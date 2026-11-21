@@ -171,3 +171,10 @@ types, descriptions, enums and limits. MCP retains its SDK-generated schemas.
 The optional evaluation module runs declared suites through real CLI subprocesses,
 retains every outcome and checks artifacts/content/cost/dispatch independently.
 It does not substitute its fixtures into production or route tasks by their text.
+
+Explicit numeric duration intervals such as 115 to 125 seconds, 115-125 seconds and
+1.9–2.1 minutes override approximate duration when present in an audio creation
+clause. Measured audio must fall within the stated bounds; it is not sufficient
+to fit the looser 90–150s interpretation of approximately two minutes. Source-input
+durations remain outside this output-only check. Unrecognized wording still needs
+planner judgment; this is a bounded constraint parser, not execution routing.

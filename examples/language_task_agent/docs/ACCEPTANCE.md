@@ -1,3 +1,51 @@
+# Latest verified evidence — November 21, 2026
+
+Both live supplements now complete: natural 180s Hindi → English SRT and
+115.456s Tamil MP3. See [LIVE_COMPLETION.md](LIVE_COMPLETION.md) for all attempts,
+costs, verification and the 129-test checks. Earlier states below are historical.
+
+---
+
+# Fresh live runs and confirmed credit exhaustion, November 21, 2026
+
+Owner explicitly directs running until the API signals exhausted balance. Both
+requested CLI runs execute real calls and stop on HTTP 429 ExceededBudget with no
+Retry-After: provider Spend=INR10.041874062499994, Budget=INR10.0.
+
+Hindi processes 150 of 180 seconds in six ASR calls, costing INR0.25, before refusal.
+Tamil reuses eight-page OCR, creates a new English summary and begins translation
+(INR0.00462), then is refused before a verified translation/audio is published.
+Both full task reports are failed; no complete new English SRT or 120s Tamil MP3
+is claimed. The accepted Hindi progress is separately recovered cache-only as a
+clearly partial 150s transcript/segments at zero new cost. All attempts are retained.
+
+Combined development accounting is now INR10.0418740625 known/reserved, agreeing
+with provider-reported spend to rounding. The server exhausted-budget response
+establishes the current credit blocker. No top-up/card/paid planner; no further
+paid calls after that sign. See NEXT_VALIDATION.md for paths and scope.
+
+Later private validation fix: explicit numeric output intervals supersede looser
+approximate durations. Four new regressions fail before correction and pass after;
+the full local suite is 120 passed with lint clean. Linux arm64 and amd64
+container suites also pass all 120 tests and lint (amd64 under local emulation).
+Live runs above used the prior published runtime; the range fix does not turn
+those failures into successes.
+
+---
+
+# Continuous Hindi source prepared, November 21, 2026
+
+A licensed180s continuous Hindi narration excerpt is prepared locally, with source
+checksum, CC BY-SA4.0 attribution, sample-exact conversion and provenance outside
+the input folder. No model call or new charge. The first179.9565625s conversion was
+rejected and retained; sample-based trimming produced exactly2,880,000 PCM frames.
+This closes input preparation only. Bodhan transcription/translation is unperformed
+on the new recording and is not claimed as a completed demo. NEXT_VALIDATION.md
+separates preparation, funded model validation and assessor-side native review.
+The existing public evaluation SHA is unchanged by this private development work.
+
+---
+
 # Expanded evaluation and publication correction, November 17, 2026
 
 116 tests and lint pass locally and in Linux arm64 and amd64 Docker (amd64 under

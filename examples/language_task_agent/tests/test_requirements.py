@@ -27,6 +27,25 @@ def test_translation_request_cannot_finish_with_only_planner_prose(run):
     assert any("Bodhan translation" in error for error in errors)
 
 
+@pytest.mark.parametrize("interval", ["115 to 125 seconds", "115-125 seconds", "1.9–2.1 minutes"])
+def test_explicit_output_range_overrides_approximate_duration(interval):
+    result = requirements(f"Make a two-minute Tamil MP3 audio summary, targeting {interval}, of the chapter.")
+    expected = [114, 126] if "minutes" in interval else [115, 125]
+    assert result["audio_seconds"] == expected
+
+
+def test_short_output_cannot_satisfy_explicit_115_125_second_range(run, monkeypatch):
+    from bodhan_agent import requirements as module
+    ref = run.save_text("Placeholder media for mocked measurement", "audio")
+    path = run.resolve(ref).with_suffix(".mp3")
+    path.write_bytes(b"mock measurement only")
+    ref = run.register(path, "bodhan_ai_generated")
+    run.checks.append({"kind": "audio", "ref": ref, "checked": True, "passed": True})
+    monkeypatch.setattr(module, "duration", lambda p, timeout: 90.88)
+    errors = validate("Make a two-minute Tamil MP3 audio summary targeting 115 to 125 seconds.", run, [ref])
+    assert any("115.00 and 125.00" in error for error in errors)
+
+
 @pytest.mark.parametrize("task", [
     "Do not translate the recordings; identify their scripts only.",
     "Summarize this English explanation about translation.",

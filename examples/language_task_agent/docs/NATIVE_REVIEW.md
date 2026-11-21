@@ -1,5 +1,10 @@
 # Language quality and human review
 
+The assignment's assessors perform native-language output review. Obtaining our
+own fluent reviewer is optional additional assurance, not a stated prerequisite
+for opening/submitting the PR. The unperformed-review status below remains honest;
+prepared forms and automated checks cannot be represented as a human approval.
+
 No fluent human review has been performed or arranged. No external reviewer was
 contacted. Round-trip scores, script evidence and matching transcripts are screens,
 not native-language correctness certificates.

@@ -23,6 +23,8 @@ def config_fingerprint():
                 "LLM_INPUT_INR_PER_MILLION",
                 "LLM_OUTPUT_INR_PER_MILLION",
                 "LLM_TOKEN_LIMIT_FIELD",
+                "LLM_REASONING_EFFORT",
+                "LLM_MAX_OUTPUT_TOKENS",
             )
         }
     )

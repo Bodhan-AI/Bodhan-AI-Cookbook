@@ -1,3 +1,11 @@
+# Latest verified evidence — November 21, 2026
+
+Both live supplements now complete: natural 180s Hindi → English SRT and
+115.456s Tamil MP3. See [LIVE_COMPLETION.md](LIVE_COMPLETION.md) for all attempts,
+costs, verification and the 129-test checks. Earlier states below are historical.
+
+---
+
 # Expanded development evaluation
 
 [Current 4:32 demo and full release](https://github.com/BishalJena/Bodhan-AI-Cookbook/releases/tag/tool-agent-final-20261117).
