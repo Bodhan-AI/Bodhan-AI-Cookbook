@@ -587,3 +587,28 @@ def test_safe_exception_sanitization_no_secret_leak() -> None:
     assert secret_key not in exc_repr
     assert "sk-***[REDACTED]" in exc_str or "Bearer ***[REDACTED]" in exc_str
     assert "A" * 100 not in exc_str
+
+
+def test_http_413_payload_too_large() -> None:
+    """Verify that HTTP 413 Payload Too Large raises BodhanAPIError with status 413."""
+    def handler(_: httpx.Request) -> httpx.Response:
+        return httpx.Response(413, json={"error": {"message": "Image payload exceeds maximum page size", "code": "PAYLOAD_TOO_LARGE"}})
+
+    mock_client = httpx.Client(transport=httpx.MockTransport(handler), base_url="https://api.bodhan.ai")
+    with BodhanClient(api_key=DUMMY_KEY, http_client=mock_client) as client:
+        with pytest.raises(BodhanAPIError) as exc_info:
+            client.ocr(PNG_HEADER)
+    assert exc_info.value.status_code == 413
+    assert "exceeds" in exc_info.value.message
+
+
+def test_client_timeout_handling() -> None:
+    """Verify that httpx.TimeoutException raises BodhanAPIError without leaking socket internals."""
+    def handler(_: httpx.Request) -> httpx.Response:
+        raise httpx.ReadTimeout("Connection timed out waiting for server")
+
+    mock_client = httpx.Client(transport=httpx.MockTransport(handler), base_url="https://api.bodhan.ai")
+    with BodhanClient(api_key=DUMMY_KEY, http_client=mock_client, timeout=10.0) as client:
+        with pytest.raises(BodhanAPIError) as exc_info:
+            client.translate("Hello", target_language="hi")
+    assert "timed out after 10.0 seconds" in str(exc_info.value)
