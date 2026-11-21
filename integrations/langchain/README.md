@@ -9,7 +9,7 @@ This package empowers developers to build multilingual document processing pipel
 ## Features
 
 - **`BodhanClient` & `BodhanAsyncClient`**: High-performance HTTP client built on HTTPX with connection pooling, rate limit detection and `retry_after` surfacing, credential and payload sanitization in error logs and exception bodies, and dual-transport fallback for translation (primary `POST /translate` with automatic fallback on HTTP 404 to `/v1/chat/completions`, resolving GitHub Issue #34).
-- **`BodhanOCRLoader`**: Native LangChain `BaseLoader` supporting images (`.png`, `.jpg`, `.jpeg`) and multi-page PDFs (via optional PyMuPDF rasterization). Performs magic byte signature validation, base64 data URL formatting, markdown extraction, layout block metadata preservation (including `order`, `label`, `type`, `bbox_xyxy` float coordinates, and `conf`), and exposes both `page` (1-indexed) and `page_number` (1-indexed) metadata. Explicitly validates image formats and rejects unsupported types (such as WebP, GIF, SVG) with actionable error messages.
+- **`BodhanOCRLoader`**: Native LangChain `BaseLoader` supporting images (`.png`, `.jpg`, `.jpeg`) and multi-page PDFs (via optional PyMuPDF rasterization). Performs magic byte signature validation, base64 data URL formatting, markdown extraction, layout block metadata preservation (including `order`, `label`, `type`, `bbox_xyxy` float coordinates, and `conf`), and exposes both `page` (zero-indexed page index) and `page_number` (one-indexed human-facing page number) metadata. Explicitly validates image formats and rejects unsupported types (such as WebP, GIF, SVG) with actionable error messages.
 - **`BodhanTranslationTransformer`**: LangChain `BaseDocumentTransformer` for translating documents across 22 Indian languages plus English (26 language codes). Features immutable document transformations, safe chunking preserving paragraph, sentence, and word boundaries with character fallback for unbroken tokens strictly bounded by `max_chunk_chars`, bounded async concurrency, and user-declared metadata provenance tracking.
 - **`BodhanTranslationTool`**: Pydantic v2-compliant LangChain `BaseTool` enabling conversational agents to dynamically invoke Bodhan Indic Translation with configurable target languages and script validation (omitting script automatically for English).
 - **Grounded Multilingual RAG**: Complete reference example demonstrating end-to-end ingestion of authentic Indic PDF notices, translation to English, semantic chunking, vector indexing with `InMemoryVectorStore` (and optional ChromaDB), and grounded companion LLM answers with citation tracking and out-of-domain rejection.
@@ -74,20 +74,32 @@ Optional ChromaDB dependencies:
 
 ### Environment Configuration
 
-Configure your Bodhan API key in your environment or copy `.env.example` to `.env`:
+Configure your Bodhan API keys in your environment or copy `.env.example` to `.env`:
 
 ```bash
 cp .env.example .env
 ```
 
-Export your API key:
+Bodhan console issues API keys on a per-model basis. Configure model-specific keys:
 
 ```bash
 # Linux / macOS
-export BODHAN_API_KEY="your-api-key-here"
+export BODHAN_OCR_API_KEY="your-ocr-api-key"
+export BODHAN_TRANSLATE_API_KEY="your-translate-api-key"
 
 # Windows PowerShell
-$env:BODHAN_API_KEY="your-api-key-here"
+$env:BODHAN_OCR_API_KEY="your-ocr-api-key"
+$env:BODHAN_TRANSLATE_API_KEY="your-translate-api-key"
+```
+
+Alternatively, `BODHAN_API_KEY` is supported as a unified backward-compatible key across all endpoints:
+
+```bash
+# Linux / macOS
+export BODHAN_API_KEY="your-unified-api-key"
+
+# Windows PowerShell
+$env:BODHAN_API_KEY="your-unified-api-key"
 ```
 
 ---
@@ -112,8 +124,8 @@ loader = BodhanOCRLoader(
 docs = loader.load()
 
 for doc in docs:
-    # Both 'page' and 'page_number' metadata are provided
-    print(f"--- Page {doc.metadata['page_number']} ---")
+    # Both 'page' (zero-indexed) and 'page_number' (one-indexed) metadata are provided
+    print(f"--- Page {doc.metadata['page_number']} (index {doc.metadata['page']}) ---")
     print(f"Source: {doc.metadata['source']}")
     print(f"Total Pages: {doc.metadata['total_pages']}")
     print(f"Content:\n{doc.page_content[:200]}...\n")
@@ -366,7 +378,7 @@ When input texts exceed `max_chunk_chars`, the transformer performs recursive se
 
 ### 4. Layout Block Metadata Preservation & Image Validation
 - **Image Validation**: `BodhanOCRLoader` validates image signatures before HTTP dispatch, supporting PNG and JPEG. Unsupported formats (WebP, GIF, SVG) are rejected early with clear error messages.
-- **Page Metadata**: Documents expose both `page` (1-indexed) and `page_number` (1-indexed) metadata for compatibility across LangChain ecosystem tools.
+- **Page Metadata**: Documents expose both `page` (zero-indexed page index: 0, 1, 2...) and `page_number` (one-indexed human-facing page number: 1, 2, 3...) metadata for compatibility across LangChain ecosystem tools.
 - **Layout Block Preservation**: The OCR API returns structured bounding box metadata in `blocks`. `BodhanOCRLoader` preserves this in `doc.metadata["blocks"]`, exposing `order` (int), `label` (str), `type` (str | None), `bbox_xyxy` (exact 4-element float list `[x1, y1, x2, y2]`), `conf` (float `0.0`–`1.0`), and `text` (str). Missing or malformed coordinates and confidence values are preserved as `None` rather than fabricating zero coordinates or confidence scores.
 
 ---

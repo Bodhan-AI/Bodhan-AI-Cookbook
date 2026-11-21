@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
 from langchain_core.callbacks import AsyncCallbackManagerForToolRun, CallbackManagerForToolRun
 from langchain_core.tools import BaseTool
@@ -10,7 +10,6 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from .client import BodhanAsyncClient, BodhanClient
 from .exceptions import BodhanAPIError, BodhanValidationError
-from .models import SUPPORTED_SCRIPTS, SUPPORTED_TRANSLATION_LANGUAGES
 
 
 class BodhanTranslationInput(BaseModel):
@@ -20,14 +19,14 @@ class BodhanTranslationInput(BaseModel):
         ...,
         description="The text to translate. Should not be empty.",
     )
-    target_language: Optional[str] = Field(
+    target_language: str | None = Field(
         None,
         description=(
             "Target language ISO code (e.g. 'hi', 'ta', 'bn', 'en', 'mr', 'te', 'gu'). "
             "Supports 22 Indian languages plus English across 26 language codes."
         ),
     )
-    script: Optional[str] = Field(
+    script: str | None = Field(
         None,
         description=(
             "Target script style: 'native' (default for Indic targets), 'roman', or 'codemix'. "
@@ -61,9 +60,11 @@ class BodhanTranslationTool(BaseTool):
     )
     args_schema: type[BaseModel] = BodhanTranslationInput
 
-    client: Optional[BodhanClient] = None
-    async_client: Optional[BodhanAsyncClient] = None
-    transport: Optional[str] = None
+    client: BodhanClient | None = None
+    async_client: BodhanAsyncClient | None = None
+    api_key: str | None = None
+    translate_api_key: str | None = None
+    transport: str | None = None
     target_language: str = "en"
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -71,12 +72,14 @@ class BodhanTranslationTool(BaseTool):
     def _get_client(self) -> tuple[BodhanClient, bool]:
         if self.client is not None:
             return self.client, False
-        return BodhanClient(), True
+        effective_key = self.translate_api_key or self.api_key
+        return BodhanClient(api_key=self.api_key, translate_api_key=effective_key), True
 
     def _get_async_client(self) -> tuple[BodhanAsyncClient, bool]:
         if self.async_client is not None:
             return self.async_client, False
-        return BodhanAsyncClient(), True
+        effective_key = self.translate_api_key or self.api_key
+        return BodhanAsyncClient(api_key=self.api_key, translate_api_key=effective_key), True
 
     def _run(
         self,

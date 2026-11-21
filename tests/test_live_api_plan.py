@@ -13,8 +13,8 @@ To run these tests (only with explicit authorization):
 from __future__ import annotations
 
 import os
-from pathlib import Path
 import sys
+from pathlib import Path
 
 import pytest
 
@@ -22,8 +22,8 @@ INTEGRATIONS_DIR = Path(__file__).resolve().parent.parent / "integrations" / "la
 if str(INTEGRATIONS_DIR) not in sys.path:
     sys.path.insert(0, str(INTEGRATIONS_DIR))
 
-from bodhan_langchain.client import BodhanClient
-from bodhan_langchain.exceptions import BodhanAPIError, BodhanAuthenticationError
+from bodhan_langchain.client import BodhanClient  # noqa: E402
+from bodhan_langchain.exceptions import BodhanAuthenticationError  # noqa: E402
 
 LIVE_FLAG = os.environ.get("RUN_BODHAN_LIVE_TESTS", "").strip() == "1"
 LIVE_REASON = "Live tests are opt-in to avoid paid API credit consumption. Enable with RUN_BODHAN_LIVE_TESTS=1."

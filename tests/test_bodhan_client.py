@@ -6,8 +6,9 @@ All tests run completely offline without real API keys or network requests.
 from __future__ import annotations
 
 import json
-from pathlib import Path
 import sys
+from pathlib import Path
+from typing import Any
 
 import httpx
 import pytest
@@ -17,14 +18,14 @@ INTEGRATIONS_DIR = Path(__file__).resolve().parent.parent / "integrations" / "la
 if str(INTEGRATIONS_DIR) not in sys.path:
     sys.path.insert(0, str(INTEGRATIONS_DIR))
 
-from bodhan_langchain.client import BodhanAsyncClient, BodhanClient
-from bodhan_langchain.exceptions import (
+from bodhan_langchain.client import BodhanAsyncClient, BodhanClient  # noqa: E402
+from bodhan_langchain.exceptions import (  # noqa: E402
     BodhanAPIError,
     BodhanAuthenticationError,
     BodhanRateLimitError,
     BodhanValidationError,
 )
-from bodhan_langchain.models import OCRResponse, TranslationResponse
+from bodhan_langchain.models import OCRResponse, TranslationResponse  # noqa: E402
 
 DUMMY_KEY = "dummy-test-key-12345"
 PNG_HEADER = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR"
@@ -33,6 +34,9 @@ PNG_HEADER = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR"
 def test_missing_api_key_raises_error(monkeypatch: pytest.MonkeyPatch) -> None:
     """Verify that omitting the API key raises BodhanAuthenticationError."""
     monkeypatch.delenv("BODHAN_API_KEY", raising=False)
+    monkeypatch.delenv("BODHAN_OCR_API_KEY", raising=False)
+    monkeypatch.delenv("BODHAN_TRANSLATE_API_KEY", raising=False)
+    monkeypatch.delenv("BODHAN_TRANSLATION_API_KEY", raising=False)
     with pytest.raises(BodhanAuthenticationError) as exc_info:
         BodhanClient()
     assert "Bodhan API key is required" in str(exc_info.value)
@@ -42,6 +46,9 @@ def test_missing_api_key_raises_error(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_empty_string_api_key_raises_error(monkeypatch: pytest.MonkeyPatch) -> None:
     """Verify that an empty string API key raises BodhanAuthenticationError."""
     monkeypatch.delenv("BODHAN_API_KEY", raising=False)
+    monkeypatch.delenv("BODHAN_OCR_API_KEY", raising=False)
+    monkeypatch.delenv("BODHAN_TRANSLATE_API_KEY", raising=False)
+    monkeypatch.delenv("BODHAN_TRANSLATION_API_KEY", raising=False)
     with pytest.raises(BodhanAuthenticationError):
         BodhanClient(api_key="   ")
 
@@ -589,7 +596,7 @@ def test_safe_exception_sanitization_no_secret_leak() -> None:
     assert "A" * 100 not in exc_str
 
 
-def test_http_413_payload_too_large() -> None:
+def test_http_413_json_error_payload() -> None:
     """Verify that HTTP 413 Payload Too Large raises BodhanAPIError with status 413."""
     def handler(_: httpx.Request) -> httpx.Response:
         return httpx.Response(413, json={"error": {"message": "Image payload exceeds maximum page size", "code": "PAYLOAD_TOO_LARGE"}})
@@ -878,13 +885,17 @@ async def test_async_ocr_block_metadata_integrity() -> None:
 
 def test_image_input_validation_and_security(tmp_path: Path) -> None:
     """Comprehensive test suite for image input security and validation."""
-    from bodhan_langchain.client import _prepare_image_data_url
     import base64
+
+    from bodhan_langchain.client import _prepare_image_data_url
 
     valid_png_bytes = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15c4"
     valid_jpeg_bytes = b"\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x01\x00`\x00`\x00\x00\xff\xdb\x00C\x00\xff\xd9"
     webp_bytes = b"RIFF\x18\x00\x00\x00WEBPVP8 \x0c\x00\x00\x00/\x00\x00\x00\x10\x07\x00\x9d\x01*"
-    gif_bytes = b"GIF89a\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\xff\xff\xff!\xf9\x04\x01\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;"
+    gif_bytes = (
+        b"GIF89a\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\xff\xff\xff"
+        b"!\xf9\x04\x01\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;"
+    )
     svg_bytes = b"<svg xmlns='http://www.w3.org/2000/svg'><circle r='5'/></svg>"
 
     png_b64 = base64.b64encode(valid_png_bytes).decode("ascii")
@@ -1004,3 +1015,186 @@ def test_exception_response_body_sanitization_and_bounded_diagnostics() -> None:
     assert body["nested"]["content"] == "Valid diagnostic message"
     assert len(body["large_list"]) <= 21
     assert "truncated" in str(body["large_list"][-1])
+
+
+def test_client_model_specific_api_keys_and_precedence(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Verify that BodhanClient selects OCR and Translate keys correctly and applies precedence."""
+    monkeypatch.delenv("BODHAN_API_KEY", raising=False)
+    monkeypatch.delenv("BODHAN_OCR_API_KEY", raising=False)
+    monkeypatch.delenv("BODHAN_TRANSLATE_API_KEY", raising=False)
+    monkeypatch.delenv("BODHAN_TRANSLATION_API_KEY", raising=False)
+
+    recorded_auth_headers: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        recorded_auth_headers.append(request.headers.get("Authorization", ""))
+        data = json.loads(request.content)
+        if "/translate" in request.url.path or data.get("model") == "indic-translate":
+            return httpx.Response(200, json={"translation": "Translated Text"})
+        return httpx.Response(200, json={"choices": [{"message": {"content": "OCR Text"}}]})
+
+    mock_http = httpx.Client(transport=httpx.MockTransport(handler), base_url="https://api.bodhan.ai")
+
+    # 1. Explicit model-specific keys passed to constructor
+    client = BodhanClient(
+        ocr_api_key="specific-ocr-key-1",
+        translate_api_key="specific-trans-key-2",
+        http_client=mock_http,
+    )
+    assert client.ocr_api_key == "specific-ocr-key-1"
+    assert client.translate_api_key == "specific-trans-key-2"
+
+    client.ocr(PNG_HEADER)
+    assert recorded_auth_headers[-1] == "Bearer specific-ocr-key-1"
+
+    client.translate("Hello", target_language="hi")
+    assert recorded_auth_headers[-1] == "Bearer specific-trans-key-2"
+
+    # 2. Environment variables BODHAN_OCR_API_KEY and BODHAN_TRANSLATE_API_KEY
+    monkeypatch.setenv("BODHAN_OCR_API_KEY", "env-ocr-key-3")
+    monkeypatch.setenv("BODHAN_TRANSLATE_API_KEY", "env-trans-key-4")
+
+    client_env = BodhanClient(http_client=mock_http)
+    assert client_env.ocr_api_key == "env-ocr-key-3"
+    assert client_env.translate_api_key == "env-trans-key-4"
+
+    client_env.ocr(PNG_HEADER)
+    assert recorded_auth_headers[-1] == "Bearer env-ocr-key-3"
+
+    client_env.translate("Hello", target_language="hi")
+    assert recorded_auth_headers[-1] == "Bearer env-trans-key-4"
+
+    # 3. Environment variable BODHAN_TRANSLATION_API_KEY (alias)
+    monkeypatch.delenv("BODHAN_TRANSLATE_API_KEY", raising=False)
+    monkeypatch.setenv("BODHAN_TRANSLATION_API_KEY", "env-translation-alias-5")
+    client_alias = BodhanClient(http_client=mock_http)
+    assert client_alias.translate_api_key == "env-translation-alias-5"
+    client_alias.translate("Hello", target_language="hi")
+    assert recorded_auth_headers[-1] == "Bearer env-translation-alias-5"
+
+
+def test_client_backward_compatible_generic_api_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Verify that BODHAN_API_KEY / api_key serves as a backward-compatible fallback for both models."""
+    monkeypatch.delenv("BODHAN_API_KEY", raising=False)
+    monkeypatch.delenv("BODHAN_OCR_API_KEY", raising=False)
+    monkeypatch.delenv("BODHAN_TRANSLATE_API_KEY", raising=False)
+    monkeypatch.delenv("BODHAN_TRANSLATION_API_KEY", raising=False)
+
+    recorded_auth_headers: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        recorded_auth_headers.append(request.headers.get("Authorization", ""))
+        data = json.loads(request.content)
+        if "/translate" in request.url.path or data.get("model") == "indic-translate":
+            return httpx.Response(200, json={"translation": "Translated Text"})
+        return httpx.Response(200, json={"choices": [{"message": {"content": "OCR Text"}}]})
+
+    mock_http = httpx.Client(transport=httpx.MockTransport(handler), base_url="https://api.bodhan.ai")
+
+    # Generic api_key argument applies to both
+    client = BodhanClient(api_key="unified-general-key", http_client=mock_http)
+    assert client.ocr_api_key == "unified-general-key"
+    assert client.translate_api_key == "unified-general-key"
+
+    client.ocr(PNG_HEADER)
+    assert recorded_auth_headers[-1] == "Bearer unified-general-key"
+
+    client.translate("Hello", target_language="hi")
+    assert recorded_auth_headers[-1] == "Bearer unified-general-key"
+
+    # Generic BODHAN_API_KEY in environment
+    monkeypatch.setenv("BODHAN_API_KEY", "unified-env-key")
+    client_env = BodhanClient(http_client=mock_http)
+    assert client_env.ocr_api_key == "unified-env-key"
+    assert client_env.translate_api_key == "unified-env-key"
+
+
+def test_client_missing_model_specific_credentials(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Verify informative errors when an endpoint is called without its required model key."""
+    monkeypatch.delenv("BODHAN_API_KEY", raising=False)
+    monkeypatch.delenv("BODHAN_OCR_API_KEY", raising=False)
+    monkeypatch.delenv("BODHAN_TRANSLATE_API_KEY", raising=False)
+    monkeypatch.delenv("BODHAN_TRANSLATION_API_KEY", raising=False)
+
+    def handler(_: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"choices": [{"message": {"content": "OK"}}], "translation": "OK"})
+
+    mock_http = httpx.Client(transport=httpx.MockTransport(handler), base_url="https://api.bodhan.ai")
+
+    # 1. Only OCR key provided
+    client_ocr_only = BodhanClient(ocr_api_key="only-ocr-key", http_client=mock_http)
+    assert client_ocr_only.ocr_api_key == "only-ocr-key"
+    assert client_ocr_only.translate_api_key is None
+    # OCR succeeds
+    res = client_ocr_only.ocr(PNG_HEADER)
+    assert res.text == "OK"
+    # Translate raises informative BodhanAuthenticationError
+    with pytest.raises(BodhanAuthenticationError) as exc_trans:
+        client_ocr_only.translate("Hello", target_language="hi")
+    assert "Bodhan Translate API key is required" in str(exc_trans.value)
+    assert exc_trans.value.status_code == 401
+
+    # 2. Only Translate key provided
+    client_trans_only = BodhanClient(translate_api_key="only-trans-key", http_client=mock_http)
+    assert client_trans_only.translate_api_key == "only-trans-key"
+    assert client_trans_only.ocr_api_key is None
+    # Translate succeeds
+    res_t = client_trans_only.translate("Hello", target_language="hi")
+    assert res_t.text == "OK"
+    # OCR raises informative BodhanAuthenticationError
+    with pytest.raises(BodhanAuthenticationError) as exc_ocr:
+        client_trans_only.ocr(PNG_HEADER)
+    assert "Bodhan OCR API key is required" in str(exc_ocr.value)
+    assert exc_ocr.value.status_code == 401
+
+    # 3. No keys at all provided raises BodhanAuthenticationError at init
+    with pytest.raises(BodhanAuthenticationError) as exc_none:
+        BodhanClient(http_client=mock_http)
+    assert "Bodhan API key is required" in str(exc_none.value)
+
+
+@pytest.mark.asyncio
+async def test_async_client_model_specific_and_missing_credentials(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Verify async client model-specific key dispatch and error handling."""
+    monkeypatch.delenv("BODHAN_API_KEY", raising=False)
+    monkeypatch.delenv("BODHAN_OCR_API_KEY", raising=False)
+    monkeypatch.delenv("BODHAN_TRANSLATE_API_KEY", raising=False)
+    monkeypatch.delenv("BODHAN_TRANSLATION_API_KEY", raising=False)
+
+    recorded_auth_headers: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        recorded_auth_headers.append(request.headers.get("Authorization", ""))
+        data = json.loads(request.content)
+        if "/translate" in request.url.path or data.get("model") == "indic-translate":
+            return httpx.Response(200, json={"translation": "Async Translated Text"})
+        return httpx.Response(200, json={"choices": [{"message": {"content": "Async OCR Text"}}]})
+
+    mock_async_http = httpx.AsyncClient(transport=httpx.MockTransport(handler), base_url="https://api.bodhan.ai")
+
+    # Both model keys
+    client = BodhanAsyncClient(
+        ocr_api_key="async-ocr-key",
+        translate_api_key="async-trans-key",
+        http_client=mock_async_http,
+    )
+    assert client.ocr_api_key == "async-ocr-key"
+    assert client.translate_api_key == "async-trans-key"
+
+    await client.ocr(PNG_HEADER)
+    assert recorded_auth_headers[-1] == "Bearer async-ocr-key"
+
+    await client.translate("Hello", target_language="hi")
+    assert recorded_auth_headers[-1] == "Bearer async-trans-key"
+
+    # OCR only: translate fails
+    ocr_only_client = BodhanAsyncClient(ocr_api_key="async-ocr-only", http_client=mock_async_http)
+    with pytest.raises(BodhanAuthenticationError) as exc_t:
+        await ocr_only_client.translate("Hello", target_language="hi")
+    assert "Bodhan Translate API key is required" in str(exc_t.value)
+
+    # Translate only: ocr fails
+    trans_only_client = BodhanAsyncClient(translate_api_key="async-trans-only", http_client=mock_async_http)
+    with pytest.raises(BodhanAuthenticationError) as exc_o:
+        await trans_only_client.ocr(PNG_HEADER)
+    assert "Bodhan OCR API key is required" in str(exc_o.value)

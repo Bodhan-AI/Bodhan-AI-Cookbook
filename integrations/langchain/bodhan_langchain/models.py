@@ -149,7 +149,8 @@ class TranslationResponse:
     Attributes:
         text: Translated text.
         target_language: Target language ISO code.
-        source_language: Optional source language code (note: Bodhan's documented translation API infers the source language automatically and does not guarantee detected language metadata in responses).
+        source_language: Optional source language code (note: Bodhan's documented translation API
+            infers the source language automatically and does not guarantee detected language metadata in responses).
         script: Script style used (native, roman, or codemix).
         truncated: Whether the response hit maximum output tokens.
         usage: Token usage information.

@@ -5,10 +5,9 @@ from __future__ import annotations
 import base64
 import logging
 import math
-import mimetypes
 import os
-from pathlib import Path
 import re
+from pathlib import Path
 from typing import Any, Literal
 
 import httpx
@@ -21,7 +20,6 @@ from .exceptions import (
     sanitize_sensitive_text,
 )
 from .models import (
-    SUPPORTED_SCRIPTS,
     SUPPORTED_TABLE_FORMATS,
     SUPPORTED_TRANSLATION_LANGUAGES,
     OCRBlock,
@@ -146,7 +144,8 @@ def _prepare_image_data_url(image: bytes | str | Path) -> str:
             b64 = base64.b64encode(data).decode("ascii")
             return f"data:{mime};base64,{b64}"
 
-        if isinstance(image, Path) or any(image.endswith(ext) for ext in (".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg", ".bmp", ".pdf")) or "/" in str(image) or "\\" in str(image):
+        common_exts = (".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg", ".bmp", ".pdf")
+        if isinstance(image, Path) or any(image.endswith(ext) for ext in common_exts) or "/" in str(image) or "\\" in str(image):
             raise FileNotFoundError(f"Image file not found: '{path}'")
 
     if isinstance(image, str):
@@ -194,8 +193,8 @@ def _prepare_image_data_url(image: bytes | str | Path) -> str:
 
             try:
                 decoded = base64.b64decode(payload, validate=True)
-            except Exception:
-                raise BodhanValidationError("Invalid base64 encoding in image data URL.", parameter="image")
+            except Exception as err:
+                raise BodhanValidationError("Invalid base64 encoding in image data URL.", parameter="image") from err
 
             if not decoded:
                 raise BodhanValidationError("Image data URL payload decoded to 0 bytes.", parameter="image")
@@ -213,8 +212,8 @@ def _prepare_image_data_url(image: bytes | str | Path) -> str:
         # Bare base64 string
         try:
             decoded = base64.b64decode(trimmed, validate=True)
-        except Exception:
-            raise BodhanValidationError("Invalid base64 image data.", parameter="image")
+        except Exception as err:
+            raise BodhanValidationError("Invalid base64 image data.", parameter="image") from err
 
         if not decoded:
             raise BodhanValidationError("Image base64 payload is empty (0 bytes).", parameter="image")
@@ -394,16 +393,42 @@ class BodhanClient:
     def __init__(
         self,
         api_key: str | None = None,
+        ocr_api_key: str | None = None,
+        translate_api_key: str | None = None,
         base_url: str = "https://api.bodhan.ai",
         timeout: float | httpx.Timeout = 60.0,
         transport_strategy: TransportStrategy = "auto",
         http_client: httpx.Client | None = None,
     ) -> None:
-        resolved_key = api_key or os.environ.get("BODHAN_API_KEY")
-        if not resolved_key or not resolved_key.strip():
+        # Resolve OCR key: explicit ocr_api_key -> BODHAN_OCR_API_KEY -> explicit api_key -> BODHAN_API_KEY
+        resolved_ocr = (
+            (ocr_api_key.strip() if ocr_api_key and ocr_api_key.strip() else None)
+            or (os.environ.get("BODHAN_OCR_API_KEY", "").strip() or None)
+            or (api_key.strip() if api_key and api_key.strip() else None)
+            or (os.environ.get("BODHAN_API_KEY", "").strip() or None)
+        )
+
+        # Resolve Translate key: explicit translate_api_key -> BODHAN_TRANSLATE_API_KEY -> BODHAN_TRANSLATION_API_KEY -> explicit api_key -> BODHAN_API_KEY
+        resolved_translate = (
+            (translate_api_key.strip() if translate_api_key and translate_api_key.strip() else None)
+            or (os.environ.get("BODHAN_TRANSLATE_API_KEY", "").strip() or None)
+            or (os.environ.get("BODHAN_TRANSLATION_API_KEY", "").strip() or None)
+            or (api_key.strip() if api_key and api_key.strip() else None)
+            or (os.environ.get("BODHAN_API_KEY", "").strip() or None)
+        )
+
+        # Generic key for backward compatibility
+        resolved_generic = (
+            (api_key.strip() if api_key and api_key.strip() else None)
+            or (os.environ.get("BODHAN_API_KEY", "").strip() or None)
+            or resolved_ocr
+            or resolved_translate
+        )
+
+        if not resolved_ocr and not resolved_translate:
             raise BodhanAuthenticationError(
-                "Bodhan API key is required. Pass `api_key` to BodhanClient or set the "
-                "`BODHAN_API_KEY` environment variable.",
+                "Bodhan API key is required. Pass `api_key`, `ocr_api_key`, or `translate_api_key` to BodhanClient or set the "
+                "`BODHAN_OCR_API_KEY`, `BODHAN_TRANSLATE_API_KEY`, or `BODHAN_API_KEY` environment variable.",
                 status_code=401,
             )
 
@@ -414,7 +439,9 @@ class BodhanClient:
                 parameter="transport_strategy",
             )
 
-        self._api_key = resolved_key.strip()
+        self._ocr_api_key = resolved_ocr
+        self._translate_api_key = resolved_translate
+        self._api_key = resolved_generic or ""
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
         self.transport_strategy = transport_strategy
@@ -427,10 +454,19 @@ class BodhanClient:
                 base_url=self.base_url,
                 timeout=self.timeout,
                 headers={
-                    "Authorization": f"Bearer {self._api_key}",
                     "User-Agent": "Bodhan-LangChain-Client/1.0",
                 },
             )
+
+    @property
+    def ocr_api_key(self) -> str | None:
+        """Return the configured API key for OCR operations."""
+        return self._ocr_api_key
+
+    @property
+    def translate_api_key(self) -> str | None:
+        """Return the configured API key for translation operations."""
+        return self._translate_api_key
 
     def close(self) -> None:
         """Close the underlying HTTP client if managed by this instance."""
@@ -449,9 +485,10 @@ class BodhanClient:
     def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         self.close()
 
-    def _headers(self, additional: dict[str, str] | None = None) -> dict[str, str]:
+    def _headers(self, auth_key: str | None = None, additional: dict[str, str] | None = None) -> dict[str, str]:
+        key = auth_key or self._api_key
         base = {
-            "Authorization": f"Bearer {self._api_key}",
+            "Authorization": f"Bearer {key}",
             "User-Agent": "Bodhan-LangChain-Client/1.0",
         }
         if additional:
@@ -465,8 +502,9 @@ class BodhanClient:
         *,
         json: dict[str, Any] | None = None,
         headers: dict[str, str] | None = None,
+        auth_key: str | None = None,
     ) -> dict[str, Any]:
-        req_headers = self._headers(headers)
+        req_headers = self._headers(auth_key=auth_key, additional=headers)
         if json is not None:
             req_headers["Content-Type"] = "application/json"
 
@@ -517,6 +555,13 @@ class BodhanClient:
             BodhanValidationError: If inputs are invalid or empty.
             BodhanAPIError: If the API returns an error or malformed payload.
         """
+        if not self._ocr_api_key:
+            raise BodhanAuthenticationError(
+                "Bodhan OCR API key is required. Pass `ocr_api_key` (or generic `api_key`) to BodhanClient or set the "
+                "`BODHAN_OCR_API_KEY` (or `BODHAN_API_KEY`) environment variable.",
+                status_code=401,
+            )
+
         if table_format not in SUPPORTED_TABLE_FORMATS:
             raise BodhanValidationError(
                 f"Invalid table_format '{table_format}'. Must be one of: {', '.join(sorted(SUPPORTED_TABLE_FORMATS))}",
@@ -545,7 +590,7 @@ class BodhanClient:
         if max_tokens is not None:
             body["max_tokens"] = max_tokens
 
-        data = self._send_request("POST", "/v1/chat/completions", json=body)
+        data = self._send_request("POST", "/v1/chat/completions", json=body, auth_key=self._ocr_api_key)
 
         choices = data.get("choices")
         if not choices or not isinstance(choices, list) or len(choices) == 0:
@@ -617,7 +662,7 @@ class BodhanClient:
         if max_output_tokens is not None:
             body["max_output_tokens"] = max_output_tokens
 
-        data = self._send_request("POST", "/v1/chat/completions", json=body)
+        data = self._send_request("POST", "/v1/chat/completions", json=body, auth_key=self._translate_api_key)
 
         choices = data.get("choices")
         if not choices or not isinstance(choices, list) or len(choices) == 0:
@@ -680,7 +725,7 @@ class BodhanClient:
         if max_output_tokens is not None:
             body["max_output_tokens"] = max_output_tokens
 
-        data = self._send_request("POST", "/translate", json=body)
+        data = self._send_request("POST", "/translate", json=body, auth_key=self._translate_api_key)
 
         translation = data.get("translation")
         if not isinstance(translation, str):
@@ -729,6 +774,13 @@ class BodhanClient:
             BodhanValidationError: If language or inputs fail validation.
             BodhanAPIError: If all attempted transports fail.
         """
+        if not self._translate_api_key:
+            raise BodhanAuthenticationError(
+                "Bodhan Translate API key is required. Pass `translate_api_key` (or generic `api_key`) to BodhanClient or set the "
+                "`BODHAN_TRANSLATE_API_KEY` (or `BODHAN_API_KEY`) environment variable.",
+                status_code=401,
+            )
+
         if not text or not isinstance(text, str) or not text.strip():
             raise BodhanValidationError("Text to translate cannot be empty or whitespace.", parameter="text")
 
@@ -804,16 +856,42 @@ class BodhanAsyncClient:
     def __init__(
         self,
         api_key: str | None = None,
+        ocr_api_key: str | None = None,
+        translate_api_key: str | None = None,
         base_url: str = "https://api.bodhan.ai",
         timeout: float | httpx.Timeout = 60.0,
         transport_strategy: TransportStrategy = "auto",
         http_client: httpx.AsyncClient | None = None,
     ) -> None:
-        resolved_key = api_key or os.environ.get("BODHAN_API_KEY")
-        if not resolved_key or not resolved_key.strip():
+        # Resolve OCR key: explicit ocr_api_key -> BODHAN_OCR_API_KEY -> explicit api_key -> BODHAN_API_KEY
+        resolved_ocr = (
+            (ocr_api_key.strip() if ocr_api_key and ocr_api_key.strip() else None)
+            or (os.environ.get("BODHAN_OCR_API_KEY", "").strip() or None)
+            or (api_key.strip() if api_key and api_key.strip() else None)
+            or (os.environ.get("BODHAN_API_KEY", "").strip() or None)
+        )
+
+        # Resolve Translate key: explicit translate_api_key -> BODHAN_TRANSLATE_API_KEY -> BODHAN_TRANSLATION_API_KEY -> explicit api_key -> BODHAN_API_KEY
+        resolved_translate = (
+            (translate_api_key.strip() if translate_api_key and translate_api_key.strip() else None)
+            or (os.environ.get("BODHAN_TRANSLATE_API_KEY", "").strip() or None)
+            or (os.environ.get("BODHAN_TRANSLATION_API_KEY", "").strip() or None)
+            or (api_key.strip() if api_key and api_key.strip() else None)
+            or (os.environ.get("BODHAN_API_KEY", "").strip() or None)
+        )
+
+        # Generic key for backward compatibility
+        resolved_generic = (
+            (api_key.strip() if api_key and api_key.strip() else None)
+            or (os.environ.get("BODHAN_API_KEY", "").strip() or None)
+            or resolved_ocr
+            or resolved_translate
+        )
+
+        if not resolved_ocr and not resolved_translate:
             raise BodhanAuthenticationError(
-                "Bodhan API key is required. Pass `api_key` to BodhanAsyncClient or set the "
-                "`BODHAN_API_KEY` environment variable.",
+                "Bodhan API key is required. Pass `api_key`, `ocr_api_key`, or `translate_api_key` to BodhanAsyncClient or set the "
+                "`BODHAN_OCR_API_KEY`, `BODHAN_TRANSLATE_API_KEY`, or `BODHAN_API_KEY` environment variable.",
                 status_code=401,
             )
 
@@ -824,7 +902,9 @@ class BodhanAsyncClient:
                 parameter="transport_strategy",
             )
 
-        self._api_key = resolved_key.strip()
+        self._ocr_api_key = resolved_ocr
+        self._translate_api_key = resolved_translate
+        self._api_key = resolved_generic or ""
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
         self.transport_strategy = transport_strategy
@@ -837,10 +917,19 @@ class BodhanAsyncClient:
                 base_url=self.base_url,
                 timeout=self.timeout,
                 headers={
-                    "Authorization": f"Bearer {self._api_key}",
                     "User-Agent": "Bodhan-LangChain-AsyncClient/1.0",
                 },
             )
+
+    @property
+    def ocr_api_key(self) -> str | None:
+        """Return the configured API key for OCR operations."""
+        return self._ocr_api_key
+
+    @property
+    def translate_api_key(self) -> str | None:
+        """Return the configured API key for translation operations."""
+        return self._translate_api_key
 
     async def aclose(self) -> None:
         """Close the underlying HTTP client if managed by this instance."""
@@ -853,9 +942,10 @@ class BodhanAsyncClient:
     async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         await self.aclose()
 
-    def _headers(self, additional: dict[str, str] | None = None) -> dict[str, str]:
+    def _headers(self, auth_key: str | None = None, additional: dict[str, str] | None = None) -> dict[str, str]:
+        key = auth_key or self._api_key
         base = {
-            "Authorization": f"Bearer {self._api_key}",
+            "Authorization": f"Bearer {key}",
             "User-Agent": "Bodhan-LangChain-AsyncClient/1.0",
         }
         if additional:
@@ -869,8 +959,9 @@ class BodhanAsyncClient:
         *,
         json: dict[str, Any] | None = None,
         headers: dict[str, str] | None = None,
+        auth_key: str | None = None,
     ) -> dict[str, Any]:
-        req_headers = self._headers(headers)
+        req_headers = self._headers(auth_key=auth_key, additional=headers)
         if json is not None:
             req_headers["Content-Type"] = "application/json"
 
@@ -908,6 +999,13 @@ class BodhanAsyncClient:
         max_tokens: int | None = None,
     ) -> OCRResponse:
         """Asynchronously perform document OCR on a single scanned page image."""
+        if not self._ocr_api_key:
+            raise BodhanAuthenticationError(
+                "Bodhan OCR API key is required. Pass `ocr_api_key` (or generic `api_key`) to BodhanAsyncClient or set the "
+                "`BODHAN_OCR_API_KEY` (or `BODHAN_API_KEY`) environment variable.",
+                status_code=401,
+            )
+
         if table_format not in SUPPORTED_TABLE_FORMATS:
             raise BodhanValidationError(
                 f"Invalid table_format '{table_format}'. Must be one of: {', '.join(sorted(SUPPORTED_TABLE_FORMATS))}",
@@ -936,7 +1034,7 @@ class BodhanAsyncClient:
         if max_tokens is not None:
             body["max_tokens"] = max_tokens
 
-        data = await self._send_request("POST", "/v1/chat/completions", json=body)
+        data = await self._send_request("POST", "/v1/chat/completions", json=body, auth_key=self._ocr_api_key)
 
         choices = data.get("choices")
         if not choices or not isinstance(choices, list) or len(choices) == 0:
@@ -1007,7 +1105,7 @@ class BodhanAsyncClient:
         if max_output_tokens is not None:
             body["max_output_tokens"] = max_output_tokens
 
-        data = await self._send_request("POST", "/v1/chat/completions", json=body)
+        data = await self._send_request("POST", "/v1/chat/completions", json=body, auth_key=self._translate_api_key)
 
         choices = data.get("choices")
         if not choices or not isinstance(choices, list) or len(choices) == 0:
@@ -1069,7 +1167,7 @@ class BodhanAsyncClient:
         if max_output_tokens is not None:
             body["max_output_tokens"] = max_output_tokens
 
-        data = await self._send_request("POST", "/translate", json=body)
+        data = await self._send_request("POST", "/translate", json=body, auth_key=self._translate_api_key)
 
         translation = data.get("translation")
         if not isinstance(translation, str):
@@ -1099,6 +1197,13 @@ class BodhanAsyncClient:
         max_tokens: int | None = None,
     ) -> TranslationResponse:
         """Asynchronously translate text to an Indian language or English."""
+        if not self._translate_api_key:
+            raise BodhanAuthenticationError(
+                "Bodhan Translate API key is required. Pass `translate_api_key` (or generic `api_key`) to BodhanAsyncClient or set the "
+                "`BODHAN_TRANSLATE_API_KEY` (or `BODHAN_API_KEY`) environment variable.",
+                status_code=401,
+            )
+
         if not text or not isinstance(text, str) or not text.strip():
             raise BodhanValidationError("Text to translate cannot be empty or whitespace.", parameter="text")
 

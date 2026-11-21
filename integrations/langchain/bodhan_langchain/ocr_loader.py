@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import AsyncIterator, Iterator
 from pathlib import Path
-from typing import Any, AsyncIterator, Iterator, Literal
+from typing import Any, Literal
 
 from langchain_core.document_loaders import BaseLoader
 from langchain_core.documents import Document
@@ -29,8 +30,9 @@ class BodhanOCRLoader(BaseLoader):
 
     Each page is returned as a distinct LangChain `Document` containing:
         - `page_content`: Full extracted Markdown text.
-        - `metadata`: Source file path, page number, total pages, model ID,
-          truncation flag, and structured OCR layout blocks.
+        - `metadata`: Source file path, zero-indexed `page` index, one-indexed
+          human-facing `page_number`, `total_pages`, model ID, truncation flag,
+          and structured OCR layout blocks.
 
     Usage:
         ```python
@@ -39,7 +41,7 @@ class BodhanOCRLoader(BaseLoader):
         loader = BodhanOCRLoader("scanned_notice.pdf", dpi=150)
         documents = loader.load()
         for doc in documents:
-            print(f"Page {doc.metadata['page']}: {doc.page_content[:100]}...")
+            print(f"Page {doc.metadata['page_number']} (index {doc.metadata['page']}): {doc.page_content[:100]}...")
         ```
     """
 
@@ -48,6 +50,8 @@ class BodhanOCRLoader(BaseLoader):
         file_path: str | Path,
         client: BodhanClient | None = None,
         async_client: BodhanAsyncClient | None = None,
+        api_key: str | None = None,
+        ocr_api_key: str | None = None,
         dpi: int = 150,
         table_format: str = "markdown",
         max_pages: int | None = None,
@@ -60,6 +64,8 @@ class BodhanOCRLoader(BaseLoader):
         self.max_pages = max_pages
         self.page_error_handling = page_error_handling
         self.max_tokens = max_tokens
+        self.api_key = api_key
+        self.ocr_api_key = ocr_api_key
         self._client = client
         self._async_client = async_client
 
@@ -77,13 +83,15 @@ class BodhanOCRLoader(BaseLoader):
         """Return a client instance and a boolean indicating whether it is owned internally."""
         if self._client is not None:
             return self._client, False
-        return BodhanClient(), True
+        effective_key = self.ocr_api_key or self.api_key
+        return BodhanClient(api_key=self.api_key, ocr_api_key=effective_key), True
 
     def _get_async_client(self) -> tuple[BodhanAsyncClient, bool]:
         """Return an async client instance and a boolean indicating whether it is owned internally."""
         if self._async_client is not None:
             return self._async_client, False
-        return BodhanAsyncClient(), True
+        effective_key = self.ocr_api_key or self.api_key
+        return BodhanAsyncClient(api_key=self.api_key, ocr_api_key=effective_key), True
 
     def _validate_file(self) -> str:
         """Validate that the file exists, is non-empty, and has a supported extension.
@@ -155,7 +163,7 @@ class BodhanOCRLoader(BaseLoader):
                     page_content=ocr_resp.text,
                     metadata={
                         "source": str(self.file_path),
-                        "page": 1,
+                        "page": 0,
                         "page_number": 1,
                         "total_pages": 1,
                         "model": ocr_resp.model,
@@ -209,7 +217,7 @@ class BodhanOCRLoader(BaseLoader):
                             page_content=ocr_resp.text,
                             metadata={
                                 "source": str(self.file_path),
-                                "page": page_num,
+                                "page": page_idx,
                                 "page_number": page_num,
                                 "total_pages": total_doc_pages,
                                 "model": ocr_resp.model,
@@ -253,7 +261,7 @@ class BodhanOCRLoader(BaseLoader):
                     page_content=ocr_resp.text,
                     metadata={
                         "source": str(self.file_path),
-                        "page": 1,
+                        "page": 0,
                         "page_number": 1,
                         "total_pages": 1,
                         "model": ocr_resp.model,
@@ -304,7 +312,7 @@ class BodhanOCRLoader(BaseLoader):
                             page_content=ocr_resp.text,
                             metadata={
                                 "source": str(self.file_path),
-                                "page": page_num,
+                                "page": page_idx,
                                 "page_number": page_num,
                                 "total_pages": total_doc_pages,
                                 "model": ocr_resp.model,

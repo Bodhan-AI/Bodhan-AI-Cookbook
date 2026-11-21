@@ -6,13 +6,14 @@ import asyncio
 import copy
 import logging
 import re
-from typing import Any, Literal, Sequence
+from collections.abc import Sequence
+from typing import Any, Literal
 
 from langchain_core.documents import BaseDocumentTransformer, Document
 
 from .client import BodhanAsyncClient, BodhanClient, _validate_positive_int
 from .exceptions import BodhanValidationError
-from .models import SUPPORTED_SCRIPTS, SUPPORTED_TRANSLATION_LANGUAGES, validate_translation_script
+from .models import SUPPORTED_TRANSLATION_LANGUAGES, validate_translation_script
 
 logger = logging.getLogger(__name__)
 
@@ -185,6 +186,8 @@ class BodhanTranslationTransformer(BaseDocumentTransformer):
         source_language: str | None = None,
         client: BodhanClient | None = None,
         async_client: BodhanAsyncClient | None = None,
+        api_key: str | None = None,
+        translate_api_key: str | None = None,
         script: str | None = None,
         preserve_original_content: bool = False,
         chunk_paragraphs: bool = True,
@@ -203,6 +206,8 @@ class BodhanTranslationTransformer(BaseDocumentTransformer):
         self.error_handling = error_handling
         self.max_output_tokens = max_output_tokens if max_output_tokens is not None else max_tokens
         self.max_concurrency = _validate_positive_int(max_concurrency, "max_concurrency")
+        self.api_key = api_key
+        self.translate_api_key = translate_api_key
         self._client = client
         self._async_client = async_client
 
@@ -233,12 +238,14 @@ class BodhanTranslationTransformer(BaseDocumentTransformer):
     def _get_client(self) -> tuple[BodhanClient, bool]:
         if self._client is not None:
             return self._client, False
-        return BodhanClient(), True
+        effective_key = self.translate_api_key or self.api_key
+        return BodhanClient(api_key=self.api_key, translate_api_key=effective_key), True
 
     def _get_async_client(self) -> tuple[BodhanAsyncClient, bool]:
         if self._async_client is not None:
             return self._async_client, False
-        return BodhanAsyncClient(), True
+        effective_key = self.translate_api_key or self.api_key
+        return BodhanAsyncClient(api_key=self.api_key, translate_api_key=effective_key), True
 
     def _translate_text(self, text: str, client: BodhanClient) -> tuple[str, str | None, bool]:
         """Translate a single string, splitting into safe chunks if chunk_paragraphs is enabled and text is long."""

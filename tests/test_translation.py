@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 import sys
+from pathlib import Path
 
 import httpx
 import pytest
@@ -14,9 +14,9 @@ INTEGRATIONS_DIR = Path(__file__).resolve().parent.parent / "integrations" / "la
 if str(INTEGRATIONS_DIR) not in sys.path:
     sys.path.insert(0, str(INTEGRATIONS_DIR))
 
-from bodhan_langchain.client import BodhanAsyncClient, BodhanClient
-from bodhan_langchain.exceptions import BodhanAPIError, BodhanValidationError
-from bodhan_langchain.translation import BodhanTranslationTransformer
+from bodhan_langchain.client import BodhanAsyncClient, BodhanClient  # noqa: E402
+from bodhan_langchain.exceptions import BodhanAPIError, BodhanValidationError  # noqa: E402
+from bodhan_langchain.translation import BodhanTranslationTransformer  # noqa: E402
 
 DUMMY_KEY = "dummy-trans-key"
 

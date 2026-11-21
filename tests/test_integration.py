@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 import sys
+from pathlib import Path
 
 import httpx
 import pytest
@@ -13,8 +13,8 @@ INTEGRATIONS_DIR = Path(__file__).resolve().parent.parent / "integrations" / "la
 if str(INTEGRATIONS_DIR) not in sys.path:
     sys.path.insert(0, str(INTEGRATIONS_DIR))
 
-from bodhan_langchain.client import BodhanClient
-from examples.multilingual_rag import run_multilingual_rag_pipeline
+from bodhan_langchain.client import BodhanClient  # noqa: E402
+from examples.multilingual_rag import run_rag_pipeline as run_multilingual_rag_pipeline  # noqa: E402
 
 DUMMY_KEY = "dummy-rag-e2e-key"
 
@@ -29,7 +29,13 @@ def test_multilingual_rag_end_to_end(capsys: pytest.CaptureFixture[str]) -> None
             text = data.get("text", "")
             if target == "hi":
                 return httpx.Response(200, json={"translation": "पात्रता 55% अंक और ₹12,000 प्रति वर्ष सहायता।", "source_language": "en"})
-            return httpx.Response(200, json={"translation": f"Scholarship eligibility is 55% marks with assistance of ₹12,000 per year: {text}", "source_language": "hi"})
+            return httpx.Response(
+                200,
+                json={
+                    "translation": f"Scholarship eligibility is 55% marks with assistance of ₹12,000 per year: {text}",
+                    "source_language": "hi",
+                },
+            )
 
         if url_path == "/v1/chat/completions":
             data = json.loads(request.content)

@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 import sys
+from pathlib import Path
 
 import httpx
 import pymupdf
@@ -14,9 +14,9 @@ INTEGRATIONS_DIR = Path(__file__).resolve().parent.parent / "integrations" / "la
 if str(INTEGRATIONS_DIR) not in sys.path:
     sys.path.insert(0, str(INTEGRATIONS_DIR))
 
-from bodhan_langchain.client import BodhanAsyncClient, BodhanClient
-from bodhan_langchain.exceptions import BodhanAPIError, BodhanValidationError
-from bodhan_langchain.ocr_loader import BodhanOCRLoader
+from bodhan_langchain.client import BodhanAsyncClient, BodhanClient  # noqa: E402
+from bodhan_langchain.exceptions import BodhanAPIError, BodhanValidationError  # noqa: E402
+from bodhan_langchain.ocr_loader import BodhanOCRLoader  # noqa: E402
 
 DUMMY_KEY = "dummy-ocr-loader-key"
 
@@ -82,7 +82,7 @@ def test_loader_single_png_success(sample_png: Path) -> None:
     assert len(docs) == 1
     doc = docs[0]
     assert doc.page_content == "# PNG Extracted Text"
-    assert doc.metadata["page"] == 1
+    assert doc.metadata["page"] == 0
     assert doc.metadata["page_number"] == 1
     assert doc.metadata["total_pages"] == 1
     assert doc.metadata["model"] == "indic-ocr"
@@ -105,6 +105,8 @@ def test_loader_single_jpeg_success(sample_jpeg: Path) -> None:
 
     assert len(docs) == 1
     assert docs[0].page_content == "JPEG Text"
+    assert docs[0].metadata["page"] == 0
+    assert docs[0].metadata["page_number"] == 1
 
 
 def test_loader_multipage_pdf_success(sample_pdf: Path) -> None:
@@ -125,10 +127,12 @@ def test_loader_multipage_pdf_success(sample_pdf: Path) -> None:
 
     assert len(docs) == 2
     assert docs[0].page_content == "# Extracted Page 1"
-    assert docs[0].metadata["page"] == 1
+    assert docs[0].metadata["page"] == 0
+    assert docs[0].metadata["page_number"] == 1
     assert docs[0].metadata["total_pages"] == 2
     assert docs[1].page_content == "# Extracted Page 2"
-    assert docs[1].metadata["page"] == 2
+    assert docs[1].metadata["page"] == 1
+    assert docs[1].metadata["page_number"] == 2
     assert docs[1].metadata["total_pages"] == 2
 
 
@@ -147,7 +151,8 @@ def test_loader_max_pages_limit(sample_pdf: Path) -> None:
 
     assert len(docs) == 1
     assert call_count == 1
-    assert docs[0].metadata["page"] == 1
+    assert docs[0].metadata["page"] == 0
+    assert docs[0].metadata["page_number"] == 1
     assert docs[0].metadata["total_pages"] == 2
 
 
@@ -204,7 +209,8 @@ def test_loader_page_error_handling_policies(sample_pdf: Path) -> None:
     docs = BodhanOCRLoader(sample_pdf, client=client_ignore, page_error_handling="ignore").load()
     assert len(docs) == 1
     assert docs[0].page_content == "Page 2 OK"
-    assert docs[0].metadata["page"] == 2
+    assert docs[0].metadata["page"] == 1
+    assert docs[0].metadata["page_number"] == 2
 
 
 @pytest.mark.asyncio
@@ -219,9 +225,9 @@ async def test_loader_async_loading(sample_pdf: Path) -> None:
 
     assert len(docs) == 2
     assert docs[0].page_content == "Async Page Content"
-    assert docs[0].metadata["page"] == 1
+    assert docs[0].metadata["page"] == 0
     assert docs[0].metadata["page_number"] == 1
-    assert docs[1].metadata["page"] == 2
+    assert docs[1].metadata["page"] == 1
     assert docs[1].metadata["page_number"] == 2
 
 
@@ -331,7 +337,8 @@ def test_loader_pdf_early_generator_termination_releases_resources(sample_pdf: P
     loader = BodhanOCRLoader(sample_pdf, client=MockClient())  # type: ignore[arg-type]
     gen = loader.lazy_load()
     first_page = next(gen)
-    assert first_page.metadata["page"] == 1
+    assert first_page.metadata["page"] == 0
+    assert first_page.metadata["page_number"] == 1
     gen.close()  # Early termination before page 2
     # GeneratorExit handled cleanly without leaking handles or crashing
 
@@ -382,3 +389,47 @@ def test_image_ocr_works_without_pymupdf(sample_png: Path, monkeypatch: pytest.M
 
     assert len(docs) == 1
     assert docs[0].page_content == "Image text without PyMuPDF"
+
+
+def test_ocr_loader_page_indexing_and_numbering(sample_pdf: Path) -> None:
+    """Verify that metadata['page'] is 0-indexed and metadata['page_number'] is 1-indexed."""
+    def handler(_: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"choices": [{"message": {"content": "Page Text"}}]})
+
+    client = BodhanClient(api_key=DUMMY_KEY, http_client=httpx.Client(transport=httpx.MockTransport(handler), base_url="https://api.bodhan.ai"))
+    loader = BodhanOCRLoader(sample_pdf, client=client)
+    docs = loader.load()
+
+    assert len(docs) == 2
+    # First page: page 0, page_number 1
+    assert docs[0].metadata["page"] == 0
+    assert docs[0].metadata["page_number"] == 1
+    # Second page: page 1, page_number 2
+    assert docs[1].metadata["page"] == 1
+    assert docs[1].metadata["page_number"] == 2
+
+
+def test_ocr_loader_model_specific_api_key(sample_png: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Verify that BodhanOCRLoader passes ocr_api_key to internally created client."""
+    monkeypatch.delenv("BODHAN_API_KEY", raising=False)
+    monkeypatch.delenv("BODHAN_OCR_API_KEY", raising=False)
+    monkeypatch.delenv("BODHAN_TRANSLATE_API_KEY", raising=False)
+
+    recorded_key = None
+
+    class MockClient:
+        def __init__(self, *args, **kwargs):
+            nonlocal recorded_key
+            recorded_key = kwargs.get("ocr_api_key")
+        def ocr(self, *args, **kwargs):
+            from bodhan_langchain.models import OCRResponse
+            return OCRResponse(text="Mocked Text", blocks=[])
+        def close(self):
+            pass
+
+    monkeypatch.setattr("bodhan_langchain.ocr_loader.BodhanClient", MockClient)
+
+    loader = BodhanOCRLoader(sample_png, ocr_api_key="specific-ocr-key-loader")
+    docs = loader.load()
+    assert len(docs) == 1
+    assert recorded_key == "specific-ocr-key-loader"
