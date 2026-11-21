@@ -39,6 +39,9 @@ package-dir = { "" = "src" }
 where = ["src"]
 include = ["bodhan_mcp*", "bodhan_agent*"]
 
+[tool.setuptools.package-data]
+bodhan_agent = ["web_page.html"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src", "."]

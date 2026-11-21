@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bodhan Task Agent</title>
+<style>
+  :root {
+    --bg: #f6f5f1; --panel: #ffffff; --ink: #1d1d1b; --muted: #6b6a64; --line: #e3e1d9;
+    --accent: #c2410c; --accent-soft: #fff1e8; --ok: #15803d; --ok-soft: #e9f7ee;
+    --bad: #b91c1c; --bad-soft: #fdecec; --warn: #a16207; --warn-soft: #fdf6e3;
+    --mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141413; --panel: #1d1d1b; --ink: #ecebe6; --muted: #9a988f; --line: #2e2d2a;
+      --accent: #fb923c; --accent-soft: #2a1d14; --ok: #4ade80; --ok-soft: #14261a;
+      --bad: #f87171; --bad-soft: #2b1616; --warn: #facc15; --warn-soft: #29240f;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 system-ui, "Segoe UI", sans-serif; }
+  header { padding: 18px 28px; border-bottom: 1px solid var(--line); display: flex; align-items: baseline; gap: 14px; }
+  header h1 { margin: 0; font-size: 19px; letter-spacing: -0.01em; }
+  header span { color: var(--muted); font-size: 13px; }
+  main { display: grid; grid-template-columns: 380px 1fr; gap: 22px; padding: 22px 28px; max-width: 1500px; margin: 0 auto; }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; padding: 16px; } }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; }
+  h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 10px; }
+  label { display: block; font-size: 13px; color: var(--muted); margin: 14px 0 6px; }
+  textarea, input, select { width: 100%; font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 7px; padding: 9px 10px; }
+  textarea { min-height: 84px; resize: vertical; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .chip { font: 12px var(--mono); background: var(--accent-soft); color: var(--accent); border-radius: 999px; padding: 3px 10px; cursor: pointer; border: 0; }
+  .row { display: flex; gap: 10px; }
+  .row > * { flex: 1; }
+  button.primary { margin-top: 16px; width: 100%; padding: 11px; border: 0; border-radius: 8px; background: var(--accent); color: #fff; font: 600 15px system-ui, sans-serif; cursor: pointer; }
+  button.primary:disabled { opacity: 0.5; cursor: default; }
+  button.ghost { background: none; border: 1px solid var(--line); color: var(--muted); border-radius: 7px; padding: 6px 10px; font: inherit; font-size: 13px; cursor: pointer; }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .status-bar { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; margin-bottom: 14px; }
+  .stat { font-size: 13px; color: var(--muted); }
+  .stat b { color: var(--ink); font: 600 17px var(--mono); margin-left: 4px; }
+  .badge { font: 600 12px system-ui, sans-serif; text-transform: uppercase; letter-spacing: 0.05em; padding: 4px 10px; border-radius: 999px; background: var(--line); color: var(--muted); }
+  .badge.completed { background: var(--ok-soft); color: var(--ok); }
+  .badge.impossible, .badge.partial { background: var(--warn-soft); color: var(--warn); }
+  .badge.failed { background: var(--bad-soft); color: var(--bad); }
+  .badge.running { background: var(--accent-soft); color: var(--accent); }
+  .task-line { font-size: 17px; font-weight: 600; margin: 0 0 14px; }
+  .timeline { display: flex; flex-direction: column; gap: 8px; }
+  .ev { border: 1px solid var(--line); border-left: 3px solid var(--line); border-radius: 8px; padding: 9px 12px; background: var(--panel); animation: in 0.25s ease-out; }
+  @keyframes in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  .ev.plan { border-left-color: var(--accent); }
+  .ev.tool { border-left-color: #2563eb; }
+  .ev.verify { border-left-color: var(--ok); }
+  .ev.err { border-left-color: var(--bad); }
+  .ev.finish { border-left-color: var(--ink); }
+  .ev.llm { padding: 4px 12px; border-style: dashed; font-size: 12px; color: var(--muted); }
+  .ev-head { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+  .ev-kind { font: 600 11px system-ui, sans-serif; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); min-width: 52px; }
+  .ev-name { font: 600 14px var(--mono); }
+  .ev-meta { margin-left: auto; font: 12px var(--mono); color: var(--muted); }
+  .ev-body { font-size: 13px; color: var(--muted); margin-top: 4px; word-break: break-word; }
+  .ev-body code { font: 12px var(--mono); }
+  .ok { color: var(--ok); } .bad { color: var(--bad); }
+  ol.steps { margin: 6px 0 0; padding-left: 20px; font-size: 13px; }
+  .final { margin-top: 18px; }
+  .answer { font-size: 15px; background: var(--bg); border-radius: 8px; padding: 12px 14px; margin: 10px 0; }
+  .art { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin-top: 8px; }
+  .art a { font: 13px var(--mono); color: var(--accent); word-break: break-all; }
+  .art pre { max-height: 260px; overflow: auto; background: var(--bg); padding: 10px; border-radius: 6px; font: 13px/1.55 var(--mono); white-space: pre-wrap; margin: 8px 0 0; }
+  .art audio { width: 100%; margin-top: 8px; }
+  .empty { color: var(--muted); text-align: center; padding: 60px 10px; }
+  ul.list { margin: 6px 0; padding-left: 20px; font-size: 13px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Bodhan Task Agent</h1>
+  <span>MCP tool server + planning agent · live plan and trace</span>
+</header>
+<main>
+  <section>
+    <div class="panel">
+      <h2>New task</h2>
+      <label for="task">Task</label>
+      <textarea id="task" placeholder="Transcribe this Hindi voice note and give me English subtitles"></textarea>
+      <label for="files">Input files <span class="hint">(one path per line)</span></label>
+      <textarea id="files" style="min-height:60px;font-family:var(--mono);font-size:13px"></textarea>
+      <div class="chips" id="samples"></div>
+      <label for="upload">Or upload a file</label>
+      <input type="file" id="upload">
+      <div class="row">
+        <div><label for="cost">Max cost (₹)</label><input id="cost" type="number" step="0.5" value="20"></div>
+        <div><label for="steps">Max steps</label><input id="steps" type="number" value="30"></div>
+      </div>
+      <button class="primary" id="run">Run task</button>
+    </div>
+    <div class="panel" style="margin-top:16px">
+      <h2>Replay a finished run</h2>
+      <select id="past"><option value="">Choose a run…</option></select>
+      <div class="hint">Plays back a saved trace.jsonl and its artifacts.</div>
+    </div>
+  </section>
+
+  <section class="panel" id="view">
+    <div class="empty" id="empty">Start a task or pick a finished run to see its plan and trace here.</div>
+    <div id="live" hidden>
+      <p class="task-line" id="taskLine"></p>
+      <div class="status-bar">
+        <span class="badge" id="badge">running</span>
+        <span class="stat">Bodhan cost<b id="cost-now">₹0.0000</b></span>
+        <span class="stat">Tool calls<b id="calls">0</b></span>
+        <span class="stat">Elapsed<b id="elapsed">0s</b></span>
+        <button class="ghost" id="stop" hidden>Stop</button>
+      </div>
+      <div class="timeline" id="timeline"></div>
+      <div class="final" id="final"></div>
+    </div>
+  </section>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+const base = (p) => String(p || "").split(/[\\/]/).pop();
+let pastTasks = {};
+let source = null, runId = null, calls = 0, t0 = null, timer = null, firstTs = null, lastTs = null;
+
+async function loadSamples() {
+  const r = await fetch("/api/samples");
+  const d = await r.json();
+  $("samples").innerHTML = d.files.map((f) => `<button class="chip" data-f="${esc(f)}">${esc(f.replace("sample_data/", ""))}</button>`).join("");
+  $("samples").onclick = (e) => {
+    const f = e.target.dataset.f;
+    if (f) $("files").value = ($("files").value.trim() + "\n" + f).trim();
+  };
+  pastTasks = Object.fromEntries(d.past_runs.map((p) => [p.id, p.task]));
+  $("past").innerHTML = '<option value="">Choose a run…</option>' +
+    d.past_runs.map((p) => `<option value="${esc(p.id)}">${esc(p.label)}${p.task ? " · " + esc(p.task.slice(0, 60)) : ""}</option>`).join("");
+}
+
+$("upload").onchange = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const r = await fetch("/api/upload?name=" + encodeURIComponent(file.name), {method: "POST", body: file});
+  const d = await r.json();
+  if (d.path) $("files").value = ($("files").value.trim() + "\n" + d.path).trim();
+  e.target.value = "";
+};
+
+$("run").onclick = async () => {
+  const task = $("task").value.trim();
+  if (!task) { $("task").focus(); return; }
+  $("run").disabled = true;
+  const body = {task, files: $("files").value.split("\n"), max_cost_inr: $("cost").value, max_steps: $("steps").value};
+  const r = await fetch("/api/runs", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)});
+  const d = await r.json();
+  if (!d.id) { alert(d.error || "Could not start the run"); $("run").disabled = false; return; }
+  follow(d.id, task, true);
+};
+
+$("past").onchange = (e) => {
+  if (!e.target.value) return;
+  history.replaceState(null, "", "?run=" + encodeURIComponent(e.target.value));
+  follow(e.target.value, "", false);
+};
+$("stop").onclick = () => fetch("/api/stop?id=" + encodeURIComponent(runId), {method: "POST"});
+
+function follow(id, task, live) {
+  if (source) source.close();
+  clearInterval(timer);
+  runId = id; calls = 0; firstTs = lastTs = null;
+  $("empty").hidden = true; $("live").hidden = false;
+  $("timeline").innerHTML = ""; $("final").innerHTML = "";
+  $("taskLine").textContent = task || pastTasks[id] || id;
+  setBadge("running");
+  $("cost-now").textContent = "₹0.0000"; $("calls").textContent = "0"; $("elapsed").textContent = "0s";
+  $("stop").hidden = !live;
+  if (live) { t0 = Date.now(); timer = setInterval(() => { $("elapsed").textContent = Math.round((Date.now() - t0) / 1000) + "s"; }, 500); }
+  source = new EventSource("/api/events?id=" + encodeURIComponent(id));
+  source.addEventListener("trace", (m) => addEvent(JSON.parse(m.data), live));
+  source.addEventListener("done", (m) => { source.close(); clearInterval(timer); $("stop").hidden = true; $("run").disabled = false; showFinal(JSON.parse(m.data)); });
+  source.onerror = () => { source.close(); clearInterval(timer); $("run").disabled = false; };
+}
+
+function setBadge(status) { const b = $("badge"); b.className = "badge " + status; b.textContent = status; }
+
+function argSummary(args) {
+  if (!args) return "";
+  return Object.entries(args).map(([k, v]) => {
+    let s = typeof v === "string" ? v : JSON.stringify(v);
+    if (/path/.test(k) || /[\\/]/.test(s) && s.length > 30) s = base(s);
+    if (s.length > 70) s = s.slice(0, 67) + "…";
+    return `<code>${esc(k)}=${esc(s)}</code>`;
+  }).join(" · ");
+}
+
+function addEvent(e, live) {
+  if (e.ts) { const ts = Date.parse(e.ts); firstTs ??= ts; lastTs = ts; if (!live) $("elapsed").textContent = Math.round((lastTs - firstTs) / 1000) + "s"; }
+  if (typeof e.cumulative_cost_inr === "number") $("cost-now").textContent = "₹" + e.cumulative_cost_inr.toFixed(4);
+  if (e.task && !$("taskLine").textContent.trim()) $("taskLine").textContent = e.task;
+  const meta = [e.latency_s != null ? e.latency_s.toFixed(1) + "s" : "", e.cost_inr ? "₹" + e.cost_inr.toFixed(4) : "", e.cache_hits ? e.cache_hits + " cached" : ""].filter(Boolean).join(" · ");
+  const rs = e.result_summary;
+  let cls = "", kind = e.type, name = e.tool || "", body = "";
+  if (e.type === "llm") {
+    cls = "llm"; kind = "llm";
+    const t = e.llm_tokens ? `${e.llm_tokens.prompt}+${e.llm_tokens.completion} tokens` : "";
+    body = `planner turn ${e.turn ?? ""} → ${(e.tool_calls || []).map((c) => c.name).join(", ") || esc(rs)} ${t ? "· " + t : ""}`;
+    return push(`<div class="ev llm">${body}<span style="float:right">${esc(meta)}</span></div>`);
+  }
+  if (e.type === "inventory") {
+    cls = "tool"; kind = "input"; name = base(rs?.path || e.arguments?.path);
+    body = rs ? `${esc(rs.kind || "")}${rs.duration_s ? " · " + rs.duration_s.toFixed(0) + "s audio" : ""}${rs.pages ? " · " + rs.pages + " pages" : ""}${rs.exists === false ? ' · <span class="bad">missing</span>' : ""}${rs.detected_language ? " · detected " + esc(rs.detected_language) : ""}` : "";
+  } else if (e.type === "plan") {
+    cls = "plan"; kind = "plan"; const a = e.arguments || {};
+    name = a.goal || "plan";
+    body = `${a.feasibility ? `Feasibility: <b>${esc(a.feasibility)}</b>${a.feasibility_reason ? " · " + esc(a.feasibility_reason) : ""}<br>` : ""}` +
+      (a.steps?.length ? `<ol class="steps">${a.steps.map((s) => `<li>${esc(s)}</li>`).join("")}</ol>` : "") +
+      (a.assumptions?.length ? `<div style="margin-top:6px">Assumptions: ${a.assumptions.map(esc).join("; ")}</div>` : "");
+  } else if (e.type === "tool" || e.type === "verify") {
+    if (e.type === "tool") $("calls").textContent = ++calls;
+    const failed = e.ok === false || rs?.passed === false;
+    cls = failed ? "err" : e.type; kind = e.type === "verify" ? "check" : "tool";
+    body = argSummary(e.arguments);
+    if (rs && rs.code) body += `<br><span class="bad">${esc(rs.code)}: ${esc(rs.message)}</span>`;
+    if (rs && rs.passed === true) body += ` · <span class="ok">passed</span>`;
+    if (rs && rs.passed === false) body += `<br><span class="bad">failed: ${esc((rs.issues || []).slice(0, 3).join("; "))}</span>`;
+    if (rs && rs.injection_warnings?.length) body += `<br><span class="bad">⚠ injection warning: ${esc(rs.injection_warnings[0])}</span>`;
+  } else if (e.type === "finish") {
+    cls = "finish"; kind = "finish"; name = e.arguments?.status || "finish";
+    body = esc(e.arguments?.answer || "");
+    if (rs?.verification_failures?.length) body += `<br><span class="bad">${esc(rs.verification_failures.join("; "))}</span>`;
+  } else if (e.type === "error") {
+    cls = "err"; kind = "error"; body = esc(typeof rs === "string" ? rs : JSON.stringify(rs));
+  } else {
+    body = esc(typeof rs === "string" ? rs : "");
+  }
+  push(`<div class="ev ${cls}"><div class="ev-head"><span class="ev-kind">${esc(kind)}</span><span class="ev-name">${esc(name)}</span><span class="ev-meta">${esc(meta)}</span></div>${body ? `<div class="ev-body">${body}</div>` : ""}</div>`);
+}
+
+function push(html) {
+  $("timeline").insertAdjacentHTML("beforeend", html);
+  $("timeline").lastElementChild.scrollIntoView({block: "nearest", behavior: "smooth"});
+}
+
+async function showFinal(d) {
+  setBadge(d.status || (d.exit_code ? "failed" : "unknown"));
+  if (typeof d.total_cost_inr === "number") $("cost-now").textContent = "₹" + d.total_cost_inr.toFixed(4);
+  if (typeof d.elapsed_s === "number") $("elapsed").textContent = d.elapsed_s.toFixed(1) + "s";
+  let html = `<h2>Result</h2>`;
+  if (d.answer) html += `<div class="answer">${esc(d.answer)}</div>`;
+  if (d.assumptions?.length) html += `<div class="ev-body">Assumptions:<ul class="list">${d.assumptions.map((a) => `<li>${esc(a)}</li>`).join("")}</ul></div>`;
+  if (d.verification_failures?.length) html += `<div class="ev-body bad">Verification: ${esc(d.verification_failures.join("; "))}</div>`;
+  if (!d.status && !d.answer) html += `<div class="ev-body bad">The run ended without a report; see agent_stderr.log in the run folder.</div>`;
+  html += d.artifacts.length ? "<h2 style=\"margin-top:16px\">Artifacts</h2>" : "";
+  $("final").innerHTML = html;
+  for (const a of d.artifacts) {
+    const url = `/api/artifact?id=${encodeURIComponent(runId)}&name=${encodeURIComponent(a.name)}`;
+    const box = document.createElement("div");
+    box.className = "art";
+    box.innerHTML = `<a href="${url}" target="_blank">${esc(base(a.name))}</a> <span class="hint">${(a.size / 1024).toFixed(1)} KB</span>`;
+    if (a.mime.startsWith("audio/")) box.insertAdjacentHTML("beforeend", `<audio controls src="${url}"></audio>`);
+    else if (a.mime.startsWith("image/")) box.insertAdjacentHTML("beforeend", `<img src="${url}" style="max-width:100%;margin-top:8px;border-radius:6px">`);
+    else if (a.size < 200000 && !a.name.endsWith(".json")) {
+      const text = await (await fetch(url)).text();
+      box.insertAdjacentHTML("beforeend", `<pre>${esc(text.slice(0, 6000))}</pre>`);
+    }
+    $("final").appendChild(box);
+  }
+}
+
+loadSamples().then(() => {
+  const open = new URLSearchParams(location.search).get("run");
+  if (open) { $("past").value = open; follow(open, "", false); }
+});
+</script>
+</body>
+</html>

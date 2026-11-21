@@ -40,3 +40,4 @@ sample_data/*
 
 # Private notes (not part of the recipe)
 /notes/
+/outputs_groq/

@@ -27,6 +27,7 @@ Diagram: [docs/architecture.md](docs/architecture.md)
 - **`bodhan_mcp.cache`**: content-addressed disk cache with in-flight dedupe.
 - **`bodhan_mcp.media` / `textproc` / `languages`**: ffmpeg + VAD, PDF rendering, Markdown block parsing, sentence chunking, CER, repetition and injection detection, script-based language ID.
 - **`bodhan_agent`**: CLI, inventory, planner LLM, executor (parallel tool calls), guards, verification gate, trace and report writers. Talks to the server over MCP (in-process by default, `--transport stdio` optional).
+- **`bodhan_agent.web`**: a thin local web UI (stretch goal) that starts a task and streams its plan, tool calls, checks and artifacts live from `trace.jsonl`, and replays finished runs.
 
 ## Agent flow
 Flow chart: [docs/agent_flow.md](docs/agent_flow.md)

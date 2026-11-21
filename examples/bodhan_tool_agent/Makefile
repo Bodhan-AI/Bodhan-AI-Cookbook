@@ -1,4 +1,4 @@
-.PHONY: setup test lint format demo sample-data self-eval server server-http docker clean
+.PHONY: setup test lint format demo sample-data self-eval server server-http web docker clean
 
 # venv layout differs between Windows and POSIX
 ifeq ($(OS),Windows_NT)
@@ -47,6 +47,10 @@ server:
 # MCP server over streamable HTTP; requires BODHAN_MCP_TOKEN.
 server-http:
 	$(PY) -m bodhan_mcp --http --port 8765
+
+# Local web UI: live plan and trace, replay of finished runs.
+web:
+	$(PY) -m bodhan_agent.web
 
 docker:
 	docker build -t bodhan-tool-agent .

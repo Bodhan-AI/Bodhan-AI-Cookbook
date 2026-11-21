@@ -115,6 +115,15 @@ python -m bodhan_mcp --http --port 8765
 # clients connect to http://127.0.0.1:8765/mcp with header  Authorization: Bearer <token>
 ```
 
+**Web UI** (stretch goal): a thin local page that starts a task and shows the plan, every tool call (arguments, latency, cost), the verification checks and the final artifacts (audio plays inline) as the trace is written. It can also replay any finished run from `demo_runs/`, `outputs/` or earlier web runs.
+
+```bash
+python -m bodhan_agent.web            # or: make web   → http://127.0.0.1:8000
+# open a saved run directly: http://127.0.0.1:8000/?run=demo_runs/injection_worksheet
+```
+
+Each web run is the same CLI in a subprocess, writing to `out/web/run_<id>/`, so the page shows exactly what `trace.jsonl` records. It binds to 127.0.0.1 because it can read any path the agent can.
+
 ## Tools
 
 | Tool | What it does | Limits handled inside | Cost |
