@@ -71,6 +71,8 @@ class OCRResponse:
         text: Full extracted document text in Markdown.
         blocks: List of structured layout blocks detected on the page.
         model: Model identifier used (e.g. 'indic-ocr').
+        truncated: Whether generation was truncated (finish_reason == 'length').
+        finish_reason: Model completion termination reason ('stop', 'length', etc.).
         usage: Token/page usage dictionary if provided by the API.
         raw_response: Complete raw JSON response dictionary.
     """
@@ -78,6 +80,8 @@ class OCRResponse:
     text: str
     blocks: list[OCRBlock]
     model: str = "indic-ocr"
+    truncated: bool = False
+    finish_reason: str | None = None
     usage: dict[str, Any] | None = None
     raw_response: dict[str, Any] = field(default_factory=dict)
 

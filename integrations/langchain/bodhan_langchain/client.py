@@ -265,10 +265,10 @@ class BodhanClient:
                 json=json,
                 headers=req_headers,
             )
-        except httpx.TimeoutException as exc:
-            raise BodhanAPIError(f"Request to '{url}' timed out after {self.timeout} seconds.") from exc
+        except httpx.TimeoutException:
+            raise BodhanAPIError(f"Request to '{url}' timed out after {self.timeout} seconds.") from None
         except httpx.RequestError as exc:
-            raise BodhanAPIError(f"Network request to '{url}' failed: {exc}") from exc
+            raise BodhanAPIError(f"Network request to '{url}' failed: {exc.__class__.__name__}") from None
 
         if not resp.is_success:
             raise _parse_error_response(resp)
@@ -340,27 +340,63 @@ class BodhanClient:
                 response_body=data,
             )
 
-        message = choices[0].get("message", {})
-        content = message.get("content")
-        if content is None:
+        choice = choices[0]
+        if not isinstance(choice, dict):
             raise BodhanAPIError(
-                "OCR response choices[0].message is missing 'content'.",
+                "OCR response choices[0] is not a dictionary.",
                 status_code=200,
                 response_body=data,
             )
+
+        message = choice.get("message")
+        if not isinstance(message, dict):
+            raise BodhanAPIError(
+                "OCR response choices[0].message is missing or not a dictionary.",
+                status_code=200,
+                response_body=data,
+            )
+
+        content = message.get("content")
+        if not isinstance(content, str):
+            raise BodhanAPIError(
+                "OCR response choices[0].message is missing valid string 'content'.",
+                status_code=200,
+                response_body=data,
+            )
+
+        finish_reason = choice.get("finish_reason")
+        truncated = bool(finish_reason == "length")
 
         raw_blocks = data.get("blocks", [])
         parsed_blocks: list[OCRBlock] = []
         if isinstance(raw_blocks, list):
             for b in raw_blocks:
                 if isinstance(b, dict):
+                    raw_conf = b.get("conf")
+                    try:
+                        conf = float(raw_conf) if raw_conf is not None else 0.0
+                    except (TypeError, ValueError):
+                        conf = 0.0
+
+                    raw_bbox = b.get("bbox_xyxy")
+                    if isinstance(raw_bbox, (list, tuple)) and len(raw_bbox) == 4:
+                        try:
+                            bbox = [int(coord) for coord in raw_bbox]
+                        except (TypeError, ValueError):
+                            bbox = [0, 0, 0, 0]
+                    else:
+                        bbox = [0, 0, 0, 0]
+
+                    raw_text = b.get("text")
+                    text_str = str(raw_text) if raw_text is not None else ""
+
                     parsed_blocks.append(
                         OCRBlock(
-                            order=b.get("order", 0),
-                            label=b.get("label", "unknown"),
-                            bbox_xyxy=b.get("bbox_xyxy", [0, 0, 0, 0]),
-                            conf=float(b.get("conf", 0.0)),
-                            text=b.get("text", ""),
+                            order=int(b.get("order") or 0) if str(b.get("order", 0)).isdigit() else 0,
+                            label=str(b.get("label") or "unknown"),
+                            bbox_xyxy=bbox,
+                            conf=conf,
+                            text=text_str,
                             raw=b,
                         )
                     )
@@ -369,6 +405,8 @@ class BodhanClient:
             text=content,
             blocks=parsed_blocks,
             model=data.get("model", "indic-ocr"),
+            truncated=truncated,
+            finish_reason=finish_reason,
             usage=data.get("usage"),
             raw_response=data,
         )
@@ -406,21 +444,38 @@ class BodhanClient:
                 response_body=data,
             )
 
-        message = choices[0].get("message", {})
-        content = message.get("content")
-        if content is None:
+        choice = choices[0]
+        if not isinstance(choice, dict):
             raise BodhanAPIError(
-                "Translation response choices[0].message is missing 'content'.",
+                "Translation response choices[0] is not a dictionary.",
                 status_code=200,
                 response_body=data,
             )
+
+        message = choice.get("message")
+        if not isinstance(message, dict):
+            raise BodhanAPIError(
+                "Translation response choices[0].message is missing or not a dictionary.",
+                status_code=200,
+                response_body=data,
+            )
+
+        content = message.get("content")
+        if not isinstance(content, str):
+            raise BodhanAPIError(
+                "Translation response choices[0].message is missing valid string 'content'.",
+                status_code=200,
+                response_body=data,
+            )
+
+        finish_reason = choice.get("finish_reason")
 
         return TranslationResponse(
             text=content,
             target_language=target_language,
             source_language=data.get("source_language"),
             script=script,
-            truncated=bool(choices[0].get("finish_reason") == "length"),
+            truncated=bool(finish_reason == "length"),
             usage=data.get("usage"),
             raw_response=data,
         )
@@ -445,9 +500,9 @@ class BodhanClient:
         data = self._send_request("POST", "/translate", json=body)
 
         translation = data.get("translation")
-        if translation is None:
+        if not isinstance(translation, str):
             raise BodhanAPIError(
-                "Translation response is missing expected 'translation' field.",
+                "Translation response is missing valid string 'translation' field.",
                 status_code=200,
                 response_body=data,
             )
@@ -610,10 +665,10 @@ class BodhanAsyncClient:
                 json=json,
                 headers=req_headers,
             )
-        except httpx.TimeoutException as exc:
-            raise BodhanAPIError(f"Request to '{url}' timed out after {self.timeout} seconds.") from exc
+        except httpx.TimeoutException:
+            raise BodhanAPIError(f"Request to '{url}' timed out after {self.timeout} seconds.") from None
         except httpx.RequestError as exc:
-            raise BodhanAPIError(f"Network request to '{url}' failed: {exc}") from exc
+            raise BodhanAPIError(f"Network request to '{url}' failed: {exc.__class__.__name__}") from None
 
         if not resp.is_success:
             raise _parse_error_response(resp)
@@ -672,27 +727,63 @@ class BodhanAsyncClient:
                 response_body=data,
             )
 
-        message = choices[0].get("message", {})
-        content = message.get("content")
-        if content is None:
+        choice = choices[0]
+        if not isinstance(choice, dict):
             raise BodhanAPIError(
-                "OCR response choices[0].message is missing 'content'.",
+                "OCR response choices[0] is not a dictionary.",
                 status_code=200,
                 response_body=data,
             )
+
+        message = choice.get("message")
+        if not isinstance(message, dict):
+            raise BodhanAPIError(
+                "OCR response choices[0].message is missing or not a dictionary.",
+                status_code=200,
+                response_body=data,
+            )
+
+        content = message.get("content")
+        if not isinstance(content, str):
+            raise BodhanAPIError(
+                "OCR response choices[0].message is missing valid string 'content'.",
+                status_code=200,
+                response_body=data,
+            )
+
+        finish_reason = choice.get("finish_reason")
+        truncated = bool(finish_reason == "length")
 
         raw_blocks = data.get("blocks", [])
         parsed_blocks: list[OCRBlock] = []
         if isinstance(raw_blocks, list):
             for b in raw_blocks:
                 if isinstance(b, dict):
+                    raw_conf = b.get("conf")
+                    try:
+                        conf = float(raw_conf) if raw_conf is not None else 0.0
+                    except (TypeError, ValueError):
+                        conf = 0.0
+
+                    raw_bbox = b.get("bbox_xyxy")
+                    if isinstance(raw_bbox, (list, tuple)) and len(raw_bbox) == 4:
+                        try:
+                            bbox = [int(coord) for coord in raw_bbox]
+                        except (TypeError, ValueError):
+                            bbox = [0, 0, 0, 0]
+                    else:
+                        bbox = [0, 0, 0, 0]
+
+                    raw_text = b.get("text")
+                    text_str = str(raw_text) if raw_text is not None else ""
+
                     parsed_blocks.append(
                         OCRBlock(
-                            order=b.get("order", 0),
-                            label=b.get("label", "unknown"),
-                            bbox_xyxy=b.get("bbox_xyxy", [0, 0, 0, 0]),
-                            conf=float(b.get("conf", 0.0)),
-                            text=b.get("text", ""),
+                            order=int(b.get("order") or 0) if str(b.get("order", 0)).isdigit() else 0,
+                            label=str(b.get("label") or "unknown"),
+                            bbox_xyxy=bbox,
+                            conf=conf,
+                            text=text_str,
                             raw=b,
                         )
                     )
@@ -701,6 +792,8 @@ class BodhanAsyncClient:
             text=content,
             blocks=parsed_blocks,
             model=data.get("model", "indic-ocr"),
+            truncated=truncated,
+            finish_reason=finish_reason,
             usage=data.get("usage"),
             raw_response=data,
         )
@@ -737,21 +830,38 @@ class BodhanAsyncClient:
                 response_body=data,
             )
 
-        message = choices[0].get("message", {})
-        content = message.get("content")
-        if content is None:
+        choice = choices[0]
+        if not isinstance(choice, dict):
             raise BodhanAPIError(
-                "Translation response choices[0].message is missing 'content'.",
+                "Translation response choices[0] is not a dictionary.",
                 status_code=200,
                 response_body=data,
             )
+
+        message = choice.get("message")
+        if not isinstance(message, dict):
+            raise BodhanAPIError(
+                "Translation response choices[0].message is missing or not a dictionary.",
+                status_code=200,
+                response_body=data,
+            )
+
+        content = message.get("content")
+        if not isinstance(content, str):
+            raise BodhanAPIError(
+                "Translation response choices[0].message is missing valid string 'content'.",
+                status_code=200,
+                response_body=data,
+            )
+
+        finish_reason = choice.get("finish_reason")
 
         return TranslationResponse(
             text=content,
             target_language=target_language,
             source_language=data.get("source_language"),
             script=script,
-            truncated=bool(choices[0].get("finish_reason") == "length"),
+            truncated=bool(finish_reason == "length"),
             usage=data.get("usage"),
             raw_response=data,
         )
@@ -775,9 +885,9 @@ class BodhanAsyncClient:
         data = await self._send_request("POST", "/translate", json=body)
 
         translation = data.get("translation")
-        if translation is None:
+        if not isinstance(translation, str):
             raise BodhanAPIError(
-                "Translation response is missing expected 'translation' field.",
+                "Translation response is missing valid string 'translation' field.",
                 status_code=200,
                 response_body=data,
             )

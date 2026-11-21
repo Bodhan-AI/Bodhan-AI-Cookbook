@@ -394,7 +394,7 @@ def test_ocr_response_missing_expected_content() -> None:
     with BodhanClient(api_key=DUMMY_KEY, http_client=mock_client2) as client:
         with pytest.raises(BodhanAPIError) as exc_info:
             client.ocr(PNG_HEADER)
-    assert "missing 'content'" in exc_info.value.message
+    assert "missing" in exc_info.value.message and "content" in exc_info.value.message
 
 
 def test_timeout_handling() -> None:
@@ -434,3 +434,89 @@ async def test_async_client_ocr_and_translate() -> None:
 
         trans_res = await client.translate("Hello async", target_language="hi")
         assert trans_res.text == "Async translation output"
+
+
+@pytest.mark.asyncio
+async def test_async_translation_auto_fallback_on_404() -> None:
+    """Verify that BodhanAsyncClient falls back from /v1/chat/completions to /translate on 404."""
+    calls: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(request.url.path)
+        if request.url.path == "/v1/chat/completions":
+            return httpx.Response(404, json={"detail": "Not Found"})
+        if request.url.path == "/translate":
+            return httpx.Response(200, json={"translation": "नमस्ते async", "target_language": "hi"})
+        return httpx.Response(500)
+
+    mock_async_client = httpx.AsyncClient(transport=httpx.MockTransport(handler), base_url="https://api.bodhan.ai")
+    async with BodhanAsyncClient(api_key=DUMMY_KEY, http_client=mock_async_client) as client:
+        res = await client.translate("Hello", target_language="hi", transport="auto")
+
+    assert calls == ["/v1/chat/completions", "/translate"]
+    assert res.text == "नमस्ते async"
+
+
+def test_defensive_schema_null_message_and_invalid_content() -> None:
+    """Verify that null message or non-string content raises BodhanAPIError without crashing."""
+    # choices[0].message is null
+    def handler_null_msg(_: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"choices": [{"message": None}]})
+
+    mock_client = httpx.Client(transport=httpx.MockTransport(handler_null_msg), base_url="https://api.bodhan.ai")
+    with BodhanClient(api_key=DUMMY_KEY, http_client=mock_client) as client:
+        with pytest.raises(BodhanAPIError) as exc_info:
+            client.ocr(PNG_HEADER)
+    assert "not a dictionary" in exc_info.value.message
+
+    # choices[0].message.content is an integer
+    def handler_int_content(_: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"choices": [{"message": {"content": 12345}}]})
+
+    mock_client2 = httpx.Client(transport=httpx.MockTransport(handler_int_content), base_url="https://api.bodhan.ai")
+    with BodhanClient(api_key=DUMMY_KEY, http_client=mock_client2) as client:
+        with pytest.raises(BodhanAPIError) as exc_info:
+            client.translate("Hello", target_language="hi")
+    assert "missing valid string 'content'" in exc_info.value.message
+
+
+def test_ocr_metadata_defensive_parsing_null_conf_and_coords() -> None:
+    """Verify that null conf or malformed coordinates in OCR blocks do not crash the request."""
+    mock_payload = {
+        "choices": [{"message": {"content": "Sample OCR Text"}, "finish_reason": "length"}],
+        "blocks": [
+            {"order": "1", "label": "paragraph", "conf": None, "bbox_xyxy": [10, 20, 30, 40], "text": "Valid text"},
+            {"order": None, "label": None, "conf": "invalid", "bbox_xyxy": "bad", "text": None},
+        ],
+    }
+
+    def handler(_: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json=mock_payload)
+
+    mock_client = httpx.Client(transport=httpx.MockTransport(handler), base_url="https://api.bodhan.ai")
+    with BodhanClient(api_key=DUMMY_KEY, http_client=mock_client) as client:
+        res = client.ocr(PNG_HEADER)
+
+    assert res.text == "Sample OCR Text"
+    assert res.truncated is True
+    assert res.finish_reason == "length"
+    assert len(res.blocks) == 2
+    assert res.blocks[0].conf == 0.0  # Safely defaulted from None
+    assert res.blocks[0].bbox_xyxy == [10, 20, 30, 40]
+    assert res.blocks[1].conf == 0.0  # Safely defaulted from 'invalid'
+    assert res.blocks[1].bbox_xyxy == [0, 0, 0, 0]  # Safely defaulted from 'bad'
+    assert res.blocks[1].text == ""  # Safely defaulted from None
+
+
+def test_injected_client_lifecycle_not_closed() -> None:
+    """Verify that BodhanClient does not close an externally injected HTTP client on exit."""
+    mock_transport = httpx.MockTransport(lambda _: httpx.Response(200, json={"translation": "नमस्ते"}))
+    external_client = httpx.Client(transport=mock_transport, base_url="https://api.bodhan.ai")
+
+    with BodhanClient(api_key=DUMMY_KEY, http_client=external_client) as client:
+        client.translate("Hello", target_language="hi", transport="translate_endpoint")
+
+    # Injected client should remain open
+    assert not external_client.is_closed
+    external_client.close()
+    assert external_client.is_closed
