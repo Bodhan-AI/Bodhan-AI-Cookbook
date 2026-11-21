@@ -126,7 +126,11 @@ class Deliverable(StrictPlanModel):
 class PlanStep(PlanModel):
     id: str = Field(description="Step id: S1, S2, ...")
     intent: str = Field(min_length=1, description="What this step achieves, in English.")
+    why: str = Field(min_length=1, description="Why this step is needed and why this way, in one English sentence.")
     tool: str | None = Field(default=None, description="Tool expected for this step, if known.")
+    condition: str | None = Field(
+        default=None, description="When the step runs only in some cases, e.g. 'only if the text is not English'."
+    )
     depends_on: list[str] = Field(default_factory=list, description="Ids of steps that must finish first.")
 
     @field_validator("id")
@@ -151,15 +155,28 @@ class Feasibility(PlanModel):
         return self
 
 
+class Risk(PlanModel):
+    risk: str = Field(min_length=1, description="What could go wrong, in English.")
+    mitigation: str = Field(min_length=1, description="What the agent will do about it, in English.")
+
+
 class Plan(PlanModel):
     task_en: str = Field(min_length=1, description="The task restated in English.")
-    interpretation: str = Field(min_length=1, description="What the user wants, in one or two English sentences.")
+    goal: str = Field(min_length=1, description="What the user gets when the task is done, in one English sentence.")
+    input_notes: list[str] = Field(
+        default_factory=list,
+        description="What is known or still unknown about the inputs and how it affects the approach.",
+    )
     assumptions: list[str] = Field(
         default_factory=list,
-        description="Reasonable assumptions made where the task is ambiguous. Ambiguity alone is not infeasibility.",
+        description=(
+            "Choices made where the task is ambiguous, such as length, voice or output format. Only real "
+            "ambiguities; ambiguity alone is not infeasibility."
+        ),
     )
     deliverables: list[Deliverable] = Field(default_factory=list)
     steps: list[PlanStep] = Field(default_factory=list, description="Advisory order of work; not executed as is.")
+    risks: list[Risk] = Field(default_factory=list, description="Likely problems and how they will be handled.")
     feasibility: Feasibility
 
     @model_validator(mode="after")

@@ -4,8 +4,10 @@ import json
 from collections.abc import Iterable, Mapping
 from xml.sax.saxutils import escape
 
+from bodhan_agent.progress import MARKERS
 from bodhan_agent.schemas.ledger import Artifact, Ledger
 from bodhan_agent.schemas.plan import Plan
+from bodhan_agent.schemas.progress import StepProgress
 from bodhan_agent.tools.base import inline_schema
 from bodhan_mcp.core.languages import SPEAK_LANGUAGES, TRANSCRIBE_LANGUAGES, TRANSLATE_TARGETS
 
@@ -58,7 +60,7 @@ SYSTEM_PROMPT = """
 
   <execution_policy>
     - Every tool call requires a short English reason.
-    - Include plan_step when applicable.
+    - Set plan_step to the id of the plan step a call serves (S1, S2, ...); omit it only for calls outside the plan.
     - Use registered absolute file paths exactly as shown in the inputs, the status board or earlier results.
     - Tools write into the run's work folder; code copies verified deliverables to the artifacts folder.
     - Independent tool calls may run in parallel.
@@ -105,7 +107,19 @@ PLANNER_PROMPT = """
     - Record only constraints stated by the user (duration_s, voice_gender, keep_tables).
     - When the user wants audio of content you prepare, such as a summary or explanation, also plan a
       markdown deliverable with the same text in the audio's language, so the text is delivered too.
-    - Use dependencies (depends_on) to order steps.
+    - Write the plan as reasoning a reader can follow:
+      - goal: one sentence on what the user will receive.
+      - input_notes: what the input inventory tells you, what is still unknown (for example the language of a
+        scanned PDF) and how that changes the approach.
+      - steps: the order of work. Each step names its tool and gives a one-sentence why: why it is needed and why
+        this way, citing the language policy where it applies. Mark steps that run only in some cases with a
+        condition, such as "only if the text is not English". Link steps with depends_on.
+      - Plan the English pivot: Indian-language input is translated to English before you reason about it, and
+        English you write is translated by Bodhan into the target language.
+      - risks: likely problems (poor scans, long text, speech that drops or repeats words, unclear language) and
+        what you will do about each.
+    - assumptions: only choices that settle a real ambiguity, such as length, voice, format or which language;
+      not obvious facts such as "the PDF contains text".
     - Treat ambiguity as a reason to make an explicit assumption, not automatically as infeasibility.
     - Report unsupported capabilities accurately: mark the task infeasible only for missing inputs, a language
       no Bodhan model supports, or work beyond these tools (reason_code: missing_input, unsupported_language,
@@ -197,9 +211,10 @@ Reply again with one corrected JSON object matching the Plan schema, and nothing
 
 
 def plan_text(plan: Plan) -> str:
-    lines = [f"Interpretation: {plan.interpretation}"]
-    if plan.assumptions:
-        lines.append("Assumptions: " + "; ".join(plan.assumptions))
+    lines = [f"Goal: {plan.goal}"]
+    if plan.input_notes:
+        lines.append("Input notes:")
+        lines.extend(f"- {note}" for note in plan.input_notes)
     lines.append("Deliverables:")
     for item in plan.deliverables:
         fields = [item.kind, f"language {item.language or 'any'}"]
@@ -214,8 +229,25 @@ def plan_text(plan: Plan) -> str:
         for step in plan.steps:
             after = f" after {', '.join(step.depends_on)}" if step.depends_on else ""
             tool = f" [{step.tool}]" if step.tool else ""
-            lines.append(f"- {step.id}{tool}: {step.intent}{after}")
+            condition = f" ({step.condition})" if step.condition else ""
+            lines.append(f"- {step.id}{tool}: {step.intent}{condition}{after}. Why: {step.why}")
+    if plan.risks:
+        lines.append("Risks:")
+        lines.extend(f"- {item.risk} -> {item.mitigation}" for item in plan.risks)
+    if plan.assumptions:
+        lines.append("Assumptions: " + "; ".join(plan.assumptions))
     return escape("\n".join(lines))
+
+
+def _progress_line(step: StepProgress) -> str:
+    tool = f" {step.tool}" if step.tool else ""
+    details = []
+    if step.outputs:
+        details.append(f"produced {', '.join(step.outputs)}")
+    if step.note:
+        details.append(step.note)
+    suffix = f" ({'; '.join(details)})" if details else ""
+    return f"- {MARKERS[step.status]} {step.id}{tool}: {step.intent}{suffix}"
 
 
 def task_message(
@@ -268,8 +300,14 @@ def status_board(
     limit_inr: float,
     deadline_left_s: float,
     issues: Iterable[str] = (),
+    progress: Iterable[StepProgress] = (),
 ) -> str:
-    lines = ["Deliverables:"]
+    lines = []
+    steps = list(progress)
+    if steps:
+        lines.append("Plan progress ([x] done, [>] in progress, [ ] pending, [!] failed, [-] skipped):")
+        lines.extend(_progress_line(step) for step in steps)
+    lines.append("Deliverables:")
     for item in plan.deliverables:
         lines.append(f"- {item.id} ({item.kind}, {item.language or 'any'}): {deliverables.get(item.id, 'not started')}")
     produced = [artifact for artifact in ledger.artifacts.values() if artifact.id.startswith("A")]

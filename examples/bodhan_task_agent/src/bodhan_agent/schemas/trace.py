@@ -8,7 +8,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 Phase = Literal["preflight", "plan", "gate", "act", "verify", "finalize"]
 EventKind = Literal[
     "preflight", "plan", "gate", "llm", "tool", "guard", "verify", "budget", "assumption", "uncertain_retry",
-    "finish", "stop",
+    "finish", "stop", "plan_update",
 ]  # fmt: skip
 
 TOOL_KINDS: frozenset[str] = frozenset({"tool", "uncertain_retry"})

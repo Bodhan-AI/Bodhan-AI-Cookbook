@@ -202,7 +202,7 @@ class Planner:
             await self.trace.emit(
                 "plan", "plan", message=f"Plan with {len(plan.deliverables)} deliverable(s).",
                 llm_tokens=reply.tokens, latency_ms=reply.latency_ms,
-                result_summary={"plan": plan.model_dump(mode="json", exclude_none=True)},
+                result_summary={"plan": plan.model_dump(mode="json", exclude_defaults=True)},
             )  # fmt: skip
             return plan
         raise PlannerError("planner_error", f"No usable plan after {MAX_PLAN_ATTEMPTS} attempts: {last_error}")

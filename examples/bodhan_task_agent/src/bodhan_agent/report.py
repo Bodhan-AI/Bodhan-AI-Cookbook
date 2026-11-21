@@ -9,11 +9,13 @@ from pydantic import ValidationError
 from bodhan_agent import guards
 from bodhan_agent.budget import BudgetManager
 from bodhan_agent.config import RunSettings
+from bodhan_agent.progress import MARKERS, PLAN_JSON
 from bodhan_agent.schemas.ledger import Artifact, Ledger
 from bodhan_agent.schemas.loop import LoopResult
 from bodhan_agent.schemas.plan import Deliverable, Plan
 from bodhan_agent.schemas.planner import PlanOutcome
 from bodhan_agent.schemas.preflight import PreflightResult
+from bodhan_agent.schemas.progress import PlanView
 from bodhan_agent.schemas.report import (
     ARTIFACTS_DIR,
     USABLE_DELIVERABLE,
@@ -248,6 +250,21 @@ class Finalizer:
             llm_usage_complete=tokens.total is not None and self.usage_reported(),
         )
 
+    def plan_lines(self) -> list[str]:
+        try:
+            view = PlanView.model_validate_json((self.settings.out_dir / PLAN_JSON).read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            return []
+        lines = [f"Goal: {view.goal}", ""]
+        for step in view.steps:
+            tool = f" `{step.tool}`" if step.tool else ""
+            note = f" — {step.note}" if step.note else ""
+            lines.append(f"- {MARKERS[step.status]} {step.id}{tool}: {step.intent}{note}")
+        if view.deviations:
+            lines.append(f"- {len(view.deviations)} call(s) outside the plan")
+        lines += ["", "Full plan with reasons, checks and risks: [plan.md](plan.md)"]
+        return lines
+
     def work_steps(self) -> int:
         return sum(1 for action in self.ledger.actions if action.tool != "finish")
 
@@ -374,6 +391,9 @@ class Finalizer:
                 if check.status in ("warning", "failed"):
                     lines.append(f"  - {check.status}: {check.name}" + (f" — {check.detail}" if check.detail else ""))
         lines.append("")
+        plan = self.plan_lines()
+        if plan:
+            lines += ["## Plan", "", *plan, ""]
         steps = self.steps_lines()
         if steps:
             lines += ["## What was done", "", *steps, ""]

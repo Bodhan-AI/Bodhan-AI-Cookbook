@@ -16,6 +16,7 @@ from bodhan_agent.config import RunSettings
 from bodhan_agent.llm import LlmClient, LlmError
 from bodhan_agent.mcp_session import McpSession
 from bodhan_agent.observe import Observer
+from bodhan_agent.progress import PlanTracker
 from bodhan_agent.schemas.budget import Reservation
 from bodhan_agent.schemas.ledger import ActionRecord, Artifact, ArtifactKind, Ledger
 from bodhan_agent.schemas.llm import LlmReply, ToolCall
@@ -218,6 +219,7 @@ class Controller:
         input_ids: list[str] | None = None,
         literal_ids: list[str] | None = None,
         started: float | None = None,
+        tracker: PlanTracker | None = None,
     ) -> None:
         self.settings = settings
         self.ledger = ledger
@@ -241,6 +243,21 @@ class Controller:
         self.no_tool_nudged = False
         self.bad_replies = 0
         self.budget_blocked = False
+        self.tracker = tracker or PlanTracker(settings, ledger, plan, self.input_ids)
+
+    async def publish_plan(self, message: str, changed: list[str] | None = None) -> None:
+        view = self.tracker.write()
+        await self.trace.emit(
+            "act", "plan_update", message=message,
+            result_summary={
+                "revision": view.revision, "changed": changed or [],
+                "steps": {step.id: step.status for step in view.steps},
+                "deviations": len(view.deviations), "finished": view.finished,
+            },
+        )  # fmt: skip
+
+    def tracks(self, tool: str) -> bool:
+        return tool != "finish" or any(step.tool == "finish" for step in self.tracker.steps)
 
     def tool_definitions(self) -> list[dict[str, Any]]:
         definitions = []
@@ -291,6 +308,7 @@ class Controller:
             limit_inr=self.budget.limit_inr,
             deadline_left_s=self.time_left(),
             issues=self.issues[-5:],
+            progress=self.tracker.steps,
         )
         task = prompts.task_message(
             self.plan,
@@ -326,6 +344,7 @@ class Controller:
 
     async def run(self) -> LoopResult:
         tools = self.tool_definitions()
+        await self.publish_plan("Plan ready.")
         while True:
             stop = self.limit_reached()
             if stop is not None:
@@ -419,6 +438,10 @@ class Controller:
                 results[call.id] = prepared
             else:
                 pending.append(prepared)
+                if self.tracks(call.name):
+                    started = self.tracker.begin(call.name, prepared.plan_step)
+                    if started:
+                        await self.publish_plan(f"Started {', '.join(started)}.", started)
         outcomes = await asyncio.gather(*(self.execute(item) for item in pending))
         for item, outcome in zip(pending, outcomes, strict=True):
             results[item.call.id] = await self.complete(item, outcome)
@@ -647,6 +670,14 @@ class Controller:
         )  # fmt: skip
         self.result.redactions += observation.redactions
         self.result.injection_flags += len(observation.injection_flags)
+        if self.tracks(name):
+            changed = self.tracker.record(
+                name, item.plan_step, event.seq, error is None, artifact_ids, item.reason,
+                None if error is None else error.code,
+            )  # fmt: skip
+            self.tracker.set_states(self.deliverable_states())
+            label = f"{name} -> {', '.join(changed)}" if changed else f"{name} outside the plan"
+            await self.publish_plan(label, changed)
         return observation
 
     def register_outputs(self, tool: str, data: dict[str, Any], source: Artifact | None) -> list[str]:
@@ -730,8 +761,14 @@ class Controller:
         self.result.verdicts = verdicts
         reason: StopReason = "budget_exhausted" if problems and self.budget_blocked else "finished"
         self.result.stop_reason = reason
+        await self.close_plan(verdicts)
         await self.trace.emit("act", "stop", message=f"stop_reason={reason}")
         return self.result
+
+    async def close_plan(self, verdicts: dict[str, Verdict]) -> None:
+        self.tracker.set_states({key: verdict.status for key, verdict in verdicts.items()})
+        changed = self.tracker.close()
+        await self.publish_plan("Plan closed.", changed)
 
     async def stop(self, reason: StopReason, explanation: str | None = None) -> LoopResult:
         mapping = self.inferred()
@@ -739,6 +776,7 @@ class Controller:
         self.result.verdicts = await self.verify_all(mapping, None)
         self.result.stop_reason = reason
         self.result.explanation = explanation
+        await self.close_plan(self.result.verdicts)
         await self.trace.emit(
             "act", "stop", message=f"stop_reason={reason}" + (f": {explanation}" if explanation else "")
         )

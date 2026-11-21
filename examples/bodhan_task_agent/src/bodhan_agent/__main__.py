@@ -19,6 +19,7 @@ from bodhan_agent.mcp_session import McpSession, McpUnavailable
 from bodhan_agent.observe import Observer
 from bodhan_agent.planner import Planner, PlannerError
 from bodhan_agent.preflight import run_preflight
+from bodhan_agent.progress import PlanTracker
 from bodhan_agent.report import Finalizer, inr
 from bodhan_agent.schemas.ledger import Ledger
 from bodhan_agent.schemas.loop import LoopResult
@@ -28,7 +29,7 @@ from bodhan_agent.schemas.report import RunReport, StopReason
 from bodhan_agent.trace import TraceWriter
 
 EXIT_CODES: dict[str, int] = {"completed": 0, "partial": 1, "failed": 2, "impossible": 2}
-OWNED_FILES: tuple[str, ...] = ("trace.jsonl", "report.json", "result.md")
+OWNED_FILES: tuple[str, ...] = ("trace.jsonl", "report.json", "result.md", "plan.md", "plan.json")
 OWNED_DIRS: tuple[str, ...] = ("artifacts", "work")
 SECRET_MARKERS: tuple[str, ...] = ("KEY", "TOKEN", "SECRET")
 
@@ -150,12 +151,19 @@ class Run:
             self.outcome = await planner.run(self.preflight)
         except PlannerError as error:
             return await self.finalize(error.stop_reason, error.message)
-        if not self.outcome.gate.feasible or self.outcome.plan is None:
+        if self.outcome.plan is None:
+            return await self.finalize()
+        tracker = PlanTracker(
+            self.settings, self.ledger, self.outcome.plan, self.preflight.input_ids, self.outcome.gate.minimum_cost
+        )
+        if not self.outcome.gate.feasible:
+            tracker.close()
+            tracker.write()
             return await self.finalize()
         controller = Controller(
             self.settings, self.ledger, self.outcome.plan, llm, self.budget, self.trace, Observer(self.ledger,
             secrets=secrets_from(self.env)), mcp=mcp, input_ids=self.preflight.input_ids,
-            literal_ids=self.preflight.literal_ids, started=self.started,
+            literal_ids=self.preflight.literal_ids, started=self.started, tracker=tracker,
         )  # fmt: skip
         self.loop = await controller.run()
         return await self.finalize()
