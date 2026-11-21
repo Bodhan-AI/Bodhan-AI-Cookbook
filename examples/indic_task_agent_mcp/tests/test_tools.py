@@ -5,7 +5,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from conftest import silence, to_wav, tone
+from conftest import needs_ffmpeg, silence, to_wav, tone
 
 from bodhan_mcp import tools
 from bodhan_mcp.errors import ToolError
@@ -33,6 +33,7 @@ async def test_translate_rejects_unsupported_and_empty(ctx):
     assert e2.value.code == "invalid_argument"
 
 
+@needs_ffmpeg
 async def test_speech_is_chunked_verified_and_normalised(ctx, fake_api, workdir):
     text = "यह पहला वाक्य है। " * 30  # about 540 characters, so several chunks
     res = await tools.synthesize_speech(ctx, "hi", text=text, gender="female")
@@ -45,6 +46,7 @@ async def test_speech_is_chunked_verified_and_normalised(ctx, fake_api, workdir)
     assert len(details["chunks"]) == res.chunks
 
 
+@needs_ffmpeg
 async def test_speech_repetition_is_detected_and_recovered(ctx, fake_api):
     fake_api.speak_mode = "repeat"
     res = await tools.synthesize_speech(ctx, "hi", text="यह पहला वाक्य है, और यह दूसरा हिस्सा है। यह तीसरा वाक्य है।")
@@ -65,6 +67,7 @@ async def test_unknown_voice_lists_options(ctx):
     assert exc.value.code == "unknown_voice" and "Ishita" in exc.value.hint
 
 
+@needs_ffmpeg
 async def test_transcribe_long_audio_in_windows_and_subtitles(ctx, fake_api, workdir):
     parts = []
     for _ in range(8):

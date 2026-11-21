@@ -13,6 +13,7 @@ import io
 import json
 import math
 import re
+import shutil
 import wave
 from pathlib import Path
 
@@ -27,6 +28,7 @@ from bodhan_mcp.ledger import Ledger
 from bodhan_mcp.tools import ToolContext
 
 BASE = "https://api.bodhan.test"
+needs_ffmpeg = pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="ffmpeg is not on PATH (install it, then open a new terminal)")
 SCRIPT_WORD = {"ta": "தமிழ்", "hi": "हिंदी", "bn": "বাংলা", "mr": "मराठी", "te": "తెలుగు", "en": "word", "gu": "ગુજરાતી"}
 
 

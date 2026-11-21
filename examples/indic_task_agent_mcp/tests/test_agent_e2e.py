@@ -7,7 +7,7 @@ finish, deterministic verification, judge, artifacts, trace and report.
 import json
 from pathlib import Path
 
-from conftest import ScriptedLLM, last_tool_json, make_ctx
+from conftest import ScriptedLLM, last_tool_json, make_ctx, needs_ffmpeg
 
 from bodhan_agent.agent import Agent, RunConfig
 from bodhan_agent.llm import LLMReply, ToolCall
@@ -31,6 +31,7 @@ def run(workdir, task, files, script, **cfg):
     return asyncio.run(agent.run()), llm
 
 
+@needs_ffmpeg
 def test_multi_step_task_completes_with_verified_outputs(workdir, env_keys, fake_api):
     inputs = workdir / "inputs"
     inputs.mkdir()
@@ -119,6 +120,7 @@ def test_budget_stop_is_clean(workdir, env_keys, fake_api):
     assert fake_api.calls["speak"] == 0
 
 
+@needs_ffmpeg
 def test_verification_failure_triggers_one_redo_then_partial(workdir, env_keys, fake_api):
     inputs = workdir / "in"
     inputs.mkdir()

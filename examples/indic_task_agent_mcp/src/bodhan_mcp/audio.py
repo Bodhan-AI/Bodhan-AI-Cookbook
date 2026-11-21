@@ -33,7 +33,7 @@ HARD_CUT_OVERLAP_S = 0.5
 def _ffmpeg() -> str:
     exe = shutil.which("ffmpeg")
     if not exe:
-        raise ToolError("internal_error", "ffmpeg is not installed.", hint="Install ffmpeg (brew install ffmpeg / apt install ffmpeg).")
+        raise ToolError("internal_error", "ffmpeg is not installed.", hint="Install ffmpeg and make sure it is on PATH (macOS: brew install ffmpeg; Linux: apt install ffmpeg; Windows: winget install ffmpeg, then open a new terminal).")
     return exe
 
 

@@ -29,7 +29,18 @@ make setup                      # venv + pinned deps + editable install; creates
 # edit .env: four Bodhan keys (console.bodhan.ai) and any OpenAI-compatible LLM with tool calling
 ```
 
-Without make: `python -m venv .venv && . .venv/bin/activate && pip install -r requirements.txt && pip install --no-deps -e . && cp .env.example .env`.
+Windows (PowerShell), no make needed:
+
+```powershell
+winget install ffmpeg            # then open a NEW terminal so ffmpeg is on PATH
+cd examples\indic_task_agent_mcp
+python -m venv .venv; .venv\Scripts\activate
+pip install -r requirements-dev.txt; pip install --no-deps -e .
+copy .env.example .env
+pytest -q
+```
+
+Without make on macOS or Linux: `python -m venv .venv && . .venv/bin/activate && pip install -r requirements.txt && pip install --no-deps -e . && cp .env.example .env`.
 
 Docker: `docker build -t indic-task-agent .` then
 `docker run --env-file .env -v "$PWD/demo_inputs:/data" -v "$PWD/out:/out" indic-task-agent python -m bodhan_agent --task "..." --files /data/chapter --out /out`.
