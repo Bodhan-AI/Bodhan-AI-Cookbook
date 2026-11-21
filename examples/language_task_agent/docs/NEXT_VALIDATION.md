@@ -1,3 +1,7 @@
+Current review update: [REVIEW_RESULTS.md](REVIEW_RESULTS.md) records the 37-cue
+subtitle refinement, fresh suites and direct terminal recording. The earlier
+results below remain historical.
+
 # Latest verified evidence — November 21, 2026
 
 Both live supplements now complete: natural 180s Hindi → English SRT and

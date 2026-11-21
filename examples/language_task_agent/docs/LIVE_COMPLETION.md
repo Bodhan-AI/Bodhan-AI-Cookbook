@@ -1,3 +1,7 @@
+Current review update: [REVIEW_RESULTS.md](REVIEW_RESULTS.md) records the 37-cue
+subtitle refinement, fresh suites and direct terminal recording. The earlier
+results below remain historical.
+
 # Completed live supplements — November 21, 2026
 
 [Current recording, outputs and traces](https://github.com/BishalJena/Bodhan-AI-Cookbook/releases/tag/tool-agent-live-20261121).

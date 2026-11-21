@@ -748,3 +748,120 @@ Owner reconfirms no assignment email was sent. Refresh the existing Cookbook PR
 and linked evidence; preserve prior releases/SHAs. That status reply does not
 authorize sending email. Native review belongs to assessors. Candidate review and
 rehearsal are not claimed. No development attribution or co-author trailer is added.
+
+## D051 - 2026-11-21 - Required assistance disclosure
+
+Document Codex use for implementation, review, tests, debugging, documentation
+and evaluation tooling in README and the assignment PR. Candidate understanding
+and rehearsal are not claimed. Automatic co-author trailers are not added.
+Current review references identify115.456s Tamil, natural180s Hindi and the later
+distinct clip batch; original reports and releases remain historical.
+
+## D052 - 2026-11-21 - Improve subtitle context and readable estimated cues
+
+Subtitle output formerly placed an entire25s translation in one cue; the natural
+Hindi example also contains awkward wording near a boundary. Add bounded optional
+ASR windows (default25s, maximum30s) and pause preference. Subtitle generation uses
+30s context and selects nearby detected pauses when available. Music in the retained
+HealthPhone input prevents the fixed quiet threshold finding suitable pauses; no
+pause-boundary improvement is claimed for that source. Fresh30s ASR is evaluated
+separately; original cached25s results remain untouched.
+
+Code wraps Bodhan's unchanged translated words into short cues, targeting two
+42-character lines and six seconds. Times are equal estimated subdivisions within
+ASR windows, never word alignment. Sparse speech or unbreakable words may exceed
+readability targets, disclosed in assumptions. No translation words are authored
+or corrected by the planner. PCM splitting preserves every sample exactly once;
+fixed/pause/window variants have separate paths and transcription cache identities.
+Conversion and pause analysis share one timeout deadline.
+
+Seven regression cases fail before correction and pass after; full suite136passes.
+Schema growth also exposes the existing required-settings budget test: estimate
+compact wire JSON bytes plus the unchanged4096-byte framing allowance rather than
+counting serialization whitespace not sent by httpx. Full output-cap reservation,
+unknown-price assumptions and uncertain-call markers remain intact.
+
+## D053 - 2026-11-21 - English review rejects a screened30s result;20s improves examples
+
+The30s subtitle experiment passes heuristic checks but English review identifies a
+wrong-way/right-way contrast error. A structured-context Bodhan table probe still
+misstates that contrast. Neither is accepted as a semantic quality improvement.
+Keep original reports and costs. This demonstrates why lexical back-translation
+is a screen, not proof, and why a completed report can fail later output review.
+
+Choose a configurable20s subtitle default after actual comparison, retaining
+25s default transcribe and the bounded30s maximum. On the natural HealthPhone
+recording,20s pause preference finds an initial14.82s boundary that separates the
+headings. The resulting English retains both wrong/correct labels and replaces
+the old clothes-on-hands phrase with germs. No text is hand-edited; all recognized
+and translated words remain Bodhan output. The new run completes in84.061s for
+INR0.3135721875. Independent checks find37contiguous cues spanning0–180s, maximum
+5s, two lines and42characters per line. All10source-window checks pass. This is
+narrow English-side evidence, not complete semantic or native-speaker certification.
+
+The isolated source suite passes136tests and lint. Earlier experiments, flags and
+uncertain reservations stay retained; no published evaluation commit is changed
+until the final authorized refresh.
+
+## D054 - 2026-11-21 - Freeze fresh evaluation answers; fix plain JSON input support
+
+Generate13fresh declared compositions with expected answers outside model-facing
+folders. Freeze input/expectation hashes before execution. Include arithmetic,
+chronological updates, pagination, explicit selection, injection, filtering,
+negated translation, zero model budget, malformed PDF, unsupported speech, empty
+input, fresh two-page OCR and Bengali speech. These are not the assessors' hidden set.
+The primary raw first run passes11/13. Pagination has correct values with different
+key names; the task did not explicitly call them keys, so retain the strict-oracle
+failure and label that ambiguity. The ready-crates case exposes a real gap: JSON
+was excluded from supported text. Add bounded raw JSON reads under the same
+untrusted-data boundary; never evaluate or execute its contents. Three tests
+fail before correction and pass after.
+
+Strengthen the evaluation oracle with exact JSON values/shapes, allowing one
+Markdown fence and requiring exactly one selected artifact. Negative tests reject
+wrong keys/values, extra fields and misleading extra artifacts. Two new negative
+cases fail before correction; the positive case remains passing. The existing
+substring checks are retained for prose cases. A per-case call timeout supports
+explicit model latency bounds. New full suite142passes with lint clean.
+
+A second existing free planner, gemini-3.5-flash, passes7/11 raw on the English/
+failure subset after the JSON fix. Three requests time out; one returns an explicit
+free-tier daily quota refusal (20requests/day on its resolved model). Stop that
+model without topping up or opening accounts. Preserve those failures and pending
+markers; do not turn them into a claimed hidden or cross-provider pass rate.
+Follow-ups will separately test JSON support and clarify the requested key names;
+they cannot replace the recorded first-run denominator.
+
+## D055 - 2026-11-21 - Record actual terminal execution and consolidate current evidence
+
+Private PRs 15–17 disclose assistance, improve subtitle context/readability and
+fix JSON inputs with stronger declared evaluation. Both explicit follow-ups pass;
+retain raw 11/13 primary and7/11 alternate scores. Stop the alternate after its free
+daily-quota signal. Do not hide the three timeouts or redefine those as successes.
+
+Record actual PTY CLI/MCP sessions instead of result cards: invoice, cached 37-cue
+subtitles, official client error/survival checks, French refusal, actual retained
+Anitha preview and cached Bengali narration. All independent recorded checks pass.
+Retain original timestamps/argv/exit codes and scan joined raw/ANSI-stripped
+transcripts for five configured credential values. Export 97.84s with disclosed
+idle shortening, reading pauses and relative path display; audio rate unchanged.
+
+Move the previous acceptance chronology intact into docs/history with corrected
+relative links, and make the current acceptance/review pages concise. Current
+source passes 142 tests/lint locally and on Linux arm64/amd64 (amd64 emulated).
+All 33 new reports add INR1.10641; lifetime known/reserved INR16.9075565625, not
+wallet balance. Prepare a refreshed public PR/release and email draft after all
+checks. Preserve 614ba65and earlier releases. No email send or human review claimed.
+
+## D056 - 2026-11-21 - Reserve ASR cost from the actual PCM frame count
+
+Pause-boundary timestamps expose float subtraction noise:113.3113125→133.3113125
+represents exactly20s of PCM but subtraction is20.000000000000014. Use the
+actual WAV frame count/sample rate for Decimal cost reservations, not display
+timestamps. The initial rounded test did not reproduce this; the real sample-
+derived boundary fails before correction and passes after. Current suite143passes
+locally. Recheck both containers before publication. No earlier costs/reports are
+rewritten and no new model dispatch is needed. Cache keys, payloads and generated
+media are unchanged. The recorded142-test source remains identified by its SHA.
+
+D056 validation update: both actual Linux arm64/amd64 containers pass143tests and lint (amd64 emulated).

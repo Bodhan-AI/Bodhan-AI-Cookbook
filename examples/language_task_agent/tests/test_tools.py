@@ -357,6 +357,7 @@ async def test_subtitles_all_chunks_checked(tools, run):
     assert result["ok"] and result["segments"] == 3
     assert "00:00:50,000 --> 00:00:55,000" in run.resolve(result["ref"]).read_text()
     assert len(result["verification"]["checks"]) == 3
+    assert result["cues"] > result["segments"]
 
 
 @pytest.mark.asyncio
@@ -365,3 +366,21 @@ async def test_zero_budget_retains_honest_failure(tools, run, fake):
     result = await tools.call("translate", {"source": input_ref(run), "target_language": "ta"})
     assert result["error"]["code"] == "cost_budget"
     assert not fake.requests
+
+
+@pytest.mark.asyncio
+async def test_asr_cost_uses_pcm_frames_not_fractional_timestamp_subtraction(tools, run, monkeypatch):
+    path = run.input_root / "extracted.wav"
+    path.write_bytes(wav_bytes(20, 16000))
+    # These are exact sample boundaries, but their float subtraction exceeds20s.
+    monkeypatch.setattr("bodhan_core.tools.audio_chunks", lambda *a, **k: [(path, 113.3113125, 133.3113125)])
+    reservations = []
+
+    async def request(**kwargs):
+        reservations.append(kwargs["reserve"])
+        return {"text": "A fixture transcript, not real model evidence."}
+
+    monkeypatch.setattr(tools.gateway, "request", request)
+    result = await tools.call("transcribe", {"source": run.register(path, "input"), "language": "en"})
+    assert result["ok"]
+    assert reservations == [Decimal(20) / 60 * Decimal("0.10")]

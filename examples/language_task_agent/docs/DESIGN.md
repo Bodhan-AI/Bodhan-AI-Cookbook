@@ -178,3 +178,9 @@ clause. Measured audio must fall within the stated bounds; it is not sufficient
 to fit the looser 90–150s interpretation of approximately two minutes. Source-input
 durations remain outside this output-only check. Unrecognized wording still needs
 planner judgment; this is a bounded constraint parser, not execution routing.
+
+Subtitle output uses bounded ASR context (default20s, configurable5–30s) and
+prefers quiet boundaries when available. The default transcribe helper remains25s,
+so existing cached ASR and TTS verification requests are preserved. Caption words
+remain Bodhan output; code wraps them into short estimated cues. These are not
+word timestamps. Sparse speech or unbreakable tokens may exceed layout targets.

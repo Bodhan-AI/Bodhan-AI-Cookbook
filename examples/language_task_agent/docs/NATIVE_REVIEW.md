@@ -18,12 +18,14 @@ forms; a prepared packet is not a completed human review.
 
 The final evidence contains the exact inputs/outputs/hashes for review:
 
-- Tamil: an original eight-page school-garden chapter, English source summary,
-  Tamil text,90.88s MP3, translation screen and every chunk's back-ASR check.
+- Tamil: the original eight-page school-garden chapter, matching English/Tamil
+  summaries and 115.456s MP3; all nine audio chunks have passed back-ASR checks.
 - Marathi: 4x4 table, numeric values18/24/30 preserved, source image and translation.
-- Telugu: synthetic clips1/4, the second intentionally duplicated, script evidence
-  and English translation. Ambiguous Hindi/Bengali scripts remain unknown.
-- Hindi: synthetic180s loop; eight coarse SRT windows cover the complete recording.
+- Telugu: the later five-clip batch has distinct hashes; clips1/4 are selected
+  with script evidence and verbatim English translations. The older duplicate
+  fixture is historical. Ambiguous shared scripts remain unknown.
+- Hindi: a licensed continuous natural180s recording; 37 readable SRT cues
+  cover 0–180s with estimated timing. The earlier synthetic loop remains historical.
 - Bengali:8.96s Ishita WAV plus source/text, with the partial/corrected lineage.
 
 A fluent reviewer should compare source/target meaning, names/numbers, omissions,

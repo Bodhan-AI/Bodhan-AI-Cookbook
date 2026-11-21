@@ -62,3 +62,11 @@ already counted; only INR0.07626 is added again. Final Tamil adds INR1.177126979
 earlier replacement-key Tamil attempts add INR4.5058855208. This is lifetime
 accounting, not available balance. No payment/account action was performed by this
 workspace. See LIVE_COMPLETION.md and the released ledger.
+
+## November 21 review improvements
+
+All 33 new CLI/probe reports add INR1.10641, including rejected 30s subtitle/context
+experiments and all evaluation failures. Lifetime known/reserved accounting is
+INR16.9075565625. Model media in the terminal replay is cache-only and adds 0.
+The alternate free planner's timeouts/quota refusal remain counted as failed
+evaluations; pending markers stay intact. No account/payment action was taken.

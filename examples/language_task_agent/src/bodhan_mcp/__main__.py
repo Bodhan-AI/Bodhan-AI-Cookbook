@@ -90,8 +90,8 @@ async def write_translation_index(translations: list[str]) -> TranslationResult 
 
 
 @server.tool(description=TOOL_DEFS["transcribe"][1])
-async def transcribe(source: str, language: str | None = None) -> TranscriptResult | ErrorResult:
-    return await safe_call("transcribe", {"source": source, "language": language})
+async def transcribe(source: str, language: str | None = None, prefer_pauses: bool = False, window_seconds: int = 25) -> TranscriptResult | ErrorResult:
+    return await safe_call("transcribe", {"source": source, "language": language, "prefer_pauses": prefer_pauses, "window_seconds": window_seconds})
 
 
 @server.tool(description=TOOL_DEFS["translate"][1])
@@ -122,11 +122,12 @@ async def ocr(
 
 @server.tool(description=TOOL_DEFS["subtitles"][1])
 async def subtitles(
-    source: str, target_language: str = "en", source_language: str | None = None
+    source: str, target_language: str = "en", source_language: str | None = None,
+    window_seconds: int = 20,
 ) -> SubtitlesResult | ErrorResult:
     return await safe_call(
         "subtitles",
-        {"source": source, "target_language": target_language, "source_language": source_language},
+        {"source": source, "target_language": target_language, "source_language": source_language, "window_seconds": window_seconds},
     )
 
 

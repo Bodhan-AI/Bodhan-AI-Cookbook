@@ -93,6 +93,7 @@ class SubtitlesResult(Result):
     ref: str
     verification: Verification
     segments: int
+    cues: int
     timing: str
 
 

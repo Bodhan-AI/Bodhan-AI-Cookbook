@@ -60,6 +60,18 @@ def assess(output, expected, max_cost):
     for value in expected.get("forbidden_text", []):
         if value.casefold() in text:
             errors.append(f"Forbidden text appeared: {value}")
+    if "json_equals" in expected:
+        try:
+            if len(selected) != 1:
+                raise ValueError("Expected one JSON artifact")
+            body = selected[0].read_text().strip()
+            if body.startswith("```") and body.endswith("```"):
+                body = "\n".join(body.splitlines()[1:-1])
+            actual = json.loads(body)
+            if json.dumps(actual, sort_keys=True) != json.dumps(expected["json_equals"], sort_keys=True):
+                raise ValueError("Incorrect JSON value or shape")
+        except (ValueError, UnicodeError):
+            errors.append("Selected artifact does not match the exact expected JSON value and shape")
     explanation = report.get("explanation", "").casefold()
     if expected.get("explanation_any") and not any(
         value.casefold() in explanation for value in expected["explanation_any"]
@@ -143,7 +155,7 @@ def main():
             "--max-seconds",
             str(seconds),
             "--call-timeout",
-            "35",
+            str(case.get("call_timeout", 35)),
         ]
         environment = os.environ.copy()
         if args.cache_only:

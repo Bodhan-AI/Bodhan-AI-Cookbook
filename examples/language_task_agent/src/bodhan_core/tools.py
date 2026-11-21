@@ -24,6 +24,7 @@ from .media import (
     similarity,
     text_chunks,
     timestamp,
+    subtitle_cues,
 )
 from .media import english_script
 from .runtime import Run, ToolError, digest
@@ -65,6 +66,10 @@ class Transcribe(Ref):
         default=None,
         description="Known ISO language code; omit for vendor auto-detection. The API does not return language metadata.",
     )
+    prefer_pauses: bool = Field(
+        default=False, description="Prefer detected pauses within the selected ASR window; timestamps remain approximate."
+    )
+    window_seconds: int = Field(default=25, ge=5, le=30, description="Maximum ASR window in seconds; never exceeds the model's 30s limit.")
 
 
 class Translate(Ref):
@@ -102,6 +107,7 @@ class OCR(Ref):
 class Subtitles(Ref):
     target_language: str = "en"
     source_language: str | None = None
+    window_seconds: int = Field(default=20, ge=5, le=30, description="ASR context window; default20s balances context and subtitle granularity, maximum30s.")
 
 
 TOOL_DEFS = {
@@ -123,7 +129,7 @@ TOOL_DEFS = {
     ),
     "transcribe": (
         Transcribe,
-        "Bodhan speech-to-text for audio/video. Internally converts and splits into <=25s WAV windows, returns transcript reference plus coarse timed-segment reference. No word timestamps. Distinctive-script language evidence only.",
+        "Bodhan speech-to-text for audio/video. Converts/splits into bounded WAV windows (default25s, maximum30s), optionally preferring detected pauses. Returns transcript and approximate timed-segment refs, never word timestamps. Distinctive-script language evidence only.",
     ),
     "translate": (
         Translate,
@@ -139,7 +145,7 @@ TOOL_DEFS = {
     ),
     "subtitles": (
         Subtitles,
-        "Create SRT from audio/video using Bodhan transcription and translation per timed chunk. Timestamps are approximate 25-second windows, not word-aligned. Checks all translated segments.",
+        "Create readable SRT using pause-bounded Bodhan ASR and checked translations. Wraps unchanged words into short cues; cue times are estimated within ASR windows, never word-aligned. Returns source-segment and cue counts; sparse text/long tokens may exceed readability targets.",
     ),
 }
 
@@ -214,6 +220,7 @@ class Tools:
                     ".txt",
                     ".md",
                     ".csv",
+                    ".json",
                     ".srt",
                     ".html",
                     ".pdf",
@@ -261,7 +268,7 @@ class Tools:
 
     def _text(self, source: str) -> str:
         path = self.run.resolve(source)
-        if path.suffix.lower() not in (".txt", ".md", ".csv", ".srt", ".html"):
+        if path.suffix.lower() not in (".txt", ".md", ".csv", ".json", ".srt", ".html"):
             raise ToolError("not_text", "Use OCR for images/PDFs or transcribe for audio/video.")
         if path.stat().st_size > 500000:
             raise ToolError("text_limit", "Text exceeds the local 500 KB safety limit.")
@@ -334,19 +341,25 @@ class Tools:
                 f"{language!r} is unsupported by {model}; no output generated.",
             )
 
-    async def transcribe(self, source: str, language: str | None = None) -> dict:
+    async def transcribe(self, source: str, language: str | None = None, prefer_pauses: bool = False, window_seconds: int = 25) -> dict:
         if language:
             self._language(language, "indic-transcribe")
         path = self.run.resolve(source)
         cache_key = digest({"file": digest(path.read_bytes()), "language": language})
+        if prefer_pauses or window_seconds != 25:
+            cache_key = digest({"fixed_cache_key": cache_key, "prefer_pauses": prefer_pauses, "window_seconds": window_seconds})
         if cache_key in self.transcripts:
             return self.transcripts[cache_key]
         segments = []
-        for part, start, end in audio_chunks(path, self.run.work, self.run.remaining_time()):
+        for part, start, end in audio_chunks(
+            path, self.run.work, self.run.remaining_time(), prefer_pauses=prefer_pauses,
+            window_seconds=window_seconds,
+        ):
             payload = {"model": "indic-transcribe"}
             if language:
                 payload["language"] = language
-            cost = Decimal(str(end - start)) / 60 * Decimal("0.10")
+            with wave.open(str(part), "rb") as pcm:
+                cost = Decimal(pcm.getnframes()) * Decimal("0.10") / (Decimal(pcm.getframerate()) * 60)
             body = await self.gateway.request(
                 model="indic-transcribe",
                 url=API + "/v1/audio/transcriptions",
@@ -376,7 +389,7 @@ class Tools:
             else "distinctive_script"
             if evidence
             else "unknown",
-            "timing": "coarse_25_second_windows_not_word_alignment",
+            "timing": f"{'pause_bounded' if prefer_pauses else 'coarse'}_windows_up_to_{window_seconds}_seconds_not_word_alignment",
         }
         self.transcripts[cache_key] = result
         return result
@@ -794,22 +807,21 @@ class Tools:
         }
 
     async def subtitles(
-        self, source: str, target_language: str = "en", source_language: str | None = None
+        self, source: str, target_language: str = "en", source_language: str | None = None,
+        window_seconds: int = 20,
     ) -> dict:
         self._language(target_language, "indic-translate")
-        transcript = await self.transcribe(source, source_language)
+        transcript = await self.transcribe(source, source_language, prefer_pauses=True, window_seconds=window_seconds)
         segments = json.loads(self.run.resolve(transcript["segments_ref"]).read_text())
         lines = []
         checks = []
-        for index, segment in enumerate(segments):
+        cue_count = 0
+        for segment in segments:
             text, check = await self._verified_piece(segment["text"], target_language)
             checks.append(check)
-            lines += [
-                str(index + 1),
-                f"{timestamp(segment['start'])} --> {timestamp(segment['end'])}",
-                text,
-                "",
-            ]
+            for cue in subtitle_cues(text, segment["start"], segment["end"]):
+                cue_count += 1
+                lines += [str(cue_count), f"{timestamp(cue['start'])} --> {timestamp(cue['end'])}", cue["text"], ""]
         path = self.run.artifacts / f"subtitles_{digest(lines)[:12]}.srt"
         path.write_text("\n".join(lines), encoding="utf-8")
         ref = self.run.register(path, "bodhan_translation")
@@ -822,11 +834,12 @@ class Tools:
         }
         self.run.checks.append(verification)
         self.run.assumptions.append(
-            "Subtitle timestamps are coarse ASR chunk windows, not word alignment."
+            "Subtitle times are estimated subdivisions of pause-bounded ASR windows, not word alignment. Line wrapping preserves translated words; unusually long tokens or sparse speech may exceed readability targets."
         )
         return {
             "ref": ref,
             "verification": verification,
             "segments": len(segments),
-            "timing": "approximate_25_second_windows",
+            "cues": cue_count,
+            "timing": "estimated_cues_from_pause_bounded_asr_not_word_alignment",
         }

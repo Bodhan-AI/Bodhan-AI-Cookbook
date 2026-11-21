@@ -10,9 +10,16 @@ The original synthetic fixtures are supplemented by a licensed natural Hindi
 recording and a 115.456s Tamil summary. These are automated screens, not native-speaker
 certification or a hidden-task pass rate. Candidate review and rehearsal remain pending.
 
-[4:59 recorded execution and correction](https://github.com/BishalJena/Bodhan-AI-Cookbook/releases/download/tool-agent-live-20261121/demo_recording.mp4) · [Outputs, traces, inputs and ledger](https://github.com/BishalJena/Bodhan-AI-Cookbook/releases/tag/tool-agent-live-20261121) ·
-[Results and provenance](docs/DEMOS.md) · [Design](docs/DESIGN.md) ·
+[1:38 actual terminal demo](https://github.com/BishalJena/Bodhan-AI-Cookbook/releases/download/tool-agent-review-20261121/demo_recording.mp4) · [Outputs, traces, inputs and ledger](https://github.com/BishalJena/Bodhan-AI-Cookbook/releases/tag/tool-agent-review-20261121) ·
+[Fresh review results](docs/REVIEW_RESULTS.md) · [Original demos](docs/DEMOS.md) · [Design](docs/DESIGN.md) ·
 [Acceptance](docs/ACCEPTANCE.md) · [Walkthrough](docs/WALKTHROUGH.md)
+
+## AI assistance
+
+Codex assisted with implementation, code review, regression tests, debugging,
+documentation and evaluation tooling. Evidence distinguishes real Bodhan runs
+from mocked transport tests. Candidate code review and live-change rehearsal
+remain the candidate's responsibility and are not claimed as completed.
 
 ## Setup
 
@@ -100,11 +107,11 @@ reserves cost, executes Bodhan calls, verifies output and validates finish.
 | `list_files`, `read_text` | Approved opaque references and bounded untrusted text observations |
 | `write_english` | English planner summaries/explanations; reject non-Latin writing |
 | `write_translation_index` | Copy verified Bodhan translations verbatim into a source-labeled list, with no planner rewriting |
-| `transcribe` | Decode to PCM, exact <=25-second windows, Bodhan ASR and coarse timestamps |
+| `transcribe` | Decode to PCM, exact PCM windows (default 25s, configurable 5–30s), Bodhan ASR and approximate timestamps |
 | `translate` | <=1200-byte source chunks, completeness and pivot checks, table structure |
 | `synthesize` | <=500-byte source chunks, fixed voices, WAV/MP3 and mandatory back-ASR |
 | `ocr` | Whole images or every rasterized PDF page through Bodhan OCR |
-| `subtitles` | Verified translated windows and deterministic SRT serialization |
+| `subtitles` | Pause-bounded ASR (default 20s), checked translations and readable estimated SRT cues |
 
 Small tables are translated with context in one request and checked for unchanged
 row/cell/span structure. Visible text, rather than HTML tags, drives similarity.
@@ -173,10 +180,9 @@ prove arbitrary wording, language, voice or semantic task satisfaction.
 
 The latest chapter MP3 measures 115.456s within the explicit 115–125s target;
 the earlier 90.88s output remains historical. The latest Hindi SRT covers a natural
-180s recording, replacing the earlier synthetic loop. SRT windows remain coarse
-25s. Shared scripts can remain unknown. The original clip batch has a disclosed
-duplicate; the later supplement uses five distinct clips. [Live completion and
-all failed attempts](docs/LIVE_COMPLETION.md) are documented. Fluent assessment
+180s recording, replacing the earlier synthetic loop. Subtitle cue times are estimated within ASR windows, not word-aligned. Shared scripts can remain unknown. The original clip batch has a disclosed
+duplicate; the later supplement uses five distinct clips. [Current review results and
+all failed attempts](docs/REVIEW_RESULTS.md) are documented. Fluent assessment
 belongs to the assignment's assessors; no completed native review is claimed.
 
 ## Checks and results
@@ -189,7 +195,7 @@ make check
 python scripts/validate_recipe.py examples/language_task_agent
 ```
 
-129 local regression tests use fake model transports plus real media conversion
+143 local regression tests use fake model transports plus real media conversion
 and actual stdio subprocesses. Live evidence is separate. Cookbook recipe validation,
 lint and API rules pass. Exact `make check` fails on existing AndroidSpeak structure;
 the same failure is reproduced on untouched upstream SHA
@@ -200,8 +206,8 @@ and the cache-only subtitle replay. Native review and hidden-task accuracy remai
 unmeasured. [WALKTHROUGH.md](docs/WALKTHROUGH.md) prepares the candidate's own review
 and live-change rehearsal; it does not claim either has happened.
 
-The refreshed submission has 129 tests, including four duration-range regressions
-and nine planner-control cases. [Latest live evidence](docs/LIVE_COMPLETION.md)
+The refreshed source has 143 tests, including four duration-range regressions
+and nine planner-control cases. [Latest review evidence](docs/REVIEW_RESULTS.md)
 records both completed supplements and all earlier misses. The previous 116-test
 snapshot and exhausted-budget response remain historical evidence.
 

@@ -35,7 +35,8 @@ Use English prose only for plans, original summaries and explanations, not trans
 CAPABILITIES AND LIMITS:
 The input manifest is already supplied; list_files is only needed to refresh it. Avoid redundant
 list/read calls when tool results already contain the needed facts. Use read_text with offsets for textual sources. OCR handles whole
-PDFs and images. Transcribe handles long audio/video with coarse 25-second timestamps. Translate
+PDFs and images. Transcribe handles long audio/video with <=30-second windows (default25s) and optional
+pause boundaries. Subtitles format readable cues with estimated times, never word alignment. Translate
 handles documents/tables and verifies through Bodhan. Synthesize accepts a text reference and
 language; it NEVER translates the source. Before narrating a supplied text file, inspect its
 actual text with read_text and decide whether Bodhan translation is needed. Do not infer the
@@ -196,7 +197,7 @@ async def execute(task: str, run: Run, gateway: Gateway | None = None) -> dict:
                     payload["reasoning_effort"] = effort
                 # UTF-8 bytes conservatively bound tokens for ordinary OpenAI-compatible tokenizers.
                 # Extra overhead covers chat framing. Provider-specific unusual metering must be verified.
-                upper_input = len(json.dumps(payload, ensure_ascii=False).encode("utf-8")) + 4096
+                upper_input = len(json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")) + 4096
                 if upper_input > 150000:
                     raise ToolError(
                         "context_limit",
