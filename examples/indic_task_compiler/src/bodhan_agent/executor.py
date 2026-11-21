@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import re
 import time
 import uuid
 from pathlib import Path
@@ -705,6 +706,12 @@ class AgentOrchestrator:
                     r_ok, r_err = await _execute_plan(repair_compiled)
                     if not r_ok and r_err and "budget" in r_err.lower():
                         budget_stopped_reason = r_err
+                    elif r_ok:
+                        # A clean repair pass clears an earlier recoverable execution error.
+                        exec_ok = True
+                        exec_err = None
+                    elif r_err:
+                        exec_err = r_err
                     if repair_compiled.final_answer_template:
                         final_answer = repair_compiled.final_answer_template
                 except (BudgetExceededError, PlanCompileError, Exception) as exc:
@@ -744,7 +751,7 @@ class AgentOrchestrator:
             return self._finalize(
                 status=status,
                 reason=reason,
-                final_answer=final_answer or task_spec.summary,
+                final_answer=self._render_final_answer(final_answer or task_spec.summary, store.step_meta),
                 file_facts=file_facts,
                 assumptions=assumptions,
                 published_by_deliverable=published_by_deliverable,
@@ -752,6 +759,30 @@ class AgentOrchestrator:
                 verifications=verifications,
                 probe_facts=probe_facts,
             )
+
+    @staticmethod
+    def _render_final_answer(template: str, step_meta: dict[str, dict[str, Any]]) -> str:
+        """Interpolate safe metadata handles ($step.field or {step.field}) in final_answer_template."""
+        if not template:
+            return template
+
+        def _replace(match: re.Match[str]) -> str:
+            sid, field = match.group(1), match.group(2)
+            meta = step_meta.get(sid)
+            if not isinstance(meta, dict) or field not in meta:
+                return match.group(0)
+            val = meta[field]
+            if isinstance(val, (str, int, float, bool)):
+                if field.endswith("_path") and isinstance(val, str):
+                    return Path(val).name
+                return str(val)
+            if isinstance(val, list):
+                return str(val)
+            return match.group(0)
+
+        rendered = re.sub(r"\$([A-Za-z0-9_]+)\.([A-Za-z0-9_]+)", _replace, template)
+        rendered = re.sub(r"\{([A-Za-z0-9_]+)\.([A-Za-z0-9_]+)\}", _replace, rendered)
+        return rendered
 
     @staticmethod
     def _estimate_runtime_step_cost(tool: str, resolved_args: dict[str, Any], fallback_est: float) -> float:

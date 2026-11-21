@@ -32,7 +32,7 @@ STRICT RULES:
 2. All ASR, translation, TTS, and OCR go exclusively to Bodhan models (English + 22+ Indian languages).
 3. If the task asks for something impossible (e.g. an unsupported language like French/Spanish/Japanese, voice cloning, video editing, or missing required files), set "infeasible_reason" to a clear, concise explanation.
 4. If audio/video clips have an unstated language or the task asks to filter clips by language (e.g. "Which clips are in Telugu?"), add a probe request {"kind": "detect_language", "path": "<exact path>"} in "needs_probe" for each such clip.
-5. For duration targets like "two-minute audio summary", set constraints.duration_s = 120 and constraints.target_words = 250 (roughly 125 words per minute of narration).
+5. For duration targets like "two-minute audio summary", set constraints.duration_s = 120 and constraints.target_words = 170 (Indic narration speaks at roughly 85 English-source words per minute).
 6. Make reasonable non-interactive assumptions when wording is ambiguous and list them in "assumptions".
 7. Never write Indian-language text. Keep language names as English names or ISO codes in "language_raw" (code maps them to ISO).
 
@@ -159,7 +159,9 @@ async def run_epoch_a(
 
 
 def _compact_tool_catalog(tool_catalog: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Produce a compact parameter summary for P-LLM prompts while keeping full schemas on the MCP server."""
+    """Produce a compact parameter & return-field summary for P-LLM prompts while keeping full schemas on the MCP server."""
+    from bodhan_agent.compiler import TOOL_OUTPUT_FIELDS
+
     compact: list[dict[str, Any]] = []
     for t in tool_catalog:
         schema = t.get("input_schema") or {}
@@ -170,7 +172,10 @@ def _compact_tool_catalog(tool_catalog: list[dict[str, Any]]) -> list[dict[str, 
             for k in props
         }
         desc = str(t.get("description") or "").split(".")[0].strip()
-        compact.append({"name": t["name"], "summary": desc, "args": args_summary})
+        entry: dict[str, Any] = {"name": t["name"], "summary": desc, "args": args_summary}
+        if t["name"] in TOOL_OUTPUT_FIELDS:
+            entry["returns"] = list(TOOL_OUTPUT_FIELDS[t["name"]])
+        compact.append(entry)
     return compact
 
 

@@ -30,6 +30,23 @@ TOOL_MODEL_MAP = {
     "ocr_document": "indic-ocr",
 }
 
+# Known output metadata fields per tool (for static $step.field compile checks & compact planner catalog).
+TOOL_OUTPUT_FIELDS: dict[str, tuple[str, ...]] = {
+    "inspect_files": ("files", "count"),
+    "detect_language": ("language", "candidates", "confidence", "ambiguous", "method", "script_histogram", "path", "probe_duration_s"),
+    "transcribe_audio": ("text_path", "segments_path", "language", "duration_s", "window_count", "segment_count", "char_count"),
+    "translate_text": ("text_path", "target_language", "script", "chunks_in", "chunks_out", "truncation_splits", "coverage"),
+    "synthesize_speech": ("audio_path", "chunk_manifest_path", "language", "voice", "style", "format", "duration_s", "chunk_count"),
+    "verify_speech": ("passed", "mean_cer", "cer_threshold", "chunks_checked", "failed_chunk_indices", "verdicts"),
+    "ocr_document": ("text_path", "page_count", "char_count", "pages", "table_shapes", "detected_language"),
+    "write_subtitles": ("subtitle_path", "format", "segment_count", "cue_count", "validation"),
+    "q_summarize_en": ("text_path", "word_count", "char_count", "target_words", "language"),
+    "q_classify": ("choice", "question"),
+    "q_extract_number": ("value", "question"),
+    "merge_text_artifacts": ("text_path", "char_count", "item_count"),
+    "publish_artifact": ("artifact_path", "deliverable_id", "filename"),
+}
+
 
 class PlanCompileError(RuntimeError):
     def __init__(self, errors: list[str]) -> None:
@@ -324,11 +341,20 @@ def compile_plan(
             rationale=step.rationale,
         )
 
-    # Validate all references exist (either in this plan or prior steps).
+    # Validate all references exist (either in this plan or prior steps) and refer to valid output fields.
+    common_meta_fields = {"ok", "cost_inr", "cache_hit", "model"}
     for sid, cstep in compiled_map.items():
-        for dep in cstep.depends_on:
-            if dep not in compiled_map and dep not in known_prior:
-                errors.append(f"Step '{sid}': references unknown step '${dep}'.")
+        for ref_step, ref_field in _extract_refs(cstep.args):
+            if ref_step not in compiled_map and ref_step not in known_prior:
+                errors.append(f"Step '{sid}': references unknown step '${ref_step}'.")
+            elif ref_step in compiled_map:
+                ref_tool = compiled_map[ref_step].tool
+                allowed_fields = TOOL_OUTPUT_FIELDS.get(ref_tool)
+                if allowed_fields and ref_field not in allowed_fields and ref_field not in common_meta_fields:
+                    errors.append(
+                        f"Step '{sid}': invalid field '${ref_step}.{ref_field}' for tool '{ref_tool}'. "
+                        f"Available fields: {list(allowed_fields)}"
+                    )
 
     if errors:
         raise PlanCompileError(errors)

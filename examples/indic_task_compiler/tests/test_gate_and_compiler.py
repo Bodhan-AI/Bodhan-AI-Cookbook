@@ -118,6 +118,17 @@ async def test_compiler_enforces_scope_lock_and_rejects_planner_indic_text(tmp_p
         compile_plan(wrong_lang_plan, task_spec=spec, file_facts=[fact], probe_facts=[], tool_catalog=catalog, allowed_inputs={inp.resolve()})
     assert "outside TaskSpec scope" in " ".join(ei3.value.errors)
 
+    # 4. Invalid $step.field output reference rejected at compile time (before spending ₹)!
+    bad_field_plan = RawPlan(
+        steps=[
+            PlanStep(id="s1", tool="translate_text", args={"path": str(inp), "target_language": "ta"}),
+            PlanStep(id="s2", tool="publish_artifact", args={"deliverable_id": "d1", "source_ref": "$s1.wrong_field", "filename": "out.txt"}),
+        ]
+    )
+    with pytest.raises(PlanCompileError) as ei4:
+        compile_plan(bad_field_plan, task_spec=spec, file_facts=[fact], probe_facts=[], tool_catalog=catalog, allowed_inputs={inp.resolve()})
+    assert "invalid field '$s1.wrong_field'" in " ".join(ei4.value.errors)
+
 
 async def test_compiler_infers_parallel_waves_foreach_and_auto_verify_speech(tmp_path: Path) -> None:
     catalog = await _full_catalog()

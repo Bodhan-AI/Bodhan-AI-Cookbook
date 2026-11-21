@@ -333,3 +333,17 @@ async def test_e2e_epoch_c_replan_recovers_after_verify_speech_failure(tmp_path:
     # Confirm Epoch C was invoked.
     assert any(c["role_tag"] == "p_llm_epoch_c_round_1" for c in llm.recorded_calls)
 
+
+def test_render_final_answer_interpolates_safe_metadata_handles() -> None:
+    from bodhan_agent.executor import AgentOrchestrator
+
+    rendered = AgentOrchestrator._render_final_answer(
+        "Audio duration: {s1.duration_s}s, cues: $s2.cue_count, file: $s3.artifact_path.",
+        {
+            "s1": {"duration_s": 110.3},
+            "s2": {"cue_count": 42},
+            "s3": {"artifact_path": "/tmp/out/artifacts/subtitles_en.srt"},
+        },
+    )
+    assert rendered == "Audio duration: 110.3s, cues: 42, file: subtitles_en.srt."
+
