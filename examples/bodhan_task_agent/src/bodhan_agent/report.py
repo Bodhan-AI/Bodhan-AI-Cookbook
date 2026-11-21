@@ -125,7 +125,11 @@ def deliverable_report(
     )
 
 
-def _missed(loop: LoopResult | None, cost: Usage, time: Usage) -> list[MissedTarget]:
+SINGLE_STEP_TARGET_S = 30.0
+MULTI_STEP_TARGET_S = 300.0
+
+
+def _missed(loop: LoopResult | None, cost: Usage, time: Usage, work_steps: int) -> list[MissedTarget]:
     missed: list[MissedTarget] = []
     for entry in loop.missed_targets if loop is not None else []:
         prefix, _, detail = entry.partition(":")
@@ -133,8 +137,12 @@ def _missed(loop: LoopResult | None, cost: Usage, time: Usage) -> list[MissedTar
         missed.append(MissedTarget(target=target, detail=(detail or entry).strip() or entry))  # type: ignore[arg-type]
     if cost.exceeded:
         missed.append(MissedTarget(target="budget", detail=f"Bodhan cost {inr(cost.used)} exceeded the limit."))
-    if time.exceeded:
-        missed.append(MissedTarget(target="latency", detail=f"The run took {time.used:.0f} s."))
+    single = work_steps <= 1
+    limit = SINGLE_STEP_TARGET_S if single else MULTI_STEP_TARGET_S
+    if time.used > limit:
+        kind = "single-step" if single else "multi-step"
+        detail = f"This {kind} task took {time.used:.0f} s; the target is under {limit:.0f} s."
+        missed.append(MissedTarget(target="latency", detail=detail))
     return missed
 
 
@@ -240,6 +248,20 @@ class Finalizer:
             llm_usage_complete=tokens.total is not None and self.usage_reported(),
         )
 
+    def work_steps(self) -> int:
+        return sum(1 for action in self.ledger.actions if action.tool != "finish")
+
+    def steps_lines(self) -> list[str]:
+        lines = []
+        for action in self.ledger.actions:
+            if action.tool == "finish":
+                continue
+            outcome = "ok" if action.outcome == "ok" else f"{action.outcome} ({action.error_code})"
+            outputs = f" -> {', '.join(action.artifacts)}" if action.artifacts else ""
+            cost = f", {inr(action.cost_inr)}" if action.cost_inr else ""
+            lines.append(f"{len(lines) + 1}. {action.tool}: {outcome}{outputs}{cost}")
+        return lines
+
     def usage_reported(self) -> bool:
         phases = [(self.outcome.llm_turns, self.outcome.llm_tokens)] if self.outcome is not None else []
         if self.loop is not None:
@@ -297,7 +319,7 @@ class Finalizer:
             cost=cost,
             started_at=self.started_at,
             finished_at=datetime.now(timezone.utc),
-            missed_targets=_missed(self.loop, budgets.cost_inr, budgets.time_s),
+            missed_targets=_missed(self.loop, budgets.cost_inr, budgets.time_s, self.work_steps()),
             compliance=self.compliance(),
             warnings=self.warnings(deliverables),
         )
@@ -352,6 +374,9 @@ class Finalizer:
                 if check.status in ("warning", "failed"):
                     lines.append(f"  - {check.status}: {check.name}" + (f" — {check.detail}" if check.detail else ""))
         lines.append("")
+        steps = self.steps_lines()
+        if steps:
+            lines += ["## What was done", "", *steps, ""]
         if report.assumptions:
             lines += ["## Assumptions", "", *[f"- {item}" for item in report.assumptions], ""]
         notes = list(report.warnings)

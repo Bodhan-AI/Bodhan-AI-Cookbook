@@ -613,10 +613,18 @@ class Controller:
         elif outcome.local is not None:
             data = outcome.local.data
             artifact_ids = [item_id for item_id in outcome.local.artifact_ids if self.ledger.get(item_id)]
+        if error is not None:
+            observation = self.observer.error(name, error)
+            self.issues.append(f"{name}: {error.code}")
+        elif outcome.mcp is not None:
+            observation = self.observer.mcp_result(outcome.mcp)
+        else:
+            observation = self.observer.local_result(name, data or {}, artifact_ids)
         kind = "uncertain_retry" if item.uncertain_retry else "tool"
         event = await self.trace.emit(
             "act", kind, tool_call_id=item.call.id, tool=name, reason=item.reason, plan_step=item.plan_step,
             args=item.args, artifacts=artifact_ids, latency_ms=outcome.latency_ms, cost_inr=cost,
+            result_summary={"result": observation.short, "outputs": artifact_ids},
             error=None if error is None else TraceError(
                 code=error.code, message=error.message, hint=error.hint, retryable=error.retryable
             ),
@@ -637,13 +645,6 @@ class Controller:
                 artifacts=artifact_ids, cost_inr=cost,
             )
         )  # fmt: skip
-        if error is not None:
-            observation = self.observer.error(name, error)
-            self.issues.append(f"{name}: {error.code}")
-        elif outcome.mcp is not None:
-            observation = self.observer.mcp_result(outcome.mcp)
-        else:
-            observation = self.observer.local_result(name, data or {}, artifact_ids)
         self.result.redactions += observation.redactions
         self.result.injection_flags += len(observation.injection_flags)
         return observation

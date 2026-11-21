@@ -103,6 +103,8 @@ PLANNER_PROMPT = """
     - Preserve explicitly requested output languages, even if you think they are unsupported; code checks
       support. Use codes such as 'ta', 'hi', 'en'.
     - Record only constraints stated by the user (duration_s, voice_gender, keep_tables).
+    - When the user wants audio of content you prepare, such as a summary or explanation, also plan a
+      markdown deliverable with the same text in the audio's language, so the text is delivered too.
     - Use dependencies (depends_on) to order steps.
     - Treat ambiguity as a reason to make an explicit assumption, not automatically as infeasibility.
     - Report unsupported capabilities accurately: mark the task infeasible only for missing inputs, a language
