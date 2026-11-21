@@ -339,27 +339,38 @@ MULTILINGUAL_BOARDS: dict[str, list[dict[str, Any]]] = {
 
 DEFAULT_CATEGORIES = MULTILINGUAL_BOARDS["hi"]
 
+CONCEPT_TOKENS: dict[str, list[str]] = {
+    "Need & Object": ["Paani (Water)", "Khana (Food)", "Dawa (Medicine)", "Aaram (Rest)", "Washroom"],
+    "Descriptor": ["Thanda (Cold)", "Garam (Warm)", "Thoda (A little)", "Jaldi (Urgent)", "Bahut (Severe)"],
+    "Action & Intent": ["Chahiye (Want)", "Dard (Pain)", "Jaana hai (Go)", "Madad (Help)", "Kripya (Please)"],
+    "Person": ["Main (I)", "Doctor", "Caregiver", "Nurse"],
+}
+
 
 class SvaraClient:
-    """Client for Bodhan Indic-Speak TTS with caching and resilient backoff."""
+    """Client for Bodhan Indic-Speak TTS, Indic-Transcribe ASR, and assistive reasoning."""
 
     def __init__(
         self,
         api_key: str | None = None,
+        transcribe_key: str | None = None,
         base_url: str | None = None,
         cache_dir: str | Path = "audio_cache",
     ) -> None:
-        if not api_key:
-            try:
-                from dotenv import find_dotenv, load_dotenv
-                load_dotenv(find_dotenv())
-            except ImportError:
-                pass
+        try:
+            from dotenv import find_dotenv, load_dotenv
+            load_dotenv(find_dotenv())
+        except ImportError:
+            pass
+
         self.api_key = api_key or os.environ.get("BODHAN_API_KEY") or os.environ.get("BODHAN_SPEAK_KEY")
         if not self.api_key:
             raise ValueError(
                 "Bodhan API key not found. Set BODHAN_API_KEY in your environment or pass api_key."
             )
+
+        self.transcribe_key = transcribe_key or os.environ.get("BODHAN_TRANSCRIBE_KEY") or self.api_key
+        self.groq_key = os.environ.get("GROQ_API_KEY")
 
         self.base_url = (base_url or os.environ.get("BODHAN_BASE_URL") or DEFAULT_BASE_URL).rstrip("/")
         self.cache_dir = Path(cache_dir)
@@ -489,6 +500,153 @@ class SvaraClient:
                 on_progress(i, total, text, is_cached)
 
         return {"total": total, "cached": cached_count, "generated": new_count}
+
+    def transcribe(
+        self,
+        audio_data: bytes | Path | str,
+        lang: str = "hi",
+    ) -> tuple[str, float]:
+        """Transcribe spoken audio from a caregiver/doctor using Bodhan indic-transcribe.
+
+        Returns:
+            (transcript_text, latency_seconds)
+        """
+        t0 = time.perf_counter()
+        url = f"{self.base_url}/v1/audio/transcriptions"
+        headers = {"Authorization": f"Bearer {self.transcribe_key}"}
+
+        if isinstance(audio_data, (str, Path)):
+            with open(audio_data, "rb") as f:
+                files = {"file": ("audio.wav", f, "audio/wav")}
+                data = {"model": "indic-transcribe", "language": lang}
+                resp = requests.post(url, headers=headers, files=files, data=data, timeout=60)
+        else:
+            files = {"file": ("audio.wav", audio_data, "audio/wav")}
+            data = {"model": "indic-transcribe", "language": lang}
+            resp = requests.post(url, headers=headers, files=files, data=data, timeout=60)
+
+        dt = time.perf_counter() - t0
+        if not resp.ok:
+            raise RuntimeError(f"Transcription failed ({resp.status_code}): {resp.text}")
+
+        text = resp.json().get("text", "").strip()
+        return text, dt
+
+    def suggest_contextual_replies(
+        self,
+        transcript: str,
+        lang: str = "hi",
+    ) -> tuple[list[str], float]:
+        """Generate smart 1-tap reply options from incoming caregiver speech."""
+        t0 = time.perf_counter()
+
+        if self.groq_key and transcript.strip():
+            headers = {
+                "Authorization": f"Bearer {self.groq_key}",
+                "Content-Type": "application/json",
+            }
+            body = {
+                "model": "qwen/qwen3.8-27b",
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": (
+                            "You are an assistive AAC engine for non-verbal communicators in India. "
+                            f"Given what the caregiver or doctor asked, output 3 or 4 short 1-tap reply options in language '{lang}'. "
+                            "Output ONLY a raw JSON array of strings, for example: [\"Option 1\", \"Option 2\", \"Option 3\"]."
+                        ),
+                    },
+                    {"role": "user", "content": f"Caregiver said: \"{transcript.strip()}\""},
+                ],
+                "temperature": 0.2,
+            }
+            try:
+                resp = requests.post(
+                    "https://api.groq.com/openai/v1/chat/completions",
+                    headers=headers,
+                    json=body,
+                    timeout=10,
+                )
+                if resp.ok:
+                    raw = resp.json()["choices"][0]["message"]["content"].strip()
+                    # Strip any markdown fences if present
+                    if raw.startswith("```"):
+                        raw = raw.split("\n", 1)[-1].rsplit("```", 1)[0].strip()
+                    options = json.loads(raw)
+                    if isinstance(options, list) and options:
+                        return [str(opt).strip() for opt in options[:4]], time.perf_counter() - t0
+            except Exception:
+                pass  # Gracefully fall back to heuristic
+
+        # Heuristic intent matching fallback
+        lower = transcript.lower()
+        if any(w in lower for w in ["paani", "water", "juice", "peena", "drink"]):
+            options = ["Haan, thoda paani please", "Nahi, abhi nahi", "Thanda paani chahiye", "Juice mangwa dijiye"]
+        elif any(w in lower for w in ["khana", "food", "bhookh", "lunch", "dinner"]):
+            options = ["Haan, khana khana hai", "Thodi der baad", "Bhookh nahi hai", "Thoda fruits chahiye"]
+        elif any(w in lower for w in ["dawa", "medicine", "tablet", "injection"]):
+            options = ["Haan, le li", "Nahi, abhi do please", "Paani ke saath chahiye", "Bahut kadwi hai"]
+        elif any(w in lower for w in ["dard", "pain", "chot", "takleef"]):
+            options = ["Bahut severe pain hai", "Thoda relief hai", "Sir mein dard hai", "Doctor ko bulao please"]
+        else:
+            options = ["Haan, bilkul", "Nahi, abhi nahi", "Theek hai, thank you", "Madad chahiye please"]
+
+        return options, time.perf_counter() - t0
+
+    def expand_telegraphic_tokens(
+        self,
+        tokens: list[str],
+        lang: str = "hi",
+    ) -> tuple[str, float]:
+        """Expand 2-3 conceptual telegraphic tokens into a complete natural sentence."""
+        t0 = time.perf_counter()
+        if not tokens:
+            return "", 0.0
+
+        clean_tokens = [t.split("(")[0].strip() for t in tokens]
+        tokens_str = ", ".join(clean_tokens)
+
+        if self.groq_key:
+            headers = {
+                "Authorization": f"Bearer {self.groq_key}",
+                "Content-Type": "application/json",
+            }
+            body = {
+                "model": "qwen/qwen3.8-27b",
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": (
+                            "You are an AAC telegraphic concept expander. Non-verbal motor-impaired users tap 2-3 concept tokens. "
+                            f"Expand them into ONE natural, polite Indian-language code-mixed sentence in language '{lang}'. "
+                            "Output only the final expanded sentence string without commentary."
+                        ),
+                    },
+                    {"role": "user", "content": f"Tokens: [{tokens_str}]"},
+                ],
+                "temperature": 0.2,
+            }
+            try:
+                resp = requests.post(
+                    "https://api.groq.com/openai/v1/chat/completions",
+                    headers=headers,
+                    json=body,
+                    timeout=10,
+                )
+                if resp.ok:
+                    sentence = resp.json()["choices"][0]["message"]["content"].strip().strip('"')
+                    return sentence, time.perf_counter() - t0
+            except Exception:
+                pass
+
+        # Heuristic slot grammar fallback
+        sentence = f"{' '.join(clean_tokens)}, please."
+        return sentence, time.perf_counter() - t0
+
+    @staticmethod
+    def get_concept_tokens() -> dict[str, list[str]]:
+        """Return categorized tokens for telegraphic intent building."""
+        return dict(CONCEPT_TOKENS)
 
     @staticmethod
     def get_voices(lang: str = "hi") -> list[str]:
