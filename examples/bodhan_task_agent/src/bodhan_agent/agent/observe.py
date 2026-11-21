@@ -27,7 +27,9 @@ PREVIEW_FLAGS: dict[str, str] = {
     "translation": "translation_is_preview",
 }
 SUMMARY_FIELDS: dict[str, tuple[str, ...]] = {
-    "ocr_document": ("pages_read", "script", "language", "language_source", "candidate_languages"),
+    "ocr_document": (
+        "pages_read", "unread_pages", "script", "language", "language_source", "candidate_languages",
+    ),
     "transcribe_audio": (
         "language", "language_source", "script", "candidate_languages", "duration_s", "chunks", "silent_chunks",
         "suspect_chunks", "verification_status",
@@ -41,7 +43,7 @@ SUMMARY_FIELDS: dict[str, tuple[str, ...]] = {
     ),
 }  # fmt: skip
 SHORT_FIELDS: dict[str, tuple[str, ...]] = {
-    "ocr_document": ("pages_read", "script"),
+    "ocr_document": ("pages_read", "unread_pages", "script"),
     "transcribe_audio": ("language", "duration_s", "verification_status"),
     "translate_text": ("target_language", "chunks", "verification_status"),
     "synthesize_speech": ("language", "duration_s"),

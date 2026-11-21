@@ -70,6 +70,8 @@ def step_verdict(tool: str, data: dict[str, Any]) -> StepVerdict:
             failed = "The translation is empty."
     elif tool == "ocr_document":
         facts = {"pages_read": len(data.get("pages_read") or [])}
+        if data.get("unread_pages"):
+            facts["unread_pages"] = list(data["unread_pages"])
         if not facts["pages_read"]:
             failed = "No page was read."
         elif not str(data.get("text") or "").strip():

@@ -339,6 +339,13 @@ class Finalizer:
             artifact = self.ledger.get(report.artifact_id) if report.artifact_id else None
             if artifact is not None:
                 items.extend(f"{report.id}: {warning}" for warning in artifact.warnings)
+        for artifact in self.ledger.artifacts.values():
+            unread = artifact.tool_checks.get("unread_pages")
+            if unread:
+                source = self.ledger.get(artifact.sources[0]) if artifact.sources else None
+                name = Path(source.path).name if source else "the document"
+                pages = ", ".join(str(page) for page in unread)
+                items.append(f"OCR could not read page(s) {pages} of {name}; results built from it leave them out.")
         if self.budget.open_reservations:
             items.append("Some Bodhan calls ended without a known cost; their full reservation is counted.")
         return _unique(items)

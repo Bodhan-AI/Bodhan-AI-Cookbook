@@ -86,7 +86,15 @@ class OcrOutput(ToolOutput):
     )
     text: str = Field(description="The extracted Markdown, or its first part when text_is_preview is true.")
     text_is_preview: bool = Field(description="True when text is truncated; read output_path for all.")
-    pages_read: list[int] = Field(description="Page numbers read, in order; [1] for a single image.")
+    pages_read: list[int] = Field(description="Page numbers read successfully, in order; [1] for a single image.")
+    unread_pages: list[int] = Field(
+        default_factory=list,
+        description=(
+            "Pages that could not be read; the other pages are complete. The Markdown marks each one with "
+            "'[Page N could not be read.]' and warnings give the reason. Retry only these pages with `pages` when "
+            "the reason says it is worth retrying."
+        ),
+    )
     script: str | None = Field(description="Main writing system of the text, such as 'Devanagari' or 'Tamil'.")
     language: str | None = Field(
         description="Language code, only when the script is used by a single supported language; otherwise null."

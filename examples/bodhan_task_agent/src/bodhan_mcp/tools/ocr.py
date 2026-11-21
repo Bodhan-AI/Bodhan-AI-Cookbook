@@ -27,6 +27,8 @@ from bodhan_mcp.utils.text import preview_text
 
 BLOCKS_SUFFIX = ".blocks.json"
 PAGE_SEPARATOR = "\n\n---\n\n"
+UNREAD_MARKER = "[Page {page} could not be read.]"
+UNREAD_REASON_CHARS = 160
 RECOVERY_MAX_TOKENS = 8192
 REBUILD_MIN_RATIO = 0.9
 SECOND_SCRIPT_SHARE = 0.2
@@ -144,6 +146,7 @@ class _Run:
     deadline: float
     table_format: str
     results: dict[int, OcrResult] = field(default_factory=dict)
+    unread: dict[int, BodhanToolError] = field(default_factory=dict)
     recovered: list[int] = field(default_factory=list)
 
 
@@ -153,7 +156,9 @@ class OcrTool(BaseTool[OcrInput, OcrOutput]):
         "Extract text from a scanned document or photo with Bodhan Indic-OCR, in the script it is written in "
         "(Indian languages and English). Pass the file by path in `file_path`: PDF, PNG or JPEG (WebP, BMP and "
         "TIFF are converted; phone-photo rotation is corrected). For PDFs, choose pages with `pages` (for example "
-        "'1-3'); up to the server's page limit per call. Output is Markdown in reading order: headings marked "
+        "'1-3'); up to the server's page limit per call. If some pages cannot be read, the rest are still "
+        "returned and the failed ones are listed in `unread_pages`; the call fails only when no page can be "
+        "read. Output is Markdown in reading order: headings marked "
         "with #, tables as Markdown pipe tables (or HTML with `table_format='html'`), pages separated by '---'. "
         "Layout blocks are written beside it as JSON. LaTeX markup the model adds around plain words is converted "
         "to plain text, and blocks read with low confidence are listed in warnings. The language is named only "
@@ -206,7 +211,13 @@ class OcrTool(BaseTool[OcrInput, OcrOutput]):
             await self._ocr_all(dict(zip(pages, images, strict=True)), run)
 
         page_texts: list[str] = []
+        read_texts: list[str] = []
         for page in pages:
+            error = run.unread.get(page)
+            if error is not None:
+                warnings.append(self._unread_warning(page, error))
+                page_texts.append(UNREAD_MARKER.format(page=page))
+                continue
             result = run.results[page]
             page_text = page_markdown(result)
             if page_text.fell_back:
@@ -222,11 +233,12 @@ class OcrTool(BaseTool[OcrInput, OcrOutput]):
             if not page_text.text:
                 warnings.append(f"Page {page}: no text was found.")
             page_texts.append(page_text.text)
+            read_texts.append(page_text.text)
         if run.recovered:
             warnings.append(f"Page(s) {run.recovered} had a block too long for the default limit and were re-read.")
         text = PAGE_SEPARATOR.join(page_texts).strip()
 
-        counts = script_counts(text)
+        counts = script_counts("\n".join(read_texts))
         total = sum(counts.values())
         ranked = counts.most_common(2)
         script = ranked[0][0] if ranked else None
@@ -239,7 +251,7 @@ class OcrTool(BaseTool[OcrInput, OcrOutput]):
         blocks_doc = {
             "source": source.name,
             "untrusted_content": True,
-            "pages": [{"page": page, "blocks": run.results[page].blocks} for page in pages],
+            "pages": [self._page_blocks(page, run) for page in pages],
         }
         md_path, blocks_path = write_pair_atomic(
             md_path,
@@ -258,7 +270,8 @@ class OcrTool(BaseTool[OcrInput, OcrOutput]):
             blocks_path=str(blocks_path),
             text=preview_text(text, limit),
             text_is_preview=len(text) > limit,
-            pages_read=pages,
+            pages_read=[page for page in pages if page in run.results],
+            unread_pages=sorted(run.unread),
             script=script,
             language=language,
             language_source="detected" if language else "undetermined",
@@ -287,34 +300,24 @@ class OcrTool(BaseTool[OcrInput, OcrOutput]):
         tasks = {asyncio.ensure_future(read(page, image)): page for page, image in images.items()}
         timeout = max(run.deadline - monotonic(), 0.0) + DEADLINE_GRACE_S
         try:
-            done, pending = await asyncio.wait(tasks, timeout=timeout, return_when=asyncio.FIRST_EXCEPTION)
+            done, _ = await asyncio.wait(tasks, timeout=timeout)
         finally:
             for task in tasks:
                 if not task.done():
                     task.cancel()
             await asyncio.gather(*tasks, return_exceptions=True)
 
-        failed: list[tuple[int, BodhanToolError]] = []
         for task, page in sorted(tasks.items(), key=lambda item: item[1]):
-            if task in done and not task.cancelled():
-                exc = task.exception()
-                if exc is None:
-                    continue
-                if not isinstance(exc, BodhanToolError):
-                    raise exc
-                failed.append((page, exc))
-        if not failed and not pending:
+            if page in run.results:
+                continue
+            exc = task.exception() if task in done and not task.cancelled() else None
+            if exc is not None and not isinstance(exc, BodhanToolError):
+                raise exc
+            run.unread[page] = exc or self._deadline_error()
+        if run.results:
             return
-        error = failed[0][1] if failed else self._deadline_error()
-        failed_pages = [page for page, _ in failed]
-        error.details.update(
-            {
-                "total_pages": len(images),
-                "completed_pages": sorted(run.results),
-                "failed_pages": failed_pages,
-                "unfinished_pages": sorted(set(images) - set(run.results) - set(failed_pages)),
-            }
-        )
+        error = next(iter(run.unread.values()))
+        error.details.update({"total_pages": len(images), "failed_pages": sorted(run.unread)})
         raise error
 
     async def _read_page(self, page: int, image: Path, run: _Run) -> OcrResult:
@@ -322,16 +325,30 @@ class OcrTool(BaseTool[OcrInput, OcrOutput]):
             return await self.client.ocr(image, table_format=run.table_format, deadline_s=self._remaining(run))
         except BodhanToolError as error:
             if error.code == "incomplete_result" and error.details.get("truncated"):
-                run.recovered.append(page)
-                return await self.client.ocr(
+                result = await self.client.ocr(
                     image,
                     table_format=run.table_format,
                     max_tokens=RECOVERY_MAX_TOKENS,
                     deadline_s=self._remaining(run),
                 )
+                run.recovered.append(page)
+                return result
             if error.code == "timeout" and monotonic() >= run.deadline:
                 raise self._deadline_error() from error
             raise
+
+    @staticmethod
+    def _unread_warning(page: int, error: BodhanToolError) -> str:
+        advice = "retrying this page may help" if error.retryable else "retrying the same page is unlikely to help"
+        reason = preview_text(error.message, UNREAD_REASON_CHARS)
+        return f"Page {page} could not be read ({error.code}; {advice}): {reason}"
+
+    @staticmethod
+    def _page_blocks(page: int, run: _Run) -> dict:
+        error = run.unread.get(page)
+        if error is not None:
+            return {"page": page, "blocks": [], "error": error.code}
+        return {"page": page, "blocks": run.results[page].blocks}
 
     def _remaining(self, run: _Run) -> float:
         remaining = run.deadline - monotonic()
