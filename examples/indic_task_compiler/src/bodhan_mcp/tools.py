@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import shutil
 import tempfile
 import uuid
 from pathlib import Path
@@ -40,6 +41,7 @@ from bodhan_mcp.pricing import (
     estimate_output_tokens,
 )
 from bodhan_mcp.rules import (
+    LANGUAGE_PRIMARY_SCRIPT,
     is_language_supported,
     language_names,
     resolve_language,
@@ -57,13 +59,16 @@ from bodhan_mcp.schemas import (
 )
 from bodhan_mcp.text_utils import (
     chunk_markdown_for_translation,
-    compute_cer,
+    compute_cer_spoken,
+    contains_indic_script,
     detect_repetition,
     detect_text_language,
     extract_digits,
     extract_markdown_tables,
     format_subtitles,
+    markdown_to_speakable_text,
     script_histogram,
+    script_ratio_for_language,
     split_chunk_in_half,
     split_text_at_sentences,
     validate_subtitles,
@@ -332,6 +337,16 @@ class BodhanToolkit:
             hint="For images or PDFs, run ocr_document first, then pass the resulting text artifact to detect_language.",
         )
 
+    @staticmethod
+    def _validate_attempt(attempt: int) -> dict[str, Any] | None:
+        if not isinstance(attempt, int) or isinstance(attempt, bool) or attempt < 0:
+            return err_response(
+                "invalid_attempt",
+                f"attempt must be a non-negative integer, got {attempt!r}.",
+                hint="Pass attempt=0 (default, uses cache) or increment (>=1) to force a fresh model sample after a failed verification.",
+            )
+        return None
+
     # ------------------------------------------------------------------
     # 3. transcribe_audio (indic-transcribe)
     # ------------------------------------------------------------------
@@ -341,8 +356,12 @@ class BodhanToolkit:
         *,
         language: str = "auto",
         output_dir: str | None = None,
+        attempt: int = 0,
     ) -> dict[str, Any]:
         """Transcribe audio or video using indic-transcribe with silence-aware <=28s windowing."""
+        att_err = self._validate_attempt(attempt)
+        if att_err:
+            return att_err
         p = self._resolve_input_path(path)
         if not p.exists() or not p.is_file():
             return err_response("file_not_found", f"Audio/video file not found: {path}")
@@ -391,6 +410,7 @@ class BodhanToolkit:
                         filename=probe_wav.name,
                         duration_s=probe_dur,
                         language=None,
+                        attempt=attempt,
                     )
                     total_cost += probe_res.cost_inr
                     any_cache_miss |= not probe_res.cache_hit
@@ -428,6 +448,7 @@ class BodhanToolkit:
                     filename=f"{run_tag}_{win.index:04d}.wav",
                     duration_s=win.duration_s,
                     language=resolved_lang,
+                    attempt=attempt,
                 )
                 return win, res
 
@@ -500,8 +521,12 @@ class BodhanToolkit:
         script: str = "native",
         max_output_tokens: int | None = None,
         output_dir: str | None = None,
+        attempt: int = 0,
     ) -> dict[str, Any]:
-        """Translate text or a text/Markdown file with table-preserving chunking and truncation recovery."""
+        """Translate text or a text/Markdown file with table-preserving chunking, truncation recovery, and script guard."""
+        att_err = self._validate_attempt(attempt)
+        if att_err:
+            return att_err
         iso, known = resolve_language(target_language)
         if not iso or not known or not is_language_supported("indic-translate", iso):
             return err_response(
@@ -529,14 +554,16 @@ class BodhanToolkit:
         total_cost = 0.0
         any_cache_miss = False
         splits_triggered = 0
+        pivot_used = False
 
-        async def _translate_piece(piece: str, depth: int = 0) -> str:
+        async def _translate_piece_raw(piece: str, target_iso: str, eff_script: str, depth: int = 0) -> str:
             nonlocal total_cost, any_cache_miss, splits_triggered
             res = await self.client.translate(
                 piece,
-                target_language=iso,
-                script=script,
+                target_language=target_iso,
+                script=eff_script,
                 max_output_tokens=max_output_tokens,
+                attempt=attempt,
             )
             total_cost += res.cost_inr
             any_cache_miss |= not res.cache_hit
@@ -544,8 +571,8 @@ class BodhanToolkit:
             if truncated and depth < 4 and len(piece) > 40:
                 splits_triggered += 1
                 left, right = split_chunk_in_half(piece)
-                t_left = await _translate_piece(left, depth + 1)
-                t_right = await _translate_piece(right, depth + 1)
+                t_left = await _translate_piece_raw(left, target_iso, eff_script, depth + 1)
+                t_right = await _translate_piece_raw(right, target_iso, eff_script, depth + 1)
                 # Re-merge split Markdown tables cleanly by dropping duplicate header on right half.
                 r_lines = t_right.splitlines()
                 l_lines = t_left.splitlines()
@@ -559,10 +586,51 @@ class BodhanToolkit:
                 return f"{t_left}\n{t_right}".strip()
             return str(res.payload.get("translation", "")).strip()
 
+        expected_script = LANGUAGE_PRIMARY_SCRIPT.get(iso) or LANGUAGE_PRIMARY_SCRIPT.get(iso.split("-")[0])
+
         try:
             translated_chunks: list[str] = []
             for ch in chunks:
-                translated_chunks.append(await _translate_piece(ch))
+                out_text = await _translate_piece_raw(ch, iso, script)
+                hist = script_histogram(out_text)
+
+                if iso != "en" and script == "native" and hist:
+                    target_ratio = script_ratio_for_language(out_text, iso)
+                    latin_ratio = float(hist.get("Latin", 0.0))
+                    if target_ratio < 0.5:
+                        pivot_used = True
+                        if latin_ratio >= 0.5:
+                            # Indic->Indic returned English; take that English output and translate to target via Bodhan.
+                            out_text = await _translate_piece_raw(out_text, iso, script)
+                        else:
+                            # Output in wrong non-Latin script; explicit two-hop via English (all Bodhan).
+                            en_mid = await _translate_piece_raw(ch, "en", "native")
+                            out_text = await _translate_piece_raw(en_mid, iso, script)
+                        new_hist = script_histogram(out_text)
+                        new_ratio = script_ratio_for_language(out_text, iso)
+                        if new_hist and new_ratio < 0.5:
+                            return err_response(
+                                "wrong_output_script",
+                                f"indic-translate returned wrong script for target '{iso}' even after English pivot "
+                                f"(expected {expected_script or iso}, target_script_ratio={new_ratio:.2f}).",
+                                retryable=False,
+                                hint=f"Verify source text language or retry with a smaller chunk; target '{iso}' requires {expected_script or 'native'} script.",
+                                cost_inr=total_cost,
+                                model="indic-translate",
+                            )
+                elif iso == "en" and hist:
+                    en_ratio = script_ratio_for_language(out_text, "en")
+                    if en_ratio < 0.5 and contains_indic_script(out_text):
+                        return err_response(
+                            "wrong_output_script",
+                            f"indic-translate returned Indic script instead of English for target 'en' (latin_ratio={en_ratio:.2f}).",
+                            retryable=False,
+                            hint="Source chunk may be malformed or unsupported for direct English translation; split or inspect the input.",
+                            cost_inr=total_cost,
+                            model="indic-translate",
+                        )
+
+                translated_chunks.append(out_text)
         except BodhanAPIError as exc:
             return self._api_err(exc, "indic-translate", cost_so_far=total_cost)
 
@@ -589,6 +657,8 @@ class BodhanToolkit:
                 "chunks_in": len(chunks),
                 "chunks_out": len(translated_chunks),
                 "truncation_splits": splits_triggered,
+                "pivot_used": pivot_used,
+                "attempt": attempt,
                 "source_char_count": len(src_text),
                 "translated_char_count": len(full_translation),
                 "coverage": {
@@ -623,8 +693,14 @@ class BodhanToolkit:
         style: str | None = None,
         format: str = "mp3",
         output_dir: str | None = None,
+        attempt: int = 0,
+        only_chunks: list[int] | None = None,
+        previous_manifest_path: str | None = None,
     ) -> dict[str, Any]:
-        """Synthesize speech with indic-speak: sentence chunking (<=250 chars), concat, loudnorm, AI-generated metadata."""
+        """Synthesize speech with indic-speak: Markdown-to-speakable normalization, chunking (<=250 chars), selective chunk repair, concat, loudnorm, AI-generated metadata."""
+        att_err = self._validate_attempt(attempt)
+        if att_err:
+            return att_err
         iso, known = resolve_language(language)
         if not iso or not known or not is_language_supported("indic-speak", iso):
             return err_response(
@@ -659,9 +735,49 @@ class BodhanToolkit:
             return err
         assert src_text is not None
 
-        chunks = split_text_at_sentences(src_text, max_chars=250)
+        # Deterministically convert Markdown tables/markup to natural speakable text before TTS chunking.
+        # Only punctuation and layout syntax are changed; Indic words remain byte-identical substrings.
+        speakable_text = markdown_to_speakable_text(src_text) or src_text.strip()
+        chunks = split_text_at_sentences(speakable_text, max_chars=250)
         if not chunks:
             return err_response("empty_input", "No speakable sentences found in input.")
+
+        target_chunk_set: set[int] | None = None
+        if only_chunks is not None:
+            if not isinstance(only_chunks, list) or any(
+                not isinstance(i, int) or isinstance(i, bool) or i < 0 for i in only_chunks
+            ):
+                return err_response(
+                    "invalid_only_chunks",
+                    "only_chunks must be a list of non-negative integer chunk indices.",
+                    hint=f"Valid chunk indices for this input: 0..{len(chunks) - 1}.",
+                    model="indic-speak",
+                )
+            if only_chunks:
+                valid_set = {i for i in only_chunks if 0 <= i < len(chunks)}
+                if not valid_set:
+                    return err_response(
+                        "invalid_only_chunks",
+                        f"None of only_chunks={only_chunks} are within chunk range 0..{len(chunks) - 1}.",
+                        hint=f"Pass chunk indices between 0 and {len(chunks) - 1}.",
+                        model="indic-speak",
+                    )
+                target_chunk_set = valid_set
+
+        prev_wavs: dict[int, Path] = {}
+        if previous_manifest_path and target_chunk_set is not None:
+            pmp = self._resolve_input_path(previous_manifest_path)
+            if pmp.is_file():
+                try:
+                    prev_manifest = json.loads(pmp.read_text(encoding="utf-8"))
+                    if isinstance(prev_manifest, list):
+                        for item in prev_manifest:
+                            idx_val = item.get("index")
+                            ap = item.get("audio_path")
+                            if isinstance(idx_val, int) and isinstance(ap, str) and Path(ap).is_file():
+                                prev_wavs[idx_val] = Path(ap)
+                except (OSError, json.JSONDecodeError):
+                    pass
 
         out_dir = self._out_dir(output_dir)
         run_tag = f"tts_{iso}_{uuid.uuid4().hex[:8]}"
@@ -672,48 +788,72 @@ class BodhanToolkit:
         any_cache_miss = False
         wav_paths: list[Path] = []
         chunk_infos: list[SpeechChunkInfo] = []
+        manifest_entries: list[dict[str, Any]] = []
 
         try:
-            async def _speak_chunk(idx: int, sentence: str) -> tuple[int, str, Any]:
+            async def _speak_or_reuse_chunk(idx: int, sentence: str) -> tuple[int, str, Any | None, Path | None]:
+                if target_chunk_set is not None and idx not in target_chunk_set:
+                    # Reuse passing chunk from previous manifest if present, else fetch attempt=0 from disk cache.
+                    if idx in prev_wavs:
+                        return idx, sentence, None, prev_wavs[idx]
+                    res = await self.client.speak(
+                        sentence,
+                        voice=selected_voice,
+                        language=iso.split("-")[0],
+                        style=style,
+                        attempt=0,
+                    )
+                    return idx, sentence, res, None
+
+                chunk_attempt = max(1, attempt) if target_chunk_set is not None else attempt
                 res = await self.client.speak(
                     sentence,
                     voice=selected_voice,
                     language=iso.split("-")[0],
                     style=style,
+                    attempt=chunk_attempt,
                 )
-                return idx, sentence, res
+                return idx, sentence, res, None
 
-            speak_results = await asyncio.gather(*(_speak_chunk(i, s) for i, s in enumerate(chunks)))
+            speak_results = await asyncio.gather(*(_speak_or_reuse_chunk(i, s) for i, s in enumerate(chunks)))
             speak_results.sort(key=lambda item: item[0])
 
-            for idx, sentence, res in speak_results:
-                total_cost += res.cost_inr
-                any_cache_miss |= not res.cache_hit
-                if not res.binary:
-                    return err_response("empty_audio", f"indic-speak returned empty audio for chunk {idx}.")
-                is_riff = len(res.binary) >= 12 and res.binary[:4] == b"RIFF" and res.binary[8:12] == b"WAVE"
+            for idx, sentence, res, reused_wav in speak_results:
                 chunk_wav = chunk_dir / f"chunk_{idx:04d}.wav"
-                if is_riff:
-                    chunk_wav.write_bytes(res.binary)
+                if reused_wav is not None:
+                    shutil.copy2(reused_wav, chunk_wav)
                     dur = wav_duration_s(chunk_wav)
                 else:
-                    raw_chunk = chunk_dir / f"chunk_{idx:04d}.audio"
-                    raw_chunk.write_bytes(res.binary)
-                    convert_to_wav_16k_mono(raw_chunk, chunk_wav)
-                    raw_chunk.unlink(missing_ok=True)
-                    dur = wav_duration_s(chunk_wav)
+                    assert res is not None
+                    total_cost += res.cost_inr
+                    any_cache_miss |= not res.cache_hit
+                    if not res.binary:
+                        return err_response("empty_audio", f"indic-speak returned empty audio for chunk {idx}.")
+                    is_riff = len(res.binary) >= 12 and res.binary[:4] == b"RIFF" and res.binary[8:12] == b"WAVE"
+                    if is_riff:
+                        chunk_wav.write_bytes(res.binary)
+                        dur = wav_duration_s(chunk_wav)
+                    else:
+                        raw_chunk = chunk_dir / f"chunk_{idx:04d}.audio"
+                        raw_chunk.write_bytes(res.binary)
+                        convert_to_wav_16k_mono(raw_chunk, chunk_wav)
+                        raw_chunk.unlink(missing_ok=True)
+                        dur = wav_duration_s(chunk_wav)
+
                 chunk_txt = chunk_dir / f"chunk_{idx:04d}.txt"
                 chunk_txt.write_text(sentence, encoding="utf-8")
                 wav_paths.append(chunk_wav)
-                chunk_infos.append(
-                    SpeechChunkInfo(
-                        index=idx,
-                        audio_path=str(chunk_wav),
-                        text_path=str(chunk_txt),
-                        char_count=len(sentence),
-                        duration_s=round(dur, 3),
-                    )
+                info = SpeechChunkInfo(
+                    index=idx,
+                    audio_path=str(chunk_wav),
+                    text_path=str(chunk_txt),
+                    char_count=len(sentence),
+                    duration_s=round(dur, 3),
                 )
+                chunk_infos.append(info)
+                manifest_entry = info.model_dump()
+                manifest_entry["speakable_text"] = sentence
+                manifest_entries.append(manifest_entry)
 
             final_audio = out_dir / f"{run_tag}.{fmt}"
             _, total_dur = concat_and_encode_audio(
@@ -725,8 +865,12 @@ class BodhanToolkit:
             )
             manifest_path = out_dir / f"{run_tag}_chunks.json"
             manifest_path.write_text(
-                json.dumps([c.model_dump() for c in chunk_infos], ensure_ascii=False, indent=2),
+                json.dumps(manifest_entries, ensure_ascii=False, indent=2),
                 encoding="utf-8",
+            )
+
+            resynth_indices = (
+                sorted(target_chunk_set) if target_chunk_set is not None else list(range(len(chunk_infos)))
             )
 
             return ok_response(
@@ -739,7 +883,9 @@ class BodhanToolkit:
                     "format": fmt,
                     "duration_s": round(total_dur, 3),
                     "chunk_count": len(chunk_infos),
-                    "input_char_count": len(src_text),
+                    "input_char_count": len(speakable_text),
+                    "attempt": attempt,
+                    "resynthesized_chunks": resynth_indices,
                     "ai_generated_label": "AI-generated (Bodhan Indic-Speak)",
                     "chunks": [c.model_dump() for c in chunk_infos],
                 },
@@ -765,11 +911,16 @@ class BodhanToolkit:
         expected_path: str | None = None,
         chunk_manifest_path: str | None = None,
         cer_threshold: float = 0.45,
+        attempt: int = 0,
     ) -> dict[str, Any]:
         """Verify synthesized speech by back-transcribing every chunk with indic-transcribe.
 
-        Checks normalized CER, n-gram repetition loops, and duration/character-rate anomalies.
+        Checks normalized CER against the exact speakable text stored in the chunk manifest,
+        n-gram repetition loops, and duration/character-rate anomalies.
         """
+        att_err = self._validate_attempt(attempt)
+        if att_err:
+            return att_err
         iso, known = resolve_language(language)
         if not iso or not known or not is_language_supported("indic-transcribe", iso):
             return err_response(
@@ -791,7 +942,9 @@ class BodhanToolkit:
                 manifest = json.loads(mp.read_text(encoding="utf-8"))
                 for item in manifest:
                     c_audio = Path(item["audio_path"])
-                    c_text = Path(item["text_path"]).read_text(encoding="utf-8")
+                    c_text = item.get("speakable_text")
+                    if not isinstance(c_text, str) or not c_text.strip():
+                        c_text = Path(item["text_path"]).read_text(encoding="utf-8")
                     if c_audio.exists():
                         pairs.append((int(item["index"]), c_audio, c_text))
             except Exception as exc:
@@ -802,7 +955,8 @@ class BodhanToolkit:
             if err:
                 return err
             assert exp_txt is not None
-            pairs = [(0, p, exp_txt)]
+            speakable_exp = markdown_to_speakable_text(exp_txt) or exp_txt.strip()
+            pairs = [(0, p, speakable_exp)]
 
         total_cost = 0.0
         any_cache_miss = False
@@ -816,7 +970,7 @@ class BodhanToolkit:
                     dur = wav_duration_s(tmp_wav)
                     # If single whole audio > 28s, chunk via transcribe_audio; else direct transcribe.
                     if dur > 28.0:
-                        tr = await self.transcribe_audio(str(c_audio), language=iso)
+                        tr = await self.transcribe_audio(str(c_audio), language=iso, attempt=attempt)
                         if not tr["ok"]:
                             return tr
                         total_cost += float(tr["cost_inr"])
@@ -828,6 +982,7 @@ class BodhanToolkit:
                             filename=f"verify_{idx}.wav",
                             duration_s=dur,
                             language=iso,
+                            attempt=attempt,
                         )
                         total_cost += res.cost_inr
                         any_cache_miss |= not res.cache_hit
@@ -835,7 +990,7 @@ class BodhanToolkit:
                 finally:
                     tmp_wav.unlink(missing_ok=True)
 
-                cer = compute_cer(exp, hyp)
+                cer = compute_cer_spoken(exp, hyp)
                 rep, rep_phrase = detect_repetition(hyp)
                 cps = round(len(exp) / max(0.1, dur), 2)
                 # Normal speech spans roughly 3–35 chars/sec; flag extreme truncation or runaway stretch.
@@ -897,12 +1052,16 @@ class BodhanToolkit:
         pages: str | None = None,
         table_format: str = "markdown",
         output_dir: str | None = None,
+        attempt: int = 0,
     ) -> dict[str, Any]:
         """Extract Markdown text and layout blocks from an image or multi-page PDF via indic-ocr.
 
         Rasterizes PDFs with pypdfium2 (no poppler), retries 502 with larger max_tokens,
         then downscaling, then vertical splitting.
         """
+        att_err = self._validate_attempt(attempt)
+        if att_err:
+            return att_err
         p = self._resolve_input_path(path)
         if not p.exists() or not p.is_file():
             return err_response("file_not_found", f"Document file not found: {path}")
@@ -957,7 +1116,7 @@ class BodhanToolkit:
             img_bytes = img_path.read_bytes()
             # Attempt 1: default max_tokens.
             try:
-                res = await self.client.ocr(img_bytes, mime_type=img_mime, table_format=table_format)
+                res = await self.client.ocr(img_bytes, mime_type=img_mime, table_format=table_format, attempt=attempt)
                 total_cost += res.cost_inr
                 any_cache_miss |= not res.cache_hit
                 md = str(res.payload["choices"][0]["message"]["content"]).strip()
@@ -968,7 +1127,7 @@ class BodhanToolkit:
 
             # Attempt 2 (on 502): bump max_tokens to 8192.
             try:
-                res = await self.client.ocr(img_bytes, mime_type=img_mime, table_format=table_format, max_tokens=8192)
+                res = await self.client.ocr(img_bytes, mime_type=img_mime, table_format=table_format, max_tokens=8192, attempt=attempt)
                 total_cost += res.cost_inr
                 any_cache_miss |= not res.cache_hit
                 md = str(res.payload["choices"][0]["message"]["content"]).strip()
@@ -981,7 +1140,7 @@ class BodhanToolkit:
             scaled_path = pages_dir / f"page_{page_num:03d}_scaled.png"
             downscale_image(img_path, scaled_path, scale=0.65)
             try:
-                res = await self.client.ocr(scaled_path.read_bytes(), mime_type="image/png", table_format=table_format, max_tokens=8192)
+                res = await self.client.ocr(scaled_path.read_bytes(), mime_type="image/png", table_format=table_format, max_tokens=8192, attempt=attempt)
                 total_cost += res.cost_inr
                 any_cache_miss |= not res.cache_hit
                 md = str(res.payload["choices"][0]["message"]["content"]).strip()
@@ -994,10 +1153,10 @@ class BodhanToolkit:
             top_p = pages_dir / f"page_{page_num:03d}_top.png"
             bot_p = pages_dir / f"page_{page_num:03d}_bot.png"
             split_image_vertical(img_path, top_p, bot_p)
-            res_top = await self.client.ocr(top_p.read_bytes(), mime_type="image/png", table_format=table_format, max_tokens=8192)
+            res_top = await self.client.ocr(top_p.read_bytes(), mime_type="image/png", table_format=table_format, max_tokens=8192, attempt=attempt)
             total_cost += res_top.cost_inr
             any_cache_miss |= not res_top.cache_hit
-            res_bot = await self.client.ocr(bot_p.read_bytes(), mime_type="image/png", table_format=table_format, max_tokens=8192)
+            res_bot = await self.client.ocr(bot_p.read_bytes(), mime_type="image/png", table_format=table_format, max_tokens=8192, attempt=attempt)
             total_cost += res_bot.cost_inr
             any_cache_miss |= not res_bot.cache_hit
             md_top = str(res_top.payload["choices"][0]["message"]["content"]).strip()

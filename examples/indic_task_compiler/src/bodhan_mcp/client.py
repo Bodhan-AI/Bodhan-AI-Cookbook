@@ -309,9 +309,12 @@ class BodhanClient:
         duration_s: float,
         language: str | None = None,
         mime_type: str = "audio/wav",
+        attempt: int = 0,
     ) -> BodhanCallResult:
         model = "indic-transcribe"
-        params = {"language": language or ""}
+        params: dict[str, Any] = {"language": language or ""}
+        if attempt > 0:
+            params["attempt"] = int(attempt)
         cache_key = make_cache_key(model, params, sha256_bytes(audio_bytes))
         cached = self.cache.get(cache_key)
         if cached is not None:
@@ -359,6 +362,7 @@ class BodhanClient:
         target_language: str,
         script: str = "native",
         max_output_tokens: int | None = None,
+        attempt: int = 0,
     ) -> BodhanCallResult:
         model = "indic-translate"
         effective_script = "native" if target_language == "en" else script
@@ -367,6 +371,8 @@ class BodhanClient:
             "script": effective_script,
             "max_output_tokens": max_output_tokens,
         }
+        if attempt > 0:
+            params["attempt"] = int(attempt)
         cache_key = make_cache_key(model, params, sha256_text(text))
         cached = self.cache.get(cache_key)
         if cached is not None:
@@ -454,12 +460,15 @@ class BodhanClient:
         voice: str,
         language: str,
         style: str | None = None,
+        attempt: int = 0,
     ) -> BodhanCallResult:
         model = "indic-speak"
         instructions: dict[str, Any] = {"lang": language}
         if style:
             instructions["style"] = style
-        params = {"voice": voice, "instructions": instructions}
+        params: dict[str, Any] = {"voice": voice, "instructions": instructions}
+        if attempt > 0:
+            params["attempt"] = int(attempt)
         cache_key = make_cache_key(model, params, sha256_text(text))
         cached = self.cache.get(cache_key)
         if cached is not None and cached.binary is not None:
@@ -525,9 +534,12 @@ class BodhanClient:
         mime_type: str = "image/png",
         table_format: str = "markdown",
         max_tokens: int | None = None,
+        attempt: int = 0,
     ) -> BodhanCallResult:
         model = "indic-ocr"
-        params = {"mime_type": mime_type, "table_format": table_format, "max_tokens": max_tokens}
+        params: dict[str, Any] = {"mime_type": mime_type, "table_format": table_format, "max_tokens": max_tokens}
+        if attempt > 0:
+            params["attempt"] = int(attempt)
         cache_key = make_cache_key(model, params, sha256_bytes(image_bytes))
         cached = self.cache.get(cache_key)
         if cached is not None:

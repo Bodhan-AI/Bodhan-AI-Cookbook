@@ -93,15 +93,17 @@ def build_mcp_server(
             "Automatically converts any ffmpeg-supported format (WAV, MP3, FLAC, OGG, M4A, MP4, WebM) to 16 kHz mono WAV, "
             "splits long audio at silence boundaries into <=28 s windows (dropping pure-silence windows), "
             "and auto-detects language via a <=10 s probe when language='auto'. "
-            "Returns file paths for the full transcript ('text_path') and timed segments JSON ('segments_path') for subtitles."
+            "Returns file paths for the full transcript ('text_path') and timed segments JSON ('segments_path') for subtitles. "
+            "Increment 'attempt' (default 0) to force a fresh model sample after a failed verification."
         ),
     )
     async def transcribe_audio(
         path: str,
         language: str = "auto",
         output_dir: str | None = None,
+        attempt: int = 0,
     ) -> dict[str, Any]:
-        return await tk.transcribe_audio(path=path, language=language, output_dir=output_dir)
+        return await tk.transcribe_audio(path=path, language=language, output_dir=output_dir, attempt=attempt)
 
     @mcp.tool(
         name="translate_text",
@@ -109,8 +111,10 @@ def build_mcp_server(
             "Translate text or a text/Markdown file into a Bodhan-supported language using indic-translate. "
             "Accepts plain ISO language codes (e.g. 'ta', 'hi', 'mr', 'bn', 'te', 'en') or English language names. "
             "Automatically chunks long documents without splitting Markdown tables, code blocks, or LaTeX blocks; "
-            "halves and retries any chunk where the API returns truncated=true; and reports chunk/table/digit coverage. "
-            "Pass either 'text' or 'path'. Output script can be 'native' (default), 'roman', or 'codemix'."
+            "halves and retries any chunk where the API returns truncated=true; guards target output script "
+            "(auto-pivoting via English through Bodhan if Indic->Indic returns Latin); and reports chunk/table/digit coverage. "
+            "Pass either 'text' or 'path'. Output script can be 'native' (default), 'roman', or 'codemix'. "
+            "Increment 'attempt' (default 0) to force a fresh model sample after a failed verification."
         ),
     )
     async def translate_text(
@@ -120,6 +124,7 @@ def build_mcp_server(
         script: str = "native",
         max_output_tokens: int | None = None,
         output_dir: str | None = None,
+        attempt: int = 0,
     ) -> dict[str, Any]:
         return await tk.translate_text(
             target_language=target_language,
@@ -128,17 +133,21 @@ def build_mcp_server(
             script=script,
             max_output_tokens=max_output_tokens,
             output_dir=output_dir,
+            attempt=attempt,
         )
 
     @mcp.tool(
         name="synthesize_speech",
         description=(
             "Synthesize natural speech from text or a text file using Bodhan's indic-speak model. "
-            "Splits long text cleanly on script-aware sentence boundaries (<=250 chars per call), "
+            "Deterministically converts Markdown tables and markup into speakable text before chunking, "
+            "splits long text cleanly on script-aware sentence boundaries (<=250 chars per call), "
             "concatenates and loudness-normalizes audio via ffmpeg, encodes to 'mp3' (default) or 'wav', "
             "and embeds an 'AI-generated (Bodhan Indic-Speak)' metadata tag. "
             "Select voice explicitly (see resource bodhan://voices) or by gender ('female'/'male'). "
-            "Returns 'audio_path', 'chunk_manifest_path' (for verify_speech), and duration."
+            "Returns 'audio_path', 'chunk_manifest_path' (for verify_speech), and duration. "
+            "Increment 'attempt' (default 0) to force a fresh model sample after a failed verification; "
+            "pass 'only_chunks' (from verify_speech's failed_chunk_indices) and optional 'previous_manifest_path' to re-synthesize only failed chunks and re-stitch."
         ),
     )
     async def synthesize_speech(
@@ -150,6 +159,9 @@ def build_mcp_server(
         style: str | None = None,
         format: str = "mp3",
         output_dir: str | None = None,
+        attempt: int = 0,
+        only_chunks: list[int] | None = None,
+        previous_manifest_path: str | None = None,
     ) -> dict[str, Any]:
         return await tk.synthesize_speech(
             language=language,
@@ -160,6 +172,9 @@ def build_mcp_server(
             style=style,
             format=format,
             output_dir=output_dir,
+            attempt=attempt,
+            only_chunks=only_chunks,
+            previous_manifest_path=previous_manifest_path,
         )
 
     @mcp.tool(
@@ -168,7 +183,8 @@ def build_mcp_server(
             "Verify a synthesized audio file against its expected text by back-transcribing every chunk "
             "with Bodhan's indic-transcribe model. Checks normalized Character Error Rate (CER), "
             "n-gram repetition loops, and duration/character-rate anomalies. "
-            "Pass 'chunk_manifest_path' from synthesize_speech to verify chunk-by-chunk, or pass 'expected_text'/'expected_path'."
+            "Pass 'chunk_manifest_path' from synthesize_speech to verify chunk-by-chunk against the exact speakable text synthesized, "
+            "or pass 'expected_text'/'expected_path'. Increment 'attempt' (default 0) to force a fresh model sample after a failed verification."
         ),
     )
     async def verify_speech(
@@ -178,6 +194,7 @@ def build_mcp_server(
         expected_path: str | None = None,
         chunk_manifest_path: str | None = None,
         cer_threshold: float = 0.45,
+        attempt: int = 0,
     ) -> dict[str, Any]:
         return await tk.verify_speech(
             audio_path=audio_path,
@@ -186,6 +203,7 @@ def build_mcp_server(
             expected_path=expected_path,
             chunk_manifest_path=chunk_manifest_path,
             cer_threshold=cer_threshold,
+            attempt=attempt,
         )
 
     @mcp.tool(
@@ -195,7 +213,8 @@ def build_mcp_server(
             "using Bodhan's indic-ocr model. Rasterizes PDFs automatically via pypdfium2 (no poppler required). "
             "Optional 'pages' accepts 1-based ranges like '1-3,5'. 'table_format' can be 'markdown' (default) or 'html'. "
             "On 502 overflow errors, automatically retries with larger max_tokens, then downscaling, then vertical page splitting. "
-            "Returns 'text_path', per-page summaries with low-confidence block flags, and detected language."
+            "Returns 'text_path', per-page summaries with low-confidence block flags, and detected language. "
+            "Increment 'attempt' (default 0) to force a fresh model sample after a failed verification."
         ),
     )
     async def ocr_document(
@@ -203,8 +222,15 @@ def build_mcp_server(
         pages: str | None = None,
         table_format: str = "markdown",
         output_dir: str | None = None,
+        attempt: int = 0,
     ) -> dict[str, Any]:
-        return await tk.ocr_document(path=path, pages=pages, table_format=table_format, output_dir=output_dir)
+        return await tk.ocr_document(
+            path=path,
+            pages=pages,
+            table_format=table_format,
+            output_dir=output_dir,
+            attempt=attempt,
+        )
 
     @mcp.tool(
         name="write_subtitles",

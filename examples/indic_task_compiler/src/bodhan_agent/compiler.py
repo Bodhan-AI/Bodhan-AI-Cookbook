@@ -21,7 +21,19 @@ from bodhan_agent.models import (
 )
 
 REF_PATTERN = re.compile(r"^\$([A-Za-z0-9_]+)\.([A-Za-z0-9_]+)$")
-PATH_ARG_KEYS = frozenset({"path", "audio_path", "segments_path", "translations_path", "expected_path", "chunk_manifest_path", "text_ref", "source_ref"})
+PATH_ARG_KEYS = frozenset(
+    {
+        "path",
+        "audio_path",
+        "segments_path",
+        "translations_path",
+        "expected_path",
+        "chunk_manifest_path",
+        "previous_manifest_path",
+        "text_ref",
+        "source_ref",
+    }
+)
 TOOL_MODEL_MAP = {
     "transcribe_audio": "indic-transcribe",
     "verify_speech": "indic-transcribe",
@@ -35,8 +47,8 @@ TOOL_OUTPUT_FIELDS: dict[str, tuple[str, ...]] = {
     "inspect_files": ("files", "count"),
     "detect_language": ("language", "candidates", "confidence", "ambiguous", "method", "script_histogram", "path", "probe_duration_s"),
     "transcribe_audio": ("text_path", "segments_path", "language", "duration_s", "window_count", "segment_count", "char_count"),
-    "translate_text": ("text_path", "target_language", "script", "chunks_in", "chunks_out", "truncation_splits", "coverage"),
-    "synthesize_speech": ("audio_path", "chunk_manifest_path", "language", "voice", "style", "format", "duration_s", "chunk_count"),
+    "translate_text": ("text_path", "target_language", "script", "chunks_in", "chunks_out", "truncation_splits", "pivot_used", "attempt", "coverage"),
+    "synthesize_speech": ("audio_path", "chunk_manifest_path", "language", "voice", "style", "format", "duration_s", "chunk_count", "attempt", "resynthesized_chunks"),
     "verify_speech": ("passed", "mean_cer", "cer_threshold", "chunks_checked", "failed_chunk_indices", "verdicts"),
     "ocr_document": ("text_path", "page_count", "char_count", "pages", "table_shapes", "detected_language"),
     "write_subtitles": ("subtitle_path", "format", "segment_count", "cue_count", "validation"),

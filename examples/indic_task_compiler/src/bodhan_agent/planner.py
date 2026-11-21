@@ -13,7 +13,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from bodhan_mcp.rules import PRICING_INR, resolve_language, supported_languages
+from bodhan_mcp.rules import PRICING_INR, resolve_language, supported_languages, supported_styles
 from bodhan_mcp.schemas import FileFact
 
 from bodhan_agent.llm import LLMProtocol
@@ -100,19 +100,20 @@ Emit a SMALL repair step list (only the steps needed to fix the failed deliverab
 
 Recovery heuristics:
 - If audio duration was too long/short (>20% off target_s), re-run q_summarize_en with adjusted target_words, re-translate, re-synthesize, re-verify, and re-publish.
-- If verify_speech failed (high CER or repetition), re-run synthesize_speech (with style omitted or alternative valid voice if helpful), re-verify, and re-publish.
-- If translation coverage/tables failed, re-run translate_text and re-publish.
+- If verify_speech failed (high CER or repetition), re-run synthesize_speech (passing attempt=replan_round, and only_chunks=failed_chunk_indices when only a subset of chunks failed; the executor also automatically increments attempt to force fresh samples), re-verify, and re-publish.
+- If translation coverage/tables/script failed, re-run translate_text (with attempt=replan_round) and re-publish.
 
 Return ONLY a JSON object with the same {"steps": [...], "final_answer_template": "...", "assumptions": [...]} schema.
 Use fresh step IDs prefixed with "r1_" or "r2_" so they never collide with prior step IDs."""
 
 
 def _normalize_task_spec_languages(spec: TaskSpec) -> TaskSpec:
-    """Resolve human language names -> ISO codes deterministically via rules.py."""
+    """Resolve human language names -> ISO codes and normalize TTS styles deterministically via rules.py."""
     if spec.source_language_raw and spec.source_language_raw.lower() not in ("auto", "unknown", "none", ""):
         iso, known = resolve_language(spec.source_language_raw)
         if known:
             spec.source_language = iso
+    allowed_styles = {s.lower(): s for s in supported_styles()}
     for d in spec.deliverables:
         if d.language_raw:
             iso, known = resolve_language(d.language_raw)
@@ -122,6 +123,15 @@ def _normalize_task_spec_languages(spec: TaskSpec) -> TaskSpec:
             f_iso, f_known = resolve_language(d.constraints.filter_language)
             if f_known and f_iso:
                 d.constraints.filter_language = f_iso
+        if d.constraints.style:
+            norm_style = allowed_styles.get(d.constraints.style.strip().lower())
+            if norm_style:
+                d.constraints.style = norm_style
+            else:
+                spec.assumptions.append(
+                    f"Requested style '{d.constraints.style}' is not in Indic-Speak's style list; using default narration."
+                )
+                d.constraints.style = None
     return spec
 
 
@@ -219,9 +229,10 @@ async def run_epoch_c(
     failed_verifications: list[DeliverableVerification],
     tool_catalog: list[dict[str, Any]],
     replan_round: int,
+    compile_errors: list[str] | None = None,
 ) -> RawPlan:
     """Epoch C: Targeted subgraph re-plan using ONLY verification metadata (no untrusted content)."""
-    payload = {
+    payload: dict[str, Any] = {
         "task": task,
         "replan_round": replan_round,
         "task_spec": task_spec.model_dump(exclude_none=True),
@@ -229,8 +240,10 @@ async def run_epoch_c(
         "failed_verifications": [v.model_dump() for v in failed_verifications],
         "tool_catalog": _compact_tool_catalog(tool_catalog),
     }
+    if compile_errors:
+        payload["previous_compile_errors_to_fix"] = compile_errors
     raw = await llm.complete_json(
-        role_tag=f"p_llm_epoch_c_round_{replan_round}",
+        role_tag=f"p_llm_epoch_c_round_{replan_round}" + ("_repair" if compile_errors else ""),
         system_prompt=EPOCH_C_SYSTEM,
         user_prompt=json.dumps(payload, ensure_ascii=False),
     )

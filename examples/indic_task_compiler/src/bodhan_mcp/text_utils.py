@@ -452,6 +452,119 @@ def extract_markdown_tables(text: str) -> list[dict[str, int]]:
     return tables
 
 
+_MD_HR_RE = re.compile(r"^\s*([-*_])(?:\s*\1){2,}\s*$")
+_MD_SEP_CELL_RE = re.compile(r":?-{2,}:?")
+
+
+def _strip_inline_markdown(text: str) -> str:
+    """Strip Markdown punctuation/markup without altering any Indic or English words."""
+    s = re.sub(r"<br\s*/?>", "; ", text, flags=re.IGNORECASE)
+    s = re.sub(r"</?[A-Za-z][A-Za-z0-9]*(?:\s+[^>]*)?>", "", s)
+    # Images ![alt](url) -> alt, links [label](url) -> label.
+    s = re.sub(r"!\[([^\]]*)\]\([^)]+\)", r"\1", s)
+    s = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", s)
+    # Inline code, bold, italic, strikethrough delimiters only.
+    s = re.sub(r"`([^`]+)`", r"\1", s)
+    s = re.sub(r"\*\*\*([^*]+)\*\*\*", r"\1", s)
+    s = re.sub(r"\*\*([^*]+)\*\*", r"\1", s)
+    s = re.sub(r"\*([^*\n]+)\*", r"\1", s)
+    s = re.sub(r"___([^_]+)___", r"\1", s)
+    s = re.sub(r"__([^_]+)__", r"\1", s)
+    s = re.sub(r"(?<!\w)_([^_\n]+)_(?!\w)", r"\1", s)
+    s = re.sub(r"~~([^~]+)~~", r"\1", s)
+    # Inline pipe separators (e.g. "Total: 86 | Cost: 11100") -> semicolon pause.
+    s = re.sub(r"\s*\|\s*", "; ", s)
+    s = re.sub(r"[ \t]{2,}", " ", s)
+    return s.strip()
+
+
+def _ensure_sentence_end(text: str) -> str:
+    s = text.strip()
+    if not s:
+        return ""
+    if s[-1] not in ".!?।॥؟":
+        return f"{s}."
+    return s
+
+
+def markdown_to_speakable_text(text: str) -> str:
+    """Deterministically convert Markdown syntax/tables into natural speakable text.
+
+    Only removes/reformats Markdown punctuation and structure (pipes, separator rows,
+    heading hashes, bold/italic markers, list bullets, links). Never translates, writes,
+    or rewrites any Indic or English words so byte-identical provenance is preserved.
+    """
+    blocks = parse_markdown_blocks(text)
+    if not blocks:
+        return text.strip()
+
+    out_blocks: list[str] = []
+    for btype, content in blocks:
+        if btype == "table":
+            lines = [ln.strip() for ln in content.splitlines() if ln.strip()]
+            data_rows: list[list[str]] = []
+            for ln in lines:
+                cells = [c.strip() for c in ln.strip("|").split("|")]
+                non_empty = [c.replace(" ", "") for c in cells if c]
+                if non_empty and all(_MD_SEP_CELL_RE.fullmatch(c) for c in non_empty):
+                    continue
+                data_rows.append([_strip_inline_markdown(c) for c in cells])
+            if not data_rows:
+                continue
+            row_sentences: list[str] = []
+            if len(data_rows) >= 2:
+                headers = data_rows[0]
+                for row in data_rows[1:]:
+                    parts: list[str] = []
+                    for col_idx, cell in enumerate(row):
+                        if not cell:
+                            continue
+                        hdr = headers[col_idx] if col_idx < len(headers) else ""
+                        parts.append(f"{hdr}: {cell}" if hdr else cell)
+                    if parts:
+                        row_sentences.append(_ensure_sentence_end("; ".join(parts)))
+            else:
+                parts = [c for c in data_rows[0] if c]
+                if parts:
+                    row_sentences.append(_ensure_sentence_end("; ".join(parts)))
+            if row_sentences:
+                out_blocks.append("\n".join(row_sentences))
+            continue
+
+        if btype == "code":
+            inner_lines = [
+                ln.strip()
+                for ln in content.splitlines()
+                if ln.strip() and not ln.strip().startswith("```")
+            ]
+            if inner_lines:
+                out_blocks.append("\n".join(inner_lines))
+            continue
+
+        if btype == "latex":
+            inner = content.strip().strip("$").strip()
+            if inner:
+                out_blocks.append(inner)
+            continue
+
+        # Regular paragraph block.
+        cleaned_lines: list[str] = []
+        for ln in content.splitlines():
+            if not ln.strip() or _MD_HR_RE.fullmatch(ln):
+                continue
+            s = re.sub(r"^\s*(?:>\s*)+", "", ln)
+            s = re.sub(r"^\s*#{1,6}\s+", "", s)
+            s = re.sub(r"\s+#+\s*$", "", s)
+            s = re.sub(r"^\s*[-*+]\s+", "", s)
+            s = _strip_inline_markdown(s)
+            if s:
+                cleaned_lines.append(s)
+        if cleaned_lines:
+            out_blocks.append("\n".join(cleaned_lines))
+
+    return "\n\n".join(out_blocks).strip()
+
+
 def extract_digits(text: str) -> list[str]:
     """Extract normalized ASCII numeric sequences from text (handles Indic + ASCII digits)."""
     normalized = text.translate(INDIC_DIGIT_TRANS)
@@ -492,6 +605,71 @@ def compute_cer(expected: str, actual: str) -> float:
             curr[j] = min(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + cost)
         prev = curr
     return round(prev[n] / float(m), 4)
+
+
+def compute_cer_spoken(expected: str, actual: str) -> float:
+    """Compute speech back-transcription CER tolerating ASR spelled-out numbers (missing ITN).
+
+    When `expected` has no digits, this is identical to `compute_cer`.
+    When `expected` contains digit sequences (e.g. '250', '1800', '11100'), Indic ASR commonly
+    transcribes spoken numbers as words (e.g. Tamil/English words of 6-30 chars) rather than
+    digits. Each digit sequence in `expected` may match either the exact digits or a bounded
+    non-digit spoken-word span in `actual` (1..min(36, 7*len+8) chars), while still penalizing
+    wrong digits, dropped words, wrong scripts, and hallucinations.
+    """
+    ref = normalize_for_cer(expected).translate(INDIC_DIGIT_TRANS)
+    hyp = normalize_for_cer(actual).translate(INDIC_DIGIT_TRANS)
+    if not ref:
+        return 0.0 if not hyp else 1.0
+    if not hyp:
+        return 1.0
+    if not re.search(r"\d", ref):
+        return compute_cer(expected, actual)
+
+    tokens: list[tuple[str, str, int]] = []
+    i = 0
+    while i < len(ref):
+        if ref[i].isdigit():
+            j = i
+            while j < len(ref) and ref[j].isdigit():
+                j += 1
+            d_str = ref[i:j]
+            tokens.append(("NUM", d_str, min(36, len(d_str) * 7 + 8)))
+            i = j
+        else:
+            tokens.append(("CH", ref[i], 1))
+            i += 1
+
+    m, n = len(tokens), len(hyp)
+    prev = list(range(n + 1))
+    for ti in range(1, m + 1):
+        kind, val, max_span = tokens[ti - 1]
+        if kind == "CH":
+            curr = [prev[0] + 1] + [0] * n
+            for j in range(1, n + 1):
+                cost = 0 if val == hyp[j - 1] else 1
+                curr[j] = min(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + cost)
+        else:
+            omit_cost = max(2, len(val))
+            curr = [prev[0] + omit_cost] + [0] * n
+            for j in range(1, n + 1):
+                best = prev[j] + omit_cost
+                # Exact digit match.
+                dlen = len(val)
+                if j >= dlen and hyp[j - dlen : j] == val:
+                    best = min(best, prev[j - dlen])
+                # Spoken-word (non-digit) span of length 1..max_span.
+                lo = max(0, j - max_span)
+                for k in range(j - 1, lo - 1, -1):
+                    if hyp[k].isdigit():
+                        break
+                    if prev[k] < best:
+                        best = prev[k]
+                curr[j] = min(best, curr[j - 1] + 1)
+        prev = curr
+
+    denom = max(1, len(tokens))
+    return round(prev[n] / float(denom), 4)
 
 
 def detect_repetition(text: str, *, min_ngram: int = 3, min_repeats: int = 3) -> tuple[bool, str | None]:

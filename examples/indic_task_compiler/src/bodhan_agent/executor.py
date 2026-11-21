@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import re
+import shutil
 import time
 import uuid
 from pathlib import Path
@@ -38,6 +40,52 @@ from bodhan_agent.writers import write_report_json, write_result_md, write_trace
 
 Q_TOOLS = frozenset({"q_summarize_en", "q_classify", "q_extract_number"})
 BUILTIN_TOOLS = frozenset({"publish_artifact", "merge_text_artifacts"})
+RETRYABLE_MODEL_TOOLS = frozenset(
+    {"transcribe_audio", "translate_text", "synthesize_speech", "verify_speech", "ocr_document"}
+)
+AGENT_OUTPUT_DIRS = ("artifacts", ".work")
+AGENT_OUTPUT_FILES = ("trace.jsonl", "trace.html", "report.json", "result.md")
+
+
+def clean_previous_agent_outputs(out_dir: Path) -> None:
+    """Clear only the agent's own prior outputs inside --out; never delete unrelated user files."""
+    for dirname in AGENT_OUTPUT_DIRS:
+        p = out_dir / dirname
+        if p.is_symlink() or p.is_file():
+            p.unlink()
+        elif p.is_dir():
+            shutil.rmtree(p)
+    for fname in AGENT_OUTPUT_FILES:
+        p = out_dir / fname
+        if p.is_symlink() or p.is_file():
+            p.unlink()
+
+
+def _failed_tools_for_verifications(
+    failed_vs: list[DeliverableVerification],
+    step_tools_by_deliverable: dict[str, set[str]],
+) -> set[str]:
+    """Identify which model tools produced or verified the failing deliverable(s) so Epoch C forces fresh samples."""
+    tools: set[str] = set()
+    for v in failed_vs:
+        for tool_name in step_tools_by_deliverable.get(v.deliverable_id, ()):
+            if tool_name in RETRYABLE_MODEL_TOOLS:
+                tools.add(tool_name)
+        failed_checks = {c.name for c in v.checks if not c.passed}
+        if (
+            v.kind == "audio"
+            or "back_transcription_verify" in failed_checks
+            or "duration_tolerance_20pct" in failed_checks
+            or "audio_playable" in failed_checks
+        ):
+            tools.update({"synthesize_speech", "verify_speech"})
+        if v.kind in ("markdown", "text") or bool(
+            failed_checks & {"target_script_ratio", "translation_chunk_coverage", "tables_intact", "digits_preserved"}
+        ):
+            tools.update({"translate_text", "ocr_document"})
+        if v.kind == "subtitles" or "subtitles_valid_monotonic" in failed_checks:
+            tools.update({"transcribe_audio", "translate_text"})
+    return tools
 
 
 def _utc_now() -> str:
@@ -76,6 +124,7 @@ class AgentOrchestrator:
         self._injected_bridge = bridge
         self.budget = BudgetTracker(max_steps=config.max_steps, max_cost_inr=config.max_cost_inr)
         self.events: list[TraceEvent] = []
+        self._deliberate_retry_count = 0
         self._t0 = time.monotonic()
 
     def _record(
@@ -128,7 +177,12 @@ class AgentOrchestrator:
             },
             "no_waste_cache": {
                 "met": True,
-                "detail": f"Content-addressed SHA-256 disk cache active ({self.budget.cache_hits} cache hits in run).",
+                "detail": (
+                    f"Content-addressed SHA-256 disk cache active for first attempts ({self.budget.cache_hits} cache hits; "
+                    f"{self._deliberate_retry_count} deliberate post-verification retry step(s) with attempt>=1)."
+                    if self._deliberate_retry_count
+                    else f"Content-addressed SHA-256 disk cache active ({self.budget.cache_hits} cache hits in run)."
+                ),
             },
             "budget": {
                 "met": self.budget.spent_inr <= self.config.max_cost_inr + 1e-9,
@@ -213,6 +267,7 @@ class AgentOrchestrator:
     async def run(self) -> RunReport:
         out_dir = self.config.out_dir.resolve()
         out_dir.mkdir(parents=True, exist_ok=True)
+        clean_previous_agent_outputs(out_dir)
         expanded_inputs = _expand_cli_inputs(self.config.input_paths)
         store = ArtifactStore(out_dir=out_dir, allowed_input_paths=expanded_inputs)
         q_runner = QuarantinedRunner(self.llm, store)
@@ -523,9 +578,17 @@ class AgentOrchestrator:
             # 6. EXECUTE WAVES + 7. VERIFY CONTRACTS + EPOCH C REPLAN (<=2)
             # ----------------------------------------------------------
             executed_step_ids: set[str] = set()
+            step_tools_by_deliverable: dict[str, set[str]] = {}
+            last_synth_by_key: dict[str, dict[str, Any]] = {}
+            last_verify_by_key: dict[str, dict[str, Any]] = {}
             budget_stopped_reason: str | None = None
 
-            async def _run_step(step: CompiledStep) -> tuple[str, bool, str | None]:
+            async def _run_step(
+                step: CompiledStep,
+                *,
+                replan_round: int = 0,
+                failed_tools: set[str] | None = None,
+            ) -> tuple[str, bool, str | None]:
                 # Resolve references first so runtime budget reservation can use true file sizes.
                 try:
                     resolved_args = store.resolve_ref(step.args)
@@ -540,7 +603,36 @@ class AgentOrchestrator:
                     )
                     return step.id, False, str(exc)
 
-                runtime_est = self._estimate_runtime_step_cost(step.tool, resolved_args, step.estimated_cost_inr)
+                effective_args = dict(resolved_args)
+                trace_args = dict(step.args)
+
+                # Epoch C cache-busting: automatically set attempt = replan_round for tools that
+                # produced/verified the failed deliverable(s), and re-synthesize only failed chunks
+                # when re-running synthesize_speech on the same input text & voice settings.
+                if replan_round > 0 and failed_tools and step.tool in failed_tools:
+                    eff_attempt = max(int(effective_args.get("attempt") or 0), replan_round)
+                    effective_args["attempt"] = eff_attempt
+                    trace_args["attempt"] = eff_attempt
+                    self._deliberate_retry_count += 1
+
+                    if step.tool == "synthesize_speech" and "only_chunks" not in effective_args:
+                        key = step.deliverable_id or "*"
+                        prior_ver = last_verify_by_key.get(key) or last_verify_by_key.get("*")
+                        prior_syn = last_synth_by_key.get(key) or last_synth_by_key.get("*")
+                        if prior_ver and not prior_ver.get("passed") and prior_syn:
+                            failed_idx = list(prior_ver.get("failed_chunk_indices") or [])
+                            chunks_checked = int(prior_ver.get("chunks_checked") or 0)
+                            same_inputs = all(
+                                effective_args.get(k) == prior_syn["args"].get(k)
+                                for k in ("path", "text", "language", "voice", "gender", "style")
+                            )
+                            if failed_idx and chunks_checked > 0 and len(failed_idx) < chunks_checked and same_inputs:
+                                effective_args["only_chunks"] = failed_idx
+                                trace_args["only_chunks"] = failed_idx
+                                if prior_syn.get("manifest_path"):
+                                    effective_args["previous_manifest_path"] = prior_syn["manifest_path"]
+
+                runtime_est = self._estimate_runtime_step_cost(step.tool, effective_args, step.estimated_cost_inr)
 
                 # Reserve step & estimated cost before invoking paid tools.
                 try:
@@ -555,7 +647,7 @@ class AgentOrchestrator:
                         epoch="execute",
                         tool=step.tool,
                         plan_excerpt=f"Step {step.id} blocked by budget",
-                        args_sanitized=step.args,
+                        args_sanitized=trace_args,
                         result_meta={"error": str(exc)},
                         ok=False,
                     )
@@ -567,10 +659,10 @@ class AgentOrchestrator:
                 if step.tool == "publish_artifact":
                     try:
                         dest, _rec = store.publish_artifact(
-                            str(resolved_args["source_ref"]),
-                            str(resolved_args["filename"]),
+                            str(effective_args["source_ref"]),
+                            str(effective_args["filename"]),
                         )
-                        did = str(resolved_args["deliverable_id"])
+                        did = str(effective_args["deliverable_id"])
                         published_by_deliverable[did] = dest
                         resp = ok_response(
                             {"artifact_path": str(dest), "deliverable_id": did, "filename": dest.name}
@@ -578,27 +670,27 @@ class AgentOrchestrator:
                     except (ProvenanceViolationError, PermissionError, ValueError, FileNotFoundError) as exc:
                         resp = err_response("publish_error", str(exc))
                 elif step.tool == "merge_text_artifacts":
-                    resp = self._exec_merge_text(resolved_args, store)
+                    resp = self._exec_merge_text(effective_args, store)
                 elif step.tool in Q_TOOLS:
                     if step.tool == "q_summarize_en":
                         resp = await q_runner.q_summarize_en(
-                            text_ref=str(resolved_args["text_ref"]),
-                            target_words=int(resolved_args["target_words"]),
+                            text_ref=str(effective_args["text_ref"]),
+                            target_words=int(effective_args["target_words"]),
                         )
                     elif step.tool == "q_classify":
                         resp = await q_runner.q_classify(
-                            text_ref=str(resolved_args["text_ref"]),
-                            question=str(resolved_args["question"]),
-                            choices=list(resolved_args["choices"]),
+                            text_ref=str(effective_args["text_ref"]),
+                            question=str(effective_args["question"]),
+                            choices=list(effective_args["choices"]),
                         )
                     else:
                         resp = await q_runner.q_extract_number(
-                            text_ref=str(resolved_args["text_ref"]),
-                            question=str(resolved_args["question"]),
+                            text_ref=str(effective_args["text_ref"]),
+                            question=str(effective_args["question"]),
                         )
                 else:
                     # Ensure MCP tools write intermediate files into this run's work_dir.
-                    call_args = dict(resolved_args)
+                    call_args = dict(effective_args)
                     if step.tool in {
                         "transcribe_audio",
                         "translate_text",
@@ -621,11 +713,28 @@ class AgentOrchestrator:
 
                 meta = store.register_step_output(step.id, step.tool, resp)
                 executed_step_ids.add(step.id)
+                if step.deliverable_id:
+                    step_tools_by_deliverable.setdefault(step.deliverable_id, set()).add(step.tool)
+                if step.tool == "synthesize_speech" and resp.get("ok"):
+                    synth_rec = {
+                        "args": {k: effective_args.get(k) for k in ("path", "text", "language", "voice", "gender", "style")},
+                        "manifest_path": (resp.get("data") or {}).get("chunk_manifest_path"),
+                        "chunk_count": (resp.get("data") or {}).get("chunk_count"),
+                    }
+                    last_synth_by_key["*"] = synth_rec
+                    if step.deliverable_id:
+                        last_synth_by_key[step.deliverable_id] = synth_rec
+                elif step.tool == "verify_speech" and resp.get("ok"):
+                    ver_rec = dict(resp.get("data") or {})
+                    last_verify_by_key["*"] = ver_rec
+                    if step.deliverable_id:
+                        last_verify_by_key[step.deliverable_id] = ver_rec
+
                 self._record(
                     epoch="execute",
                     tool=step.tool,
                     plan_excerpt=f"{step.id}: {step.rationale}" if step.rationale else step.id,
-                    args_sanitized=step.args,  # Keeps $handles, never inline untrusted content!
+                    args_sanitized=trace_args,  # Keeps $handles, never inline untrusted content!
                     result_meta=meta,
                     ok=bool(resp.get("ok")),
                     latency_ms=lat,
@@ -637,9 +746,16 @@ class AgentOrchestrator:
                     err_msg = (resp.get("error") or {}).get("message") or f"Step {step.id} failed."
                 return step.id, bool(resp.get("ok")), err_msg
 
-            async def _execute_plan(plan: CompiledPlan) -> tuple[bool, str | None]:
+            async def _execute_plan(
+                plan: CompiledPlan,
+                *,
+                replan_round: int = 0,
+                failed_tools: set[str] | None = None,
+            ) -> tuple[bool, str | None]:
                 for wave in plan.waves:
-                    results = await asyncio.gather(*(_run_step(s) for s in wave))
+                    results = await asyncio.gather(
+                        *(_run_step(s, replan_round=replan_round, failed_tools=failed_tools) for s in wave)
+                    )
                     for _sid, ok_flag, err_msg in results:
                         if not ok_flag and err_msg:
                             if "budget" in err_msg.lower():
@@ -671,39 +787,63 @@ class AgentOrchestrator:
             ):
                 replan_round += 1
                 failed_vs = [v for v in verifications if not v.passed]
+                failed_tools = _failed_tools_for_verifications(failed_vs, step_tools_by_deliverable)
                 existing_handles = {sid: sorted(meta.keys()) for sid, meta in store.step_meta.items()}
                 try:
-                    await self.budget.consume_step(f"epoch_c_{replan_round}")
-                    t_c = time.monotonic()
-                    repair_raw = await run_epoch_c(
-                        self.llm,
-                        task=self.config.task,
-                        task_spec=task_spec,
-                        existing_step_handles=existing_handles,
-                        failed_verifications=failed_vs,
-                        tool_catalog=tool_catalog,
-                        replan_round=replan_round,
-                    )
-                    self._record(
-                        epoch="epoch_c",
-                        tool="p_llm_epoch_c",
-                        plan_excerpt=f"Targeted re-plan round {replan_round} ({len(repair_raw.steps)} steps)",
-                        result_meta={"step_ids": [s.id for s in repair_raw.steps]},
-                        ok=True,
-                        latency_ms=int((time.monotonic() - t_c) * 1000),
-                    )
-                    if not repair_raw.steps:
+                    repair_compiled: CompiledPlan | None = None
+                    c_compile_errors: list[str] | None = None
+                    for c_att in range(2):
+                        await self.budget.consume_step(f"epoch_c_{replan_round}" + (f"_fix{c_att}" if c_att else ""))
+                        t_c = time.monotonic()
+                        repair_raw = await run_epoch_c(
+                            self.llm,
+                            task=self.config.task,
+                            task_spec=task_spec,
+                            existing_step_handles=existing_handles,
+                            failed_verifications=failed_vs,
+                            tool_catalog=tool_catalog,
+                            replan_round=replan_round,
+                            compile_errors=c_compile_errors,
+                        )
+                        self._record(
+                            epoch="epoch_c",
+                            tool="p_llm_epoch_c" if c_att == 0 else "p_llm_epoch_c_repair",
+                            plan_excerpt=f"Targeted re-plan round {replan_round} ({len(repair_raw.steps)} steps)",
+                            result_meta={"step_ids": [s.id for s in repair_raw.steps], "failed_tools": sorted(failed_tools)},
+                            ok=True,
+                            latency_ms=int((time.monotonic() - t_c) * 1000),
+                        )
+                        if not repair_raw.steps:
+                            break
+                        try:
+                            repair_compiled = compile_plan(
+                                repair_raw,
+                                task_spec=task_spec,
+                                file_facts=file_facts,
+                                probe_facts=probe_facts,
+                                tool_catalog=tool_catalog,
+                                allowed_inputs=store.allowed_inputs,
+                                prior_step_ids=executed_step_ids,
+                            )
+                            break
+                        except PlanCompileError as exc:
+                            c_compile_errors = exc.errors
+                            self._record(
+                                epoch="compile",
+                                tool="plan_compiler",
+                                plan_excerpt=f"Epoch C round {replan_round} compile failed",
+                                result_meta={"errors": exc.errors},
+                                ok=False,
+                            )
+                            if c_att == 1:
+                                raise
+                    if repair_compiled is None:
                         break
-                    repair_compiled = compile_plan(
-                        repair_raw,
-                        task_spec=task_spec,
-                        file_facts=file_facts,
-                        probe_facts=probe_facts,
-                        tool_catalog=tool_catalog,
-                        allowed_inputs=store.allowed_inputs,
-                        prior_step_ids=executed_step_ids,
+                    r_ok, r_err = await _execute_plan(
+                        repair_compiled,
+                        replan_round=replan_round,
+                        failed_tools=failed_tools,
                     )
-                    r_ok, r_err = await _execute_plan(repair_compiled)
                     if not r_ok and r_err and "budget" in r_err.lower():
                         budget_stopped_reason = r_err
                     elif r_ok:
@@ -789,6 +929,17 @@ class AgentOrchestrator:
         from bodhan_mcp.pricing import cost_speak, cost_translate, estimate_output_tokens
 
         if tool == "synthesize_speech":
+            only_chunks = resolved_args.get("only_chunks")
+            prev_manifest = resolved_args.get("previous_manifest_path")
+            if isinstance(only_chunks, list) and only_chunks and isinstance(prev_manifest, str) and Path(prev_manifest).is_file():
+                try:
+                    items = json.loads(Path(prev_manifest).read_text(encoding="utf-8"))
+                    sel = set(only_chunks)
+                    chars = sum(int(it.get("char_count", 0)) for it in items if isinstance(it, dict) and it.get("index") in sel)
+                    if chars > 0:
+                        return cost_speak(chars)
+                except (OSError, json.JSONDecodeError, ValueError):
+                    pass
             txt = resolved_args.get("text")
             if isinstance(txt, str) and txt:
                 return cost_speak(len(txt))

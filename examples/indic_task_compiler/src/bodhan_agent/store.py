@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import shutil
 from pathlib import Path
 from typing import Any
@@ -228,12 +229,20 @@ class ArtifactStore:
             raise ProvenanceViolationError(
                 f"Deliverable '{resolved.name}' contains Indic-script text from forbidden source '{rec.source}'."
             )
-        # Verify byte-level lineage: every non-empty Indic line must appear verbatim in verified Bodhan/input chunks.
+        # Verify byte-level lineage: every non-empty Indic line must appear verbatim in verified Bodhan/input chunks,
+        # OR (when punctuation/structure was reformatted, e.g. Markdown tables -> speakable sentences) every
+        # Indic-script word must appear as a byte-identical substring of a verified Bodhan/input chunk.
         for line in text.splitlines():
             stripped = line.strip()
             if not stripped or not contains_indic_script(stripped):
                 continue
-            if not any(stripped in chunk for chunk in self._verified_indic_chunks):
+            if any(stripped in chunk for chunk in self._verified_indic_chunks):
+                continue
+            tokens = [t for t in re.split(r"[\s,.;:!?।॥\"'()\[\]{}|/\\<>`~*#]+", stripped) if t]
+            indic_tokens = [t for t in tokens if contains_indic_script(t)]
+            if not indic_tokens or not all(
+                any(tok in chunk for chunk in self._verified_indic_chunks) for tok in indic_tokens
+            ):
                 raise ProvenanceViolationError(
                     f"Deliverable '{resolved.name}' contains Indic text not matching any Bodhan tool output."
                 )

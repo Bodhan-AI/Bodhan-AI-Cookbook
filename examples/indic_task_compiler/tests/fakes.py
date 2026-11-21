@@ -90,6 +90,8 @@ CANNED_BY_LANG: dict[str, str] = {
     "te": "ఇది ఒక తెలుగు పరీక్ష వాక్యం.",
     "bn": "এটি একটি বাংলা পরীক্ষা বাক্য।",
     "mr": "हे एक मराठी चाचणी वाक्य आहे.",
+    "kn": "ಇದು ಕನ್ನಡ ಪರೀಕ್ಷಾ ವಾಕ್ಯವಾಗಿದೆ.",
+    "gu": "આ એક ગુજરાતી પરીક્ષણ વાક્ય છે.",
     "en": "This is an English test sentence.",
 }
 
@@ -106,6 +108,11 @@ class FakeBodhanState:
     speak_duration_s: float = 1.5
     speak_repeat_loop: bool = False
     translate_map: dict[str, str] = field(default_factory=dict)
+    # Hooks for reproducing live reviewer bugs deterministically:
+    speak_inputs_seen: list[str] = field(default_factory=list)
+    speak_distinct_per_call: bool = False
+    translate_indic_to_indic_returns_english: bool = False
+    translate_always_english: bool = False
 
     def _next_forced_status(self) -> int | None:
         if self.fail_status_sequence:
@@ -118,6 +125,7 @@ def make_fake_bodhan_transport(state: FakeBodhanState | None = None) -> tuple[ht
     st = state if state is not None else FakeBodhanState()
     transcribe_idx = {"n": 0}
     ocr_idx = {"n": 0}
+    speak_idx = {"n": 0}
     trunc_used = {"done": False}
 
     def handler(request: httpx.Request) -> httpx.Response:
@@ -159,6 +167,13 @@ def make_fake_bodhan_transport(state: FakeBodhanState | None = None) -> tuple[ht
             return httpx.Response(200, json={"text": text, "usage": None})
 
         def _fake_translate_text(src: str, tgt: str) -> str:
+            if st.translate_always_english:
+                return "Every winter, migratory birds travel thousands of kilometers to rest in wetlands."
+            if st.translate_indic_to_indic_returns_english and tgt != "en":
+                from bodhan_mcp.text_utils import contains_indic_script
+
+                if contains_indic_script(src):
+                    return "Every winter, migratory birds travel thousands of kilometers to rest in wetlands."
             if tgt in st.translate_map:
                 return st.translate_map[tgt]
             if "|" in src and "---" in src:
@@ -223,9 +238,13 @@ def make_fake_bodhan_transport(state: FakeBodhanState | None = None) -> tuple[ht
         if path == "/v1/audio/speech":
             body = json.loads(request.content.decode("utf-8"))
             txt = body.get("input", "")
+            st.speak_inputs_seen.append(txt)
+            call_num = speak_idx["n"]
+            speak_idx["n"] += 1
             # Realistic duration proportional to text length (~12 chars/sec) unless overridden.
             dur = max(0.8, min(15.0, len(txt) / 12.0)) if st.speak_duration_s <= 0 else st.speak_duration_s
-            wav_bytes = make_sine_wav_bytes(duration_s=dur, sample_rate=24000)
+            freq = 440.0 + (35.0 * call_num if st.speak_distinct_per_call else 0.0)
+            wav_bytes = make_sine_wav_bytes(duration_s=dur, sample_rate=24000, freq_hz=freq)
             # Matches real Bodhan API: Content-Type is audio/mpeg while body bytes are RIFF/WAVE PCM16.
             return httpx.Response(200, content=wav_bytes, headers={"content-type": "audio/mpeg"})
 
