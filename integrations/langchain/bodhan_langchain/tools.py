@@ -20,12 +20,11 @@ class BodhanTranslationInput(BaseModel):
         ...,
         description="The text to translate. Should not be empty.",
     )
-    target_language: str = Field(
-        ...,
+    target_language: Optional[str] = Field(
+        None,
         description=(
-            "Target language ISO code. Supported codes include: "
-            "as, bn, brx, doi, en, gu, hi, kn, kok, ks, ks-Deva, mai, ml, "
-            "mni, mni-Beng, mr, ne, or, pa, sa, sat, sd, sd-Arab, ta, te, ur."
+            "Target language ISO code (e.g. 'hi', 'ta', 'bn', 'en', 'mr', 'te', 'gu'). "
+            "Supports 26 Indic languages plus English."
         ),
     )
     script: Optional[str] = Field(
@@ -35,7 +34,7 @@ class BodhanTranslationInput(BaseModel):
 
 
 class BodhanTranslationTool(BaseTool):
-    """LangChain tool for translating text between English and 22 Indian languages.
+    """LangChain tool for translating text across 26 Indian languages and English.
 
     Can be bound to LangChain chat models, ReAct agents, or tool-calling agents
     to give agents sovereign translation capabilities across Indian languages.
@@ -45,16 +44,16 @@ class BodhanTranslationTool(BaseTool):
         from bodhan_langchain import BodhanClient, BodhanTranslationTool
 
         client = BodhanClient()
-        tool = BodhanTranslationTool(client=client)
-        result = tool.invoke({"text": "Where is the library?", "target_language": "hi"})
+        tool = BodhanTranslationTool(client=client, target_language="hi")
+        result = tool.invoke({"text": "Where is the library?"})
         print(result)  # पुस्तकालय कहाँ है?
         ```
     """
 
     name: str = "bodhan_translate"
     description: str = (
-        "Translates text between English and 22 Indian languages (Hindi, Tamil, Bengali, Telugu, "
-        "Marathi, Gujarati, Kannada, Malayalam, Odia, Punjabi, etc.) using Bodhan AI foundation models. "
+        "Translates text across 26 Indian languages (Indic languages) plus English (Hindi, Tamil, Bengali, Telugu, "
+        "Marathi, Gujarati, Kannada, Malayalam, Odia, Punjabi, Assamese, etc.) using Bodhan AI models. "
         "Source language is detected automatically."
     )
     args_schema: type[BaseModel] = BodhanTranslationInput
@@ -62,57 +61,66 @@ class BodhanTranslationTool(BaseTool):
     client: Optional[BodhanClient] = None
     async_client: Optional[BodhanAsyncClient] = None
     transport: Optional[str] = None
+    target_language: str = "en"
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    def _get_client(self) -> BodhanClient:
+    def _get_client(self) -> tuple[BodhanClient, bool]:
         if self.client is not None:
-            return self.client
-        return BodhanClient()
+            return self.client, False
+        return BodhanClient(), True
 
-    def _get_async_client(self) -> BodhanAsyncClient:
+    def _get_async_client(self) -> tuple[BodhanAsyncClient, bool]:
         if self.async_client is not None:
-            return self.async_client
-        return BodhanAsyncClient()
+            return self.async_client, False
+        return BodhanAsyncClient(), True
 
     def _run(
         self,
         text: str,
-        target_language: str,
+        target_language: str | None = None,
         script: str | None = "native",
         run_manager: CallbackManagerForToolRun | None = None,
         **kwargs: Any,
     ) -> str:
         """Execute translation synchronously."""
-        client = self._get_client()
+        target = target_language or self.target_language
+        client, owns_client = self._get_client()
         try:
             resp = client.translate(
                 text=text,
-                target_language=target_language,
+                target_language=target,
                 script=script,
                 transport=self.transport,  # type: ignore[arg-type]
             )
             return resp.text
         except (BodhanValidationError, BodhanAPIError) as err:
             return f"Error executing Bodhan translation: {err}"
+        finally:
+            if owns_client:
+                client.close()
 
     async def _arun(
         self,
         text: str,
-        target_language: str,
+        target_language: str | None = None,
         script: str | None = "native",
         run_manager: AsyncCallbackManagerForToolRun | None = None,
         **kwargs: Any,
     ) -> str:
         """Execute translation asynchronously."""
-        async_client = self._get_async_client()
+        target = target_language or self.target_language
+        async_client, owns_client = self._get_async_client()
         try:
             resp = await async_client.translate(
                 text=text,
-                target_language=target_language,
+                target_language=target,
                 script=script,
                 transport=self.transport,  # type: ignore[arg-type]
             )
             return resp.text
         except (BodhanValidationError, BodhanAPIError) as err:
             return f"Error executing Bodhan translation: {err}"
+        finally:
+            if owns_client:
+                await async_client.aclose()

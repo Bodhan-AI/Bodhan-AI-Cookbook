@@ -101,3 +101,40 @@ async def test_tool_async_invocation() -> None:
 
     result = await tool.ainvoke({"text": "Test async tool", "target_language": "bn"})
     assert result == "Async Tool Output"
+
+
+def test_tool_default_target_language_in_constructor() -> None:
+    """Verify that target_language can be passed to tool constructor and used by default."""
+    def handler(request: httpx.Request) -> httpx.Response:
+        data = json.loads(request.content)
+        assert data["target_language"] == "ta"
+        return httpx.Response(200, json={"translation": "வணக்கம்"})
+
+    client = BodhanClient(api_key=DUMMY_KEY, http_client=httpx.Client(transport=httpx.MockTransport(handler), base_url="https://api.bodhan.ai"))
+    tool = BodhanTranslationTool(client=client, target_language="ta")
+
+    # Invocations without explicit target_language inherit constructor default
+    result = tool.invoke({"text": "Hello"})
+    assert result == "வணக்கம்"
+
+
+def test_tool_internal_client_lifecycle_closed(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Verify that internally instantiated client is closed after tool run."""
+    closed = False
+
+    class MockInternalClient:
+        def __init__(self, *args, **kwargs):
+            pass
+        def translate(self, *args, **kwargs):
+            from bodhan_langchain.models import TranslationResponse
+            return TranslationResponse(text="Tr Text", target_language="hi")
+        def close(self):
+            nonlocal closed
+            closed = True
+
+    monkeypatch.setattr("bodhan_langchain.tools.BodhanClient", MockInternalClient)
+
+    tool = BodhanTranslationTool()
+    res = tool.invoke({"text": "Test"})
+    assert res == "Tr Text"
+    assert closed is True

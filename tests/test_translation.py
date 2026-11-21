@@ -177,3 +177,54 @@ async def test_async_transformer_transform_documents() -> None:
     assert transformed[0].page_content == "Async Translated Text"
     assert transformed[0].metadata["source_language"] == "bn"
     assert transformed[0].metadata["target_language"] == "en"
+
+
+def test_transformer_splits_single_oversized_paragraph() -> None:
+    """Verify that a single 10,000-character paragraph without newlines is safely chunked."""
+    recorded_chunks: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        data = json.loads(request.content)
+        chunk_text = data.get("text") or data["messages"][0]["content"]
+        recorded_chunks.append(chunk_text)
+        return httpx.Response(200, json={"translation": f"[Tr: {chunk_text[:10]}...]"})
+
+    client = BodhanClient(api_key=DUMMY_KEY, http_client=httpx.Client(transport=httpx.MockTransport(handler), base_url="https://api.bodhan.ai"))
+    # Max chunk chars = 250
+    transformer = BodhanTranslationTransformer(target_language="en", client=client, max_chunk_chars=250)
+
+    # 10,000 character single paragraph with Indic sentences (using danda ।)
+    sentences = ["भारत एक विशाल और विविध संस्कृति वाला देश है।" for _ in range(250)]
+    oversized_paragraph = "".join(sentences)
+    assert len(oversized_paragraph) > 9000
+
+    doc = Document(page_content=oversized_paragraph, metadata={"id": "huge"})
+    res = transformer.transform_documents([doc])
+
+    assert len(res) == 1
+    assert len(recorded_chunks) > 10
+    # Strict safety invariant: Every chunk sent to the API must be <= 250 characters!
+    assert all(len(c) <= 250 for c in recorded_chunks), [len(c) for c in recorded_chunks if len(c) > 250]
+
+
+def test_transformer_client_lifecycle_internally_owned(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Verify that an internally instantiated client is closed after transform_documents."""
+    closed = False
+
+    class MockInternalClient:
+        def __init__(self, *args, **kwargs):
+            pass
+        def translate(self, *args, **kwargs):
+            from bodhan_langchain.models import TranslationResponse
+            return TranslationResponse(text="Tr Text", target_language="en")
+        def close(self):
+            nonlocal closed
+            closed = True
+
+    monkeypatch.setattr("bodhan_langchain.translation.BodhanClient", MockInternalClient)
+
+    transformer = BodhanTranslationTransformer(target_language="en")
+    docs = transformer.transform_documents([Document(page_content="Hello")])
+
+    assert len(docs) == 1
+    assert closed is True
