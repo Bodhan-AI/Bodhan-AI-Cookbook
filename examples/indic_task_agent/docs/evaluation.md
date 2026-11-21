@@ -25,7 +25,7 @@ The `h1`–`h8` tasks are my own held-out tasks, written to resemble the kinds o
 
 ### Clean Linux setup (containers)
 
-Checked on 21 November 2026 on `71cf81b` (source `92a3518`, the final code, exported with `git archive`), and earlier on `751b1f7`, `29fb73e`, `148adec`, `e90080a`, `4b6a4f0`, `588bb9b` and from fresh clones of `53f1c6d`, `66db214`, `94b4891` and earlier `182938e`, with the same results. These are **Linux containers on WSL2 (Docker Desktop 29.9.3, linux/amd64, kernel 6.18.58.1-microsoft-standard-WSL2)**, not a native Linux machine.
+Checked on 21 November 2026 on `4340bf0` (source `92a3518`, the final code, exported with `git archive`), and earlier on `07a5dda`, `71cf81b`, `751b1f7`, `29fb73e`, `148adec`, `e90080a`, `4b6a4f0`, `588bb9b` and from fresh clones of `53f1c6d`, `66db214`, `94b4891` and earlier `182938e`, with the same results. A cold compile on `07a5dda` printed one `SyntaxWarning`: a test's Windows path was not a raw string, so that case did not test the path it names; fixed in `4340bf0` (tests only). These are **Linux containers on WSL2 (Docker Desktop 29.9.3, linux/amd64, kernel 6.18.58.1-microsoft-standard-WSL2)**, not a native Linux machine.
 
 | Check | Image | Result |
 |---|---|---|
