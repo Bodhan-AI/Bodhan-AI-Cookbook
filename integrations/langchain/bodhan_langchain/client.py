@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import logging
 import mimetypes
 import os
 from pathlib import Path
@@ -15,6 +16,7 @@ from .exceptions import (
     BodhanAuthenticationError,
     BodhanRateLimitError,
     BodhanValidationError,
+    sanitize_sensitive_text,
 )
 from .models import (
     SUPPORTED_SCRIPTS,
@@ -26,6 +28,7 @@ from .models import (
 )
 
 TransportStrategy = Literal["auto", "chat_completions", "translate_endpoint"]
+logger = logging.getLogger(__name__)
 
 
 def _validate_language_code(lang: str) -> None:
@@ -113,11 +116,13 @@ def _parse_error_response(response: httpx.Response) -> BodhanAPIError:
             elif "message" in data:
                 error_message = str(data["message"])
     except Exception:
-        # Fall back to raw text if not valid JSON
+        # Fall back to sanitized snippet if not valid JSON
         text = response.text.strip()
         if text:
-            error_message = text
-        response_body = response.text
+            error_message = sanitize_sensitive_text(text, max_chars=150)
+        response_body = text[:500] if text else None
+
+    error_message = sanitize_sensitive_text(error_message)
 
     if status_code == 401:
         return BodhanAuthenticationError(
@@ -275,12 +280,13 @@ class BodhanClient:
 
         try:
             return resp.json()
-        except Exception as exc:
+        except Exception:
+            safe_snippet = sanitize_sensitive_text(resp.text[:200])
             raise BodhanAPIError(
-                f"Malformed JSON response received from Bodhan API at '{url}': {resp.text[:200]}",
+                f"Malformed JSON response received from Bodhan API at '{url}': {safe_snippet}",
                 status_code=resp.status_code,
-                response_body=resp.text,
-            ) from exc
+                response_body=resp.text[:500] if resp.text else None,
+            ) from None
 
     def ocr(
         self,
@@ -416,7 +422,7 @@ class BodhanClient:
         text: str,
         target_language: str,
         script: str | None = None,
-        max_tokens: int | None = None,
+        max_output_tokens: int | None = None,
     ) -> TranslationResponse:
         """Execute translation via POST /v1/chat/completions route."""
         body: dict[str, Any] = {
@@ -431,8 +437,8 @@ class BodhanClient:
         }
         if script is not None:
             body["script"] = script
-        if max_tokens is not None:
-            body["max_tokens"] = max_tokens
+        if max_output_tokens is not None:
+            body["max_output_tokens"] = max_output_tokens
 
         data = self._send_request("POST", "/v1/chat/completions", json=body)
 
@@ -485,7 +491,7 @@ class BodhanClient:
         text: str,
         target_language: str,
         script: str | None = None,
-        max_tokens: int | None = None,
+        max_output_tokens: int | None = None,
     ) -> TranslationResponse:
         """Execute translation via POST /translate route."""
         body: dict[str, Any] = {
@@ -494,8 +500,8 @@ class BodhanClient:
         }
         if script is not None:
             body["script"] = script
-        if max_tokens is not None:
-            body["max_output_tokens"] = max_tokens
+        if max_output_tokens is not None:
+            body["max_output_tokens"] = max_output_tokens
 
         data = self._send_request("POST", "/translate", json=body)
 
@@ -523,11 +529,12 @@ class BodhanClient:
         target_language: str,
         script: str | None = None,
         transport: TransportStrategy | None = None,
+        max_output_tokens: int | None = None,
         max_tokens: int | None = None,
     ) -> TranslationResponse:
         """Translate text to an Indian language or English using Bodhan AI.
 
-        Reconciles the documented POST /translate endpoint with the active
+        Reconciles the authoritative POST /translate endpoint with the active
         /v1/chat/completions transport (documented in GitHub Issue #34).
 
         Args:
@@ -535,7 +542,8 @@ class BodhanClient:
             target_language: ISO language code (e.g. 'hi', 'ta', 'bn', 'en').
             script: Optional script variant ('native', 'roman', 'codemix').
             transport: Endpoint transport strategy ('auto', 'chat_completions', 'translate_endpoint').
-            max_tokens: Optional limit on generated output tokens.
+            max_output_tokens: Documented limit on generated output tokens.
+            max_tokens: Backward-compatible alias for max_output_tokens.
 
         Returns:
             TranslationResponse containing translated text and metadata.
@@ -554,24 +562,40 @@ class BodhanClient:
                 f"Invalid script '{script}'. Must be one of: {', '.join(sorted(SUPPORTED_SCRIPTS))}",
                 parameter="script",
             )
-        if max_tokens is not None and max_tokens <= 0:
-            raise BodhanValidationError("max_tokens must be a positive integer.", parameter="max_tokens")
+        token_limit = max_output_tokens if max_output_tokens is not None else max_tokens
+        if token_limit is not None and token_limit <= 0:
+            raise BodhanValidationError("max_output_tokens must be a positive integer.", parameter="max_output_tokens")
 
         strategy = transport or self.transport_strategy
 
-        if strategy == "chat_completions":
-            return self._translate_chat_completions(text, target_language, script, max_tokens)
-
         if strategy == "translate_endpoint":
-            return self._translate_plain_json(text, target_language, script, max_tokens)
+            return self._translate_plain_json(text, target_language, script, token_limit)
 
-        # 'auto' strategy: Prefer chat_completions (verified working per Issue #34),
-        # with automatic fallback to /translate if 404 or unsupported
+        if strategy == "chat_completions":
+            return self._translate_chat_completions(text, target_language, script, token_limit)
+
+        # 'auto' strategy:
+        # Try the authoritative official route (POST /translate) first.
+        # If the server responds with 404 (endpoint not routed / Issue #34), fall back to /v1/chat/completions.
+        # Do NOT fall back on 401 (auth), 400 (validation), 429 (rate limit), or 5xx (server error).
         try:
-            return self._translate_chat_completions(text, target_language, script, max_tokens)
-        except BodhanAPIError as exc:
-            if exc.status_code == 404:
-                return self._translate_plain_json(text, target_language, script, max_tokens)
+            return self._translate_plain_json(text, target_language, script, token_limit)
+        except BodhanAPIError as primary_err:
+            if primary_err.status_code == 404:
+                logger.info("POST /translate returned 404; falling back to POST /v1/chat/completions (Issue #34).")
+                try:
+                    return self._translate_chat_completions(text, target_language, script, token_limit)
+                except BodhanAPIError as fallback_err:
+                    raise BodhanAPIError(
+                        f"Translation failed on both routes. Primary POST /translate: {primary_err.message}. "
+                        f"Fallback POST /v1/chat/completions: {fallback_err.message}.",
+                        status_code=fallback_err.status_code or primary_err.status_code,
+                        request_id=fallback_err.request_id or primary_err.request_id,
+                        response_body={
+                            "primary_error": primary_err.response_body,
+                            "fallback_error": fallback_err.response_body,
+                        },
+                    ) from None
             raise
 
 
@@ -675,12 +699,13 @@ class BodhanAsyncClient:
 
         try:
             return resp.json()
-        except Exception as exc:
+        except Exception:
+            safe_snippet = sanitize_sensitive_text(resp.text[:200])
             raise BodhanAPIError(
-                f"Malformed JSON response received from Bodhan API at '{url}': {resp.text[:200]}",
+                f"Malformed JSON response received from Bodhan API at '{url}': {safe_snippet}",
                 status_code=resp.status_code,
-                response_body=resp.text,
-            ) from exc
+                response_body=resp.text[:500] if resp.text else None,
+            ) from None
 
     async def ocr(
         self,
@@ -803,7 +828,7 @@ class BodhanAsyncClient:
         text: str,
         target_language: str,
         script: str | None = None,
-        max_tokens: int | None = None,
+        max_output_tokens: int | None = None,
     ) -> TranslationResponse:
         body: dict[str, Any] = {
             "model": "indic-translate",
@@ -817,8 +842,8 @@ class BodhanAsyncClient:
         }
         if script is not None:
             body["script"] = script
-        if max_tokens is not None:
-            body["max_tokens"] = max_tokens
+        if max_output_tokens is not None:
+            body["max_output_tokens"] = max_output_tokens
 
         data = await self._send_request("POST", "/v1/chat/completions", json=body)
 
@@ -871,7 +896,7 @@ class BodhanAsyncClient:
         text: str,
         target_language: str,
         script: str | None = None,
-        max_tokens: int | None = None,
+        max_output_tokens: int | None = None,
     ) -> TranslationResponse:
         body: dict[str, Any] = {
             "text": text,
@@ -879,8 +904,8 @@ class BodhanAsyncClient:
         }
         if script is not None:
             body["script"] = script
-        if max_tokens is not None:
-            body["max_output_tokens"] = max_tokens
+        if max_output_tokens is not None:
+            body["max_output_tokens"] = max_output_tokens
 
         data = await self._send_request("POST", "/translate", json=body)
 
@@ -908,6 +933,7 @@ class BodhanAsyncClient:
         target_language: str,
         script: str | None = None,
         transport: TransportStrategy | None = None,
+        max_output_tokens: int | None = None,
         max_tokens: int | None = None,
     ) -> TranslationResponse:
         """Asynchronously translate text to an Indian language or English."""
@@ -921,20 +947,38 @@ class BodhanAsyncClient:
                 f"Invalid script '{script}'. Must be one of: {', '.join(sorted(SUPPORTED_SCRIPTS))}",
                 parameter="script",
             )
-        if max_tokens is not None and max_tokens <= 0:
-            raise BodhanValidationError("max_tokens must be a positive integer.", parameter="max_tokens")
+        token_limit = max_output_tokens if max_output_tokens is not None else max_tokens
+        if token_limit is not None and token_limit <= 0:
+            raise BodhanValidationError("max_output_tokens must be a positive integer.", parameter="max_output_tokens")
 
         strategy = transport or self.transport_strategy
 
-        if strategy == "chat_completions":
-            return await self._translate_chat_completions(text, target_language, script, max_tokens)
-
         if strategy == "translate_endpoint":
-            return await self._translate_plain_json(text, target_language, script, max_tokens)
+            return await self._translate_plain_json(text, target_language, script, token_limit)
 
+        if strategy == "chat_completions":
+            return await self._translate_chat_completions(text, target_language, script, token_limit)
+
+        # 'auto' strategy:
+        # Try the authoritative official route (POST /translate) first.
+        # If the server responds with 404 (endpoint not routed / Issue #34), fall back to /v1/chat/completions.
+        # Do NOT fall back on 401 (auth), 400 (validation), 429 (rate limit), or 5xx (server error).
         try:
-            return await self._translate_chat_completions(text, target_language, script, max_tokens)
-        except BodhanAPIError as exc:
-            if exc.status_code == 404:
-                return await self._translate_plain_json(text, target_language, script, max_tokens)
+            return await self._translate_plain_json(text, target_language, script, token_limit)
+        except BodhanAPIError as primary_err:
+            if primary_err.status_code == 404:
+                logger.info("POST /translate returned 404; falling back to POST /v1/chat/completions (Issue #34).")
+                try:
+                    return await self._translate_chat_completions(text, target_language, script, token_limit)
+                except BodhanAPIError as fallback_err:
+                    raise BodhanAPIError(
+                        f"Translation failed on both routes. Primary POST /translate: {primary_err.message}. "
+                        f"Fallback POST /v1/chat/completions: {fallback_err.message}.",
+                        status_code=fallback_err.status_code or primary_err.status_code,
+                        request_id=fallback_err.request_id or primary_err.request_id,
+                        response_body={
+                            "primary_error": primary_err.response_body,
+                            "fallback_error": fallback_err.response_body,
+                        },
+                    ) from None
             raise

@@ -2,7 +2,25 @@
 
 from __future__ import annotations
 
+import re
 from typing import Any
+
+
+def sanitize_sensitive_text(text: str, max_chars: int = 200) -> str:
+    """Sanitize sensitive credentials, authorization tokens, and base64 payloads from error messages."""
+    if not text:
+        return ""
+    # Redact Bodhan/OpenAI-style keys
+    sanitized = re.sub(r"\bsk-[A-Za-z0-9_-]{10,}\b", "sk-***[REDACTED]", text)
+    # Redact Bearer tokens
+    sanitized = re.sub(r"(Bearer\s+)[A-Za-z0-9_.-]+", r"\1***[REDACTED]", sanitized, flags=re.IGNORECASE)
+    # Redact base64 data URLs
+    sanitized = re.sub(r"data:image/[a-zA-Z0-9.+_-]+;base64,[A-Za-z0-9+/=]+", "data:image/...;base64,***[REDACTED]", sanitized)
+    # Redact long bare base64 chunks
+    sanitized = re.sub(r"[A-Za-z0-9+/=]{80,}", "***[REDACTED_PAYLOAD]***", sanitized)
+    if len(sanitized) > max_chars:
+        sanitized = sanitized[:max_chars] + "..."
+    return sanitized
 
 
 class BodhanError(Exception):
@@ -13,8 +31,14 @@ class BodhanValidationError(BodhanError, ValueError):
     """Raised when client-side parameter validation fails before sending a request."""
 
     def __init__(self, message: str, parameter: str | None = None) -> None:
-        super().__init__(message)
+        clean_msg = sanitize_sensitive_text(message)
+        super().__init__(clean_msg)
+        self.message = clean_msg
         self.parameter = parameter
+
+    def __repr__(self) -> str:
+        param_str = f", parameter='{self.parameter}'" if self.parameter else ""
+        return f"<{self.__class__.__name__}: '{self.message}'{param_str}>"
 
 
 class BodhanAPIError(BodhanError):
@@ -28,8 +52,9 @@ class BodhanAPIError(BodhanError):
         request_id: str | None = None,
         response_body: Any = None,
     ) -> None:
-        super().__init__(message)
-        self.message = message
+        clean_msg = sanitize_sensitive_text(message)
+        super().__init__(clean_msg)
+        self.message = clean_msg
         self.status_code = status_code
         self.error_code = error_code
         self.request_id = request_id
@@ -44,6 +69,9 @@ class BodhanAPIError(BodhanError):
         if self.request_id:
             details.append(f"request_id={self.request_id}")
         return " | ".join(details)
+
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__}: {self.__str__()}>"
 
 
 class BodhanAuthenticationError(BodhanAPIError):

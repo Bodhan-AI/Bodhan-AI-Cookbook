@@ -43,9 +43,14 @@ def test_tool_sync_invocation_success() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
         data = json.loads(request.content)
         assert data["target_language"] == "hi"
-        assert data["messages"][0]["content"] == "Where is the library?"
+        if "messages" in data:
+            assert data["messages"][0]["content"] == "Where is the library?"
+            return httpx.Response(200, json={
+                "choices": [{"message": {"content": "पुस्तकालय कहाँ है?"}}],
+            })
+        assert data["text"] == "Where is the library?"
         return httpx.Response(200, json={
-            "choices": [{"message": {"content": "पुस्तकालय कहाँ है?"}}],
+            "translation": "पुस्तकालय कहाँ है?",
         })
 
     client = BodhanClient(api_key=DUMMY_KEY, http_client=httpx.Client(transport=httpx.MockTransport(handler), base_url="https://api.bodhan.ai"))
@@ -81,9 +86,14 @@ def test_tool_api_error_handling() -> None:
 @pytest.mark.asyncio
 async def test_tool_async_invocation() -> None:
     """Verify asynchronous tool invocation via .ainvoke()."""
-    def handler(_: httpx.Request) -> httpx.Response:
+    def handler(request: httpx.Request) -> httpx.Response:
+        data = json.loads(request.content)
+        if "messages" in data:
+            return httpx.Response(200, json={
+                "choices": [{"message": {"content": "Async Tool Output"}}],
+            })
         return httpx.Response(200, json={
-            "choices": [{"message": {"content": "Async Tool Output"}}],
+            "translation": "Async Tool Output",
         })
 
     async_client = BodhanAsyncClient(api_key=DUMMY_KEY, http_client=httpx.AsyncClient(transport=httpx.MockTransport(handler), base_url="https://api.bodhan.ai"))

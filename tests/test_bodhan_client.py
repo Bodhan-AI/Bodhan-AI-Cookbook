@@ -182,22 +182,22 @@ def test_successful_translation_translate_endpoint() -> None:
 
 
 def test_translation_auto_strategy_fallback_on_404() -> None:
-    """Verify that transport='auto' falls back gracefully if chat_completions returns 404."""
+    """Verify that transport='auto' attempts POST /translate first and falls back to /v1/chat/completions on 404."""
     calls: list[str] = []
 
     def handler(request: httpx.Request) -> httpx.Response:
         calls.append(request.url.path)
-        if request.url.path == "/v1/chat/completions":
-            return httpx.Response(404, json={"detail": "Not Found"})
         if request.url.path == "/translate":
-            return httpx.Response(200, json={"translation": "नमस्ते", "target_language": "hi"})
+            return httpx.Response(404, json={"detail": "Not Found"})
+        if request.url.path == "/v1/chat/completions":
+            return httpx.Response(200, json={"choices": [{"message": {"content": "नमस्ते"}}]})
         return httpx.Response(500)
 
     mock_client = httpx.Client(transport=httpx.MockTransport(handler), base_url="https://api.bodhan.ai")
     with BodhanClient(api_key=DUMMY_KEY, http_client=mock_client) as client:
         res = client.translate("Hello", target_language="hi", transport="auto")
 
-    assert calls == ["/v1/chat/completions", "/translate"]
+    assert calls == ["/translate", "/v1/chat/completions"]
     assert res.text == "नमस्ते"
 
 
@@ -438,22 +438,22 @@ async def test_async_client_ocr_and_translate() -> None:
 
 @pytest.mark.asyncio
 async def test_async_translation_auto_fallback_on_404() -> None:
-    """Verify that BodhanAsyncClient falls back from /v1/chat/completions to /translate on 404."""
+    """Verify that BodhanAsyncClient falls back from /translate to /v1/chat/completions on 404."""
     calls: list[str] = []
 
     def handler(request: httpx.Request) -> httpx.Response:
         calls.append(request.url.path)
-        if request.url.path == "/v1/chat/completions":
-            return httpx.Response(404, json={"detail": "Not Found"})
         if request.url.path == "/translate":
-            return httpx.Response(200, json={"translation": "नमस्ते async", "target_language": "hi"})
+            return httpx.Response(404, json={"detail": "Not Found"})
+        if request.url.path == "/v1/chat/completions":
+            return httpx.Response(200, json={"choices": [{"message": {"content": "नमस्ते async"}}]})
         return httpx.Response(500)
 
     mock_async_client = httpx.AsyncClient(transport=httpx.MockTransport(handler), base_url="https://api.bodhan.ai")
     async with BodhanAsyncClient(api_key=DUMMY_KEY, http_client=mock_async_client) as client:
         res = await client.translate("Hello", target_language="hi", transport="auto")
 
-    assert calls == ["/v1/chat/completions", "/translate"]
+    assert calls == ["/translate", "/v1/chat/completions"]
     assert res.text == "नमस्ते async"
 
 
@@ -476,7 +476,7 @@ def test_defensive_schema_null_message_and_invalid_content() -> None:
     mock_client2 = httpx.Client(transport=httpx.MockTransport(handler_int_content), base_url="https://api.bodhan.ai")
     with BodhanClient(api_key=DUMMY_KEY, http_client=mock_client2) as client:
         with pytest.raises(BodhanAPIError) as exc_info:
-            client.translate("Hello", target_language="hi")
+            client.translate("Hello", target_language="hi", transport="chat_completions")
     assert "missing valid string 'content'" in exc_info.value.message
 
 
@@ -520,3 +520,70 @@ def test_injected_client_lifecycle_not_closed() -> None:
     assert not external_client.is_closed
     external_client.close()
     assert external_client.is_closed
+
+
+def test_translation_max_output_tokens_payload() -> None:
+    """Verify that translation endpoints send 'max_output_tokens' in the JSON body."""
+    recorded_requests: list[dict[str, Any]] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        import json
+        body = json.loads(request.content.decode("utf-8"))
+        recorded_requests.append({"path": request.url.path, "body": body})
+        if request.url.path == "/translate":
+            return httpx.Response(200, json={"translation": "नमस्ते"})
+        return httpx.Response(200, json={"choices": [{"message": {"content": "नमस्ते"}}]})
+
+    mock_client = httpx.Client(transport=httpx.MockTransport(handler), base_url="https://api.bodhan.ai")
+    with BodhanClient(api_key=DUMMY_KEY, http_client=mock_client) as client:
+        # 1. Plain json endpoint
+        client.translate("Hello", target_language="hi", transport="translate_endpoint", max_output_tokens=500)
+        assert recorded_requests[0]["path"] == "/translate"
+        assert recorded_requests[0]["body"]["max_output_tokens"] == 500
+        assert "max_tokens" not in recorded_requests[0]["body"]
+
+        # 2. Chat completions endpoint
+        client.translate("Hello", target_language="hi", transport="chat_completions", max_output_tokens=600)
+        assert recorded_requests[1]["path"] == "/v1/chat/completions"
+        assert recorded_requests[1]["body"]["max_output_tokens"] == 600
+        assert "max_tokens" not in recorded_requests[1]["body"]
+
+
+def test_auto_strategy_no_fallback_on_auth_or_server_error() -> None:
+    """Verify that auto strategy does NOT fall back on 401, 429, or 500."""
+    calls: list[str] = []
+
+    def handler_401(request: httpx.Request) -> httpx.Response:
+        calls.append(request.url.path)
+        return httpx.Response(401, json={"error": {"message": "Invalid API Key"}})
+
+    mock_client = httpx.Client(transport=httpx.MockTransport(handler_401), base_url="https://api.bodhan.ai")
+    with BodhanClient(api_key=DUMMY_KEY, http_client=mock_client) as client:
+        with pytest.raises(BodhanAuthenticationError):
+            client.translate("Hello", target_language="hi", transport="auto")
+    # Should only have called /translate once, NO fallback to /v1/chat/completions!
+    assert calls == ["/translate"]
+
+
+def test_safe_exception_sanitization_no_secret_leak() -> None:
+    """Verify that sensitive API keys, Bearer tokens, and base64 strings are sanitized in exceptions."""
+    secret_key = "sk-" + "exampledummykey1234567890"
+    base64_blob = "data:image/png;base64," + "A" * 150
+
+    def handler_error(request: httpx.Request) -> httpx.Response:
+        # Simulate an error response echoing back sensitive request info
+        echo_text = f"Failed with header Authorization: Bearer {secret_key} and payload {base64_blob}"
+        return httpx.Response(500, text=echo_text)
+
+    mock_client = httpx.Client(transport=httpx.MockTransport(handler_error), base_url="https://api.bodhan.ai")
+    with BodhanClient(api_key=DUMMY_KEY, http_client=mock_client) as client:
+        with pytest.raises(BodhanAPIError) as exc_info:
+            client.ocr(PNG_HEADER)
+
+    exc_str = str(exc_info.value)
+    exc_repr = repr(exc_info.value)
+
+    assert secret_key not in exc_str
+    assert secret_key not in exc_repr
+    assert "sk-***[REDACTED]" in exc_str or "Bearer ***[REDACTED]" in exc_str
+    assert "A" * 100 not in exc_str

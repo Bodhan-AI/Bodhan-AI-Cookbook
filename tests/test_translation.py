@@ -25,10 +25,15 @@ def test_transformer_translates_documents_and_preserves_metadata() -> None:
     """Verify that document content is translated while preserving all original metadata."""
     def handler(request: httpx.Request) -> httpx.Response:
         data = json.loads(request.content)
-        assert data["model"] == "indic-translate"
         assert data["target_language"] == "en"
+        if "messages" in data:
+            assert data["model"] == "indic-translate"
+            return httpx.Response(200, json={
+                "choices": [{"message": {"content": "Hello world"}}],
+                "source_language": "hi",
+            })
         return httpx.Response(200, json={
-            "choices": [{"message": {"content": "Hello world"}}],
+            "translation": "Hello world",
             "source_language": "hi",
         })
 
@@ -103,9 +108,11 @@ def test_transformer_paragraph_chunking() -> None:
 
     def handler(request: httpx.Request) -> httpx.Response:
         data = json.loads(request.content)
-        text = data["messages"][0]["content"]
+        text = data["messages"][0]["content"] if "messages" in data else data["text"]
         received_requests.append(text)
-        return httpx.Response(200, json={"choices": [{"message": {"content": f"Tr: {text}"}}]})
+        if "messages" in data:
+            return httpx.Response(200, json={"choices": [{"message": {"content": f"Tr: {text}"}}]})
+        return httpx.Response(200, json={"translation": f"Tr: {text}"})
 
     client = BodhanClient(api_key=DUMMY_KEY, http_client=httpx.Client(transport=httpx.MockTransport(handler), base_url="https://api.bodhan.ai"))
     # Set low chunk threshold to trigger splitting
@@ -148,9 +155,15 @@ def test_transformer_error_handling_policies() -> None:
 @pytest.mark.asyncio
 async def test_async_transformer_transform_documents() -> None:
     """Verify async atransform_documents functionality."""
-    def handler(_: httpx.Request) -> httpx.Response:
+    def handler(request: httpx.Request) -> httpx.Response:
+        data = json.loads(request.content)
+        if "messages" in data:
+            return httpx.Response(200, json={
+                "choices": [{"message": {"content": "Async Translated Text"}}],
+                "source_language": "bn",
+            })
         return httpx.Response(200, json={
-            "choices": [{"message": {"content": "Async Translated Text"}}],
+            "translation": "Async Translated Text",
             "source_language": "bn",
         })
 
