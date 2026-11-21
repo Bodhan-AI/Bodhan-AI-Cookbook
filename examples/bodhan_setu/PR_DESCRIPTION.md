@@ -36,6 +36,10 @@ python -m bodhan_agent \
 
 The agent launches its local stdio MCP server itself. Install FFmpeg and `ffprobe` for audio/video conversion. Setup and usage details are in the [recipe README](README.md).
 
+## Clean-clone verification
+
+On macOS with Python 3.11, a fresh clone of this branch passed `./setup.sh`, then `pytest -q` (**67 passed**). Both `python -m bodhan_mcp --help` and `python -m bodhan_agent --help` loaded successfully. The documented Docker image also built successfully with `docker build -t bodhan-setu .`. The repository-level `make check` ran 32 tests: 31 passed, while the all-recipes audit failed on the pre-existing AndroidSpeak example, which lacks a source file, `.env.example`, and an `.env` ignore rule.
+
 ## Architecture
 
 The [architecture diagram and component notes](agent/README.md#proposed-architecture) show the agent, MCP server, Bodhan API, cache, and artifact flow.
