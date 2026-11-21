@@ -5,7 +5,12 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+from .exceptions import BodhanValidationError
+
 # Supported language codes from scripts/bodhan_api_rules.json (plain ISO codes)
+# Supports 22 Indian languages plus English across 26 target-language codes
+# (Kashmiri, Manipuri, and Sindhi each have two script variants).
+# Note: 'bhb' (Bhili) and 'bho' (Bhojpuri) are speech-to-text only, not supported for translation.
 SUPPORTED_TRANSLATION_LANGUAGES = frozenset({
     "as",
     "bn",
@@ -40,6 +45,55 @@ SUPPORTED_SCRIPTS = frozenset({"native", "roman", "codemix"})
 
 # Supported table formatting outputs for indic-ocr
 SUPPORTED_TABLE_FORMATS = frozenset({"html", "markdown"})
+
+
+def validate_translation_script(target_language: str, script: str | None) -> str | None:
+    """Validate script compatibility with target language for Bodhan translation.
+
+    Rules:
+    - Supported scripts: 'native', 'roman', 'codemix'.
+    - Script selection does not apply to target_language='en'.
+    - 'roman' is rejected for English.
+    - 'codemix' is unavailable for English, ks-Deva, and sd-Arab.
+    - If script='native' or None is passed for English, returns None so script is omitted from HTTP dispatch.
+    - For applicable Indic targets, returns the valid script string.
+
+    Returns:
+        The normalized script to include in outgoing requests, or None if script should be omitted.
+
+    Raises:
+        BodhanValidationError: If the script or language-script combination is invalid.
+    """
+    if script is None:
+        return None
+
+    if script not in SUPPORTED_SCRIPTS:
+        raise BodhanValidationError(
+            f"Invalid script '{script}'. Must be one of: {', '.join(sorted(SUPPORTED_SCRIPTS))}",
+            parameter="script",
+        )
+
+    if target_language == "en":
+        if script == "roman":
+            raise BodhanValidationError(
+                "Script 'roman' is not valid for English (target_language='en'). Script selection does not apply to English.",
+                parameter="script",
+            )
+        if script == "codemix":
+            raise BodhanValidationError(
+                "Script 'codemix' is not available for English (target_language='en').",
+                parameter="script",
+            )
+        # For script == 'native' targeting English, script does not apply; omit from request payload
+        return None
+
+    if script == "codemix" and target_language in ("ks-Deva", "sd-Arab"):
+        raise BodhanValidationError(
+            f"Script 'codemix' is not available for target language '{target_language}'.",
+            parameter="script",
+        )
+
+    return script
 
 
 @dataclass(frozen=True)
@@ -93,7 +147,7 @@ class TranslationResponse:
     Attributes:
         text: Translated text.
         target_language: Target language ISO code.
-        source_language: Detected source language if reported by the API.
+        source_language: Optional source language code (note: Bodhan's documented translation API infers the source language automatically and does not guarantee detected language metadata in responses).
         script: Script style used (native, roman, or codemix).
         truncated: Whether the response hit maximum output tokens.
         usage: Token usage information.

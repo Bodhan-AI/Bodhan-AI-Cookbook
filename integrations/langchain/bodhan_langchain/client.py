@@ -25,10 +25,19 @@ from .models import (
     OCRBlock,
     OCRResponse,
     TranslationResponse,
+    validate_translation_script,
 )
 
 TransportStrategy = Literal["auto", "chat_completions", "translate_endpoint"]
+VALID_TRANSPORT_STRATEGIES = frozenset({"auto", "chat_completions", "translate_endpoint"})
 logger = logging.getLogger(__name__)
+
+
+def _validate_positive_int(value: Any, param_name: str) -> int:
+    """Validate that value is a positive integer, strictly rejecting booleans and non-integers."""
+    if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+        raise BodhanValidationError(f"{param_name} must be a positive integer.", parameter=param_name)
+    return value
 
 
 def _validate_language_code(lang: str) -> None:
@@ -242,6 +251,13 @@ class BodhanClient:
                 status_code=401,
             )
 
+        if transport_strategy not in VALID_TRANSPORT_STRATEGIES:
+            raise BodhanValidationError(
+                f"Invalid transport_strategy '{transport_strategy}'. Must be one of: "
+                f"{', '.join(sorted(VALID_TRANSPORT_STRATEGIES))}",
+                parameter="transport_strategy",
+            )
+
         self._api_key = resolved_key.strip()
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
@@ -344,8 +360,8 @@ class BodhanClient:
                 f"Invalid table_format '{table_format}'. Must be one of: {', '.join(sorted(SUPPORTED_TABLE_FORMATS))}",
                 parameter="table_format",
             )
-        if max_tokens is not None and max_tokens <= 0:
-            raise BodhanValidationError("max_tokens must be a positive integer.", parameter="max_tokens")
+        if max_tokens is not None:
+            _validate_positive_int(max_tokens, "max_tokens")
 
         data_url = _prepare_image_data_url(image)
 
@@ -588,34 +604,44 @@ class BodhanClient:
 
         _validate_language_code(target_language)
 
-        if script is not None and script not in SUPPORTED_SCRIPTS:
-            raise BodhanValidationError(
-                f"Invalid script '{script}'. Must be one of: {', '.join(sorted(SUPPORTED_SCRIPTS))}",
-                parameter="script",
-            )
+        effective_script = validate_translation_script(target_language, script)
+
+        if max_output_tokens is not None:
+            _validate_positive_int(max_output_tokens, "max_output_tokens")
+        if max_tokens is not None:
+            _validate_positive_int(max_tokens, "max_tokens")
         token_limit = max_output_tokens if max_output_tokens is not None else max_tokens
-        if token_limit is not None and token_limit <= 0:
-            raise BodhanValidationError("max_output_tokens must be a positive integer.", parameter="max_output_tokens")
+
+        if transport is not None and transport not in VALID_TRANSPORT_STRATEGIES:
+            raise BodhanValidationError(
+                f"Invalid transport '{transport}'. Must be one of: {', '.join(sorted(VALID_TRANSPORT_STRATEGIES))}",
+                parameter="transport",
+            )
 
         strategy = transport or self.transport_strategy
+        if strategy not in VALID_TRANSPORT_STRATEGIES:
+            raise BodhanValidationError(
+                f"Invalid transport strategy '{strategy}'. Must be one of: {', '.join(sorted(VALID_TRANSPORT_STRATEGIES))}",
+                parameter="transport",
+            )
 
         if strategy == "translate_endpoint":
-            return self._translate_plain_json(text, target_language, script, token_limit)
+            return self._translate_plain_json(text, target_language, effective_script, token_limit)
 
         if strategy == "chat_completions":
-            return self._translate_chat_completions(text, target_language, script, token_limit)
+            return self._translate_chat_completions(text, target_language, effective_script, token_limit)
 
         # 'auto' strategy:
         # Try the authoritative official route (POST /translate) first.
         # If the server responds with 404 (endpoint not routed / Issue #34), fall back to /v1/chat/completions.
         # Do NOT fall back on 401 (auth), 400 (validation), 429 (rate limit), or 5xx (server error).
         try:
-            return self._translate_plain_json(text, target_language, script, token_limit)
+            return self._translate_plain_json(text, target_language, effective_script, token_limit)
         except BodhanAPIError as primary_err:
             if primary_err.status_code == 404:
                 logger.info("POST /translate returned 404; falling back to POST /v1/chat/completions (Issue #34).")
                 try:
-                    return self._translate_chat_completions(text, target_language, script, token_limit)
+                    return self._translate_chat_completions(text, target_language, effective_script, token_limit)
                 except BodhanAPIError as fallback_err:
                     raise BodhanAPIError(
                         f"Translation failed on both routes. Primary POST /translate: {primary_err.message}. "
@@ -659,6 +685,13 @@ class BodhanAsyncClient:
                 "Bodhan API key is required. Pass `api_key` to BodhanAsyncClient or set the "
                 "`BODHAN_API_KEY` environment variable.",
                 status_code=401,
+            )
+
+        if transport_strategy not in VALID_TRANSPORT_STRATEGIES:
+            raise BodhanValidationError(
+                f"Invalid transport_strategy '{transport_strategy}'. Must be one of: "
+                f"{', '.join(sorted(VALID_TRANSPORT_STRATEGIES))}",
+                parameter="transport_strategy",
             )
 
         self._api_key = resolved_key.strip()
@@ -750,8 +783,8 @@ class BodhanAsyncClient:
                 f"Invalid table_format '{table_format}'. Must be one of: {', '.join(sorted(SUPPORTED_TABLE_FORMATS))}",
                 parameter="table_format",
             )
-        if max_tokens is not None and max_tokens <= 0:
-            raise BodhanValidationError("max_tokens must be a positive integer.", parameter="max_tokens")
+        if max_tokens is not None:
+            _validate_positive_int(max_tokens, "max_tokens")
 
         data_url = _prepare_image_data_url(image)
 
@@ -973,34 +1006,44 @@ class BodhanAsyncClient:
 
         _validate_language_code(target_language)
 
-        if script is not None and script not in SUPPORTED_SCRIPTS:
-            raise BodhanValidationError(
-                f"Invalid script '{script}'. Must be one of: {', '.join(sorted(SUPPORTED_SCRIPTS))}",
-                parameter="script",
-            )
+        effective_script = validate_translation_script(target_language, script)
+
+        if max_output_tokens is not None:
+            _validate_positive_int(max_output_tokens, "max_output_tokens")
+        if max_tokens is not None:
+            _validate_positive_int(max_tokens, "max_tokens")
         token_limit = max_output_tokens if max_output_tokens is not None else max_tokens
-        if token_limit is not None and token_limit <= 0:
-            raise BodhanValidationError("max_output_tokens must be a positive integer.", parameter="max_output_tokens")
+
+        if transport is not None and transport not in VALID_TRANSPORT_STRATEGIES:
+            raise BodhanValidationError(
+                f"Invalid transport '{transport}'. Must be one of: {', '.join(sorted(VALID_TRANSPORT_STRATEGIES))}",
+                parameter="transport",
+            )
 
         strategy = transport or self.transport_strategy
+        if strategy not in VALID_TRANSPORT_STRATEGIES:
+            raise BodhanValidationError(
+                f"Invalid transport strategy '{strategy}'. Must be one of: {', '.join(sorted(VALID_TRANSPORT_STRATEGIES))}",
+                parameter="transport",
+            )
 
         if strategy == "translate_endpoint":
-            return await self._translate_plain_json(text, target_language, script, token_limit)
+            return await self._translate_plain_json(text, target_language, effective_script, token_limit)
 
         if strategy == "chat_completions":
-            return await self._translate_chat_completions(text, target_language, script, token_limit)
+            return await self._translate_chat_completions(text, target_language, effective_script, token_limit)
 
         # 'auto' strategy:
         # Try the authoritative official route (POST /translate) first.
         # If the server responds with 404 (endpoint not routed / Issue #34), fall back to /v1/chat/completions.
         # Do NOT fall back on 401 (auth), 400 (validation), 429 (rate limit), or 5xx (server error).
         try:
-            return await self._translate_plain_json(text, target_language, script, token_limit)
+            return await self._translate_plain_json(text, target_language, effective_script, token_limit)
         except BodhanAPIError as primary_err:
             if primary_err.status_code == 404:
                 logger.info("POST /translate returned 404; falling back to POST /v1/chat/completions (Issue #34).")
                 try:
-                    return await self._translate_chat_completions(text, target_language, script, token_limit)
+                    return await self._translate_chat_completions(text, target_language, effective_script, token_limit)
                 except BodhanAPIError as fallback_err:
                     raise BodhanAPIError(
                         f"Translation failed on both routes. Primary POST /translate: {primary_err.message}. "

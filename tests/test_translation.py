@@ -38,7 +38,7 @@ def test_transformer_translates_documents_and_preserves_metadata() -> None:
         })
 
     client = BodhanClient(api_key=DUMMY_KEY, http_client=httpx.Client(transport=httpx.MockTransport(handler), base_url="https://api.bodhan.ai"))
-    transformer = BodhanTranslationTransformer(target_language="en", client=client, preserve_original_content=True)
+    transformer = BodhanTranslationTransformer(target_language="en", source_language="hi", client=client, preserve_original_content=True)
 
     original_doc = Document(
         page_content="नमस्ते दुनिया",
@@ -56,6 +56,8 @@ def test_transformer_translates_documents_and_preserves_metadata() -> None:
     assert t_doc.metadata["custom_field"] == "val123"
     assert t_doc.metadata["target_language"] == "en"
     assert t_doc.metadata["source_language"] == "hi"
+    assert t_doc.metadata["source_language_origin"] == "user_declared"
+    assert "detected_source_language" not in t_doc.metadata
     assert t_doc.metadata["translation_model"] == "indic-translate"
     assert t_doc.metadata["original_content"] == "नमस्ते दुनिया"
 
@@ -168,7 +170,7 @@ async def test_async_transformer_transform_documents() -> None:
         })
 
     async_client = BodhanAsyncClient(api_key=DUMMY_KEY, http_client=httpx.AsyncClient(transport=httpx.MockTransport(handler), base_url="https://api.bodhan.ai"))
-    transformer = BodhanTranslationTransformer(target_language="en", async_client=async_client)
+    transformer = BodhanTranslationTransformer(target_language="en", source_language="bn", async_client=async_client)
 
     docs = [Document(page_content="বাংলা পাঠ্য", metadata={"source": "bengali.txt"})]
     transformed = await transformer.atransform_documents(docs)
@@ -176,6 +178,8 @@ async def test_async_transformer_transform_documents() -> None:
     assert len(transformed) == 1
     assert transformed[0].page_content == "Async Translated Text"
     assert transformed[0].metadata["source_language"] == "bn"
+    assert transformed[0].metadata["source_language_origin"] == "user_declared"
+    assert "detected_source_language" not in transformed[0].metadata
     assert transformed[0].metadata["target_language"] == "en"
 
 

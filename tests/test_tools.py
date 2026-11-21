@@ -31,7 +31,7 @@ def test_tool_metadata_and_schema() -> None:
     valid_args = BodhanTranslationInput(text="Good morning", target_language="ta")
     assert valid_args.text == "Good morning"
     assert valid_args.target_language == "ta"
-    assert valid_args.script == "native"
+    assert valid_args.script is None
 
     # Missing required field raises validation error
     with pytest.raises(ValidationError):

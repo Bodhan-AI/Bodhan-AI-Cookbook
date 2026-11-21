@@ -24,17 +24,20 @@ class BodhanTranslationInput(BaseModel):
         None,
         description=(
             "Target language ISO code (e.g. 'hi', 'ta', 'bn', 'en', 'mr', 'te', 'gu'). "
-            "Supports 26 Indic languages plus English."
+            "Supports 22 Indian languages plus English across 26 language codes."
         ),
     )
     script: Optional[str] = Field(
-        "native",
-        description="Target script style: 'native' (default), 'roman' (Latin letters), or 'codemix'.",
+        None,
+        description=(
+            "Target script style: 'native' (default for Indic targets), 'roman', or 'codemix'. "
+            "Script selection does not apply to English."
+        ),
     )
 
 
 class BodhanTranslationTool(BaseTool):
-    """LangChain tool for translating text across 26 Indian languages and English.
+    """LangChain tool for translating text across 22 Indian languages and English.
 
     Can be bound to LangChain chat models, ReAct agents, or tool-calling agents
     to give agents sovereign translation capabilities across Indian languages.
@@ -52,7 +55,7 @@ class BodhanTranslationTool(BaseTool):
 
     name: str = "bodhan_translate"
     description: str = (
-        "Translates text across 26 Indian languages (Indic languages) plus English (Hindi, Tamil, Bengali, Telugu, "
+        "Translates text across 22 Indian languages plus English (Hindi, Tamil, Bengali, Telugu, "
         "Marathi, Gujarati, Kannada, Malayalam, Odia, Punjabi, Assamese, etc.) using Bodhan AI models. "
         "Source language is detected automatically."
     )
@@ -79,18 +82,19 @@ class BodhanTranslationTool(BaseTool):
         self,
         text: str,
         target_language: str | None = None,
-        script: str | None = "native",
+        script: str | None = None,
         run_manager: CallbackManagerForToolRun | None = None,
         **kwargs: Any,
     ) -> str:
         """Execute translation synchronously."""
         target = target_language or self.target_language
+        script_to_use = ("native" if target != "en" else None) if script is None else script
         client, owns_client = self._get_client()
         try:
             resp = client.translate(
                 text=text,
                 target_language=target,
-                script=script,
+                script=script_to_use,
                 transport=self.transport,  # type: ignore[arg-type]
             )
             return resp.text
@@ -104,18 +108,19 @@ class BodhanTranslationTool(BaseTool):
         self,
         text: str,
         target_language: str | None = None,
-        script: str | None = "native",
+        script: str | None = None,
         run_manager: AsyncCallbackManagerForToolRun | None = None,
         **kwargs: Any,
     ) -> str:
         """Execute translation asynchronously."""
         target = target_language or self.target_language
+        script_to_use = ("native" if target != "en" else None) if script is None else script
         async_client, owns_client = self._get_async_client()
         try:
             resp = await async_client.translate(
                 text=text,
                 target_language=target,
-                script=script,
+                script=script_to_use,
                 transport=self.transport,  # type: ignore[arg-type]
             )
             return resp.text

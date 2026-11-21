@@ -612,3 +612,131 @@ def test_client_timeout_handling() -> None:
         with pytest.raises(BodhanAPIError) as exc_info:
             client.translate("Hello", target_language="hi")
     assert "timed out after 10.0 seconds" in str(exc_info.value)
+
+
+def test_invalid_transport_strategy_raises_validation_error() -> None:
+    """Verify invalid transport_strategy values raise BodhanValidationError rather than silently choosing auto."""
+    mock_client = httpx.Client(transport=httpx.MockTransport(lambda _: httpx.Response(200)), base_url="https://api.bodhan.ai")
+    with pytest.raises(BodhanValidationError) as exc:
+        BodhanClient(api_key=DUMMY_KEY, http_client=mock_client, transport_strategy="invalid_strat")  # type: ignore[arg-type]
+    assert "Invalid transport_strategy" in str(exc.value)
+
+    with BodhanClient(api_key=DUMMY_KEY, http_client=mock_client) as client:
+        with pytest.raises(BodhanValidationError) as exc2:
+            client.translate("hello", target_language="hi", transport="bogus")  # type: ignore[arg-type]
+        assert "Invalid transport" in str(exc2.value)
+
+
+@pytest.mark.asyncio
+async def test_async_invalid_transport_strategy_raises_validation_error() -> None:
+    """Verify invalid transport_strategy values raise BodhanValidationError in async client."""
+    mock_client = httpx.AsyncClient(transport=httpx.MockTransport(lambda _: httpx.Response(200)), base_url="https://api.bodhan.ai")
+    with pytest.raises(BodhanValidationError) as exc:
+        BodhanAsyncClient(api_key=DUMMY_KEY, http_client=mock_client, transport_strategy="translate")  # type: ignore[arg-type]
+    assert "Invalid transport_strategy" in str(exc.value)
+
+    async with BodhanAsyncClient(api_key=DUMMY_KEY, http_client=mock_client) as client:
+        with pytest.raises(BodhanValidationError) as exc2:
+            await client.translate("hello", target_language="hi", transport="translate")  # type: ignore[arg-type]
+        assert "Invalid transport" in str(exc2.value)
+
+
+def test_translation_script_combinations_and_english_restrictions() -> None:
+    """Verify script restrictions for English, Indic scripts, and codemix combinations."""
+    recorded_requests: list[dict] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        data = json.loads(request.content)
+        recorded_requests.append(data)
+        return httpx.Response(200, json={"translation": "OK"})
+
+    mock_client = httpx.Client(transport=httpx.MockTransport(handler), base_url="https://api.bodhan.ai")
+    with BodhanClient(api_key=DUMMY_KEY, http_client=mock_client) as client:
+        # 1. Target English with roman -> rejected
+        with pytest.raises(BodhanValidationError) as exc:
+            client.translate("नमस्ते", target_language="en", script="roman")
+        assert "Script 'roman' is not valid for English" in str(exc.value)
+
+        # 2. Target English with codemix -> rejected
+        with pytest.raises(BodhanValidationError) as exc:
+            client.translate("नमस्ते", target_language="en", script="codemix")
+        assert "Script 'codemix' is not available for English" in str(exc.value)
+
+        # 3. Target English with script='native' -> omitted from outgoing request payload
+        client.translate("नमस्ते", target_language="en", script="native")
+        assert "script" not in recorded_requests[-1]
+        assert "source_language" not in recorded_requests[-1]
+
+        # 4. Target English with script=None -> omitted from outgoing request payload
+        client.translate("नमस्ते", target_language="en", script=None)
+        assert "script" not in recorded_requests[-1]
+
+        # 5. ks-Deva with codemix -> rejected
+        with pytest.raises(BodhanValidationError) as exc:
+            client.translate("Hello", target_language="ks-Deva", script="codemix")
+        assert "Script 'codemix' is not available" in str(exc.value)
+
+        # 6. sd-Arab with codemix -> rejected
+        with pytest.raises(BodhanValidationError) as exc:
+            client.translate("Hello", target_language="sd-Arab", script="codemix")
+        assert "Script 'codemix' is not available" in str(exc.value)
+
+        # 7. Valid Indic targets with native, roman, codemix
+        client.translate("Hello", target_language="hi", script="native")
+        assert recorded_requests[-1]["script"] == "native"
+
+        client.translate("Hello", target_language="hi", script="roman")
+        assert recorded_requests[-1]["script"] == "roman"
+
+        client.translate("Hello", target_language="hi", script="codemix")
+        assert recorded_requests[-1]["script"] == "codemix"
+
+
+def test_token_parameter_validation_and_payload_isolation() -> None:
+    """Verify max_output_tokens vs max_tokens validation, boolean rejection, and payload keys."""
+    recorded_requests: list[dict] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        data = json.loads(request.content)
+        recorded_requests.append(data)
+        if request.url.path == "/v1/chat/completions" and data.get("model") == "indic-ocr":
+            return httpx.Response(200, json={
+                "choices": [{"message": {"content": "OCR text"}}],
+                "blocks": [],
+            })
+        return httpx.Response(200, json={"translation": "Translated text"})
+
+    mock_client = httpx.Client(transport=httpx.MockTransport(handler), base_url="https://api.bodhan.ai")
+    with BodhanClient(api_key=DUMMY_KEY, http_client=mock_client) as client:
+        # Boolean rejection in translation
+        with pytest.raises(BodhanValidationError):
+            client.translate("hi", target_language="ta", max_output_tokens=True)  # type: ignore[arg-type]
+        with pytest.raises(BodhanValidationError):
+            client.translate("hi", target_language="ta", max_tokens=False)  # type: ignore[arg-type]
+        with pytest.raises(BodhanValidationError):
+            client.translate("hi", target_language="ta", max_output_tokens=0)
+        with pytest.raises(BodhanValidationError):
+            client.translate("hi", target_language="ta", max_output_tokens=-10)
+
+        # Boolean rejection in OCR
+        with pytest.raises(BodhanValidationError):
+            client.ocr(PNG_HEADER, max_tokens=True)  # type: ignore[arg-type]
+        with pytest.raises(BodhanValidationError):
+            client.ocr(PNG_HEADER, max_tokens=0)
+        with pytest.raises(BodhanValidationError):
+            client.ocr(PNG_HEADER, max_tokens=-5)
+
+        # Translation legacy alias max_tokens maps to outgoing max_output_tokens
+        client.translate("hi", target_language="ta", max_tokens=500)
+        assert recorded_requests[-1]["max_output_tokens"] == 500
+        assert "max_tokens" not in recorded_requests[-1]
+
+        # Explicit max_output_tokens maps to outgoing max_output_tokens
+        client.translate("hi", target_language="ta", max_output_tokens=750)
+        assert recorded_requests[-1]["max_output_tokens"] == 750
+        assert "max_tokens" not in recorded_requests[-1]
+
+        # OCR outgoing request uses max_tokens, never max_output_tokens
+        client.ocr(PNG_HEADER, max_tokens=300)
+        assert recorded_requests[-1]["max_tokens"] == 300
+        assert "max_output_tokens" not in recorded_requests[-1]

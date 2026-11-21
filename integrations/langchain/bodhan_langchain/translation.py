@@ -10,9 +10,9 @@ from typing import Any, Literal, Sequence
 
 from langchain_core.documents import BaseDocumentTransformer, Document
 
-from .client import BodhanAsyncClient, BodhanClient
+from .client import BodhanAsyncClient, BodhanClient, _validate_positive_int
 from .exceptions import BodhanValidationError
-from .models import SUPPORTED_SCRIPTS, SUPPORTED_TRANSLATION_LANGUAGES
+from .models import SUPPORTED_SCRIPTS, SUPPORTED_TRANSLATION_LANGUAGES, validate_translation_script
 
 logger = logging.getLogger(__name__)
 
@@ -215,11 +215,12 @@ class BodhanTranslationTransformer(BaseDocumentTransformer):
                 f"{', '.join(sorted(SUPPORTED_TRANSLATION_LANGUAGES))}",
                 parameter="source_language",
             )
-        if self.script is not None and self.script not in SUPPORTED_SCRIPTS:
-            raise BodhanValidationError(
-                f"Invalid script '{self.script}'. Must be one of: {', '.join(sorted(SUPPORTED_SCRIPTS))}",
-                parameter="script",
-            )
+        if self.script is not None:
+            validate_translation_script(self.target_language, self.script)
+        if max_output_tokens is not None:
+            _validate_positive_int(max_output_tokens, "max_output_tokens")
+        if max_tokens is not None:
+            _validate_positive_int(max_tokens, "max_tokens")
         if self.error_handling not in ("raise", "ignore", "warn"):
             raise BodhanValidationError(
                 f"Invalid error_handling '{self.error_handling}'. Must be 'raise', 'ignore', or 'warn'.",
@@ -349,14 +350,11 @@ class BodhanTranslationTransformer(BaseDocumentTransformer):
 
                 metadata["target_language"] = self.target_language
 
-                # Handle source language: distinguish user-declared from API-detected
+                # User-declared source language metadata provenance
+                # (Bodhan API automatically infers source language and does not guarantee detected language responses)
                 if self.source_language:
                     metadata["source_language"] = self.source_language
-                    if api_src:
-                        metadata["detected_source_language"] = api_src
-                elif api_src:
-                    metadata["source_language"] = api_src
-                    metadata["detected_source_language"] = api_src
+                    metadata["source_language_origin"] = "user_declared"
 
                 if self.script:
                     metadata["script"] = self.script
@@ -404,13 +402,11 @@ class BodhanTranslationTransformer(BaseDocumentTransformer):
 
                 metadata["target_language"] = self.target_language
 
+                # User-declared source language metadata provenance
+                # (Bodhan API automatically infers source language and does not guarantee detected language responses)
                 if self.source_language:
                     metadata["source_language"] = self.source_language
-                    if api_src:
-                        metadata["detected_source_language"] = api_src
-                elif api_src:
-                    metadata["source_language"] = api_src
-                    metadata["detected_source_language"] = api_src
+                    metadata["source_language_origin"] = "user_declared"
 
                 if self.script:
                     metadata["script"] = self.script
