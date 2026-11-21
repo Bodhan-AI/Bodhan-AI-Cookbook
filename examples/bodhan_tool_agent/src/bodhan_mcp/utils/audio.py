@@ -106,7 +106,17 @@ def chunk_at_pauses(
     """
     file_path = Path(path)
     output_directory = Path(out_dir)
-    output_directory.mkdir(parents=True, exist_ok=True)
+    try:
+        output_directory.mkdir(parents=True, exist_ok=True)
+        test_file = output_directory / ".write_test"
+        test_file.touch()
+        test_file.unlink()
+    except (PermissionError, OSError):
+        import hashlib
+        import tempfile
+        path_hash = hashlib.sha256(str(file_path.resolve()).encode("utf-8")).hexdigest()[:8]
+        output_directory = Path(tempfile.gettempdir()) / f"bodhan_chunks_{file_path.stem}_{path_hash}"
+        output_directory.mkdir(parents=True, exist_ok=True)
 
     meta = probe(file_path)
     total_duration = meta["duration_s"]
@@ -190,3 +200,51 @@ def remap_timestamps(
             )
 
     return global_segments
+
+
+def to_pcm_wav(file_path: str | Path, target_sr: int = 16000) -> Path:
+    """Ensure audio media is 16kHz mono PCM WAV, converting via ffmpeg or soundfile if needed.
+
+    Absorbs format conversions (MP3, M4A, FLAC, OGG, video tracks) per SPEC §3 Golden Rule 2.
+    """
+    path = Path(file_path)
+    if not path.exists():
+        raise FileNotFoundError(f"Audio file not found: {path}")
+
+    # If already 16kHz mono WAV, return as-is
+    try:
+        meta = probe(path)
+        if meta.get("format") == "wav" and meta.get("sample_rate") == target_sr and meta.get("channels") == 1:
+            return path
+    except Exception:
+        pass
+
+    import hashlib
+    import subprocess
+    import tempfile
+
+    path_hash = hashlib.sha256(str(path.resolve()).encode("utf-8")).hexdigest()[:8]
+    wav_path = Path(tempfile.gettempdir()) / f"bodhan_pcm_{path.stem}_{path_hash}.wav"
+
+    # Convert using ffmpeg if available
+    cmd = [
+        "ffmpeg", "-y", "-i", str(path),
+        "-vn", "-ar", str(target_sr),
+        "-ac", "1",
+        "-c:a", "pcm_s16le",
+        str(wav_path),
+    ]
+    try:
+        subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+        return wav_path
+    except Exception:
+        # Fallback to soundfile if ffmpeg fails
+        try:
+            data, sr = sf.read(str(path), dtype="float32")
+            if data.ndim > 1:
+                data = np.mean(data, axis=1)
+            sf.write(str(wav_path), data, target_sr)
+            return wav_path
+        except Exception as exc:
+            raise ValueError(f"Failed to transcode audio {path} to PCM WAV: {exc}") from exc
+

@@ -166,7 +166,7 @@ class BaseBodhanClient:
         @retry(
             retry=retry_if_exception(_is_retriable_error),
             stop=stop_after_attempt(3),
-            wait=wait_exponential_jitter(initial=0.05, max=1.0),
+            wait=wait_exponential_jitter(initial=0.2, max=2.0),
             before_sleep=before_sleep_log(logger, logging.WARNING),
             reraise=True,
         )

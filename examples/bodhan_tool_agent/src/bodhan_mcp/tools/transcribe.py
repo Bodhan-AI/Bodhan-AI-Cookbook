@@ -46,9 +46,20 @@ async def transcribe_audio(
             details={"language_hint": language_hint},
         )
 
+    # Transcode audio to 16kHz mono PCM WAV if needed (absorbs model format limits per Golden Rule 2)
+    try:
+        wav_file_path = audio.to_pcm_wav(file_path)
+    except Exception as exc:
+        return errors.make_tool_error(
+            code=errors.UNREADABLE_MEDIA,
+            message=f"Failed to read/transcode audio file: {exc}",
+            hint="Ensure audio file is not corrupt and is in a standard format (WAV, MP3, etc.).",
+            details={"input_path": str(file_path), "error": str(exc)},
+        )
+
     # Probe audio
     try:
-        meta = audio.probe(file_path)
+        meta = audio.probe(wav_file_path)
         total_duration = meta["duration_s"]
     except Exception as exc:
         return errors.make_tool_error(
@@ -63,10 +74,10 @@ async def transcribe_audio(
     try:
         # Single-shot path if <= 30.0s
         if total_duration <= config.AUDIO_CHUNK_HARD_S:
-            audio_bytes = file_path.read_bytes()
+            audio_bytes = wav_file_path.read_bytes()
             res = await bodhan.transcribe(
                 audio_bytes=audio_bytes,
-                filename=file_path.name,
+                filename=wav_file_path.name,
                 language_hint=language_hint,
                 duration_s=total_duration,
             )
@@ -88,9 +99,21 @@ async def transcribe_audio(
             )
 
         # Multi-chunk path for audio > 30.0s (absorbs limit)
-        chunk_dir = file_path.parent / f"_{file_path.stem}_transcribe_chunks"
+        try:
+            chunk_dir = file_path.parent / f"_{file_path.stem}_transcribe_chunks"
+            chunk_dir.mkdir(parents=True, exist_ok=True)
+            test_file = chunk_dir / ".write_test"
+            test_file.touch()
+            test_file.unlink()
+        except (PermissionError, OSError):
+            import hashlib
+            import tempfile
+            path_hash = hashlib.sha256(str(file_path.resolve()).encode("utf-8")).hexdigest()[:8]
+            chunk_dir = Path(tempfile.gettempdir()) / f"bodhan_chunks_{file_path.stem}_{path_hash}"
+            chunk_dir.mkdir(parents=True, exist_ok=True)
+
         chunks = audio.chunk_at_pauses(
-            file_path,
+            wav_file_path,
             out_dir=chunk_dir,
             target_s=config.AUDIO_CHUNK_TARGET_S,
             hard_s=config.AUDIO_CHUNK_HARD_S,

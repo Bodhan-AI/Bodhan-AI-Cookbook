@@ -14,8 +14,23 @@ def render_pages(pdf_path: str | Path, dpi: int = 200, out_dir: str | Path | Non
     if not file_path.exists():
         raise FileNotFoundError(f"PDF file not found: {file_path}")
 
-    output_dir = Path(out_dir) if out_dir else file_path.parent / f"_{file_path.stem}_rendered_pages"
-    output_dir.mkdir(parents=True, exist_ok=True)
+    if out_dir:
+        output_dir = Path(out_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
+    else:
+        # Check if parent directory is writable; if read-only (e.g. docker :ro), fall back to system tempdir
+        try:
+            output_dir = file_path.parent / f"_{file_path.stem}_rendered_pages"
+            output_dir.mkdir(parents=True, exist_ok=True)
+            test_file = output_dir / ".write_test"
+            test_file.touch()
+            test_file.unlink()
+        except (PermissionError, OSError):
+            import hashlib
+            import tempfile
+            path_hash = hashlib.sha256(str(file_path.resolve()).encode("utf-8")).hexdigest()[:8]
+            output_dir = Path(tempfile.gettempdir()) / f"bodhan_rendered_pages_{file_path.stem}_{path_hash}"
+            output_dir.mkdir(parents=True, exist_ok=True)
 
     page_paths: list[Path] = []
     zoom = dpi / 72.0
