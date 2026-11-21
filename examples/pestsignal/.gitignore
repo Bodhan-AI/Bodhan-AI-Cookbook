@@ -1,0 +1,70 @@
+# Secret keys
+.env
+**/.env
+
+# Local database and uploaded audio
+*.db
+**/uploads/
+
+# Frontend generated files
+node_modules/
+dist/
+# Environment variables
+.env
+*.env
+backend/.env
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Node / Frontend
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Uploads
+backend/uploads/audio/*
+!backend/uploads/audio/.gitkeep
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+.env
+**/.env
+*.db
+**/uploads/
+node_modules/
+dist/
+__pycache__/
+*.pyc
