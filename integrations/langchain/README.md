@@ -48,13 +48,26 @@ PDF dependencies:
 > [!IMPORTANT]
 > **PyMuPDF Licensing Notice**: PyMuPDF is licensed under GNU AGPLv3 and also available under a commercial license from Artifex Software, Inc. If you are developing proprietary software and cannot comply with the terms of the AGPLv3, please ensure you acquire an appropriate commercial license from Artifex before deploying PyMuPDF in production. Core image OCR and translation do not require PyMuPDF.
 
-For running the optional local vector database in the Multilingual RAG example:
+For running the Bodhan x Groq Multilingual RAG pipeline with real Groq generation:
+
+```bash
+pip install -r requirements-rag-groq.txt
+```
+
+Optional Groq RAG dependencies:
+- `langchain-groq>=0.2.0`
+- `langchain-huggingface>=0.1.0`
+- `sentence-transformers>=3.0.0`
+- `langchain==1.3.14`
+- `langchain-text-splitters==1.1.3`
+
+For running with local ChromaDB vector database (optional):
 
 ```bash
 pip install -r requirements-rag-example.txt
 ```
 
-Optional RAG dependencies:
+Optional ChromaDB dependencies:
 - `chromadb==0.6.3`
 - `langchain==1.3.14`
 - `langchain-text-splitters==1.1.3`
@@ -209,28 +222,37 @@ tools = [BodhanTranslationTool(target_language="en")]
 
 ---
 
-### 4. End-to-End Multilingual RAG Pipeline
+### 4. End-to-End Multilingual RAG Pipeline (Bodhan x Groq)
 
 Run the comprehensive multilingual RAG demonstration script:
 
 ```bash
+# Set credentials
+export BODHAN_API_KEY="your-bodhan-api-key"
+export GROQ_API_KEY="your-groq-api-key"
+export GROQ_MODEL="openai/gpt-oss-120b"
+
+# Execute RAG demonstration
 python examples/multilingual_rag.py
 ```
 
-The demonstration showcases a complete, real-world multilingual knowledge retrieval workflow:
+Or ask a custom question directly via CLI:
+
+```bash
+python examples/multilingual_rag.py --query "छात्रवृत्ति आवेदन की अंतिम तिथि क्या है?" --query-lang hi
+```
+
+The pipeline showcases a production-ready multilingual knowledge retrieval workflow:
 1. **OCR Ingestion**: Ingests multi-page notices in Hindi, Tamil, and Bengali from `sample_data/` using `BodhanOCRLoader`.
-2. **Translation**: Translates extracted Indic text into normalized English using `BodhanTranslationTransformer`.
-3. **Text Splitting**: Splits translated documents into semantic chunks while maintaining source and page metadata.
-4. **Vector Indexing**: Indexes chunks into an `InMemoryVectorStore` (default, zero extra setup) or local persistent `ChromaDB`.
-5. **Grounded Question Answering**: The pipeline accepts queries in both English and Indic languages (auto-translating non-English queries to English), performs vector similarity retrieval, and synthesizes grounded answers using `GroundedContextChatModel` with exact document and page citations. If a question is not covered by the indexed context, the model explicitly declines to answer rather than hallucinating.
-
-#### Production Deployment Considerations for RAG
-
-The demonstration script uses `InMemoryVectorStore` and `GroundedContextChatModel` so developers can run and test the complete pipeline immediately without needing external OpenAI or third-party API accounts:
-
-- **Vector Store**: For production environments, swap `InMemoryVectorStore` with a persistent store such as `Chroma` (`pip install chromadb`), `PGVector`, `FAISS`, or `Pinecone`.
-- **Embedding Models**: In production, replace `CharacterNgramEmbeddings` with production embedding models such as `OpenAIEmbeddings(model="text-embedding-3-small")`, `HuggingFaceEmbeddings`, or `CohereEmbeddings`.
-- **Companion LLMs**: In production, connect your preferred reasoning LLM (such as `ChatOpenAI(model="gpt-4o")` or `ChatAnthropic(model="claude-3-5-sonnet")`). Be mindful of token usage and per-query costs when processing large retrieved contexts.
+2. **Translation**: Normalizes extracted Indic text into English using `BodhanTranslationTransformer`.
+3. **Semantic Splitting**: Splits translated documents into passages (`chunk_size=350`, `chunk_overlap=40`) while maintaining source and page metadata.
+4. **Multilingual Embeddings**: Embeds chunks using an independent multilingual embedding model (`sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` via HuggingFace, supporting 50+ languages).
+5. **Vector Indexing**: Indexes chunks into an in-process `InMemoryVectorStore` using cosine similarity.
+6. **Query Translation**: Indic questions (Hindi, Tamil, Bengali) are automatically translated to English via `BodhanTranslationTool`.
+7. **Retriever**: Pulls the top supporting context chunks with source and page provenance.
+8. **Real Groq Generation**: Assigns stable citation identifiers `[S1]`, `[S2]`, and invokes `ChatGroq` with strict grounding rules to prevent hallucination.
+9. **Application-Validated Citations**: Extracts citations and strictly validates them against retrieved document metadata before returning.
+10. **Reverse Translation**: Translates the grounded answer back into the user's native Indic query language.
 
 ---
 

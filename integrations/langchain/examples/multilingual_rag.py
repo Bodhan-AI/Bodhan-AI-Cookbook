@@ -1,16 +1,29 @@
-"""End-to-End Multilingual Retrieval-Augmented Generation (RAG) with Bodhan AI & LangChain.
+"""End-to-End Multilingual Retrieval-Augmented Generation (RAG) with Bodhan AI and Groq.
 
-Demonstrates a complete, production-ready multilingual RAG pipeline:
-1. Ingest multilingual scanned Indic PDF notices (Hindi, Tamil, Bengali) via BodhanOCRLoader.
-2. Translate extracted Indic documents into English via BodhanTranslationTransformer.
-3. Split documents into semantic passage chunks using LangChain text splitters.
-4. Index passages into a vector store (InMemoryVectorStore or optional ChromaDB).
-5. Accept a user question in an Indian language (e.g. Hindi).
-6. Translate the query into English using BodhanTranslationTool.
-7. Retrieve relevant context passages with page-level citations.
-8. Construct a context-grounded prompt and invoke a companion LLM to generate an answer.
-9. Translate the grounded English answer back to the user's original language.
-10. Verify that unanswerable/irrelevant queries honestly return "Insufficient context".
+Logical Architecture:
+    Indic-language Documents (Hindi, Tamil, Bengali)
+            |
+            v
+    Bodhan OCR + Translation (BodhanOCRLoader + BodhanTranslationTransformer)
+            |
+            v
+    Multilingual Embeddings (HuggingFace sentence-transformers / paraphrase-multilingual-MiniLM-L12-v2)
+            |
+            v
+    LangChain InMemoryVectorStore
+            |
+            v
+    LangChain Retriever (Top-K)
+            |
+            v
+    Groq ChatGroq (Grounded Answer Generation via langchain-groq)
+            |
+            v
+    Answer + Application-Validated Source Citations ([S1], [S2] -> Page/Source)
+            |
+    (Optional)
+            v
+    Bodhan Translation (Localize answer back to user's native Indic language)
 
 Usage:
     python integrations/langchain/examples/multilingual_rag.py
@@ -19,85 +32,43 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import math
 import os
-import re
 import sys
-from collections import Counter
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 
-# Ensure bodhan_langchain is importable
+# Ensure package root is in sys.path
 PKG_DIR = Path(__file__).resolve().parent.parent
 if str(PKG_DIR) not in sys.path:
     sys.path.insert(0, str(PKG_DIR))
 
 from langchain_core.documents import Document
-from langchain_core.embeddings import Embeddings
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import AIMessage, BaseMessage
 from langchain_core.outputs import ChatGeneration, ChatResult
-from langchain_core.vectorstores import InMemoryVectorStore
-from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from bodhan_langchain import (
     BodhanClient,
-    BodhanOCRLoader,
     BodhanTranslationTool,
-    BodhanTranslationTransformer,
 )
+from examples.rag.citations import (
+    extract_and_validate_citations,
+    format_context_with_citations,
+)
+from examples.rag.config import RAGConfig
+from examples.rag.embeddings import DeterministicFakeEmbeddings, get_embedding_model
+from examples.rag.generation import generate_grounded_answer, get_chat_model
+from examples.rag.ingestion import ingest_documents
+from examples.rag.retrieval import get_retriever, retrieve_passages
+from examples.rag.vector_store import create_vector_store
 
 
-class TermFrequencyEmbeddings(Embeddings):
-    """Normalized term-frequency embedding model implementing LangChain's Embeddings interface.
-
-    Provides deterministic, zero-dependency cosine semantic retrieval out-of-the-box
-    without requiring third-party credentials or large neural downloads.
-    In production environments, replace with OpenAIEmbeddings or HuggingFaceEmbeddings.
-    """
-
-    def __init__(self, vocab_size: int = 128) -> None:
-        self.vocab_size = vocab_size
-
-    def _tokenize(self, text: str) -> list[str]:
-        words = re.findall(r"\b[a-zA-Z0-9_\u0900-\u097F\u0B80-\u0BFF\u0980-\u09FF]{2,}\b", text.lower())
-        return words
-
-    def _embed(self, text: str) -> list[float]:
-        vec = [0.0] * self.vocab_size
-        words = self._tokenize(text)
-        if not words:
-            return vec
-        counts = Counter(words)
-        for w, count in counts.items():
-            idx = abs(hash(w)) % self.vocab_size
-            # Sub-linear term frequency scaling
-            vec[idx] += 1.0 + math.log(count)
-        # L2 normalization for accurate cosine similarity
-        norm = math.sqrt(sum(x * x for x in vec))
-        if norm > 0.0:
-            vec = [x / norm for x in vec]
-        return vec
-
-    def embed_documents(self, texts: list[str]) -> list[list[float]]:
-        return [self._embed(t) for t in texts]
-
-    def embed_query(self, text: str) -> list[float]:
-        return self._embed(text)
-
-
-class GroundedContextChatModel(BaseChatModel):
-    """Grounded demonstration companion LLM implementing LangChain's BaseChatModel interface.
-
-    Generates answers strictly from the provided retrieved context passages.
-    If the context does not contain enough information to answer the question,
-    it returns an explicit 'Insufficient context' response rather than hallucinating.
-    Can be replaced with ChatOpenAI, ChatAnthropic, or any standard LangChain chat model.
-    """
+class MockTestGroundedChatModel(BaseChatModel):
+    """Test-only mock chat model used when running offline integration tests."""
 
     @property
     def _llm_type(self) -> str:
-        return "grounded_context_demo_llm"
+        return "mock_test_grounded_chat_model"
 
     def _generate(
         self,
@@ -106,232 +77,287 @@ class GroundedContextChatModel(BaseChatModel):
         **kwargs: Any,
     ) -> ChatResult:
         prompt_text = messages[-1].content if messages else ""
+        p_lower = prompt_text.lower()
 
-        # Extract Context and Question from prompt
-        context_match = re.search(r"Context:\s*(.*?)\s*Question:\s*(.*?)$", prompt_text, re.DOTALL | re.IGNORECASE)
-        context = context_match.group(1).strip() if context_match else prompt_text
-        question = context_match.group(2).strip() if context_match else ""
-
-        q_lower = question.lower()
-        ctx_lower = context.lower()
-
-        # Extract source citation from context header if present (e.g., [Source: file | Page N])
-        citation_match = re.search(r"\[Source:\s*([^|\]]+)\s*\|\s*Page\s*(\d+)\]", context)
-        citation = ""
-        if citation_match:
-            citation = f" [Citation: {citation_match.group(1).strip()} — Page {citation_match.group(2).strip()}]"
-
-        # Determine grounded answer based on retrieved context
-        if ("scholarship" in q_lower or "eligibility" in q_lower or "amount" in q_lower) and "scholarship" in ctx_lower:
+        if "bullet train" in p_lower:
             answer = (
-                "Eligible applicants must have scored at least 55% in class 8/10 from a recognized school, "
-                "with an annual family income under ₹1,50,000. Selected students receive financial assistance "
-                f"of ₹12,000 per year directly into their bank account.{citation}"
-            )
-        elif ("crop" in q_lower or "insurance" in q_lower or "farmer" in q_lower or "subsidy" in q_lower) and (
-            "insurance" in ctx_lower or "farmer" in ctx_lower
-        ):
-            answer = (
-                "All small and marginal farmers are eligible. The government provides an 80% subsidy on "
-                "the crop insurance premium, and full compensation is ensured for natural disasters and flood damages. "
-                f"The application deadline is 15 October 2026.{citation}"
-            )
-        elif ("clinic" in q_lower or "health" in q_lower or "timing" in q_lower or "medicine" in q_lower) and "health" in ctx_lower:
-            answer = (
-                "The rural health clinic provides free medical consultations, blood pressure and diabetes screenings, "
-                "and essential generic medicine distribution. Daily clinic hours are from 9:00 AM to 5:00 PM, "
-                f"with a 24/7 emergency ambulance and helpline at 1800-345-6789.{citation}"
+                "Insufficient context: The retrieved documents do not contain enough "
+                "supporting information to answer this question."
             )
         else:
             answer = (
-                "Insufficient context: The retrieved documents do not contain enough supporting information "
-                "to answer this question truthfully."
+                "Eligible students receive scholarship assistance according to official guidelines [S1]. "
+                "[Citation: sample_hindi_scholarship.pdf — Page 1]"
             )
 
         return ChatResult(generations=[ChatGeneration(message=AIMessage(content=answer))])
 
 
-def get_embeddings(provider: str = "default") -> Embeddings:
-    """Return a LangChain-compatible Embeddings instance."""
-    if provider.lower() == "openai":
+def answer_multilingual_query(
+    query: str,
+    query_lang: str,
+    retriever: Any,
+    chat_model: BaseChatModel,
+    translation_tool: Optional[BodhanTranslationTool] = None,
+    translate_answer_back: bool = True,
+    target_answer_lang: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Execute end-to-end question answering for a single user query."""
+    clean_query = query.strip()
+    is_indic = query_lang.lower() not in ("en", "english")
+
+    # Step A: Translate Indic query to English if needed
+    if is_indic and translation_tool is not None:
         try:
-            from langchain_openai import OpenAIEmbeddings
+            english_query = translation_tool.invoke({
+                "text": clean_query,
+                "target_language": "en",
+                "source_language": query_lang,
+            })
+            english_query = str(english_query).strip()
+        except Exception as exc:
+            print(f"  [WARNING] Query translation failed: {exc}. Using raw query.")
+            english_query = clean_query
+    else:
+        english_query = clean_query
 
-            return OpenAIEmbeddings()
-        except ImportError:
-            print("[INFO] langchain-openai not installed; falling back to TermFrequencyEmbeddings.")
-    return TermFrequencyEmbeddings()
+    # Step B: Retrieve relevant passages
+    retrieved_docs = retrieve_passages(retriever, english_query)
+
+    # Step C: Format context with stable citations [S1], [S2]
+    context_str, citation_map = format_context_with_citations(retrieved_docs)
+
+    # Step D: Invoke ChatGroq for grounded answer generation
+    english_answer = generate_grounded_answer(chat_model, english_query, context_str)
+
+    # Step E: Application-validated citation extraction
+    valid_citations, invalid_citations = extract_and_validate_citations(english_answer, citation_map)
+
+    # Step F: Localize answer back to Indic query language if requested
+    desired_lang = target_answer_lang or (query_lang if is_indic else None)
+    localized_answer = None
+
+    if translate_answer_back and desired_lang and desired_lang.lower() != "en" and translation_tool is not None:
+        if "not contain enough information" not in english_answer.lower():
+            try:
+                localized_answer = translation_tool.invoke({
+                    "text": english_answer,
+                    "target_language": desired_lang,
+                })
+                localized_answer = str(localized_answer).strip()
+            except Exception as exc:
+                print(f"  [WARNING] Answer translation back to '{desired_lang}' failed: {exc}")
+
+    return {
+        "original_query": clean_query,
+        "query_language": query_lang,
+        "english_query": english_query,
+        "retrieved_count": len(retrieved_docs),
+        "raw_answer": english_answer,
+        "citations": valid_citations,
+        "invalid_citations": invalid_citations,
+        "localized_answer": localized_answer,
+        "citation_map": citation_map,
+    }
 
 
-def get_chat_model(provider: str = "default") -> BaseChatModel:
-    """Return a LangChain-compatible BaseChatModel instance."""
-    if provider.lower() == "openai":
-        try:
-            from langchain_openai import ChatOpenAI
+def run_rag_pipeline(
+    config: Optional[RAGConfig] = None,
+    ocr_client: Optional[BodhanClient] = None,
+    translation_client: Optional[BodhanClient] = None,
+    chat_model: Optional[BaseChatModel] = None,
+    custom_query: Optional[str] = None,
+    custom_query_lang: Optional[str] = None,
+    custom_answer_lang: Optional[str] = None,
+    sample_dir: Optional[Path] = None,
+    mock_client: Optional[BodhanClient] = None,
+) -> List[Dict[str, Any]]:
+    """Execute the complete Bodhan x Groq multilingual RAG pipeline."""
+    cfg = config or RAGConfig.from_env()
 
-            return ChatOpenAI(model="gpt-4o-mini", temperature=0.0)
-        except ImportError:
-            print("[INFO] langchain-openai not installed; falling back to GroundedContextChatModel.")
-    return GroundedContextChatModel()
+    # Handle backward-compatible mock_client parameter for integration testing
+    if mock_client is not None:
+        ocr_client = ocr_client or mock_client
+        translation_client = translation_client or mock_client
+        if chat_model is None:
+            chat_model = MockTestGroundedChatModel()
+        cfg.embedding_provider = "fake"
 
+    print("=" * 80)
+    print("  BODHAN AI x GROQ: GROUNDED MULTILINGUAL RAG PIPELINE")
+    print("=" * 80)
 
-def run_multilingual_rag_pipeline(
-    mock_client: BodhanClient | None = None,
-    embedding_provider: str = "default",
-    llm_provider: str = "default",
-) -> None:
-    """Execute the end-to-end multilingual RAG demonstration."""
-    print("=" * 75)
-    print("  BODHAN AI x LANGCHAIN: MULTILINGUAL RAG PIPELINE DEMONSTRATION")
-    print("=" * 75)
+    # 1. Credential Check (for live mode without injected mocks)
+    if ocr_client is None or translation_client is None or chat_model is None:
+        missing = cfg.validate_for_live()
+        if missing:
+            print("\n[CONFIGURATION REQUIRED]")
+            print(f"Missing required environment variables for live RAG execution: {', '.join(missing)}")
+            print("\nPlease configure credentials before executing billable requests:")
+            print('  export BODHAN_API_KEY="sk-..."           # (Or BODHAN_OCR_API_KEY & BODHAN_TRANSLATION_API_KEY)')
+            print('  export GROQ_API_KEY="gsk_..."')
+            print(f'  export GROQ_MODEL="{cfg.groq_model}"')
+            print(f'  export EMBEDDING_PROVIDER="{cfg.embedding_provider}"')
+            print(f'  export EMBEDDING_MODEL="{cfg.embedding_model}"')
+            return []
 
-    # 1. Initialize Client
-    client = mock_client
-    if client is None:
-        api_key = os.environ.get("BODHAN_API_KEY")
-        if not api_key:
-            print("\n[NOTE] BODHAN_API_KEY environment variable not set.")
-            print("Please set BODHAN_API_KEY to run against the live Bodhan API.")
-            return
-        client = BodhanClient(api_key=api_key)
+    # 2. Client Initialization
+    effective_ocr_client = ocr_client or BodhanClient(api_key=cfg.effective_ocr_key)
+    effective_trans_client = translation_client or BodhanClient(api_key=cfg.effective_translation_key)
 
-    sample_dir = PKG_DIR / "sample_data"
-    sample_files = sorted(list(sample_dir.glob("*.pdf")))
-    if not sample_files:
-        print(f"No sample PDF files found in '{sample_dir}'.")
-        return
+    # 3. Embedding Provider Initialization
+    print(f"\n[Step 1] Initializing multilingual embedding model ({cfg.embedding_provider})...")
+    embeddings = get_embedding_model(cfg.embedding_provider, cfg.embedding_model)
 
-    # Step 1: Document Ingestion via BodhanOCRLoader
-    print(f"\n[Step 1] Ingesting {len(sample_files)} multilingual PDF notices via BodhanOCRLoader...")
-    all_raw_docs: list[Document] = []
-    for pdf_file in sample_files:
-        print(f"  -> Ingesting: {pdf_file.name}")
-        loader = BodhanOCRLoader(pdf_file, client=client, dpi=150)
-        docs = loader.load()
-        print(f"     Loaded {len(docs)} page(s). Total extracted characters: {sum(len(d.page_content) for d in docs)}")
-        all_raw_docs.extend(docs)
-
-    # Step 2: Document Translation via BodhanTranslationTransformer
-    print("\n[Step 2] Translating Indic documents to English via BodhanTranslationTransformer...")
-    transformer = BodhanTranslationTransformer(
+    # 4. Ingestion & Translation
+    data_dir = sample_dir or (PKG_DIR / "sample_data")
+    print(f"\n[Step 2] Ingesting and Translating notices from '{data_dir.name}'...")
+    translated_documents = ingest_documents(
+        sample_dir=data_dir,
+        ocr_client=effective_ocr_client,
+        translation_client=effective_trans_client,
         target_language="en",
-        client=client,
-        preserve_original_content=True,
     )
-    translated_docs = transformer.transform_documents(all_raw_docs)
-    for doc in translated_docs:
-        fname = Path(doc.metadata["source"]).name
-        page = doc.metadata.get("page", 1)
-        src_lang = doc.metadata.get("source_language", "auto")
-        snippet = doc.page_content.replace("\n", " ")[:80]
-        print(f"  -> {fname} (Page {page}) [{src_lang} -> en]: \"{snippet}...\"")
 
-    # Step 3: Semantic Text Chunking
-    print("\n[Step 3] Splitting translated documents with RecursiveCharacterTextSplitter...")
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=350, chunk_overlap=40)
-    chunked_docs = text_splitter.split_documents(translated_docs)
-    print(f"  -> Generated {len(chunked_docs)} semantic passage chunks with full metadata preservation.")
-
-    # Step 4: Vector Store Indexing
-    print(f"\n[Step 4] Indexing chunks into InMemoryVectorStore using {embedding_provider} embeddings...")
-    embeddings = get_embeddings(embedding_provider)
-    vector_store = InMemoryVectorStore(embeddings)
-    vector_store.add_documents(chunked_docs)
+    # 5. Vector Store & Indexing
+    print("\n[Step 3] Splitting and Indexing into LangChain InMemoryVectorStore...")
+    vector_store = create_vector_store(
+        documents=translated_documents,
+        embeddings=embeddings,
+        chunk_size=cfg.chunk_size,
+        chunk_overlap=cfg.chunk_overlap,
+    )
     print("  -> Vector indexing complete.")
+    retriever = get_retriever(vector_store, top_k=cfg.top_k)
 
-    # Step 5: Companion LLM Initialization
-    print(f"\n[Step 5] Initializing companion LLM ({llm_provider})...")
-    chat_model = get_chat_model(llm_provider)
-    translation_tool = BodhanTranslationTool(client=client)
+    # 6. Groq Model Initialization
+    print(f"\n[Step 4] Initializing companion LLM (Groq: {cfg.groq_model})...")
+    effective_chat_model = get_chat_model(cfg, mock_chat_model=chat_model)
+    translation_tool = BodhanTranslationTool(client=effective_trans_client)
 
-    # Step 6: Multilingual Questions & Grounded Answer Generation
-    test_queries = [
+    # 7. Query Execution
+    test_suite = [
         {
+            "query": "छात्रवृत्ति योजना के लिए पात्रता और चयन मानदंड क्या हैं?",
             "lang": "hi",
-            "query": "छात्रवृत्ति योजना के लिए पात्रता और छात्रवृत्ति राशि क्या है?",
-            "description": "User question asked in Hindi regarding scholarship eligibility and amount.",
+            "desc": "Hindi question regarding scholarship eligibility criteria.",
         },
         {
+            "query": "விவசாயிகள் பயிர் காப்பீட்டு திட்டத்தில் மானியம் மற்றும் சலுகைகள் என்ன?",
             "lang": "ta",
-            "query": "விவசாயிகள் பயிர் காப்பீட்டு திட்டத்தில் மானியம் எவ்வளவு?",
-            "description": "User question asked in Tamil regarding crop insurance subsidy.",
+            "desc": "Tamil question regarding crop insurance subsidies and benefits.",
         },
         {
-            "lang": "en",
-            "query": "What are the clinic timings and available services for rural health?",
-            "description": "User question asked in English regarding rural health clinic timings.",
+            "query": "গ্রামীণ স্বাস্থ্য ক্লিনিকের সময়সূচী এবং পরিষেবাগুলি কি কি?",
+            "lang": "bn",
+            "desc": "Bengali question regarding rural health clinic hours and services.",
         },
         {
+            "query": "What are the scholarship application deadlines and income caps?",
             "lang": "en",
-            "query": "What is the government capital allocation for bullet train expansion in 2028?",
-            "description": "Irrelevant / unanswerable question to verify hallucination prevention.",
+            "desc": "English direct query regarding scholarship deadlines.",
+        },
+        {
+            "query": "What is the capital expenditure budget for bullet train expansion in 2028?",
+            "lang": "en",
+            "desc": "Irrelevant / unanswerable query to test hallucination prevention.",
         },
     ]
 
-    print("\n[Step 6] Executing End-to-End Multilingual Question Answering & Verification...")
-    retriever = vector_store.as_retriever(search_kwargs={"k": 1})
+    if custom_query:
+        queries_to_run = [{
+            "query": custom_query,
+            "lang": custom_query_lang or cfg.query_language,
+            "desc": "User-supplied query via CLI.",
+        }]
+    else:
+        queries_to_run = test_suite
 
-    for idx, item in enumerate(test_queries, start=1):
-        raw_query = item["query"]
-        lang = item["lang"]
-        desc = item["description"]
+    print(f"\n[Step 5] Executing End-to-End Multilingual Question Answering ({len(queries_to_run)} queries)...")
+    results: List[Dict[str, Any]] = []
 
-        print(f"\n" + "-" * 70)
-        print(f"  Query {idx} [{lang.upper()}]: \"{raw_query}\"")
-        print(f"  Purpose: {desc}")
+    for idx, item in enumerate(queries_to_run, start=1):
+        q = item["query"]
+        qlang = item["lang"]
+        desc = item["desc"]
 
-        # Translate query to English if asked in an Indic language
-        if lang != "en":
-            english_query = translation_tool.invoke({"text": raw_query, "target_language": "en"})
-            print(f"  -> Translated Query [en]: \"{english_query}\"")
-        else:
-            english_query = raw_query
+        print("\n" + "-" * 75)
+        print(f"  Query {idx} [{qlang.upper()}]: \"{q}\"")
+        print(f"  Context: {desc}")
 
-        # Retrieve relevant passage
-        retrieved_results = retriever.invoke(english_query)
-        if not retrieved_results:
-            print("  -> Retrieval: No matching passages found.")
-            continue
-
-        top_match = retrieved_results[0]
-        src_file = Path(top_match.metadata.get("source", "unknown")).name
-        page_num = top_match.metadata.get("page", 1)
-
-        print(f"  -> Top Retrieved Source: {src_file} (Page {page_num})")
-        context_str = f"[Source: {src_file} | Page {page_num}]\n{top_match.page_content.strip()}"
-
-        # Construct grounded prompt
-        prompt = (
-            "You are a helpful multilingual research assistant. Answer the user question using ONLY the provided context.\n"
-            "If the context does not contain enough information to answer the question, reply exactly with:\n"
-            "'Insufficient context: The retrieved documents do not contain enough supporting information to answer this question.'\n"
-            "Always include the source document and page number in your citation.\n\n"
-            f"Context:\n{context_str}\n\n"
-            f"Question: {english_query}"
+        res = answer_multilingual_query(
+            query=q,
+            query_lang=qlang,
+            retriever=retriever,
+            chat_model=effective_chat_model,
+            translation_tool=translation_tool,
+            translate_answer_back=cfg.translate_answer_back,
+            target_answer_lang=custom_answer_lang or cfg.answer_language,
         )
+        results.append(res)
 
-        # Invoke Companion LLM
-        response = chat_model.invoke(prompt)
-        english_answer = response.content.strip()
-        print(f"  -> Generated Answer [en]:\n     \"{english_answer}\"")
+        if res["english_query"] != q:
+            print(f"  -> Translated Query [EN]: \"{res['english_query']}\"")
+        print(f"  -> Retrieved Supporting Chunks: {res['retrieved_count']}")
+        print(f"\n  Generated Answer:\n  {res['raw_answer']}")
 
-        # If original question was in an Indic language and answer was found, translate answer back
-        if lang != "en" and "insufficient context" not in english_answer.lower():
-            indic_answer = translation_tool.invoke({"text": english_answer, "target_language": lang})
-            print(f"  -> Translated Answer [{lang}]:\n     \"{indic_answer}\"")
+        if res["citations"]:
+            print("\n  [Application-Validated Sources]:")
+            for cit in res["citations"]:
+                print(f"   * [Citation: {cit}]")
+        else:
+            print("\n  [Application-Validated Sources]: None cited or ungrounded.")
 
-    print("\n" + "=" * 75)
+        if res["localized_answer"]:
+            print(f"\n  [Localized Answer ({qlang.upper()})]:\n  {res['localized_answer']}")
+
+    print("\n" + "=" * 80)
     print("  MULTILINGUAL RAG PIPELINE DEMONSTRATION COMPLETE")
-    print("=" * 75)
+    print("=" * 80)
+    return results
+
+
+# Backward compatibility alias for existing test suites
+run_multilingual_rag_pipeline = run_rag_pipeline
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--embeddings", default="default", help="Embedding provider ('default' or 'openai')")
-    parser.add_argument("--llm", default="default", help="Chat model provider ('default' or 'openai')")
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument("--query", "-q", help="Custom user question to ask.")
+    parser.add_argument("--query-lang", "-ql", default="hi", help="Language code of custom question (e.g. 'hi', 'ta', 'bn', 'en').")
+    parser.add_argument("--answer-lang", "-al", help="Language code for final answer (defaults to query language).")
+    parser.add_argument("--embeddings", default="huggingface", help="Embedding provider ('huggingface', 'openai', 'fake').")
+    parser.add_argument("--embedding-model", help="Embedding model name.")
+    parser.add_argument("--model", "-m", default="openai/gpt-oss-120b", help="Groq model identifier.")
+    parser.add_argument("--top-k", "-k", type=int, default=4, help="Number of chunks to retrieve.")
+    parser.add_argument("--sample-dir", help="Directory containing sample PDF documents.")
     args = parser.parse_args()
 
-    run_multilingual_rag_pipeline(embedding_provider=args.embeddings, llm_provider=args.llm)
+    config = RAGConfig.from_env()
+    if args.embeddings:
+        config.embedding_provider = args.embeddings
+    if args.embedding_model:
+        config.embedding_model = args.embedding_model
+    if args.model:
+        config.groq_model = args.model
+    if args.top_k:
+        config.top_k = args.top_k
+    if args.query_lang:
+        config.query_language = args.query_lang
+    if args.answer_lang:
+        config.answer_language = args.answer_lang
+
+    s_dir = Path(args.sample_dir) if args.sample_dir else None
+    run_rag_pipeline(
+        config=config,
+        custom_query=args.query,
+        custom_query_lang=args.query_lang,
+        custom_answer_lang=args.answer_lang,
+        sample_dir=s_dir,
+    )
 
 
 if __name__ == "__main__":
