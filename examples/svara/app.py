@@ -6,12 +6,12 @@ import os
 from pathlib import Path
 
 import streamlit as st
-from dotenv import load_dotenv
+from dotenv import find_dotenv, load_dotenv
 
 from svara import SvaraClient
 
-# Load environment configuration
-load_dotenv()
+# Load environment configuration from nearest .env
+load_dotenv(find_dotenv())
 
 st.set_page_config(
     page_title="Svara — Indic AAC Speech Assistant",
@@ -101,7 +101,7 @@ if not client:
 
 # Cache pre-warming button in sidebar
 if st.sidebar.button("⚡ Pre-cache All Board Phrases"):
-    categories = SvaraClient.load_default_phrases()
+    categories = SvaraClient.load_default_phrases(lang=lang_code)
     all_phrases = [p for cat in categories for p in cat.get("phrases", [])]
     prog = st.sidebar.progress(0.0)
     status_text = st.sidebar.empty()
@@ -123,7 +123,7 @@ if "last_meta" not in st.session_state:
 
 # Section 1: Quick Phrase Board
 st.markdown("### 📋 Communication Board")
-categories = SvaraClient.load_default_phrases()
+categories = SvaraClient.load_default_phrases(lang=lang_code)
 tab_names = [cat["name"] for cat in categories]
 
 if categories:
@@ -160,10 +160,20 @@ st.markdown("---")
 st.markdown("### ✍️ Custom Sentence Composer")
 col_input, col_action = st.columns([4, 1])
 
+placeholders = {
+    "hi": "e.g. Mujhe thoda rest karna hai, light off kar do.",
+    "bn": "e.g. আমি একটু rest নেব, light off করে দিন।",
+    "mr": "e.g. मला थोडी rest करायची आहे, light बंद करा.",
+    "ta": "e.g. நான் கொஞ்சம் rest எடுக்கணும், light off பண்ணுங்க.",
+    "te": "e.g. నేను కొంచెం rest తీసుకోవాలి, light off చేయండి.",
+    "kn": "e.g. ನಾನು ಸ್ವಲ್ಪ rest ಮಾಡಬೇಕು, light off ಮಾಡಿ.",
+    "gu": "e.g. મારે થોડો rest કરવો છે, light બંધ કરો.",
+}
+
 with col_input:
     custom_text = st.text_input(
-        "Type any sentence (Devanagari, English, or Code-mixed Roman script):",
-        placeholder="e.g. Mujhe thoda rest karna hai, light off kar do.",
+        "Type any sentence (Native script, English, or Code-mixed Roman script):",
+        placeholder=placeholders.get(lang_code, placeholders["hi"]),
     )
 
 with col_action:
