@@ -1,1 +1,0 @@
-the library is open until eight p. m. during exam week
