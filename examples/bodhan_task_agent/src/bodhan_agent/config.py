@@ -40,6 +40,14 @@ def _optional_float(env: Mapping[str, str], name: str, default: float | None) ->
         return default
 
 
+def cache_dir(env: Mapping[str, str]) -> Path:
+    raw = env.get("BODHAN_CACHE_DIR", "").strip()
+    if raw:
+        return Path(raw).expanduser().resolve()
+    base = env.get("XDG_CACHE_HOME", "").strip() or str(Path.home() / ".cache")
+    return Path(base).expanduser().resolve() / "bodhan_agent"
+
+
 def _absolute(path: str | Path) -> Path:
     return Path(path).expanduser().resolve()
 
@@ -192,6 +200,7 @@ class RunSettings:
                 "PYTHONUNBUFFERED": "1",
             }
         )
+        env["BODHAN_CACHE_DIR"] = str(cache_dir(env))
         for name in LLM_ENV:
             env[name] = ""
         return env

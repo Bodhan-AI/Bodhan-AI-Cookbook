@@ -443,6 +443,18 @@ class Controller:
         self.issues.append(f"{call.name}: {code}")
         return observation
 
+    def output_path_problem(self, raw: Any) -> str | None:
+        if not isinstance(raw, str) or not raw.strip():
+            return None
+        path = Path(raw.strip()).expanduser()
+        if not path.is_absolute():
+            return None
+        work = self.settings.work_dir.resolve()
+        resolved = path.resolve()
+        if resolved == work or resolved.is_relative_to(work):
+            return None
+        return f"output_path {raw} is outside the work folder {work}; tools may only write there."
+
     def digest(self, tool: str, args: dict[str, Any]) -> str:
         canonical = {}
         for key, value in sorted(args.items()):
@@ -496,6 +508,13 @@ class Controller:
                 same = same_language_problem(source, str(args.get("target_language", "")))
                 if same is not None:
                     return await self.deny(call, "same_language", same, "No paid call is needed for this.")
+        if call.name in MCP_TOOLS or call.name == "make_subtitles":
+            problem = self.output_path_problem(args.get("output_path"))
+            if problem is not None:
+                return await self.deny(
+                    call, "path_not_allowed", problem,
+                    "Give a plain file name; it is saved in the work folder and copied to artifacts after finish.",
+                )  # fmt: skip
         if call.name in MCP_TOOLS:
             args = guards.harden_tool_args(call.name, args)
         digest = self.digest(call.name, args)

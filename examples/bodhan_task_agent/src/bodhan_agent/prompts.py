@@ -60,6 +60,7 @@ SYSTEM_PROMPT = """
     - Every tool call requires a short English reason.
     - Include plan_step when applicable.
     - Use registered absolute file paths exactly as shown in the inputs, the status board or earlier results.
+    - Tools write into the run's work folder; code copies verified deliverables to the artifacts folder.
     - Independent tool calls may run in parallel.
     - Dependent calls must wait for their inputs.
     - Reuse successful outputs rather than repeating paid calls (transcribe_audio, translate_text,
@@ -236,6 +237,8 @@ def task_message(
   <output_directories>
     <work>{escape(work_dir)}</work>
     <artifacts>{escape(artifacts_dir)}</artifacts>
+    Every tool writes its files into the work folder; give output_path as a plain file name or a path inside it.
+    Do not write into the artifacts folder: code copies each verified deliverable there after finish.
   </output_directories>
   <advisory_plan>
 {plan_text(plan)}
