@@ -28,12 +28,14 @@ class CacheBackend(Protocol):
     def set(self, key: str, record: CacheRecord, ttl_seconds: int) -> None: ...
     def get_artifact(self, file_id: str) -> dict[str, Any] | None: ...
     def set_artifact(self, file_id: str, artifact: dict[str, Any], ttl_seconds: int) -> None: ...
+    def delete_artifact(self, file_id: str) -> None: ...
+    def list_artifacts(self, owner_user_id: str | None) -> list[dict[str, Any]]: ...
 
 
 class MemoryBackend:
     def __init__(self) -> None:
         self._items: dict[str, CacheRecord] = {}
-        self._artifacts: dict[str, tuple[dict[str, Any], float]] = {}
+        self._artifacts: dict[str, tuple[dict[str, Any], float | None]] = {}
         self._lock = threading.Lock()
 
     def get(self, key: str) -> CacheRecord | None:
@@ -51,14 +53,30 @@ class MemoryBackend:
             if not entry:
                 return None
             artifact, expires_at = entry
-            if expires_at <= time.time():
+            if expires_at is not None and expires_at <= time.time():
                 self._artifacts.pop(file_id, None)
                 return None
             return artifact
 
     def set_artifact(self, file_id: str, artifact: dict[str, Any], ttl_seconds: int) -> None:
         with self._lock:
-            self._artifacts[file_id] = (artifact, time.time() + ttl_seconds)
+            expires_at = time.time() + ttl_seconds if ttl_seconds > 0 else None
+            self._artifacts[file_id] = (artifact, expires_at)
+
+    def delete_artifact(self, file_id: str) -> None:
+        with self._lock:
+            self._artifacts.pop(file_id, None)
+
+    def list_artifacts(self, owner_user_id: str | None) -> list[dict[str, Any]]:
+        with self._lock:
+            now = time.time()
+            items = []
+            for file_id, (artifact, expires_at) in list(self._artifacts.items()):
+                if expires_at is not None and expires_at <= now:
+                    self._artifacts.pop(file_id, None)
+                elif artifact.get("owner_user_id") == owner_user_id:
+                    items.append({"file_id": file_id, **artifact})
+            return items
 
 
 class RedisBackend:
@@ -128,7 +146,27 @@ class RedisBackend:
         return json.loads(raw) if raw else None
 
     def set_artifact(self, file_id: str, artifact: dict[str, Any], ttl_seconds: int) -> None:
-        self.client.setex(f"bodhan_setu:artifact:{file_id}", ttl_seconds, json.dumps(artifact, ensure_ascii=False))
+        key = f"bodhan_setu:artifact:{file_id}"
+        value = json.dumps(artifact, ensure_ascii=False)
+        if ttl_seconds > 0:
+            self.client.setex(key, ttl_seconds, value)
+        else:
+            self.client.set(key, value)
+
+    def delete_artifact(self, file_id: str) -> None:
+        self.client.delete(f"bodhan_setu:artifact:{file_id}")
+
+    def list_artifacts(self, owner_user_id: str | None) -> list[dict[str, Any]]:
+        prefix = "bodhan_setu:artifact:"
+        items = []
+        for key in self.client.scan_iter(match=f"{prefix}*", count=200):
+            raw = self.client.get(key)
+            if not raw:
+                continue
+            artifact = json.loads(raw)
+            if artifact.get("owner_user_id") == owner_user_id:
+                items.append({"file_id": key.removeprefix(prefix), **artifact})
+        return items
 
 
 class CacheStore:
@@ -153,7 +191,13 @@ class CacheStore:
         return self.backend.get_artifact(file_id)
 
     def set_artifact(self, file_id: str, artifact: dict[str, Any], ttl_seconds: int | None = None) -> None:
-        self.backend.set_artifact(file_id, artifact, ttl_seconds or self.ttl_seconds)
+        self.backend.set_artifact(file_id, artifact, self.ttl_seconds if ttl_seconds is None else ttl_seconds)
+
+    def delete_artifact(self, file_id: str) -> None:
+        self.backend.delete_artifact(file_id)
+
+    def list_artifacts(self, owner_user_id: str | None) -> list[dict[str, Any]]:
+        return self.backend.list_artifacts(owner_user_id)
 
 
 _CACHE: CacheStore | None = None

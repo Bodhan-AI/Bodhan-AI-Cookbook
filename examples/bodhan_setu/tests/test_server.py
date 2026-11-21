@@ -1,10 +1,15 @@
 import asyncio
 import io
+import threading
+import time
 import wave
+from concurrent.futures import ThreadPoolExecutor
+from typing import get_type_hints
 from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+import requests
 
 from bodhan_mcp import server
 from bodhan_mcp.schemas import (
@@ -40,6 +45,20 @@ def test_memory_cache_round_trip():
     cache = CacheStore(MemoryBackend())
     cache.set("key", CacheRecord(result={"value": 1}))
     assert cache.get("key").result == {"value": 1}
+
+
+def test_mock_bodhan_responses_never_use_http(monkeypatch):
+    monkeypatch.setenv("BODHAN_MOCK_RESPONSES", "true")
+    monkeypatch.setenv("BODHAN_CACHE_ONLY", "true")
+    monkeypatch.setattr(server.requests, "request", lambda *args, **kwargs: pytest.fail("mock mode attempted a network request"))
+    transcript = server._request("POST", "https://api.bodhan.ai/v1/audio/transcriptions", "unused", mock_filename="telugu_01.wav")
+    assert "పాఠశాల" in transcript.json()["text"]
+    translated = server._request("POST", "https://api.bodhan.ai/translate", "unused", json={"text": "hello", "target_language": "bn"})
+    assert "বিদ্যালয়" in translated.json()["translation"]
+    hindi = server._request("POST", "https://api.bodhan.ai/translate", "unused", json={"text": "नमस्ते, यह एक हिंदी संदेश है।", "target_language": "en"})
+    assert "Hello" in hindi.json()["translation"]
+    speech = server._request("POST", "https://api.bodhan.ai/v1/audio/speech", "unused", json={})
+    assert speech.content[:4] == b"RIFF" and speech.content[8:12] == b"WAVE"
 
 
 def _isolated_cache(tmp_path, monkeypatch):
@@ -106,6 +125,78 @@ def test_translation_chunks_at_safe_boundaries_and_reassembles(monkeypatch, tmp_
     assert result["translation_truncated"] is True
     assert result["chunk_count"] == result["translated_chunks"] == 2
     assert result["cost_inr"] > 0
+
+
+def test_identical_translation_payload_hits_cache_but_target_language_misses(monkeypatch, tmp_path):
+    cache = _isolated_cache(tmp_path, monkeypatch)
+    calls = []
+
+    def mock_request(method, url, key, **kwargs):
+        calls.append(dict(kwargs["json"]))
+        language = kwargs["json"]["target_language"]
+        return SimpleNamespace(json=lambda: {"translation": f"{language}:ok", "usage": {"completion_tokens": 2}})
+
+    monkeypatch.setattr(server, "_key", lambda name: "test-key")
+    monkeypatch.setattr(server, "_request", mock_request)
+    first = server.translate_text("same source", "ta")
+    cached_estimate = server.translate_text("same source", "ta", dry_run=True)
+    repeated = server.translate_text("same source", "ta")
+    other_language = server.translate_text("same source", "bn")
+
+    assert len(calls) == 2
+    assert first["cache_hit"] is False
+    assert cached_estimate["cache_hit"] is True and cached_estimate["estimated_cost_inr"] == 0
+    assert cached_estimate["will_call_api"] is False
+    assert repeated["cache_hit"] is True and repeated["cost_inr"] == 0
+    assert other_language["cache_hit"] is False
+    assert len(cache.backend._items) == 2
+
+
+def test_concurrent_identical_calls_are_singleflighted(monkeypatch, tmp_path):
+    _isolated_cache(tmp_path, monkeypatch)
+    monkeypatch.setattr(server, "_key", lambda name: "test-key")
+    calls = []
+
+    def mock_request(method, url, key, **kwargs):
+        calls.append(1)
+        time.sleep(0.03)
+        return SimpleNamespace(json=lambda: {"translation": "ok", "usage": {"completion_tokens": 2}})
+
+    monkeypatch.setattr(server, "_request", mock_request)
+    with ThreadPoolExecutor(max_workers=6) as pool:
+        results = list(pool.map(lambda _i: server.translate_text("one payload", "ta"), range(6)))
+    assert len(calls) == 1
+    assert sum(result["cache_hit"] is False for result in results) == 1
+    assert all(result["translation"] == "ok" for result in results)
+
+
+def test_cached_binary_result_has_zero_estimate_and_uses_new_output_path(monkeypatch, tmp_path):
+    cache = _isolated_cache(tmp_path, monkeypatch)
+    original = tmp_path / "model-cache.wav"
+    original.write_bytes(_wav_bytes())
+    key = stable_key("translate_audio", "bodhan-workflow", {"input_sha256": "same"})
+    cache.set(key, CacheRecord(
+        result={"output_file": "/old/run/output.wav", "target_language": "ta"},
+        artifact_path=str(original), artifact_sha256=server.sha256_file(original), cost_inr=0.4,
+    ))
+
+    estimate = server._cached_estimate(key, 10, "characters")
+    output = tmp_path / "new-run" / "translated.wav"
+    result = server._cached_file_result(key, output, "audio/wav")
+    assert estimate["estimated_cost_inr"] == 0
+    assert estimate["cache_hit"] is True and estimate["will_call_api"] is False
+    assert output.read_bytes() == original.read_bytes()
+    assert result["output_file"] == str(output)
+    assert result["cache_hit"] is True and result["cost_inr"] == 0
+
+
+def test_cache_only_mode_blocks_cache_misses_before_network(monkeypatch, tmp_path):
+    _isolated_cache(tmp_path, monkeypatch)
+    monkeypatch.setenv("BODHAN_CACHE_ONLY", "true")
+    monkeypatch.setattr(server, "_key", lambda name: "test-key")
+    monkeypatch.setattr(server.requests, "request", lambda *args, **kwargs: pytest.fail("network request attempted"))
+    with pytest.raises(server.ToolError, match="BODHAN_CACHE_ONLY"):
+        server.translate_text("cache miss", "ta")
 
 
 def test_translation_dry_run_reports_internal_chunks_without_api(monkeypatch):
@@ -401,21 +492,144 @@ def test_all_tools_have_typed_output_contracts():
         "get_file": GetFileResult,
     }
     tools = {tool.name: tool for tool in server.mcp._tool_manager.list_tools()}
+    protocol_tools = {tool.name: tool for tool in asyncio.run(server.mcp.list_tools())}
     for name, schema_type in expected.items():
         assert name in tools
-        assert tools[name].fn_metadata.output_schema["title"] == schema_type.__name__
-        assert tools[name].fn_metadata.output_schema["type"] == "object"
-
-    protocol_tools = asyncio.run(server.mcp.list_tools())
-    assert all(tool.outputSchema for tool in protocol_tools)
-
-    content, structured = asyncio.run(
-        server.mcp._tool_manager.call_tool(
-            "translate_text",
-            {"text": "hello " * 2_000, "target_language": "ta", "dry_run": True},
-            convert_result=True,
-        )
-    )
-    assert content
+        assert get_type_hints(tools[name].fn)["return"] is schema_type
+        wire_tool = protocol_tools[name].model_dump(by_alias=True)
+        assert isinstance(wire_tool["outputSchema"], dict)
+        assert wire_tool["outputSchema"]["type"] == "object"
+    structured = server.translate_text("hello " * 2_000, "ta", dry_run=True)
     assert structured["dry_run"] is True
     assert structured["chunk_count"] == 2
+    import jsonschema
+    jsonschema.validate(structured, tools["translate_text"].output_schema)
+
+
+def test_mcp_dry_run_structured_outputs_validate_including_nullable_fields(tmp_path):
+    calls = [
+        ("transcribe_audio", {"audio_file": "evals/media/audio/short_hi.wav", "dry_run": True}),
+        ("ocr_document", {"image_file": "evals/media/images/notice_with_injection_01.png", "output_file": str(tmp_path / "ocr.md"), "dry_run": True}),
+        ("translate_text", {"text": "hello", "target_language": "ta", "dry_run": True}),
+        ("synthesize_speech", {"text": "hello", "language": "en", "voice": "Amit", "output_file": str(tmp_path / "speech.wav"), "dry_run": True}),
+    ]
+    tools = {tool.name: tool for tool in asyncio.run(server.mcp.list_tools())}
+    import jsonschema
+    for name, arguments in calls:
+        result = asyncio.run(server.mcp.call_tool(name, arguments))
+        assert isinstance(result, tuple) and isinstance(result[1], dict)
+        jsonschema.validate(result[1], tools[name].outputSchema)
+
+
+def test_bodhan_request_retries_rate_limit_with_bounded_backoff(monkeypatch):
+    monkeypatch.setattr(server, "_MAX_BODHAN_RETRIES", 2)
+    monkeypatch.setattr(server, "_BODHAN_REQUEST_LIMITER", threading.BoundedSemaphore(1))
+    monkeypatch.setattr(server.time, "sleep", lambda _delay: None)
+    calls = []
+
+    class Response:
+        def __init__(self, status, headers=None):
+            self.status_code = status
+            self.headers = headers or {}
+            self.ok = status < 400
+            self.text = ""
+            self.closed = False
+
+        def close(self):
+            self.closed = True
+
+    responses = [Response(429, {"Retry-After": "0"}), Response(200)]
+
+    def fake_request(*_args, **_kwargs):
+        calls.append(1)
+        return responses.pop(0)
+
+    monkeypatch.setattr(server.requests, "request", fake_request)
+    response = server._request("POST", "https://bodhan.example", "test-key", json={"x": 1})
+    assert response.status_code == 200
+    assert len(calls) == 2
+
+
+def test_bodhan_request_does_not_retry_permanent_budget_429(monkeypatch):
+    monkeypatch.setattr(server, "_MAX_BODHAN_RETRIES", 2)
+    monkeypatch.setattr(server, "_BODHAN_REQUEST_LIMITER", threading.BoundedSemaphore(1))
+    calls = []
+
+    class Response:
+        status_code = 429
+        headers = {"Retry-After": "0"}
+        ok = False
+        text = "ExceededBudget"
+
+        def json(self):
+            return {"error": {"code": "ExceededBudget", "message": "account budget exceeded"}}
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr(server.requests, "request", lambda *_args, **_kwargs: (calls.append(1), Response())[1])
+    with pytest.raises(server.ToolError, match="ExceededBudget"):
+        server._request("POST", "https://bodhan.example", "test-key")
+    assert len(calls) == 1
+
+
+def test_bodhan_request_retries_connect_timeout_but_not_ambiguous_read_timeout(monkeypatch):
+    monkeypatch.setattr(server, "_MAX_BODHAN_RETRIES", 1)
+    monkeypatch.setattr(server, "_BODHAN_REQUEST_LIMITER", threading.BoundedSemaphore(1))
+    monkeypatch.setattr(server.time, "sleep", lambda _delay: None)
+
+    class Response:
+        status_code = 200
+        headers = {}
+        ok = True
+        text = ""
+
+        def close(self):
+            pass
+
+    attempts = iter([requests.ConnectTimeout("connect"), Response()])
+
+    def fake_request(*_args, **_kwargs):
+        result = next(attempts)
+        if isinstance(result, BaseException):
+            raise result
+        return result
+
+    monkeypatch.setattr(server.requests, "request", fake_request)
+    assert server._request("POST", "https://bodhan.example", "test-key").status_code == 200
+
+    monkeypatch.setattr(server.requests, "request", lambda *_args, **_kwargs: (_ for _ in ()).throw(requests.ReadTimeout("read")))
+    with pytest.raises(server.ToolError, match="completion is uncertain"):
+        server._request("POST", "https://bodhan.example", "test-key")
+
+
+def test_bodhan_http_requests_respect_global_concurrency_limit(monkeypatch):
+    monkeypatch.setattr(server, "_BODHAN_REQUEST_LIMITER", threading.BoundedSemaphore(2))
+    monkeypatch.setattr(server, "_MAX_BODHAN_RETRIES", 0)
+    active = 0
+    maximum = 0
+    lock = threading.Lock()
+
+    class Response:
+        status_code = 200
+        headers = {}
+        ok = True
+        text = ""
+
+        def close(self):
+            pass
+
+    def fake_request(*_args, **_kwargs):
+        nonlocal active, maximum
+        with lock:
+            active += 1
+            maximum = max(maximum, active)
+        time.sleep(0.02)
+        with lock:
+            active -= 1
+        return Response()
+
+    monkeypatch.setattr(server.requests, "request", fake_request)
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        list(pool.map(lambda _index: server._request("POST", "https://bodhan.example", "test-key"), range(8)))
+    assert maximum == 2

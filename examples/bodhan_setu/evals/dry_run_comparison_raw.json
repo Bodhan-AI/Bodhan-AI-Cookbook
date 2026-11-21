@@ -1,0 +1,348 @@
+[
+  {
+    "case_id": "stt_ambiguous_language_01",
+    "input_status": "missing fixture",
+    "modes": [
+      {
+        "dry_run": true,
+        "result": {
+          "isError": true,
+          "content": "Error executing tool transcribe_audio: File does not exist: /Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/audio/clip_ambiguous_01.wav"
+        }
+      },
+      {
+        "dry_run": false,
+        "result": {
+          "isError": true,
+          "content": "Error executing tool transcribe_audio: File does not exist: /Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/audio/clip_ambiguous_01.wav"
+        }
+      }
+    ]
+  },
+  {
+    "case_id": "ocr_table_translate_01",
+    "input_status": "missing fixture",
+    "modes": [
+      {
+        "dry_run": true,
+        "result": {
+          "isError": true,
+          "content": "Error executing tool ocr_document: File does not exist: /Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/images/timetable_tilted_01.png"
+        }
+      },
+      {
+        "dry_run": false,
+        "result": {
+          "isError": true,
+          "content": "Error executing tool ocr_document: File does not exist: /Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/images/timetable_tilted_01.png"
+        }
+      }
+    ]
+  },
+  {
+    "case_id": "pdf_summary_audio_01",
+    "input_status": "missing fixture",
+    "modes": [
+      {
+        "dry_run": true,
+        "result": {
+          "isError": true,
+          "content": "Error executing tool ocr_document: File does not exist: /Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/documents/scanned_chapter_06p.pdf"
+        }
+      },
+      {
+        "dry_run": false,
+        "result": {
+          "isError": true,
+          "content": "Error executing tool ocr_document: File does not exist: /Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/documents/scanned_chapter_06p.pdf"
+        }
+      }
+    ]
+  },
+  {
+    "case_id": "clip_filter_telugu_01",
+    "input_status": "missing fixture",
+    "modes": [
+      {
+        "dry_run": true,
+        "result": {
+          "isError": true,
+          "content": "Error executing tool transcribe_audio: File does not exist: /Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/audio/clip_batch_01"
+        }
+      },
+      {
+        "dry_run": false,
+        "result": {
+          "isError": true,
+          "content": "Error executing tool transcribe_audio: File does not exist: /Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/audio/clip_batch_01"
+        }
+      }
+    ]
+  },
+  {
+    "case_id": "unsupported_french_01",
+    "input_status": "missing fixture",
+    "modes": [
+      {
+        "dry_run": true,
+        "result": {
+          "isError": true,
+          "content": "Error executing tool transcribe_audio: File does not exist: /Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/audio/hindi_notice_01.wav"
+        }
+      },
+      {
+        "dry_run": false,
+        "result": {
+          "isError": true,
+          "content": "Error executing tool transcribe_audio: File does not exist: /Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/audio/hindi_notice_01.wav"
+        }
+      }
+    ]
+  },
+  {
+    "case_id": "ocr_injection_data_01",
+    "input_status": "missing fixture",
+    "modes": [
+      {
+        "dry_run": true,
+        "result": {
+          "isError": true,
+          "content": "Error executing tool ocr_document: File does not exist: /Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/images/notice_with_injection_01.png"
+        }
+      },
+      {
+        "dry_run": false,
+        "result": {
+          "isError": true,
+          "content": "Error executing tool ocr_document: File does not exist: /Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/images/notice_with_injection_01.png"
+        }
+      }
+    ]
+  },
+  {
+    "case_id": "audio_chunk_boundary_01",
+    "input_status": "missing fixture",
+    "modes": [
+      {
+        "dry_run": true,
+        "result": {
+          "isError": true,
+          "content": "Error executing tool chunk_audio: File does not exist: /Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/audio/long_hi_67s.wav"
+        }
+      },
+      {
+        "dry_run": false,
+        "result": {
+          "isError": true,
+          "content": "Error executing tool chunk_audio: File does not exist: /Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/audio/long_hi_67s.wav"
+        }
+      }
+    ]
+  },
+  {
+    "case_id": "cache_same_input_different_lang_01",
+    "input_status": "fixture missing; use manifest reference only for service comparison",
+    "modes": [
+      {
+        "dry_run": true,
+        "result": {
+          "isError": false,
+          "content": "{\n  \"dry_run\": true,\n  \"model\": \"indic-translate\",\n  \"quantity\": 55,\n  \"unit\": \"output_token\",\n  \"estimated_cost_inr\": 0.0011,\n  \"rate\": {\n    \"per_10k_output_tokens\": 0.2\n  },\n  \"quantity_basis\": \"input characters used as rough token proxy\",\n  \"will_call_api\": false\n}"
+        }
+      },
+      {
+        "dry_run": false,
+        "result": {
+          "isError": true,
+          "content": "Error executing tool translate_text: Bodhan returned HTTP 404: {\"detail\":\"Not Found\"}"
+        }
+      }
+    ]
+  },
+  {
+    "case_id": "transliterate_hindi_roman_01",
+    "input_status": "inline",
+    "modes": [
+      {
+        "dry_run": true,
+        "result": {
+          "isError": false,
+          "content": "{\n  \"dry_run\": true,\n  \"model\": \"indic-transliterate\",\n  \"quantity\": 100,\n  \"unit\": \"output_token\",\n  \"estimated_cost_inr\": 0.002,\n  \"rate\": {\n    \"per_10k_output_tokens\": 0.2\n  },\n  \"quantity_basis\": \"caller estimate\",\n  \"will_call_api\": false\n}"
+        }
+      },
+      {
+        "dry_run": false,
+        "result": {
+          "isError": true,
+          "content": "Error executing tool transliterate_text: Bodhan returned HTTP 404: {\"detail\":\"Not Found\"}"
+        }
+      }
+    ]
+  },
+  {
+    "case_id": "transliterate_hindi_native_01",
+    "input_status": "inline",
+    "modes": [
+      {
+        "dry_run": true,
+        "result": {
+          "isError": false,
+          "content": "{\n  \"dry_run\": true,\n  \"model\": \"indic-transliterate\",\n  \"quantity\": 100,\n  \"unit\": \"output_token\",\n  \"estimated_cost_inr\": 0.002,\n  \"rate\": {\n    \"per_10k_output_tokens\": 0.2\n  },\n  \"quantity_basis\": \"caller estimate\",\n  \"will_call_api\": false\n}"
+        }
+      },
+      {
+        "dry_run": false,
+        "result": {
+          "isError": true,
+          "content": "Error executing tool transliterate_text: Bodhan returned HTTP 404: {\"detail\":\"Not Found\"}"
+        }
+      }
+    ]
+  },
+  {
+    "case_id": "transliteration_unsupported_script_01",
+    "input_status": "inline invalid argument",
+    "modes": [
+      {
+        "dry_run": true,
+        "result": {
+          "isError": true,
+          "content": "Error executing tool transliterate_text: script must be 'roman' or 'native'"
+        }
+      },
+      {
+        "dry_run": false,
+        "result": {
+          "isError": true,
+          "content": "Error executing tool transliterate_text: script must be 'roman' or 'native'"
+        }
+      }
+    ]
+  },
+  {
+    "case_id": "transcribe_translate_transliterate_01",
+    "input_status": "missing fixture",
+    "modes": [
+      {
+        "dry_run": true,
+        "result": {
+          "isError": true,
+          "content": "Error executing tool transcribe_audio: File does not exist: /Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/audio/short_hi.wav"
+        }
+      },
+      {
+        "dry_run": false,
+        "result": {
+          "isError": true,
+          "content": "Error executing tool transcribe_audio: File does not exist: /Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/audio/short_hi.wav"
+        }
+      }
+    ]
+  },
+  {
+    "case_id": "ocr_translate_transliterate_01",
+    "input_status": "missing fixture",
+    "modes": [
+      {
+        "dry_run": true,
+        "result": {
+          "isError": true,
+          "content": "Error executing tool convert_pdf_to_images: File does not exist: /Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/documents/hindi_notice_scan.pdf"
+        }
+      },
+      {
+        "dry_run": false,
+        "result": {
+          "isError": true,
+          "content": "Error executing tool convert_pdf_to_images: File does not exist: /Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/documents/hindi_notice_scan.pdf"
+        }
+      }
+    ]
+  },
+  {
+    "case_id": "video_transcription_01",
+    "input_status": "video",
+    "modes": [
+      {
+        "dry_run": true,
+        "result": {
+          "isError": false,
+          "content": "{\n  \"dry_run\": true,\n  \"model\": \"indic-transcribe\",\n  \"quantity\": 0.1088,\n  \"unit\": \"audio_minute\",\n  \"estimated_cost_inr\": 0.01088,\n  \"rate\": {\n    \"per_audio_minute\": 0.1\n  },\n  \"duration_seconds\": 6.528,\n  \"chunk_count\": 1,\n  \"will_call_api\": false,\n  \"source_video\": \"/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/video/hindi_interview.mp4\"\n}"
+        }
+      },
+      {
+        "dry_run": false,
+        "result": {
+          "isError": false,
+          "content": "{\n  \"text\": \"नमस्ते आज हम गणित की कक्षा शुरू करेंगे कृपया अपनी पुस्तकें खोलिए और पहला पाठ पढ़िए\",\n  \"model\": \"indic-transcribe\",\n  \"duration_seconds\": 6.528,\n  \"chunks\": 1,\n  \"cache_hit\": true,\n  \"cost_inr\": 0.0,\n  \"source_video\": \"/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/video/hindi_interview.mp4\"\n}"
+        }
+      }
+    ]
+  },
+  {
+    "case_id": "video_translation_dub_01",
+    "input_status": "video",
+    "modes": [
+      {
+        "dry_run": true,
+        "step": "extract_video_audio",
+        "result": {
+          "isError": false,
+          "content": "{\n  \"source_video\": \"/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/video/hindi_interview.mp4\",\n  \"audio_file\": \"/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/outputs/compare_source.wav\",\n  \"duration_seconds\": 6.528,\n  \"size_bytes\": 208974,\n  \"format\": \"wav_pcm_s16le_16khz_mono\",\n  \"cost_inr\": 0.0\n}"
+        }
+      },
+      {
+        "dry_run": true,
+        "step": "transcribe_video",
+        "result": {
+          "isError": false,
+          "content": "{\n  \"dry_run\": true,\n  \"model\": \"indic-transcribe\",\n  \"quantity\": 0.1088,\n  \"unit\": \"audio_minute\",\n  \"estimated_cost_inr\": 0.01088,\n  \"rate\": {\n    \"per_audio_minute\": 0.1\n  },\n  \"duration_seconds\": 6.528,\n  \"chunk_count\": 1,\n  \"will_call_api\": false,\n  \"source_video\": \"/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/video/hindi_interview.mp4\"\n}"
+        }
+      },
+      {
+        "dry_run": true,
+        "step": "translate_text",
+        "result": {
+          "isError": false,
+          "content": "{\n  \"dry_run\": true,\n  \"model\": \"indic-translate\",\n  \"quantity\": 250,\n  \"unit\": \"output_token\",\n  \"estimated_cost_inr\": 0.005,\n  \"rate\": {\n    \"per_10k_output_tokens\": 0.2\n  },\n  \"quantity_basis\": \"caller estimate\",\n  \"will_call_api\": false\n}"
+        }
+      },
+      {
+        "dry_run": false,
+        "step": "transcribe_video",
+        "result": {
+          "isError": false,
+          "content": "{\n  \"text\": \"नमस्ते आज हम गणित की कक्षा शुरू करेंगे कृपया अपनी पुस्तकें खोलिए और पहला पाठ पढ़िए\",\n  \"model\": \"indic-transcribe\",\n  \"duration_seconds\": 6.528,\n  \"chunks\": 1,\n  \"cache_hit\": true,\n  \"cost_inr\": 0.0,\n  \"source_video\": \"/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/video/hindi_interview.mp4\"\n}"
+        }
+      },
+      {
+        "dry_run": false,
+        "step": "translate_text",
+        "result": {
+          "isError": true,
+          "content": "Error executing tool translate_text: Bodhan returned HTTP 404: {\"detail\":\"Not Found\"}"
+        }
+      }
+    ]
+  },
+  {
+    "case_id": "video_translation_high_level_01",
+    "input_status": "video; voice library incomplete",
+    "modes": [
+      {
+        "dry_run": true,
+        "result": {
+          "isError": true,
+          "content": "Error executing tool translate_video: Voice reference library has an unsupported schema or no voice embeddings"
+        }
+      },
+      {
+        "dry_run": false,
+        "result": {
+          "isError": true,
+          "content": "Error executing tool translate_video: Voice reference library has an unsupported schema or no voice embeddings"
+        }
+      }
+    ]
+  }
+]

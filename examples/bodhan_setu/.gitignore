@@ -6,3 +6,6 @@ outputs/*
 cache/
 eval_results/
 hf_export/
+eval-results/
+evals/media/
+evals/huggingface/media/

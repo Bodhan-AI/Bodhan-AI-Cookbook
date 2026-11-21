@@ -6,230 +6,230 @@ from typing_extensions import TypedDict
 
 
 class CostEstimate(TypedDict, total=False):
-    model: str
-    quantity: float
-    unit: str
-    estimated_cost_inr: float
-    rate: dict[str, float]
-    quantity_basis: str
+    model: str | None
+    quantity: float | None
+    unit: str | None
+    estimated_cost_inr: float | None
+    rate: dict[str, float] | None
+    quantity_basis: str | None
 
 
 class FileReference(TypedDict, total=False):
-    file_id: str
-    media_type: str
-    size_bytes: int
-    expires_in_seconds: int
+    file_id: str | None
+    media_type: str | None
+    size_bytes: int | None
+    expires_in_seconds: int | None
 
 
 class PageArtifact(FileReference, total=False):
-    page: int
-    file_path: str
-    width: int
-    height: int
+    page: int | None
+    file_path: str | None
+    width: int | None
+    height: int | None
 
 
 class AudioChunk(FileReference, total=False):
-    index: int
-    file_path: str
-    start_seconds: float
-    end_seconds: float
-    duration_seconds: float
+    index: int | None
+    file_path: str | None
+    start_seconds: float | None
+    end_seconds: float | None
+    duration_seconds: float | None
 
 
 class SelectedVoice(TypedDict, total=False):
-    voice: str
-    language: str
-    gender: str
+    voice: str | None
+    language: str | None
+    gender: str | None
     distance: float | None
     similarity_score: float | None
-    method: str
-    match_note: str
+    method: str | None
+    match_note: str | None
 
 
 class CommonResult(TypedDict, total=False):
-    dry_run: bool
-    will_call_api: bool
-    model: str
-    estimated_cost_inr: float
-    quantity: float
-    unit: str
-    rate: dict[str, float]
-    quantity_basis: str
-    chunk_count: int
-    cost_inr: float
-    cost_note: str
-    cache_hit: bool
+    dry_run: bool | None
+    will_call_api: bool | None
+    model: str | None
+    estimated_cost_inr: float | None
+    quantity: float | None
+    unit: str | None
+    rate: dict[str, float] | None
+    quantity_basis: str | None
+    chunk_count: int | None
+    cost_inr: float | None
+    cost_note: str | None
+    cache_hit: bool | None
 
 
 class ConvertPdfResult(CommonResult, total=False):
-    source_file: str
-    output_dir: str
-    page_count: int
-    dpi: int
-    image_format: str
-    pages: list[PageArtifact]
+    source_file: str | None
+    output_dir: str | None
+    page_count: int | None
+    dpi: int | None
+    image_format: str | None
+    pages: list[PageArtifact] | None
 
 
 class ChunkAudioResult(CommonResult, total=False):
-    source_file: str
-    output_dir: str
-    duration_seconds: float
-    smart_chunking: bool
-    max_chunk_seconds: int
+    source_file: str | None
+    output_dir: str | None
+    duration_seconds: float | None
+    smart_chunking: bool | None
+    max_chunk_seconds: int | None
     vad_method: str | None
-    chunks: list[AudioChunk]
+    chunks: list[AudioChunk] | None
 
 
 class TranscribeAudioResult(CommonResult, total=False):
-    text: str
-    source_file: str
-    duration_seconds: float
-    chunks: int
+    text: str | None
+    source_file: str | None
+    duration_seconds: float | None
+    chunks: int | None
     language_code_supplied: str | None
-    language_mode: str
+    language_mode: str | None
     language_detection_note: str | None
-    file_id: str
-    media_type: str
-    size_bytes: int
-    expires_in_seconds: int
+    file_id: str | None
+    media_type: str | None
+    size_bytes: int | None
+    expires_in_seconds: int | None
 
 
 class TranscribeVideoResult(TranscribeAudioResult, total=False):
-    source_video: str
+    source_video: str | None
 
 
 class ExtractVideoAudioResult(CommonResult, total=False):
-    source_video: str
-    audio_file: str
-    duration_seconds: float
-    format: str
-    file_id: str
-    media_type: str
-    size_bytes: int
-    expires_in_seconds: int
+    source_video: str | None
+    audio_file: str | None
+    duration_seconds: float | None
+    format: str | None
+    file_id: str | None
+    media_type: str | None
+    size_bytes: int | None
+    expires_in_seconds: int | None
 
 
 class ReplaceVideoAudioResult(CommonResult, total=False):
-    output_file: str
-    size_bytes: int
-    video_duration_seconds: float
-    replacement_audio_duration_seconds: float
-    duration_strategy: str
-    file_id: str
-    media_type: str
-    expires_in_seconds: int
-    source_video: str
-    replacement_audio: str
+    output_file: str | None
+    size_bytes: int | None
+    video_duration_seconds: float | None
+    replacement_audio_duration_seconds: float | None
+    duration_strategy: str | None
+    file_id: str | None
+    media_type: str | None
+    expires_in_seconds: int | None
+    source_video: str | None
+    replacement_audio: str | None
 
 
 class TranslateVideoResult(CommonResult, total=False):
-    source_video: str
-    output_file: str
-    size_bytes: int
-    video_duration_seconds: float
-    replacement_audio_duration_seconds: float
-    duration_strategy: str
-    duration_seconds: float
-    selected_voice: SelectedVoice
-    cost_estimates: list[CostEstimate]
-    known_estimated_total_inr: float
-    estimated_total_inr: float
-    estimate_complete: bool
+    source_video: str | None
+    output_file: str | None
+    size_bytes: int | None
+    video_duration_seconds: float | None
+    replacement_audio_duration_seconds: float | None
+    duration_strategy: str | None
+    duration_seconds: float | None
+    selected_voice: SelectedVoice | None
+    cost_estimates: list[CostEstimate] | None
+    known_estimated_total_inr: float | None
+    estimated_total_inr: float | None
+    estimate_complete: bool | None
     estimate_note: str | None
-    transcript: str
-    translation: str
-    target_language: str
-    steps: dict[str, object]
-    file_id: str
-    media_type: str
-    expires_in_seconds: int
+    transcript: str | None
+    translation: str | None
+    target_language: str | None
+    steps: dict[str, object] | None
+    file_id: str | None
+    media_type: str | None
+    expires_in_seconds: int | None
 
 
 class TranslateAudioResult(CommonResult, total=False):
-    source_file: str
-    output_file: str
-    duration_seconds: float
-    speech_regions: int
-    translated_regions: int
-    target_language: str
-    selected_voice: SelectedVoice
-    cost_estimates: list[CostEstimate]
-    known_estimated_total_inr: float
-    estimated_total_inr: float
-    estimate_complete: bool
+    source_file: str | None
+    output_file: str | None
+    duration_seconds: float | None
+    speech_regions: int | None
+    translated_regions: int | None
+    target_language: str | None
+    selected_voice: SelectedVoice | None
+    cost_estimates: list[CostEstimate] | None
+    known_estimated_total_inr: float | None
+    estimated_total_inr: float | None
+    estimate_complete: bool | None
     estimate_note: str | None
-    file_id: str
-    media_type: str
-    size_bytes: int
-    expires_in_seconds: int
-    transcript: str
-    translation: str
-    note: str
+    file_id: str | None
+    media_type: str | None
+    size_bytes: int | None
+    expires_in_seconds: int | None
+    transcript: str | None
+    translation: str | None
+    note: str | None
 
 
 class TranslateTextResult(CommonResult, total=False):
-    translation: str
-    target_language: str
-    script: str
-    truncated: bool
-    source_language_mode: str
-    chunk_limit_chars: int
-    translated_chunks: int
-    file_id: str
-    media_type: str
-    size_bytes: int
-    expires_in_seconds: int
-    translation_truncated: bool
-    translation_total_characters: int
+    translation: str | None
+    target_language: str | None
+    script: str | None
+    truncated: bool | None
+    source_language_mode: str | None
+    chunk_limit_chars: int | None
+    translated_chunks: int | None
+    file_id: str | None
+    media_type: str | None
+    size_bytes: int | None
+    expires_in_seconds: int | None
+    translation_truncated: bool | None
+    translation_total_characters: int | None
 
 
 class TransliterateTextResult(CommonResult, total=False):
-    transliteration: str
-    language: str
-    script: str
-    truncated: bool
-    file_id: str
-    media_type: str
-    size_bytes: int
-    expires_in_seconds: int
-    transliteration_truncated: bool
-    transliteration_total_characters: int
+    transliteration: str | None
+    language: str | None
+    script: str | None
+    truncated: bool | None
+    file_id: str | None
+    media_type: str | None
+    size_bytes: int | None
+    expires_in_seconds: int | None
+    transliteration_truncated: bool | None
+    transliteration_total_characters: int | None
 
 
 class SynthesizeSpeechResult(CommonResult, total=False):
-    output_file: str
-    size_bytes: int
-    model: str
-    ai_generated: bool
-    chunks: int
-    characters: int
-    file_id: str
-    media_type: str
-    expires_in_seconds: int
+    output_file: str | None
+    size_bytes: int | None
+    model: str | None
+    ai_generated: bool | None
+    chunks: int | None
+    characters: int | None
+    file_id: str | None
+    media_type: str | None
+    expires_in_seconds: int | None
 
 
 class OcrDocumentResult(CommonResult, total=False):
-    output_file: str
-    characters: int
-    pages: int
-    script_mode: str
+    output_file: str | None
+    characters: int | None
+    pages: int | None
+    script_mode: str | None
     detected_language: str | None
     language_detection_note: str | None
-    page_count: int
-    file_id: str
-    media_type: str
-    size_bytes: int
-    expires_in_seconds: int
+    page_count: int | None
+    file_id: str | None
+    media_type: str | None
+    size_bytes: int | None
+    expires_in_seconds: int | None
 
 
 class GetFileResult(TypedDict, total=False):
-    file_ref: str
-    media_type: str
-    size_bytes: int
-    is_text: bool
+    file_ref: str | None
+    media_type: str | None
+    size_bytes: int | None
+    is_text: bool | None
     download_url: str | None
-    note: str
-    total_characters: int
-    offset: int
-    content: str
-    has_more: bool
+    note: str | None
+    total_characters: int | None
+    offset: int | None
+    content: str | None
+    has_more: bool | None

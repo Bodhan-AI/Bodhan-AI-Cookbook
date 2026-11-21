@@ -1,0 +1,19 @@
+{
+  "status": "completed",
+  "task": "Translate this notice into French.",
+  "started_at": "2026-11-21T16:43:56.479772+00:00",
+  "duration_seconds": 0.353,
+  "steps": 0,
+  "max_steps": 8,
+  "max_parallel_tools": 1,
+  "dry_run_only": false,
+  "max_cost_inr": 0.0,
+  "bodhan_cost_inr": 0.0,
+  "dry_run_estimated_cost_inr": 0,
+  "llm_cost_inr": null,
+  "stop_reason": "Requested target is not supported; stopped before paid model operations.",
+  "assumptions": [],
+  "verifications": [],
+  "artifacts": [],
+  "tool_events": []
+}

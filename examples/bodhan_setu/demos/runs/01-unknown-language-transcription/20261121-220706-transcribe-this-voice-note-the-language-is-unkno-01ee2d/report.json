@@ -1,0 +1,146 @@
+{
+  "status": "completed",
+  "task": "Transcribe this voice note; the language is unknown.",
+  "started_at": "2026-11-21T16:37:06.037217+00:00",
+  "duration_seconds": 15.566,
+  "steps": 3,
+  "max_steps": 12,
+  "max_parallel_tools": 1,
+  "dry_run_only": false,
+  "max_cost_inr": 1.0,
+  "bodhan_cost_inr": 0.0045,
+  "dry_run_estimated_cost_inr": 0.0045,
+  "llm_cost_inr": null,
+  "stop_reason": null,
+  "assumptions": [],
+  "verifications": [],
+  "artifacts": [
+    {
+      "path": "artifacts/01-fc0f833c-transcript-4a1d083344287218.txt",
+      "size_bytes": 90,
+      "media_type": "text/plain"
+    }
+  ],
+  "tool_events": [
+    {
+      "type": "tool_call",
+      "step": 1,
+      "tool": "transcribe_audio",
+      "arguments": {
+        "audio_file": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/audio/clip_ambiguous_01.wav",
+        "language": null,
+        "dry_run": true
+      },
+      "origin": "agent_preflight",
+      "parent_call_id": "call_xjj0f8tq",
+      "result": {
+        "dry_run": true,
+        "will_call_api": false,
+        "model": "indic-transcribe",
+        "estimated_cost_inr": 0.0045,
+        "quantity": 0.045000000000000005,
+        "unit": "audio_minute",
+        "rate": {
+          "per_audio_minute": 0.1
+        },
+        "quantity_basis": null,
+        "chunk_count": 1,
+        "cost_inr": null,
+        "cost_note": null,
+        "cache_hit": null,
+        "text": null,
+        "source_file": null,
+        "duration_seconds": 2.7,
+        "chunks": null,
+        "language_code_supplied": null,
+        "language_mode": null,
+        "language_detection_note": null,
+        "file_id": null,
+        "media_type": null,
+        "size_bytes": null,
+        "expires_in_seconds": null
+      },
+      "is_error": false,
+      "latency_seconds": 0.034,
+      "cost_inr": null,
+      "total_bodhan_cost_inr": 0.0
+    },
+    {
+      "type": "tool_call",
+      "step": 2,
+      "tool": "transcribe_audio",
+      "arguments": {
+        "audio_file": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/audio/clip_ambiguous_01.wav",
+        "language": null
+      },
+      "origin": "agent_paid_call",
+      "parent_call_id": "call_xjj0f8tq",
+      "result": {
+        "dry_run": null,
+        "will_call_api": null,
+        "model": "indic-transcribe",
+        "estimated_cost_inr": null,
+        "quantity": null,
+        "unit": null,
+        "rate": null,
+        "quantity_basis": null,
+        "chunk_count": null,
+        "cost_inr": 0.0045,
+        "cost_note": null,
+        "cache_hit": false,
+        "text": "विद्यालय आज दोपहर तीन बजे बंद होगा",
+        "source_file": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/audio/clip_ambiguous_01.wav",
+        "duration_seconds": 2.7,
+        "chunks": 1,
+        "language_code_supplied": null,
+        "language_mode": "vendor_auto_detect",
+        "language_detection_note": "Vendor auto-detection was requested; API does not return the detected language or confidence.",
+        "file_id": "setu:=zmgGBt6POnJ3UJlVrl5bvqiM",
+        "media_type": "text/plain; charset=utf-8",
+        "size_bytes": 90,
+        "expires_in_seconds": null
+      },
+      "is_error": false,
+      "latency_seconds": 0.688,
+      "cost_inr": 0.0045,
+      "total_bodhan_cost_inr": 0.0045
+    },
+    {
+      "type": "tool_call",
+      "step": 3,
+      "tool": "get_file",
+      "arguments": {
+        "file_ref": "setu:=zmgGBt6POnJ3UJlVrl5bvqiM",
+        "max_chars": 1000
+      },
+      "origin": "agent_internal",
+      "parent_call_id": null,
+      "result": {
+        "file_ref": "setu:=zmgGBt6POnJ3UJlVrl5bvqiM",
+        "media_type": "text/plain; charset=utf-8",
+        "size_bytes": 90,
+        "is_text": null,
+        "download_url": "http://127.0.0.1:58649/files/zmgGBt6POnJ3UJlVrl5bvqiM",
+        "note": null,
+        "total_characters": 34,
+        "offset": 0,
+        "content": "विद्यालय आज दोपहर तीन बजे बंद होगा",
+        "has_more": false
+      },
+      "is_error": false,
+      "latency_seconds": 0.011,
+      "cost_inr": null,
+      "total_bodhan_cost_inr": 0.0045
+    },
+    {
+      "type": "artifact_download",
+      "step": 3,
+      "file_id": "setu:=zmgGBt6POnJ3UJlVrl5bvqiM",
+      "path": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/demos/runs/01-unknown-language-transcription/20261121-220706-transcribe-this-voice-note-the-language-is-unkno-01ee2d/artifacts/01-fc0f833c-transcript-4a1d083344287218.txt",
+      "media_type": "text/plain; charset=utf-8",
+      "size_bytes": 90,
+      "latency_seconds": 0.001,
+      "cost_inr": 0.0
+    }
+  ]
+}

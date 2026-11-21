@@ -6,7 +6,7 @@ This benchmark measures which MCP tool catalog helps an agent complete language 
 
 - `design_tasks.jsonl`: task prompts with linked inputs, difficulty, limits, and verifier IDs, including transliteration-only and mixed translation/transliteration tasks.
 - `tool_catalogs.jsonl`: alternative MCP tool designs to compare (per-model tools, fine-grained primitives, and workflow-level tools).
-- `media_manifest.jsonl`: input-file paths, SHA-256 checksums, provenance, and ground truth. All task inputs are now included under `media/`.
+- `media_manifest.jsonl`: input-file paths, SHA-256 checksums, provenance, and ground truth. Synthetic media is hosted in the linked public Hugging Face dataset and fetched into the ignored local `media/` folder by `python prepare_media.py` or the task-agent eval runner.
 - `verifiers.jsonl`: machine-checkable final-state requirements.
 - `huggingface/`: versioned Dataset Viewer export published at [1rsh/bodhan-setu-mcp-evals](https://huggingface.co/datasets/1rsh/bodhan-setu-mcp-evals).
 
@@ -18,7 +18,7 @@ Measure task pass rate, correct tool selection, invalid arguments, unnecessary c
 
 ## Media
 
-Media exists to probe real MCP file-reference behavior and model-tool workflows. Regenerate the macOS synthetic fixtures with `swift generate_document_fixtures.swift "$PWD"`, `python generate_audio_fixtures.py`, then `python refresh_media_manifest.py` from this directory. The generators use local CoreText, built-in speech voices, and FFmpeg; they make no network or Bodhan API calls. Every asset must have a known task purpose, ground truth, checksum, provenance URL, and reuse license. Never attach unrelated assets just to inflate row count. Keep source media records distinct from task rows so the same media can support controlled variants without duplication.
+Media exists to probe real MCP file-reference behavior and model-tool workflows. Regenerate the macOS synthetic fixtures with `swift generate_document_fixtures.swift "$PWD"`, `python generate_audio_fixtures.py`, then `python refresh_media_manifest.py` from this directory. The generators use local CoreText, built-in speech voices, and FFmpeg; they make no network or Bodhan API calls. Every asset must have a known task purpose, ground truth, checksum, provenance URL, and reuse license. Never attach unrelated assets just to inflate row count. Keep source media records distinct from task rows so the same media can support controlled variants without duplication. The Cookbook repository omits these binaries; `prepare_media.py` downloads and verifies them from Hugging Face.
 
 ## Hugging Face export
 

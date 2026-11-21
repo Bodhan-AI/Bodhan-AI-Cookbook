@@ -1,0 +1,445 @@
+{
+  "status": "completed",
+  "task": "Translate this English community-library notice into Hindi, then create a Hindi spoken audio version. Include the text and the WAV artifact.",
+  "started_at": "2026-11-21T16:47:44.991172+00:00",
+  "duration_seconds": 46.12,
+  "steps": 10,
+  "max_steps": 18,
+  "max_parallel_tools": 1,
+  "dry_run_only": false,
+  "max_cost_inr": 0.5,
+  "bodhan_cost_inr": 0.11288,
+  "dry_run_estimated_cost_inr": 0.11288,
+  "llm_cost_inr": null,
+  "stop_reason": null,
+  "assumptions": [],
+  "verifications": [
+    {
+      "tool": "translate_text",
+      "check": "translation_completeness_and_meaning",
+      "verdict": "pass",
+      "coverage": 1,
+      "meaning_preserved": true,
+      "issues": null,
+      "method": "LLM review; advisory, not native-speaker verification"
+    },
+    {
+      "tool": "synthesize_speech",
+      "check": "audio_back_transcription",
+      "verdict": "pass",
+      "similarity": 0.988,
+      "transcript_available": true,
+      "method": "Bodhan Indic-Transcribe plus normalized character similarity"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "artifacts/01-c9fdb25b-translation-b55280e1da66a6b6.txt",
+      "size_bytes": 404,
+      "media_type": "text/plain"
+    },
+    {
+      "path": "artifacts/02-b72fbb45-05-synthesize_speech-d73aeedc.wav",
+      "size_bytes": 589868,
+      "media_type": "audio/x-wav"
+    },
+    {
+      "path": "artifacts/03-7a86f0ea-transcript-93ebf66f63c0dbef.txt",
+      "size_bytes": 395,
+      "media_type": "text/plain"
+    },
+    {
+      "path": "artifacts/05-synthesize_speech-d73aeedc.wav",
+      "size_bytes": 589868,
+      "media_type": "audio/x-wav"
+    }
+  ],
+  "tool_events": [
+    {
+      "type": "tool_call",
+      "step": 1,
+      "tool": "get_file",
+      "arguments": {
+        "file_ref": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/text/notice_01.txt"
+      },
+      "origin": "llm_tool_call",
+      "parent_call_id": "call_qpk5qnpg",
+      "result": {
+        "file_ref": "setu:=T4X3fDH-xnQ-13s37-A_A2UG",
+        "media_type": "text/plain",
+        "size_bytes": 138,
+        "is_text": null,
+        "download_url": "http://127.0.0.1:59230/files/T4X3fDH-xnQ-13s37-A_A2UG",
+        "note": null,
+        "total_characters": 138,
+        "offset": 0,
+        "content": "The community library opens at eight and closes at six. Students may borrow books Monday through Friday. Please return each book on time.\n",
+        "has_more": false
+      },
+      "is_error": false,
+      "latency_seconds": 0.025,
+      "cost_inr": null,
+      "total_bodhan_cost_inr": 0.0
+    },
+    {
+      "type": "tool_call",
+      "step": 2,
+      "tool": "translate_text",
+      "arguments": {
+        "text": "The community library opens at eight and closes at six. Students may borrow books Monday through Friday. Please return each book on time.",
+        "target_language": "hi",
+        "dry_run": true
+      },
+      "origin": "agent_preflight",
+      "parent_call_id": "call_4l1onhib",
+      "result": {
+        "dry_run": true,
+        "will_call_api": false,
+        "model": null,
+        "estimated_cost_inr": 0.0,
+        "quantity": 137.0,
+        "unit": "output_token",
+        "rate": null,
+        "quantity_basis": "exact model request is already cached",
+        "chunk_count": 1,
+        "cost_inr": null,
+        "cost_note": null,
+        "cache_hit": true,
+        "translation": null,
+        "target_language": null,
+        "script": null,
+        "truncated": null,
+        "source_language_mode": null,
+        "chunk_limit_chars": 8000,
+        "translated_chunks": null,
+        "file_id": null,
+        "media_type": null,
+        "size_bytes": null,
+        "expires_in_seconds": null,
+        "translation_truncated": null,
+        "translation_total_characters": null
+      },
+      "is_error": false,
+      "latency_seconds": 0.035,
+      "cost_inr": null,
+      "total_bodhan_cost_inr": 0.0
+    },
+    {
+      "type": "tool_call",
+      "step": 3,
+      "tool": "translate_text",
+      "arguments": {
+        "text": "The community library opens at eight and closes at six. Students may borrow books Monday through Friday. Please return each book on time.",
+        "target_language": "hi"
+      },
+      "origin": "agent_paid_call",
+      "parent_call_id": "call_4l1onhib",
+      "result": {
+        "dry_run": null,
+        "will_call_api": null,
+        "model": "indic-translate",
+        "estimated_cost_inr": null,
+        "quantity": null,
+        "unit": null,
+        "rate": null,
+        "quantity_basis": null,
+        "chunk_count": 1,
+        "cost_inr": 0.0,
+        "cost_note": null,
+        "cache_hit": true,
+        "translation": "सामुदायिक पुस्तकालय आठ बजे खुलता है और छह बजे बंद हो जाता है। छात्र सोमवार से शुक्रवार तक किताबें उधार ले सकते हैं। कृपया प्रत्येक पुस्तक समय पर लौटा दें।",
+        "target_language": "hi",
+        "script": "native",
+        "truncated": false,
+        "source_language_mode": "vendor_auto_detect",
+        "chunk_limit_chars": null,
+        "translated_chunks": 1,
+        "file_id": "setu:=rywe_GIddMJSpgWR5geRJNtY",
+        "media_type": "text/plain; charset=utf-8",
+        "size_bytes": 404,
+        "expires_in_seconds": null,
+        "translation_truncated": null,
+        "translation_total_characters": null
+      },
+      "is_error": false,
+      "latency_seconds": 0.023,
+      "cost_inr": 0.0,
+      "total_bodhan_cost_inr": 0.0
+    },
+    {
+      "type": "tool_call",
+      "step": 4,
+      "tool": "get_file",
+      "arguments": {
+        "file_ref": "setu:=rywe_GIddMJSpgWR5geRJNtY",
+        "max_chars": 1000
+      },
+      "origin": "agent_internal",
+      "parent_call_id": null,
+      "result": {
+        "file_ref": "setu:=rywe_GIddMJSpgWR5geRJNtY",
+        "media_type": "text/plain; charset=utf-8",
+        "size_bytes": 404,
+        "is_text": null,
+        "download_url": "http://127.0.0.1:59230/files/rywe_GIddMJSpgWR5geRJNtY",
+        "note": null,
+        "total_characters": 154,
+        "offset": 0,
+        "content": "सामुदायिक पुस्तकालय आठ बजे खुलता है और छह बजे बंद हो जाता है। छात्र सोमवार से शुक्रवार तक किताबें उधार ले सकते हैं। कृपया प्रत्येक पुस्तक समय पर लौटा दें।",
+        "has_more": false
+      },
+      "is_error": false,
+      "latency_seconds": 0.009,
+      "cost_inr": null,
+      "total_bodhan_cost_inr": 0.0
+    },
+    {
+      "type": "artifact_download",
+      "step": 4,
+      "file_id": "setu:=rywe_GIddMJSpgWR5geRJNtY",
+      "path": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/demos/runs/11-notice-hindi-speech-repaired/20261121-221744-translate-this-english-community-library-notice--f1f0a6/artifacts/01-c9fdb25b-translation-b55280e1da66a6b6.txt",
+      "media_type": "text/plain; charset=utf-8",
+      "size_bytes": 404,
+      "latency_seconds": 0.001,
+      "cost_inr": 0.0
+    },
+    {
+      "type": "tool_call",
+      "step": 5,
+      "tool": "synthesize_speech",
+      "arguments": {
+        "text": "सामुदायिक पुस्तकालय आठ बजे खुलता है और छह बजे बंद हो जाता है। छात्र सोमवार से शुक्रवार तक किताबें उधार ले सकते हैं। कृपया प्रत्येक पुस्तक समय पर लौटा दें।",
+        "language": "hi",
+        "voice": "Ankur",
+        "output_file": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/demos/runs/11-notice-hindi-speech-repaired/20261121-221744-translate-this-english-community-library-notice--f1f0a6/artifacts/05-synthesize_speech-d73aeedc.wav",
+        "dry_run": true
+      },
+      "origin": "agent_preflight",
+      "parent_call_id": "call_jsy6vfam",
+      "result": {
+        "dry_run": true,
+        "will_call_api": false,
+        "model": "indic-speak",
+        "estimated_cost_inr": 0.0924,
+        "quantity": 154.0,
+        "unit": "character",
+        "rate": {
+          "per_10k_characters": 6.0
+        },
+        "quantity_basis": null,
+        "chunk_count": 1,
+        "cost_inr": null,
+        "cost_note": null,
+        "cache_hit": null,
+        "output_file": null,
+        "size_bytes": null,
+        "ai_generated": null,
+        "chunks": null,
+        "characters": null,
+        "file_id": null,
+        "media_type": null,
+        "expires_in_seconds": null
+      },
+      "is_error": false,
+      "latency_seconds": 0.03,
+      "cost_inr": null,
+      "total_bodhan_cost_inr": 0.0
+    },
+    {
+      "type": "tool_call",
+      "step": 6,
+      "tool": "synthesize_speech",
+      "arguments": {
+        "text": "सामुदायिक पुस्तकालय आठ बजे खुलता है और छह बजे बंद हो जाता है। छात्र सोमवार से शुक्रवार तक किताबें उधार ले सकते हैं। कृपया प्रत्येक पुस्तक समय पर लौटा दें।",
+        "language": "hi",
+        "voice": "Ankur",
+        "output_file": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/demos/runs/11-notice-hindi-speech-repaired/20261121-221744-translate-this-english-community-library-notice--f1f0a6/artifacts/05-synthesize_speech-d73aeedc.wav"
+      },
+      "origin": "agent_paid_call",
+      "parent_call_id": "call_jsy6vfam",
+      "result": {
+        "dry_run": null,
+        "will_call_api": null,
+        "model": "indic-speak",
+        "estimated_cost_inr": null,
+        "quantity": null,
+        "unit": null,
+        "rate": null,
+        "quantity_basis": null,
+        "chunk_count": null,
+        "cost_inr": 0.0924,
+        "cost_note": null,
+        "cache_hit": false,
+        "output_file": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/demos/runs/11-notice-hindi-speech-repaired/20261121-221744-translate-this-english-community-library-notice--f1f0a6/artifacts/05-synthesize_speech-d73aeedc.wav",
+        "size_bytes": 589868,
+        "ai_generated": true,
+        "chunks": 1,
+        "characters": 154,
+        "file_id": "setu:=4RhYqNrMRSYOvL68daf2CloI",
+        "media_type": "audio/x-wav",
+        "expires_in_seconds": null
+      },
+      "is_error": false,
+      "latency_seconds": 12.888,
+      "cost_inr": 0.0924,
+      "total_bodhan_cost_inr": 0.0924
+    },
+    {
+      "type": "tool_call",
+      "step": 7,
+      "tool": "get_file",
+      "arguments": {
+        "file_ref": "setu:=4RhYqNrMRSYOvL68daf2CloI",
+        "max_chars": 1000
+      },
+      "origin": "agent_internal",
+      "parent_call_id": null,
+      "result": {
+        "file_ref": "setu:=4RhYqNrMRSYOvL68daf2CloI",
+        "media_type": "audio/x-wav",
+        "size_bytes": 589868,
+        "is_text": false,
+        "download_url": "http://127.0.0.1:59230/files/4RhYqNrMRSYOvL68daf2CloI",
+        "note": "Binary bytes are available at the localhost download URL; the tool response omits base64 data.",
+        "total_characters": null,
+        "offset": null,
+        "content": null,
+        "has_more": null
+      },
+      "is_error": false,
+      "latency_seconds": 0.01,
+      "cost_inr": null,
+      "total_bodhan_cost_inr": 0.0924
+    },
+    {
+      "type": "artifact_download",
+      "step": 7,
+      "file_id": "setu:=4RhYqNrMRSYOvL68daf2CloI",
+      "path": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/demos/runs/11-notice-hindi-speech-repaired/20261121-221744-translate-this-english-community-library-notice--f1f0a6/artifacts/02-b72fbb45-05-synthesize_speech-d73aeedc.wav",
+      "media_type": "audio/x-wav",
+      "size_bytes": 589868,
+      "latency_seconds": 0.001,
+      "cost_inr": 0.0
+    },
+    {
+      "type": "tool_call",
+      "step": 8,
+      "tool": "transcribe_audio",
+      "arguments": {
+        "audio_file": "setu:=4RhYqNrMRSYOvL68daf2CloI",
+        "language": "hi",
+        "dry_run": true
+      },
+      "origin": "agent_preflight",
+      "parent_call_id": null,
+      "result": {
+        "dry_run": true,
+        "will_call_api": false,
+        "model": "indic-transcribe",
+        "estimated_cost_inr": 0.02048,
+        "quantity": 0.2048,
+        "unit": "audio_minute",
+        "rate": {
+          "per_audio_minute": 0.1
+        },
+        "quantity_basis": null,
+        "chunk_count": 1,
+        "cost_inr": null,
+        "cost_note": null,
+        "cache_hit": null,
+        "text": null,
+        "source_file": null,
+        "duration_seconds": 12.288,
+        "chunks": null,
+        "language_code_supplied": null,
+        "language_mode": null,
+        "language_detection_note": null,
+        "file_id": null,
+        "media_type": null,
+        "size_bytes": null,
+        "expires_in_seconds": null
+      },
+      "is_error": false,
+      "latency_seconds": 0.02,
+      "cost_inr": null,
+      "total_bodhan_cost_inr": 0.0924
+    },
+    {
+      "type": "tool_call",
+      "step": 9,
+      "tool": "transcribe_audio",
+      "arguments": {
+        "audio_file": "setu:=4RhYqNrMRSYOvL68daf2CloI",
+        "language": "hi"
+      },
+      "origin": "agent_paid_call",
+      "parent_call_id": null,
+      "result": {
+        "dry_run": null,
+        "will_call_api": null,
+        "model": "indic-transcribe",
+        "estimated_cost_inr": null,
+        "quantity": null,
+        "unit": null,
+        "rate": null,
+        "quantity_basis": null,
+        "chunk_count": null,
+        "cost_inr": 0.02048,
+        "cost_note": null,
+        "cache_hit": false,
+        "text": "सामुदायिक पुस्तकालय आठ बजे खुलता है और छह बजे बंद हो जाता है छात्र सोमवार से शुक्रवार तक किताबें उधार ले सकते हैं कृपया प्रत्येक पुस्तक समय पर लौटा दें",
+        "source_file": "/Users/irsh/.cache/bodhan-setu/artifacts/4RhYqNrMRSYOvL68daf2CloI.wav",
+        "duration_seconds": 12.288,
+        "chunks": 1,
+        "language_code_supplied": "hi",
+        "language_mode": "caller_supplied",
+        "language_detection_note": null,
+        "file_id": "setu:=kqEFz867YMQuNBkY1CilMlTN",
+        "media_type": "text/plain; charset=utf-8",
+        "size_bytes": 395,
+        "expires_in_seconds": null
+      },
+      "is_error": false,
+      "latency_seconds": 1.377,
+      "cost_inr": 0.02048,
+      "total_bodhan_cost_inr": 0.11288
+    },
+    {
+      "type": "tool_call",
+      "step": 10,
+      "tool": "get_file",
+      "arguments": {
+        "file_ref": "setu:=kqEFz867YMQuNBkY1CilMlTN",
+        "max_chars": 1000
+      },
+      "origin": "agent_internal",
+      "parent_call_id": null,
+      "result": {
+        "file_ref": "setu:=kqEFz867YMQuNBkY1CilMlTN",
+        "media_type": "text/plain; charset=utf-8",
+        "size_bytes": 395,
+        "is_text": null,
+        "download_url": "http://127.0.0.1:59230/files/kqEFz867YMQuNBkY1CilMlTN",
+        "note": null,
+        "total_characters": 151,
+        "offset": 0,
+        "content": "सामुदायिक पुस्तकालय आठ बजे खुलता है और छह बजे बंद हो जाता है छात्र सोमवार से शुक्रवार तक किताबें उधार ले सकते हैं कृपया प्रत्येक पुस्तक समय पर लौटा दें",
+        "has_more": false
+      },
+      "is_error": false,
+      "latency_seconds": 0.009,
+      "cost_inr": null,
+      "total_bodhan_cost_inr": 0.11288
+    },
+    {
+      "type": "artifact_download",
+      "step": 10,
+      "file_id": "setu:=kqEFz867YMQuNBkY1CilMlTN",
+      "path": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/demos/runs/11-notice-hindi-speech-repaired/20261121-221744-translate-this-english-community-library-notice--f1f0a6/artifacts/03-7a86f0ea-transcript-93ebf66f63c0dbef.txt",
+      "media_type": "text/plain; charset=utf-8",
+      "size_bytes": 395,
+      "latency_seconds": 0.002,
+      "cost_inr": 0.0
+    }
+  ]
+}
