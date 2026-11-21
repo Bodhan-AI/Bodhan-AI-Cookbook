@@ -143,6 +143,13 @@ else:
 st.sidebar.caption("• **TTS:** Bodhan `indic-speak`")
 
 # Session state initialization
+if "current_lang" not in st.session_state:
+    st.session_state.current_lang = lang_code
+elif st.session_state.current_lang != lang_code:
+    st.session_state.selected_tokens = []
+    st.session_state.expanded_sentence = ""
+    st.session_state.current_lang = lang_code
+
 if "last_audio" not in st.session_state:
     st.session_state.last_audio = None
 if "last_meta" not in st.session_state:
@@ -257,7 +264,7 @@ with tab_telegraphic:
         "will dynamically expand them into a complete, fluent sentence."
     )
 
-    concept_dict = SvaraClient.get_concept_tokens()
+    concept_dict = SvaraClient.get_concept_tokens(lang=lang_code)
     cols_tok = st.columns(len(concept_dict))
 
     for col, (category, tokens) in zip(cols_tok, concept_dict.items()):

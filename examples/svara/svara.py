@@ -339,12 +339,52 @@ MULTILINGUAL_BOARDS: dict[str, list[dict[str, Any]]] = {
 
 DEFAULT_CATEGORIES = MULTILINGUAL_BOARDS["hi"]
 
-CONCEPT_TOKENS: dict[str, list[str]] = {
-    "Need & Object": ["Paani (Water)", "Khana (Food)", "Dawa (Medicine)", "Aaram (Rest)", "Washroom"],
-    "Descriptor": ["Thanda (Cold)", "Garam (Warm)", "Thoda (A little)", "Jaldi (Urgent)", "Bahut (Severe)"],
-    "Action & Intent": ["Chahiye (Want)", "Dard (Pain)", "Jaana hai (Go)", "Madad (Help)", "Kripya (Please)"],
-    "Person": ["Main (I)", "Doctor", "Caregiver", "Nurse"],
+MULTILINGUAL_CONCEPT_TOKENS: dict[str, dict[str, list[str]]] = {
+    "hi": {
+        "Need & Object": ["पानी (Water)", "खाना (Food)", "दवा (Medicine)", "आराम (Rest)", "Washroom"],
+        "Descriptor": ["ठंडा (Cold)", "गरम (Warm)", "थोड़ा (A little)", "जल्दी (Urgent)", "बहुत (Severe)"],
+        "Action & Intent": ["चाहिए (Want)", "दर्द (Pain)", "जाना है (Go)", "मदद (Help)", "कृपया (Please)"],
+        "Person": ["मैं (I)", "Doctor", "Caregiver", "Nurse"],
+    },
+    "mr": {
+        "Need & Object": ["पाणी (Water)", "जेवण (Food)", "औषध (Medicine)", "विश्रांती (Rest)", "Washroom"],
+        "Descriptor": ["गार (Cold)", "गरम (Warm)", "थोडं (A little)", "लवकर (Urgent)", "खूप (Severe)"],
+        "Action & Intent": ["हवं आहे (Want)", "त्रास / दुखणे (Pain)", "जायचं आहे (Go)", "मदत (Help)", "कृपया (Please)"],
+        "Person": ["मी (I)", "Doctor", "Caregiver", "Nurse"],
+    },
+    "bn": {
+        "Need & Object": ["জল (Water)", "খাবার (Food)", "ওষুধ (Medicine)", "বিশ্রাম (Rest)", "Washroom"],
+        "Descriptor": ["ঠান্ডা (Cold)", "গরম (Warm)", "একটু (A little)", "তাড়াতাড়ি (Urgent)", "খুব (Severe)"],
+        "Action & Intent": ["লাগবে (Want)", "ব্যথা (Pain)", "যেতে চাই (Go)", "সাহায্য (Help)", "দয়া করে (Please)"],
+        "Person": ["আমি (I)", "Doctor", "Caregiver", "Nurse"],
+    },
+    "ta": {
+        "Need & Object": ["தண்ணீர் (Water)", "சாப்பாடு (Food)", "மருந்து (Medicine)", "ஓய்வு (Rest)", "Washroom"],
+        "Descriptor": ["ஜில்லுன்னு (Cold)", "சூடான (Warm)", "கொஞ்சம் (A little)", "சீக்கிரம் (Urgent)", "ரொம்ப (Severe)"],
+        "Action & Intent": ["வேண்டும் (Want)", "வலி (Pain)", "போகணும் (Go)", "உதவி (Help)", "தயவுசெய்து (Please)"],
+        "Person": ["நான் (I)", "Doctor", "Caregiver", "Nurse"],
+    },
+    "te": {
+        "Need & Object": ["నీరు (Water)", "భోజనం (Food)", "మందు (Medicine)", "విశ్రాంతి (Rest)", "Washroom"],
+        "Descriptor": ["చల్లని (Cold)", "వేడి (Warm)", "కొంచెం (A little)", "త్వరగా (Urgent)", "చాలా (Severe)"],
+        "Action & Intent": ["కావాలి (Want)", "నొప్పి (Pain)", "వెళ్ళాలి (Go)", "సహాయం (Help)", "దయచేసి (Please)"],
+        "Person": ["నేను (I)", "Doctor", "Caregiver", "Nurse"],
+    },
+    "kn": {
+        "Need & Object": ["ನೀರು (Water)", "ಊಟ (Food)", "ಔಷಧಿ (Medicine)", "ವಿಶ್ರಾಂತಿ (Rest)", "Washroom"],
+        "Descriptor": ["ತಣ್ಣನೆಯ (Cold)", "ಬಿಸಿ (Warm)", "ಸ್ವಲ್ಪ (A little)", "ಬೇಗ (Urgent)", "ತುಂಬಾ (Severe)"],
+        "Action & Intent": ["ಬೇಕು (Want)", "ನೋವು (Pain)", "ಹೋಗಬೇಕು (Go)", "ಸಹಾಯ (Help)", "ದಯವಿಟ್ಟು (Please)"],
+        "Person": ["ನಾನು (I)", "Doctor", "Caregiver", "Nurse"],
+    },
+    "gu": {
+        "Need & Object": ["પાણી (Water)", "જમવાનું (Food)", "દવા (Medicine)", "આરામ (Rest)", "Washroom"],
+        "Descriptor": ["ઠંડુ (Cold)", "ગરમ (Warm)", "થોડું (A little)", "જલ્દી (Urgent)", "બહુ (Severe)"],
+        "Action & Intent": ["જોઈએ (Want)", "દુખાવો (Pain)", "જવું છે (Go)", "મદદ (Help)", "મહેરબાની (Please)"],
+        "Person": ["હું (I)", "Doctor", "Caregiver", "Nurse"],
+    },
 }
+
+CONCEPT_TOKENS = MULTILINGUAL_CONCEPT_TOKENS["hi"]
 
 
 class SvaraClient:
@@ -644,9 +684,9 @@ class SvaraClient:
         return sentence, time.perf_counter() - t0
 
     @staticmethod
-    def get_concept_tokens() -> dict[str, list[str]]:
-        """Return categorized tokens for telegraphic intent building."""
-        return dict(CONCEPT_TOKENS)
+    def get_concept_tokens(lang: str = "hi") -> dict[str, list[str]]:
+        """Return categorized tokens for telegraphic intent building in the selected language."""
+        return dict(MULTILINGUAL_CONCEPT_TOKENS.get(lang, MULTILINGUAL_CONCEPT_TOKENS["hi"]))
 
     @staticmethod
     def get_voices(lang: str = "hi") -> list[str]:
