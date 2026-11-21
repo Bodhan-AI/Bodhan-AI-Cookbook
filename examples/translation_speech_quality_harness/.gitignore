@@ -1,0 +1,22 @@
+# Environment and Python cache
+.env
+.venv/
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+node_modules/
+
+# Generated reports
+cost_report_test/
+*_report/
+report/
+speech_report/
+
+# Generated outputs and API cache
+outputs/*
+!outputs/.gitkeep
+
+# Sample datasets: include JSONL fixtures
+sample_data/*
+!sample_data/.gitkeep
+!sample_data/*.jsonlj
