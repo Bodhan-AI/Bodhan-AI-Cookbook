@@ -1,5 +1,5 @@
 {
-  "_comment": "Fresh held-out tasks h9-h14, written by an independent evaluator without reading the agent's prompts or code. Inputs are the existing sample_data files (paths relative to examples/indic_task_agent). `expect` uses only run_suite.py KNOWN_EXPECTATIONS keys; `manual_checks` is ignored by the scorer and lists what a human must still confirm. See FRESH_HELDOUT_TASKS.md for the rationale.",
+  "_comment": "Fresh held-out tasks h9-h14, written by a separate AI agent (Claude Opus) that had not seen our prompts or code. Inputs are the existing sample_data files (paths relative to examples/indic_task_agent). `expect` uses only run_suite.py KNOWN_EXPECTATIONS keys; `manual_checks` is ignored by the scorer and lists what a human must still confirm. See docs/evaluation.md, Tasks written by a separate AI agent (h9–h14), for the method and limitations.",
   "tasks": [
     {"id": "h9_write_out_recording",
      "task": "Can you write out what this recording says?", "files": ["sample_data/clips/clip_5.flac"], "max_steps": 10,

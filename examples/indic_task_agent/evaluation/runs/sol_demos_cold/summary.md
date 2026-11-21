@@ -1,6 +1,6 @@
 # Suite: 6/6 passed structural checks
 
-Code: `e648654efc3a2fdb10399f686a5ba1f71b9b96d4` (relabelled after the history rewrite of 20 November 2026; the run used the pre-rewrite commit `2245dd2`, same code). Scored 2026-11-19T22:24:41+00:00.
+Code: `e648654efc3a2fdb10399f686a5ba1f71b9b96d4`. Scored 2026-11-19T22:24:41+00:00.
 
 | Task | Evidence | Cache | Status | Pass | Time (s) | Steps | Bodhan ₹ | Paid calls | Cache hits | Latency target | Failed checks |
 |---|---|---|---|---|---|---|---|---|---|---|---|

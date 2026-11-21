@@ -29,7 +29,7 @@ The brief's six demo tasks, run cold (no cache) with `gpt-6.1-sol` as the planne
 | d5: Read this paragraph aloud in Bengali with a female voice | completed_with_warnings | 0.24 | 51 | [result](evaluation/runs/sol_demos_cold/d5_bengali_female_audio/result.md) · [trace](evaluation/runs/sol_demos_cold/d5_bengali_female_audio/trace.jsonl) · [audio](evaluation/runs/sol_demos_cold/d5_bengali_female_audio/MEDIA.md) |
 | d6: Translate this video into French (impossible: no French model) | unsupported | 0.00 | 9 | [result](evaluation/runs/sol_demos_cold/d6_video_french/result.md) · [trace](evaluation/runs/sol_demos_cold/d6_video_french/trace.jsonl) |
 
-The demo runs ran on `e648654`; every main task passed again on `92a3518` ([14/14](evaluation/runs/portability_gpt-6.1-sol/summary.md)), and the final source `9622a0d` changes only field-description and message wording (spot-checked).
+The demos ran on `e648654`; every main task passed again on `92a3518` ([14/14](evaluation/runs/portability_gpt-6.1-sol/summary.md)). The product changes since `92a3518` are wording-only (field descriptions and messages; the final source `9622a0d` was spot-checked); `c0afd6a` separately tightens scoring ([details](docs/evaluation.md#planner-portability)).
 
 Eight test tasks of my own (prompt injection, unstated language, missing file, budget too small and others), six more written by a separate AI agent (Claude Opus) that had not seen our prompts or code (first attempts: 4/6 with each of two planners, failures and fixes reported), and runs with other planners are in [docs/evaluation.md](docs/evaluation.md).
 
@@ -223,7 +223,7 @@ Claude Code (Claude Opus 5.5) was the coding assistant for design, implementatio
 
 ## Optional extras
 
-Every stretch goal in the brief is implemented, each with a test and a live run or transcript ([evidence](docs/evaluation.md#stretch-goals)):
+Every stretch goal in the brief is implemented and tested; the evidence table distinguishes live runs from offline subprocess checks (resuming after a kill is proven by offline subprocess kill/resume tests) ([evidence](docs/evaluation.md#stretch-goals)):
 
 - Streamable HTTP with token authentication: `python -m bodhan_mcp --transport http`.
 - MCP resources and a prompt: `bodhan://voices`, `bodhan://languages`, `bodhan://pricing`, `bodhan://errors` and `plan_media_task`.

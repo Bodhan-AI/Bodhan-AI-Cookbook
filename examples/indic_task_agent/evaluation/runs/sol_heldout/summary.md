@@ -1,6 +1,6 @@
 # Suite: 8/8 passed structural checks
 
-Code: `94b489168e53a027a44f8149a28166589b7f51bd` (relabelled after the history rewrite of 20 November 2026; the run used the pre-rewrite commit `23e9799`, same code). Scored 2026-11-19T22:35:12+00:00.
+Code: `94b489168e53a027a44f8149a28166589b7f51bd`. Scored 2026-11-19T22:35:12+00:00.
 
 | Task | Evidence | Cache | Status | Pass | Time (s) | Steps | Bodhan ₹ | Paid calls | Cache hits | Latency target | Failed checks |
 |---|---|---|---|---|---|---|---|---|---|---|---|

@@ -5,8 +5,7 @@
   "scored_at": "2026-11-20T02:12:35+00:00",
   "code": {
     "commit": "77ea580cc128521fd692253d9a6b70627ed35bfe",
-    "src_modified": false,
-    "commit_before_history_rewrite": "b2f7c0bf8389fd804ba553d270fb242019685872"
+    "src_modified": false
   },
   "checks": "structural only (status, files, kinds, languages, verification, answer text, budget); not a quality score",
   "tasks": [

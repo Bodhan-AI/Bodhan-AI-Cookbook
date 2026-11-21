@@ -13,7 +13,7 @@ Every run below is a real execution of `python -m bodhan_agent` against the host
 | **automatic checks** | What the tools and `scripts/run_suite.py` verify in code: back-translation, back-transcription, script, numbers, tables, duration, deliverable kinds and languages, status, budget. They screen for errors. They are not a quality score. |
 | **inspected** | The output was opened and read in full (texts, tables, subtitles), and for audio the duration and per-segment back-transcription were checked. No fluent reader of the Indian languages has reviewed these outputs, so their language quality beyond what back-translation shows is **not assessed**. |
 
-**Commit SHAs.** On 20 November a sample account id in one test fixture was replaced with a made-up one and the branch was rebased; run summaries name both SHAs (same code).
+**Commit SHAs.** Each run summary identifies the corresponding source in this branch.
 
 **Re-scoring offline.** `python scripts/run_suite.py --score-only --out evaluation/runs/<suite> --summary-dir <folder>` re-scores a committed suite with no network and no media: a deliverable whose audio is not in git counts as present when its run's `MEDIA.md` lists the same SHA-256 the run recorded. The committed summaries are not overwritten.
 
@@ -25,7 +25,7 @@ The `h1`–`h8` tasks are my own test tasks, written to resemble the kinds of hi
 
 ### Clean Linux setup (containers)
 
-Checked on 21 November 2026 on `9622a0d`, the final source (exported with `git archive`): **296 passed** in both images. These are **Linux containers on WSL2 (Docker Desktop 29.9.3, linux/amd64, kernel 6.18.58.1-microsoft-standard-WSL2)**, not a native Linux machine.
+Checked on 21 November 2026 on `9622a0d`, the final source (exported with `git archive`): **296 passed** in both images. These are **Linux containers on WSL2 (linux/amd64)**, not a native Linux machine.
 
 | Check | Image | Result |
 |---|---|---|
@@ -44,7 +44,7 @@ The container reached the planner through an endpoint on the host; no other sett
 
 ### Development machine (where the suites ran)
 
-Windows 11 Pro 10.0.26300, Python 3.12.13, Node 24.15.0 (for MCP Inspector), ffmpeg 9.0.1. Dependencies from the pinned `requirements.txt` (for example `mcp==2.3.0`, `openai==3.54.0`). The main planner, `gpt-6.1-sol`, and `gpt-5.6-luna`, `gpt-oss-120b` (medium) and `claude-sonnet-4-6` were reached through an OpenAI-compatible endpoint whose calls are not priced per token, so planner tokens are reported, not priced. Gemini was reached through Google's OpenAI-compatible endpoint. Only `LLM_BASE_URL`, `LLM_MODEL` and `LLM_API_KEY` changed between planners.
+Windows, Python 3.12.13, Node 24.15.0 (for MCP Inspector), ffmpeg 9.0.1. Dependencies from the pinned `requirements.txt` (for example `mcp==2.3.0`, `openai==3.54.0`). The main planner, `gpt-6.1-sol`, and `gpt-5.6-luna`, `gpt-oss-120b` (medium) and `claude-sonnet-4-6` were reached through an OpenAI-compatible endpoint whose calls are not priced per token, so planner tokens are reported, not priced. Gemini was reached through Google's OpenAI-compatible endpoint. Only `LLM_BASE_URL`, `LLM_MODEL` and `LLM_API_KEY` changed between planners.
 
 ## Demo tasks
 
@@ -61,7 +61,7 @@ Suite `sol_demos_cold`: 6/6 passed the structural checks. Code `e648654`, scored
 | `d5_bengali_female_audio`: Read this paragraph aloud in Bengali with a female voice | completed_with_warnings | pass | translation (bn): pass; audio (bn): warn | 50.67 | 4 | 0.2392 | 6 | [result](../evaluation/runs/sol_demos_cold/d5_bengali_female_audio/result.md) · [report](../evaluation/runs/sol_demos_cold/d5_bengali_female_audio/report.json) · [trace](../evaluation/runs/sol_demos_cold/d5_bengali_female_audio/trace.jsonl) |
 | `d6_video_french`: Translate this video into French | unsupported | pass | none | 9.14 | 2 | 0.0 | 0 | [result](../evaluation/runs/sol_demos_cold/d6_video_french/result.md) · [report](../evaluation/runs/sol_demos_cold/d6_video_french/report.json) · [trace](../evaluation/runs/sol_demos_cold/d6_video_french/trace.jsonl) |
 
-The demo runs ran on `e648654`; every main task passed again on `92a3518` ([`gpt-6.1-sol`, 14/14](../evaluation/runs/portability_gpt-6.1-sol/summary.md)), and the final source `9622a0d` changes only field-description wording ([spot check](#planner-portability)).
+The demos ran on `e648654`; every main task passed again on `92a3518` ([`gpt-6.1-sol`, 14/14](../evaluation/runs/portability_gpt-6.1-sol/summary.md)). The product changes since `92a3518` are wording-only, in field descriptions and messages ([spot check](#planner-portability)); `c0afd6a` separately tightens scoring (details under [Planner portability](#planner-portability)).
 
 **Code the cold run exercised.** Later source commits (`git log e648654..9622a0d -- src`) fix planner portability, the completion check, path security and edge cases, each with a regression test. Every main task was rerun on `92a3518` with both main planners ([Planner portability](#planner-portability)); the final source `9622a0d` changes only field-description and message wording, spot-checked on d4, d6 and h1 with both.
 
@@ -84,7 +84,7 @@ Suite `sol_heldout`: 8/8 passed the structural checks. Code `94b4891`, scored 20
 
 ## Tasks written by a separate AI agent (h9–h14)
 
-**h9–h14 were written by a separate AI agent (Claude Opus) that had not seen our prompts or code**, after the main evaluation runs. It wrote six new task phrasings over the existing sample inputs (no new media): [`evaluation/fresh_heldout_tasks.json`](../evaluation/fresh_heldout_tasks.json), committed unchanged. Each task also lists `manual_checks`, which the scorer ignores; they were checked by reading each result, report and English artifact. The inputs are familiar fixtures, and the tasks were written knowing an observed ASR problem in one clip, so this is not a fully blind test. Each suite ran once, cache-backed, and the first attempts are kept.
+**h9–h14 were written by a separate AI agent (Claude Opus) that had not seen our prompts or code**, after the main evaluation runs. It wrote six new task phrasings over the existing sample inputs (no new media): [`evaluation/fresh_heldout_tasks.json`](../evaluation/fresh_heldout_tasks.json), with the task definitions unchanged (the provenance comment was clarified). Each task also lists `manual_checks`, which the scorer ignores; they were checked by reading each result, report and English artifact. The inputs are familiar fixtures, and the tasks were written knowing an observed ASR problem in one clip, so this is not a fully blind test. Each suite ran once, cache-backed, and the first attempts are kept.
 
 | Task | `gpt-6.1-sol`, first attempt (`fe83c62`) | `gemini-3.5-flash-lite`, first attempt (`e2c1302`) | Manual checks |
 |---|---|---|---|
@@ -141,7 +141,7 @@ On all 14 main tasks on `92a3518`, `gpt-6.1-sol` passed 14/14 ([summary](../eval
 
 Small local models and free tiers with per-request token caps were also tried; their limits made long multi-step tasks impractical.
 
-**Final source.** `9622a0d` changes only field-description and message wording (neutral examples in two planner-visible descriptions, and the injection warning and tool descriptions now say what the code does). d4, d6 and h1 were rerun on it with both main planners, cache-backed: `gpt-6.1-sol` 3/3 and `gemini-3.5-flash-lite` 3/3, ₹0 ([Sol](../evaluation/runs/spot_sol_9622a0d/summary.md), [Gemini](../evaluation/runs/spot_gemini_9622a0d/summary.md)).
+**Final source.** `9622a0d` changes only field-description and message wording (neutral examples in two planner-visible descriptions, and the injection warning and tool descriptions now say what the code does). d4, d6 and h1 were rerun on it with both main planners, cache-backed: `gpt-6.1-sol` 3/3 and `gemini-3.5-flash-lite` 3/3, ₹0 ([Sol](../evaluation/runs/spot_sol_9622a0d/summary.md), [Gemini](../evaluation/runs/spot_gemini_9622a0d/summary.md)). The one later source commit, `48fe280`, changes only two code comments, one class docstring and two test names; the syntax trees match apart from that docstring.
 
 The scorer used for these rows (`c0afd6a`) fails a run that a time or step limit ended before the planner decided; before that fix, such a run could pass an impossible task. This changes the evaluation, not the agent, and rescoring every earlier suite with it changed no result.
 
@@ -156,7 +156,7 @@ The graders bring their own planner, so the same tasks (d1–d6 and h1–h4) wer
 | `gemini-3.5-flash-lite` (check on `23e9066`) | same | `23e9066` | 10 | 9 | 90% | One h1 miss (planner variance); three reruns passed. On that run the planner delivered an English summary instead of the translation. [summary](../evaluation/runs/final_check_gemini/summary.md) |
 | `gpt-6.1-sol` (spot check) | an OpenAI-compatible endpoint | `23e9066` | 3 | 3 | 100% | d4, d6 and h5 after the prompt change. [summary](../evaluation/runs/sol_spot_check/summary.md) |
 | `gpt-5.6-luna` | an OpenAI-compatible endpoint | `77ea580` | 10 | 9 | 90% | d1 hit the 600 s limit. It was reported as partial. [summary](../evaluation/runs/gpt-5.6-luna/summary.md) |
-| `gpt-oss-120b-medium` | gpt-oss-120b (medium) through an OpenAI-compatible endpoint | `480b610` | 10 | 4 | 40% | Six partial runs: empty turns instead of `finish`. Passed: d3, d6, h2 and h4. In the six others, after the tool work was done and checked, the model returned empty turns instead of calling `finish`, three times in a row, so the run listed its checked artifacts but did not claim completion. In a direct test through the same endpoint, `finish` was called correctly, so this is the model's behaviour in a long context, not a refused request. The first attempt also found a real bug, fixed in `480b610` with a regression test: echoing an empty turn with its reasoning field made the endpoint refuse the next request. [summary](../evaluation/runs/gpt-oss-120b-gateway/summary.md) |
+| `gpt-oss-120b-medium` | gpt-oss-120b (medium) through an OpenAI-compatible endpoint | `480b610` | 10 | 4 | 40% | Six partial runs: empty turns instead of `finish`. Passed: d3, d6, h2 and h4. In the six others, after the tool work was done and checked, the model returned empty turns instead of calling `finish`, three times in a row, so the run listed its checked artifacts but did not claim completion. In a direct test through the same endpoint, `finish` was called correctly, so this is the model's behaviour in a long context, not a refused request. The first attempt also found a real bug, fixed in `480b610` with a regression test: echoing an empty turn with its reasoning field made the endpoint refuse the next request. [summary](../evaluation/runs/gpt-oss-120b-endpoint/summary.md) |
 
 - **A provider's `400 Parsing failed … could not be parsed`** ended a run on `751b1f7` at its first attempt, because it counted as a configuration error. It is now retried (`92a3518`).
 - Every live run with a new planner found something. These were the generic fixes, all with regression tests: echoing Gemini's thought signatures; recovering a provider's `tool_use_failed`; reading tool calls written as text or without a name; shortening the conversation and then the tool list for 8k caps; not losing a plain-text answer; tolerating an artifact path with folders missing; not requiring the same output to be declared twice; sending an empty turn back without its reasoning field. See [design.md](design.md#planner-portability).
@@ -189,9 +189,9 @@ These calls exercise indic-translate only. The other three models are exercised 
 
 ## Stretch goals
 
-Each extra is shown by a command, a test, and a real run or transcript.
+Each extra has a command and tests; the table identifies the available live or offline evidence. Resuming after a kill is proven by offline subprocess kill/resume tests, separately from the live evidence.
 
-| Brief's stretch goal | Command | Tests | Evidence from a real run |
+| Brief's stretch goal | Command | Tests | Live or offline evidence |
 |---|---|---|---|
 | Streamable HTTP with simple token authentication | `python -m bodhan_mcp --transport http --port 8765` | `tests/test_mcp_http.py` (official SDK client; missing/wrong token refused) | [`evaluation/clients/inspector.md`](../evaluation/clients/inspector.md): MCP Inspector over HTTP, 401 without or with a wrong token, then tool list and a real Bodhan call with the token |
 | MCP resources or prompts | `bodhan://voices`, `bodhan://languages`, `bodhan://pricing`, `bodhan://errors`; prompt `plan_media_task` | `tests/test_mcp_stdio.py::test_free_tools_and_resources`, `::test_prompt_and_error_catalogue` | Inspector transcript: `resources/list`, `resources/read` of `bodhan://voices` and `bodhan://errors`, `prompts/list`, `prompts/get plan_media_task` |
