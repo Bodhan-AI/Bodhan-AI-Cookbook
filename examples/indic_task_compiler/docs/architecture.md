@@ -19,13 +19,13 @@ flowchart TB
 
     subgraph MCP["bodhan_mcp (Standalone MCP Server: stdio | --http --token)"]
         direction TB
-        TOOLS["9 Capability Tools<br/>inspect_files, detect_language, transcribe_audio,<br/>translate_text, synthesize_speech, verify_speech,<br/>ocr_document, transliterate_text, write_subtitles"]
+        TOOLS["8 Capability Tools<br/>inspect_files, detect_language, transcribe_audio,<br/>translate_text, synthesize_speech, verify_speech,<br/>ocr_document, write_subtitles"]
         RES["MCP Resources & Prompt<br/>bodhan://languages, bodhan://voices,<br/>bodhan://pricing, plan_task"]
         HELPERS["Media & Text Helpers<br/>ffmpeg/ffprobe, silencedetect <=28s, pypdfium2,<br/>Pillow, Markdown table chunker, SRT/VTT"]
         CLIENT["BodhanClient (httpx)<br/>Per-model keys, Semaphore(4), backoff+jitter,<br/>SHA-256 DiskCache, Cost Meter, DevSpendLedger"]
     end
 
-    API["Bodhan Hosted API (https://api.bodhan.ai)<br/>indic-transcribe | indic-translate | indic-speak | indic-ocr | indic-transliterate"]
+    API["Bodhan Hosted API (https://api.bodhan.ai)<br/>indic-transcribe | indic-translate | indic-speak | indic-ocr"]
 
     CLI --> INTAKE --> PLLM
     PLLM --> GATE
@@ -42,7 +42,7 @@ flowchart TB
 ## Component responsibilities
 
 - **`bodhan_mcp.server` (`python -m bodhan_mcp`)**: Standalone MCP server over stdio (or optional Streamable HTTP with Bearer auth). Returns bounded untrusted previews (<=300 chars) for third-party MCP clients.
-- **`bodhan_mcp.tools`**: 9 capability-level tools that absorb all model limits internally (<=28 s silence-aware audio windows, table-preserving translation chunking + `truncated` recovery, <=250-char sentence TTS chunking + loudness normalization + AI-generated metadata tags, PDF rasterization via `pypdfium2` + 502 OCR recovery).
+- **`bodhan_mcp.tools`**: 8 capability-level tools that absorb all model limits internally (<=28 s silence-aware audio windows, table-preserving translation chunking + `truncated` recovery, <=250-char sentence TTS chunking + loudness normalization + AI-generated metadata tags, PDF rasterization via `pypdfium2` + 502 OCR recovery).
 - **`bodhan_mcp.client` & `cache`**: Async `httpx` transport with per-model key resolution (`BODHAN_*_KEY` -> `BODHAN_API_KEY`), exponential backoff + jitter on 429/5xx/timeouts, single 401 retry for previously valid keys, concurrency semaphore, and SHA-256 content-addressed disk caching.
 - **`bodhan_agent.planner` (`P-LLM`)**: Privileged planner operating in three epochs (Epoch A `TaskSpec`, Epoch B flat step list, Epoch C targeted recovery). Strictly isolated from untrusted file/OCR/transcript/translation text.
 - **`bodhan_agent.gate` & `compiler`**: Deterministic Python checks that reject provably impossible tasks at ₹0 and statically validate tool names, MCP JSON Schemas, `$step.field` references, input/output/language scope locks, and dependency waves before spending a rupee.

@@ -1051,69 +1051,7 @@ class BodhanToolkit:
         )
 
     # ------------------------------------------------------------------
-    # 8. transliterate_text (indic-transliterate)
-    # ------------------------------------------------------------------
-    async def transliterate_text(
-        self,
-        language: str,
-        *,
-        script: str = "roman",
-        text: str | None = None,
-        path: str | None = None,
-        output_dir: str | None = None,
-    ) -> dict[str, Any]:
-        """Convert text between native Indic script and Roman script via indic-transliterate."""
-        iso, known = resolve_language(language)
-        if not iso or not known or not is_language_supported("indic-transliterate", iso):
-            return err_response(
-                "unsupported_language",
-                f"Language '{language}' is not supported by indic-transliterate.",
-                hint=f"Supported ISO codes: {', '.join(supported_languages('indic-transliterate'))}",
-                model="indic-transliterate",
-            )
-        if script not in ("roman", "native"):
-            return err_response("invalid_script", f"Script must be 'roman' or 'native', got '{script}'.")
-
-        src_text, err = self._read_text_input(text=text, path=path)
-        if err:
-            return err
-        assert src_text is not None
-
-        chunks = chunk_markdown_for_translation(src_text, max_chars=1500)
-        total_cost = 0.0
-        any_cache_miss = False
-        outs: list[str] = []
-        try:
-            for ch in chunks:
-                res = await self.client.transliterate(ch, language=iso, script=script)
-                total_cost += res.cost_inr
-                any_cache_miss |= not res.cache_hit
-                outs.append(str(res.payload.get("transliteration", "")).strip())
-        except BodhanAPIError as exc:
-            return self._api_err(exc, "indic-transliterate", cost_so_far=total_cost)
-
-        combined = "\n\n".join(outs)
-        out_dir = self._out_dir(output_dir)
-        out_path = out_dir / f"translit_{iso}_{script}_{uuid.uuid4().hex[:8]}.txt"
-        out_path.write_text(combined, encoding="utf-8")
-
-        return ok_response(
-            {
-                "text_path": str(out_path),
-                "language": iso,
-                "script": script,
-                "char_count": len(combined),
-                "provenance": {"source_model": "indic-transliterate", "language": iso, "script": script},
-            },
-            cost_inr=total_cost,
-            cache_hit=not any_cache_miss,
-            model="indic-transliterate",
-            preview=combined[:300],
-            untrusted=True,
-        )
-
-    # ------------------------------------------------------------------
-    # 9. write_subtitles (deterministic, free)
+    # 8. write_subtitles (deterministic, free)
     # ------------------------------------------------------------------
     async def write_subtitles(
         self,
@@ -1227,7 +1165,6 @@ def list_languages_summary() -> dict[str, Any]:
         "by_model": {
             "indic-transcribe": supported_languages("indic-transcribe"),
             "indic-translate": supported_languages("indic-translate"),
-            "indic-transliterate": supported_languages("indic-transliterate"),
             "indic-speak": supported_languages("indic-speak"),
             "indic-ocr": supported_languages("indic-ocr"),
         },

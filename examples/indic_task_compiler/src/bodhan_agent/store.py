@@ -12,14 +12,13 @@ from bodhan_mcp.text_utils import contains_indic_script
 from bodhan_agent.models import ProvenanceRecord
 
 # Keys stripped from any tool response before anything can reach P-LLM context.
-CONTENT_STRIP_KEYS = frozenset({"preview", "text", "translation", "transliteration", "content", "raw_text"})
+CONTENT_STRIP_KEYS = frozenset({"preview", "text", "translation", "content", "raw_text"})
 
 # Trusted provenance sources allowed to contain Indian-language script text.
 TRUSTED_INDIC_SOURCES = frozenset(
     {
         "bodhan:indic-transcribe",
         "bodhan:indic-translate",
-        "bodhan:indic-transliterate",
         "bodhan:indic-ocr",
         "input_file",
         "deterministic:subtitles",

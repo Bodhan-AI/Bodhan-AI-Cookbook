@@ -1,6 +1,6 @@
 """Standalone Bodhan MCP Server (stdio default; optional Streamable HTTP with Bearer auth).
 
-Exposes 9 capability-level tools, 3 read-only resources, and 1 planning prompt.
+Exposes 8 capability-level tools, 3 read-only resources, and 1 planning prompt.
 Tool descriptions and schemas are self-contained for third-party MCP clients.
 """
 
@@ -41,10 +41,9 @@ def build_mcp_server(
         name=name,
         title="Bodhan Indic AI Tool Server",
         description=(
-            "Capability-level MCP tools wrapping Bodhan.ai's Indic speech-to-text (indic-transcribe), "
-            "translation (indic-translate), text-to-speech (indic-speak), document OCR (indic-ocr), "
-            "and transliteration (indic-transliterate), with automatic chunking, verification, caching, "
-            "and structured errors."
+            "Capability-level MCP tools wrapping Bodhan.ai's four Indic models: speech-to-text (indic-transcribe), "
+            "translation (indic-translate), text-to-speech (indic-speak), and document OCR (indic-ocr), "
+            "with automatic chunking, verification, caching, and structured errors."
         ),
         instructions=(
             "Use inspect_files first (free) to inspect inputs before calling paid Bodhan models. "
@@ -56,7 +55,7 @@ def build_mcp_server(
     )
 
     # ------------------------------------------------------------------
-    # Tools (9)
+    # Tools (8)
     # ------------------------------------------------------------------
     @mcp.tool(
         name="inspect_files",
@@ -206,29 +205,6 @@ def build_mcp_server(
         output_dir: str | None = None,
     ) -> dict[str, Any]:
         return await tk.ocr_document(path=path, pages=pages, table_format=table_format, output_dir=output_dir)
-
-    @mcp.tool(
-        name="transliterate_text",
-        description=(
-            "Convert text between a language's native Indic script and Roman (Latin) script while preserving pronunciation, "
-            "using Bodhan's indic-transliterate model. Pass 'language' (ISO code or name), 'script' ('roman' or 'native'), "
-            "and either 'text' or 'path'."
-        ),
-    )
-    async def transliterate_text(
-        language: str,
-        script: str = "roman",
-        text: str | None = None,
-        path: str | None = None,
-        output_dir: str | None = None,
-    ) -> dict[str, Any]:
-        return await tk.transliterate_text(
-            language=language,
-            script=script,
-            text=text,
-            path=path,
-            output_dir=output_dir,
-        )
 
     @mcp.tool(
         name="write_subtitles",

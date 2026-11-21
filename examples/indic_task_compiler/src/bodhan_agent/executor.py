@@ -603,7 +603,6 @@ class AgentOrchestrator:
                         "translate_text",
                         "synthesize_speech",
                         "ocr_document",
-                        "transliterate_text",
                         "write_subtitles",
                     } and "output_dir" not in call_args:
                         call_args["output_dir"] = str(store.work_dir)

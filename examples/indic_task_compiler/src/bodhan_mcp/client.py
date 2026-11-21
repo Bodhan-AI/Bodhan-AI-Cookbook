@@ -23,7 +23,6 @@ from bodhan_mcp.pricing import (
     cost_speak,
     cost_transcribe,
     cost_translate,
-    cost_transliterate,
     estimate_output_tokens,
 )
 
@@ -32,7 +31,6 @@ logger = logging.getLogger("bodhan_mcp.client")
 MODEL_KEY_ENV: dict[str, str] = {
     "indic-transcribe": "BODHAN_TRANSCRIBE_KEY",
     "indic-translate": "BODHAN_TRANSLATE_KEY",
-    "indic-transliterate": "BODHAN_TRANSLATE_KEY",
     "indic-speak": "BODHAN_SPEAK_KEY",
     "indic-ocr": "BODHAN_OCR_KEY",
 }
@@ -439,57 +437,6 @@ class BodhanClient:
         actual_cost = cost_translate(int(out_tokens))
         if self._dev_ledger is not None:
             self._dev_ledger.record(model, actual_cost, f"-> {target_language} {out_tokens} tok")
-        self.cache.put(cache_key, payload, original_cost_inr=actual_cost)
-        return BodhanCallResult(
-            model=model,
-            payload=payload,
-            cost_inr=actual_cost,
-            cache_hit=False,
-            latency_ms=latency_ms,
-            attempts=attempts,
-        )
-
-    async def transliterate(
-        self,
-        text: str,
-        *,
-        language: str,
-        script: str = "roman",
-        max_output_tokens: int | None = None,
-    ) -> BodhanCallResult:
-        model = "indic-transliterate"
-        params = {
-            "language": language,
-            "script": script,
-            "max_output_tokens": max_output_tokens,
-        }
-        cache_key = make_cache_key(model, params, sha256_text(text))
-        cached = self.cache.get(cache_key)
-        if cached is not None:
-            return BodhanCallResult(model=model, payload=cached.payload, cost_inr=0.0, cache_hit=True)
-
-        est_cost = cost_transliterate(estimate_output_tokens(text))
-        body: dict[str, Any] = {
-            "text": text,
-            "language": language,
-            "script": script,
-        }
-        if max_output_tokens is not None:
-            body["max_output_tokens"] = max_output_tokens
-
-        resp, latency_ms, attempts = await self._send_with_retry(
-            model,
-            "POST",
-            "/transliterate",
-            json_body=body,
-            estimated_cost_inr=est_cost,
-            detail=f"transliterate {language}->{script}",
-        )
-        payload = resp.json()
-        out_tokens = estimate_output_tokens(payload.get("transliteration", ""))
-        actual_cost = cost_transliterate(out_tokens)
-        if self._dev_ledger is not None:
-            self._dev_ledger.record(model, actual_cost, f"{language}->{script}")
         self.cache.put(cache_key, payload, original_cost_inr=actual_cost)
         return BodhanCallResult(
             model=model,

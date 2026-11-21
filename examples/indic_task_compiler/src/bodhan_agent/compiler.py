@@ -26,7 +26,6 @@ TOOL_MODEL_MAP = {
     "transcribe_audio": "indic-transcribe",
     "verify_speech": "indic-transcribe",
     "translate_text": "indic-translate",
-    "transliterate_text": "indic-transliterate",
     "synthesize_speech": "indic-speak",
     "ocr_document": "indic-ocr",
 }

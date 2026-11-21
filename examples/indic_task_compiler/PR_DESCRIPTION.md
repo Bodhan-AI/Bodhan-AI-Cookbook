@@ -1,6 +1,6 @@
 ## Summary
 
-`examples/indic_task_compiler/` ships a standalone MCP tool server (`bodhan_mcp`) wrapping all five Bodhan Indic models (`indic-transcribe`, `indic-translate`, `indic-speak`, `indic-ocr`, `indic-transliterate`) alongside an unattended CLI task agent (`bodhan_agent`). Its core architectural differentiator is a **CaMeL-style privileged/quarantined LLM split** (so untrusted file, OCR, transcript, and translation content never enters the planner's context) combined with a **deterministic pre-spend feasibility gate and plan compiler** that type-checks plans, enforces input/output/language scope locks, and rejects provably impossible tasks at ₹0 before calling any paid API.
+`examples/indic_task_compiler/` ships a standalone MCP tool server (`bodhan_mcp`) wrapping Bodhan's four Indic models (`indic-transcribe`, `indic-translate`, `indic-speak`, `indic-ocr`) alongside an unattended CLI task agent (`bodhan_agent`). Its core architectural differentiator is a **CaMeL-style privileged/quarantined LLM split** (so untrusted file, OCR, transcript, and translation content never enters the planner's context) combined with a **deterministic pre-spend feasibility gate and plan compiler** that type-checks plans, enforces input/output/language scope locks, and rejects provably impossible tasks at ₹0 before calling any paid API.
 
 ## How to run
 
@@ -55,12 +55,12 @@ flowchart LR
     EXEC <--> STORE["ArtifactStore +<br/>Indic Provenance Guard"]
     EXEC --> VERIFY["Contracts Verifier"]
     VERIFY --> OUT["result.md / artifacts /<br/>trace.jsonl / report.json / trace.html"]
-    EXEC <-->|"MCP stdio"| MCP["python -m bodhan_mcp<br/>(9 tools, 3 resources, 1 prompt)"]
+    EXEC <-->|"MCP stdio"| MCP["python -m bodhan_mcp<br/>(8 tools, 3 resources, 1 prompt)"]
     MCP --> CLIENT["BodhanClient<br/>(retry, semaphore, SHA-256 cache)"]
     CLIENT --> API["https://api.bodhan.ai"]
 ```
 
-- **`bodhan_mcp/server.py` & `tools.py`**: Standalone MCP server exposing 9 typed tools, 3 resources (`bodhan://languages`, `bodhan://voices`, `bodhan://pricing`), and 1 prompt (`plan_task`).
+- **`bodhan_mcp/server.py` & `tools.py`**: Standalone MCP server exposing 8 typed tools, 3 resources (`bodhan://languages`, `bodhan://voices`, `bodhan://pricing`), and 1 prompt (`plan_task`).
 - **`bodhan_mcp/client.py` & `cache.py`**: Async HTTP client with per-model key lookup (`BODHAN_*_KEY` -> `BODHAN_API_KEY`), exponential backoff + jitter, `Semaphore(4)`, SHA-256 disk cache, and INR cost meter.
 - **`bodhan_agent/planner.py` (`P-LLM`)**: Privileged planner that never sees untrusted file/OCR/ASR/translation text — only metadata, probe enums, and `$step.field` handles.
 - **`bodhan_agent/quarantined.py` (`Q-LLM`)**: Tool-less reader (`q_summarize_en`, `q_classify`, `q_extract_number`) enforcing English-only prose and strict enum/numeric validation.
@@ -90,7 +90,7 @@ flowchart TD
 
 ## Tool design
 
-Nine capability-level tools strike the balance between usability for third-party MCP clients and fine-grained control for the agent:
+Eight capability-level tools strike the balance between usability for third-party MCP clients and fine-grained control for the agent:
 
 | Tool | Bodhan model | Model-limit handling |
 |---|---|---|
@@ -101,7 +101,6 @@ Nine capability-level tools strike the balance between usability for third-party
 | `synthesize_speech` | `indic-speak` | Script-aware sentence splitting (<=250 chars), `ffmpeg` concat + `loudnorm`, ID3 `"AI-generated (Bodhan Indic-Speak)"` metadata, chunk manifest |
 | `verify_speech` | `indic-transcribe` | Back-transcribes every TTS chunk, checks normalized CER, n-gram repetition loops, and duration/char-rate anomalies |
 | `ocr_document` | `indic-ocr` | `pypdfium2` PDF->PNG rasterization (no poppler), `table_format=markdown`, 502 cascade (`max_tokens=8192` -> 65% downscale -> vertical split) |
-| `transliterate_text` | `indic-transliterate` | Chunked native <-> Roman script conversion |
 | `write_subtitles` | none (free) | Deterministic SRT/VTT from timed segments with proportional cue splitting and monotonicity validation |
 
 See [`docs/design-notes.md`](docs/design-notes.md) for full tool-design rationale.
@@ -120,10 +119,9 @@ Deterministic Python handles all chunking, SRT formatting, script/stopword LID, 
 ## Bodhan models used
 
 - **`indic-transcribe`** (hosted `POST /v1/audio/transcriptions`): 16 kHz mono WAV, <=28 s silence-aware windows, <=10 s probe for auto language detection, per-chunk TTS back-transcription.
-- **`indic-translate`** (hosted `POST /translate`): paragraph/table-aware chunks (<=1800 chars), recursive half-split on `truncated: true`.
+- **`indic-translate`** (hosted `POST /v1/chat/completions`, `model: "indic-translate"`): paragraph/table-aware chunks (<=1800 chars), recursive half-split on `finish_reason == "length"`.
 - **`indic-speak`** (hosted `POST /v1/audio/speech`): <=250-char script-aware sentence chunks, `instructions` JSON string with `lang` + optional `style`, loudness-normalized output tagged as AI-generated.
-- **`indic-ocr`** (hosted `POST /v1/chat/completions`): 175 DPI PNG pages via `pypdfium2`, `table_format="markdown"`, 502 recovery cascade.
-- **`indic-transliterate`** (hosted `POST /transliterate`): chunked native/roman transliteration.
+- **`indic-ocr`** (hosted `POST /v1/chat/completions`, `model: "indic-ocr"`): 175 DPI PNG pages via `pypdfium2`, `table_format="markdown"`, 502 recovery cascade.
 
 Tested LLM endpoint: TBD after live run (offline test suite uses `ScriptedFakeLLM` + `FakeBodhanTransport`; live runs read `LLM_BASE_URL`, `LLM_MODEL`, `LLM_API_KEY`).
 

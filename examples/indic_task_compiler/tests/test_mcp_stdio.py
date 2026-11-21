@@ -29,10 +29,10 @@ async def test_mcp_stdio_lists_tools_resources_and_handles_bad_inputs(tmp_path: 
                 "synthesize_speech",
                 "verify_speech",
                 "ocr_document",
-                "transliterate_text",
                 "write_subtitles",
             }
-            assert expected.issubset(tool_names)
+            assert tool_names == expected
+            assert "transliterate_text" not in tool_names
             # Every tool must have a non-trivial self-contained description and JSON schema.
             for tool in tools_resp.tools:
                 assert tool.description and len(tool.description) >= 40

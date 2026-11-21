@@ -22,11 +22,6 @@ PRICING_INR: dict[str, dict[str, Any]] = {
         "rate_inr": 0.20,
         "notes": "Input tokens free; billed per 10,000 output tokens (₹0.20 / 10k).",
     },
-    "indic-transliterate": {
-        "unit": "10k_output_tokens",
-        "rate_inr": 0.20,
-        "notes": "Estimated at ₹0.20 per 10,000 output tokens.",
-    },
     "indic-speak": {
         "unit": "10k_input_chars",
         "rate_inr": 6.00,

@@ -34,13 +34,6 @@ def cost_translate(output_tokens: int) -> float:
     return round((output_tokens / 10_000.0) * PRICING_INR["indic-translate"]["rate_inr"], 6)
 
 
-def cost_transliterate(output_tokens: int) -> float:
-    """Estimated cost in INR for indic-transliterate."""
-    if output_tokens <= 0:
-        return 0.0
-    return round((output_tokens / 10_000.0) * PRICING_INR["indic-transliterate"]["rate_inr"], 6)
-
-
 def cost_speak(input_chars: int) -> float:
     """Cost in INR for indic-speak (₹6.00 per 10,000 input characters)."""
     if input_chars <= 0:

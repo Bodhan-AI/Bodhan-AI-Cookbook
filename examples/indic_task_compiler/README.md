@@ -1,8 +1,8 @@
 # Indic Task Compiler — Bodhan MCP Tool Server & Task Agent
 
-> Plan-checked, injection-proof MCP tool server (`bodhan_mcp`) and autonomous multi-step task agent (`bodhan_agent`) for Bodhan.ai's Indic speech, translation, synthesis, transliteration, and OCR models.
+> Plan-checked, injection-proof MCP tool server (`bodhan_mcp`) and autonomous multi-step task agent (`bodhan_agent`) for Bodhan.ai's four Indic models (speech-to-text, translation, speech synthesis, and OCR).
 
-**Bodhan models:** `indic-transcribe`, `indic-translate`, `indic-speak`, `indic-ocr`, `indic-transliterate`  
+**Bodhan models:** `indic-transcribe`, `indic-translate`, `indic-speak`, `indic-ocr`  
 **Languages shown:** All 22+ Bodhan-supported Indian languages and English (data-driven from the vendored API capability table)  
 **Format:** Python package (MCP server + CLI task agent + static trace viewer)
 
@@ -122,7 +122,6 @@ npx @modelcontextprotocol/inspector python -m bodhan_mcp
 | `synthesize_speech` | `indic-speak` | Script-aware sentence chunking (<=250 chars), `ffmpeg` concat + loudness normalization, ID3 `"AI-generated (Bodhan Indic-Speak)"` tag |
 | `verify_speech` | `indic-transcribe` | Per-chunk back-transcription, normalized CER, n-gram repetition detector, duration/char-ratio anomaly check |
 | `ocr_document` | `indic-ocr` | `pypdfium2` PDF->PNG rasterization (no poppler), `table_format=markdown`, 502 retry (`max_tokens` bump -> downscale -> split), reading-order Markdown + block confidence summary |
-| `transliterate_text` | `indic-transliterate` | Native <-> Roman script conversion with chunking |
 | `write_subtitles` | none (free) | Deterministic SRT/VTT generation from timed segments + proportional cue splitting |
 
 MCP Resources exposed: `bodhan://languages`, `bodhan://voices`, `bodhan://pricing`.  

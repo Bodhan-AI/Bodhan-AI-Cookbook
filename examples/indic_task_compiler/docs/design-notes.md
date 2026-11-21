@@ -16,11 +16,11 @@ This solution enforces two architectural guarantees in code:
 
 ## 2. Tool Granularity Rationale
 
-We chose **9 capability-level tools** rather than raw 1:1 HTTP wrappers or opaque single-task macros:
+We chose **8 capability-level tools** rather than raw 1:1 HTTP wrappers or opaque single-task macros:
 
 - **Why not raw 1:1 wrappers?** Raw wrappers push <=30 s audio chunking, PDF rasterization, Markdown table preservation, `truncated: true` splitting, <=250-char TTS splitting, and 502 OCR recovery onto the planner — wasting LLM steps and causing brittle failures with third-party MCP clients.
 - **Why not mega-tools (e.g. `pdf_to_tamil_audio`)?** Mega-tools hide control, fail to generalize to unseen hidden tasks, and break composability for third-party MCP clients.
-- **Why these 9 tools?** Each tool encapsulates *one* clean capability with all model-limit mechanics handled internally:
+- **Why these 8 tools?** Each tool encapsulates *one* clean capability with all model-limit mechanics handled internally:
   1. `inspect_files` (free) — magic-byte + `ffprobe` + `pypdfium2` metadata and cost estimates.
   2. `detect_language` — Unicode script histogram + shared-script stopword disambiguation + <=10 s audio probe.
   3. `transcribe_audio` — ffmpeg 16 kHz mono WAV normalization (supports MP4/M4A/WebM), `silencedetect` <=28 s windowing, pure-silence dropping, timed segment outputs.
@@ -28,8 +28,7 @@ We chose **9 capability-level tools** rather than raw 1:1 HTTP wrappers or opaqu
   5. `synthesize_speech` — script-aware sentence chunking (<=250 chars), `ffmpeg` concat + `loudnorm`, MP3/WAV encoding with `"AI-generated (Bodhan Indic-Speak)"` ID3 tags, per-chunk manifest.
   6. `verify_speech` — chunk-by-chunk back-transcription via `indic-transcribe`, normalized CER, n-gram repetition loop detection, duration/char-rate anomaly detection.
   7. `ocr_document` — `pypdfium2` PDF->PNG rasterization (no poppler), reading-order Markdown, 502 recovery cascade (`max_tokens=8192` -> 65% downscale -> vertical top/bottom split), low-confidence block reporting.
-  8. `transliterate_text` — chunked native <-> Roman conversion.
-  9. `write_subtitles` (free) — deterministic SRT/VTT formatter with proportional cue splitting and monotonicity validation.
+  8. `write_subtitles` (free) — deterministic SRT/VTT formatter with proportional cue splitting and monotonicity validation.
 
 ## 3. Indic Provenance Guard
 

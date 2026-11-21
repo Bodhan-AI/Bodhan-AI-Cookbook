@@ -1,4 +1,4 @@
-"""Unit tests for all 9 BodhanToolkit tools against FakeBodhanTransport."""
+"""Unit tests for all 8 BodhanToolkit tools against FakeBodhanTransport."""
 
 from __future__ import annotations
 
