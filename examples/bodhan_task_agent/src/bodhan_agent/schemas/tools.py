@@ -71,7 +71,10 @@ class DeliverableRef(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
     id: str = Field(description="Deliverable id from the plan, e.g. D1.")
-    path: str | None = Field(default=None, description="File that fulfils it; empty for an answer in result.md.")
+    path: str | None = Field(
+        default=None,
+        description="Id (such as A4) or path of the file that fulfils it; empty for an answer in result.md.",
+    )
 
     @field_validator("id")
     @classmethod

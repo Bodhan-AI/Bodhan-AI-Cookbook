@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -13,7 +14,7 @@ from bodhan_agent.core.config import RunSettings
 from bodhan_agent.core.trace import TraceWriter
 from bodhan_agent.schemas.ledger import Artifact, Ledger
 from bodhan_agent.schemas.loop import LoopResult
-from bodhan_agent.schemas.plan import Deliverable, Plan, PlanOutcome
+from bodhan_agent.schemas.plan import KIND_FORMATS, Deliverable, Plan, PlanOutcome
 from bodhan_agent.schemas.preflight import PreflightResult
 from bodhan_agent.schemas.progress import PlanView
 from bodhan_agent.schemas.report import (
@@ -115,7 +116,7 @@ def deliverable_report(
         id=item.id,
         kind=item.kind,
         language=item.language,
-        format=item.format,
+        format=_delivered_format(item, artifact),
         status=status,
         path=path,
         artifact_id=None if artifact is None else artifact.id,
@@ -124,6 +125,13 @@ def deliverable_report(
         label=verdict.label if status in USABLE_DELIVERABLE else None,
         checks=checks,
     )
+
+
+def _delivered_format(item: Deliverable, artifact: Artifact | None) -> str | None:
+    if artifact is None or item.kind == "answer":
+        return item.format
+    suffix = Path(artifact.path).suffix.lower().lstrip(".")
+    return suffix if suffix in KIND_FORMATS[item.kind] else item.format
 
 
 SINGLE_STEP_TARGET_S = 30.0
@@ -162,6 +170,24 @@ def _explanation(deliverables: list[DeliverableReport], stop_reason: StopReason,
 
 def _unique(items: list[str]) -> list[str]:
     return list(dict.fromkeys(item for item in items if item))
+
+
+REPEAT_OVERLAP = 0.7
+_WORD_RE = re.compile(r"[a-z0-9]{3,}")
+
+
+def _words(text: str) -> set[str]:
+    return set(_WORD_RE.findall(text.lower()))
+
+
+def _repeats(text: str, earlier: list[str]) -> bool:
+    words = _words(text)
+    for item in earlier:
+        other = _words(item)
+        smaller = min(len(words), len(other))
+        if smaller and len(words & other) / smaller >= REPEAT_OVERLAP:
+            return True
+    return False
 
 
 class Finalizer:
@@ -298,10 +324,12 @@ class Finalizer:
         )
 
     def assumptions(self) -> list[str]:
-        items = list(self.plan.assumptions) if self.plan is not None else []
+        items = _unique(list(self.plan.assumptions) if self.plan is not None else [])
         if self.loop is not None and self.loop.finish is not None:
-            items.extend(self.loop.finish.assumptions)
-        return _unique(items)
+            for item in self.loop.finish.assumptions:
+                if item and not _repeats(item, items):
+                    items.append(item)
+        return items
 
     def warnings(self, deliverables: list[DeliverableReport]) -> list[str]:
         items: list[str] = []
@@ -421,7 +449,8 @@ class Finalizer:
             "",
             f"- Bodhan cost: {inr(cost.bodhan_inr)} of {inr(report.budgets.cost_inr.limit or 0)}"
             + (f" (plus {inr(cost.reserved_unsettled_inr)} unsettled)" if cost.reserved_unsettled_inr else "")
-            + (" — some charges are uncertain" if cost.billing_uncertain else ""),
+            + (" — some charges are uncertain" if cost.billing_uncertain else "")
+            + (f" ({cost.cache_hits} result(s) reused from cache)" if cost.cache_hits else ""),
             f"- LLM usage (not part of the Bodhan budget): {token_text}",
             f"- Steps: {report.budgets.steps.used} of {report.budgets.steps.limit}; "
             f"time: {report.budgets.time_s.used:.0f} s of {report.budgets.time_s.limit or 0:.0f} s",

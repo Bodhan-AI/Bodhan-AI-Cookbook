@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import re
-from typing import Literal
+from pathlib import PurePath
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -22,8 +23,17 @@ StopReason = Literal[
 KIND_FORMATS: dict[str, tuple[str, ...]] = {
     "audio": ("mp3", "wav"),
     "subtitles": ("srt",),
-    "markdown": ("md",),
-    "text": ("txt",),
+    "markdown": ("md", "txt"),
+    "text": ("txt", "md"),
+    "answer": (),
+}
+TEXT_DELIVERABLES: frozenset[str] = frozenset({"markdown", "text"})
+TEXT_PRODUCERS: tuple[str, ...] = ("translate_text", "transcribe_audio", "ocr_document", "write")
+KIND_PRODUCERS: dict[str, tuple[str, ...]] = {
+    "audio": ("synthesize_speech",),
+    "subtitles": ("make_subtitles",),
+    "markdown": TEXT_PRODUCERS,
+    "text": TEXT_PRODUCERS,
     "answer": (),
 }
 
@@ -38,6 +48,16 @@ def normalize_language(code: str) -> str:
         raise ValueError(f"'{code}' is not a language code like 'ta', 'hi', 'fr', 'hi-IN' or 'ks-Deva'.")
     primary, script = match.groups()
     return primary.lower() if script is None else f"{primary.lower()}-{script.title()}"
+
+
+def _base(code: str) -> str:
+    return code.split("-", 1)[0].lower()
+
+
+def _as_list(value: Any) -> Any:
+    if isinstance(value, str):
+        return [value] if value.strip() else []
+    return value
 
 
 def _find_cycle(graph: dict[str, list[str]]) -> str | None:
@@ -88,8 +108,8 @@ class Deliverable(StrictPlanModel):
     id: str = Field(description="Deliverable id: D1, D2, ...")
     kind: DeliverableKind = Field(
         description=(
-            "'audio' speech file, 'subtitles' SRT file, 'markdown' .md document, 'text' .txt file, "
-            "'answer' an English answer written into result.md with no separate file."
+            "'audio' speech file, 'subtitles' SRT file, 'markdown' document whose structure such as tables must "
+            "survive, 'text' plain text (.txt or .md), 'answer' an English answer written into result.md with no file."
         ),
     )
     language: str | None = Field(
@@ -102,6 +122,14 @@ class Deliverable(StrictPlanModel):
     format: DeliverableFormat | None = Field(
         default=None,
         description="File format: audio mp3 or wav, subtitles srt, markdown md, text txt. Empty for 'answer'.",
+    )
+    produced_by: str | None = Field(
+        default=None,
+        description=(
+            "Tool whose output file is delivered as is: translate_text, transcribe_audio or ocr_document for a "
+            "translation, transcript or OCR text; write only for English you compose yourself, such as a summary. "
+            "Audio is synthesize_speech, subtitles make_subtitles; none for 'answer'."
+        ),
     )
     description: str = Field(min_length=1, description="What this deliverable contains, in English.")
     constraints: DeliverableConstraints = Field(default_factory=DeliverableConstraints)
@@ -128,7 +156,37 @@ class Deliverable(StrictPlanModel):
             raise ValueError(f"deliverable {self.id}: kind '{self.kind}' takes {expected}, not '{self.format}'.")
         if self.kind != "audio" and (self.constraints.duration_s is not None or self.constraints.voice_gender):
             raise ValueError(f"deliverable {self.id}: duration_s and voice_gender apply only to audio.")
+        producers = KIND_PRODUCERS[self.kind]
+        if self.produced_by is None and len(producers) == 1:
+            self.produced_by = producers[0]
+        elif self.produced_by is not None and self.produced_by not in producers:
+            expected = ", ".join(producers) if producers else "no produced_by"
+            raise ValueError(f"deliverable {self.id}: kind '{self.kind}' takes {expected}, not '{self.produced_by}'.")
+        if self.produced_by == "write" and self.language and _base(self.language) != "en":
+            raise ValueError(
+                f"deliverable {self.id}: write makes only English; '{self.language}' text comes from Bodhan."
+            )
         return self
+
+    def file_problem(self, kind: str, path: str) -> tuple[str, str] | None:
+        name = PurePath(path).name
+        suffix = PurePath(path).suffix.lower().lstrip(".")
+        if self.kind in TEXT_DELIVERABLES:
+            if kind not in TEXT_DELIVERABLES:
+                return "kind", f"needs a text file, but it is {kind}"
+            if suffix not in KIND_FORMATS[self.kind]:
+                return "format", f"needs a .txt or .md file, not {name}"
+            return None
+        if kind != self.kind:
+            return "kind", f"needs a {self.kind} file, but it is {kind}"
+        if self.format and suffix != self.format:
+            return "format", f"needs a .{self.format} file, not {name}"
+        return None
+
+    def producer_problem(self, tool: str | None) -> str | None:
+        if self.produced_by in (None, "write") or tool != "write":
+            return None
+        return f"must be Bodhan's {self.produced_by} output, but it was written by the LLM with write"
 
 
 class PlanStep(PlanModel):
@@ -186,6 +244,11 @@ class Plan(PlanModel):
     steps: list[PlanStep] = Field(default_factory=list, description="Advisory order of work; not executed as is.")
     risks: list[Risk] = Field(default_factory=list, description="Likely problems and how they will be handled.")
     feasibility: Feasibility
+
+    @field_validator("input_notes", "assumptions", mode="before")
+    @classmethod
+    def _check_lists(cls, value: Any) -> Any:
+        return _as_list(value)
 
     @model_validator(mode="after")
     def _check(self) -> Plan:

@@ -192,6 +192,18 @@ class Ledger(LedgerModel):
             return None
         return None
 
+    def outputs(self, action: ActionRecord) -> list[Artifact]:
+        return [artifact for artifact_id in action.artifacts if (artifact := self.artifacts.get(artifact_id))]
+
+    def succeeded_before(self, tool: str, args_digest: str) -> ActionRecord | None:
+        for action in reversed(self.actions):
+            if action.tool != tool or action.args_digest != args_digest or action.outcome != "ok":
+                continue
+            outputs = self.outputs(action)
+            usable = bool(outputs) and len(outputs) == len(action.artifacts) and all(item.usable for item in outputs)
+            return action if usable else None
+        return None
+
     def uncertain_attempts(self, tool: str, args_digest: str) -> int:
         matching = (action for action in self.actions if action.tool == tool and action.args_digest == args_digest)
         return sum(1 for action in matching if action.uncertain)

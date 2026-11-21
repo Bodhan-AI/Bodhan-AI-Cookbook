@@ -167,7 +167,7 @@ class PlanTracker:
         for step in self.steps:
             if step.status in ("pending", "in_progress"):
                 step.status = "skipped"
-                step.note = "condition not met" if step.condition else "not run"
+                step.note = "not run"
                 changed.append(step.id)
         self.finished = True
         self.revision += 1

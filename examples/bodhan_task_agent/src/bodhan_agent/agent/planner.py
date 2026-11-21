@@ -8,7 +8,7 @@ from typing import Any
 from pydantic import ValidationError
 
 from bodhan_agent.agent import prompts
-from bodhan_agent.agent.loop import register_outputs
+from bodhan_agent.agent.loop import MCP_TOOLS, local_tools, register_outputs
 from bodhan_agent.clients.llm import LlmClient, LlmError
 from bodhan_agent.clients.mcp_session import McpSession
 from bodhan_agent.core import guards
@@ -17,13 +17,14 @@ from bodhan_agent.core.config import RunSettings
 from bodhan_agent.core.trace import TraceWriter
 from bodhan_agent.pipeline.verify import apply_step, step_verdict
 from bodhan_agent.schemas.ledger import Artifact, Ledger
-from bodhan_agent.schemas.plan import Deliverable, GateResult, Plan, PlanOutcome
+from bodhan_agent.schemas.plan import TEXT_DELIVERABLES, TEXT_PRODUCERS, Deliverable, GateResult, Plan, PlanOutcome
 from bodhan_agent.schemas.preflight import PreflightResult
 from bodhan_agent.schemas.report import StopReason
 from bodhan_agent.schemas.trace import LlmTokens, TraceError
 from bodhan_mcp.core.languages import SPEAK_LANGUAGES, TRANSCRIBE_LANGUAGES, TRANSLATE_TARGETS
 
 MAX_PLAN_ATTEMPTS = 2
+KNOWN_TOOLS: tuple[str, ...] = (*MCP_TOOLS, *local_tools())
 CAPABILITY_REASONS: dict[str, StopReason] = {
     "unsupported_language": "unsupported_language",
     "missing_input": "missing_input",
@@ -84,12 +85,33 @@ def parse_plan(text: str) -> Plan:
     if problem is not None:
         raise ValueError(f"the plan {problem[1]}")
     try:
-        return Plan.model_validate(data)
+        plan = Plan.model_validate(data)
     except ValidationError as exc:
         errors = "; ".join(
             f"{'.'.join(str(part) for part in error['loc']) or 'plan'}: {error['msg']}" for error in exc.errors()[:5]
         )
         raise ValueError(f"the plan does not match the schema: {errors}") from exc
+    unknown = [f"{step.id} uses '{step.tool}'" for step in plan.steps if step.tool and step.tool not in KNOWN_TOOLS]
+    if unknown:
+        raise ValueError(
+            f"steps name tools that do not exist ({'; '.join(unknown)}); use only {', '.join(KNOWN_TOOLS)}"
+        )
+    planned_tools = {step.tool for step in plan.steps if step.tool}
+    unmade = [
+        f"{item.id} needs a {item.produced_by} step"
+        for item in plan.deliverables
+        if plan.feasibility.status == "feasible"
+        and plan.steps
+        and item.produced_by
+        and item.produced_by not in planned_tools
+        and deliverable_language_problem(item) is None
+    ]
+    if unmade:
+        raise ValueError(f"no step makes some deliverables ({'; '.join(unmade)}); add those steps")
+    unset = [item.id for item in plan.deliverables if item.kind in TEXT_DELIVERABLES and item.produced_by is None]
+    if unset:
+        raise ValueError(f"text deliverables {', '.join(unset)} need produced_by: {', '.join(TEXT_PRODUCERS)}")
+    return plan
 
 
 def _add_tokens(total: LlmTokens, more: LlmTokens) -> LlmTokens:

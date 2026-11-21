@@ -16,7 +16,7 @@ from bodhan_agent.agent.progress import PlanTracker
 from bodhan_agent.clients.llm import LlmClient, LlmError
 from bodhan_agent.clients.mcp_session import McpSession
 from bodhan_agent.core import guards
-from bodhan_agent.core.budget import FREE_TOOLS, BudgetManager, quote_tool
+from bodhan_agent.core.budget import DOCUMENT_KINDS, FREE_TOOLS, MEDIA_KINDS, BudgetManager, quote_tool
 from bodhan_agent.core.config import RunSettings
 from bodhan_agent.core.trace import TraceWriter
 from bodhan_agent.pipeline.verify import apply_step, step_verdict, verify_deliverable
@@ -49,6 +49,7 @@ from bodhan_mcp.utils.script import dominant_script
 
 MCP_TOOLS: tuple[str, ...] = ("transcribe_audio", "translate_text", "synthesize_speech", "ocr_document")
 HIDDEN_MCP_FIELDS: tuple[str, ...] = ("overwrite",)
+HIDDEN_TOOL_FIELDS: dict[str, tuple[str, ...]] = {"transcribe_audio": ("language",)}
 INPUT_FIELDS: dict[str, str] = {
     "transcribe_audio": "audio_path",
     "translate_text": "text_path",
@@ -57,6 +58,15 @@ INPUT_FIELDS: dict[str, str] = {
     "make_subtitles": "segments_path",
 }
 INLINE_TEXT_TOOLS: frozenset[str] = frozenset({"translate_text", "synthesize_speech"})
+SOURCE_KINDS: dict[str, frozenset[str]] = {
+    "transcribe_audio": MEDIA_KINDS,
+    "ocr_document": DOCUMENT_KINDS,
+    "translate_text": frozenset({"text", "markdown"}),
+    "synthesize_speech": frozenset({"text", "markdown"}),
+}
+MAX_LISTED_SOURCES = 5
+RESULT_NEUTRAL_FIELDS: frozenset[str] = frozenset({"output_path", "overwrite"})
+SPEECH_FORMATS: frozenset[str] = frozenset({"mp3", "wav"})
 OUTPUT_KINDS: dict[str, tuple[tuple[str, str], ...]] = {
     "transcribe_audio": (("output_path", "text"), ("segments_path", "segments")),
     "translate_text": (("output_path", "text"),),
@@ -66,6 +76,7 @@ OUTPUT_KINDS: dict[str, tuple[tuple[str, str], ...]] = {
 TEXT_KINDS: frozenset[str] = frozenset({"text", "markdown", "segments", "blocks"})
 FINALIZE_RESERVE_S = 10.0
 MAX_BAD_REPLIES = 2
+MAX_IDLE_TURNS = 3
 MAX_TEXT_FACT_BYTES = 20 * 1024 * 1024
 BLOCKED_CONTENT = "[reply text removed by the controller: it was not English]"
 
@@ -75,12 +86,13 @@ def local_tools() -> dict[str, LocalTool]:
     return {tool.name: tool for tool in tools}
 
 
-def _mcp_parameters(schema: dict[str, Any]) -> dict[str, Any]:
+def _mcp_parameters(tool: str, schema: dict[str, Any]) -> dict[str, Any]:
+    hidden = (*HIDDEN_MCP_FIELDS, *HIDDEN_TOOL_FIELDS.get(tool, ()))
     parameters = copy.deepcopy(schema)
     properties = parameters.get("properties", {})
-    for name in HIDDEN_MCP_FIELDS:
+    for name in hidden:
         properties.pop(name, None)
-    parameters["required"] = [name for name in parameters.get("required", []) if name not in HIDDEN_MCP_FIELDS]
+    parameters["required"] = [name for name in parameters.get("required", []) if name not in hidden]
     return parameters
 
 
@@ -243,6 +255,7 @@ class Controller:
         self.result = LoopResult(stop_reason="finished")
         self.no_tool_nudged = False
         self.bad_replies = 0
+        self.idle_turns = 0
         self.budget_blocked = False
         self.tracker = tracker or PlanTracker(settings, ledger, plan, self.input_ids)
 
@@ -265,7 +278,9 @@ class Controller:
         if self.mcp is not None:
             for spec in self.mcp.tools:
                 if spec.name in MCP_TOOLS:
-                    definitions.append(function_tool(spec.name, spec.description, _mcp_parameters(spec.input_schema)))
+                    definitions.append(
+                        function_tool(spec.name, spec.description, _mcp_parameters(spec.name, spec.input_schema))
+                    )
         definitions.extend(tool.definition() for tool in self.local.values())
         return definitions
 
@@ -276,16 +291,45 @@ class Controller:
         if deliverable.kind == "answer":
             return None
         for artifact in reversed(list(self.ledger.artifacts.values())):
-            if not artifact.id.startswith("A") or artifact.kind != deliverable.kind or not artifact.usable:
+            if not artifact.id.startswith("A") or not artifact.usable:
                 continue
-            if deliverable.format and Path(artifact.path).suffix.lower().lstrip(".") != deliverable.format:
+            if deliverable.file_problem(artifact.kind, artifact.path) or deliverable.producer_problem(artifact.tool):
                 continue
             if deliverable.language and artifact.language and _base(artifact.language) != _base(deliverable.language):
+                continue
+            if deliverable.language and _base(deliverable.language) == "en" and artifact.indic_text:
                 continue
             language = deliverable.language or artifact.language
             if guards.deliverable_source_problem(self.ledger, artifact, language) is None:
                 return artifact
         return None
+
+    def source_files(self, tool: str) -> list[Artifact]:
+        kinds = SOURCE_KINDS[tool]
+        return [
+            artifact for artifact in reversed(list(self.ledger.artifacts.values()))
+            if artifact.kind in kinds and artifact.usable
+        ]  # fmt: skip
+
+    def implied_source(self, tool: str, plan_step: str | None, language: Any = None) -> Artifact | None:
+        files = self.source_files(tool)
+        if tool == "synthesize_speech" and isinstance(language, str) and language:
+            files = [
+                artifact for artifact in files if artifact.language and _base(artifact.language) == _base(language)
+            ]
+        step = next((item for item in self.tracker.steps if item.id == plan_step), None)
+        if step is not None and step.depends_on:
+            made = {output for item in self.tracker.steps if item.id in step.depends_on for output in item.outputs}
+            from_dependencies = [artifact for artifact in files if artifact.id in made]
+            if len(from_dependencies) == 1:
+                return from_dependencies[0]
+        return files[0] if len(files) == 1 else None
+
+    def source_hint(self, tool: str, field: str) -> str:
+        files = self.source_files(tool)[:MAX_LISTED_SOURCES]
+        if not files:
+            return f"No usable file for {field} exists yet."
+        return f"Set {field} to one of: " + "; ".join(f"{item.id} {item.path} ({item.kind})" for item in files) + "."
 
     def deliverable_states(self) -> dict[str, str]:
         states = {}
@@ -385,11 +429,17 @@ class Controller:
                 if done is not None:
                     return done
                 continue
+            steps = self.result.steps_used
             proposal = await self.run_batch(reply, content)
             if proposal is not None:
                 done = await self.conclude(proposal)
                 if done is not None:
                     return done
+            self.idle_turns = self.idle_turns + 1 if self.result.steps_used == steps else 0
+            if self.idle_turns >= MAX_IDLE_TURNS:
+                return await self.stop(
+                    "turn_limit", f"The LLM made {MAX_IDLE_TURNS} turns in a row of calls the controller refused."
+                )
 
     def limit_reached(self) -> StopReason | None:
         if self.time_left() <= 0:
@@ -461,11 +511,32 @@ class Controller:
     ) -> Observation:
         await self.trace.emit(
             "act", "guard", tool_call_id=call.id, tool=call.name, message=f"Call not run: {code}",
-            error=TraceError(code=code, message=message, hint=hint, retryable=retryable),
+            args=call.arguments, error=TraceError(code=code, message=message, hint=hint, retryable=retryable),
         )  # fmt: skip
         observation = self.observer.denial(call.name, code, message, hint, retryable)
         self.issues.append(f"{call.name}: {code}")
         return observation
+
+    def known_in_work(self, value: Any) -> Any:
+        if not isinstance(value, str) or not value.strip() or Path(value.strip()).is_absolute():
+            return value
+        named = self.ledger.get(value.strip())
+        if named is not None:
+            return named.path
+        candidate = (self.settings.work_dir / value.strip()).resolve()
+        return str(candidate) if self.ledger.by_path(candidate) is not None else value
+
+    def resolve_work_paths(self, args: dict[str, Any]) -> dict[str, Any]:
+        resolved = {
+            key: self.known_in_work(value) if key in guards.PATH_FIELDS and key != "output_path" else value
+            for key, value in args.items()
+        }
+        if isinstance(resolved.get("deliverables"), list):
+            resolved["deliverables"] = [
+                {**item, "path": self.known_in_work(item.get("path"))} if isinstance(item, dict) else item
+                for item in resolved["deliverables"]
+            ]
+        return resolved
 
     def output_path_problem(self, raw: Any) -> str | None:
         if not isinstance(raw, str) or not raw.strip():
@@ -479,9 +550,28 @@ class Controller:
             return None
         return f"output_path {raw} is outside the work folder {work}; tools may only write there."
 
+    def target_languages(self) -> list[str]:
+        return sorted({f"'{item.language}'" for item in self.plan.deliverables if item.language})
+
+    def needs_english(self) -> bool:
+        if any(item.kind == "answer" or _base(item.language or "") == "en" for item in self.plan.deliverables):
+            return True
+        return any(step.tool in ("read", "write") for step in self.plan.steps)
+
+    def planned_speech_format(self, language: Any) -> str | None:
+        wanted = _base(language) if isinstance(language, str) and language else None
+        formats = {
+            item.format for item in self.plan.deliverables
+            if item.kind == "audio" and item.format
+            and (wanted is None or item.language is None or _base(item.language) == wanted)
+        }  # fmt: skip
+        return formats.pop() if len(formats) == 1 else None
+
     def digest(self, tool: str, args: dict[str, Any]) -> str:
         canonical = {}
         for key, value in sorted(args.items()):
+            if key in RESULT_NEUTRAL_FIELDS:
+                continue
             artifact = self.ledger.by_path(value) if key in guards.PATH_FIELDS and isinstance(value, str) else None
             canonical[key] = f"sha256:{artifact.sha256}" if artifact is not None and artifact.sha256 else value
         payload = json.dumps({"tool": tool, "args": canonical}, sort_keys=True, ensure_ascii=False, default=str)
@@ -495,7 +585,7 @@ class Controller:
         if call.name not in self.local and (self.mcp is None or call.name not in MCP_TOOLS):
             known = ", ".join(definition["function"]["name"] for definition in self.tool_definitions())
             return await self.deny(call, "unknown_tool", f"There is no tool '{call.name}'.", f"Use one of: {known}.")
-        arguments = _unescape_paths(call.arguments)
+        arguments = self.resolve_work_paths(_unescape_paths(call.arguments))
         known_paths = [artifact.path for artifact in self.ledger.artifacts.values()]
         found = guards.find_indic(arguments, known_paths)
         if found:
@@ -505,7 +595,7 @@ class Controller:
                 "Write English only; use translate_text for Indian-language output.",
             )  # fmt: skip
         args, reason, plan_step = split_meta(arguments)
-        if reason is None:
+        if reason is None and call.name != "finish":
             return await self.deny(call, "missing_reason", "Every tool call needs a short English 'reason'.", None)
         if call.name in INLINE_TEXT_TOOLS and isinstance(args.get("text"), str):
             problem = guards.llm_text_problem(args["text"])
@@ -518,6 +608,18 @@ class Controller:
                     return await self.deny(call, "inline_speech", speech, None)
         source: Artifact | None = None
         path_field = INPUT_FIELDS.get(call.name)
+        inline = call.name in INLINE_TEXT_TOOLS and isinstance(args.get("text"), str)
+        if call.name in SOURCE_KINDS and path_field and not isinstance(args.get(path_field), str) and not inline:
+            implied = self.implied_source(call.name, plan_step, args.get("language"))
+            if implied is None:
+                return await self.deny(
+                    call, "missing_source", f"{call.name} needs {path_field}.", self.source_hint(call.name, path_field)
+                )
+            args[path_field] = implied.path
+            await self.trace.emit(
+                "act", "guard", tool_call_id=call.id, tool=call.name,
+                message=f"{path_field} was missing; used {implied.id}, the only matching file.",
+            )  # fmt: skip
         if path_field and isinstance(args.get(path_field), str):
             try:
                 source = known_file(self.ctx, args[path_field])
@@ -532,6 +634,13 @@ class Controller:
                 same = same_language_problem(source, str(args.get("target_language", "")))
                 if same is not None:
                     return await self.deny(call, "same_language", same, "No paid call is needed for this.")
+                if _base(str(args.get("target_language", ""))) == "en" and not self.needs_english():
+                    return await self.deny(
+                        call, "pivot_not_needed",
+                        f"No deliverable is English and no step reads the text; translate {source.id} straight into "
+                        "the deliverable's language.",
+                        "Call translate_text with target_language " + " or ".join(self.target_languages()) + ".",
+                    )  # fmt: skip
         if call.name in MCP_TOOLS or call.name == "make_subtitles":
             problem = self.output_path_problem(args.get("output_path"))
             if problem is not None:
@@ -540,7 +649,16 @@ class Controller:
                     "Give a plain file name; it is saved in the work folder and copied to artifacts after finish.",
                 )  # fmt: skip
         if call.name in MCP_TOOLS:
+            for name in HIDDEN_TOOL_FIELDS.get(call.name, ()):
+                args.pop(name, None)
             args = guards.harden_tool_args(call.name, args)
+        if call.name == "synthesize_speech" and "format" not in args:
+            suffix = Path(str(args.get("output_path") or "")).suffix.lower().lstrip(".")
+            planned = self.planned_speech_format(args.get("language"))
+            if suffix in SPEECH_FORMATS:
+                args["format"] = suffix
+            elif planned is not None:
+                args["format"] = planned
         digest = self.digest(call.name, args)
         failed = self.ledger.failed_before(call.name, digest)
         if failed is not None:
@@ -548,6 +666,15 @@ class Controller:
                 call, "repeat_refused", f"The same call already failed with '{failed.error_code}'.",
                 "Change the arguments or take a different approach.",
             )  # fmt: skip
+        if call.name not in FREE_TOOLS:
+            done = self.ledger.succeeded_before(call.name, digest)
+            if done is not None:
+                made = ", ".join(f"{item.id} {item.path}" for item in self.ledger.outputs(done))
+                return await self.deny(
+                    call, "repeat_refused", f"The same call already succeeded and made {made}.",
+                    "Use that file. Change the arguments, such as format or voice, only if a different result is "
+                    "needed.",
+                )  # fmt: skip
         uncertain = self.ledger.uncertain_attempts(call.name, digest)
         if uncertain >= 2:
             return await self.deny(call, "repeat_refused", "This call already timed out twice.", None)

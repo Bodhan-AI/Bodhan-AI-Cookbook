@@ -180,10 +180,12 @@ def _common_checks(ledger: Ledger, deliverable: Deliverable, artifact: Artifact)
     if artifact.sha256 is not None and file_digest(path)[0] != artifact.sha256:
         return [_check("file_intact", "failed", f"{artifact.id} changed after it was produced.")]
     checks.append(_check("file_intact", "passed"))
-    if artifact.kind != deliverable.kind:
-        checks.append(_check("kind", "failed", f"Expected {deliverable.kind}, got {artifact.kind}."))
-    if deliverable.format and path.suffix.lower().lstrip(".") != deliverable.format:
-        checks.append(_check("format", "failed", f"Expected .{deliverable.format}, got {path.name}."))
+    mismatch = deliverable.file_problem(artifact.kind, artifact.path)
+    if mismatch is not None:
+        checks.append(_check(mismatch[0], "failed", f"{deliverable.id} {mismatch[1]}."))
+    producer = deliverable.producer_problem(artifact.tool)
+    if producer is not None:
+        checks.append(_check("produced_by", "failed", f"{deliverable.id} {producer}."))
     if deliverable.language and artifact.language and _base(deliverable.language) != _base(artifact.language):
         checks.append(
             _check("language", "failed", f"Expected '{deliverable.language}', recorded '{artifact.language}'.")

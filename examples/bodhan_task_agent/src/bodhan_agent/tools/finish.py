@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Any
 
 from bodhan_agent.core import guards
@@ -37,15 +36,22 @@ def _check_file(
     except LocalToolError as error:
         return None, f"{ref.id}: {error.message}"
     if planned is not None:
-        if artifact.kind != planned.kind:
-            return None, f"{ref.id} needs a {planned.kind} file, but {artifact.id} is {artifact.kind}."
-        if planned.format and Path(artifact.path).suffix.lower().lstrip(".") != planned.format:
-            return None, f"{ref.id} needs a .{planned.format} file, but {artifact.id} is {Path(artifact.path).name}."
+        mismatch = planned.file_problem(artifact.kind, artifact.path)
+        if mismatch is not None:
+            fix = ""
+            if mismatch[0] == "format" and planned.kind == "audio":
+                fix = f" Call synthesize_speech with format '{planned.format}'."
+            return None, f"{ref.id} {mismatch[1]} ({artifact.id}).{fix}"
         if planned.language and artifact.language and _base(planned.language) != _base(artifact.language):
             return None, f"{ref.id} must be in '{planned.language}', but {artifact.id} is in '{artifact.language}'."
     language = planned.language if planned is not None and planned.language else artifact.language
     source = guards.deliverable_source_problem(ctx.ledger, artifact, language)
-    return (None, source) if source is not None else (artifact, None)
+    if source is not None:
+        return None, source
+    producer = None if planned is None else planned.producer_problem(artifact.tool)
+    if producer is not None:
+        return None, f"{ref.id} {producer} ({artifact.id}); deliver Bodhan's file as is."
+    return artifact, None
 
 
 class FinishTool(LocalTool):
