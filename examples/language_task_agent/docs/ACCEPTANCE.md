@@ -10,7 +10,7 @@
 | Fresh declared tasks | Primary 11/13; alternate 7/11 including 3 timeouts and 1 free-quota refusal; separate fixes/clarification 2/2 |
 | Natural Hindi | 37 readable cues span 0–180s; maximum 5s, 2 lines, 42 characters; all 10 translation checks pass |
 | Tamil | 115.456s MP3 within 115–125s; matching text/source and 9 audio-chunk checks pass |
-| Recording | 97.84s actual PTY playback; cached media labeled; real CLI/MCP checks pass |
+| Recording | 255s narrated HyperFrames walkthrough; recorded PTY excerpts/cache use labeled; original97.84s capture preserved |
 | Credentials/media | Actual environment files, caches and source media stay outside Git |
 | Required disclosure | Codex assistance is stated in README and PR; candidate review is not invented |
 

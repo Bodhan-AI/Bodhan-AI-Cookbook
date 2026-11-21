@@ -1,3 +1,5 @@
+Current video-production accounting: [DEMO_FILM.md](DEMO_FILM.md) adds INR0.4586133333 for narrator QA; lifetime known/reserved INR17.3661698958. Earlier task-phase accounting below remains historical.
+
 # Cost accounting and retained failures
 
 Published assignment units: OCR INR0.20/page; ASR INR0.10/minute by submitted

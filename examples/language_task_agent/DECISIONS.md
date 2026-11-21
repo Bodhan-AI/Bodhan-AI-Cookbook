@@ -865,3 +865,45 @@ rewritten and no new model dispatch is needed. Cache keys, payloads and generate
 media are unchanged. The recorded142-test source remains identified by its SHA.
 
 D056 validation update: both actual Linux arm64/amd64 containers pass143tests and lint (amd64 emulated).
+
+## D057 - 2026-11-21 - Add a guided film with separate editorial narration
+
+On the owner's request, build a 255s/1080p30 HyperFrames walkthrough with real PTY
+excerpts, original-rate task audio, progressively built diagrams and safe captions.
+Preserve the 97.84s capture and prior releases. Shortened paths/omitted repeat lines,
+visible task abbreviation, cache replay and retained artifacts are explicit.
+
+The owner then requested VoiceStudio MCP narration. Use the existing local 0.5.7
+MCP engine and a saved designed Documentary Narrator–US profile, never a personal
+clone. Seventeen takes are editorial voiceover outside the agent, slowed 10% and
+normalized; task-agent model operations remain Bodhan-only. Keep narrator and
+original demo listening intervals disjoint. A local original sound bed is ducked.
+
+Independent visual review flags crowded/disconnected diagram nodes, terminal
+clearance, missing clip decisions/legend and static staging; fix them. Runtime
+QA catches Tamil overflow and ghosted crossfade text; fix excerpt bounds and fade
+outgoing text before blending backgrounds. Final lint/runtime/layout/contrast/
+craft checks have 0 errors/0 warnings. Captions 36px end at/before924, reserving 156px
+below. Actual 255s encoded video is −18.70LUFS/−4.69dBTP; no human listening claimed.
+
+VoiceStudio transcription rejects a large body 413 and then denies the per-take
+transcribe call 403. Retain these errors. A real Bodhan CLI transcription of all
+concatenated takes costs INR0.243473125; fixed 25s cuts lose some boundary phrases.
+Check each of 17 takes independently using the real Bodhan stdio MCP instead:
+INR0.2151402083. One last-take 429 is explicitly rejected, charge 0; retry after 76s.
+All narration content is represented; retain name/homophone/number differences
+without claiming semantic or native proof. Production QA totals INR0.4586133333;
+lifetime known/reserved INR17.3661698958, not wallet balance. An initial QA summary
+variable-shadowing bug is repaired from unchanged per-take records, without new
+model calls. No task score is altered, and no payment/account/email action occurs.
+
+Publish the new film and editable source separately from prior recordings, update
+the private PR/public existing PR links and email draft, and retain source-only
+archives/checkpoints. Only presentation/docs change; runtime/test sources remain
+identical to the 143-test snapshot. No candidate understanding is claimed.
+
+D057 final validation:54caption cues include37verbatim narrator groups plus17
+listening/explanation labels. All caption midpoints pass the150px control-band
+layout check. Two contrast warnings select canvasblue behind the white Tamil
+panel; actual encoded pixels show white, yielding6.49:1label/13.89:1body contrast.
+No visual change is needed. Standard contrast check is clean; retain both reports.

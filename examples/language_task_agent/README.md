@@ -3,16 +3,18 @@
 A general non-interactive CLI task agent and an independently usable stdio MCP
 server. A provider-neutral planner chooses tools and writes English; shared Python
 code handles media, model limits, verification, budgets, cache and structured errors.
-Every OCR, ASR, translation and speech operation uses Bodhan.
+Every task-agent OCR, ASR, translation and speech operation uses Bodhan.
 
 The six documented fixture cases have checked outputs or an honest French refusal.
 The original synthetic fixtures are supplemented by a licensed natural Hindi
 recording and a 115.456s Tamil summary. These are automated screens, not native-speaker
 certification or a hidden-task pass rate. Candidate review and rehearsal remain pending.
 
-[1:38 actual terminal demo](https://github.com/BishalJena/Bodhan-AI-Cookbook/releases/download/tool-agent-review-20261121/demo_recording.mp4) · [Outputs, traces, inputs and ledger](https://github.com/BishalJena/Bodhan-AI-Cookbook/releases/tag/tool-agent-review-20261121) ·
+[4:15 narrated walkthrough](https://github.com/BishalJena/Bodhan-AI-Cookbook/releases/download/tool-agent-film-20261121/bodhan-guided-demo.mp4) · [Original 1:38 terminal capture](https://github.com/BishalJena/Bodhan-AI-Cookbook/releases/download/tool-agent-review-20261121/demo_recording.mp4) · [Outputs, traces, inputs and ledger](https://github.com/BishalJena/Bodhan-AI-Cookbook/releases/tag/tool-agent-review-20261121) ·
 [Fresh review results](docs/REVIEW_RESULTS.md) · [Original demos](docs/DEMOS.md) · [Design](docs/DESIGN.md) ·
 [Acceptance](docs/ACCEPTANCE.md) · [Walkthrough](docs/WALKTHROUGH.md)
+
+[Video production notes and editable project](docs/DEMO_FILM.md) explain narration, playback and evidence provenance.
 
 ## AI assistance
 

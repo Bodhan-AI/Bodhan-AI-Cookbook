@@ -1,5 +1,7 @@
 # Review improvements and current evidence
 
+[New4:15 narrated walkthrough](DEMO_FILM.md) adds a guided visual explanation while preserving the raw97.84s terminal capture and all original evidence.
+
 [Terminal recording, outputs and traces](https://github.com/BishalJena/Bodhan-AI-Cookbook/releases/tag/tool-agent-review-20261121).
 This is declared development evaluation, not access to the assessors' hidden set.
 
