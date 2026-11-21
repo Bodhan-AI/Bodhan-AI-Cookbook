@@ -17,11 +17,13 @@ from .models import (
     TranslationResponse,
 )
 from .ocr_loader import BodhanOCRLoader
+from .translation import BodhanTranslationTransformer
 
 __all__ = [
     "BodhanClient",
     "BodhanAsyncClient",
     "BodhanOCRLoader",
+    "BodhanTranslationTransformer",
     "BodhanError",
     "BodhanAPIError",
     "BodhanAuthenticationError",
