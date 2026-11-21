@@ -133,7 +133,7 @@ async def test_an_unconfirmed_coverage_check_never_permits_completed(tmp_path, r
 
 
 @pytest.mark.parametrize("covered_by", ["source_ta.md", "source_ta.md: translation, Tamil, made from source.txt", "`source_ta.md`",
-                                        "E:\out\artifacts\source_ta.md", ["source_ta.md", "answer"]])
+                                        r"E:\out\artifacts\source_ta.md", ["source_ta.md", "answer"]])
 async def test_the_ways_a_model_names_a_delivered_item_are_accepted(tmp_path, covered_by):
     # seen live: models echo the whole listed line rather than the name alone
     task = "Translate the whole source into Tamil."
