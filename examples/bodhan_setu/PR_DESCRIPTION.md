@@ -92,7 +92,7 @@ The web UI sample translates the [synthetic Hindi video](https://huggingface.co/
 - The recorded live demos do not cover every requested workflow, and the video-translation output has no lip-sync adjustment.
 - Audio/video conversion requires local FFmpeg. Artifact file IDs are local to the running service and are bounded by the per-user file count.
 - The LLM provider cost is not included in Bodhan rupee budgets. The demos used local Ollama, so no hosted planner charge was incurred.
-- The full test suite was not rerun after the latest implementation edits. Earlier, the recipe suite reported 70 passing tests; repository `make check` reported 31 passing and one existing AndroidSpeak recipe validation failure. These earlier results should not be treated as validation of the pushed revision.
+- The latest `make check` run reported 31 passing tests and one repository-wide failure: `test_all_shipped_recipes_pass` flags the unrelated AndroidSpeak example for missing a source file, `.env.example`, and an `.env` ignore rule. The full check therefore did not pass.
 
 ## Cost and runtime
 
