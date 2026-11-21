@@ -1,0 +1,830 @@
+"""Centralized HTTP client for Bodhan AI services."""
+
+from __future__ import annotations
+
+import base64
+import mimetypes
+import os
+from pathlib import Path
+from typing import Any, Literal
+
+import httpx
+
+from .exceptions import (
+    BodhanAPIError,
+    BodhanAuthenticationError,
+    BodhanRateLimitError,
+    BodhanValidationError,
+)
+from .models import (
+    SUPPORTED_SCRIPTS,
+    SUPPORTED_TABLE_FORMATS,
+    SUPPORTED_TRANSLATION_LANGUAGES,
+    OCRBlock,
+    OCRResponse,
+    TranslationResponse,
+)
+
+TransportStrategy = Literal["auto", "chat_completions", "translate_endpoint"]
+
+
+def _validate_language_code(lang: str) -> None:
+    """Validate that the language code follows Bodhan's plain ISO conventions."""
+    if not lang or not isinstance(lang, str):
+        raise BodhanValidationError("Target language must be a non-empty string.", parameter="target_language")
+
+    normalized = lang.strip()
+    if normalized.endswith("-IN") or normalized.startswith("en-") or normalized.startswith("hi-"):
+        clean_code = normalized.split("-")[0]
+        raise BodhanValidationError(
+            f"Invalid language code '{lang}'. Bodhan uses plain ISO codes (e.g., '{clean_code}') "
+            f"without country subtags like '-IN'.",
+            parameter="target_language",
+        )
+
+    if normalized not in SUPPORTED_TRANSLATION_LANGUAGES:
+        raise BodhanValidationError(
+            f"Unsupported target language '{lang}'. Supported languages are: "
+            f"{', '.join(sorted(SUPPORTED_TRANSLATION_LANGUAGES))}",
+            parameter="target_language",
+        )
+
+
+def _prepare_image_data_url(image: bytes | str | Path) -> str:
+    """Convert raw image bytes, a file path, or a base64 string into a data URL."""
+    if isinstance(image, bytes):
+        if not image:
+            raise BodhanValidationError("Image bytes cannot be empty.", parameter="image")
+        # Default to image/png for raw bytes if not inspectable
+        mime = "image/png"
+        if image.startswith(b"\xff\xd8\xff"):
+            mime = "image/jpeg"
+        elif image.startswith(b"\x89PNG\r\n\x1a\n"):
+            mime = "image/png"
+        elif image.startswith(b"RIFF") and b"WEBP" in image[:16]:
+            mime = "image/webp"
+        b64 = base64.b64encode(image).decode("ascii")
+        return f"data:{mime};base64,{b64}"
+
+    if isinstance(image, Path) or (isinstance(image, str) and not image.startswith("data:") and len(image) < 4096):
+        path = Path(image)
+        if path.exists() and path.is_file():
+            data = path.read_bytes()
+            if not data:
+                raise BodhanValidationError(f"Image file '{path}' is empty.", parameter="image")
+            mime, _ = mimetypes.guess_type(str(path))
+            mime = mime or "image/png"
+            b64 = base64.b64encode(data).decode("ascii")
+            return f"data:{mime};base64,{b64}"
+
+    if isinstance(image, str):
+        if not image.strip():
+            raise BodhanValidationError("Image string cannot be empty.", parameter="image")
+        if image.startswith("data:image/"):
+            return image.strip()
+        # Assume bare base64 string
+        return f"data:image/png;base64,{image.strip()}"
+
+    raise BodhanValidationError(
+        f"Unsupported image input type '{type(image).__name__}'. Expected bytes, Path, or base64 str.",
+        parameter="image",
+    )
+
+
+def _parse_error_response(response: httpx.Response) -> BodhanAPIError:
+    """Extract structured error details from an HTTP error response."""
+    status_code = response.status_code
+    error_message = f"Bodhan API returned HTTP {status_code}"
+    error_code = None
+    request_id = response.headers.get("x-request-id")
+    response_body: Any = None
+
+    try:
+        data = response.json()
+        response_body = data
+        if isinstance(data, dict):
+            if "error" in data and isinstance(data["error"], dict):
+                err = data["error"]
+                error_message = err.get("message") or error_message
+                error_code = err.get("code")
+                request_id = err.get("request_id") or request_id
+            elif "detail" in data:
+                error_message = str(data["detail"])
+            elif "message" in data:
+                error_message = str(data["message"])
+    except Exception:
+        # Fall back to raw text if not valid JSON
+        text = response.text.strip()
+        if text:
+            error_message = text
+        response_body = response.text
+
+    if status_code == 401:
+        return BodhanAuthenticationError(
+            message=error_message or "Authentication Error: Invalid or missing API key.",
+            status_code=401,
+            error_code=error_code or "AUTHENTICATION_ERROR",
+            request_id=request_id,
+            response_body=response_body,
+        )
+
+    if status_code == 429:
+        retry_after: float | None = None
+        raw_retry = response.headers.get("retry-after")
+        if raw_retry:
+            try:
+                retry_after = float(raw_retry)
+            except ValueError:
+                pass
+        limit_requests = response.headers.get("x-ratelimit-limit-requests")
+        limit_parallel = response.headers.get("x-ratelimit-limit-parallel-requests")
+
+        return BodhanRateLimitError(
+            message=error_message or "Rate limit exceeded. Please back off before retrying.",
+            status_code=429,
+            error_code=error_code or "RATE_LIMIT_EXCEEDED",
+            request_id=request_id,
+            retry_after=retry_after,
+            limit_requests=limit_requests,
+            limit_parallel_requests=limit_parallel,
+            response_body=response_body,
+        )
+
+    if status_code == 413:
+        return BodhanAPIError(
+            message="Payload Too Large: The supplied document/image exceeds the allowed request size.",
+            status_code=413,
+            error_code=error_code or "PAYLOAD_TOO_LARGE",
+            request_id=request_id,
+            response_body=response_body,
+        )
+
+    return BodhanAPIError(
+        message=error_message,
+        status_code=status_code,
+        error_code=error_code,
+        request_id=request_id,
+        response_body=response_body,
+    )
+
+
+class BodhanClient:
+    """Synchronous HTTP client for Bodhan AI services.
+
+    Provides high-level methods for document OCR (`indic-ocr`) and translation
+    (`indic-translate`) with robust error handling, input validation, and support
+    for both OpenAI-compatible `/v1/chat/completions` and legacy `/translate` endpoints.
+
+    Usage:
+        ```python
+        from bodhan_langchain.client import BodhanClient
+
+        with BodhanClient() as client:
+            # Document OCR
+            ocr_res = client.ocr("page.png")
+            print(ocr_res.text)
+
+            # Translation
+            trans_res = client.translate("Hello world", target_language="hi")
+            print(trans_res.text)
+        ```
+    """
+
+    def __init__(
+        self,
+        api_key: str | None = None,
+        base_url: str = "https://api.bodhan.ai",
+        timeout: float | httpx.Timeout = 60.0,
+        transport_strategy: TransportStrategy = "auto",
+        http_client: httpx.Client | None = None,
+    ) -> None:
+        resolved_key = api_key or os.environ.get("BODHAN_API_KEY")
+        if not resolved_key or not resolved_key.strip():
+            raise BodhanAuthenticationError(
+                "Bodhan API key is required. Pass `api_key` to BodhanClient or set the "
+                "`BODHAN_API_KEY` environment variable.",
+                status_code=401,
+            )
+
+        self._api_key = resolved_key.strip()
+        self.base_url = base_url.rstrip("/")
+        self.timeout = timeout
+        self.transport_strategy = transport_strategy
+        self._custom_client = http_client is not None
+
+        if http_client is not None:
+            self._client = http_client
+        else:
+            self._client = httpx.Client(
+                base_url=self.base_url,
+                timeout=self.timeout,
+                headers={
+                    "Authorization": f"Bearer {self._api_key}",
+                    "User-Agent": "Bodhan-LangChain-Client/1.0",
+                },
+            )
+
+    def close(self) -> None:
+        """Close the underlying HTTP client if managed by this instance."""
+        if not self._custom_client:
+            self._client.close()
+
+    def __enter__(self) -> BodhanClient:
+        return self
+
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+        self.close()
+
+    def _headers(self, additional: dict[str, str] | None = None) -> dict[str, str]:
+        base = {
+            "Authorization": f"Bearer {self._api_key}",
+            "User-Agent": "Bodhan-LangChain-Client/1.0",
+        }
+        if additional:
+            base.update(additional)
+        return base
+
+    def _send_request(
+        self,
+        method: str,
+        path: str,
+        *,
+        json: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> dict[str, Any]:
+        req_headers = self._headers(headers)
+        if json is not None:
+            req_headers["Content-Type"] = "application/json"
+
+        url = path if path.startswith("http") else f"{self.base_url}{path}"
+
+        try:
+            resp = self._client.request(
+                method=method,
+                url=url,
+                json=json,
+                headers=req_headers,
+            )
+        except httpx.TimeoutException as exc:
+            raise BodhanAPIError(f"Request to '{url}' timed out after {self.timeout} seconds.") from exc
+        except httpx.RequestError as exc:
+            raise BodhanAPIError(f"Network request to '{url}' failed: {exc}") from exc
+
+        if not resp.is_success:
+            raise _parse_error_response(resp)
+
+        try:
+            return resp.json()
+        except Exception as exc:
+            raise BodhanAPIError(
+                f"Malformed JSON response received from Bodhan API at '{url}': {resp.text[:200]}",
+                status_code=resp.status_code,
+                response_body=resp.text,
+            ) from exc
+
+    def ocr(
+        self,
+        image: bytes | str | Path,
+        table_format: str = "markdown",
+        max_tokens: int | None = None,
+    ) -> OCRResponse:
+        """Perform document OCR on a single scanned page image.
+
+        Args:
+            image: Image bytes, a local file path, or a base64 data URL.
+            table_format: Output format for tables ('markdown' or 'html'). Defaults to 'markdown'.
+            max_tokens: Optional token limit for the response.
+
+        Returns:
+            OCRResponse containing extracted text, layout blocks, and metadata.
+
+        Raises:
+            BodhanValidationError: If inputs are invalid or empty.
+            BodhanAPIError: If the API returns an error or malformed payload.
+        """
+        if table_format not in SUPPORTED_TABLE_FORMATS:
+            raise BodhanValidationError(
+                f"Invalid table_format '{table_format}'. Must be one of: {', '.join(sorted(SUPPORTED_TABLE_FORMATS))}",
+                parameter="table_format",
+            )
+        if max_tokens is not None and max_tokens <= 0:
+            raise BodhanValidationError("max_tokens must be a positive integer.", parameter="max_tokens")
+
+        data_url = _prepare_image_data_url(image)
+
+        body: dict[str, Any] = {
+            "model": "indic-ocr",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "image_url",
+                            "image_url": {"url": data_url},
+                        }
+                    ],
+                }
+            ],
+            "table_format": table_format,
+        }
+        if max_tokens is not None:
+            body["max_tokens"] = max_tokens
+
+        data = self._send_request("POST", "/v1/chat/completions", json=body)
+
+        choices = data.get("choices")
+        if not choices or not isinstance(choices, list) or len(choices) == 0:
+            raise BodhanAPIError(
+                "OCR response is missing expected 'choices' array.",
+                status_code=200,
+                response_body=data,
+            )
+
+        message = choices[0].get("message", {})
+        content = message.get("content")
+        if content is None:
+            raise BodhanAPIError(
+                "OCR response choices[0].message is missing 'content'.",
+                status_code=200,
+                response_body=data,
+            )
+
+        raw_blocks = data.get("blocks", [])
+        parsed_blocks: list[OCRBlock] = []
+        if isinstance(raw_blocks, list):
+            for b in raw_blocks:
+                if isinstance(b, dict):
+                    parsed_blocks.append(
+                        OCRBlock(
+                            order=b.get("order", 0),
+                            label=b.get("label", "unknown"),
+                            bbox_xyxy=b.get("bbox_xyxy", [0, 0, 0, 0]),
+                            conf=float(b.get("conf", 0.0)),
+                            text=b.get("text", ""),
+                            raw=b,
+                        )
+                    )
+
+        return OCRResponse(
+            text=content,
+            blocks=parsed_blocks,
+            model=data.get("model", "indic-ocr"),
+            usage=data.get("usage"),
+            raw_response=data,
+        )
+
+    def _translate_chat_completions(
+        self,
+        text: str,
+        target_language: str,
+        script: str | None = None,
+        max_tokens: int | None = None,
+    ) -> TranslationResponse:
+        """Execute translation via POST /v1/chat/completions route."""
+        body: dict[str, Any] = {
+            "model": "indic-translate",
+            "target_language": target_language,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": text,
+                }
+            ],
+        }
+        if script is not None:
+            body["script"] = script
+        if max_tokens is not None:
+            body["max_tokens"] = max_tokens
+
+        data = self._send_request("POST", "/v1/chat/completions", json=body)
+
+        choices = data.get("choices")
+        if not choices or not isinstance(choices, list) or len(choices) == 0:
+            raise BodhanAPIError(
+                "Translation response is missing expected 'choices' array.",
+                status_code=200,
+                response_body=data,
+            )
+
+        message = choices[0].get("message", {})
+        content = message.get("content")
+        if content is None:
+            raise BodhanAPIError(
+                "Translation response choices[0].message is missing 'content'.",
+                status_code=200,
+                response_body=data,
+            )
+
+        return TranslationResponse(
+            text=content,
+            target_language=target_language,
+            source_language=data.get("source_language"),
+            script=script,
+            truncated=bool(choices[0].get("finish_reason") == "length"),
+            usage=data.get("usage"),
+            raw_response=data,
+        )
+
+    def _translate_plain_json(
+        self,
+        text: str,
+        target_language: str,
+        script: str | None = None,
+        max_tokens: int | None = None,
+    ) -> TranslationResponse:
+        """Execute translation via POST /translate route."""
+        body: dict[str, Any] = {
+            "text": text,
+            "target_language": target_language,
+        }
+        if script is not None:
+            body["script"] = script
+        if max_tokens is not None:
+            body["max_output_tokens"] = max_tokens
+
+        data = self._send_request("POST", "/translate", json=body)
+
+        translation = data.get("translation")
+        if translation is None:
+            raise BodhanAPIError(
+                "Translation response is missing expected 'translation' field.",
+                status_code=200,
+                response_body=data,
+            )
+
+        return TranslationResponse(
+            text=translation,
+            target_language=data.get("target_language", target_language),
+            source_language=data.get("source_language"),
+            script=data.get("script", script),
+            truncated=bool(data.get("truncated", False)),
+            usage=data.get("usage"),
+            raw_response=data,
+        )
+
+    def translate(
+        self,
+        text: str,
+        target_language: str,
+        script: str | None = None,
+        transport: TransportStrategy | None = None,
+        max_tokens: int | None = None,
+    ) -> TranslationResponse:
+        """Translate text to an Indian language or English using Bodhan AI.
+
+        Reconciles the documented POST /translate endpoint with the active
+        /v1/chat/completions transport (documented in GitHub Issue #34).
+
+        Args:
+            text: Input text to translate.
+            target_language: ISO language code (e.g. 'hi', 'ta', 'bn', 'en').
+            script: Optional script variant ('native', 'roman', 'codemix').
+            transport: Endpoint transport strategy ('auto', 'chat_completions', 'translate_endpoint').
+            max_tokens: Optional limit on generated output tokens.
+
+        Returns:
+            TranslationResponse containing translated text and metadata.
+
+        Raises:
+            BodhanValidationError: If language or inputs fail validation.
+            BodhanAPIError: If all attempted transports fail.
+        """
+        if not text or not isinstance(text, str) or not text.strip():
+            raise BodhanValidationError("Text to translate cannot be empty or whitespace.", parameter="text")
+
+        _validate_language_code(target_language)
+
+        if script is not None and script not in SUPPORTED_SCRIPTS:
+            raise BodhanValidationError(
+                f"Invalid script '{script}'. Must be one of: {', '.join(sorted(SUPPORTED_SCRIPTS))}",
+                parameter="script",
+            )
+        if max_tokens is not None and max_tokens <= 0:
+            raise BodhanValidationError("max_tokens must be a positive integer.", parameter="max_tokens")
+
+        strategy = transport or self.transport_strategy
+
+        if strategy == "chat_completions":
+            return self._translate_chat_completions(text, target_language, script, max_tokens)
+
+        if strategy == "translate_endpoint":
+            return self._translate_plain_json(text, target_language, script, max_tokens)
+
+        # 'auto' strategy: Prefer chat_completions (verified working per Issue #34),
+        # with automatic fallback to /translate if 404 or unsupported
+        try:
+            return self._translate_chat_completions(text, target_language, script, max_tokens)
+        except BodhanAPIError as exc:
+            if exc.status_code == 404:
+                return self._translate_plain_json(text, target_language, script, max_tokens)
+            raise
+
+
+class BodhanAsyncClient:
+    """Asynchronous HTTP client for Bodhan AI services.
+
+    Provides coroutine methods for asynchronous document OCR and translation.
+
+    Usage:
+        ```python
+        from bodhan_langchain.client import BodhanAsyncClient
+
+        async with BodhanAsyncClient() as client:
+            ocr_res = await client.ocr("page.png")
+            trans_res = await client.translate("Hello", target_language="hi")
+        ```
+    """
+
+    def __init__(
+        self,
+        api_key: str | None = None,
+        base_url: str = "https://api.bodhan.ai",
+        timeout: float | httpx.Timeout = 60.0,
+        transport_strategy: TransportStrategy = "auto",
+        http_client: httpx.AsyncClient | None = None,
+    ) -> None:
+        resolved_key = api_key or os.environ.get("BODHAN_API_KEY")
+        if not resolved_key or not resolved_key.strip():
+            raise BodhanAuthenticationError(
+                "Bodhan API key is required. Pass `api_key` to BodhanAsyncClient or set the "
+                "`BODHAN_API_KEY` environment variable.",
+                status_code=401,
+            )
+
+        self._api_key = resolved_key.strip()
+        self.base_url = base_url.rstrip("/")
+        self.timeout = timeout
+        self.transport_strategy = transport_strategy
+        self._custom_client = http_client is not None
+
+        if http_client is not None:
+            self._client = http_client
+        else:
+            self._client = httpx.AsyncClient(
+                base_url=self.base_url,
+                timeout=self.timeout,
+                headers={
+                    "Authorization": f"Bearer {self._api_key}",
+                    "User-Agent": "Bodhan-LangChain-AsyncClient/1.0",
+                },
+            )
+
+    async def aclose(self) -> None:
+        """Close the underlying HTTP client if managed by this instance."""
+        if not self._custom_client:
+            await self._client.aclose()
+
+    async def __aenter__(self) -> BodhanAsyncClient:
+        return self
+
+    async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+        await self.aclose()
+
+    def _headers(self, additional: dict[str, str] | None = None) -> dict[str, str]:
+        base = {
+            "Authorization": f"Bearer {self._api_key}",
+            "User-Agent": "Bodhan-LangChain-AsyncClient/1.0",
+        }
+        if additional:
+            base.update(additional)
+        return base
+
+    async def _send_request(
+        self,
+        method: str,
+        path: str,
+        *,
+        json: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> dict[str, Any]:
+        req_headers = self._headers(headers)
+        if json is not None:
+            req_headers["Content-Type"] = "application/json"
+
+        url = path if path.startswith("http") else f"{self.base_url}{path}"
+
+        try:
+            resp = await self._client.request(
+                method=method,
+                url=url,
+                json=json,
+                headers=req_headers,
+            )
+        except httpx.TimeoutException as exc:
+            raise BodhanAPIError(f"Request to '{url}' timed out after {self.timeout} seconds.") from exc
+        except httpx.RequestError as exc:
+            raise BodhanAPIError(f"Network request to '{url}' failed: {exc}") from exc
+
+        if not resp.is_success:
+            raise _parse_error_response(resp)
+
+        try:
+            return resp.json()
+        except Exception as exc:
+            raise BodhanAPIError(
+                f"Malformed JSON response received from Bodhan API at '{url}': {resp.text[:200]}",
+                status_code=resp.status_code,
+                response_body=resp.text,
+            ) from exc
+
+    async def ocr(
+        self,
+        image: bytes | str | Path,
+        table_format: str = "markdown",
+        max_tokens: int | None = None,
+    ) -> OCRResponse:
+        """Asynchronously perform document OCR on a single scanned page image."""
+        if table_format not in SUPPORTED_TABLE_FORMATS:
+            raise BodhanValidationError(
+                f"Invalid table_format '{table_format}'. Must be one of: {', '.join(sorted(SUPPORTED_TABLE_FORMATS))}",
+                parameter="table_format",
+            )
+        if max_tokens is not None and max_tokens <= 0:
+            raise BodhanValidationError("max_tokens must be a positive integer.", parameter="max_tokens")
+
+        data_url = _prepare_image_data_url(image)
+
+        body: dict[str, Any] = {
+            "model": "indic-ocr",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "image_url",
+                            "image_url": {"url": data_url},
+                        }
+                    ],
+                }
+            ],
+            "table_format": table_format,
+        }
+        if max_tokens is not None:
+            body["max_tokens"] = max_tokens
+
+        data = await self._send_request("POST", "/v1/chat/completions", json=body)
+
+        choices = data.get("choices")
+        if not choices or not isinstance(choices, list) or len(choices) == 0:
+            raise BodhanAPIError(
+                "OCR response is missing expected 'choices' array.",
+                status_code=200,
+                response_body=data,
+            )
+
+        message = choices[0].get("message", {})
+        content = message.get("content")
+        if content is None:
+            raise BodhanAPIError(
+                "OCR response choices[0].message is missing 'content'.",
+                status_code=200,
+                response_body=data,
+            )
+
+        raw_blocks = data.get("blocks", [])
+        parsed_blocks: list[OCRBlock] = []
+        if isinstance(raw_blocks, list):
+            for b in raw_blocks:
+                if isinstance(b, dict):
+                    parsed_blocks.append(
+                        OCRBlock(
+                            order=b.get("order", 0),
+                            label=b.get("label", "unknown"),
+                            bbox_xyxy=b.get("bbox_xyxy", [0, 0, 0, 0]),
+                            conf=float(b.get("conf", 0.0)),
+                            text=b.get("text", ""),
+                            raw=b,
+                        )
+                    )
+
+        return OCRResponse(
+            text=content,
+            blocks=parsed_blocks,
+            model=data.get("model", "indic-ocr"),
+            usage=data.get("usage"),
+            raw_response=data,
+        )
+
+    async def _translate_chat_completions(
+        self,
+        text: str,
+        target_language: str,
+        script: str | None = None,
+        max_tokens: int | None = None,
+    ) -> TranslationResponse:
+        body: dict[str, Any] = {
+            "model": "indic-translate",
+            "target_language": target_language,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": text,
+                }
+            ],
+        }
+        if script is not None:
+            body["script"] = script
+        if max_tokens is not None:
+            body["max_tokens"] = max_tokens
+
+        data = await self._send_request("POST", "/v1/chat/completions", json=body)
+
+        choices = data.get("choices")
+        if not choices or not isinstance(choices, list) or len(choices) == 0:
+            raise BodhanAPIError(
+                "Translation response is missing expected 'choices' array.",
+                status_code=200,
+                response_body=data,
+            )
+
+        message = choices[0].get("message", {})
+        content = message.get("content")
+        if content is None:
+            raise BodhanAPIError(
+                "Translation response choices[0].message is missing 'content'.",
+                status_code=200,
+                response_body=data,
+            )
+
+        return TranslationResponse(
+            text=content,
+            target_language=target_language,
+            source_language=data.get("source_language"),
+            script=script,
+            truncated=bool(choices[0].get("finish_reason") == "length"),
+            usage=data.get("usage"),
+            raw_response=data,
+        )
+
+    async def _translate_plain_json(
+        self,
+        text: str,
+        target_language: str,
+        script: str | None = None,
+        max_tokens: int | None = None,
+    ) -> TranslationResponse:
+        body: dict[str, Any] = {
+            "text": text,
+            "target_language": target_language,
+        }
+        if script is not None:
+            body["script"] = script
+        if max_tokens is not None:
+            body["max_output_tokens"] = max_tokens
+
+        data = await self._send_request("POST", "/translate", json=body)
+
+        translation = data.get("translation")
+        if translation is None:
+            raise BodhanAPIError(
+                "Translation response is missing expected 'translation' field.",
+                status_code=200,
+                response_body=data,
+            )
+
+        return TranslationResponse(
+            text=translation,
+            target_language=data.get("target_language", target_language),
+            source_language=data.get("source_language"),
+            script=data.get("script", script),
+            truncated=bool(data.get("truncated", False)),
+            usage=data.get("usage"),
+            raw_response=data,
+        )
+
+    async def translate(
+        self,
+        text: str,
+        target_language: str,
+        script: str | None = None,
+        transport: TransportStrategy | None = None,
+        max_tokens: int | None = None,
+    ) -> TranslationResponse:
+        """Asynchronously translate text to an Indian language or English."""
+        if not text or not isinstance(text, str) or not text.strip():
+            raise BodhanValidationError("Text to translate cannot be empty or whitespace.", parameter="text")
+
+        _validate_language_code(target_language)
+
+        if script is not None and script not in SUPPORTED_SCRIPTS:
+            raise BodhanValidationError(
+                f"Invalid script '{script}'. Must be one of: {', '.join(sorted(SUPPORTED_SCRIPTS))}",
+                parameter="script",
+            )
+        if max_tokens is not None and max_tokens <= 0:
+            raise BodhanValidationError("max_tokens must be a positive integer.", parameter="max_tokens")
+
+        strategy = transport or self.transport_strategy
+
+        if strategy == "chat_completions":
+            return await self._translate_chat_completions(text, target_language, script, max_tokens)
+
+        if strategy == "translate_endpoint":
+            return await self._translate_plain_json(text, target_language, script, max_tokens)
+
+        try:
+            return await self._translate_chat_completions(text, target_language, script, max_tokens)
+        except BodhanAPIError as exc:
+            if exc.status_code == 404:
+                return await self._translate_plain_json(text, target_language, script, max_tokens)
+            raise
