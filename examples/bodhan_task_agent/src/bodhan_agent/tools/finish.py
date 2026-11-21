@@ -30,7 +30,10 @@ def _check_file(
             return None, f"{ref.id} is an answer in result.md; give no path for it."
         return None, None
     if not ref.path:
-        return None, f"{ref.id} needs the path of the file that fulfils it."
+        return None, (
+            f"{ref.id} needs the path of the file that fulfils it. "
+            "If it could not be made, leave it out and explain why in answer_en."
+        )
     try:
         artifact = known_file(ctx, ref.path)
     except LocalToolError as error:
