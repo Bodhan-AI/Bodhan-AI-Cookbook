@@ -47,4 +47,8 @@ class Settings:
             self.allowed_dirs = [Path.cwd(), *extra]
 
     def key_for(self, model: str) -> str | None:
-        return os.environ.get(MODEL_KEY_ENV[model]) or os.environ.get("BODHAN_API_KEY") or None
+        for name in (MODEL_KEY_ENV[model], "BODHAN_API_KEY"):
+            value = (os.environ.get(name) or "").strip()
+            if value and not value.startswith("<"):  # an untouched "<placeholder>" from .env.example counts as empty
+                return value
+        return None
