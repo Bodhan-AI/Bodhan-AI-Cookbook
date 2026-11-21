@@ -10,13 +10,16 @@ from time import monotonic
 from typing import Any
 from xml.sax.saxutils import unescape
 
-from bodhan_agent import guards, prompts
-from bodhan_agent.budget import FREE_TOOLS, BudgetManager, quote_tool
-from bodhan_agent.config import RunSettings
-from bodhan_agent.llm import LlmClient, LlmError
-from bodhan_agent.mcp_session import McpSession
-from bodhan_agent.observe import Observer
-from bodhan_agent.progress import PlanTracker
+from bodhan_agent.agent import prompts
+from bodhan_agent.agent.observe import Observer
+from bodhan_agent.agent.progress import PlanTracker
+from bodhan_agent.clients.llm import LlmClient, LlmError
+from bodhan_agent.clients.mcp_session import McpSession
+from bodhan_agent.core import guards
+from bodhan_agent.core.budget import FREE_TOOLS, BudgetManager, quote_tool
+from bodhan_agent.core.config import RunSettings
+from bodhan_agent.core.trace import TraceWriter
+from bodhan_agent.pipeline.verify import apply_step, step_verdict, verify_deliverable
 from bodhan_agent.schemas.budget import Reservation
 from bodhan_agent.schemas.ledger import ActionRecord, Artifact, ArtifactKind, Ledger
 from bodhan_agent.schemas.llm import LlmReply, ToolCall
@@ -42,8 +45,6 @@ from bodhan_agent.tools.finish import FinishTool
 from bodhan_agent.tools.make_subtitles import MakeSubtitlesTool
 from bodhan_agent.tools.read import ReadTool
 from bodhan_agent.tools.write import WriteTool
-from bodhan_agent.trace import TraceWriter
-from bodhan_agent.verify import apply_step, step_verdict, verify_deliverable
 from bodhan_mcp.utils.script import dominant_script
 
 MCP_TOOLS: tuple[str, ...] = ("transcribe_audio", "translate_text", "synthesize_speech", "ocr_document")

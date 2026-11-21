@@ -7,20 +7,20 @@ from typing import Any
 
 from pydantic import ValidationError
 
-from bodhan_agent import guards, prompts
-from bodhan_agent.budget import DOCUMENT_KINDS, MEDIA_KINDS, BudgetManager, minimum_cost, quote_tool
-from bodhan_agent.config import RunSettings
-from bodhan_agent.llm import LlmClient, LlmError
-from bodhan_agent.loop import register_outputs
-from bodhan_agent.mcp_session import McpSession
+from bodhan_agent.agent import prompts
+from bodhan_agent.agent.loop import register_outputs
+from bodhan_agent.clients.llm import LlmClient, LlmError
+from bodhan_agent.clients.mcp_session import McpSession
+from bodhan_agent.core import guards
+from bodhan_agent.core.budget import DOCUMENT_KINDS, MEDIA_KINDS, BudgetManager, minimum_cost, quote_tool
+from bodhan_agent.core.config import RunSettings
+from bodhan_agent.core.trace import TraceWriter
+from bodhan_agent.pipeline.verify import apply_step, step_verdict
 from bodhan_agent.schemas.ledger import Artifact, Ledger
-from bodhan_agent.schemas.plan import Deliverable, Plan
-from bodhan_agent.schemas.planner import GateResult, PlanOutcome
+from bodhan_agent.schemas.plan import Deliverable, GateResult, Plan, PlanOutcome
 from bodhan_agent.schemas.preflight import PreflightResult
 from bodhan_agent.schemas.report import StopReason
 from bodhan_agent.schemas.trace import LlmTokens, TraceError
-from bodhan_agent.trace import TraceWriter
-from bodhan_agent.verify import apply_step, step_verdict
 from bodhan_mcp.core.languages import SPEAK_LANGUAGES, TRANSCRIBE_LANGUAGES, TRANSLATE_TARGETS
 
 MAX_PLAN_ATTEMPTS = 2

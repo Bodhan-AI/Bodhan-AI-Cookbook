@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from bodhan_agent import guards
+from bodhan_agent.core import guards
 from bodhan_agent.schemas.tools import LocalResult, WriteInput
 from bodhan_agent.tools.base import LocalTool, LocalToolError, ToolContext, output_file, register, write_new
 from bodhan_mcp.utils.script import dominant_script

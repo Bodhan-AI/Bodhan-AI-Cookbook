@@ -11,22 +11,28 @@ from time import monotonic
 
 from dotenv import find_dotenv, load_dotenv
 
-from bodhan_agent.budget import BudgetManager
-from bodhan_agent.config import DEFAULT_DEADLINE_S, DEFAULT_MAX_COST_INR, DEFAULT_MAX_STEPS, LlmSettings, RunSettings
-from bodhan_agent.llm import LlmClient
-from bodhan_agent.loop import FINALIZE_RESERVE_S, Controller
-from bodhan_agent.mcp_session import McpSession, McpUnavailable
-from bodhan_agent.observe import Observer
-from bodhan_agent.planner import Planner, PlannerError
-from bodhan_agent.preflight import run_preflight
-from bodhan_agent.progress import PlanTracker
-from bodhan_agent.report import Finalizer, inr
+from bodhan_agent.agent.loop import FINALIZE_RESERVE_S, Controller
+from bodhan_agent.agent.observe import Observer
+from bodhan_agent.agent.planner import Planner, PlannerError
+from bodhan_agent.agent.progress import PlanTracker
+from bodhan_agent.clients.llm import LlmClient
+from bodhan_agent.clients.mcp_session import McpSession, McpUnavailable
+from bodhan_agent.core.budget import BudgetManager
+from bodhan_agent.core.config import (
+    DEFAULT_DEADLINE_S,
+    DEFAULT_MAX_COST_INR,
+    DEFAULT_MAX_STEPS,
+    LlmSettings,
+    RunSettings,
+)
+from bodhan_agent.core.trace import TraceWriter
+from bodhan_agent.pipeline.preflight import run_preflight
+from bodhan_agent.pipeline.report import Finalizer, inr
 from bodhan_agent.schemas.ledger import Ledger
 from bodhan_agent.schemas.loop import LoopResult
-from bodhan_agent.schemas.planner import PlanOutcome
+from bodhan_agent.schemas.plan import PlanOutcome
 from bodhan_agent.schemas.preflight import PreflightResult
 from bodhan_agent.schemas.report import RunReport, StopReason
-from bodhan_agent.trace import TraceWriter
 
 EXIT_CODES: dict[str, int] = {"completed": 0, "partial": 1, "failed": 2, "impossible": 2}
 OWNED_FILES: tuple[str, ...] = ("trace.jsonl", "report.json", "result.md", "plan.md", "plan.json")

@@ -4,7 +4,7 @@ import json
 from collections.abc import Iterable, Mapping
 from xml.sax.saxutils import escape
 
-from bodhan_agent.progress import MARKERS
+from bodhan_agent.agent.progress import MARKERS
 from bodhan_agent.schemas.ledger import Artifact, Ledger
 from bodhan_agent.schemas.plan import Plan
 from bodhan_agent.schemas.progress import StepProgress

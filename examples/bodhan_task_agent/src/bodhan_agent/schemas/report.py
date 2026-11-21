@@ -7,15 +7,10 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from bodhan_agent.schemas.ledger import Producer
-from bodhan_agent.schemas.plan import DeliverableFormat, DeliverableKind
+from bodhan_agent.schemas.plan import DeliverableFormat, DeliverableKind, StopReason
 from bodhan_agent.schemas.trace import LlmTokens
 
 RunStatus = Literal["completed", "partial", "failed", "impossible"]
-StopReason = Literal[
-    "finished", "step_limit", "turn_limit", "budget_insufficient", "budget_exhausted", "deadline",
-    "unsupported_language", "missing_input", "unsupported_input", "beyond_tools", "planner_error",
-    "llm_unavailable", "internal_error",
-]  # fmt: skip
 DeliverableStatus = Literal["verified", "warning", "failed", "missing"]
 CheckStatus = Literal["passed", "warning", "failed", "skipped"]
 Target = Literal["task_completion", "honest_failure", "verification", "no_waste", "budget", "latency"]

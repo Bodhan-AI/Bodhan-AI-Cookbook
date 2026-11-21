@@ -9,7 +9,7 @@ from typing import Any
 
 from pydantic import TypeAdapter, ValidationError
 
-from bodhan_agent import guards
+from bodhan_agent.core import guards
 from bodhan_agent.schemas.ledger import Artifact
 from bodhan_agent.schemas.mcp import McpResult
 from bodhan_agent.schemas.tools import LocalResult, MakeSubtitlesInput

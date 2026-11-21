@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from bodhan_agent import guards
+from bodhan_agent.core import guards
 from bodhan_agent.schemas.trace import EventKind, LlmTokens, Phase, TraceError, TraceEvent
 
 MAX_STRING_CHARS = 2_000

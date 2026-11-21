@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from bodhan_agent import guards
+from bodhan_agent.core import guards
 from bodhan_agent.schemas.ledger import Artifact, Ledger
 from bodhan_agent.schemas.tools import LocalResult, ReadInput
 from bodhan_agent.tools.base import LocalTool, LocalToolError, ToolContext, known_file

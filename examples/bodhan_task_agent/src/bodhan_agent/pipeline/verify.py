@@ -5,7 +5,7 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
 
-from bodhan_agent import guards
+from bodhan_agent.core import guards
 from bodhan_agent.schemas.ledger import Artifact, Ledger
 from bodhan_agent.schemas.plan import Deliverable
 from bodhan_agent.schemas.report import CheckStatus, VerificationCheck

@@ -9,8 +9,8 @@ from typing import Any
 import openai
 from pydantic import ValidationError
 
-from bodhan_agent import guards
-from bodhan_agent.config import LlmSettings
+from bodhan_agent.core import guards
+from bodhan_agent.core.config import LlmSettings
 from bodhan_agent.schemas.llm import FinishReason, LlmReply, ToolCall
 from bodhan_agent.schemas.trace import LlmTokens
 

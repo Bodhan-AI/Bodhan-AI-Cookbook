@@ -9,8 +9,8 @@ from typing import TYPE_CHECKING, Any, ClassVar
 
 from pydantic import BaseModel, ValidationError
 
-from bodhan_agent import guards
-from bodhan_agent.config import RunSettings
+from bodhan_agent.core import guards
+from bodhan_agent.core.config import RunSettings
 from bodhan_agent.schemas.ledger import Artifact, ArtifactKind, Ledger, Producer
 from bodhan_agent.schemas.plan import Plan
 from bodhan_agent.schemas.tools import LocalResult
@@ -18,8 +18,8 @@ from bodhan_mcp.exceptions import BodhanToolError
 from bodhan_mcp.utils.files import write_bytes_atomic
 
 if TYPE_CHECKING:
-    from bodhan_agent.budget import BudgetManager
-    from bodhan_agent.mcp_session import McpSession
+    from bodhan_agent.clients.mcp_session import McpSession
+    from bodhan_agent.core.budget import BudgetManager
 
 META_FIELDS = ("reason", "plan_step")
 REASON_FIELD: dict[str, Any] = {

@@ -4,7 +4,7 @@ import json
 from collections.abc import Iterable
 from typing import Any
 
-from bodhan_agent import guards
+from bodhan_agent.core import guards
 from bodhan_agent.schemas.ledger import Ledger
 from bodhan_agent.schemas.mcp import McpError, McpResult
 from bodhan_agent.schemas.observation import Observation, Recovery

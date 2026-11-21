@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from bodhan_agent import guards
+from bodhan_agent.core import guards
 from bodhan_agent.schemas.ledger import Artifact
 from bodhan_agent.schemas.plan import Deliverable
 from bodhan_agent.schemas.tools import DeliverableRef, FinishInput, LocalResult

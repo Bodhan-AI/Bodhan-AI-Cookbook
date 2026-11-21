@@ -4,7 +4,7 @@ import unicodedata
 from collections import Counter
 from typing import Literal
 
-from bodhan_agent import guards
+from bodhan_agent.core import guards
 from bodhan_agent.schemas.tools import DetectLanguageInput, LocalResult
 from bodhan_agent.tools.base import LocalTool, LocalToolError, ToolContext, known_file
 from bodhan_agent.tools.read import READABLE_KINDS, _load

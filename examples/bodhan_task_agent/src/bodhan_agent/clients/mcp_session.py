@@ -13,7 +13,7 @@ from mcp.client.stdio import StdioServerParameters, stdio_client
 from mcp.shared.exceptions import MCPError
 from mcp_types import INVALID_PARAMS, REQUEST_TIMEOUT
 
-from bodhan_agent.config import RunSettings
+from bodhan_agent.core.config import RunSettings
 from bodhan_agent.schemas.mcp import McpError, McpResult, McpToolSpec
 
 SERVER_MODULE = "bodhan_mcp"

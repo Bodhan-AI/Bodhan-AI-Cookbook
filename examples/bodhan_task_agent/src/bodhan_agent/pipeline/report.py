@@ -6,14 +6,14 @@ from typing import Any
 
 from pydantic import ValidationError
 
-from bodhan_agent import guards
-from bodhan_agent.budget import BudgetManager
-from bodhan_agent.config import RunSettings
-from bodhan_agent.progress import MARKERS, PLAN_JSON
+from bodhan_agent.agent.progress import MARKERS, PLAN_JSON
+from bodhan_agent.core import guards
+from bodhan_agent.core.budget import BudgetManager
+from bodhan_agent.core.config import RunSettings
+from bodhan_agent.core.trace import TraceWriter
 from bodhan_agent.schemas.ledger import Artifact, Ledger
 from bodhan_agent.schemas.loop import LoopResult
-from bodhan_agent.schemas.plan import Deliverable, Plan
-from bodhan_agent.schemas.planner import PlanOutcome
+from bodhan_agent.schemas.plan import Deliverable, Plan, PlanOutcome
 from bodhan_agent.schemas.preflight import PreflightResult
 from bodhan_agent.schemas.progress import PlanView
 from bodhan_agent.schemas.report import (
@@ -34,7 +34,6 @@ from bodhan_agent.schemas.report import (
 from bodhan_agent.schemas.trace import LlmTokens, TraceError
 from bodhan_agent.schemas.verify import Verdict
 from bodhan_agent.tools.base import file_digest
-from bodhan_agent.trace import TraceWriter
 from bodhan_mcp.exceptions import BodhanToolError
 from bodhan_mcp.utils.files import write_bytes_atomic
 
