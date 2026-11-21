@@ -25,30 +25,29 @@ def main() -> None:
         print("[NOTE] Set BODHAN_API_KEY to run with live Bodhan services.")
         return
 
-    client = BodhanClient(api_key=api_key)
+    with BodhanClient(api_key=api_key) as client:
+        sample_docs = [
+            Document(
+                page_content="विद्यालय कल बंद रहेगा क्योंकि भारी बारिश की चेतावनी जारी की गई है।",
+                metadata={"source": "school_circular.pdf", "page": 1},
+            ),
+        ]
 
-    sample_docs = [
-        Document(
-            page_content="विद्यालय कल बंद रहेगा क्योंकि भारी बारिश की चेतावनी जारी की गई है।",
-            metadata={"source": "school_circular.pdf", "page": 1},
-        ),
-    ]
+        print("Original Document:")
+        print(f"Content: {sample_docs[0].page_content}")
+        print(f"Metadata: {sample_docs[0].metadata}")
 
-    print("Original Document:")
-    print(f"Content: {sample_docs[0].page_content}")
-    print(f"Metadata: {sample_docs[0].metadata}")
+        transformer = BodhanTranslationTransformer(
+            target_language="en",
+            client=client,
+            preserve_original_content=True,
+        )
 
-    transformer = BodhanTranslationTransformer(
-        target_language="en",
-        client=client,
-        preserve_original_content=True,
-    )
+        translated = transformer.transform_documents(sample_docs)
 
-    translated = transformer.transform_documents(sample_docs)
-
-    print("\nTranslated Document:")
-    print(f"Content: {translated[0].page_content}")
-    print(f"Metadata: {translated[0].metadata}")
+        print("\nTranslated Document:")
+        print(f"Content: {translated[0].page_content}")
+        print(f"Metadata: {translated[0].metadata}")
 
 
 if __name__ == "__main__":

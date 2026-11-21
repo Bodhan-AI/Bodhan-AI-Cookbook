@@ -28,16 +28,16 @@ def main() -> None:
         print(f"Sample file not found at {sample_pdf}")
         return
 
-    client = BodhanClient(api_key=api_key)
-    loader = BodhanOCRLoader(sample_pdf, client=client, dpi=150)
+    with BodhanClient(api_key=api_key) as client:
+        loader = BodhanOCRLoader(sample_pdf, client=client, dpi=150)
 
-    print(f"Loading and processing {sample_pdf.name}...")
-    documents = loader.load()
+        print(f"Loading and processing {sample_pdf.name}...")
+        documents = loader.load()
 
-    for doc in documents:
-        print(f"\n--- Page {doc.metadata['page']} of {doc.metadata['total_pages']} ---")
-        print(doc.page_content)
-        print(f"\nLayout Blocks Detected: {len(doc.metadata.get('blocks', []))}")
+        for doc in documents:
+            print(f"\n--- Page {doc.metadata['page_number']} of {doc.metadata['total_pages']} ---")
+            print(doc.page_content)
+            print(f"\nLayout Blocks Detected: {len(doc.metadata.get('blocks', []))}")
 
 
 if __name__ == "__main__":

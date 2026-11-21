@@ -2,16 +2,16 @@
 
 Production-ready LangChain integration for [Bodhan AI](https://bodhan.ai/)'s Indic OCR (`indic-ocr`) and Indic Translation (`indic-translate`) APIs.
 
-This package empowers developers to build multilingual document processing pipelines, autonomous agent tools, and multilingual Retrieval-Augmented Generation (RAG) applications across 26 Indic languages and English.
+This package empowers developers to build multilingual document processing pipelines, autonomous agent tools, and multilingual Retrieval-Augmented Generation (RAG) applications across 22 Indian languages and English across 26 language codes.
 
 ---
 
 ## Features
 
-- **`BodhanClient` & `BodhanAsyncClient`**: High-performance HTTP client built on HTTPX with connection pooling, automatic exponential backoff, rate limit handling, credential/payload sanitization in error logs, and dual-transport fallback for translation (primary `POST /translate` with automatic fallback on HTTP 404 to `/v1/chat/completions`, resolving GitHub Issue #34).
-- **`BodhanOCRLoader`**: Native LangChain `BaseLoader` supporting images (`.png`, `.jpg`, `.jpeg`) and multi-page PDFs (via PyMuPDF rasterization). Performs magic byte validation, base64 data URL formatting, markdown extraction, layout block metadata preservation, and exposes both `page` (0-indexed) and `page_number` (1-indexed) metadata. Explicitly validates image formats and rejects unsupported types (such as WebP) with actionable error messages.
-- **`BodhanTranslationTransformer`**: LangChain `BaseDocumentTransformer` for translating documents across 26 Indic languages + English. Features immutable document transformations, safe paragraph- and sentence-boundary chunking strictly bounded by `max_chunk_chars`, bounded async concurrency, and comprehensive metadata tracking.
-- **`BodhanTranslationTool`**: Pydantic v2-compliant LangChain `BaseTool` enabling conversational agents to dynamically invoke Bodhan Indic Translation with configurable default target languages.
+- **`BodhanClient` & `BodhanAsyncClient`**: High-performance HTTP client built on HTTPX with connection pooling, rate limit detection and `retry_after` surfacing, credential and payload sanitization in error logs and exception bodies, and dual-transport fallback for translation (primary `POST /translate` with automatic fallback on HTTP 404 to `/v1/chat/completions`, resolving GitHub Issue #34).
+- **`BodhanOCRLoader`**: Native LangChain `BaseLoader` supporting images (`.png`, `.jpg`, `.jpeg`) and multi-page PDFs (via optional PyMuPDF rasterization). Performs magic byte signature validation, base64 data URL formatting, markdown extraction, layout block metadata preservation (including `order`, `label`, `type`, `bbox_xyxy` float coordinates, and `conf`), and exposes both `page` (1-indexed) and `page_number` (1-indexed) metadata. Explicitly validates image formats and rejects unsupported types (such as WebP, GIF, SVG) with actionable error messages.
+- **`BodhanTranslationTransformer`**: LangChain `BaseDocumentTransformer` for translating documents across 22 Indian languages plus English (26 language codes). Features immutable document transformations, safe chunking preserving paragraph, sentence, and word boundaries with character fallback for unbroken tokens strictly bounded by `max_chunk_chars`, bounded async concurrency, and user-declared metadata provenance tracking.
+- **`BodhanTranslationTool`**: Pydantic v2-compliant LangChain `BaseTool` enabling conversational agents to dynamically invoke Bodhan Indic Translation with configurable target languages and script validation (omitting script automatically for English).
 - **Grounded Multilingual RAG**: Complete reference example demonstrating end-to-end ingestion of authentic Indic PDF notices, translation to English, semantic chunking, vector indexing with `InMemoryVectorStore` (and optional ChromaDB), and grounded companion LLM answers with citation tracking and out-of-domain rejection.
 
 ---
@@ -20,12 +20,12 @@ This package empowers developers to build multilingual document processing pipel
 
 ### Prerequisites
 
-- Python 3.10 or higher
+- Python 3.10 or higher for the core integration (Python 3.11+ required for optional PDF processing with PyMuPDF 2.1)
 - A Bodhan AI API key from the [Bodhan Console](https://console.bodhan.ai/)
 
 ### Installation
 
-Install core dependencies for the Bodhan LangChain integration:
+Install core dependencies for the Bodhan LangChain integration (image OCR and translation):
 
 ```bash
 pip install -r requirements.txt
@@ -35,10 +35,18 @@ Core dependencies:
 - `httpx==0.28.1`
 - `langchain-core==1.7.0`
 - `pydantic==2.13.4`
+
+For multi-page PDF document OCR processing (requires Python 3.11+):
+
+```bash
+pip install -r requirements-pdf.txt
+```
+
+PDF dependencies:
 - `pymupdf==2.1`
 
 > [!IMPORTANT]
-> **PyMuPDF Licensing Notice**: PyMuPDF is licensed under GNU AGPLv3 and also available under a commercial license from Artifex Software, Inc. If you are developing proprietary software and cannot comply with the terms of the AGPLv3, please ensure you acquire an appropriate commercial license from Artifex before deploying PyMuPDF in production.
+> **PyMuPDF Licensing Notice**: PyMuPDF is licensed under GNU AGPLv3 and also available under a commercial license from Artifex Software, Inc. If you are developing proprietary software and cannot comply with the terms of the AGPLv3, please ensure you acquire an appropriate commercial license from Artifex before deploying PyMuPDF in production. Core image OCR and translation do not require PyMuPDF.
 
 For running the optional local vector database in the Multilingual RAG example:
 
@@ -75,7 +83,7 @@ $env:BODHAN_API_KEY="your-api-key-here"
 
 ### 1. Document OCR (`indic-ocr`)
 
-Extract structured Markdown and layout metadata from an image or multi-page PDF. `BodhanOCRLoader` supports `.png`, `.jpg`, and `.jpeg` images, as well as multi-page `.pdf` files:
+Extract structured Markdown and layout metadata from an image or multi-page PDF. `BodhanOCRLoader` supports `.png`, `.jpg`, and `.jpeg` images, as well as multi-page `.pdf` files (when `pymupdf` is installed):
 
 ```python
 from bodhan_langchain import BodhanOCRLoader
@@ -91,13 +99,13 @@ loader = BodhanOCRLoader(
 docs = loader.load()
 
 for doc in docs:
-    # Both 0-indexed 'page' and 1-indexed 'page_number' are provided
-    print(f"--- Page {doc.metadata['page_number']} (Index: {doc.metadata['page']}) ---")
+    # Both 'page' and 'page_number' metadata are provided
+    print(f"--- Page {doc.metadata['page_number']} ---")
     print(f"Source: {doc.metadata['source']}")
     print(f"Total Pages: {doc.metadata['total_pages']}")
     print(f"Content:\n{doc.page_content[:200]}...\n")
 
-    # Layout blocks (bounding boxes, confidence, text) are preserved
+    # Layout blocks (order, label, type, bounding boxes, confidence, text) are preserved
     if "blocks" in doc.metadata:
         print(f"Detected {len(doc.metadata['blocks'])} layout blocks.")
 ```
@@ -110,7 +118,7 @@ for doc in loader.lazy_load():
 ```
 
 > [!NOTE]
-> **Image Formats**: Bodhan's `indic-ocr` API accepts PNG and JPEG formats. Unsupported image types such as WebP, GIF, or BMP are validated locally before API invocation and will raise an actionable `BodhanValidationError` with conversion instructions.
+> **Image Formats**: Bodhan's `indic-ocr` API accepts PNG and JPEG formats. Unsupported image types such as WebP, GIF, or SVG are validated locally before API invocation and will raise an actionable `BodhanValidationError` with conversion instructions.
 
 Run the standalone OCR demonstration script:
 
@@ -137,9 +145,10 @@ doc = Document(
 # Initialize transformer
 transformer = BodhanTranslationTransformer(
     target_language="en",
-    source_language="hi",          # Optional; API auto-detects if omitted
-    max_chunk_chars=1500,          # Splits text safely at paragraph/sentence boundaries
-    max_output_tokens=2048,        # API token parameter (max_tokens also accepted)
+    source_language="hi",          # Optional: user-declared metadata provenance (API auto-infers source language)
+    preserve_original_content=True, # Stores original text under metadata['original_content']
+    max_chunk_chars=1500,          # Splits text safely at paragraph/sentence/word boundaries
+    max_output_tokens=2048,        # API token parameter (max_tokens also accepted as client alias)
     max_concurrency=4,             # Max parallel chunk requests
 )
 
@@ -151,8 +160,9 @@ print("Translated Content:", translated_docs[0].page_content)
 print("Enriched Metadata:", translated_docs[0].metadata)
 # Metadata includes:
 #   source_language: 'hi'
+#   source_language_origin: 'user_declared'
 #   target_language: 'en'
-#   model_name: 'indic-translate'
+#   translation_model: 'indic-translate'
 #   provider: 'bodhan'
 #   original_content: 'छात्रवृत्ति...'
 ```
@@ -179,7 +189,7 @@ tool = BodhanTranslationTool(target_language="en")
 print("Tool Name:", tool.name)
 print("Tool Description:", tool.description)
 
-# Direct tool execution
+# Direct tool execution (script is omitted automatically when target_language='en')
 result = tool.invoke({
     "text": "விவசாயிகளுக்கு புதிய மானிய திட்டம் அறிவிக்கப்பட்டுள்ளது.",
     "target_language": "en",
@@ -226,7 +236,7 @@ The demonstration script uses `InMemoryVectorStore` and `GroundedContextChatMode
 
 ## Supported Languages
 
-`BodhanTranslationTransformer` and `BodhanTranslationTool` support 26 Indic languages plus English:
+`BodhanTranslationTransformer` and `BodhanTranslationTool` support 22 Indian languages plus English across 26 target-language codes (with distinct script variants for Kashmiri, Manipuri, and Sindhi):
 
 | Code | Language | Script / Variant |
 |---|---|---|
@@ -258,7 +268,13 @@ The demonstration script uses `InMemoryVectorStore` and `GroundedContextChatMode
 | `ur` | Urdu | Perso-Arabic |
 
 > [!NOTE]
-> **Language Codes**: Bodhan requires standard 2-letter or script-qualified ISO codes (e.g., `hi`, `ta`, `bn`, `ks-Deva`). Do not supply country-specific BCP-47 tags (such as `hi-IN` or `ta-IN`). The client validates language codes locally and raises an informative `BodhanValidationError` if an unsupported tag is passed.
+> **Language Codes & Script Constraints**:
+> - **Language Codes**: Bodhan requires standard 2-letter or script-qualified ISO codes (e.g., `hi`, `ta`, `bn`, `ks-Deva`). Do not supply country-specific BCP-47 tags (such as `hi-IN` or `ta-IN`).
+> - **Speech-to-Text Only**: The codes `bhb` (Bhili) and `bho` (Bhojpuri) belong to Bodhan's speech-to-text service and are **not** supported for translation.
+> - **Script Selection**: Allowed script options are `native` (default for Indic targets), `roman`, and `codemix`.
+> - **English Target**: Script selection does not apply when `target_language="en"`. The client omits `script` on English requests automatically; explicitly passing `roman` or `codemix` raises a `BodhanValidationError`.
+> - **Codemix Restrictions**: The `codemix` script is not supported for `en`, `ks-Deva`, or `sd-Arab`.
+> - **Source Language**: The Bodhan Translation API automatically infers the input source language and does not accept a `source_language` request parameter. Any `source_language` provided to `BodhanTranslationTransformer` is stored purely as user-declared metadata (`source_language_origin="user_declared"`).
 
 ---
 
@@ -272,9 +288,9 @@ The demonstration script uses `InMemoryVectorStore` and `GroundedContextChatMode
          v                                 v
 +-----------------------+      +------------------------------+
 |    BodhanOCRLoader    |      | BodhanTranslationTransformer |
-|  - Multi-page PDF     |      |  - Chunking (paragraphs)     |
-|  - Image rasterize    |      |  - Metadata preservation     |
-|  - Base64 encoding    |      |  - Immutable documents       |
+|  - Multi-page PDF     |      |  - Chunking (boundary safe)  |
+|  - Magic byte verify  |      |  - User-declared metadata    |
+|  - Base64 data URLs   |      |  - Immutable documents       |
 |  - page & page_number |      |  - max_output_tokens         |
 +-----------------------+      +------------------------------+
          |                                 |
@@ -285,7 +301,7 @@ The demonstration script uses `InMemoryVectorStore` and `GroundedContextChatMode
              |       BodhanClient        |
              |   - Auth & Headers        |
              |   - HTTPX connection pool |
-             |   - Exponential backoff   |
+             |   - Rate limit detection  |
              |   - Dual-transport route  |
              +---------------------------+
                           |
@@ -301,26 +317,35 @@ The demonstration script uses `InMemoryVectorStore` and `GroundedContextChatMode
 GitHub Issue #34 reported that `POST /translate` returned HTTP 404 in certain deployment environments, while the completion route `POST /v1/chat/completions` with `model="indic-translate"` was available.
 
 To guarantee maximum reliability:
-- `BodhanClient` defaults to `translation_transport="auto"`.
-- It attempts the official documented endpoint `POST /translate` first.
-- If a 404 status code is encountered, it automatically falls back to `POST /v1/chat/completions`.
-- Non-404 errors (such as 401 Unauthorized, 400 Bad Request, or 429 Rate Limit) fail immediately without falling back.
-- Developers can also explicitly select a transport using `translation_transport="translate"` or `translation_transport="chat_completions"`.
+- `BodhanClient` constructor defaults to `transport_strategy="auto"`. Callers may also override per-request transport using `client.translate(..., transport=...)`.
+- Allowed transport strategies: `Literal["auto", "chat_completions", "translate_endpoint"]`.
+- Under `auto`, the client attempts the official primary endpoint `POST /translate` first.
+- **Strict 404 Fallback**: If and only if an HTTP 404 status code is encountered, the client automatically falls back to `POST /v1/chat/completions`.
+- Non-404 errors (such as 400 Bad Request, 401 Unauthorized, 429 Rate Limit, or 5xx server errors) fail immediately without falling back to prevent masking real issues.
 
-### 2. Immutability in Document Transformation
+### 2. Immutability & Metadata Provenance in Document Transformation
 `BodhanTranslationTransformer` strictly obeys LangChain conventions:
-- Original `Document` instances are never mutated in-place.
-- A new `Document` is instantiated with the translated text.
-- Original metadata is preserved, while enrichment keys (`source_language`, `target_language`, `model_name`, `provider`, `original_content`) are recorded.
+- Original `Document` instances are never mutated in-place; a new `Document` is instantiated with the translated text.
+- Original metadata is preserved.
+- Enrichment keys added to transformed documents:
+  - `target_language`: The translation target language code.
+  - `translation_model`: Name of the translation model (`indic-translate`).
+  - `provider`: Fixed identifier (`bodhan`).
+  - `source_language`: Stored when provided by the user.
+  - `source_language_origin`: Marked explicitly as `"user_declared"` (the official API does not guarantee detected-language metadata).
+  - `original_content`: Contains the original untranslated text only when `preserve_original_content=True` is enabled.
 
 ### 3. Safe Translation Chunking
 When input texts exceed `max_chunk_chars`, the transformer performs recursive semantic chunking:
-- Splits first at paragraph boundaries (`\n\n`), then line breaks (`\n`), then sentence delimiters (`. `, `। `, `? `, `! `).
-- Guaranteed never to exceed `max_chunk_chars` or split words in half.
-- Chunk translations are concatenated with appropriate whitespace.
+- Splits progressively at paragraph boundaries (`\n\n`), line breaks (`\n`), sentence delimiters (`. `, `। `, `? `, `! `), and words (` `).
+- If an unbroken token or sentence exceeds `max_chunk_chars`, a character-level slice fallback is applied to guarantee that no chunk ever exceeds `max_chunk_chars`.
+- Empty and whitespace-only chunks are discarded.
+- Translated chunks are stitched back together in strict reading order.
 
-### 4. Layout Block Metadata Preservation
-The OCR API returns structured bounding box metadata in `blocks`. `BodhanOCRLoader` extracts this structure and preserves it in `doc.metadata["blocks"]`. Unknown or missing fields are left as `None` rather than fabricating zero coordinates or zero confidence.
+### 4. Layout Block Metadata Preservation & Image Validation
+- **Image Validation**: `BodhanOCRLoader` validates image signatures before HTTP dispatch, supporting PNG and JPEG. Unsupported formats (WebP, GIF, SVG) are rejected early with clear error messages.
+- **Page Metadata**: Documents expose both `page` (1-indexed) and `page_number` (1-indexed) metadata for compatibility across LangChain ecosystem tools.
+- **Layout Block Preservation**: The OCR API returns structured bounding box metadata in `blocks`. `BodhanOCRLoader` preserves this in `doc.metadata["blocks"]`, exposing `order` (int), `label` (str), `type` (str | None), `bbox_xyxy` (exact 4-element float list `[x1, y1, x2, y2]`), `conf` (float `0.0`–`1.0`), and `text` (str). Missing or malformed coordinates and confidence values are preserved as `None` rather than fabricating zero coordinates or confidence scores.
 
 ---
 
@@ -333,8 +358,23 @@ BodhanError
  ├── BodhanValidationError       (Client-side parameter validation failure, unsupported format)
  └── BodhanAPIError              (Server error, network failure, or HTTP error status)
       ├── BodhanAuthenticationError   (HTTP 401: Invalid or missing API key)
-      └── BodhanRateLimitError        (HTTP 429: Rate limit exceeded, includes retry_after)
+      └── BodhanRateLimitError        (HTTP 429: Rate limit exceeded, exposes retry_after)
 ```
+
+### Rate Limiting Diagnostics
+`BodhanRateLimitError` parses HTTP headers and exposes:
+- `retry_after`: Suggested wait time in seconds (integer or `None`).
+- `limit_requests`: Request quota limit from headers if provided.
+- `limit_parallel_requests`: Concurrency quota limit from headers if provided.
+
+> [!NOTE]
+> The client does **not** execute automatic background retry loops. Applications should inspect `error.retry_after` and implement their own backoff, retry queue, or throttling strategy suitable for their concurrency architecture.
+
+### Payload & Credential Sanitization
+All exceptions and error messages automatically redact sensitive information:
+- API keys and Bearer tokens are redacted as `[REDACTED]`.
+- Large base64 data URLs and image payloads are replaced with safe summaries (`<base64-image-data redacted>`).
+- Server response bodies attached to `BodhanAPIError.response_body` are bounded to prevent memory bloating and sanitized to remove credentials or tokens.
 
 Example:
 
@@ -351,14 +391,13 @@ try:
 except BodhanAuthenticationError:
     print("Authentication failed: Check that BODHAN_API_KEY is correctly set.")
 except BodhanRateLimitError as e:
-    print(f"Rate limited by server: {e}. Back off and retry after {e.retry_after} seconds.")
+    wait_time = e.retry_after if e.retry_after is not None else 5
+    print(f"Rate limited by server: {e}. Back off and retry after {wait_time}s.")
 except BodhanValidationError as e:
     print(f"Invalid input parameter: {e.message} (parameter: {e.parameter})")
 except BodhanError as e:
     print(f"Bodhan operation failed: {e}")
 ```
-
-All exceptions automatically redact sensitive values (such as API keys, Bearer tokens, and large base64 image payloads) to prevent credential leakage in logs and tracebacks.
 
 ---
 
