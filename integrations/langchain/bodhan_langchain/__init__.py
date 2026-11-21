@@ -16,10 +16,12 @@ from .models import (
     OCRResponse,
     TranslationResponse,
 )
+from .ocr_loader import BodhanOCRLoader
 
 __all__ = [
     "BodhanClient",
     "BodhanAsyncClient",
+    "BodhanOCRLoader",
     "BodhanError",
     "BodhanAPIError",
     "BodhanAuthenticationError",
