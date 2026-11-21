@@ -334,3 +334,51 @@ def test_loader_pdf_early_generator_termination_releases_resources(sample_pdf: P
     assert first_page.metadata["page"] == 1
     gen.close()  # Early termination before page 2
     # GeneratorExit handled cleanly without leaking handles or crashing
+
+
+def test_loader_pdf_without_pymupdf_raises_clear_error(sample_pdf: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Verify that attempting to load a PDF without PyMuPDF installed raises an informative ImportError."""
+    import builtins
+    real_import = builtins.__import__
+
+    def mock_import(name, *args, **kwargs):
+        if name == "pymupdf":
+            raise ImportError("No module named 'pymupdf'")
+        return real_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", mock_import)
+
+    client = BodhanClient(api_key=DUMMY_KEY, http_client=httpx.Client())
+    loader = BodhanOCRLoader(sample_pdf, client=client)
+
+    with pytest.raises(ImportError) as exc_info:
+        loader.load()
+
+    assert "PyMuPDF is required for PDF OCR loading" in str(exc_info.value)
+    assert "requirements-pdf.txt" in str(exc_info.value)
+
+
+def test_image_ocr_works_without_pymupdf(sample_png: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Verify that image OCR functionality works completely independently of PyMuPDF."""
+    import builtins
+    real_import = builtins.__import__
+
+    def mock_import(name, *args, **kwargs):
+        if name == "pymupdf":
+            raise ImportError("No module named 'pymupdf'")
+        return real_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", mock_import)
+
+    def handler(_: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={
+            "choices": [{"message": {"content": "Image text without PyMuPDF"}}],
+            "blocks": [],
+        })
+
+    client = BodhanClient(api_key=DUMMY_KEY, http_client=httpx.Client(transport=httpx.MockTransport(handler), base_url="https://api.bodhan.ai"))
+    loader = BodhanOCRLoader(sample_png, client=client)
+    docs = loader.load()
+
+    assert len(docs) == 1
+    assert docs[0].page_content == "Image text without PyMuPDF"

@@ -171,7 +171,7 @@ class BodhanOCRLoader(BaseLoader):
                 import pymupdf
             except ImportError as exc:
                 raise ImportError(
-                    "PyMuPDF is required for PDF OCR loading. Install it via `pip install pymupdf`."
+                    "PyMuPDF is required for PDF OCR loading. Install it via `pip install -r requirements-pdf.txt` or `pip install pymupdf`."
                 ) from exc
 
             try:
@@ -268,7 +268,7 @@ class BodhanOCRLoader(BaseLoader):
                 import pymupdf
             except ImportError as exc:
                 raise ImportError(
-                    "PyMuPDF is required for PDF OCR loading. Install it via `pip install pymupdf`."
+                    "PyMuPDF is required for PDF OCR loading. Install it via `pip install -r requirements-pdf.txt` or `pip install pymupdf`."
                 ) from exc
 
             try:
