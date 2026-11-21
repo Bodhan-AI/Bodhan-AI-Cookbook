@@ -24,9 +24,9 @@ We chose **8 capability-level tools** rather than raw 1:1 HTTP wrappers or opaqu
   1. `inspect_files` (free) — magic-byte + `ffprobe` + `pypdfium2` metadata and cost estimates.
   2. `detect_language` — Unicode script histogram + shared-script stopword disambiguation + <=10 s audio probe.
   3. `transcribe_audio` — ffmpeg 16 kHz mono WAV normalization (supports MP4/M4A/WebM), `silencedetect` <=28 s windowing, pure-silence dropping, timed segment outputs.
-  4. `translate_text` — atomic Markdown table/code/LaTeX block chunking, recursive halving on `truncated: true` (duplicating table headers), chunk/table/digit coverage report.
-  5. `synthesize_speech` — script-aware sentence chunking (<=250 chars), `ffmpeg` concat + `loudnorm`, MP3/WAV encoding with `"AI-generated (Bodhan Indic-Speak)"` ID3 tags, per-chunk manifest.
-  6. `verify_speech` — chunk-by-chunk back-transcription via `indic-transcribe`, normalized CER, n-gram repetition loop detection, duration/char-rate anomaly detection.
+  4. `translate_text` — atomic Markdown table/code/LaTeX block chunking, recursive halving on `truncated: true` (duplicating table headers), output-script guard (auto-pivoting via English through Bodhan when Indic->Indic returns Latin and returning `wrong_output_script` if still wrong or when `en` returns Indic), chunk/table/digit coverage report, and `attempt` cache-busting for post-verification retries.
+  5. `synthesize_speech` — deterministic Markdown-to-speakable normalization (converting tables to header-labeled sentences without altering Indic words), script-aware sentence chunking (<=250 chars), `attempt` + `only_chunks` selective failed-chunk repair, `ffmpeg` concat + `loudnorm`, MP3/WAV encoding with `"AI-generated (Bodhan Indic-Speak)"` ID3 tags, per-chunk manifest storing exact speakable text.
+  6. `verify_speech` — chunk-by-chunk back-transcription via `indic-transcribe` against the exact speakable text in the chunk manifest, digit-ITN-tolerant CER (`compute_cer_spoken`), n-gram repetition loop detection, duration/char-rate anomaly detection, and `attempt` cache-busting.
   7. `ocr_document` — `pypdfium2` PDF->PNG rasterization (no poppler), reading-order Markdown, 502 recovery cascade (`max_tokens=8192` -> 65% downscale -> vertical top/bottom split), low-confidence block reporting.
   8. `write_subtitles` (free) — deterministic SRT/VTT formatter with proportional cue splitting and monotonicity validation.
 
@@ -35,22 +35,24 @@ We chose **8 capability-level tools** rather than raw 1:1 HTTP wrappers or opaqu
 Per assignment rules, the LLM must never write or rewrite Indian-language text. We enforce this in **three layers**:
 1. **Plan Compiler**: rejects any step argument containing Indic-script characters authored directly by `P-LLM`.
 2. **Quarantined Runner**: `q_summarize_en` rejects Indic-script input (requiring `translate_text -> en` first) and rejects any Indic-script output from the LLM.
-3. **ArtifactStore (`assert_indic_provenance`)**: before publishing any deliverable into `out/artifacts/`, verifies that every non-empty Indic-script line in the file is byte-identical to a recorded Bodhan tool output (or original user input file) and traces to a trusted provenance source.
+3. **ArtifactStore (`assert_indic_provenance`)**: before publishing any deliverable into `out/artifacts/`, verifies that every non-empty Indic-script line (or every Indic-script word when Markdown punctuation/structure was reformatted for speech) is a byte-identical substring of a recorded Bodhan tool output (or original user input file) and traces to a trusted provenance source.
 
 ## 4. Verification, Recovery, and Budgets
 
 - **Verification Contracts (`contracts.py`)**: Every deliverable is checked in code before the run finishes: non-empty file, Indic provenance, audio playability + ±20% duration tolerance (when duration requested) + `verify_speech` CER/repetition/rate verdicts, target script ratio >= 0.8 (native script), translation chunk/table/digit preservation, and SRT monotonicity.
-- **Bounded Re-planning (Epoch C)**: Failing deliverables trigger at most 2 targeted subgraph re-plans using only structured failure metadata (reusing valid upstream handles).
+- **Bounded Re-planning (Epoch C) & Deliberate Retry Semantics**: Failing deliverables trigger at most 2 targeted subgraph re-plans using only structured failure metadata (reusing valid upstream handles). First attempts (`attempt=0`) strictly obey the "never send the same input to the same model twice" rule via the SHA-256 disk cache; during Epoch C recovery, the executor automatically sets `attempt = replan_round` (and passes `only_chunks = failed_chunk_indices` to `synthesize_speech` when re-synthesizing the same input) so post-verification retries deliberately request fresh model samples instead of replaying stale cached failures.
+- **Clean Output Directory Hygiene**: At run start, `clean_previous_agent_outputs` removes only the agent's own prior outputs (`artifacts/`, `.work/`, `trace.jsonl`, `trace.html`, `report.json`, `result.md`) inside `--out`, preventing stale artifacts from accumulating across re-runs without touching any unrelated files.
 - **Error Recovery (`client.py`, `tools.py`)**:
   - HTTP `429` / `5xx` / timeouts: exponential backoff + jitter (honoring `Retry-After`), bounded by `asyncio.Semaphore(4)`.
   - HTTP `401`: retried once *only* if the same key already succeeded earlier in the run; otherwise fails immediately as `auth_error`.
   - HTTP `4xx` validation errors: non-retryable structured error (`{ok:false, error:{code, message, retryable, hint}}`).
   - OCR `502` overflow: automatic cascade (`max_tokens=8192` -> downscale -> vertical split).
   - Translate `truncated: true`: automatic recursive halving (preserving table headers).
+  - Translate wrong script: automatic two-hop Bodhan English pivot (`pivot_used: true`) when Indic->Indic returns Latin; structured `wrong_output_script` error if still mismatched or when target `en` returns Indic script.
 - **Cost & Step Control (`budget.py`, `cache.py`)**:
   - Feasibility gate rejects provably unaffordable tasks at ₹0 (using only a provable *floor*, never falsely refusing doable tasks).
   - Before every paid call at runtime, `BudgetTracker.reserve_cost` checks actual resolved input size against remaining `--max-cost-inr`; exhaustion stops cleanly with `status="partial"` and all already-produced artifacts preserved.
-  - Content-addressed SHA-256 disk cache (`~/.cache/bodhan_mcp`) guarantees zero duplicate `(model, exact input)` calls within a run and ₹0 reruns.
+  - Content-addressed SHA-256 disk cache (`~/.cache/bodhan_mcp`) guarantees zero duplicate `(model, exact input)` calls on first attempts (`attempt=0`) and ₹0 reruns, while `attempt >= 1` explicitly keys deliberate post-verification retries.
 
 ## 5. Known Trade-offs and Limitations
 

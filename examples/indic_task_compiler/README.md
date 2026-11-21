@@ -118,9 +118,9 @@ npx @modelcontextprotocol/inspector python -m bodhan_mcp
 | `inspect_files` | none (free) | Magic-byte & `ffprobe` media inspection, PDF page counts, script histograms, cost floor estimates |
 | `detect_language` | `indic-transcribe` (audio probe only) / none (text) | Unicode script histogram + stopword disambiguation (Devanagari/Bengali) + <=10 s audio probe |
 | `transcribe_audio` | `indic-transcribe` | `ffmpeg` -> 16 kHz mono WAV (supports mp4/m4a/webm), `silencedetect` <=28 s windowing, drops pure silence, returns text artifact + timed segments |
-| `translate_text` | `indic-translate` | Table/code/LaTeX-preserving paragraph chunking, halves chunk on `truncated: true`, checks chunk coverage, table dimensions & digits |
-| `synthesize_speech` | `indic-speak` | Script-aware sentence chunking (<=250 chars), `ffmpeg` concat + loudness normalization, ID3 `"AI-generated (Bodhan Indic-Speak)"` tag |
-| `verify_speech` | `indic-transcribe` | Per-chunk back-transcription, normalized CER, n-gram repetition detector, duration/char-ratio anomaly check |
+| `translate_text` | `indic-translate` | Table/code/LaTeX-preserving paragraph chunking, halves chunk on `truncated: true`, output-script guard (auto-pivots via English through Bodhan if Indic->Indic returns Latin; `wrong_output_script` on persistent failure), `attempt` cache-busting, chunk/table/digit coverage |
+| `synthesize_speech` | `indic-speak` | Deterministic Markdown-to-speakable conversion (tables -> labeled sentences), script-aware sentence chunking (<=250 chars), `attempt` + `only_chunks` selective failed-chunk repair, `ffmpeg` concat + loudnorm, ID3 `"AI-generated (Bodhan Indic-Speak)"` tag |
+| `verify_speech` | `indic-transcribe` | Per-chunk back-transcription against exact speakable text in chunk manifest, digit-ITN-tolerant CER, n-gram repetition detector, duration/char-ratio anomaly check, `attempt` cache-busting |
 | `ocr_document` | `indic-ocr` | `pypdfium2` PDF->PNG rasterization (no poppler), `table_format=markdown`, 502 retry (`max_tokens` bump -> downscale -> split), reading-order Markdown + block confidence summary |
 | `write_subtitles` | none (free) | Deterministic SRT/VTT generation from timed segments + proportional cue splitting |
 
@@ -130,24 +130,24 @@ MCP Prompt exposed: `plan_task`.
 ### Tests & Self-Evaluation
 
 ```bash
-pytest -v
-python scripts/self_eval.py          # offline machinery suite using ScriptedFakeLLM + FakeBodhanTransport (free; tests gate/compiler/CaMeL/cache, not LLM generalization)
-python scripts/self_eval.py --live   # live API evaluation (uses .env keys; 11/11 passed with anthropic/claude-haiku-5.5)
+pytest -v                            # 46 unit, MCP stdio, CaMeL, API-regression, bug-regression & E2E tests
+python scripts/self_eval.py          # 21-task offline machinery suite (12 core + 9 reviewer-unseen regression; ScriptedFakeLLM + FakeBodhanTransport)
+python scripts/self_eval.py --live   # live API evaluation (uses .env keys; --group {all,core,regression})
 ```
 
 ### Live Demo Results & Cost (`scripts/demo.sh`)
 
-Tested live against hosted Bodhan APIs (`https://api.bodhan.ai`) with `anthropic/claude-haiku-5.5` (OpenRouter). Total cumulative live spend across smoke tests, fixture generation, all demo runs, and live self-evaluation: **₹9.49** (147 Bodhan API calls).
+Tested live against hosted Bodhan APIs (`https://api.bodhan.ai`) with `anthropic/claude-haiku-5.5` (OpenRouter). Total cumulative live spend across smoke tests, fixture generation, demo runs, live self-eval, and reviewer-unseen verification: **₹11.25** (177 Bodhan API calls).
 
-| # | Demo task | Status | Cold-cache cost | Warm-cache cost | Runtime (cold / cached) | Output folder |
+| # | Demo task | Status | Cold-cache cost | Fresh-dir cached cost | Runtime (cold / cached) | Output folder |
 |---|---|---|---|---|---|---|
-| 1 | 8-page scanned PDF -> 2-min Tamil audio summary + text | `success` | ~₹2.68 (₹4.26 pre-cal) | ₹1.0585 (OCR/en cached) | 76.8s (calibrated) | `outputs/demo_01_tamil_summary/` |
-| 2 | 3-min Hindi voice note -> English SRT subtitles | `success` | ₹0.3213 | ₹0.0000 | 35.4s / 13.9s | `outputs/demo_02_hindi_srt/` |
-| 3 | Worksheet photo -> Marathi Markdown (keep table) | `success` | ₹0.2030 | ₹0.0000 | 14.4s / 10.5s | `outputs/demo_03_marathi_worksheet/` |
-| 4 | 5 clips -> identify Telugu & translate to English | `success` | ₹0.1292 | ₹0.0000 | 35.3s / 16.9s | `outputs/demo_04_telugu_clips/` |
-| 5 | Bengali paragraph aloud (female voice) | `success` | ₹0.2825 | ₹0.0000 | 35.5s / 18.6s | `outputs/demo_05_bengali_tts/` |
-| 6 | Translate video into French (impossible) | `infeasible` | ₹0.0000 | ₹0.0000 | 1.5s / 1.2s | `outputs/demo_06_impossible_french/` |
-| 7 | Bonus: CaMeL prompt-injection scanned worksheet | `success` | ₹0.2043 | ₹0.0000 | 12.9s / 10.5s | `outputs/demo_07_camel_injection/` |
+| 1 | 8-page scanned PDF -> 2-min Tamil audio summary + text | `success` | ~₹2.68 (₹4.26 pre-cal) | ₹0.9874 (OCR/en cached) | 76.8s / 99.6s | `outputs/demo_01_tamil_summary/` |
+| 2 | 3-min Hindi voice note -> English SRT subtitles | `success` | ₹0.3213 | ₹0.0000 | 35.4s / 14.0s | `outputs/demo_02_hindi_srt/` |
+| 3 | Worksheet photo -> Marathi Markdown (keep table) | `success` | ₹0.2030 | ₹0.0000 | 14.4s / 11.1s | `outputs/demo_03_marathi_worksheet/` |
+| 4 | 5 clips -> identify Telugu & translate to English | `success` | ₹0.1292 | ₹0.0000 | 35.3s / 18.7s | `outputs/demo_04_telugu_clips/` |
+| 5 | Bengali paragraph aloud (female voice) | `success` | ₹0.2825 | ₹0.0000 | 35.5s / 13.0s | `outputs/demo_05_bengali_tts/` |
+| 6 | Translate video into French (impossible) | `infeasible` | ₹0.0000 | ₹0.0000 | 1.5s / 1.7s | `outputs/demo_06_impossible_french/` |
+| 7 | Bonus: CaMeL prompt-injection scanned worksheet | `success` | ₹0.2043 | ₹0.0000 | 12.9s / 11.4s | `outputs/demo_07_camel_injection/` |
 
 A secondary 2-task probe on Google Gemini's OpenAI-compatible free tier (`gemini-3.6-flash`) completed Epoch A and cached probes on the 5-clip task before encountering persistent free-tier HTTP 503 overload across all 4 retry attempts (failing honestly at ₹0 without fabricating output).
 
