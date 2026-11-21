@@ -67,6 +67,10 @@ def score(task: dict, report: dict, out: Path) -> list[str]:
     if report.get("stop_reason") in INFRASTRUCTURE_STOPS:
         # the planner never got to decide: a "failed" status here is not an honest refusal, whatever the task expects
         fails.append(f"run stopped by {report['stop_reason']} (planner unavailable), so the task was not evaluated")
+    elif report.get("stop_reason", "finished") != "finished":
+        # a time/step limit or an interrupt ended the run before the planner concluded: "failed" or "partial" there is
+        # the agent's stop status, not a refusal or a partial delivery the planner chose
+        fails.append(f"run stopped by {report['stop_reason']} before the planner finished, so its status is not the planner's answer")
     if report["status"] not in exp.get("status", [report["status"]]):
         fails.append(f"status {report['status']} not in {exp['status']}")
     dels = report.get("deliverables", [])

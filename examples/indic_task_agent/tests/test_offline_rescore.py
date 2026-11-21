@@ -57,3 +57,20 @@ def test_the_media_checksum_exception_does_not_excuse_a_missing_text_output(tmp_
                                                       {"path": "artifacts/a.mp3", "kind": "audio", "sha256": digest}],
               "verification": {"all_checked": True}}
     assert score({"expect": {}}, report, out) == ["deliverable file missing: artifacts/missing.md"]
+
+
+def test_a_refusal_counts_only_when_the_planner_made_it(tmp_path):
+    # seen live (gpt-oss-20b, h7): the planner's only plan was rejected, then the run hit the 600 s limit while waiting on the
+    # provider's rate limit. Status "failed" with no output matched the impossible task's expectation and scored as a pass.
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from run_suite import score
+    out = tmp_path / "run"
+    out.mkdir()
+    task = {"expect": {"status": ["failed", "partial", "unsupported"], "no_deliverables": True}}
+    for stop in ("time_limit", "step_limit", "interrupted"):
+        report = {"status": "failed", "stop_reason": stop, "deliverables": [], "final_answer": "The run stopped before the planner finished.",
+                  "verification": {"all_checked": True}}
+        assert score(task, report, out) == [f"run stopped by {stop} before the planner finished, so its status is not the planner's answer"]
+    refused = {"status": "unsupported", "stop_reason": "finished", "deliverables": [], "final_answer": "Not possible within ₹0.50.",
+               "verification": {"all_checked": True}}
+    assert score(task, refused, out) == []
