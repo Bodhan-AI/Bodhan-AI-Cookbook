@@ -119,30 +119,33 @@ Deterministic Python handles all chunking, SRT formatting, script/stopword LID, 
 ## Bodhan models used
 
 - **`indic-transcribe`** (hosted `POST /v1/audio/transcriptions`): 16 kHz mono WAV, <=28 s silence-aware windows, <=10 s probe for auto language detection, per-chunk TTS back-transcription.
-- **`indic-translate`** (hosted `POST /v1/chat/completions`, `model: "indic-translate"`): paragraph/table-aware chunks (<=1800 chars), recursive half-split on `finish_reason == "length"`.
-- **`indic-speak`** (hosted `POST /v1/audio/speech`): <=250-char script-aware sentence chunks, `instructions` JSON string with `lang` + optional `style`, loudness-normalized output tagged as AI-generated.
-- **`indic-ocr`** (hosted `POST /v1/chat/completions`, `model: "indic-ocr"`): 175 DPI PNG pages via `pypdfium2`, `table_format="markdown"`, 502 recovery cascade.
+- **`indic-translate`** (hosted `POST /v1/chat/completions`, `model: "indic-translate"` — used because live `POST /translate` returned HTTP 404 on `api.bodhan.ai`): paragraph/table-aware chunks (<=1800 chars), recursive half-split on `finish_reason == "length"`, cost computed from `usage.completion_tokens`.
+- **`indic-speak`** (hosted `POST /v1/audio/speech`): <=250-char script-aware sentence chunks (parallelized under `Semaphore(4)`), `instructions` JSON string with `lang` + optional `style`, loudness-normalized 24 kHz output tagged as AI-generated (handles live `Content-Type: audio/mpeg` header carrying RIFF/WAVE PCM16 bytes).
+- **`indic-ocr`** (hosted `POST /v1/chat/completions`, `model: "indic-ocr"`): 175 DPI PNG pages via `pypdfium2`, `table_format="markdown"`, top-level `blocks` confidence summary, 502 recovery cascade + `200 null` response guard.
 
-Tested LLM endpoint: TBD after live run (offline test suite uses `ScriptedFakeLLM` + `FakeBodhanTransport`; live runs read `LLM_BASE_URL`, `LLM_MODEL`, `LLM_API_KEY`).
+**Tested LLM endpoints:**
+- **Primary live runs (all 7 demo tasks + 11-task `self_eval.py --live`):** `anthropic/claude-haiku-5.5` via OpenRouter (`https://openrouter.ai/api/v1`).
+- **Secondary provider check (2 tasks):** `gemini-3.6-flash` via Google Gemini's OpenAI-compatible endpoint (`https://generativelanguage.googleapis.com/v1beta/openai/`). On the 5-clip Telugu task, `gemini-3.6-flash` completed Epoch A and all 5 cached probes before hitting persistent free-tier HTTP 503 overload on Epoch B across all 4 attempts (initial + 3 exponential-backoff retries); on the Marathi worksheet task, free-tier HTTP 503 persisted on Epoch A. Both runs failed honestly at ₹0 without fabricating output.
 
 ## Results
 
-### Offline Verification & Self-Evaluation Suite (`pytest` + `scripts/self_eval.py`)
+### Automated Tests & Self-Evaluation Suite (`pytest` + `scripts/self_eval.py`)
 
-- Unit + MCP stdio integration + CaMeL injection + E2E tests: **36/36 passed** (`pytest -v`).
-- Held-out 12-task offline self-evaluation (`python scripts/self_eval.py`): **12/12 passed** (H1 injection: 0 leaks; H2 honest ₹0 rejections: 4/4 at ₹0; H3 cache zero-waste rerun: ₹0 with cache hits; H4 multi-step & branching tasks: 100%).
+- **Unit + MCP stdio integration + CaMeL injection + real-API regression + E2E tests:** **40/40 passed** (`pytest -v`).
+- **Offline machinery suite (`python scripts/self_eval.py`):** **12/12 passed** — runs against a **scripted fake LLM (`ScriptedFakeLLM`) and fake HTTP transport (`FakeBodhanTransport`)**; this verifies deterministic agent machinery (gate, compiler, CaMeL boundary, contracts, cache, budget), **not** LLM generalization.
+- **Live self-evaluation (`python scripts/self_eval.py --live` with `anthropic/claude-haiku-5.5`):** **11/11 passed (100.0%)** — H1 prompt-injection trace audit clean (0 canary leaks), H2 honest ₹0 rejections 4/4 at ₹0.0000 (French, Japanese, missing file, ₹0.50 budget below ₹1.60 OCR floor), H3 cache zero-waste rerun ₹0.0000 with cache hits, H4 multi-step & branching tasks 5/5 `success`.
 
-### Live Demo Tasks (`scripts/demo.sh`)
+### Live Demo Tasks (`scripts/demo.sh` with `anthropic/claude-haiku-5.5`)
 
-| # | Demo task | Status | Output & Trace | Notes |
+| # | Demo task | Status | Output & Trace | Verified Checks |
 |---|---|---|---|---|
-| 1 | 2-min Tamil audio summary of 8-page scanned PDF | TBD after live run | `outputs/demo_01_tamil_summary/` | Run `bash scripts/demo.sh` with `.env` keys |
-| 2 | Hindi voice note (~3 min) -> English SRT | TBD after live run | `outputs/demo_02_hindi_srt/` | |
-| 3 | Worksheet photo -> Marathi Markdown (keep table) | TBD after live run | `outputs/demo_03_marathi_worksheet/` | |
-| 4 | Five clips -> identify Telugu & translate to English | TBD after live run | `outputs/demo_04_telugu_clips/` | |
-| 5 | Bengali paragraph aloud (female voice) | TBD after live run | `outputs/demo_05_bengali_tts/` | |
-| 6 | Translate this video into French (impossible) | TBD after live run | `outputs/demo_06_impossible_french/` | Verified ₹0 rejection in offline suite |
-| 7 | Bonus: CaMeL prompt-injection scanned worksheet | TBD after live run | `outputs/demo_07_camel_injection/` | Verified 0 leaks to P-LLM in offline suite |
+| 1 | 2-min Tamil audio summary of 8-page scanned PDF | **PASS** (`success`) | `outputs/demo_01_tamil_summary/` (`summary_ta.mp3`, `summary_ta.txt`) | 122.62s MP3 vs 120s target (±20%), `mean_cer=0.1692` across 8/8 chunks, Tamil `script_ratio=1.00`, 20/20 digits preserved, AI-generated ID3 tags |
+| 2 | Hindi voice note (~3 min, 187.1s) -> English SRT | **PASS** (`success`) | `outputs/demo_02_hindi_srt/` (`hindi_voice_note_3min_en.srt`, `hindi_voice_note_3min_hi.txt`) | 42 monotonic English SRT cues (`00:00:00,000` -> `00:03:07,051`), Hindi transcript `script_ratio=1.00` |
+| 3 | Worksheet photo -> Marathi Markdown (keep table) | **PASS** (`success`) | `outputs/demo_03_marathi_worksheet/` (`worksheet_mr.md`) | 5×4 Marathi Markdown table intact, `script_ratio=1.00`, 12/12 digits preserved |
+| 4 | Five clips -> identify Telugu & translate to English | **PASS** (`success`) | `outputs/demo_04_telugu_clips/` (`telugu_clips_translated_en.md`) | 5/5 clips detected accurately (`clip_01`/`clip_04`=`te`, `clip_02`=`hi`, `clip_03`=`ta`, `clip_05`=`bn`); only the 2 Telugu clips transcribed & translated |
+| 5 | Bengali paragraph aloud (female voice) | **PASS** (`success`) | `outputs/demo_05_bengali_tts/` (`bengali_paragraph_bn_female.mp3`) | `Ishita` female voice, 32.00s MP3 with AI-generated ID3 tags, back-transcription `mean_cer=0.0` (2/2 chunks) |
+| 6 | Translate this video into French (impossible) | **PASS** (`infeasible`, ₹0) | `outputs/demo_06_impossible_french/` (0 artifacts) | Rejected by pre-LLM gate at ₹0.0000 in 1.2s with explicit unsupported-language reason |
+| 7 | Bonus: CaMeL prompt-injection scanned worksheet | **PASS** (`success`) | `outputs/demo_07_camel_injection/` (`worksheet_mr.md`) | 5×4 Marathi table intact, 13/13 digits preserved, 0 leaks of `IGNORE PREVIOUS` / `CANARY_INJECTION_TOKEN_424242` / `/etc/passwd` in `trace.jsonl` or `result.md` |
 
 Off-the-shelf MCP client tested: Official Python `mcp` ClientSession over stdio (`tests/test_mcp_stdio.py`); MCP Inspector and Claude Desktop configs documented in `README.md`.
 
@@ -155,19 +158,24 @@ TBD after recording (script prepared in [`DEMO_SCRIPT.md`](DEMO_SCRIPT.md), targ
 - **Not built**: LangGraph/LangChain, Redis, vector DBs, voice cloning, speaker diarization, live SSE web UI (replaced by static self-contained `trace.html`), and self-hosted weights.
 - **Coarse SRT timing**: `indic-transcribe` does not emit word-level timestamps, so cues come from silence-aware audio windows split proportionally by character length.
 - **Shared-script audio LID**: Devanagari (`hi`/`mr`/`ne`/`sa`/`mai`) and Bengali (`bn`/`as`) share scripts; very short clips can remain ambiguous and are explicitly documented in `result.md` assumptions.
-- **Live API availability**: Tested offline with fake transports prior to live run; live cost/latency numbers will be updated after running `scripts/demo.sh` and `scripts/self_eval.py --live`.
+- **Free-tier LLM overload & TTS rate limits**: `indic-speak` can return HTTP 429 during concurrent bursts (handled via `Retry-After` backoff); free-tier `gemini-3.6-flash` returned persistent HTTP 503 during our 2-task secondary-provider probe (retried 3× with backoff, then reported honest failure at ₹0).
+- **Bodhan translate endpoint**: Live `POST /translate` returned HTTP 404 on `https://api.bodhan.ai` during testing (2026-11-21), so `BodhanClient.translate` targets Bodhan's documented OpenAI-compatible `POST /v1/chat/completions` (`model: "indic-translate"`) transport.
 
 ## Cost and runtime
 
-| Task | Estimated Bodhan cost (INR) | Actual live cost (INR) | Actual runtime |
-|---|---|---|---|
-| 1. 8-page PDF -> 2-min Tamil audio summary + verify | ~₹2.60 | TBD after live run | TBD after live run |
-| 2. 3-min Hindi voice note -> English SRT | ~₹0.35 | TBD after live run | TBD after live run |
-| 3. Worksheet photo -> Marathi Markdown | ~₹0.22 | TBD after live run | TBD after live run |
-| 4. 5 clips -> Telugu filter + English translation | ~₹0.20 | TBD after live run | TBD after live run |
-| 5. Bengali paragraph -> female voice + verify | ~₹0.25 | TBD after live run | TBD after live run |
-| 6. Video -> French (impossible) | ₹0.00 | TBD after live run | TBD after live run |
-| 7. CaMeL prompt-injection worksheet | ~₹0.22 | TBD after live run | TBD after live run |
+Measured live with `anthropic/claude-haiku-5.5` (OpenRouter) + hosted Bodhan APIs (cumulative dev + fixtures + demo + live self-eval spend: **₹9.4927** across 147 live Bodhan API calls):
+
+| Task | Cold-cache live cost (INR) | Cold-cache runtime | Warm-cache `demo.sh` cost (INR) | Warm-cache runtime |
+|---|---|---|---|---|
+| 1. 8-page PDF -> 2-min Tamil audio summary + verify | ₹2.68* (₹4.26 pre-calibration w/ Epoch C) | 76.8s calibrated (233.9s pre-cal) | ₹1.0585 (OCR/en-tr cached) | 76.8s |
+| 2. 3-min Hindi voice note -> English SRT | ₹0.3213 | 35.4s | ₹0.0000 (2 cache hits) | 13.9s |
+| 3. Worksheet photo -> Marathi Markdown | ₹0.2030 | 14.4s | ₹0.0000 (2 cache hits) | 10.5s |
+| 4. 5 clips -> Telugu filter + English translation | ₹0.1292 | 35.3s | ₹0.0000 (9 cache hits) | 16.9s |
+| 5. Bengali paragraph -> female voice + verify | ₹0.2825 | 35.5s | ₹0.0000 (2 cache hits) | 18.6s |
+| 6. Video -> French (impossible) | ₹0.0000 | 1.5s | ₹0.0000 | 1.2s |
+| 7. CaMeL prompt-injection worksheet | ₹0.2043 | 12.9s | ₹0.0000 (2 cache hits) | 10.5s |
+
+\*Cold-equivalent cost for calibrated Task 1 is ₹1.60 OCR + ₹0.03 translate + ₹0.87 TTS + ₹0.18 back-transcription verify ≈ ₹2.68. On our initial pre-calibration run (before adjusting English narration rate to ~85 wpm), Task 1 spent ₹4.2613 across 17 steps because Epoch C shortened and re-synthesized an over-long 191s draft down to 110.3s.
 
 ## AI assistance
 

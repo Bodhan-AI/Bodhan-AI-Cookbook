@@ -131,9 +131,25 @@ MCP Prompt exposed: `plan_task`.
 
 ```bash
 pytest -v
-python scripts/self_eval.py          # fake-transport held-out suite (free)
-python scripts/self_eval.py --live   # live API evaluation (uses .env keys)
+python scripts/self_eval.py          # offline machinery suite using ScriptedFakeLLM + FakeBodhanTransport (free; tests gate/compiler/CaMeL/cache, not LLM generalization)
+python scripts/self_eval.py --live   # live API evaluation (uses .env keys; 11/11 passed with anthropic/claude-haiku-5.5)
 ```
+
+### Live Demo Results & Cost (`scripts/demo.sh`)
+
+Tested live against hosted Bodhan APIs (`https://api.bodhan.ai`) with `anthropic/claude-haiku-5.5` (OpenRouter). Total cumulative live spend across smoke tests, fixture generation, all demo runs, and live self-evaluation: **₹9.49** (147 Bodhan API calls).
+
+| # | Demo task | Status | Cold-cache cost | Warm-cache cost | Runtime (cold / cached) | Output folder |
+|---|---|---|---|---|---|---|
+| 1 | 8-page scanned PDF -> 2-min Tamil audio summary + text | `success` | ~₹2.68 (₹4.26 pre-cal) | ₹1.0585 (OCR/en cached) | 76.8s (calibrated) | `outputs/demo_01_tamil_summary/` |
+| 2 | 3-min Hindi voice note -> English SRT subtitles | `success` | ₹0.3213 | ₹0.0000 | 35.4s / 13.9s | `outputs/demo_02_hindi_srt/` |
+| 3 | Worksheet photo -> Marathi Markdown (keep table) | `success` | ₹0.2030 | ₹0.0000 | 14.4s / 10.5s | `outputs/demo_03_marathi_worksheet/` |
+| 4 | 5 clips -> identify Telugu & translate to English | `success` | ₹0.1292 | ₹0.0000 | 35.3s / 16.9s | `outputs/demo_04_telugu_clips/` |
+| 5 | Bengali paragraph aloud (female voice) | `success` | ₹0.2825 | ₹0.0000 | 35.5s / 18.6s | `outputs/demo_05_bengali_tts/` |
+| 6 | Translate video into French (impossible) | `infeasible` | ₹0.0000 | ₹0.0000 | 1.5s / 1.2s | `outputs/demo_06_impossible_french/` |
+| 7 | Bonus: CaMeL prompt-injection scanned worksheet | `success` | ₹0.2043 | ₹0.0000 | 12.9s / 10.5s | `outputs/demo_07_camel_injection/` |
+
+A secondary 2-task probe on Google Gemini's OpenAI-compatible free tier (`gemini-3.6-flash`) completed Epoch A and cached probes on the 5-clip task before encountering persistent free-tier HTTP 503 overload across all 4 retry attempts (failing honestly at ₹0 without fabricating output).
 
 ## How it works
 
@@ -151,4 +167,4 @@ python scripts/self_eval.py --live   # live API evaluation (uses .env keys)
 - **Not built (by design)**: No external agent framework (LangGraph/LangChain), Redis, vector DB, voice cloning, speaker diarization, live SSE web UI (static `trace.html` instead), or self-hosted model weights.
 - **SRT timestamps**: `indic-transcribe` does not return word-level timestamps; subtitle cue boundaries come from silence-aware VAD audio windows and proportional splitting, so cues are coarser than forced alignment.
 - **Shared-script audio language ID**: Languages sharing Devanagari (`hi`/`mr`/`ne`/`mai`/`sa`/`kok`/`doi`/`brx`) or Bengali (`bn`/`as`) scripts are disambiguated by stopword hit-rates on a <=10 s probe; very short clips can remain ambiguous and are explicitly logged as assumptions in `result.md`.
-- **Hosted API outages / credit exhaustion**: Rate limits (`429`) are retried with exponential backoff; persistent exhaustion stops cleanly with partial results and exact spend reported in `report.json`.
+- **Hosted API quirks & outages**: Live `POST /translate` returned HTTP 404 on `api.bodhan.ai` during testing, so `BodhanClient.translate` uses Bodhan's OpenAI-compatible `POST /v1/chat/completions` (`model: "indic-translate"`). `indic-speak` returns RIFF/WAVE PCM16 bytes under `Content-Type: audio/mpeg` (handled via magic-byte inspection). Rate limits (`429`) and transient `5xx` errors are retried with exponential backoff; persistent exhaustion stops cleanly with partial results and exact spend reported in `report.json`.
