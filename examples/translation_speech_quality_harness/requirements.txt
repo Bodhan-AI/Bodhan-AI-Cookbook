@@ -1,0 +1,6 @@
+httpx==0.28.1
+python-dotenv==1.1.1
+sacrebleu==2.5.1
+markdown-it-py==3.0.0
+jiwer==4.0.0
+numpy==2.3.5
