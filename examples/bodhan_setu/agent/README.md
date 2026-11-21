@@ -90,7 +90,7 @@ The starter set has eight cases and structural/tool-coverage checks; expand it w
 
 ### Runner and safety
 
-The runner gives each case a fresh output root, in-memory MCP cache, artifact stores, logs, and trace/report files. Cases run concurrently up to `--jobs`; tool calls within a case are separately limited by `--max-parallel-tools`. Start with `--jobs 1` for live services. The starter suite uses the configured OpenAI-compatible LLM and Bodhan APIs; add a fake-provider adapter for deterministic planner sequences, malformed tool calls, timeouts, partial failures, and budget edges. No evaluator may use a non-Bodhan OCR, speech-recognition, translation, or TTS provider.
+The runner gives each case a fresh output root, in-memory MCP cache, artifact stores, logs, and trace/report files. Cases run concurrently up to `--jobs`; tool calls within a case are separately limited by `--max-parallel-tools`. Start with `--jobs 1` for live services. The starter suite uses the configured OpenAI-compatible LLM and Bodhan APIs. Unit tests may inject deterministic planner/tool doubles to exercise malformed calls, timeouts, partial failures, and budget edges; these doubles are test fixtures only and must never generate claimed task outputs. No runtime or evaluator may use a non-Bodhan OCR, speech-recognition, translation, or TTS provider.
 
 ### Metrics
 
@@ -110,6 +110,6 @@ The agent package has the required CLI, per-run output files, MCP stdio connecti
 
 1. Extend deterministic media validation to subtitle formats and check source-to-output text coverage where fixtures provide a known reference.
 2. Verify audio produced by high-level workflows, not only direct `synthesize_speech` calls; translation review remains advisory and needs native-speaker confirmation for quality claims.
-3. Run at least six documented demos including an impossible task; name the off-the-shelf MCP client used and include a short demo video as the assignment requires. Demo reports and traces belong in `demos/`; distinguish live Bodhan runs from mock-backed orchestration runs and never claim mock responses are language-quality results.
+3. Run at least six documented demos including an impossible task; name the off-the-shelf MCP client used and include a short demo video as the assignment requires. Demo reports and traces belong in `demos/`. Treat test-double runs as test evidence only; demos used to report Bodhan output quality must call the real Bodhan service.
 
 Implemented and regression-tested: a real multi-turn `get_file` → `translate_text` chain; deterministic artifact checks for text presence, WAV/MP4 signatures, and tool success; injected 429/connect-timeout failures; server-wide per-process Bodhan HTTP concurrency control; and atomic checkpoints with safe resume/uncertain in-flight handling. `--resume` continues completed conversation state without replaying successful calls and accepts increased step/cost limits. Calls interrupted mid-flight are deliberately blocked pending reconciliation.

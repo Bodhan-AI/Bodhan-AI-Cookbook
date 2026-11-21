@@ -87,17 +87,6 @@ _LOGGER = logging.getLogger("bodhan_mcp.http")
 _MAX_BODHAN_RETRIES = max(0, min(5, int(os.getenv("BODHAN_MAX_RETRIES", "2"))))
 _MAX_BODHAN_CONCURRENCY = max(1, int(os.getenv("BODHAN_MAX_CONCURRENCY", "4")))
 _BODHAN_REQUEST_LIMITER = threading.BoundedSemaphore(_MAX_BODHAN_CONCURRENCY)
-_MOCK_MEDIA_CONTEXT = threading.local()
-
-
-@contextmanager
-def _mock_media_filename(filename: str):
-    previous = getattr(_MOCK_MEDIA_CONTEXT, "filename", None)
-    _MOCK_MEDIA_CONTEXT.filename = filename
-    try:
-        yield
-    finally:
-        _MOCK_MEDIA_CONTEXT.filename = previous
 
 
 def _estimate(model: str, quantity: float, unit: str) -> dict[str, Any]:
@@ -417,8 +406,6 @@ def _compact_result(result: dict[str, Any]) -> dict[str, Any]:
 
 
 def _key(name: str) -> str:
-    if os.getenv("BODHAN_MOCK_RESPONSES", "false").lower() in {"1", "true", "yes", "on"}:
-        return "mock-no-network"
     value = os.getenv(name)
     if not value or value.startswith("<"):
         raise ToolError(f"Missing {name}. Set it in the environment before calling this tool.")
@@ -426,11 +413,6 @@ def _key(name: str) -> str:
 
 
 def _request(method: str, url: str, key: str, **kwargs: Any) -> requests.Response:
-    request_mock_filename = kwargs.pop("mock_filename", None)
-    mock_filename = getattr(_MOCK_MEDIA_CONTEXT, "filename", None) or request_mock_filename
-    if os.getenv("BODHAN_MOCK_RESPONSES", "false").lower() in {"1", "true", "yes", "on"}:
-        from .mock_bodhan import response_for
-        return response_for(method, url, kwargs, mock_filename)
     if os.getenv("BODHAN_CACHE_ONLY", "false").lower() in {"1", "true", "yes", "on"}:
         raise ToolError("BODHAN_CACHE_ONLY is enabled and this request was not satisfied from cache; no Bodhan API call was made")
     timeout = kwargs.pop("timeout", 60)
@@ -574,10 +556,6 @@ def _cached_file_result(key: str, destination: Path, media_type: str) -> dict[st
 
 
 def _store(key: str, result: dict[str, Any], *, artifact_path: Path | None = None, cost_inr: float = 0.0) -> dict[str, Any]:
-    if os.getenv("BODHAN_MOCK_RESPONSES", "false").lower() in {"1", "true", "yes", "on"}:
-        cost_inr = 0.0
-        result = dict(result)
-        result["cost_inr"] = 0.0
     if not result.get("file_id"):
         for field in ("text", "translation", "transliteration"):
             if isinstance(result.get(field), str):
@@ -1179,7 +1157,7 @@ def _transcribe_pcm_wav(path: Path, source_path: Path, *, language: str | None, 
         if language:
             data["language"] = language
         try:
-            response = _request("POST", f"{_base_url()}/v1/audio/transcriptions", _key("BODHAN_TRANSCRIBE_KEY"), files={"file": (f"chunk_{index + 1:04d}.wav", io.BytesIO(chunk), "audio/wav")}, data=data, timeout=120, mock_filename=source_path.name)
+            response = _request("POST", f"{_base_url()}/v1/audio/transcriptions", _key("BODHAN_TRANSCRIBE_KEY"), files={"file": (f"chunk_{index + 1:04d}.wav", io.BytesIO(chunk), "audio/wav")}, data=data, timeout=120)
             transcripts.append(response.json().get("text", "").strip())
         except ToolError as exc:
             incurred = _estimate("indic-transcribe", min((index * MAX_TRANSCRIBE_SECONDS) / 60, duration_minutes), "audio_minute")["estimated_cost_inr"]
@@ -1203,8 +1181,7 @@ def transcribe_video(video_file: str, language: str | None = None, dry_run: bool
     with tempfile.TemporaryDirectory(prefix="bodhan-video-") as temporary:
         wav_path = Path(temporary) / "extracted_audio.wav"
         duration = _extract_video_audio(video_path, wav_path)
-        with _mock_media_filename(video_path.name):
-            result = transcribe_audio(str(wav_path), language=language, dry_run=dry_run)
+        result = transcribe_audio(str(wav_path), language=language, dry_run=dry_run)
         result.pop("source_file", None)
         if dry_run:
             return {**result, "source_video": str(video_path), "duration_seconds": round(duration, 3), "will_call_api": False}
@@ -1664,7 +1641,7 @@ def ocr_document(image_file: str, output_file: str, dry_run: bool = False) -> Oc
             encoded = base64.b64encode(image_bytes).decode("ascii")
             body = {"model": "indic-ocr", "messages": [{"role": "user", "content": [{"type": "image_url", "image_url": {"url": f"data:{mime_type};base64,{encoded}"}}]}]}
             try:
-                result = _request("POST", f"{_base_url()}/v1/chat/completions", _key("BODHAN_OCR_KEY"), json=body, timeout=180, mock_filename=path.name).json()
+                result = _request("POST", f"{_base_url()}/v1/chat/completions", _key("BODHAN_OCR_KEY"), json=body, timeout=180).json()
             except ToolError as exc:
                 incurred = round(index * PRICES_INR["indic-ocr"]["per_image"], 6)
                 raise ToolError(f"OCR failed on page {index + 1}/{page_count} after {index} page(s) completed; estimated cost already incurred ₹{incurred:.4f}. Partial OCR was not cached. Cause: {exc}") from exc

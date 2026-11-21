@@ -62,7 +62,7 @@ SYSTEM_PROMPT = """You are Bodhan Setu's task planner. Complete the user's reque
 - For an audio-to-text translation, call `transcribe_audio` once with the supplied audio path, then call `translate_text` once with the exact transcript `file_id` and requested target language. `transcribe_audio` handles chunking internally. Do not call `chunk_audio` or `get_file` for the audio or generated transcript; the transcript reference can be passed directly to `translate_text`.
 - For any video translation that asks for a new video, dubbed video, or replacement audio track, call `translate_video` directly. That tool performs transcript, translation, voice selection, synthesis, and muxing; do not substitute `transcribe_video` plus `translate_text`.
 - Multi-output requests require every branch: OCR/transcription alone does not satisfy a request that also asks for translation, transliteration, a summary, speech, or video.
-- Transliteration is a separate branch: Latin/Roman letters from Hindi text means `transliterate_text(language="hi", script="roman")`; Hindi/Devanagari script from Romanized Hindi means `transliterate_text(language="hi", script="native")`. For a document asking for both translation and transliteration, OCR once, then call `translate_text` and `transliterate_text` separately on that OCR file ID; label each output. Never replace the transliteration with your own.
+- Transliteration is a separate branch: preserve the source language and change only its script. Choose the language code from the task and `bodhan://languages`; choose `native` or `roman` from the requested output and `bodhan://languages`. For a document asking for both translation and transliteration, OCR once, then call `translate_text` and `transliterate_text` separately on that OCR file ID; label each output. Never replace the transliteration with your own.
 - For a spoken summary of a document in an Indic language: OCR it, read the extracted source text if needed, write a concise English summary, pass that summary through `translate_text` into the requested language, then synthesize the translated summary. Do not synthesize the full OCR text or skip the translation step.
 - In a workflow where both `translate_text` and `synthesize_speech` are required, translation must succeed first. Never write Indic-language text yourself or send model-authored Indic text to synthesis; synthesize only the Bodhan translation result. For `translate_text`, the target argument is named `target_language`.
 - Omit unknown source language when the tool supports inference. Transcription may infer language internally but does not return a verified language label; describe your classification as an inference.
@@ -970,14 +970,6 @@ class TaskAgent:
                     suffix = Path(file_ref).suffix.casefold()
                     if suffix in {".wav", ".mp3", ".m4a", ".aac", ".flac", ".ogg", ".opus", ".wma", ".mp4", ".mov", ".mkv", ".webm", ".avi", ".pdf", ".png", ".jpg", ".jpeg", ".tif", ".tiff", ".webp"}:
                         raise ValueError("get_file is for reading text files. Pass this media path directly to its matching Bodhan tool; audio transcription chunks long audio internally.")
-            if name == "transliterate_text":
-                task = self.task.casefold()
-                if "language" not in arguments and "hindi" in task:
-                    arguments["language"] = "hi"
-                if any(phrase in task for phrase in ("hindi script", "native script", "devanagari script")):
-                    arguments["script"] = "native"
-                elif any(phrase in task for phrase in ("latin letters", "roman letters", "latin script", "roman script")):
-                    arguments["script"] = "roman"
             if self.dry_run_only:
                 if name not in PAID_TOOLS:
                     raise ValueError("Dry-run-only mode does not execute local conversion or file-writing tools")
@@ -992,18 +984,6 @@ class TaskAgent:
             if name == "synthesize_speech":
                 self._validate_speech_language(arguments)
             arguments = self._normalize_output_paths(name, arguments)
-            skip_reason = self._skip_nonmatching_language_translation(name, arguments)
-            if skip_reason:
-                self.steps += 1
-                result = {"skipped": True, "reason": skip_reason}
-                event = {
-                    "type": "tool_call", "step": self.steps, "tool": name,
-                    "arguments": arguments, "origin": "agent_task_filter",
-                    "result": result, "is_error": False, "cost_inr": 0.0,
-                }
-                self.events.append(event)
-                self._trace(event)
-                return call_id, {"result": result, "task_filter_skip": True}
             result, is_error, audit = await self._paid_call(session, name, arguments, parent_call_id=call_id)
             if name in PAID_TOOLS and arguments.get("dry_run") is True and not is_error:
                 key = self._canonical_operation_signature(name, arguments)
@@ -1158,17 +1138,6 @@ class TaskAgent:
             return {"verdict": "uncertain", "issues": [f"translation review unavailable: {exc}"], "method": "review unavailable"}
 
     async def _verify_tool_output(self, session: ClientSession, tool_name: str, args: dict[str, Any], result: dict[str, Any]) -> None:
-        if os.getenv("BODHAN_MOCK_RESPONSES", "false").lower() in {"1", "true", "yes", "on"} and tool_name in {"translate_text", "translate_audio", "translate_video", "synthesize_speech"}:
-            record = {
-                "tool": tool_name,
-                "check": "mock_response_semantics",
-                "verdict": "skipped",
-                "method": "mock mode validates orchestration/artifacts; linguistic and audio quality are not measured",
-            }
-            self.verifications.append(record)
-            self._trace({"type": "verification", **record})
-            return
-
         if tool_name in {"translate_text", "translate_audio", "translate_video"}:
             source_value = args.get("text") if tool_name == "translate_text" else result.get("transcript")
             target_value = result.get("translation")
@@ -1216,10 +1185,9 @@ class TaskAgent:
         if re.search(r"\b(do not|don't|never)\s+translat(?:e|ion)\b|\brather than translat\w*|\binstead of translat\w*", task):
             wants_translation = False
         wants_transcript = any(word in task for word in ("transcribe", "transcript", "write down what", "what this voice note says"))
-        wants_transliteration = (
-            "transliterat" in task or "latin letters" in task or "roman letters" in task
-            or "into hindi script" in task or "native script" in task or "devanagari script" in task
-        )
+        wants_transliteration = any(
+            phrase in task for phrase in ("transliterat", "latin letters", "roman letters", "native script", "devanagari script")
+        ) or bool(re.search(r"\b(?:into|in)\s+[a-z-]+\s+script\b", task))
         wants_spoken_output = any(phrase in task for phrase in ("spoken", "speak this", "give me the audio", "generate speech", "audio version"))
 
         if has_video:
@@ -1308,84 +1276,6 @@ class TaskAgent:
             ]
         return definitions
 
-    def _skip_nonmatching_language_translation(self, tool_name: str, arguments: dict[str, Any]) -> str | None:
-        """Skip clear non-Telugu transcript content in an explicit Telugu-only folder task."""
-        task = self.task.casefold()
-        if tool_name != "translate_text" or "telugu" not in task or not any(term in task for term in ("which ones", "only those", "only the")):
-            return None
-        value = arguments.get("text")
-        if not isinstance(value, str):
-            return None
-        local_path = self.artifact_paths.get(value) if value.startswith("setu:=") else None
-        if local_path is None or not local_path.is_file():
-            return None
-        try:
-            transcript = local_path.read_text(encoding="utf-8")
-        except (OSError, UnicodeDecodeError):
-            return None
-        letters = [char for char in transcript if char.isalpha()]
-        if not letters:
-            return None
-        telugu_letters = sum("\u0c00" <= char <= "\u0c7f" for char in letters)
-        if telugu_letters / len(letters) >= 0.5:
-            return None
-        other_indic_letters = sum(
-            any(start <= ord(char) <= end for start, end in ((0x0900, 0x0D7F), (0x0F00, 0x109F)))
-            for char in letters
-        )
-        if other_indic_letters / len(letters) >= 0.5:
-            return "Transcript content uses a non-Telugu Indic script; skipped because the task requests translation of Telugu recordings only."
-        return None
-
-    def _unsupported_target_notice(self, resources: str) -> str | None:
-        """Reject explicitly requested unsupported targets before any paid stage."""
-        task = self.task.casefold()
-        if not any(term in task for term in ("translate", "translation", "spoken", "audio", "speak", "dub")):
-            return None
-        match = re.search(r"\b(?:into|to)\s+([a-z]+)\b", task)
-        if not match:
-            return None
-        target_name = match.group(1)
-        aliases = {
-            "french": "fr", "spanish": "es", "german": "de", "italian": "it",
-            "portuguese": "pt", "arabic": "ar", "japanese": "ja", "korean": "ko",
-            "chinese": "zh", "russian": "ru",
-        }
-        code = aliases.get(target_name)
-        supported: dict[str, set[str]] = {}
-        names: dict[str, str] = {}
-        try:
-            resource_map = json.loads(resources)
-            languages = json.loads(resource_map.get("languages", "{}"))
-            names = {str(name).casefold(): str(lang_code) for lang_code, name in languages.get("language_names", {}).items()}
-            supported = {
-                str(model): set(map(str, model_data))
-                for model, model_data in languages.get("models", {}).items()
-            }
-        except (json.JSONDecodeError, TypeError, AttributeError):
-            return None
-        code = code or names.get(target_name)
-        if not code:
-            return None
-        required_models = ["indic-translate"]
-        if any(term in task for term in ("audio", "spoken", "speak", "dub", "video")):
-            required_models.append("indic-speak")
-        unsupported_models = [model for model in required_models if code not in supported.get(model, set())]
-        if not unsupported_models:
-            return None
-        model_label = " and ".join(unsupported_models)
-        return f"{target_name.title()} ({code}) is not supported by {model_label}. No Bodhan model operation was run."
-
-    def _unsupported_script_notice(self) -> str | None:
-        """Reject explicit transliteration targets outside native/Roman script modes."""
-        task = self.task.casefold()
-        if "transliterat" not in task:
-            return None
-        unsupported = next((name for name in ("cyrillic", "greek", "hebrew") if name in task), None)
-        if not unsupported:
-            return None
-        return f"The transliteration tool supports native and Roman scripts, not {unsupported.title()}. No Bodhan model operation was run."
-
     async def run(self) -> Path:
         if self._resume_in_flight:
             call_labels = ", ".join(
@@ -1410,22 +1300,6 @@ class TaskAgent:
                     tool_list = self._mcp_tools(await asyncio.wait_for(session.list_tools(), timeout=min(self.tool_timeout_seconds, 30)))
                     stage = "read_resources"
                     resources = await self._read_resources(session)
-                    limitation = self._unsupported_target_notice(resources)
-                    if limitation:
-                        self.status = "completed"
-                        self.final_text = limitation
-                        self.stop_reason = "Requested target is not supported; stopped before paid model operations."
-                        self._trace({"type": "unsupported_target_preflight", "message": limitation, "bodhan_cost_inr": 0.0})
-                        self._trace({"type": "final", "status": self.status, "summary": self.final_text, "steps": self.steps, "bodhan_cost_inr": 0.0})
-                        return self._write_outputs()
-                    limitation = self._unsupported_script_notice()
-                    if limitation:
-                        self.status = "completed"
-                        self.final_text = limitation
-                        self.stop_reason = "Requested output script is unsupported; stopped before paid model operations."
-                        self._trace({"type": "unsupported_script_preflight", "message": limitation, "bodhan_cost_inr": 0.0})
-                        self._trace({"type": "final", "status": self.status, "summary": self.final_text, "steps": self.steps, "bodhan_cost_inr": 0.0})
-                        return self._write_outputs()
                     if self._conversation_messages:
                         messages = self._conversation_messages
                         self._trace({"type": "checkpoint_resumed", "steps": self.steps, "message_count": len(messages)})
@@ -1497,10 +1371,8 @@ class TaskAgent:
                                              and not event.get("is_error") and (event.get("result") or {}).get("file_id")),
                                             None,
                                         )
-                                        target_codes = {"bengali": "bn", "bangla": "bn", "tamil": "ta", "marathi": "mr", "english": "en", "hindi": "hi", "telugu": "te"}
-                                        target_code = next((code for language, code in target_codes.items() if language in self.task.casefold()), None)
-                                        if transcript_id and target_code:
-                                            operation_hint = f" Call translate_text now exactly once with text={transcript_id!r}, target_language={target_code!r}; this is the requested translation of the complete transcript."
+                                        if transcript_id:
+                                            operation_hint = f" Call translate_text with text={transcript_id!r}; derive the requested target language code from the task and bodhan://languages."
                                     if "transliterate_text" in missing_tools:
                                         source_id = None
                                         for event in reversed(self.events):
@@ -1508,10 +1380,8 @@ class TaskAgent:
                                                 source_id = (event.get("result") or {}).get("file_id")
                                                 if source_id:
                                                     break
-                                        source_language = "hi" if "hindi" in self.task.casefold() else ""
-                                        script = "roman" if any(term in self.task.casefold() for term in ("latin letters", "roman letters", "latin script", "roman script")) else "native"
-                                        if source_id and source_language:
-                                            operation_hint = f" For the missing transliteration, call transliterate_text now with text={source_id!r}, language={source_language!r}, script={script!r}; use the exact latest OCR/transcript file ID."
+                                        if source_id:
+                                            operation_hint = f" For the missing transliteration, call transliterate_text with text={source_id!r}; derive the language code and requested script from the task and bodhan://languages."
                                     recovery = (
                                         f"The requested task is not complete: required operation(s) still missing: {missing_list}. "
                                         "Continue by calling the appropriate MCP tool(s) using the supplied inputs and the successful results above. "

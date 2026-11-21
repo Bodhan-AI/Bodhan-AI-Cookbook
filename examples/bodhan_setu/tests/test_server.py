@@ -47,20 +47,6 @@ def test_memory_cache_round_trip():
     assert cache.get("key").result == {"value": 1}
 
 
-def test_mock_bodhan_responses_never_use_http(monkeypatch):
-    monkeypatch.setenv("BODHAN_MOCK_RESPONSES", "true")
-    monkeypatch.setenv("BODHAN_CACHE_ONLY", "true")
-    monkeypatch.setattr(server.requests, "request", lambda *args, **kwargs: pytest.fail("mock mode attempted a network request"))
-    transcript = server._request("POST", "https://api.bodhan.ai/v1/audio/transcriptions", "unused", mock_filename="telugu_01.wav")
-    assert "పాఠశాల" in transcript.json()["text"]
-    translated = server._request("POST", "https://api.bodhan.ai/translate", "unused", json={"text": "hello", "target_language": "bn"})
-    assert "বিদ্যালয়" in translated.json()["translation"]
-    hindi = server._request("POST", "https://api.bodhan.ai/translate", "unused", json={"text": "नमस्ते, यह एक हिंदी संदेश है।", "target_language": "en"})
-    assert "Hello" in hindi.json()["translation"]
-    speech = server._request("POST", "https://api.bodhan.ai/v1/audio/speech", "unused", json={})
-    assert speech.content[:4] == b"RIFF" and speech.content[8:12] == b"WAVE"
-
-
 def _isolated_cache(tmp_path, monkeypatch):
     cache = CacheStore(MemoryBackend())
     monkeypatch.setattr(server, "get_cache", lambda: cache)

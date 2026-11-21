@@ -18,15 +18,7 @@ python evals/task_agent/run.py --suite design_tasks --out ./eval-results --jobs 
 
 Select cases with repeated `--case CASE_ID` flags. `--jobs` bounds independent task runs; `--max-parallel-tools` bounds concurrent MCP requests inside each run. Cases make real model/API calls and can incur costs. Each case has an explicit `max_cost_inr`, a fresh output directory, isolated artifact stores, and an in-memory cache. The runner retains stdout/stderr, `result.md`, `report.json`, `trace.jsonl`, and a `summary.json` with **pass rate** and **execution coverage** reported separately.
 
-For a no-Bodhan-spend end-to-end run, add `--mock-bodhan`:
-
-```bash
-python evals/task_agent/run.py --suite design_tasks --out ./eval-results/mock --jobs 2 --mock-bodhan
-```
-
-This replaces only Bodhan HTTP responses with deterministic fixtures. The configured local/OpenAI-compatible planner, MCP client/server, tool schemas, dry-run gating, caches, file artifacts, chunking, and video processing still execute normally. Mock paid calls report ₹0; dry runs continue to show the configured price estimates. This mode is for planner/integration behavior, not for judging real model quality. Set no Bodhan credentials to use it; it cannot contact Bodhan while enabled.
-
-`--cache-only` reads the shared Redis model cache and refuses Bodhan requests on a miss. It is a useful no-spend check for previously cached inputs; uncached outputs are reported as blocked. This differs from `--mock-bodhan`, which returns deterministic fixtures for cache misses.
+`--cache-only` reads the shared Redis model cache and refuses Bodhan requests on a miss. It is a no-spend check for previously cached inputs; uncached outputs are reported as blocked. Unit tests may inject test doubles, but the server and evaluation CLI have no fake Bodhan response mode. Report only real Bodhan runs as model-output demos.
 
 ## Case contract
 

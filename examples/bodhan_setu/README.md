@@ -186,7 +186,7 @@ The agent uses the LLM for planning, tool selection, and English reporting only.
 pytest -q
 ```
 
-The test suite includes a mocked end-to-end agent run through a real local MCP subprocess; it does not call paid Bodhan APIs or the configured LLM service.
+The test suite includes an end-to-end agent run through a real local MCP subprocess with test-only injected doubles; it does not call paid Bodhan APIs or the configured LLM service. The runtime server and evaluation CLI have no fake Bodhan response mode.
 
 Run the isolated task-agent evaluation suite with configured LLM/Bodhan environment settings:
 

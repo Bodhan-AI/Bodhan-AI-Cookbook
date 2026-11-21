@@ -105,42 +105,6 @@ def test_transliteration_that_says_instead_of_translation_stays_single_tool(tmp_
     assert agent._required_tools_for_task([]) == {"transliterate_text"}
 
 
-def test_transliteration_language_script_is_corrected_from_user_intent(tmp_path, monkeypatch):
-    agent = TaskAgent(
-        task="Convert this Hindi phrase into Hindi script, preserving the words.",
-        input_paths=[], output_root=tmp_path / "runs", max_steps=4, max_cost_inr=1.0,
-        tool_timeout_seconds=10, llm_timeout_seconds=5, model="test-model",
-        base_url="http://unused.invalid/v1", api_key="test-key",
-    )
-    captured = {}
-
-    async def fake_paid_call(_session, _name, arguments, **_kwargs):
-        captured.update(arguments)
-        return {"transliteration": "आपका स्वागत है"}, False, {}
-
-    monkeypatch.setattr(agent, "_paid_call", fake_paid_call)
-    call = {"id": "native-1", "function": {"name": "transliterate_text", "arguments": json.dumps({"text": "aapka swagat hai", "language": "hi", "script": "roman"})}}
-    asyncio.run(agent._execute_tool_call(None, call))
-    assert captured["script"] == "native"
-
-
-def test_unsupported_target_is_detected_before_paid_stages(tmp_path):
-    agent = TaskAgent(
-        task="Translate this Hindi recording into French and give me French audio.",
-        input_paths=[], output_root=tmp_path / "runs", max_steps=4, max_cost_inr=1.0,
-        tool_timeout_seconds=10, llm_timeout_seconds=5, model="test-model",
-        base_url="http://unused.invalid/v1", api_key="test-key",
-    )
-    language_resource = json.dumps({
-        "language_names": {"hi": "Hindi", "en": "English"},
-        "models": {"indic-translate": ["hi", "en"], "indic-speak": ["hi", "en"]},
-    })
-    resources = json.dumps({"languages": language_resource})
-    notice = agent._unsupported_target_notice(resources)
-    assert notice and "French (fr) is not supported" in notice
-    assert "No Bodhan model operation was run" in notice
-
-
 def test_full_video_translation_hides_manual_chain_alternatives(tmp_path):
     agent = TaskAgent(
         task="Translate this video and return a new video with the translated audio track.",
@@ -195,21 +159,9 @@ def test_task_tool_catalog_can_gate_synthesis_until_translation_succeeds(tmp_pat
     assert after_translation == {"ocr_document", "translate_text", "synthesize_speech"}
 
 
-def test_telugu_only_filter_uses_transcript_content_not_filename(tmp_path):
-    agent = TaskAgent(
-        task="Which recordings are Telugu? Translate only those into English.",
-        input_paths=[], output_root=tmp_path / "runs", max_steps=4, max_cost_inr=1.0,
-        tool_timeout_seconds=10, llm_timeout_seconds=5, model="test-model",
-        base_url="http://unused.invalid/v1", api_key="test-key",
-    )
-    bengali_path = tmp_path / "could-be-telugu.wav.txt"
-    bengali_path.write_text("আজ বিদ্যালয় দুপুর তিনটায় বন্ধ হবে।", encoding="utf-8")
-    telugu_path = tmp_path / "not-a-language-name.txt"
-    telugu_path.write_text("విద్యార్థులు రేపు పరీక్ష రాస్తారు.", encoding="utf-8")
-    bengali_id, telugu_id = "setu:=bengali-transcript", "setu:=telugu-transcript"
-    agent.artifact_paths.update({bengali_id: bengali_path, telugu_id: telugu_path})
-    assert agent._skip_nonmatching_language_translation("translate_text", {"text": bengali_id})
-    assert agent._skip_nonmatching_language_translation("translate_text", {"text": telugu_id}) is None
+def test_language_filtered_folder_workflow_is_general_in_prompt():
+    assert "For language-filtered folders, read each transcript" in SYSTEM_PROMPT
+    assert "Never infer a file's language from its name" in SYSTEM_PROMPT
 
 
 def test_rejects_pasted_text_in_file_reference_without_path_error(tmp_path):

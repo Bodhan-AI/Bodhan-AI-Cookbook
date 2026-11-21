@@ -80,7 +80,7 @@ def load_design_cases() -> list[dict[str, Any]]:
     return cases
 
 
-def run_case(case: dict[str, Any], output_root: Path, max_parallel_tools: int, *, cache_only: bool = False, mock_bodhan: bool = False) -> dict[str, Any]:
+def run_case(case: dict[str, Any], output_root: Path, max_parallel_tools: int, *, cache_only: bool = False) -> dict[str, Any]:
     case_id = case["case_id"]
     case_root = output_root / case_id
     case_root.mkdir(parents=True, exist_ok=True)
@@ -114,7 +114,6 @@ def run_case(case: dict[str, Any], output_root: Path, max_parallel_tools: int, *
             "PYTHONPATH": os.pathsep.join(filter(None, [str(RECIPE_ROOT / "src"), env.get("PYTHONPATH", "")])),
             "BODHAN_CACHE_BACKEND": "redis" if cache_only else "memory",
             "BODHAN_CACHE_ONLY": "true" if cache_only else "false",
-            "BODHAN_MOCK_RESPONSES": "true" if mock_bodhan else "false",
             "BODHAN_ARTIFACT_DIR": str(case_root / "mcp-artifacts"),
             "BODHAN_MODEL_CACHE_ARTIFACT_DIR": str(case_root / "model-cache-artifacts"),
             "BODHAN_ARTIFACT_HTTP_PORT": "0",
@@ -291,7 +290,6 @@ def main() -> int:
     parser.add_argument("--max-parallel-tools", type=int, default=3, help="Per-agent concurrency limit")
     parser.add_argument("--suite", choices=["task_agent", "design_tasks"], default="task_agent", help="Run the 8-case task-agent suite or the original 16 MCP design tasks")
     parser.add_argument("--cache-only", action="store_true", help="Use shared Redis cache, refusing any Bodhan API request on a cache miss")
-    parser.add_argument("--mock-bodhan", action="store_true", help="Return deterministic mock Bodhan model responses; planner and MCP tool workflows still run, with no Bodhan API traffic")
     args = parser.parse_args()
     if args.jobs < 1 or args.max_parallel_tools < 1:
         parser.error("--jobs and --max-parallel-tools must be positive")
@@ -319,7 +317,7 @@ def main() -> int:
     output_root.mkdir(parents=True, exist_ok=False)
     results: list[dict[str, Any]] = []
     with ThreadPoolExecutor(max_workers=args.jobs) as pool:
-        futures = {pool.submit(run_case, case, output_root, args.max_parallel_tools, cache_only=args.cache_only, mock_bodhan=args.mock_bodhan): case for case in cases}
+        futures = {pool.submit(run_case, case, output_root, args.max_parallel_tools, cache_only=args.cache_only): case for case in cases}
         for future in as_completed(futures):
             try:
                 results.append(future.result())
@@ -337,7 +335,6 @@ def main() -> int:
         "attempted_tool_coverage": round(sum(int(item.get("attempted_tool_units", 0)) for item in results) / max(1, sum(int(item.get("expected_tool_units", 0)) for item in results)), 4),
         "suite": args.suite,
         "cache_only": args.cache_only,
-        "mock_bodhan": args.mock_bodhan,
         "parallel_jobs": args.jobs,
         "max_parallel_tools": args.max_parallel_tools,
         "results": results,
