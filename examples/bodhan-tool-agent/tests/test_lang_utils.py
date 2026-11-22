@@ -90,6 +90,11 @@ class TestLangUtils(unittest.TestCase):
         self.assertEqual(info3["target_language"], "ta")
         self.assertFalse(info3["is_ambiguous"])
 
+        # 4. "Create Hindi subtitles for this video" gives audio=hi and target=None
+        info4 = extract_task_languages("Create Hindi subtitles for this video")
+        self.assertEqual(info4["audio_language"], "hi")
+        self.assertIsNone(info4["target_language"])
+
         # Explicit code forms
         code, _ = extract_language_from_text("transcribe in hi")
         self.assertEqual(code, "hi")

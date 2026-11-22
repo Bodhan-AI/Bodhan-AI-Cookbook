@@ -147,7 +147,7 @@ class BodhanTools:
         if not path.exists():
             return {
                 "success": False,
-                "error": f"Audio file not found: {file_path}",
+                "error": f"Audio/video file not found: {file_path}",
                 "actionable_tip": "Verify the file path exists on disk.",
             }
 
@@ -171,9 +171,12 @@ class BodhanTools:
         try:
             with tempfile.TemporaryDirectory(prefix="bodhan_transcribe_") as work_dir:
                 work_path = Path(work_dir)
-                # 1. Convert to 16 kHz mono WAV inside work directory (never left in artifacts)
+                # 1. Convert or extract to 16 kHz mono WAV inside work directory (never left in artifacts)
                 temp_wav = work_path / f"{path.stem}_converted_16k.wav"
-                converted_path = convert_to_wav_16k_mono(path, temp_wav)
+                if path.suffix.lower() in (".mp4", ".mkv", ".mov", ".avi", ".webm", ".flv", ".wmv", ".m4v"):
+                    converted_path = ffmpeg_extract_audio(path, temp_wav)
+                else:
+                    converted_path = convert_to_wav_16k_mono(path, temp_wav)
                 total_duration = get_audio_duration(converted_path)
 
                 # 2. Window splitting (<= 30s) inside work directory

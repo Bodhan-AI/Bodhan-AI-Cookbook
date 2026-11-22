@@ -131,9 +131,21 @@ class TaskAgent:
     def run(self) -> AgentReport:
         """Executes the full agent loop and writes all required outputs."""
         start_time = time.perf_counter()
-        # Reset trace and output files so every run starts fresh
+        # Reset trace, artifacts directory, and all in-memory state so every run starts completely fresh
         self.tracer.reset()
         self.step_records.clear()
+        self.artifacts.clear()
+        self.step_outputs.clear()
+        self.upstream_sources.clear()
+        self.failures.clear()
+        self.assumptions.clear()
+        self.executed_calls.clear()
+        self.verification_results.clear()
+        self.source_texts.clear()
+        self.audio_durations.clear()
+        self.last_produced_text = None
+        self.last_artifact_path = None
+        self.last_artifact_stem = None
 
         # --------------------------------------------------------------------
         # 1. Plain Code Pre-flight Checks (Zero LLM / Zero Paid Calls)
@@ -153,14 +165,22 @@ class TaskAgent:
                 "sending no language parameter (relying on model auto-detection)."
             )
         else:
-            if self.audio_language:
+            if self.audio_language and self.target_language and self.audio_language == self.target_language:
                 self.assumptions.append(
-                    f"Task specified audio language: {SUPPORTED_INDIC_LANGUAGES[self.audio_language]} ({self.audio_language})."
+                    f"Audio language and target language are both {SUPPORTED_INDIC_LANGUAGES[self.audio_language]} ({self.audio_language}); "
+                    "skipping translation as source and target languages are identical."
                 )
-            if self.target_language:
-                self.assumptions.append(
-                    f"Task specified target language: {SUPPORTED_INDIC_LANGUAGES[self.target_language]} ({self.target_language})."
-                )
+                self.target_language = None
+                self.language_requested = self.audio_language
+            else:
+                if self.audio_language:
+                    self.assumptions.append(
+                        f"Task specified audio language: {SUPPORTED_INDIC_LANGUAGES[self.audio_language]} ({self.audio_language})."
+                    )
+                if self.target_language:
+                    self.assumptions.append(
+                        f"Task specified target language: {SUPPORTED_INDIC_LANGUAGES[self.target_language]} ({self.target_language})."
+                    )
             if not self.audio_language and not self.target_language:
                 self.assumptions.append(
                     "No specific spoken language was requested in the task; submitted without language parameter (model auto-detection)."
@@ -217,13 +237,24 @@ class TaskAgent:
             file_summaries.append(insp)
 
             # Record factual plain-code file assumptions and duration tracking
-            if insp.get("media_type") in ("audio", "video") or f_path.suffix.lower() in (".wav", ".mp3", ".m4a", ".flac"):
+            is_vid = insp.get("media_type") == "video" or f_path.suffix.lower() in (
+                ".mp4", ".mkv", ".mov", ".avi", ".webm", ".flv", ".wmv", ".m4v"
+            )
+            is_aud = insp.get("media_type") == "audio" or f_path.suffix.lower() in (
+                ".wav", ".mp3", ".m4a", ".flac", ".ogg", ".aac"
+            )
+            if is_vid or is_aud:
                 dur = insp.get("duration_s", 0.0)
                 self.audio_durations[str(f_path.resolve())] = dur
                 self.audio_durations[f_path.name] = dur
-                self.assumptions.append(
-                    f"Audio input '{f_path.name}' ({dur:.1f}s) prepared for 16 kHz mono WAV conversion and <=30s window segmentation."
-                )
+                if is_vid:
+                    self.assumptions.append(
+                        f"Video input '{f_path.name}' ({dur:.1f}s) prepared for audio extraction and transcription."
+                    )
+                else:
+                    self.assumptions.append(
+                        f"Audio input '{f_path.name}' ({dur:.1f}s) prepared for 16 kHz mono WAV conversion and <=30s window segmentation."
+                    )
             elif f_path.suffix.lower() in (".txt", ".md", ".json"):
                 chars = insp.get("char_count", 0)
                 self.assumptions.append(f"Text file '{f_path.name}' ({chars} chars) loaded as source text in plain code.")
@@ -362,6 +393,30 @@ class TaskAgent:
         # --------------------------------------------------------------------
         # 3. Plan Execution & Loop Control
         # --------------------------------------------------------------------
+        # Automatic video audio extraction insertion (Requirement 3)
+        video_files = [
+            f for f in valid_files
+            if f.suffix.lower() in (".mp4", ".mkv", ".mov", ".avi", ".webm", ".flv", ".wmv", ".m4v")
+        ]
+        if video_files and planned_steps:
+            has_extract = any(s.get("tool") == "extract_audio_from_video" for s in planned_steps)
+            if not has_extract:
+                trans_idx = next(
+                    (i for i, s in enumerate(planned_steps) if s.get("tool") == "transcribe_audio"), None
+                )
+                if trans_idx is not None:
+                    v_file = video_files[0]
+                    planned_steps.insert(
+                        trans_idx,
+                        {
+                            "tool": "extract_audio_from_video",
+                            "args": {"video_path": str(v_file.resolve())},
+                        },
+                    )
+                    self.assumptions.append(
+                        f"Inserted extract_audio_from_video step for video input '{v_file.name}' before transcription."
+                    )
+
         # If the LLM returned a valid list of steps, execute them directly in plain code
         if planned_steps:
             for item in planned_steps:
@@ -375,6 +430,61 @@ class TaskAgent:
 
                 # Ensure file_path is resolved from input files if LLM missed it
                 self._bind_default_file_args(tool_name, args, valid_files)
+
+                # Path resolution in plain code: resolve bare filenames or relative paths (Requirement 2)
+                resolved_file_ok, file_err = self._resolve_file_arguments(tool_name, args, valid_files)
+                if not resolved_file_ok:
+                    step += 1
+                    rej_trace = StepTrace(
+                        step=step,
+                        timestamp=datetime.now(timezone.utc).isoformat(),
+                        plan=f"Reject step {tool_name} with unknown file argument",
+                        tool=tool_name,
+                        arguments=args,
+                        result_summary=f"Failed: {file_err}",
+                        latency_ms=0,
+                        llm_latency_ms=0,
+                        tool_latency_ms=0,
+                        cost_inr=0.0,
+                    )
+                    self.tracer.record_step(rej_trace)
+                    self.failures.append(f"Step {step} ({tool_name}) failed: {file_err}")
+                    continue
+
+                # Redundant translation skip rule (Requirement 4)
+                if tool_name == "translate_text":
+                    target_code = args.get("target_language_code") or self.target_language
+                    if target_code and self.audio_language and target_code == self.audio_language:
+                        step += 1
+                        skip_msg = (
+                            f"Skipped redundant translate_text step: task language "
+                            f"({target_code}) matches audio language ({self.audio_language})."
+                        )
+                        if skip_msg not in self.assumptions:
+                            self.assumptions.append(skip_msg)
+                        rej_trace = StepTrace(
+                            step=step,
+                            timestamp=datetime.now(timezone.utc).isoformat(),
+                            plan=f"Skip redundant translation to {target_code}",
+                            tool=tool_name,
+                            arguments=args,
+                            result_summary=skip_msg,
+                            latency_ms=0,
+                            llm_latency_ms=0,
+                            tool_latency_ms=0,
+                            cost_inr=0.0,
+                        )
+                        self.tracer.record_step(rej_trace)
+                        self.step_records.append({
+                            "step": step,
+                            "tool": tool_name,
+                            "cached": False,
+                            "would_be_cost_inr": 0.0,
+                            "cost_charged_inr": 0.0,
+                            "arguments": args,
+                            "result_summary": skip_msg,
+                        })
+                        continue
 
                 # Repeated-call guard: reject identical calls before reference mutation
                 raw_call_sig = f"{tool_name}:{json.dumps(args, sort_keys=True)}"
@@ -683,6 +793,11 @@ class TaskAgent:
                         if s.get("tool") == "extract_document_text":
                             candidate_step = s
                             break
+                elif "extract_audio_from_video" in val_lower or "extract_audio" in val_lower or "extracted" in val_lower:
+                    for s in reversed(self.step_outputs):
+                        if s.get("tool") == "extract_audio_from_video":
+                            candidate_step = s
+                            break
                 elif "transcribe_audio" in val_lower or "transcription" in val_lower or "transcript" in val_lower:
                     for s in reversed(self.step_outputs):
                         if s.get("tool") == "transcribe_audio":
@@ -779,11 +894,26 @@ class TaskAgent:
                         args["text"] = clean_ocr_text(p.read_text(encoding="utf-8"))
                         args["source_artifact_stem"] = p.stem
 
-        # 3. Clean OCR page markers from text if present
+        # 3. Chaining rule: if an earlier step extracted audio from video, transcribe_audio must use it
+        if tool_name == "transcribe_audio":
+            for s in reversed(self.step_outputs):
+                if s.get("tool") == "extract_audio_from_video" and s.get("artifact_path"):
+                    fp = args.get("file_path", "")
+                    if (
+                        not fp
+                        or Path(fp).suffix.lower() in (".mp4", ".mkv", ".mov", ".avi", ".webm", ".flv", ".wmv", ".m4v")
+                        or PLACEHOLDER_REGEX.search(fp)
+                    ):
+                        args["file_path"] = s["artifact_path"]
+                        if s.get("artifact_stem"):
+                            args["source_artifact_stem"] = s["artifact_stem"]
+                    break
+
+        # 4. Clean OCR page markers from text if present
         if args.get("text"):
             args["text"] = clean_ocr_text(args["text"])
 
-        # 4. Strictly reject any remaining unresolved placeholders
+        # 5. Strictly reject any remaining unresolved placeholders
         for key, val in args.items():
             if isinstance(val, str):
                 m = PLACEHOLDER_REGEX.search(val)
@@ -797,6 +927,74 @@ class TaskAgent:
 
         return True, None
 
+    def _resolve_file_arguments(
+        self, tool_name: str, args: dict[str, Any], valid_files: list[Path]
+    ) -> tuple[bool, str | None]:
+        """Resolves bare filenames or relative paths to input file absolute paths, or fails if unknown."""
+        available_names = [f.name for f in valid_files]
+
+        for key, val in list(args.items()):
+            # Only resolve arguments representing input file paths (not output destinations)
+            if key in (
+                "file_path",
+                "video_path",
+                "audio_path",
+                "input_path",
+                "document_path",
+                "pdf_path",
+                "image_path",
+            ) or (key.endswith(("_path", "_file")) and not key.startswith(("output_", "out_"))):
+                if not isinstance(val, str) or not val.strip():
+                    continue
+
+                # Don't fail placeholders here; they are resolved in _resolve_step_references
+                if PLACEHOLDER_REGEX.search(val):
+                    continue
+
+                val_path = Path(val)
+
+                # 1. Match against input files: bare name, relative path, or stem
+                matched_file = None
+                for f in valid_files:
+                    if (
+                        val == f.name
+                        or val == str(f)
+                        or val_path.name == f.name
+                        or val.lower() == f.name.lower()
+                    ):
+                        matched_file = f
+                        break
+
+                if matched_file:
+                    args[key] = str(matched_file.resolve())
+                    continue
+
+                # 2. Match against artifacts generated so far in the run
+                matched_art = None
+                for art in self.artifacts:
+                    art_p = Path(art)
+                    if val == art_p.name or val == str(art_p) or val_path.name == art_p.name:
+                        matched_art = art_p
+                        break
+
+                if matched_art and matched_art.exists():
+                    args[key] = str(matched_art.resolve())
+                    continue
+
+                # 3. Check if it already exists as an absolute or local path
+                if val_path.exists():
+                    args[key] = str(val_path.resolve())
+                    continue
+
+                # 4. If it matches nothing and does not exist on disk, fail with clear listing
+                return (
+                    False,
+                    f"File argument '{val}' for '{key}' does not match any known input file or generated artifact. "
+                    f"Available input files: {available_names}",
+                )
+
+        return True, None
+
     def _bind_default_file_args(self, tool_name: str, args: dict[str, Any], valid_files: list[Path]) -> None:
         """Binds input file paths to tool arguments if LLM omitted them."""
         if not valid_files:
@@ -804,29 +1002,43 @@ class TaskAgent:
 
         if tool_name == "translate_text":
             # If an input text file exists, bind its real file_path so the real source is translated
-            # ONLY IF no earlier step produced text!
+            # ONLY IF no earlier step produced text and file_path was omitted!
             if not self.last_produced_text:
-                for f in valid_files:
-                    if f.suffix.lower() in (".txt", ".md", ".json"):
-                        if not args.get("file_path") or not Path(args.get("file_path", "")).exists():
+                if not args.get("file_path"):
+                    for f in valid_files:
+                        if f.suffix.lower() in (".txt", ".md", ".json"):
                             args["file_path"] = str(f.resolve())
-                        break
+                            break
             if self.target_language and not args.get("target_language_code"):
                 args["target_language_code"] = self.target_language
         elif tool_name == "synthesize_speech":
             if (self.target_language or self.language_requested) and not args.get("language"):
                 args["language"] = self.target_language or self.language_requested
         elif tool_name == "transcribe_audio":
-            if not args.get("file_path") or not Path(args.get("file_path", "")).exists():
-                for f in valid_files:
-                    if f.suffix.lower() in (".wav", ".mp3", ".m4a", ".flac"):
-                        args["file_path"] = str(f.resolve())
+            if not args.get("file_path"):
+                for s in reversed(self.step_outputs):
+                    if s.get("tool") == "extract_audio_from_video" and s.get("artifact_path"):
+                        args["file_path"] = s["artifact_path"]
                         break
+                if not args.get("file_path"):
+                    for f in valid_files:
+                        if f.suffix.lower() in (
+                            ".wav", ".mp3", ".m4a", ".flac", ".ogg", ".aac",
+                            ".mp4", ".mkv", ".mov", ".avi", ".webm", ".flv", ".wmv", ".m4v"
+                        ):
+                            args["file_path"] = str(f.resolve())
+                            break
             # Bind audio language requested in task if not explicitly passed by LLM
             if self.audio_language and not args.get("language"):
                 args["language"] = self.audio_language
+        elif tool_name == "extract_audio_from_video":
+            if not args.get("video_path") and not args.get("file_path"):
+                for f in valid_files:
+                    if f.suffix.lower() in (".mp4", ".mkv", ".mov", ".avi", ".webm", ".flv", ".wmv", ".m4v"):
+                        args["video_path"] = str(f.resolve())
+                        break
         elif tool_name == "extract_document_text":
-            if not args.get("file_path") or not Path(args.get("file_path", "")).exists():
+            if not args.get("file_path"):
                 for f in valid_files:
                     if f.suffix.lower() in (".png", ".jpg", ".jpeg", ".pdf"):
                         args["file_path"] = str(f.resolve())
@@ -1116,12 +1328,29 @@ class TaskAgent:
                 return self.tools.detect_language(text=args.get("text"), audio_path=args.get("audio_path"))
 
             elif name == "extract_audio_from_video":
+                v_path_str = args.get("video_path") or args.get("file_path", "")
+                stem = Path(v_path_str).stem if v_path_str else f"video_{int(time.time())}"
                 out_p = args.get("output_path") or str(
-                    self.tracer.artifacts_dir / f"extracted_{int(time.time())}.wav"
+                    self.tracer.artifacts_dir / f"extracted_{stem}.wav"
                 )
-                res = self.tools.extract_audio_from_video(video_path=args.get("video_path", ""), output_path=out_p)
+                res = self.tools.extract_audio_from_video(video_path=v_path_str, output_path=out_p)
                 if res.get("success") and res.get("audio_path"):
                     self.artifacts.append(res["audio_path"])
+                    self.last_artifact_path = res["audio_path"]
+                    self.last_artifact_stem = Path(res["audio_path"]).stem
+                    dur = float(res.get("duration_s") or 0.0)
+                    if dur <= 0.0 and Path(res["audio_path"]).exists():
+                        try:
+                            dur = get_audio_duration(res["audio_path"])
+                        except Exception:
+                            dur = 0.0
+                    self.audio_durations[res["audio_path"]] = dur
+                    self.audio_durations[Path(res["audio_path"]).name] = dur
+                    self.step_outputs.append({
+                        "tool": "extract_audio_from_video",
+                        "artifact_path": res["audio_path"],
+                        "artifact_stem": Path(res["audio_path"]).stem,
+                    })
                 return res
 
             elif name == "build_srt":
@@ -1670,6 +1899,10 @@ class TaskAgent:
                 break
 
             self._bind_default_file_args(name, args, valid_files)
+            resolved_file_ok, file_err = self._resolve_file_arguments(name, args, valid_files)
+            if not resolved_file_ok:
+                self.failures.append(f"Step {step} ({name}) failed: {file_err}")
+                break
             call_sig = f"{name}:{json.dumps(args, sort_keys=True)}"
             if call_sig in self.executed_calls:
                 # Reject duplicate

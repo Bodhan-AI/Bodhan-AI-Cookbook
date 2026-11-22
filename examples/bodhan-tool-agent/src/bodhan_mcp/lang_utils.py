@@ -143,9 +143,9 @@ def _score_mention_role(text: str, mention: tuple[int, int, str, str, str]) -> t
     audio_score = 0
     target_score = 0
 
-    if re.search(r"\b(?:transcrib\w*|audio|recording|speech|voice|wav|listen|clip)\b", clause):
+    if re.search(r"\b(?:transcrib\w*|audio|recording|speech|voice|wav|listen|clip|video|subtitles?|captions?|srt)\b", clause):
         audio_score += 3
-    if re.search(r"^\s*(?:audio|clip|recording|voice|speech|wav)\b", post_word):
+    if re.search(r"^\s*(?:audio|clip|recording|voice|speech|wav|video|subtitles?|captions?|srt)\b", post_word):
         audio_score += 3
     if re.search(r"\bfrom\s*$", pre_word.strip()):
         audio_score += 2
@@ -192,6 +192,24 @@ def extract_task_languages(text: str) -> dict[str, Any]:
     if len(distinct_codes) == 1:
         code = distinct_codes[0]
         name = SUPPORTED_INDIC_LANGUAGES[code]
+        has_transcribe_or_subtitles = bool(
+            re.search(r"\b(?:transcrib\w*|subtitles?|captions?|srt)\b", text, re.IGNORECASE)
+        )
+        has_translate = bool(re.search(r"\b(?:translat\w*)\b", text, re.IGNORECASE))
+
+        # Rule 4: when the task names exactly one language and asks for transcription,
+        # subtitles or captions without the word translate, treat it as the audio language
+        # and plan no translation.
+        if has_transcribe_or_subtitles and not has_translate:
+            return {
+                "audio_language": code,
+                "target_language": None,
+                "audio_language_name": name,
+                "target_language_name": None,
+                "is_ambiguous": False,
+                "ambiguity_reason": None,
+            }
+
         a_score, t_score = _score_mention_role(text, mentions[0])
         if a_score > t_score:
             return {
@@ -212,6 +230,15 @@ def extract_task_languages(text: str) -> dict[str, Any]:
                 "ambiguity_reason": None,
             }
         else:
+            if not has_translate:
+                return {
+                    "audio_language": code,
+                    "target_language": None,
+                    "audio_language_name": name,
+                    "target_language_name": None,
+                    "is_ambiguous": False,
+                    "ambiguity_reason": None,
+                }
             return {
                 "audio_language": code,
                 "target_language": code,

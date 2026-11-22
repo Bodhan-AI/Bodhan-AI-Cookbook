@@ -1287,6 +1287,221 @@ class TestAgent(unittest.TestCase):
         self.assertEqual(step_entry["cost_charged_inr"], 0.0)
         self.assertEqual(step_entry["would_be_cost_inr"], 0.05)
 
+    def test_bare_filename_resolves_to_real_input_path(self):
+        """Tests that a bare filename provided by LLM resolves to the real input file's absolute path."""
+        audio_file = self.samples_dir / "audio.wav"
+        audio_file.write_bytes(b"RIFFmockwavdata")
+
+        # Plan uses bare filename "audio.wav"
+        plan = {
+            "steps": [
+                {"tool": "transcribe_audio", "args": {"file_path": "audio.wav"}},
+            ]
+        }
+
+        # Track what path transcribe_audio actually received
+        received_paths = []
+        def mock_transcribe(file_path="", **kwargs):
+            received_paths.append(file_path)
+            return {
+                "success": True,
+                "transcript": "परीक्षण ऑडियो",
+                "windows": [{"window_index": 0, "text": "परीक्षण ऑडियो"}],
+                "duration_s": 5.0,
+                "cost_inr": 0.01,
+            }
+        self.mock_tools.transcribe_audio.side_effect = mock_transcribe
+
+        agent = TaskAgent(
+            task="Transcribe audio",
+            files=[audio_file],
+            out_dir=self.out_dir,
+            settings=self.mock_settings,
+            llm_client=MockLLM(plan_dict=plan),
+            tools=self.mock_tools,
+        )
+        report = agent.run()
+
+        self.assertEqual(len(received_paths), 1)
+        self.assertEqual(received_paths[0], str(audio_file.resolve()))
+        self.assertEqual(report.status, "success")
+
+    def test_unknown_filename_fails_with_listing_of_inputs(self):
+        """Tests that an unknown filename argument fails cleanly with a listing of available input files."""
+        audio_file = self.samples_dir / "real_audio.wav"
+        audio_file.write_bytes(b"RIFFmockwavdata")
+
+        plan = {
+            "steps": [
+                {"tool": "transcribe_audio", "args": {"file_path": "nonexistent_audio.wav"}},
+            ]
+        }
+
+        agent = TaskAgent(
+            task="Transcribe audio",
+            files=[audio_file],
+            out_dir=self.out_dir,
+            settings=self.mock_settings,
+            llm_client=MockLLM(plan_dict=plan),
+            tools=self.mock_tools,
+        )
+        report = agent.run()
+
+        self.assertEqual(report.status, "failed")
+        self.assertTrue(len(report.failures) > 0)
+        failure_msg = " ".join(report.failures)
+        self.assertIn("nonexistent_audio.wav", failure_msg)
+        self.assertIn("real_audio.wav", failure_msg)
+        self.assertIn("Available input files", failure_msg)
+
+    def test_video_input_transcribed_after_audio_extraction(self):
+        """Tests that a video input file is transcribed after audio extraction."""
+        video_file = self.samples_dir / "test_video.mp4"
+        video_file.write_bytes(b"mockvideodata")
+
+        def mock_inspect_vid(path_str):
+            return {
+                "success": True,
+                "file_name": "test_video.mp4",
+                "file_path": str(video_file.resolve()),
+                "media_type": "video",
+                "duration_s": 10.0,
+                "size_bytes": 500000,
+            }
+        self.mock_tools.inspect_media.side_effect = mock_inspect_vid
+
+        def mock_extract(video_path="", output_path=""):
+            p = Path(output_path)
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_bytes(b"RIFFextractedwav")
+            return {"success": True, "audio_path": output_path, "duration_s": 10.0}
+        self.mock_tools.extract_audio_from_video.side_effect = mock_extract
+
+        def mock_transcribe(file_path="", **kwargs):
+            return {
+                "success": True,
+                "transcript": "वीडियो प्रतिलेख",
+                "windows": [{"window_index": 0, "text": "वीडियो प्रतिलेख"}],
+                "duration_s": 10.0,
+                "cost_inr": 0.02,
+            }
+        self.mock_tools.transcribe_audio.side_effect = mock_transcribe
+
+        # LLM only plans transcribe_audio; agent auto-inserts extract_audio_from_video
+        plan = {
+            "steps": [
+                {"tool": "transcribe_audio", "args": {"file_path": "test_video.mp4"}},
+            ]
+        }
+        agent = TaskAgent(
+            task="Transcribe the video",
+            files=[video_file],
+            out_dir=self.out_dir,
+            settings=self.mock_settings,
+            llm_client=MockLLM(plan_dict=plan),
+            tools=self.mock_tools,
+        )
+        report = agent.run()
+
+        self.assertEqual(report.status, "success")
+        self.assertEqual(self.mock_tools.extract_audio_from_video.call_count, 1)
+        self.assertEqual(self.mock_tools.transcribe_audio.call_count, 1)
+        self.assertTrue(any("extracted_" in a for a in report.artifacts))
+        self.assertTrue(any("transcript_" in a for a in report.artifacts))
+
+    def test_create_hindi_subtitles_plans_no_translation(self):
+        """Tests that 'Create Hindi subtitles for this video' plans and executes no translation."""
+        video_file = self.samples_dir / "test_video.mp4"
+        video_file.write_bytes(b"mockvideodata")
+
+        def mock_inspect_vid(path_str):
+            return {
+                "success": True,
+                "file_name": "test_video.mp4",
+                "file_path": str(video_file.resolve()),
+                "media_type": "video",
+                "duration_s": 8.0,
+                "size_bytes": 200000,
+            }
+        self.mock_tools.inspect_media.side_effect = mock_inspect_vid
+
+        def mock_extract(video_path="", output_path=""):
+            p = Path(output_path)
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_bytes(b"RIFFextractedwav")
+            return {"success": True, "audio_path": output_path, "duration_s": 10.0}
+        self.mock_tools.extract_audio_from_video.side_effect = mock_extract
+
+        def mock_transcribe(file_path="", **kwargs):
+            return {
+                "success": True,
+                "transcript": "नमस्ते दुनिया",
+                "windows": [{"window_index": 0, "text": "नमस्ते दुनिया"}],
+                "duration_s": 8.0,
+                "cost_inr": 0.01,
+            }
+        self.mock_tools.transcribe_audio.side_effect = mock_transcribe
+
+        # Even if the LLM plan includes translate_text to Hindi, agent must skip it
+        plan = {
+            "steps": [
+                {"tool": "transcribe_audio", "args": {"file_path": "test_video.mp4", "language": "hi"}},
+                {"tool": "translate_text", "args": {"target_language_code": "hi"}},
+            ]
+        }
+        self.mock_tools.translate_text.reset_mock()
+
+        agent = TaskAgent(
+            task="Create Hindi subtitles for this video",
+            files=[video_file],
+            out_dir=self.out_dir,
+            settings=self.mock_settings,
+            llm_client=MockLLM(plan_dict=plan),
+            tools=self.mock_tools,
+        )
+        report = agent.run()
+
+        # translate_text must NOT have been called
+        self.assertEqual(self.mock_tools.translate_text.call_count, 0)
+        self.assertEqual(report.status, "success")
+        self.assertTrue(any("subtitles_" in a for a in report.artifacts))
+        self.assertFalse(any("translated_" in a for a in report.artifacts))
+        self.assertTrue(any("Skipped redundant translate_text" in a for a in report.assumptions))
+
+    def test_reusing_out_leaves_no_old_artifacts(self):
+        """Tests that reusing the same out_dir clears old artifacts so old files never mix with new ones."""
+        text_file = self.samples_dir / "text.txt"
+        text_file.write_text("Hello world this is a test", encoding="utf-8")
+
+        # Create old artifact from a previous run directly in artifacts/
+        artifacts_dir = self.out_dir / "artifacts"
+        artifacts_dir.mkdir(parents=True, exist_ok=True)
+        old_artifact = artifacts_dir / "speech_hi_old_converted_16k.wav"
+        old_artifact.write_bytes(b"old_audio_data")
+        self.assertTrue(old_artifact.exists())
+
+        plan = {
+            "steps": [
+                {"tool": "translate_text", "args": {"file_path": str(text_file), "target_language_code": "hi"}},
+            ]
+        }
+        agent = TaskAgent(
+            task="Translate text into Hindi",
+            files=[text_file],
+            out_dir=self.out_dir,
+            settings=self.mock_settings,
+            llm_client=MockLLM(plan_dict=plan),
+            tools=self.mock_tools,
+        )
+        report = agent.run()
+
+        # Old artifact must have been cleared
+        self.assertFalse(old_artifact.exists())
+        # Only new run artifacts remain
+        current_art_files = [f.name for f in artifacts_dir.iterdir()]
+        self.assertNotIn("speech_hi_old_converted_16k.wav", current_art_files)
+        self.assertEqual(report.status, "success")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+import shutil
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -41,12 +42,21 @@ class AgentTracer:
         self.reset()
 
     def reset(self) -> None:
-        """Starts fresh by clearing in-memory traces and removing previous trace.jsonl, report.json, result.md."""
+        """Starts fresh by clearing in-memory traces and removing previous trace.jsonl, report.json, result.md, and artifacts/."""
         self.traces.clear()
         for f in (self.trace_file, self.report_file, self.result_file):
             if f.exists():
                 try:
                     f.unlink()
+                except OSError:
+                    pass
+        if self.artifacts_dir.exists():
+            for item in self.artifacts_dir.iterdir():
+                try:
+                    if item.is_file() or item.is_symlink():
+                        item.unlink()
+                    elif item.is_dir():
+                        shutil.rmtree(item, ignore_errors=True)
                 except OSError:
                     pass
 
