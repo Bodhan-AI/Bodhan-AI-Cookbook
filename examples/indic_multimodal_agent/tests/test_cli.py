@@ -383,3 +383,22 @@ def test_report_json_records_missed_quality_targets(tmp_path):
     assert miss["actual"] == "WEAK"
     assert "58.2%" in miss["reason"]
 
+
+def test_cli_files_help_text():
+    """Verify that --files argument help text reflects accepting a file or directory."""
+    import io
+    from unittest.mock import patch
+    from bodhan_agent.__main__ import parse_args
+
+    fake_out = io.StringIO()
+    with patch("sys.argv", ["bodhan_agent", "--help"]):
+        with patch("sys.stdout", fake_out):
+            try:
+                parse_args()
+            except SystemExit:
+                pass
+    help_output = fake_out.getvalue()
+    assert "--files" in help_output
+    assert "File or directory of input files" in help_output
+
+

@@ -70,7 +70,7 @@ $swA.Stop()
 $durA = [Math]::Round($swA.Elapsed.TotalSeconds, 2)
 $summary += [PSCustomObject]@{
     Step = "A"
-    Task = "Offline Pytest Suite (54 Tests)"
+    Task = "Offline Pytest Suite (73 Tests)"
     Status = "PASSED"
     Cost = "INR 0.0000"
     Duration = "${durA}s"
@@ -219,9 +219,23 @@ $summary += [PSCustomObject]@{
 # ---------------------------------------------------------------------------
 # STEP G: Standalone MCP Tool Demonstration
 # ---------------------------------------------------------------------------
+$cmdG = "python scripts/mcp_client_demo.py"
+Prompt-NextStep "Step G: Standalone MCP Python SDK Client Demo" $cmdG
+$swG = [System.Diagnostics.Stopwatch]::StartNew()
+python scripts/mcp_client_demo.py
+$swG.Stop()
+$durG = [Math]::Round($swG.Elapsed.TotalSeconds, 2)
+$summary += [PSCustomObject]@{
+    Step = "G"
+    Task = "Standalone MCP Python SDK Client Demo"
+    Status = "PASSED"
+    Cost = "INR 0.0000"
+    Duration = "${durG}s"
+}
+
 Write-Host ""
 Write-Host "==========================================================================" -ForegroundColor Green
-Write-Host "STEP G: STANDALONE MCP SERVER DEMO INSTRUCTIONS" -ForegroundColor Green
+Write-Host "MCP SERVER CAPABILITIES & INSPECTOR GUI INSTRUCTIONS" -ForegroundColor Green
 Write-Host "==========================================================================" -ForegroundColor Green
 Write-Host "The server exposes 7 standard Model Context Protocol (MCP) tools:" -ForegroundColor Cyan
 Write-Host "  1. bodhan_transcribe" -ForegroundColor White
@@ -238,7 +252,7 @@ Write-Host ""
 Write-Host "In the Inspector UI (opens in browser):" -ForegroundColor Cyan
 Write-Host "  1. Click 'Connect' to initialize connection over stdio." -ForegroundColor White
 Write-Host "  2. Go to 'Tools' -> select 'bodhan_list_voices' -> click 'Execute Tool'." -ForegroundColor White
-Write-Host "  3. Observe returned catalog of 10 Indic language personas." -ForegroundColor White
+Write-Host "  3. Observe returned catalog of 7 Indic language personas." -ForegroundColor White
 Write-Host "  4. Select 'bodhan_detect_language' with text 'नमस्कार मित्रांनो' -> shows Marathi (mr)." -ForegroundColor White
 Write-Host "==========================================================================" -ForegroundColor Green
 Write-Host ""

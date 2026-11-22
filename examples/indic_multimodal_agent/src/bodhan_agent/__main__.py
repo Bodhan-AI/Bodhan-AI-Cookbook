@@ -14,7 +14,7 @@ from bodhan_agent.agent import BodhanTaskAgent
 def parse_args():
     parser = argparse.ArgumentParser(description="Bodhan Task Agent CLI")
     parser.add_argument("--task", type=str, required=True, help="Task instruction in plain English")
-    parser.add_argument("--files", type=str, required=True, help="Directory containing input files")
+    parser.add_argument("--files", type=str, required=True, help="File or directory of input files")
     parser.add_argument("--out", type=str, required=True, help="Output directory for artifacts and reports")
     parser.add_argument("--max-steps", type=int, default=30, help="Maximum execution steps budget (default: 30)")
     parser.add_argument("--max-cost-inr", type=float, default=20.0, help="Maximum cost budget in INR (default: ₹20.0)")

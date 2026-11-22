@@ -160,10 +160,30 @@ def bodhan_inspect_media(file_path: str) -> str:
         return json.dumps({"success": False, "error_code": "INTERNAL_ERROR", "message": str(e), "retryable": False})
 
 
+async def run_stdio_server() -> None:
+    """Run the MCP server over stdio with Windows-safe explicit stream wrapping.
+    Passing explicit stdin/stdout streams skips internal file-descriptor redirection
+    (_claim_fd) on Windows cleanly without requiring any site-packages patches.
+    """
+    import sys
+    import anyio
+    from mcp.server.stdio import stdio_server, _UnownedTextWrapper
+
+    stdin = anyio.wrap_file(_UnownedTextWrapper(sys.stdin.buffer, encoding="utf-8", errors="replace"))
+    stdout = anyio.wrap_file(_UnownedTextWrapper(sys.stdout.buffer, encoding="utf-8"))
+
+    async with stdio_server(stdin=stdin, stdout=stdout) as (read_stream, write_stream):
+        await mcp_server._lowlevel_server.run(
+            read_stream,
+            write_stream,
+            mcp_server._lowlevel_server.create_initialization_options(),
+        )
+
+
 def main():
     """Run the MCP server over stdio."""
     import asyncio
-    asyncio.run(mcp_server.run_stdio_async())
+    asyncio.run(run_stdio_server())
 
 
 if __name__ == "__main__":

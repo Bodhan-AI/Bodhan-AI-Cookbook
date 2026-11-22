@@ -109,11 +109,17 @@ The server exposes **7 Model Context Protocol (MCP) tools**:
 2. `bodhan_translate`: Translate text between Indic and English with optional batching (Indic-Translate).
 3. `bodhan_speak`: Synthesize speech from text or text_artifact_id using natural Indic voices (Indic-Speak).
 4. `bodhan_ocr`: Extract text, tables, and layout from image or PDF document (Indic-OCR).
-5. `bodhan_detect_language`: Identify language and script from text or audio sample.
-6. `bodhan_list_voices`: List available Indic text-to-speech voices and their supported languages.
+5. `bodhan_detect_language`: Identify language and script from text or audio sample using Unicode ranges and Devanagari grammatical/lexical heuristics.
+6. `bodhan_list_voices`: List available Indic text-to-speech voices (7 Indic personas across Hindi, Tamil, Telugu, Bengali, Kannada, Marathi).
 7. `bodhan_inspect_media`: Inspect local media file properties (duration, format, sample rate, page count).
 
-To test interactively using the official MCP Inspector:
+To test programmatically using the official MCP Python SDK client (`mcp==2.3.0`):
+```bash
+python scripts/mcp_client_demo.py
+```
+This runs an end-to-end stdio client session (`initialize`, `tools/list` discovering all 7 tools, `tools/call` for `bodhan_list_voices` and `bodhan_detect_language`, plus structured error handling for invalid tool names).
+
+To test interactively using the official MCP Inspector GUI:
 ```bash
 npx @modelcontextprotocol/inspector python -m bodhan_mcp
 ```
@@ -128,7 +134,7 @@ Compatible with any standard MCP client (e.g. Claude Desktop, Antigravity, MCP I
 ```bash
 pytest tests/
 ```
-Executes all 54 unit and integration tests completely offline without network calls or paid API charges.
+Executes all 73 unit and integration tests completely offline without network calls or paid API charges.
 
 ---
 
@@ -158,11 +164,12 @@ Executes all 54 unit and integration tests completely offline without network ca
 ## Verification Status: What Has and Has Not Been Verified
 
 - **Verified**:
-  - **54 Offline Unit & Integration Tests**: 100% passing offline via `pytest` without network access or paid API calls running specifically on **Python 3.14.1 (Windows 11 x86_64)** (including user-stated budget hard-cap enforcement, reference-passing, audio verification without OCR, transcription cost accounting, LLM provider portability, explicit `LLM_BASE_URL` requirement tests, `--files` accepting either file or directory, and `report.json` missed quality targets tracking).
+  - **73 Offline Unit & Integration Tests**: 100% passing offline via `pytest` without network access or paid API calls running specifically on **Python 3.14.1 (Windows 11 x86_64)** (including Devanagari Marathi vs Hindi disambiguation heuristics, character-level similarity `1 - CER` alongside word coverage, user-stated budget hard-cap enforcement, reference-passing, audio verification without OCR, transcription cost accounting, LLM provider portability, explicit `LLM_BASE_URL` requirement tests, `--files` accepting either file or directory, and `report.json` missed quality targets tracking).
+  - **Official MCP Python SDK Client (`mcp==2.3.0`)**: Verified end-to-end stdio transport with unpatched clean venv via `scripts/mcp_client_demo.py` (protocol initialization, tool discovery of 7 tools, tool execution of `bodhan_list_voices` and `bodhan_detect_language`, and error handling for unknown tools).
   - **Zero LLM Simulation**: Production agent runs strictly on remote LLM calls (`LLM_BASE_URL`/`LLM_MODEL`/`LLM_API_KEY`). Test doubles exist solely in `tests/test_doubles.py` for offline regression testing.
   - **Provider Portability**: Only Google Gemini (`gemini-flash-lite-latest`) has been live-tested. Standard OpenAI-compatible providers are supported by automated message sanitization in `LLMClient.sanitize_messages()` (stripping Gemini-specific `extra_content` and `thought_signature` fields), but have not been live-tested.
   - **Live Bodhan Indic Endpoints**: Live calls to Indic-Transcribe, Indic-Translate, Indic-Speak, and Indic-OCR verified against live schemas.
-  - **Honest Quality Target Auditing**: Every run logs missed quality targets in machine-readable `report.json` and human-readable `result.md` (e.g. single-step tasks exceeding 30s latency due to remote API or rasterization latency, multi-step tasks exceeding 90s, or synthesis back-transcription coverage $<70\%$ marked as `WEAK` rather than `PASS`).
+  - **Honest Quality Target Auditing**: Every run logs missed quality targets in machine-readable `report.json` and human-readable `result.md` (e.g. single-step tasks exceeding 30s latency due to remote API or rasterization latency, multi-step tasks exceeding 90s, or synthesis back-transcription coverage $<70\%$ marked as `WEAK` rather than `PASS`, with both word coverage and character similarity `1 - CER` recorded).
 - **Not Verified**:
   - **Python 3.11 and 3.12 Execution**: Tests were executed locally on Python 3.14.1. Local installation and execution on Python 3.11 and 3.12 remain unverified.
   - **GitHub Actions CI Workflow**: No standalone GitHub Actions workflow runs inside `examples/indic_multimodal_agent/` (workflows only run from repo-root `.github/workflows/`); recipe CI relies on repo-level `make check`.

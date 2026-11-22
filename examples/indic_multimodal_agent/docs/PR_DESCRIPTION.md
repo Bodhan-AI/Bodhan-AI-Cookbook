@@ -47,7 +47,7 @@ Exposes standard JSON-RPC 2.0 over `stdio`. Compatible with any standard MCP cli
 ```bash
 pytest tests/
 ```
-Executes all 54 unit and integration tests completely offline with 0 external network requests and ₹0.00 spent.
+Executes all 73 unit and integration tests completely offline with 0 external network requests and ₹0.00 spent.
 
 ---
 
@@ -221,10 +221,11 @@ TODO: [Add YouTube / Loom demo video link here before submission - 5 min maximum
 
 ### Verification Status (Honest Audit)
 - **Verified**:
-  - **54 Offline Unit & Integration Tests**: 100% passing offline on **Python 3.14.1 (Windows 11 x86_64)** with zero paid calls (including user budget enforcement, reference-passing, audio verification without OCR, transcription cost accounting, LLM provider portability, explicit `LLM_BASE_URL` requirement, `--files` accepting file or directory, and `report.json` missed quality targets tracking).
+  - **73 Offline Unit & Integration Tests**: 100% passing offline on **Python 3.14.1 (Windows 11 x86_64)** with zero paid calls (including Devanagari Marathi vs Hindi grammatical/lexical heuristics, character-level similarity `1 - CER` alongside word coverage, user budget enforcement, reference-passing, audio verification without OCR, transcription cost accounting, LLM provider portability, explicit `LLM_BASE_URL` requirement, `--files` accepting file or directory, and `report.json` missed quality targets tracking).
+  - **Official MCP Python SDK Client (`mcp==2.3.0`)**: Verified end-to-end stdio transport with unpatched clean venv via `scripts/mcp_client_demo.py` (protocol initialization, tool discovery of 7 tools, tool execution of `bodhan_list_voices` and `bodhan_detect_language`, and clean error handling for unknown tools).
   - **Zero LLM Simulation**: Production agent runs strictly against remote LLMs; test doubles exist solely under `tests/test_doubles.py`.
   - **Live Bodhan Indic Endpoints**: Live calls to all four foundation models tested and validated.
-  - **Honest Quality Target Auditing**: Missed quality targets are logged in machine-readable `report.json` and rendered in `result.md` (e.g. single-step tasks > 30s latency due to remote API network latency, or synthesis back-transcription coverage $<70\%$ marked as `WEAK` rather than `PASS`).
+  - **Honest Quality Target Auditing**: Missed quality targets are logged in machine-readable `report.json` and rendered in `result.md` (e.g. single-step tasks > 30s latency due to remote API network latency, or synthesis back-transcription coverage $<70\%$ marked as `WEAK` rather than `PASS`, with both word coverage and character similarity `1 - CER` recorded).
   - **Budget Enforcements**: Both CLI flags and natural-language budgets ("5 paise") are strictly enforced.
 - **Not Verified**:
   - **Python 3.11 and 3.12**: Tests have only been executed locally on Python 3.14.1. Local execution on Python 3.11 and 3.12 remains unverified.

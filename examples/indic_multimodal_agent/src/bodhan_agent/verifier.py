@@ -362,6 +362,30 @@ def verify_markdown_table_structure(
     return results
 
 
+def calculate_character_similarity(reference: str, hypothesis: str) -> float:
+    """Calculate character-level similarity (1 - CER) using Levenshtein distance."""
+    r = "".join(reference.split())
+    h = "".join(hypothesis.split())
+    if not r:
+        return 1.0 if not h else 0.0
+    if not h:
+        return 0.0
+
+    n, m = len(r), len(h)
+    prev = list(range(m + 1))
+    for i in range(1, n + 1):
+        curr = [i] * (m + 1)
+        for j in range(1, m + 1):
+            cost = 0 if r[i - 1] == h[j - 1] else 1
+            curr[j] = min(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + cost)
+        prev = curr
+
+    dist = prev[m]
+    cer = dist / n
+    sim = max(0.0, min(1.0, 1.0 - cer))
+    return round(sim, 4)
+
+
 def calculate_text_coverage(source_text: str, back_transcription: str) -> float:
     """Calculate token and character coverage between source and back-transcribed text."""
     src_words = set(re.findall(r'\w+', source_text.lower()))
@@ -446,16 +470,17 @@ def verify_audio_summary(
         )
     )
 
-    # 6. Back-transcription text coverage verification (Requirement 3: Flag as WEAK if < 70%)
+    # 6. Back-transcription text coverage & character similarity (1 - CER) verification (Requirement 3: Flag as WEAK if < 70%)
     coverage = calculate_text_coverage(summary_text, back_transcription_text)
+    char_sim = calculate_character_similarity(summary_text, back_transcription_text)
     if coverage >= 0.70:
         cov_passed = True
         cov_status = "PASS"
-        cov_details = f"Back-transcription text coverage: {coverage * 100:.1f}% (high coverage >= 70%)"
+        cov_details = f"Back-transcription word coverage: {coverage * 100:.1f}%, character similarity (1 - CER): {char_sim * 100:.1f}% (high coverage >= 70%)"
     else:
         cov_passed = False
         cov_status = "WEAK"
-        cov_details = f"Back-transcription text coverage: {coverage * 100:.1f}% (< 70% threshold: acoustic/synthesis degradation detected)"
+        cov_details = f"Back-transcription word coverage: {coverage * 100:.1f}%, character similarity (1 - CER): {char_sim * 100:.1f}% (< 70% threshold: acoustic/synthesis degradation detected)"
 
     results.append(
         VerificationResult(

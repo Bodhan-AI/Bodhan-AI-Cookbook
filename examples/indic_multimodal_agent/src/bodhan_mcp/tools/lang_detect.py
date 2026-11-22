@@ -1,22 +1,45 @@
-"""Language and script detection using Unicode ranges and Devanagari stop-word heuristics.
+"""Language and script detection using Unicode ranges and Devanagari stop-word / grammatical heuristics.
 Returns confidence score and marks weak determinations as assumed.
 """
 
+import re
 import unicodedata
 from typing import Tuple
 from bodhan_mcp.types import DetectLangOutput
 
-# Distinctive grammatical markers for Devanagari disambiguation
-MARATHI_STOPWORDS = {
-    "आहे", "आहेत", "नाही", "झाले", "झाला", "झाली", "होते", "होता", "होती",
-    "करतो", "करते", "करतोय", "च्या", "त्यांच्या", "म्हणून", "पण", "आणि", "कसे",
-    "काय", "येथे", "सर्व", "त्यांना", "याच्या", "माहिती", "आपण", "मध्ये", "हे"
+# Distinctive grammatical markers and stop-words for Devanagari disambiguation
+# Marathi specific tokens:
+MARATHI_MARKERS = {
+    # Auxiliary verbs & copulas
+    "आहे", "आहेत", "आहोत", "नाही", "नाहीत", "होते", "होता", "होती", "असून", "नसून",
+    # Past/aspectual forms
+    "झाला", "झाली", "झाले", "झालो", "झाल्या", "गेला", "गेली", "गेले", "आला", "आली", "आले",
+    # Present/habitual verbs
+    "करतो", "करते", "करतोय", "करतेय", "करतात", "करणार", "सांगितले", "म्हणाला", "म्हणाली",
+    # Postpositions & case markers
+    "च्या", "चा", "ची", "चे", "हून", "मध्ये",
+    # Conjunctions & adverbs
+    "म्हणून", "पण", "आणि", "किंवा", "कसा", "कशी", "कसे", "कुठे", "केव्हा", "कशासाठी",
+    # Pronouns
+    "आपण", "आम्ही", "तुम्ही", "त्यांना", "यांना", "त्यांच्या", "याच्या", "यांच्या", "माहिती",
+    # Lexical
+    "खूप", "फार", "करायचे", "पाहिजे", "मित्रांनो"
 }
 
-HINDI_STOPWORDS = {
-    "है", "हैं", "नहीं", "हुआ", "हुई", "हुए", "था", "थी", "थे",
-    "करता", "करती", "करते", "रहा", "रही", "रहे", "का", "के", "की",
-    "क्योंकि", "लेकिन", "और", "कैसे", "क्या", "यहाँ", "सभी", "उनको", "इसका", "हम", "में", "से", "यह", "वह"
+# Hindi specific tokens:
+HINDI_MARKERS = {
+    # Auxiliary verbs & copulas
+    "है", "हैं", "नहीं", "था", "थी", "थे", "हूँ", "हो", "होगा", "होगी", "होंगे",
+    # Aspectual / continuous verbs
+    "हुआ", "हुई", "हुए", "रहा", "रही", "रहे", "करता", "करती", "करते", "किया", "किये", "लिया", "दिये", "गया", "गई", "गए",
+    # Postpositions
+    "का", "के", "की", "को", "में", "से", "ने", "पर", "तक",
+    # Conjunctions & adverbs
+    "और", "या", "लेकिन", "किंतु", "परंतु", "क्योंकि", "इसलिए", "यहाँ", "वहाँ", "कहाँ", "कब", "कैसे", "क्या", "कौन",
+    # Pronouns
+    "यह", "वह", "ये", "वे", "हम", "तुम", "आप", "उनका", "उनकी", "उनके", "इसका", "इसकी", "इसके", "उनको", "इनको", "मुझे", "हमें",
+    # Lexical / modal
+    "सकता", "सकती", "सकते", "चाहिए", "बहुत"
 }
 
 
@@ -65,30 +88,57 @@ def detect_script(text: str) -> str:
 
 
 def disambiguate_devanagari(text: str) -> Tuple[str, float, bool]:
-    """Disambiguate Hindi vs. Marathi in Devanagari text.
+    """Disambiguate Hindi vs. Marathi in Devanagari text using grammatical markers,
+    unique phonemes (e.g. 'ळ'), and morphological suffix heuristics.
     Returns (lang_code, confidence, is_assumed).
     """
     # 1. Check for 'ळ' (Unicode \u0933), unique to Marathi in Devanagari texts
     if "\u0933" in text:
         return "mr", 0.99, False
 
-    # 2. Tokenize and count stop-words
-    words = set(text.split())
-    marathi_hits = len(words.intersection(MARATHI_STOPWORDS))
-    hindi_hits = len(words.intersection(HINDI_STOPWORDS))
+    # 2. Extract Devanagari word tokens (without punctuation)
+    tokens = re.findall(r"[\u0900-\u097F]+", text)
+    if not tokens:
+        return "hi", 0.50, True
 
-    total_hits = marathi_hits + hindi_hits
+    marathi_score = 0.0
+    hindi_score = 0.0
 
-    if marathi_hits > hindi_hits:
-        confidence = round(min(0.99, max(0.55, marathi_hits / (total_hits + 0.2))), 2)
-        is_assumed = confidence < 0.70
-        return "mr", confidence, is_assumed
-    elif hindi_hits > marathi_hits:
-        confidence = round(min(0.99, max(0.55, hindi_hits / (total_hits + 0.2))), 2)
-        is_assumed = confidence < 0.70
-        return "hi", confidence, is_assumed
+    for token in tokens:
+        # Lexical marker checks
+        if token in MARATHI_MARKERS:
+            marathi_score += 2.0
+        elif token in HINDI_MARKERS:
+            hindi_score += 2.0
+
+        # Morphological suffix checks
+        if len(token) >= 3:
+            if token.endswith("ांनो"):  # Marathi vocative plural (e.g. मित्रांनो, बंधूंनो)
+                marathi_score += 2.5
+            elif token.endswith("च्या"):  # Marathi genitive / oblique (e.g. घराच्या)
+                marathi_score += 2.0
+            elif token.endswith("तोय") or token.endswith("तेय"):  # Marathi continuous verbs
+                marathi_score += 2.0
+            elif token.endswith("चा") or token.endswith("ची") or token.endswith("चे"):
+                # Marathi possessive postposition endings
+                if token not in {"चा", "ची", "चे"}:  # avoid double counting standalone
+                    marathi_score += 1.5
+
+            if token.endswith("ियों") or token.endswith("ों"):  # Hindi oblique plural (e.g. दोस्तों, किताबों)
+                if token not in {"ों"}:
+                    hindi_score += 1.0
+
+    # Decision logic
+    if marathi_score > 0 and marathi_score > hindi_score:
+        ratio = marathi_score / (marathi_score + hindi_score + 0.5)
+        conf = round(min(0.99, max(0.75, ratio)), 2)
+        return "mr", conf, False
+    elif hindi_score > 0 and hindi_score > marathi_score:
+        ratio = hindi_score / (marathi_score + hindi_score + 0.5)
+        conf = round(min(0.99, max(0.75, ratio)), 2)
+        return "hi", conf, False
     else:
-        # Tied or zero hits: default to Hindi with weak assumption
+        # Ambiguous short text, neutral greeting (e.g. 'नमस्कार', single Tatsama words)
         return "hi", 0.50, True
 
 
