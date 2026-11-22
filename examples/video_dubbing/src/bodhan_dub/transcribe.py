@@ -30,6 +30,7 @@ class Segment:
     text: str
     forced_cut: bool = False
     skipped: str | None = None  # reason, when this stretch will not be dubbed
+    speaker: int = 0
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -51,7 +52,8 @@ def clip_wav(samples: np.ndarray, start: float, end: float) -> bytes:
 def transcribe_chunks(client: BodhanClient, samples: np.ndarray, chunks: list[Chunk],
                       *, language: str = "en", max_workers: int = 4) -> list[Segment]:
     def one(index: int, chunk: Chunk) -> Segment:
-        seg = Segment(id=f"s{index:04d}", start=chunk.start, end=chunk.end, text="", forced_cut=chunk.forced_cut)
+        seg = Segment(id=f"s{index:04d}", start=chunk.start, end=chunk.end, text="", forced_cut=chunk.forced_cut,
+                      speaker=chunk.speaker)
         ctx = {"stage": "transcribe", "segment": seg.id, "start": seg.start, "end": seg.end}
         try:
             seg.text = client.transcribe(clip_wav(samples, chunk.start, chunk.end), language=language)

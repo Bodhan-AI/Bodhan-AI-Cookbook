@@ -44,9 +44,10 @@ python -m bodhan_dub --input path/to/video.mp4 --langs hi,ta,bn --out ./out \
 
 | Flag | Meaning |
 |---|---|
-| `--glossary` | YAML of terms to keep consistent; `keep: true` means never translate (see [config/glossary.example.yaml](config/glossary.example.yaml)) |
-| `--voices` | YAML of voices per language and an optional style (see [config/voices.example.yaml](config/voices.example.yaml)) |
+| `--glossary` | YAML of terms to keep consistent: a `terms:` list, a bare list, or `term: value` pairs. `keep: true` means never translate; expected renderings (`linear pair: {hi: …}`) are checked and reported, never inserted. Unusable entries become warnings in `report.json` (see [config/glossary.example.yaml](config/glossary.example.yaml)) |
+| `--voices` | YAML of voices per language: a name, a list, `{male, female}`, or `default:` for every language, plus an optional `style`. Names are case-insensitive; unusable entries become warnings (see [config/voices.example.yaml](config/voices.example.yaml)) |
 | `--code-mixed` | code-mixed targets such as Hinglish (English technical terms inside Indian-language speech) |
+| `--ascii-digits` | send digits to Indic-Speak as written; it then reads numbers in English (by default they are sent in native digits and spoken in the language) |
 | `--max-parallel` | concurrent Bodhan calls (default 4) |
 | `--cache-dir` | model-call cache, reusable across runs (default `<out>/.cache`) |
 
@@ -73,15 +74,34 @@ out/
 
 1. **Find speech.** Silero VAD (via the torch-free `silero-vad-lite`) marks speech regions, which are packed into chunks of at most 15 s that are cut only at pauses. *Indic-Transcribe returns no timestamps, so a segment's timing is its VAD boundary.*
 2. **Transcribe** each chunk with Indic-Transcribe. An empty result (music or noise) is skipped and logged, never narrated.
-3. **Repair the English (LLM).** Punctuation, numbers as digits and obvious mishearings are fixed ("Right it" → "Write it"), and sentence fragments are merged. Code validates every reply: ids, pauses, length, and word overlap with what was said. A failed reply is re-asked once with the errors, then falls back to the raw segments.
+3. **Repair the English (LLM).** Punctuation, numbers as digits and obvious mishearings are fixed ("Right it" → "Write it"), and sentence fragments are merged. Code validates every reply: ids, pauses, length, and word overlap with what was said. A failed reply is re-asked once with the errors, then falls back to the raw segments. Then code splits any merge that wasn't needed: where a segment boundary falls at a sentence end, the unit is split, so every line keeps its own start time.
 4. **Glossary (LLM)** of names, acronyms, technical terms and figure labels, keeping only terms that really occur in the text. Your `--glossary` wins.
-5. **Voices and style.** Each unit's pitch picks the male or female voice (with hysteresis, so one speaker keeps one voice). The LLM picks the Indic-Speak style, for example "educational lecture".
-6. **Translate (per language, in parallel).** Indic-Translate translates, then translates back to English. Code checks the script, the numbers (native digits normalised), and that every glossary term reappears in the back-translation. The LLM judges source against back-translation, in English. When the judge reads a real change of meaning (or a hard check fails), the unit gets alternatives (sentence by sentence, code-mixed), and the best one wins. Plain native translation is preferred whenever it is good.
+5. **Speakers, voices and style.** Each speech region's pitch is clustered: clearly separate clusters are different speakers. A speaker turn always ends a chunk, and the LLM may not merge across speakers. Each speaker keeps one voice, male or female by relative pitch, or two voices of one gender for two similar speakers. The LLM picks the Indic-Speak style, for example "educational lecture".
+6. **Translate (per language, in parallel).** Indic-Translate translates, then translates back to English. Code checks the script, the numbers (native digits normalised), and that every glossary term reappears in the back-translation. The LLM judges source against back-translation, in English. When the judge reads a real change of meaning (or a hard check fails), the unit gets alternatives (sentence by sentence, code-mixed), and the best one wins. Plain native translation is preferred whenever it is good. Finally, glossary terms are pushed towards **one rendering per language**: where most units keep a term in English, the rest switch to their checked code-mixed version. Where most translate it, the native form is kept (no cascade into heavy code-mixing). Terms still rendered two ways are listed in `report.json` (`terms.still_mixed`).
 7. **Speak and check by ear.** Indic-Speak voices requests of one or two sentences. Indic-Transcribe hears each clip back. A number-aware CER plus a loop detector flag repetitions and omissions; such a clip is re-spoken sentence by sentence, then fresh. Ordinary CER is reported too.
 8. **Fit the time.** Each line uses its slot plus some of the silence after it, then a pitch-preserving stretch of at most 1.2×. If it is still too long, the LLM shortens the *English* (numbers and terms checked by code), which is re-translated and re-spoken.
 9. **Mix.** Lines are placed without overlap. The original audio is kept (music and effects survive) and ducked by 26 dB only where a dub line replaces the speech. The dub speech is normalised to −16 LUFS. The result is muxed at the input's exact length, and SRT subtitles are written.
 
 Every Bodhan and LLM call is cached by a hash of its exact input, so reruns are free and a crashed run resumes where it stopped.
+
+## Versatility test beyond the demo
+
+`scripts/make_test_video.py` generates an original 81 s test video with Indic-Speak's English voices (about ₹0.44). It has a man and a woman talking about compound interest with numbers, a music bed, music-only gaps, and a 35 s stretch of nonstop speech. Dubbed into **Kannada** (not in the demo):
+
+- The speakers clustered at 167 Hz and 219 Hz and kept separate voices (Adarsh and Deepika).
+- Nothing was dubbed over the music-only gaps, and the music played on under the dub.
+- 7/7 units dubbed; CER 0.024; length 0 ms off; −16.0 LUFS; ₹1.50.
+- Two sync misses inside the nonstop stretch (+0.55 s and +1.5 s): there is no silence there to absorb Kannada's longer speech, and the report explains them.
+
+## Stretch goals
+
+| Stretch goal | Status |
+|---|---|
+| Speaker-aware voice assignment | done: pitch-cluster speakers, one consistent voice each, two same-gender voices where available |
+| Resumable runs with per-stage caching, parallel languages | done: every model call cached by exact input; languages run in parallel, isolated |
+| Code-mixed mode | done: `--code-mixed` (Indic-Translate's code-mixed target) |
+| Translated on-screen text (Indic-OCR) | not done |
+| Thin API or web UI | not done |
 
 ## Where the LLM is used, and why
 
@@ -107,44 +127,47 @@ All hosted, at `https://api.bodhan.ai`:
 
 ## Results on the demo video
 
-The demo is a Class 9 mathematics lesson (5 min 29 s), dubbed into Hindi, Tamil and Bengali with `glm5.3-flash` as the LLM. These numbers come straight from `report.json`:
+The demo is a Class 9 mathematics lesson (5 min 29 s), dubbed into Hindi, Tamil and Bengali with the final code and `glm5.3-flash` as the LLM. These numbers come straight from `report.json`:
 
 | Target | Hindi | Tamil | Bengali |
 |---|---|---|---|
-| Sync: segments starting within ±300 ms | 14/14 (worst +80 ms) | 13/14 (one at +2.45 s, see below) | 14/14 (worst +80 ms) |
-| Speed change within 0.85–1.2× | max 1.115×, 0 outside | max 1.2×, 0 outside | max 1.197×, 0 outside |
-| Coverage | 14/14 dubbed | 14/14 dubbed | 14/14 dubbed |
-| Back-transcription CER, number-aware (mean / max) | 0.007 / 0.028 | 0.013 / 0.051 | 0.019 / 0.070 |
-| Back-transcription CER, plain (mean / max) | 0.173 / 0.742 | 0.229 / 0.750 | 0.269 / 0.889 |
+| Line starts within ±300 ms | 23/23 (worst +80 ms) | 21/23 (worst +3676 ms) | 23/23 (worst +80 ms) |
+| Source segments within ±300 ms (estimated) | 24/25 | 22/25 | 24/25 |
+| Speed change within 0.85–1.2× | max 1.2×, 0 outside | max 1.2×, 0 outside | max 1.17×, 0 outside |
+| Coverage | 23/23 dubbed | 23/23 dubbed | 23/23 dubbed |
+| Back-transcription CER, number-aware / plain (mean) | 0.015 / 0.226 | 0.014 / 0.218 | 0.011 / 0.391 |
 | Output length vs input | 0 ms | 0 ms | 0 ms |
-| Speech loudness (target −16 ±1 LUFS) | −16.0 | −16.1 | −16.1 |
+| Speech loudness (target −16 ±1 LUFS) | -16.0 | -16.0 | -16.1 |
 
-- **Plain vs number-aware CER.** Plain CER is high mostly because Indic-Speak reads digits in English and code-mixed English words come back in Indic script. The number-aware CER, which treats those as wildcards, is the one QA acts on. Both are reported per segment.
-- **The one sync miss is a line that cannot fit.** In Tamil, the source sentence about which angles form a linear pair carries 13 glossary terms and figure labels in about 21 s (AOC, COB, OA, OB, line AB, BOD, COE, EOB, …), and Tamil reads each label letter by letter. Condensing cut the English from 47 to 37 words. Two further rounds were rejected because any shorter wording would drop a required term. The line therefore runs at 1.2× and overruns, the next line starts 2.45 s late, and `report.json` says exactly that.
-- **QA caught real Indic-Speak failures during development:** a three-times loop (`…के बीच होता है और एक रिजू कोण…` repeated) and a dropped clause. Both were re-spoken and recovered. The translation judge caught Hindi rendering "vertically opposite angles" as "right angle", which was recovered with a code-mixed translation.
+- **What the misses are.**
+  - Tamil has one dense sentence: 13 glossary terms and figure labels, which Tamil reads letter by letter. It cannot fit its slot even after condensing (one condensed version was rejected by the judge for changing "vertically opposite"), so it runs at 1.2×, and the next two lines start late (+0.6 s, +3.7 s).
+  - The one estimated drift per language in Hindi and Bengali is inside a merged line that re-joins a sentence split across segments.
+  - `report.json` explains each miss.
+- **Plain vs number-aware CER.** Plain CER counts code-mixed English words (which come back in Indic script) and written digits against spoken number words as errors. The number-aware CER, which treats those as wildcards, is the one QA acts on. Both are reported per segment.
+- **Code-mixing kept low.** 4 of 23 Hindi units and 3 of 23 Tamil units use code-mixed recovery; Bengali uses more (10 of 23), because Bengali most often kept these geometry terms in English.
+- **QA caught real Indic-Speak failures during development:** a three-times loop (`…के बीच होता है और एक रिजू कोण…` repeated) and a dropped clause. Both were re-spoken and recovered. The translation judge caught Hindi rendering "vertically opposite angles" as "right angle".
 
 **A language not in the demo, and `--code-mixed`** (live, on a 30 s cut of the lesson):
 
 | Run | Result |
 |---|---|
 | `--langs te` (Telugu) | ok, no misses; CER 0.0, every clip accepted first take; sync 0 ms; length 0 ms; −16.0 LUFS; 28 s; ₹0.22 |
+| Same, **inside the Docker image** | ok, no misses; 21.6 s; ₹0.22 |
 | `--langs hi --code-mixed` | ok, no misses; natural Hinglish ("दो angles adjacent होते हैं जब उनके पास एक ही vertex होता है…"); CER 0.014; ₹0.23 |
 | `pytest -m live` (Hindi, the CLI end to end) | passed, 72 s |
 
 ## Cost and runtime
 
-Per minute of input video, per language, on hosted APIs (from the metered usage in `report.json`):
+From the cold-cache run of the demo (5.5 min, 3 languages, empty cache):
 
-| | per video-minute per language |
-|---|---|
-| Indic-Speak (dub speech, including retakes) | about ₹0.33 |
-| Indic-Transcribe (back-transcription QA) | about ₹0.07 |
-| Indic-Translate (translation + back-translation + alternatives) | under ₹0.01 |
-| Indic-Transcribe (source, shared by all languages) | about ₹0.07 per video-minute, once |
-| **Total** | **about ₹0.40, plus ₹0.07 once** |
+- **Bodhan cost:** ₹8.34 in total, so about **₹0.51 per minute of video per language**. That includes QA back-transcription, retakes, alternatives and condensing, plus shared source transcription (about ₹0.07 per video-minute, once).
+  - **Indic-Speak** is about 80% of it (₹6 per 10,000 characters).
+  - **Indic-Transcribe** (source and QA) is about 15–20%.
+  - **Indic-Translate** is well under 1%.
 
-- **Runtime:** the 5.5-minute demo in 3 languages took **24.8 minutes**, inside the brief's 30-minute target. That run had a warm cache: source transcription, the Hindi translation and most Hindi speech were cached from earlier runs. A fully cold run has not been measured; expect it to take longer, since the extra work is rate-limited translate and speak calls. Most of that is waiting on the keys' rate limits: about 16 translate and 8 speak requests a minute (`report.json` → `runtime_check.rate_limit_wait_s`). A rerun from the cache takes minutes and costs ₹0.
-- **LLM:** a few calls per video plus one judge call per language (the provider's cost; token counts are in `report.json`).
+  `report.json` breaks cost down per language (`languages.<lang>.cost_inr`) and per model.
+- **Runtime: 24.0 minutes, inside the brief's 30-minute target.** Most of it is waiting on the keys' rate limits: about 16 translate and 8 speak requests a minute (`runtime_check.rate_limit_wait_s`). A rerun from the cache takes a few minutes and costs about ₹0.
+- **LLM:** a handful of calls per video plus a few judge calls per language. The cost depends on the provider; token counts are in `report.json`.
 
 ## Tests
 
@@ -159,14 +182,22 @@ The segmentation and timing logic has property tests over 200 random speech layo
 ## Limitations
 
 - **Rate limits dominate runtime.** On our keys, Indic-Translate allowed about 16 requests a minute and Indic-Speak about 8, and there are no rate-limit headers. The client learns the limits from 429s (honouring `Retry-After`) with a cooldown shared across threads. Most of the wall-clock time goes to waiting on these limits.
-- **Numbers are spoken in English.** Indic-Speak reads digits in English even inside Hindi ("180" → "one hundred and eighty"). The pipeline keeps digits in translations (so subtitles and number checks stay exact), and QA treats spoken numbers as wildcards rather than errors.
+- **Numbers in speech.** Indic-Speak reads ASCII digits in English even inside Hindi ("180" → "one hundred and eighty") but native digits in the language itself (१८० → एक सौ अस्सी), which was verified live for all 22 target languages, including years, decimals, percentages and thousands. So the text *sent to Indic-Speak* has its digits rewritten in the target script by plain code (never the LLM). Subtitles and checks keep Indic-Translate's exact text, the spoken form is recorded as `tts_text` in `segments.<lang>.json`, and `--ascii-digits` turns this off. Digits that touch Latin letters ("H2O", "COVID-19") are left alone. Years are read in full ("one thousand nine hundred forty-seven"), not the spoken "nineteen forty-seven".
 - **Mixed register when recovering.** A unit whose native translation changed a technical term may be recovered with a code-mixed translation (English term kept), so it can differ in register from its neighbours. Use `--code-mixed` for a uniformly code-mixed dub.
 - **The judge sees meaning only through a back-translation.** A slip that back-translates cleanly can pass. In the demo, Hindi rendered "Period one" (a class period) as अवधि एक (a span of time), and it was not caught.
 - **Out of credit fails fast.** When a key's credit is spent, Bodhan answers `429 ExceededBudget`. The client treats that as permanent (no retries) and says so. Affected units are skipped with that reason, a language with nothing dubbed is marked `failed`, and a rerun after topping up reuses every cached result.
-- **No diarization.** Speakers are told apart only by pitch (male/female). Two speakers with similar pitch share a voice.
+- **No diarization.** Speakers are told apart only by pitch. Two speakers with similar pitch share a voice, and a turn with no pause (under 0.3 s) keeps the previous speaker's voice.
+- **Terms can still be rendered two ways.** When a native translation of a term was judged wrong in a minority of units, those units keep English and the rest stay native; the term is listed in `terms.still_mixed`. Forcing uniformity would mean code-mixing the majority. Also, Two different native words for one term (both correct in meaning) can't be told apart without reading the language, which the LLM may not do here.
+- **Sync inside merged lines is estimated.** Without word timestamps, drift of later segments inside a merged line is estimated from even pacing (`segment_sync_estimated_ms`).
 - **The original voice is ducked, not removed.** No source separation, so a faint English voice stays under the dub.
 - **Python 3.12+** (numpy 2.5). `silero-vad-lite` has wheels only for macOS, x86-64 Linux and Windows; on other platforms (Linux ARM) it is skipped by a platform marker, and the energy VAD runs instead (recorded in `transcript.en.json`). The Docker image is amd64.
 
 ## AI assistance
 
-Built with Claude Code (Anthropic) as a pair programmer: architecture discussion, code and tests, live API probing, and the LLM bake-off. Every design decision was reviewed and every line can be explained.
+I built this recipe with **Claude Code** (Anthropic's coding agent, Claude Opus) as a pair programmer, working through the build one stage at a time.
+
+- **What I directed:** the choice of assignment and the day-by-day plan; a rules check against the brief and CONTRIBUTING before each stage; and the trade-off decisions. Examples: whether LLM transcript repair is within the rules, comparing five LLMs and switching to GLM 5.3 Flash, sending native digits to Indic-Speak so numbers are spoken in the target language, and stopping a run to re-plan when the API's behaviour didn't match its docs.
+- **What Claude Code did:** wrote most of the code and the 330+ tests; probed the Bodhan APIs live to find how they actually behave (the `/translate` 404 and chat-transport fallback, rate limits without headers, the `ExceededBudget` 429, digits read in English); ran the demo, the non-demo-language runs and the clean-install checks; and drafted the documentation.
+- **Review:** an independent reviewer agent checked the whole design against the brief twice, and its findings were fixed: judge-gated recovery, consistent term rendering, failing honestly when nothing could be dubbed, speaker clustering, and flexible config files.
+
+I reviewed each module and the reasoning behind it, and I'm ready to walk through any part of it in the debrief.

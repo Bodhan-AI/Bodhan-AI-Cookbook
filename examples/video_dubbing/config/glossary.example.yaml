@@ -1,9 +1,18 @@
 # Terms that must stay consistent across every dubbed line (--glossary).
-# Merged with the terms the LLM finds; entries here always win.
+# Merged with the terms the LLM finds; entries here always win. Any of these shapes works:
 terms:
-  - term: linear pair            # kind defaults to "technical"
+  - linear pair                       # kind defaults to "technical"
   - term: Bodhan
     kind: name
-    keep: true                   # a name/brand that should never be translated
+    keep: true                        # a name/brand that must never be translated
   - term: GDP
     kind: acronym
+  - term: photosynthesis
+    renderings:                       # expected renderings: CHECKED and reported, never inserted
+      hi: प्रकाश संश्लेषण
+# Shorter forms are accepted too:
+#   - linear pair                     (a bare list)
+#   linear pair:                      (a mapping)
+#   Bodhan: keep
+#   GDP: acronym
+#   photosynthesis: {hi: प्रकाश संश्लेषण}

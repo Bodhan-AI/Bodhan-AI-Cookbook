@@ -21,6 +21,7 @@ from collections.abc import Sequence
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
+from . import textcheck
 from .llm import LLM, LLMError
 from .transcribe import Segment
 
@@ -50,6 +51,7 @@ class Unit:
     forced_cut: bool = False
     repaired_by: str = "llm"  # "llm" or "fallback"
     dropped: str | None = None  # reason, when the LLM judged this not to be narration
+    speaker: int = 0
     fidelity: float = 1.0
 
     def to_dict(self) -> dict:
@@ -69,6 +71,7 @@ Return units. Each unit covers one or more consecutive segment ids and has clean
 - Keep figure labels and symbols as spoken, in capitals (e.g. "triangle XYZ", "point P", "vector v").
 - If a segment is clearly not narration (music lyrics, noise transcribed as words, a lone filler), output it as its own unit with "drop": true and a short "reason".
 - Use every id exactly once, in order.
+- If segments have a "speaker", never merge segments of different speakers into one unit.
 
 Reply with JSON only:
 {{"units": [{{"ids": ["s0001", "s0002"], "text": "...", "drop": false, "reason": ""}}]}}"""
@@ -102,8 +105,11 @@ def batch_prompt(batch: Sequence[Segment]) -> str:
     rows = []
     for i, seg in enumerate(batch):
         gap = 0.0 if i == 0 else seg.start - batch[i - 1].end
-        rows.append({"id": seg.id, "gap_before_s": round(gap, 2), "duration_s": round(seg.end - seg.start, 2),
-                     "text": seg.text})
+        row = {"id": seg.id, "gap_before_s": round(gap, 2), "duration_s": round(seg.end - seg.start, 2),
+               "text": seg.text}
+        if len({s.speaker for s in batch}) > 1:
+            row["speaker"] = "AB"[seg.speaker]
+        rows.append(row)
     return json.dumps({"segments": rows}, ensure_ascii=False)
 
 
@@ -169,6 +175,8 @@ def validate_units(reply: Any, batch: Sequence[Segment], params: RepairParams) -
         text = str(item.get("text") or "").strip()
         raw_text = " ".join(s.text.strip() for s in segs)
 
+        if len({s.speaker for s in segs}) > 1:
+            errors.append(f"unit {n}: merges different speakers ({ids}); keep each speaker's lines in separate units")
         for prev, nxt in zip(segs, segs[1:], strict=False):
             gap = nxt.start - prev.end
             if gap > params.max_merge_gap_s:
@@ -189,7 +197,7 @@ def validate_units(reply: Any, batch: Sequence[Segment], params: RepairParams) -
 
         units.append(Unit(
             id="", start=segs[0].start, end=segs[-1].end, text=text if not drop else "", raw_text=raw_text,
-            source_ids=list(ids), forced_cut=any(s.forced_cut for s in segs),
+            source_ids=list(ids), forced_cut=any(s.forced_cut for s in segs), speaker=segs[0].speaker,
             dropped=(str(item.get("reason") or "not narration") if drop else None), fidelity=round(score, 3),
         ))
 
@@ -221,7 +229,8 @@ def basic_cleanup(text: str) -> str:
 
 def fallback_units(batch: Sequence[Segment]) -> list[Unit]:
     return [Unit(id="", start=s.start, end=s.end, text=basic_cleanup(s.text), raw_text=s.text,
-                 source_ids=[s.id], forced_cut=s.forced_cut, repaired_by="fallback") for s in batch]
+                 source_ids=[s.id], forced_cut=s.forced_cut, repaired_by="fallback", speaker=s.speaker)
+            for s in batch]
 
 
 # ---------------------------------------------------------------------------
@@ -235,10 +244,53 @@ class RepairReport:
     retried: int = 0
     fell_back: int = 0
     splits: int = 0
+    sentence_splits: int = 0  # merged units split back where a segment boundary was a sentence end
     errors: list[str] = field(default_factory=list)
 
 
 MIN_SPLIT_BATCH = 6
+
+
+def _count(text: str) -> int:
+    return sum(_content_tokens(text, drop=_NUMBER_WORDS).values())
+
+
+def split_at_sentence_junctions(unit: Unit, by_id: dict[str, Segment]) -> list[Unit]:
+    """Undo merges that weren't needed, so every line is timed from its own segment start.
+
+    The LLM sometimes merges segments that each hold whole sentences, which makes long units whose
+    later sentences drift out of sync. A merge is only needed when a sentence runs across a segment
+    boundary. So if a boundary falls exactly at a sentence end of the cleaned text (matched by
+    counting words, ignoring how numbers are written), split there. Deterministic; the LLM's
+    wording is kept.
+    """
+    if unit.dropped or len(unit.source_ids) < 2:
+        return [unit]
+    sentences = textcheck.split_sentences(unit.text)
+    cumulative, total = [], 0
+    for sentence in sentences:
+        total += _count(sentence)
+        cumulative.append(total)
+    cuts: list[tuple[int, int]] = []  # (last segment index of a piece, last sentence index of it)
+    words_before = 0
+    for j, sid in enumerate(unit.source_ids[:-1]):
+        words_before += _count(by_id[sid].text)
+        after = cuts[-1][1] if cuts else -1
+        k = next((k for k in range(after + 1, len(sentences) - 1) if abs(cumulative[k] - words_before) <= 1), None)
+        if k is not None:
+            cuts.append((j, k))
+    if not cuts:
+        return [unit]
+    pieces, seg_lo, sent_lo = [], 0, 0
+    for j, k in [*cuts, (len(unit.source_ids) - 1, len(sentences) - 1)]:
+        ids = unit.source_ids[seg_lo:j + 1]
+        segs = [by_id[i] for i in ids]
+        text, raw = " ".join(sentences[sent_lo:k + 1]), " ".join(seg.text.strip() for seg in segs)
+        pieces.append(Unit(id="", start=segs[0].start, end=segs[-1].end, text=text, raw_text=raw, source_ids=ids,
+                           forced_cut=any(seg.forced_cut for seg in segs), repaired_by=unit.repaired_by,
+                           fidelity=round(fidelity(raw, text), 3), speaker=unit.speaker))
+        seg_lo, sent_lo = j + 1, k + 1
+    return pieces
 
 
 def split_batch(batch: Sequence[Segment]) -> tuple[list[Segment], list[Segment]]:
@@ -274,7 +326,10 @@ def repair_batch(llm: LLM | None, batch: Sequence[Segment], params: RepairParams
         if not errors:
             report.llm_ok += 1
             report.retried += attempt - 1
-            return units
+            by_id = {seg.id: seg for seg in batch}
+            split = [piece for unit in units for piece in split_at_sentence_junctions(unit, by_id)]
+            report.sentence_splits += len(split) - len(units)
+            return split
         log.warning("repair: reply failed validation", extra={**ctx, "attempt": attempt, "errors": errors})
         report.errors.extend(f"{batch[0].id}..{batch[-1].id} attempt {attempt}: {e}" for e in errors)
         # Agentic retry: show the model exactly what was wrong with its answer.

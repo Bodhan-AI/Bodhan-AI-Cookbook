@@ -58,7 +58,7 @@ class FakeClient:
         self.forward, self.back, self.fail_langs = forward, back, set(fail_langs)
         self.calls = []
 
-    def translate(self, text, target_language, script="native"):
+    def translate(self, text, target_language, script="native", bill_to=None):
         self.calls.append((text, target_language, script))
         if target_language in self.fail_langs:
             raise BodhanError(503, "internal_error", "down")
@@ -183,3 +183,59 @@ def test_judge_is_called_in_batches():
     judge = FakeJudge()
     Translator(FakeClient(forward, back), judge, []).translate_language(units, "hi")
     assert judge.calls == 3  # 15 + 15 + 2
+
+
+def test_native_digits_for_speech_only_touch_real_numbers():
+    nd = textcheck.native_digits
+    assert nd("कोण 180 डिग्री, 3.5 और 12,000", "hi") == "कोण १८० डिग्री, ३.५ और १२,०००"
+    assert nd("கோணம் 90 டிகிரி", "ta") == "கோணம் ௯௦ டிகிரி"
+    assert nd("زاویہ 180 ڈگری", "ur") == "زاویہ ۱۸۰ ڈگری"
+    assert nd("H2O और COVID-19 में 7 अणु", "hi") == "H2O और COVID-19 में ७ अणु"  # names keep ASCII digits
+    assert nd("already ১৮০", "bn") == "already ১৮০" and nd("x 5", "en") == "x 5"  # no table entry: unchanged
+    assert set(textcheck.NATIVE_ZERO) == set(__import__("bodhan_dub.languages").languages.TARGET_LANGS)
+
+
+def test_a_term_is_rendered_one_way_across_units():
+    a, b = "A linear pair adds to 180.", "Name a linear pair."
+    a_native, a_mixed = "रैखिक युग्म का योग 180 है।", "linear pair का योग 180 है।"
+    b_native, b_mixed = "एक रैखिक युग्म बताइए।", "एक linear pair बताइए।"
+    client = FakeClient(
+        {(a, "hi", "native"): a_native, (a, "hi", "codemix"): a_mixed,
+         (b, "hi", "native"): b_native, (b, "hi", "codemix"): b_mixed},
+        {a_native: "A linear sum adds to 180.", a_mixed: a, b_native: b, b_mixed: b})
+    judge = FakeJudge({"verdicts": [{"id": "u0000:unit", "verdict": "major", "issue": "wrong term"},
+                                    {"id": "u0001:unit", "verdict": "ok"}]},
+                      {"verdicts": [{"id": "u0000:codemix", "verdict": "ok"}]},
+                      {"verdicts": [{"id": "u0001:codemix", "verdict": "ok"}]})
+    result = Translator(client, judge, [Term("linear pair", "technical")]).translate_language(
+        [unit("u0000", a), unit("u0001", b)], "hi")
+    assert [u.chosen for u in result.units] == ["codemix", "codemix"]  # u0001 switched to match u0000
+    assert result.harmonised == ["u0001"]
+    assert result.summary()["terms"]["still_mixed"] == []
+    assert result.term_rendering["linear pair"] == {"english": ["u0000", "u0001"], "native": []}
+
+
+def test_user_renderings_are_checked_and_reported_not_inserted():
+    src = "A linear pair."
+    out_text = "एक रैखिक जोड़ी।"
+    client = FakeClient({(src, "hi", "native"): out_text}, {out_text: src})
+    glossary = [Term("linear pair", "technical", source="user", renderings={"hi": "रैखिक युग्म"})]
+    result = Translator(client, FakeJudge(), glossary).translate_language([unit("u0000", src)], "hi")
+    assert result.units[0].translation == out_text  # never rewritten
+    assert result.renderings_missing == {"linear pair": ["u0000"]}
+
+
+def test_a_minority_english_rendering_does_not_cascade_into_more_code_mixing():
+    a, b, c = "A linear pair adds to 180.", "Name a linear pair.", "Draw a linear pair."
+    a_mixed = "linear pair का योग 180 है।"
+    native = {b: "एक रैखिक युग्म बताइए।", c: "एक रैखिक युग्म बनाइए।"}
+    client = FakeClient(
+        {(a, "hi", "native"): "रैखिक जोड़ का योग 180 है।", (a, "hi", "codemix"): a_mixed,
+         **{(k, "hi", "native"): v for k, v in native.items()}},
+        {"रैखिक जोड़ का योग 180 है।": "A linear sum adds to 180.", a_mixed: a, native[b]: b, native[c]: c})
+    judge = FakeJudge({"verdicts": [{"id": "u0000:unit", "verdict": "major", "issue": "wrong term"}]},
+                      {"verdicts": [{"id": "u0000:codemix", "verdict": "ok"}]})
+    result = Translator(client, judge, [Term("linear pair", "technical")]).translate_language(
+        [unit("u0000", a), unit("u0001", b), unit("u0002", c)], "hi")
+    assert [u.chosen for u in result.units] == ["codemix", "unit", "unit"]  # 1 English vs 2 native: keep native
+    assert result.harmonised == [] and result.summary()["terms"]["still_mixed"] == ["linear pair"]

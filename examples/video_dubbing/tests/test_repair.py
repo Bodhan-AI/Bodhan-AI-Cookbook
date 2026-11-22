@@ -173,3 +173,22 @@ def test_failed_batch_is_split_at_its_widest_pause_and_each_half_repaired():
     assert llm.sizes == [12, 6, 6] and report.splits == 1 and report.fell_back == 0
     assert [u.source_ids[0] for u in units][:7] == [f"s{i:04d}" for i in range(7)]
     assert all(u.repaired_by == "llm" for u in units)
+
+
+def test_merges_of_whole_sentences_are_split_back_but_real_fragments_stay_merged():
+    from bodhan_dub.repair import Unit, split_at_sentence_junctions
+
+    segs = {s.id: s for s in [seg(0, 0, 5, "first word collinear three points on one line are collinear"),
+                              seg(1, 5.3, 9, "here a o and b are collinear write it"),
+                              seg(2, 9.4, 13, "two angles are adjacent when they share an arm"),
+                              seg(3, 13.3, 16, "and lie on opposite sides of it")]}
+    whole = Unit(id="", start=0, end=9, source_ids=["s0000", "s0001"], raw_text="",
+                 text="First word: collinear. Three points on one line are collinear. Here A, O and B are collinear. "
+                      "Write it.")
+    parts = split_at_sentence_junctions(whole, segs)
+    assert [(p.source_ids, p.start, p.end) for p in parts] == [(["s0000"], 0, 5), (["s0001"], 5.3, 9)]
+    assert parts[1].text == "Here A, O and B are collinear. Write it."
+
+    fragment = Unit(id="", start=9.4, end=16, source_ids=["s0002", "s0003"], raw_text="",
+                    text="Two angles are adjacent when they share an arm and lie on opposite sides of it.")
+    assert split_at_sentence_junctions(fragment, segs) == [fragment]

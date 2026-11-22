@@ -43,6 +43,7 @@ class RunOptions:
     glossary: Path | None = None
     voices: Path | None = None
     code_mixed: bool = False
+    ascii_digits: bool = False  # speak digits as written (English) instead of in the target language
 
 
 @dataclass
@@ -64,11 +65,12 @@ def write_json(path: Path, data: Any) -> None:
 def run(opts: RunOptions, settings: Settings, client: BodhanClient | None = None,
         llm: LLM | None = None) -> RunResult:
     started = time.perf_counter()
-    try:
-        user_terms = glossary.load_user_glossary(opts.glossary) if opts.glossary else []
-        voice_cfg = voices.load_voice_config(opts.voices) if opts.voices else voices.VoiceConfig()
-    except (glossary.GlossaryError, voices.VoiceConfigError) as exc:
-        raise PipelineError(str(exc)) from exc
+    # User config files never stop a run: whatever can't be used is a warning in report.json.
+    user_terms, config_warnings = glossary.load_user_glossary(opts.glossary) if opts.glossary else ([], [])
+    voice_cfg, voice_warnings = voices.load_voice_config(opts.voices) if opts.voices else (voices.VoiceConfig(), [])
+    config_warnings += voice_warnings
+    for warning in config_warnings:
+        log.warning("config warning", extra={"stage": "config", "warning": warning})
     stage_s: dict[str, float] = {}
     media.require_ffmpeg()
     info = media.probe(opts.input)
@@ -86,8 +88,17 @@ def run(opts: RunOptions, settings: Settings, client: BodhanClient | None = None
 
     vad_params, chunk_params = vad.VadParams(), chunking.ChunkParams()
     speech = vad.detect_speech(samples, vad_params)
+    # Speakers first, so a speaker turn always ends a chunk (no diarization: pitch clusters).
+    pitches = [voices.median_pitch(samples, r.start, r.end) for r in speech.regions]
+    region_speaker, speakers = voices.plan_speakers(pitches, [r.duration for r in speech.regions])
+
+    def speaker_of(piece: vad.Region) -> int:
+        mid = (piece.start + piece.end) / 2  # long regions are split into pieces: find the parent
+        return next((lab for r, lab in zip(speech.regions, region_speaker, strict=True) if r.start <= mid <= r.end), 0)
+
     chunks = chunking.pack_chunks(speech.regions, chunk_params,
-                                  find_cut=lambda lo, hi: vad.quietest_point(speech.probs, lo, hi))
+                                  find_cut=lambda lo, hi: vad.quietest_point(speech.probs, lo, hi),
+                                  speaker_of=speaker_of)
     log.info("speech segmented", extra={
         "stage": "vad", "backend": speech.backend, "regions": len(speech.regions), "chunks": len(chunks),
         "speech_s": round(sum(r.duration for r in speech.regions), 1),
@@ -137,15 +148,19 @@ def run(opts: RunOptions, settings: Settings, client: BodhanClient | None = None
     })
 
     # One voice per speaker: pitch decides male/female per unit (with hysteresis).
-    genders = voices.assign_genders([voices.median_pitch(samples, u.start, u.end) for u in units])
+    speaker_units = {label: sum(u.speaker == label for u in units) for label in speakers}
     style = voice_cfg.style or choose_style(llm, units)
     log.info("voices planned", extra={"stage": "voices", "style": style,
-                                      "male_units": genders.count("male"), "female_units": genders.count("female")})
+                                      "speakers": {k: {"pitch_hz": round(sp.pitch_hz or 0), "voice_gender": sp.gender,
+                                                       "units": speaker_units[k]} for k, sp in speakers.items()}})
 
     translator = Translator(client, llm, terms, code_mixed=opts.code_mixed, max_workers=opts.max_parallel)
-    synthesizer = Synthesizer(client, llm, translator, style=style, max_workers=opts.max_parallel)
-    job = LanguageJob(opts=opts, units=units, genders=genders, voice_cfg=voice_cfg, info=info,
-                      translator=translator, synthesizer=synthesizer)
+    synthesizer = Synthesizer(client, llm, translator, style=style, max_workers=opts.max_parallel,
+                              native_digits=not opts.ascii_digits)
+    seg_start = {seg.id: seg.start for seg in segments}
+    job = LanguageJob(opts=opts, units=units, speakers=speakers, voice_cfg=voice_cfg, info=info,
+                      translator=translator, synthesizer=synthesizer,
+                      segment_starts={u.id: [seg_start[i] for i in u.source_ids if i in seg_start] for u in units})
     result = RunResult(units=units)
     # Languages run side by side; the client's semaphore still caps total API concurrency.
     with ThreadPoolExecutor(max_workers=len(opts.langs)) as pool:
@@ -154,6 +169,8 @@ def run(opts: RunOptions, settings: Settings, client: BodhanClient | None = None
         result.languages[lang] = future.result()
 
     usage = client.usage.snapshot()
+    for lang, summary in result.languages.items():
+        summary["cost_inr"] = usage["cost_inr_by_language"].get(lang, 0.0)
     runtime = report.runtime_check(time.perf_counter() - started, info.duration_s, len(opts.langs),
                                    usage["rate_limit_wait_s"])
     write_json(opts.out / "report.json", {
@@ -161,6 +178,7 @@ def run(opts: RunOptions, settings: Settings, client: BodhanClient | None = None
         "failed_languages": result.failed,
         "input": opts.input.name,
         "duration_s": round(info.duration_s, 3),
+        "config_warnings": config_warnings,
         "runtime_s": round(time.perf_counter() - started, 1),
         "runtime_check": runtime,
         "shared_stage_timings_s": {k: round(v, 1) for k, v in stage_s.items()},
@@ -171,7 +189,8 @@ def run(opts: RunOptions, settings: Settings, client: BodhanClient | None = None
                        "dropped_units": [{"id": u.id, "reason": u.dropped} for u in units if u.dropped],
                        "repair_fallback_batches": repair_report.fell_back, "vad_backend": speech.backend},
         "models": {"asr": "indic-transcribe", "mt": "indic-translate", "tts": "indic-speak", "llm": llm.model,
-                   "tts_style": style, "code_mixed": opts.code_mixed},
+                   "tts_style": style, "code_mixed": opts.code_mixed,
+                   "tts_digits": "ascii" if opts.ascii_digits else "native"},
         "cost_inr": {"bodhan": usage["total_cost_inr"], "by_model": usage["cost_inr"],
                      "note": "LLM cost depends on the provider; token counts are in usage.llm"},
         "usage": {"bodhan": usage, "llm": dict(llm.usage)},
@@ -186,11 +205,12 @@ def run(opts: RunOptions, settings: Settings, client: BodhanClient | None = None
 class LanguageJob:
     opts: RunOptions
     units: list[Unit]
-    genders: list[str]
+    speakers: dict[int, voices.Speaker]
     voice_cfg: voices.VoiceConfig
     info: media.MediaInfo
     translator: Translator
     synthesizer: Synthesizer
+    segment_starts: dict[str, list[float]] = field(default_factory=dict)  # unit id -> source segment starts
 
 
 def run_language(job: LanguageJob, lang: str) -> dict[str, Any]:
@@ -208,8 +228,10 @@ def run_language(job: LanguageJob, lang: str) -> dict[str, Any]:
         timings["translate"] = time.perf_counter() - t0
 
         stage, t0 = "synthesize", time.perf_counter()
-        voice_of = {g: voices.voice_for(lang, g, job.voice_cfg) for g in ("male", "female")}
-        lines = job.synthesizer.synthesize_language(translated.units, job.units, job.genders, voice_of, lang,
+        speaker_voice = {k: (voices.voice_for_speaker(lang, sp, job.voice_cfg), sp.gender)
+                         for k, sp in job.speakers.items()}
+        voice_of = {u.id: speaker_voice.get(u.speaker, speaker_voice[min(speaker_voice)]) for u in job.units}
+        lines = job.synthesizer.synthesize_language(translated.units, job.units, voice_of, lang,
                                                     job.info.duration_s)
         timings["synthesize"] = time.perf_counter() - t0
 
@@ -232,7 +254,8 @@ def run_language(job: LanguageJob, lang: str) -> dict[str, Any]:
         translated.status, translated.error = "failed", f"{stage}: {type(exc).__name__}: {exc}"
     summary = report.language_report(lang, translated, lines, input_s=job.info.duration_s,
                                      output_s=mixed.output_duration_s if mixed else None,
-                                     speech_lufs=mixed.speech_lufs if mixed else None, timings=timings)
+                                     speech_lufs=mixed.speech_lufs if mixed else None, timings=timings,
+                                     segment_starts=job.segment_starts)
     write_json(out_dir / f"segments.{lang}.json", {
         "lang": lang, "summary": summary,
         "segments": [ln.to_dict() for ln in lines] if lines else [u.to_dict() for u in translated.units],

@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import logging
+import unicodedata
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass, field
 from typing import Any
@@ -99,13 +100,20 @@ class LanguageResult:
     units: list[TranslatedUnit] = field(default_factory=list)
     judge_calls: int = 0
     judge_failed: int = 0
+    # term -> {"english": [unit ids], "native": [unit ids]} after harmonising
+    term_rendering: dict[str, dict[str, list[str]]] = field(default_factory=dict)
+    harmonised: list[str] = field(default_factory=list)  # units switched to keep a term consistent
+    renderings_missing: dict[str, list[str]] = field(default_factory=dict)  # user rendering -> unit ids lacking it
 
     def summary(self) -> dict[str, Any]:
         by_status = {s: sum(u.status == s for u in self.units) for s in ("ok", "flagged", "skipped")}
         recovered = sum(len(u.candidates) > 1 and u.chosen != "unit" for u in self.units)
+        mixed = sorted(t for t, r in self.term_rendering.items() if r["english"] and r["native"])
         return {"status": self.status, "error": self.error, "units": len(self.units), **by_status,
                 "recovered_with_alternative": recovered, "judge_calls": self.judge_calls,
-                "judge_failed": self.judge_failed}
+                "judge_failed": self.judge_failed,
+                "terms": {"checked": len(self.term_rendering), "still_mixed": mixed,
+                          "units_harmonised": self.harmonised, "user_renderings_missing": self.renderings_missing}}
 
 
 class Translator:
@@ -116,6 +124,9 @@ class Translator:
         self.terms = [(t.term, t.kind) for t in glossary]
         # keep=True terms (brands, names) must appear unchanged in the translation itself.
         self.keep_terms = [(t.term, t.kind) for t in glossary if t.keep]
+        # Terms whose rendering must match across units (labels are letters, not words to translate).
+        self.consistency_terms = [(t.term, t.kind) for t in glossary if t.kind != "label" and not t.keep]
+        self.user_renderings = {t.term: (t.kind, t.renderings) for t in glossary if t.renderings}
         self.code_mixed = code_mixed
         self.max_workers = max_workers
 
@@ -135,7 +146,7 @@ class Translator:
                 cand.truncated = any(t for _, t in parts)
             else:
                 cand.text, cand.truncated = self._translate(unit.text, lang, script)
-            cand.back = self.client.translate(cand.text, "en").text.strip() if cand.text else ""
+            cand.back = self.client.translate(cand.text, "en", bill_to=lang).text.strip() if cand.text else ""
         except BodhanError as exc:
             cand.hard_fail.append(f"translation call failed: {exc}")
             return cand
@@ -228,7 +239,80 @@ class Translator:
 
         for unit in units:
             result.units.append(self.finalize(unit, candidates.get(unit.id, []), lang))
+        self.harmonise_terms(units, result, lang)
+        self.check_user_renderings(result, lang)
         return result
+
+    # -- terminology consistency ------------------------------------------------------
+
+    def rendering_of(self, term: str, kind: str, out: TranslatedUnit) -> str | None:
+        """'english' if the term is kept in English in this unit's translation, else 'native'."""
+        if out.status == "skipped" or not textcheck.term_in(term, kind, out.source_text):
+            return None
+        return "english" if textcheck.term_in(term, kind, out.translation) else "native"
+
+    def tally(self, result: LanguageResult) -> dict[str, dict[str, list[str]]]:
+        table: dict[str, dict[str, list[str]]] = {}
+        for term, kind in self.consistency_terms:
+            row: dict[str, list[str]] = {"english": [], "native": []}
+            for out in result.units:
+                if (r := self.rendering_of(term, kind, out)) is not None:
+                    row[r].append(out.id)
+            if row["english"] or row["native"]:
+                table[term] = row
+        return table
+
+    def harmonise_terms(self, units: list[Unit], result: LanguageResult, lang: str) -> None:
+        """Push each glossary term towards one rendering per language, without cascading.
+
+        Units choose translations independently, so a term can be spoken in English in a unit
+        recovered with a code-mixed translation and natively in its neighbours ("a term rendered two
+        ways confuses viewers"). Switching a unit to code-mixed also keeps its *other* terms in
+        English, so blanket switching cascades into heavy code-mixing (seen live: 8 of 23 Hindi units).
+        So follow the majority, in one pass: where English is already the majority form of a term, the
+        native units switch to their checked code-mixed translation. Where native is the majority,
+        native is kept and the term is reported as mixed.
+        """
+        table = self.tally(result)
+        if self.code_mixed:
+            result.term_rendering = table
+            return
+        by_id = {u.id: u for u in units}
+        outs = {o.id: o for o in result.units}
+        to_switch = sorted({uid for row in table.values()
+                            if row["english"] and row["native"] and len(row["english"]) >= len(row["native"])
+                            for uid in row["native"]})
+        fresh = [uid for uid in to_switch if not any(c.kind == "codemix" for c in outs[uid].candidates)]
+        if fresh:
+            with ThreadPoolExecutor(max_workers=self.max_workers) as pool:
+                made = list(pool.map(lambda uid: self.make_candidate(by_id[uid], lang, "codemix"), fresh))
+            self.judge([(by_id[uid], c) for uid, c in zip(fresh, made, strict=True)], lang, result)
+            for uid, cand in zip(fresh, made, strict=True):
+                outs[uid].candidates.append(cand)
+        for uid in to_switch:
+            cand = next(c for c in outs[uid].candidates if c.kind == "codemix")
+            if cand.hard_fail or cand.missing_numbers or cand.missing_keep or cand.verdict == "major":
+                continue
+            outs[uid].chosen, outs[uid].translation = "codemix", cand.text
+            outs[uid].note = (outs[uid].note + "; " if outs[uid].note else "") + \
+                "switched to code-mixed so a glossary term is rendered the same way as in most units"
+            result.harmonised.append(uid)
+            log.info("unit harmonised", extra={"stage": "translate", "lang": lang, "unit": uid})
+        result.term_rendering = self.tally(result)
+
+    def check_user_renderings(self, result: LanguageResult, lang: str) -> None:
+        """Verify-only: report units whose translation lacks a rendering the user's glossary expects."""
+        for term, (kind, renderings) in self.user_renderings.items():
+            expected = renderings.get(lang)
+            if expected is None and "*" in renderings and textcheck.script_share(renderings["*"], lang) > 0.5:
+                expected = renderings["*"]
+            if not expected:
+                continue
+            want = unicodedata.normalize("NFC", expected)
+            missing = [o.id for o in result.units if o.status != "skipped" and textcheck.term_in(term, kind, o.source_text)
+                       and want not in unicodedata.normalize("NFC", o.translation)]
+            if missing:
+                result.renderings_missing[term] = missing
 
     def alternative_kinds(self, unit: Unit) -> list[str]:
         kinds = []

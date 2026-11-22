@@ -30,7 +30,7 @@ from .bodhan import BodhanClient, BodhanError
 from .languages import STYLES
 from .llm import LLM, LLMError
 from .repair import Unit
-from .translate import TranslatedUnit, Translator
+from .translate import LanguageResult, TranslatedUnit, Translator
 
 log = logging.getLogger(__name__)
 
@@ -98,6 +98,7 @@ class SpokenSentence:
 
     text: str
     parts: list[str] = field(default_factory=list)
+    tts_text: str = ""  # what Indic-Speak was sent, when it differs from `text` (native digits)
     takes: list[Take] = field(default_factory=list)
     chosen: int = 0
     samples: np.ndarray | None = field(default=None, repr=False)  # trimmed clip of the chosen take
@@ -108,7 +109,9 @@ class SpokenSentence:
         return self.takes[self.chosen]
 
     def to_dict(self) -> dict[str, Any]:
-        return {"text": self.text, "chosen_take": self.chosen, "duration_s": round(self.best.duration_s, 3),
+        spoken_as = {"tts_text": self.tts_text} if self.tts_text and self.tts_text != self.text else {}
+        return {"text": self.text, **spoken_as, "chosen_take": self.chosen,
+                "duration_s": round(self.best.duration_s, 3),
                 "cer": round(self.best.cer, 3), "cer_plain": round(self.best.cer_plain, 3),
                 "issue": self.best.issue, "asr_text": self.best.asr_text,
                 "detail": self.best.detail,
@@ -176,12 +179,17 @@ class DubLine:
 
 class Synthesizer:
     def __init__(self, client: BodhanClient, llm: LLM | None, translator: Translator, *,
-                 style: str | None, max_workers: int = 4):
+                 style: str | None, max_workers: int = 4, native_digits: bool = True):
         self.client = client
         self.llm = llm
         self.translator = translator
         self.style = style
         self.max_workers = max_workers
+        self.native_digits = native_digits
+
+    def tts_text(self, text: str, lang: str) -> str:
+        """What Indic-Speak receives: the translation, with digits in the language's own script."""
+        return textcheck.native_digits(text, lang) if self.native_digits else text
 
     def speak_sentence(self, parts: list[str], voice: str, lang: str) -> SpokenSentence:
         """Speak one request's text and check it by ear; on a bad take, try something different.
@@ -191,7 +199,7 @@ class Synthesizer:
         A fresh take that comes back byte-identical (a deterministic model) is not retried again.
         """
         text = " ".join(parts)
-        spoken = SpokenSentence(text=text, parts=parts)
+        spoken = SpokenSentence(text=text, parts=parts, tts_text=self.tts_text(text, lang))
         clips: list[np.ndarray] = []
         plan = ["whole", *(["split"] if len(parts) > 1 else []), "fresh"]
         first_audio: bytes | None = None
@@ -199,13 +207,15 @@ class Synthesizer:
             take = Take(method=method)
             try:
                 if method == "split":
-                    pieces = [self._clip(self.client.speak(p, voice, lang, self.style)) for p in parts]
+                    pieces = [self._clip(self.client.speak(self.tts_text(p, lang), voice, lang, self.style))
+                              for p in parts]
                     rate = pieces[0][1]
                     gap = np.zeros(int(SENTENCE_GAP_S * rate), dtype=np.float32)
                     samples = np.concatenate([x for i, (clip, _) in enumerate(pieces)
                                               for x in ((gap, clip) if i else (clip,))])
                 else:
-                    wav = self.client.speak(text, voice, lang, self.style, variant=1 if method == "fresh" else 0)
+                    wav = self.client.speak(self.tts_text(text, lang), voice, lang, self.style,
+                                            variant=1 if method == "fresh" else 0)
                     if method == "fresh" and wav == first_audio:
                         take.issue, take.detail = "skipped", "model returned identical audio for the same text"
                         spoken.takes.append(take)
@@ -286,6 +296,13 @@ class Synthesizer:
                     + [f"changed kept term {t}" for t in cand.missing_keep])
                 ratio *= 0.85
                 continue
+            # Shortened English gets the same meaning check as any translation before it is spoken.
+            self.translator.judge([(shorter_unit, cand)], lang, LanguageResult(lang=lang))
+            record["judge"] = cand.verdict
+            if cand.verdict == "major":
+                record["result"] = f"judge rejected the re-translation: {cand.issue}"
+                ratio *= 0.85
+                continue
             sentences = self.speak_text(cand.text, line.voice, lang)
             natural = sum(s.best.duration_s for s in sentences) + SENTENCE_GAP_S * (len(sentences) - 1)
             record.update(translation=cand.text, natural_s=round(natural, 3))
@@ -342,11 +359,11 @@ class Synthesizer:
 
     # -- per language ----------------------------------------------------------------
 
-    def synthesize_language(self, translated: list[TranslatedUnit], units: list[Unit], genders: list[str],
-                            voice_of: dict[str, str], lang: str, video_s: float) -> list[DubLine]:
+    def synthesize_language(self, translated: list[TranslatedUnit], units: list[Unit],
+                            voice_of: dict[str, tuple[str, str]], lang: str, video_s: float) -> list[DubLine]:
+        """`voice_of` maps a unit id to (voice name, voice gender) for its speaker."""
         by_id = {u.id: u for u in units}
-        gender_of = dict(zip([u.id for u in units], genders, strict=True))
-        lines = [DubLine(unit=t, gender=gender_of[t.id], voice=voice_of[gender_of[t.id]]) for t in translated]
+        lines = [DubLine(unit=t, voice=voice_of[t.id][0], gender=voice_of[t.id][1]) for t in translated]
         speakable = [ln for ln in lines if ln.unit.status != "skipped"]
         for i, line in enumerate(speakable):
             u = line.unit

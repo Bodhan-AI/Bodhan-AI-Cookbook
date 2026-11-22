@@ -23,6 +23,30 @@ SCRIPT_RANGES: dict[str, list[tuple[int, int]]] = {
     "sat": [(0x1C50, 0x1C7F)], "mni": [(0xABC0, 0xABFF)],
 }
 
+# Zero of each target language's native digits. Indic-Speak reads ASCII digits in English even
+# inside Hindi or Tamil ("180" -> "one hundred and eighty") but native digits in the language
+# itself (१८० -> एक सौ अस्सी); verified live for all 22 target languages (2026-11-22).
+NATIVE_ZERO: dict[str, int] = {
+    **{lang: 0x0966 for lang in ("hi", "mr", "ne", "sa", "mai", "doi", "kok", "brx", "sd")},  # Devanagari
+    "bn": 0x09E6, "as": 0x09E6, "pa": 0x0A66, "gu": 0x0AE6, "or": 0x0B66, "ta": 0x0BE6, "te": 0x0C66,
+    "kn": 0x0CE6, "ml": 0x0D66, "ur": 0x06F0, "ks": 0x06F0, "sat": 0x1C50, "mni": 0xABF0,
+}
+# Not touching a Latin letter, directly or across a hyphen ("COVID-19", "19-B" are names).
+# Whole runs only: the digit guards stop a match starting or ending inside "19".
+_DIGIT_RUN = re.compile(r"(?<![0-9A-Za-z])(?<![A-Za-z]-)[0-9]+(?![0-9A-Za-z])(?!-[A-Za-z])")
+
+
+def native_digits(text: str, lang: str) -> str:
+    """Write ASCII digit runs in `lang`'s own digits, for speech only (subtitles keep the translation).
+
+    Runs touching Latin letters ("H2O", "COVID-19", "x2") are left alone: those are names, not numbers.
+    """
+    zero = NATIVE_ZERO.get(lang)
+    if zero is None:
+        return text
+    return _DIGIT_RUN.sub(lambda m: "".join(chr(zero + int(d)) for d in m.group()), text)
+
+
 _SENTENCE_END = re.compile(r"(?<=[.?!])\s+")
 _NUMBER = re.compile(r"\d+(?:\.\d+)?")
 

@@ -3,7 +3,6 @@
 import pytest
 
 from bodhan_dub.glossary import (
-    GlossaryError,
     build_glossary,
     count_occurrences,
     filter_llm_terms,
@@ -45,7 +44,7 @@ def test_terms_not_in_the_text_are_dropped_and_duplicates_merged():
 
 
 def test_user_terms_win_and_llm_failure_is_not_fatal():
-    user = load_user_glossary_from_text("terms:\n  - term: linear pair\n    keep: true\n  - Bodhan\n")
+    user, _ = load_user_glossary_from_text("terms:\n  - term: linear pair\n    keep: true\n  - Bodhan\n")
     terms = build_glossary(FixedLLM(LLMError("down")), [unit(TEXT)], user)
     assert {t.term: (t.source, t.keep) for t in terms} == {"linear pair": ("user", True), "Bodhan": ("user", False)}
 
@@ -61,15 +60,30 @@ def test_dropped_units_are_ignored():
     assert terms == []
 
 
-@pytest.mark.parametrize("yaml_text, message", [
-    ("- just a list", "top-level 'terms:'"),
-    ("terms:\n  - kind: label\n", "needs a non-empty 'term'"),
-    ("terms:\n  - term: x\n    kind: verb\n", "kind must be one of"),
-    ("terms: [unclosed", "not valid YAML"),
+@pytest.mark.parametrize("yaml_text, expected", [
+    ("terms:\n  - linear pair\n  - {term: Bodhan, keep: true}\n", {"linear pair": False, "Bodhan": True}),
+    ("- linear pair\n- {term: GDP, kind: acronym}\n", {"linear pair": False, "GDP": False}),
+    ("linear pair:\nBodhan: keep\nGDP: acronym\n", {"linear pair": False, "Bodhan": True, "GDP": False}),
 ])
-def test_bad_user_glossary_fails_with_a_clear_message(tmp_path, yaml_text, message):
-    with pytest.raises(GlossaryError, match=message):
-        load_user_glossary_from_text(yaml_text, tmp_path)
+def test_glossary_accepts_several_shapes(tmp_path, yaml_text, expected):
+    terms, warnings = load_user_glossary_from_text(yaml_text, tmp_path)
+    assert {t.term: t.keep for t in terms} == expected and warnings == []
+
+
+def test_glossary_renderings_are_kept_for_checking():
+    terms, _ = load_user_glossary_from_text("linear pair: {hi: रैखिक युग्म, ta: நேரியல் ஜோடி}\n")
+    assert terms[0].renderings == {"hi": "रैखिक युग्म", "ta": "நேரியல் ஜோடி"}
+
+
+@pytest.mark.parametrize("yaml_text, message", [
+    ("terms: [unclosed", "unreadable"),
+    ("42", "expected a list or mapping"),
+    ("terms:\n  - kind: label\n", "has no term"),
+    ("terms:\n  - term: x\n    kind: verb\n", "unknown kind"),
+])
+def test_bad_glossary_is_a_warning_not_a_failure(tmp_path, yaml_text, message):
+    _, warnings = load_user_glossary_from_text(yaml_text, tmp_path)
+    assert any(message in w for w in warnings), warnings
 
 
 def load_user_glossary_from_text(text, tmp_path=None):

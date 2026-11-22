@@ -22,8 +22,27 @@ TARGETS = {
 }
 
 
+def segment_drift_ms(lines: Sequence[DubLine], segment_starts: dict[str, list[float]]) -> list[int]:
+    """Estimated start error of every SOURCE segment, including those merged inside a longer line.
+
+    A merged line's sync is measured at its first segment; later segments drift if the dub paces
+    differently. Without word timestamps we assume even pace through the line: a segment that starts
+    x% into the source unit is heard x% into the dubbed line.
+    """
+    drifts = []
+    for ln in lines:
+        u = ln.unit
+        if not ln.sentences or u.end <= u.start:
+            continue
+        for start in segment_starts.get(u.id, [u.start]):
+            heard = ln.placed_start + (start - u.start) / (u.end - u.start) * (ln.placed_end - ln.placed_start)
+            drifts.append(round((heard - start) * 1000))
+    return drifts
+
+
 def language_report(lang: str, translated: LanguageResult, lines: Sequence[DubLine], *, input_s: float,
-                    output_s: float | None, speech_lufs: float | None, timings: dict[str, float]) -> dict[str, Any]:
+                    output_s: float | None, speech_lufs: float | None, timings: dict[str, float],
+                    segment_starts: dict[str, list[float]] | None = None) -> dict[str, Any]:
     spoken = [ln for ln in lines if ln.sentences]
     skipped = [{"id": ln.unit.id, "reason": "; ".join(ln.notes) or ln.unit.note} for ln in lines if not ln.sentences]
     sync = [round((ln.placed_start - ln.unit.start) * 1000) for ln in spoken]
@@ -50,6 +69,11 @@ def language_report(lang: str, translated: LanguageResult, lines: Sequence[DubLi
                       + ". These were the best of several takes; see each sentence's takes in segments.<lang>.json")
     if length_ms is not None and abs(length_ms) > TARGETS["total_length_ms"]:
         misses.append(f"total length off by {length_ms} ms (container/codec frame rounding)")
+    drift = segment_drift_ms(lines, segment_starts or {})
+    far = [d for d in drift if abs(d) > TARGETS["segment_sync_ms"]]
+    if far:
+        misses.append(f"estimated sync inside merged lines: {len(far)} of {len(drift)} source segments drift more "
+                      f"than 300 ms (worst {max(far, key=abs):+d} ms), assuming even pace within each line")
     if speech_lufs is not None and not -17.0 <= speech_lufs <= -15.0:
         misses.append(f"speech loudness {speech_lufs} LUFS outside -16 ±1")
 
@@ -61,6 +85,9 @@ def language_report(lang: str, translated: LanguageResult, lines: Sequence[DubLi
                      "flagged": sum(ln.status == "flagged" for ln in lines), "skipped": skipped},
         "sync_ms": {"within_300ms": sum(abs(s) <= 300 for s in sync), "of": len(sync),
                     "max": max(sync, default=0), "mean": round(mean(sync), 1) if sync else 0},
+        "segment_sync_estimated_ms": {"within_300ms": sum(abs(d) <= 300 for d in drift), "of": len(drift),
+                                      "max_abs": max((abs(d) for d in drift), default=0),
+                                      "note": "per source segment, assuming even pace within merged lines"},
         "stretch": {"max_tempo": round(max(tempos, default=1.0), 3), "stretched_units": sum(t > 1.0001 for t in tempos),
                     "outside_range": len(off_range)},
         "cer": {"mean": round(mean(cers), 3) if cers else None, "median": round(median(cers), 3) if cers else None,
@@ -75,6 +102,7 @@ def language_report(lang: str, translated: LanguageResult, lines: Sequence[DubLi
             "condense_rounds": sum(len(ln.condensed) for ln in lines),
             "judge_calls": translated.judge_calls, "judge_failed": translated.judge_failed,
         },
+        "terms": translated.summary().get("terms", {}),
         "misses": misses,
     }
 

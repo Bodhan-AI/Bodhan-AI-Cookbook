@@ -39,6 +39,7 @@ class Chunk:
     start: float
     end: float
     forced_cut: bool = False  # True if either edge was cut inside continuous speech
+    speaker: int = 0  # who speaks it (from voices.plan_speakers); a chunk never spans a speaker turn
 
     @property
     def duration(self) -> float:
@@ -68,21 +69,29 @@ def split_long_regions(regions: Sequence[Region], params: ChunkParams,
 
 
 def pack_chunks(regions: Sequence[Region], params: ChunkParams | None = None,
-                find_cut: CutFinder = midpoint_cut) -> list[Chunk]:
+                find_cut: CutFinder = midpoint_cut,
+                speaker_of: Callable[[Region], int] | None = None) -> list[Chunk]:
+    """`speaker_of` labels a region with its speaker; a change of speaker always ends a chunk."""
     params = params or ChunkParams()
     pieces = split_long_regions(sorted(regions, key=lambda r: r.start), params, find_cut)
     chunks: list[Chunk] = []
     current: list[tuple[Region, bool]] = []
+    who = speaker_of or (lambda _region: 0)
 
     def emit(group: list[tuple[Region, bool]]) -> None:
-        chunks.append(Chunk(group[0][0].start, group[-1][0].end, any(f for _, f in group)))
+        talk: dict[int, float] = {}
+        for region, _ in group:
+            talk[who(region)] = talk.get(who(region), 0.0) + region.duration
+        chunks.append(Chunk(group[0][0].start, group[-1][0].end, any(f for _, f in group),
+                            speaker=max(talk, key=lambda k: talk[k])))
 
     for piece in pieces:
         region = piece[0]
         if current:
             gap = region.start - current[-1][0].end
             length_so_far = current[-1][0].end - current[0][0].start
-            if gap >= params.sentence_pause_s and length_so_far >= params.min_len_s:
+            turn = who(region) != who(current[-1][0])
+            if turn or (gap >= params.sentence_pause_s and length_so_far >= params.min_len_s):
                 emit(current)
                 current = []
         current.append(piece)

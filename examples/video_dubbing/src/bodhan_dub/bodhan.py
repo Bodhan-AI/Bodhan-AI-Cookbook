@@ -97,15 +97,18 @@ class UsageMeter:
     units: dict[str, float] = field(default_factory=lambda: defaultdict(float))
     cost_inr: dict[str, float] = field(default_factory=lambda: defaultdict(float))
     cache_hits: dict[str, int] = field(default_factory=lambda: defaultdict(int))
+    cost_by_lang: dict[str, float] = field(default_factory=lambda: defaultdict(float))
     cooldown_s: dict[str, float] = field(default_factory=lambda: defaultdict(float))
     latencies_ms: dict[str, list[int]] = field(default_factory=lambda: defaultdict(list))
     _lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
 
-    def record(self, model: str, units: float, cost: float) -> None:
+    def record(self, model: str, units: float, cost: float, lang: str = "shared") -> None:
+        """`lang` is the dub language the call served ("shared" for source transcription)."""
         with self._lock:
             self.calls[model] += 1
             self.units[model] += units
             self.cost_inr[model] += cost
+            self.cost_by_lang[lang] += cost
 
     def record_retry(self, model: str) -> None:
         with self._lock:
@@ -140,6 +143,7 @@ class UsageMeter:
                 "units": {k: round(v, 3) for k, v in self.units.items()},
                 "cost_inr": {k: round(v, 4) for k, v in self.cost_inr.items()},
                 "total_cost_inr": round(sum(self.cost_inr.values()), 4),
+                "cost_inr_by_language": {k: round(v, 4) for k, v in self.cost_by_lang.items()},
                 "rate_limit_wait_s": {k: round(v, 1) for k, v in self.cooldown_s.items()},
                 "latency": self.latency_summary(),
             }
@@ -258,7 +262,8 @@ class BodhanClient:
             files={"file": ("clip.wav", wav, "audio/wav")},
             data={"model": TRANSCRIBE_MODEL, "language": language},
         )
-        self.usage.record(TRANSCRIBE_MODEL, seconds, seconds * PRICE_TRANSCRIBE_PER_SECOND)
+        self.usage.record(TRANSCRIBE_MODEL, seconds, seconds * PRICE_TRANSCRIBE_PER_SECOND,
+                          "shared" if language == "en" else language)
         text = str(resp.json().get("text", "")).strip()
         if self.cache:
             self.cache.put_json(key, {"text": text})
@@ -272,7 +277,8 @@ class BodhanClient:
             self.usage.record_hit(model)
         return hit
 
-    def translate(self, text: str, target_language: str, script: str = "native") -> Translation:
+    def translate(self, text: str, target_language: str, script: str = "native",
+                  bill_to: str | None = None) -> Translation:
         """Translate `text` into `target_language`. Check `truncated` before trusting the result.
 
         The documented product route is POST /translate, but some keys only reach the
@@ -283,6 +289,9 @@ class BodhanClient:
         if (hit := self._cached_json(TRANSLATE_MODEL, key)) is not None:
             return Translation(**hit)
         result = self._translate_live(text, target_language, script)
+        # Back-translations target English; `bill_to` names the dub language they check.
+        self.usage.record(TRANSLATE_MODEL, result.output_tokens,
+                          result.output_tokens * PRICE_TRANSLATE_PER_OUTPUT_TOKEN, bill_to or target_language)
         if self.cache:
             self.cache.put_json(key, {"text": result.text, "truncated": result.truncated,
                                       "output_tokens": result.output_tokens})
@@ -320,7 +329,6 @@ class BodhanClient:
         if "error" in body:  # the docs say to branch on presence, not only on status
             raise _error_from(resp)
         tokens = int(body.get("usage", {}).get("completion_tokens", 0))
-        self.usage.record(TRANSLATE_MODEL, tokens, tokens * PRICE_TRANSLATE_PER_OUTPUT_TOKEN)
         return Translation(text=body["translation"], truncated=bool(body.get("truncated")), output_tokens=tokens)
 
     def _translate_chat(self, text: str, target_language: str, script: str) -> Translation:
@@ -334,7 +342,6 @@ class BodhanClient:
         body = resp.json()
         choice = body["choices"][0]
         tokens = int(body.get("usage", {}).get("completion_tokens", 0))
-        self.usage.record(TRANSLATE_MODEL, tokens, tokens * PRICE_TRANSLATE_PER_OUTPUT_TOKEN)
         return Translation(text=(choice["message"].get("content") or "").strip(),
                            truncated=choice.get("finish_reason") == "length", output_tokens=tokens)
 
@@ -359,7 +366,7 @@ class BodhanClient:
         )
         if not resp.content.startswith(b"RIFF"):
             raise BodhanError(resp.status_code, "bad_audio", f"expected WAV, got {resp.headers.get('content-type')}")
-        self.usage.record(SPEAK_MODEL, len(text), len(text) * PRICE_SPEAK_PER_CHAR)
+        self.usage.record(SPEAK_MODEL, len(text), len(text) * PRICE_SPEAK_PER_CHAR, lang)
         if self.cache:
             self.cache.put_bytes(key, resp.content)
         return resp.content

@@ -64,6 +64,9 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--glossary", type=existing_file, help="YAML of terms to keep fixed across translations")
     p.add_argument("--voices", type=existing_file, help="YAML mapping languages/speakers to Indic-Speak voices")
     p.add_argument("--code-mixed", action="store_true", help="code-mixed targets (e.g. Hinglish) via Indic-Translate")
+    p.add_argument("--ascii-digits", action="store_true",
+                   help="send digits to Indic-Speak as written, which it reads in English; by default they are "
+                        "sent in the language's own digits so numbers are spoken in that language")
     p.add_argument("--max-parallel", type=int, default=4, help="max concurrent Bodhan API calls (default 4)")
     p.add_argument("--cache-dir", type=Path, help="model-call cache, reused across runs (default <out>/.cache)")
     p.add_argument("--log-level", default="INFO", choices=["DEBUG", "INFO", "WARNING", "ERROR"])
@@ -83,7 +86,7 @@ def main(argv: list[str] | None = None) -> int:
     opts = pipeline.RunOptions(input=args.input, langs=args.langs, out=args.out,
                                cache_dir=args.cache_dir or args.out / ".cache", max_parallel=args.max_parallel,
                                glossary=args.glossary, voices=args.voices,
-                               code_mixed=args.code_mixed)
+                               code_mixed=args.code_mixed, ascii_digits=args.ascii_digits)
     try:
         result = pipeline.run(opts, settings)
     except (media.MediaError, pipeline.PipelineError) as exc:

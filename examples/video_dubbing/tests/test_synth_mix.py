@@ -162,19 +162,47 @@ def test_pitch_estimate_and_gender_hysteresis():
     t = np.arange(2 * SAMPLE_RATE) / SAMPLE_RATE
     low = (0.3 * np.sin(2 * np.pi * 120 * t)).astype(np.float32)
     assert voices.median_pitch(low, 0.0, 2.0) == pytest.approx(120, rel=0.05)
-    assert voices.assign_genders([220, 180, 230, None, 120]) == ["female", "female", "female", "female", "male"]
 
 
-def test_voice_config_validation(tmp_path):
+
+def test_speakers_are_told_apart_by_relative_pitch_not_a_fixed_cutoff():
+    # Indic-Speak's male voice sits near 180 Hz, above a textbook 165 Hz cut-off; clusters still separate.
+    pitches = [240, 182, 236, None, 178, 244, 185]
+    labels, speakers = voices.plan_speakers(pitches, [3.0] * len(pitches))
+    assert labels == [1, 0, 1, 1, 0, 1, 0]  # the unknown region inherits its neighbour's speaker
+    assert (speakers[0].gender, speakers[1].gender) == ("male", "female")  # 1.3x apart: a man and a woman
+
+
+def test_one_speaker_with_natural_pitch_wobble_stays_one_speaker():
+    labels, speakers = voices.plan_speakers([210, 225, 218, 205, 230, 214], [3.0] * 6)
+    assert set(labels) == {0} and len(speakers) == 1 and speakers[0].gender == "female"
+
+
+def test_two_female_speakers_get_two_different_voices_where_the_language_has_them():
+    labels, speakers = voices.plan_speakers([205, 240, 203, 238, 207, 242], [3.0] * 6)  # 1.17x apart
+    cfg = voices.VoiceConfig()
+    hi = {voices.voice_for_speaker("hi", sp, cfg) for sp in speakers.values()}
+    ta = {voices.voice_for_speaker("ta", sp, cfg) for sp in speakers.values()}
+    assert hi == {"Kavya", "Suhani"} and len(ta) == 2  # Tamil has one female voice: the other gender fills in
+
+
+def test_voice_config_accepts_several_shapes(tmp_path):
     good = tmp_path / "v.yaml"
-    good.write_text("hi: Kavya\nta: {male: Arun}\nstyle: educational lecture\n")
-    cfg = voices.load_voice_config(good)
+    good.write_text("hi: Kavya\nta: {male: Arun}\nBengali: [sourav, Ishita]\ndefault: Amit\n"
+                    "style: Educational Lecture\n")
+    cfg, warnings = voices.load_voice_config(good)
+    assert warnings == [] and cfg.style == "educational lecture"
     assert voices.voice_for("hi", "male", cfg) == "Kavya" and voices.voice_for("ta", "female", cfg) == "Arun"
-    assert voices.voice_for("bn", "male", cfg) == "Sourav"
+    assert (voices.voice_for("bn", "male", cfg), voices.voice_for("bn", "female", cfg)) == ("Sourav", "Ishita")
+    assert voices.voice_for("te", "female", cfg) == "Amit"  # default covers unlisted languages
+
+
+def test_bad_voice_entries_are_warnings_and_the_rest_still_applies(tmp_path):
     bad = tmp_path / "bad.yaml"
-    bad.write_text("hi: Nobody\n")
-    with pytest.raises(voices.VoiceConfigError, match="unknown voice"):
-        voices.load_voice_config(bad)
+    bad.write_text("hi: Nobody\nklingon: Kavya\nta: Arun\nstyle: opera\n")
+    cfg, warnings = voices.load_voice_config(bad)
+    assert len(warnings) == 3 and voices.voice_for("ta", "male", cfg) == "Arun"
+    assert voices.voice_for("hi", "female", cfg) == "Kavya"  # unknown voice ignored: library default
 
 
 # ---------------------------------------------------------------------------
@@ -230,6 +258,10 @@ class ScriptedCondense(Synthesizer):
             def make_candidate(self, unit, lang, kind):
                 return Candidate(kind=kind, text=unit.text)
 
+            def judge(self, pairs, lang, result):
+                for _, cand in pairs:
+                    cand.verdict = "ok"
+
         self.translator = T()
         self._candidate = Candidate
         self.speak_text = lambda text, voice, lang: [SpokenSentence(
@@ -249,3 +281,39 @@ def test_condense_rounds_ask_for_progressively_less_until_it_fits():
     assert line.condensed[0]["result"] == "accepted"
     assert line.natural_s <= line.budget_s * MAX_TEMPO + 1e-9 and not line.notes
     assert syn.asked == sorted(syn.asked, reverse=True)  # never asks for the same thing twice
+
+
+class RecordingClient:
+    def __init__(self):
+        self.sent = []
+
+    def speak(self, text, voice, lang, style=None, variant=0):
+        self.sent.append(text)
+        t = np.arange(24_000) / 24_000
+        return audio.array_to_wav((0.3 * np.sin(2 * np.pi * 220 * t)).astype(np.float32), 24_000)
+
+    def transcribe(self, wav, language="en"):
+        return "कोण एक सौ अस्सी डिग्री है"
+
+
+def test_speech_gets_native_digits_but_subtitle_text_and_qa_reference_do_not():
+    client = RecordingClient()
+    syn = Synthesizer(client, None, translator=None, style=None)
+    spoken = syn.speak_sentence(["कोण 180 डिग्री है।"], "Kavya", "hi")
+    assert client.sent == ["कोण १८० डिग्री है।"]
+    assert spoken.text == "कोण 180 डिग्री है।" and spoken.to_dict()["tts_text"] == "कोण १८० डिग्री है।"
+    assert spoken.best.issue == ""  # QA compares against the translation; the number is a wildcard
+
+    plain = RecordingClient()
+    ascii_syn = Synthesizer(plain, None, translator=None, style=None, native_digits=False)
+    ascii_syn.speak_sentence(["कोण 180।"], "Kavya", "hi")
+    assert plain.sent == ["कोण 180।"]
+
+
+def test_segment_drift_is_estimated_inside_merged_lines():
+    from bodhan_dub.report import segment_drift_ms
+
+    line = line_with(12.0, 12.0, start=0.0, end=10.0)  # 10 s of source spoken over 12 s
+    mix.place([line], video_s=30.0)
+    # segments starting at 0 s and 5 s: the second is heard at 6 s, 1 s late
+    assert segment_drift_ms([line], {"u0000": [0.0, 5.0]}) == [0, 1000]

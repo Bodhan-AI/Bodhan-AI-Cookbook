@@ -20,7 +20,7 @@ flowchart LR
         VAD[Silero VAD<br/>speech regions]
         CH[chunker<br/>cut only at pauses]
         TC[text checks<br/>script, numbers, terms]
-        PITCH[pitch estimate<br/>voice per speaker]
+        PITCH[pitch clusters<br/>speakers + voices]
         MIX[mixer<br/>ducking, −16 LUFS, SRT]
         CACHE[(disk cache<br/>every model call)]
     end
@@ -32,13 +32,13 @@ flowchart LR
     subgraph Brain["LLM (any OpenAI-compatible)"]
         LLM[English-only:<br/>repair, glossary, judge,<br/>condense, style]
     end
-    V --> FF --> VAD --> CH --> ASR
+    V --> FF --> VAD --> PITCH --> CH --> ASR
     ASR --> LLM
     LLM --> MT
     MT -->|back-translation| TC
     TC --> LLM
     MT --> TTS --> ASR
-    PITCH --> TTS
+    PITCH -.->|voice per speaker| TTS
     TTS --> MIX --> FF
     ASR & MT & TTS & LLM -.-> CACHE
 ```
@@ -65,7 +65,8 @@ flowchart LR
 ```mermaid
 flowchart TD
     A[probe + extract 16 kHz audio] --> B[Silero VAD → speech regions]
-    B --> C[pack chunks ≤15 s, cut at longest pause<br/>nonstop speech: forced cut at quietest frame]
+    B --> P[pitch clusters → who speaks each region]
+    P --> C[pack chunks ≤15 s, cut at the longest pause and at every speaker turn<br/>nonstop speech: forced cut at quietest frame]
     C --> D[Indic-Transcribe each chunk]
     D --> D1{empty?}
     D1 -- yes --> SK1[skip: no speech recognised]
@@ -73,18 +74,20 @@ flowchart TD
     E --> E1{validator: ids, gaps ≤1.5 s,<br/>units ≤25 s, word overlap ≥0.7}
     E1 -- fail --> E2[re-ask once with the errors] --> E3{valid?}
     E3 -- no --> E4[fallback: raw segments + basic cleanup]
-    E1 -- ok --> F
-    E3 -- yes --> F
+    E1 -- ok --> SP
+    E3 -- yes --> SP
+    SP[split merges at segment boundaries that are sentence ends] --> F
     E4 --> F[LLM glossary, filtered to terms really in the text]
-    F --> G[pitch → voice per unit · LLM picks a style]
+    F --> G[voice per speaker · LLM picks a style]
     G --> L{{for each language, in parallel and isolated}}
     L --> T1[Indic-Translate unit] --> T2[back-translate to English]
     T2 --> T3{checks: script, numbers,<br/>glossary terms in back-translation}
     T3 --> T4[LLM judge: source vs back-translation]
     T4 --> T5{problem?}
     T5 -- yes --> T6[alternatives: per-sentence, code-mixed<br/>checked + judged] --> T7[pick best by checks, then verdict]
-    T5 -- no --> S1
-    T7 --> S1[Indic-Speak each sentence]
+    T5 -- no --> H
+    T7 --> H[glossary terms: follow each term's majority rendering, one pass]
+    H --> S1[Indic-Speak 1–2 sentences per request, digits in native script]
     S1 --> S2[back-transcribe → CER, length ratio]
     S2 --> S3{repetition / omission?}
     S3 -- yes, takes left --> S1
@@ -92,7 +95,7 @@ flowchart TD
     S4 -- yes --> M
     S4 -- within 1.2× --> S5[time-stretch] --> M
     S4 -- longer --> S6[LLM shortens English, code checks numbers + terms<br/>→ re-translate → re-speak, up to 3 rounds, each asking for less] --> S5
-    M[place lines, never overlapping] --> N[duck original under speech · dub at −16 LUFS · mux]
+    M[place lines, never overlapping] --> N[duck original only under dub lines · dub at −16 LUFS · mux]
     N --> O[video.lang.mp4 · subtitles.lang.srt · segments.lang.json]
     O --> R[report.json: every target, every miss explained]
 ```
@@ -109,16 +112,18 @@ flowchart TD
 
 ## How sync and quality are checked
 
+- **Merges are kept minimal.** The LLM may merge segments only to re-join a sentence split across them. Code splits any other merge back wherever a segment boundary coincides with a sentence end of the cleaned text (matched by word counts), so lines are timed from their own segment starts. Remaining drift inside merged lines is estimated per source segment in `segment_sync_estimated_ms`.
 - **Timing source.** Indic-Transcribe returns no timestamps, so a segment's start is the VAD onset of its chunk. Chunks never cut through speech except where speech is nonstop for over 15 s, which is flagged `forced_cut`.
 - **Duration drift**, in order: (1) use the line's own slot plus part of the silence after it (at most 1.5× the slot plus 1 s, so a line never drifts off its picture); (2) time-stretch up to 1.2×, pitch-preserving `atempo`; (3) the LLM shortens the *English*, which is re-translated and re-spoken, in up to three rounds. Each round starts from the best English so far and asks for less: it recomputes the target from the measured speech, and goes 15% further after a round that didn't help. Lines never overlap: if one still runs long, the next starts after it, and that shift is the reported sync error.
 - **Translation fidelity**, without the LLM ever reading or writing Indian-language text: back-translate with Indic-Translate, then check numbers (native digits normalised), script share, and whether every glossary term in the source reappears in the back-translation. Back-translations paraphrase ("common arm" → "common side"), so a missing term alone does not trigger recovery. **The LLM judge decides:** alternatives are tried on a hard failure, a lost number, a changed `keep` term, or a `major` verdict. The term check decides alone only if the judge is unavailable. In testing this caught Hindi rendering "vertically opposite angles" as "right angle" and "reflex angle" as "angle of reflection", while ignoring harmless paraphrases.
 - **Model misbehaviour** (Indic-Speak repeating or dropping words): every TTS clip (one or two sentences) is back-transcribed with Indic-Transcribe and judged by `ttsqa.py`:
-  - a **number-aware CER**: digit runs and Latin words are bounded wildcards, because Indic-Speak reads "180" in English even in Hindi;
+  - a **number-aware CER**: digit runs and Latin words are bounded wildcards, because a number is written as digits but spoken as words;
   - a **loop detector**: the text's own words said more often than written;
   - a **length check** for omissions.
 
   Seen live: a three-times loop and a dropped clause, both caught. A *repetition* or *omission* is re-spoken sentence by sentence, then once fresh; a plain *mismatch* is flagged but not retaken, because it is more often back-transcription noise. Ordinary CER is reported next to the number-aware one.
 - **Silence and music.** Non-speech stays non-speech: nothing is dubbed outside VAD speech regions, empty transcripts are skipped, and the LLM can mark lyrics or noise as `drop`. The original audio bed is kept and **ducked only where a dub line replaces the original speech**, so music, dropped vocals and any line that could not be dubbed keep their original audio instead of leaving silent holes.
+- **Numbers in speech.** Indic-Speak reads ASCII digits in English but native digits in the target language (verified live in all 22 languages), so `textcheck.native_digits` rewrites digit runs in the target script in the text sent to TTS only. Subtitles keep Indic-Translate's text, and `--ascii-digits` opts out.
 - **Loudness.** The dub speech track is normalised to −16 LUFS (EBU R128, measured with ffmpeg's `ebur128`) before mixing.
 - **Length.** The mix is built at exactly the input duration, and the video stream is copied, not re-encoded.
 
@@ -131,7 +136,22 @@ flowchart TD
 
 ## Speakers and voices
 
-There is no diarization. Each unit's median pitch (autocorrelation over voiced frames, numpy only) maps to the language's male (below 165 Hz) or female voice. A unit switches voice only if it is at least 20 Hz past the split, so one speaker does not flip-flop between voices. `--voices` overrides this per language. The output is labelled AI-dubbed in the MP4 metadata and in the first subtitle cue, and no voice imitates the original speaker.
+There is no diarization model, and Indic-Transcribe has no speaker labels, so speakers are told apart by **pitch**: autocorrelation over voiced frames, numpy only (`voices.py`).
+
+1. **Every VAD speech region gets a median pitch.** A two-cluster split on log pitch counts as two speakers only if the clusters are clearly separate: centroids at least 15% apart, well separated relative to their spread, and each holding at least 10% of the speech. Otherwise there is one speaker.
+2. **A speaker turn always ends a chunk**, and the repair validator rejects any LLM merge across speakers. So every unit has exactly one speaker.
+3. **Voices:**
+   - Clusters 1.25× or more apart are treated as a man and a woman: male voice for the lower, female for the higher. This is relative, not a fixed cut-off; Indic-Speak's own male voice speaks near 180 Hz.
+   - Closer clusters on the same side of 165 Hz get two voices of that gender where the language has them (Hindi has Kavya and Suhani), otherwise the other gender's voice, so the two speakers always sound different.
+   - A single speaker gets the voice for their pitch.
+   - `--voices` overrides all of this.
+
+Tested on a generated two-speaker video with a music bed (`scripts/make_test_video.py`): the speakers clustered at 167 Hz and 219 Hz and kept separate male and female voices in Kannada. **Limits:**
+- Two speakers with similar pitch share a voice.
+- A turn with no pause (under 0.3 s) cannot be detected, so that line keeps the previous speaker's voice.
+- Strongly tonal background music can bias the pitch estimate.
+
+The output is labelled AI-dubbed in the MP4 metadata and in the subtitles, and no voice imitates the original speaker.
 
 ## LLM choice: a bake-off on the real task
 

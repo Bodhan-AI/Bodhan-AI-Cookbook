@@ -56,7 +56,7 @@ class FakeBodhan:
         heard = wav_duration(wav)
         return self.spoken[min(self.spoken, key=lambda seconds: abs(seconds - heard))]
 
-    def translate(self, text, target_language, script="native"):
+    def translate(self, text, target_language, script="native", bill_to=None):
         if target_language == self.fail_lang:
             raise RuntimeError("simulated crash in one language")
         if target_language == "en":
@@ -126,6 +126,7 @@ def test_pipeline_offline_end_to_end(tmp_path, clip, fixed_speech):
     assert hi["sync_ms"]["within_300ms"] == 3
     assert abs(hi["total_length_ms"]) <= 100
     assert -17 <= hi["speech_lufs"] <= -15
+    assert hi["cost_inr"] == 0.0 and hi["segment_sync_estimated_ms"]["of"] == 3
 
     # One language crashing does not stop the other, and partial output is still written.
     assert result.failed == ["ta", "bn"] and report["status"] == "partial"
