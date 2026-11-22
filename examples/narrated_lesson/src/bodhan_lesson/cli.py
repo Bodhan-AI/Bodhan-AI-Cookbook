@@ -1,6 +1,6 @@
 """CLI entry helpers for the narrated-lesson pipeline.
 
-Parses flags, prepares page images, runs Indic-OCR, and writes report.json.
+Parses flags, prepares page images, runs Indic-OCR, cleans layout, writes report.json.
 """
 
 from __future__ import annotations
@@ -16,7 +16,8 @@ from bodhan_lesson.languages import (
     validate_source_lang,
     validate_target_langs,
 )
-from bodhan_lesson.ocr import run_ocr_on_pages
+from bodhan_lesson.layout_repair import run_layout_on_pages
+from bodhan_lesson.ocr import load_existing_ocr_pages, run_ocr_on_pages
 from bodhan_lesson.render_pages import prepare_page_images
 
 
@@ -53,6 +54,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="Optional code-mixed narration mode",
     )
+    parser.add_argument(
+        "--skip-ocr",
+        action="store_true",
+        help=(
+            "Dev convenience: reuse existing page_*.ocr.json under --out/source/pages "
+            "(skip PDF/image render and Indic-OCR)."
+        ),
+    )
     return parser.parse_args(argv)
 
 
@@ -70,23 +79,47 @@ def write_report(
     langs: list[str],
     page_count: int,
     ocr_pages: list[dict],
+    layout_pages: list[dict] | None = None,
 ) -> Path:
-    """Write report.json after page prep + OCR."""
-    ok = sum(1 for row in ocr_pages if row.get("status") == "ok")
-    failed = sum(1 for row in ocr_pages if row.get("status") == "error")
-    if failed and ok:
-        status = "ocr_partial"
-        message = "Some pages failed OCR — see ocr.pages"
-    elif failed and not ok:
+    """Write report.json after page prep, OCR, and layout cleanup."""
+    layout_pages = layout_pages or []
+    ocr_ok = sum(1 for row in ocr_pages if row.get("status") == "ok")
+    ocr_failed = sum(1 for row in ocr_pages if row.get("status") == "error")
+    layout_ok = sum(1 for row in layout_pages if row.get("status") == "ok")
+    layout_failed = sum(1 for row in layout_pages if row.get("status") == "error")
+    llm_repairs = sum(1 for row in layout_pages if row.get("repair") == "llm")
+    fallbacks = sum(1 for row in layout_pages if row.get("repair") == "fallback")
+    skip_ocr = bool(getattr(args, "skip_ocr", False))
+    llm_usage = {
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0,
+    }
+    for row in layout_pages:
+        usage = row.get("llm_usage") or {}
+        for key in llm_usage:
+            llm_usage[key] += int(usage.get(key) or 0)
+
+    if ocr_failed and not ocr_ok:
         status = "ocr_failed"
         message = "All pages failed OCR"
+    elif layout_failed and not layout_ok and ocr_ok:
+        status = "layout_failed"
+        message = "OCR ok but all layout cleanup failed"
+    elif ocr_failed or layout_failed:
+        status = "layout_partial"
+        message = "Some pages failed OCR or layout — see ocr.pages / layout.pages"
     else:
-        status = "ocr_ready"
-        message = "Page images prepared and OCR complete — assemble/translate not implemented yet"
+        status = "layout_ready"
+        message = (
+            "Reused OCR; layout cleanup complete"
+            if skip_ocr
+            else "OCR and layout cleanup complete"
+        )
 
     report = {
         "status": status,
-        "phase": 2,
+        "phase": "2b",
         "message": message,
         "input": str(Path(args.input).resolve()),
         "page_count": page_count,
@@ -95,10 +128,20 @@ def write_report(
         "code_mixed": bool(args.code_mixed),
         "glossary": args.glossary,
         "voices": args.voices,
+        "skip_ocr": skip_ocr,
         "ocr": {
-            "ok": ok,
-            "failed": failed,
+            "ok": ocr_ok,
+            "failed": ocr_failed,
+            "reused": skip_ocr,
             "pages": ocr_pages,
+        },
+        "layout": {
+            "ok": layout_ok,
+            "failed": layout_failed,
+            "llm_repairs": llm_repairs,
+            "fallbacks": fallbacks,
+            "llm_usage": llm_usage,
+            "pages": layout_pages,
         },
         "languages": {
             lang: {"status": "pending", "timings": {}, "retries": 0, "qa": {}, "cost": {}}
@@ -111,7 +154,7 @@ def write_report(
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Run Phase 1+2: pages, Indic-OCR, report."""
+    """Prepare pages, run Indic-OCR and layout cleanup, write report."""
     load_dotenv()
     args = parse_args(argv)
 
@@ -129,38 +172,61 @@ def main(argv: list[str] | None = None) -> int:
     ensure_output_dirs(out_dir, langs)
     pages_dir = out_dir / "source" / "pages"
 
-    try:
-        page_paths = prepare_page_images(input_path, pages_dir)
-    except (FileNotFoundError, ValueError, RuntimeError) as exc:
-        print(f"error: {exc}")
-        return 2
+    if args.skip_ocr:
+        try:
+            ocr_pages = load_existing_ocr_pages(pages_dir)
+        except FileNotFoundError as exc:
+            print(f"error: {exc}")
+            return 2
+        page_count = len(ocr_pages)
+    else:
+        try:
+            page_paths = prepare_page_images(input_path, pages_dir)
+        except (FileNotFoundError, ValueError, RuntimeError) as exc:
+            print(f"error: {exc}")
+            return 2
 
-    try:
-        ocr_pages = run_ocr_on_pages(pages_dir)
-    except RuntimeError as exc:
-        print(f"error: {exc}")
-        return 2
+        try:
+            ocr_pages = run_ocr_on_pages(pages_dir)
+        except RuntimeError as exc:
+            print(f"error: {exc}")
+            return 2
+        page_count = len(page_paths)
+
+    layout_pages = run_layout_on_pages(pages_dir, ocr_pages)
 
     report_path = write_report(
         out_dir,
         args,
         langs,
-        page_count=len(page_paths),
+        page_count=page_count,
         ocr_pages=ocr_pages,
+        layout_pages=layout_pages,
     )
 
-    ok = sum(1 for row in ocr_pages if row.get("status") == "ok")
-    failed = len(ocr_pages) - ok
+    ocr_ok = sum(1 for row in ocr_pages if row.get("status") == "ok")
+    ocr_failed = len(ocr_pages) - ocr_ok
+    layout_ok = sum(1 for row in layout_pages if row.get("status") == "ok")
+    layout_failed = len(layout_pages) - layout_ok
 
-    print("Phase 2 OK" if ok and not failed else "Phase 2 partial" if ok else "Phase 2 failed")
+    if ocr_ok and layout_ok and not ocr_failed and not layout_failed:
+        print("Layout OK")
+    elif ocr_ok or layout_ok:
+        print("Layout partial")
+    else:
+        print("Layout failed")
     print(f"  input : {input_path}")
-    print(f"  pages : {len(page_paths)} -> {pages_dir}")
-    print(f"  ocr   : {ok} ok, {failed} failed")
+    print(f"  pages : {page_count} -> {pages_dir}")
+    if args.skip_ocr:
+        print("  ocr   : reused existing .ocr.json (--skip-ocr)")
+    else:
+        print(f"  ocr   : {ocr_ok} ok, {ocr_failed} failed")
+    print(f"  layout: {layout_ok} ok, {layout_failed} failed")
     print(f"  langs : {langs}")
     print(f"  out   : {out_dir.resolve()}")
     print(f"  report: {report_path}")
 
-    if ok == 0:
+    if ocr_ok == 0:
         return 2
     return 0
 

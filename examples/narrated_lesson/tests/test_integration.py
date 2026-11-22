@@ -21,7 +21,23 @@ def _fake_ocr_ok(pages_dir: Path, **kwargs):  # noqa: ANN003
         ocr_json = pages_dir / f"{img.stem}.ocr.json"
         md.write_text("mock markdown\n", encoding="utf-8")
         ocr_json.write_text(
-            json.dumps({"page_image": img.name, "content": "mock markdown", "blocks": []}) + "\n",
+            json.dumps(
+                {
+                    "page_image": img.name,
+                    "content": "mock markdown",
+                    "blocks": [
+                        {
+                            "order": 0,
+                            "label": "Paragraph",
+                            "type": "Text",
+                            "bbox_xyxy": [10, 10, 200, 40],
+                            "conf": 0.95,
+                            "text": "mock markdown",
+                        }
+                    ],
+                }
+            )
+            + "\n",
             encoding="utf-8",
         )
         rows.append(
@@ -29,7 +45,7 @@ def _fake_ocr_ok(pages_dir: Path, **kwargs):  # noqa: ANN003
                 "page": img.name,
                 "stem": img.stem,
                 "status": "ok",
-                "block_count": 0,
+                "block_count": 1,
                 "md_path": str(md),
                 "ocr_json_path": str(ocr_json),
                 "usage": {},
@@ -64,8 +80,10 @@ def test_cli_phase2_from_image_folder(image_folder: Path, tmp_path: Path) -> Non
     report = json.loads((out / "report.json").read_text(encoding="utf-8"))
     assert report["page_count"] == 2
     assert report["langs"] == ["hi", "ta"]
-    assert report["phase"] == 2
+    assert report["phase"] == "2b"
     assert report["ocr"]["ok"] == 2
+    assert report["layout"]["ok"] == 2
+    assert (out / "source" / "pages" / "page_001.clean.json").is_file()
 
 
 def test_cli_phase2_from_pdf(multi_pdf: Path, tmp_path: Path) -> None:
@@ -84,7 +102,8 @@ def test_cli_phase2_from_pdf(multi_pdf: Path, tmp_path: Path) -> None:
     assert all(p.stat().st_size > 0 for p in pages)
     report = json.loads((out / "report.json").read_text(encoding="utf-8"))
     assert report["page_count"] == 3
-    assert report["phase"] == 2
+    assert report["phase"] == "2b"
+    assert report["layout"]["ok"] == 3
     assert report["languages"]["bn"]["status"] == "pending"
 
 
@@ -94,5 +113,6 @@ def test_cli_output_layout_contract(tiny_pdf: Path, tmp_path: Path) -> None:
         assert main(["--input", str(tiny_pdf), "--langs", "hi", "--out", str(out)]) == 0
     assert (out / "source" / "pages" / "page_001.png").is_file()
     assert (out / "source" / "pages" / "page_001.md").is_file()
+    assert (out / "source" / "pages" / "page_001.clean.json").is_file()
     assert (out / "hi" / "narration").is_dir()
     assert (out / "report.json").is_file()

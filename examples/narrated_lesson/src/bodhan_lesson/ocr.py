@@ -33,6 +33,70 @@ def list_page_images(pages_dir: Path) -> list[Path]:
     return sorted(files, key=lambda path: path.name.lower())
 
 
+def load_existing_ocr_pages(pages_dir: Path) -> list[dict[str, Any]]:
+    """Build OCR page summaries from saved page_*.ocr.json (no API calls).
+
+    Used with --skip-ocr so layout can be re-tested without spending OCR credits.
+    """
+    if not pages_dir.is_dir():
+        raise FileNotFoundError(f"Pages directory not found: {pages_dir}")
+
+    ocr_files = sorted(
+        [
+            path
+            for path in pages_dir.iterdir()
+            if path.is_file() and path.name.startswith("page_") and path.name.endswith(".ocr.json")
+        ],
+        key=lambda path: path.name.lower(),
+    )
+    if not ocr_files:
+        raise FileNotFoundError(
+            f"No page_*.ocr.json under {pages_dir}. Run without --skip-ocr once first."
+        )
+
+    results: list[dict[str, Any]] = []
+    for ocr_path in ocr_files:
+        stem = ocr_path.name[: -len(".ocr.json")]
+        try:
+            artifact = json.loads(ocr_path.read_text(encoding="utf-8"))
+            blocks = artifact.get("blocks") or []
+            if not isinstance(blocks, list):
+                raise ValueError("blocks must be a list")
+            page_name = artifact.get("page_image") or f"{stem}.png"
+            results.append(
+                {
+                    "page": page_name,
+                    "stem": stem,
+                    "status": "ok",
+                    "block_count": len(blocks),
+                    "md_path": str(pages_dir / f"{stem}.md"),
+                    "ocr_json_path": str(ocr_path),
+                    "usage": artifact.get("usage") or {},
+                    "error": None,
+                    "latency_s": 0.0,
+                    "retries": 0,
+                    "reused": True,
+                }
+            )
+        except Exception as exc:  # noqa: BLE001 — isolate per page
+            results.append(
+                {
+                    "page": f"{stem}.png",
+                    "stem": stem,
+                    "status": "error",
+                    "block_count": 0,
+                    "md_path": None,
+                    "ocr_json_path": str(ocr_path),
+                    "usage": {},
+                    "error": str(exc),
+                    "latency_s": 0.0,
+                    "retries": 0,
+                    "reused": True,
+                }
+            )
+    return results
+
+
 def build_ocr_request_body(
     image_path: Path,
     *,

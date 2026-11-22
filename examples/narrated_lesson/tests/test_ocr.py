@@ -14,6 +14,7 @@ from bodhan_lesson.ocr import (
     build_ocr_request_body,
     extract_ocr_fields,
     list_page_images,
+    load_existing_ocr_pages,
     run_ocr_on_pages,
     save_ocr_artifacts,
 )
@@ -86,6 +87,23 @@ def test_extract_and_save_artifacts(two_pages: Path) -> None:
 def test_extract_ocr_fields_requires_content() -> None:
     with pytest.raises(RuntimeError, match="no choices"):
         extract_ocr_fields({})
+
+
+def test_load_existing_ocr_pages(two_pages: Path) -> None:
+    save_ocr_artifacts(two_pages / "page_001.png", _fake_ocr_response("A"))
+    save_ocr_artifacts(two_pages / "page_002.jpg", _fake_ocr_response("B"))
+    rows = load_existing_ocr_pages(two_pages)
+    assert len(rows) == 2
+    assert all(r["status"] == "ok" and r["reused"] for r in rows)
+    assert rows[0]["stem"] == "page_001"
+    assert rows[0]["block_count"] == 1
+
+
+def test_load_existing_ocr_pages_missing_raises(tmp_path: Path) -> None:
+    empty = tmp_path / "empty"
+    empty.mkdir()
+    with pytest.raises(FileNotFoundError, match="No page_\\*\\.ocr\\.json"):
+        load_existing_ocr_pages(empty)
 
 
 def test_run_ocr_continues_after_one_failure(two_pages: Path) -> None:

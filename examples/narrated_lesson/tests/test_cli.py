@@ -20,21 +20,46 @@ from bodhan_lesson.limits import MAX_PAGES
 def _fake_ocr_ok(pages_dir: Path, **kwargs):  # noqa: ANN003
     images = sorted(pages_dir.glob("page_*.*"))
     images = [p for p in images if p.suffix.lower() in {".png", ".jpg", ".jpeg"}]
-    return [
-        {
-            "page": img.name,
-            "stem": img.stem,
-            "status": "ok",
-            "block_count": 1,
-            "md_path": str(pages_dir / f"{img.stem}.md"),
-            "ocr_json_path": str(pages_dir / f"{img.stem}.ocr.json"),
-            "usage": {},
-            "error": None,
-            "latency_s": 0.01,
-            "retries": 0,
-        }
-        for img in images
-    ]
+    rows = []
+    for img in images:
+        md = pages_dir / f"{img.stem}.md"
+        ocr_json = pages_dir / f"{img.stem}.ocr.json"
+        md.write_text("mock markdown\n", encoding="utf-8")
+        ocr_json.write_text(
+            json.dumps(
+                {
+                    "page_image": img.name,
+                    "content": "mock markdown",
+                    "blocks": [
+                        {
+                            "order": 0,
+                            "label": "Paragraph",
+                            "type": "Text",
+                            "bbox_xyxy": [10, 10, 200, 40],
+                            "conf": 0.95,
+                            "text": "mock markdown",
+                        }
+                    ],
+                }
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        rows.append(
+            {
+                "page": img.name,
+                "stem": img.stem,
+                "status": "ok",
+                "block_count": 1,
+                "md_path": str(md),
+                "ocr_json_path": str(ocr_json),
+                "usage": {},
+                "error": None,
+                "latency_s": 0.01,
+                "retries": 0,
+            }
+        )
+    return rows
 
 
 def test_parse_args_required_flags() -> None:
@@ -55,12 +80,75 @@ def test_parse_args_optional_flags() -> None:
             "--glossary", "g.yml",
             "--voices", "v.yml",
             "--code-mixed",
+            "--skip-ocr",
         ]
     )
     assert args.source_lang == "en"
     assert args.glossary == "g.yml"
     assert args.voices == "v.yml"
     assert args.code_mixed is True
+    assert args.skip_ocr is True
+
+
+def test_skip_ocr_reuses_artifacts(tmp_path: Path) -> None:
+    out = tmp_path / "out"
+    pages = out / "source" / "pages"
+    pages.mkdir(parents=True)
+    ocr_json = pages / "page_001.ocr.json"
+    ocr_json.write_text(
+        json.dumps(
+            {
+                "page_image": "page_001.png",
+                "content": "Hello",
+                "blocks": [
+                    {
+                        "order": 0,
+                        "label": "Paragraph",
+                        "type": "Text",
+                        "bbox_xyxy": [10, 10, 100, 40],
+                        "conf": 0.9,
+                        "text": "Hello",
+                    }
+                ],
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    with patch("bodhan_lesson.cli.prepare_page_images") as mock_prep:
+        with patch("bodhan_lesson.cli.run_ocr_on_pages") as mock_ocr:
+            code = main(
+                [
+                    "--input", str(tmp_path / "ignored.pdf"),
+                    "--langs", "hi",
+                    "--out", str(out),
+                    "--skip-ocr",
+                ]
+            )
+
+    assert code == 0
+    mock_prep.assert_not_called()
+    mock_ocr.assert_not_called()
+    report = json.loads((out / "report.json").read_text(encoding="utf-8"))
+    assert report["skip_ocr"] is True
+    assert report["ocr"]["reused"] is True
+    assert report["ocr"]["ok"] == 1
+    assert report["layout"]["ok"] == 1
+    assert (pages / "page_001.clean.json").is_file()
+
+
+def test_skip_ocr_without_artifacts_returns_2(tmp_path: Path) -> None:
+    out = tmp_path / "empty_out"
+    code = main(
+        [
+            "--input", str(tmp_path / "x.pdf"),
+            "--langs", "hi",
+            "--out", str(out),
+            "--skip-ocr",
+        ]
+    )
+    assert code == 2
 
 
 def test_langs_split_and_trim(image_folder: Path, tmp_path: Path) -> None:
@@ -76,7 +164,8 @@ def test_langs_split_and_trim(image_folder: Path, tmp_path: Path) -> None:
     assert code == 0
     report = json.loads((out / "report.json").read_text(encoding="utf-8"))
     assert report["langs"] == ["hi", "ta", "bn"]
-    assert report["phase"] == 2
+    assert report["phase"] == "2b"
+    assert report["layout"]["ok"] >= 1
 
 
 def test_empty_langs_returns_2(tmp_path: Path) -> None:
@@ -121,12 +210,28 @@ def test_write_report(tmp_path: Path) -> None:
         {"page": "page_001.png", "status": "ok", "block_count": 2, "error": None},
         {"page": "page_002.png", "status": "error", "block_count": 0, "error": "boom"},
     ]
-    path = write_report(tmp_path, args, ["hi"], page_count=2, ocr_pages=ocr_pages)
+    layout_pages = [
+        {
+            "page": "page_001.png",
+            "status": "ok",
+            "repair": "skipped",
+            "multi_column": False,
+        }
+    ]
+    path = write_report(
+        tmp_path,
+        args,
+        ["hi"],
+        page_count=2,
+        ocr_pages=ocr_pages,
+        layout_pages=layout_pages,
+    )
     data = json.loads(path.read_text(encoding="utf-8"))
-    assert data["phase"] == 2
-    assert data["status"] == "ocr_partial"
+    assert data["phase"] == "2b"
+    assert data["status"] == "layout_partial"
     assert data["ocr"]["ok"] == 1
     assert data["ocr"]["failed"] == 1
+    assert data["layout"]["ok"] == 1
     assert data["languages"]["hi"]["status"] == "pending"
 
 
