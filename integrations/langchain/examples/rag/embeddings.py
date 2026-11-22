@@ -7,6 +7,7 @@ test embeddings.
 
 from __future__ import annotations
 
+import hashlib
 import math
 import re
 from collections import Counter
@@ -41,7 +42,7 @@ class DeterministicFakeEmbeddings(Embeddings):
             return vec
         counts = Counter(words)
         for w, count in counts.items():
-            idx = abs(hash(w)) % self.vocab_size
+            idx = int(hashlib.md5(w.encode("utf-8")).hexdigest(), 16) % self.vocab_size
             # Sub-linear term frequency scaling
             vec[idx] += 1.0 + math.log(count)
         # L2 normalization for accurate cosine similarity
@@ -151,6 +152,7 @@ def get_embedding_model(
     provider: str = "huggingface",
     model_name: str | None = None,
     tokenizer: Any = None,
+    api_key: str | None = None,
 ) -> Embeddings:
     """Instantiate a LangChain-compatible Embeddings model.
 
@@ -160,6 +162,7 @@ def get_embedding_model(
             Default for HuggingFace: 'intfloat/multilingual-e5-small' (384 dimensions,
             512 token max sequence length, requires 'passage: ' and 'query: ' prefixes).
         tokenizer: Optional tokenizer instance for token validation.
+        api_key: Optional API key for external providers (e.g. OpenAI).
 
     Returns:
         Instance implementing langchain_core.embeddings.Embeddings.
@@ -210,7 +213,10 @@ def get_embedding_model(
         try:
             from langchain_openai import OpenAIEmbeddings
 
-            return OpenAIEmbeddings(model=chosen_model)
+            kwargs: dict[str, Any] = {"model": chosen_model}
+            if api_key:
+                kwargs["api_key"] = api_key
+            return OpenAIEmbeddings(**kwargs)
         except ImportError as exc:
             raise ImportError(
                 "To use OpenAI embeddings, install langchain-openai: pip install langchain-openai"
