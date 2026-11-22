@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import Any
 
 
@@ -18,6 +17,8 @@ class StepTrace:
     latency_ms: int
     cost_inr: float
     cached: bool = False
+    llm_latency_ms: int = 0
+    tool_latency_ms: int = 0
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -28,6 +29,8 @@ class StepTrace:
             "arguments": self.arguments,
             "result_summary": self.result_summary,
             "latency_ms": self.latency_ms,
+            "llm_latency_ms": self.llm_latency_ms,
+            "tool_latency_ms": self.tool_latency_ms,
             "cost_inr": round(self.cost_inr, 4),
             "cached": self.cached,
         }
@@ -36,7 +39,7 @@ class StepTrace:
 @dataclass
 class VerificationResult:
     artifact: str
-    verification_type: str  # e.g. "back_transcription", "back_translation", "format_check"
+    verification_type: str  # "back_transcription" | "back_translation" | "source_fidelity" | "format_check"
     passed: bool
     notes: str
 
@@ -51,7 +54,8 @@ class VerificationResult:
 
 @dataclass
 class AgentReport:
-    status: str  # "success" | "failed" | "impossible_task" | "budget_exceeded"
+    # Distinct statuses: success, max_steps_reached, budget_exceeded (money only), timeout, impossible_task, failed
+    status: str
     task: str
     steps_taken: int
     total_cost_inr: float

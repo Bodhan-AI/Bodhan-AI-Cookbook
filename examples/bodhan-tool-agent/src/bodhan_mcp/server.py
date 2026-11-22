@@ -42,13 +42,19 @@ def transcribe_audio(file_path: str, language: str = "") -> str:
     name="translate_text",
     description=(
         "Translate text between English and 22 official Indian languages using Indic-Translate. "
+        "Accepts either text directly or a file_path to translate. "
         "Preserves document layout, blank lines, and formatting across paragraphs. "
         "Unsupported non-Indian languages (e.g. French, German) fail with structured error."
     ),
 )
-def translate_text(text: str, target_language_code: str, target_script: str = "native") -> str:
-    """Translates text to target language."""
-    res = tools_backend.translate_text(text, target_language_code=target_language_code, target_script=target_script)
+def translate_text(text: str = "", file_path: str = "", target_language_code: str = "hi", target_script: str = "native") -> str:
+    """Translates text or file to target language."""
+    res = tools_backend.translate_text(
+        text=text,
+        file_path=file_path,
+        target_language_code=target_language_code,
+        target_script=target_script,
+    )
     return json.dumps(res, ensure_ascii=False, indent=2)
 
 

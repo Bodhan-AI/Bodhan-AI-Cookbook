@@ -228,16 +228,42 @@ class BodhanTools:
     # ------------------------------------------------------------------------
     # 2. translate_text
     # ------------------------------------------------------------------------
-    def translate_text(self, text: str, target_language_code: str, target_script: str = "native") -> dict[str, Any]:
+    def translate_text(
+        self,
+        text: str = "",
+        file_path: str = "",
+        target_language_code: str = "hi",
+        target_script: str = "native",
+    ) -> dict[str, Any]:
         """Translates text into an Indic language or English using Indic-Translate.
 
+        Accepts either raw text or a file_path. If file_path is provided (or if text is a file path),
+        reads the file content directly in plain code so callers never have to retype long text.
         Splits long text by paragraphs and sentences, preserves formatting, and reassembles.
         """
+        # Resolve text from file_path if provided, or if text itself is a file path
+        if file_path:
+            p = Path(file_path)
+            if p.exists() and p.is_file():
+                text = p.read_text(encoding="utf-8", errors="replace")
+            else:
+                return {
+                    "success": False,
+                    "error": f"Input text file not found: {file_path}",
+                    "actionable_tip": "Verify the file path exists.",
+                }
+        elif text:
+            # Check if text is actually a file path passed into text argument
+            p = Path(text.strip().strip("'\""))
+            if p.exists() and p.is_file():
+                file_path = str(p)
+                text = p.read_text(encoding="utf-8", errors="replace")
+
         if not text.strip():
             return {
                 "success": False,
                 "error": "Empty text provided for translation.",
-                "actionable_tip": "Provide non-empty text.",
+                "actionable_tip": "Provide non-empty text or a valid file_path.",
             }
 
         # Language check in plain code
@@ -549,9 +575,14 @@ class BodhanTools:
             text_content = path.read_text(encoding="utf-8", errors="replace")
             info["char_count"] = len(text_content)
             info["word_count"] = len(text_content.split())
+            info["preview"] = text_content[:200]
+            info["detected_script"] = detect_script_language(text_content)
+            info["file_path"] = str(path.resolve())
             info["estimated_tts_cost_inr"] = round(calculate_speak_cost(len(text_content)), 4)
+            info["estimated_translate_cost_inr"] = round(calculate_translate_cost(int(len(text_content.split()) * 1.3)), 4)
         else:
             info["media_type"] = "other"
+            info["file_path"] = str(path.resolve())
 
         return info
 
