@@ -2,7 +2,6 @@ import json
 
 import httpx
 import pytest
-
 from bodhan_mcp.client import OcrResult, SpeechResult, TranscribeResult, TranslateResult
 from bodhan_mcp.http_client import BodhanApiError, HttpBodhanClient
 
@@ -46,6 +45,19 @@ def test_translate_marks_length_termination_as_truncated():
     assert client.translate("source", "hi").truncated
 
 
+def test_translate_sends_requested_script_and_token_bound():
+    def handler(request):
+        body = json.loads(request.content)
+        assert body["script"] == "roman"
+        assert body["max_output_tokens"] == 128
+        return httpx.Response(200, json={
+            "choices": [{"finish_reason": "stop", "message": {"content": "Namaste"}}],
+        })
+
+    client = _client(handler, translate_key="key")
+    assert client.translate("hello", "hi", script="roman", max_output_tokens=128).text == "Namaste"
+
+
 def test_speech_detects_wav_from_bytes_not_mislabeled_header():
     wav = b"RIFF\x24\x00\x00\x00WAVEdata"
 
@@ -77,6 +89,27 @@ def test_missing_key_fails_before_network_request():
         client.translate("text", "mr")
 
 
+def test_rate_limit_retries_with_backoff(monkeypatch):
+    calls = 0
+    waits = []
+
+    def handler(request):
+        nonlocal calls
+        calls += 1
+        if calls < 3:
+            return httpx.Response(429)
+        return httpx.Response(200, json={
+            "choices": [{"finish_reason": "stop", "message": {"content": "नमस्ते"}}],
+        })
+
+    monkeypatch.setattr("bodhan_mcp.http_client.time.sleep", waits.append)
+    client = _client(handler, translate_key="key")
+
+    assert client.translate("hello", "hi").text == "नमस्ते"
+    assert calls == 3
+    assert waits == [0.5, 1.0]
+
+
 def test_transcribe_maps_text_response(tmp_path):
     audio = tmp_path / "voice.wav"
     audio.write_bytes(b"test audio")
@@ -85,6 +118,7 @@ def test_transcribe_maps_text_response(tmp_path):
         assert request.url.path == "/v1/audio/transcriptions"
         assert b"indic-transcribe" in request.content
         assert b"voice.wav" in request.content
+        assert b"audio/wav" in request.content
         return httpx.Response(200, json={"text": "नमस्ते"})
 
     client = _client(handler, transcribe_key="key")

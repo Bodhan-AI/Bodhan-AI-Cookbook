@@ -1,0 +1,24 @@
+{
+  "status": "completed",
+  "steps": 5,
+  "verification_results": [
+    {
+      "type": "translation",
+      "source_id": "e637727735d6a37230ba97d8c8f7a4b7d7d3035b07884f3ccc388647bbf219e6",
+      "ok": true,
+      "issues": []
+    }
+  ],
+  "unresolved_tool_failures": [],
+  "total_cost_inr": 0.014088,
+  "cost_basis": "Conservative preflight upper-bound estimates; see trace.jsonl per step.",
+  "elapsed_seconds": 33.328,
+  "final_answer": "Transcribed the repository Hindi sample and produced a verified English translation.",
+  "artifacts": [
+    "artifacts/transcript-001.txt",
+    "artifacts/translation-002.txt"
+  ],
+  "source_run": "01-transcribe-translate-final",
+  "omitted_artifacts": [],
+  "evidence_note": "Sanitized text-only evidence; generated media is not included."
+}

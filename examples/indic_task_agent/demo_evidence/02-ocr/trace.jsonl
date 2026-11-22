@@ -1,0 +1,4 @@
+{"kind": "plan", "elapsed_ms": 8313, "plan": "LLM selected bodhan_ocr for a user-provided image; source content is withheld.", "tool_calls": [{"name": "bodhan_ocr", "arguments": "{\"image_path\":\"<user-provided image; omitted>\"}"}], "latency_ms": 8313}
+{"kind": "tool", "elapsed_ms": 11250, "tool": "bodhan_ocr", "arguments": {"image_path": "<user-provided image; omitted>"}, "result_summary": "{\"ok\": true, \"extracted_text_redacted\": true, \"character_count\": 1647, \"pages\": 1, \"cost_inr\": 0.2, \"artifact_path\": \"<OCR artifact withheld>\"}", "result_status": "ok", "latency_ms": 2937, "cost_inr": 0.2}
+{"kind": "plan", "elapsed_ms": 18953, "plan": "OCR completed; extracted content is intentionally withheld.", "tool_calls": [], "latency_ms": 7703}
+{"kind": "final", "elapsed_ms": 18953, "status": "completed", "summary": "OCR succeeded; extracted content intentionally withheld.", "latency_ms": 18953, "cost_inr": 0.2}

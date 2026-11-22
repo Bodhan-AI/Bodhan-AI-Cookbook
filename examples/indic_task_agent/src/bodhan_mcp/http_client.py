@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import base64
 import os
+import threading
+import time
 from pathlib import Path
 from typing import Any
 
@@ -28,7 +30,7 @@ class HttpBodhanClient:
         speak_key: str | None = None,
         ocr_key: str | None = None,
         base_url: str = "https://api.bodhan.ai",
-        timeout: float = 120,
+        timeout: float = 60,
         client: httpx.Client | None = None,
     ) -> None:
         self._keys = {
@@ -39,7 +41,8 @@ class HttpBodhanClient:
         }
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
-        self._client = client or httpx.Client(timeout=timeout)
+        self._client = client or httpx.Client(timeout=httpx.Timeout(timeout))
+        self._request_slots = threading.BoundedSemaphore(2)
 
     @classmethod
     def from_env(cls) -> HttpBodhanClient:
@@ -82,12 +85,31 @@ class HttpBodhanClient:
             message = str(body)
         raise BodhanApiError(response.status_code, str(message)[:1000], request_id)
 
+    def _post(self, url: str, capability: str, **kwargs: Any) -> httpx.Response:
+        with self._request_slots:
+            for attempt in range(3):
+                response = self._client.post(
+                    url,
+                    headers=self._headers(capability),
+                    **kwargs,
+                )
+                if response.status_code != 429 or attempt == 2:
+                    return response
+                retry_after = response.headers.get("retry-after")
+                try:
+                    delay = min(float(retry_after), 10.0) if retry_after else 0.5 * (2**attempt)
+                except ValueError:
+                    delay = 0.5 * (2**attempt)
+                time.sleep(delay)
+        raise RuntimeError("Request retry loop ended unexpectedly.")
+
     def translate(
         self,
         text: str,
         target_language: str,
         source_language: str | None = None,
         script: str = "native",
+        max_output_tokens: int | None = None,
     ) -> TranslateResult:
         body: dict[str, Any] = {
             "model": "indic-translate",
@@ -98,9 +120,13 @@ class HttpBodhanClient:
             body["source_language"] = source_language
         if script != "native":
             body["script"] = script
-        response = self._client.post(
+        if max_output_tokens is not None:
+            if max_output_tokens <= 0:
+                raise ValueError("max_output_tokens must be greater than zero.")
+            body["max_output_tokens"] = max_output_tokens
+        response = self._post(
             f"{self.base_url}/v1/chat/completions",
-            headers=self._headers("translate"),
+            "translate",
             json=body,
         )
         self._raise_for_error(response)
@@ -136,9 +162,9 @@ class HttpBodhanClient:
         }
         if voice:
             body["voice"] = voice
-        response = self._client.post(
+        response = self._post(
             f"{self.base_url}/v1/audio/speech",
-            headers=self._headers("speak"),
+            "speak",
             json=body,
         )
         self._raise_for_error(response)
@@ -159,10 +185,10 @@ class HttpBodhanClient:
     def transcribe(self, audio_path: str | Path, language: str | None = None) -> TranscribeResult:
         source = Path(audio_path)
         with source.open("rb") as audio_file:
-            response = self._client.post(
+            response = self._post(
                 f"{self.base_url}/v1/audio/transcriptions",
-                headers=self._headers("transcribe"),
-                files={"file": (source.name, audio_file, "application/octet-stream")},
+                "transcribe",
+                files={"file": (source.name, audio_file, "audio/wav")},
                 data={"model": "indic-transcribe", **({"language": language} if language else {})},
             )
         self._raise_for_error(response)
@@ -180,9 +206,9 @@ class HttpBodhanClient:
         source = Path(image_path)
         mime_type = mimetypes.guess_type(source.name)[0] or "image/png"
         image_data = base64.b64encode(source.read_bytes()).decode("ascii")
-        response = self._client.post(
+        response = self._post(
             f"{self.base_url}/v1/chat/completions",
-            headers=self._headers("ocr"),
+            "ocr",
             json={
                 "model": "indic-ocr",
                 "messages": [{

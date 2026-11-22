@@ -9,6 +9,7 @@ outputs/*
 !outputs/.gitkeep
 out/
 smoke_out/
+demo_inputs/
 *.egg-info/
 __pycache__/
 .pytest_cache/

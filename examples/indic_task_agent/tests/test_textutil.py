@@ -1,6 +1,5 @@
 import pytest
-
-from bodhan_mcp.textutil import chunk_text, split_sentences
+from bodhan_mcp.textutil import chunk_text, split_sentences, translation_token_caps
 
 
 def test_split_on_danda_and_periods():
@@ -47,3 +46,11 @@ def test_empty_text_and_bad_limit():
     assert chunk_text("   ") == []
     with pytest.raises(ValueError):
         chunk_text("hi", max_chars=5)
+
+
+def test_translation_token_caps_match_bounded_chunks():
+    text = "a" * 2500
+    caps = translation_token_caps(text)
+    assert len(caps) > 1
+    assert all(cap >= 64 for cap in caps)
+    assert sum(caps) >= len(text)

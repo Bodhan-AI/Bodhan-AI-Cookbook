@@ -1,0 +1,14 @@
+{
+  "status": "completed",
+  "steps": 3,
+  "verification_results": [],
+  "unresolved_tool_failures": [],
+  "total_cost_inr": 0,
+  "cost_basis": "Conservative preflight upper-bound estimates; see trace.jsonl per step.",
+  "elapsed_seconds": 13.468,
+  "final_answer": "Inspected the repository Hindi sample: WAV audio, 6.48 seconds, one stream.",
+  "artifacts": [],
+  "source_run": "05-inspect-audio",
+  "omitted_artifacts": [],
+  "evidence_note": "Sanitized text-only evidence; generated media is not included."
+}

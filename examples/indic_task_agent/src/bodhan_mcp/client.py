@@ -40,6 +40,7 @@ class BodhanClient(Protocol):
         target_language: str,
         source_language: str | None = None,
         script: str = "native",
+        max_output_tokens: int | None = None,
     ) -> TranslateResult:
         ...
 

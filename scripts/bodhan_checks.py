@@ -27,6 +27,12 @@ from bodhan_rules import allowed_models, deprecated_models, load_rules
 SOURCE_SUFFIXES = {".py", ".ipynb", ".js", ".ts", ".tsx", ".jsx", ".sh", ".md", ".txt", ".toml", ".yaml", ".yml", ".json", ".env", ".example"}
 SKIP_DIRS = {".git", "node_modules", ".venv", "venv", "__pycache__", ".ipynb_checkpoints", "outputs", "sample_data", ".next", "dist", "build"}
 MAX_SCAN_BYTES = 2_000_000
+MODEL_API_KEYS = {
+    "BODHAN_TRANSCRIBE_KEY",
+    "BODHAN_TRANSLATE_KEY",
+    "BODHAN_SPEAK_KEY",
+    "BODHAN_OCR_KEY",
+}
 
 # Patterns that indicate a real credential rather than a placeholder.
 SECRET_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
@@ -165,8 +171,19 @@ def check_structure(root: Path, *, require_env_example: bool = True) -> Iterator
         env_example = root / ".env.example"
         if not env_example.exists():
             yield Finding("error", "structure", rel_root, ".env.example is missing")
-        elif "BODHAN_API_KEY" not in (_read_text(env_example) or ""):
-            yield Finding("error", "structure", str(env_example), ".env.example must declare BODHAN_API_KEY")
+        else:
+            env_names = {
+                line.partition("=")[0].strip()
+                for line in (_read_text(env_example) or "").splitlines()
+                if "=" in line and not line.lstrip().startswith("#")
+            }
+            if "BODHAN_API_KEY" not in env_names and not MODEL_API_KEYS.issubset(env_names):
+                yield Finding(
+                    "error",
+                    "structure",
+                    str(env_example),
+                    ".env.example must declare BODHAN_API_KEY or all four model-specific Bodhan keys",
+                )
 
         gitignore = root / ".gitignore"
         if not gitignore.exists():

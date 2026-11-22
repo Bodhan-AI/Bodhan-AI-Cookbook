@@ -111,9 +111,14 @@ def detect_script(text: str) -> dict:
     }
 
 
-def script_matches_language(text: str, language: str, min_fraction: float = 0.6) -> bool:
+def script_matches_language(
+    text: str,
+    language: str,
+    min_fraction: float = 0.6,
+    output_script: str = "native",
+) -> bool:
     """True if at least `min_fraction` of the letters are in `language`'s usual script."""
-    expected = language_script(language)
+    expected = "Latin" if output_script == "roman" else language_script(language)
     if expected is None:
         return True  # unknown language: cannot judge
     info = detect_script(text)

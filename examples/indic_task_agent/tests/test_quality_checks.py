@@ -1,4 +1,4 @@
-from bodhan_mcp.checks import check_translation, compare_speech, normalize_for_compare
+from bodhan_mcp.checks import check_translation, compare_speech, is_placeholder_text, normalize_for_compare
 
 
 def test_normalize_drops_punctuation_and_zero_width():
@@ -39,3 +39,25 @@ def test_translation_truncated_empty_and_wrong_script():
     assert not check_translation("Hi", "   ", "ta")["ok"]
     wrong = check_translation("Hi there friend", "hi there friend", "ta")
     assert not wrong["ok"] and "script" in wrong["issues"][0]
+
+
+def test_translation_placeholder_is_rejected():
+    result = check_translation(
+        "नमस्ते",
+        "The transcript text will be provided after transcription.",
+        "en",
+    )
+    assert not result["ok"]
+    assert any("placeholder" in issue for issue in result["issues"])
+    assert is_placeholder_text("source text will be provided after transcription")
+    assert not is_placeholder_text("The source text will be provided to the class tomorrow.")
+
+
+def test_translation_roman_script_is_accepted_when_requested():
+    result = check_translation(
+        "The annual science fair will be held on Friday.",
+        "Varshik vigyan mela shukravari hoil.",
+        "mr",
+        target_script="roman",
+    )
+    assert result["ok"], result

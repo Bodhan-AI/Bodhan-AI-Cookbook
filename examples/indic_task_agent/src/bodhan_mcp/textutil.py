@@ -69,3 +69,8 @@ def chunk_text(text: str, max_chars: int = TTS_CHUNK_CHARS) -> list[str]:
     if current:
         chunks.append(current)
     return chunks
+
+
+def translation_token_caps(text: str) -> list[int]:
+    """Bound each translation response so its maximum cost is known before the call."""
+    return [max(64, len(chunk) * 2) for chunk in chunk_text(text, TRANSLATE_CHUNK_CHARS)]

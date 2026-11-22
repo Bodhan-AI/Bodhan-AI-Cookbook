@@ -20,7 +20,8 @@ def test_fake_synthesize_returns_bytes():
     client = FakeBodhanClient()
     result = client.synthesize("hello", language="en", voice="test")
     assert result.format == "wav"
-    assert result.audio_bytes.startswith(b"FAKE-WAV|en|")
+    assert result.audio_bytes.startswith(b"RIFF")
+    assert result.audio_bytes[8:12] == b"WAVE"
 
 
 def test_fake_ocr_never_reads_the_image(tmp_path):

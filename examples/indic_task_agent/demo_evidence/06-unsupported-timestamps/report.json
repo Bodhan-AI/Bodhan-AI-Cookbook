@@ -1,0 +1,22 @@
+{
+  "status": "unsupported",
+  "steps": 5,
+  "verification_results": [],
+  "unresolved_tool_failures": [
+    {
+      "tool": "make_subtitles",
+      "code": "UNSUPPORTED_TIMESTAMP_SOURCE",
+      "message": "provide a JSON file with explicit start, end, and text fields."
+    }
+  ],
+  "total_cost_inr": 0.010808,
+  "cost_basis": "Conservative preflight upper-bound estimates; see trace.jsonl per step.",
+  "elapsed_seconds": 53.86,
+  "final_answer": "Exact word-level timestamps were unavailable, so the task was reported unsupported and no SRT was created.",
+  "artifacts": [
+    "artifacts/transcript-001.txt"
+  ],
+  "source_run": "06-unsupported-word-timestamps-fixed",
+  "omitted_artifacts": [],
+  "evidence_note": "Sanitized text-only evidence; generated media is not included."
+}
