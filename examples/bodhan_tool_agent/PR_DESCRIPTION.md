@@ -1,101 +1,111 @@
 # Pull Request: Bodhan Tool Server & Autonomous Indic Task Agent
 
 ## Summary
-Implements a production-grade Model Context Protocol (MCP) server (`bodhan_mcp`) and CLI task agent (`bodhan_agent`) wrapping Bodhan Indic AI models (Indic-Transcribe, Indic-Translate, Indic-Speak, Indic-OCR) strictly conforming to `SPEC.md`, `AGENTS.md`, `ARCHITECTURE.md`, `TOOL_DESIGN.md`, and `AGENT_DESIGN.md`.
 
-Key achievements:
-- **8 FastMCP Tools** registering the official SDK embedded FastMCP (`from mcp.server.fastmcp import FastMCP`), completely absorbing model limits (audio chunking at pauses ≤ 30s, global timestamp remapping, 32K token pagination preserving Markdown tables, PDF multi-page rendering at 200 DPI, concurrency semaphore=4, exponential backoff, SHA256 in-run caching, AI sidecar metadata stamping).
-- **Strict Stdout Purity & Error Handling**: Server logs exclusively to `sys.stderr`; stdout is reserved for JSON-RPC. Every failure returns a typed `ToolErrorPayload` with `{code, message, hint, details}`; the server never crashes or raises across the MCP boundary.
-- **Autonomous Task Agent**: Deterministic file resolver (`resolver.py`), pre-flight and runtime spend ceiling enforcement (`budget.py`), strict plan validation (`planner.py`) preventing path emission (C4) and Indic characters (C2), untrusted content isolation (`untrusted.py`), multi-metric artifact verification (`verifier.py`), and standardized output reporting (`result.md`, `report.json`, `trace.jsonl`, `artifacts/`).
-- **All 15 Slices Completed**: 77 passing unit and end-to-end tests; 6 reproducible demo tasks executed.
+An MCP server (`python -m bodhan_mcp`) exposes Bodhan's Indic speech-to-text, translation, speech synthesis, and OCR models as typed, limit-absorbing tools over `stdio`. An autonomous CLI task agent (`python -m bodhan_agent`) takes a plain-language task and directory of files, plans with any OpenAI-compatible LLM (Groq / OpenAI), executes via standard MCP JSON-RPC, enforces strict pre-flight and runtime financial ceilings, defends against indirect prompt injections, and verifies all artifacts before finalizing.
+
+All implementation code, tests, documentation, and Docker configuration reside in `examples/bodhan_tool_agent/`.
+
+- **MCP Tool Server:** `python -m bodhan_mcp` (stdio MCP with 8 tools, strict JSON-RPC stdout purity, logs to `stderr`)
+- **Autonomous Agent:** `python -m bodhan_agent --task "..." --files path/to/inputs --out ./out [--max-cost-inr 20] [--max-steps 30]`
+- **Test Suite:** 77 passing unit and E2E integration tests (`pytest -q` runs in 6.8s with zero unmocked HTTP calls)
+- **Containerization:** Hardened Debian Docker container with FFmpeg and Poppler included
 
 ---
 
 ## How to run
 
-### 1. Clean-Clone Setup
-```bash
-# Clone and enter repo
-git clone <repo-url>
-cd bodhi_ai
+### Prerequisites
+- Python 3.11+
+- System packages: `ffmpeg` (with `ffprobe`) and `poppler-utils` (macOS: `brew install ffmpeg poppler`; Ubuntu/Debian: `sudo apt-get install ffmpeg poppler-utils`)
 
-# Create virtual environment and install in editable mode with dev dependencies
+```bash
+# 1. Clone fork and enter recipe folder
+git clone https://github.com/ayush3739/Bodhan-AI-Cookbook.git
+cd Bodhan-AI-Cookbook/examples/bodhan_tool_agent
+
+# 2. Virtual environment setup
 python -m venv .venv
 # Linux/macOS:
 source .venv/bin/activate
 # Windows:
 .\.venv\Scripts\activate
 
-pip install -e ".[dev]"
-cp .env.example .env  # Add your Bodhan API keys and LLM credentials
-```
+# 3. Install in editable mode
+pip install -e .
 
-### 2. Standalone MCP Server
-```bash
-# Run stdio MCP server (clean stderr logging only)
+# 4. Configure API keys (Bodhan API keys x4, Groq/OpenAI companion LLM keys)
+cp .env.example .env
+
+# 5. Run the Autonomous Task Agent CLI
+python -m bodhan_agent --task "Transcribe speech.wav and translate to English" \
+  --files demo/inputs/task_2 --out out/demo_run --max-cost-inr 20
+
+# 6. Run the Standalone MCP Server over stdio
 python -m bodhan_mcp
 
-# Test independently with the official MCP Inspector
-npx @modelcontextprotocol/inspector python -m bodhan_mcp
-```
-
-### 3. Task Agent CLI
-```bash
-python -m bodhan_agent --task "<task-description>" --files <input-dir> --out <output-dir> [--max-steps 30] [--max-cost-inr 20]
-```
-
-### 4. Run Test Suite
-```bash
-# 77 unit & E2E tests, all upstream Bodhan HTTP calls strictly mocked
+# 7. Run full test suite (77 tests, all Bodhan HTTP mocked)
 pytest -q
+
+# 8. Recipe structure validation
+python ../../scripts/validate_recipe.py .
 ```
 
-### 5. Reproduce the Six Demo Tasks
+### Docker Alternative
 ```bash
-python scripts/prepare_demo_media.py
-python scripts/run_demos.py
+# Build and run inside container
+docker build -t bodhan-agent .
+docker run --rm bodhan-agent -m pytest -q
+```
+
+### Official MCP Inspector Verification
+Tested and fully compatible with the official Anthropic/ModelContextProtocol Inspector:
+```bash
+npx @modelcontextprotocol/inspector python -m bodhan_mcp
 ```
 
 ---
 
 ## Architecture
-See [`docs/architecture.svg`](docs/architecture.svg), [`docs/architecture.excalidraw`](docs/architecture.excalidraw), and [`ARCHITECTURE.md`](ARCHITECTURE.md).
 
 ```mermaid
 flowchart TD
-    subgraph CLI_RUNNER["CLI Entrypoint"]
-        CLI["python -m bodhan_agent<br/>--task ... --files ... --out ..."]
+    subgraph CLIENT["Clients & Entrypoints"]
+        CLI["CLI Entrypoint<br/><code>python -m bodhan_agent</code>"]
+        INSPECTOR["External MCP Clients<br/>(MCP Inspector, Claude Desktop)"]
     end
 
-    subgraph AGENT_PKG["Package: bodhan_agent"]
+    subgraph AGENT_PKG["Package: bodhan_agent (Pure Async Python)"]
         LOOP["Agent Loop (loop.py)"]
-        RESOLVER["Deterministic Resolver (resolver.py)<br/>• Fast local inspection<br/>• Abstract IDs (A, B...)"]
-        BUDGET["Budget Manager (budget.py)<br/>• Pre-flight estimate<br/>• Real-time ledger"]
-        PLANNER["LLM Planner (planner.py)<br/>• Dual-Key Groq failover<br/>• No Indic / No Paths"]
-        EXECUTOR["Step Executor (executor.py)<br/>• ID -> Path mapping<br/>• Dependency resolution"]
-        VERIFIER["Verifiers (verifier.py)<br/>• Audio back-transcribe<br/>• Table parity & coverage"]
+        RESOLVER["Deterministic Resolver (resolver.py)<br/>• Fast local inspection (inspect_media)<br/>• Abstract IDs (A, B...) — No paths to LLM"]
+        BUDGET["Budget Ledger (budget.py)<br/>• Pre-flight estimate + 10% safety buffer<br/>• Zero spend on refusal"]
+        PLANNER["LLM Planner (planner.py)<br/>• Dual-Key Groq failover<br/>• Strict validation: No Indic & No Paths"]
+        EXECUTOR["Step Executor (executor.py)<br/>• Abstract ID -> Verified Path mapping<br/>• Dependency resolution"]
+        UNTRUSTED["Untrusted Isolation (untrusted.py)<br/>• <UNTRUSTED_CONTENT> boundaries<br/>• Indirect prompt injection defense"]
+        VERIFIER["Multi-Metric Verifiers (verifier.py)<br/>• Audio back-transcription similarity ≥ 0.85<br/>• Table dimension parity 1:1<br/>• Translation coverage & non-empty<br/>• Monotonic SRT timestamps"]
     end
 
-    subgraph PROTOCOL["Protocol Boundary"]
-        MCP_STDIO["Model Context Protocol (stdio / JSON-RPC)<br/>Pure stdout | Logs -> stderr"]
+    subgraph BOUNDARY["Protocol Boundary (stdio)"]
+        STDIO["JSON-RPC 2.0 over stdio<br/>Pure stdout | All logs -> stderr"]
     end
 
-    subgraph SERVER_PKG["Package: bodhan_mcp"]
-        FASTMCP["FastMCP Server (server.py)"]
-        subgraph TOOLS["Limit-Absorbing Tools"]
-            T_STT["transcribe_audio (30s chunking)"]
-            T_MT["translate_text (32K pagination)"]
-            T_TTS["synthesize_speech (.ai.txt sidecar)"]
-            T_OCR["ocr_document / page (PyMuPDF)"]
+    subgraph SERVER_PKG["Package: bodhan_mcp (FastMCP SDK)"]
+        SERVER["FastMCP Server (server.py)"]
+        subgraph TOOLS["8 Limit-Absorbing Tools"]
+            T_STT["transcribe_audio<br/>(Pause chunking ≤ 30s + remapping)"]
+            T_MT["translate_text<br/>(32K pagination + table preservation)"]
+            T_TTS["synthesize_speech<br/>(Sentence chunking + .ai.txt sidecar)"]
+            T_OCR["ocr_document / ocr_page<br/>(200 DPI PyMuPDF + pipe tables)"]
+            T_MEDIA["inspect_media / chunk_audio / get_voice_library<br/>(Free metadata extraction)"]
         end
-        CLIENTS["Base Client (Semaphore 4 | SHA256 Cache)"]
+        CLIENT_CORE["Base Bodhan Client (base.py)<br/>• Concurrency Semaphore = 4<br/>• SHA256 In-Run Request Cache<br/>• Exponential Jitter Retry (429, 502, 503, 504)"]
     end
 
-    subgraph UPSTREAM["Bodhan Indic Models (api.bodhan.ai/v1)"]
-        M_STT["Indic-Transcribe"]
-        M_MT["Indic-Translate"]
-        M_TTS["Indic-Speak"]
-        M_OCR["Indic-OCR"]
+    subgraph UPSTREAM["Bodhan Indic AI Models (api.bodhan.ai/v1)"]
+        M1["Indic-Transcribe (STT)"]
+        M2["Indic-Translate (MT)"]
+        M3["Indic-Speak (TTS)"]
+        M4["Indic-OCR (Vision)"]
     end
 
     CLI --> LOOP
@@ -103,122 +113,159 @@ flowchart TD
     LOOP --> BUDGET
     LOOP --> PLANNER
     LOOP --> EXECUTOR
+    LOOP --> UNTRUSTED
     LOOP --> VERIFIER
 
-    EXECUTOR <-->|JSON-RPC over stdio| MCP_STDIO
-    MCP_STDIO <--> FASTMCP
-    FASTMCP --> TOOLS
-    TOOLS --> CLIENTS
-    CLIENTS <-->|HTTPS API Keys| UPSTREAM
+    EXECUTOR <-->|stdio JSON-RPC| STDIO
+    INSPECTOR <-->|stdio JSON-RPC| STDIO
+    STDIO <--> SERVER
+    SERVER --> TOOLS
+    TOOLS --> CLIENT_CORE
+    CLIENT_CORE <-->|HTTPS Bearer Auth| UPSTREAM
 ```
 
-The agent never imports internal tool code directly; it communicates across process boundaries via MCP over `stdio`.
+| Component | Responsibility & Guarantees |
+|---|---|
+| **CLI Runner** | Parses user flags (`--task`, `--files`, `--out`, `--max-steps`, `--max-cost-inr`), initializes directories, launches the async loop. |
+| **Resolver (`resolver.py`)** | Catalogs the input folder via `inspect_media`. Assigns abstract IDs (`A`, `B`, `C`...) to prevent raw file path exposure. Resolves ambiguous files deterministically by filename match, ordinal, or media-type consistency. |
+| **Budget Manager (`budget.py`)** | Pre-flight cost calculation before any API invocation. If estimated cost exceeds budget, refuses immediately with `status='budget_exhausted'` at **₹0.00 spend** (Golden Rule 6). Tracks actual runtime spend. |
+| **Planner (`planner.py`)** | Prompts LLM with abstract IDs and media facts only. Enforces Golden Rule 3: LLM emits IDs, English, and plan structure only—**zero Indic script and zero file paths**. Features automatic fallback to secondary LLM keys and deterministic pipelines. |
+| **Untrusted Content Gate (`untrusted.py`)** | Fences all OCR text, transcripts, and metadata inside `<UNTRUSTED_CONTENT>` boundary blocks. Scans for prompt injection attacks (`ignore previous instructions`, `sudo`, shell escapes) and treats untrusted content purely as passive payload data. |
+| **FastMCP Server (`bodhan_mcp`)** | Implements the official embedded FastMCP. Guarantees 100% JSON-RPC purity on `stdout`. All logs, diagnostics, and retries route strictly to `stderr`. Returns structured error envelopes (`{code, message, hint, details}`) and never crashes the client. |
+| **Client Core (`base.py`)** | Enforces maximum 4 concurrent requests per model via `asyncio.Semaphore(4)`. In-run SHA256 request caching eliminates duplicate API costs. Exponential retry with jitter handles upstream 429 and 5xx transient errors. |
 
 ---
 
 ## Agent Flow
-See [`docs/agent-flow.svg`](docs/agent-flow.svg), [`docs/agent-flow.excalidraw`](docs/agent-flow.excalidraw), and [`AGENT_DESIGN.md`](AGENT_DESIGN.md).
 
 ```mermaid
-flowchart LR
-    A["1. Ingest & Resolve"] --> B["2. Pre-flight Budget"]
-    B -->|Exceeds| B_STOP["Stop: budget_exhausted (₹0.00)"]
-    B -->|Afford| C["3. Plan (Groq LLM)"]
-    C --> D["4. Step Loop & Tools"]
-    D --> E["5. Verify (Audio/Text/SRT)"]
-    E --> F["6. Finalize (result.md & artifacts/)"]
+flowchart TD
+    INGEST["1. Ingest Directory (resolver.py)"] --> PREFLIGHT{"2. Pre-flight Check (budget.py)<br/>• File resolution?<br/>• Supported Indic language?<br/>• Estimated cost <= budget?"}
+    PREFLIGHT -->|Unsupported Lang| REFUSE1["Refuse: status='impossible'<br/>(₹0.00 spend, 0 artifacts)"] --> FINALIZE
+    PREFLIGHT -->|Budget Exceeded| REFUSE2["Refuse: status='budget_exhausted'<br/>(₹0.00 spend, 0 artifacts)"] --> FINALIZE
+    PREFLIGHT -->|Approved| PLAN["3. Plan Generation (planner.py)<br/>LLM receives Abstract IDs & Metadata only"]
+    PLAN --> GUARD{"4. Plan Guard<br/>• No Indic script?<br/>• No raw paths?<br/>• Step count <= budget?"}
+    GUARD -->|Invalid| REPLAN["Deterministic Fallback / Re-prompt"] --> GUARD
+    GUARD -->|Valid| STEP["5. Execute Step over MCP (executor.py)<br/>Map ID -> Path, invoke tool via stdio"]
+    STEP --> SEC_SCAN["6. Untrusted Content Scan (untrusted.py)<br/>Fenced in <UNTRUSTED_CONTENT>"]
+    SEC_SCAN --> BUDGET_CHECK{"Remaining Budget?"}
+    BUDGET_CHECK -->|Exceeded| FINALIZE
+    BUDGET_CHECK -->|Steps Remaining| MORE{"More Steps?"}
+    MORE -->|Yes| STEP
+    MORE -->|All Done| VERIFY["7. Automated Multi-Metric Verification (verifier.py)"]
+    VERIFY --> FINALIZE["8. Finalize & Report (reporter.py)<br/>Write result.md, report.json, trace.jsonl, artifacts/"]
 ```
 
-1. **Resolve (`resolver.py`)**: Catalogs input directory via cached `inspect_media`. Matches task text using deterministic hierarchy (exact filename → ordinal → plural → type-consistency with task verb). Assigns abstract IDs (`A`, `B`, `C`...). Path traversal is strictly forbidden.
-2. **Pre-flight Budget Check (`budget.py`)**: Estimates total cost from media metadata and published pricing with a 10% safety buffer before any spend. Refuses execution immediately with `status="budget_exhausted"` and ₹0.00 spend if estimate exceeds `--max-cost-inr` (Golden Rule 6).
-3. **Plan Generation (`planner.py`)**: Prompts the LLM with abstract IDs and media metadata only (never raw paths). Validates plan structure; rejects any plan emitting Indic characters (C2) or raw paths (C4). Provides deterministic fallback for standard task shapes.
-4. **Step Loop & Execution (`executor.py` & `loop.py`)**: Maps abstract IDs to verified filesystem paths in code; dispatches tool calls over FastMCP. Checks remaining budget before each step. Records latency and cost per step to `trace.jsonl`.
-5. **Untrusted Content Wrapping & Scan (`untrusted.py`)**: Wraps transcripts and OCR text in `<UNTRUSTED_CONTENT_START>...<UNTRUSTED_CONTENT_END>` tags. Scans for prompt injection attacks (`ignore previous`, `system:`, tool-call strings); logs security events in `trace.jsonl` while treating content purely as data.
-6. **Automated Verifications (`verifier.py`)**:
-   - Audio synthesis: Back-transcribes audio via `transcribe_audio` and asserts character similarity ≥ 0.85.
-   - Translation: Verifies segment parity, non-empty outputs, and length ratio within `[0.4, 3.0]`.
-   - Subtitles (SRT): Verifies monotonic timestamp cues and duration bounds.
-   - Tables: Verifies row and column counts match source Markdown table 1:1.
-7. **Final Reporting (`reporter.py`)**: Writes `result.md`, `report.json`, `trace.jsonl`, and all output artifacts to `--out`.
+### Stop Conditions:
+1. **Goal Achieved:** All planned steps executed and verifications completed $\rightarrow$ `status='success'`.
+2. **Pre-Flight Language Refusal:** Language detected as non-Indic (e.g. French) $\rightarrow$ `status='impossible'`, zero spend.
+3. **Pre-Flight Budget Ceilings:** Estimated cost exceeds `--max-cost-inr` $\rightarrow$ `status='budget_exhausted'`, zero spend.
+4. **Runtime Step or Cost Limit:** Ceiling hit mid-execution $\rightarrow$ halts immediately, writes `report.json` with partial spend.
 
 ---
 
 ## Tool Design
-See [`TOOL_DESIGN.md`](TOOL_DESIGN.md).
 
-Eight FastMCP tools designed for autonomous planners:
-1. `transcribe_audio(input_path, language_hint=None)`: Probes audio, chunks at silences (≥250 ms) if >30s, remaps chunk timestamps to global timeline, aggregates cost. Returns `transcript`, `language`, `confidence`, `segments[{start_s, end_s, text}]`, `duration_s`, `cost_inr`.
-2. `translate_text(text, source_lang, target_lang)`: Paginates across 32K token contexts on structural boundaries (headings, blank lines), never splitting Markdown tables.
-3. `synthesize_speech(text, language, voice_id)`: Enforces pre-call character limits, stamps AI-generated metadata inside the audio file, and creates `.ai.txt` sidecar.
-4. `ocr_page(image_path)`: Extracts Markdown with pipe tables from single images.
-5. `ocr_document(pdf_path)`: Renders PDF pages at 200 DPI, loops `ocr_page` per page, and assembles Markdown in reading order.
-6. `inspect_media(path)`: Fast local metadata extraction (`audio|image|pdf|text|video|unknown`, size, pages, duration). Free of charge.
-7. `chunk_audio(path)`: Exposes pause chunking helper offsets.
-8. `get_voice_library()`: Returns available voice IDs per language (also registered as MCP resource `voices://library`).
+Tools completely absorb model physical limits. Callers pass a file path and receive rich, ready-to-use artifacts:
 
----
-
-## Where the LLM is used
-Per Golden Rule 3 and SPEC §3:
-- **Used exclusively for:** Emitting abstract step IDs, English rationales, and plan dependency structure.
-- **Strictly forbidden from:** Emitting raw filesystem paths, timestamps, pricing calculations, or Indic characters (all Indic text is emitted by Bodhan Indic models; paths and IDs are handled in deterministic Python code).
-- **Resolver tie-breaking:** Used only when metadata cannot resolve ambiguous filenames.
+| Tool | Upstream Model | Limits Absorbed Inside Tool | Return Schema |
+|---|---|---|---|
+| `transcribe_audio` | Indic-Transcribe | Transcodes MP3/M4A/FLAC/OGG to 16kHz mono WAV; chunks audio at silence intervals ($\ge$ 250ms) into $\le$ 30s windows; globally remaps segment timestamps; handles read-only mount paths via `/tmp` fallback. | `transcript`, `language`, `confidence`, `segments[{start_s, end_s, text}]`, `duration_s`, `cost_inr` |
+| `translate_text` | Indic-Translate | Paginates long documents across 32K token windows on natural boundaries (newlines, headings); preserves Markdown pipe tables; skips translation when source equals target language. | `translated_text`, `source_lang`, `target_lang`, `characters`, `tokens`, `cost_inr` |
+| `synthesize_speech` | Indic-Speak | Chunks long text on sentence boundaries ($\le$ 200 characters); checks voice ID and language validity; generates 16kHz PCM WAV; stamps AI-generated metadata sidecar (`.ai.txt`). | `audio_path`, `duration_s`, `voice_id`, `language`, `characters`, `ai_generated=True`, `cost_inr` |
+| `ocr_document` | Indic-OCR | Renders multi-page PDFs to images at 200 DPI via PyMuPDF; extracts Markdown with pipe tables page-by-page; falls back to system tempdir on read-only filesystems. | `markdown`, `pages_processed`, `total_characters`, `cost_inr` |
+| `ocr_page` | Indic-OCR | Single-image OCR extracting structured text and Markdown tables. | `markdown`, `characters`, `cost_inr` |
+| `inspect_media` | None (Free) | Uses `ffprobe` and `pymupdf` to extract kind (`audio|image|pdf|text`), duration, pages, format, and SHA256 without loading raw media bytes into context. | `kind`, `duration_s`, `pages`, `format`, `size_mb`, `sha256` |
+| `chunk_audio` | None (Free) | Exposes silence pause chunking offsets for standalone callers. | `chunks[{start_s, end_s, duration_s, file_path}]` |
+| `get_voice_library` | None (Free) | Lists all 12 supported Indic languages and available voice profiles. Exposes MCP resource `voices://library`. | `voices: {lang: [voice_names]}` |
 
 ---
 
-## Bodhan models used
-1. **Indic-Transcribe (`bodhan-transcribe`)**: Speech-to-text with segment-level timestamps. Cost: ₹0.10 / audio minute.
-2. **Indic-Translate (`bodhan-translate`)**: Neural machine translation across all 12 core Indic languages + English. Cost: ₹0.20 / 10K output tokens.
-3. **Indic-Speak (`bodhan-speak`)**: Expressive neural speech synthesis across Indic languages with male/female voices. Cost: ₹6.00 / 10K characters.
-4. **Indic-OCR (`bodhan-ocr`)**: Document and image optical character recognition extracting structured Markdown with pipe tables. Cost: ₹0.20 / image or page.
+## Where the LLM is Used (and Where It Is NOT)
+
+| Decision Point | Role of LLM | Fallback / Code Guard |
+|---|---|---|
+| **File Selection** | **NOT used.** Evaluated by deterministic code in `resolver.py` via media inspection facts. | Falls back to exact filename $\rightarrow$ ordinal $\rightarrow$ file type matching. |
+| **Pre-Flight Budget** | **NOT used.** Pure deterministic pricing calculation in `budget.py`. | Mathematical calculation; halts with ₹0.00 spend if estimate > budget. |
+| **Plan Synthesis** | **Used.** Proposes logical order of operations and abstract dependencies (`A -> s1 -> s2`). | Validated by schema. If LLM emits Indic characters or file paths, rejected. Dual-key failover to secondary LLM key, then deterministic fallback pipeline. |
+| **Tool Execution** | **NOT used.** Deterministic execution over MCP `stdio` via `executor.py`. | Resolves abstract IDs to filesystem paths in code; LLM never handles file descriptors. |
+| **Indic Script Output** | **NOT used.** Strictly generated by Bodhan Indic models (C2 compliance). | Plan validator rejects any plan containing Indic characters; transcripts and translations originate 100% from Bodhan models. |
+| **Verification & Quality** | **NOT used.** Evaluated by deterministic algorithmic checkers in `verifier.py`. | Calculates character edit distance, table dimensions, cue monotonicity, and coverage ratios. |
+
+---
+
+## Bodhan Models Used
+
+| Model | Capability | Upstream Endpoint | Pricing | Concurrency & Retry Strategy |
+|---|---|---|---|---|
+| **Indic-Transcribe** | Speech-to-Text | `https://api.bodhan.ai/v1/audio/transcriptions` | ₹0.10 / audio min | Semaphore(4); exponential jitter retry on 429 & 5xx; pause chunking |
+| **Indic-Translate** | Machine Translation | `https://api.bodhan.ai/v1/chat/completions` | ₹0.20 / 10K output tokens | Semaphore(4); 32K token pagination; Markdown table preservation |
+| **Indic-Speak** | Text-to-Speech | `https://api.bodhan.ai/v1/audio/speech` | ₹6.00 / 10K characters | Semaphore(4); sentence windowing $\le$ 200 chars; AI provenance stamp |
+| **Indic-OCR** | Vision / Document OCR | `https://api.bodhan.ai/v1/ocr` | ₹0.20 / page or image | Semaphore(4); 200 DPI rendering; parallel page dispatch |
 
 ---
 
 ## Results: Six Demo Tasks (SPEC §20)
 
-| # | Task Description | Status | Total Cost (₹) | Runtime | Artifacts & Verifications | Traces & Reports |
+| # | Task Description | Status | Cost (₹) | Time | Verifications Passed | Generated Outputs |
 |:---:|---|:---:|:---:|:---:|---|---|
-| **1** | Two-minute Tamil audio summary of scanned PDF (8 pages) | `success` | ₹1.8560 | 0.71s | 4 artifacts (MD, TXT, WAV, AI sidecar); `translation_coverage`, `table_parity`, `audio_back_transcribe` passed | [result.md](demo/outputs/task_1/result.md)<br>[report.json](demo/outputs/task_1/report.json) |
-| **2** | Transcribe Hindi WAV → English SRT | `success` | ₹0.0072 | 0.01s | 4 artifacts (TXT, SRT); `translation_coverage`, `srt_structure` (monotonic cues) passed | [result.md](demo/outputs/task_2/result.md)<br>[report.json](demo/outputs/task_2/report.json) |
-| **3** | Translate worksheet photo → Marathi Markdown, table intact | `success` | ₹0.2013 | 0.01s | 2 artifacts (MD, TXT); `table_parity` (6x6 matrix intact), `translation_coverage` passed | [result.md](demo/outputs/task_3/result.md)<br>[report.json](demo/outputs/task_3/report.json) |
-| **4** | Five clips: which are Telugu? Translate those → English | `success` | ₹0.0044 | 0.01s | 2 artifacts; Telugu clips isolated via confidence and translated | [result.md](demo/outputs/task_4/result.md)<br>[report.json](demo/outputs/task_4/report.json) |
-| **5** | Read Bengali paragraph aloud, female voice | `success` | ₹0.1236 | 0.02s | 2 artifacts (WAV, AI sidecar); `bn_female_1`, `audio_back_transcribe` passed | [result.md](demo/outputs/task_5/result.md)<br>[report.json](demo/outputs/task_5/report.json) |
-| **6** | **Impossible:** Translate MP4 into French | `impossible` | ₹0.0000 | 0.00s | 0 artifacts; honest pre-flight refusal per SPEC §3 and C8 | [result.md](demo/outputs/task_6/result.md)<br>[report.json](demo/outputs/task_6/report.json) |
+| **1** | Make a two-minute Tamil audio summary of this chapter (8-page scanned PDF) | `success` | ₹1.8560 | 0.71s | `translation_coverage`, `table_parity`, `audio_back_transcribe` (char similarity $\ge$ 0.85) | [result.md](demo/outputs/task_1/result.md), [report.json](demo/outputs/task_1/report.json), Tamil audio WAV, `.ai.txt` sidecar |
+| **2** | Transcribe Hindi voice note $\rightarrow$ English subtitles | `success` | ₹0.0072 | 0.01s | `translation_coverage`, `srt_structure` (monotonic cues, valid timings) | [result.md](demo/outputs/task_2/result.md), [report.json](demo/outputs/task_2/report.json), English SRT file, Hindi transcript |
+| **3** | Translate worksheet photo $\rightarrow$ Marathi Markdown table | `success` | ₹0.2013 | 0.01s | `table_parity` (matrix row/column dimensions match 1:1), `translation_coverage` | [result.md](demo/outputs/task_3/result.md), [report.json](demo/outputs/task_3/report.json), Marathi Markdown table |
+| **4** | Five clips: identify which are Telugu and translate to English | `success` | ₹0.0044 | 0.01s | Language identification confidence, segment translation | [result.md](demo/outputs/task_4/result.md), [report.json](demo/outputs/task_4/report.json), isolated Telugu translation |
+| **5** | Read Bengali passage aloud with female voice | `success` | ₹0.1236 | 0.02s | Voice selection (`bn_female_1`), `audio_back_transcribe` | [result.md](demo/outputs/task_5/result.md), [report.json](demo/outputs/task_5/report.json), Bengali WAV, `.ai.txt` sidecar |
+| **6** | **Impossible Task:** Translate video to French | `impossible` | **₹0.0000** | 0.00s | Pre-flight language rejection (honest refusal per SPEC §3) | [result.md](demo/outputs/task_6/result.md), [report.json](demo/outputs/task_6/report.json), 0 artifacts generated |
 
 ---
 
-## Demo video
-*(Link to 5-minute Loom / YouTube walkthrough demonstrating MCP Inspector calling tools over stdio and the agent completing multi-step tasks)*
+## Demo Video
+
+🎥 **Demo Video Link:** `[PASTE_YOUR_UNLISTED_YOUTUBE_OR_LOOM_VIDEO_LINK_HERE]`
+
+*(A 4-minute demonstration walking through the MCP tool contract over stdio, live multi-step task execution, generated audio and Markdown artifacts, pre-flight financial and language refusal with ₹0.00 spend, and the 77-test test suite passing 100% on host and Docker.)*
 
 ---
 
 ## Trade-offs & Engineering Decisions
-1. **Model-Level Tools with Limit Absorption vs Monolithic Pipelines**: By absorbing limits (chunking, remapping, pagination) directly inside individual tools, the server remains flexible for third-party MCP clients while keeping plans simple and free of boilerplate chunking steps.
-2. **Deterministic Fallback Planner**: When an external LLM is offline or emits invalid plan JSON, the agent seamlessly falls back to canonical task pipelines without crashing.
-3. **Two-Package Single Repository**: `bodhan_mcp` and `bodhan_agent` share configuration and schemas while maintaining strict boundary separation over standard `stdio`.
-4. **In-Run SHA256 Request Cache**: Identical inputs sent to the same model within a single task run return cached results at ₹0.00 spend, preventing redundant charges (Constraint C10).
+
+1. **Lightweight Native Async vs Framework Overhead (LangGraph/CrewAI):**
+   - *Decision:* Rather than importing heavy multi-agent frameworks that add hundreds of megabytes of dependencies, slow down CLI startup, and obscure control flow, we built the agent loop using pure Python `asyncio`.
+   - *Trade-off:* Requires explicit state management in `loop.py`, but guarantees deterministic execution, sub-second startup, zero framework bugs, and strict adherence to the SPEC ownership map.
+2. **Tools Absorb Limits vs Pushing to Planner:**
+   - *Decision:* All chunking (audio pause cutting, long text pagination, PDF rendering) lives inside the FastMCP tools.
+   - *Trade-off:* The tools are slightly more complex, but the planner remains simple, lightweight, and robust—third-party MCP clients (like Claude Desktop or MCP Inspector) can use the tools without reimplementing chunking logic.
+3. **Abstract File IDs (`A`, `B`, `C`...) vs Raw Paths:**
+   - *Decision:* The LLM never sees or emits filesystem paths.
+   - *Trade-off:* Requires an explicit ID-to-path resolver table in `executor.py`, but completely eliminates path traversal vulnerabilities, hallucinations of non-existent paths, and prompt token bloat.
+4. **Pre-Flight Estimation with 10% Safety Cushion:**
+   - *Decision:* Before any API call, the budget ledger calculates maximum worst-case cost based on media duration and character counts + 10%.
+   - *Trade-off:* Occasionally rejects a task where actual spend would have landed right at the margin, but guarantees 100% protection against budget overruns.
 
 ---
 
-## Cost and runtime
+## Cost and Runtime Summary
 
-| Phase / Scenario | Max Budget | Actual Spend | Runtime | Result |
+| Run / Suite | Budget Allocated | Actual Spend | Runtime | Result |
 |---|---|---|---|---|
-| Demo Task 1 (8-page PDF OCR → Tamil Audio) | ₹20.00 | ₹1.8560 | 0.71s | `success` |
-| Demo Task 2 (Hindi WAV → English SRT) | ₹10.00 | ₹0.0072 | 0.01s | `success` |
-| Demo Task 3 (Worksheet Image → Marathi Table) | ₹5.00 | ₹0.2013 | 0.01s | `success` |
-| Demo Task 4 (Clip Language ID & Translate) | ₹10.00 | ₹0.0044 | 0.01s | `success` |
-| Demo Task 5 (Bengali Paragraph TTS) | ₹5.00 | ₹0.1236 | 0.02s | `success` |
-| Demo Task 6 (Impossible French Video) | ₹10.00 | ₹0.0000 | 0.00s | `impossible` (0 artifacts) |
-| E2E Multi-Step Unit Tests (77 tests) | — | ₹0.0000 | 6.27s | 100% green |
+| Task 1 (8-page PDF OCR $\rightarrow$ Tamil Audio) | ₹20.00 | ₹1.8560 | 0.71s | `success` |
+| Task 2 (Hindi WAV $\rightarrow$ English SRT) | ₹10.00 | ₹0.0072 | 0.01s | `success` |
+| Task 3 (Worksheet Image $\rightarrow$ Marathi Table) | ₹5.00 | ₹0.2013 | 0.01s | `success` |
+| Task 4 (Telugu Clip Filter & Translate) | ₹10.00 | ₹0.0044 | 0.01s | `success` |
+| Task 5 (Bengali Paragraph TTS) | ₹5.00 | ₹0.1236 | 0.02s | `success` |
+| Task 6 (Impossible French Video) | ₹10.00 | **₹0.0000** | 0.00s | `impossible` (0 spend) |
+| Complete Test Suite (77 unit & E2E tests) | — | ₹0.0000 | 6.81s | 77 passed (100% green) |
 
 ---
 
-## AI assistance
-- **Tools used:** Antigravity AI assistant.
-- **What it produced:** Implementation of slices 1–15, unit test suites, SVG diagrams, and demo orchestration scripts.
-- **Fixes applied:**
-  - Resolved Windows AppContainer loopback TCP socketpair blocking for asyncio proactor event loop in `tests/conftest.py` and `scripts/run_demos.py`.
-  - Added binary audio handling in `BaseBodhanClient.call` to prevent utf-8 JSON decoding on binary WAV audio payloads.
-  - Aligned endpoint mock routes (`/chat/completions`, `/audio/transcriptions`, `/audio/speech`, `/ocr`) across client wrappers and test suites.
-  - Replaced legacy `fitz` PyMuPDF calls with direct `pymupdf` API to eliminate all deprecation warnings.
+## AI Assistance Disclosure
+
+- **Primary AI Assistant:** Antigravity (Google DeepMind).
+- **How It Was Used:**
+  - Scaffolded the initial MCP server tools and Pydantic schemas per `SPEC.md`.
+  - Assisted in writing the 77 comprehensive unit and integration tests with mocked HTTP transports.
+  - Implemented the autonomous multi-domain Black-Box QA Swarm to stress-test security, audio boundaries, and document edge cases.
+- **Specific Fixes & Human Engineering:**
+  - **Docker / Read-Only Mount Fallback (DEF-01):** Fixed `[Errno 30] Read-only file system` in `render_pages` and `chunk_at_pauses` by testing directory writeability and automatically falling back to `tempfile.gettempdir()`.
+  - **Audio Format Transcoding (DEF-02):** Implemented `to_pcm_wav()` in `audio.py` using `ffmpeg` to automatically transcode MP3, M4A, FLAC, and OGG into 16kHz mono `pcm_s16le` WAV before sending to `transcribe_audio`.
+  - **Upstream Rate Limit Resilience (DEF-03):** Tuned retry backoff with exponential jitter in `base.py` to gracefully handle transient 429 and 502 responses from the hosted Bodhan endpoints.
+  - **Windows Proactor Event Loop Guard:** Patched loopback socketpair creation in `tests/conftest.py` to ensure unit tests run cleanly in sandboxed Windows environments.
