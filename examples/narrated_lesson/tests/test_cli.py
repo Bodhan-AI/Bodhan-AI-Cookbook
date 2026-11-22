@@ -118,14 +118,17 @@ def test_skip_ocr_reuses_artifacts(tmp_path: Path) -> None:
 
     with patch("bodhan_lesson.cli.prepare_page_images") as mock_prep:
         with patch("bodhan_lesson.cli.run_ocr_on_pages") as mock_ocr:
-            code = main(
-                [
-                    "--input", str(tmp_path / "ignored.pdf"),
-                    "--langs", "hi",
-                    "--out", str(out),
-                    "--skip-ocr",
-                ]
-            )
+            with patch(
+                "bodhan_lesson.cli.translate_lesson_file", side_effect=_fake_translate
+            ):
+                code = main(
+                    [
+                        "--input", str(tmp_path / "ignored.pdf"),
+                        "--langs", "hi",
+                        "--out", str(out),
+                        "--skip-ocr",
+                    ]
+                )
 
     assert code == 0
     mock_prep.assert_not_called()
@@ -135,7 +138,15 @@ def test_skip_ocr_reuses_artifacts(tmp_path: Path) -> None:
     assert report["ocr"]["reused"] is True
     assert report["ocr"]["ok"] == 1
     assert report["layout"]["ok"] == 1
+    assert report["assembly"]["status"] == "ok"
+    assert report["phase"] == 5
+    assert report["translations"]["ok"] == 1
+    assert report["narrations"]["ok"] == 1
     assert (pages / "page_001.clean.json").is_file()
+    assert (out / "source" / "lesson.src.md").is_file()
+    assert (out / "hi" / "lesson.hi.md").is_file()
+    assert (out / "hi" / "narration_script.hi.json").is_file()
+    assert report["languages"]["hi"]["status"] == "scripted"
 
 
 def test_skip_ocr_without_artifacts_returns_2(tmp_path: Path) -> None:
@@ -151,21 +162,52 @@ def test_skip_ocr_without_artifacts_returns_2(tmp_path: Path) -> None:
     assert code == 2
 
 
+def _fake_translate(lesson_path, out_dir, langs, **kwargs):  # noqa: ANN001
+    rows = []
+    text = Path(lesson_path).read_text(encoding="utf-8")
+    for lang in langs:
+        path = Path(out_dir) / lang / f"lesson.{lang}.md"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
+        rows.append(
+            {
+                "lang": lang,
+                "status": "ok",
+                "path": str(path),
+                "pivot": False,
+                "chunks": 1,
+                "usage": {"completion_tokens": 1},
+                "structure_ok": True,
+                "structure_issues": [],
+                "latency_s": 0.01,
+                "error": None,
+            }
+        )
+    return rows
+
+
 def test_langs_split_and_trim(image_folder: Path, tmp_path: Path) -> None:
     out = tmp_path / "run"
     with patch("bodhan_lesson.cli.run_ocr_on_pages", side_effect=_fake_ocr_ok):
-        code = main(
-            [
-                "--input", str(image_folder),
-                "--langs", "hi, ta, bn",
-                "--out", str(out),
-            ]
-        )
+        with patch("bodhan_lesson.cli.translate_lesson_file", side_effect=_fake_translate):
+            code = main(
+                [
+                    "--input", str(image_folder),
+                    "--langs", "hi, ta, bn",
+                    "--out", str(out),
+                ]
+            )
     assert code == 0
     report = json.loads((out / "report.json").read_text(encoding="utf-8"))
     assert report["langs"] == ["hi", "ta", "bn"]
-    assert report["phase"] == "2b"
+    assert report["phase"] == 5
     assert report["layout"]["ok"] >= 1
+    assert report["assembly"]["status"] == "ok"
+    assert report["translations"]["ok"] == 3
+    assert report["narrations"]["ok"] == 3
+    assert (out / "source" / "lesson.src.md").is_file()
+    assert (out / "hi" / "lesson.hi.md").is_file()
+    assert (out / "hi" / "narration_script.hi.json").is_file()
 
 
 def test_empty_langs_returns_2(tmp_path: Path) -> None:
@@ -227,8 +269,8 @@ def test_write_report(tmp_path: Path) -> None:
         layout_pages=layout_pages,
     )
     data = json.loads(path.read_text(encoding="utf-8"))
-    assert data["phase"] == "2b"
-    assert data["status"] == "layout_partial"
+    assert data["phase"] == 3
+    assert data["status"] == "assemble_partial"
     assert data["ocr"]["ok"] == 1
     assert data["ocr"]["failed"] == 1
     assert data["layout"]["ok"] == 1
