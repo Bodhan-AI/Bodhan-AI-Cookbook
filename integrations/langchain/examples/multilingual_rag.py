@@ -48,10 +48,12 @@ from bodhan_langchain import (  # noqa: E402
 from examples.rag.citations import (  # noqa: E402
     extract_and_validate_citations,
     format_context_with_citations,
+    reconstruct_localized_answer,
+    strip_citation_markers,
 )
 from examples.rag.config import RAGConfig  # noqa: E402
 from examples.rag.embeddings import get_embedding_model  # noqa: E402
-from examples.rag.generation import generate_grounded_answer, get_chat_model  # noqa: E402
+from examples.rag.generation import RAGGenerationError, generate_grounded_answer, get_chat_model  # noqa: E402
 from examples.rag.ingestion import ingest_documents  # noqa: E402
 from examples.rag.retrieval import get_retriever, retrieve_passages  # noqa: E402
 from examples.rag.vector_store import create_vector_store  # noqa: E402
@@ -136,14 +138,20 @@ def answer_multilingual_query(
 
     if translate_answer_back and desired_lang and desired_lang.lower() != "en" and translation_tool is not None:
         if "not contain enough information" not in english_answer.lower():
+            # Strip inline citation markers ([S1], [S2]) before translation
+            clean_body = strip_citation_markers(english_answer)
             try:
-                localized_answer = translation_tool.invoke({
-                    "text": english_answer,
+                translated_body = translation_tool.invoke({
+                    "text": clean_body,
                     "target_language": desired_lang,
                 })
-                localized_answer = str(localized_answer).strip()
+                translated_body = str(translated_body).strip()
             except Exception as exc:
                 print(f"  [WARNING] Answer translation back to '{desired_lang}' failed: {exc}")
+                translated_body = clean_body
+
+            # Reconstruct localized answer by appending application-verified source provenance
+            localized_answer = reconstruct_localized_answer(translated_body, valid_citations)
 
     return {
         "original_query": clean_query,
@@ -282,16 +290,32 @@ def run_rag_pipeline(
         print(f"  Query {idx} [{qlang.upper()}]: \"{q}\"")
         print(f"  Context: {desc}")
 
-        res = answer_multilingual_query(
-            query=q,
-            query_lang=qlang,
-            retriever=retriever,
-            chat_model=effective_chat_model,
-            translation_tool=translation_tool,
-            translate_answer_back=cfg.translate_answer_back,
-            target_answer_lang=custom_answer_lang or cfg.answer_language,
-        )
-        results.append(res)
+        try:
+            res = answer_multilingual_query(
+                query=q,
+                query_lang=qlang,
+                retriever=retriever,
+                chat_model=effective_chat_model,
+                translation_tool=translation_tool,
+                translate_answer_back=cfg.translate_answer_back,
+                target_answer_lang=custom_answer_lang or cfg.answer_language,
+            )
+            results.append(res)
+        except RAGGenerationError as exc:
+            print(f"\n  [ERROR] Answer generation failed for query {idx}: {exc.message}")
+            results.append({
+                "original_query": q,
+                "query_language": qlang,
+                "english_query": q,
+                "retrieved_count": 0,
+                "raw_answer": f"Generation failed: {exc.message}",
+                "citations": [],
+                "invalid_citations": [],
+                "localized_answer": None,
+                "citation_map": {},
+                "error": exc,
+            })
+            continue
 
         if res["english_query"] != q:
             print(f"  -> Translated Query [EN]: \"{res['english_query']}\"")
