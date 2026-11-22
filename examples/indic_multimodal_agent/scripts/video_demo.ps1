@@ -1,4 +1,4 @@
-﻿# PowerShell script for automated video demonstration recording
+# PowerShell script for automated video demonstration recording
 # Executes the 6 core demonstration tasks and MCP inspector in exact sequence.
 #
 # Usage:

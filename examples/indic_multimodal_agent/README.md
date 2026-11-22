@@ -171,6 +171,7 @@ Executes all 73 unit and integration tests completely offline without network ca
   - **Live Bodhan Indic Endpoints**: Live calls to Indic-Transcribe, Indic-Translate, Indic-Speak, and Indic-OCR verified against live schemas.
   - **Honest Quality Target Auditing**: Every run logs missed quality targets in machine-readable `report.json` and human-readable `result.md` (e.g. single-step tasks exceeding 30s latency due to remote API or rasterization latency, multi-step tasks exceeding 90s, or synthesis back-transcription coverage $<70\%$ marked as `WEAK` rather than `PASS`, with both word coverage and character similarity `1 - CER` recorded).
 - **Not Verified**:
+  - **Platform Transport Portability (Linux / macOS)**: On Windows the server wraps stdio to work around an SDK fd-redirect issue; on Linux/macOS it uses the standard SDK transport. Linux has not been tested locally.
   - **Python 3.11 and 3.12 Execution**: Tests were executed locally on Python 3.14.1. Local installation and execution on Python 3.11 and 3.12 remain unverified.
   - **GitHub Actions CI Workflow**: No standalone GitHub Actions workflow runs inside `examples/indic_multimodal_agent/` (workflows only run from repo-root `.github/workflows/`); recipe CI relies on repo-level `make check`.
   - **Local Host Docker Runtime**: Dockerfile syntax is provided for containerized deployment, but Docker image build and container runtime have not been executed on the local host machine.

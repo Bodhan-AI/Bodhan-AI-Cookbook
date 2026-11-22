@@ -161,23 +161,33 @@ def bodhan_inspect_media(file_path: str) -> str:
 
 
 async def run_stdio_server() -> None:
-    """Run the MCP server over stdio with Windows-safe explicit stream wrapping.
-    Passing explicit stdin/stdout streams skips internal file-descriptor redirection
-    (_claim_fd) on Windows cleanly without requiring any site-packages patches.
+    """Run the MCP server over stdio.
+    On Windows (sys.platform == 'win32'), explicit stdin/stdout wrapping is applied to
+    skip internal file-descriptor redirection (_claim_fd) cleanly without patches.
+    On other platforms (Linux/macOS), the standard SDK stdio_server() transport is used unchanged.
     """
     import sys
-    import anyio
-    from mcp.server.stdio import stdio_server, _UnownedTextWrapper
+    from mcp.server.stdio import stdio_server
 
-    stdin = anyio.wrap_file(_UnownedTextWrapper(sys.stdin.buffer, encoding="utf-8", errors="replace"))
-    stdout = anyio.wrap_file(_UnownedTextWrapper(sys.stdout.buffer, encoding="utf-8"))
+    if sys.platform == "win32":
+        import anyio
+        from mcp.server.stdio import _UnownedTextWrapper
 
-    async with stdio_server(stdin=stdin, stdout=stdout) as (read_stream, write_stream):
-        await mcp_server._lowlevel_server.run(
-            read_stream,
-            write_stream,
-            mcp_server._lowlevel_server.create_initialization_options(),
-        )
+        stdin = anyio.wrap_file(_UnownedTextWrapper(sys.stdin.buffer, encoding="utf-8", errors="replace"))
+        stdout = anyio.wrap_file(_UnownedTextWrapper(sys.stdout.buffer, encoding="utf-8"))
+        async with stdio_server(stdin=stdin, stdout=stdout) as (read_stream, write_stream):
+            await mcp_server._lowlevel_server.run(
+                read_stream,
+                write_stream,
+                mcp_server._lowlevel_server.create_initialization_options(),
+            )
+    else:
+        async with stdio_server() as (read_stream, write_stream):
+            await mcp_server._lowlevel_server.run(
+                read_stream,
+                write_stream,
+                mcp_server._lowlevel_server.create_initialization_options(),
+            )
 
 
 def main():

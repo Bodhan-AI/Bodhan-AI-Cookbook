@@ -228,6 +228,7 @@ TODO: [Add YouTube / Loom demo video link here before submission - 5 min maximum
   - **Honest Quality Target Auditing**: Missed quality targets are logged in machine-readable `report.json` and rendered in `result.md` (e.g. single-step tasks > 30s latency due to remote API network latency, or synthesis back-transcription coverage $<70\%$ marked as `WEAK` rather than `PASS`, with both word coverage and character similarity `1 - CER` recorded).
   - **Budget Enforcements**: Both CLI flags and natural-language budgets ("5 paise") are strictly enforced.
 - **Not Verified**:
+  - **Platform Transport Portability (Linux / macOS)**: On Windows the server wraps stdio to work around an SDK fd-redirect issue; on Linux/macOS it uses the standard SDK transport. Linux has not been tested locally.
   - **Python 3.11 and 3.12**: Tests have only been executed locally on Python 3.14.1. Local execution on Python 3.11 and 3.12 remains unverified.
   - **GitHub Actions CI Workflow**: No standalone GitHub Actions workflow runs inside `examples/indic_multimodal_agent/` (recipe CI relies on repo-level `make check`).
   - **Local Host Docker Runtime**: Dockerfile syntax is provided for containerized deployment, but Docker image build and container runtime have not been executed on the local host machine.
