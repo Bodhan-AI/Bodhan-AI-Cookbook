@@ -1,12 +1,13 @@
 """PDF conversion utilities for multi-page document OCR.
 
 Converts multi-page PDF documents into page PNG images for Indic-OCR processing.
-Uses pypdfium2 (permissive Apache-2.0 / BSD-3 license) when available.
+Uses pypdfium2 (exact version pinned: 5.15.2, Apache-2.0 / BSD-3 license).
 """
 
 from __future__ import annotations
 
 from pathlib import Path
+import pypdfium2 as pdfium
 
 
 def render_pdf_to_images(
@@ -14,21 +15,19 @@ def render_pdf_to_images(
     output_dir: Path | str | None = None,
     dpi: int = 200,
 ) -> list[Path]:
-    """Renders all pages of a PDF into PNG images.
+    """Renders all pages of a PDF into high-resolution PNG images.
 
-    Requires pypdfium2. If not installed, raises an actionable error with installation guidance.
+    Args:
+        pdf_path: Path to the input PDF file.
+        output_dir: Destination folder for output PNGs.
+        dpi: Target DPI for page rendering (default 200 for OCR quality).
+
+    Returns:
+        List of paths to generated PNG images in page order.
     """
     path = Path(pdf_path)
     if not path.exists():
         raise FileNotFoundError(f"PDF file not found: {path}")
-
-    try:
-        import pypdfium2 as pdfium  # type: ignore
-    except ImportError as e:
-        raise RuntimeError(
-            "PDF rendering requires 'pypdfium2' (permissive Apache-2.0 / BSD-3 license). "
-            "Please approve adding 'pypdfium2>=4.30.0' to dependencies."
-        ) from e
 
     if output_dir is None:
         target_dir = path.parent / f"{path.stem}_pages"
@@ -39,6 +38,7 @@ def render_pdf_to_images(
     pdf = pdfium.PdfDocument(str(path))
     image_paths: list[Path] = []
 
+    # Standard PDF point is 1/72 inch
     scale = dpi / 72.0
     for page_idx, page in enumerate(pdf):
         bitmap = page.render(scale=scale)
