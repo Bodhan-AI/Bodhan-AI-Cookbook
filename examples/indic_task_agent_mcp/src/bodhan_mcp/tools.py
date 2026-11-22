@@ -691,7 +691,8 @@ async def ocr_document(ctx: ToolContext, path: str, pages: str | None = None, ta
             text = "\n\n".join(r["text"] for r in parts)
             blocks = [b for r in parts for b in r["blocks"]]
         stem = output_name or p.stem
-        out = ctx.workspace.output_path(f"{stem}.page{n:02d}", "page", ".md")
+        # No dot before "page": Path.stem would treat ".page01" as an extension and drop the page number.
+        out = ctx.workspace.output_path(f"{stem}_page{n:02d}", "page", ".md")
         out.write_text(text, encoding="utf-8")
         return OCRPage(page=n, path=ctx.workspace.rel(out), chars=len(text), blocks=len(blocks),
                        low_confidence_blocks=_low_conf(blocks), split_retry=split), text

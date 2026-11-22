@@ -98,6 +98,8 @@ async def test_ocr_pdf_and_split_retry_on_502(ctx, fake_api, workdir):
     assert sum(p.split_retry for p in res.pages) == 1
     assert any("low-confidence" in f for f in res.flags)
     assert "<!-- page 1 -->" in Path(res.output_path).read_text(encoding="utf-8")
+    named = sorted(Path(pg.path).name for pg in res.pages if pg.path)
+    assert named and all("_page0" in name for name in named), named
     with pytest.raises(ToolError) as exc:
         await tools.ocr_document(ctx, str(pdf), pages="7")
     assert exc.value.code == "invalid_argument"
