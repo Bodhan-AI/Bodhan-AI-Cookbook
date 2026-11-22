@@ -133,6 +133,9 @@ The server uses stdio transport and exposes:
 | `indic_ocr` | Extract text from an image or PDF using Bodhan OCR |
 
 TTS output files are written under the configured outputs directory. Tool responses return file references and metadata rather than media bytes.
+TTS accepts a maximum of 2,000 input characters per request. Longer text is rejected before calling the Bodhan API; automatic TTS chunking is not supported.
+
+Speech output is restricted to WAV (`.wav`) files. Generated audio is validated as mono, 16-bit PCM at 24 kHz before it is saved.
 
 ## Running the task agent
 

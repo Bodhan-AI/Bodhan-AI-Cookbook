@@ -71,7 +71,7 @@ class TranslationOutput(BaseModel):
     retry_exhausted: bool = False
     uncertain_paid_outcome: bool = False
 
-
+MAX_TTS_TEXT_CHARACTERS = 2000
 class SpeechOutput(BaseModel):
     output_path: str
     content_type: Literal["audio/wav"] = "audio/wav"
@@ -567,6 +567,12 @@ def create_server(
     ) -> SpeechOutput:
         """Generate speech and save the WAV file locally without returning media bytes."""
         try:
+            if len(text) > MAX_TTS_TEXT_CHARACTERS:
+                raise ToolError(
+                    f"Speech text exceeds the maximum of "
+                    f"{MAX_TTS_TEXT_CHARACTERS} characters"
+                )
+
             output = _output_path(output_path, output_root)
             audio_bytes = client.speak(text, voice, language)
 

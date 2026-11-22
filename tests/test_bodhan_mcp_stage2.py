@@ -631,6 +631,7 @@ def test_pdf_page_limit_is_configurable(tmp_path, monkeypatch):
         pdf_page_count(pdf)
 
 
+
 def test_pdf_rendering_cleans_temporary_pages(tmp_path, monkeypatch):
     pdf = tmp_path / "cleanup.pdf"
     make_pdf(pdf, 2)
@@ -644,6 +645,51 @@ def test_pdf_rendering_cleans_temporary_pages(tmp_path, monkeypatch):
         assert all(path.exists() for path in created)
 
     assert all(not path.exists() for path in created)
+
+
+def test_indic_speak_rejects_unsupported_output_format_before_client_call(
+    tmp_path,
+):
+    client = MockBodhanClient()
+    outputs = tmp_path / "outputs"
+    server = create_server(client, output_dir=outputs)
+
+    result = run_tool(
+        server,
+        "indic_speak",
+        {
+            "text": "नमस्ते",
+            "language": "hi",
+            "voice": "Kavya",
+            "output_path": "speech.mp3",
+        },
+    )
+
+    assert result.is_error
+    assert ".wav extension" in tool_error_text(result)
+    assert not any(call[0] == "speak" for call in client.calls)
+    assert not (outputs / "speech.mp3").exists()
+
+def test_indic_speak_rejects_oversized_text_before_client_call(tmp_path):
+    client = MockBodhanClient()
+    outputs = tmp_path / "outputs"
+    server = create_server(client, output_dir=outputs)
+
+    result = run_tool(
+        server,
+        "indic_speak",
+        {
+            "text": "अ" * 2001,
+            "language": "hi",
+            "voice": "Kavya",
+            "output_path": "oversized.wav",
+        },
+    )
+
+    assert result.is_error
+    assert "2000 characters" in tool_error_text(result)
+    assert not any(call[0] == "speak" for call in client.calls)
+    assert not (outputs / "oversized.wav").exists()
 
 
 @pytest.mark.parametrize(
