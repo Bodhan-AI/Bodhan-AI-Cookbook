@@ -1,0 +1,891 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bodhan Agent Trace — SUCCESS</title>
+<style>
+  body { font-family: system-ui, -apple-system, sans-serif; background: #0f172a; color: #e2e8f0; margin: 0; padding: 24px; }
+  .wrap { max-width: 1120px; margin: 0 auto; }
+  h1 { margin: 0 0 8px; font-size: 22px; }
+  .task { color: #94a3b8; margin-bottom: 18px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .card { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 14px; }
+  .card .k { font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: .04em; }
+  .card .v { font-size: 20px; font-weight: 700; margin-top: 4px; }
+  .badge-status { display: inline-block; padding: 3px 10px; border-radius: 999px; background: #16a34a; color: #fff; font-size: 12px; font-weight: 700; vertical-align: middle; margin-left: 8px; }
+  .camel { background: #064e3b; color: #a7f3d0; border: 1px solid #10b981; border-radius: 8px; padding: 10px 14px; margin-bottom: 18px; font-size: 13px; }
+  table { width: 100%; border-collapse: collapse; background: #1e293b; border-radius: 10px; overflow: hidden; }
+  th, td { padding: 10px 12px; border-bottom: 1px solid #334155; text-align: left; vertical-align: top; font-size: 13px; }
+  th { background: #0b1220; color: #94a3b8; font-weight: 600; }
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+  .pill.epoch { background: #334155; color: #e2e8f0; }
+  .pill.ok { background: #14532d; color: #86efac; }
+  .pill.err { background: #7f1d1d; color: #fecaca; }
+  .pill.cache { background: #1e3a8a; color: #bfdbfe; margin-left: 4px; }
+  .sub { color: #94a3b8; font-size: 12px; margin-top: 3px; }
+  pre { background: #0b1220; padding: 8px; border-radius: 6px; overflow-x: auto; font-size: 11px; max-height: 220px; }
+  .label { color: #94a3b8; font-size: 11px; margin-top: 6px; }
+  ul { margin: 6px 0 0 18px; padding: 0; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Indic Task Compiler Trace <span class="badge-status">SUCCESS</span></h1>
+  <div class="task">Make a two-minute Tamil audio summary of this chapter, and also save the Tamil summary text</div>
+  <div class="camel">
+    <strong>CaMeL Isolation Active:</strong> The Privileged Planner (P-LLM) saw only FileFacts metadata, typed probe enums, and <code>$step.field</code> artifact handles. Untrusted file/OCR/transcript/translation content was stripped before entering planner context.
+  </div>
+  <div class="cards">
+    <div class="card"><div class="k">Total Spend</div><div class="v">₹0.9874 / ₹20.00</div></div>
+    <div class="card"><div class="k">Steps</div><div class="v">10 / 30</div></div>
+    <div class="card"><div class="k">Runtime</div><div class="v">99.62 s</div></div>
+    <div class="card"><div class="k">Cache Hits</div><div class="v">2</div></div>
+    <div class="card"><div class="k">Cost by Model</div><ul><li><code>indic-speak</code>: ₹0.7914</li><li><code>indic-transcribe</code>: ₹0.1889</li><li><code>indic-translate</code>: ₹0.0071</li></ul></div>
+  </div>
+  <table>
+    <thead>
+      <tr><th>#</th><th>Epoch</th><th>Tool / Step</th><th>Status</th><th>Latency</th><th>Cost</th><th>Payload (Handles &amp; Meta)</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+              <td>1</td>
+              <td><span class="pill epoch">intake</span></td>
+              <td><code>inspect_files</code> <div class="sub">Inspect input file metadata (free)</div></td>
+              <td><span class="pill ok">OK</span></td>
+              <td>175 ms</td>
+              <td>₹0.0000</td>
+              <td>
+                <details><summary>args / meta</summary>
+                  <div class="label">Args (handles only)</div>
+                  <pre>{
+  &quot;file_count&quot;: 1
+}</pre>
+                  <div class="label">Result Meta (CaMeL-sanitized)</div>
+                  <pre>{
+  &quot;files&quot;: [
+    {
+      &quot;path&quot;: &quot;./sample_data/chapter_8p.pdf&quot;,
+      &quot;kind&quot;: &quot;pdf&quot;,
+      &quot;exists&quot;: true
+    }
+  ]
+}</pre>
+                </details>
+              </td>
+            </tr><tr>
+              <td>2</td>
+              <td><span class="pill epoch">epoch_a</span></td>
+              <td><code>p_llm_epoch_a</code> <div class="sub">Produce a two-minute Tamil audio summary of the chapter PDF and save the Tamil summary text alongside it.</div></td>
+              <td><span class="pill ok">OK</span></td>
+              <td>7262 ms</td>
+              <td>₹0.0000</td>
+              <td>
+                <details><summary>args / meta</summary>
+                  <div class="label">Args (handles only)</div>
+                  <pre>{
+  &quot;file_facts_count&quot;: 1
+}</pre>
+                  <div class="label">Result Meta (CaMeL-sanitized)</div>
+                  <pre>{
+  &quot;deliverables&quot;: [
+    {
+      &quot;id&quot;: &quot;d1&quot;,
+      &quot;kind&quot;: &quot;audio&quot;,
+      &quot;language_raw&quot;: &quot;Tamil&quot;,
+      &quot;language&quot;: &quot;ta&quot;,
+      &quot;language_supported&quot;: true,
+      &quot;output_filename&quot;: &quot;summary_ta.mp3&quot;,
+      &quot;description&quot;: &quot;Two-minute spoken Tamil summary of chapter_8p.pdf, narrated with Bodhan TTS.&quot;,
+      &quot;constraints&quot;: {
+        &quot;duration_s&quot;: 120.0,
+        &quot;target_words&quot;: 170,
+        &quot;keep_tables&quot;: false,
+        &quot;format&quot;: &quot;mp3&quot;,
+        &quot;script&quot;: &quot;native&quot;
+      }
+    },
+    {
+      &quot;id&quot;: &quot;d2&quot;,
+      &quot;kind&quot;: &quot;text&quot;,
+      &quot;language_raw&quot;: &quot;Tamil&quot;,
+      &quot;language&quot;: &quot;ta&quot;,
+      &quot;language_supported&quot;: true,
+      &quot;output_filename&quot;: &quot;summary_ta.txt&quot;,
+      &quot;description&quot;: &quot;Tamil text of the chapter summary that the audio narrates.&quot;,
+      &quot;constraints&quot;: {
+        &quot;target_words&quot;: 170,
+        &quot;keep_tables&quot;: false,
+        &quot;format&quot;: &quot;txt&quot;,
+        &quot;script&quot;: &quot;native&quot;
+      }
+    }
+  ],
+  &quot;needs_probe&quot;: [],
+  &quot;infeasible_reason&quot;: null
+}</pre>
+                </details>
+              </td>
+            </tr><tr>
+              <td>3</td>
+              <td><span class="pill epoch">gate</span></td>
+              <td><code>feasibility_gate</code> <div class="sub">Static language, file, and cost-floor check</div></td>
+              <td><span class="pill ok">OK</span></td>
+              <td>0 ms</td>
+              <td>₹0.0000</td>
+              <td>
+                <details><summary>args / meta</summary>
+                  <div class="label">Args (handles only)</div>
+                  <pre>{}</pre>
+                  <div class="label">Result Meta (CaMeL-sanitized)</div>
+                  <pre>{
+  &quot;feasible&quot;: true,
+  &quot;reason&quot;: null,
+  &quot;cost_floor_inr&quot;: 2.0608,
+  &quot;checks&quot;: [
+    &quot;languages_supported&quot;,
+    &quot;cost_floor_inr=2.0608&quot;,
+    &quot;budget_floor_ok&quot;
+  ]
+}</pre>
+                </details>
+              </td>
+            </tr><tr>
+              <td>4</td>
+              <td><span class="pill epoch">epoch_b</span></td>
+              <td><code>p_llm_epoch_b</code> <div class="sub">Proposed 8 steps</div></td>
+              <td><span class="pill ok">OK</span></td>
+              <td>7881 ms</td>
+              <td>₹0.0000</td>
+              <td>
+                <details><summary>args / meta</summary>
+                  <div class="label">Args (handles only)</div>
+                  <pre>{}</pre>
+                  <div class="label">Result Meta (CaMeL-sanitized)</div>
+                  <pre>{
+  &quot;step_ids&quot;: [
+    &quot;s1&quot;,
+    &quot;s2&quot;,
+    &quot;s3&quot;,
+    &quot;s4&quot;,
+    &quot;s5&quot;,
+    &quot;s6&quot;,
+    &quot;pub1&quot;,
+    &quot;pub2&quot;
+  ]
+}</pre>
+                </details>
+              </td>
+            </tr><tr>
+              <td>5</td>
+              <td><span class="pill epoch">compile</span></td>
+              <td><code>plan_compiler</code> <div class="sub">Compiled into 6 parallel wave(s)</div></td>
+              <td><span class="pill ok">OK</span></td>
+              <td>0 ms</td>
+              <td>₹0.0000</td>
+              <td>
+                <details><summary>args / meta</summary>
+                  <div class="label">Args (handles only)</div>
+                  <pre>{}</pre>
+                  <div class="label">Result Meta (CaMeL-sanitized)</div>
+                  <pre>{
+  &quot;waves&quot;: [
+    [
+      &quot;s1&quot;
+    ],
+    [
+      &quot;s2&quot;
+    ],
+    [
+      &quot;s3&quot;
+    ],
+    [
+      &quot;s4&quot;
+    ],
+    [
+      &quot;s5&quot;,
+      &quot;pub2&quot;
+    ],
+    [
+      &quot;s6&quot;,
+      &quot;pub1&quot;
+    ]
+  ],
+  &quot;estimated_cost_ceiling_inr&quot;: 2.44
+}</pre>
+                </details>
+              </td>
+            </tr><tr>
+              <td>6</td>
+              <td><span class="pill epoch">execute</span></td>
+              <td><code>ocr_document</code> <span class="pill cache">CACHE</span><div class="sub">s1: The PDF has no extractable script, so it is treated as scanned. OCR extracts the reading-order text of all 8 pages.</div></td>
+              <td><span class="pill ok">OK</span></td>
+              <td>24689 ms</td>
+              <td>₹0.0000</td>
+              <td>
+                <details><summary>args / meta</summary>
+                  <div class="label">Args (handles only)</div>
+                  <pre>{
+  &quot;path&quot;: &quot;./sample_data/chapter_8p.pdf&quot;
+}</pre>
+                  <div class="label">Result Meta (CaMeL-sanitized)</div>
+                  <pre>{
+  &quot;ok&quot;: true,
+  &quot;cost_inr&quot;: 0.0,
+  &quot;cache_hit&quot;: true,
+  &quot;model&quot;: &quot;indic-ocr&quot;,
+  &quot;text_path&quot;: &quot;./outputs/demo_01_tamil_summary/.work/ocr_chapter_8p_48bb441c.md&quot;,
+  &quot;page_count&quot;: 8,
+  &quot;char_count&quot;: 5850,
+  &quot;pages&quot;: [
+    {
+      &quot;page&quot;: 1,
+      &quot;markdown_path&quot;: &quot;./outputs/demo_01_tamil_summary/.work/ocr_chapter_8p_48bb441c_pages/page_001.md&quot;,
+      &quot;char_count&quot;: 719,
+      &quot;block_count&quot;: 7,
+      &quot;low_conf_blocks&quot;: [
+        {
+          &quot;order&quot;: 0,
+          &quot;label&quot;: &quot;Header&quot;,
+          &quot;conf&quot;: 0.664
+        }
+      ],
+      &quot;table_count&quot;: 0,
+      &quot;strategy&quot;: &quot;direct&quot;
+    },
+    {
+      &quot;page&quot;: 2,
+      &quot;markdown_path&quot;: &quot;./outputs/demo_01_tamil_summary/.work/ocr_chapter_8p_48bb441c_pages/page_002.md&quot;,
+      &quot;char_count&quot;: 714,
+      &quot;block_count&quot;: 7,
+      &quot;low_conf_blocks&quot;: [
+        {
+          &quot;order&quot;: 0,
+          &quot;label&quot;: &quot;Header&quot;,
+          &quot;conf&quot;: 0.675
+        }
+      ],
+      &quot;table_count&quot;: 0,
+      &quot;strategy&quot;: &quot;direct&quot;
+    },
+    {
+      &quot;page&quot;: 3,
+      &quot;markdown_path&quot;: &quot;./outputs/demo_01_tamil_summary/.work/ocr_chapter_8p_48bb441c_pages/page_003.md&quot;,
+      &quot;char_count&quot;: 735,
+      &quot;block_count&quot;: 7,
+      &quot;low_conf_blocks&quot;: [
+        {
+          &quot;order&quot;: 0,
+          &quot;label&quot;: &quot;Header&quot;,
+          &quot;conf&quot;: 0.644
+        }
+      ],
+      &quot;table_count&quot;: 0,
+      &quot;strategy&quot;: &quot;direct&quot;
+    },
+    {
+      &quot;page&quot;: 4,
+      &quot;markdown_path&quot;: &quot;./outputs/demo_01_tamil_summary/.work/ocr_chapter_8p_48bb441c_pages/page_004.md&quot;,
+      &quot;char_count&quot;: 733,
+      &quot;block_count&quot;: 7,
+      &quot;low_conf_blocks&quot;: [
+        {
+          &quot;order&quot;: 0,
+          &quot;label&quot;: &quot;Header&quot;,
+          &quot;conf&quot;: 0.66
+        }
+      ],
+      &quot;table_count&quot;: 0,
+      &quot;strategy&quot;: &quot;direct&quot;
+    },
+    {
+      &quot;page&quot;: 5,
+      &quot;markdown_path&quot;: &quot;./outputs/demo_01_tamil_summary/.work/ocr_chapter_8p_48bb441c_pages/page_005.md&quot;,
+      &quot;char_count&quot;: 755,
+      &quot;block_count&quot;: 7,
+      &quot;low_conf_blocks&quot;: [
+        {
+          &quot;order&quot;: 0,
+          &quot;label&quot;: &quot;Header&quot;,
+          &quot;conf&quot;: 0.672
+        },
+        {
+          &quot;order&quot;: 6,
+          &quot;label&quot;: &quot;Footer&quot;,
+          &quot;conf&quot;: 0.554
+        }
+      ],
+      &quot;table_count&quot;: 0,
+      &quot;strategy&quot;: &quot;direct&quot;
+    },
+    {
+      &quot;page&quot;: 6,
+      &quot;markdown_path&quot;: &quot;./outputs/demo_01_tamil_summary/.work/ocr_chapter_8p_48bb441c_pages/page_006.md&quot;,
+      &quot;char_count&quot;: 737,
+      &quot;block_count&quot;: 7,
+      &quot;low_conf_blocks&quot;: [
+        {
+          &quot;order&quot;: 0,
+          &quot;label&quot;: &quot;Header&quot;,
+          &quot;conf&quot;: 0.662
+        }
+      ],
+      &quot;table_count&quot;: 0,
+      &quot;strategy&quot;: &quot;direct&quot;
+    },
+    {
+      &quot;page&quot;: 7,
+      &quot;markdown_path&quot;: &quot;./outputs/demo_01_tamil_summary/.work/ocr_chapter_8p_48bb441c_pages/page_007.md&quot;,
+      &quot;char_count&quot;: 719,
+      &quot;block_count&quot;: 7,
+      &quot;low_conf_blocks&quot;: [
+        {
+          &quot;order&quot;: 0,
+          &quot;label&quot;: &quot;Header&quot;,
+          &quot;conf&quot;: 0.647
+        }
+      ],
+      &quot;table_count&quot;: 0,
+      &quot;strategy&quot;: &quot;direct&quot;
+    },
+    {
+      &quot;page&quot;: 8,
+      &quot;markdown_path&quot;: &quot;./outputs/demo_01_tamil_summary/.work/ocr_chapter_8p_48bb441c_pages/page_008.md&quot;,
+      &quot;char_count&quot;: 724,
+      &quot;block_count&quot;: 7,
+      &quot;low_conf_blocks&quot;: [
+        {
+          &quot;order&quot;: 0,
+          &quot;label&quot;: &quot;Header&quot;,
+          &quot;conf&quot;: 0.659
+        }
+      ],
+      &quot;table_count&quot;: 0,
+      &quot;strategy&quot;: &quot;direct&quot;
+    }
+  ],
+  &quot;table_shapes&quot;: [],
+  &quot;detected_language&quot;: &quot;en&quot;,
+  &quot;language_ambiguous&quot;: false,
+  &quot;script_histogram&quot;: {
+    &quot;Latin&quot;: 1.0
+  },
+  &quot;provenance&quot;: {
+    &quot;source_model&quot;: &quot;indic-ocr&quot;,
+    &quot;source_path&quot;: &quot;./sample_data/chapter_8p.pdf&quot;
+  }
+}</pre>
+                </details>
+              </td>
+            </tr><tr>
+              <td>7</td>
+              <td><span class="pill epoch">execute</span></td>
+              <td><code>translate_text</code> <span class="pill cache">CACHE</span><div class="sub">s2: The source language is unknown. Translating to English gives q_summarize_en the English input it requires.</div></td>
+              <td><span class="pill ok">OK</span></td>
+              <td>191 ms</td>
+              <td>₹0.0000</td>
+              <td>
+                <details><summary>args / meta</summary>
+                  <div class="label">Args (handles only)</div>
+                  <pre>{
+  &quot;path&quot;: &quot;$s1.text_path&quot;,
+  &quot;target_language&quot;: &quot;en&quot;
+}</pre>
+                  <div class="label">Result Meta (CaMeL-sanitized)</div>
+                  <pre>{
+  &quot;ok&quot;: true,
+  &quot;cost_inr&quot;: 0.0,
+  &quot;cache_hit&quot;: true,
+  &quot;model&quot;: &quot;indic-translate&quot;,
+  &quot;text_path&quot;: &quot;./outputs/demo_01_tamil_summary/.work/translated_en_2f755d83.md&quot;,
+  &quot;target_language&quot;: &quot;en&quot;,
+  &quot;script&quot;: &quot;native&quot;,
+  &quot;chunks_in&quot;: 4,
+  &quot;chunks_out&quot;: 4,
+  &quot;truncation_splits&quot;: 0,
+  &quot;pivot_used&quot;: false,
+  &quot;attempt&quot;: 0,
+  &quot;source_char_count&quot;: 5850,
+  &quot;translated_char_count&quot;: 5850,
+  &quot;coverage&quot;: {
+    &quot;chunks_matched&quot;: true,
+    &quot;source_tables&quot;: [],
+    &quot;translated_tables&quot;: [],
+    &quot;tables_preserved&quot;: true,
+    &quot;source_digit_count&quot;: 79,
+    &quot;missing_digits&quot;: [],
+    &quot;digits_preserved&quot;: true
+  },
+  &quot;provenance&quot;: {
+    &quot;source_model&quot;: &quot;indic-translate&quot;,
+    &quot;target_language&quot;: &quot;en&quot;
+  }
+}</pre>
+                </details>
+              </td>
+            </tr><tr>
+              <td>8</td>
+              <td><span class="pill epoch">execute</span></td>
+              <td><code>q_summarize_en</code> <div class="sub">s3: Summarizes the English text to about 170 words, which narrates in roughly two minutes.</div></td>
+              <td><span class="pill ok">OK</span></td>
+              <td>4302 ms</td>
+              <td>₹0.0000</td>
+              <td>
+                <details><summary>args / meta</summary>
+                  <div class="label">Args (handles only)</div>
+                  <pre>{
+  &quot;text_ref&quot;: &quot;$s2.text_path&quot;,
+  &quot;target_words&quot;: 170
+}</pre>
+                  <div class="label">Result Meta (CaMeL-sanitized)</div>
+                  <pre>{
+  &quot;ok&quot;: true,
+  &quot;cost_inr&quot;: 0.0,
+  &quot;cache_hit&quot;: false,
+  &quot;model&quot;: null,
+  &quot;text_path&quot;: &quot;./outputs/demo_01_tamil_summary/.work/q_summary_en_72157207.txt&quot;,
+  &quot;word_count&quot;: 159,
+  &quot;char_count&quot;: 1097,
+  &quot;target_words&quot;: 170,
+  &quot;language&quot;: &quot;en&quot;
+}</pre>
+                </details>
+              </td>
+            </tr><tr>
+              <td>9</td>
+              <td><span class="pill epoch">execute</span></td>
+              <td><code>translate_text</code> <div class="sub">s4: Produces the Tamil summary text in native script. This text is both the saved deliverable d2 and the narration source.</div></td>
+              <td><span class="pill ok">OK</span></td>
+              <td>2391 ms</td>
+              <td>₹0.0071</td>
+              <td>
+                <details><summary>args / meta</summary>
+                  <div class="label">Args (handles only)</div>
+                  <pre>{
+  &quot;path&quot;: &quot;$s3.text_path&quot;,
+  &quot;target_language&quot;: &quot;ta&quot;,
+  &quot;script&quot;: &quot;native&quot;
+}</pre>
+                  <div class="label">Result Meta (CaMeL-sanitized)</div>
+                  <pre>{
+  &quot;ok&quot;: true,
+  &quot;cost_inr&quot;: 0.0071,
+  &quot;cache_hit&quot;: false,
+  &quot;model&quot;: &quot;indic-translate&quot;,
+  &quot;text_path&quot;: &quot;./outputs/demo_01_tamil_summary/.work/translated_ta_2c1d98fa.md&quot;,
+  &quot;target_language&quot;: &quot;ta&quot;,
+  &quot;script&quot;: &quot;native&quot;,
+  &quot;chunks_in&quot;: 1,
+  &quot;chunks_out&quot;: 1,
+  &quot;truncation_splits&quot;: 0,
+  &quot;pivot_used&quot;: false,
+  &quot;attempt&quot;: 0,
+  &quot;source_char_count&quot;: 1097,
+  &quot;translated_char_count&quot;: 1326,
+  &quot;coverage&quot;: {
+    &quot;chunks_matched&quot;: true,
+    &quot;source_tables&quot;: [],
+    &quot;translated_tables&quot;: [],
+    &quot;tables_preserved&quot;: true,
+    &quot;source_digit_count&quot;: 10,
+    &quot;missing_digits&quot;: [],
+    &quot;digits_preserved&quot;: true
+  },
+  &quot;provenance&quot;: {
+    &quot;source_model&quot;: &quot;indic-translate&quot;,
+    &quot;target_language&quot;: &quot;ta&quot;
+  }
+}</pre>
+                </details>
+              </td>
+            </tr><tr>
+              <td>10</td>
+              <td><span class="pill epoch">execute</span></td>
+              <td><code>publish_artifact</code> <div class="sub">pub2: Publishes the Tamil summary text deliverable.</div></td>
+              <td><span class="pill ok">OK</span></td>
+              <td>3 ms</td>
+              <td>₹0.0000</td>
+              <td>
+                <details><summary>args / meta</summary>
+                  <div class="label">Args (handles only)</div>
+                  <pre>{
+  &quot;deliverable_id&quot;: &quot;d2&quot;,
+  &quot;source_ref&quot;: &quot;$s4.text_path&quot;,
+  &quot;filename&quot;: &quot;summary_ta.txt&quot;
+}</pre>
+                  <div class="label">Result Meta (CaMeL-sanitized)</div>
+                  <pre>{
+  &quot;ok&quot;: true,
+  &quot;cost_inr&quot;: 0.0,
+  &quot;cache_hit&quot;: false,
+  &quot;model&quot;: null,
+  &quot;artifact_path&quot;: &quot;./outputs/demo_01_tamil_summary/artifacts/summary_ta.txt&quot;,
+  &quot;deliverable_id&quot;: &quot;d2&quot;,
+  &quot;filename&quot;: &quot;summary_ta.txt&quot;
+}</pre>
+                </details>
+              </td>
+            </tr><tr>
+              <td>11</td>
+              <td><span class="pill epoch">execute</span></td>
+              <td><code>synthesize_speech</code> <div class="sub">s5: Narrates the Tamil summary as mp3 using the default Bodhan Tamil voice.</div></td>
+              <td><span class="pill ok">OK</span></td>
+              <td>41882 ms</td>
+              <td>₹0.7914</td>
+              <td>
+                <details><summary>args / meta</summary>
+                  <div class="label">Args (handles only)</div>
+                  <pre>{
+  &quot;language&quot;: &quot;ta&quot;,
+  &quot;path&quot;: &quot;$s4.text_path&quot;,
+  &quot;format&quot;: &quot;mp3&quot;
+}</pre>
+                  <div class="label">Result Meta (CaMeL-sanitized)</div>
+                  <pre>{
+  &quot;ok&quot;: true,
+  &quot;cost_inr&quot;: 0.7914,
+  &quot;cache_hit&quot;: false,
+  &quot;model&quot;: &quot;indic-speak&quot;,
+  &quot;audio_path&quot;: &quot;./outputs/demo_01_tamil_summary/.work/tts_ta_6de603b3.mp3&quot;,
+  &quot;chunk_manifest_path&quot;: &quot;./outputs/demo_01_tamil_summary/.work/tts_ta_6de603b3_chunks.json&quot;,
+  &quot;language&quot;: &quot;ta&quot;,
+  &quot;voice&quot;: &quot;Anitha&quot;,
+  &quot;style&quot;: null,
+  &quot;format&quot;: &quot;mp3&quot;,
+  &quot;duration_s&quot;: 113.323,
+  &quot;chunk_count&quot;: 8,
+  &quot;input_char_count&quot;: 1326,
+  &quot;attempt&quot;: 0,
+  &quot;resynthesized_chunks&quot;: [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  &quot;ai_generated_label&quot;: &quot;AI-generated (Bodhan Indic-Speak)&quot;,
+  &quot;chunks&quot;: [
+    {
+      &quot;index&quot;: 0,
+      &quot;audio_path&quot;: &quot;./outputs/demo_01_tamil_summary/.work/tts_ta_6de603b3_chunks/chunk_0000.wav&quot;,
+      &quot;text_path&quot;: &quot;./outputs/demo_01_tamil_summary/.work/tts_ta_6de603b3_chunks/chunk_0000.txt&quot;,
+      &quot;char_count&quot;: 127,
+      &quot;duration_s&quot;: 11.605
+    },
+    {
+      &quot;index&quot;: 1,
+      &quot;audio_path&quot;: &quot;./outputs/demo_01_tamil_summary/.work/tts_ta_6de603b3_chunks/chunk_0001.wav&quot;,
+      &quot;text_path&quot;: &quot;./outputs/demo_01_tamil_summary/.work/tts_ta_6de603b3_chunks/chunk_0001.txt&quot;,
+      &quot;char_count&quot;: 164,
+      &quot;duration_s&quot;: 13.824
+    },
+    {
+      &quot;index&quot;: 2,
+      &quot;audio_path&quot;: &quot;./outputs/demo_01_tamil_summary/.work/tts_ta_6de603b3_chunks/chunk_0002.wav&quot;,
+      &quot;text_path&quot;: &quot;./outputs/demo_01_tamil_summary/.work/tts_ta_6de603b3_chunks/chunk_0002.txt&quot;,
+      &quot;char_count&quot;: 233,
+      &quot;duration_s&quot;: 23.125
+    },
+    {
+      &quot;index&quot;: 3,
+      &quot;audio_path&quot;: &quot;./outputs/demo_01_tamil_summary/.work/tts_ta_6de603b3_chunks/chunk_0003.wav&quot;,
+      &quot;text_path&quot;: &quot;./outputs/demo_01_tamil_summary/.work/tts_ta_6de603b3_chunks/chunk_0003.txt&quot;,
+      &quot;char_count&quot;: 102,
+      &quot;duration_s&quot;: 8.96
+    },
+    {
+      &quot;index&quot;: 4,
+      &quot;audio_path&quot;: &quot;./outputs/demo_01_tamil_summary/.work/tts_ta_6de603b3_chunks/chunk_0004.wav&quot;,
+      &quot;text_path&quot;: &quot;./outputs/demo_01_tamil_summary/.work/tts_ta_6de603b3_chunks/chunk_0004.txt&quot;,
+      &quot;char_count&quot;: 152,
+      &quot;duration_s&quot;: 13.312
+    },
+    {
+      &quot;index&quot;: 5,
+      &quot;audio_path&quot;: &quot;./outputs/demo_01_tamil_summary/.work/tts_ta_6de603b3_chunks/chunk_0005.wav&quot;,
+      &quot;text_path&quot;: &quot;./outputs/demo_01_tamil_summary/.work/tts_ta_6de603b3_chunks/chunk_0005.txt&quot;,
+      &quot;char_count&quot;: 159,
+      &quot;duration_s&quot;: 12.117
+    },
+    {
+      &quot;index&quot;: 6,
+      &quot;audio_path&quot;: &quot;./outputs/demo_01_tamil_summary/.work/tts_ta_6de603b3_chunks/chunk_0006.wav&quot;,
+      &quot;text_path&quot;: &quot;./outputs/demo_01_tamil_summary/.work/tts_ta_6de603b3_chunks/chunk_0006.txt&quot;,
+      &quot;char_count&quot;: 188,
+      &quot;duration_s&quot;: 15.36
+    },
+    {
+      &quot;index&quot;: 7,
+      &quot;audio_path&quot;: &quot;./outputs/demo_01_tamil_summary/.work/tts_ta_6de603b3_chunks/chunk_0007.wav&quot;,
+      &quot;text_path&quot;: &quot;./outputs/demo_01_tamil_summary/.work/tts_ta_6de603b3_chunks/chunk_0007.txt&quot;,
+      &quot;char_count&quot;: 194,
+      &quot;duration_s&quot;: 15.019
+    }
+  ]
+}</pre>
+                </details>
+              </td>
+            </tr><tr>
+              <td>12</td>
+              <td><span class="pill epoch">execute</span></td>
+              <td><code>publish_artifact</code> <div class="sub">pub1: Publishes the Tamil audio summary deliverable.</div></td>
+              <td><span class="pill ok">OK</span></td>
+              <td>2 ms</td>
+              <td>₹0.0000</td>
+              <td>
+                <details><summary>args / meta</summary>
+                  <div class="label">Args (handles only)</div>
+                  <pre>{
+  &quot;deliverable_id&quot;: &quot;d1&quot;,
+  &quot;source_ref&quot;: &quot;$s5.audio_path&quot;,
+  &quot;filename&quot;: &quot;summary_ta.mp3&quot;
+}</pre>
+                  <div class="label">Result Meta (CaMeL-sanitized)</div>
+                  <pre>{
+  &quot;ok&quot;: true,
+  &quot;cost_inr&quot;: 0.0,
+  &quot;cache_hit&quot;: false,
+  &quot;model&quot;: null,
+  &quot;artifact_path&quot;: &quot;./outputs/demo_01_tamil_summary/artifacts/summary_ta.mp3&quot;,
+  &quot;deliverable_id&quot;: &quot;d1&quot;,
+  &quot;filename&quot;: &quot;summary_ta.mp3&quot;
+}</pre>
+                </details>
+              </td>
+            </tr><tr>
+              <td>13</td>
+              <td><span class="pill epoch">execute</span></td>
+              <td><code>verify_speech</code> <div class="sub">s6: Back-transcribes the audio chunks and checks them against the Tamil summary text.</div></td>
+              <td><span class="pill ok">OK</span></td>
+              <td>9070 ms</td>
+              <td>₹0.1889</td>
+              <td>
+                <details><summary>args / meta</summary>
+                  <div class="label">Args (handles only)</div>
+                  <pre>{
+  &quot;audio_path&quot;: &quot;$s5.audio_path&quot;,
+  &quot;language&quot;: &quot;ta&quot;,
+  &quot;expected_path&quot;: &quot;$s4.text_path&quot;,
+  &quot;chunk_manifest_path&quot;: &quot;$s5.chunk_manifest_path&quot;
+}</pre>
+                  <div class="label">Result Meta (CaMeL-sanitized)</div>
+                  <pre>{
+  &quot;ok&quot;: true,
+  &quot;cost_inr&quot;: 0.188871,
+  &quot;cache_hit&quot;: false,
+  &quot;model&quot;: &quot;indic-transcribe&quot;,
+  &quot;passed&quot;: true,
+  &quot;mean_cer&quot;: 0.0046,
+  &quot;cer_threshold&quot;: 0.45,
+  &quot;chunks_checked&quot;: 8,
+  &quot;failed_chunk_indices&quot;: [],
+  &quot;verdicts&quot;: [
+    {
+      &quot;index&quot;: 0,
+      &quot;audio_path&quot;: &quot;./outputs/demo_01_tamil_summary/.work/tts_ta_6de603b3_chunks/chunk_0000.wav&quot;,
+      &quot;expected_chars&quot;: 127,
+      &quot;transcribed_chars&quot;: 126,
+      &quot;cer&quot;: 0.0,
+      &quot;repetition_detected&quot;: false,
+      &quot;repeated_ngram&quot;: null,
+      &quot;duration_s&quot;: 11.605,
+      &quot;chars_per_second&quot;: 10.94,
+      &quot;duration_anomaly&quot;: false,
+      &quot;passed&quot;: true,
+      &quot;reasons&quot;: []
+    },
+    {
+      &quot;index&quot;: 1,
+      &quot;audio_path&quot;: &quot;./outputs/demo_01_tamil_summary/.work/tts_ta_6de603b3_chunks/chunk_0001.wav&quot;,
+      &quot;expected_chars&quot;: 164,
+      &quot;transcribed_chars&quot;: 160,
+      &quot;cer&quot;: 0.0,
+      &quot;repetition_detected&quot;: false,
+      &quot;repeated_ngram&quot;: null,
+      &quot;duration_s&quot;: 13.824,
+      &quot;chars_per_second&quot;: 11.86,
+      &quot;duration_anomaly&quot;: false,
+      &quot;passed&quot;: true,
+      &quot;reasons&quot;: []
+    },
+    {
+      &quot;index&quot;: 2,
+      &quot;audio_path&quot;: &quot;./outputs/demo_01_tamil_summary/.work/tts_ta_6de603b3_chunks/chunk_0002.wav&quot;,
+      &quot;expected_chars&quot;: 233,
+      &quot;transcribed_chars&quot;: 309,
+      &quot;cer&quot;: 0.0229,
+      &quot;repetition_detected&quot;: false,
+      &quot;repeated_ngram&quot;: null,
+      &quot;duration_s&quot;: 23.125,
+      &quot;chars_per_second&quot;: 10.08,
+      &quot;duration_anomaly&quot;: false,
+      &quot;passed&quot;: true,
+      &quot;reasons&quot;: []
+    },
+    {
+      &quot;index&quot;: 3,
+      &quot;audio_path&quot;: &quot;./outputs/demo_01_tamil_summary/.work/tts_ta_6de603b3_chunks/chunk_0003.wav&quot;,
+      &quot;expected_chars&quot;: 102,
+      &quot;transcribed_chars&quot;: 111,
+      &quot;cer&quot;: 0.0,
+      &quot;repetition_detected&quot;: false,
+      &quot;repeated_ngram&quot;: null,
+      &quot;duration_s&quot;: 8.96,
+      &quot;chars_per_second&quot;: 11.38,
+      &quot;duration_anomaly&quot;: false,
+      &quot;passed&quot;: true,
+      &quot;reasons&quot;: []
+    },
+    {
+      &quot;index&quot;: 4,
+      &quot;audio_path&quot;: &quot;./outputs/demo_01_tamil_summary/.work/tts_ta_6de603b3_chunks/chunk_0004.wav&quot;,
+      &quot;expected_chars&quot;: 152,
+      &quot;transcribed_chars&quot;: 173,
+      &quot;cer&quot;: 0.0135,
+      &quot;repetition_detected&quot;: false,
+      &quot;repeated_ngram&quot;: null,
+      &quot;duration_s&quot;: 13.312,
+      &quot;chars_per_second&quot;: 11.42,
+      &quot;duration_anomaly&quot;: false,
+      &quot;passed&quot;: true,
+      &quot;reasons&quot;: []
+    },
+    {
+      &quot;index&quot;: 5,
+      &quot;audio_path&quot;: &quot;./outputs/demo_01_tamil_summary/.work/tts_ta_6de603b3_chunks/chunk_0005.wav&quot;,
+      &quot;expected_chars&quot;: 159,
+      &quot;transcribed_chars&quot;: 157,
+      &quot;cer&quot;: 0.0,
+      &quot;repetition_detected&quot;: false,
+      &quot;repeated_ngram&quot;: null,
+      &quot;duration_s&quot;: 12.117,
+      &quot;chars_per_second&quot;: 13.12,
+      &quot;duration_anomaly&quot;: false,
+      &quot;passed&quot;: true,
+      &quot;reasons&quot;: []
+    },
+    {
+      &quot;index&quot;: 6,
+      &quot;audio_path&quot;: &quot;./outputs/demo_01_tamil_summary/.work/tts_ta_6de603b3_chunks/chunk_0006.wav&quot;,
+      &quot;expected_chars&quot;: 188,
+      &quot;transcribed_chars&quot;: 200,
+      &quot;cer&quot;: 0.0,
+      &quot;repetition_detected&quot;: false,
+      &quot;repeated_ngram&quot;: null,
+      &quot;duration_s&quot;: 15.36,
+      &quot;chars_per_second&quot;: 12.24,
+      &quot;duration_anomaly&quot;: false,
+      &quot;passed&quot;: true,
+      &quot;reasons&quot;: []
+    },
+    {
+      &quot;index&quot;: 7,
+      &quot;audio_path&quot;: &quot;./outputs/demo_01_tamil_summary/.work/tts_ta_6de603b3_chunks/chunk_0007.wav&quot;,
+      &quot;expected_chars&quot;: 194,
+      &quot;transcribed_chars&quot;: 191,
+      &quot;cer&quot;: 0.0,
+      &quot;repetition_detected&quot;: false,
+      &quot;repeated_ngram&quot;: null,
+      &quot;duration_s&quot;: 15.019,
+      &quot;chars_per_second&quot;: 12.92,
+      &quot;duration_anomaly&quot;: false,
+      &quot;passed&quot;: true,
+      &quot;reasons&quot;: []
+    }
+  ]
+}</pre>
+                </details>
+              </td>
+            </tr><tr>
+              <td>14</td>
+              <td><span class="pill epoch">verify</span></td>
+              <td><code>contracts_verifier</code> <div class="sub">Checked per-deliverable post-conditions</div></td>
+              <td><span class="pill ok">OK</span></td>
+              <td>0 ms</td>
+              <td>₹0.0000</td>
+              <td>
+                <details><summary>args / meta</summary>
+                  <div class="label">Args (handles only)</div>
+                  <pre>{}</pre>
+                  <div class="label">Result Meta (CaMeL-sanitized)</div>
+                  <pre>{
+  &quot;verifications&quot;: [
+    {
+      &quot;deliverable_id&quot;: &quot;d1&quot;,
+      &quot;kind&quot;: &quot;audio&quot;,
+      &quot;artifact_path&quot;: &quot;./outputs/demo_01_tamil_summary/artifacts/summary_ta.mp3&quot;,
+      &quot;passed&quot;: true,
+      &quot;checks&quot;: [
+        {
+          &quot;name&quot;: &quot;file_non_empty&quot;,
+          &quot;passed&quot;: true,
+          &quot;detail&quot;: &quot;summary_ta.mp3 (1814542 bytes)&quot;
+        },
+        {
+          &quot;name&quot;: &quot;indic_provenance&quot;,
+          &quot;passed&quot;: true,
+          &quot;detail&quot;: &quot;All Indic text verified from Bodhan/input&quot;
+        },
+        {
+          &quot;name&quot;: &quot;audio_playable&quot;,
+          &quot;passed&quot;: true,
+          &quot;detail&quot;: &quot;duration=113.32s&quot;
+        },
+        {
+          &quot;name&quot;: &quot;duration_tolerance_20pct&quot;,
+          &quot;passed&quot;: true,
+          &quot;detail&quot;: &quot;actual=113.3s vs target=120.0s (allowed 96.0-144.0s)&quot;
+        },
+        {
+          &quot;name&quot;: &quot;back_transcription_verify&quot;,
+          &quot;passed&quot;: true,
+          &quot;detail&quot;: &quot;mean_cer=0.0046, chunks=8, failed=[]&quot;
+        }
+      ]
+    },
+    {
+      &quot;deliverable_id&quot;: &quot;d2&quot;,
+      &quot;kind&quot;: &quot;text&quot;,
+      &quot;artifact_path&quot;: &quot;./outputs/demo_01_tamil_summary/artifacts/summary_ta.txt&quot;,
+      &quot;passed&quot;: true,
+      &quot;checks&quot;: [
+        {
+          &quot;name&quot;: &quot;file_non_empty&quot;,
+          &quot;passed&quot;: true,
+          &quot;detail&quot;: &quot;summary_ta.txt (3592 bytes)&quot;
+        },
+        {
+          &quot;name&quot;: &quot;indic_provenance&quot;,
+          &quot;passed&quot;: true,
+          &quot;detail&quot;: &quot;All Indic text verified from Bodhan/input&quot;
+        },
+        {
+          &quot;name&quot;: &quot;target_script_ratio&quot;,
+          &quot;passed&quot;: true,
+          &quot;detail&quot;: &quot;script_ratio=1.00 for &#x27;ta&#x27; (min 0.80)&quot;
+        },
+        {
+          &quot;name&quot;: &quot;translation_chunk_coverage&quot;,
+          &quot;passed&quot;: true,
+          &quot;detail&quot;: &quot;chunks_in=1, chunks_out=1&quot;
+        },
+        {
+          &quot;name&quot;: &quot;digits_preserved&quot;,
+          &quot;passed&quot;: true,
+          &quot;detail&quot;: &quot;preserved=10/10 (100%), missing=[]&quot;
+        }
+      ]
+    }
+  ]
+}</pre>
+                </details>
+              </td>
+            </tr>
+    </tbody>
+  </table>
+</div>
+</body>
+</html>

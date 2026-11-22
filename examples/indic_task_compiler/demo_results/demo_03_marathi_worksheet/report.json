@@ -1,0 +1,119 @@
+{
+  "status": "success",
+  "task": "Translate this worksheet into Marathi and keep the table intact in Markdown",
+  "steps_used": 5,
+  "max_steps": 20,
+  "total_cost_inr": 0.0,
+  "max_cost_inr": 5.0,
+  "cost_by_model": {},
+  "cache_hits": 2,
+  "total_time_s": 11.114,
+  "file_facts_count": 1,
+  "assumptions": [
+    "The worksheet is a single-page image; the entire page is the source text to OCR and translate.",
+    "The source language is not stated and the script histogram is empty because the image has not been read, so the source language is left as unknown and should be determined from the OCR output.",
+    "Table structure is preserved by mapping rows and columns to a Markdown table with the same cell layout; translated cell text stays in the same cell positions.",
+    "Marathi output uses native Devanagari script.",
+    "Estimated cost is dominated by one indic-ocr page call (₹0.20) plus indic-translate output tokens, well within the ₹5.00 budget.",
+    "The worksheet is a single-page PNG, so ocr_document needs no page selection.",
+    "The source language is unknown and is left for OCR and translation to handle, since no source language is required as an argument.",
+    "The translator keeps Markdown table syntax intact when given Markdown input; table cell positions are preserved.",
+    "No speech synthesis is requested, so no verification step is needed.",
+    "Estimated cost is one OCR page (about ₹0.20) plus translation output, well within the ₹5.00 budget."
+  ],
+  "artifacts": [
+    {
+      "deliverable_id": "d1",
+      "kind": "markdown",
+      "path": "./outputs/demo_03_marathi_worksheet/artifacts/worksheet_mr.md",
+      "relative_path": "artifacts/worksheet_mr.md",
+      "size_bytes": 1004
+    }
+  ],
+  "verification": [
+    {
+      "deliverable_id": "d1",
+      "kind": "markdown",
+      "artifact_path": "./outputs/demo_03_marathi_worksheet/artifacts/worksheet_mr.md",
+      "passed": true,
+      "checks": [
+        {
+          "name": "file_non_empty",
+          "passed": true,
+          "detail": "worksheet_mr.md (1004 bytes)"
+        },
+        {
+          "name": "indic_provenance",
+          "passed": true,
+          "detail": "All Indic text verified from Bodhan/input"
+        },
+        {
+          "name": "target_script_ratio",
+          "passed": true,
+          "detail": "script_ratio=1.00 for 'mr' (min 0.80)"
+        },
+        {
+          "name": "translation_chunk_coverage",
+          "passed": true,
+          "detail": "chunks_in=1, chunks_out=1"
+        },
+        {
+          "name": "tables_intact",
+          "passed": true,
+          "detail": "source_tables=[{'rows': 5, 'cols': 4}], output_tables=[{'rows': 5, 'cols': 4}]"
+        },
+        {
+          "name": "digits_preserved",
+          "passed": true,
+          "detail": "preserved=12/12 (100%), missing=[]"
+        }
+      ]
+    }
+  ],
+  "quality_targets": {
+    "honest_failure": {
+      "met": true,
+      "detail": "Provably impossible tasks exit at ₹0 with an explicit reason and zero fabricated artifacts."
+    },
+    "verification": {
+      "met": true,
+      "detail": "All deliverables verified."
+    },
+    "no_waste_cache": {
+      "met": true,
+      "detail": "Content-addressed SHA-256 disk cache active (2 cache hits in run)."
+    },
+    "budget": {
+      "met": true,
+      "detail": "Spent ₹0.0000 vs cap ₹5.00."
+    },
+    "latency": {
+      "met": true,
+      "detail": "Elapsed 11.11s vs target 300s."
+    }
+  },
+  "reason": null,
+  "camel_boundary_enforced": true,
+  "input_facts": [
+    {
+      "path": "./sample_data/worksheet.png",
+      "exists": true,
+      "kind": "image",
+      "mime_type": "image/png",
+      "size_bytes": 44202,
+      "duration_s": null,
+      "sample_rate": null,
+      "channels": null,
+      "page_count": 1,
+      "image_width": 1100,
+      "image_height": 820,
+      "char_count": null,
+      "script_histogram": {},
+      "detected_language_hint": null,
+      "estimated_cost_inr": {
+        "indic-ocr": 0.2
+      },
+      "error": null
+    }
+  ]
+}

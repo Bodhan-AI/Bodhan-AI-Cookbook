@@ -86,7 +86,7 @@ python -m bodhan_mcp --http --host 127.0.0.1 --port 8765 --token "$MCP_AUTH_TOKE
 
 ### Connecting an off-the-shelf MCP client
 
-Tested with the official Python `mcp` client SDK (`tests/test_mcp_stdio.py`) and compatible with MCP Inspector / Claude Desktop:
+Tested with **MCP Inspector** (`@modelcontextprotocol/inspector@0.17.2`, CLI mode: `tools/list`, `resources/list`, good and bad `tools/call` inputs) and the official Python `mcp` client SDK (`tests/test_mcp_stdio.py`). Claude Desktop config:
 
 ```json
 {
@@ -109,6 +109,11 @@ Or interactively with MCP Inspector:
 
 ```bash
 npx @modelcontextprotocol/inspector python -m bodhan_mcp
+
+# Scripted, no browser:
+npx @modelcontextprotocol/inspector --cli python -m bodhan_mcp --method tools/list
+npx @modelcontextprotocol/inspector --cli python -m bodhan_mcp \
+  --method tools/call --tool-name transcribe_audio --tool-arg path=/nonexistent.wav   # -> ok:false, code file_not_found
 ```
 
 ### Tool list (`bodhan_mcp`)
@@ -135,19 +140,25 @@ python scripts/self_eval.py          # 21-task offline machinery suite (12 core 
 python scripts/self_eval.py --live   # live API evaluation (uses .env keys; --group {all,core,regression})
 ```
 
+### Demo video
+
+**[Watch the demo (≤5 min)](VIDEO_URL_TODO)**
+
 ### Live Demo Results & Cost (`scripts/demo.sh`)
+
+Committed copies of each run live in [`demo_results/`](demo_results/) (local absolute paths rewritten to `./`; `trace.html` opens offline). The Tamil MP3 is re-encoded to 32 kbps mono to stay under the Cookbook's 1 MB file limit; rerun `scripts/demo.sh` for full-quality output in `outputs/`.
 
 Tested live against hosted Bodhan APIs (`https://api.bodhan.ai`) with `anthropic/claude-haiku-5.5` (OpenRouter). Total cumulative live spend across smoke tests, fixture generation, demo runs, live self-eval, and reviewer-unseen verification: **₹11.25** (177 Bodhan API calls).
 
-| # | Demo task | Status | Cold-cache cost | Fresh-dir cached cost | Runtime (cold / cached) | Output folder |
+| # | Demo task | Status | Cold-cache cost | Fresh-dir cached cost | Runtime (cold / cached) | Outputs & traces |
 |---|---|---|---|---|---|---|
-| 1 | 8-page scanned PDF -> 2-min Tamil audio summary + text | `success` | ~₹2.68 (₹4.26 pre-cal) | ₹0.9874 (OCR/en cached) | 76.8s / 99.6s | `outputs/demo_01_tamil_summary/` |
-| 2 | 3-min Hindi voice note -> English SRT subtitles | `success` | ₹0.3213 | ₹0.0000 | 35.4s / 14.0s | `outputs/demo_02_hindi_srt/` |
-| 3 | Worksheet photo -> Marathi Markdown (keep table) | `success` | ₹0.2030 | ₹0.0000 | 14.4s / 11.1s | `outputs/demo_03_marathi_worksheet/` |
-| 4 | 5 clips -> identify Telugu & translate to English | `success` | ₹0.1292 | ₹0.0000 | 35.3s / 18.7s | `outputs/demo_04_telugu_clips/` |
-| 5 | Bengali paragraph aloud (female voice) | `success` | ₹0.2825 | ₹0.0000 | 35.5s / 13.0s | `outputs/demo_05_bengali_tts/` |
-| 6 | Translate video into French (impossible) | `infeasible` | ₹0.0000 | ₹0.0000 | 1.5s / 1.7s | `outputs/demo_06_impossible_french/` |
-| 7 | Bonus: CaMeL prompt-injection scanned worksheet | `success` | ₹0.2043 | ₹0.0000 | 12.9s / 11.4s | `outputs/demo_07_camel_injection/` |
+| 1 | 8-page scanned PDF -> 2-min Tamil audio summary + text | `success` | ~₹2.68 (₹4.26 pre-cal) | ₹0.9874 (OCR/en cached) | 76.8s / 99.6s | [result](demo_results/demo_01_tamil_summary/result.md) · [trace](demo_results/demo_01_tamil_summary/trace.jsonl) · [report](demo_results/demo_01_tamil_summary/report.json) · [artifacts](demo_results/demo_01_tamil_summary/artifacts/) |
+| 2 | 3-min Hindi voice note -> English SRT subtitles | `success` | ₹0.3213 | ₹0.0000 | 35.4s / 14.0s | [result](demo_results/demo_02_hindi_srt/result.md) · [trace](demo_results/demo_02_hindi_srt/trace.jsonl) · [report](demo_results/demo_02_hindi_srt/report.json) · [artifacts](demo_results/demo_02_hindi_srt/artifacts/) |
+| 3 | Worksheet photo -> Marathi Markdown (keep table) | `success` | ₹0.2030 | ₹0.0000 | 14.4s / 11.1s | [result](demo_results/demo_03_marathi_worksheet/result.md) · [trace](demo_results/demo_03_marathi_worksheet/trace.jsonl) · [report](demo_results/demo_03_marathi_worksheet/report.json) · [artifacts](demo_results/demo_03_marathi_worksheet/artifacts/) |
+| 4 | 5 clips -> identify Telugu & translate to English | `success` | ₹0.1292 | ₹0.0000 | 35.3s / 18.7s | [result](demo_results/demo_04_telugu_clips/result.md) · [trace](demo_results/demo_04_telugu_clips/trace.jsonl) · [report](demo_results/demo_04_telugu_clips/report.json) · [artifacts](demo_results/demo_04_telugu_clips/artifacts/) |
+| 5 | Bengali paragraph aloud (female voice) | `success` | ₹0.2825 | ₹0.0000 | 35.5s / 13.0s | [result](demo_results/demo_05_bengali_tts/result.md) · [trace](demo_results/demo_05_bengali_tts/trace.jsonl) · [report](demo_results/demo_05_bengali_tts/report.json) · [artifacts](demo_results/demo_05_bengali_tts/artifacts/) |
+| 6 | Translate video into French (impossible) | `infeasible` | ₹0.0000 | ₹0.0000 | 1.5s / 1.7s | [result](demo_results/demo_06_impossible_french/result.md) · [trace](demo_results/demo_06_impossible_french/trace.jsonl) · [report](demo_results/demo_06_impossible_french/report.json) · no artifacts (refused at ₹0) |
+| 7 | Bonus: CaMeL prompt-injection scanned worksheet | `success` | ₹0.2043 | ₹0.0000 | 12.9s / 11.4s | [result](demo_results/demo_07_camel_injection/result.md) · [trace](demo_results/demo_07_camel_injection/trace.jsonl) · [report](demo_results/demo_07_camel_injection/report.json) · [artifacts](demo_results/demo_07_camel_injection/artifacts/) |
 
 A secondary 2-task probe on Google Gemini's OpenAI-compatible free tier (`gemini-3.6-flash`) completed Epoch A and cached probes on the 5-clip task before encountering persistent free-tier HTTP 503 overload across all 4 retry attempts (failing honestly at ₹0 without fabricating output).
 

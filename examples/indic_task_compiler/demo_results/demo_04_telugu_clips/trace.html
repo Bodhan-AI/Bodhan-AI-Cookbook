@@ -1,0 +1,630 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bodhan Agent Trace — SUCCESS</title>
+<style>
+  body { font-family: system-ui, -apple-system, sans-serif; background: #0f172a; color: #e2e8f0; margin: 0; padding: 24px; }
+  .wrap { max-width: 1120px; margin: 0 auto; }
+  h1 { margin: 0 0 8px; font-size: 22px; }
+  .task { color: #94a3b8; margin-bottom: 18px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .card { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 14px; }
+  .card .k { font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: .04em; }
+  .card .v { font-size: 20px; font-weight: 700; margin-top: 4px; }
+  .badge-status { display: inline-block; padding: 3px 10px; border-radius: 999px; background: #16a34a; color: #fff; font-size: 12px; font-weight: 700; vertical-align: middle; margin-left: 8px; }
+  .camel { background: #064e3b; color: #a7f3d0; border: 1px solid #10b981; border-radius: 8px; padding: 10px 14px; margin-bottom: 18px; font-size: 13px; }
+  table { width: 100%; border-collapse: collapse; background: #1e293b; border-radius: 10px; overflow: hidden; }
+  th, td { padding: 10px 12px; border-bottom: 1px solid #334155; text-align: left; vertical-align: top; font-size: 13px; }
+  th { background: #0b1220; color: #94a3b8; font-weight: 600; }
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+  .pill.epoch { background: #334155; color: #e2e8f0; }
+  .pill.ok { background: #14532d; color: #86efac; }
+  .pill.err { background: #7f1d1d; color: #fecaca; }
+  .pill.cache { background: #1e3a8a; color: #bfdbfe; margin-left: 4px; }
+  .sub { color: #94a3b8; font-size: 12px; margin-top: 3px; }
+  pre { background: #0b1220; padding: 8px; border-radius: 6px; overflow-x: auto; font-size: 11px; max-height: 220px; }
+  .label { color: #94a3b8; font-size: 11px; margin-top: 6px; }
+  ul { margin: 6px 0 0 18px; padding: 0; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Indic Task Compiler Trace <span class="badge-status">SUCCESS</span></h1>
+  <div class="task">Which of these clips are in Telugu? Translate those into English</div>
+  <div class="camel">
+    <strong>CaMeL Isolation Active:</strong> The Privileged Planner (P-LLM) saw only FileFacts metadata, typed probe enums, and <code>$step.field</code> artifact handles. Untrusted file/OCR/transcript/translation content was stripped before entering planner context.
+  </div>
+  <div class="cards">
+    <div class="card"><div class="k">Total Spend</div><div class="v">₹0.0000 / ₹10.00</div></div>
+    <div class="card"><div class="k">Steps</div><div class="v">13 / 30</div></div>
+    <div class="card"><div class="k">Runtime</div><div class="v">18.70 s</div></div>
+    <div class="card"><div class="k">Cache Hits</div><div class="v">9</div></div>
+    <div class="card"><div class="k">Cost by Model</div><ul><li>₹0.0000 (no paid Bodhan calls)</li></ul></div>
+  </div>
+  <table>
+    <thead>
+      <tr><th>#</th><th>Epoch</th><th>Tool / Step</th><th>Status</th><th>Latency</th><th>Cost</th><th>Payload (Handles &amp; Meta)</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+              <td>1</td>
+              <td><span class="pill epoch">intake</span></td>
+              <td><code>inspect_files</code> <div class="sub">Inspect input file metadata (free)</div></td>
+              <td><span class="pill ok">OK</span></td>
+              <td>594 ms</td>
+              <td>₹0.0000</td>
+              <td>
+                <details><summary>args / meta</summary>
+                  <div class="label">Args (handles only)</div>
+                  <pre>{
+  &quot;file_count&quot;: 5
+}</pre>
+                  <div class="label">Result Meta (CaMeL-sanitized)</div>
+                  <pre>{
+  &quot;files&quot;: [
+    {
+      &quot;path&quot;: &quot;./sample_data/clips/clip_01.wav&quot;,
+      &quot;kind&quot;: &quot;audio&quot;,
+      &quot;exists&quot;: true
+    },
+    {
+      &quot;path&quot;: &quot;./sample_data/clips/clip_02.wav&quot;,
+      &quot;kind&quot;: &quot;audio&quot;,
+      &quot;exists&quot;: true
+    },
+    {
+      &quot;path&quot;: &quot;./sample_data/clips/clip_03.wav&quot;,
+      &quot;kind&quot;: &quot;audio&quot;,
+      &quot;exists&quot;: true
+    },
+    {
+      &quot;path&quot;: &quot;./sample_data/clips/clip_04.wav&quot;,
+      &quot;kind&quot;: &quot;audio&quot;,
+      &quot;exists&quot;: true
+    },
+    {
+      &quot;path&quot;: &quot;./sample_data/clips/clip_05.wav&quot;,
+      &quot;kind&quot;: &quot;audio&quot;,
+      &quot;exists&quot;: true
+    }
+  ]
+}</pre>
+                </details>
+              </td>
+            </tr><tr>
+              <td>2</td>
+              <td><span class="pill epoch">epoch_a</span></td>
+              <td><code>p_llm_epoch_a</code> <div class="sub">Identify which of the five audio clips are spoken in Telugu, then transcribe and translate those clips into English.</div></td>
+              <td><span class="pill ok">OK</span></td>
+              <td>7405 ms</td>
+              <td>₹0.0000</td>
+              <td>
+                <details><summary>args / meta</summary>
+                  <div class="label">Args (handles only)</div>
+                  <pre>{
+  &quot;file_facts_count&quot;: 5
+}</pre>
+                  <div class="label">Result Meta (CaMeL-sanitized)</div>
+                  <pre>{
+  &quot;deliverables&quot;: [
+    {
+      &quot;id&quot;: &quot;d1&quot;,
+      &quot;kind&quot;: &quot;markdown&quot;,
+      &quot;language_raw&quot;: &quot;English&quot;,
+      &quot;language&quot;: &quot;en&quot;,
+      &quot;language_supported&quot;: true,
+      &quot;output_filename&quot;: &quot;telugu_clips_translated_en.md&quot;,
+      &quot;description&quot;: &quot;A markdown report listing each clip detected as Telugu, with its English translation. Clips not in Telugu are excluded from the translations.&quot;,
+      &quot;constraints&quot;: {
+        &quot;keep_tables&quot;: false,
+        &quot;format&quot;: &quot;md&quot;,
+        &quot;script&quot;: &quot;roman&quot;,
+        &quot;filter_language&quot;: &quot;te&quot;
+      }
+    }
+  ],
+  &quot;needs_probe&quot;: [
+    {
+      &quot;kind&quot;: &quot;detect_language&quot;,
+      &quot;path&quot;: &quot;./sample_data/clips/clip_01.wav&quot;
+    },
+    {
+      &quot;kind&quot;: &quot;detect_language&quot;,
+      &quot;path&quot;: &quot;./sample_data/clips/clip_02.wav&quot;
+    },
+    {
+      &quot;kind&quot;: &quot;detect_language&quot;,
+      &quot;path&quot;: &quot;./sample_data/clips/clip_03.wav&quot;
+    },
+    {
+      &quot;kind&quot;: &quot;detect_language&quot;,
+      &quot;path&quot;: &quot;./sample_data/clips/clip_04.wav&quot;
+    },
+    {
+      &quot;kind&quot;: &quot;detect_language&quot;,
+      &quot;path&quot;: &quot;./sample_data/clips/clip_05.wav&quot;
+    }
+  ],
+  &quot;infeasible_reason&quot;: null
+}</pre>
+                </details>
+              </td>
+            </tr><tr>
+              <td>3</td>
+              <td><span class="pill epoch">gate</span></td>
+              <td><code>feasibility_gate</code> <div class="sub">Static language, file, and cost-floor check</div></td>
+              <td><span class="pill ok">OK</span></td>
+              <td>0 ms</td>
+              <td>₹0.0000</td>
+              <td>
+                <details><summary>args / meta</summary>
+                  <div class="label">Args (handles only)</div>
+                  <pre>{}</pre>
+                  <div class="label">Result Meta (CaMeL-sanitized)</div>
+                  <pre>{
+  &quot;feasible&quot;: true,
+  &quot;reason&quot;: null,
+  &quot;cost_floor_inr&quot;: 0.081717,
+  &quot;checks&quot;: [
+    &quot;languages_supported&quot;,
+    &quot;cost_floor_inr=0.0817&quot;,
+    &quot;budget_floor_ok&quot;
+  ]
+}</pre>
+                </details>
+              </td>
+            </tr><tr>
+              <td>4</td>
+              <td><span class="pill epoch">probe</span></td>
+              <td><code>detect_language</code> <span class="pill cache">CACHE</span><div class="sub">Probe language for clip_01.wav</div></td>
+              <td><span class="pill ok">OK</span></td>
+              <td>450 ms</td>
+              <td>₹0.0000</td>
+              <td>
+                <details><summary>args / meta</summary>
+                  <div class="label">Args (handles only)</div>
+                  <pre>{
+  &quot;path&quot;: &quot;./sample_data/clips/clip_01.wav&quot;
+}</pre>
+                  <div class="label">Result Meta (CaMeL-sanitized)</div>
+                  <pre>{
+  &quot;path&quot;: &quot;./sample_data/clips/clip_01.wav&quot;,
+  &quot;language&quot;: &quot;te&quot;,
+  &quot;confidence&quot;: 1.0,
+  &quot;ambiguous&quot;: false,
+  &quot;method&quot;: &quot;audio_probe_10s+unicode_script&quot;,
+  &quot;cost_inr&quot;: 0.0,
+  &quot;error&quot;: null
+}</pre>
+                </details>
+              </td>
+            </tr><tr>
+              <td>5</td>
+              <td><span class="pill epoch">probe</span></td>
+              <td><code>detect_language</code> <span class="pill cache">CACHE</span><div class="sub">Probe language for clip_02.wav</div></td>
+              <td><span class="pill ok">OK</span></td>
+              <td>715 ms</td>
+              <td>₹0.0000</td>
+              <td>
+                <details><summary>args / meta</summary>
+                  <div class="label">Args (handles only)</div>
+                  <pre>{
+  &quot;path&quot;: &quot;./sample_data/clips/clip_02.wav&quot;
+}</pre>
+                  <div class="label">Result Meta (CaMeL-sanitized)</div>
+                  <pre>{
+  &quot;path&quot;: &quot;./sample_data/clips/clip_02.wav&quot;,
+  &quot;language&quot;: &quot;hi&quot;,
+  &quot;confidence&quot;: 0.98,
+  &quot;ambiguous&quot;: false,
+  &quot;method&quot;: &quot;audio_probe_10s+unicode_script_plus_stopwords&quot;,
+  &quot;cost_inr&quot;: 0.0,
+  &quot;error&quot;: null
+}</pre>
+                </details>
+              </td>
+            </tr><tr>
+              <td>6</td>
+              <td><span class="pill epoch">probe</span></td>
+              <td><code>detect_language</code> <span class="pill cache">CACHE</span><div class="sub">Probe language for clip_03.wav</div></td>
+              <td><span class="pill ok">OK</span></td>
+              <td>345 ms</td>
+              <td>₹0.0000</td>
+              <td>
+                <details><summary>args / meta</summary>
+                  <div class="label">Args (handles only)</div>
+                  <pre>{
+  &quot;path&quot;: &quot;./sample_data/clips/clip_03.wav&quot;
+}</pre>
+                  <div class="label">Result Meta (CaMeL-sanitized)</div>
+                  <pre>{
+  &quot;path&quot;: &quot;./sample_data/clips/clip_03.wav&quot;,
+  &quot;language&quot;: &quot;ta&quot;,
+  &quot;confidence&quot;: 1.0,
+  &quot;ambiguous&quot;: false,
+  &quot;method&quot;: &quot;audio_probe_10s+unicode_script&quot;,
+  &quot;cost_inr&quot;: 0.0,
+  &quot;error&quot;: null
+}</pre>
+                </details>
+              </td>
+            </tr><tr>
+              <td>7</td>
+              <td><span class="pill epoch">probe</span></td>
+              <td><code>detect_language</code> <span class="pill cache">CACHE</span><div class="sub">Probe language for clip_04.wav</div></td>
+              <td><span class="pill ok">OK</span></td>
+              <td>348 ms</td>
+              <td>₹0.0000</td>
+              <td>
+                <details><summary>args / meta</summary>
+                  <div class="label">Args (handles only)</div>
+                  <pre>{
+  &quot;path&quot;: &quot;./sample_data/clips/clip_04.wav&quot;
+}</pre>
+                  <div class="label">Result Meta (CaMeL-sanitized)</div>
+                  <pre>{
+  &quot;path&quot;: &quot;./sample_data/clips/clip_04.wav&quot;,
+  &quot;language&quot;: &quot;te&quot;,
+  &quot;confidence&quot;: 1.0,
+  &quot;ambiguous&quot;: false,
+  &quot;method&quot;: &quot;audio_probe_10s+unicode_script&quot;,
+  &quot;cost_inr&quot;: 0.0,
+  &quot;error&quot;: null
+}</pre>
+                </details>
+              </td>
+            </tr><tr>
+              <td>8</td>
+              <td><span class="pill epoch">probe</span></td>
+              <td><code>detect_language</code> <span class="pill cache">CACHE</span><div class="sub">Probe language for clip_05.wav</div></td>
+              <td><span class="pill ok">OK</span></td>
+              <td>208 ms</td>
+              <td>₹0.0000</td>
+              <td>
+                <details><summary>args / meta</summary>
+                  <div class="label">Args (handles only)</div>
+                  <pre>{
+  &quot;path&quot;: &quot;./sample_data/clips/clip_05.wav&quot;
+}</pre>
+                  <div class="label">Result Meta (CaMeL-sanitized)</div>
+                  <pre>{
+  &quot;path&quot;: &quot;./sample_data/clips/clip_05.wav&quot;,
+  &quot;language&quot;: &quot;bn&quot;,
+  &quot;confidence&quot;: 0.98,
+  &quot;ambiguous&quot;: false,
+  &quot;method&quot;: &quot;audio_probe_10s+unicode_script_plus_stopwords&quot;,
+  &quot;cost_inr&quot;: 0.0,
+  &quot;error&quot;: null
+}</pre>
+                </details>
+              </td>
+            </tr><tr>
+              <td>9</td>
+              <td><span class="pill epoch">epoch_b</span></td>
+              <td><code>p_llm_epoch_b</code> <div class="sub">Proposed 6 steps</div></td>
+              <td><span class="pill ok">OK</span></td>
+              <td>6411 ms</td>
+              <td>₹0.0000</td>
+              <td>
+                <details><summary>args / meta</summary>
+                  <div class="label">Args (handles only)</div>
+                  <pre>{}</pre>
+                  <div class="label">Result Meta (CaMeL-sanitized)</div>
+                  <pre>{
+  &quot;step_ids&quot;: [
+    &quot;s1&quot;,
+    &quot;s2&quot;,
+    &quot;s3&quot;,
+    &quot;s4&quot;,
+    &quot;s5&quot;,
+    &quot;pub1&quot;
+  ]
+}</pre>
+                </details>
+              </td>
+            </tr><tr>
+              <td>10</td>
+              <td><span class="pill epoch">compile</span></td>
+              <td><code>plan_compiler</code> <div class="sub">Compiled into 4 parallel wave(s)</div></td>
+              <td><span class="pill ok">OK</span></td>
+              <td>0 ms</td>
+              <td>₹0.0000</td>
+              <td>
+                <details><summary>args / meta</summary>
+                  <div class="label">Args (handles only)</div>
+                  <pre>{}</pre>
+                  <div class="label">Result Meta (CaMeL-sanitized)</div>
+                  <pre>{
+  &quot;waves&quot;: [
+    [
+      &quot;s1&quot;,
+      &quot;s2&quot;
+    ],
+    [
+      &quot;s3&quot;,
+      &quot;s4&quot;
+    ],
+    [
+      &quot;s5&quot;
+    ],
+    [
+      &quot;pub1&quot;
+    ]
+  ],
+  &quot;estimated_cost_ceiling_inr&quot;: 0.06608
+}</pre>
+                </details>
+              </td>
+            </tr><tr>
+              <td>11</td>
+              <td><span class="pill epoch">execute</span></td>
+              <td><code>transcribe_audio</code> <span class="pill cache">CACHE</span><div class="sub">s1: clip_01.wav was probed as Telugu (te, confidence 1.0), so transcribe it in Telugu.</div></td>
+              <td><span class="pill ok">OK</span></td>
+              <td>1005 ms</td>
+              <td>₹0.0000</td>
+              <td>
+                <details><summary>args / meta</summary>
+                  <div class="label">Args (handles only)</div>
+                  <pre>{
+  &quot;path&quot;: &quot;./sample_data/clips/clip_01.wav&quot;,
+  &quot;language&quot;: &quot;te&quot;
+}</pre>
+                  <div class="label">Result Meta (CaMeL-sanitized)</div>
+                  <pre>{
+  &quot;ok&quot;: true,
+  &quot;cost_inr&quot;: 0.0,
+  &quot;cache_hit&quot;: true,
+  &quot;model&quot;: &quot;indic-transcribe&quot;,
+  &quot;text_path&quot;: &quot;./outputs/demo_04_telugu_clips/.work/asr_clip_01_33b38e06.txt&quot;,
+  &quot;segments_path&quot;: &quot;./outputs/demo_04_telugu_clips/.work/asr_clip_01_33b38e06_segments.json&quot;,
+  &quot;language&quot;: &quot;te&quot;,
+  &quot;language_detection&quot;: null,
+  &quot;duration_s&quot;: 15.189,
+  &quot;window_count&quot;: 1,
+  &quot;segment_count&quot;: 1,
+  &quot;dropped_silence_windows&quot;: 0,
+  &quot;char_count&quot;: 175,
+  &quot;provenance&quot;: {
+    &quot;source_model&quot;: &quot;indic-transcribe&quot;,
+    &quot;source_path&quot;: &quot;./sample_data/clips/clip_01.wav&quot;
+  }
+}</pre>
+                </details>
+              </td>
+            </tr><tr>
+              <td>12</td>
+              <td><span class="pill epoch">execute</span></td>
+              <td><code>transcribe_audio</code> <span class="pill cache">CACHE</span><div class="sub">s2: clip_04.wav was probed as Telugu (te, confidence 1.0), so transcribe it in Telugu.</div></td>
+              <td><span class="pill ok">OK</span></td>
+              <td>1005 ms</td>
+              <td>₹0.0000</td>
+              <td>
+                <details><summary>args / meta</summary>
+                  <div class="label">Args (handles only)</div>
+                  <pre>{
+  &quot;path&quot;: &quot;./sample_data/clips/clip_04.wav&quot;,
+  &quot;language&quot;: &quot;te&quot;
+}</pre>
+                  <div class="label">Result Meta (CaMeL-sanitized)</div>
+                  <pre>{
+  &quot;ok&quot;: true,
+  &quot;cost_inr&quot;: 0.0,
+  &quot;cache_hit&quot;: true,
+  &quot;model&quot;: &quot;indic-transcribe&quot;,
+  &quot;text_path&quot;: &quot;./outputs/demo_04_telugu_clips/.work/asr_clip_04_bd1079da.txt&quot;,
+  &quot;segments_path&quot;: &quot;./outputs/demo_04_telugu_clips/.work/asr_clip_04_bd1079da_segments.json&quot;,
+  &quot;language&quot;: &quot;te&quot;,
+  &quot;language_detection&quot;: null,
+  &quot;duration_s&quot;: 12.459,
+  &quot;window_count&quot;: 1,
+  &quot;segment_count&quot;: 1,
+  &quot;dropped_silence_windows&quot;: 0,
+  &quot;char_count&quot;: 156,
+  &quot;provenance&quot;: {
+    &quot;source_model&quot;: &quot;indic-transcribe&quot;,
+    &quot;source_path&quot;: &quot;./sample_data/clips/clip_04.wav&quot;
+  }
+}</pre>
+                </details>
+              </td>
+            </tr><tr>
+              <td>13</td>
+              <td><span class="pill epoch">execute</span></td>
+              <td><code>translate_text</code> <span class="pill cache">CACHE</span><div class="sub">s3: Translate the clip_01 Telugu transcript into English.</div></td>
+              <td><span class="pill ok">OK</span></td>
+              <td>12 ms</td>
+              <td>₹0.0000</td>
+              <td>
+                <details><summary>args / meta</summary>
+                  <div class="label">Args (handles only)</div>
+                  <pre>{
+  &quot;path&quot;: &quot;$s1.text_path&quot;,
+  &quot;target_language&quot;: &quot;en&quot;
+}</pre>
+                  <div class="label">Result Meta (CaMeL-sanitized)</div>
+                  <pre>{
+  &quot;ok&quot;: true,
+  &quot;cost_inr&quot;: 0.0,
+  &quot;cache_hit&quot;: true,
+  &quot;model&quot;: &quot;indic-translate&quot;,
+  &quot;text_path&quot;: &quot;./outputs/demo_04_telugu_clips/.work/translated_en_c3cf09b2.md&quot;,
+  &quot;target_language&quot;: &quot;en&quot;,
+  &quot;script&quot;: &quot;native&quot;,
+  &quot;chunks_in&quot;: 1,
+  &quot;chunks_out&quot;: 1,
+  &quot;truncation_splits&quot;: 0,
+  &quot;pivot_used&quot;: false,
+  &quot;attempt&quot;: 0,
+  &quot;source_char_count&quot;: 175,
+  &quot;translated_char_count&quot;: 174,
+  &quot;coverage&quot;: {
+    &quot;chunks_matched&quot;: true,
+    &quot;source_tables&quot;: [],
+    &quot;translated_tables&quot;: [],
+    &quot;tables_preserved&quot;: true,
+    &quot;source_digit_count&quot;: 0,
+    &quot;missing_digits&quot;: [],
+    &quot;digits_preserved&quot;: true
+  },
+  &quot;provenance&quot;: {
+    &quot;source_model&quot;: &quot;indic-translate&quot;,
+    &quot;target_language&quot;: &quot;en&quot;
+  }
+}</pre>
+                </details>
+              </td>
+            </tr><tr>
+              <td>14</td>
+              <td><span class="pill epoch">execute</span></td>
+              <td><code>translate_text</code> <span class="pill cache">CACHE</span><div class="sub">s4: Translate the clip_04 Telugu transcript into English.</div></td>
+              <td><span class="pill ok">OK</span></td>
+              <td>13 ms</td>
+              <td>₹0.0000</td>
+              <td>
+                <details><summary>args / meta</summary>
+                  <div class="label">Args (handles only)</div>
+                  <pre>{
+  &quot;path&quot;: &quot;$s2.text_path&quot;,
+  &quot;target_language&quot;: &quot;en&quot;
+}</pre>
+                  <div class="label">Result Meta (CaMeL-sanitized)</div>
+                  <pre>{
+  &quot;ok&quot;: true,
+  &quot;cost_inr&quot;: 0.0,
+  &quot;cache_hit&quot;: true,
+  &quot;model&quot;: &quot;indic-translate&quot;,
+  &quot;text_path&quot;: &quot;./outputs/demo_04_telugu_clips/.work/translated_en_8f3f70bf.md&quot;,
+  &quot;target_language&quot;: &quot;en&quot;,
+  &quot;script&quot;: &quot;native&quot;,
+  &quot;chunks_in&quot;: 1,
+  &quot;chunks_out&quot;: 1,
+  &quot;truncation_splits&quot;: 0,
+  &quot;pivot_used&quot;: false,
+  &quot;attempt&quot;: 0,
+  &quot;source_char_count&quot;: 156,
+  &quot;translated_char_count&quot;: 168,
+  &quot;coverage&quot;: {
+    &quot;chunks_matched&quot;: true,
+    &quot;source_tables&quot;: [],
+    &quot;translated_tables&quot;: [],
+    &quot;tables_preserved&quot;: true,
+    &quot;source_digit_count&quot;: 0,
+    &quot;missing_digits&quot;: [],
+    &quot;digits_preserved&quot;: true
+  },
+  &quot;provenance&quot;: {
+    &quot;source_model&quot;: &quot;indic-translate&quot;,
+    &quot;target_language&quot;: &quot;en&quot;
+  }
+}</pre>
+                </details>
+              </td>
+            </tr><tr>
+              <td>15</td>
+              <td><span class="pill epoch">execute</span></td>
+              <td><code>merge_text_artifacts</code> <div class="sub">s5: Combine the two English translations into one Markdown report, with one labeled section per Telugu clip.</div></td>
+              <td><span class="pill ok">OK</span></td>
+              <td>1 ms</td>
+              <td>₹0.0000</td>
+              <td>
+                <details><summary>args / meta</summary>
+                  <div class="label">Args (handles only)</div>
+                  <pre>{
+  &quot;inputs&quot;: [
+    &quot;$s3.text_path&quot;,
+    &quot;$s4.text_path&quot;
+  ],
+  &quot;labels&quot;: [
+    &quot;clip_01.wav (Telugu)&quot;,
+    &quot;clip_04.wav (Telugu)&quot;
+  ],
+  &quot;filename&quot;: &quot;telugu_clips_translated_en.md&quot;
+}</pre>
+                  <div class="label">Result Meta (CaMeL-sanitized)</div>
+                  <pre>{
+  &quot;ok&quot;: true,
+  &quot;cost_inr&quot;: 0.0,
+  &quot;cache_hit&quot;: false,
+  &quot;model&quot;: null,
+  &quot;text_path&quot;: &quot;./outputs/demo_04_telugu_clips/.work/telugu_clips_translated_en.md&quot;,
+  &quot;item_count&quot;: 2,
+  &quot;char_count&quot;: 394
+}</pre>
+                </details>
+              </td>
+            </tr><tr>
+              <td>16</td>
+              <td><span class="pill epoch">execute</span></td>
+              <td><code>publish_artifact</code> <div class="sub">pub1: Publish the final Markdown deliverable.</div></td>
+              <td><span class="pill ok">OK</span></td>
+              <td>4 ms</td>
+              <td>₹0.0000</td>
+              <td>
+                <details><summary>args / meta</summary>
+                  <div class="label">Args (handles only)</div>
+                  <pre>{
+  &quot;deliverable_id&quot;: &quot;d1&quot;,
+  &quot;source_ref&quot;: &quot;$s5.text_path&quot;,
+  &quot;filename&quot;: &quot;telugu_clips_translated_en.md&quot;
+}</pre>
+                  <div class="label">Result Meta (CaMeL-sanitized)</div>
+                  <pre>{
+  &quot;ok&quot;: true,
+  &quot;cost_inr&quot;: 0.0,
+  &quot;cache_hit&quot;: false,
+  &quot;model&quot;: null,
+  &quot;artifact_path&quot;: &quot;./outputs/demo_04_telugu_clips/artifacts/telugu_clips_translated_en.md&quot;,
+  &quot;deliverable_id&quot;: &quot;d1&quot;,
+  &quot;filename&quot;: &quot;telugu_clips_translated_en.md&quot;
+}</pre>
+                </details>
+              </td>
+            </tr><tr>
+              <td>17</td>
+              <td><span class="pill epoch">verify</span></td>
+              <td><code>contracts_verifier</code> <div class="sub">Checked per-deliverable post-conditions</div></td>
+              <td><span class="pill ok">OK</span></td>
+              <td>0 ms</td>
+              <td>₹0.0000</td>
+              <td>
+                <details><summary>args / meta</summary>
+                  <div class="label">Args (handles only)</div>
+                  <pre>{}</pre>
+                  <div class="label">Result Meta (CaMeL-sanitized)</div>
+                  <pre>{
+  &quot;verifications&quot;: [
+    {
+      &quot;deliverable_id&quot;: &quot;d1&quot;,
+      &quot;kind&quot;: &quot;markdown&quot;,
+      &quot;artifact_path&quot;: &quot;./outputs/demo_04_telugu_clips/artifacts/telugu_clips_translated_en.md&quot;,
+      &quot;passed&quot;: true,
+      &quot;checks&quot;: [
+        {
+          &quot;name&quot;: &quot;file_non_empty&quot;,
+          &quot;passed&quot;: true,
+          &quot;detail&quot;: &quot;telugu_clips_translated_en.md (394 bytes)&quot;
+        },
+        {
+          &quot;name&quot;: &quot;indic_provenance&quot;,
+          &quot;passed&quot;: true,
+          &quot;detail&quot;: &quot;All Indic text verified from Bodhan/input&quot;
+        },
+        {
+          &quot;name&quot;: &quot;translation_chunk_coverage&quot;,
+          &quot;passed&quot;: true,
+          &quot;detail&quot;: &quot;chunks_in=1, chunks_out=1&quot;
+        }
+      ]
+    }
+  ]
+}</pre>
+                </details>
+              </td>
+            </tr>
+    </tbody>
+  </table>
+</div>
+</body>
+</html>
