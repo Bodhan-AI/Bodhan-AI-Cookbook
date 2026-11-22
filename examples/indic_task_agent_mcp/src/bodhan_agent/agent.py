@@ -203,8 +203,9 @@ class Agent:
                 f"Tool outputs are written to {self.work}.")
 
     async def _plan(self, facts: str) -> None:
+        catalogue = "\n".join(f"- {t['function']['name']}: {_short(t['function']['description'], 160)}" for t in self.tools)
         msgs = [{"role": "system", "content": prompts.SYSTEM},
-                {"role": "user", "content": self._task_block(facts) + "\n\n" + prompts.PLANNER}]
+                {"role": "user", "content": self._task_block(facts) + f"\n\nAVAILABLE TOOLS:\n{catalogue}\n\n" + prompts.PLANNER}]
         plan = None
         for attempt in range(2):
             reply = await self.llm.chat(msgs)
@@ -276,8 +277,17 @@ class Agent:
                 continue
             args = _parse_args(control.arguments)
             if control.name == "give_up":
+                gargs = args if isinstance(args, dict) else {"reason": str(args), "category": "other"}
+                if self._should_challenge(gargs):
+                    self._challenged = True
+                    self.trace.log("act", "give_up_challenged", **gargs)
+                    messages.append({"role": "tool", "tool_call_id": control.id, "content": (
+                        "Before giving up, check once: the inputs exist and the languages are supported. Is the missing piece "
+                        "something you can do yourself in English (reading, summarising, explaining, choosing) or by "
+                        "chaining the available tools? If so, do it now. If the task truly cannot be done, call give_up again.")})
+                    continue
                 messages.append({"role": "tool", "tool_call_id": control.id, "content": "Stopping."})
-                self._give_up(args if isinstance(args, dict) else {"reason": str(args), "category": "other"})
+                self._give_up(gargs)
                 return
             feedback = await self._finish(args if isinstance(args, dict) else {})
             if feedback is None:
@@ -356,6 +366,12 @@ class Agent:
         return content
 
     # ------------------------------------------------------------------ control tools
+    def _should_challenge(self, args: dict) -> bool:
+        """A give-up for a missing capability or input, when preflight found the inputs and languages fine, gets one
+        second look: models sometimes miss that they can do the step themselves. Budget and language refusals do not."""
+        return (not getattr(self, "_challenged", False) and self.pf.impossible_reason is None
+                and args.get("category") in ("unsupported_capability", "missing_input", "other"))
+
     def _give_up(self, args: dict) -> None:
         st = self.state
         st.status = "impossible" if args.get("category") != "budget" else "budget_exhausted"

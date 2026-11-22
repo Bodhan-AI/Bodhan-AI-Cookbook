@@ -83,6 +83,7 @@ def test_llm_cannot_write_indian_language_text(workdir, env_keys, fake_api):
         plan(target_languages=["hi"]),
         lambda m, t: LLMReply(tool_calls=[call("write_text", content="नमस्ते दुनिया", name="greeting.txt")]),
         lambda m, t: LLMReply(tool_calls=[call("give_up", reason="Stopping for the test.", category="other")]),
+        lambda m, t: LLMReply(tool_calls=[call("give_up", reason="Still stopping.", category="other")]),
     ]
     report, llm = run(workdir, "Write a Hindi greeting", None, script)
     refused = [m for m in llm.seen[-1] if m["role"] == "tool" and "Refused" in m["content"]]
@@ -214,3 +215,26 @@ def test_oversized_llm_request_is_compacted_and_retried(workdir, env_keys, fake_
     assert report["status"] == "completed", report["errors"]
     trace = (workdir / "out" / "trace.jsonl").read_text(encoding="utf-8")
     assert "context_compacted" in trace
+
+
+def test_give_up_for_missing_capability_is_challenged_once(workdir, env_keys, fake_api):
+    """The real failure: a model gave up because no 'summarize' tool exists, though summarising is its own job."""
+    inputs = workdir / "in"
+    inputs.mkdir()
+    (inputs / "chapter.txt").write_text("Lines meet at points. Angles are measured in degrees.", encoding="utf-8")
+
+    def summarise(m, t):
+        return LLMReply(tool_calls=[call("write_text", content="Lines meet at points; angles use degrees.", name="summary.txt")])
+
+    def finish(m, t):
+        return LLMReply(tool_calls=[call("finish", answer="Wrote a one-line English summary of chapter.txt.",
+                                         artifacts=[{"path": last_tool_json(m)["path"], "description": "summary"}])])
+
+    script = [plan(target_languages=["en"]),
+              lambda m, t: LLMReply(tool_calls=[call("give_up", reason="No summarize tool", category="unsupported_capability")]),
+              summarise, finish]
+    report, llm = run(workdir, "Summarise this chapter in one line", str(inputs), script)
+    assert report["status"] == "completed"
+    assert "give_up_challenged" in (workdir / "out" / "trace.jsonl").read_text(encoding="utf-8")
+    planner_prompt = llm.seen[0][1]["content"]
+    assert "AVAILABLE TOOLS" in planner_prompt and "synthesize_speech" in planner_prompt

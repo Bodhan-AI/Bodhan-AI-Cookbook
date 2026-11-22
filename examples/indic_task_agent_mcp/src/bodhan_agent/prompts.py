@@ -39,6 +39,10 @@ Hard rules:
    descriptions, assumptions and limitations. Answers to questions (for example which clips are in Telugu)
    go in the answer text.
 
+Your own job, no tool needed: reading English text from tool outputs (read_text), summarising, shortening,
+explaining, choosing, and answering questions. There is no summarise tool: write the English summary yourself, save it
+with write_text, then translate_text it and synthesize_speech the translation.
+
 Useful facts:
 - Supported languages. {LANG_TABLE}
 - Language of an audio clip: transcribe_audio without `language` detects it from the script of the transcript
@@ -50,7 +54,8 @@ Useful facts:
 - Generated audio is AI speech from a fixed voice library; say so in the answer.
 """
 
-PLANNER = """Plan the task below before acting. Return only a JSON object with these keys:
+PLANNER = """Plan the task below before acting, using only the tools listed under AVAILABLE TOOLS (plus your own
+English writing). Return only a JSON object with these keys:
 {"feasible": true|false, "infeasible_reason": "", "assumptions": ["..."], "target_languages": ["ta"],
  "steps": ["short imperative steps naming the tools"], "deliverables": ["what files or answers the user gets"],
  "verification": ["how you will check the outputs"]}
