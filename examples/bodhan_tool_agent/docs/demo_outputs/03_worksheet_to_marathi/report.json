@@ -1,0 +1,75 @@
+{
+  "status": "completed",
+  "stop_reason": null,
+  "task": "Translate this worksheet into Marathi and keep the table",
+  "steps_used": 4,
+  "max_steps": 30,
+  "llm_calls": 4,
+  "llm_tokens": {
+    "prompt": 11888,
+    "completion": 695
+  },
+  "llm_models": {
+    "main:openai/gpt-oss-120b": {
+      "calls": 4,
+      "failures": 0
+    }
+  },
+  "tool_calls": 3,
+  "duration_s": 5.7,
+  "cost": {
+    "spent_inr": 0.2,
+    "max_cost_inr": 2.0,
+    "paid_calls": 1,
+    "cache_hits": 4,
+    "by_model": {
+      "ocr": {
+        "calls": 1,
+        "cache_hits": 0,
+        "cost_inr": 0.2
+      },
+      "translate": {
+        "calls": 0,
+        "cache_hits": 4,
+        "cost_inr": 0.0
+      }
+    }
+  },
+  "budget_respected": true,
+  "answer": "The worksheet image was OCR‑processed to extract the text and then translated into Marathi while preserving the table format. The translated Markdown file is available at the path provided.",
+  "assumptions": [],
+  "plan": [],
+  "final_artifacts": [
+    {
+      "path": "artifacts/worksheet_mr.md",
+      "kind": "translation",
+      "check": "passed",
+      "details": {
+        "chunks": 4,
+        "empty": 0,
+        "truncated": 0,
+        "length_outliers": 0,
+        "number_mismatches": 1,
+        "wrong_script": 0,
+        "tables": 1,
+        "tables_rebuilt": 0,
+        "passed": true,
+        "warnings": [
+          "1 chunk(s) have different digits from the source. A number may have been changed or written as a word."
+        ],
+        "method": "every chunk translated, non-empty, not truncated, in the target script; digits and table layout compared with the source"
+      }
+    }
+  ],
+  "intermediate_files": [
+    "artifacts/worksheet_ocr.md"
+  ],
+  "verification": {
+    "outputs_checked": 1,
+    "outputs_failed": [],
+    "all_final_outputs_passed": true,
+    "finish_rejections": 0
+  },
+  "notes": [],
+  "injection_warnings": 0
+}

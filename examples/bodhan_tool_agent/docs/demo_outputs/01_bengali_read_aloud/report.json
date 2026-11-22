@@ -1,0 +1,84 @@
+{
+  "status": "completed",
+  "stop_reason": null,
+  "task": "Read this paragraph aloud in Bengali with a female voice",
+  "steps_used": 5,
+  "max_steps": 30,
+  "llm_calls": 5,
+  "llm_tokens": {
+    "prompt": 14864,
+    "completion": 723
+  },
+  "llm_models": {
+    "main:openai/gpt-oss-120b": {
+      "calls": 5,
+      "failures": 0
+    }
+  },
+  "tool_calls": 3,
+  "duration_s": 9.9,
+  "cost": {
+    "spent_inr": 0.0,
+    "max_cost_inr": 2.0,
+    "paid_calls": 0,
+    "cache_hits": 5,
+    "by_model": {
+      "translate": {
+        "calls": 0,
+        "cache_hits": 1,
+        "cost_inr": 0.0
+      },
+      "speak": {
+        "calls": 0,
+        "cache_hits": 2,
+        "cost_inr": 0.0
+      },
+      "transcribe": {
+        "calls": 0,
+        "cache_hits": 2,
+        "cost_inr": 0.0
+      }
+    }
+  },
+  "budget_respected": true,
+  "answer": "The paragraph was translated into Bengali and read aloud with a female voice. The audio file is provided.",
+  "assumptions": [
+    "The paragraph.txt contains English text to be read."
+  ],
+  "plan": [
+    "inspect_files to confirm the input file path",
+    "translate_text from English to Bengali (bn) using the file",
+    "synthesize_speech the Bengali text with female voice",
+    "finish with completed status"
+  ],
+  "final_artifacts": [
+    {
+      "path": "artifacts/paragraph_bn_female.mp3",
+      "kind": "audio",
+      "check": "passed",
+      "details": {
+        "method": "each chunk transcribed back with Indic-Transcribe and compared with its text",
+        "chunks": 2,
+        "mean_cer": 0.0062,
+        "max_cer": 0.0123,
+        "retried_chunks": 0,
+        "failed_chunks": [],
+        "passed": true,
+        "duration_s": 30.29,
+        "clipped_share": 0.0,
+        "longest_silence_s": 0.26
+      }
+    }
+  ],
+  "intermediate_files": [
+    "artifacts/paragraph.bn.txt"
+  ],
+  "verification": {
+    "outputs_checked": 2,
+    "outputs_failed": [],
+    "all_final_outputs_passed": true,
+    "finish_rejections": 0
+  },
+  "notes": [],
+  "injection_warnings": 0
+}

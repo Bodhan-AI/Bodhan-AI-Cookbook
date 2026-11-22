@@ -1,0 +1,41 @@
+{
+  "status": "impossible",
+  "stop_reason": "French language is not supported by the translate_text tool.",
+  "task": "Translate this paragraph into French",
+  "steps_used": 1,
+  "max_steps": 30,
+  "llm_calls": 19,
+  "llm_tokens": {
+    "prompt": 60612,
+    "completion": 2487
+  },
+  "llm_models": {
+    "main:openai/gpt-oss-120b": {
+      "calls": 19,
+      "failures": 0
+    }
+  },
+  "tool_calls": 0,
+  "duration_s": 1.5,
+  "cost": {
+    "spent_inr": 0.0,
+    "max_cost_inr": 2.0,
+    "paid_calls": 0,
+    "cache_hits": 0,
+    "by_model": {}
+  },
+  "budget_respected": true,
+  "answer": "The requested translation into French cannot be performed because the translation tool only supports Indian languages and English, and French is not among the supported target languages.",
+  "assumptions": [],
+  "plan": [],
+  "final_artifacts": [],
+  "intermediate_files": [],
+  "verification": {
+    "outputs_checked": 0,
+    "outputs_failed": [],
+    "all_final_outputs_passed": true,
+    "finish_rejections": 0
+  },
+  "notes": [],
+  "injection_warnings": 0
+}

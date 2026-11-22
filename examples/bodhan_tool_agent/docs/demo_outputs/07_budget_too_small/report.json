@@ -1,0 +1,41 @@
+{
+  "status": "impossible",
+  "stop_reason": "No budget for paid tools (translation and speech synthesis).",
+  "task": "Read this paragraph aloud in Hindi",
+  "steps_used": 1,
+  "max_steps": 30,
+  "llm_calls": 20,
+  "llm_tokens": {
+    "prompt": 63293,
+    "completion": 2730
+  },
+  "llm_models": {
+    "main:openai/gpt-oss-120b": {
+      "calls": 20,
+      "failures": 0
+    }
+  },
+  "tool_calls": 0,
+  "duration_s": 1.0,
+  "cost": {
+    "spent_inr": 0.0,
+    "max_cost_inr": 0.0001,
+    "paid_calls": 0,
+    "cache_hits": 0,
+    "by_model": {}
+  },
+  "budget_respected": true,
+  "answer": "The task cannot be completed because it requires using the translate_text and synthesize_speech tools, which incur costs, but the budget allows no model cost.",
+  "assumptions": [],
+  "plan": [],
+  "final_artifacts": [],
+  "intermediate_files": [],
+  "verification": {
+    "outputs_checked": 0,
+    "outputs_failed": [],
+    "all_final_outputs_passed": true,
+    "finish_rejections": 0
+  },
+  "notes": [],
+  "injection_warnings": 0
+}
