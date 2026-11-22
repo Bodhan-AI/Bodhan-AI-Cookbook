@@ -174,7 +174,7 @@ Off-the-shelf MCP clients tested: **MCP Inspector 0.17.2** in CLI mode (`tools/l
 
 ## Demo video
 
-**[Watch the demo (≤5 min)](VIDEO_URL_TODO)**
+**[Watch the demo (≤5 min)](https://youtu.be/OXJhd09qrEo)**
 
 ## Trade-offs and known limitations
 
@@ -203,4 +203,19 @@ Measured live with `anthropic/claude-haiku-5.5` (OpenRouter) + hosted Bodhan API
 
 ## AI assistance
 
-Built with AI coding assistance (Antigravity / Gemini) for architecture scaffolding, implementation of `bodhan_mcp` and `bodhan_agent`, test authoring, and documentation, following human-authored design specifications (`BLUEPRINT.md` and `DECISIONS.md`). Every module, schema, provenance check, and test was verified locally via `pytest`, `scripts/self_eval.py`, and repo-root `make check`.
+- **Claude Code (Claude Opus 5.5):** choosing the assignment, the design (CaMeL split, feasibility gate, plan compiler, contracts), reviewing every change, writing and running the reviewer-style unseen tasks that found 4 bugs, verification (clean-clone install, Docker build, MCP Inspector, live runs), and assembling the demo video from real terminal recordings.
+- **Gemini 4 Neon (Antigravity):** implementation of `bodhan_mcp` and `bodhan_agent`, tests, docs, and the fixes for the bugs above.
+- I reviewed the design and the results, ran the demos with my own keys, and recorded the narration.
+
+Verification: 46 recipe tests pass (`pytest`), 21/21 offline and 11/11 live `self_eval` checks, and repo-root `make lint`, `make rules`, `make validate` pass on a clean clone. Repo-root `make test` has one failure, `tests/test_checks.py::test_all_shipped_recipes_pass`, caused by the upstream `examples/AndroidSpeak` recipe (no `.env.example`, no source file); this PR does not touch it.
+
+## Before you submit
+
+- [x] Runs from a clean clone with the documented setup and commands (verified on Python 3.12 and with the included `Dockerfile`)
+- [x] Only Bodhan models are used for speech-to-text, translation, speech synthesis and OCR
+- [x] No API keys, tokens or large media files in the repo (largest file: 504 KB demo MP3)
+- [x] README covers the tool list, setup, usage and limitations, and links the architecture diagram, flow chart and design notes
+- [x] At least six demo tasks run, including one impossible task, with outputs and traces linked from the README
+- [x] The MCP server works with at least one off-the-shelf MCP client, named in the README (MCP Inspector)
+- [x] Tests pass locally
+- [x] Demo video of five minutes or less, linked from the README and the PR

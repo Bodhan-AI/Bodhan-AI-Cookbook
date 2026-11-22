@@ -142,7 +142,7 @@ python scripts/self_eval.py --live   # live API evaluation (uses .env keys; --gr
 
 ### Demo video
 
-**[Watch the demo (≤5 min)](VIDEO_URL_TODO)**
+**[Watch the demo (≤5 min)](https://youtu.be/OXJhd09qrEo)**
 
 ### Live Demo Results & Cost (`scripts/demo.sh`)
 
