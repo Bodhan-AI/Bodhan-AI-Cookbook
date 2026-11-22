@@ -1,0 +1,66 @@
+{
+  "status": "budget_exhausted",
+  "task": "Translate this scanned chapter into Marathi and keep the headings",
+  "interpretation": "The user wants to translate a scanned PDF chapter into Marathi, preserving headings. I will use OCR to extract text from the PDF, then translate the text to Marathi in markdown mode to maintain the structure.",
+  "assumptions": [],
+  "deliverables": [
+    {
+      "name": "ocr_output.md",
+      "path": "artifacts/ocr_output.md",
+      "description": "partial/intermediate"
+    }
+  ],
+  "steps": 2,
+  "tool_calls_by_tool": {
+    "ocr_document": 1
+  },
+  "verification": [
+    {
+      "artifact": "work/artifacts/ocr_output.md",
+      "check": "ocr pages",
+      "ok": false,
+      "problems": [
+        "2 of 8 pages read"
+      ]
+    }
+  ],
+  "cost_inr": {
+    "total": 0.4,
+    "cap": 0.45,
+    "by_model": {
+      "ocr": 0.4
+    },
+    "source": "ledger"
+  },
+  "duration_s": 6.3,
+  "llm": {
+    "model": "gemini-2.5-flash",
+    "total_tokens": 9406
+  },
+  "target_misses": [
+    "budget ran out before the task finished (stopped cleanly, partial results kept)"
+  ],
+  "warnings": [
+    "verification failed for: work/artifacts/ocr_output.md",
+    "stopped early: budget"
+  ],
+  "injection_flags": [],
+  "tool_warnings": [
+    {
+      "tool": "ocr_document",
+      "warnings": [
+        "BUDGET EXHAUSTED: read 2 of 8 pages; pages [3, 4, 5, 6, 7, 8] not done. Raise the cost cap to finish."
+      ]
+    }
+  ],
+  "budget": {
+    "cap_inr": 0.45,
+    "spent_inr": 0.4,
+    "hit": {
+      "tool": "ocr_document",
+      "message": "BUDGET EXHAUSTED: read 2 of 8 pages; pages [3, 4, 5, 6, 7, 8] not done. Raise the cost cap to finish.",
+      "step": 2
+    }
+  },
+  "unsupported_reason": null
+}

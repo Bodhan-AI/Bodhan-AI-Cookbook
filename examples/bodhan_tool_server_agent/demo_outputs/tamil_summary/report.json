@@ -1,0 +1,94 @@
+{
+  "status": "completed_with_warnings",
+  "task": "Make a short Tamil audio summary (about 20 seconds) of this chapter",
+  "interpretation": "The user wants a short audio summary in Tamil (around 20 seconds) of the content from a provided PDF chapter. I need to extract text from the PDF, summarize it in English, translate the summary into Tamil, and then synthesize speech from the Tamil text.",
+  "assumptions": [
+    "The PDF contains text that can be successfully OCRed.",
+    "The extracted text will be in a language supported by the translation and speech synthesis tools.",
+    "A 20-second audio summary in Tamil corresponds to approximately 300 characters of Tamil text. I will aim for an English summary that, when translated, fits this length.",
+    "The PDF contained text that could be successfully OCRed.",
+    "The extracted text was in English, which was supported for translation and speech synthesis.",
+    "The generated Tamil summary (190 characters) resulted in a 16.36-second audio, which is close to the target of 20 seconds."
+  ],
+  "deliverables": [
+    {
+      "name": "summary_ta.mp3",
+      "path": "artifacts/summary_ta.mp3",
+      "description": "Tamil audio summary of the chapter"
+    }
+  ],
+  "steps": 9,
+  "tool_calls_by_tool": {
+    "ocr_document": 2,
+    "read_text_file": 1,
+    "detect_language": 1,
+    "write_text_file": 1,
+    "translate_text": 1,
+    "synthesize_speech": 1
+  },
+  "verification": [
+    {
+      "artifact": "work/artifacts/summary_ta.mp3",
+      "check": "back-transcription",
+      "ok": true,
+      "similarity": 0.973,
+      "omitted_fraction": 0.0,
+      "omitted_phrases": [],
+      "warnings": [],
+      "cost_inr": 0.0273
+    },
+    {
+      "artifact": "work/artifacts/summary_ta.mp3",
+      "check": "duration",
+      "ok": true,
+      "requested_s": 20,
+      "actual_s": 16.36
+    },
+    {
+      "ok": true,
+      "problems": [],
+      "length_ratio": 1.23,
+      "artifact": "work/artifacts/summary_ta.txt",
+      "check": "translation"
+    },
+    {
+      "artifact": "work/artifacts/summary_ta.txt",
+      "check": "back-translation coverage (head)",
+      "ok": true,
+      "coverage": 0.94
+    }
+  ],
+  "cost_inr": {
+    "total": 0.5429,
+    "cap": 3.0,
+    "by_model": {
+      "ocr": 0.4,
+      "translate": 0.0016,
+      "speak": 0.114,
+      "transcribe": 0.0273
+    },
+    "source": "ledger"
+  },
+  "duration_s": 39.6,
+  "llm": {
+    "model": "gemini-2.5-flash",
+    "total_tokens": 49834
+  },
+  "target_misses": [],
+  "warnings": [],
+  "injection_flags": [],
+  "tool_warnings": [
+    {
+      "tool": "synthesize_speech",
+      "warnings": [
+        "input contains digits: Indic-Speak reads them in English; spell numbers out in the target language for natural speech"
+      ]
+    }
+  ],
+  "budget": {
+    "cap_inr": 3.0,
+    "spent_inr": 0.5429,
+    "hit": null
+  },
+  "unsupported_reason": null
+}

@@ -1,0 +1,12 @@
+.git
+.venv
+.env
+.bodhan_cache
+.bodhan_work
+test_data
+demo_inputs
+demo_outputs
+out
+__pycache__
+.pytest_cache
+.ruff_cache

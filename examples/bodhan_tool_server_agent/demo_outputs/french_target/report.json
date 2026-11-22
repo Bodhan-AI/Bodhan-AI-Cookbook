@@ -1,0 +1,31 @@
+{
+  "status": "unsupported",
+  "task": "Translate this text into French",
+  "interpretation": "The user wants to translate the provided English text file into French.",
+  "assumptions": [],
+  "deliverables": [],
+  "steps": 1,
+  "tool_calls_by_tool": {},
+  "verification": [],
+  "cost_inr": {
+    "total": 0,
+    "cap": 3.0,
+    "by_model": {},
+    "source": "ledger"
+  },
+  "duration_s": 2.2,
+  "llm": {
+    "model": "gemini-2.5-flash",
+    "total_tokens": 4579
+  },
+  "target_misses": [],
+  "warnings": [],
+  "injection_flags": [],
+  "tool_warnings": [],
+  "budget": {
+    "cap_inr": 3.0,
+    "spent_inr": 0,
+    "hit": null
+  },
+  "unsupported_reason": "This task cannot be done: French is not supported. Supported for transcription: Assamese (as), Bhili (bhb), Bhojpuri (bho), Bengali (bn), Bodo (brx), Dogri (doi), English (en), Gujarati (gu), Hindi (hi), Kannada (kn), Konkani (kok), Kashmiri (ks), Maithili (mai), Malayalam (ml), Manipuri (mni), Marathi (mr), Nepali (ne), Odia (or), Punjabi (pa), Sanskrit (sa), Santali (sat), Sindhi (sd), Tamil (ta), Telugu (te), Urdu (ur). Supported as translation target: Assamese (as), Bengali (bn), Bodo (brx), Dogri (doi), English (en), Gujarati (gu), Hindi (hi), Kannada (kn), Konkani (kok), Kashmiri (ks), Maithili (mai), Malayalam (ml), Manipuri (mni), Marathi (mr), Nepali (ne), Odia (or), Punjabi (pa), Sanskrit (sa), Santali (sat), Sindhi (sd), Tamil (ta), Telugu (te), Urdu (ur). Supported for speech: Assamese (as), Bengali (bn), Bodo (brx), Dogri (doi), English (en), Gujarati (gu), Hindi (hi), Kannada (kn), Konkani (kok), Kashmiri (ks), Maithili (mai), Malayalam (ml), Manipuri (mni), Marathi (mr), Nepali (ne), Odia (or), Punjabi (pa), Sanskrit (sa), Santali (sat), Sindhi (sd), Tamil (ta), Telugu (te), Urdu (ur). No Bodhan calls were made and no output was produced."
+}
