@@ -74,26 +74,32 @@ def expand_input_files(file_args: list[str]) -> list[Path]:
 
 
 def main(argv: list[str] | None = None) -> int:
-    args = parse_args(argv)
+    try:
+        args = parse_args(argv)
+        input_files = expand_input_files(args.files)
 
-    input_files = expand_input_files(args.files)
+        agent = TaskAgent(
+            task=args.task,
+            files=input_files,
+            out_dir=args.out,
+            max_steps=args.max_steps,
+            max_cost_inr=args.max_cost_inr,
+        )
 
-    agent = TaskAgent(
-        task=args.task,
-        files=input_files,
-        out_dir=args.out,
-        max_steps=args.max_steps,
-        max_cost_inr=args.max_cost_inr,
-    )
+        report = agent.run()
 
-    report = agent.run()
+        print(f"\nTask Finished with Status: {report.status.upper()}")
+        print(f"Steps: {report.steps_taken} | Total Spent: ₹{report.total_cost_inr:.4f} | Time: {report.total_time_s:.2f}s")
+        print(f"Artifacts: {len(report.artifacts)} produced -> saved in {args.out}/artifacts/")
+        print(f"Detailed trace: {args.out}/trace.jsonl | Report: {args.out}/report.json")
+        if report.failures:
+            print(f"Failure / Note: {report.failures[0]}")
 
-    print(f"\nTask Finished with Status: {report.status.upper()}")
-    print(f"Steps: {report.steps_taken} | Total Spent: ₹{report.total_cost_inr:.4f} | Time: {report.total_time_s:.2f}s")
-    print(f"Artifacts: {len(report.artifacts)} produced -> saved in {args.out}/artifacts/")
-    print(f"Detailed trace: {args.out}/trace.jsonl | Report: {args.out}/report.json")
+        return 0 if report.status == "success" else 1
 
-    return 0 if report.status == "success" else 1
+    except Exception as e:
+        print(f"\nTask failed: {e}", file=sys.stderr)
+        return 1
 
 
 if __name__ == "__main__":

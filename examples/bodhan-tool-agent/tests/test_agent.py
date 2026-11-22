@@ -9,6 +9,10 @@ Tests:
 6. Fake LLM that invents text still gets real file text via plain-code resolution
 7. max_steps_reached status when step limit is hit
 8. Verification failure on source mismatch (e.g. 4-word translation for 40-word source)
+9. LLM timeout creates report files with status 'timeout'
+10. LLM invalid JSON creates report files with status 'failed' and clear message
+11. LLM empty response creates report files with status 'failed' cleanly
+12. Tolerance for reasoning text, <think> tags, and markdown code fences
 """
 
 import json
@@ -19,7 +23,13 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 from bodhan_agent.agent import TaskAgent
-from bodhan_agent.llm import LLMClient
+from bodhan_agent.llm import (
+    LLMClient,
+    LLMEmptyResponseError,
+    LLMError,
+    LLMInvalidJSONError,
+    LLMTimeoutError,
+)
 from bodhan_mcp.config import Settings
 from bodhan_mcp.tools import BodhanTools
 
@@ -27,13 +37,22 @@ from bodhan_mcp.tools import BodhanTools
 class MockLLM(LLMClient):
     """Simulated LLM returning pre-scripted plans and tool calls."""
 
-    def __init__(self, plan_dict: dict | None = None, script: list[dict] | None = None):
+    def __init__(
+        self,
+        plan_dict: dict | None = None,
+        script: list[dict] | None = None,
+        error_to_raise: Exception | None = None,
+    ):
         self.plan_dict = plan_dict or {}
         self.script = list(script) if script else []
+        self.error_to_raise = error_to_raise
         self.call_history: list[list[dict]] = []
         self.generated_prompts: list[str] = []
 
     def generate_plan(self, task: str, files_summary: list[dict]) -> tuple[dict, int]:
+        if self.error_to_raise:
+            raise self.error_to_raise
+
         prompt = (
             f"User Task: {task}\n\n"
             f"Available Input Files (metadata and short previews):\n"
@@ -48,6 +67,9 @@ class MockLLM(LLMClient):
         return {}, 10
 
     def call(self, messages: list[dict]) -> tuple[str, list[dict], int]:
+        if self.error_to_raise:
+            raise self.error_to_raise
+
         self.call_history.append(messages)
         if not self.script:
             return "Complete.", [{"id": "finish_1", "name": "finish_task", "arguments": {"final_answer": "Complete."}}], 10
@@ -397,6 +419,106 @@ class TestAgent(unittest.TestCase):
         # Must fail because ratio of 4 words to 40+ words is < 0.4
         self.assertEqual(report.status, "failed")
         self.assertTrue(any(not v.passed for v in report.verification_results))
+
+    def test_llm_timeout_creates_report_and_timeout_status(self):
+        """Tests that LLM timeout halts cleanly with status 'timeout' and writes all report files."""
+        text_file = self.samples_dir / "sample.txt"
+        text_file.write_text("Hello world", encoding="utf-8")
+
+        mock_llm = MockLLM(error_to_raise=LLMTimeoutError("LLM request timed out after 120s."))
+        agent = TaskAgent(
+            task="Translate this text file into Tamil",
+            files=[text_file],
+            out_dir=self.out_dir,
+            settings=self.mock_settings,
+            llm_client=mock_llm,
+            tools=self.mock_tools,
+        )
+
+        report = agent.run()
+
+        self.assertEqual(report.status, "timeout")
+        self.assertTrue((self.out_dir / "result.md").exists())
+        self.assertTrue((self.out_dir / "report.json").exists())
+        self.assertTrue((self.out_dir / "trace.jsonl").exists())
+        self.assertTrue(any("timed out" in f.lower() for f in report.failures))
+
+    def test_llm_invalid_json_creates_report_and_failed_status(self):
+        """Tests that LLM returning invalid JSON reports 'failed' with clear message and all report files."""
+        text_file = self.samples_dir / "sample.txt"
+        text_file.write_text("Hello world", encoding="utf-8")
+
+        mock_llm = MockLLM(
+            error_to_raise=LLMInvalidJSONError("LLM did not return a valid JSON plan: Sorry, I am a language model.")
+        )
+        agent = TaskAgent(
+            task="Translate this text file into Hindi",
+            files=[text_file],
+            out_dir=self.out_dir,
+            settings=self.mock_settings,
+            llm_client=mock_llm,
+            tools=self.mock_tools,
+        )
+
+        report = agent.run()
+
+        self.assertEqual(report.status, "failed")
+        self.assertTrue((self.out_dir / "result.md").exists())
+        self.assertTrue((self.out_dir / "report.json").exists())
+        self.assertTrue((self.out_dir / "trace.jsonl").exists())
+        self.assertTrue(any("valid json plan" in f.lower() for f in report.failures))
+
+    def test_llm_empty_response_creates_report_and_failed_status(self):
+        """Tests that LLM returning empty response reports 'failed' cleanly and writes all report files."""
+        text_file = self.samples_dir / "sample.txt"
+        text_file.write_text("Hello world", encoding="utf-8")
+
+        mock_llm = MockLLM(
+            error_to_raise=LLMEmptyResponseError("LLM returned no content and no tool calls.")
+        )
+        agent = TaskAgent(
+            task="Translate this text file into Hindi",
+            files=[text_file],
+            out_dir=self.out_dir,
+            settings=self.mock_settings,
+            llm_client=mock_llm,
+            tools=self.mock_tools,
+        )
+
+        report = agent.run()
+
+        self.assertEqual(report.status, "failed")
+        self.assertTrue((self.out_dir / "result.md").exists())
+        self.assertTrue((self.out_dir / "report.json").exists())
+        self.assertTrue((self.out_dir / "trace.jsonl").exists())
+        self.assertTrue(any("no content" in f.lower() for f in report.failures))
+
+    def test_parse_json_plan_tolerates_reasoning_and_fences(self):
+        """Tests that _parse_json_plan tolerates <think> tags, markdown code blocks, and reasoning text."""
+        import re
+
+        # 1. Code fence with markdown
+        text1 = '```json\n{"assumptions": ["Audio is Tamil"], "steps": [{"tool": "transcribe_audio", "args": {}}], "final_answer": "Done"}\n```'
+        p1 = LLMClient._parse_json_plan(text1)
+        self.assertIsNotNone(p1)
+        self.assertEqual(len(p1["steps"]), 1)
+
+        # 2. Reasoning text with think tags
+        text2 = '<think>I need to translate this file</think>\nHere is the plan:\n{"steps": [{"tool": "translate_text", "args": {}}]}'
+        p2 = LLMClient._parse_json_plan(re.sub(r"(?i)<think>.*?</think>", "", text2, flags=re.DOTALL))
+        self.assertIsNotNone(p2)
+        self.assertEqual(p2["steps"][0]["tool"], "translate_text")
+
+        # 3. Single tool format
+        text3 = '{"tool": "extract_document_text", "args": {"file_path": "doc.pdf"}}'
+        p3 = LLMClient._parse_json_plan(text3)
+        self.assertIsNotNone(p3)
+        self.assertEqual(p3["steps"][0]["tool"], "extract_document_text")
+
+        # 4. Invalid text returns None
+        text4 = "I am unable to perform this task because it violates my guidelines."
+        p4 = LLMClient._parse_json_plan(text4)
+        self.assertIsNone(p4)
 
 
 if __name__ == "__main__":

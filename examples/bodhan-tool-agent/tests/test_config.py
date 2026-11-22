@@ -32,6 +32,21 @@ class TestConfig(unittest.TestCase):
         self.assertIn("BODHAN_SPEAK_KEY", missing)
         self.assertIn("BODHAN_OCR_KEY", missing)
 
+    def test_settings_timeout_and_retries_defaults_and_env(self):
+        # Default values
+        s = Settings("k1", "k2", "k3", "k4", "http://localhost", "model", "key")
+        self.assertEqual(s.llm_timeout_s, 120.0)
+        self.assertEqual(s.llm_max_retries, 1)
+
+        # Custom values
+        s_custom = Settings(
+            "k1", "k2", "k3", "k4", "http://localhost", "model", "key",
+            llm_timeout_s=45.0,
+            llm_max_retries=2,
+        )
+        self.assertEqual(s_custom.llm_timeout_s, 45.0)
+        self.assertEqual(s_custom.llm_max_retries, 2)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -21,6 +21,8 @@ class Settings:
     llm_model: str
     llm_api_key: str
     bodhan_base_url: str = "https://api.bodhan.ai"
+    llm_timeout_s: float = 120.0
+    llm_max_retries: int = 1
 
     def get_model_key(self, model_id: str) -> str:
         """Returns the specific Bodhan API key for a given model ID."""
@@ -43,6 +45,18 @@ def load_settings(env_file: Path | str | None = None) -> Settings:
     else:
         dotenv.load_dotenv()
 
+    raw_timeout = os.environ.get("LLM_TIMEOUT_S", "120").strip()
+    try:
+        llm_timeout_s = float(raw_timeout)
+    except ValueError:
+        llm_timeout_s = 120.0
+
+    raw_retries = os.environ.get("LLM_MAX_RETRIES", "1").strip()
+    try:
+        llm_max_retries = int(raw_retries)
+    except ValueError:
+        llm_max_retries = 1
+
     return Settings(
         bodhan_transcribe_key=os.environ.get("BODHAN_TRANSCRIBE_KEY", "").strip(),
         bodhan_translate_key=os.environ.get("BODHAN_TRANSLATE_KEY", "").strip(),
@@ -51,6 +65,8 @@ def load_settings(env_file: Path | str | None = None) -> Settings:
         llm_base_url=os.environ.get("LLM_BASE_URL", "https://api.openai.com/v1").strip(),
         llm_model=os.environ.get("LLM_MODEL", "gpt-4o-mini").strip(),
         llm_api_key=os.environ.get("LLM_API_KEY", "").strip(),
+        llm_timeout_s=llm_timeout_s,
+        llm_max_retries=llm_max_retries,
     )
 
 

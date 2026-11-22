@@ -14,7 +14,14 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from bodhan_agent.llm import LLMClient, SYSTEM_PROMPT
+from bodhan_agent.llm import (
+    LLMClient,
+    LLMEmptyResponseError,
+    LLMError,
+    LLMInvalidJSONError,
+    LLMTimeoutError,
+    SYSTEM_PROMPT,
+)
 from bodhan_agent.models import AgentReport, StepTrace, VerificationResult
 from bodhan_agent.tracer import AgentTracer
 from bodhan_mcp.cache import DiskCache
@@ -65,6 +72,8 @@ class TaskAgent:
             base_url=self.settings.llm_base_url,
             model=self.settings.llm_model,
             api_key=self.settings.llm_api_key,
+            timeout=self.settings.llm_timeout_s,
+            max_retries=self.settings.llm_max_retries,
         )
 
         self.assumptions: list[str] = []
@@ -163,7 +172,76 @@ class TaskAgent:
         agent_status = "success"
 
         step += 1
-        plan_dict, plan_llm_latency_ms = self.llm.generate_plan(self.task, file_summaries)
+        try:
+            plan_dict, plan_llm_latency_ms = self.llm.generate_plan(self.task, file_summaries)
+        except LLMTimeoutError as te:
+            agent_status = "timeout"
+            final_answer = f"Task timed out during LLM planning: {te}"
+            self.failures.append(str(te))
+            plan_trace = StepTrace(
+                step=step,
+                timestamp=datetime.now(timezone.utc).isoformat(),
+                plan="Generate structured task plan",
+                tool="generate_plan",
+                arguments={"task": self.task, "files": [f.name for f in valid_files]},
+                result_summary=f"Timed out: {te}",
+                latency_ms=int(self.settings.llm_timeout_s * 1000),
+                llm_latency_ms=int(self.settings.llm_timeout_s * 1000),
+                tool_latency_ms=0,
+                cost_inr=0.0,
+            )
+            self.tracer.record_step(plan_trace)
+            report = AgentReport(
+                status="timeout",
+                task=self.task,
+                steps_taken=step,
+                total_cost_inr=self.budget.spent_inr,
+                total_time_s=time.perf_counter() - start_time,
+                assumptions=self.assumptions,
+                verification_results=self.verification_results,
+                artifacts=self.artifacts,
+                failures=self.failures,
+            )
+            self.tracer.write_report(report)
+            self.tracer.write_result_markdown(
+                self.task, report.status, final_answer, report.assumptions, report.artifacts, report.failures
+            )
+            return report
+
+        except (LLMInvalidJSONError, LLMEmptyResponseError, LLMError, Exception) as le:
+            is_timeout = isinstance(le, LLMTimeoutError) or "timeout" in str(le).lower()
+            agent_status = "timeout" if is_timeout else "failed"
+            final_answer = f"LLM planning failed: {le}"
+            self.failures.append(str(le))
+            plan_trace = StepTrace(
+                step=step,
+                timestamp=datetime.now(timezone.utc).isoformat(),
+                plan="Generate structured task plan",
+                tool="generate_plan",
+                arguments={"task": self.task, "files": [f.name for f in valid_files]},
+                result_summary=f"{agent_status.capitalize()}: {le}",
+                latency_ms=0,
+                llm_latency_ms=0,
+                tool_latency_ms=0,
+                cost_inr=0.0,
+            )
+            self.tracer.record_step(plan_trace)
+            report = AgentReport(
+                status=agent_status,
+                task=self.task,
+                steps_taken=step,
+                total_cost_inr=self.budget.spent_inr,
+                total_time_s=time.perf_counter() - start_time,
+                assumptions=self.assumptions,
+                verification_results=self.verification_results,
+                artifacts=self.artifacts,
+                failures=self.failures,
+            )
+            self.tracer.write_report(report)
+            self.tracer.write_result_markdown(
+                self.task, report.status, final_answer, report.assumptions, report.artifacts, report.failures
+            )
+            return report
 
         if plan_dict.get("assumptions"):
             self.assumptions.extend(plan_dict["assumptions"])
@@ -269,7 +347,10 @@ class TaskAgent:
         has_failed_verification = any(not v.passed for v in self.verification_results)
 
         # Separate and prioritize statuses accurately
-        if self.budget.remaining_inr <= 0.001 and self.budget.spent_inr >= self.max_cost_inr:
+        if agent_status in ("timeout", "failed", "impossible_task"):
+            # Preserve existing failure status
+            pass
+        elif self.budget.remaining_inr <= 0.001 and self.budget.spent_inr >= self.max_cost_inr:
             agent_status = "budget_exceeded"
         elif step >= self.max_steps:
             agent_status = "max_steps_reached"
@@ -550,7 +631,16 @@ class TaskAgent:
             if self.budget.remaining_inr <= 0.001:
                 return "budget_exceeded", "Budget exhausted in fallback loop."
 
-            content, tool_calls, llm_ms = self.llm.call(messages)
+            try:
+                content, tool_calls, llm_ms = self.llm.call(messages)
+            except LLMTimeoutError as te:
+                self.failures.append(str(te))
+                return "timeout", f"Fallback loop timed out: {te}"
+            except Exception as le:
+                self.failures.append(str(le))
+                status = "timeout" if "timeout" in str(le).lower() else "failed"
+                return status, f"Fallback loop failed: {le}"
+
             if not tool_calls:
                 break
 
