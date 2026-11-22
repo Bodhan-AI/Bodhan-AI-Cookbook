@@ -1,7 +1,11 @@
 """Unit tests for language detection and validation."""
 
 import unittest
-from bodhan_mcp.lang_utils import detect_script_language, is_language_supported
+from bodhan_mcp.lang_utils import (
+    detect_script_language,
+    extract_language_from_text,
+    is_language_supported,
+)
 
 
 class TestLangUtils(unittest.TestCase):
@@ -46,6 +50,21 @@ class TestLangUtils(unittest.TestCase):
 
         # English (Latin)
         self.assertEqual(detect_script_language("The school library opens at nine."), "en")
+
+    def test_extract_language_from_text(self):
+        # Explicit language names
+        code, name = extract_language_from_text("Transcribe this Hindi voice note and save")
+        self.assertEqual(code, "hi")
+        self.assertEqual(name, "Hindi")
+
+        code, name = extract_language_from_text("Make a Tamil summary of this audio")
+        self.assertEqual(code, "ta")
+        self.assertEqual(name, "Tamil")
+
+        # No language in prompt
+        code, name = extract_language_from_text("Transcribe this audio file and save the transcript")
+        self.assertIsNone(code)
+        self.assertIsNone(name)
 
 
 if __name__ == "__main__":

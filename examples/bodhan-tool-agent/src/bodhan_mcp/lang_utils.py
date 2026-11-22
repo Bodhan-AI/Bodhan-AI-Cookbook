@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import unicodedata
 from typing import Tuple
 
@@ -39,6 +40,61 @@ SUPPORTED_INDIC_LANGUAGES: dict[str, str] = {
 _NAME_TO_CODE: dict[str, str] = {
     name.lower(): code for code, name in SUPPORTED_INDIC_LANGUAGES.items()
 }
+
+# Script code to readable script family name
+SCRIPT_NAMES: dict[str, str] = {
+    "hi": "Devanagari",
+    "bn": "Bengali",
+    "pa": "Gurmukhi",
+    "gu": "Gujarati",
+    "or": "Odia",
+    "ta": "Tamil",
+    "te": "Telugu",
+    "kn": "Kannada",
+    "ml": "Malayalam",
+    "ur": "Arabic",
+    "en": "Latin",
+}
+
+# Mapping from language code to its expected standard script code
+EXPECTED_SCRIPT_FOR_LANG: dict[str, str] = {
+    "hi": "hi", "mr": "hi", "sa": "hi", "ne": "hi", "mai": "hi", "bho": "hi", "doi": "hi", "kok": "hi", "brx": "hi",
+    "bn": "bn", "as": "bn", "mni": "bn",
+    "pa": "pa",
+    "gu": "gu",
+    "or": "or",
+    "ta": "ta",
+    "te": "te",
+    "kn": "kn",
+    "ml": "ml",
+    "ur": "ur", "ks": "ur", "sd": "ur",
+    "en": "en",
+}
+
+
+def extract_language_from_text(text: str) -> tuple[str | None, str | None]:
+    """Extracts spoken/written Indic language from a natural language task description.
+
+    Returns:
+        (iso_code, language_name) or (None, None) if no language was explicitly named.
+    """
+    if not text:
+        return None, None
+
+    # Sort names by length descending so longer words match first (e.g. "Sanskrit" before "sa")
+    for name, code in sorted(_NAME_TO_CODE.items(), key=lambda x: len(x[0]), reverse=True):
+        pattern = r"\b" + re.escape(name) + r"\b"
+        if re.search(pattern, text, re.IGNORECASE):
+            return code, SUPPORTED_INDIC_LANGUAGES[code]
+
+    # Check for direct 2-letter ISO codes (avoid common English words like 'as', 'or', 'in', 'to', 'is', 'so')
+    for code, name in SUPPORTED_INDIC_LANGUAGES.items():
+        if len(code) == 2 and code not in ("as", "or", "in", "to", "is", "so", "do", "no", "it"):
+            pattern = r"\b" + re.escape(code) + r"\b"
+            if re.search(pattern, text, re.IGNORECASE):
+                return code, name
+
+    return None, None
 
 
 def is_language_supported(lang_query: str) -> Tuple[bool, str | None, str]:

@@ -26,7 +26,14 @@ from bodhan_agent.models import AgentReport, StepTrace, VerificationResult
 from bodhan_agent.tracer import AgentTracer
 from bodhan_mcp.cache import DiskCache
 from bodhan_mcp.config import Settings, load_settings
-from bodhan_mcp.lang_utils import is_language_supported
+from bodhan_mcp.lang_utils import (
+    EXPECTED_SCRIPT_FOR_LANG,
+    SCRIPT_NAMES,
+    SUPPORTED_INDIC_LANGUAGES,
+    detect_script_language,
+    extract_language_from_text,
+    is_language_supported,
+)
 from bodhan_mcp.pricing import BudgetExceededError, BudgetManager
 from bodhan_mcp.tools import BodhanTools
 
@@ -82,6 +89,11 @@ class TaskAgent:
         self.verification_results: list[VerificationResult] = []
         self.source_texts: dict[str, str] = {}
         self.executed_calls: dict[str, dict[str, Any]] = {}
+        self.language_requested: str | None = None
+        self.detected_script: str | None = None
+        self.windows_count: int | None = None
+        self.audio_durations: dict[str, float] = {}
+        self.last_transcription_result: dict[str, Any] = {}
 
     def run(self) -> AgentReport:
         """Executes the full agent loop and writes all required outputs."""
@@ -90,6 +102,17 @@ class TaskAgent:
         # --------------------------------------------------------------------
         # 1. Plain Code Pre-flight Checks (Zero LLM / Zero Paid Calls)
         # --------------------------------------------------------------------
+        # Plain code language extraction from task
+        req_code, req_name = extract_language_from_text(self.task)
+        if req_code:
+            self.language_requested = req_code
+            self.assumptions.append(f"Task specified language: {req_name} ({req_code}).")
+        else:
+            self.language_requested = None
+            self.assumptions.append(
+                "No specific spoken language was requested in the task; submitted to Indic-Transcribe without language parameter (model auto-detection)."
+            )
+
         # A. Check for impossible unsupported languages in prompt
         for pat in UNSUPPORTED_LANGUAGE_PATTERNS:
             m = re.search(pat, self.task, re.IGNORECASE)
@@ -139,6 +162,20 @@ class TaskAgent:
             valid_files.append(f_path)
             insp = self.tools.inspect_media(str(f_path))
             file_summaries.append(insp)
+
+            # Record factual plain-code file assumptions and duration tracking
+            if insp.get("media_type") in ("audio", "video") or f_path.suffix.lower() in (".wav", ".mp3", ".m4a", ".flac"):
+                dur = insp.get("duration_s", 0.0)
+                self.audio_durations[str(f_path.resolve())] = dur
+                self.audio_durations[f_path.name] = dur
+                self.assumptions.append(
+                    f"Audio input '{f_path.name}' ({dur:.1f}s) prepared for 16 kHz mono WAV conversion and <=30s window segmentation."
+                )
+            elif f_path.suffix.lower() in (".txt", ".md", ".json"):
+                chars = insp.get("char_count", 0)
+                self.assumptions.append(f"Text file '{f_path.name}' ({chars} chars) loaded as source text in plain code.")
+            elif f_path.suffix.lower() in (".png", ".jpg", ".jpeg", ".pdf"):
+                self.assumptions.append(f"Document file '{f_path.name}' targeted for Indic-OCR extraction.")
 
             # Store full source text in plain code for text/markdown files
             if f_path.suffix.lower() in (".txt", ".md", ".json"):
@@ -243,21 +280,16 @@ class TaskAgent:
             )
             return report
 
-        if plan_dict.get("assumptions"):
-            self.assumptions.extend(plan_dict["assumptions"])
-        if plan_dict.get("final_answer"):
-            final_answer = plan_dict["final_answer"]
-
         planned_steps = plan_dict.get("steps", [])
 
-        # Record planning step in trace.jsonl
+        # Record planning step in trace.jsonl (factual summary only)
         plan_trace = StepTrace(
             step=step,
             timestamp=datetime.now(timezone.utc).isoformat(),
             plan="Generate structured task plan",
             tool="generate_plan",
             arguments={"task": self.task, "files": [f.name for f in valid_files]},
-            result_summary=f"Generated {len(planned_steps)} steps. Answer: {final_answer[:100]}",
+            result_summary=f"Generated plan with {len(planned_steps)} step(s).",
             latency_ms=plan_llm_latency_ms,
             llm_latency_ms=plan_llm_latency_ms,
             tool_latency_ms=0,
@@ -364,6 +396,9 @@ class TaskAgent:
         else:
             agent_status = "success"
 
+        # Build final summary in plain code strictly from what actually occurred
+        final_answer = self._build_plain_code_summary(agent_status)
+
         # Final Report Generation
         total_time = time.perf_counter() - start_time
         report = AgentReport(
@@ -376,6 +411,9 @@ class TaskAgent:
             verification_results=self.verification_results,
             artifacts=list(dict.fromkeys(self.artifacts)),
             failures=self.failures,
+            language_requested=self.language_requested,
+            detected_script=self.detected_script,
+            windows_count=self.windows_count,
         )
 
         self.tracer.write_report(report)
@@ -403,6 +441,9 @@ class TaskAgent:
                     if f.suffix.lower() in (".wav", ".mp3", ".m4a", ".flac"):
                         args["file_path"] = str(f.resolve())
                         break
+            # Bind language requested in task if not explicitly passed by LLM
+            if self.language_requested and not args.get("language"):
+                args["language"] = self.language_requested
         elif tool_name == "extract_document_text":
             if not args.get("file_path") or not Path(args.get("file_path", "")).exists():
                 for f in valid_files:
@@ -434,6 +475,7 @@ class TaskAgent:
                 res = self.tools.transcribe_audio(
                     file_path=args.get("file_path", ""),
                     language=args.get("language"),
+                    vad=args.get("vad", True),
                 )
                 if res.get("success") and res.get("transcript"):
                     stem = Path(args.get("file_path", "audio")).stem
@@ -443,6 +485,18 @@ class TaskAgent:
                     saved_path = str(art_file.resolve())
                     self.artifacts.append(saved_path)
                     res["artifact_path"] = saved_path
+
+                    # Record metadata from tool
+                    self.windows_count = res.get("windows_count", len(res.get("windows", [])))
+                    if res.get("detected_script"):
+                        self.detected_script = res.get("detected_script")
+                    if res.get("language_requested"):
+                        self.language_requested = res.get("language_requested")
+
+                    self.last_transcription_result = res
+                    dur_val = res.get("duration_s", 0.0) or res.get("total_duration_s", 0.0)
+                    self.audio_durations[saved_path] = dur_val
+                    self.audio_durations[art_file.name] = dur_val
 
                     # Auto-save SRT if windows exist
                     if res.get("windows"):
@@ -563,6 +617,167 @@ class TaskAgent:
                         notes=notes,
                     )
                 )
+
+            # Verify Audio Transcripts
+            elif art_path.name.startswith("transcript_") and art_path.suffix.lower() == ".txt":
+                self._verify_transcript_artifact(art_path)
+
+    def _verify_transcript_artifact(self, art_path: Path) -> None:
+        """Verifies transcript text quality, duration plausibility, repetition, and script matching in plain code."""
+        content = art_path.read_text(encoding="utf-8").strip()
+        art_name = art_path.name
+
+        # 1. Not empty check
+        if not content:
+            self.verification_results.append(
+                VerificationResult(
+                    artifact=art_name,
+                    verification_type="transcript_quality",
+                    passed=False,
+                    notes="Transcript verification failed: Output transcript is empty.",
+                )
+            )
+            return
+
+        # 2. Duration and CPS plausibility check
+        duration_s = (
+            self.audio_durations.get(str(art_path.resolve()))
+            or self.audio_durations.get(art_path.name)
+            or getattr(self, "last_transcription_result", {}).get("duration_s", 0.0)
+            or getattr(self, "last_transcription_result", {}).get("total_duration_s", 0.0)
+        )
+
+        cps = (len(content) / duration_s) if duration_s > 0 else 0.0
+        if duration_s >= 5.0 and cps < 0.8:
+            self.verification_results.append(
+                VerificationResult(
+                    artifact=art_name,
+                    verification_type="transcript_quality",
+                    passed=False,
+                    notes=f"Transcript verification failed: Character rate too low ({cps:.2f} chars/s for {duration_s:.1f}s audio). Possible dropped speech.",
+                )
+            )
+            return
+
+        if cps > 50.0:
+            self.verification_results.append(
+                VerificationResult(
+                    artifact=art_name,
+                    verification_type="transcript_quality",
+                    passed=False,
+                    notes=f"Transcript verification failed: Character rate implausibly high ({cps:.2f} chars/s for {duration_s:.1f}s audio). Possible looping hallucination.",
+                )
+            )
+            return
+
+        # 3. No repeated looping phrases (n-gram repetition check)
+        words = content.split()
+        if len(words) >= 6:
+            tri_grams = [" ".join(words[i : i + 3]) for i in range(len(words) - 2)]
+            for i in range(len(tri_grams) - 2):
+                if tri_grams[i] == tri_grams[i + 1] == tri_grams[i + 2]:
+                    self.verification_results.append(
+                        VerificationResult(
+                            artifact=art_name,
+                            verification_type="transcript_quality",
+                            passed=False,
+                            notes=f"Transcript verification failed: Detected looping phrase repeated consecutively: '{tri_grams[i]}'.",
+                        )
+                    )
+                    return
+
+        # 4. Detected script and language consistency
+        detected_lang = detect_script_language(content)
+        detected_script_name = SCRIPT_NAMES.get(detected_lang or "", "Unknown")
+        self.detected_script = detected_script_name
+
+        if self.language_requested:
+            expected_script = EXPECTED_SCRIPT_FOR_LANG.get(self.language_requested, self.language_requested)
+            if detected_lang != expected_script:
+                self.verification_results.append(
+                    VerificationResult(
+                        artifact=art_name,
+                        verification_type="transcript_quality",
+                        passed=False,
+                        notes=(
+                            f"Transcript verification failed: Task requested language '{self.language_requested}' "
+                            f"(expected {SCRIPT_NAMES.get(expected_script, expected_script)} script), "
+                            f"but transcript is in {detected_script_name} script ({detected_lang})."
+                        ),
+                    )
+                )
+                return
+
+        # 5. Check flagged / suspicious windows
+        last_res = getattr(self, "last_transcription_result", {})
+        flagged_wins = [w for w in last_res.get("windows", []) if w.get("suspicious")]
+        if flagged_wins:
+            win_idxs = [w.get("window_index") for w in flagged_wins]
+            self.verification_results.append(
+                VerificationResult(
+                    artifact=art_name,
+                    verification_type="transcript_quality",
+                    passed=False,
+                    notes=f"Transcript verification flagged {len(flagged_wins)} suspicious empty window(s): {win_idxs}.",
+                )
+            )
+            return
+
+        cps_str = f", {cps:.1f} chars/s" if duration_s > 0 else ""
+        wins_str = f", {self.windows_count} window(s)" if self.windows_count else ""
+        self.verification_results.append(
+            VerificationResult(
+                artifact=art_name,
+                verification_type="transcript_quality",
+                passed=True,
+                notes=f"Verified transcript: {len(content)} chars{cps_str}{wins_str}, script: {detected_script_name}.",
+            )
+        )
+
+    def _build_plain_code_summary(self, status: str) -> str:
+        """Constructs an honest, plain-code summary of what actually happened."""
+        if status == "impossible_task":
+            return (
+                f"The task requested an unsupported language or invalid operation. "
+                f"Bodhan Indic models exclusively support the 22 scheduled Indian languages and English. "
+                f"No mock or fabricated output was generated."
+            )
+        if status == "timeout":
+            return f"The task timed out during execution. {self.failures[0] if self.failures else ''}"
+        if status == "budget_exceeded":
+            return (
+                f"The task halted because the spend cap (₹{self.max_cost_inr:.2f}) was reached. "
+                f"Total spent: ₹{self.budget.spent_inr:.4f} across {len(self.executed_calls)} executed call(s)."
+            )
+        if status == "max_steps_reached":
+            return f"The task reached the maximum step limit ({self.max_steps}) before full completion."
+        if status == "failed":
+            reasons = "; ".join(self.failures) if self.failures else "Task did not produce verified artifacts."
+            return f"Task execution failed: {reasons}"
+
+        # Status is success
+        parts = []
+        if any("transcript_" in a for a in self.artifacts):
+            dur = getattr(self, "last_transcription_result", {}).get("duration_s", "")
+            script = self.detected_script or "Indic"
+            wins = self.windows_count or 1
+            dur_str = f" ({dur}s)" if dur else ""
+            lang_str = f" ({self.language_requested})" if self.language_requested else ""
+            parts.append(
+                f"Transcribed audio{dur_str} across {wins} window(s) using Indic-Transcribe into {script} script{lang_str}"
+            )
+        if any("subtitles_" in a for a in self.artifacts):
+            parts.append("generated approximate window-based SRT subtitles")
+        if any("translated_" in a for a in self.artifacts):
+            parts.append("translated text using Indic-Translate with verified English back-translation fidelity")
+        if any("speech_" in a for a in self.artifacts):
+            parts.append("synthesized speech audio using Indic-Speak")
+        if any("ocr_" in a for a in self.artifacts):
+            parts.append("extracted document text using Indic-OCR")
+
+        if parts:
+            return "Completed task: " + "; ".join(parts) + "."
+        return "Task completed successfully and artifacts were verified."
 
     def _verify_translation_fidelity(self, source_en: str, back_en: str) -> tuple[bool, str]:
         """Compares back-translated English against real source English."""

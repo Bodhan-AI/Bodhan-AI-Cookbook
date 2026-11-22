@@ -32,9 +32,9 @@ tools_backend = BodhanTools()
         "Returns full transcript, per-window results with timestamps, and quality flags."
     ),
 )
-def transcribe_audio(file_path: str, language: str = "") -> str:
+def transcribe_audio(file_path: str, language: str = "", vad: bool = True) -> str:
     """Transcribes audio file to text."""
-    res = tools_backend.transcribe_audio(file_path, language=language if language else None)
+    res = tools_backend.transcribe_audio(file_path, language=language if language else None, vad=vad)
     return json.dumps(res, ensure_ascii=False, indent=2)
 
 

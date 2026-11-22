@@ -88,7 +88,19 @@ class TestBodhanTools(unittest.TestCase):
         self.assertTrue(res["success"])
         self.assertEqual(res["transcript"], "नमस्ते यह एक परीक्षण है।")
         self.assertEqual(len(res["windows"]), 1)
+        self.assertEqual(res["language_requested"], "hi")
+        self.assertEqual(res["detected_script"], "hi")
+        self.assertEqual(res["windows_count"], 1)
         self.assertFalse(res["windows"][0]["is_empty"])
+
+    def test_transcribe_audio_cache_key_differentiation(self):
+        audio_bytes = b"RIFF1234WAVEfmt "
+        key_hi = self.cache.generate_key("indic-transcribe", audio_bytes, language="hi", vad="true")
+        key_none = self.cache.generate_key("indic-transcribe", audio_bytes, language="none", vad="true")
+        key_vad_false = self.cache.generate_key("indic-transcribe", audio_bytes, language="hi", vad="false")
+
+        self.assertNotEqual(key_hi, key_none)
+        self.assertNotEqual(key_hi, key_vad_false)
 
     def test_transcribe_audio_missing_file(self):
         res = self.tools.transcribe_audio("non_existent_file.wav")

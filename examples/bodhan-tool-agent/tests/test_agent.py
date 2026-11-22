@@ -13,6 +13,10 @@ Tests:
 10. LLM invalid JSON creates report files with status 'failed' and clear message
 11. LLM empty response creates report files with status 'failed' cleanly
 12. Tolerance for reasoning text, <think> tags, and markdown code fences
+13. Task language binding and plain code assumptions
+14. Task with no language sends None and records plain code assumption
+15. Transcript verification (empty, plausible CPS, repeated looping, script mismatch)
+16. Plain code summary replaces LLM pre-tool 'done' text
 """
 
 import json
@@ -106,6 +110,7 @@ class TestAgent(unittest.TestCase):
         def mock_inspect(path_str):
             p = Path(path_str)
             preview = None
+            dur = None
             if p.suffix in (".txt", ".md", ".json") and p.exists():
                 try:
                     preview = p.read_text(encoding="utf-8")[:200]
@@ -113,8 +118,10 @@ class TestAgent(unittest.TestCase):
                     preview = "Sample text preview"
             elif p.suffix == ".txt":
                 preview = "Sample text preview"
+            elif p.suffix in (".wav", ".mp3", ".m4a"):
+                dur = 5.0
 
-            return {
+            info = {
                 "success": True,
                 "file_name": p.name,
                 "file_path": str(p.resolve()),
@@ -122,12 +129,19 @@ class TestAgent(unittest.TestCase):
                 "size_bytes": 100,
                 "preview": preview,
             }
+            if dur is not None:
+                info["duration_s"] = dur
+            return info
 
         self.mock_tools.inspect_media.side_effect = mock_inspect
         self.mock_tools.transcribe_audio.return_value = {
             "success": True,
-            "transcript": "नमस्ते दुनिया",
+            "transcript": "नमस्ते दुनिया यह एक परीक्षण है",
             "duration_s": 5.0,
+            "windows_count": 1,
+            "detected_script": "hi",
+            "language_requested": "hi",
+            "windows": [{"window_index": 0, "text": "नमस्ते दुनिया यह एक परीक्षण है", "suspicious": False, "duration_s": 5.0}],
             "cost_inr": 0.01,
         }
         self.mock_tools.translate_text.return_value = {
@@ -171,6 +185,10 @@ class TestAgent(unittest.TestCase):
         self.assertTrue((self.out_dir / "report.json").exists())
         self.assertTrue((self.out_dir / "result.md").exists())
         self.assertGreater(len(report.artifacts), 0)
+        self.assertEqual(report.language_requested, "hi")
+        self.assertEqual(report.detected_script, "Devanagari")
+        self.assertEqual(report.windows_count, 1)
+        self.assertTrue(any(v.verification_type == "transcript_quality" and v.passed for v in report.verification_results))
 
     def test_impossible_task_unsupported_language(self):
         """Tests that unsupported language (French) stops cleanly with honest explanation and 0 cost."""
@@ -519,6 +537,143 @@ class TestAgent(unittest.TestCase):
         text4 = "I am unable to perform this task because it violates my guidelines."
         p4 = LLMClient._parse_json_plan(text4)
         self.assertIsNone(p4)
+
+    def test_task_language_binding_and_plain_code_assumptions(self):
+        """Tests that task specifying Hindi binds language='hi' in plain code and generates plain assumptions."""
+        audio_file = self.samples_dir / "hindi_sample.wav"
+        audio_file.write_bytes(b"RIFFmockwav")
+
+        captured_args = {}
+        def mock_transcribe(**kwargs):
+            captured_args.update(kwargs)
+            return {
+                "success": True,
+                "transcript": "नमस्ते दुनिया यह एक परीक्षण है",
+                "duration_s": 4.0,
+                "windows_count": 1,
+                "detected_script": "hi",
+                "language_requested": "hi",
+                "windows": [{"window_index": 0, "text": "नमस्ते दुनिया यह एक परीक्षण है", "suspicious": False, "duration_s": 4.0}],
+                "cost_inr": 0.01,
+            }
+        self.mock_tools.transcribe_audio.side_effect = mock_transcribe
+
+        # LLM plan does not specify language in args
+        plan = {
+            "assumptions": ["LLM invented assumption: empty string implies current working directory"],
+            "steps": [{"tool": "transcribe_audio", "args": {}}],
+            "final_answer": "LLM pre-execution done wording",
+        }
+        mock_llm = MockLLM(plan_dict=plan)
+        agent = TaskAgent(
+            task="Transcribe this Hindi audio file",
+            files=[audio_file],
+            out_dir=self.out_dir,
+            settings=self.mock_settings,
+            llm_client=mock_llm,
+            tools=self.mock_tools,
+        )
+        report = agent.run()
+
+        # Plain code bound language='hi'
+        self.assertEqual(captured_args.get("language"), "hi")
+        self.assertEqual(report.language_requested, "hi")
+
+        # LLM invented assumptions and answers are NOT in report
+        self.assertNotIn("LLM invented assumption", " ".join(report.assumptions))
+        self.assertTrue(any("Hindi" in a for a in report.assumptions))
+
+    def test_task_no_language_sends_none_and_records_assumption(self):
+        """Tests that task without language leaves language as None and records plain code assumption."""
+        audio_file = self.samples_dir / "audio_nolang.wav"
+        audio_file.write_bytes(b"RIFFmockwav")
+
+        captured_args = {}
+        def mock_transcribe(**kwargs):
+            captured_args.update(kwargs)
+            return {
+                "success": True,
+                "transcript": "नमस्ते दुनिया यह एक परीक्षण है",
+                "duration_s": 2.0,
+                "windows_count": 1,
+                "detected_script": "hi",
+                "language_requested": None,
+                "windows": [{"window_index": 0, "text": "नमस्ते दुनिया", "suspicious": False, "duration_s": 2.0}],
+                "cost_inr": 0.01,
+            }
+        self.mock_tools.transcribe_audio.side_effect = mock_transcribe
+
+        plan = {"steps": [{"tool": "transcribe_audio", "args": {}}]}
+        mock_llm = MockLLM(plan_dict=plan)
+        agent = TaskAgent(
+            task="Transcribe this audio file and save the transcript",
+            files=[audio_file],
+            out_dir=self.out_dir,
+            settings=self.mock_settings,
+            llm_client=mock_llm,
+            tools=self.mock_tools,
+        )
+        report = agent.run()
+
+        self.assertIsNone(captured_args.get("language"))
+        self.assertIsNone(report.language_requested)
+        self.assertTrue(any("No specific spoken language" in a for a in report.assumptions))
+
+    def test_transcript_verification_checks(self):
+        """Tests transcript verification rules: empty, script mismatch, implausible CPS, looping."""
+        audio_file = self.samples_dir / "audio_verify.wav"
+        audio_file.write_bytes(b"RIFFmockwav")
+
+        # 1. Script mismatch: Requested Hindi but transcript in Arabic/Urdu
+        def mock_urdu_transcribe(**kwargs):
+            return {
+                "success": True,
+                "transcript": "میرا نام اشفاق ہے اور آج موسم بہت اچھا ہے",
+                "duration_s": 5.0,
+                "windows_count": 1,
+                "detected_script": "ur",
+                "language_requested": "hi",
+                "windows": [{"window_index": 0, "text": "میرا نام اشفاق ہے", "suspicious": False, "duration_s": 5.0}],
+                "cost_inr": 0.01,
+            }
+        self.mock_tools.transcribe_audio.side_effect = mock_urdu_transcribe
+
+        agent = TaskAgent(
+            task="Transcribe this Hindi audio file",
+            files=[audio_file],
+            out_dir=self.out_dir,
+            settings=self.mock_settings,
+            llm_client=MockLLM(plan_dict={"steps": [{"tool": "transcribe_audio", "args": {}}]}),
+            tools=self.mock_tools,
+        )
+        report = agent.run()
+
+        # Should fail verification because expected Devanagari but got Arabic script
+        self.assertEqual(report.status, "failed")
+        self.assertTrue(any(v.verification_type == "transcript_quality" and not v.passed for v in report.verification_results))
+
+    def test_plain_code_summary_replaces_llm_done_text(self):
+        """Tests that result.md summary is built in plain code and ignores LLM pre-tool 'done' text."""
+        audio_file = self.samples_dir / "audio_summary.wav"
+        audio_file.write_bytes(b"RIFFmockwav")
+
+        plan = {
+            "steps": [{"tool": "transcribe_audio", "args": {}}],
+            "final_answer": "I have already finished everything before tools ran.",
+        }
+        agent = TaskAgent(
+            task="Transcribe this voice note",
+            files=[audio_file],
+            out_dir=self.out_dir,
+            settings=self.mock_settings,
+            llm_client=MockLLM(plan_dict=plan),
+            tools=self.mock_tools,
+        )
+        agent.run()
+
+        result_md = (self.out_dir / "result.md").read_text(encoding="utf-8")
+        self.assertNotIn("I have already finished everything before tools ran.", result_md)
+        self.assertIn("Completed task: Transcribed audio", result_md)
 
 
 if __name__ == "__main__":

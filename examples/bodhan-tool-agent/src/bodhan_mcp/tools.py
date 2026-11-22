@@ -130,7 +130,12 @@ class BodhanTools:
     # ------------------------------------------------------------------------
     # 1. transcribe_audio
     # ------------------------------------------------------------------------
-    def transcribe_audio(self, file_path: str, language: str | None = None) -> dict[str, Any]:
+    def transcribe_audio(
+        self,
+        file_path: str,
+        language: str | None = None,
+        vad: bool | str = True,
+    ) -> dict[str, Any]:
         """Transcribes audio using Indic-Transcribe.
 
         Converts any audio format to 16 kHz mono WAV, splits into <= 30s windows,
@@ -143,6 +148,23 @@ class BodhanTools:
                 "error": f"Audio file not found: {file_path}",
                 "actionable_tip": "Verify the file path exists on disk.",
             }
+
+        # Normalize and validate language code if provided
+        norm_lang: str | None = None
+        if language:
+            clean_lang = language.strip().lower()
+            if clean_lang and clean_lang not in ("none", "auto", ""):
+                supported, code, _ = is_language_supported(clean_lang)
+                if supported and code:
+                    norm_lang = code
+                else:
+                    return {
+                        "success": False,
+                        "error": f"Unsupported language requested for transcription: {language!r}",
+                        "actionable_tip": "Use one of the 22 scheduled Indian languages or English (e.g. 'hi', 'ta').",
+                    }
+
+        vad_val = "true" if (str(vad).lower() in ("true", "1")) else "false"
 
         try:
             # 1. Convert to 16 kHz mono WAV
@@ -165,8 +187,13 @@ class BodhanTools:
                 win_end = current_time + win_dur
                 current_time = win_end
 
-                # Cache check
-                cache_key = self.cache.generate_key("indic-transcribe", win_path.read_bytes(), lang=language or "auto")
+                # Cache key explicitly includes normalized language and vad
+                cache_key = self.cache.generate_key(
+                    "indic-transcribe",
+                    win_path.read_bytes(),
+                    language=norm_lang or "none",
+                    vad=vad_val,
+                )
                 cached = self.cache.get_json(cache_key)
 
                 if cached is not None:
@@ -177,9 +204,9 @@ class BodhanTools:
                     self.budget.check_budget(win_cost)
 
                     with open(win_path, "rb") as f:
-                        data = {"model": "indic-transcribe", "vad": "true"}
-                        if language:
-                            data["language"] = language
+                        data = {"model": "indic-transcribe", "vad": vad_val}
+                        if norm_lang:
+                            data["language"] = norm_lang
                         files = {"file": (win_path.name, f, "audio/wav")}
                         resp = self.client.post("/v1/audio/transcriptions", model_id="indic-transcribe", data=data, files=files, timeout=90.0)
 
@@ -211,7 +238,10 @@ class BodhanTools:
             return {
                 "success": True,
                 "transcript": full_transcript,
+                "duration_s": round(total_duration, 2),
                 "total_duration_s": round(total_duration, 2),
+                "language_requested": norm_lang,
+                "detected_script": detect_script_language(full_transcript),
                 "windows_count": len(windows),
                 "windows": window_results,
                 "flagged_windows_count": flagged_count,
