@@ -2,8 +2,8 @@
 
 ## Tool granularity
 
-I chose one tool per **capability**, each owning its model's limits, plus five free helpers. Three
-options were on the table:
+I chose capability-level tools that handle model limits, four free helpers, and a language detector
+that calls ASR only for audio or video.
 
 | Option | Problem |
 |---|---|
@@ -20,7 +20,7 @@ to call.
 | `inspect_files` | none | kind, duration, pages, script-based language, cost estimates; folders expanded; missing paths reported, not raised |
 | `read_text` | none | pages through long files (offset/max_chars) so large text never floods the context |
 | `list_voices` | none | voice library, defaults per language and gender, styles |
-| `detect_language` | Transcribe (audio probe only) | text: Unicode script + script-specific letters + function words; audio: <= 8 s probe |
+| `detect_language` | Transcribe (audio probe only) | Unicode script, language-specific letters and common words for text. Audio uses a probe up to 8 seconds, bounded by `max_cost_inr`. |
 | `transcribe_audio` | Indic-Transcribe | any length; energy-based VAD cuts at pauses into windows <= 28 s (model limit 30 s); trims silence (billed per second); skips silent audio; video audio extracted with ffmpeg; `language="auto"` detects from a probe then uses it as a hint; reports unsupported spoken languages |
 | `translate_text` | Indic-Translate | structure templates (Markdown/HTML tables, lists, segment JSON, SRT/VTT) so only text is sent; paragraphs chunked to <= 1,800 chars; short cells/lines batched with an alignment check and per-line fallback; truncated outputs re-split; identical cells translated once; coverage/script verification |
 | `synthesize_speech` | Indic-Speak (+ Transcribe for checks) | Markdown stripped; sentence chunks <= 220 chars; script/language mismatch rejected before spending; parallel synthesis; per-chunk back-transcription; failed chunks regenerated smaller; WAVs joined with pauses; MP3 tagged AI-generated |
@@ -36,9 +36,10 @@ client.
 
 ## Media plumbing
 
-Files move by path. Tools write outputs under the server's output folder (for the agent:
-`out/artifacts/intermediate/`) and return `*_path` fields plus a preview of at most 1,200 characters;
-full text is inline only below 6,000 characters. Base64 exists only inside the HTTP call to Indic-OCR.
+Artifact-producing tools write under the server's output folder (`out/artifacts/intermediate/` when
+called by the agent) and return paths. Transcription, translation and OCR include a short preview and
+inline the full result only for short text. The agent caps tool responses before adding them to
+planner context. Base64 is confined to the Indic-OCR HTTP request.
 
 ## Where the LLM is used, and where it is not
 
@@ -54,9 +55,10 @@ full text is inline only below 6,000 characters. Base64 exists only inside the H
 | Verification of deliverables | code (tools + gate) | - |
 | Indian-language text, speech, transcripts, OCR | Bodhan models only | - |
 
-The LLM never sees audio or images. Indian-language text reaches the user only from Bodhan outputs:
-the agent checks every Indian-script run the LLM writes (files, inline tool text, the final answer)
-against a corpus of tool outputs and input files, and rejects anything new.
+The planner receives file references for audio and images. The agent checks Indian-script text in
+authored files, inline tool arguments and the final answer against Bodhan outputs and the user's
+input text. The planner can quote those sources. New Indian-language content is produced by
+Indic-Translate.
 
 ## Verification
 
@@ -67,10 +69,10 @@ against a corpus of tool outputs and input files, and rejects anything new.
 
 ## Budgets and cost control
 
-* `--max-steps` (tool calls), `--max-cost-inr`, `--max-runtime-s`, `--call-timeout-s`, enforced in code before every LLM turn.
-* Each paid call gets `max_cost_inr` = remaining budget (split across parallel calls). Tools estimate before spending and refuse with `budget_exceeded`, so the budget is never overshot by a single call.
-* Spend is synced after each turn from the server's `bodhan://usage` ledger, so costs inside failed tool calls are counted.
-* No waste: a content-addressed disk cache (key = model + parameters + input bytes) and in-flight de-duplication mean the same input is never sent to the same model twice, within a run or across reruns. The agent also suppresses identical repeated tool calls. Retries after a failed request are the only resends.
+* The agent checks step, cost and elapsed-time budgets before each action turn. It limits a parallel batch to the remaining steps and applies `--call-timeout-s` to each tool call.
+* The agent splits the remaining rupees across potentially paid calls. Each tool checks the estimate against its share, including the ASR probe in `detect_language`. A call that cannot fit returns `budget_exceeded` before sending the request.
+* The agent syncs reported model usage after each turn from `bodhan://usage`. Successful model requests are counted even if a later request in the same tool fails. Translation falls back to an estimate when the response omits token usage, and planner charges are included when token prices are configured.
+* The disk cache keys successful results by model, parameters and input bytes. Identical in-flight calls share a request. Configured retries can resend requests that failed.
 * Cheap-first: silence trimmed before ASR, blank pages skipped before OCR, numbers/symbols not sent to translation, already-target-language text copied without a call, script mismatch caught before TTS.
 
 ## Unknown and untrusted input

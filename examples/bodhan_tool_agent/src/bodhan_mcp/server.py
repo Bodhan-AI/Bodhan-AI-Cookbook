@@ -138,15 +138,16 @@ def create_server(settings: Settings | None = None, transport: httpx.AsyncBaseTr
             "common words (free, instant). Audio detection transcribes a probe of up to 8 seconds without a language hint "
             "(about Rs 0.01) and applies the same script check. Devanagari languages (hi, mr, ne, ...) can be ambiguous: "
             "check 'confidence' and 'candidates'. For images and PDFs use ocr_document, which reports the language per page. "
-            "Pass exactly one of text or path."
+            "Pass exactly one of text or path. Set max_cost_inr to cap the audio probe cost."
         ),
         annotations=PAID,
     )
     async def detect_language(
         text: Annotated[str | None, Field(description="Text to classify.")] = None,
         path: Annotated[str | None, Field(description="Path of a text, audio or video file.")] = None,
+        max_cost_inr: MaxCost = None,
     ) -> DetectLanguageResult:
-        return await _guard(tools.detect_language(rt, text, path))
+        return await _guard(tools.detect_language(rt, text, path, max_cost_inr))
 
     @app.tool(
         title="Make subtitles",

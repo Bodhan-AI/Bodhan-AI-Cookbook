@@ -21,7 +21,7 @@ from pathlib import Path
 import numpy as np
 
 from . import costs, formats, languages, media, textproc
-from .bodhan_api import BodhanAPI
+from .bodhan_api import BodhanAPI, wav_seconds
 from .config import Settings
 from .errors import (
     BUDGET_EXCEEDED,
@@ -286,16 +286,20 @@ def list_voices(rt: Runtime, language: str | None = None) -> VoicesResult:
 # detect_language
 # ---------------------------------------------------------------------------
 
-async def _audio_probe(rt: Runtime, x: np.ndarray, sr: int, meter: costs.CallMeter) -> tuple[str, float, textproc.LanguageGuess]:
+async def _audio_probe(rt: Runtime, x: np.ndarray, sr: int, meter: costs.CallMeter,
+                       max_cost_inr: float | None = None) -> tuple[str, float, textproc.LanguageGuess]:
     segs = media.plan_segments(x, sr, max_seconds=PROBE_SECONDS, min_seconds=3.0)
     if not segs:
         return "", 0.0, textproc.LanguageGuess(None, 0.0, None, [])
     seg = segs[0]
-    text = await rt.api.transcribe(media.slice_wav(x, sr, seg), None, meter)
+    wav = media.slice_wav(x, sr, seg)
+    _check_budget(costs.transcribe_cost(wav_seconds(wav)), max_cost_inr, "Audio language detection")
+    text = await rt.api.transcribe(wav, None, meter)
     return text, seg.duration, textproc.detect_language(text)
 
 
-async def detect_language(rt: Runtime, text: str | None = None, path: str | None = None) -> DetectLanguageResult:
+async def detect_language(rt: Runtime, text: str | None = None, path: str | None = None,
+                          max_cost_inr: float | None = None) -> DetectLanguageResult:
     if bool(text) == bool(path):
         raise ToolFailure(INVALID_INPUT, "Pass exactly one of 'text' or 'path'.")
     meter = costs.CallMeter()
@@ -308,7 +312,7 @@ async def detect_language(rt: Runtime, text: str | None = None, path: str | None
         return DetectLanguageResult(detected=_lang_info(textproc.detect_language(body[:20000])), source="text_file", **_usage(meter))
     if kind in ("audio", "video"):
         x = await asyncio.to_thread(media.load_audio, p)
-        heard, secs, guess = await _audio_probe(rt, x, media.ASR_SAMPLE_RATE, meter)
+        heard, secs, guess = await _audio_probe(rt, x, media.ASR_SAMPLE_RATE, meter, max_cost_inr)
         warnings = [] if heard else ["No speech found in the first part of the audio."]
         return DetectLanguageResult(detected=_lang_info(guess), source="audio_probe", probe_transcript=heard,
                                     probe_seconds=round(secs, 2), warnings=warnings, **_usage(meter))

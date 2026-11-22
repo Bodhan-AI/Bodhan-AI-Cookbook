@@ -27,13 +27,14 @@ flowchart LR
         T6 & T8 & T9 --> M
         T7 & T8 --> F
         T5 & T6 & T7 & T8 & T9 & T10 --> C
+        T10 --> M
     end
 
     A4 <-->|MCP over stdio<br/>file paths, never base64| MCP
     EXT[Any MCP client<br/>e.g. MCP Inspector, Claude Desktop] <-->|stdio| MCP
 
     C -->|POST /v1/audio/transcriptions| B1[Indic-Transcribe]
-    C -->|POST /translate| B2[Indic-Translate]
+    C -->|POST /translate or /v1/chat/completions| B2[Indic-Translate]
     C -->|POST /v1/audio/speech| B3[Indic-Speak]
     C -->|POST /v1/chat/completions| B4[Indic-OCR]
 ```
@@ -45,15 +46,15 @@ flowchart LR
 | Guards (code) | Per-call cost caps, step/time limits, timeouts, path resolution, duplicate-call suppression, Indian-language provenance check, untrusted-text wrapping. |
 | Verification gate (code) | At `finish`, checks every deliverable exists and passed its check (back-transcription, translation coverage); rejects or downgrades otherwise. |
 | `bodhan_mcp` server | Ten tools, four resources and one prompt over stdio (or HTTP with a bearer token). Runs alone for any MCP client. |
-| `bodhan_api.py` | The only code that talks to Bodhan. Keys, retries, cache, concurrency, exact cost. |
+| `bodhan_api.py` | Hosted Bodhan requests, per-model credentials, retries, caching, concurrency, and cost accounting from usage units. |
 | `media.py` / `formats.py` | Plain-code media and document plumbing; no model calls. |
 
 ## How data moves
 
-Media and long text never enter the LLM context. Every tool writes its result to a file and returns
-the path plus a short preview; the next tool takes that path (`input_path`, `segments_path`,
-`audio_path`). Images go to Indic-OCR as base64 only inside `bodhan_api.py`, which is the API's
-required format; no tool accepts or returns base64.
+The LLM receives file paths and bounded text. Artifact-producing tools return paths for the next tool
+to use in fields such as `input_path`, `segments_path`, or `audio_path`. Inventory, language
+detection, and voice lookup return structured metadata. Images are encoded as base64 inside the
+Indic-OCR request in `bodhan_api.py`. MCP clients pass media by file reference.
 
 Example: *Hindi voice note to English subtitles*
 

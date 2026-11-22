@@ -3,7 +3,7 @@
 > An MCP server that exposes Bodhan's four Indic models as ten well-described tools, and a command-line agent that plans, calls them, verifies its outputs and reports honestly.
 
 **Bodhan models:** indic-transcribe, indic-translate, indic-speak, indic-ocr (hosted API)
-**Languages:** 22 Indian languages plus English (whatever the models support; nothing is hard-coded per task)
+**Languages:** Support varies by model. The `bodhan://languages` resource lists the accepted codes for each capability.
 **Format:** Python CLI + MCP server (stdio; optional Streamable HTTP with bearer token)
 
 ## What it does
@@ -28,21 +28,35 @@ Needs Python 3.11+ and **ffmpeg** on `PATH` (audio/video decoding and MP3 encodi
 
 ```bash
 cd examples/bodhan_tool_agent
-python -m venv .venv && source .venv/bin/activate      # Windows: .venv\Scripts\activate
-pip install -r requirements.txt                        # pinned, includes this package (-e .)
-cp .env.example .env                                   # then fill in the keys
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+cp .env.example .env
 ```
 
-`.env` (or the environment) needs `BODHAN_TRANSCRIBE_KEY`, `BODHAN_TRANSLATE_KEY`, `BODHAN_SPEAK_KEY`,
+On PowerShell, run the setup from the recipe folder with the Windows interpreter path.
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+Copy-Item .env.example .env
+```
+
+In PowerShell, use `.\.venv\Scripts\python.exe` in place of `python` when running the recipe. Fill in
+`.env` (or the environment) with `BODHAN_TRANSCRIBE_KEY`, `BODHAN_TRANSLATE_KEY`, `BODHAN_SPEAK_KEY`,
 `BODHAN_OCR_KEY` (or a single `BODHAN_API_KEY`), and `LLM_BASE_URL`, `LLM_MODEL`, `LLM_API_KEY` for any
 OpenAI-compatible endpoint with tool calling. No other secrets.
 
-Docker (includes ffmpeg):
+For Docker on a POSIX shell, put a worksheet image you have rights to use at
+`sample_data/worksheet.jpg`. The container uses your host UID to write to the mounted output directory.
 
 ```bash
 docker build -t bodhan-tool-agent .
-docker run --rm --env-file .env -v "$PWD/sample_data:/data/in" -v "$PWD/out:/data/out" bodhan-tool-agent \
-  python -m bodhan_agent --task "Translate this worksheet into Marathi and keep the table" --files /data/in/worksheet --out /data/out/run1
+mkdir -p out
+docker run --rm --env-file .env --user "$(id -u):$(id -g)" -e BODHAN_CACHE_DIR=/tmp/bodhan_cache \
+  -v "$PWD/sample_data:/data/in:ro" -v "$PWD/out:/data/out" bodhan-tool-agent \
+  python -m bodhan_agent --task "Translate this worksheet into Marathi and keep the table" \
+    --files /data/in/worksheet.jpg --out /data/out/run1
 ```
 
 ## Run
@@ -52,8 +66,7 @@ docker run --rm --env-file .env -v "$PWD/sample_data:/data/in" -v "$PWD/out:/dat
 python -m bodhan_agent \
   --task "Make a two-minute Tamil audio summary of this chapter" \
   --files path/to/inputs/ \
-  --out ./out \
-  [--max-steps 30] [--max-cost-inr 20] [--max-runtime-s 900] [--call-timeout-s 300] [--mcp stdio|inproc]
+  --out ./out --max-steps 30 --max-cost-inr 20
 
 # The MCP server on its own (stdio)
 python -m bodhan_mcp
@@ -61,6 +74,8 @@ python -m bodhan_mcp
 # Optional: Streamable HTTP at http://127.0.0.1:8765/mcp, requires "Authorization: Bearer $MCP_HTTP_TOKEN"
 MCP_HTTP_TOKEN=... python -m bodhan_mcp --transport http --port 8765
 ```
+
+Run `python -m bodhan_agent --help` for `--max-runtime-s`, `--call-timeout-s`, and `--mcp`.
 
 Output of one run:
 
@@ -110,7 +125,7 @@ Claude Desktop / any stdio client config:
 | `inspect_files` | - | file kind, duration, pages, language guess, cost estimate; folders; missing files |
 | `read_text` | - | paged reading of transcripts, translations, OCR Markdown |
 | `list_voices` | - | voice library, defaults per language and gender, styles (also resource `bodhan://voices`) |
-| `detect_language` | Transcribe (audio only) | script + letters + function words; 8-second audio probe |
+| `detect_language` | Transcribe (audio only) | script, letters and function words for text. Audio detection uses a probe up to 8 seconds and checks its cost cap before calling ASR |
 | `transcribe_audio` | Indic-Transcribe | any length, silence-aware windows <= 28 s, auto language, video audio, timed segments |
 | `translate_text` | Indic-Translate | tables/lists/segments/subtitles preserved, context-window chunking, truncation re-split, coverage check |
 | `synthesize_speech` | Indic-Speak | sentence chunks <= 220 chars, voice by gender, back-transcription check and regeneration, MP3 tagged AI-generated |
@@ -124,7 +139,7 @@ Resources: `bodhan://voices`, `bodhan://languages`, `bodhan://pricing`, `bodhan:
 
 The [evaluation suite](evals/demo_tasks.json) ran the CLI over MCP stdio against hosted Bodhan APIs, with Gemini 3.1 Flash-Lite on Vertex AI as the planner. The [fixture generator](scripts/make_demo_inputs.py) creates synthetic inputs, including a 154-second Hindi recording and an eight-page scanned chapter. The published chapter uses the generator's English fallback for hosts that cannot print the Indic fixture to PDF.
 
-10 of 10 live tasks passed the [published evaluation](https://github.com/Abhyuday-06/Bodhan-AI-Cookbook/releases/download/tool-agent-takehome-demo/evaluation.json). Every bundle contains the final answer, structured report, tool trace and any published artifacts. The [manifest](https://github.com/Abhyuday-06/Bodhan-AI-Cookbook/releases/download/tool-agent-takehome-demo/demo-manifest.json) records the run metadata.
+All ten recorded live cases met the published evaluation criteria. Seven produced the requested outputs and three handled an unsupported language, a missing file, or an insufficient budget as expected. Each bundle contains the report, trace, final answer, and any deliverables. [Published evaluation](https://github.com/Abhyuday-06/Bodhan-AI-Cookbook/releases/download/tool-agent-takehome-demo/evaluation.json) · [Run manifest](https://github.com/Abhyuday-06/Bodhan-AI-Cookbook/releases/download/tool-agent-takehome-demo/demo-manifest.json)
 
 The chapter walkthrough reused a [draft generated during the first live run](https://github.com/Abhyuday-06/Bodhan-AI-Cookbook/releases/download/tool-agent-takehome-demo/chapter-summary-draft.md) after checking it against the scan, and published the verified Tamil text and 118-second MP3. The first live run measured ₹2.6944 and 166.83 seconds and published the MP3. A fresh-script retry hit the speech API timeout.
 
@@ -143,6 +158,8 @@ The chapter walkthrough reused a [draft generated during the first live run](htt
 
 Wall time includes planner turns and MCP calls. Prices are the recipe's per-run Bodhan usage estimates. The runs used a shared cache, so cache hits add zero incremental Bodhan cost. Gemini usage is logged in tokens and is outside the INR figures above.
 
+The subtitle run exceeded the five-minute multi-step target by 22.41 seconds. Its report records the latency miss.
+
 ## Demo video
 
 [Download the 2:59 demo walkthrough](https://github.com/Abhyuday-06/Bodhan-AI-Cookbook/releases/download/tool-agent-takehome-demo/tool-agent-demo.mp4). It replays recorded MCP stdio runs with pauses shortened and includes excerpts of the actual generated audio.
@@ -151,14 +168,19 @@ Wall time includes planner turns and MCP calls. Prices are the recipe's per-run 
 
 ```bash
 pip install -r requirements.txt
-pytest -q          # 64 tests, no network: a fake Bodhan API enforces the real limits
-ruff check src tests evals scripts
+python -m pytest -q
+python -m ruff check src tests evals scripts
 ```
 
 * Unit tests for each tool's chunking and limits: 30-second ASR windows, TTS input size, translation payload size and truncation, multi-page OCR, blank pages, 502 retries, budget refusal, structured errors.
 * MCP tests: schemas and descriptions, bad inputs over the protocol, a standalone stdio server.
 * End-to-end agent tests with a scripted planner: a multi-step translate-then-speak task, an impossible language, the provenance guard, a too-small budget, a step limit, prompt injection, the finish gate.
-* Self-evaluation on real APIs: `python evals/run_evals.py` runs [`evals/demo_tasks.json`](evals/demo_tasks.json) through the CLI and scores outputs (pass rate in `summary.md`).
+To rerun the hosted evaluation, first generate the synthetic fixtures, then run the CLI evaluation. Both commands use your configured keys and can incur API charges. The resulting `runs/eval/summary.md` reports pass rates and links to each run. [Task suite](evals/demo_tasks.json)
+
+```bash
+python scripts/make_demo_inputs.py --out sample_data
+python evals/run_evals.py --suite evals/demo_tasks.json --inputs sample_data --out runs/eval
+```
 
 ## Limitations
 
@@ -168,7 +190,7 @@ ruff check src tests evals scripts
 * PDFs are always OCR'd page by page (Rs 0.20/page) rather than reading an embedded text layer, because Indic text layers are often broken; up to 100 pages per call.
 * No video output (dubbing back into a video), no voice cloning, no languages outside Bodhan's list.
 * LLM spend is reported in tokens; it counts toward `--max-cost-inr` only if `LLM_PRICE_INR_PER_1M_INPUT/OUTPUT` are set.
-* The budget is enforced per call from tool estimates; translation cost is estimated pessimistically because output tokens are only known afterwards.
+* Paid tools check their allocated share before requesting data, including the ASR probe used for language detection. Reported cost uses metered units and the published price schedule. Translation token totals can be estimated when the API omits usage.
 
 ## AI assistance
 

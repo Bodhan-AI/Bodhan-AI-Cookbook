@@ -12,7 +12,7 @@ flowchart TD
     L -- no tool call --> N{nudged twice?}
     N -- no --> B
     N -- yes --> F2[status failed]
-    L -- tool calls --> G[Guards in code:<br/>resolve paths, cap max_cost_inr,<br/>force verify on speech,<br/>reject unproven Indian-language text,<br/>suppress duplicate calls]
+    L -- tool calls --> G[Guards in code:<br/>limit batch to remaining steps,<br/>resolve paths, cap max_cost_inr,<br/>force speech verification,<br/>check text provenance and duplicates]
     G -- rejected --> E[structured error to LLM] --> B
     G --> T[Call MCP tools<br/>parallel when independent,<br/>per-call timeout]
     T --> W[Wrap transcript/OCR/file text<br/>as untrusted, flag injections,<br/>sync spend from bodhan://usage]

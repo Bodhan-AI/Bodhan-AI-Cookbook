@@ -29,7 +29,7 @@ from .llm import LLM, LLMConfig, LLMError, ToolCall, parse_json_object
 from .mcp_link import MCPLink, ToolOutcome
 from .trace import Trace
 
-PAID_TOOLS = {"transcribe_audio", "translate_text", "synthesize_speech", "verify_speech", "ocr_document"}
+PAID_TOOLS = {"detect_language", "transcribe_audio", "translate_text", "synthesize_speech", "verify_speech", "ocr_document"}
 PATH_KEYS = {"path", "input_path", "segments_path", "audio_path", "expected_text_path"}
 INLINE_TEXT_KEYS = {"text", "expected_text"}
 AUDIO_EXT = {".mp3", ".wav", ".ogg", ".flac"}
@@ -250,12 +250,14 @@ class Agent:
                                   "tool_calls": [{"id": c.id, "type": "function", "function": {"name": c.name, "arguments": c.arguments}}
                                                  for c in reply.tool_calls]})
             finish_calls = [c for c in reply.tool_calls if c.name == "finish"]
-            other = [c for c in reply.tool_calls if c.name != "finish"]
+            other = [c for c in reply.tool_calls if c.name != "finish"][:self.budget.remaining_steps]
             share = self.budget.remaining_cost / max(1, sum(1 for c in other if c.name in PAID_TOOLS))
             results = await asyncio.gather(*(self._dispatch(c, share) for c in other))
             for c, content in zip(other, results, strict=True):
                 self.messages.append({"role": "tool", "tool_call_id": c.id, "content": content})
             await self._sync_cost()
+            if self.budget.remaining_steps == 0:
+                continue
             for c in finish_calls[:1]:
                 content = await self._finish(c)
                 self.messages.append({"role": "tool", "tool_call_id": c.id, "content": content})
@@ -334,9 +336,8 @@ class Agent:
                                   f"({bad[0][:60]!r}...). The agent may not write Indian-language text. Pass input_path of the "
                                   "tool output instead, or write English and translate it.")
         if name in PAID_TOOLS:
-            cap = round(share, 4)
             given = args.get("max_cost_inr")
-            args["max_cost_inr"] = min(float(given), cap) if isinstance(given, (int, float)) else cap
+            args["max_cost_inr"] = min(float(given), share) if isinstance(given, (int, float)) else share
         if name == "synthesize_speech":
             args["verify"] = True  # verification is not optional for generated audio
         return args, None
@@ -443,12 +444,13 @@ class Agent:
         entry["produced_by"] = f"step {rec.step}: {rec.tool}"
         if rec.tool == "synthesize_speech":
             v = rec.data.get("verification")
-            if not v:
+            if not v and self.budget.remaining_steps:
                 vr = await self._call_tool("verify_speech", {
                     "audio_path": str(path), "language": rec.data.get("language"),
                     **({"expected_text_path": rec.args["input_path"]} if rec.args.get("input_path") else {"expected_text": rec.args.get("text", "")}),
-                    "max_cost_inr": round(self.budget.remaining_cost, 4)}, "verification gate: back-transcribe generated audio")
+                    "max_cost_inr": self.budget.remaining_cost}, "verification gate: back-transcribe generated audio")
                 v = vr.data if vr.ok else {"passed": False, "issues": [str(vr.error)]}
+            v = v or {"issues": ["No steps left for back-transcription."]}
             entry.update(check="back_transcription", passed=bool(v.get("passed")), details={k: v.get(k) for k in ("similarity", "chunks_failed", "issues", "resynthesized_chunks") if k in v})
             entry["duration_s"] = rec.data.get("duration_s")
         elif rec.tool == "translate_text":
