@@ -1,0 +1,9 @@
+# Pin every dependency: name==version
+mcp==2.3.0
+openai==3.55.1
+httpx==0.28.1
+pydantic==2.14.4
+tenacity==9.2.1
+pillow==13.0.0
+pypdfium2==5.15.2
+python-dotenv==1.2.4
