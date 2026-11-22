@@ -393,8 +393,9 @@ class Agent:
             if isinstance(a, dict) and a.get("path"):
                 arts.append({"path": str(a["path"]), "description": str(a.get("description", ""))})
         problems: list[str] = []
+        answer_problem = None
         if has_indic(answer):
-            problems.append("Your answer contains Indian-language text. Rewrite it in English and refer to files by path.")
+            answer_problem = "Your answer contains Indian-language text. Rewrite it in English and refer to files by path."
         resolved = []
         for a in arts:
             p = self._resolve(a["path"])
@@ -413,13 +414,19 @@ class Agent:
         judge = await self._judge(answer, resolved, ver) if self.cfg.judge else None
         if judge and judge.get("satisfied") is False:
             problems += [f"Reviewer: {p}" for p in judge.get("problems", []) if isinstance(p, str)]
-        self.trace.log("verify", "checks", passed=ver.passed, checks=ver.as_list(), judge=judge, problems=problems)
+        notes = [n for n in (judge or {}).get("notes", []) if isinstance(n, str)]
+        self.trace.log("verify", "checks", passed=ver.passed, checks=ver.as_list(), judge=judge, problems=problems,
+                       answer_problem=answer_problem, notes=notes)
         can_redo = st.redos < self.cfg.max_redos and st.steps < self.cfg.max_steps and (
             self.ctx.ledger.remaining is None or self.ctx.ledger.remaining > 0.01)
-        if problems and can_redo:
+        if (problems or answer_problem) and can_redo:
             st.redos += 1
+            todo = problems + ([answer_problem] if answer_problem else [])
             return ("Verification found problems. Fix them (one more attempt), then call finish again. "
-                    "If a problem cannot be fixed, call finish and list it under limitations.\n- " + "\n- ".join(problems))
+                    "If a problem cannot be fixed, call finish and list it under limitations.\n- " + "\n- ".join(todo))
+        st.limitations += [f"Reviewer note (not checked by code): {n}" for n in notes]
+        if answer_problem:  # the files decide the status; an answer we cannot show does not
+            st.limitations.append("The model's final answer quoted Indian-language text, so it was withheld; the files are unaffected.")
         st.answer = answer if not has_indic(answer) else "(The model's answer contained Indian-language text and was withheld; see the files.)"
         final_assumptions = [x for x in args.get("assumptions", []) if isinstance(x, str) and x.strip()]
         if final_assumptions:  # the finish call states what was actually assumed; it supersedes the plan's guesses

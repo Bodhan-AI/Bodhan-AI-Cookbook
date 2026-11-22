@@ -238,3 +238,23 @@ def test_give_up_for_missing_capability_is_challenged_once(workdir, env_keys, fa
     assert "give_up_challenged" in (workdir / "out" / "trace.jsonl").read_text(encoding="utf-8")
     planner_prompt = llm.seen[0][1]["content"]
     assert "AVAILABLE TOOLS" in planner_prompt and "synthesize_speech" in planner_prompt
+
+
+def test_indic_answer_is_withheld_without_downgrading_good_files(workdir, env_keys, fake_api):
+    inputs = workdir / "in"
+    inputs.mkdir()
+    (inputs / "w.txt").write_text("Complementary angles add up to 90 degrees.", encoding="utf-8")
+
+    def finish_with_marathi(m, t):
+        out = next((workdir / "out" / "work").glob("w.*.txt"))
+        return LLMReply(tool_calls=[call("finish", answer="Translated; the key term is पूरक.",
+                                         artifacts=[{"path": str(out), "description": "Marathi"}])])
+
+    script = [plan(target_languages=["mr"]),
+              lambda m, t: LLMReply(tool_calls=[call("translate_text", target_language="mr", path=str(inputs / "w.txt"))]),
+              finish_with_marathi, finish_with_marathi]
+    report, _ = run(workdir, "Translate this into Marathi", str(inputs), script)
+    assert report["status"] == "completed"
+    assert report["steps"]["redos"] == 1
+    assert any("withheld" in x for x in report["limitations"])
+    assert "पूरक" not in (workdir / "out" / "result.md").read_text(encoding="utf-8")
