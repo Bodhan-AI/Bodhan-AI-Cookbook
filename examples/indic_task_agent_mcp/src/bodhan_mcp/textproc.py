@@ -59,6 +59,16 @@ def _split_long(sentence: str, max_chars: int) -> list[str]:
     return merged
 
 
+def speakable(text: str) -> str:
+    """Text as it should be read aloud. Brackets become commas: Indic-Speak was seen skipping a whole bracketed
+    phrase in a live Tamil run (and a listener cannot hear brackets anyway)."""
+    text = re.sub(r"\s*[(\[{]\s*", ", ", text)
+    text = re.sub(r"\s*[)\]}]\s*", ", ", text)
+    text = re.sub(r"(,\s*){2,}", ", ", text)
+    text = re.sub(r",\s*([.!?।॥۔])", r"\1", text)
+    return re.sub(r"\s+", " ", text).strip(" ,")
+
+
 def tts_chunks(text: str, max_chars: int = 200) -> list[str]:
     """Group sentences into chunks of at most `max_chars` for Indic-Speak."""
     pieces: list[str] = []

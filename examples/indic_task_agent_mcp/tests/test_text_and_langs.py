@@ -127,3 +127,15 @@ def test_srt_cues_never_overlap_even_when_windows_do():
             {"start": 27.5, "end": 33.0, "text": "Second window overlaps by half a second."}]
     cues = build_cues(segs)
     assert all(cues[i][1] <= cues[i + 1][0] + 1e-9 for i in range(len(cues) - 1))
+
+
+def test_brackets_become_pauses_for_speech():
+    from bodhan_mcp.textproc import speakable
+
+    # Live Tamil chunk where Indic-Speak skipped the whole bracketed phrase, twice.
+    t = ("அடுத்துள்ள கோணங்கள் (ஒரு முனைப் புள்ளி மற்றும் ஒரு பக்கத்தைப் பகிர்ந்து கொள்கின்றன), நேரியல் ஜோடிகள் "
+         "மற்றும் வெட்டும் கோடுகளால் உருவாகும் செங்குத்தாக எதிரெதிர் கோணங்கள்.")
+    out = speakable(t)
+    assert "(" not in out and ")" not in out and ",," not in out
+    assert "ஒரு முனைப் புள்ளி மற்றும்" in out and out.endswith("கோணங்கள்.")
+    assert speakable("Angles (in degrees).") == "Angles, in degrees."

@@ -32,6 +32,7 @@ from .textproc import (
     is_separator_row,
     missing_numbers,
     render_table,
+    speakable,
     speech_alignment,
     split_sentences,
     table_cells,
@@ -506,7 +507,7 @@ async def synthesize_speech(ctx: ToolContext, language: str, text: str | None = 
     _check_job_budget(ctx, estimate_speak(len(content)) + (estimate_transcribe(len(content) / 14) if verify else 0),
                       f"Narrating {len(content)} characters")
     spent0 = ctx.ledger.spent
-    chunks = tts_chunks(content)
+    chunks = tts_chunks(speakable(content))
 
     async def synth(t: str) -> tuple[np.ndarray, int]:
         return audio.read_wav_bytes(await ctx.client.speak(t, chosen, lang, style))
