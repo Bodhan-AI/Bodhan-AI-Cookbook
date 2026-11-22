@@ -31,6 +31,16 @@ def get_ocr_api_key() -> str:
     return key
 
 
+def get_translate_api_key() -> str:
+    """Return the translate key. Prefer BODHAN_TRANSLATE_KEY; fall back to BODHAN_API_KEY."""
+    key = os.environ.get("BODHAN_TRANSLATE_KEY") or os.environ.get("BODHAN_API_KEY")
+    if not key:
+        raise RuntimeError(
+            "Missing translate API key. Set BODHAN_TRANSLATE_KEY (or BODHAN_API_KEY) in .env"
+        )
+    return key
+
+
 def _format_bodhan_error(response: requests.Response) -> str:
     try:
         err = response.json().get("error", {})
