@@ -29,7 +29,7 @@ cp .env.example .env
 ### 1. Task Agent CLI
 Run autonomous tasks over input files:
 ```powershell
-python -m bodhan_agent --task "Transcribe this Hindi voice note and give me English subtitles" --files samples/ --out ./out --max-steps 30 --max-cost-inr 20
+python -m bodhan_agent --task "Transcribe this Hindi voice note and give me English subtitles" --files samples/test_audio.wav --out ./out/run1 --max-steps 30 --max-cost-inr 20
 ```
 
 ### 2. Standalone MCP Server
@@ -40,7 +40,7 @@ python -m bodhan_mcp
 
 ## Architecture
 
-- **`bodhan_mcp`**: Stdio MCP server exposing 5 tools (`transcribe_audio`, `translate_text`, `synthesize_speech`, `extract_document_text`, `inspect_media`) with automatic chunking and limit handling.
+- **`bodhan_mcp`**: Stdio MCP server exposing 8 tools (`transcribe_audio`, `translate_text`, `synthesize_speech`, `extract_document_text`, `inspect_media`, `detect_language`, `extract_audio_from_video`, `build_srt`) with automatic chunking and limit handling.
 - **`bodhan_agent`**: Autonomous agent loop (plan, act, verify, retry, stop) with live budget tracking, disk caching, and step tracing.
 
 ## How it works
@@ -52,7 +52,8 @@ python -m bodhan_mcp
 
 ## Limitations
 
-- Audio requests are chunked to $\le 30$ seconds.
-- TTS inputs are split into short sentences ($\le 30$ seconds speech).
+- Audio requests are kept to windows of $\le 30$ seconds because the assignment requires it and to provide window-level timestamps. Testing confirmed a 39-second continuous audio file (`test_long.wav`) transcribed completely without error, while an earlier 67-second file with repeated audio only transcribed 4 of 5 repetitions (cause: UNEXPLAINED).
+- The Indic-Transcribe API returns only `{"text": "...", "usage": null}` without timestamps or language metadata. Consequently, SRT subtitle timestamps are approximate (derived from window boundaries), and audio language is inferred from the transcript script (e.g. Devanagari is ambiguous between Hindi, Marathi, Nepali, and Sanskrit unless specified in the task).
+- TTS inputs are split into short sentences ($\le 150$ characters).
 - Multi-page PDFs are rendered and OCR-processed per page.
 - Indian-language generation is delegated exclusively to Bodhan models; the LLM operates only in English.
