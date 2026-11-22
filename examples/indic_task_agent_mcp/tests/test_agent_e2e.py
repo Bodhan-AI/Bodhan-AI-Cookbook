@@ -273,3 +273,37 @@ def test_reading_a_translation_does_not_hide_its_checks(workdir, env_keys, fake_
     report, _ = run(workdir, "Translate this into Marathi", str(inputs), script)
     names = {c["name"] for c in report["verification"]["checks"]}
     assert {"numbers_preserved", "target_script", "complete"} <= names
+
+
+def test_judge_complaints_about_indic_wording_become_notes(workdir, env_keys, fake_api):
+    from bodhan_agent.llm import LLMReply as R
+
+    inputs = workdir / "in"
+    inputs.mkdir()
+    (inputs / "w.txt").write_text("Supplementary angles add up to 180 degrees.", encoding="utf-8")
+    script = [plan(target_languages=["mr"]),
+              lambda m, t: R(tool_calls=[call("translate_text", target_language="mr", path=str(inputs / "w.txt"))]),
+              lambda m, t: R(tool_calls=[call("finish", answer="Translated w.txt into Marathi.",
+                                              artifacts=[{"path": last_tool_json(m)["output_path"], "description": "Marathi"}])])]
+    llm = ScriptedLLM(script)
+    orig = llm.chat
+
+    async def judge_complains(messages, tools=None, temperature=0.1):
+        if messages[0]["content"].startswith("You check whether an agent completed a task"):
+            return R(content='{"satisfied": false, "problems": ["The term पूरक should be different."], "notes": []}')
+        return await orig(messages, tools, temperature)
+
+    llm.chat = judge_complains
+    import asyncio
+
+    report = asyncio.run(Agent(RunConfig(task="Translate this into Marathi", files=str(inputs), out=workdir / "out"), llm,
+                               ctx=make_ctx(workdir)).run())
+    assert report["status"] == "completed", report["limitations"]
+    assert any("पूरक" in x for x in report["limitations"])  # kept for a human, in the report
+
+
+async def test_translation_reports_estimated_speech_length(ctx, fake_api):
+    from bodhan_mcp import tools
+
+    res = await tools.translate_text(ctx, "ta", text="Lines and angles. " * 20)
+    assert res.estimated_speech_s > 10

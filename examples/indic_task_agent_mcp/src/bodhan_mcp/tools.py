@@ -50,6 +50,7 @@ MAX_TEXT_FILE_CHARS = 200_000
 MAX_TTS_CHARS = 20_000
 PREVIEW_CHARS = 500
 CER_FLAG = 0.45
+SPEECH_CHARS_PER_S = 12.0  # measured on live Indic-Speak runs (1,411 Tamil characters took 122 s)
 
 
 class ToolContext:
@@ -274,6 +275,8 @@ class TranslateResult(BaseModel):
     table_cell_fallbacks: int
     missing_numbers: list[str] = Field(description="Numbers in the source not found in the translation")
     script_match: float | None = Field(description="Share of letters in the target script (native script only)")
+    estimated_speech_s: float = Field(description="About how long synthesize_speech would take to read this text aloud; "
+                                                  "check it against a length target before paying for speech")
     preview: str
     warnings: list[str] = []
     cost_inr: float
@@ -354,7 +357,9 @@ async def translate_text(ctx: ToolContext, target_language: str, text: str | Non
         units=sum(u.translatable for u in units), passthrough_units=sum(not u.translatable for u in units),
         source_chars=len(source), output_chars=len(translation), truncation_retries=stats["truncation_retries"],
         table_cell_fallbacks=stats["table_cell_fallbacks"], missing_numbers=missing,
-        script_match=None if match is None else round(match, 3), preview=_preview(translation), warnings=warnings,
+        script_match=None if match is None else round(match, 3),
+        estimated_speech_s=round(len(re.sub(r"\s+", " ", translated_text)) / SPEECH_CHARS_PER_S, 1),
+        preview=_preview(translation), warnings=warnings,
         cost_inr=round(ctx.ledger.spent - spent0, 4),
     )
 

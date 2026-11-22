@@ -416,8 +416,12 @@ class Agent:
         ver = verify_artifacts([p for p, _ in resolved], self.records, targets, self.pf.duration_target_s)
         problems += [f"{c.artifact}: {c.name} failed ({c.detail})" for c in ver.failures()]
         judge = await self._judge(answer, resolved, ver) if self.cfg.judge else None
-        if judge and judge.get("satisfied") is False:
-            problems += [f"Reviewer: {p}" for p in judge.get("problems", []) if isinstance(p, str)]
+        if judge:  # wording inside Indian-language text is not something the agent may fix; keep it for a human
+            jp = [p for p in judge.get("problems", []) if isinstance(p, str)]
+            judge["notes"] = [n for n in judge.get("notes", []) if isinstance(n, str)] + [p for p in jp if has_indic(p)]
+            judge["problems"] = [p for p in jp if not has_indic(p)]
+            if judge.get("satisfied") is False:
+                problems += [f"Reviewer: {p}" for p in judge["problems"]]
         notes = [n for n in (judge or {}).get("notes", []) if isinstance(n, str)]
         self.trace.log("verify", "checks", passed=ver.passed, checks=ver.as_list(), judge=judge, problems=problems,
                        answer_problem=answer_problem, notes=notes)

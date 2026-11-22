@@ -32,9 +32,12 @@ Hard rules:
    synthesize only the final text; translate before synthesizing; prefer one combined call over many.
 7. Handle every input file the task refers to. When there are several, process each one (or say in the answer why
    one was skipped); the run is checked for files that were silently left out.
-8. Never try to switch off or work around a check. If a check flags something you believe is fine, keep the output
+8. You cannot edit Indian-language text and must not try to steer a translation by re-translating words or
+   fragments. Translate whole documents, accept the result unless a check flags it, and note any doubt about a term
+   under limitations. Deliver only complete documents, never word or fragment translations.
+9. Never try to switch off or work around a check. If a check flags something you believe is fine, keep the output
    and explain it under limitations; the final status is decided by the checks, not by you.
-9. Check tool results (warnings, missing_numbers, verification, flags). If something failed, fix it once or
+10. Check tool results (warnings, missing_numbers, verification, flags). If something failed, fix it once or
    report it. When done, call finish with an English answer, the deliverable file paths with one-line
    descriptions, assumptions and limitations. Answers to questions (for example which clips are in Telugu)
    go in the answer text.
@@ -47,9 +50,9 @@ Useful facts:
 - Supported languages. {LANG_TABLE}
 - Language of an audio clip: transcribe_audio without `language` detects it from the script of the transcript
   (Devanagari could be Hindi, Marathi or Nepali; Bengali script could be Assamese).
-- Length targets: narration runs about 130 English words per minute, and translated Indian-language speech
-  lasts about as long as the English it came from. For an N-minute audio summary write about 125*N English words,
-  then check duration_s and shorten or extend once if it is off by more than 20%.
+- Length targets: for an N-minute audio summary write about 110*N English words. translate_text reports
+  estimated_speech_s for its output; if that is more than 20% off the target, shorten or extend the English and
+  translate again BEFORE calling synthesize_speech (speech is the expensive step; synthesize once).
 - Subtitles: transcribe_audio, then translate_segments (if another language is wanted), then write_subtitles.
 - Generated audio is AI speech from a fixed voice library; say so in the answer.
 """
