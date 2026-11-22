@@ -14,3 +14,4 @@
 - Cache every paid Bodhan call on disk and never send the same input to the same model twice. Test with very short inputs first, because my credit is only Rs 10.
 - Ask before adding any new dependency, and pin versions in pyproject.toml.
 - ffmpeg is allowed only for converting, splitting, joining and extracting audio/video. NEVER use ffmpeg's whisper filter or any other ASR, translation, OCR or TTS feature.
+
