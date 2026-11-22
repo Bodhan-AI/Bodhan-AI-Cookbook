@@ -270,6 +270,9 @@ class TaskAgent:
                 except Exception:
                     pass
 
+        self.valid_files = valid_files
+        self.primary_input_stem = valid_files[0].stem if valid_files else None
+
         # C. Budget check (money only)
         if self.max_cost_inr <= 0.0:
             final_answer = "Maximum cost budget is set to 0.00 INR. Cannot perform operations."
@@ -451,59 +454,7 @@ class TaskAgent:
                     self.failures.append(f"Step {step} ({tool_name}) failed: {file_err}")
                     continue
 
-                # Redundant translation skip rule (Requirement 4)
-                if tool_name == "translate_text":
-                    target_code = args.get("target_language_code") or self.target_language
-                    if target_code and self.audio_language and target_code == self.audio_language:
-                        step += 1
-                        skip_msg = (
-                            f"Skipped redundant translate_text step: task language "
-                            f"({target_code}) matches audio language ({self.audio_language})."
-                        )
-                        if skip_msg not in self.assumptions:
-                            self.assumptions.append(skip_msg)
-                        rej_trace = StepTrace(
-                            step=step,
-                            timestamp=datetime.now(timezone.utc).isoformat(),
-                            plan=f"Skip redundant translation to {target_code}",
-                            tool=tool_name,
-                            arguments=args,
-                            result_summary=skip_msg,
-                            latency_ms=0,
-                            llm_latency_ms=0,
-                            tool_latency_ms=0,
-                            cost_inr=0.0,
-                        )
-                        self.tracer.record_step(rej_trace)
-                        self.step_records.append({
-                            "step": step,
-                            "tool": tool_name,
-                            "cached": False,
-                            "would_be_cost_inr": 0.0,
-                            "cost_charged_inr": 0.0,
-                            "arguments": args,
-                            "result_summary": skip_msg,
-                        })
-                        continue
-
-                # Repeated-call guard: reject identical calls before reference mutation
                 raw_call_sig = f"{tool_name}:{json.dumps(args, sort_keys=True)}"
-                if raw_call_sig in self.executed_calls:
-                    step += 1
-                    rej_trace = StepTrace(
-                        step=step,
-                        timestamp=datetime.now(timezone.utc).isoformat(),
-                        plan=f"Guard rejected repeated call to {tool_name}",
-                        tool=tool_name,
-                        arguments=args,
-                        result_summary="Rejected: Identical tool call was already completed. Skipping duplicate execution.",
-                        latency_ms=0,
-                        llm_latency_ms=0,
-                        tool_latency_ms=0,
-                        cost_inr=0.0,
-                    )
-                    self.tracer.record_step(rej_trace)
-                    continue
 
                 # Resolve step references and check for unresolved placeholders in plain code
                 resolved_ok, err_msg = self._resolve_step_references(tool_name, args, valid_files)
@@ -525,9 +476,9 @@ class TaskAgent:
                     self.failures.append(f"Step {step} ({tool_name}) failed: {err_msg}")
                     continue
 
-                # Repeated-call guard: reject identical calls after reference resolution
+                # Repeated-call guard: reject identical calls
                 call_sig = f"{tool_name}:{json.dumps(args, sort_keys=True)}"
-                if call_sig in self.executed_calls:
+                if raw_call_sig in self.executed_calls or call_sig in self.executed_calls:
                     step += 1
                     rej_trace = StepTrace(
                         step=step,
@@ -543,6 +494,38 @@ class TaskAgent:
                     )
                     self.tracer.record_step(rej_trace)
                     continue
+
+                # Plain-code translation skip rules (Requirements 2 & 3)
+                if tool_name == "translate_text":
+                    should_skip, skip_reason = self._should_skip_translation(args)
+                    if should_skip:
+                        step += 1
+                        skip_msg = f"Skipped redundant translate_text step: {skip_reason}."
+                        if skip_msg not in self.assumptions:
+                            self.assumptions.append(skip_msg)
+                        rej_trace = StepTrace(
+                            step=step,
+                            timestamp=datetime.now(timezone.utc).isoformat(),
+                            plan=f"Skip redundant translation: {skip_reason}",
+                            tool=tool_name,
+                            arguments=args,
+                            result_summary=skip_msg,
+                            latency_ms=0,
+                            llm_latency_ms=0,
+                            tool_latency_ms=0,
+                            cost_inr=0.0,
+                        )
+                        self.tracer.record_step(rej_trace)
+                        self.step_records.append({
+                            "step": step,
+                            "tool": tool_name,
+                            "cached": False,
+                            "would_be_cost_inr": 0.0,
+                            "cost_charged_inr": 0.0,
+                            "arguments": args,
+                            "result_summary": skip_msg,
+                        })
+                        continue
 
                 # Pre-step budget estimate and enforcement (Requirement 5)
                 est_cost, est_desc = self._estimate_step_cost(tool_name, args)
@@ -981,6 +964,17 @@ class TaskAgent:
                     args[key] = str(matched_art.resolve())
                     continue
 
+                # Also check step outputs for intermediate work files (Requirement 4)
+                matched_step = None
+                for s in self.step_outputs:
+                    p = Path(s.get("artifact_path", ""))
+                    if val == p.name or val == str(p) or val_path.name == p.name:
+                        matched_step = p
+                        break
+                if matched_step and matched_step.exists():
+                    args[key] = str(matched_step.resolve())
+                    continue
+
                 # 3. Check if it already exists as an absolute or local path
                 if val_path.exists():
                     args[key] = str(val_path.resolve())
@@ -994,6 +988,94 @@ class TaskAgent:
                 )
 
         return True, None
+
+    def _get_base_stem(self, path_or_stem: str | None = None) -> str:
+        """Derives clean output stem based on original input file (Requirement 4)."""
+        if not path_or_stem:
+            if getattr(self, "valid_files", None):
+                return self.valid_files[0].stem
+            return "output"
+        s = Path(path_or_stem).stem
+        # Match against valid input files first
+        for vf in getattr(self, "valid_files", []):
+            if s == vf.stem or s == f"extracted_{vf.stem}" or s.endswith(f"_{vf.stem}"):
+                return vf.stem
+        # Strip intermediate prefixes / suffixes
+        for prefix in ("extracted_", "converted_", "16k_", "transcript_", "ocr_", "subtitles_", "speech_"):
+            if s.startswith(prefix):
+                s = s[len(prefix):]
+        for suffix in ("_converted_16k", "_16k"):
+            if s.endswith(suffix):
+                s = s[:-len(suffix)]
+        return s
+
+    def _should_skip_translation(self, args: dict[str, Any]) -> tuple[bool, str]:
+        """Evaluates whether translate_text should be skipped in plain code (Requirements 2 & 3)."""
+        raw_target = (
+            args.get("target_language_code")
+            or args.get("target_language")
+            or self.target_language
+        )
+        target_code = None
+        if raw_target:
+            clean_target = str(raw_target).strip().lower()
+            supp, mapped, _ = is_language_supported(clean_target)
+            target_code = mapped or clean_target
+
+        text = args.get("text", "")
+        if not text and self.last_produced_text:
+            text = self.last_produced_text
+        elif not text and args.get("file_path"):
+            p = Path(args["file_path"])
+            if p.exists() and p.is_file():
+                try:
+                    text = p.read_text(encoding="utf-8", errors="replace")
+                except Exception:
+                    text = ""
+
+        detected_code = detect_script_language(text) if text else None
+        detected_script_name = SCRIPT_NAMES.get(detected_code, "Unknown") if detected_code else None
+
+        # Requirement 2: Never pass source_language 'en' for text whose detected script is not Latin:
+        # derive source language from script or from previous step's language
+        if text and detected_code and detected_code != "en":
+            derived_src = self.audio_language or detected_code
+            if args.get("source_language") == "en" or not args.get("source_language"):
+                args["source_language"] = derived_src
+            if args.get("source_language_code") == "en" or not args.get("source_language_code"):
+                args["source_language_code"] = derived_src
+
+        # Requirement 3: When the task asks for subtitles, captions or a transcript only,
+        # drop any translation step the plan adds unless the task names a different target language or uses translate
+        task_lower = self.task.lower()
+        task_is_subtitles_or_transcription_only = bool(
+            re.search(r"\b(?:subtitles?|captions?|srt|transcript(?:ion)?|transcrib\w*)\b", task_lower)
+        ) and not bool(re.search(r"\b(?:translat\w*)\b", task_lower)) and (
+            self.target_language is None or self.target_language == self.audio_language
+        )
+
+        if task_is_subtitles_or_transcription_only:
+            return True, "task asks for subtitles, captions or transcript only without translation"
+
+        # Requirement 2: Skip translate_text in plain code when text's detected script/language
+        # already matches requested target (e.g. Hindi text and target hi), whatever the LLM plan says
+        if target_code and detected_code:
+            expected_script = EXPECTED_SCRIPT_FOR_LANG.get(target_code, target_code)
+            if (
+                detected_code == target_code
+                or (detected_code == expected_script and target_code in ("hi", "mr", "ne", "sa", "mai", "bho", "kok"))
+                or (self.audio_language and target_code == self.audio_language)
+            ):
+                return (
+                    True,
+                    f"text script/language ({detected_script_name or detected_code}) already matches requested target language ({target_code})",
+                )
+
+        # Skip if target_code matches audio_language
+        if target_code and self.audio_language and target_code == self.audio_language:
+            return True, f"target language ({target_code}) matches audio language ({self.audio_language})"
+
+        return False, ""
 
     def _bind_default_file_args(self, tool_name: str, args: dict[str, Any], valid_files: list[Path]) -> None:
         """Binds input file paths to tool arguments if LLM omitted them."""
@@ -1163,22 +1245,16 @@ class TaskAgent:
         """Dispatches tool call and automatically saves outputs to artifacts/ in plain code."""
         try:
             if name == "translate_text":
+                target_param = args.get("target_language_code") or args.get("target_language") or "hi"
                 res = self.tools.translate_text(
                     text=args.get("text", ""),
                     file_path=args.get("file_path", ""),
-                    target_language_code=args.get("target_language_code", "hi"),
+                    target_language_code=target_param,
                     target_script=args.get("target_script", "native"),
                 )
                 if res.get("success") and res.get("translated_text"):
-                    target_lang = res.get("target_language") or args.get("target_language_code") or "hi"
-                    if args.get("source_artifact_stem"):
-                        stem = args["source_artifact_stem"]
-                    elif args.get("file_path") and Path(args["file_path"]).exists():
-                        stem = Path(args["file_path"]).stem
-                    elif self.last_artifact_stem:
-                        stem = self.last_artifact_stem
-                    else:
-                        stem = "text"
+                    target_lang = res.get("target_language") or target_param
+                    stem = self._get_base_stem(args.get("source_artifact_stem") or args.get("file_path"))
                     art_file = self.tracer.artifacts_dir / f"translated_{target_lang}_{stem}.txt"
                     art_file.write_text(res["translated_text"], encoding="utf-8")
                     saved_path = str(art_file.resolve())
@@ -1213,8 +1289,8 @@ class TaskAgent:
                     vad=args.get("vad", True),
                 )
                 if res.get("success") and res.get("transcript"):
-                    stem = Path(args.get("file_path", "audio")).stem
-                    # Auto-save transcript
+                    stem = self._get_base_stem(args.get("source_artifact_stem") or args.get("file_path"))
+                    # Auto-save transcript deliverable in artifacts/
                     art_file = self.tracer.artifacts_dir / f"transcript_{stem}.txt"
                     art_file.write_text(res["transcript"], encoding="utf-8")
                     saved_path = str(art_file.resolve())
@@ -1248,7 +1324,7 @@ class TaskAgent:
                         "source_file": args.get("file_path"),
                     }
 
-                    # Auto-save SRT if windows exist
+                    # Auto-save SRT deliverable in artifacts/ if windows exist
                     if res.get("windows"):
                         srt_file = self.tracer.artifacts_dir / f"subtitles_{stem}.srt"
                         self.tools.build_srt(res["windows"], output_path=str(srt_file))
@@ -1257,14 +1333,7 @@ class TaskAgent:
 
             elif name == "synthesize_speech":
                 lang = args.get("language", "hi")
-                if args.get("source_artifact_stem"):
-                    stem = args["source_artifact_stem"]
-                elif self.last_artifact_stem:
-                    stem = self.last_artifact_stem
-                elif args.get("file_path") and Path(args.get("file_path", "")).exists():
-                    stem = Path(args["file_path"]).stem
-                else:
-                    stem = f"speech_{int(time.time())}"
+                stem = self._get_base_stem(args.get("source_artifact_stem") or args.get("file_path"))
                 out_p = args.get("output_path") or str(
                     self.tracer.artifacts_dir / f"speech_{lang}_{stem}.wav"
                 )
@@ -1295,9 +1364,8 @@ class TaskAgent:
             elif name == "extract_document_text":
                 res = self.tools.extract_document_text(file_path=args.get("file_path", ""))
                 if res.get("success") and res.get("text"):
-                    stem = Path(args.get("file_path", "doc")).stem
-                    ocr_stem = stem if stem.startswith("ocr_") else f"ocr_{stem}"
-                    art_file = self.tracer.artifacts_dir / f"{ocr_stem}.md"
+                    stem = self._get_base_stem(args.get("file_path", "doc"))
+                    art_file = self.tracer.artifacts_dir / f"ocr_{stem}.md"
                     art_file.write_text(res["text"], encoding="utf-8")
                     saved_path = str(art_file.resolve())
                     self.artifacts.append(saved_path)
@@ -1329,15 +1397,16 @@ class TaskAgent:
 
             elif name == "extract_audio_from_video":
                 v_path_str = args.get("video_path") or args.get("file_path", "")
-                stem = Path(v_path_str).stem if v_path_str else f"video_{int(time.time())}"
+                stem = self._get_base_stem(v_path_str)
+                # Requirement 4: Intermediate extracted audio placed in work/ subfolder (not in artifacts/)
                 out_p = args.get("output_path") or str(
-                    self.tracer.artifacts_dir / f"extracted_{stem}.wav"
+                    self.tracer.work_dir / f"extracted_{stem}.wav"
                 )
                 res = self.tools.extract_audio_from_video(video_path=v_path_str, output_path=out_p)
                 if res.get("success") and res.get("audio_path"):
-                    self.artifacts.append(res["audio_path"])
+                    # Do not append intermediate file to self.artifacts
                     self.last_artifact_path = res["audio_path"]
-                    self.last_artifact_stem = Path(res["audio_path"]).stem
+                    self.last_artifact_stem = stem
                     dur = float(res.get("duration_s") or 0.0)
                     if dur <= 0.0 and Path(res["audio_path"]).exists():
                         try:
@@ -1349,13 +1418,15 @@ class TaskAgent:
                     self.step_outputs.append({
                         "tool": "extract_audio_from_video",
                         "artifact_path": res["audio_path"],
-                        "artifact_stem": Path(res["audio_path"]).stem,
+                        "artifact_stem": stem,
+                        "is_intermediate": True,
                     })
                 return res
 
             elif name == "build_srt":
+                stem = self._get_base_stem(args.get("source_artifact_stem") or self.primary_input_stem or "subtitles")
                 out_p = args.get("output_path") or str(
-                    self.tracer.artifacts_dir / f"subtitles_{int(time.time())}.srt"
+                    self.tracer.artifacts_dir / f"subtitles_{stem}.srt"
                 )
                 segs = args.get("segments_json", [])
                 if isinstance(segs, str):

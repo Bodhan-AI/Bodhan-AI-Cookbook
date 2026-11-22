@@ -33,6 +33,8 @@ class AgentTracer:
         self.out_dir.mkdir(parents=True, exist_ok=True)
         self.artifacts_dir = self.out_dir / "artifacts"
         self.artifacts_dir.mkdir(parents=True, exist_ok=True)
+        self.work_dir = self.out_dir / "work"
+        self.work_dir.mkdir(parents=True, exist_ok=True)
 
         self.trace_file = self.out_dir / "trace.jsonl"
         self.report_file = self.out_dir / "report.json"
@@ -42,7 +44,7 @@ class AgentTracer:
         self.reset()
 
     def reset(self) -> None:
-        """Starts fresh by clearing in-memory traces and removing previous trace.jsonl, report.json, result.md, and artifacts/."""
+        """Starts fresh by clearing in-memory traces and removing previous trace.jsonl, report.json, result.md, artifacts/, and work/."""
         self.traces.clear()
         for f in (self.trace_file, self.report_file, self.result_file):
             if f.exists():
@@ -50,15 +52,16 @@ class AgentTracer:
                     f.unlink()
                 except OSError:
                     pass
-        if self.artifacts_dir.exists():
-            for item in self.artifacts_dir.iterdir():
-                try:
-                    if item.is_file() or item.is_symlink():
-                        item.unlink()
-                    elif item.is_dir():
-                        shutil.rmtree(item, ignore_errors=True)
-                except OSError:
-                    pass
+        for d in (self.artifacts_dir, self.work_dir):
+            if d.exists():
+                for item in d.iterdir():
+                    try:
+                        if item.is_file() or item.is_symlink():
+                            item.unlink()
+                        elif item.is_dir():
+                            shutil.rmtree(item, ignore_errors=True)
+                    except OSError:
+                        pass
 
     def record_step(self, trace: StepTrace) -> None:
         """Records a step to memory and appends to trace.jsonl atomically."""

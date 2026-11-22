@@ -161,6 +161,16 @@ class TestAgent(unittest.TestCase):
 
         self.mock_tools.translate_text.side_effect = default_mock_translate
 
+        def default_mock_build_srt(windows_or_segments, output_path=None):
+            if output_path:
+                p = Path(output_path)
+                p.parent.mkdir(parents=True, exist_ok=True)
+                p.write_text("1\n00:00:00,000 --> 00:00:05,000\nSubtitles\n", encoding="utf-8")
+                return {"success": True, "srt_path": str(p.resolve())}
+            return {"success": True}
+
+        self.mock_tools.build_srt.side_effect = default_mock_build_srt
+
     def tearDown(self):
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
@@ -1406,8 +1416,11 @@ class TestAgent(unittest.TestCase):
         self.assertEqual(report.status, "success")
         self.assertEqual(self.mock_tools.extract_audio_from_video.call_count, 1)
         self.assertEqual(self.mock_tools.transcribe_audio.call_count, 1)
-        self.assertTrue(any("extracted_" in a for a in report.artifacts))
-        self.assertTrue(any("transcript_" in a for a in report.artifacts))
+        # Requirement 4: Intermediate extracted audio is in work/, not in artifacts/
+        self.assertFalse(any("extracted_" in a for a in report.artifacts))
+        self.assertTrue((self.out_dir / "work" / "extracted_test_video.wav").exists())
+        self.assertTrue(any("transcript_test_video.txt" in a for a in report.artifacts))
+        self.assertTrue(any("subtitles_test_video.srt" in a for a in report.artifacts))
 
     def test_create_hindi_subtitles_plans_no_translation(self):
         """Tests that 'Create Hindi subtitles for this video' plans and executes no translation."""
@@ -1464,9 +1477,100 @@ class TestAgent(unittest.TestCase):
         # translate_text must NOT have been called
         self.assertEqual(self.mock_tools.translate_text.call_count, 0)
         self.assertEqual(report.status, "success")
-        self.assertTrue(any("subtitles_" in a for a in report.artifacts))
+        self.assertTrue(any("subtitles_test_video.srt" in a for a in report.artifacts))
         self.assertFalse(any("translated_" in a for a in report.artifacts))
         self.assertTrue(any("Skipped redundant translate_text" in a for a in report.assumptions))
+
+    def test_video2_real_plan_skips_hindi_translation_and_names_srt_after_video(self):
+        """Tests that the real plan from out/video2 (translate Hindi to Hindi with source 'en')
+        skips translate_text, succeeds with status success, outputs SRT named subtitles_test_video.srt,
+        and keeps intermediate extracted audio in work/."""
+        video_file = self.samples_dir / "test_video.mp4"
+        video_file.write_bytes(b"mockvideodata")
+
+        def mock_inspect_vid(path_str):
+            return {
+                "success": True,
+                "file_name": "test_video.mp4",
+                "file_path": str(video_file.resolve()),
+                "media_type": "video",
+                "duration_s": 13.5,
+                "size_bytes": 500000,
+            }
+        self.mock_tools.inspect_media.side_effect = mock_inspect_vid
+
+        def mock_extract(video_path="", output_path=""):
+            p = Path(output_path)
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_bytes(b"RIFFextractedwav")
+            return {"success": True, "audio_path": output_path, "duration_s": 13.5}
+        self.mock_tools.extract_audio_from_video.side_effect = mock_extract
+
+        def mock_transcribe(file_path="", **kwargs):
+            return {
+                "success": True,
+                "transcript": "मेरा नाम अशफाक है और आज मौसम बहुत अच्छा है मैं कल सुबह नौ बजे स्कूल जाऊँगा",
+                "windows": [{
+                    "window_index": 0,
+                    "text": "मेरा नाम अशफाक है और आज मौसम बहुत अच्छा है मैं कल सुबह नौ बजे स्कूल जाऊँगा",
+                    "start_s": 0.0,
+                    "end_s": 13.5,
+                }],
+                "duration_s": 13.5,
+                "cost_inr": 0.02,
+                "detected_script": "Devanagari",
+                "language_requested": "hi",
+            }
+        self.mock_tools.transcribe_audio.side_effect = mock_transcribe
+
+        # Real plan from out/video2:
+        # LLM planned transcribe_audio then translate_text with source_language="en", target_language="hi"
+        plan = {
+            "steps": [
+                {"tool": "transcribe_audio", "args": {"file_path": "test_video.mp4"}},
+                {
+                    "tool": "translate_text",
+                    "args": {
+                        "source_language": "en",
+                        "target_language": "hi",
+                        "text": "मेरा नाम अशफाक है और आज मौसम बहुत अच्छा है मैं कल सुबह नौ बजे स्कूल जाऊँगा",
+                    },
+                },
+            ]
+        }
+        self.mock_tools.translate_text.reset_mock()
+
+        agent = TaskAgent(
+            task="Create Hindi subtitles for this video",
+            files=[video_file],
+            out_dir=self.out_dir,
+            settings=self.mock_settings,
+            llm_client=MockLLM(plan_dict=plan),
+            tools=self.mock_tools,
+        )
+        report = agent.run()
+
+        # Step translate_text is skipped
+        self.assertEqual(self.mock_tools.translate_text.call_count, 0)
+        self.assertEqual(report.status, "success")
+        self.assertTrue(any("Skipped redundant translate_text" in a for a in report.assumptions))
+
+        # SRT is named after test_video
+        srt_path = self.out_dir / "artifacts" / "subtitles_test_video.srt"
+        self.assertTrue(srt_path.exists())
+        self.assertTrue(any("subtitles_test_video.srt" in a for a in report.artifacts))
+
+        # Transcript is named after test_video
+        transcript_path = self.out_dir / "artifacts" / "transcript_test_video.txt"
+        self.assertTrue(transcript_path.exists())
+        self.assertTrue(any("transcript_test_video.txt" in a for a in report.artifacts))
+
+        # Intermediate extracted audio is in work/, NOT in artifacts
+        work_audio = self.out_dir / "work" / "extracted_test_video.wav"
+        self.assertTrue(work_audio.exists())
+        self.assertFalse(any("extracted_" in a for a in report.artifacts))
+        self.assertFalse(any("work" in a for a in report.artifacts))
+        self.assertFalse(any("translated_" in a for a in report.artifacts))
 
     def test_reusing_out_leaves_no_old_artifacts(self):
         """Tests that reusing the same out_dir clears old artifacts so old files never mix with new ones."""
