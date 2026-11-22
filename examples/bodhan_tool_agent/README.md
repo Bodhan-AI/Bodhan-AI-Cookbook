@@ -412,7 +412,7 @@ Full benchmark: [outputs/eval_report.json](./outputs/eval_report.json)
 
 | Link Type | URL |
 |-----------|-----|
-| External Test Inputs | `{{https://drive.google.com/drive/folders/1qoiv1yZjWCLYLb1nzOA_GJKpECN-GbfM?usp=sharing}}` |
+| External Test Inputs | (https://drive.google.com/drive/folders/1qoiv1yZjWCLYLb1nzOA_GJKpECN-GbfM?usp=sharing) |
 | Demo Walkthrough Video | `{{https://drive.google.com/drive/folders/1W3cGCXwb68WMwQQZsrhSvf949KvJ29r0?usp=sharing}}` |
 
 > **Note:** No media files are committed to Git. External storage is used for input audio/video/PDF files exceeding 1MB.
