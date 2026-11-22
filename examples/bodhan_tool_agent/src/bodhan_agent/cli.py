@@ -138,8 +138,8 @@ def main():
         if min_cost > args.max_cost_inr:
             out_dir.mkdir(parents=True, exist_ok=True)
             report = {
-                "status": "budget_exceeded",
-                "error": "BUDGET_EXCEEDED",
+                "status": "budget_insufficient",
+                "error": "BUDGET_INSUFFICIENT",
                 "message": (
                     f"Minimum cost floor "
                     f"\u20b9{min_cost:.4f} exceeds "
@@ -154,7 +154,7 @@ def main():
                 "verification_results": {},
                 "artifacts": [],
                 "missed_targets": [
-                    f"Budget exceeded: "
+                    f"Budget insufficient: "
                     f"min cost {min_cost:.4f} > "
                     f"max {args.max_cost_inr:.2f}"
                 ],
@@ -163,7 +163,7 @@ def main():
                 json.dumps(report, indent=2), encoding="utf-8"
             )
             print(
-                f"BUDGET_EXCEEDED: Minimum cost floor "
+                f"BUDGET_INSUFFICIENT: Minimum cost floor "
                 f"\u20b9{min_cost:.4f} exceeds "
                 f"max cost \u20b9{args.max_cost_inr:.2f}",
                 file=sys.stderr,

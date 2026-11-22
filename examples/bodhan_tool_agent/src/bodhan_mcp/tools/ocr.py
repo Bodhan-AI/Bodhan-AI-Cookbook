@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import base64
 import asyncio
+import uuid
 from pathlib import Path
 from typing import Optional
 
@@ -24,6 +25,23 @@ def _error(
     }
 
 
+def _write_temp_text_file(full_text: str, prefix: str = "ocr") -> tuple[str, str]:
+    """Write full text to run/temp/ and return (file_path, preview)."""
+    temp_dir = Path("run/temp")
+    temp_dir.mkdir(parents=True, exist_ok=True)
+    file_name = f"{prefix}_{uuid.uuid4().hex[:8]}.txt"
+    file_path = temp_dir / file_name
+    file_path.write_text(full_text, encoding="utf-8")
+
+    # Create bounded preview (up to 2500 chars)
+    max_preview = 2500
+    if len(full_text) > max_preview:
+        preview = full_text[:max_preview] + f"\n\n...[truncated, see {file_path}]"
+    else:
+        preview = full_text
+    return file_path.as_posix(), preview
+
+
 async def extract_document_text(
     file_path: str,
     page_range: Optional[str] = None,
@@ -33,6 +51,12 @@ async def extract_document_text(
         return _error(
             ErrorCode.FILE_NOT_FOUND,
             f"File not found: {file_path}",
+            retryable=False,
+        )
+    if path.is_dir():
+        return _error(
+            ErrorCode.INVALID_INPUT,
+            f"Path is a directory, expected a document file: {file_path}",
             retryable=False,
         )
 
@@ -47,13 +71,33 @@ async def extract_document_text(
             info = inspect_image(str(path))
             total_pages = 1
             image_paths = [str(path)]
+        elif suffix in (".txt", ".md"):
+            # Text files: read directly without OCR
+            full_text = path.read_text(encoding="utf-8", errors="ignore")
+            script = detect_script(full_text) if full_text else "latin"
+            text_file_path, preview = _write_temp_text_file(full_text, "text")
+            assumptions = []
+            if script != "latin":
+                assumptions.append(f"Text file detected script: {script}")
+            return {
+                "markdown": f"<untrusted_source_data>{preview}</untrusted_source_data>",
+                "text": full_text,
+                "full_text_file": text_file_path,
+                "pages": 1,
+                "detected_script": script,
+                "total_chars": len(full_text),
+                "cost_inr": 0.0,
+                "cached": False,
+                "assumptions": assumptions,
+            }
         else:
             return _error(
                 ErrorCode.VALIDATION_ERROR,
                 f"Unsupported file format for OCR: {suffix}",
                 retryable=False,
                 details={"supported": [
-                    ".pdf", ".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tiff"
+                    ".pdf", ".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tiff",
+                    ".txt", ".md"
                 ]},
             )
     except Exception as e:
@@ -68,14 +112,34 @@ async def extract_document_text(
     if page_range:
         try:
             parts = page_range.split("-")
-            start_page = max(0, int(parts[0]) - 1)
+            start_int = int(parts[0])
+            if start_int <= 0:
+                return _error(
+                    ErrorCode.INVALID_PAGE_RANGE,
+                    f"page_range start must be >= 1, got '{parts[0]}'",
+                    retryable=False,
+                )
+            start_page = start_int - 1
             if len(parts) > 1:
-                end_page = min(total_pages, int(parts[-1]))
+                end_int = int(parts[-1])
+                if end_int <= 0:
+                    return _error(
+                        ErrorCode.INVALID_PAGE_RANGE,
+                        f"page_range end must be >= 1, got '{parts[-1]}'",
+                        retryable=False,
+                    )
+                if end_int < start_int:
+                    return _error(
+                        ErrorCode.INVALID_PAGE_RANGE,
+                        f"page_range end ({end_int}) must be >= start ({start_int})",
+                        retryable=False,
+                    )
+                end_page = min(total_pages, end_int)
             else:
-                end_page = min(total_pages, start_page + 1)
+                end_page = min(total_pages, start_int)
         except (ValueError, IndexError):
             return _error(
-                ErrorCode.VALIDATION_ERROR,
+                ErrorCode.INVALID_PAGE_RANGE,
                 f"Invalid page_range format: {page_range}. Use '1-3' or '5'.",
                 retryable=False,
             )
@@ -163,14 +227,25 @@ async def extract_document_text(
             details={"errors": errors},
         )
 
+    text_file_path, preview = _write_temp_text_file(full_text, "ocr")
+
+    # Collect tool-level assumptions
+    assumptions = []
+    if script != "latin":
+        assumptions.append(f"OCR detected script: {script}")
+
     return {
-        "markdown": f"<untrusted_source_data>{full_text}</untrusted_source_data>",
+        "markdown": f"<untrusted_source_data>{preview}</untrusted_source_data>",
+        "text": full_text,
+        "full_text_file": text_file_path,
         "blocks": all_blocks,
         "pages": len(selected_images),
         "detected_script": script,
+        "total_chars": len(full_text),
         "cost_inr": round(total_cost, 4),
         "cached": False,
         "errors": errors if errors else None,
+        "assumptions": assumptions,
     }
 
 

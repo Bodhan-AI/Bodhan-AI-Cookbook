@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import tempfile
+import uuid
 from pathlib import Path
 from typing import Optional
 
@@ -29,6 +30,25 @@ def _error(
     }
 
 
+def _write_temp_text_file(
+    full_text: str, prefix: str = "transcribe"
+) -> tuple[str, str]:
+    """Write full text to run/temp/ and return (file_path, preview)."""
+    temp_dir = Path("run/temp")
+    temp_dir.mkdir(parents=True, exist_ok=True)
+    file_name = f"{prefix}_{uuid.uuid4().hex[:8]}.txt"
+    file_path = temp_dir / file_name
+    file_path.write_text(full_text, encoding="utf-8")
+
+    # Create bounded preview (up to 2500 chars)
+    max_preview = 2500
+    if len(full_text) > max_preview:
+        preview = full_text[:max_preview] + f"\n\n...[truncated, see {file_path}]"
+    else:
+        preview = full_text
+    return file_path.as_posix(), preview
+
+
 async def transcribe_audio(
     file_path: str,
     language_hint: Optional[str] = None,
@@ -39,6 +59,29 @@ async def transcribe_audio(
         return _error(
             ErrorCode.FILE_NOT_FOUND,
             f"File not found: {file_path}",
+            retryable=False,
+        )
+    if path.is_dir():
+        return _error(
+            ErrorCode.INVALID_INPUT,
+            f"Path is a directory, expected an audio/video file: {file_path}",
+            retryable=False,
+        )
+    suffix = path.suffix.lower()
+    _AUDIO_VIDEO_EXTS = (".wav", ".mp3", ".m4a", ".flac", ".ogg",
+                         ".mp4", ".mov", ".avi", ".mkv")
+    if suffix not in _AUDIO_VIDEO_EXTS:
+        return _error(
+            ErrorCode.UNSUPPORTED_FORMAT,
+            f"Unsupported file format: {suffix}",
+            retryable=False,
+            details={"supported_extensions": sorted(_AUDIO_VIDEO_EXTS)},
+        )
+
+    if max_duration_sec is not None and max_duration_sec <= 0:
+        return _error(
+            ErrorCode.INVALID_PARAMETER,
+            f"max_duration_sec must be positive, got: {max_duration_sec}",
             retryable=False,
         )
 
@@ -136,14 +179,27 @@ async def transcribe_audio(
 
         detected_script = detect_script(full_text)
         norm_hint = normalize_lang(language_hint) if language_hint else None
+        text_file_path, preview = _write_temp_text_file(full_text, "transcribe")
+
+        # Collect tool-level assumptions
+        assumptions = []
+        if probe_mode:
+            assumptions.append(
+                f"Language probe used (max_duration_sec={max_duration_sec}s)"
+            )
+
         return {
-            "text": f"<untrusted_source_data>{full_text}</untrusted_source_data>",
+            "text": f"<untrusted_source_data>{preview}</untrusted_source_data>",
+            "full_text_file": text_file_path,
             "language": norm_hint or detected_script,
             "detected_script": detected_script,
+            "detected_language": norm_hint or detected_script,
+            "total_chars": len(full_text),
             "duration_sec": round(duration, 3),
             "cost_inr": round(total_cost, 4),
             "segments": segments,
             "cached": False,
+            "assumptions": assumptions,
         }
 
     finally:

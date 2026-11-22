@@ -759,6 +759,117 @@ class TestCachedSavingsReporting:
         assert report_data.get("cached_savings_inr") == pytest.approx(0.2, abs=0.001)
 
 
+# ── Upstream TTS/ASR failure reporting ──────────────────────────────────────────
+
+
+class TestUpstreamFailureReporting:
+    @pytest.mark.asyncio
+    async def test_upstream_tts_500_populates_missed_targets_in_report(
+        self, out_dir, artifacts_dir, ledger
+    ):
+        """When synthesize_speech returns HTTP 500, missed_targets explains it."""
+        error_result = {
+            "error": "TOOL_ERROR",
+            "message": "HTTP 500 Internal Server Error from Indic-Speak",
+            "retryable": True,
+        }
+        tool_responses = {
+            "synthesize_speech": {"result": json.dumps(error_result), "cost_inr": 0.0, **error_result},
+        }
+        bridge = _build_mock_bridge(tool_responses)
+        reporter = Reporter(out_dir, artifacts_dir, ledger, max_steps=5, max_cost_inr=10.0)
+        planner = TaskPlanner(bridge, reporter, ledger, max_steps=5, max_cost_inr=10.0)
+
+        fake_resp = _mock_llm_response(
+            tool_calls=[
+                _fake_tool_call(
+                    "synthesize_speech",
+                    json.dumps({"language": "hi", "output_file": str(artifacts_dir / "out.wav"), "text": "hello"}),
+                ),
+            ]
+        )
+        with patch.object(planner._client.chat.completions, "create", new=AsyncMock(return_value=fake_resp)):
+            result = await planner.execute("Synthesize speech", [])
+
+        # Verify missed_targets captures the upstream failure
+        assert result["missed_targets"], "missed_targets should be populated"
+        missed = " ".join(result["missed_targets"])
+        assert "Synthesize Speech" in missed or "synthesize_speech" in missed.lower()
+        assert "500" in missed or "Internal Server Error" in missed
+        # No audio file should be fabricated
+        assert not (artifacts_dir / "out.wav").exists()
+
+    @pytest.mark.asyncio
+    async def test_upstream_transcribe_500_populates_missed_targets(
+        self, out_dir, artifacts_dir, ledger
+    ):
+        """When transcribe_audio returns HTTP 500, missed_targets explains it."""
+        error_result = {
+            "error": "TOOL_ERROR",
+            "message": "HTTP 502 Bad Gateway from Indic-Transcribe",
+            "retryable": True,
+        }
+        tool_responses = {
+            "transcribe_audio": {"result": json.dumps(error_result), "cost_inr": 0.0, **error_result},
+        }
+        bridge = _build_mock_bridge(tool_responses)
+        reporter = Reporter(out_dir, artifacts_dir, ledger, max_steps=5, max_cost_inr=10.0)
+        planner = TaskPlanner(bridge, reporter, ledger, max_steps=5, max_cost_inr=10.0)
+
+        fake_resp = _mock_llm_response(
+            tool_calls=[
+                _fake_tool_call(
+                    "transcribe_audio",
+                    json.dumps({"file_path": "/audio.wav"}),
+                ),
+            ]
+        )
+        with patch.object(planner._client.chat.completions, "create", new=AsyncMock(return_value=fake_resp)):
+            result = await planner.execute("Transcribe audio", ["/audio.wav"])
+
+        assert result["missed_targets"], "missed_targets should be populated"
+        missed = " ".join(result["missed_targets"])
+        assert "Transcribe Audio" in missed or "transcribe_audio" in missed.lower()
+        assert "502" in missed or "Bad Gateway" in missed
+
+    @pytest.mark.asyncio
+    async def test_translation_verify_failure_adds_missed_target(
+        self, out_dir, artifacts_dir, ledger
+    ):
+        """When translation verification fails (script ratio), missed_targets records the reason."""
+        # Tool succeeds but returns English text for Hindi target (fails script ratio)
+        ok_result = {
+            "translation": "<untrusted_source_data>Hello world this is english text</untrusted_source_data>",
+            "target_language": "hi",
+            "target_script_verified": False,
+            "cost_inr": 0.02,
+        }
+        tool_responses = {
+            "translate_text": {"result": json.dumps(ok_result), "cost_inr": 0.02, **ok_result},
+        }
+        bridge = _build_mock_bridge(tool_responses)
+        reporter = Reporter(out_dir, artifacts_dir, ledger, max_steps=5, max_cost_inr=10.0)
+        planner = TaskPlanner(bridge, reporter, ledger, max_steps=5, max_cost_inr=10.0)
+
+        tool_call_resp = _mock_llm_response(
+            tool_calls=[
+                _fake_tool_call(
+                    "translate_text",
+                    json.dumps({"source_lang": "en", "target_lang": "hi", "text": "hello"}),
+                ),
+            ]
+        )
+        final_resp = _mock_llm_response(content="Done")
+        create_mock = AsyncMock(side_effect=[tool_call_resp, final_resp])
+        with patch.object(planner._client.chat.completions, "create", new=create_mock):
+            result = await planner.execute("Translate to Hindi", [])
+
+        assert result["missed_targets"], "missed_targets should be populated"
+        missed = " ".join(result["missed_targets"])
+        assert "Translation missed" in missed
+        assert "script" in missed.lower() or "ratio" in missed.lower()
+
+
 if __name__ == "__main__":
     import pytest
     pytest.main([__file__, "-v"])

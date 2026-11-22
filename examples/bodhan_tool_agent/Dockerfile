@@ -6,10 +6,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt .
-
-COPY . .
+COPY pyproject.toml README.md ./
+COPY src/ ./src/
+COPY requirements.txt ./
+RUN pip install --no-cache-dir .
 
 RUN python -c "import bodhan_mcp; print('bodhan_mcp import OK')" && \
     python -m bodhan_mcp --help > /dev/null || python -c "from bodhan_mcp.server import mcp; print('MCP server OK')"

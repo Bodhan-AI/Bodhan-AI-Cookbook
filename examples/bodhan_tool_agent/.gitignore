@@ -5,11 +5,14 @@ __pycache__/
 node_modules/
 .cache/
 out/
+run/
 *.mp3
 *.wav
+*.png
 *.mp4
 *.pdf
 demo_inputs/
+demo_outputs/
 sample_data/*
 !sample_data/.gitkeep
 outputs/*

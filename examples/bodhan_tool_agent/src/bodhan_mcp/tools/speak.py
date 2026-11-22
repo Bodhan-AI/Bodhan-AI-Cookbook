@@ -43,18 +43,36 @@ async def synthesize_speech(
         return err
 
     available_voices = TTS_VOICES.get(lang_code, {})
+    valid_genders = set(available_voices.keys())
+    if not valid_genders:
+        return _error(
+            ErrorCode.INVALID_VOICE,
+            f"No voices found for language '{language}'. See bodhan://voices",
+            retryable=False,
+        )
+
+    if gender not in valid_genders:
+        return _error(
+            ErrorCode.INVALID_VOICE,
+            f"Invalid gender '{gender}' for language '{language}'. "
+            f"Available genders: {sorted(valid_genders)}. See bodhan://voices",
+            retryable=False,
+            details={"available_genders": sorted(valid_genders)},
+        )
+
     if voice_id:
         all_voices = [v for vs in available_voices.values() for v in vs]
         if voice_id not in all_voices:
             return _error(
-                ErrorCode.UNSUPPORTED_VOICE,
-                f"Voice '{voice_id}' is not available for language '{language}'",
+                ErrorCode.INVALID_VOICE,
+                f"Voice '{voice_id}' is not available for language '{language}'. "
+                f"See bodhan://voices",
                 retryable=False,
                 details={"available": all_voices},
             )
         voice = voice_id
     else:
-        voice = available_voices.get(gender, ["Kavya"])[0]
+        voice = available_voices[gender][0]
 
     if style and style not in TTS_STYLES:
         supported = ", ".join(sorted(TTS_STYLES))
@@ -80,6 +98,12 @@ async def synthesize_speech(
                 f"File not found: {input_file}",
                 retryable=False,
             )
+        if path.is_dir():
+            return _error(
+                ErrorCode.INVALID_INPUT,
+                f"Path is a directory, expected a text file: {input_file}",
+                retryable=False,
+            )
         if path.suffix.lower() in (".txt", ".md"):
             try:
                 input_text = path.read_text(encoding="utf-8", errors="ignore")
@@ -91,7 +115,7 @@ async def synthesize_speech(
                 )
         else:
             return _error(
-                ErrorCode.VALIDATION_ERROR,
+                ErrorCode.UNSUPPORTED_FORMAT,
                 f"Unsupported input file format: {path.suffix}",
                 retryable=False,
                 details={"supported": [".txt", ".md"]},
@@ -99,8 +123,8 @@ async def synthesize_speech(
 
     if not input_text or not input_text.strip():
         return _error(
-            ErrorCode.VALIDATION_ERROR,
-            "Input text is empty",
+            ErrorCode.EMPTY_INPUT,
+            "Input text is empty or whitespace-only",
             retryable=False,
         )
 
@@ -136,6 +160,30 @@ async def synthesize_speech(
             resp = api_resp.data
             cost = api_resp.cost_inr
         except Exception as e:
+            err_str = str(e).lower()
+            if "500" in err_str or "server error" in err_str:
+                # Clean up any partial output or temp files
+                for part in parts:
+                    try:
+                        Path(part).unlink(missing_ok=True)
+                    except Exception:
+                        pass
+                try:
+                    Path(output_file).unlink(missing_ok=True)
+                except Exception:
+                    pass
+                return _error(
+                    ErrorCode.SERVER_ERROR,
+                    f"TTS server down (HTTP 500): {e}",
+                    retryable=True,
+                    details={"cleanup": "partial_output_removed"},
+                )
+            # Clean up temp files on other errors too
+            for part in parts:
+                try:
+                    Path(part).unlink(missing_ok=True)
+                except Exception:
+                    pass
             return _error(
                 ErrorCode.NETWORK_ERROR,
                 f"TTS API call failed: {e}",
@@ -168,6 +216,11 @@ async def synthesize_speech(
                 Path(part).unlink(missing_ok=True)
             except Exception:
                 pass
+        # Clean up any corrupt/partial output file left by ffmpeg
+        try:
+            Path(output_file).unlink(missing_ok=True)
+        except Exception:
+            pass
         return _error(
             ErrorCode.MEDIA_PROCESSING_ERROR,
             f"Failed to stitch audio: {e}",
@@ -201,6 +254,7 @@ async def synthesize_speech(
         "gender": gender,
         "style": style,
         "cached": False,
+        "ai_generated": True,
     }
 
 

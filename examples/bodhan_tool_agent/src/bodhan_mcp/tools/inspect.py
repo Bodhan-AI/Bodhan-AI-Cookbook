@@ -33,6 +33,12 @@ async def inspect_media(file_path: str) -> dict:
             f"File not found: {file_path}",
             retryable=False,
         )
+    if path.is_dir():
+        return _error(
+            ErrorCode.INVALID_INPUT,
+            f"Path is a directory, expected a file: {file_path}",
+            retryable=False,
+        )
 
     suffix = path.suffix.lower()
     format_name = suffix.lstrip(".") or "unknown"
@@ -134,19 +140,17 @@ async def inspect_media(file_path: str) -> dict:
         }
 
     else:
-        return {
-            "format": format_name,
-            "duration_sec": 0,
-            "bitrate": 0,
-            "sample_rate": None,
-            "channels": None,
-            "language": None,
-            "min_cost_inr": 0.0,
-            "supported_for_transcribe": False,
-            "supported_for_translate": False,
-            "supported_for_ocr": False,
-            "supported_for_tts": False,
-        }
+        return _error(
+            ErrorCode.UNSUPPORTED_FORMAT,
+            f"Unsupported file format: {suffix}",
+            retryable=False,
+            details={
+                "supported_extensions": sorted([
+                    *audio_exts, ".pdf", ".png", ".jpg", ".jpeg", ".webp",
+                    ".bmp", ".tiff", ".txt", ".md",
+                ])
+            },
+        )
 
 
 __all__ = ["inspect_media"]

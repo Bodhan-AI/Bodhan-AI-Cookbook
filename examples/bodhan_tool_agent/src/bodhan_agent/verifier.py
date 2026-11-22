@@ -79,12 +79,20 @@ class TranslationVerifier:
 @dataclass
 class SpeechVerifier:
     """Verifies synthesized audio: duration > 0.5s, back-transcription
-    similarity >= 0.75."""
+    similarity >= 0.75, no content omission/repetition."""
 
     min_duration_sec: float = 0.5
     min_similarity: float = 0.75
+    chars_per_sec: float = 12.0  # Expected speaking rate for Indic languages
+    omission_duration_factor: float = 0.5  # Flag if duration < 0.5 * expected
+    omission_min_expected_sec: float = 3.0  # duration heuristic only for longer text
+    omission_coverage_threshold: float = 0.7  # Flag if coverage < 70%
+    repetition_ngram_size: int = 2
+    repetition_max_count: int = 2
+    repetition_coverage_threshold: float = 0.3  # Flag if repeated n-grams cover > 30%
+    duration_inflation_factor: float = 2.0  # Flag if duration > 2x expected
 
-    def verify(
+    async def verify(
         self,
         audio_path: str,
         source_script: str,
@@ -106,11 +114,8 @@ class SpeechVerifier:
             )
             return results
 
-        import asyncio
         try:
-            audio_info = asyncio.run(
-                self._check_audio_duration(audio_path)
-            )
+            audio_info = await self._check_audio_duration(audio_path)
             results["file_exists"] = True
             results["duration_sec"] = audio_info.get("duration_sec", 0)
             dur = audio_info.get("duration_sec", 0)
@@ -127,16 +132,92 @@ class SpeechVerifier:
             )
             return results
 
+        # Expected duration based on source text length and speaking rate
+        expected_duration = (
+            len(source_script) / self.chars_per_sec if source_script else 0
+        )
+        results["details"]["expected_duration_sec"] = round(expected_duration, 2)
+        results["details"]["chars_per_sec"] = self.chars_per_sec
+
         try:
-            transcription = asyncio.run(
-                transcribe_func(audio_path)
-            )
+            transcription = await transcribe_func(audio_path)
+            if "error" in transcription:
+                error_msg = transcription.get("message", "Unknown error")
+                results["details"]["error"] = (
+                    "Speech verification failed: back-transcription via "
+                    f"Indic-Transcribe failed ({error_msg})"
+                )
+                results["details"]["transcription_error"] = error_msg
+                return results
             results["back_transcribed"] = transcription.get("text", "")
             src = source_script
             tgt = transcription.get("text", "")
             sim = self._compute_similarity(src, tgt)
             results["similarity"] = round(sim, 4)
+
+            # --- Omission Detection ---
+            # 1. Duration omission: actual duration much shorter than expected
+            if expected_duration >= self.omission_min_expected_sec:
+                duration_ratio = dur / expected_duration
+                results["details"]["duration_ratio"] = round(duration_ratio, 3)
+                if duration_ratio < self.omission_duration_factor:
+                    results["details"]["error"] = (
+                        f"Content omission detected: audio duration {dur:.2f}s is "
+                        f"{duration_ratio:.1%} of expected {expected_duration:.2f}s "
+                        f"(< {self.omission_duration_factor:.0%} threshold)"
+                    )
+                    results["details"]["omission_type"] = "duration"
+                    results["passed"] = False
+                    return results
+
+            # 2. Coverage-based omission: back-transcription covers too little of source
+            if src and tgt:
+                src_chars = set(re.sub(r"\s+", "", src))
+                tgt_chars = set(re.sub(r"\s+", "", tgt))
+                if src_chars:
+                    coverage = len(src_chars & tgt_chars) / len(src_chars)
+                    results["details"]["back_transcription_coverage"] = round(
+                        coverage, 3
+                    )
+                    if coverage < self.omission_coverage_threshold:
+                        results["details"]["error"] = (
+                            f"Content omission detected: back-transcription coverage "
+                            f"{coverage:.1%} < {self.omission_coverage_threshold:.0%}"
+                        )
+                        results["details"]["omission_type"] = "coverage"
+                        results["passed"] = False
+                        return results
+
+            # --- Repetition Detection ---
+            # 1. N-gram repetition in back-transcription
+            repetition_result = self._detect_repetition(tgt)
+            if repetition_result:
+                results["details"]["repetition"] = repetition_result
+                results["details"]["error"] = (
+                    f"Content repetition detected: {repetition_result['description']}"
+                )
+                results["details"]["omission_type"] = "repetition"
+                results["passed"] = False
+                return results
+
+            # 2. Duration inflation: actual duration significantly longer than expected
+            if expected_duration > 0:
+                duration_ratio = dur / expected_duration
+                if duration_ratio > self.duration_inflation_factor:
+                    results["details"]["error"] = (
+                        f"Abnormal duration inflation: audio duration {dur:.2f}s is "
+                        f"{duration_ratio:.1f}x expected {expected_duration:.2f}s "
+                        f"(> {self.duration_inflation_factor:.1f}x threshold)"
+                    )
+                    results["details"]["omission_type"] = "duration_inflation"
+                    results["passed"] = False
+                    return results
+
         except Exception as e:
+            results["details"]["error"] = (
+                f"Speech verification failed: back-transcription via Indic-Transcribe "
+                f"failed ({e})"
+            )
             results["details"]["transcription_error"] = str(e)
 
         fe = results["file_exists"]
@@ -146,6 +227,39 @@ class SpeechVerifier:
         results["details"]["min_duration_threshold"] = self.min_duration_sec
         results["details"]["similarity_threshold"] = self.min_similarity
         return results
+
+    def _detect_repetition(self, text: str) -> dict | None:
+        """Detect excessive n-gram repetition in text."""
+        if not text:
+            return None
+
+        # Tokenize by whitespace
+        tokens = text.split()
+        if len(tokens) < self.repetition_ngram_size * 2:
+            return None
+
+        n = self.repetition_ngram_size
+        ngrams = {}
+        for i in range(len(tokens) - n + 1):
+            ngram = tuple(tokens[i:i + n])
+            ngrams[ngram] = ngrams.get(ngram, 0) + 1
+
+        # Check for n-grams that appear too many times
+        total_ngrams = len(tokens) - n + 1
+        for ngram, count in ngrams.items():
+            if count > self.repetition_max_count:
+                coverage = (count * n) / total_ngrams
+                if coverage > self.repetition_coverage_threshold:
+                    return {
+                        "ngram": " ".join(ngram),
+                        "count": count,
+                        "coverage": round(coverage, 3),
+                        "description": (
+                            f"'{ ' '.join(ngram) }' repeated {count} times "
+                            f"covering {coverage:.1%} of tokens"
+                        ),
+                    }
+        return None
 
     async def _check_audio_duration(self, path: str) -> dict:
         """Check audio file duration."""
@@ -167,6 +281,29 @@ class SpeechVerifier:
 
 def format_srt(segments: list[dict[str, Any]], output_path: str) -> str:
     """Format segments into valid SRT subtitle file."""
+    if not segments:
+        Path(output_path).write_text("", encoding="utf-8")
+        return output_path
+
+    # Validate monotonic, non-overlapping timestamps
+    prev_end = 0.0
+    for seg in segments:
+        start = seg.get("start_sec", 0.0)
+        end = seg.get("end_sec", 0.0)
+        if start < prev_end:
+            raise ValueError(
+                f"SRT timestamp overlap: segment starts at {start}s "
+                f"but previous ended at {prev_end}s"
+            )
+        if end <= start:
+            raise ValueError(
+                f"SRT invalid duration: segment end ({end}s) <= start ({start}s)"
+            )
+        text = seg.get("text", "").strip()
+        if not text:
+            raise ValueError("SRT segment has empty text")
+        prev_end = end
+
     lines = []
     for i, seg in enumerate(segments, 1):
         start = _format_timestamp(seg.get("start_sec", 0.0))
@@ -184,7 +321,7 @@ def _format_timestamp(seconds: float) -> str:
     hours = int(seconds // 3600)
     minutes = int((seconds % 3600) // 60)
     secs = int(seconds % 60)
-    millis = int((seconds % 1) * 1000)
+    millis = int(round((seconds % 1) * 1000))
     return f"{hours:02d}:{minutes:02d}:{secs:02d},{millis:03d}"
 
 

@@ -25,6 +25,7 @@ class Reporter:
     trace_path: Path = field(init=False)
     _steps: list[dict[str, Any]] = field(default_factory=list)
     _start_time: float = field(default=0.0)
+    _flushed_count: int = field(default=0)
 
     def __post_init__(self):
         self.trace_path = self.out_dir / "trace.jsonl"
@@ -55,25 +56,30 @@ class Reporter:
     ):
         """Record step completion for tracing."""
         summary = self._extract_summary(result)
-        for i in range(len(self._steps) - 1, -1, -1):
-            s = self._steps[i]
-            if s["step"] == step and s.get("status") == "started":
-                s["result_summary"] = summary
-                s["latency_ms"] = round(latency_ms, 1)
-                s["cost_inr"] = round(cost_inr, 4)
-                s["cumulative_cost_inr"] = round(self.ledger.total, 4)
-                s["status"] = "completed"
-                s["cached"] = cached
-                break
+        entry = {
+            "step": step,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "plan_rationale": f"Completed step {step}: called {tool}",
+            "tool": tool,
+            "arguments": sanitize_arguments(arguments),
+            "result_summary": summary,
+            "latency_ms": round(latency_ms, 1),
+            "cost_inr": round(cost_inr, 4),
+            "cumulative_cost_inr": round(self.ledger.total, 4),
+            "status": "completed",
+            "cached": cached,
+        }
+        self._steps.append(entry)
         self._flush_trace()
 
     def _flush_trace(self):
-        """Append all current steps to trace.jsonl."""
+        """Append new steps to trace.jsonl."""
         with open(self.trace_path, "a", encoding="utf-8") as f:
-            for entry in self._steps:
+            for entry in self._steps[self._flushed_count:]:
                 f.write(json.dumps(
                     entry, ensure_ascii=False, default=str
                 ) + "\n")
+        self._flushed_count = len(self._steps)
 
     def _extract_summary(self, result: dict) -> str:
         """Extract a concise summary from a tool result."""
@@ -122,6 +128,8 @@ class Reporter:
         agent_result["steps"] = executed_steps
 
         status = agent_result.get("status", "failed")
+        if status == "budget_exceeded":
+            status = "budget_insufficient"
         verification_results = agent_result.get(
             "verification_results", {}
         )
@@ -135,6 +143,16 @@ class Reporter:
         if self.artifacts_dir.exists():
             art_list = [str(a) for a in self.artifacts_dir.iterdir()]
 
+        # Collect AI-generation flags from verification results
+        ai_generated_artifacts: list[str] = []
+        for k, v in verification_results.items():
+            if k.startswith("tts_") and v.get("passed") is True:
+                ai_generated_artifacts.append(k.replace("tts_", ""))
+            elif k.startswith("tts_") and v.get("passed") is False:
+                reason = v.get("details", {}).get("error", "")
+                if reason:
+                    missed_targets.append(f"TTS {k}: {reason}")
+
         report = {
             "status": status,
             "steps_used": agent_result.get("steps_used", 0),
@@ -145,6 +163,7 @@ class Reporter:
             "elapsed_sec": round(elapsed_sec, 2),
             "assumptions": agent_result.get("assumptions", []),
             "verification_results": ver_map,
+            "ai_generated_audio_languages": ai_generated_artifacts,
             "artifacts": art_list,
             "missed_targets": missed_targets,
         }
@@ -227,7 +246,25 @@ class Reporter:
             lines.append("")
             for art_path in sorted(rel_artifacts, key=lambda p: p.name):
                 rel = art_path.relative_to(self.out_dir)
-                lines.append(f"- [`{rel}`]({rel})")
+                is_ai_audio = any(
+                    art_path.name.endswith(ext)
+                    for ext in (".wav", ".mp3", ".ogg")
+                ) and report.get("ai_generated_audio_languages")
+                label = " [AI-generated audio]" if is_ai_audio else ""
+                lines.append(f"- [`{rel}`]({rel}){label}")
+            lines.append("")
+
+        ai_langs = report.get("ai_generated_audio_languages", [])
+        if ai_langs:
+            lines.append("## AI Disclosure")
+            lines.append("")
+            lines.append(
+                "**Generated audio** was produced by Bodhan Indic-Speak "
+                f"for language(s): {', '.join(ai_langs)}. "
+                "All Indian-language text originated from Bodhan AI tools "
+                "(Indic-Transcribe, Indic-OCR, Indic-Translate, Indic-Speak). "
+                "The planner LLM was used only for task planning and English summaries."
+            )
             lines.append("")
 
         return "\n".join(lines)

@@ -38,7 +38,7 @@ line-length = 88
 
 [tool.ruff.lint]
 select = ["E", "F", "W"]
-per-file-ignores = { "tests/*" = ["E501"], "src/bodhan_agent/web_ui.py" = ["E501"] }
+per-file-ignores = { "tests/*" = ["E501", "E402", "E701", "E702", "F401", "F841"], "src/bodhan_agent/web_ui.py" = ["E501"] }
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

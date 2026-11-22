@@ -2,6 +2,7 @@
 """Unit tests for verifier module (zero paid API calls)."""
 from __future__ import annotations
 
+import pytest
 import wave
 from pathlib import Path
 
@@ -104,37 +105,82 @@ def _make_wav(path: Path, duration_sec: float = 1.0, sample_rate: int = 16000):
 
 
 class TestSpeechVerifier:
-    def test_no_transcribe_func_returns_error(self):
+    @pytest.mark.asyncio
+    async def test_no_transcribe_func_returns_error(self):
         v = SpeechVerifier()
-        res = v.verify("/tmp/nope.wav", "hi")
+        res = await v.verify("/tmp/nope.wav", "hi")
         assert res["passed"] is False
         assert "No transcribe function" in res["details"].get("error", "")
 
-    def test_nonexistent_file_fails(self):
+    @pytest.mark.asyncio
+    async def test_nonexistent_file_fails(self):
         v = SpeechVerifier()
         async def fake(_):
             return {"text": "hello"}
-        res = v.verify("/nonexistent/path.wav", "hi", transcribe_func=fake)
+        res = await v.verify("/nonexistent/path.wav", "hi", transcribe_func=fake)
         assert res["passed"] is False
 
-    def test_duration_below_threshold_fails(self, tmp_path: Path):
+    @pytest.mark.asyncio
+    async def test_duration_below_threshold_fails(self, tmp_path: Path):
         wav = tmp_path / "short.wav"
         _make_wav(wav, duration_sec=0.2)
         v = SpeechVerifier(min_duration_sec=0.5)
         async def fake(_):
             return {"text": "hello"}
-        res = v.verify(str(wav), "hi", transcribe_func=fake)
+        res = await v.verify(str(wav), "hi", transcribe_func=fake)
         assert res["passed"] is False
 
-    def test_short_similar_passes(self, tmp_path: Path):
+    @pytest.mark.asyncio
+    async def test_short_similar_passes(self, tmp_path: Path):
         wav = tmp_path / "ok.wav"
         _make_wav(wav, duration_sec=1.0)
         body = "नमस्ते दुनिया आप कैसे हैं"
         async def fake(_):
             return {"text": body}
         v = SpeechVerifier(min_similarity=0.5)  # loose threshold for test
-        res = v.verify(str(wav), body, transcribe_func=fake)
+        res = await v.verify(str(wav), body, transcribe_func=fake)
         assert res["passed"] is True
+
+    @pytest.mark.asyncio
+    async def test_back_transcription_tool_error_records_reason(self, tmp_path: Path):
+        """When transcribe_func returns TOOL_ERROR, verification fails with explicit reason."""
+        wav = tmp_path / "ok.wav"
+        _make_wav(wav, duration_sec=1.0)
+        body = "नमस्ते दुनिया"
+        async def fake_tool_error(_):
+            return {"error": "TOOL_ERROR", "message": "Indic-Transcribe HTTP 500"}
+        v = SpeechVerifier(min_duration_sec=0.1, min_similarity=0.5)
+        res = await v.verify(str(wav), body, transcribe_func=fake_tool_error)
+        assert res["passed"] is False
+        assert "back-transcription" in res["details"].get("error", "").lower()
+        assert "500" in res["details"].get("error", "")
+
+    @pytest.mark.asyncio
+    async def test_back_transcription_exception_records_reason(self, tmp_path: Path):
+        """When transcribe_func raises, verification fails with explicit reason."""
+        wav = tmp_path / "ok.wav"
+        _make_wav(wav, duration_sec=1.0)
+        body = "नमस्ते दुनिया"
+        async def fake_exception(_):
+            raise RuntimeError("Network timeout")
+        v = SpeechVerifier(min_duration_sec=0.1, min_similarity=0.5)
+        res = await v.verify(str(wav), body, transcribe_func=fake_exception)
+        assert res["passed"] is False
+        assert "back-transcription" in res["details"].get("error", "").lower()
+        assert "timeout" in res["details"].get("error", "").lower()
+
+    @pytest.mark.asyncio
+    async def test_back_transcription_empty_result_records_reason(self, tmp_path: Path):
+        """When transcribe_func returns empty transcript, verification fails."""
+        wav = tmp_path / "ok.wav"
+        _make_wav(wav, duration_sec=1.0)
+        body = "नमस्ते दुनिया"
+        async def fake_empty(_):
+            return {"text": ""}
+        v = SpeechVerifier(min_duration_sec=0.1, min_similarity=0.5)
+        res = await v.verify(str(wav), body, transcribe_func=fake_empty)
+        assert res["passed"] is False
+        assert res["similarity"] == 0.0
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────

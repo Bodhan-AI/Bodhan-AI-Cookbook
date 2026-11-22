@@ -13,10 +13,6 @@ from typing import Any, Optional
 import aiohttp
 from dotenv import load_dotenv
 
-# Load .env from project root (one level up from src/)
-_load_env_path = Path(__file__).resolve().parents[2] / ".env"
-load_dotenv(_load_env_path)
-
 from .models import (
     BODHAN_BASE_URL,
     COST_PER_MINUTE_STT,
@@ -27,14 +23,50 @@ from .models import (
 )
 
 
+
+# Strict endpoint enforcement: all Bodhan API traffic MUST target api.bodhan.ai
+# except localhost/127.0.0.1/testserver for unit-test and httpx mock transports.
+_BODHAN_HOSTS_OK = frozenset(
+    ['api.bodhan.ai', 'localhost', '127.0.0.1', 'testserver']
+)
+
+def _validate_bodhan_url(base_url):
+    if not base_url:
+        raise ValueError(
+            'BODHAN_BASE_URL is empty.',
+        )
+    host = base_url.split('://', 1)[-1].split('/')[0].split(':')[0].strip()
+    if not host:
+        raise ValueError(
+            'Cannot parse host.',
+        )
+    if host not in _BODHAN_HOSTS_OK:
+        raise ValueError(
+            'Not allowed Bodhan host: ' + repr(host) + '.',
+        )
+# Load .env from project root (one level up from src/)
+_load_env_path = Path(__file__).resolve().parents[2] / ".env"
+load_dotenv(_load_env_path)
+
+
 def _get_key(name: str) -> str:
     return os.environ.get(name, "")
 
 
-INDR_TRANSCRIBE_KEY = lambda: _get_key("BODHAN_TRANSCRIBE_KEY")
-INDR_TRANSLATE_KEY = lambda: _get_key("BODHAN_TRANSLATE_KEY")
-INDR_SPEAK_KEY = lambda: _get_key("BODHAN_SPEAK_KEY")
-INDR_OCR_KEY = lambda: _get_key("BODHAN_OCR_KEY")
+def INDR_TRANSCRIBE_KEY() -> str:
+    return _get_key("BODHAN_TRANSCRIBE_KEY")
+
+
+def INDR_TRANSLATE_KEY() -> str:
+    return _get_key("BODHAN_TRANSLATE_KEY")
+
+
+def INDR_SPEAK_KEY() -> str:
+    return _get_key("BODHAN_SPEAK_KEY")
+
+
+def INDR_OCR_KEY() -> str:
+    return _get_key("BODHAN_OCR_KEY")
 
 
 @dataclass
@@ -140,6 +172,7 @@ class BodhanClient:
         self.ledger = ledger or InrLedger()
         self.cache = BodhanCache(cache_dir)
         self.base_url = base_url
+        _validate_bodhan_url(self.base_url)
         self.default_timeout = default_timeout
         self.max_retries = max_retries
 
@@ -175,11 +208,22 @@ class BodhanClient:
         elif model == "indic-translate":
             if result and isinstance(result, dict):
                 usage = result.get("usage", {})
-                output_tokens = usage.get("output_tokens", 0)
+                # Live Bodhan API returns completion_tokens/prompt_tokens;
+                # older schema had output_tokens — try both.
+                output_tokens = (
+                    usage.get("completion_tokens")
+                    or usage.get("output_tokens")
+                    or 0
+                )
                 if output_tokens:
                     return (
                         output_tokens / 10000.0
                     ) * COST_PER_10K_OUTPUT_TOKENS_TRANSLATE
+                # ponytail: minimum charge floor — a real uncached translate
+                # call with a non-empty translation body must never bill 0.0
+                # INR even if the API omits usage tokens. Floor is 0.001 INR.
+                has_body = bool(result.get("translation"))
+                return 0.001 if has_body else 0.0
             return 0.0
         elif model == "indic-speak":
             if json_data and "input" in json_data:

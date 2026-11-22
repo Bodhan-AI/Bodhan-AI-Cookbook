@@ -148,13 +148,24 @@ class TestExtractDocumentText:
     @pytest.mark.asyncio
     async def test_extract_document_text_unsupported_format(self):
         with tempfile.TemporaryDirectory() as tmpdir:
-            txt_path = Path(tmpdir) / "test.txt"
-            txt_path.write_text("test")
-            result = await extract_document_text(str(txt_path))
+            exe_path = Path(tmpdir) / "test.exe"
+            exe_path.write_text("test")
+            result = await extract_document_text(str(exe_path))
             assert "error" in result
             assert result["error"] == "VALIDATION_ERROR"
             assert "Unsupported file format" in result["message"]
             assert result["retryable"] is False
+
+    @pytest.mark.asyncio
+    async def test_extract_document_text_txt_file(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            txt_path = Path(tmpdir) / "test.txt"
+            txt_path.write_text("Hello world")
+            result = await extract_document_text(str(txt_path))
+            assert "error" not in result
+            assert result["text"] == "Hello world"
+            assert result["full_text_file"].endswith(".txt")
+            assert Path(result["full_text_file"]).exists()
 
     @pytest.mark.asyncio
     async def test_extract_document_text_page_range_parsing(self):
@@ -215,8 +226,9 @@ class TestTranslateText:
     @pytest.mark.asyncio
     async def test_translate_empty_text(self):
         result = await translate_text("hi", "ta", text="")
-        assert result["translation"] == "<untrusted_source_data></untrusted_source_data>"
-        assert result["cost_inr"] == 0.0
+        assert "error" in result
+        assert result["error"] == "EMPTY_INPUT"
+        assert result["retryable"] is False
 
     @pytest.mark.asyncio
     async def test_translate_success(self):
@@ -259,7 +271,7 @@ class TestSynthesizeSpeech:
     async def test_synthesize_unsupported_voice(self):
         result = await synthesize_speech("hi", "output.wav", text="\u0928\u092e\u0938\u094d\u0924\u0947", voice_id="NonExistentVoice")
         assert "error" in result
-        assert result["error"] == "UNSUPPORTED_VOICE"
+        assert result["error"] == "INVALID_VOICE"
         assert "NonExistentVoice" in result["message"]
         assert result["retryable"] is False
 
@@ -283,8 +295,8 @@ class TestSynthesizeSpeech:
     async def test_synthesize_empty_text(self):
         result = await synthesize_speech("hi", "output.wav", text="")
         assert "error" in result
-        assert result["error"] == "VALIDATION_ERROR"
-        assert "Input text is empty" in result["message"]
+        assert result["error"] == "EMPTY_INPUT"
+        assert "empty" in result["message"].lower()
         assert result["retryable"] is False
 
     @pytest.mark.asyncio
@@ -452,6 +464,213 @@ class TestLanguageNameNormalization:
                 ))
                 result = await transcribe_audio(str(wav_path), language_hint="English")
                 assert result["language"] == "en"
+
+
+class TestExtractDocumentTextReturnsTextAndFilePath:
+    """Regression: extract_document_text must return usable text preview,
+    full_text_file path, total_chars, and detected_script."""
+
+    @pytest.mark.asyncio
+    async def test_returns_text_preview_and_full_text_file(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            pdf_path = Path(tmpdir) / "test.pdf"
+            try:
+                import pypdfium2
+                doc = pypdfium2.PdfDocument.new()
+                for _ in range(2):
+                    doc.new_page(width=612, height=792)
+                doc.save(str(pdf_path))
+                doc.close()
+
+                sample_content = "This is sample OCR content for testing. " * 20
+                with patch("bodhan_mcp.tools.ocr.client") as mock_client:
+                    mock_client.request = AsyncMock(return_value=APIResponse(
+                        data={"choices": [{"message": {"content": sample_content}}], "blocks": []},
+                        cost_inr=0.40, cached=False
+                    ))
+                    result = await extract_document_text(str(pdf_path))
+
+                assert "error" not in result
+                assert "text" in result, f"Missing 'text' key; keys={list(result.keys())}"
+                assert "full_text_file" in result
+                assert result["full_text_file"].endswith(".txt")
+                assert Path(result["full_text_file"]).exists()
+                assert result["total_chars"] > 0
+                assert result["detected_script"] == "latin"
+                # Preview should be wrapped in untrusted tags (via 'markdown' key).
+                assert "<untrusted_source_data>" in result["markdown"]
+                assert "</untrusted_source_data>" in result["markdown"]
+            except ImportError:
+                pytest.skip("pypdfium2 not available")
+
+    @pytest.mark.asyncio
+    async def test_long_text_is_bounded_to_2500_char_preview(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            pdf_path = Path(tmpdir) / "test.pdf"
+            try:
+                import pypdfium2
+                doc = pypdfium2.PdfDocument.new()
+                doc.new_page(width=612, height=792)
+                doc.save(str(pdf_path))
+                doc.close()
+
+                long_content = "A" * 5000
+                with patch("bodhan_mcp.tools.ocr.client") as mock_client:
+                    mock_client.request = AsyncMock(return_value=APIResponse(
+                        data={"choices": [{"message": {"content": long_content}}], "blocks": []},
+                        cost_inr=0.20, cached=False
+                    ))
+                    result = await extract_document_text(str(pdf_path))
+
+                import re
+                match = re.search(r"<untrusted_source_data>(.*?)</untrusted_source_data>",
+                                  result["markdown"], re.DOTALL)
+                assert match, "Expected untrusted_source_data wrapper"
+                preview = match.group(1)
+                # Preview content (before truncation marker) must be <= 2500 chars.
+                assert len(preview.split("\n\n...[truncated")[0]) <= 2500, \
+                    f"Preview content too long: {len(preview)} chars"
+                # Full text file should contain all of it.
+                full_path = Path(result["full_text_file"])
+                assert full_path.exists()
+                assert len(full_path.read_text(encoding="utf-8")) == 5000
+            except ImportError:
+                pytest.skip("pypdfium2 not available")
+
+
+class TestTranscribeAudioReturnsTextAndFilePath:
+    """Regression: transcribe_audio must return usable text preview,
+    full_text_file path, total_chars, and detected_language."""
+
+    @pytest.mark.asyncio
+    async def test_returns_text_and_full_text_file(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            wav_path = Path(tmpdir) / "test.wav"
+            create_test_wav(str(wav_path), duration_sec=2.0)
+            with patch("bodhan_mcp.tools.transcribe.client") as mock_client:
+                mock_client.request = AsyncMock(return_value=APIResponse(
+                    data={"text": "Hello world this is a transcription",
+                          "duration_sec": 2.0, "segments": []},
+                    cost_inr=0.10, cached=False
+                ))
+                result = await transcribe_audio(str(wav_path))
+            assert "error" not in result
+            assert "text" in result
+            assert "full_text_file" in result
+            assert result["full_text_file"].endswith(".txt")
+            assert Path(result["full_text_file"]).exists()
+            assert result["total_chars"] > 0
+            assert "detected_language" in result
+
+
+class TestCostAccounting:
+    """Phase-1 regression for Defect A: translate usage keys and transcribe duration."""
+
+    @pytest.mark.asyncio
+    async def test_translate_with_completion_tokens_returns_nonzero_cost(self):
+        """Live Bodhan API returns completion_tokens in usage, not output_tokens."""
+        from bodhan_mcp.client import BodhanClient, InrLedger
+        client = BodhanClient(ledger=InrLedger())
+        result = {
+            "translation": "வணககம்",
+            "usage": {"completion_tokens": 16, "prompt_tokens": 2, "total_tokens": 18},
+        }
+        cost = client._calc_cost("indic-translate", None, None, result)
+        assert cost > 0, f"Expected nonzero cost, got {cost}"
+
+    @pytest.mark.asyncio
+    async def test_translate_falls_back_to_output_tokens(self):
+        """Older schema key 'output_tokens' still works when completion_tokens absent."""
+        from bodhan_mcp.client import BodhanClient, InrLedger
+        client = BodhanClient(ledger=InrLedger())
+        result = {"translation": "hi", "usage": {"output_tokens": 10}}
+        cost = client._calc_cost("indic-translate", None, None, result)
+        assert cost > 0, f"Expected nonzero cost, got {cost}"
+
+    @pytest.mark.asyncio
+    async def test_translate_empty_usage_returns_minimum_floor(self):
+        """When usage is missing/empty, _calc_cost charges at least the floor (>0)."""
+        from bodhan_mcp.client import BodhanClient, InrLedger
+        client = BodhanClient(ledger=InrLedger())
+        # Empty usage dict — should hit the floor path.
+        result = {"translation": "fallback text"}
+        cost = client._calc_cost("indic-translate", None, None, result)
+        assert cost >= 0.0001, f"Expected at least floor cost, got {cost}"
+
+    @pytest.mark.asyncio
+    async def test_translate_no_result_returns_zero(self):
+        """With no result dict at all, cost is zero (no charge for errors)."""
+        from bodhan_mcp.client import BodhanClient, InrLedger
+        client = BodhanClient(ledger=InrLedger())
+        cost = client._calc_cost("indic-translate", None, None, None)
+        assert cost == 0.0
+
+    @pytest.mark.asyncio
+    async def test_transcribe_nonzero_for_real_duration(self):
+        """Transcribe of N seconds bills proportionally, never zero for real audio."""
+        from bodhan_mcp.client import BodhanClient, InrLedger
+        client = BodhanClient(ledger=InrLedger())
+        result = {"text": "hello", "duration_sec": 120.0, "segments": []}
+        cost = client._calc_cost("indic-transcribe", None, None, result)
+        assert cost > 0, f"Expected nonzero cost for 120s audio, got {cost}"
+        assert cost == pytest.approx((120.0 / 60.0) * 0.10, abs=0.001)
+
+    @pytest.mark.asyncio
+    async def test_transcribe_zero_duration_yields_floor(self):
+        """Transcribe with duration 0 still returns the default minute rate."""
+        from bodhan_mcp.client import BodhanClient, InrLedger
+        client = BodhanClient(ledger=InrLedger())
+        result = {"text": "", "duration_sec": 0.0, "segments": []}
+        cost = client._calc_cost("indic-transcribe", None, None, result)
+        assert cost > 0, f"Expected default-minute cost, got {cost}"
+
+
+class TestTranslateRateLimitBoundedRetries:
+    """Regression: translate_text must honour bounded 429 retries and
+    surface a structured RATE_LIMITED error rather than hanging."""
+
+    @pytest.mark.asyncio
+    async def test_rate_limited_after_bounded_retries_fails_fast(self):
+        with patch("bodhan_mcp.tools.translate.client") as mock_client:
+            from bodhan_mcp.client import BodhanError
+            from bodhan_mcp.models import ErrorCode
+            call_count = [0]
+            async def side_effect(*args, **kwargs):
+                call_count[0] += 1
+                raise BodhanError(
+                    "Rate limited", code=ErrorCode.RATE_LIMITED, retryable=True
+                )
+            mock_client.request = AsyncMock(side_effect=side_effect)
+            result = await translate_text("en", "ta", text="Hello world")
+            assert "error" in result
+            assert result["error"] == "RATE_LIMITED", (
+                f"Expected RATE_LIMITED, got {result.get('error')}; "
+                f"details={result.get('details')}"
+            )
+            assert result["retryable"] is True
+            # Should have made bounded retries (initial + 3 retries = 4 calls).
+            assert call_count[0] == 4
+
+    @pytest.mark.asyncio
+    async def test_success_after_initial_429(self):
+        with patch("bodhan_mcp.tools.translate.client") as mock_client:
+            from bodhan_mcp.client import BodhanError
+            from bodhan_mcp.models import ErrorCode
+            call_count = [0]
+            async def side_effect(*args, **kwargs):
+                call_count[0] += 1
+                if call_count[0] == 1:
+                    raise BodhanError(
+                        "Rate limited", code=ErrorCode.RATE_LIMITED, retryable=True
+                    )
+                return APIResponse(
+                    data={"choices": [{"message": {"content": "வணக்கம்"}}]},
+                    cost_inr=0.02, cached=False
+                )
+            mock_client.request = AsyncMock(side_effect=side_effect)
+            result = await translate_text("en", "ta", text="Hello world")
+            assert "error" not in result
+            assert "வணக்கம்" in result["translation"]
 
 
 if __name__ == "__main__":
