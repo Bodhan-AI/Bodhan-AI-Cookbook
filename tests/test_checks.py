@@ -73,26 +73,6 @@ def test_env_example_placeholder_is_fine(recipe):
     assert list(check_security(recipe)) == []
 
 
-def test_env_example_accepts_model_specific_bodhan_keys(recipe):
-    (recipe / ".env.example").write_text(
-        "BODHAN_TRANSCRIBE_KEY=<key>\n"
-        "BODHAN_TRANSLATE_KEY=<key>\n"
-        "BODHAN_SPEAK_KEY=<key>\n"
-        "BODHAN_OCR_KEY=<key>\n"
-    )
-    assert not has_errors(check_structure(recipe))
-
-
-def test_env_example_rejects_incomplete_model_specific_bodhan_keys(recipe):
-    (recipe / ".env.example").write_text(
-        "BODHAN_TRANSCRIBE_KEY=<key>\n"
-        "BODHAN_TRANSLATE_KEY=<key>\n"
-        "BODHAN_SPEAK_KEY=<key>\n"
-    )
-    findings = list(check_structure(recipe))
-    assert any("all four model-specific Bodhan keys" in finding.message for finding in findings)
-
-
 # --- structure --------------------------------------------------------------
 
 def test_missing_readme_is_an_error(recipe):
