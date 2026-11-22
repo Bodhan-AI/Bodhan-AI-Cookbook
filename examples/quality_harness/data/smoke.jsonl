@@ -1,0 +1,10 @@
+{"id":"smoke-01","source":"25","lang":"hi","translation":"२५","labels":[],"label_origin":"synthetic_test"}
+{"id":"smoke-02","source":"25","lang":"ta","translation":"௨௫","labels":[],"label_origin":"synthetic_test"}
+{"id":"smoke-03","source":"25","lang":"bn","translation":"২৫","labels":[],"label_origin":"synthetic_test"}
+{"id":"smoke-04","source":"25","lang":"hi","translation":"२६","labels":[{"type":"number","severity":"major","span":[0,2]}],"label_origin":"programmatic_injection"}
+{"id":"smoke-05","source":"25","lang":"ta","translation":"௨௬","labels":[{"type":"number","severity":"major","span":[0,2]}],"label_origin":"programmatic_injection"}
+{"id":"smoke-06","source":"25","lang":"bn","translation":"২৬","labels":[{"type":"number","severity":"major","span":[0,2]}],"label_origin":"programmatic_injection"}
+{"id":"smoke-07","source":"**25**","lang":"hi"}
+{"id":"smoke-08","source":"Read https://example.org","lang":"ta","translation":"https://example.org"}
+{"id":"smoke-09","source":"Use $x$","lang":"bn","translation":"x","labels":[{"type":"format","severity":"major","span":[4,5],"span_field":"source"}],"label_origin":"programmatic_injection"}
+{"id":"smoke-10","source":"25 25","lang":"hi","translation":"२५ २५","labels":[],"label_origin":"synthetic_test"}

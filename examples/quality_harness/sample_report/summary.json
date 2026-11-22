@@ -1,0 +1,193 @@
+{
+  "calibrated_thresholds": {},
+  "categories": {
+    "format": 1,
+    "number": 3,
+    "wrong_language": 1
+  },
+  "check_coverage": {
+    "back_translation": {
+      "skipped": 10
+    },
+    "bodhan_asr": {
+      "skipped": 10
+    },
+    "format": {
+      "completed": 9
+    },
+    "judge": {
+      "skipped": 10
+    },
+    "numbers": {
+      "completed": 9
+    },
+    "script": {
+      "completed": 9
+    },
+    "terms": {
+      "completed": 9
+    },
+    "translation": {
+      "missing": 1
+    }
+  },
+  "cost_basis": "conservative uncached reservation for unique successful requests; not execution billing",
+  "cost_inr": 0.0,
+  "errors": [],
+  "evaluation": {
+    "annotated_items": 8,
+    "annotation_origins": {
+      "programmatic_injection": 4,
+      "synthetic_test": 4
+    },
+    "categories": {
+      "addition": {
+        "fn": 0,
+        "fp": 0,
+        "precision": null,
+        "recall": null,
+        "support": 0,
+        "tp": 0
+      },
+      "entity": {
+        "fn": 0,
+        "fp": 0,
+        "precision": null,
+        "recall": null,
+        "support": 0,
+        "tp": 0
+      },
+      "format": {
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 1,
+        "tp": 1
+      },
+      "garbled_audio": {
+        "fn": 0,
+        "fp": 0,
+        "precision": null,
+        "recall": null,
+        "support": 0,
+        "tp": 0
+      },
+      "mistranslation": {
+        "fn": 0,
+        "fp": 0,
+        "precision": null,
+        "recall": null,
+        "support": 0,
+        "tp": 0
+      },
+      "number": {
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 3,
+        "tp": 3
+      },
+      "omission": {
+        "fn": 0,
+        "fp": 0,
+        "precision": null,
+        "recall": null,
+        "support": 0,
+        "tp": 0
+      },
+      "speech_omission": {
+        "fn": 0,
+        "fp": 0,
+        "precision": null,
+        "recall": null,
+        "support": 0,
+        "tp": 0
+      },
+      "speech_repetition": {
+        "fn": 0,
+        "fp": 0,
+        "precision": null,
+        "recall": null,
+        "support": 0,
+        "tp": 0
+      },
+      "wrong_language": {
+        "fn": 0,
+        "fp": 0,
+        "precision": null,
+        "recall": null,
+        "support": 0,
+        "tp": 0
+      }
+    },
+    "category_accuracy": 1.0,
+    "category_eligible_detections": 4,
+    "clean_items": 4,
+    "detected_errors": 4,
+    "detection_basis": "one-to-one within-item error assignment; category and localization measured separately",
+    "detection_recall": 1.0,
+    "error_items": 4,
+    "false_alarm_rate": 0.0,
+    "item_detection_recall": 1.0,
+    "localization_eligible_detections": 4,
+    "localization_overlap": 1.0,
+    "seeded_errors": 4
+  },
+  "failed_checks": 0,
+  "filtered_items": 0,
+  "implementation_sha256": "818cb27a64cac5410d8a2c57992b23e52899bd60468c09200d8110bbe43b3841",
+  "invalid_items": 0,
+  "items": 10,
+  "judge_consistency": null,
+  "judge_consistency_items": 0,
+  "languages": {
+    "bn": {
+      "categories": {
+        "format": 1,
+        "number": 1
+      },
+      "flagged_items": 2,
+      "items": 3,
+      "unassessed_items": 0
+    },
+    "hi": {
+      "categories": {
+        "number": 1
+      },
+      "flagged_items": 1,
+      "items": 4,
+      "unassessed_items": 1
+    },
+    "ta": {
+      "categories": {
+        "number": 1,
+        "wrong_language": 1
+      },
+      "flagged_items": 2,
+      "items": 3,
+      "unassessed_items": 0
+    }
+  },
+  "mode": "offline",
+  "model_calls": 0,
+  "model_requests": {},
+  "quality_targets": {
+    "category_accuracy": 0.7,
+    "detection_recall": 0.8,
+    "false_alarm_rate": 0.1,
+    "judge_consistency": 0.9,
+    "localization_overlap": 0.7
+  },
+  "settings": {
+    "generate": false,
+    "judge_repeats": 2,
+    "speech_sample_rate": 1.0
+  },
+  "severities": {
+    "major": 5
+  },
+  "unmatched_calibration_records": 0,
+  "version": 2
+}

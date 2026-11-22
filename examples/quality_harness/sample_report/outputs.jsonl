@@ -1,0 +1,10 @@
+{"generation": {}, "id": "smoke-01", "label_origin": "synthetic_test", "labels": [], "lang": "hi", "parent_id": "smoke-01", "source": "25", "terms": {}, "translation": "२५"}
+{"generation": {}, "id": "smoke-02", "label_origin": "synthetic_test", "labels": [], "lang": "ta", "parent_id": "smoke-02", "source": "25", "terms": {}, "translation": "௨௫"}
+{"generation": {}, "id": "smoke-03", "label_origin": "synthetic_test", "labels": [], "lang": "bn", "parent_id": "smoke-03", "source": "25", "terms": {}, "translation": "২৫"}
+{"generation": {}, "id": "smoke-04", "label_origin": "programmatic_injection", "labels": [{"severity": "major", "span": [0, 2], "type": "number"}], "lang": "hi", "parent_id": "smoke-04", "source": "25", "terms": {}, "translation": "२६"}
+{"generation": {}, "id": "smoke-05", "label_origin": "programmatic_injection", "labels": [{"severity": "major", "span": [0, 2], "type": "number"}], "lang": "ta", "parent_id": "smoke-05", "source": "25", "terms": {}, "translation": "௨௬"}
+{"generation": {}, "id": "smoke-06", "label_origin": "programmatic_injection", "labels": [{"severity": "major", "span": [0, 2], "type": "number"}], "lang": "bn", "parent_id": "smoke-06", "source": "25", "terms": {}, "translation": "২৬"}
+{"generation": {}, "id": "smoke-07", "label_origin": "unspecified", "lang": "hi", "parent_id": "smoke-07", "source": "**25**", "terms": {}}
+{"generation": {}, "id": "smoke-08", "label_origin": "unspecified", "lang": "ta", "parent_id": "smoke-08", "source": "Read https://example.org", "terms": {}, "translation": "https://example.org"}
+{"generation": {}, "id": "smoke-09", "label_origin": "programmatic_injection", "labels": [{"severity": "major", "span": [4, 5], "span_field": "source", "type": "format"}], "lang": "bn", "parent_id": "smoke-09", "source": "Use $x$", "terms": {}, "translation": "x"}
+{"generation": {}, "id": "smoke-10", "label_origin": "synthetic_test", "labels": [], "lang": "hi", "parent_id": "smoke-10", "source": "25 25", "terms": {}, "translation": "२५ २५"}

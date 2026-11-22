@@ -1,0 +1,1018 @@
+{
+  "checks": [
+    {
+      "check": "demo_outputs",
+      "details": {
+        "languages": {},
+        "records": 120,
+        "translated_records": 0
+      },
+      "status": "missing"
+    },
+    {
+      "check": "unique_parent_groups",
+      "details": "one original per parent/language group",
+      "status": "pass"
+    },
+    {
+      "check": "bodhan_generation_provenance",
+      "details": [
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-001",
+          "lang": "hi"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-001",
+          "lang": "ta"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-001",
+          "lang": "bn"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-002",
+          "lang": "hi"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-002",
+          "lang": "ta"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-002",
+          "lang": "bn"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-003",
+          "lang": "hi"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-003",
+          "lang": "ta"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-003",
+          "lang": "bn"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-004",
+          "lang": "hi"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-004",
+          "lang": "ta"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-004",
+          "lang": "bn"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-005",
+          "lang": "hi"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-005",
+          "lang": "ta"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-005",
+          "lang": "bn"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-006",
+          "lang": "hi"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-006",
+          "lang": "ta"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-006",
+          "lang": "bn"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-007",
+          "lang": "hi"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-007",
+          "lang": "ta"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-007",
+          "lang": "bn"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-008",
+          "lang": "hi"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-008",
+          "lang": "ta"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-008",
+          "lang": "bn"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-009",
+          "lang": "hi"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-009",
+          "lang": "ta"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-009",
+          "lang": "bn"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-010",
+          "lang": "hi"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-010",
+          "lang": "ta"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-010",
+          "lang": "bn"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-011",
+          "lang": "hi"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-011",
+          "lang": "ta"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-011",
+          "lang": "bn"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-012",
+          "lang": "hi"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-012",
+          "lang": "ta"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-012",
+          "lang": "bn"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-013",
+          "lang": "hi"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-013",
+          "lang": "ta"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-013",
+          "lang": "bn"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-014",
+          "lang": "hi"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-014",
+          "lang": "ta"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-014",
+          "lang": "bn"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-015",
+          "lang": "hi"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-015",
+          "lang": "ta"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-015",
+          "lang": "bn"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-016",
+          "lang": "hi"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-016",
+          "lang": "ta"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-016",
+          "lang": "bn"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-017",
+          "lang": "hi"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-017",
+          "lang": "ta"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-017",
+          "lang": "bn"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-018",
+          "lang": "hi"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-018",
+          "lang": "ta"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-018",
+          "lang": "bn"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-019",
+          "lang": "hi"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-019",
+          "lang": "ta"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-019",
+          "lang": "bn"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-020",
+          "lang": "hi"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-020",
+          "lang": "ta"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-020",
+          "lang": "bn"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-021",
+          "lang": "hi"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-021",
+          "lang": "ta"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-021",
+          "lang": "bn"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-022",
+          "lang": "hi"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-022",
+          "lang": "ta"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-022",
+          "lang": "bn"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-023",
+          "lang": "hi"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-023",
+          "lang": "ta"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-023",
+          "lang": "bn"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-024",
+          "lang": "hi"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-024",
+          "lang": "ta"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-024",
+          "lang": "bn"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-025",
+          "lang": "hi"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-025",
+          "lang": "ta"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-025",
+          "lang": "bn"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-026",
+          "lang": "hi"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-026",
+          "lang": "ta"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-026",
+          "lang": "bn"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-027",
+          "lang": "hi"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-027",
+          "lang": "ta"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-027",
+          "lang": "bn"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-028",
+          "lang": "hi"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-028",
+          "lang": "ta"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-028",
+          "lang": "bn"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-029",
+          "lang": "hi"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-029",
+          "lang": "ta"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-029",
+          "lang": "bn"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-030",
+          "lang": "hi"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-030",
+          "lang": "ta"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-030",
+          "lang": "bn"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-031",
+          "lang": "hi"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-031",
+          "lang": "ta"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-031",
+          "lang": "bn"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-032",
+          "lang": "hi"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-032",
+          "lang": "ta"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-032",
+          "lang": "bn"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-033",
+          "lang": "hi"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-033",
+          "lang": "ta"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-033",
+          "lang": "bn"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-034",
+          "lang": "hi"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-034",
+          "lang": "ta"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-034",
+          "lang": "bn"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-035",
+          "lang": "hi"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-035",
+          "lang": "ta"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-035",
+          "lang": "bn"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-036",
+          "lang": "hi"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-036",
+          "lang": "ta"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-036",
+          "lang": "bn"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-037",
+          "lang": "hi"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-037",
+          "lang": "ta"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-037",
+          "lang": "bn"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-038",
+          "lang": "hi"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-038",
+          "lang": "ta"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-038",
+          "lang": "bn"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-039",
+          "lang": "hi"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-039",
+          "lang": "ta"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-039",
+          "lang": "bn"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-040",
+          "lang": "hi"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-040",
+          "lang": "ta"
+        },
+        {
+          "errors": [
+            "missing Bodhan generation receipt"
+          ],
+          "id": "demo-040",
+          "lang": "bn"
+        }
+      ],
+      "status": "fail"
+    },
+    {
+      "check": "speech_demo_coverage",
+      "details": {
+        "verified_audio_languages": []
+      },
+      "status": "missing"
+    },
+    {
+      "check": "human_clean_negatives",
+      "details": {
+        "content_bound_human_clean_items": 0,
+        "note": "minimum presence check, not a claim of statistical adequacy"
+      },
+      "status": "missing"
+    },
+    {
+      "check": "injected_cases",
+      "details": {
+        "categories": {},
+        "errors": []
+      },
+      "status": "missing"
+    },
+    {
+      "check": "parent_split_isolation",
+      "details": {
+        "inconsistent_parent_ids": [
+          "demo-001",
+          "demo-002",
+          "demo-003",
+          "demo-004",
+          "demo-005",
+          "demo-006",
+          "demo-007",
+          "demo-008",
+          "demo-009",
+          "demo-010",
+          "demo-011",
+          "demo-012",
+          "demo-013",
+          "demo-014",
+          "demo-015",
+          "demo-016",
+          "demo-017",
+          "demo-018",
+          "demo-019",
+          "demo-020",
+          "demo-021",
+          "demo-022",
+          "demo-023",
+          "demo-024",
+          "demo-025",
+          "demo-026",
+          "demo-027",
+          "demo-028",
+          "demo-029",
+          "demo-030",
+          "demo-031",
+          "demo-032",
+          "demo-033",
+          "demo-034",
+          "demo-035",
+          "demo-036",
+          "demo-037",
+          "demo-038",
+          "demo-039",
+          "demo-040"
+        ]
+      },
+      "status": "missing"
+    },
+    {
+      "check": "live_assessment_coverage",
+      "details": {
+        "complete": false,
+        "issues": [
+          "unassessed items remain",
+          "smoke-01/hi: incomplete back_translation",
+          "smoke-01/hi: incomplete judge",
+          "smoke-02/ta: incomplete back_translation",
+          "smoke-02/ta: incomplete judge",
+          "smoke-03/bn: incomplete back_translation",
+          "smoke-03/bn: incomplete judge",
+          "smoke-04/hi: incomplete back_translation",
+          "smoke-04/hi: incomplete judge",
+          "smoke-05/ta: incomplete back_translation",
+          "smoke-05/ta: incomplete judge",
+          "smoke-06/bn: incomplete back_translation",
+          "smoke-06/bn: incomplete judge",
+          "smoke-08/ta: incomplete back_translation",
+          "smoke-08/ta: incomplete judge",
+          "smoke-09/bn: incomplete back_translation",
+          "smoke-09/bn: incomplete judge",
+          "smoke-10/hi: incomplete back_translation",
+          "smoke-10/hi: incomplete judge",
+          "no completed live judge assessment"
+        ],
+        "population": 10,
+        "scope": "model_backed"
+      },
+      "status": "missing"
+    },
+    {
+      "check": "report_implementation",
+      "details": "report must match current implementation hash",
+      "status": "pass"
+    },
+    {
+      "check": "dataset_report_alignment",
+      "details": "exact identities and original output content/audio",
+      "status": "missing"
+    },
+    {
+      "check": "human_held_out_evaluation",
+      "details": {
+        "clean_items": 0,
+        "error_items": 0
+      },
+      "status": "missing"
+    },
+    {
+      "check": "live_cache_benchmark",
+      "details": "cold cache, dataset-bound hashes, zero replay attempts and independently checked live coverage required",
+      "status": "missing"
+    },
+    {
+      "check": "local_and_container_checks",
+      "details": "fresh check-runner evidence required; skipped tools cannot pass",
+      "status": "missing"
+    },
+    {
+      "check": "public_demo_video",
+      "details": {
+        "note": "provide attributable recording evidence after independent public-access/content review",
+        "url_supplied": false
+      },
+      "status": "missing"
+    }
+  ],
+  "dataset_sha256": "37e34c39d80661bfccc1c0b1aa80b696642adbcc647d17c9ac91da549bf492f6",
+  "implementation_sha256": "818cb27a64cac5410d8a2c57992b23e52899bd60468c09200d8110bbe43b3841",
+  "note": "This audit verifies local artifact consistency, not provider authenticity or human judgment quality. Quality targets are targets, not hard gates.",
+  "ready": false,
+  "recipe_sha256": "19604f0b9cea14aa024f31765e64585d0c0ccfd48c296219bb659343e3412129",
+  "report_sha256": {
+    "calibration.json": "2ce4c26d51be5cf29daf96805ecf9c68f22aaa7bbffa95b4ad5f015c763215cc",
+    "checks.jsonl": "1a8fabfd9dad87931be1cef7b0b033533b5d85e6fe53302342313d620c76c912",
+    "items.jsonl": "cd92a0ecde7f41468c92873381779fda4c79090c2995057f275542c33ba07eb1",
+    "outputs.jsonl": "4ac170f76122a326e42d079523a7116ce5115c6f4d3bd41630671fa367d2b8ba",
+    "review.csv": "b50674b3a65a83dee5f4d7d3916888fbf9a0a17c5696edaaf0bd54bac833839b",
+    "summary.json": "ec93571da83282f676425855de0a8beae227c7e55bb745bb5f0fd6280961f5e5",
+    "summary.md": "3a573da446c3b2dc502cbdd47d07fc91870261c49f687665484326d2cded2419"
+  },
+  "scope": "listed Phase 3 artifact checks; not submission authorization or provider authenticity verification",
+  "version": 1
+}

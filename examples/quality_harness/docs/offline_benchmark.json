@@ -1,0 +1,53 @@
+{
+  "artifact_sha256": {
+    "calibration.json": "2ce4c26d51be5cf29daf96805ecf9c68f22aaa7bbffa95b4ad5f015c763215cc",
+    "checks.jsonl": "552e89d8246320b9f4392eab738172cfc259b60e8639e6aae7f27e4af841f2f4",
+    "items.jsonl": "3eb5a912c3c9dd1949b80427dbea9aa62b0d283cf0896a573bbe96a28e0707cd",
+    "outputs.jsonl": "80690100566c7262d336adeffa712a501631470850e39be1aad798279ff4a3aa",
+    "review.csv": "b50674b3a65a83dee5f4d7d3916888fbf9a0a17c5696edaaf0bd54bac833839b",
+    "summary.json": "015dcfa559f1641e9a428cbab9630640c3682883a1de15488c1eae5c359af3a1",
+    "summary.md": "57848020f56cc9b4276bc7a41296b17e5cd5e9bf04ef8a2cd06f36716bdfb2c4"
+  },
+  "assessment_complete": true,
+  "assessments": [
+    {
+      "complete": true,
+      "issues": [],
+      "population": 9,
+      "scope": "offline_engineering_only"
+    },
+    {
+      "complete": true,
+      "issues": [],
+      "population": 9,
+      "scope": "offline_engineering_only"
+    }
+  ],
+  "cold_cache": true,
+  "dataset_sha256": "3e0c30db333e19aac5223b5b47e292785f14d7eb6a4134e9bbeac456fd12a11b",
+  "dataset_unchanged": true,
+  "executions": [
+    {
+      "cache_hits": 0,
+      "items": 9,
+      "network_attempts": 0,
+      "note": "Runtime execution metadata is outside report/ to keep cached report artifacts deterministic.",
+      "reserved_inr_including_failed_attempts": 0.0,
+      "seconds": 0.07800000000861473
+    },
+    {
+      "cache_hits": 0,
+      "items": 9,
+      "network_attempts": 0,
+      "note": "Runtime execution metadata is outside report/ to keep cached report artifacts deterministic.",
+      "reserved_inr_including_failed_attempts": 0.0,
+      "seconds": 0.046999999991385266
+    }
+  ],
+  "identical_artifacts": true,
+  "initial_cache_entries": 0,
+  "note": "Offline benchmarks measure local orchestration only. A warm cache is not a cold hosted benchmark.",
+  "replay_zero_network_and_budget": true,
+  "verified": true,
+  "version": 2
+}
