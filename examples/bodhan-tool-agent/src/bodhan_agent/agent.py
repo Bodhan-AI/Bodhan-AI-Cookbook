@@ -26,6 +26,7 @@ from bodhan_agent.models import AgentReport, StepTrace, VerificationResult
 from bodhan_agent.tracer import AgentTracer
 from bodhan_mcp.cache import DiskCache
 from bodhan_mcp.config import Settings, load_settings
+from bodhan_mcp.ffmpeg_utils import get_audio_duration
 from bodhan_mcp.lang_utils import (
     EXPECTED_SCRIPT_FOR_LANG,
     SCRIPT_NAMES,
@@ -35,7 +36,12 @@ from bodhan_mcp.lang_utils import (
     extract_task_languages,
     is_language_supported,
 )
-from bodhan_mcp.pricing import BudgetExceededError, BudgetManager
+from bodhan_mcp.pricing import (
+    BudgetExceededError,
+    BudgetManager,
+    calculate_transcribe_cost,
+    calculate_translate_cost,
+)
 from bodhan_mcp.tools import BodhanTools
 
 UNSUPPORTED_LANGUAGE_PATTERNS = [
@@ -43,6 +49,22 @@ UNSUPPORTED_LANGUAGE_PATTERNS = [
     r"\bchinese\b", r"\brussian\b", r"\barabic\b", r"\bportuguese\b",
     r"\bitalian\b", r"\bkorean\b",
 ]
+
+
+def clean_ocr_text(text: str) -> str:
+    """Strips OCR page markers like '--- Page 1 ---' from text."""
+    if not text:
+        return ""
+    cleaned = re.sub(r"(?m)^\s*---\s*Page\s+\d+\s*---\s*$", "", text)
+    cleaned = re.sub(r"---\s*Page\s+\d+\s*---", "", cleaned)
+    cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
+    return cleaned.strip()
+
+
+PLACEHOLDER_REGEX = re.compile(
+    r"<[^>]+>|\{\{[^}]+\}\}|output_from_\w+|\b(?:TODO|PLACEHOLDER)\b",
+    re.IGNORECASE,
+)
 
 
 class TaskAgent:
@@ -90,6 +112,11 @@ class TaskAgent:
         self.verification_results: list[VerificationResult] = []
         self.source_texts: dict[str, str] = {}
         self.executed_calls: dict[str, dict[str, Any]] = {}
+        self.step_outputs: list[dict[str, Any]] = []
+        self.last_produced_text: str | None = None
+        self.last_artifact_path: str | None = None
+        self.last_artifact_stem: str | None = None
+        self.upstream_sources: dict[str, dict[str, Any]] = {}
         self.audio_language: str | None = None
         self.target_language: str | None = None
         self.language_requested: str | None = None
@@ -339,6 +366,26 @@ class TaskAgent:
                 # Ensure file_path is resolved from input files if LLM missed it
                 self._bind_default_file_args(tool_name, args, valid_files)
 
+                # Resolve step references and check for unresolved placeholders in plain code
+                resolved_ok, err_msg = self._resolve_step_references(tool_name, args, valid_files)
+                if not resolved_ok:
+                    step += 1
+                    rej_trace = StepTrace(
+                        step=step,
+                        timestamp=datetime.now(timezone.utc).isoformat(),
+                        plan=f"Reject step {tool_name} with unresolved placeholder",
+                        tool=tool_name,
+                        arguments=args,
+                        result_summary=f"Failed: {err_msg}",
+                        latency_ms=0,
+                        llm_latency_ms=0,
+                        tool_latency_ms=0,
+                        cost_inr=0.0,
+                    )
+                    self.tracer.record_step(rej_trace)
+                    self.failures.append(f"Step {step} ({tool_name}) failed: {err_msg}")
+                    continue
+
                 # Repeated-call guard: reject identical calls
                 call_sig = f"{tool_name}:{json.dumps(args, sort_keys=True)}"
                 if call_sig in self.executed_calls:
@@ -395,24 +442,61 @@ class TaskAgent:
         # Verify all produced artifacts against real source
         self._verify_all_artifacts()
 
-        # Check for verification failures
+        # Check for verification failures and artifact states
         has_failed_verification = any(not v.passed for v in self.verification_results)
+        all_verifications_failed = (
+            len(self.verification_results) > 0 and all(not v.passed for v in self.verification_results)
+        )
+        has_artifacts = len(self.artifacts) > 0
+        any_failed_step = len(self.failures) > 0
+
+        # Check if final requested artifact is missing based on task intent
+        task_lower = self.task.lower()
+        task_wants_speech = bool(
+            re.search(r"\b(?:synthesiz\w*|speak\w*|read\s+(?:it\s+)?aloud|tts|generate\s+speech|voice\s+output)\b", task_lower)
+        )
+        task_wants_subtitles = bool(re.search(r"\b(?:subtitles|srt)\b", task_lower))
+        task_wants_translation = bool(re.search(r"\b(?:translat\w*)\b", task_lower))
+        task_wants_transcription = bool(re.search(r"\b(?:transcrib\w*)\b", task_lower))
+        task_wants_ocr = bool(re.search(r"\b(?:ocr|extract\s+(?:the\s+)?text)\b", task_lower))
+
+        has_speech = any(a.endswith(".wav") and "speech" in Path(a).name for a in self.artifacts)
+        has_subtitles = any(a.endswith(".srt") for a in self.artifacts)
+        has_translation = any("translated_" in Path(a).name for a in self.artifacts)
+        has_transcript = any("transcript_" in Path(a).name for a in self.artifacts)
+        has_ocr = any("ocr_" in Path(a).name for a in self.artifacts)
+
+        final_artifact_missing = False
+        if task_wants_speech and not has_speech:
+            final_artifact_missing = True
+            self.failures.append("Task requested speech/audio output, but no speech audio artifact was produced.")
+        if task_wants_subtitles and not has_subtitles:
+            final_artifact_missing = True
+            self.failures.append("Task requested subtitles, but no SRT artifact was produced.")
+        if task_wants_translation and not has_translation and not task_wants_speech:
+            final_artifact_missing = True
+            self.failures.append("Task requested translation, but no translated artifact was produced.")
+        if task_wants_transcription and not has_transcript:
+            final_artifact_missing = True
+            self.failures.append("Task requested audio transcription, but no transcript artifact was produced.")
+        if task_wants_ocr and not has_ocr and not has_translation:
+            final_artifact_missing = True
+            self.failures.append("Task requested OCR text extraction, but no OCR artifact was produced.")
 
         # Separate and prioritize statuses accurately
-        if agent_status in ("timeout", "failed", "impossible_task"):
-            # Preserve existing failure status
+        if agent_status in ("timeout", "impossible_task"):
             pass
         elif self.budget.remaining_inr <= 0.001 and self.budget.spent_inr >= self.max_cost_inr:
             agent_status = "budget_exceeded"
-        elif step >= self.max_steps:
+        elif step >= self.max_steps and (any_failed_step or final_artifact_missing):
             agent_status = "max_steps_reached"
-        elif not self.artifacts:
-            # Rule: Never report success without a verified final artifact
+        elif not has_artifacts or all_verifications_failed:
             agent_status = "failed"
-            self.failures.append("Task ended without producing any verified artifact.")
-        elif has_failed_verification:
-            agent_status = "failed"
-            self.failures.append("One or more generated artifacts failed source verification.")
+            if not has_artifacts:
+                self.failures.append("Task ended without producing any verified artifact.")
+        elif any_failed_step or has_failed_verification or final_artifact_missing:
+            # Some artifacts were produced, but a required step failed or verification failed
+            agent_status = "partial"
         else:
             agent_status = "success"
 
@@ -444,6 +528,108 @@ class TaskAgent:
         )
 
         return report
+
+    def _resolve_step_references(
+        self,
+        tool_name: str,
+        args: dict[str, Any],
+        valid_files: list[Path],
+    ) -> tuple[bool, str | None]:
+        """Resolves output references from earlier steps and rejects unresolved placeholders."""
+        # 1. Inspect existing arguments for placeholder strings and resolve them
+        for key, val in list(args.items()):
+            if isinstance(val, str) and PLACEHOLDER_REGEX.search(val):
+                resolved_text: str | None = None
+                resolved_path: str | None = None
+                resolved_stem: str | None = None
+
+                val_lower = val.lower()
+
+                # Find candidate step output matching the placeholder
+                candidate_step = None
+                if "extract_document_text" in val_lower or "ocr" in val_lower:
+                    for s in reversed(self.step_outputs):
+                        if s.get("tool") == "extract_document_text":
+                            candidate_step = s
+                            break
+                elif "transcribe_audio" in val_lower or "transcription" in val_lower or "transcript" in val_lower:
+                    for s in reversed(self.step_outputs):
+                        if s.get("tool") == "transcribe_audio":
+                            candidate_step = s
+                            break
+                elif "translate_text" in val_lower or "translation" in val_lower:
+                    for s in reversed(self.step_outputs):
+                        if s.get("tool") == "translate_text":
+                            candidate_step = s
+                            break
+                elif "synthesize_speech" in val_lower or "speech" in val_lower:
+                    for s in reversed(self.step_outputs):
+                        if s.get("tool") == "synthesize_speech":
+                            candidate_step = s
+                            break
+                elif re.search(r"step_(\d+)", val_lower):
+                    m_idx = re.search(r"step_(\d+)", val_lower)
+                    if m_idx:
+                        idx = int(m_idx.group(1)) - 1
+                        if 0 <= idx < len(self.step_outputs):
+                            candidate_step = self.step_outputs[idx]
+                elif any(kw in val_lower for kw in ("output", "result", "previous")):
+                    if self.step_outputs:
+                        candidate_step = self.step_outputs[-1]
+
+                if candidate_step:
+                    resolved_text = candidate_step.get("cleaned_text") or candidate_step.get("text")
+                    resolved_path = candidate_step.get("artifact_path")
+                    resolved_stem = candidate_step.get("artifact_stem")
+
+                # Substitute if placeholder resolved
+                if key in ("text", "input", "content") and resolved_text:
+                    args[key] = clean_ocr_text(resolved_text)
+                    if resolved_stem:
+                        args["source_artifact_stem"] = resolved_stem
+                elif key in ("file_path", "audio_path", "video_path") and resolved_path:
+                    args[key] = resolved_path
+                    if resolved_stem:
+                        args["source_artifact_stem"] = resolved_stem
+                elif resolved_text and tool_name in ("translate_text", "synthesize_speech"):
+                    args[key] = clean_ocr_text(resolved_text)
+                    if resolved_stem:
+                        args["source_artifact_stem"] = resolved_stem
+
+        # 2. Chaining fallbacks when text argument was omitted or left empty
+        if tool_name in ("translate_text", "synthesize_speech"):
+            current_text = args.get("text", "")
+            has_valid_file = bool(args.get("file_path") and Path(args["file_path"]).exists())
+            if (not current_text or not current_text.strip()) and not has_valid_file:
+                # If a previous step produced text, chain it
+                if self.last_produced_text and self.last_produced_text.strip():
+                    args["text"] = clean_ocr_text(self.last_produced_text)
+                    if self.last_artifact_stem:
+                        args["source_artifact_stem"] = self.last_artifact_stem
+            # For synthesize_speech, if file_path was passed instead of text, read file content
+            elif tool_name == "synthesize_speech" and (not current_text or not current_text.strip()) and has_valid_file:
+                p = Path(args["file_path"])
+                if p.suffix.lower() in (".txt", ".md", ".json"):
+                    args["text"] = clean_ocr_text(p.read_text(encoding="utf-8"))
+                    args["source_artifact_stem"] = p.stem
+
+        # 3. Clean OCR page markers from text if present
+        if args.get("text"):
+            args["text"] = clean_ocr_text(args["text"])
+
+        # 4. Strictly reject any remaining unresolved placeholders
+        for key, val in args.items():
+            if isinstance(val, str):
+                m = PLACEHOLDER_REGEX.search(val)
+                if m:
+                    return False, f"Unresolved placeholder '{m.group(0)}' in argument '{key}'"
+            elif isinstance(val, (list, dict)):
+                val_str = json.dumps(val)
+                m = PLACEHOLDER_REGEX.search(val_str)
+                if m:
+                    return False, f"Unresolved placeholder '{m.group(0)}' in argument '{key}'"
+
+        return True, None
 
     def _bind_default_file_args(self, tool_name: str, args: dict[str, Any], valid_files: list[Path]) -> None:
         """Binds input file paths to tool arguments if LLM omitted them."""
@@ -486,13 +672,40 @@ class TaskAgent:
                     target_script=args.get("target_script", "native"),
                 )
                 if res.get("success") and res.get("translated_text"):
-                    target_lang = res.get("target_language", "hi")
-                    stem = Path(args.get("file_path", "text")).stem if args.get("file_path") else "translated"
+                    target_lang = res.get("target_language") or args.get("target_language_code") or "hi"
+                    if args.get("source_artifact_stem"):
+                        stem = args["source_artifact_stem"]
+                    elif args.get("file_path") and Path(args["file_path"]).exists():
+                        stem = Path(args["file_path"]).stem
+                    elif self.last_artifact_stem:
+                        stem = self.last_artifact_stem
+                    else:
+                        stem = "text"
                     art_file = self.tracer.artifacts_dir / f"translated_{target_lang}_{stem}.txt"
                     art_file.write_text(res["translated_text"], encoding="utf-8")
                     saved_path = str(art_file.resolve())
                     self.artifacts.append(saved_path)
                     res["artifact_path"] = saved_path
+
+                    input_source = args.get("text", "")
+                    if not input_source and args.get("file_path") and Path(args["file_path"]).exists():
+                        input_source = Path(args["file_path"]).read_text(encoding="utf-8")
+
+                    self.last_produced_text = res["translated_text"]
+                    self.last_artifact_path = saved_path
+                    self.last_artifact_stem = art_file.stem
+                    self.step_outputs.append({
+                        "tool": "translate_text",
+                        "text": res["translated_text"],
+                        "cleaned_text": res["translated_text"],
+                        "artifact_path": saved_path,
+                        "artifact_stem": art_file.stem,
+                    })
+                    self.upstream_sources[art_file.name] = {
+                        "source_text": input_source,
+                        "source_stem": stem,
+                        "target_lang": target_lang,
+                    }
                 return res
 
             elif name == "transcribe_audio":
@@ -522,6 +735,21 @@ class TaskAgent:
                     self.audio_durations[saved_path] = dur_val
                     self.audio_durations[art_file.name] = dur_val
 
+                    self.last_produced_text = res["transcript"]
+                    self.last_artifact_path = saved_path
+                    self.last_artifact_stem = art_file.stem
+                    self.step_outputs.append({
+                        "tool": "transcribe_audio",
+                        "text": res["transcript"],
+                        "cleaned_text": res["transcript"],
+                        "artifact_path": saved_path,
+                        "artifact_stem": art_file.stem,
+                    })
+                    self.upstream_sources[art_file.name] = {
+                        "source_text": res["transcript"],
+                        "source_file": args.get("file_path"),
+                    }
+
                     # Auto-save SRT if windows exist
                     if res.get("windows"):
                         srt_file = self.tracer.artifacts_dir / f"subtitles_{stem}.srt"
@@ -530,29 +758,69 @@ class TaskAgent:
                 return res
 
             elif name == "synthesize_speech":
+                lang = args.get("language", "hi")
+                if args.get("source_artifact_stem"):
+                    stem = args["source_artifact_stem"]
+                elif self.last_artifact_stem:
+                    stem = self.last_artifact_stem
+                elif args.get("file_path") and Path(args.get("file_path", "")).exists():
+                    stem = Path(args["file_path"]).stem
+                else:
+                    stem = f"speech_{int(time.time())}"
                 out_p = args.get("output_path") or str(
-                    self.tracer.artifacts_dir / f"speech_{args.get('language', 'hi')}_{int(time.time())}.wav"
+                    self.tracer.artifacts_dir / f"speech_{lang}_{stem}.wav"
                 )
                 res = self.tools.synthesize_speech(
                     text=args.get("text", ""),
-                    language=args.get("language", "hi"),
+                    language=lang,
                     voice=args.get("voice"),
                     style=args.get("style"),
                     output_path=out_p,
                 )
                 if res.get("success") and res.get("audio_path"):
                     self.artifacts.append(res["audio_path"])
+                    self.last_artifact_path = res["audio_path"]
+                    self.last_artifact_stem = Path(res["audio_path"]).stem
+                    self.step_outputs.append({
+                        "tool": "synthesize_speech",
+                        "artifact_path": res["audio_path"],
+                        "artifact_stem": Path(res["audio_path"]).stem,
+                        "text": args.get("text", ""),
+                    })
+                    self.upstream_sources[Path(res["audio_path"]).name] = {
+                        "source_text": args.get("text", ""),
+                        "source_stem": stem,
+                        "lang": lang,
+                    }
                 return res
 
             elif name == "extract_document_text":
                 res = self.tools.extract_document_text(file_path=args.get("file_path", ""))
                 if res.get("success") and res.get("text"):
                     stem = Path(args.get("file_path", "doc")).stem
-                    art_file = self.tracer.artifacts_dir / f"ocr_{stem}.md"
+                    ocr_stem = stem if stem.startswith("ocr_") else f"ocr_{stem}"
+                    art_file = self.tracer.artifacts_dir / f"{ocr_stem}.md"
                     art_file.write_text(res["text"], encoding="utf-8")
                     saved_path = str(art_file.resolve())
                     self.artifacts.append(saved_path)
                     res["artifact_path"] = saved_path
+
+                    cleaned = clean_ocr_text(res["text"])
+                    self.last_produced_text = cleaned
+                    self.last_artifact_path = saved_path
+                    self.last_artifact_stem = art_file.stem
+                    self.step_outputs.append({
+                        "tool": "extract_document_text",
+                        "text": res["text"],
+                        "cleaned_text": cleaned,
+                        "artifact_path": saved_path,
+                        "artifact_stem": art_file.stem,
+                    })
+                    self.upstream_sources[art_file.name] = {
+                        "source_text": res["text"],
+                        "cleaned_text": cleaned,
+                        "source_file": args.get("file_path"),
+                    }
                 return res
 
             elif name == "inspect_media":
@@ -597,7 +865,7 @@ class TaskAgent:
             return {"success": False, "error": str(e)}
 
     def _verify_all_artifacts(self) -> None:
-        """Verifies produced artifacts against real source content."""
+        """Verifies produced artifacts against real source content in plain code."""
         for art_path_str in list(self.artifacts):
             art_path = Path(art_path_str)
             if not art_path.exists():
@@ -605,17 +873,46 @@ class TaskAgent:
 
             # Verify Translations
             if art_path.name.startswith("translated_") and art_path.suffix in (".txt", ".md"):
-                content = art_path.read_text(encoding="utf-8")
-                # Back-translate to English
-                back_res = self.tools.translate_text(text=content, target_language_code="en")
-                back_en = back_res.get("translated_text", "").strip()
+                content = art_path.read_text(encoding="utf-8").strip()
+                target_lang = "en"
+                name_parts = art_path.stem.split("_")
+                if len(name_parts) >= 2 and len(name_parts[1]) in (2, 3):
+                    target_lang = name_parts[1]
 
-                # Find source text to compare against
-                source_en = ""
-                for src_text in self.source_texts.values():
-                    if src_text.strip():
-                        source_en = src_text.strip()
-                        break
+                # Find upstream source text
+                up_info = self.upstream_sources.get(art_path.name, {})
+                upstream_text = up_info.get("source_text", "").strip()
+                if not upstream_text:
+                    for src_text in self.source_texts.values():
+                        if src_text.strip():
+                            upstream_text = src_text.strip()
+                            break
+
+                if not upstream_text:
+                    self.verification_results.append(
+                        VerificationResult(
+                            artifact=art_path.name,
+                            verification_type="source_fidelity",
+                            passed=False,
+                            notes="Verification failed: No upstream source text available for fidelity check.",
+                        )
+                    )
+                    continue
+
+                # 1. Back-translate artifact to English
+                if target_lang == "en":
+                    back_en = content
+                else:
+                    back_res = self.tools.translate_text(text=content, target_language_code="en")
+                    back_en = back_res.get("translated_text", "").strip()
+
+                # 2. Convert upstream text to English for comparison
+                detected_up_script = detect_script_language(upstream_text)
+                if detected_up_script == "en":
+                    source_en = upstream_text
+                else:
+                    up_en_res = self.tools.translate_text(text=upstream_text, target_language_code="en")
+                    source_en = up_en_res.get("translated_text", "").strip()
 
                 passed, notes = self._verify_translation_fidelity(source_en, back_en)
                 self.verification_results.append(
@@ -629,18 +926,100 @@ class TaskAgent:
 
             # Verify Synthesized Speech
             elif art_path.suffix.lower() == ".wav" and "speech" in art_path.name:
-                back_trans = self.tools.transcribe_audio(str(art_path))
-                transcript = back_trans.get("transcript", "").strip()
-                passed = back_trans.get("success", False) and len(transcript) > 0
-                notes = f"Back-transcribed audio: {len(transcript)} chars. Passed={passed}"
-                self.verification_results.append(
-                    VerificationResult(
-                        artifact=str(art_path.name),
-                        verification_type="speech_back_transcription",
-                        passed=passed,
-                        notes=notes,
+                art_name = art_path.name
+                if not art_path.exists() or art_path.stat().st_size == 0:
+                    self.verification_results.append(
+                        VerificationResult(
+                            artifact=art_name,
+                            verification_type="speech_quality",
+                            passed=False,
+                            notes="Speech verification failed: Generated audio file is missing or empty (0 bytes).",
+                        )
                     )
-                )
+                    continue
+
+                dur = get_audio_duration(art_path)
+                up_info = self.upstream_sources.get(art_name, {})
+                source_text = up_info.get("source_text", "").strip()
+
+                if dur <= 0.2:
+                    self.verification_results.append(
+                        VerificationResult(
+                            artifact=art_name,
+                            verification_type="speech_quality",
+                            passed=False,
+                            notes=f"Speech verification failed: Audio duration is too short or empty ({dur:.2f}s).",
+                        )
+                    )
+                    continue
+
+                if len(source_text) >= 15:
+                    cps = len(source_text) / dur if dur > 0 else 0
+                    if cps < 1.0 or cps > 45.0:
+                        self.verification_results.append(
+                            VerificationResult(
+                                artifact=art_name,
+                                verification_type="speech_quality",
+                                passed=False,
+                                notes=(
+                                    f"Speech verification failed: Audio duration ({dur:.2f}s) is implausible "
+                                    f"for text length ({len(source_text)} chars, {cps:.1f} chars/s)."
+                                ),
+                            )
+                        )
+                        continue
+
+                # Back-transcribe with indic-transcribe (capped at ₹0.30 and budget respected)
+                est_cost = calculate_transcribe_cost(dur)
+                if est_cost <= 0.30 and self.budget.remaining_inr >= est_cost:
+                    back_trans = self.tools.transcribe_audio(str(art_path))
+                    transcript = back_trans.get("transcript", "").strip()
+                    if not transcript:
+                        self.verification_results.append(
+                            VerificationResult(
+                                artifact=art_name,
+                                verification_type="speech_back_transcription",
+                                passed=False,
+                                notes="Speech verification failed: Back-transcription produced no text.",
+                            )
+                        )
+                    else:
+                        src_words = source_text.split()
+                        trans_words = transcript.split()
+                        ratio = len(trans_words) / float(len(src_words)) if len(src_words) > 0 else 1.0
+                        if ratio < 0.25 or ratio > 3.5:
+                            self.verification_results.append(
+                                VerificationResult(
+                                    artifact=art_name,
+                                    verification_type="speech_back_transcription",
+                                    passed=False,
+                                    notes=(
+                                        f"Speech verification failed back-transcription length check: "
+                                        f"source has {len(src_words)} words, transcript has {len(trans_words)} words."
+                                    ),
+                                )
+                            )
+                        else:
+                            self.verification_results.append(
+                                VerificationResult(
+                                    artifact=art_name,
+                                    verification_type="speech_back_transcription",
+                                    passed=True,
+                                    notes=(
+                                        f"Verified speech audio ({dur:.2f}s, {len(source_text)} chars) "
+                                        f"with back-transcription fidelity ({len(transcript)} chars)."
+                                    ),
+                                )
+                            )
+                else:
+                    self.verification_results.append(
+                        VerificationResult(
+                            artifact=art_name,
+                            verification_type="speech_quality",
+                            passed=True,
+                            notes=f"Verified speech audio file exists and duration is plausible ({dur:.2f}s).",
+                        )
+                    )
 
             # Verify Audio Transcripts
             elif art_path.name.startswith("transcript_") and art_path.suffix.lower() == ".txt":
@@ -778,6 +1157,9 @@ class TaskAgent:
         if status == "failed":
             reasons = "; ".join(self.failures) if self.failures else "Task did not produce verified artifacts."
             return f"Task execution failed: {reasons}"
+        if status == "partial":
+            reasons = "; ".join(self.failures) if self.failures else "One or more steps failed."
+            return f"The task completed partially with {len(self.artifacts)} artifact(s), but encountered failures: {reasons}"
 
         # Status is success
         parts = []
@@ -806,8 +1188,7 @@ class TaskAgent:
     def _verify_translation_fidelity(self, source_en: str, back_en: str) -> tuple[bool, str]:
         """Compares back-translated English against real source English."""
         if not source_en:
-            # If no ground truth source text was stored, pass with note
-            return True, f"Verified non-empty translation (back-translated {len(back_en)} chars)"
+            return False, "Translation verification failed: No source text available to verify fidelity against."
 
         src_words = source_en.split()
         back_words = back_en.split()

@@ -772,6 +772,152 @@ class TestAgent(unittest.TestCase):
         self.assertIsNone(captured_args.get("language"))
         self.assertTrue(any("ambiguous" in a.lower() for a in report.assumptions))
 
+    def test_placeholder_argument_is_rejected(self):
+        """Tests that any argument containing an unresolved placeholder is rejected before calling the tool."""
+        text_file = self.samples_dir / "sample.txt"
+        text_file.write_text("Sample content", encoding="utf-8")
+
+        plan = {
+            "steps": [
+                {"tool": "translate_text", "args": {"text": "<output_from_unknown_source>", "target_language": "hi"}}
+            ]
+        }
+        agent = TaskAgent(
+            task="Translate text with unresolved placeholder",
+            files=[text_file],
+            out_dir=self.out_dir,
+            settings=self.mock_settings,
+            llm_client=MockLLM(plan_dict=plan),
+            tools=self.mock_tools,
+        )
+        report = agent.run()
+
+        # Tool was never called
+        self.mock_tools.translate_text.assert_not_called()
+        self.assertEqual(report.status, "failed")
+        self.assertTrue(any("Unresolved placeholder" in f for f in report.failures))
+
+    def test_ocr_then_translate_receives_real_ocr_text(self):
+        """Tests that chained OCR then translate strips page markers, receives real text, and names artifact cleanly."""
+        img_file = self.samples_dir / "ocr_sample.png"
+        img_file.write_bytes(b"mockpngdata")
+
+        def mock_ocr(file_path=""):
+            return {
+                "success": True,
+                "text": "--- Page 1 ---\n\nकक्षा की सूचना\n\nकक्षा सुबह नौ बजे शुरू होती है।",
+                "cost_inr": 0.2,
+            }
+        self.mock_tools.extract_document_text.side_effect = mock_ocr
+
+        captured_translate = {}
+        def mock_translate(**kwargs):
+            captured_translate.update(kwargs)
+            if kwargs.get("target_language_code") == "en":
+                # For back-translation fidelity
+                return {"success": True, "translated_text": "Class notice. Class begins at nine in the morning.", "cost_inr": 0.001}
+            return {"success": True, "translated_text": "Class notice. Class begins at nine in the morning.", "cost_inr": 0.001}
+        self.mock_tools.translate_text.side_effect = mock_translate
+
+        plan = {
+            "steps": [
+                {"tool": "extract_document_text", "args": {"file_path": str(img_file)}},
+                {"tool": "translate_text", "args": {"text": "<output_from_extract_document_text>", "target_language_code": "en"}},
+            ]
+        }
+        agent = TaskAgent(
+            task="Extract the text from this image and translate it into English",
+            files=[img_file],
+            out_dir=self.out_dir,
+            settings=self.mock_settings,
+            llm_client=MockLLM(plan_dict=plan),
+            tools=self.mock_tools,
+        )
+        report = agent.run()
+
+        # Received cleaned OCR text (page marker '--- Page 1 ---' stripped!)
+        received_text = captured_translate.get("text", "")
+        self.assertNotIn("--- Page 1 ---", received_text)
+        self.assertIn("कक्षा की सूचना", received_text)
+
+        # Artifact has sensible name
+        self.assertTrue(any("translated_en_ocr_sample.txt" in a for a in report.artifacts))
+        self.assertEqual(report.status, "success")
+
+    def test_failed_required_step_gives_status_partial_or_failed_never_success(self):
+        """Tests that when a planned required step fails after an earlier artifact is produced, status is partial."""
+        text_file = self.samples_dir / "short_text.txt"
+        text_file.write_text("Class starts at nine.", encoding="utf-8")
+
+        def mock_translate(**kwargs):
+            if kwargs.get("target_language_code") == "en":
+                return {"success": True, "translated_text": "Class starts at nine."}
+            return {"success": True, "translated_text": "कक्षा सुबह नौ बजे शुरू होती है।", "cost_inr": 0.001}
+        self.mock_tools.translate_text.side_effect = mock_translate
+
+        def mock_synthesize(**kwargs):
+            return {"success": False, "error": "Empty text provided for speech synthesis."}
+        self.mock_tools.synthesize_speech.side_effect = mock_synthesize
+
+        plan = {
+            "steps": [
+                {"tool": "translate_text", "args": {"file_path": str(text_file), "target_language_code": "hi"}},
+                {"tool": "synthesize_speech", "args": {"file_path": str(text_file), "language": "hi"}},
+            ]
+        }
+        agent = TaskAgent(
+            task="Translate this text into Hindi and read it aloud as an audio file",
+            files=[text_file],
+            out_dir=self.out_dir,
+            settings=self.mock_settings,
+            llm_client=MockLLM(plan_dict=plan),
+            tools=self.mock_tools,
+        )
+        report = agent.run()
+
+        # Status must be partial, NEVER success
+        self.assertEqual(report.status, "partial")
+        self.assertTrue(any("synthesize_speech" in f and "failed" in f for f in report.failures))
+
+        # result.md lists failed steps first
+        result_md = (self.out_dir / "result.md").read_text(encoding="utf-8")
+        failed_idx = result_md.find("## Failed Steps")
+        summary_idx = result_md.find("## Summary of Actions & Answer")
+        self.assertNotEqual(failed_idx, -1)
+        self.assertNotEqual(summary_idx, -1)
+        self.assertLess(failed_idx, summary_idx, "Failed Steps must be listed before Summary in result.md")
+
+    def test_speech_verification_catches_empty_or_too_short_audio(self):
+        """Tests that speech verification catches 0-byte or too-short audio files and fails/marks partial."""
+        text_file = self.samples_dir / "speech_src.txt"
+        text_file.write_text("नमस्ते दुनिया यह एक लंबा परीक्षण वाक्य है", encoding="utf-8")
+
+        # Mock synthesize that writes 0-byte file
+        def mock_synthesize(output_path="", **kwargs):
+            p = Path(output_path)
+            p.write_bytes(b"")  # 0 bytes!
+            return {"success": True, "audio_path": str(p.resolve())}
+        self.mock_tools.synthesize_speech.side_effect = mock_synthesize
+
+        plan = {
+            "steps": [
+                {"tool": "synthesize_speech", "args": {"text": "नमस्ते दुनिया यह एक लंबा परीक्षण वाक्य है", "language": "hi"}}
+            ]
+        }
+        agent = TaskAgent(
+            task="Read aloud this text as audio",
+            files=[text_file],
+            out_dir=self.out_dir,
+            settings=self.mock_settings,
+            llm_client=MockLLM(plan_dict=plan),
+            tools=self.mock_tools,
+        )
+        report = agent.run()
+
+        # Must not be success because speech verification failed
+        self.assertNotEqual(report.status, "success")
+        self.assertTrue(any(v.verification_type == "speech_quality" and not v.passed for v in report.verification_results))
+
 
 if __name__ == "__main__":
     unittest.main()

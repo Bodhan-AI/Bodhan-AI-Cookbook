@@ -54,7 +54,7 @@ class VerificationResult:
 
 @dataclass
 class AgentReport:
-    # Distinct statuses: success, max_steps_reached, budget_exceeded (money only), timeout, impossible_task, failed
+    # Distinct statuses: success, partial, max_steps_reached, budget_exceeded (money only), timeout, impossible_task, failed
     status: str
     task: str
     steps_taken: int

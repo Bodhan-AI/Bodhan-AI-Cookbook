@@ -69,11 +69,22 @@ class AgentTracer:
             f"**Task Prompt**: {task}",
             f"**Generated At**: {datetime.now(timezone.utc).isoformat()}",
             "",
+        ]
+
+        if failures:
+            lines.extend([
+                "## Failed Steps",
+                "",
+                "\n".join(f"- {f}" for f in failures),
+                "",
+            ])
+
+        lines.extend([
             "## Summary of Actions & Answer",
             "",
             final_answer.strip() if final_answer.strip() else "Task completed.",
             "",
-        ]
+        ])
 
         if assumptions:
             lines.extend([
@@ -88,14 +99,6 @@ class AgentTracer:
                 "## Produced Artifacts",
                 "",
                 "\n".join(f"- [{Path(a).name}](artifacts/{Path(a).name})" for a in artifacts),
-                "",
-            ])
-
-        if failures:
-            lines.extend([
-                "## Notes / Issues Encountered",
-                "",
-                "\n".join(f"- {f}" for f in failures),
                 "",
             ])
 
