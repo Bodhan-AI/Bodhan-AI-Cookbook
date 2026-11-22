@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -11,9 +12,29 @@ from bodhan_lesson.cli import (
     ensure_output_dirs,
     main,
     parse_args,
-    write_stub_report,
+    write_report,
 )
 from bodhan_lesson.limits import MAX_PAGES
+
+
+def _fake_ocr_ok(pages_dir: Path, **kwargs):  # noqa: ANN003
+    images = sorted(pages_dir.glob("page_*.*"))
+    images = [p for p in images if p.suffix.lower() in {".png", ".jpg", ".jpeg"}]
+    return [
+        {
+            "page": img.name,
+            "stem": img.stem,
+            "status": "ok",
+            "block_count": 1,
+            "md_path": str(pages_dir / f"{img.stem}.md"),
+            "ocr_json_path": str(pages_dir / f"{img.stem}.ocr.json"),
+            "usage": {},
+            "error": None,
+            "latency_s": 0.01,
+            "retries": 0,
+        }
+        for img in images
+    ]
 
 
 def test_parse_args_required_flags() -> None:
@@ -44,20 +65,45 @@ def test_parse_args_optional_flags() -> None:
 
 def test_langs_split_and_trim(image_folder: Path, tmp_path: Path) -> None:
     out = tmp_path / "run"
-    code = main(
-        [
-            "--input", str(image_folder),
-            "--langs", "hi, ta, bn",
-            "--out", str(out),
-        ]
-    )
+    with patch("bodhan_lesson.cli.run_ocr_on_pages", side_effect=_fake_ocr_ok):
+        code = main(
+            [
+                "--input", str(image_folder),
+                "--langs", "hi, ta, bn",
+                "--out", str(out),
+            ]
+        )
     assert code == 0
     report = json.loads((out / "report.json").read_text(encoding="utf-8"))
     assert report["langs"] == ["hi", "ta", "bn"]
+    assert report["phase"] == 2
 
 
 def test_empty_langs_returns_2(tmp_path: Path) -> None:
     code = main(["--input", str(tmp_path), "--langs", ",,", "--out", str(tmp_path / "o")])
+    assert code == 2
+
+
+def test_unsupported_langs_returns_2(tmp_path: Path) -> None:
+    code = main(
+        [
+            "--input", str(tmp_path),
+            "--langs", "hi,xx",
+            "--out", str(tmp_path / "o"),
+        ]
+    )
+    assert code == 2
+
+
+def test_unsupported_source_lang_returns_2(tmp_path: Path) -> None:
+    code = main(
+        [
+            "--input", str(tmp_path),
+            "--langs", "hi",
+            "--source-lang", "zz",
+            "--out", str(tmp_path / "o"),
+        ]
+    )
     assert code == 2
 
 
@@ -69,13 +115,18 @@ def test_ensure_output_dirs(tmp_path: Path) -> None:
     assert (out / "ta" / "narration").is_dir()
 
 
-def test_write_stub_report(tmp_path: Path) -> None:
+def test_write_report(tmp_path: Path) -> None:
     args = parse_args(["--input", "sample", "--langs", "hi", "--out", str(tmp_path)])
-    path = write_stub_report(tmp_path, args, ["hi"], page_count=3)
+    ocr_pages = [
+        {"page": "page_001.png", "status": "ok", "block_count": 2, "error": None},
+        {"page": "page_002.png", "status": "error", "block_count": 0, "error": "boom"},
+    ]
+    path = write_report(tmp_path, args, ["hi"], page_count=2, ocr_pages=ocr_pages)
     data = json.loads(path.read_text(encoding="utf-8"))
-    assert data["phase"] == 1
-    assert data["status"] == "pages_ready"
-    assert data["page_count"] == 3
+    assert data["phase"] == 2
+    assert data["status"] == "ocr_partial"
+    assert data["ocr"]["ok"] == 1
+    assert data["ocr"]["failed"] == 1
     assert data["languages"]["hi"]["status"] == "pending"
 
 

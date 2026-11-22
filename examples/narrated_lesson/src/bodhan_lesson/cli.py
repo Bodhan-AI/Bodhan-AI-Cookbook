@@ -1,6 +1,6 @@
 """CLI entry helpers for the narrated-lesson pipeline.
 
-Parses command-line flags, prepares page images, and writes a stub report.
+Parses flags, prepares page images, runs Indic-OCR, and writes report.json.
 """
 
 from __future__ import annotations
@@ -9,6 +9,14 @@ import argparse
 import json
 from pathlib import Path
 
+from dotenv import load_dotenv
+
+from bodhan_lesson.languages import (
+    parse_lang_list,
+    validate_source_lang,
+    validate_target_langs,
+)
+from bodhan_lesson.ocr import run_ocr_on_pages
 from bodhan_lesson.render_pages import prepare_page_images
 
 
@@ -26,14 +34,18 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--langs",
         required=True,
-        help="Comma-separated target languages, e.g. hi,ta,bn",
+        help="Comma-separated target languages (Indic-Speak codes), e.g. hi,ta,bn",
     )
     parser.add_argument(
         "--out",
         required=True,
         help="Output directory",
     )
-    parser.add_argument("--source-lang", default=None, help="Optional source language (e.g. en)")
+    parser.add_argument(
+        "--source-lang",
+        default=None,
+        help="Optional source language (translate codes, e.g. en). Detect later if omitted.",
+    )
     parser.add_argument("--glossary", default=None, help="Optional glossary YAML path")
     parser.add_argument("--voices", default=None, help="Optional voices YAML path")
     parser.add_argument(
@@ -52,17 +64,30 @@ def ensure_output_dirs(out_dir: Path, langs: list[str]) -> None:
         (lang_dir / "narration").mkdir(parents=True, exist_ok=True)
 
 
-def write_stub_report(
+def write_report(
     out_dir: Path,
     args: argparse.Namespace,
     langs: list[str],
     page_count: int,
+    ocr_pages: list[dict],
 ) -> Path:
-    """Write a starter report.json (filled more in later phases)."""
+    """Write report.json after page prep + OCR."""
+    ok = sum(1 for row in ocr_pages if row.get("status") == "ok")
+    failed = sum(1 for row in ocr_pages if row.get("status") == "error")
+    if failed and ok:
+        status = "ocr_partial"
+        message = "Some pages failed OCR — see ocr.pages"
+    elif failed and not ok:
+        status = "ocr_failed"
+        message = "All pages failed OCR"
+    else:
+        status = "ocr_ready"
+        message = "Page images prepared and OCR complete — assemble/translate not implemented yet"
+
     report = {
-        "status": "pages_ready",
-        "phase": 1,
-        "message": "Page images prepared — OCR/translate/narration not implemented yet",
+        "status": status,
+        "phase": 2,
+        "message": message,
         "input": str(Path(args.input).resolve()),
         "page_count": page_count,
         "langs": langs,
@@ -70,6 +95,11 @@ def write_stub_report(
         "code_mixed": bool(args.code_mixed),
         "glossary": args.glossary,
         "voices": args.voices,
+        "ocr": {
+            "ok": ok,
+            "failed": failed,
+            "pages": ocr_pages,
+        },
         "languages": {
             lang: {"status": "pending", "timings": {}, "retries": 0, "qa": {}, "cost": {}}
             for lang in langs
@@ -81,15 +111,19 @@ def write_stub_report(
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Run Phase 0+1: parse flags, prepare page images, write stub report."""
+    """Run Phase 1+2: pages, Indic-OCR, report."""
+    load_dotenv()
     args = parse_args(argv)
 
     input_path = Path(args.input)
     out_dir = Path(args.out)
-    langs = [part.strip() for part in args.langs.split(",") if part.strip()]
+    langs = parse_lang_list(args.langs)
 
-    if not langs:
-        print("error: --langs must list at least one language code, e.g. hi,ta,bn")
+    try:
+        validate_target_langs(langs)
+        validate_source_lang(args.source_lang)
+    except ValueError as exc:
+        print(f"error: {exc}")
         return 2
 
     ensure_output_dirs(out_dir, langs)
@@ -101,14 +135,33 @@ def main(argv: list[str] | None = None) -> int:
         print(f"error: {exc}")
         return 2
 
-    report_path = write_stub_report(out_dir, args, langs, page_count=len(page_paths))
+    try:
+        ocr_pages = run_ocr_on_pages(pages_dir)
+    except RuntimeError as exc:
+        print(f"error: {exc}")
+        return 2
 
-    print("Phase 1 OK")
+    report_path = write_report(
+        out_dir,
+        args,
+        langs,
+        page_count=len(page_paths),
+        ocr_pages=ocr_pages,
+    )
+
+    ok = sum(1 for row in ocr_pages if row.get("status") == "ok")
+    failed = len(ocr_pages) - ok
+
+    print("Phase 2 OK" if ok and not failed else "Phase 2 partial" if ok else "Phase 2 failed")
     print(f"  input : {input_path}")
     print(f"  pages : {len(page_paths)} -> {pages_dir}")
+    print(f"  ocr   : {ok} ok, {failed} failed")
     print(f"  langs : {langs}")
     print(f"  out   : {out_dir.resolve()}")
     print(f"  report: {report_path}")
+
+    if ok == 0:
+        return 2
     return 0
 
 

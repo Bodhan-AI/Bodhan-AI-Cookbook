@@ -8,4 +8,3 @@ sample_data/*
 outputs/*
 !outputs/.gitkeep
 .pytest_cache/
-sample_data\9-Maths-NCERT-Book-Lines-and-Angles.pdf
