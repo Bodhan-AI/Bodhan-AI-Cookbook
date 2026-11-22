@@ -1,0 +1,18 @@
+.env
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+*.egg-info/
+build/
+outputs/*
+!outputs/.gitkeep
+out/
+# Media stays out of git (assignment rule); sample and demo files are linked from the README.
+sample_data/*
+!sample_data/.gitkeep
+*.mp4
+*.mov
+*.mkv
+*.webm
+*.wav

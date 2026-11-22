@@ -1,0 +1,23 @@
+# Tested together in a clean venv (Python 3.12, CPU). ffmpeg/ffprobe must be on PATH.
+# torchaudio's last release is 2.11.1 and its compiled part needs torch 2.11.x, so torch is pinned to 2.11.0.
+# CPU builds of torch/torchaudio: on Linux, PyPI's torch is the CUDA build (531 MB plus several GB of NVIDIA
+# libraries). With this index pip resolves torch 2.11.0+cpu / torchaudio 2.11.1+cpu (checked for Linux x86_64).
+--extra-index-url https://download.pytorch.org/whl/cpu
+numpy==2.5.5
+soundfile==0.14.0
+requests==2.34.2
+PyYAML==6.0.3
+torch==2.11.0
+torchaudio==2.11.1
+silero-vad==6.2.3
+demucs==4.0.1
+# demucs' own dependencies, pinned to the tested versions
+dora-search==0.1.13
+einops==0.8.2
+julius==0.2.8
+lameenc==1.9.0
+openunmix==1.3.0
+# tests
+pytest==9.2.0
+# this recipe itself, so `python -m bodhan_dub` works from any folder (run pip inside the recipe folder)
+-e .
