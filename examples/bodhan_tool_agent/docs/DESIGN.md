@@ -67,8 +67,8 @@ flowchart TD
     refuse --> many{"Third budget error?"}
     many -- yes --> stopped
     many -- no --> ask
-    budget -- no --> call["Bodhan call: cache, retries with backoff"]
-    call --> check["Tool checks its own output<br/>(speech back-transcribed, translation covered)"]
+    budget -- no --> api["Bodhan call: cache, retries with backoff"]
+    api --> check["Tool checks its own output<br/>(speech back-transcribed, translation covered)"]
     check --> failed{"Check failed?"}
     failed -- "speech chunk" --> retry["Split the chunk or ask again (max 2 levels)"] --> check
     failed -- no --> result["Result: paths + check report + short preview"] --> ask
@@ -159,7 +159,8 @@ Back-transcription is noisy: the speech model can be right while the recogniser 
 | One OCR page fails | The other pages are kept; the failed page is reported |
 | Speech repeats or omits | Split or retry the chunk (see Verification) |
 | A tool returns an error | The LLM sees the code and hint and can re-plan |
-| LLM endpoint fails | The run ends as `failed` with a report of what exists |
+| LLM endpoint fails or is rate-limited | The call goes to the next configured model (`LLM_FALLBACK_*`); a rate-limited model rests for as long as the provider asks and is then used again. If every model fails, the run ends as `failed` with a report of what exists |
+| LLM emits a malformed tool call | Asked again up to three times at a higher temperature, then answered by the fallback model |
 
 ## Untrusted content
 
