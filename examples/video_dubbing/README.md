@@ -14,6 +14,12 @@ All speech recognition, translation and speech synthesis run on Bodhan's Indic m
 
 Design notes, the architecture diagram and the workflow flow chart are in **[docs/DESIGN.md](docs/DESIGN.md)**.
 
+## Demo video and outputs
+
+- **Demo video (under 5 minutes):** <https://youtu.be/rfgvXaZtN8M>. A full run on the demo lesson and a walk through its outputs.
+- **Demo outputs:** [GitHub release `video-dubbing-demo-outputs`](https://github.com/GowthamRam2000/Bodhan-AI-Cookbook/releases/tag/video-dubbing-demo-outputs). The dubbed Hindi, Tamil and Bengali MP4s, subtitles, `segments.<lang>.json`, `report.json` and the English transcript. It also has the versatility tests: the generated two-speaker video dubbed into Kannada, and a 30 s clip dubbed into Telugu.
+- **Input:** the Class 9 mathematics lesson linked in the assignment brief. Media files are kept out of git, as the brief asks.
+
 ## Setup
 
 System dependency: **ffmpeg** with ffprobe on `PATH` (`brew install ffmpeg`, `apt-get install ffmpeg`). Python 3.12+.
@@ -196,10 +202,28 @@ The segmentation and timing logic has property tests over 200 random speech layo
 
 ## AI assistance
 
-I built this recipe with **Claude Code** (Anthropic's coding agent, Claude Opus) as a pair programmer, working through the build one stage at a time.
+I built this recipe with **Claude Code** (Anthropic's coding agent, Claude Opus) as a pair programmer. I set the direction, the architecture and the quality bar; Claude Code did most of the typing, testing and API probing.
 
-- **What I directed:** the choice of assignment and the day-by-day plan; a rules check against the brief and CONTRIBUTING before each stage; and the trade-off decisions. Examples: whether LLM transcript repair is within the rules, comparing five LLMs and switching to GLM 5.3 Flash, sending native digits to Indic-Speak so numbers are spoken in the target language, and stopping a run to re-plan when the API's behaviour didn't match its docs.
-- **What Claude Code did:** wrote most of the code and the 330+ tests; probed the Bodhan APIs live to find how they actually behave (the `/translate` 404 and chat-transport fallback, rate limits without headers, the `ExceededBudget` 429, digits read in English); ran the demo, the non-demo-language runs and the clean-install checks; and drafted the documentation.
-- **Review:** an independent reviewer agent checked the whole design against the brief twice, and its findings were fixed: judge-gated recovery, consistent term rendering, failing honestly when nothing could be dubbed, speaker clustering, and flexible config files.
+### What I directed
+- **Scope and method.** I chose the dubbing assignment and built it one stage at a time, from VAD through transcription, repair, translation, speech and mixing. Before each stage I had the plan checked against the brief and the Cookbook's CONTRIBUTING rules, including looking for "trick" requirements.
+- **The architecture.** I set the design principles the pipeline is built on:
+  - **VAD is the clock.** Indic-Transcribe returns no timestamps, so speech regions from Silero VAD give every segment its timing. Chunks are cut only at pauses and speaker turns, and unnecessary LLM merges are split back at sentence boundaries.
+  - **The LLM proposes, code decides.** Every LLM output (repair, glossary, glosses, judge verdicts, condensed English) is validated by deterministic checks. If it fails, the LLM is re-asked once with the exact errors, then a deterministic fallback runs, so an LLM outage lowers quality but never stops a run.
+  - **Checking meaning without reading Indian-language text.** Translations are back-translated by Indic-Translate. Code checks the facts (numbers, script, terms) and the LLM judges meaning in English. Dubbed audio is checked by ear with Indic-Transcribe, using a number-aware error rate and a loop detector.
+  - **A fixed order for fitting time:** spare silence first, then a stretch of at most 1.2×, then shorter English that is re-translated and re-judged. Lines never overlap, and any drift is measured and reported.
+  - **Built for unseen inputs and failure:**
+    - every model call is cached by its exact input, so reruns are free and resumable;
+    - languages run in parallel and in isolation;
+    - rate limits are learned from 429s with a cooldown shared across threads;
+    - a spent-credit error fails fast;
+    - unusable config entries become warnings, not failures.
+- **Ground-rule calls.** I checked that LLM transcript repair is allowed (English-side editing only) and kept the LLM strictly English-only: it judges Indian-language output through back-translations and never writes it.
+- **Model choice.** I asked for a comparison of the LLMs available to me, including Sarvam's Indic-tuned model. A five-model bake-off on the real task showed that an Indic-tuned LLM brings nothing to an English-only orchestrator, and that GLM 5.3 Flash was the fastest and most reliable.
+- **Listening, not just testing.** I listened to the dubs and caught a "double echo" (the original English showing through Tamil pauses), which led to deeper ducking and a bleed metric in the report. I also raised romanized Hindi in English speech ("ekdum mast"), which led to the per-language gloss step.
+- **Quality trade-offs.** I approved sending native digits to Indic-Speak so numbers are spoken in the target language, keeping natural native translations over forced code-mixing, and reporting honestly where a line cannot fit instead of hiding it.
+- **Independent review.** I had the whole design reviewed against the brief more than once, and the findings were fixed before submission.
 
-I reviewed each module and the reasoning behind it, and I'm ready to walk through any part of it in the debrief.
+### What Claude Code did
+Wrote most of the code and the 339 tests; probed the Bodhan APIs live to learn how they actually behave (the `/translate` 404, rate limits without headers, digits read in English); ran the demo, non-demo-language, Docker and clean-install checks; and drafted the documentation.
+
+I reviewed each module and the reasoning behind it, and I'm ready to walk through any part of it, or change it live, in the debrief.
