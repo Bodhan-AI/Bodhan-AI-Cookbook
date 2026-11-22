@@ -121,14 +121,17 @@ def test_skip_ocr_reuses_artifacts(tmp_path: Path) -> None:
             with patch(
                 "bodhan_lesson.cli.translate_lesson_file", side_effect=_fake_translate
             ):
-                code = main(
-                    [
-                        "--input", str(tmp_path / "ignored.pdf"),
-                        "--langs", "hi",
-                        "--out", str(out),
-                        "--skip-ocr",
-                    ]
-                )
+                with patch(
+                    "bodhan_lesson.cli.speak_narrated_lessons", side_effect=_fake_speak
+                ):
+                    code = main(
+                        [
+                            "--input", str(tmp_path / "ignored.pdf"),
+                            "--langs", "hi",
+                            "--out", str(out),
+                            "--skip-ocr",
+                        ]
+                    )
 
     assert code == 0
     mock_prep.assert_not_called()
@@ -139,14 +142,16 @@ def test_skip_ocr_reuses_artifacts(tmp_path: Path) -> None:
     assert report["ocr"]["ok"] == 1
     assert report["layout"]["ok"] == 1
     assert report["assembly"]["status"] == "ok"
-    assert report["phase"] == 5
+    assert report["phase"] == 6
     assert report["translations"]["ok"] == 1
     assert report["narrations"]["ok"] == 1
+    assert report["speaks"]["ok"] == 1
     assert (pages / "page_001.clean.json").is_file()
     assert (out / "source" / "lesson.src.md").is_file()
     assert (out / "hi" / "lesson.hi.md").is_file()
     assert (out / "hi" / "narration_script.hi.json").is_file()
-    assert report["languages"]["hi"]["status"] == "scripted"
+    assert (out / "hi" / "lesson.hi.mp3").is_file()
+    assert report["languages"]["hi"]["status"] == "spoken"
 
 
 def test_skip_ocr_without_artifacts_returns_2(tmp_path: Path) -> None:
@@ -186,28 +191,74 @@ def _fake_translate(lesson_path, out_dir, langs, **kwargs):  # noqa: ANN001
     return rows
 
 
+def _fake_speak(out_dir, narrations, **kwargs):  # noqa: ANN001
+    rows = []
+    for narr in narrations:
+        lang = narr.get("lang")
+        if narr.get("status") != "ok":
+            rows.append(
+                {
+                    "lang": lang,
+                    "status": "skipped",
+                    "lesson_mp3": None,
+                    "error": narr.get("error"),
+                    "latency_s": 0.0,
+                    "retries": 0,
+                    "sections_ok": 0,
+                    "sections_skipped": 0,
+                    "ai_generated": True,
+                }
+            )
+            continue
+        mp3 = Path(out_dir) / lang / f"lesson.{lang}.mp3"
+        mp3.parent.mkdir(parents=True, exist_ok=True)
+        mp3.write_bytes(b"ID3fake")
+        (Path(out_dir) / lang / "narration").mkdir(parents=True, exist_ok=True)
+        rows.append(
+            {
+                "lang": lang,
+                "status": "ok",
+                "lesson_mp3": str(mp3),
+                "voice": "Kavya",
+                "sections_ok": 1,
+                "sections_skipped": 0,
+                "sections_failed": 0,
+                "retries": 0,
+                "latency_s": 0.01,
+                "error": None,
+                "ai_generated": True,
+            }
+        )
+    return rows
+
+
 def test_langs_split_and_trim(image_folder: Path, tmp_path: Path) -> None:
     out = tmp_path / "run"
     with patch("bodhan_lesson.cli.run_ocr_on_pages", side_effect=_fake_ocr_ok):
         with patch("bodhan_lesson.cli.translate_lesson_file", side_effect=_fake_translate):
-            code = main(
-                [
-                    "--input", str(image_folder),
-                    "--langs", "hi, ta, bn",
-                    "--out", str(out),
-                ]
-            )
+            with patch(
+                "bodhan_lesson.cli.speak_narrated_lessons", side_effect=_fake_speak
+            ):
+                code = main(
+                    [
+                        "--input", str(image_folder),
+                        "--langs", "hi, ta, bn",
+                        "--out", str(out),
+                    ]
+                )
     assert code == 0
     report = json.loads((out / "report.json").read_text(encoding="utf-8"))
     assert report["langs"] == ["hi", "ta", "bn"]
-    assert report["phase"] == 5
+    assert report["phase"] == 6
     assert report["layout"]["ok"] >= 1
     assert report["assembly"]["status"] == "ok"
     assert report["translations"]["ok"] == 3
     assert report["narrations"]["ok"] == 3
+    assert report["speaks"]["ok"] == 3
     assert (out / "source" / "lesson.src.md").is_file()
     assert (out / "hi" / "lesson.hi.md").is_file()
     assert (out / "hi" / "narration_script.hi.json").is_file()
+    assert (out / "hi" / "lesson.hi.mp3").is_file()
 
 
 def test_empty_langs_returns_2(tmp_path: Path) -> None:

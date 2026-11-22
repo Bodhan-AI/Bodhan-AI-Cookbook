@@ -81,17 +81,58 @@ def _fake_translate(lesson_path, out_dir, langs, **kwargs):  # noqa: ANN001
     return rows
 
 
+def _fake_speak(out_dir, narrations, **kwargs):  # noqa: ANN001
+    rows = []
+    for narr in narrations:
+        lang = narr.get("lang")
+        if narr.get("status") != "ok":
+            rows.append(
+                {
+                    "lang": lang,
+                    "status": "skipped",
+                    "lesson_mp3": None,
+                    "error": narr.get("error"),
+                    "latency_s": 0.0,
+                    "retries": 0,
+                    "ai_generated": True,
+                }
+            )
+            continue
+        mp3 = Path(out_dir) / lang / f"lesson.{lang}.mp3"
+        mp3.parent.mkdir(parents=True, exist_ok=True)
+        mp3.write_bytes(b"ID3fake")
+        rows.append(
+            {
+                "lang": lang,
+                "status": "ok",
+                "lesson_mp3": str(mp3),
+                "voice": "Kavya",
+                "sections_ok": 1,
+                "sections_skipped": 0,
+                "sections_failed": 0,
+                "retries": 0,
+                "latency_s": 0.01,
+                "error": None,
+                "ai_generated": True,
+            }
+        )
+    return rows
+
+
 def test_cli_phase2_from_image_folder(image_folder: Path, tmp_path: Path) -> None:
     out = tmp_path / "out_images"
     with patch("bodhan_lesson.cli.run_ocr_on_pages", side_effect=_fake_ocr_ok):
         with patch("bodhan_lesson.cli.translate_lesson_file", side_effect=_fake_translate):
-            code = main(
-                [
-                    "--input", str(image_folder),
-                    "--langs", "hi,ta",
-                    "--out", str(out),
-                ]
-            )
+            with patch(
+                "bodhan_lesson.cli.speak_narrated_lessons", side_effect=_fake_speak
+            ):
+                code = main(
+                    [
+                        "--input", str(image_folder),
+                        "--langs", "hi,ta",
+                        "--out", str(out),
+                    ]
+                )
     assert code == 0
     pages = sorted(
         p
@@ -105,53 +146,66 @@ def test_cli_phase2_from_image_folder(image_folder: Path, tmp_path: Path) -> Non
     report = json.loads((out / "report.json").read_text(encoding="utf-8"))
     assert report["page_count"] == 2
     assert report["langs"] == ["hi", "ta"]
-    assert report["phase"] == 5
+    assert report["phase"] == 6
     assert report["ocr"]["ok"] == 2
     assert report["layout"]["ok"] == 2
     assert report["assembly"]["status"] == "ok"
     assert report["translations"]["ok"] == 2
     assert report["narrations"]["ok"] == 2
+    assert report["speaks"]["ok"] == 2
     assert (out / "source" / "pages" / "page_001.clean.json").is_file()
     assert (out / "source" / "lesson.src.md").is_file()
     assert (out / "source" / "assembly.json").is_file()
     assert (out / "hi" / "lesson.hi.md").is_file()
     assert (out / "hi" / "narration_script.hi.json").is_file()
+    assert (out / "hi" / "lesson.hi.mp3").is_file()
 
 
 def test_cli_phase2_from_pdf(multi_pdf: Path, tmp_path: Path) -> None:
     out = tmp_path / "out_pdf"
     with patch("bodhan_lesson.cli.run_ocr_on_pages", side_effect=_fake_ocr_ok):
         with patch("bodhan_lesson.cli.translate_lesson_file", side_effect=_fake_translate):
-            code = main(
-                [
-                    "--input", str(multi_pdf),
-                    "--langs", "bn",
-                    "--out", str(out),
-                ]
-            )
+            with patch(
+                "bodhan_lesson.cli.speak_narrated_lessons", side_effect=_fake_speak
+            ):
+                code = main(
+                    [
+                        "--input", str(multi_pdf),
+                        "--langs", "bn",
+                        "--out", str(out),
+                    ]
+                )
     assert code == 0
     pages = sorted((out / "source" / "pages").glob("page_*.png"))
     assert len(pages) == 3
     assert all(p.stat().st_size > 0 for p in pages)
     report = json.loads((out / "report.json").read_text(encoding="utf-8"))
     assert report["page_count"] == 3
-    assert report["phase"] == 5
+    assert report["phase"] == 6
     assert report["layout"]["ok"] == 3
     assert report["assembly"]["status"] == "ok"
-    assert report["languages"]["bn"]["status"] == "scripted"
+    assert report["languages"]["bn"]["status"] == "spoken"
     assert (out / "bn" / "narration_script.bn.json").is_file()
+    assert (out / "bn" / "lesson.bn.mp3").is_file()
 
 
 def test_cli_output_layout_contract(tiny_pdf: Path, tmp_path: Path) -> None:
     out = tmp_path / "layout"
     with patch("bodhan_lesson.cli.run_ocr_on_pages", side_effect=_fake_ocr_ok):
         with patch("bodhan_lesson.cli.translate_lesson_file", side_effect=_fake_translate):
-            assert main(["--input", str(tiny_pdf), "--langs", "hi", "--out", str(out)]) == 0
+            with patch(
+                "bodhan_lesson.cli.speak_narrated_lessons", side_effect=_fake_speak
+            ):
+                assert (
+                    main(["--input", str(tiny_pdf), "--langs", "hi", "--out", str(out)])
+                    == 0
+                )
     assert (out / "source" / "pages" / "page_001.png").is_file()
     assert (out / "source" / "pages" / "page_001.md").is_file()
     assert (out / "source" / "pages" / "page_001.clean.json").is_file()
     assert (out / "source" / "lesson.src.md").is_file()
     assert (out / "hi" / "lesson.hi.md").is_file()
     assert (out / "hi" / "narration_script.hi.json").is_file()
+    assert (out / "hi" / "lesson.hi.mp3").is_file()
     assert (out / "hi" / "narration").is_dir()
     assert (out / "report.json").is_file()

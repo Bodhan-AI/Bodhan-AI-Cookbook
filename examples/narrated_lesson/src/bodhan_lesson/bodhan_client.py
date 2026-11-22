@@ -41,6 +41,16 @@ def get_translate_api_key() -> str:
     return key
 
 
+def get_speak_api_key() -> str:
+    """Return the speak key. Prefer BODHAN_SPEAK_KEY; fall back to BODHAN_API_KEY."""
+    key = os.environ.get("BODHAN_SPEAK_KEY") or os.environ.get("BODHAN_API_KEY")
+    if not key:
+        raise RuntimeError(
+            "Missing speak API key. Set BODHAN_SPEAK_KEY (or BODHAN_API_KEY) in .env"
+        )
+    return key
+
+
 def _format_bodhan_error(response: requests.Response) -> str:
     try:
         err = response.json().get("error", {})
@@ -75,6 +85,36 @@ def post_json(
         response = requests.post(url, headers=headers, json=body, timeout=timeout_s)
         if response.ok:
             return response.json()
+
+        last_error = _format_bodhan_error(response)
+        if response.status_code in {429, 500, 502, 503, 504} and attempt + 1 < max_retries:
+            time.sleep(2**attempt)
+            continue
+        raise RuntimeError(last_error)
+
+    raise RuntimeError(last_error)
+
+
+def post_bytes(
+    path: str,
+    body: dict[str, Any],
+    *,
+    api_key: str,
+    timeout_s: float = DEFAULT_TIMEOUT_S,
+    max_retries: int = DEFAULT_MAX_RETRIES,
+) -> bytes:
+    """POST JSON to Bodhan and return raw response bytes (e.g. audio/wav)."""
+    url = f"{get_base_url()}{path}"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+
+    last_error = "request failed"
+    for attempt in range(max_retries):
+        response = requests.post(url, headers=headers, json=body, timeout=timeout_s)
+        if response.ok:
+            return response.content
 
         last_error = _format_bodhan_error(response)
         if response.status_code in {429, 500, 502, 503, 504} and attempt + 1 < max_retries:
