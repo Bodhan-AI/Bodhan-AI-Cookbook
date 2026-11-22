@@ -3,20 +3,21 @@
 import io
 import json
 import os
-from pathlib import Path
 import re
 import shutil
 import subprocess
-from tempfile import TemporaryDirectory
 import textwrap
-from typing import Annotated, Literal
 import wave
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from typing import Annotated, Literal
 
 import httpx
 from mcp.server.fastmcp.exceptions import ToolError
 from pydantic import BaseModel, Field
 
 from .api_requests import post_bodhan
+from .document_chunks import text_for_speech
 from .request_budget import SPEECH_RATE
 
 SPEECH_URL = "https://api.bodhan.ai/v1/audio/speech"
@@ -35,6 +36,40 @@ Voice = Literal[
     "Akash", "Kaur", "Manpreet", "Bharati", "Aryaman", "Phulmani", "Sibu",
     "Moomal", "Rano", "Anitha", "Arun", "Sravani", "Vamsi", "Saba", "Zaid",
 ]
+
+# Voice recording languages and genders from the Bodhan API reference.
+VOICE_CATALOG = {
+    "as": ("Prastuti", "Ankur"),
+    "bn": ("Ishita", "Sourav"),
+    "brx": ("Gwrbw", "Sansuma"),
+    "doi": ("Preeti", "Sham"),
+    "gu": ("Dhara", "Parth"),
+    "hi": ("Kavya, Suhani", "Amit"),
+    "kn": ("Deepika", "Adarsh"),
+    "kok": ("Anjali", "Sandeep"),
+    "ks": ("Zoon", "Ishfaq"),
+    "mai": ("Vaidehi", "Madhukar"),
+    "ml": ("Lakshmi", "Kiran"),
+    "mni": ("Thoibi", "Chaoba"),
+    "mr": ("Anagha", "Chinmay"),
+    "ne": ("Srijana", "Sagar"),
+    "or": ("Itishree", "Akash"),
+    "pa": ("Kaur", "Manpreet"),
+    "sa": ("Bharati", "Aryaman"),
+    "sat": ("Phulmani", "Sibu"),
+    "sd": ("Moomal", "Rano"),
+    "ta": ("Anitha", "Arun"),
+    "te": ("Sravani", "Vamsi"),
+    "ur": ("Saba", "Zaid"),
+}
+
+
+VOICE_DESCRIPTION = (
+    "Choose a voice from Bodhan's library. Any voice can read any supported language. "
+    "Recording profiles by language and gender. "
+    + " | ".join(f"{code} (female {female}, male {male})"
+                 for code, (female, male) in VOICE_CATALOG.items())
+)
 
 
 class SpeechResult(BaseModel):
@@ -81,7 +116,6 @@ def _request_speech(
             401: "authentication_failed: Check the Bodhan speech key.",
             403: "access_denied: Check that the key has speech access.",
             422: "invalid_request: Check text, voice and language.",
-            429: "rate_limited: Wait before retrying.",
         }
         raise ToolError(errors.get(response.status_code, f"upstream_error: Bodhan returned HTTP {response.status_code}."))
     return response.content
@@ -92,10 +126,13 @@ def _speech_pcm(wav_bytes: bytes) -> bytes:
         with wave.open(io.BytesIO(wav_bytes), "rb") as source:
             if (source.getnchannels(), source.getsampwidth(), source.getframerate()) != (1, 2, 24_000):
                 raise ToolError("invalid_audio: Expected 24 kHz mono PCM16 from Bodhan.")
-            frames = source.readframes(source.getnframes())
+            expected_frames = source.getnframes()
+            frames = source.readframes(expected_frames)
     except (EOFError, wave.Error):
         raise ToolError("invalid_audio: Bodhan returned unreadable WAV audio.") from None
-    if not frames or len(frames) % 2:
+    if len(frames) != expected_frames * 2:
+        raise ToolError("invalid_audio: Bodhan returned a truncated WAV chunk.")
+    if not frames:
         raise ToolError("invalid_audio: Bodhan returned empty or malformed audio.")
     return frames
 
@@ -120,7 +157,7 @@ def _encode_audio(source: Path, destination: Path, tempo: float) -> None:
 def synthesize_speech(
     text: Annotated[str, Field(min_length=1, description="Text to read aloud in the requested language.")],
     language: Annotated[SpeechLanguage, Field(description="Language of the text, such as kn for Kannada.")],
-    voice: Annotated[Voice, Field(description="A voice from Bodhan's voice library.")],
+    voice: Annotated[Voice, Field(description=VOICE_DESCRIPTION)],
     output_path: Annotated[str, Field(min_length=1, description="New local .wav or .mp3 file to create.")],
     target_seconds: Annotated[int | None, Field(
         ge=1, le=1800, description="Optional duration goal in seconds. Playback tempo can vary by up to 15%.",
@@ -139,7 +176,7 @@ def synthesize_speech(
         raise ToolError("output_exists: Choose a new audio file path.")
     if (suffix == ".mp3" or target_seconds is not None) and not shutil.which("ffmpeg"):
         raise ToolError("missing_ffmpeg: Install ffmpeg and make it available on PATH.")
-    chunks = _speech_chunks(text)
+    chunks = _speech_chunks(text_for_speech(text))
     key = os.getenv("BODHAN_SPEAK_KEY", "").strip()
     if not key:
         raise ToolError("missing_key: Set BODHAN_SPEAK_KEY in the recipe's .env file.")
@@ -153,7 +190,7 @@ def synthesize_speech(
                     try:
                         pcm = _speech_pcm(_request_speech(client, chunk, language, voice, key))
                     except ToolError as exc:
-                        raise ToolError(f"Speech chunk {index} of {len(chunks)}: {exc}") from None
+                        raise type(exc)(f"Speech chunk {index} of {len(chunks)}: {exc}") from None
                     output.writeframesraw(pcm)
                 duration = output.getnframes() / 24_000
             tempo = min(1.15, max(0.85, duration / target_seconds)) if target_seconds else 1.0

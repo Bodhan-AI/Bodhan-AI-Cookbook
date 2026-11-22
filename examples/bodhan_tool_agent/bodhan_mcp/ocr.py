@@ -101,7 +101,6 @@ def _read_page(client: httpx.Client, image: Path, key: str) -> str:
             401: "authentication_failed: Check the Bodhan OCR key.",
             403: "access_denied: Check that the key has OCR access.",
             413: "image_too_large: Try a smaller page image.",
-            429: "rate_limited: Wait before retrying.",
             502: "page_failed: Bodhan could not decode the page or a block exceeded its token budget.",
         }
         raise ToolError(errors.get(response.status_code, f"upstream_error: Bodhan returned HTTP {response.status_code}."))
@@ -145,7 +144,7 @@ def read_document(document_path: str, on_page: Callable[[OcrPage], None] | None 
             try:
                 markdown = _read_page(client, image, key)
             except ToolError as exc:
-                raise ToolError(f"Page {page_number} of {len(images)}: {exc}") from None
+                raise type(exc)(f"Page {page_number} of {len(images)}: {exc}") from None
             page = OcrPage(page_number=page_number, markdown=markdown)
             pages.append(page)
             if on_page is not None:

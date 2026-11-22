@@ -1,8 +1,9 @@
 """Split translatable text without handing table syntax to the model."""
 
+import re
 from dataclasses import dataclass
 from html import escape, unescape
-import re
+from html.parser import HTMLParser
 from typing import Literal
 from xml.etree import ElementTree
 
@@ -17,7 +18,7 @@ _BLOCK = re.compile(
     re.DOTALL | re.MULTILINE | re.IGNORECASE,
 )
 _HTML_TAG = re.compile(r"""(<(?:[^<>"']|"[^"]*"|'[^']*')+>)""")
-_INLINE = re.compile(r"(`+[^`]+?`+|(?<=\])\([^\n)]+\)|https?://[^\s<>)]+)")
+_INLINE = re.compile(r"(\n{2,}|`+[^`]+?`+|(?<=\])\([^\n)]+\)|https?://[^\s<>)]+|\b[A-Z]{1,8}[0-9]{1,12}\b)")
 _TABLE_TOKEN = re.compile(r"`+[^`]+?`+|(?<!\\)\|")
 _ALIGNMENT = re.compile(r"\s*:?-{3,}:?\s*")
 _LINE_PREFIX = re.compile(r"^([ \t]*(?:#{1,6}[ \t]+|>[ \t]*|(?:[-+*]|\d+[.)])[ \t]+)?)")
@@ -95,8 +96,7 @@ def _pipe_fields(line: str) -> list[str]:
     return fields
 
 
-def _markdown(value: str) -> list[Part]:
-    lines = value.splitlines(keepends=True)
+def _table_rows(lines: list[str]) -> set[int]:
     table_lines = set()
     for index, line in enumerate(lines):
         cells = [cell for cell in _pipe_fields(line)[::2] if cell.strip()]
@@ -109,6 +109,12 @@ def _markdown(value: str) -> list[Part]:
                 table_lines.add(row)
                 row += direction
 
+    return table_lines
+
+
+def _markdown(value: str) -> list[Part]:
+    lines = value.splitlines(keepends=True)
+    table_lines = _table_rows(lines)
     parts = []
     for index, line in enumerate(lines):
         if index in table_lines:
@@ -195,3 +201,63 @@ def markdown_for_export(text: str) -> str:
         lambda block: _pipe_table(block.group()) if block.lastgroup == "table" else block.group(),
         text,
     )
+
+
+class _SpokenTable(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__()
+        self.rows: list[str] = []
+        self._cells: list[str] = []
+        self._cell: list[str] | None = None
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if tag in {"td", "th", "caption"}:
+            self._end_cell()
+            self._cell = []
+        elif self._cell is not None and tag in {"br", "p", "div", "li"}:
+            self._cell.append(" ")
+
+    def handle_data(self, data: str) -> None:
+        if self._cell is not None:
+            self._cell.append(data)
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag in {"td", "th", "caption", "tr", "table"}:
+            self._end_cell()
+        if tag in {"caption", "tr", "table"} and self._cells:
+            self.rows.append(", ".join(self._cells))
+            self._cells.clear()
+
+    def _end_cell(self) -> None:
+        if self._cell is not None:
+            cell = " ".join("".join(self._cell).split())
+            if cell:
+                self._cells.append(cell)
+            self._cell = None
+
+
+def _speak_html_table(block: re.Match[str]) -> str:
+    if block.lastgroup != "table":
+        return block.group()
+    parser = _SpokenTable()
+    parser.feed(block.group())
+    parser.close()
+    return "\n".join(parser.rows)
+
+
+def text_for_speech(text: str) -> str:
+    """Read HTML and Markdown table cells in order without their markup."""
+    plain = _BLOCK.sub(_speak_html_table, text)
+    lines = plain.splitlines()
+    table_lines = _table_rows(lines)
+    if plain == text and not table_lines:
+        return text
+    spoken = []
+    for index, line in enumerate(lines):
+        if index not in table_lines:
+            spoken.append(re.sub(r"^[ ]{0,3}#{1,6}[ \t]+", "", line))
+            continue
+        cells = [cell.strip() for cell in _pipe_fields(line)[::2] if cell.strip()]
+        if not all(_ALIGNMENT.fullmatch(cell) for cell in cells):
+            spoken.append(", ".join(cell.replace(r"\|", "|") for cell in cells))
+    return "\n".join(spoken)

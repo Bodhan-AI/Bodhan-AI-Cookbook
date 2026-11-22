@@ -5,7 +5,6 @@ import unittest
 from unittest.mock import patch
 
 import httpx
-
 from bodhan_agent.planner import ChatPlanner, PlannerError
 
 
@@ -45,6 +44,16 @@ class SummaryPlannerTests(unittest.TestCase):
         first, second = self.messages
         self.assertIn('"type":"boolean"', first[0]["content"])
         self.assertIn("bool_type", second[0]["content"])
+
+    def test_numbered_pages_are_sent_to_both_summary_calls(self):
+        planner = self.planner('{"summary":"Page 1 covers seeds."}', '{"approved":true,"explanation":"Grounded."}')
+        pages = [{"page": 1, "text": "The class planted seeds."}, {"page": 2, "text": ""}]
+        summary = planner.summarize(pages, "Write a page-by-page summary.", None)
+        self.assertTrue(planner.review_summary(pages, summary).approved)
+        for messages in self.messages:
+            self.assertEqual(json.loads(messages[1]["content"])["source"], pages)
+            self.assertIn("numbered pages", messages[0]["content"])
+        self.assertIn("supported by that page", self.messages[1][0]["content"])
 
     def test_translation_review_rejects_second_invalid_reply(self):
         planner = self.planner('{"approved":true}', '{"approved":true,"explanation":" "}')

@@ -1,16 +1,18 @@
 import io
 import json
+import unittest
+import wave
 from decimal import Decimal
 from pathlib import Path
 from tempfile import TemporaryDirectory
-import unittest
-from unittest.mock import patch
-import wave
+from unittest.mock import Mock, patch
 
 import httpx
-
-from bodhan_agent.planner import ACTIONS, ChatPlanner
+from bodhan_agent.planner import ACTIONS, ChatPlanner, LanguageInference
 from bodhan_agent.run import run_task
+from bodhan_mcp.ocr import OcrPage
+from bodhan_mcp.server import TokenUsage, TranslationResult
+from bodhan_mcp.transcription import TranscriptionResult
 
 
 def wav_bytes(rate=24000):
@@ -44,7 +46,9 @@ class AgentTests(unittest.TestCase):
     def trace(self):
         return [json.loads(line) for line in (self.root / "run" / "trace.jsonl").read_text().splitlines()]
 
-    def invoke(self, actions, *, budget="1", pages=1, steps=8, readback_status=200, review_status=200, throttle_finish=False):
+    def invoke(self, actions, *, budget="1", pages=1, steps=8, readback_status=200,
+               review_status=200, translation_status=200, throttle_finish=False,
+               ocr_text="Class starts tomorrow.", inferred_language=None):
         if actions[0]["action"] != "declare_deliverables":
             has_speech = any(item["action"] == "speak" for item in actions)
             deliverable = {"description": "Requested result", "format": "wav" if has_speech else "md"}
@@ -62,7 +66,10 @@ class AgentTests(unittest.TestCase):
             if throttle_finish and any(d.get("artifact") for d in state.get("deliverables", [])):
                 throttle_finish = False
                 return httpx.Response(429, headers={"Retry-After": "23.5"})
-            if "Check whether" in messages[0]["content"]:
+            if messages[0]["content"].startswith("Infer the dominant language"):
+                self.assertEqual(state, {"text_excerpt": ocr_text})
+                answer = {"language": inferred_language, "explanation": "Test language inference."}
+            elif "Check whether" in messages[0]["content"]:
                 if review_status != 200:
                     return httpx.Response(review_status)
                 answer = {"approved": True, "explanation": "Meaning preserved."}
@@ -91,13 +98,13 @@ class AgentTests(unittest.TestCase):
                 number, = b64decode(data.split(",", 1)[1])
                 self.reads.append(f"page-{number}.png")
                 return httpx.Response(200, json={"choices": [{
-                    "finish_reason": "stop", "message": {"content": "Class starts tomorrow."},
+                    "finish_reason": "stop", "message": {"content": ocr_text},
                 }]})
             if payload["model"] == "indic-speak":
                 self.assertEqual(payload["input"], "ನಾಳೆ ತರಗತಿ ಪ್ರಾರಂಭವಾಗುತ್ತದೆ.")
                 return httpx.Response(200, content=wav_bytes())
             self.assertEqual(payload["max_output_tokens"], 2048)
-            return httpx.Response(200, json={
+            return httpx.Response(translation_status, json={
                 "choices": [{"finish_reason": "stop", "message": {"content": "ನಾಳೆ ತರಗತಿ ಪ್ರಾರಂಭವಾಗುತ್ತದೆ."}}],
                 "usage": {"prompt_tokens": 4, "completion_tokens": 20, "total_tokens": 24},
             })
@@ -110,6 +117,7 @@ class AgentTests(unittest.TestCase):
                 patch("bodhan_mcp.ocr._render_pdf", side_effect=render),
                 patch.object(httpx.Client, "post", autospec=True, side_effect=bodhan_reply) as post,
                 patch("bodhan_mcp.transcription._normalize", side_effect=normalize),
+                patch("bodhan_mcp.api_requests.sleep"),
             ):
                 # Leave the planner's own HTTP client on its mock transport.
                 client.post = lambda url, **kwargs: client.request("POST", url, **kwargs)
@@ -170,6 +178,36 @@ class AgentTests(unittest.TestCase):
         self.assertGreaterEqual(readback["latency_seconds"], 0)
         self.assertEqual([request["model"] for request in readback["provider_requests"]], ["indic-transcribe"])
 
+    def test_exhausted_translation_rate_limit_stops_before_another_planner_decision(self):
+        report, calls = self.invoke([
+            {"action": "ocr", "source": "input-1"},
+            {"action": "translate", "source": "text-1", "language": "kn"},
+        ], translation_status=429)
+        self.assertEqual(calls, 3)
+        self.assertEqual(report["status"], "rate_limited")
+        self.assertEqual(report["steps"], 3)
+        self.assertEqual(Decimal(report["cost_inr"]), Decimal("0.20"))
+        self.assertIsNone(report["deliverables"][0]["artifact"])
+        self.assertEqual(report["verification"], [])
+        self.assertIn("Translation segment 1", report["explanation"])
+        tool = self.trace()[-2]
+        self.assertEqual(tool["observation"]["error_code"], "rate_limited")
+        self.assertEqual([Decimal(item["cost_inr"]) for item in tool["provider_requests"]], [0, 0, 0])
+
+    def test_exhausted_readback_rate_limit_keeps_unverified_audio(self):
+        report, calls = self.invoke([
+            {"action": "ocr", "source": "input-1"},
+            {"action": "translate", "source": "text-1", "language": "kn"},
+            {"action": "speak", "source": "text-2", "language": "kn", "voice": "Deepika"},
+        ], readback_status=429)
+        self.assertEqual(calls, 5)
+        self.assertEqual(report["status"], "rate_limited")
+        self.assertIsNone(report["deliverables"][0]["artifact"])
+        path, = report["partial_artifacts"]
+        self.assertTrue((self.root / "run" / path).is_file())
+        self.assertFalse(report["verification"][-1]["passed"])
+        self.assertIn("rate_limited", report["verification"][-1]["explanation"])
+
     def test_unavailable_translation_reviewer_records_failed_check(self):
         report, _ = self.invoke([
             {"action": "ocr", "source": "input-1"},
@@ -194,6 +232,72 @@ class AgentTests(unittest.TestCase):
         self.assertEqual(report["status"], "completed")
         self.assertEqual(calls, 0)
         self.assertEqual(Decimal(report["cost_inr"]), Decimal("0.20"))
+
+    def test_original_hindi_ocr_exports_with_language_evidence(self):
+        hindi = "कक्षा कल नौ बजे शुरू होगी।"
+        report, calls = self.invoke([
+            {"action": "declare_deliverables", "deliverables": [
+                {"description": "Raw Hindi OCR", "format": "md", "kind": "extraction", "language": "hi"},
+            ]},
+            {"action": "ocr", "source": "input-1"},
+            {"action": "save_text", "source": "text-1"},
+        ], steps=3, ocr_text=hindi, inferred_language="hi")
+        self.assertEqual(report["status"], "completed")
+        self.assertEqual(calls, 0)
+        artifact, = report["artifacts"]
+        self.assertEqual((self.root / "run" / artifact).read_text(), hindi)
+        check, = report["verification"]
+        self.assertEqual(check["kind"], "raw_text_language")
+        self.assertEqual(check["detected_language"], "hi")
+        self.assertEqual(check["method"], "planner_inference")
+        self.assertTrue(check["passed"])
+
+    def test_auto_transcript_export_requires_matching_language_evidence(self):
+        clip = self.root / "clip.wav"
+        clip.touch()
+        for requested, detected, spoken, method, status in (
+            ("hi", "hi", "कक्षा कल नौ बजे शुरू होगी।", "planner_inference", "completed"),
+            ("hi", "mr", "उद्या वर्ग नऊ वाजता सुरू होईल.", "planner_inference", "step_limit"),
+            ("hi", None, "नमस्ते।", "planner_inference", "step_limit"),
+            ("te", "te", "రేపు తరగతి తొమ్మిది గంటలకు ప్రారంభమవుతుంది.", "script", "completed"),
+            ("hi", None, "நாளை வகுப்பு ஒன்பது மணிக்குத் தொடங்கும்.", "script", "step_limit"),
+        ):
+            with self.subTest(requested=requested, detected=detected, spoken=spoken):
+                planner = Mock()
+                planner.decide.side_effect = [
+                    ACTIONS.validate_python({**action, "reason": "Save the original transcript."})
+                    for action in [
+                        {"action": "declare_deliverables", "deliverables": [
+                            {"description": "Original transcript", "format": "txt",
+                             "kind": "transcript", "language": requested},
+                        ]},
+                        {"action": "transcribe", "source": "input-1"},
+                        {"action": "save_text", "source": "text-1", "deliverable": "deliverable-1"},
+                    ]
+                ]
+                planner.identify_language.return_value = LanguageInference(
+                    language=detected, explanation="Test language inference.",
+                )
+                transcript = TranscriptionResult(text=spoken, duration_seconds=2, windows=[])
+                output = self.root / f"run-{requested}-{detected}-{method}"
+                with patch("bodhan_agent.run.read_audio", return_value=transcript) as transcribe:
+                    report = run_task("Save an original-language transcript.", [clip], output,
+                                      3, Decimal("0"), lambda: planner)
+                self.assertEqual(transcribe.call_args.args[:2], (str(clip.resolve()), None))
+                self.assertEqual(report["status"], status)
+                check, = report["verification"]
+                self.assertEqual(check["method"], method)
+                self.assertEqual(check["passed"], status == "completed")
+                if method == "planner_inference":
+                    planner.identify_language.assert_called_once_with(spoken)
+                else:
+                    planner.identify_language.assert_not_called()
+                if status == "completed":
+                    artifact, = report["artifacts"]
+                    self.assertEqual((output / artifact).read_text(), spoken)
+                else:
+                    self.assertEqual(report["artifacts"], [])
+                    self.assertIsNone(report["deliverables"][0]["artifact"])
 
     def test_budget_can_stop_between_pages_inside_one_tool_call(self):
         report, calls = self.invoke([{"action": "ocr", "source": "input-1"}],
@@ -322,14 +426,12 @@ class AgentTests(unittest.TestCase):
     def test_document_workflow_publishes_source_and_verified_translation(self):
         report, _ = self.invoke([
             {"action": "declare_deliverables", "deliverables": [
-                {"description": "Source Markdown", "format": "md"},
-                {"description": "Kannada Markdown", "format": "md", "language": "kn"},
+                {"description": "Source Markdown", "format": "md", "kind": "extraction"},
+                {"description": "Kannada Markdown", "format": "md", "language": "kn", "kind": "translation"},
             ]},
             {"action": "ocr", "source": "input-1"},
             {"action": "save_text", "source": "text-1", "deliverable": "deliverable-1"},
-            {"action": "translate", "source": "text-1", "language": "kn"},
-            {"action": "save_text", "source": "text-2", "deliverable": "deliverable-2"},
-            {"action": "finish", "status": "completed"},
+            {"action": "translate", "source": "text-1", "language": "kn", "deliverable": "deliverable-2"},
         ])
         self.assertEqual(report["status"], "completed")
         source, translation = report["deliverables"]
@@ -337,3 +439,155 @@ class AgentTests(unittest.TestCase):
         self.assertEqual((root / source["artifact"]).read_text(), "Class starts tomorrow.")
         self.assertEqual((root / translation["artifact"]).read_text(), "ನಾಳೆ ತರಗತಿ ಪ್ರಾರಂಭವಾಗುತ್ತದೆ.")
         self.assertTrue(report["verification"][0]["passed"])
+        self.assertEqual(self.trace()[-2]["event"], "completion_check")
+
+    def test_direct_translation_does_not_publish_if_reviewer_fails(self):
+        report, _ = self.invoke([
+            {"action": "declare_deliverables", "deliverables": [
+                {"description": "Kannada translation", "format": "md", "language": "kn"},
+            ]},
+            {"action": "ocr", "source": "input-1"},
+            {"action": "translate", "source": "text-1", "language": "kn", "deliverable": "deliverable-1"},
+            {"action": "finish", "status": "completed"},
+        ], review_status=400)
+        self.assertEqual(report["status"], "incomplete")
+        self.assertIsNone(report["deliverables"][0]["artifact"])
+        self.assertEqual(report["partial_artifacts"], ["artifacts/unverified-3.md"])
+
+    def test_translation_can_prepare_a_linked_script_before_audio_is_verified(self):
+        report, _ = self.invoke([
+            {"action": "declare_deliverables", "deliverables": [
+                {"description": "Kannada script", "format": "md", "language": "kn", "kind": "translation"},
+                {"description": "Matching audio", "format": "wav", "language": "kn"},
+            ]},
+            {"action": "ocr", "source": "input-1"},
+            {"action": "translate", "source": "text-1", "language": "kn", "deliverable": "deliverable-1"},
+            {"action": "speak", "source": "text-2", "language": "kn", "voice": "Deepika",
+             "deliverable": "deliverable-2"},
+            {"action": "save_text", "source": "text-2", "deliverable": "deliverable-1"},
+            {"action": "finish", "status": "completed"},
+        ])
+        self.assertEqual(report["status"], "completed")
+        translated = next(event["observation"] for event in self.trace()
+                          if event["event"] == "tool" and event["step"] == 3)
+        self.assertEqual(translated["pending_script"], "deliverable-1")
+        self.assertNotIn("artifact", translated)
+        self.assertTrue(report["verification"][-1]["passed"])
+        self.assertEqual(report["verification"][-1]["kind"], "narration_pair")
+
+    def test_pagewise_summary_keeps_ocr_positions_through_translation(self):
+        english = ["We counted seeds.", "", "We planted the seeds on Monday."]
+        original = ["हमने बीज गिने।", "", "सोमवार को बीज बोए।"]
+        for translate_first in (False, True):
+            with self.subTest(translate_first=translate_first):
+                source_pages = original if translate_first else english
+
+                def ocr(_path, *, on_page, pages=source_pages):
+                    for number, text in enumerate(pages, 1):
+                        on_page(OcrPage(page_number=number, markdown=text))
+
+                segments = []
+                source_offset = output_offset = 0
+                for source, translation in zip(source_pages, english, strict=True):
+                    if source:
+                        segments.append({
+                            "source_start": source_offset, "source_end": source_offset + len(source),
+                            "output_start": output_offset, "output_end": output_offset + len(translation),
+                        })
+                    source_offset += len(source) + 2
+                    output_offset += len(translation) + 2
+                translated = TranslationResult(
+                    translation="\n\n".join(english), target_language="en", script="native",
+                    truncated=False, usage=TokenUsage(prompt_tokens=1, completion_tokens=1, total_tokens=2),
+                    segments=segments,
+                )
+                actions = [
+                    {"action": "declare_deliverables", "deliverables": [
+                        {"description": "Page-by-page notes", "format": "md", "kind": "summary"},
+                    ]},
+                    {"action": "ocr", "source": "input-1"},
+                ]
+                if translate_first:
+                    actions.append({"action": "translate", "source": "text-1", "language": "en"})
+                actions.append({"action": "summarize", "source": "text-2" if translate_first else "text-1",
+                                "deliverable": "deliverable-1"})
+                planner = Mock()
+                planner.decide.side_effect = [
+                    ACTIONS.validate_python({**action, "reason": "Write page notes."}) for action in actions
+                ]
+                summary = "Page 1 counted seeds. Page 2 is blank. Page 3 describes planting."
+                planner.summarize.return_value = summary
+                planner.review.return_value = planner.review_summary.return_value = Mock(
+                    approved=True, explanation="Grounded.",
+                )
+                output = self.root / f"page-notes-{translate_first}"
+                task = "Write page-by-page notes."
+                with (
+                    patch("bodhan_agent.run.read_document", side_effect=ocr),
+                    patch("bodhan_agent.run.translate_text", return_value=translated),
+                ):
+                    report = run_task(task, [self.pdf], output, len(actions), Decimal("0"), Mock(return_value=planner))
+                self.assertEqual(report["status"], "completed")
+                expected = [{"page": number, "text": text} for number, text in enumerate(english, 1)]
+                self.assertEqual(planner.summarize.call_args.args[:2], (expected, task))
+                planner.review_summary.assert_called_once_with(expected, summary)
+
+    def test_raw_extraction_cannot_fulfill_a_summary(self):
+        report, _ = self.invoke([
+            {"action": "declare_deliverables", "deliverables": [
+                {"description": "Study notes", "format": "md", "kind": "summary"},
+            ]},
+            {"action": "ocr", "source": "input-1"},
+            {"action": "save_text", "source": "text-1", "deliverable": "deliverable-1"},
+            {"action": "finish", "status": "completed"},
+        ])
+        self.assertEqual(report["status"], "incomplete")
+        self.assertFalse(report["artifacts"])
+        rejected = next(event for event in self.trace() if event["event"] == "tool" and event["step"] == 3)
+        self.assertIn("requires a summary", rejected["observation"]["error"])
+
+    def test_language_report_uses_transcript_and_rejects_contradictory_script(self):
+        clip = self.root / "clip.wav"
+        clip.touch()
+        planner = Mock()
+        planner.decide.side_effect = [
+            ACTIONS.validate_python({**action, "reason": "Use transcript evidence."})
+            for action in [
+                {"action": "declare_deliverables", "deliverables": [
+                    {"description": "Language finding", "format": "txt", "language": "en"},
+                ]},
+                {"action": "transcribe", "source": "input-1"},
+                {"action": "save_language", "source": "text-1", "language": "ta", "deliverable": "deliverable-1"},
+                {"action": "save_language", "source": "text-1", "language": "hi", "deliverable": "deliverable-1"},
+                {"action": "finish", "status": "completed"},
+            ]
+        ]
+        transcription = TranscriptionResult(text="यह कक्षा में पढ़ाया जाता है।", duration_seconds=2.0, windows=[])
+        with patch("bodhan_agent.run.read_audio", return_value=transcription):
+            report = run_task("What language is spoken in this clip? Save the answer.", [clip],
+                              self.root / "run", 5, Decimal("0"), lambda: planner)
+        self.assertEqual(report["status"], "completed")
+        rejected = next(event for event in self.trace() if event["event"] == "tool" and event["step"] == 3)
+        self.assertIn("conflicts", rejected["observation"]["error"])
+        self.assertIn("code: hi", (self.root / "run" / report["artifacts"][0]).read_text())
+
+    def test_transcription_fulfills_a_single_declared_language_report(self):
+        clip = self.root / "clip.wav"
+        clip.touch()
+        planner = Mock()
+        planner.decide.side_effect = [
+            ACTIONS.validate_python({"action": "declare_deliverables", "reason": "Report the language.", "deliverables": [
+                {"description": "Language finding", "format": "txt", "kind": "language_identification"},
+            ]}),
+            ACTIONS.validate_python({"action": "transcribe", "source": "input-1", "reason": "Get transcript evidence."}),
+        ]
+        planner.identify_language.return_value = LanguageInference(language="hi", explanation="Uses Hindi vocabulary.")
+        transcript = "यह कक्षा में पढ़ाया जाता है।"
+        result = TranscriptionResult(text=transcript, duration_seconds=2.0, windows=[])
+        with patch("bodhan_agent.run.read_audio", return_value=result):
+            report = run_task("Identify the spoken language and save a note.", [clip],
+                              self.root / "run", 2, Decimal("0"), lambda: planner)
+        self.assertEqual(report["status"], "completed")
+        self.assertEqual(report["verification"][0]["language"], "hi")
+        planner.identify_language.assert_called_once_with(transcript)
+        self.assertEqual(planner.decide.call_count, 2)

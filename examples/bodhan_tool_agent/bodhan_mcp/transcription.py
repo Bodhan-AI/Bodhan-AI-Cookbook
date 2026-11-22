@@ -1,21 +1,21 @@
 """Normalize local audio and send bounded WAV windows to Indic-Transcribe."""
 
-from decimal import Decimal
 import io
 import os
+import subprocess
+import wave
+from collections.abc import Callable, Iterator
 from pathlib import Path
 from struct import iter_unpack
-import subprocess
 from tempfile import TemporaryDirectory
-from typing import Annotated, Iterator, Literal
-import wave
+from typing import Annotated, Literal
 
 import httpx
 from mcp.server.fastmcp.exceptions import ToolError
 from pydantic import BaseModel, Field, ValidationError
 
 from .api_requests import post_bodhan
-from .request_budget import TRANSCRIBE_PER_SECOND
+from .request_budget import TRANSCRIBE_PER_MINUTE, BudgetExhausted
 
 TRANSCRIBE_URL = "https://api.bodhan.ai/v1/audio/transcriptions"
 SAMPLE_RATE = 16_000
@@ -124,10 +124,11 @@ def _transcribe_window(
     if language is not None:
         data["language"] = language
     with wave.open(io.BytesIO(audio), "rb") as window:
-        seconds = Decimal(window.getnframes()) / window.getframerate()
+        # Apply the rate before dividing to keep exact prices at budget boundaries.
+        cost = window.getnframes() * TRANSCRIBE_PER_MINUTE / (window.getframerate() * 60)
     try:
         reply, _ = post_bodhan(
-            client, TRANSCRIBE_URL, "indic-transcribe", seconds * TRANSCRIBE_PER_SECOND,
+            client, TRANSCRIBE_URL, "indic-transcribe", cost,
             headers={"Authorization": f"Bearer {api_key}"},
             data=data,
             files={"file": ("window.wav", audio, "audio/wav")},
@@ -143,7 +144,6 @@ def _transcribe_window(
             401: "authentication_failed: Check the Bodhan transcription key.",
             403: "access_denied: Check that the key has transcription access.",
             415: "unsupported_audio: Bodhan could not read the WAV window.",
-            429: "rate_limited: Wait before retrying.",
         }
         raise ToolError(errors.get(reply.status_code, f"upstream_error: Bodhan returned HTTP {reply.status_code}."))
     try:
@@ -165,6 +165,13 @@ def transcribe_audio(
     to favor quiet cuts. Window times are audio boundaries. Omit language to
     let Bodhan infer it.
     """
+    return read_audio(audio_path, language, window_seconds, prefer_pauses=prefer_pauses)
+
+
+def read_audio(
+    audio_path: str, language: SpeechLanguage | None = None, window_seconds: int = 30,
+    *, prefer_pauses: bool = False, on_window: Callable[[TranscriptionWindow], None] | None = None,
+) -> TranscriptionResult:
     source = Path(audio_path).expanduser().absolute()
     if not source.is_file():
         raise ToolError("missing_audio: Provide a path to an existing audio file.")
@@ -179,9 +186,12 @@ def transcribe_audio(
         for start, end, audio in _wav_windows(wav, window_seconds * SAMPLE_RATE, prefer_pauses=prefer_pauses):
             try:
                 text = _transcribe_window(client, audio, language, api_key)
-            except ToolError as exc:
-                raise ToolError(f"Window {start:g}–{end:g} seconds: {exc}") from None
-            windows.append(TranscriptionWindow(start_seconds=start, end_seconds=end, text=text))
+            except (BudgetExhausted, ToolError) as exc:
+                raise type(exc)(f"Window {start:g}–{end:g} seconds: {exc}") from None
+            window = TranscriptionWindow(start_seconds=start, end_seconds=end, text=text)
+            windows.append(window)
+            if on_window is not None:
+                on_window(window)
 
     return TranscriptionResult(
         text=" ".join(window.text for window in windows if window.text),

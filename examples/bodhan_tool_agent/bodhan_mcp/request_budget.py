@@ -9,7 +9,7 @@ from mcp.server.fastmcp.exceptions import ToolError
 
 OCR_RATE = Decimal("0.20")
 SPEECH_RATE = Decimal("0.0006")
-TRANSCRIBE_PER_SECOND = Decimal("0.1") / 60
+TRANSCRIBE_PER_MINUTE = Decimal("0.10")
 TRANSLATE_PER_TOKEN = Decimal("0.00002")
 TRANSLATION_OUTPUT_LIMIT = 2048
 

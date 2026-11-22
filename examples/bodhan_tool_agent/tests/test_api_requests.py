@@ -7,7 +7,7 @@ from unittest.mock import patch
 import httpx
 from mcp.server.fastmcp.exceptions import ToolError
 
-from bodhan_mcp.api_requests import MAX_CONCURRENT_REQUESTS, post_bodhan
+from bodhan_mcp.api_requests import BodhanRateLimit, MAX_CONCURRENT_REQUESTS, post_bodhan
 from bodhan_mcp.request_budget import BudgetExhausted, RequestBudget, active_budget
 
 PRICE = Decimal("0.20")
@@ -42,16 +42,17 @@ class BodhanRequestsTests(unittest.TestCase):
         self.assertEqual([entry["cost_inr"] for entry in self.budget.requests], [0, 0, PRICE])
         self.assertEqual([call.args[0] for call in wait.call_args_list], [1, 0.5])
 
-    def test_long_retry_after_returns_without_sleep_or_charge(self):
+    def test_long_retry_after_stops_without_sleep_or_charge(self):
         with (
             httpx.Client(transport=httpx.MockTransport(
                 lambda request: httpx.Response(429, headers={"Retry-After": "120"})
             )) as client,
             patch("bodhan_mcp.api_requests.sleep") as wait,
         ):
-            response, reservation = post_bodhan(client, URL, "indic-ocr", PRICE)
-        self.assertEqual(response.status_code, 429)
-        self.assertIsNone(reservation)
+            with self.assertRaisesRegex(BodhanRateLimit, "rate_limited"):
+                post_bodhan(client, URL, "indic-ocr", PRICE)
+            with self.assertRaises(BodhanRateLimit):
+                post_bodhan(client, URL, "indic-ocr", PRICE)
         self.assertEqual(self.budget.total, 0)
         wait.assert_not_called()
 

@@ -1,13 +1,45 @@
 import io
-from pathlib import Path
-from tempfile import TemporaryDirectory
 import unittest
 import wave
+from decimal import Decimal
+from pathlib import Path
+from shutil import copyfile
+from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
-from bodhan_mcp.transcription import MAX_WINDOW_FRAMES, SAMPLE_RATE, _wav_windows
+import httpx
+from bodhan_mcp.request_budget import BudgetExhausted, RequestBudget, active_budget
+from bodhan_mcp.transcription import MAX_WINDOW_FRAMES, SAMPLE_RATE, _wav_windows, transcribe_audio
 
 
 class TranscriptionTests(unittest.TestCase):
+    def test_thirty_seconds_fits_exactly_but_one_more_sample_exceeds_budget(self):
+        for extra_frame in (0, 1):
+            with self.subTest(extra_frame=extra_frame), TemporaryDirectory() as directory:
+                path = Path(directory) / "input.wav"
+                with wave.open(str(path), "wb") as out:
+                    out.setparams((1, 2, SAMPLE_RATE, 0, "NONE", "not compressed"))
+                    out.writeframes(b"\x01\x02" * (MAX_WINDOW_FRAMES + extra_frame))
+
+                budget = RequestBudget(Decimal("0.05"))
+                token = active_budget.set(budget)
+                try:
+                    with (
+                        patch.dict("os.environ", {"BODHAN_TRANSCRIBE_KEY": "test"}),
+                        patch("bodhan_mcp.transcription._normalize", side_effect=copyfile),
+                        patch.object(httpx.Client, "post", return_value=httpx.Response(200, json={"text": "Hello"})) as post,
+                    ):
+                        if extra_frame:
+                            with self.assertRaises(BudgetExhausted):
+                                transcribe_audio(str(path))
+                        else:
+                            result = transcribe_audio(str(path))
+                            self.assertEqual(result.duration_seconds, 30)
+                        post.assert_called_once()
+                    self.assertEqual(budget.total, Decimal("0.05"))
+                finally:
+                    active_budget.reset(token)
+
     def test_prefers_latest_sustained_pause_without_dropping_samples(self):
         duration = 9 * SAMPLE_RATE
         pcm = bytearray(b"\x00\x10" * duration)

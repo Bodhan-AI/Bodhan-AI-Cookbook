@@ -1,12 +1,13 @@
+import unittest
 from decimal import Decimal
 from pathlib import Path
 from tempfile import TemporaryDirectory
-import unittest
-from unittest.mock import Mock, call, patch
+from unittest.mock import Mock, patch
 
 from bodhan_agent.clip_language import assess_transcript
 from bodhan_agent.planner import Declare, Deliverable, Finish, TranslateMatchingClips
 from bodhan_agent.run import run_task
+from bodhan_mcp.api_requests import BodhanRateLimit
 from bodhan_mcp.request_budget import BudgetExhausted
 from bodhan_mcp.server import TokenUsage, TranslationResult
 from bodhan_mcp.transcription import TranscriptionResult
@@ -41,7 +42,7 @@ class ClipSelectionTests(unittest.TestCase):
                                         segments=[dict(source_start=0, source_end=len(transcripts[0]),
                                                        output_start=0, output_end=12)])
         self.planner.review.return_value = Mock(approved=True, explanation="Meaning preserved.")
-        with patch("bodhan_agent.run.transcribe_audio") as transcribe, patch(
+        with patch("bodhan_agent.run.read_audio") as transcribe, patch(
             "bodhan_agent.run.translate_text", return_value=translation,
         ) as translate:
             transcribe.side_effect = [
@@ -57,7 +58,8 @@ class ClipSelectionTests(unittest.TestCase):
             "శుభోదయం", "सुप्रभात", "శుభోదయం friend", "hi",
         ])
         self.assertEqual(report["status"], "completed")
-        self.assertEqual(transcribe.call_args_list, [call(str(self.root / f"clip-{i}.wav")) for i in range(1, 5)])
+        self.assertEqual([call.args[:2] for call in transcribe.call_args_list],
+                         [(str(self.root / f"clip-{i}.wav"), None) for i in range(1, 5)])
         translate.assert_called_once_with("శుభోదయం", "en")
         self.planner.review.assert_called_once_with("శుభోదయం", "Good morning", "en")
         clips = report["clip_selections"]["deliverable-1"]["clips"]
@@ -82,3 +84,16 @@ class ClipSelectionTests(unittest.TestCase):
         self.assertEqual(assess_transcript("सुप्रभात", "hi")[0], "unknown")
         self.assertEqual(assess_transcript("subhodayam", "te")[0], "unknown")
         self.assertEqual(assess_transcript("", "te")[0], "unknown")
+
+    def test_rate_limit_preserves_verified_translation_and_stops_scanning(self):
+        report, transcribe, translate = self.invoke([
+            "శుభోదయం", BodhanRateLimit("rate_limited: Wait before retrying."), "శుభోదయం",
+        ])
+        self.assertEqual(report["status"], "rate_limited")
+        self.assertEqual(transcribe.call_count, 2)
+        self.assertEqual(translate.call_count, 1)
+        clips = report["clip_selections"]["deliverable-1"]["clips"]
+        self.assertEqual([clip["status"] for clip in clips], ["match", "assessment_failed", "pending"])
+        self.assertIsNone(report["deliverables"][0]["artifact"])
+        path, = report["partial_artifacts"]
+        self.assertIn("Good morning", (self.root / "run" / path).read_text())

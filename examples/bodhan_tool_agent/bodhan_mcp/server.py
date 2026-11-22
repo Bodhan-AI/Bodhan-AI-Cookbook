@@ -1,20 +1,25 @@
 """Register Bodhan language tools with the stdio MCP server."""
 
 import os
+from collections.abc import Awaitable, Callable
+from functools import partial, wraps
 from pathlib import Path
 from typing import Annotated, Literal
 
 import httpx
+from anyio import CapacityLimiter, to_thread
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 from mcp.server.fastmcp.exceptions import ToolError
 from pydantic import BaseModel, Field, ValidationError
 
-from .api_requests import post_bodhan
+from .api_requests import MAX_CONCURRENT_REQUESTS, post_bodhan
 from .document_chunks import MAX_SOURCE_BYTES, document_parts
 from .ocr import extract_document_text
 from .request_budget import (
-    TRANSLATE_PER_TOKEN, TRANSLATION_OUTPUT_LIMIT, active_budget,
+    TRANSLATE_PER_TOKEN,
+    TRANSLATION_OUTPUT_LIMIT,
+    active_budget,
 )
 from .speech import synthesize_speech
 from .transcription import transcribe_audio
@@ -22,9 +27,7 @@ from .transcription import transcribe_audio
 load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
 mcp = FastMCP("Bodhan Tool Server")
-mcp.add_tool(transcribe_audio)
-mcp.add_tool(synthesize_speech)
-mcp.add_tool(extract_document_text)
+_tool_workers = CapacityLimiter(MAX_CONCURRENT_REQUESTS)
 TRANSLATE_URL = "https://api.bodhan.ai/v1/chat/completions"
 
 Language = Literal[
@@ -101,7 +104,6 @@ def _translate_request(
             401: "authentication_failed: Check the Bodhan translation key.",
             403: "access_denied: Check that the key has translation access.",
             413: "input_too_large: Try a shorter source passage.",
-            429: "rate_limited: Wait before retrying.",
         }
         raise ToolError(
             messages.get(response.status_code, f"upstream_error: Bodhan returned HTTP {response.status_code}.")
@@ -143,7 +145,7 @@ def _translate_document(client: httpx.Client, text: str, language: Language, key
                 try:
                     result = _translate_request(client, request, language, key)
                 except ToolError as exc:
-                    raise ToolError(f"Translation segment {len(segments) + 1}: {exc}") from None
+                    raise type(exc)(f"Translation segment {len(segments) + 1}: {exc}") from None
                 cached[request] = result.translation
                 usage.prompt_tokens += result.usage.prompt_tokens
                 usage.completion_tokens += result.usage.completion_tokens
@@ -162,7 +164,6 @@ def _translate_document(client: httpx.Client, text: str, language: Language, key
     )
 
 
-@mcp.tool()
 def translate_text(
     text: Annotated[str, Field(min_length=1, description="Nonblank passage or document text to translate.")],
     target_language: Annotated[Language, Field(description="Target language code, for example kn for Kannada.")],
@@ -183,3 +184,16 @@ def translate_text(
         raise ToolError("missing_key: Set BODHAN_TRANSLATE_KEY in the recipe's .env file.")
     with httpx.Client(timeout=20.0) as client:
         return _translate_document(client, text, target_language, api_key)
+
+
+def _on_worker[Result](tool: Callable[..., Result]) -> Callable[..., Awaitable[Result]]:
+    # Keep the signature and docstring that FastMCP uses to publish its schemas.
+    @wraps(tool)
+    async def call(**arguments) -> Result:
+        return await to_thread.run_sync(partial(tool, **arguments), limiter=_tool_workers)
+
+    return call
+
+
+for tool in (transcribe_audio, synthesize_speech, extract_document_text, translate_text):
+    mcp.add_tool(_on_worker(tool))

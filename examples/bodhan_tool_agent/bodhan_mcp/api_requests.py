@@ -27,7 +27,11 @@ class _SlotsBusy(ToolError):
     pass
 
 
-_RELEASE_FINGERPRINT_ERRORS = (*_PRE_SEND_ERRORS, _SlotsBusy, BudgetExhausted)
+class BodhanRateLimit(ToolError):
+    """Bodhan declined the request and the local retry policy has stopped."""
+
+
+_RELEASE_FINGERPRINT_ERRORS = (*_PRE_SEND_ERRORS, _SlotsBusy, BodhanRateLimit, BudgetExhausted)
 
 
 def _hash_binary(value: bytes) -> dict[str, str]:
@@ -71,8 +75,6 @@ def post_bodhan(
         raise
     if response.status_code == 200:
         budget.cache_response(fingerprint, response)
-    elif response.status_code == 429:
-        budget.forget_request(fingerprint)
     return response, reservation
 
 
@@ -99,7 +101,7 @@ def _post_with_retries(
                     budget.settle(reservation, Decimal(0))
                 delay = _retry_delay(attempt, response.headers.get("Retry-After", str(5 * (attempt + 1))))
                 if attempt == MAX_ATTEMPTS - 1 or delay > MAX_RETRY_DELAY_SECONDS:
-                    return response, None
+                    raise BodhanRateLimit("rate_limited: Wait before retrying.")
         finally:
             _request_slots.release()
         sleep(delay)
