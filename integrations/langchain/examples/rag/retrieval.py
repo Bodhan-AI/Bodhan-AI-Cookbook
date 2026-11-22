@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Any, List
-
 from langchain_core.documents import Document
 from langchain_core.vectorstores import InMemoryVectorStore, VectorStoreRetriever
 
@@ -20,7 +18,7 @@ def get_retriever(
 def retrieve_passages(
     retriever: VectorStoreRetriever,
     query: str,
-) -> List[Document]:
+) -> list[Document]:
     """Retrieve supporting document passages for a normalized query.
 
     Args:
@@ -29,6 +27,9 @@ def retrieve_passages(
 
     Returns:
         List of matching Document objects with preserved metadata.
+
+    Raises:
+        ValueError: If query is oversized and rejected by embedding validation.
     """
     clean_query = query.strip()
     if not clean_query:

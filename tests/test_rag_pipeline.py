@@ -5,9 +5,10 @@ All tests run 100% offline without live network requests, credentials, or paid A
 
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -22,39 +23,44 @@ LANGCHAIN_DIR = REPO_ROOT / "integrations" / "langchain"
 if str(LANGCHAIN_DIR) not in sys.path:
     sys.path.insert(0, str(LANGCHAIN_DIR))
 
-from bodhan_langchain import (
+from bodhan_langchain import (  # noqa: E402
     BodhanClient,
     BodhanTranslationTool,
     OCRBlock,
     OCRResponse,
     TranslationResponse,
 )
-from examples.rag.citations import (
-    CitationInfo,
+from examples.multilingual_rag import answer_multilingual_query, run_rag_pipeline  # noqa: E402
+from examples.rag.citations import (  # noqa: E402
     extract_and_validate_citations,
     format_context_with_citations,
 )
-from examples.rag.config import RAGConfig
-from examples.rag.embeddings import (
+from examples.rag.config import RAGConfig  # noqa: E402
+from examples.rag.embeddings import (  # noqa: E402
     DeterministicFakeEmbeddings,
+    E5EmbeddingsAdapter,
     get_embedding_model,
+    is_e5_model,
 )
-from examples.rag.generation import (
+from examples.rag.generation import (  # noqa: E402
     build_grounded_messages,
     generate_grounded_answer,
     get_chat_model,
 )
-from examples.rag.ingestion import ingest_documents
-from examples.rag.retrieval import get_retriever, retrieve_passages
-from examples.rag.vector_store import create_vector_store
-from examples.multilingual_rag import answer_multilingual_query, run_rag_pipeline
+from examples.rag.ingestion import ingest_documents  # noqa: E402
+from examples.rag.retrieval import get_retriever, retrieve_passages  # noqa: E402
+from examples.rag.vector_store import (  # noqa: E402
+    count_prefixed_tokens,
+    create_vector_store,
+    split_documents_tokenizer_aware,
+)
 
 
 class MockGroundedChatModel(BaseChatModel):
     """Mock LangChain BaseChatModel for offline testing."""
 
     canned_answer: str = "According to [S1], eligible students receive assistance."
-    recorded_messages: List[BaseMessage] = []
+    recorded_messages: list[BaseMessage] = []
 
     @property
     def _llm_type(self) -> str:
@@ -62,8 +68,8 @@ class MockGroundedChatModel(BaseChatModel):
 
     def _generate(
         self,
-        messages: List[BaseMessage],
-        stop: Optional[List[str]] = None,
+        messages: list[BaseMessage],
+        stop: list[str] | None = None,
         **kwargs: Any,
     ) -> ChatResult:
         self.recorded_messages.clear()
@@ -71,9 +77,29 @@ class MockGroundedChatModel(BaseChatModel):
         return ChatResult(generations=[ChatGeneration(message=AIMessage(content=self.canned_answer))])
 
 
+class MockE5Tokenizer:
+    """Mock HuggingFace tokenizer for offline tests with predictable token counts."""
+
+    def __init__(self) -> None:
+        self.bos_token = "<s>"
+        self.eos_token = "</s>"
+
+    def tokenize(self, text: str) -> list[str]:
+        # Split on whitespace and punctuation marks
+        return re.findall(r"\w+|[^\w\s]", text)
+
+    def encode(self, text: str, add_special_tokens: bool = True) -> list[int]:
+        tokens = self.tokenize(text)
+        token_ids = [abs(hash(t)) % 10000 + 1 for t in tokens]
+        if add_special_tokens:
+            # XLM-RoBERTa adds <s> (id 0) and </s> (id 2)
+            return [0] + token_ids + [2]
+        return token_ids
+
+
 @pytest.fixture
 def fake_embeddings() -> DeterministicFakeEmbeddings:
-    return DeterministicFakeEmbeddings(vocab_size=64)
+    return DeterministicFakeEmbeddings(vocab_size=384)
 
 
 @pytest.fixture
@@ -113,6 +139,10 @@ def test_rag_config_defaults_and_env(monkeypatch: pytest.MonkeyPatch) -> None:
     assert cfg.groq_api_key == "test-groq-key"
     assert cfg.groq_model == "llama-3.3-70b-versatile"
     assert cfg.top_k == 6
+    assert cfg.embedding_model == "intfloat/multilingual-e5-small"
+    assert cfg.max_chunk_tokens == 480
+    assert cfg.chunk_token_overlap == 40
+    assert cfg.max_query_tokens == 512
     assert cfg.effective_ocr_key == "test-bodhan-key"
     assert cfg.effective_translation_key == "test-bodhan-key"
     assert cfg.validate_for_live() == []
@@ -191,39 +221,166 @@ def test_ingestion_nonexistent_directory_raises(
 
 
 # ==============================================================================
-# 3. EMBEDDINGS TESTS
+# 3. E5 EMBEDDING ADAPTER & PROVIDER TESTS
 # ==============================================================================
 
-def test_deterministic_fake_embeddings(fake_embeddings: DeterministicFakeEmbeddings) -> None:
-    docs = ["Scholarship eligibility notice", "Agriculture crop insurance subsidy"]
-    doc_vectors = fake_embeddings.embed_documents(docs)
-    assert len(doc_vectors) == 2
-    assert len(doc_vectors[0]) == 64
-    assert len(doc_vectors[1]) == 64
+def test_e5_passage_prefix(fake_embeddings: DeterministicFakeEmbeddings) -> None:
+    """Verify document embeddings are prefixed with 'passage: ' exactly once."""
+    mock_base = MagicMock(spec=DeterministicFakeEmbeddings)
+    mock_base.embed_documents.return_value = [[0.1] * 384]
 
-    query_vec = fake_embeddings.embed_query("Scholarship eligibility")
-    assert len(query_vec) == 64
+    adapter = E5EmbeddingsAdapter(base_embeddings=mock_base)
+    adapter.embed_documents(["Scholarship eligibility rules."])
 
-    # Test determinism
-    vec2 = fake_embeddings.embed_query("Scholarship eligibility")
-    assert query_vec == vec2
+    mock_base.embed_documents.assert_called_once_with(["passage: Scholarship eligibility rules."])
 
 
-def test_get_embedding_model_fake_provider() -> None:
-    emb = get_embedding_model("fake")
-    assert isinstance(emb, DeterministicFakeEmbeddings)
+def test_e5_query_prefix(fake_embeddings: DeterministicFakeEmbeddings) -> None:
+    """Verify query embeddings are prefixed with 'query: '."""
+    mock_base = MagicMock(spec=DeterministicFakeEmbeddings)
+    mock_base.embed_query.return_value = [0.1] * 384
+
+    adapter = E5EmbeddingsAdapter(base_embeddings=mock_base)
+    adapter.embed_query("Who is eligible for scholarship?")
+
+    mock_base.embed_query.assert_called_once_with("query: Who is eligible for scholarship?")
 
 
-def test_get_embedding_model_unknown_provider_raises() -> None:
-    with pytest.raises(ValueError, match="Unsupported embedding provider"):
-        get_embedding_model("unsupported_vector_provider")
+def test_e5_prefix_idempotence(fake_embeddings: DeterministicFakeEmbeddings) -> None:
+    """Verify that already-prefixed passages and queries are not double-prefixed."""
+    mock_base = MagicMock(spec=DeterministicFakeEmbeddings)
+    mock_base.embed_documents.return_value = [[0.1] * 384]
+    mock_base.embed_query.return_value = [0.1] * 384
+
+    adapter = E5EmbeddingsAdapter(base_embeddings=mock_base)
+    adapter.embed_documents(["passage: Already prefixed passage."])
+    mock_base.embed_documents.assert_called_once_with(["passage: Already prefixed passage."])
+
+    adapter.embed_query("query: Already prefixed query.")
+    mock_base.embed_query.assert_called_once_with("query: Already prefixed query.")
+
+
+def test_no_e5_prefix_for_openai() -> None:
+    """Verify that OpenAI embeddings are not wrapped in E5EmbeddingsAdapter."""
+    with patch("langchain_openai.OpenAIEmbeddings") as mock_openai_cls:
+        mock_instance = MagicMock()
+        mock_openai_cls.return_value = mock_instance
+
+        model = get_embedding_model("openai", model_name="text-embedding-3-small")
+        assert model is mock_instance
+        assert not isinstance(model, E5EmbeddingsAdapter)
+
+
+def test_e5_model_detection() -> None:
+    """Verify is_e5_model identifies E5 variants and excludes non-E5 models."""
+    assert is_e5_model("intfloat/multilingual-e5-small")
+    assert is_e5_model("intfloat/multilingual-e5-base")
+    assert is_e5_model("intfloat/e5-large-v2")
+    assert not is_e5_model("sentence-transformers/all-MiniLM-L6-v2")
+    assert not is_e5_model("sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
+    assert not is_e5_model("text-embedding-3-small")
+
+
+def test_e5_embedding_dimensions(fake_embeddings: DeterministicFakeEmbeddings) -> None:
+    """Verify E5 adapter preserves 384 vector dimensionality and order."""
+    adapter = E5EmbeddingsAdapter(base_embeddings=fake_embeddings)
+    docs = ["First document", "Second document"]
+    vectors = adapter.embed_documents(docs)
+
+    assert len(vectors) == 2
+    assert len(vectors[0]) == 384
+    assert len(vectors[1]) == 384
+
+    query_vec = adapter.embed_query("Search query")
+    assert len(query_vec) == 384
+
+
+def test_e5_tokenizer_length_validation_and_overhead() -> None:
+    """Verify token count accounts for prefix and special tokens."""
+    tokenizer = MockE5Tokenizer()
+    adapter = E5EmbeddingsAdapter(base_embeddings=MagicMock(), tokenizer=tokenizer)
+
+    # "passage: test" has tokens: passage, :, test (3 tokens) + <s>, </s> (2 special tokens) = 5
+    tokens = adapter.count_tokens("passage: test")
+    assert tokens == 5
+
+
+def test_query_token_limit_validation() -> None:
+    """Verify queries exceeding 512 tokens are rejected with ValueError without silent truncation."""
+    tokenizer = MockE5Tokenizer()
+    adapter = E5EmbeddingsAdapter(
+        base_embeddings=MagicMock(),
+        tokenizer=tokenizer,
+        max_sequence_length=512,
+    )
+
+    # Create oversized query with 600 words
+    long_query = "word " * 600
+    with pytest.raises(ValueError, match="Query exceeds E5 maximum sequence length of 512 tokens"):
+        adapter.embed_query(long_query)
 
 
 # ==============================================================================
-# 4. VECTOR STORE & RETRIEVAL TESTS
+# 4. TOKENIZER-AWARE CHUNKING & VECTOR STORE TESTS
 # ==============================================================================
 
-def test_vector_store_indexing_and_retrieval(fake_embeddings: DeterministicFakeEmbeddings) -> None:
+def test_tokenizer_aware_splitting_paragraph_and_sentence() -> None:
+    """Verify splitting respects paragraph and sentence boundaries and preserves metadata."""
+    tokenizer = MockE5Tokenizer()
+    doc = Document(
+        page_content=(
+            "Paragraph one about scholarships.\n\n"
+            "Paragraph two with eligibility rules. Minimum 55% marks required.\n\n"
+            "Paragraph three about deadlines."
+        ),
+        metadata={"source": "scholarship.pdf", "page_number": 1, "page": 0},
+    )
+
+    chunks = split_documents_tokenizer_aware(
+        documents=[doc],
+        max_chunk_tokens=15,
+        chunk_token_overlap=0,
+        tokenizer=tokenizer,
+    )
+
+    assert len(chunks) >= 3
+    # Verify reading order
+    assert "Paragraph one" in chunks[0].page_content
+    # Verify metadata preservation
+    for idx, c in enumerate(chunks, start=1):
+        assert c.metadata["source"] == "scholarship.pdf"
+        assert c.metadata["page_number"] == 1
+        assert c.metadata["chunk_id"] == idx
+
+
+def test_oversized_unbroken_text_safety() -> None:
+    """Verify oversized unbroken sequences are split cleanly to fit within 512 tokens without data loss."""
+    tokenizer = MockE5Tokenizer()
+    # Unbroken string of 1000 characters
+    unbroken_text = "A" * 1000
+    doc = Document(page_content=unbroken_text, metadata={"source": "raw.txt", "page_number": 1})
+
+    chunks = split_documents_tokenizer_aware(
+        documents=[doc],
+        max_chunk_tokens=50,
+        chunk_token_overlap=0,
+        tokenizer=tokenizer,
+    )
+
+    assert len(chunks) > 1
+    # Verify every chunk fits within sequence limit
+    for chunk in chunks:
+        tok_len = count_prefixed_tokens(chunk.page_content, tokenizer=tokenizer)
+        assert tok_len <= 512
+
+    # Verify no silent truncation: concatenated length equals original
+    reconstructed = "".join(c.page_content for c in chunks)
+    assert reconstructed == unbroken_text
+
+
+def test_vector_store_indexing_and_cosine_retrieval(fake_embeddings: DeterministicFakeEmbeddings) -> None:
+    """Verify InMemoryVectorStore indexing with E5 adapter and cosine retrieval."""
+    adapter = E5EmbeddingsAdapter(base_embeddings=fake_embeddings)
     docs = [
         Document(
             page_content="Students with 55% marks and family income under 150000 are eligible for merit scholarship.",
@@ -235,13 +392,14 @@ def test_vector_store_indexing_and_retrieval(fake_embeddings: DeterministicFakeE
         ),
     ]
 
-    vs = create_vector_store(docs, fake_embeddings, chunk_size=200, chunk_overlap=20)
+    vs = create_vector_store(docs, adapter, max_chunk_tokens=200, chunk_token_overlap=20)
     retriever = get_retriever(vs, top_k=1)
     results = retrieve_passages(retriever, "scholarship eligibility")
 
     assert len(results) == 1
     assert "scholarship" in results[0].page_content.lower()
     assert results[0].metadata["source"] == "scholarship.pdf"
+    assert results[0].metadata["chunk_id"] == 1
 
 
 def test_vector_store_empty_document_list_raises(fake_embeddings: DeterministicFakeEmbeddings) -> None:
@@ -254,6 +412,23 @@ def test_retriever_empty_query_returns_empty(fake_embeddings: DeterministicFakeE
     vs = create_vector_store([doc], fake_embeddings)
     retriever = get_retriever(vs, top_k=2)
     assert retrieve_passages(retriever, "") == []
+
+
+def test_get_embedding_model_missing_dependency_raises() -> None:
+    """Verify informative ImportError is raised when huggingface packages are missing."""
+    with patch.dict(sys.modules, {"langchain_huggingface": None, "langchain_community": None, "langchain_community.embeddings": None}):
+        with pytest.raises(ImportError, match="install langchain-huggingface or sentence-transformers"):
+            get_embedding_model("huggingface")
+
+
+def test_get_embedding_model_provider_selection() -> None:
+    """Verify get_embedding_model selects fake provider and rejects unknown providers."""
+    fake_mod = get_embedding_model("fake")
+    assert isinstance(fake_mod, DeterministicFakeEmbeddings)
+    assert fake_mod.vocab_size == 384
+
+    with pytest.raises(ValueError, match="Unsupported embedding provider"):
+        get_embedding_model("unsupported_vector_provider")
 
 
 # ==============================================================================
@@ -297,7 +472,7 @@ def test_citation_deduplication() -> None:
             metadata={"source": "doc.pdf", "page": 0, "page_number": 1},
         ),
     ]
-    ctx_str, cit_map = format_context_with_citations(docs)
+    _, cit_map = format_context_with_citations(docs)
     response = "Fact A [S1] and Fact B [S2]."
     valid, invalid = extract_and_validate_citations(response, cit_map)
 

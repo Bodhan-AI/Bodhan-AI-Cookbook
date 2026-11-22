@@ -7,10 +7,10 @@ Logical Architecture:
     Bodhan OCR + Translation (BodhanOCRLoader + BodhanTranslationTransformer)
             |
             v
-    Multilingual Embeddings (HuggingFace sentence-transformers / paraphrase-multilingual-MiniLM-L12-v2)
+    Multilingual Embeddings (HuggingFace intfloat/multilingual-e5-small, 512 tokens, 384 dims)
             |
             v
-    LangChain InMemoryVectorStore
+    LangChain InMemoryVectorStore (Cosine similarity)
             |
             v
     LangChain Retriever (Top-K)
@@ -32,35 +32,32 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import os
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 # Ensure package root is in sys.path
 PKG_DIR = Path(__file__).resolve().parent.parent
 if str(PKG_DIR) not in sys.path:
     sys.path.insert(0, str(PKG_DIR))
 
-from langchain_core.documents import Document
-from langchain_core.language_models.chat_models import BaseChatModel
-from langchain_core.messages import AIMessage, BaseMessage
-from langchain_core.outputs import ChatGeneration, ChatResult
-
-from bodhan_langchain import (
+from bodhan_langchain import (  # noqa: E402
     BodhanClient,
     BodhanTranslationTool,
 )
-from examples.rag.citations import (
+from examples.rag.citations import (  # noqa: E402
     extract_and_validate_citations,
     format_context_with_citations,
 )
-from examples.rag.config import RAGConfig
-from examples.rag.embeddings import DeterministicFakeEmbeddings, get_embedding_model
-from examples.rag.generation import generate_grounded_answer, get_chat_model
-from examples.rag.ingestion import ingest_documents
-from examples.rag.retrieval import get_retriever, retrieve_passages
-from examples.rag.vector_store import create_vector_store
+from examples.rag.config import RAGConfig  # noqa: E402
+from examples.rag.embeddings import get_embedding_model  # noqa: E402
+from examples.rag.generation import generate_grounded_answer, get_chat_model  # noqa: E402
+from examples.rag.ingestion import ingest_documents  # noqa: E402
+from examples.rag.retrieval import get_retriever, retrieve_passages  # noqa: E402
+from examples.rag.vector_store import create_vector_store  # noqa: E402
+from langchain_core.language_models.chat_models import BaseChatModel  # noqa: E402
+from langchain_core.messages import AIMessage, BaseMessage  # noqa: E402
+from langchain_core.outputs import ChatGeneration, ChatResult  # noqa: E402
 
 
 class MockTestGroundedChatModel(BaseChatModel):
@@ -72,8 +69,8 @@ class MockTestGroundedChatModel(BaseChatModel):
 
     def _generate(
         self,
-        messages: List[BaseMessage],
-        stop: Optional[List[str]] = None,
+        messages: list[BaseMessage],
+        stop: list[str] | None = None,
         **kwargs: Any,
     ) -> ChatResult:
         prompt_text = messages[-1].content if messages else ""
@@ -98,10 +95,10 @@ def answer_multilingual_query(
     query_lang: str,
     retriever: Any,
     chat_model: BaseChatModel,
-    translation_tool: Optional[BodhanTranslationTool] = None,
+    translation_tool: BodhanTranslationTool | None = None,
     translate_answer_back: bool = True,
-    target_answer_lang: Optional[str] = None,
-) -> Dict[str, Any]:
+    target_answer_lang: str | None = None,
+) -> dict[str, Any]:
     """Execute end-to-end question answering for a single user query."""
     clean_query = query.strip()
     is_indic = query_lang.lower() not in ("en", "english")
@@ -162,16 +159,16 @@ def answer_multilingual_query(
 
 
 def run_rag_pipeline(
-    config: Optional[RAGConfig] = None,
-    ocr_client: Optional[BodhanClient] = None,
-    translation_client: Optional[BodhanClient] = None,
-    chat_model: Optional[BaseChatModel] = None,
-    custom_query: Optional[str] = None,
-    custom_query_lang: Optional[str] = None,
-    custom_answer_lang: Optional[str] = None,
-    sample_dir: Optional[Path] = None,
-    mock_client: Optional[BodhanClient] = None,
-) -> List[Dict[str, Any]]:
+    config: RAGConfig | None = None,
+    ocr_client: BodhanClient | None = None,
+    translation_client: BodhanClient | None = None,
+    chat_model: BaseChatModel | None = None,
+    custom_query: str | None = None,
+    custom_query_lang: str | None = None,
+    custom_answer_lang: str | None = None,
+    sample_dir: Path | None = None,
+    mock_client: BodhanClient | None = None,
+) -> list[dict[str, Any]]:
     """Execute the complete Bodhan x Groq multilingual RAG pipeline."""
     cfg = config or RAGConfig.from_env()
 
@@ -220,12 +217,12 @@ def run_rag_pipeline(
     )
 
     # 5. Vector Store & Indexing
-    print("\n[Step 3] Splitting and Indexing into LangChain InMemoryVectorStore...")
+    print(f"\n[Step 3] Splitting (token budget: {cfg.max_chunk_tokens}) and Indexing into InMemoryVectorStore...")
     vector_store = create_vector_store(
         documents=translated_documents,
         embeddings=embeddings,
-        chunk_size=cfg.chunk_size,
-        chunk_overlap=cfg.chunk_overlap,
+        max_chunk_tokens=cfg.max_chunk_tokens,
+        chunk_token_overlap=cfg.chunk_token_overlap,
     )
     print("  -> Vector indexing complete.")
     retriever = get_retriever(vector_store, top_k=cfg.top_k)
@@ -274,7 +271,7 @@ def run_rag_pipeline(
         queries_to_run = test_suite
 
     print(f"\n[Step 5] Executing End-to-End Multilingual Question Answering ({len(queries_to_run)} queries)...")
-    results: List[Dict[str, Any]] = []
+    results: list[dict[str, Any]] = []
 
     for idx, item in enumerate(queries_to_run, start=1):
         q = item["query"]
@@ -330,7 +327,9 @@ def main() -> None:
     parser.add_argument("--query-lang", "-ql", default="hi", help="Language code of custom question (e.g. 'hi', 'ta', 'bn', 'en').")
     parser.add_argument("--answer-lang", "-al", help="Language code for final answer (defaults to query language).")
     parser.add_argument("--embeddings", default="huggingface", help="Embedding provider ('huggingface', 'openai', 'fake').")
-    parser.add_argument("--embedding-model", help="Embedding model name.")
+    parser.add_argument("--embedding-model", help="Embedding model name (default: 'intfloat/multilingual-e5-small').")
+    parser.add_argument("--max-chunk-tokens", type=int, help="Maximum tokens per document chunk budget (default: 480).")
+    parser.add_argument("--chunk-token-overlap", type=int, help="Token overlap between adjacent chunks (default: 40).")
     parser.add_argument("--model", "-m", default="openai/gpt-oss-120b", help="Groq model identifier.")
     parser.add_argument("--top-k", "-k", type=int, default=4, help="Number of chunks to retrieve.")
     parser.add_argument("--sample-dir", help="Directory containing sample PDF documents.")
@@ -341,6 +340,10 @@ def main() -> None:
         config.embedding_provider = args.embeddings
     if args.embedding_model:
         config.embedding_model = args.embedding_model
+    if args.max_chunk_tokens:
+        config.max_chunk_tokens = args.max_chunk_tokens
+    if args.chunk_token_overlap:
+        config.chunk_token_overlap = args.chunk_token_overlap
     if args.model:
         config.groq_model = args.model
     if args.top_k:

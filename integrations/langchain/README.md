@@ -256,15 +256,31 @@ python examples/multilingual_rag.py --query "छात्रवृत्ति �
 
 The pipeline showcases a production-ready multilingual knowledge retrieval workflow:
 1. **OCR Ingestion**: Ingests multi-page notices in Hindi, Tamil, and Bengali from `sample_data/` using `BodhanOCRLoader`.
-2. **Translation**: Normalizes extracted Indic text into English using `BodhanTranslationTransformer`.
-3. **Semantic Splitting**: Splits translated documents into passages (`chunk_size=350`, `chunk_overlap=40`) while maintaining source and page metadata.
-4. **Multilingual Embeddings**: Embeds chunks using an independent multilingual embedding model (`sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` via HuggingFace, supporting 50+ languages).
-5. **Vector Indexing**: Indexes chunks into an in-process `InMemoryVectorStore` using cosine similarity.
-6. **Query Translation**: Indic questions (Hindi, Tamil, Bengali) are automatically translated to English via `BodhanTranslationTool`.
+2. **Translation Normalization**: Normalizes extracted Indic text into English using `BodhanTranslationTransformer`.
+3. **Tokenizer-Aware Chunking**: Splits translated documents into passages using tokenizer-aware boundaries (`max_chunk_tokens=480`, `chunk_token_overlap=40`) while strictly guaranteeing sequence limit safety and preserving source and page metadata.
+4. **Multilingual E5 Embeddings**: Embeds chunks using `intfloat/multilingual-e5-small` via HuggingFace (512 token max sequence length, 384 dimensions) wrapped in an `E5EmbeddingsAdapter` that automatically enforces `passage: ` prefixing.
+5. **Vector Indexing**: Indexes chunks into an in-process `InMemoryVectorStore` using cosine similarity (384-dimensional dense vectors).
+6. **Query Translation & Validation**: Indic questions (Hindi, Tamil, Bengali) are translated to English via `BodhanTranslationTool`. The search query is validated against token limits and prefixed with `query: `.
 7. **Retriever**: Pulls the top supporting context chunks with source and page provenance.
 8. **Real Groq Generation**: Assigns stable citation identifiers `[S1]`, `[S2]`, and invokes `ChatGroq` with strict grounding rules to prevent hallucination.
 9. **Application-Validated Citations**: Extracts citations and strictly validates them against retrieved document metadata before returning.
 10. **Reverse Translation**: Translates the grounded answer back into the user's native Indic query language.
+
+#### Embedding Architecture: `intfloat/multilingual-e5-small`
+
+- **Why E5 Small?**: Selected for state-of-the-art multilingual retrieval performance, 4x larger sequence context (512 tokens vs previous MiniLM's 128-token limit), and compact 384-dimensional dense embeddings that run efficiently on standard CPU/GPU infrastructure.
+- **Asymmetric Prefix Protocol**: E5 was trained with asymmetric task prefixes. Documents indexed into the vector store must be prefixed with `"passage: "`, while search queries must be prefixed with `"query: "`. The pipeline's `E5EmbeddingsAdapter` handles this prefixing idempotently without altering raw document content in citations.
+- **512-Token Context & Tokenizer-Aware Budgeting**: Rather than relying on unreliable character heuristics, the pipeline uses tokenizer-aware splitting (`max_chunk_tokens=480`, `chunk_token_overlap=40`). The ~32 token buffer accommodates the `"passage: "` prefix and tokenizer boundary tokens (`<s>`, `</s>`). A secondary validation pass strictly verifies that every indexed chunk fits within 512 tokens.
+- **Query Token Validation**: Queries are validated against the 512-token sequence limit. Oversized queries raise a descriptive `ValueError` rather than being silently truncated.
+- **Multilingual Model Card Coverage & Bodhan Normalization**: E5 Small covers 100 languages. In our RAG architecture, Indic notices (Hindi, Tamil, Bengali) are first normalized to English via Bodhan Indic Translation before vectorization. This eliminates cross-lingual vocabulary mismatches and guarantees robust semantic search. Note that E5 does not guarantee uniform retrieval quality across all 22 Bodhan-supported Indian languages; normalization through Bodhan translation provides the primary guarantee of cross-lingual semantic fidelity.
+- **Hardware & Download Requirements**: Model weights (~470MB) are downloaded from Hugging Face Hub upon first initialization and run locally on CPU or CUDA GPU.
+- **Alternative Providers**: To use OpenAI embeddings instead:
+  ```bash
+  export EMBEDDING_PROVIDER="openai"
+  export EMBEDDING_MODEL="text-embedding-3-small"
+  export OPENAI_API_KEY="sk-..."
+  ```
+  OpenAI embeddings do not apply E5 prefixes. For offline unit testing, set `EMBEDDING_PROVIDER="fake"`.
 
 ---
 

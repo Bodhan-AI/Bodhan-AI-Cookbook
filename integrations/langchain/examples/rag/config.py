@@ -25,10 +25,15 @@ class RAGConfig:
 
     # Multilingual Embedding configuration (independent of Groq)
     embedding_provider: str = "huggingface"
-    embedding_model: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+    embedding_model: str = "intfloat/multilingual-e5-small"
 
-    # Retrieval configuration
+    # Tokenizer-aware chunking & retrieval configuration
+    max_chunk_tokens: int = 480
+    chunk_token_overlap: int = 40
+    max_query_tokens: int = 512
     top_k: int = 4
+
+    # Backwards-compatibility aliases for character-based sizing
     chunk_size: int = 350
     chunk_overlap: int = 40
 
@@ -78,8 +83,11 @@ class RAGConfig:
             embedding_provider=os.environ.get("EMBEDDING_PROVIDER", "huggingface").lower(),
             embedding_model=os.environ.get(
                 "EMBEDDING_MODEL",
-                "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+                "intfloat/multilingual-e5-small",
             ),
+            max_chunk_tokens=int(os.environ.get("MAX_CHUNK_TOKENS", "480")),
+            chunk_token_overlap=int(os.environ.get("CHUNK_TOKEN_OVERLAP", "40")),
+            max_query_tokens=int(os.environ.get("MAX_QUERY_TOKENS", "512")),
             top_k=top_k,
             chunk_size=int(os.environ.get("CHUNK_SIZE", "350")),
             chunk_overlap=int(os.environ.get("CHUNK_OVERLAP", "40")),
