@@ -47,21 +47,10 @@ This checklist tracks all submission requirements outlined in [`Agentic Engineer
 
 ---
 
-## 4. Final Human Action Items Before Sending
-
-1. **Record the 5-Minute Demo Video**:
-   - Record a short ($\le 5\text{ min}$) screencast showing:
-     - `python -m bodhan_mcp` connected via MCP Inspector (`npx @modelcontextprotocol/inspector python -m bodhan_mcp`).
-     - `python -m bodhan_agent` executing a multi-step task (e.g. Hindi audio $\to$ English SRT, scanned PDF $\to$ Tamil audio).
-     - `python -m bodhan_agent` executing an impossible task (e.g. Translate MP4 into French) demonstrating honest refusal with zero artifacts.
-   - Insert video link into `README.md` and `docs/PR_DESCRIPTION.md`.
-
-2. **Open Pull Request to Bodhan AI Cookbook**:
-   - Fork [`https://github.com/Bodhan-AI/Bodhan-AI-Cookbook`](https://github.com/Bodhan-AI/Bodhan-AI-Cookbook).
-   - Create branch: `assignment/tool-agent-<github-handle>`.
-   - Add recipe folder under `examples/` per the cookbook structure.
-   - Open PR titled: `[Agentic Eng Assignment] Tool server and agent — <Your Name>`.
-   - Copy contents of [`docs/PR_DESCRIPTION.md`](PR_DESCRIPTION.md) into the PR description body.
-
-3. **Reply to Email**:
-   - Reply to the email thread where the take-home was assigned with the PR link and final commit SHA.
+## 4. Final Submission Details
+- [x] **Demo Video**: [Google Drive Walkthrough](https://drive.google.com/file/d/13nspKqcyYHLC9HIHR7rAxFOT3BkWnckI/view?usp=sharing)
+- [x] **Pull Request Opened**: [#86 [Agentic Eng Assignment] Tool server and agent — Ayush Maurya](https://github.com/Bodhan-AI/Bodhan-AI-Cookbook/pull/86)
+- [x] **Final Commit SHA**: `022b1e66c213dbfd49b06f11f827f3cfb6ee47b7`
+- [x] **Branch**: `assignment/tool-agent-ayush3739`
+- [x] **Recipe Folder**: `examples/bodhan_tool_agent/`
+- [x] **All Checks**: 100% Green (77 tests passed)
