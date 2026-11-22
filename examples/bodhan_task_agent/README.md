@@ -6,7 +6,7 @@
 
 An agentic language-workflow recipe for the [Bodhan AI Cookbook](https://github.com/Bodhan-AI/Bodhan-AI-Cookbook). A general-purpose LLM plans tasks and calls **Bodhan-only** OCR, transcription, translation and speech tools, without generating Indian-language text itself. The agent works with files by reference; produces text/audio/subtitle artifacts, an auditable trace, a quality report and honest error statuses; and enforces model-cost reservations and step limits.
 
-> **Current validation status (22 Nov 2026):** **27 offline tests passed on Windows**. A real **Indic-Translate** diagnostic succeeded via Bodhan's `/v1/chat/completions` fallback after `/translate` returned HTTP 404. **The full agent, real audio generation, the six required demos, a public demo recording, and independent MCP Inspector validation remain unverified.** Do not present the assignment as completed until those steps pass. See [Engineering troubleshooting log](docs/ISSUES_AND_FIXES.md).
+> **Verified to date (22 Nov 2026):** 37 offline tests passed in the Windows development project, Cookbook recipe validation had zero blocking findings, and live Bengali translation/speech, Hindi-to-English subtitles, and independent MCP Inspector discovery/calls succeeded. Marathi worksheet OCR and direct translation generated files; a separate offline audit passed table, numbers, and LaTeX preservation, but the *complete autonomous Marathi run was not successful* and an older QA report disagreed on number preservation. Unsupported French was refused without a fabricated file. Six full task scenarios, the public demo video and final PR are not complete. See [live results](docs/LIVE_VALIDATION_RESULTS.md) and [engineering log](docs/ISSUES_AND_FIXES.md).
 
 ## Setup
 
@@ -95,30 +95,31 @@ See [Architecture and workflow diagrams](docs/ARCHITECTURE.md) and [Design decis
 
 ### Engineering issue history
 
-See [Issues, failed attempts and verified fixes](docs/ISSUES_AND_FIXES.md) for a dated record of Windows setup problems, Bodhan translation HTTP 404, the working alternative API route, and the outstanding Groq HTTP 429 issue. Each issue distinguishes confirmed results from hypotheses.
+See [Issues, failed attempts and verified fixes](docs/ISSUES_AND_FIXES.md) for a dated record of Windows setup problems, Bodhan translation HTTP 404, the working alternative API route, and how the Groq HTTP 429 did not recur in the first complete live run. Each issue distinguishes confirmed results from hypotheses.
 
 ### Six required demo tasks
 
-See [Live demonstration runbook](docs/LIVE_DEMO_RUNBOOK.md). The take-home requires **at least six real successful/appropriately refused demos**, including a documented impossible task; never substitute the mocked tests for these. The demo must be captured in a public, sign-in-free video of **at most five minutes** before the PR is considered complete.
+See [Live demonstration runbook](docs/LIVE_DEMO_RUNBOOK.md). The take-home requires **at least six real successful/appropriately refused demos**, including a documented impossible task; never substitute the mocked tests for these. Bengali speech and Hindi subtitles were completed as autonomous runs; a text-based unsupported-French refusal passed. The autonomous Marathi run failed, and Tamil chapter narration and Telugu clip selection remain untested. The demo must be captured in a public, sign-in-free video of **at most five minutes** before the PR is considered complete.
 
-### Local tests
+### Local tests and external MCP verification
 
-For Windows, `setup_windows.ps1` performs the installation and offline tests and copies the environment template without overwriting an existing `.env`.
+The Windows development copy passed **37 offline tests** (mocked/model-protocol tests). Re-run the tests and Cookbook checks in the actual PR clone before final submission:
 
 ```bash
+# From examples/bodhan_task_agent after pip install -e .
 python -m pytest -q
-# From a full Cookbook clone, additionally:
+# From the full Cookbook root:
 python scripts/validate_recipe.py examples/bodhan_task_agent
 make check
 ```
 
-Tests include path traversal, invalid schemas, supported languages, model budgets and cache, PDF/image OCR, timing-aware audio splitting, translation structure, speech verification, MCP stdio JSON-RPC and a locally scripted LLM run. They do **not** assert genuine model accuracy. To test from an independent MCP client, use [MCP Inspector](https://github.com/modelcontextprotocol/inspector):
+On Windows without GNU Make, the individual `Makefile` targets can be executed with the same Python/pip commands in that file, or use Git Bash/WSL. Do not claim `make check` passed until it actually runs.
 
-```bash
-npx @modelcontextprotocol/inspector --cli python -m bodhan_mcp --method tools/list
+An independent **MCP Inspector** connection succeeded: `tools/list` exposed nine tools; external `inspect_files` and `read_text` calls succeeded; and an external `ocr_document` call processed one worksheet image. These are real independent client invocations, not just unit tests. `tools/list` proves discoverability, while the actual tool calls prove selected tool execution; not every MCP tool was externally tested.
+
+```powershell
+npx.cmd -y @modelcontextprotocol/inspector --cli .\.venv\Scripts\python.exe -m bodhan_mcp --method tools/list
 ```
-
-If a particular Inspector version requires flags in a different order, follow its linked CLI documentation. **External Inspector validation is pending**, not claimed as done.
 
 ## Failure behavior and cost controls
 
@@ -132,29 +133,40 @@ If a particular Inspector version requires flags in a different order, follow it
 
 ## Trade-offs and known limitations
 
-- **Partial live validation only:** a real Bodhan translation probe passed using the alternate chat endpoint. Speech synthesis, OCR/ASR on real media, end-to-end agent behavior, latency at scale, and native-speaker quality remain unverified.
-- **Subtitle timestamps:** 25-second ASR chunk boundaries are correct but coarse; the pipeline does not claim word alignment. Silence-aware segmentation would improve subtitle UX.
-- **Speaker diarization:** not implemented. English and Indic speech from fixed Bodhan voices, no voice cloning.
-- **Indian language identification:** script-based detection is conservative. Several languages share scripts; the agent should preserve ambiguity or request/assume a hint rather than invent confidence.
-- **LLM cost:** unknown without provider pricing; only Bodhan quotes are reserved. Actual billing should be reviewed in the console.
-- **MCP:** minimal stdio implementation, not yet externally tested with Inspector; HTTP MCP and UI are out of scope.
-- **Markdown preservation:** table pipes, numbers and LaTeX tokens are checked and restored with a conservative fallback, but complex nested Markdown may need stronger parsing; keep QA warnings visible.
-- **OCR layout and audio verification:** OCR provides blocks and confidence indicators, but complex page reordering and character-similarity metrics are imperfect. Native-speaker review remains necessary.
-- **No model generalization claim:** local tests cover error handling and API request shapes, not the hidden test set.
+- **Partial live coverage:** Real Bengali text→speech, Hindi audio→English SRT, and worksheet OCR were completed. A direct OCR-derived Marathi translation exists, but the autonomous Marathi task failed upstream; Tamil scanned-chapter narration and Telugu clip selection have not been demonstrated in the provided run records.
+- **Marathi QA:** The first translation QA sidecar had `numbers_preserved: false`; a later independent audit of the saved documents found number order, table cells and LaTeX preserved. We report both and do not equate the audit with native-speaker review.
+- **Time and speech alignment:** ASR chunk boundaries are coarse. The Hindi sample generated one subtitle cue for a 6.485-second clip, not word-level timings.
+- **Model/API reliability:** `/translate` returned HTTP 404 in the tested environment; translation succeeded through the Bodhan `indic-translate` chat-completions fallback. Rate limiting caused a failure during a longer Marathi task. Transient retries are bounded.
+- **Cost:** Bodhan cost figures below are conservative estimates in run reports, excluding LLM-provider costs and actual invoicing.
+- **Third-party MCP coverage:** Discovery and three tool invocations verified; hidden third-party-client tests remain unknown.
+- **Native-speaker evaluation:** Not independently performed; back-ASR similarity and roundtrip similarity are diagnostics only. No claim about hidden-set task completion.
+
+## Live results (not the hidden benchmark)
+
+| Demonstration | Observed result | Time | Est. Bodhan charge |
+| --- | --- | ---: | ---: |
+| English paragraph → Bengali text and female speech | `completed`; 12.032 s WAV; back-ASR character similarity 0.975 | 19.39 s | ₹0.1071 |
+| Hindi sample WAV → English transcript/SRT | `completed`; one SRT cue covering 0–6.485 s | 121.67 s | ₹0.0266 |
+| Independent MCP Inspector worksheet OCR | `ok: true`, 1/1 page, zero failed; two low-confidence empty layout blocks | — | Not independently reported |
+| Worksheet → Marathi | Autonomous run **did not** translate; direct tool produced Marathi output; offline structural audit passed 4/4 checks; semantic review pending | — | Not reliably comparable |
+| Unsupported French translation | `not_completed`, no artifacts or tool calls | 1.14 s | ₹0.00 |
+
+See [Live validation results](docs/LIVE_VALIDATION_RESULTS.md) for evidence and caveats. Raw model output and media are intentionally omitted from git; public, rights-cleared demo artifact links should be supplied in the PR.
 
 ## Submission checklist
 
 - [x] Runnable agent command and independent stdio server
-- [x] Bodhan-only model endpoints, typed schemas, budget, caching, retries
-- [x] Setup docs, clean-source requirements, architecture and workflow diagram
-- [x] Local isolated/mocked tests and mock HTTP shape tests
-- [x] Confirm model credentials present and a live Bodhan Indic-Translate probe succeeds (22 Nov 2026)
-- [ ] Complete a full live agent run, including speech/verification and Groq tool calling
-- [ ] Run **six real demo tasks** including one unsupported task, and link outputs/traces
-- [ ] Verify at least one independent MCP client connection with MCP Inspector
-- [ ] Perform Cookbook recipe validation and `make check` in a true upstream fork
-- [ ] Record a real, publicly viewable demo video (≤5 minutes)
-- [ ] Open a public PR in [Bodhan AI Cookbook](https://github.com/Bodhan-AI/Bodhan-AI-Cookbook), then reply to the recruiter email with PR URL + final commit SHA
+- [x] Bodhan-only model capabilities, typed schemas, budgets and retries
+- [x] Offline tests in working Windows development project (37 passed)
+- [x] Successful live Bengali speech and Hindi subtitles tasks
+- [x] Independent MCP Inspector discovery and selected tool execution
+- [x] Negative unsupported-French test with no fabricated output
+- [x] Cookbook single-recipe validator reported zero blocking errors locally
+- [ ] Re-run `make check` and all tests in the final submission checkout
+- [ ] Finish/clearly disclose remaining two task scenarios and autonomous Marathi limitation
+- [ ] Provide publicly accessible, rights-cleared example outputs/traces
+- [ ] Record a public demo video of at most five minutes and link it here and in the PR
+- [ ] Open PR to upstream, then email PR URL **and final commit SHA** by 23 Nov 2026
 
 ### AI assistance
 
