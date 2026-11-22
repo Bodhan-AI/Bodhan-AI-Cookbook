@@ -41,11 +41,13 @@ class Workspace:
             raise ToolError("invalid_argument", f"{path} is a folder, not a file.", hint="Pass one file; inspect_file lists a folder's files.")
         return p
 
-    def output_path(self, name: str | None, default_stem: str, suffix: str) -> Path:
+    def output_path(self, name: str | None, default_stem: str, suffix: str, *, keep_name_suffix: bool = False) -> Path:
+        """A unique path in the output folder. The extension always matches the content (`suffix`), so a caller asking
+        for "speech.wav" gets "speech.mp3" when the tool writes MP3; only write_text honours the caller's extension."""
         stem = Path(name).stem if name else default_stem
         stem = re.sub(r"[^\w.\-]+", "_", stem, flags=re.UNICODE).strip("._") or default_stem
         suffix = suffix if suffix.startswith(".") else f".{suffix}"
-        if name and Path(name).suffix:
+        if keep_name_suffix and name and Path(name).suffix:
             suffix = Path(name).suffix
         candidate = self.output_dir / f"{stem}{suffix}"
         n = 2

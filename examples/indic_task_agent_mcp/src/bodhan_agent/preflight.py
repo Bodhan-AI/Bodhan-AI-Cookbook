@@ -81,8 +81,10 @@ def run_preflight(task: str, files_spec: str | None, max_cost_inr: float) -> Pre
     if missing:
         pf.impossible_reason = f"Input not found: {', '.join(missing)}. Nothing was processed."
     elif targets:
-        pf.impossible_reason = (f"{', '.join(targets)} is not supported by any Bodhan model. Supported target languages: "
-                                f"{', '.join(langs.name_of(c) for c in sorted(langs.TRANSLATE) if '-' not in c)}.")
+        pf.impossible_reason = (f"{', '.join(targets)} is not supported by any Bodhan model, so nothing was translated. "
+                                f"Supported target languages: {', '.join(langs.name_of(c) for c in sorted(langs.TRANSLATE) if '-' not in c)}.\n\n"
+                                "What is possible instead: transcribe the input and translate it into English or any of the languages "
+                                "above (as text, subtitles or speech). Rerun with one of those languages.")
     elif max_cost_inr <= 0:
         pf.impossible_reason = "The cost budget is zero, so no model can be called."
     if files_spec and not files and not missing:

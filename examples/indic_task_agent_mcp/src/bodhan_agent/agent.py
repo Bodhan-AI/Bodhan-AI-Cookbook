@@ -52,7 +52,8 @@ FINISH_TOOL = {
                 "artifacts": {"type": "array", "description": "Deliverable files (paths from tool results).",
                               "items": {"type": "object", "properties": {"path": {"type": "string"}, "description": {"type": "string"}},
                                         "required": ["path", "description"]}},
-                "assumptions": {"type": "array", "items": {"type": "string"}},
+                "assumptions": {"type": "array", "items": {"type": "string"},
+                                "description": "Choices you made where the task was ambiguous (language, voice, length, format)."},
                 "limitations": {"type": "array", "items": {"type": "string"}},
             },
             "required": ["answer", "artifacts"],
@@ -365,7 +366,9 @@ class Agent:
             return ("Verification found problems. Fix them (one more attempt), then call finish again. "
                     "If a problem cannot be fixed, call finish and list it under limitations.\n- " + "\n- ".join(problems))
         st.answer = answer if not has_indic(answer) else "(The model's answer contained Indian-language text and was withheld; see the files.)"
-        st.assumptions += [x for x in args.get("assumptions", []) if isinstance(x, str) and x not in st.assumptions]
+        final_assumptions = [x for x in args.get("assumptions", []) if isinstance(x, str) and x.strip()]
+        if final_assumptions:  # the finish call states what was actually assumed; it supersedes the plan's guesses
+            st.assumptions = list(dict.fromkeys(final_assumptions))
         st.limitations += [x for x in args.get("limitations", []) if isinstance(x, str)]
         st.verification, st.judge = ver, judge
         st.artifacts = [{"source": str(p), "description": a["description"]} for p, a in resolved]

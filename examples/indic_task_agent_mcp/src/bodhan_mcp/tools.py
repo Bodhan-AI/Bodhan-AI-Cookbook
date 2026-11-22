@@ -765,6 +765,6 @@ async def write_text(ctx: ToolContext, content: str, name: str) -> WriteTextResu
     suffix = Path(name).suffix.lower() or ".txt"
     if suffix not in (".txt", ".md", ".json", ".srt", ".csv"):
         raise ToolError("invalid_argument", f"Extension {suffix} is not allowed; use .txt, .md, .json, .srt or .csv.")
-    out = ctx.workspace.output_path(name, "note", suffix)
+    out = ctx.workspace.output_path(name, "note", suffix, keep_name_suffix=True)
     out.write_text(content, encoding="utf-8")
     return WriteTextResult(path=ctx.workspace.rel(out), chars=len(content))

@@ -115,3 +115,10 @@ async def test_inspect_folder_lists_files(ctx, workdir):
     assert res.kind == "folder" and any(e.path.endswith("a.txt") for e in res.entries)
     one = await tools.inspect_file(ctx, str(workdir / "a.txt"))
     assert one.language_guess["language"] == "bn"
+
+
+async def test_output_extension_follows_content_not_caller(ctx, fake_api):
+    res = await tools.translate_text(ctx, "ta", text="Hello 5", output_name="answer.wav")
+    assert res.output_path.endswith(".txt")
+    note = await tools.write_text(ctx, "plain English", "summary.md")
+    assert note.path.endswith(".md")

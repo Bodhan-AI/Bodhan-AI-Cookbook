@@ -50,6 +50,8 @@ PLANNER = """Plan the task below before acting. Return only a JSON object with t
 {"feasible": true|false, "infeasible_reason": "", "assumptions": ["..."], "target_languages": ["ta"],
  "steps": ["short imperative steps naming the tools"], "deliverables": ["what files or answers the user gets"],
  "verification": ["how you will check the outputs"]}
+"assumptions" are choices you made where the request is ambiguous (language, voice, length, format, which files),
+not statements that tools or files will work.
 Mark feasible false only when the task clearly cannot be done with the tools and languages available
 (for example an unsupported language, or required input files are missing). Do not invent problems."""
 
