@@ -34,4 +34,4 @@ examples/*/sample_data/*
 .vscode/
 .idea/
 CLAUDE.md
-examples/bodhan_tool_agent/docs
+examples/agent_with_tools/docs

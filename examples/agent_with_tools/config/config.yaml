@@ -1,0 +1,32 @@
+# Tunable parameters for the Bodhan tools. Every model limit and price lives here, not in the code.
+# Point BODHAN_CONFIG at another YAML file to override this one (missing keys fall back to these values).
+
+http:
+  max_attempts: 3          # tries per API call (retries on timeout, HTTP 429 and 5xx)
+  backoff_s: 1.0           # wait before the 1st retry; doubles each retry (1 s, 2 s, 4 s, ...)
+  timeout_s: 60            # per-call timeout
+  concurrency: 1           # parallel Bodhan requests (the API reports a parallel-request limit)
+
+translate:                 # Indic-Translate
+  max_chars: 1500          # characters per request; halved and retried when the API says too large / truncated
+  max_total_chars: 200000  # hard ceiling per tool call
+  min_split_chars: 40      # stop halving below this size
+  inr_per_10k_output_tokens: 0.20
+  timeout_s: 30
+
+transcribe:                # Indic-Transcribe
+  window_s: 25             # audio window per request (model limit is ~30 s)
+  max_total_s: 3600        # hard ceiling per tool call
+  vad: true                # voice-activity detection on the API side
+  inr_per_minute: 0.10
+
+speak:                     # Indic-Speak
+  max_chars_per_request: 200   # about a sentence or two (~30 s of speech)
+  max_total_chars: 5000        # hard ceiling per tool call
+  inr_per_10k_chars: 6.0
+
+ocr:                       # Indic-OCR
+  max_image_bytes: 10000000
+  pdf_dpi: 150             # resolution PDF pages are rendered at
+  max_pages: 30            # pages per call; use first_page / last_page for longer documents
+  inr_per_page: 0.20
