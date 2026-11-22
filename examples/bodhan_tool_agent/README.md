@@ -6,6 +6,10 @@
 
 > A production-grade Model Context Protocol (MCP) tool server wrapping Bodhan's Indic AI models, paired with an autonomous Task Agent capable of planning, executing, and verifying multi-step Indian language workflows with budget bounds and honest failure guarantees.
 
+### 🎥 Demo Video Walkthrough
+**Watch the video demonstration:** [Google Drive Demo Video (3–4 mins)](https://drive.google.com/file/d/1-vV9YLxWsj-SKOG8rOrBTK3JYofncwVp/view?usp=sharing)
+*(Covers MCP Server execution, multi-step Tamil summary, honest failure on French video, and the 10/10 evaluation benchmark)*
+
 ---
 
 ## 1. Summary
