@@ -1,0 +1,9 @@
+# Terms that must stay consistent across every dubbed line (--glossary).
+# Merged with the terms the LLM finds; entries here always win.
+terms:
+  - term: linear pair            # kind defaults to "technical"
+  - term: Bodhan
+    kind: name
+    keep: true                   # a name/brand that should never be translated
+  - term: GDP
+    kind: acronym

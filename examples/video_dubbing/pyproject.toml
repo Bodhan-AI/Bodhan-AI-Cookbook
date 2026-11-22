@@ -1,0 +1,49 @@
+[project]
+name = "bodhan-dub"
+version = "0.1.0"
+description = "Dub English videos into Indian languages with Bodhan's Indic models and an LLM orchestrator."
+readme = "README.md"
+requires-python = ">=3.12"
+# Pinned to match requirements.txt; uv.lock pins the full transitive tree.
+dependencies = [
+    "numpy==2.5.5",
+    "openai==3.57.0",
+    "python-dotenv==1.2.4",
+    "pyyaml==6.0.4",
+    "requests==2.34.2",
+    # Wheels exist only for macOS, x86-64 Linux and Windows; elsewhere the energy VAD is used.
+    'silero-vad-lite==0.4.0; sys_platform == "darwin" or platform_machine == "x86_64" or platform_machine == "AMD64"',
+    "tenacity==9.2.1",
+]
+
+[dependency-groups]
+dev = [
+    "pytest==9.2.0",
+    "ruff==0.17.6",
+]
+
+[build-system]
+requires = ["hatchling==1.27.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/bodhan_dub"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+markers = ["live: calls the real Bodhan and LLM APIs (needs keys; costs credit)"]
+addopts = "-m 'not live'"
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+# These modules hold LLM prompts: long prose lines read better unwrapped.
+"src/bodhan_dub/repair.py" = ["E501"]
+"src/bodhan_dub/glossary.py" = ["E501"]
+"src/bodhan_dub/translate.py" = ["E501"]
