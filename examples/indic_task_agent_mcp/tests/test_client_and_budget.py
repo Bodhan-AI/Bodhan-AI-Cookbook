@@ -48,7 +48,7 @@ async def test_costs_are_booked_per_model(workdir, env_keys, fake_api):
 async def test_http_errors_map_to_codes(workdir, env_keys, status, code):
     ctx = make_ctx(workdir)
     with respx.mock(base_url=BASE) as router:
-        router.post("/translate").mock(return_value=httpx.Response(status, json={"error": {"code": "x", "message": "nope", "request_id": "r1"}}))
+        router.post("/v1/chat/completions").mock(return_value=httpx.Response(status, json={"error": {"code": "x", "message": "nope", "request_id": "r1"}}))
         with pytest.raises(ToolError) as exc:
             await ctx.client.translate("hello", "ta")
     assert exc.value.code == code

@@ -175,7 +175,10 @@ class BodhanClient:
         return text
 
     async def translate(self, text: str, target: str, script: str = "native") -> dict[str, Any]:
-        model, endpoint = "indic-translate", "/translate"
+        # The live service serves translation on the chat-completions route (the documented POST /translate returns 404):
+        # one user turn holds the text; the target travels as a top-level field. Both field spellings are sent because
+        # Bodhan's docs and its Android sample use different ones.
+        model, endpoint = "indic-translate", "/v1/chat/completions"
         params = {"target_language": target, "script": script}
         key = make_key(model, endpoint, params, text.encode())
         t0 = time.perf_counter()
@@ -187,14 +190,20 @@ class BodhanClient:
         est = costs.estimate_translate(max(64, len(text)))  # generous: about one token per source character
         self.ledger.reserve(model, est)
         try:
-            resp = await self._send(model, "POST", endpoint, json={"text": text, "target_language": target, "script": script})
+            resp = await self._send(model, "POST", endpoint, json={
+                "model": model, "messages": [{"role": "user", "content": text}],
+                "target_language": target, "target_language_code": target, "script": script,
+            })
         finally:
             self.ledger.release(est)
         body = resp.json()
+        choice = (body.get("choices") or [{}])[0] or {}
+        translation = ((choice.get("message") or {}).get("content") or body.get("translation") or "").strip()
+        truncated = choice.get("finish_reason") == "length" or bool(body.get("truncated"))
         usage = body.get("usage") or {}
-        out_tokens = usage.get("output_tokens") or usage.get("completion_tokens") or max(1, len(body.get("translation", "")) // 2)
+        out_tokens = usage.get("completion_tokens") or usage.get("output_tokens") or max(1, len(translation) // 2)
         cost = costs.estimate_translate(int(out_tokens))
-        result = {"translation": body.get("translation", ""), "truncated": bool(body.get("truncated")), "output_tokens": int(out_tokens)}
+        result = {"translation": translation, "truncated": truncated, "output_tokens": int(out_tokens)}
         self.cache.put_json(key, result)
         self.ledger.record(model, cost, cache_hit=False, units=out_tokens, unit="output_tokens")
         self._event(model, endpoint, t0, cost, False, resp.extensions.get("attempts", 1))

@@ -66,13 +66,19 @@ class FakeBodhan:
         self.ocr_fail_once = False
         self.rate_limit_once = False
 
-    def translate(self, request: httpx.Request) -> httpx.Response:
-        self.calls["translate"] += 1
+    def chat(self, request: httpx.Request) -> httpx.Response:
         body = json.loads(request.content)
-        word = SCRIPT_WORD.get(body["target_language"], "xx")
-        out = re.sub(r"[^\W\d_]+", word, body["text"])
-        return httpx.Response(200, json={"translation": out, "target_language": body["target_language"], "script": "native",
-                                         "truncated": False, "usage": {"output_tokens": max(1, len(out) // 3)}})
+        return self.translate(body) if body.get("model") == "indic-translate" else self.ocr(request)
+
+    def translate(self, body: dict) -> httpx.Response:
+        self.calls["translate"] += 1
+        assert body["messages"][0]["role"] == "user" and len(body["messages"]) == 1
+        target = body["target_language_code"]
+        word = SCRIPT_WORD.get(target, "xx")
+        out = re.sub(r"[^\W\d_]+", word, body["messages"][0]["content"])
+        return httpx.Response(200, json={"model": "indic-translate", "object": "chat.completion",
+                                         "choices": [{"index": 0, "finish_reason": "stop", "message": {"role": "assistant", "content": out}}],
+                                         "usage": {"completion_tokens": max(1, len(out) // 3), "prompt_tokens": 10}})
 
     def speak(self, request: httpx.Request) -> httpx.Response:
         self.calls["speak"] += 1
@@ -115,10 +121,9 @@ class FakeBodhan:
 def fake_api():
     fake = FakeBodhan()
     with respx.mock(base_url=BASE, assert_all_called=False) as router:
-        router.post("/translate").mock(side_effect=fake.translate)
         router.post("/v1/audio/speech").mock(side_effect=fake.speak)
         router.post("/v1/audio/transcriptions").mock(side_effect=fake.transcribe)
-        router.post("/v1/chat/completions").mock(side_effect=fake.ocr)
+        router.post("/v1/chat/completions").mock(side_effect=fake.chat)
         yield fake
 
 

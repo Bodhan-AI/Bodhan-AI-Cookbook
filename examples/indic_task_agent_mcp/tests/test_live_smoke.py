@@ -26,6 +26,9 @@ async def test_each_model_once(tmp_path, monkeypatch):
     tr = await tools.translate_text(ctx, "hi", text="Water boils at 100 degrees Celsius.")
     print("translate:", tr.preview, tr.warnings)
     assert tr.script_match and tr.script_match > 0.6 and not tr.missing_numbers
+    ta = await tools.translate_text(ctx, "ta", text="The library opens at 9 in the morning.")
+    print("translate ta:", ta.preview, ta.warnings)
+    assert ta.script_match and ta.script_match > 0.6, "target language was not honoured"
     sp = await tools.synthesize_speech(ctx, "hi", path=tr.output_path)
     print("speech:", sp.duration_s, "s, mean CER", sp.verification.mean_cer)
     assert sp.duration_s > 1 and sp.verification.checked
