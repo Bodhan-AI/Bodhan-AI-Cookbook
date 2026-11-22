@@ -4,7 +4,7 @@ An MCP stdio server for Bodhan's Indic models and an OpenAI-compatible CLI agent
 
 **Models:** Indic-Transcribe, Indic-Translate, Indic-Speak, Indic-OCR
 **Runtime:** Python 3.10+; hosted Bodhan API
-**Current status:** Core implementation and offline tests are in place. Six end-to-end tasks have been run, including an explicit unsupported-task case. Sanitized reports and traces are linked below; binary media and user-provided OCR content are kept out of Git. A short local evidence walkthrough has been recorded; its public hosting link and the submission pull request are still pending.
+**Current status:** Core implementation and offline tests are in place. Six end-to-end tasks have been run, including an explicit unsupported-task case. Sanitized reports and traces are linked below; binary media and user-provided OCR content are kept out of Git. The demo video is hosted on YouTube; the submission pull request is still pending.
 
 ## What it does
 
@@ -149,7 +149,7 @@ These six tasks used the local Ollama model `qwen2.5:7b` for planning and Bodhan
 | 6 | Request exact word-level SRT timestamps from an untimed transcript | Correctly reported unsupported; no SRT artifact was produced | 0.010808 | [result](demo_evidence/06-unsupported-timestamps/result.md) · [report](demo_evidence/06-unsupported-timestamps/report.json) · [trace](demo_evidence/06-unsupported-timestamps/trace.jsonl) · [transcript](demo_evidence/06-unsupported-timestamps/artifacts/transcript-001.txt) |
 
 The OCR report and trace are deliberately redacted: the image belongs to the user, and the extracted notice contains third-party contact details. All original run folders remain local under the ignored `outputs/demos/` directory.
-The short evidence walkthrough is not committed; a public link is pending.
+Demo video: [YouTube](https://youtu.be/JPipoudHuD4).
 
 ## Smoke-test evidence and known limitations
 
