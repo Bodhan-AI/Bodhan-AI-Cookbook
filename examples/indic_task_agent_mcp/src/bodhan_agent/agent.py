@@ -159,8 +159,8 @@ class Agent:
             inner = _unwrap(exc)
             if isinstance(inner, LLMError):
                 st.errors.append(str(inner))
-                st.status = "failed" if not st.artifacts else "partial"
                 self.trace.log("stop", "llm_error", error=str(inner))
+                self._salvage("The LLM became unavailable before the agent called finish.")
             else:
                 log.exception("run failed")
                 st.errors.append(f"{inner.__class__.__name__}: {inner}")
@@ -399,6 +399,29 @@ class Agent:
         verdict = extract_json(reply.content)
         self.trace.log("verify", "judge", verdict=verdict or reply.content[:300])
         return verdict if isinstance(verdict, dict) and "satisfied" in verdict else None
+
+    def _salvage(self, why: str) -> None:
+        """Run stopped before finish: hand over the outputs already made, checked, and labelled honestly."""
+        st = self.state
+        finals: dict[str, Path] = {}
+        for rec in self.records.values():
+            res, tool = rec["result"], rec["tool"]
+            key = {"synthesize_speech": "audio_path", "write_subtitles": "srt_path", "translate_text": "output_path"}.get(tool)
+            if key and res.get(key):
+                p = self._resolve(res[key])
+                if p:
+                    finals[str(p)] = p
+        if not finals:
+            st.status = "failed"
+            return
+        paths = list(finals.values())
+        targets = [t for t in (st.plan or {}).get("target_languages", []) if isinstance(t, str)]
+        st.verification = verify_artifacts(paths, self.records, targets, self.pf.duration_target_s)
+        st.artifacts = [{"source": str(p), "description": "Produced before the run stopped; checked by code only"} for p in paths]
+        st.status = "partial"
+        st.answer = (f"{why} The files below were already produced by the tools and are delivered with their automatic "
+                     "checks, but the task was not confirmed complete.")
+        st.limitations.append(why)
 
     def _stop_budget(self, why: str) -> None:
         st = self.state

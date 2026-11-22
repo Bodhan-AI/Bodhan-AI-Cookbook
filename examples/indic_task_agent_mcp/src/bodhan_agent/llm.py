@@ -104,7 +104,7 @@ class OpenAICompatLLM:
             messages = _as_text_tool_messages(messages, tools)
             tools = None
         last: Exception | None = None
-        for attempt in range(4):
+        for attempt in range(6):
             try:
                 kwargs: dict[str, Any] = {"model": self.model, "messages": messages, "temperature": temperature}
                 if tools:
@@ -120,9 +120,15 @@ class OpenAICompatLLM:
                     log.warning("provider rejected tools; switching to text tool-call mode")
                     self.text_tool_mode = True
                     return await self.chat(messages, tools, temperature)
+                if status == 413:
+                    raise LLMError(f"LLM request is larger than the provider allows per minute ({exc}). "
+                                   "Use a model or plan with a higher tokens-per-minute limit.") from exc
                 if status in (400, 401, 403, 404, 422):
                     raise LLMError(f"LLM request rejected ({status}): {exc}") from exc
-                await asyncio.sleep(min(20, 2 ** attempt))
+                delay = _retry_delay(exc) if status == 429 else None
+                wait = delay if delay is not None else min(20, 2 ** attempt)
+                log.warning("llm retry", extra={"status": status, "attempt": attempt + 1, "wait_s": round(wait, 1)})
+                await asyncio.sleep(wait)
         else:
             raise LLMError(f"LLM unavailable after retries: {last}")
         self.calls += 1
@@ -141,6 +147,21 @@ class OpenAICompatLLM:
     def usage(self) -> dict:
         return {"model": self.model, "calls": self.calls, "prompt_tokens": self.prompt_tokens,
                 "completion_tokens": self.completion_tokens, "text_tool_mode": self.text_tool_mode}
+
+
+def _retry_delay(exc: Exception) -> float | None:
+    """Seconds a rate-limited provider asks us to wait: Retry-After header, or 'try again in 19.4s' in the message."""
+    response = getattr(exc, "response", None)
+    header = response.headers.get("retry-after") if response is not None else None
+    try:
+        if header:
+            return min(65.0, float(header) + 0.5)
+    except ValueError:
+        pass
+    m = re.search(r"try again in (?:(\d+)m)?([\d.]+)s", str(exc))
+    if m:
+        return min(65.0, int(m.group(1) or 0) * 60 + float(m.group(2)) + 0.5)
+    return None
 
 
 def _as_text_tool_messages(messages: list[dict], tools: list[dict]) -> list[dict]:

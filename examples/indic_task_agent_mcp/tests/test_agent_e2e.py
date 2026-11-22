@@ -7,6 +7,7 @@ finish, deterministic verification, judge, artifacts, trace and report.
 import json
 from pathlib import Path
 
+import pytest
 from conftest import ScriptedLLM, last_tool_json, make_ctx, needs_ffmpeg
 
 from bodhan_agent.agent import Agent, RunConfig
@@ -137,3 +138,37 @@ def test_verification_failure_triggers_one_redo_then_partial(workdir, env_keys, 
     assert report["steps"]["redos"] == 1
     assert report["status"] == "partial"
     assert any("speech_verified" in x for x in report["limitations"])
+
+
+def test_llm_outage_after_work_delivers_checked_partial_outputs(workdir, env_keys, fake_api):
+    """If the LLM dies after the tools ran, the run hands over what exists, checked, as partial, never as success."""
+    from bodhan_agent.llm import LLMError
+
+    inputs = workdir / "in"
+    inputs.mkdir()
+    (inputs / "p.txt").write_text("Plants make food from sunlight.", encoding="utf-8")
+
+    def outage(m, t):
+        raise LLMError("LLM unavailable after retries: 429")
+
+    script = [
+        plan(target_languages=["bn"]),
+        lambda m, t: LLMReply(tool_calls=[call("translate_text", target_language="bn", path=str(inputs / "p.txt"))]),
+        outage,
+    ]
+    report, _ = run(workdir, "Translate this into Bengali", str(inputs), script)
+    assert report["status"] == "partial"
+    assert report["artifacts"] and report["artifacts"][0]["path"].endswith(".txt")
+    assert report["verification"]["checks"], "salvaged files must still be checked"
+    assert any("unavailable" in e for e in report["errors"])
+
+
+def test_rate_limit_wait_is_read_from_the_provider():
+    from bodhan_agent.llm import _retry_delay
+
+    class E(Exception):
+        response = None
+
+    assert _retry_delay(E("Rate limit reached ... Please try again in 19.4625s. Need more tokens?")) == pytest.approx(19.9625)
+    assert _retry_delay(E("try again in 1m2.5s")) == pytest.approx(63.0)
+    assert _retry_delay(E("server exploded")) is None
