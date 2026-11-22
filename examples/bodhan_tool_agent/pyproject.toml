@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bodhan-tool-agent"
+version = "0.1.0"
+description = "MCP server exposing Bodhan's Indic models as tools, plus a budget-aware task agent"
+requires-python = ">=3.11"
+dependencies = [
+  "mcp==1.30.0",
+  "httpx==0.28.1",
+  "openai==3.57.0",
+  "soundfile==0.14.0",
+  "numpy==2.5.5",
+  "pypdf==7.1.1",
+  "pillow==13.0.0",
+  "pyyaml==6.0.3",
+]
+
+[project.optional-dependencies]
+dev = ["pytest==9.2.0", "pytest-asyncio==1.5.0"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
