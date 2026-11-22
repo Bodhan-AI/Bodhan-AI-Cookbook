@@ -12,6 +12,8 @@ from pathlib import Path
 from typing import Any, Callable
 
 from bodhan_lesson.bodhan_client import get_translate_api_key, post_json
+from bodhan_lesson.parallel import get_max_lang_workers, map_parallel
+from bodhan_lesson.progress import done, item, stage
 
 # Product POST /translate returns 404 on some gateways; docs also allow chat completions.
 TRANSLATE_PATH = "/v1/chat/completions"
@@ -300,32 +302,33 @@ def translate_lesson_file(
 
     source_text = lesson_path.read_text(encoding="utf-8")
     key = api_key or get_translate_api_key()
-    results: list[dict[str, Any]] = []
+    total = len(langs)
+    workers = get_max_lang_workers()
+    stage("translate", f"{total} language(s), workers={min(workers, max(1, total))}")
 
-    for lang in langs:
+    def _one(job: tuple[int, str]) -> dict[str, Any]:
+        index, lang = job
+        item("translate", index, total, lang)
         started = time.perf_counter()
         lang_dir = out_dir / lang
         lang_dir.mkdir(parents=True, exist_ok=True)
         out_path = lang_dir / f"lesson.{lang}.md"
         try:
             if lang == (source_lang or "en"):
-                # Same language: copy source (still useful for downstream).
                 out_path.write_text(source_text, encoding="utf-8")
-                results.append(
-                    {
-                        "lang": lang,
-                        "status": "ok",
-                        "path": str(out_path),
-                        "pivot": False,
-                        "chunks": 0,
-                        "usage": {},
-                        "structure_ok": True,
-                        "structure_issues": [],
-                        "latency_s": round(time.perf_counter() - started, 3),
-                        "error": None,
-                    }
-                )
-                continue
+                item("translate", index, total, lang, "ok (same as source)")
+                return {
+                    "lang": lang,
+                    "status": "ok",
+                    "path": str(out_path),
+                    "pivot": False,
+                    "chunks": 0,
+                    "usage": {},
+                    "structure_ok": True,
+                    "structure_issues": [],
+                    "latency_s": round(time.perf_counter() - started, 3),
+                    "error": None,
+                }
 
             translated = translate_lesson_markdown(
                 source_text,
@@ -335,33 +338,41 @@ def translate_lesson_file(
                 post_fn=post_fn,
             )
             out_path.write_text(translated["translation"], encoding="utf-8")
-            results.append(
-                {
-                    "lang": lang,
-                    "status": "ok",
-                    "path": str(out_path),
-                    "pivot": translated["pivot"],
-                    "chunks": translated["chunks"],
-                    "usage": translated["usage"],
-                    "structure_ok": translated["structure_ok"],
-                    "structure_issues": translated["structure_issues"],
-                    "latency_s": round(time.perf_counter() - started, 3),
-                    "error": None,
-                }
+            item(
+                "translate",
+                index,
+                total,
+                lang,
+                f"ok chunks={translated['chunks']}",
             )
+            return {
+                "lang": lang,
+                "status": "ok",
+                "path": str(out_path),
+                "pivot": translated["pivot"],
+                "chunks": translated["chunks"],
+                "usage": translated["usage"],
+                "structure_ok": translated["structure_ok"],
+                "structure_issues": translated["structure_issues"],
+                "latency_s": round(time.perf_counter() - started, 3),
+                "error": None,
+            }
         except Exception as exc:  # noqa: BLE001 — isolate per language
-            results.append(
-                {
-                    "lang": lang,
-                    "status": "error",
-                    "path": None,
-                    "pivot": needs_pivot(source_lang, lang),
-                    "chunks": 0,
-                    "usage": {},
-                    "structure_ok": False,
-                    "structure_issues": [],
-                    "latency_s": round(time.perf_counter() - started, 3),
-                    "error": str(exc),
-                }
-            )
+            item("translate", index, total, lang, f"error: {exc}")
+            return {
+                "lang": lang,
+                "status": "error",
+                "path": None,
+                "pivot": needs_pivot(source_lang, lang),
+                "chunks": 0,
+                "usage": {},
+                "structure_ok": False,
+                "structure_issues": [],
+                "latency_s": round(time.perf_counter() - started, 3),
+                "error": str(exc),
+            }
+
+    results = map_parallel(list(enumerate(langs, start=1)), _one)
+    ok = sum(1 for row in results if row.get("status") == "ok")
+    done("translate", ok=ok, failed=len(results) - ok)
     return results

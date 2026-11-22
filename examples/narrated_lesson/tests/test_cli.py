@@ -80,20 +80,21 @@ def test_parse_args_optional_flags() -> None:
             "--glossary", "g.yml",
             "--voices", "v.yml",
             "--code-mixed",
-            "--skip-ocr",
+            "--from", "layout",
         ]
     )
     assert args.source_lang == "en"
     assert args.glossary == "g.yml"
     assert args.voices == "v.yml"
     assert args.code_mixed is True
-    assert args.skip_ocr is True
+    assert args.from_stage == "layout"
 
 
-def test_skip_ocr_reuses_artifacts(tmp_path: Path) -> None:
+def test_from_layout_reuses_ocr(tmp_path: Path) -> None:
     out = tmp_path / "out"
     pages = out / "source" / "pages"
     pages.mkdir(parents=True)
+    (pages / "page_001.png").write_bytes(b"\x89PNG\r\n\x1a\nfake")
     ocr_json = pages / "page_001.ocr.json"
     ocr_json.write_text(
         json.dumps(
@@ -124,44 +125,49 @@ def test_skip_ocr_reuses_artifacts(tmp_path: Path) -> None:
                 with patch(
                     "bodhan_lesson.cli.speak_narrated_lessons", side_effect=_fake_speak
                 ):
-                    code = main(
-                        [
-                            "--input", str(tmp_path / "ignored.pdf"),
-                            "--langs", "hi",
-                            "--out", str(out),
-                            "--skip-ocr",
-                        ]
-                    )
+                    with patch(
+                        "bodhan_lesson.cli.qa_spoken_lessons", side_effect=_fake_qa
+                    ):
+                        code = main(
+                            [
+                                "--input", str(tmp_path / "ignored.pdf"),
+                                "--langs", "hi",
+                                "--out", str(out),
+                                "--source-lang", "en",
+                                "--from", "layout",
+                            ]
+                        )
 
     assert code == 0
     mock_prep.assert_not_called()
     mock_ocr.assert_not_called()
     report = json.loads((out / "report.json").read_text(encoding="utf-8"))
-    assert report["skip_ocr"] is True
+    assert report["from_stage"] == "layout"
     assert report["ocr"]["reused"] is True
     assert report["ocr"]["ok"] == 1
     assert report["layout"]["ok"] == 1
     assert report["assembly"]["status"] == "ok"
-    assert report["phase"] == 6
+    assert report["phase"] == 7
     assert report["translations"]["ok"] == 1
     assert report["narrations"]["ok"] == 1
     assert report["speaks"]["ok"] == 1
+    assert report["qa"]["ok"] == 1
     assert (pages / "page_001.clean.json").is_file()
     assert (out / "source" / "lesson.src.md").is_file()
     assert (out / "hi" / "lesson.hi.md").is_file()
     assert (out / "hi" / "narration_script.hi.json").is_file()
     assert (out / "hi" / "lesson.hi.mp3").is_file()
-    assert report["languages"]["hi"]["status"] == "spoken"
+    assert report["languages"]["hi"]["status"] == "qa_ok"
 
 
-def test_skip_ocr_without_artifacts_returns_2(tmp_path: Path) -> None:
+def test_from_layout_without_artifacts_returns_2(tmp_path: Path) -> None:
     out = tmp_path / "empty_out"
     code = main(
         [
             "--input", str(tmp_path / "x.pdf"),
             "--langs", "hi",
             "--out", str(out),
-            "--skip-ocr",
+            "--from", "layout",
         ]
     )
     assert code == 2
@@ -219,6 +225,7 @@ def _fake_speak(out_dir, narrations, **kwargs):  # noqa: ANN001
                 "lang": lang,
                 "status": "ok",
                 "lesson_mp3": str(mp3),
+                "script_path": str(Path(out_dir) / lang / f"narration_script.{lang}.json"),
                 "voice": "Kavya",
                 "sections_ok": 1,
                 "sections_skipped": 0,
@@ -232,6 +239,78 @@ def _fake_speak(out_dir, narrations, **kwargs):  # noqa: ANN001
     return rows
 
 
+def _fake_qa(out_dir, speaks, **kwargs):  # noqa: ANN001
+    rows = []
+    for spk in speaks:
+        lang = spk.get("lang")
+        if spk.get("status") not in {"ok", "partial"}:
+            rows.append(
+                {
+                    "lang": lang,
+                    "status": "skipped",
+                    "ok": 0,
+                    "failed": 0,
+                    "skipped": 0,
+                    "retries": 0,
+                    "mean_cer": None,
+                    "loudness": {"status": "skipped", "reason": "speak_not_ok"},
+                    "latency_s": 0.0,
+                    "error": spk.get("error"),
+                }
+            )
+            continue
+        rows.append(
+            {
+                "lang": lang,
+                "status": "ok",
+                "ok": 1,
+                "failed": 0,
+                "skipped": 0,
+                "retries": 0,
+                "mean_cer": 0.05,
+                "loudness": {"status": "skipped", "reason": "ffmpeg_missing"},
+                "lesson_mp3": spk.get("lesson_mp3"),
+                "latency_s": 0.01,
+                "error": None,
+            }
+        )
+    return rows
+
+
+def test_source_lang_auto_detect_after_assemble(
+    image_folder: Path, tmp_path: Path
+) -> None:
+    out = tmp_path / "detect_run"
+    with patch("bodhan_lesson.cli.run_ocr_on_pages", side_effect=_fake_ocr_ok):
+        with patch(
+            "bodhan_lesson.cli.detect_source_lang_from_path",
+            return_value=("hi", 0.88),
+        ) as mock_detect:
+            with patch(
+                "bodhan_lesson.cli.translate_lesson_file", side_effect=_fake_translate
+            ) as mock_tr:
+                with patch(
+                    "bodhan_lesson.cli.speak_narrated_lessons", side_effect=_fake_speak
+                ):
+                    with patch(
+                        "bodhan_lesson.cli.qa_spoken_lessons", side_effect=_fake_qa
+                    ):
+                        code = main(
+                            [
+                                "--input", str(image_folder),
+                                "--langs", "ta",
+                                "--out", str(out),
+                            ]
+                        )
+    assert code == 0
+    mock_detect.assert_called_once()
+    assert mock_tr.call_args.kwargs.get("source_lang") == "hi"
+    report = json.loads((out / "report.json").read_text(encoding="utf-8"))
+    assert report["source_lang"] == "hi"
+    assert report["source_lang_detected"] is True
+    assert report["source_lang_score"] == 0.88
+
+
 def test_langs_split_and_trim(image_folder: Path, tmp_path: Path) -> None:
     out = tmp_path / "run"
     with patch("bodhan_lesson.cli.run_ocr_on_pages", side_effect=_fake_ocr_ok):
@@ -239,22 +318,27 @@ def test_langs_split_and_trim(image_folder: Path, tmp_path: Path) -> None:
             with patch(
                 "bodhan_lesson.cli.speak_narrated_lessons", side_effect=_fake_speak
             ):
-                code = main(
-                    [
-                        "--input", str(image_folder),
-                        "--langs", "hi, ta, bn",
-                        "--out", str(out),
-                    ]
-                )
+                with patch(
+                    "bodhan_lesson.cli.qa_spoken_lessons", side_effect=_fake_qa
+                ):
+                    code = main(
+                        [
+                            "--input", str(image_folder),
+                            "--langs", "hi, ta, bn",
+                            "--out", str(out),
+                            "--source-lang", "en",
+                        ]
+                    )
     assert code == 0
     report = json.loads((out / "report.json").read_text(encoding="utf-8"))
     assert report["langs"] == ["hi", "ta", "bn"]
-    assert report["phase"] == 6
+    assert report["phase"] == 7
     assert report["layout"]["ok"] >= 1
     assert report["assembly"]["status"] == "ok"
     assert report["translations"]["ok"] == 3
     assert report["narrations"]["ok"] == 3
     assert report["speaks"]["ok"] == 3
+    assert report["qa"]["ok"] == 3
     assert (out / "source" / "lesson.src.md").is_file()
     assert (out / "hi" / "lesson.hi.md").is_file()
     assert (out / "hi" / "narration_script.hi.json").is_file()

@@ -16,6 +16,8 @@ from pathlib import Path
 from typing import Any, Callable
 
 from bodhan_lesson.bodhan_client import get_speak_api_key, post_bytes
+from bodhan_lesson.parallel import get_max_lang_workers, map_parallel
+from bodhan_lesson.progress import done, item, stage
 
 SPEAK_PATH = "/v1/audio/speech"
 SPEAK_MODEL = "indic-speak"
@@ -379,11 +381,14 @@ def speak_lesson_script(
     total_retries = 0
     cursor_s = 0.0
 
+    total_sections = len(sections)
+    stage("speak", f"lang={lang} sections={total_sections} voice={chosen_voice}")
     for index, section in enumerate(sections, start=1):
         sec_id = section.get("id") or f"sec_{index:03d}"
         slug = section.get("slug") or sec_id
         stem = f"{index:02d}-{slug}.{lang}"
         text = section.get("text_for_tts") or ""
+        item("speak", index, total_sections, f"{lang}/{slug}")
         if section.get("status") != "ok" or not str(text).strip():
             reason = section.get("skip_reason") or "section_not_ok"
             section_rows.append(
@@ -401,6 +406,7 @@ def speak_lesson_script(
                 }
             )
             skipped += 1
+            item("speak", index, total_sections, f"{lang}/{slug}", "skipped")
             continue
 
         final_mp3 = narr_dir / f"{stem}.mp3"
@@ -432,6 +438,13 @@ def speak_lesson_script(
                     "error": result.get("error"),
                 }
             )
+            item(
+                "speak",
+                index,
+                total_sections,
+                f"{lang}/{slug}",
+                f"error: {result.get('error')}",
+            )
             continue
 
         duration = float(result.get("duration_s") or 0.0)
@@ -450,6 +463,13 @@ def speak_lesson_script(
             }
         )
         ok += 1
+        item(
+            "speak",
+            index,
+            total_sections,
+            f"{lang}/{slug}",
+            f"ok {duration:.1f}s",
+        )
 
         if mp3_for_concat:
             if silence_path is None:
@@ -506,6 +526,7 @@ def speak_lesson_script(
     )
 
     status = "ok" if ok and lesson_status == "ok" else ("partial" if ok else "error")
+    done("speak", lang=lang, ok=ok, skipped=skipped, failed=failed)
     return {
         "lang": lang,
         "status": status,
@@ -543,56 +564,61 @@ def speak_narrated_lessons(
     if voices:
         voice_map.update(voices)
 
-    results: list[dict[str, Any]] = []
-    for row in narrations:
+    work = [row for row in narrations if row.get("lang")]
+    total = len(work)
+    workers = get_max_lang_workers()
+    stage("speak", f"{total} language(s), workers={min(workers, max(1, total))}")
+
+    def _one(job: tuple[int, dict[str, Any]]) -> dict[str, Any]:
+        index, row = job
         lang = row.get("lang")
-        if not lang:
-            continue
+        item("speak", index, total, str(lang))
         if row.get("status") != "ok" or not row.get("path"):
-            results.append(
-                {
-                    "lang": lang,
-                    "status": "skipped",
-                    "voice": resolve_voice(lang, voice_map),
-                    "lesson_mp3": None,
-                    "sections_ok": 0,
-                    "sections_skipped": 0,
-                    "sections_failed": 0,
-                    "sections": [],
-                    "retries": 0,
-                    "latency_s": 0.0,
-                    "error": row.get("error") or "narration not ok",
-                    "ai_generated": True,
-                }
-            )
-            continue
+            item("speak", index, total, str(lang), "skipped")
+            return {
+                "lang": lang,
+                "status": "skipped",
+                "voice": resolve_voice(lang, voice_map),
+                "lesson_mp3": None,
+                "sections_ok": 0,
+                "sections_skipped": 0,
+                "sections_failed": 0,
+                "sections": [],
+                "retries": 0,
+                "latency_s": 0.0,
+                "error": row.get("error") or "narration not ok",
+                "ai_generated": True,
+            }
         try:
-            results.append(
-                speak_lesson_script(
-                    Path(row["path"]),
-                    out_dir,
-                    lang,
-                    voice=resolve_voice(lang, voice_map),
-                    api_key=api_key,
-                    post_fn=post_fn,
-                    style=style,
-                )
+            result = speak_lesson_script(
+                Path(row["path"]),
+                out_dir,
+                lang,
+                voice=resolve_voice(lang, voice_map),
+                api_key=api_key,
+                post_fn=post_fn,
+                style=style,
             )
+            item("speak", index, total, str(lang), str(result.get("status")))
+            return result
         except Exception as exc:  # noqa: BLE001
-            results.append(
-                {
-                    "lang": lang,
-                    "status": "error",
-                    "voice": resolve_voice(lang, voice_map),
-                    "lesson_mp3": None,
-                    "sections_ok": 0,
-                    "sections_skipped": 0,
-                    "sections_failed": 0,
-                    "sections": [],
-                    "retries": 0,
-                    "latency_s": 0.0,
-                    "error": str(exc),
-                    "ai_generated": True,
-                }
-            )
+            item("speak", index, total, str(lang), f"error: {exc}")
+            return {
+                "lang": lang,
+                "status": "error",
+                "voice": resolve_voice(lang, voice_map),
+                "lesson_mp3": None,
+                "sections_ok": 0,
+                "sections_skipped": 0,
+                "sections_failed": 0,
+                "sections": [],
+                "retries": 0,
+                "latency_s": 0.0,
+                "error": str(exc),
+                "ai_generated": True,
+            }
+
+    results = map_parallel(list(enumerate(work, start=1)), _one)
+    ok = sum(1 for row in results if row.get("status") == "ok")
+    done("speak", ok=ok, failed=len(results) - ok)
     return results

@@ -22,7 +22,7 @@ def get_llm_base_url() -> str:
 
 
 def get_llm_model() -> str:
-    return os.environ.get("LLM_MODEL", "gemini-3.8-flash")
+    return os.environ.get("LLM_MODEL", "gemini-3.5-flash")
 
 
 def get_llm_api_key() -> str:

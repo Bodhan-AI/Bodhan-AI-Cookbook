@@ -12,6 +12,8 @@ import time
 from pathlib import Path
 from typing import Any
 
+from bodhan_lesson.progress import done, stage
+
 _TERMINAL_END_RE = re.compile(r"[.!?…”\"')\]]\s*$")
 _LOWER_START_RE = re.compile(r"^[a-z]")
 _HYPHEN_BREAK_RE = re.compile(r"-\s*$")
@@ -133,6 +135,7 @@ def assemble_lesson(
     started = time.perf_counter()
     source_dir = source_dir or pages_dir.parent
     clean_paths = list_clean_pages(pages_dir)
+    stage("assemble", f"{len(clean_paths)} clean page(s)")
 
     page_sections: list[str] = []
     assembly_pages: list[dict[str, Any]] = []
@@ -204,6 +207,7 @@ def assemble_lesson(
         json.dumps(assembly, indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
     )
+    done("assemble", status=status, ok=ok_pages, failed=failed_pages, chars=len(lesson_md))
 
     return {
         "status": status,

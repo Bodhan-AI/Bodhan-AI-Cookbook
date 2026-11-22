@@ -106,6 +106,7 @@ def _fake_speak(out_dir, narrations, **kwargs):  # noqa: ANN001
                 "lang": lang,
                 "status": "ok",
                 "lesson_mp3": str(mp3),
+                "script_path": str(Path(out_dir) / lang / f"narration_script.{lang}.json"),
                 "voice": "Kavya",
                 "sections_ok": 1,
                 "sections_skipped": 0,
@@ -119,6 +120,44 @@ def _fake_speak(out_dir, narrations, **kwargs):  # noqa: ANN001
     return rows
 
 
+def _fake_qa(out_dir, speaks, **kwargs):  # noqa: ANN001
+    rows = []
+    for spk in speaks:
+        lang = spk.get("lang")
+        if spk.get("status") not in {"ok", "partial"}:
+            rows.append(
+                {
+                    "lang": lang,
+                    "status": "skipped",
+                    "ok": 0,
+                    "failed": 0,
+                    "skipped": 0,
+                    "retries": 0,
+                    "mean_cer": None,
+                    "loudness": {"status": "skipped"},
+                    "latency_s": 0.0,
+                    "error": spk.get("error"),
+                }
+            )
+            continue
+        rows.append(
+            {
+                "lang": lang,
+                "status": "ok",
+                "ok": 1,
+                "failed": 0,
+                "skipped": 0,
+                "retries": 0,
+                "mean_cer": 0.04,
+                "loudness": {"status": "skipped", "reason": "ffmpeg_missing"},
+                "lesson_mp3": spk.get("lesson_mp3"),
+                "latency_s": 0.01,
+                "error": None,
+            }
+        )
+    return rows
+
+
 def test_cli_phase2_from_image_folder(image_folder: Path, tmp_path: Path) -> None:
     out = tmp_path / "out_images"
     with patch("bodhan_lesson.cli.run_ocr_on_pages", side_effect=_fake_ocr_ok):
@@ -126,13 +165,17 @@ def test_cli_phase2_from_image_folder(image_folder: Path, tmp_path: Path) -> Non
             with patch(
                 "bodhan_lesson.cli.speak_narrated_lessons", side_effect=_fake_speak
             ):
-                code = main(
-                    [
-                        "--input", str(image_folder),
-                        "--langs", "hi,ta",
-                        "--out", str(out),
-                    ]
-                )
+                with patch(
+                    "bodhan_lesson.cli.qa_spoken_lessons", side_effect=_fake_qa
+                ):
+                    code = main(
+                        [
+                            "--input", str(image_folder),
+                            "--langs", "hi,ta",
+                            "--out", str(out),
+                            "--source-lang", "en",
+                        ]
+                    )
     assert code == 0
     pages = sorted(
         p
@@ -146,13 +189,14 @@ def test_cli_phase2_from_image_folder(image_folder: Path, tmp_path: Path) -> Non
     report = json.loads((out / "report.json").read_text(encoding="utf-8"))
     assert report["page_count"] == 2
     assert report["langs"] == ["hi", "ta"]
-    assert report["phase"] == 6
+    assert report["phase"] == 7
     assert report["ocr"]["ok"] == 2
     assert report["layout"]["ok"] == 2
     assert report["assembly"]["status"] == "ok"
     assert report["translations"]["ok"] == 2
     assert report["narrations"]["ok"] == 2
     assert report["speaks"]["ok"] == 2
+    assert report["qa"]["ok"] == 2
     assert (out / "source" / "pages" / "page_001.clean.json").is_file()
     assert (out / "source" / "lesson.src.md").is_file()
     assert (out / "source" / "assembly.json").is_file()
@@ -168,23 +212,27 @@ def test_cli_phase2_from_pdf(multi_pdf: Path, tmp_path: Path) -> None:
             with patch(
                 "bodhan_lesson.cli.speak_narrated_lessons", side_effect=_fake_speak
             ):
-                code = main(
-                    [
-                        "--input", str(multi_pdf),
-                        "--langs", "bn",
-                        "--out", str(out),
-                    ]
-                )
+                with patch(
+                    "bodhan_lesson.cli.qa_spoken_lessons", side_effect=_fake_qa
+                ):
+                    code = main(
+                        [
+                            "--input", str(multi_pdf),
+                            "--langs", "bn",
+                            "--out", str(out),
+                            "--source-lang", "en",
+                        ]
+                    )
     assert code == 0
     pages = sorted((out / "source" / "pages").glob("page_*.png"))
     assert len(pages) == 3
     assert all(p.stat().st_size > 0 for p in pages)
     report = json.loads((out / "report.json").read_text(encoding="utf-8"))
     assert report["page_count"] == 3
-    assert report["phase"] == 6
+    assert report["phase"] == 7
     assert report["layout"]["ok"] == 3
     assert report["assembly"]["status"] == "ok"
-    assert report["languages"]["bn"]["status"] == "spoken"
+    assert report["languages"]["bn"]["status"] == "qa_ok"
     assert (out / "bn" / "narration_script.bn.json").is_file()
     assert (out / "bn" / "lesson.bn.mp3").is_file()
 
@@ -196,10 +244,20 @@ def test_cli_output_layout_contract(tiny_pdf: Path, tmp_path: Path) -> None:
             with patch(
                 "bodhan_lesson.cli.speak_narrated_lessons", side_effect=_fake_speak
             ):
-                assert (
-                    main(["--input", str(tiny_pdf), "--langs", "hi", "--out", str(out)])
-                    == 0
-                )
+                with patch(
+                    "bodhan_lesson.cli.qa_spoken_lessons", side_effect=_fake_qa
+                ):
+                    assert (
+                        main(
+                            [
+                                "--input", str(tiny_pdf),
+                                "--langs", "hi",
+                                "--out", str(out),
+                                "--source-lang", "en",
+                            ]
+                        )
+                        == 0
+                    )
     assert (out / "source" / "pages" / "page_001.png").is_file()
     assert (out / "source" / "pages" / "page_001.md").is_file()
     assert (out / "source" / "pages" / "page_001.clean.json").is_file()

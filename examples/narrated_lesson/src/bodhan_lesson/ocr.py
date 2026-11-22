@@ -14,6 +14,7 @@ from typing import Any
 
 from bodhan_lesson.bodhan_client import get_ocr_api_key, post_json
 from bodhan_lesson.constants import IMAGE_SUFFIXES
+from bodhan_lesson.progress import done, item, stage
 
 OCR_PATH = "/v1/chat/completions"
 DEFAULT_TABLE_FORMAT = "html"
@@ -36,7 +37,7 @@ def list_page_images(pages_dir: Path) -> list[Path]:
 def load_existing_ocr_pages(pages_dir: Path) -> list[dict[str, Any]]:
     """Build OCR page summaries from saved page_*.ocr.json (no API calls).
 
-    Used with --skip-ocr so layout can be re-tested without spending OCR credits.
+    Used when ``--from`` starts after OCR so layout+ can re-run without OCR credits.
     """
     if not pages_dir.is_dir():
         raise FileNotFoundError(f"Pages directory not found: {pages_dir}")
@@ -51,7 +52,8 @@ def load_existing_ocr_pages(pages_dir: Path) -> list[dict[str, Any]]:
     )
     if not ocr_files:
         raise FileNotFoundError(
-            f"No page_*.ocr.json under {pages_dir}. Run without --skip-ocr once first."
+            f"No page_*.ocr.json under {pages_dir}. "
+            "Run a full pipeline once (no --from), or --from ocr."
         )
 
     results: list[dict[str, Any]] = []
@@ -220,8 +222,11 @@ def run_ocr_on_pages(
 
     key = api_key or get_ocr_api_key()
     results: list[dict[str, Any]] = []
+    total = len(images)
+    stage("ocr", f"{total} page(s)")
 
-    for image_path in images:
+    for index, image_path in enumerate(images, start=1):
+        item("ocr", index, total, image_path.name)
         started = time.perf_counter()
         try:
             response = ocr_page(image_path, api_key=key)
@@ -229,6 +234,7 @@ def run_ocr_on_pages(
             summary["latency_s"] = round(time.perf_counter() - started, 3)
             summary["retries"] = 0
             results.append(summary)
+            item("ocr", index, total, image_path.name, "ok")
         except Exception as exc:  # noqa: BLE001 — isolate per page
             results.append(
                 {
@@ -244,4 +250,7 @@ def run_ocr_on_pages(
                     "retries": 0,
                 }
             )
+            item("ocr", index, total, image_path.name, f"error: {exc}")
+    ok = sum(1 for row in results if row.get("status") == "ok")
+    done("ocr", ok=ok, failed=len(results) - ok)
     return results

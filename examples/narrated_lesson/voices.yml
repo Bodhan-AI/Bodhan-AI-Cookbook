@@ -1,0 +1,7 @@
+# Bodhan Indic-Speak voice override (lang → speaker name).
+# Official voice table: https://console.bodhan.ai/api-docs/
+#   kok (Konkani): female Anjali | male Sandeep
+# Also listed in repo scripts/bodhan_api_rules.json → indic-speak.voices
+# Only langs listed here override defaults; others keep built-in defaults.
+
+kok: Sandeep

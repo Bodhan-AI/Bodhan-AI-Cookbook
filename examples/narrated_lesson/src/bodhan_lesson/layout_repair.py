@@ -18,6 +18,7 @@ from bodhan_lesson.layout_cleanup import (
     normalize_preview,
 )
 from bodhan_lesson.llm_client import chat_json
+from bodhan_lesson.progress import done, item, stage
 
 # Labels that count as "text" for the side-by-side column check.
 TEXTISH_LABELS = {
@@ -334,9 +335,12 @@ def run_layout_on_pages(
         key=lambda row: row.get("stem") or row.get("page") or "",
     )
 
+    total = len(ordered)
+    stage("layout", f"{total} page(s)")
     for page_index, row in enumerate(ordered):
         stem = row.get("stem") or Path(str(row.get("page", ""))).stem
         ocr_json_path = row.get("ocr_json_path")
+        item("layout", page_index + 1, total, str(row.get("page") or stem))
         started = time.perf_counter()
         try:
             if not ocr_json_path:
@@ -381,6 +385,13 @@ def run_layout_on_pages(
                     "error": None,
                 }
             )
+            item(
+                "layout",
+                page_index + 1,
+                total,
+                str(row.get("page") or stem),
+                f"ok repair={repaired['repair']}",
+            )
         except Exception as exc:  # noqa: BLE001 — isolate per page
             results.append(
                 {
@@ -404,6 +415,13 @@ def run_layout_on_pages(
                     "error": str(exc),
                 }
             )
+            item(
+                "layout",
+                page_index + 1,
+                total,
+                str(row.get("page") or stem),
+                f"error: {exc}",
+            )
 
     # Preserve original OCR order in report (match ocr_pages sequence).
     by_stem = {r["stem"]: r for r in results}
@@ -414,4 +432,6 @@ def run_layout_on_pages(
         stem = row.get("stem") or Path(str(row.get("page", ""))).stem
         if stem in by_stem:
             ordered_out.append(by_stem[stem])
+    ok = sum(1 for row in ordered_out if row.get("status") == "ok")
+    done("layout", ok=ok, failed=len(ordered_out) - ok)
     return ordered_out

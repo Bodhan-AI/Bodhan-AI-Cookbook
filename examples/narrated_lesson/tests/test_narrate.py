@@ -11,6 +11,7 @@ from bodhan_lesson.narrate import (
     narrate_lesson_markdown,
     narrate_translated_lessons,
     split_sections,
+    title_for_speech,
     unit_needs_spoken_form,
 )
 
@@ -18,6 +19,14 @@ from bodhan_lesson.narrate import (
 def test_markdown_to_speech_strips_markup() -> None:
     assert markdown_to_speech("**line-segment** and *ray*") == "line-segment and ray"
     assert markdown_to_speech("## Hello") == "Hello"
+
+
+def test_title_for_speech_strips_section_numbers() -> None:
+    assert title_for_speech("6.1 परिचय") == "परिचय"
+    assert title_for_speech("6.2 Basic terms") == "Basic terms"
+    assert title_for_speech("अध्याय 6") == "अध्याय 6"
+    assert title_for_speech("6.1") == ""
+    assert title_for_speech("## 6.1 Intro") == "Intro"
 
 
 def test_unit_needs_spoken_form() -> None:
@@ -52,6 +61,15 @@ def test_narrate_prose_keeps_translation_no_llm() -> None:
     joined = " ".join(s["text_for_tts"] or "" for s in out["sections"] if s["status"] == "ok")
     assert "यह एक साधारण अनुच्छेद है।" in joined
     assert "दूसरा भाग।" in joined
+
+
+def test_narrate_title_omits_section_number_in_tts() -> None:
+    md = "## 6.1 परिचय\n\nयह अनुच्छेद है।"
+    out = narrate_lesson_markdown(md, "hi", chat_fn=lambda m: ({"items": []}, {}))
+    text = out["sections"][0]["text_for_tts"] or ""
+    assert out["sections"][0]["title"] == "6.1 परिचय"
+    assert text.startswith("परिचय")
+    assert not text.startswith("6.1")
 
 
 def test_narrate_equation_uses_english_then_translate() -> None:
@@ -136,3 +154,53 @@ def test_narrate_translated_lessons_isolates_failure(tmp_path: Path) -> None:
     assert rows[0]["status"] == "ok"
     assert (tmp_path / "hi" / "narration_script.hi.json").is_file()
     assert rows[1]["status"] == "skipped"
+
+
+def test_narrate_with_spoken_plan_swaps_and_keeps_prose() -> None:
+    """Plan snippets replace math; translated prose stays."""
+
+    def boom_chat(messages):  # noqa: ANN001
+        raise AssertionError("LLM must not run when plan covers hard spans")
+
+    def fake_post(path, body, api_key):  # noqa: ANN001
+        assert body["target_language"] == "hi"
+        return {
+            "choices": [
+                {
+                    "finish_reason": "stop",
+                    "message": {
+                        "role": "assistant",
+                        "content": "ए प्लस बी बराबर सी।",
+                    },
+                }
+            ],
+            "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2},
+        }
+
+    plan = {
+        "spans": [
+            {
+                "id": "span_001",
+                "kind": "display_math",
+                "source_span": "$$a+b=c$$",
+                "spoken_en": "a plus b equals c.",
+                "status": "ok",
+            }
+        ]
+    }
+    md = "## कोण\n\nयह गद्य है।\n\n$$a+b=c$$\n\nअंत।"
+    out = narrate_lesson_markdown(
+        md,
+        "hi",
+        api_key="k",
+        chat_fn=boom_chat,
+        post_fn=fake_post,
+        spoken_plan=plan,
+    )
+    assert out["used_spoken_plan"] is True
+    text = " ".join(s["text_for_tts"] or "" for s in out["sections"])
+    assert "यह गद्य है।" in text
+    assert "अंत।" in text
+    assert "ए प्लस बी" in text
+    assert "$$" not in text
+    assert out["llm_usage"]["total_tokens"] == 0

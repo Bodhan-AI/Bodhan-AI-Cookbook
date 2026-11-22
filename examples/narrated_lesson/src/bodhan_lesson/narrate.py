@@ -1,9 +1,9 @@
 """Build per-language narration scripts for TTS.
 
 Split the translated lesson into sections. Keep translated prose as-is
-(light markdown cleanup only). For tables, equations, and raw math, ask
-the LLM for a short English spoken form, then Indic-Translate into the
-target language. Never free-write Indic in the LLM.
+(light markdown cleanup only). Prefer a source-side spoken_plan:
+swap tutor-tone snippets for tables/math, then speak. Fallback: per-unit
+LLM English → Indic-Translate. Never free-write Indic in the LLM.
 """
 
 from __future__ import annotations
@@ -15,6 +15,9 @@ from pathlib import Path
 from typing import Any, Callable
 
 from bodhan_lesson.llm_client import chat_json
+from bodhan_lesson.parallel import get_max_lang_workers, map_parallel
+from bodhan_lesson.progress import done, item, stage
+from bodhan_lesson.spoken_plan import swap_hard_spans, translate_plan_snippets
 from bodhan_lesson.translate import translate_text
 
 _HEADING_RE = re.compile(r"^(#{1,6})\s+(.+?)\s*$", re.MULTILINE)
@@ -28,6 +31,8 @@ _FIGURE_RE = re.compile(
     r"^(?:fig(?:ure)?|चित्र|படம்|চিত্র)\b",
     re.IGNORECASE,
 )
+# Textbook section numbers in headings (6.1, 6.2.1) — awkward if Speak reads digits.
+_SECTION_NUM_PREFIX_RE = re.compile(r"^\s*\d+(?:\.\d+)+\s*")
 
 
 def slugify(title: str, *, fallback: str) -> str:
@@ -47,6 +52,19 @@ def markdown_to_speech(text: str) -> str:
     out = re.sub(r"[ \t]+", " ", out)
     out = re.sub(r"\n{3,}", "\n\n", out)
     return out.strip()
+
+
+def title_for_speech(title: str) -> str:
+    """Heading text for TTS: drop leading section numbers, keep MD title elsewhere.
+
+    ``6.1 Introduction`` → ``Introduction``. Number-only titles yield empty
+    (skip speaking). Does not rewrite lesson markdown.
+    """
+    raw = markdown_to_speech(title or "")
+    if not raw:
+        return ""
+    cleaned = _SECTION_NUM_PREFIX_RE.sub("", raw, count=1).strip()
+    return cleaned
 
 
 def unit_needs_spoken_form(text: str) -> bool:
@@ -213,7 +231,9 @@ def narrate_section(
 
     title = (section.get("title") or "").strip()
     if title and title.lower() != "preamble":
-        spoken_parts.append(markdown_to_speech(title))
+        spoken_title = title_for_speech(title)
+        if spoken_title:
+            spoken_parts.append(spoken_title)
 
     for unit in units:
         uid = unit["id"]
@@ -314,26 +334,54 @@ def narrate_lesson_markdown(
     api_key: str | None = None,
     chat_fn: Callable[..., tuple[dict[str, Any], dict[str, int]]] | None = None,
     post_fn: Callable[..., dict[str, Any]] | None = None,
+    spoken_plan: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Build a full narration script object for one language."""
-    sections_in = split_sections(markdown)
+    """Build a full narration script object for one language.
+
+    When ``spoken_plan`` is set, hard spans are swapped to tutor snippets
+    first; leftover hard units still use the per-unit LLM fallback.
+    """
+    working_md = markdown
+    plan_notes: list[str] = []
+    translate_usage = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
+    used_plan = False
+
+    if spoken_plan and (spoken_plan.get("spans") or []):
+        replacements, snip_usage, snip_notes = translate_plan_snippets(
+            spoken_plan, target_lang, api_key=api_key, post_fn=post_fn
+        )
+        for key in translate_usage:
+            translate_usage[key] += int(snip_usage.get(key) or 0)
+        plan_notes.extend(snip_notes)
+        working_md, swap_notes = swap_hard_spans(working_md, replacements)
+        plan_notes.extend(swap_notes)
+        used_plan = True
+
+    sections_in = split_sections(working_md)
     sections_out: list[dict[str, Any]] = []
     llm_usage = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
-    translate_usage = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
+
+    # After a successful plan swap, avoid calling the LLM again for leftovers
+    # unless something still looks like raw markup.
+    effective_chat = chat_fn
+    if used_plan and chat_fn is None:
+        effective_chat = None
 
     for section in sections_in:
         row = narrate_section(
             section,
             target_lang,
             api_key=api_key,
-            chat_fn=chat_fn,
+            chat_fn=effective_chat,
             post_fn=post_fn,
         )
         for key in llm_usage:
             llm_usage[key] += int((row.get("llm_usage") or {}).get(key) or 0)
         for key in translate_usage:
             translate_usage[key] += int((row.get("translate_usage") or {}).get(key) or 0)
-        # Drop per-section usage nests from the public section record.
+        notes = list(row["notes"] or [])
+        if plan_notes and section is sections_in[0]:
+            notes = [f"spoken_plan:{n}" for n in plan_notes] + notes
         public = {
             "id": row["id"],
             "slug": row["slug"],
@@ -341,7 +389,7 @@ def narrate_lesson_markdown(
             "status": row["status"],
             "skip_reason": row["skip_reason"],
             "text_for_tts": row["text_for_tts"],
-            "notes": row["notes"],
+            "notes": notes,
             "qa": row["qa"],
             "units": row["units"],
         }
@@ -357,6 +405,7 @@ def narrate_lesson_markdown(
         "skipped": skipped,
         "llm_usage": llm_usage,
         "translate_usage": translate_usage,
+        "used_spoken_plan": used_plan,
     }
 
 
@@ -368,6 +417,7 @@ def narrate_lesson_file(
     api_key: str | None = None,
     chat_fn: Callable[..., tuple[dict[str, Any], dict[str, int]]] | None = None,
     post_fn: Callable[..., dict[str, Any]] | None = None,
+    spoken_plan: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Write out/{lang}/narration_script.{lang}.json from a lesson markdown file."""
     if not lesson_path.is_file():
@@ -381,6 +431,7 @@ def narrate_lesson_file(
         api_key=api_key,
         chat_fn=chat_fn,
         post_fn=post_fn,
+        spoken_plan=spoken_plan,
     )
     lang_dir = out_dir / lang
     lang_dir.mkdir(parents=True, exist_ok=True)
@@ -394,6 +445,7 @@ def narrate_lesson_file(
         "skipped": script["skipped"],
         "llm_usage": script["llm_usage"],
         "translate_usage": script["translate_usage"],
+        "used_spoken_plan": script.get("used_spoken_plan", False),
     }
     out_path.write_text(
         json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
@@ -409,6 +461,7 @@ def narrate_lesson_file(
         "skipped": script["skipped"],
         "llm_usage": script["llm_usage"],
         "translate_usage": script["translate_usage"],
+        "used_spoken_plan": script.get("used_spoken_plan", False),
         "latency_s": round(time.perf_counter() - started, 3),
         "error": None if status == "ok" else "no speakable sections",
     }
@@ -421,53 +474,66 @@ def narrate_translated_lessons(
     api_key: str | None = None,
     chat_fn: Callable[..., tuple[dict[str, Any], dict[str, int]]] | None = None,
     post_fn: Callable[..., dict[str, Any]] | None = None,
+    spoken_plan: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
     """Narrate each successfully translated language; isolate failures."""
-    results: list[dict[str, Any]] = []
-    for row in translations:
+    work = [row for row in translations if row.get("lang")]
+    total = len(work)
+    workers = get_max_lang_workers()
+    stage("narrate", f"{total} language(s), workers={min(workers, max(1, total))}")
+
+    def _one(job: tuple[int, dict[str, Any]]) -> dict[str, Any]:
+        index, row = job
         lang = row.get("lang")
-        if not lang:
-            continue
+        item("narrate", index, total, str(lang))
         if row.get("status") != "ok" or not row.get("path"):
-            results.append(
-                {
-                    "lang": lang,
-                    "status": "skipped",
-                    "path": None,
-                    "section_count": 0,
-                    "ok": 0,
-                    "skipped": 0,
-                    "llm_usage": {},
-                    "translate_usage": {},
-                    "latency_s": 0.0,
-                    "error": row.get("error") or "translation not ok",
-                }
-            )
-            continue
+            item("narrate", index, total, str(lang), "skipped")
+            return {
+                "lang": lang,
+                "status": "skipped",
+                "path": None,
+                "section_count": 0,
+                "ok": 0,
+                "skipped": 0,
+                "llm_usage": {},
+                "translate_usage": {},
+                "latency_s": 0.0,
+                "error": row.get("error") or "translation not ok",
+            }
         try:
-            results.append(
-                narrate_lesson_file(
-                    Path(row["path"]),
-                    out_dir,
-                    lang,
-                    api_key=api_key,
-                    chat_fn=chat_fn,
-                    post_fn=post_fn,
-                )
+            result = narrate_lesson_file(
+                Path(row["path"]),
+                out_dir,
+                lang,
+                api_key=api_key,
+                chat_fn=chat_fn,
+                post_fn=post_fn,
+                spoken_plan=spoken_plan,
             )
+            item(
+                "narrate",
+                index,
+                total,
+                str(lang),
+                f"{result.get('status')} sections={result.get('section_count')}",
+            )
+            return result
         except Exception as exc:  # noqa: BLE001 — isolate per language
-            results.append(
-                {
-                    "lang": lang,
-                    "status": "error",
-                    "path": None,
-                    "section_count": 0,
-                    "ok": 0,
-                    "skipped": 0,
-                    "llm_usage": {},
-                    "translate_usage": {},
-                    "latency_s": 0.0,
-                    "error": str(exc),
-                }
-            )
+            item("narrate", index, total, str(lang), f"error: {exc}")
+            return {
+                "lang": lang,
+                "status": "error",
+                "path": None,
+                "section_count": 0,
+                "ok": 0,
+                "skipped": 0,
+                "llm_usage": {},
+                "translate_usage": {},
+                "latency_s": 0.0,
+                "error": str(exc),
+            }
+
+    results = map_parallel(list(enumerate(work, start=1)), _one)
+    ok = sum(1 for row in results if row.get("status") == "ok")
+    done("narrate", ok=ok, failed=len(results) - ok)
     return results
