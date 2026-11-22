@@ -3,7 +3,7 @@
     "id": "tamil_audio_summary",
     "task": "Make a two-minute Tamil audio summary of this chapter",
     "files": [
-      "sample_data/scanned_pdf.pdf"
+      "sample_data/chapter_scanned.pdf"
     ],
     "expect": {
       "status": [
@@ -40,7 +40,7 @@
     "id": "worksheet_marathi_table",
     "task": "Translate this worksheet into Marathi and keep the table",
     "files": [
-      "sample_data/worksheet.jpeg"
+      "sample_data/worksheet_photo.jpg"
     ],
     "expect": {
       "status": [
@@ -95,7 +95,7 @@
     "id": "impossible_french_video",
     "task": "Translate this video into French",
     "files": [
-      "sample_data/video_sample.mp4"
+      "sample_data/video.mp4"
     ],
     "expect": {
       "status": [

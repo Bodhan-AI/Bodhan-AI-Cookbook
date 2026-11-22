@@ -1,0 +1,181 @@
+{
+  "task": "Transcribe this Hindi voice note and give me English subtitles",
+  "status": "completed",
+  "status_reason": "All requested outputs were produced; checks passed where applicable.",
+  "finished_at": "2026-11-22T06:56:20+00:00",
+  "elapsed_s": 51.5,
+  "answer": "Completed the Hindi voice-note transcription and created English subtitles timed across the full 183.8-second recording. Both files are saved as deliverables.",
+  "refusal": null,
+  "stop_reason": null,
+  "plan": {
+    "intent": "Transcribe the Hindi voice note and provide English subtitles.",
+    "output_languages": [
+      "en"
+    ],
+    "expected_outputs": [
+      {
+        "kind": "text",
+        "language": "hi",
+        "description": "Hindi transcription of the voice note"
+      },
+      {
+        "kind": "subtitles",
+        "language": "en",
+        "description": "English subtitles corresponding to the spoken content"
+      }
+    ],
+    "steps": [
+      "Transcribe input/hindi_voice_note.wav in Hindi.",
+      "Translate the transcription into timed English subtitles and return both the Hindi transcript and English subtitles."
+    ]
+  },
+  "llm": {
+    "model": "gpt-6-luna",
+    "calls": 4,
+    "prompt_tokens": 15830,
+    "completion_tokens": 411,
+    "note": "LLM token cost is not included in cost_inr (provider pricing varies)"
+  },
+  "budgets": {
+    "max_steps": 30,
+    "steps_used": 4,
+    "max_cost_inr": 20.0,
+    "max_seconds": 600.0,
+    "call_timeout_s": 180.0
+  },
+  "cost": {
+    "total_inr": 0.31617,
+    "verification_inr": 0.0,
+    "by_tool_inr": {
+      "transcribe_audio": 0.30633,
+      "save_artifact": 0.0,
+      "make_subtitles": 0.00984
+    },
+    "min_estimate_inr": 0.3063,
+    "note": "Bodhan model spend only"
+  },
+  "steps": [
+    {
+      "step": 1,
+      "tool": "transcribe_audio",
+      "ok": true,
+      "cost_inr": 0.30633,
+      "cached": false,
+      "reused": false,
+      "latency_ms": 39512
+    },
+    {
+      "step": 2,
+      "tool": "save_artifact",
+      "ok": true,
+      "cost_inr": 0.0,
+      "cached": false,
+      "reused": false,
+      "latency_ms": 0
+    },
+    {
+      "step": 3,
+      "tool": "make_subtitles",
+      "ok": true,
+      "cost_inr": 0.00984,
+      "cached": false,
+      "reused": false,
+      "latency_ms": 1313
+    },
+    {
+      "step": 4,
+      "tool": "save_artifact",
+      "ok": true,
+      "cost_inr": 0.0,
+      "cached": false,
+      "reused": false,
+      "latency_ms": 0
+    }
+  ],
+  "artifacts": [
+    {
+      "file": "hindi_transcription.txt",
+      "kind": "text",
+      "language": "hi",
+      "tool": "transcribe_audio",
+      "description": "Hindi transcription of the voice note.",
+      "bytes": 6829,
+      "verification": {
+        "check": "transcription_segments",
+        "passed": true,
+        "problems": []
+      }
+    },
+    {
+      "file": "english_subtitles.srt",
+      "kind": "subtitles",
+      "language": "en",
+      "tool": "make_subtitles",
+      "description": "Timed English subtitles for the full voice note.",
+      "bytes": 3875,
+      "verification": {
+        "check": "srt_structure",
+        "passed": true,
+        "cues": 39,
+        "problems": []
+      }
+    }
+  ],
+  "verification": [
+    {
+      "file": "hindi_transcription.txt",
+      "round": 1,
+      "check": "transcription_segments",
+      "passed": true,
+      "problems": []
+    },
+    {
+      "file": "english_subtitles.srt",
+      "round": 1,
+      "check": "srt_structure",
+      "passed": true,
+      "cues": 39,
+      "problems": []
+    }
+  ],
+  "assumptions": [
+    "The audio is Hindi as stated; English subtitles should cover the full 183.8-second recording.",
+    "Treated the voice note as Hindi as specified in the task."
+  ],
+  "warnings": [],
+  "injection_flags": [],
+  "missing_inputs": [],
+  "quality_targets": {
+    "task_completion": {
+      "met": true,
+      "status": "completed"
+    },
+    "honest_failure": {
+      "met": true,
+      "why": "no artifacts are produced for refused/failed tasks"
+    },
+    "verification": {
+      "met": true,
+      "checked": 2,
+      "passed": 2,
+      "why": ""
+    },
+    "no_waste": {
+      "met": true,
+      "reused_duplicate_calls": 0,
+      "why": "identical tool calls are reused; the server cache never resends the same input"
+    },
+    "budget": {
+      "met": true,
+      "cost_inr": 0.3162,
+      "max_cost_inr": 20.0
+    },
+    "latency": {
+      "met": true,
+      "elapsed_s": 51.5,
+      "target_s": 300,
+      "why": ""
+    }
+  },
+  "failed_checks": 0
+}

@@ -38,6 +38,8 @@ from pathlib import Path
 import httpx
 from tenacity import AsyncRetrying, RetryCallState, retry_if_exception, wait_exponential_jitter
 
+from .text import garbled_reason
+
 BASE_URL = "https://api.bodhan.ai"
 
 TRANSCRIBE = "indic-transcribe"
@@ -126,6 +128,7 @@ class Code:
     RATE_LIMITED = "RATE_LIMITED"
     OUT_OF_CREDIT = "OUT_OF_CREDIT"
     UPSTREAM_ERROR = "UPSTREAM_ERROR"
+    GARBLED_OUTPUT = "GARBLED_OUTPUT"
     UPSTREAM_UNREACHABLE = "UPSTREAM_UNREACHABLE"
     EMPTY_RESPONSE = "EMPTY_RESPONSE"
     TIMEOUT = "TIMEOUT"
@@ -361,10 +364,11 @@ class BodhanClient:
             return ToolFailure(Code.UPSTREAM_REJECTED, msg, "Fix the request as the message describes.")
         return ToolFailure(Code.UPSTREAM_ERROR, msg, "Bodhan had a server error; retry later.")
 
-    async def _cached(self, model: str, key: str, producer):
-        """Return (data, blob, cached). Concurrent identical requests share one upstream call."""
+    async def _cached(self, model: str, key: str, producer, accept=None):
+        """Return (data, blob, cached). Concurrent identical requests share one upstream call.
+        `accept(data)` False means the response is unusable: it is neither cached nor served from the cache."""
         hit = self.cache.get(key)
-        if hit is not None:
+        if hit is not None and (accept is None or accept(hit.data)):
             return hit.data, hit.blob, True
         if key in self._inflight:
             data, blob = await asyncio.shield(self._inflight[key])
@@ -373,7 +377,8 @@ class BodhanClient:
         self._inflight[key] = future
         try:
             data, blob = await producer()
-            self.cache.put(key, model, data, blob)
+            if accept is None or accept(data):
+                self.cache.put(key, model, data, blob)
             future.set_result((data, blob))
             return data, blob, False
         except BaseException as exc:
@@ -414,7 +419,9 @@ class BodhanClient:
             cached=cached,
         )
 
-    async def transcribe(self, wav: bytes, language: str | None) -> tuple[str, bool]:
+    async def transcribe(self, wav: bytes, language: str | None) -> tuple[str, bool, int]:
+        """Return (text, cached, billed_calls). Garbled output (one character looping, no words) is retried
+        once with a fresh call and never cached; if it is garbled again, GARBLED_OUTPUT is raised."""
         params = {"language": language} if language else {}
         key = Cache.make_key(TRANSCRIBE, "transcriptions", params, wav)
 
@@ -430,8 +437,21 @@ class BodhanClient:
                 raise ToolFailure(Code.EMPTY_RESPONSE, "indic-transcribe returned no text field.", "Retry later.")
             return {"text": data.get("text") or ""}, None
 
-        data, _, cached = await self._cached(TRANSCRIBE, key, produce)
-        return data["text"], cached
+        def usable(data: dict) -> bool:
+            return garbled_reason(data.get("text") or "") is None
+
+        calls = 0
+        for _ in range(2):
+            data, _, cached = await self._cached(TRANSCRIBE, key, produce, accept=usable)
+            calls += 0 if cached else 1
+            if usable(data):
+                return data["text"], cached, calls
+        reason = garbled_reason(data.get("text") or "")
+        failure = ToolFailure(Code.GARBLED_OUTPUT, f"indic-transcribe returned garbled text twice ({reason}).",
+                              "Retry with a language hint if you can guess the language; otherwise report this "
+                              "audio as unreadable. Do not guess its language from the garbled text.")
+        failure.billed_calls = calls
+        raise failure
 
     async def speak(self, text: str, voice: str, lang: str, style: str | None) -> tuple[bytes, bool]:
         instructions = {"lang": lang, **({"style": style} if style else {})}

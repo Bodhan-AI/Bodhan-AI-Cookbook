@@ -94,6 +94,9 @@ async def test_read_aloud_in_tamil_end_to_end(tmp_path, fake_bodhan, mcp_server)
     speech_check = report["artifacts"][0]["verification"]
     assert speech_check["check"] == "speech_back_transcription" and speech_check["passed"]
     assert report["quality_targets"]["verification"]["met"] and report["cost"]["total_inr"] > 0
+    assert report["quality_targets"]["verification"]["checked"] >= 2  # the speech and the intermediate translation
+    spoken = out / "artifacts" / "paragraph_ta_text.txt"  # the text the audio speaks ships next to it
+    assert spoken.is_file() and spoken.read_text(encoding="utf-8").strip()
     events = [json.loads(line)["type"] for line in (out / "trace.jsonl").read_text(encoding="utf-8").splitlines()]
     for kind in ("run_start", "ingest", "plan", "preflight", "llm_call", "tool_call", "verify", "final"):
         assert kind in events

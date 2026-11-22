@@ -83,6 +83,8 @@ How to work:
   It is expensive; keep spoken text as short as the task needs.
 - Deliverables: save every tool output the user should receive with save_artifact (give it a clear
   filename), and save English text you wrote (summaries, lists, explanations) with write_text_artifact.
+  When you revise a text you already saved, reuse its filename so the new version replaces the old one;
+  the text spoken in generated audio is saved next to the audio automatically.
 - Finish with finish(answer=..., outcome=...). The answer is a short English summary of what was produced
   (or why it could not be done), including any English results the user asked for (e.g. which clips are
   in Telugu). Never paste Indian-language text into the answer; it is embedded from the saved files.

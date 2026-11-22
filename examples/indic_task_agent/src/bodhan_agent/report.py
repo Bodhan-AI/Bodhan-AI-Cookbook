@@ -91,16 +91,24 @@ def compute_status(run: Run, state: dict) -> tuple[str, str]:
 
 
 def _quality_targets(run: Run, status: str, elapsed: float) -> dict:
-    checkable = [a for a in run.artifacts if a.get("tool") in ("synthesize_speech", "translate_text", "transliterate_text")]
-    verified = [a for a in checkable if (a.get("verification") or {}).get("passed") is True]
+    # Latest result per file, covering delivered files and intermediate translations alike.
+    latest: dict[str, dict] = {}
+    for v in run.verifications:
+        latest[v["file"]] = v
+    checked = [v for v in latest.values() if v.get("passed") is not None]
+    passed = [v for v in checked if v["passed"] is True]
+    must_check = ("synthesize_speech", "translate_text", "transliterate_text", "make_subtitles")
+    unchecked = [a for a in run.artifacts
+                 if a.get("tool") in must_check and (a.get("verification") or {}).get("passed") is None]
+    verification_met = len(passed) == len(checked) and not unchecked
     single_step = run.steps <= 1
     latency_target = 30 if single_step else 300
     return {
         "task_completion": {"met": status in ("completed", "completed_with_warnings"), "status": status},
         "honest_failure": {"met": status not in ("refused", "failed") or not run.artifacts,
                            "why": "no artifacts are produced for refused/failed tasks"},
-        "verification": {"met": len(verified) == len(checkable), "checked": len(checkable), "passed": len(verified),
-                         "why": "" if len(verified) == len(checkable) else
+        "verification": {"met": verification_met, "checked": len(checked), "passed": len(passed),
+                         "why": "" if verification_met else
                          "some generated audio/translations failed or skipped verification (see verification)"},
         "no_waste": {"met": True, "reused_duplicate_calls": run.reused_calls,
                      "why": "identical tool calls are reused; the server cache never resends the same input"},

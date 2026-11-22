@@ -87,9 +87,31 @@ def script_fraction(text: str, script: str) -> float:
     return counts[script] / total if total else 0.0
 
 
+def garbled_reason(text: str) -> str | None:
+    """Why model output looks like a degenerate loop rather than language, or None if it looks fine.
+
+    Speech models sometimes emit one character (often a combining vowel sign) hundreds of times. Real
+    text in any script has many distinct letters, and no single character makes up 40% of it.
+    """
+    chars = [ch for ch in text if not ch.isspace()]
+    if len(chars) < 8:
+        return None
+    letters = sum(unicodedata.category(ch).startswith("L") for ch in chars)
+    if letters / len(chars) < 0.25:
+        return f"only {letters} of {len(chars)} characters are letters"
+    top, n = Counter(chars).most_common(1)[0]
+    if len(chars) >= 20 and n / len(chars) > 0.4:
+        return f"one character (U+{ord(top):04X}) makes up {n * 100 // len(chars)}% of the text"
+    return None
+
+
 def detect_language(text: str) -> dict:
     """Script-based language detection. Returns the dominant script, candidate languages, a best
     guess and a confidence that is only 'high' when the script maps to exactly one language."""
+    garbled = garbled_reason(text)
+    if garbled:
+        return {"script": None, "script_fraction": 0.0, "candidates": [], "best_guess": None,
+                "confidence": "none", "scripts": {}, "note": f"text looks garbled ({garbled}); not a language"}
     counts = script_counts(text)
     total = sum(counts.values())
     if not total:

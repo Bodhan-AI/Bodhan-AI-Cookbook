@@ -357,16 +357,23 @@ async def transcribe_audio(svc: Services, path: str, language: str | None = None
     async def one(index: int, start: float, end: float):
         piece = files.slice_wav(wav, start, end)
         try:
-            text, cached = await svc.client.transcribe(piece, lang)
-            return {"index": index, "start": start, "end": end, "text": text.strip(), "cached": cached, "error": None}
+            text, cached, calls = await svc.client.transcribe(piece, lang)
+            return {"index": index, "start": start, "end": end, "text": text.strip(), "cached": cached,
+                    "calls": calls, "error": None}
         except ToolFailure as exc:
-            return {"index": index, "start": start, "end": end, "text": "", "cached": False, "error": exc}
+            return {"index": index, "start": start, "end": end, "text": "", "cached": False,
+                    "calls": getattr(exc, "billed_calls", 0), "error": exc}
 
     results = await asyncio.gather(*(one(i, s, e) for i, (s, e) in enumerate(chunks)))
     failed = [r for r in results if r["error"]]
     if failed and len(failed) == len(results):
-        raise failed[0]["error"]
-    billed_seconds = sum(r["end"] - r["start"] for r in results if not r["cached"] and not r["error"])
+        err = failed[0]["error"]
+        spent = catalog.transcribe_cost(sum((r["end"] - r["start"]) * r["calls"] for r in results))
+        if spent:
+            err.message += f" (Rs {spent:.4f} was spent on these attempts.)"
+        raise err
+    # Every upstream call is billed, including a retry after garbled output.
+    billed_seconds = sum((r["end"] - r["start"]) * r["calls"] for r in results)
     full_text = " ".join(r["text"] for r in results if r["text"]).strip()
     segments = [{"index": r["index"], "start": r["start"], "end": r["end"], "text": r["text"],
                  **({"failed": r["error"].code} if r["error"] else {})} for r in results]

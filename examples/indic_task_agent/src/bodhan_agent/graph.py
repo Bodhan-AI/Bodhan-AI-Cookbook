@@ -744,6 +744,20 @@ def build_graph(run: Run):
                                                    f"({Path(path).name}) was published automatically.")
                             have.add(kind)
                             break
+        # Generated speech ships with the text it speaks (Bodhan's own text), e.g. "an audio summary and its text".
+        published = {a["source_path"] for a in run.artifacts}
+        for art in list(run.artifacts):
+            spoken = (art.get("meta") or {}).get("source_text_path")
+            if art.get("tool") != "synthesize_speech" or not spoken or spoken in published or not Path(spoken).is_file():
+                continue
+            res = run.run_local(ToolCall("auto", "save_artifact", "{}", {
+                "path": spoken, "filename": f"{Path(art['file']).stem}_text.txt",
+                "description": f"The text spoken in {art['file']}."}))
+            if res.ok:
+                published.add(spoken)
+                for new in run.artifacts:
+                    if new["path"] == res.data["artifact_path"]:
+                        new.update(tool="speech_text", language=art.get("language"))
 
     async def verify_artifact(art: dict) -> dict:
         tool, meta = art.get("tool"), art.get("meta") or {}
@@ -793,6 +807,8 @@ def build_graph(run: Run):
             ok = not meta.get("failed_segments")
             return {"check": "transcription_segments", "passed": ok,
                     "problems": [] if ok else [f"{meta.get('failed_segments')} segment(s) failed"]}
+        if tool == "speech_text":
+            return {"check": "spoken_text", "passed": None, "skipped": "checked through its audio's back-transcription"}
         if tool == "llm":
             text = Path(art["path"]).read_text(encoding="utf-8")
             return {"check": "english_only", "passed": not checks.contains_indic(text)}

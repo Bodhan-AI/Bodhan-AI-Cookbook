@@ -138,6 +138,46 @@ async def test_transcribe_cuts_long_audio_into_windows_and_writes_segments(servi
     assert res.cost_inr == pytest.approx(res.meta["duration_s"] / 60 * 0.10, rel=0.02)
 
 
+GARBLED = "ୄ" * 300  # what indic-transcribe sometimes returns: one Odia vowel sign, looping
+
+
+@needs_ffmpeg
+async def test_garbled_transcript_is_retried_billed_and_never_cached(services, fake_bodhan, tmp_path):
+    audio = tmp_path / "clip.wav"
+    audio.write_bytes(wav_bytes([("tone", 6.0)]))
+    replies = iter([GARBLED, SAMPLES["hi_transcript"]])
+    fake_bodhan.transcribe = lambda request: (fake_bodhan.calls.append(("transcribe", {})),
+                                              httpx.Response(200, json={"text": next(replies)}))[1]
+    fake_bodhan.router.post("/v1/audio/transcriptions").mock(side_effect=lambda r: fake_bodhan.transcribe(r))
+    res = await tools.transcribe_audio(services, str(audio))
+    assert fake_bodhan.count("transcribe") == 2 and res.preview.startswith(SAMPLES["hi_transcript"][:20])
+    assert res.cost_inr == pytest.approx(2 * res.meta["duration_s"] / 60 * 0.10, rel=0.02)  # both calls billed
+    again = await tools.transcribe_audio(services, str(audio))  # the good answer was cached, the garbled one not
+    assert fake_bodhan.count("transcribe") == 2 and again.cached
+
+
+@needs_ffmpeg
+async def test_garbled_twice_is_an_honest_error_not_a_language(services, fake_bodhan, tmp_path):
+    audio = tmp_path / "clip.wav"
+    audio.write_bytes(wav_bytes([("tone", 6.0)]))
+    fake_bodhan.transcript = GARBLED
+    with pytest.raises(ToolFailure) as exc:
+        await tools.transcribe_audio(services, str(audio))
+    assert exc.value.code == "GARBLED_OUTPUT" and "spent" in exc.value.message
+    assert fake_bodhan.count("transcribe") == 2
+    with pytest.raises(ToolFailure):  # nothing garbled was cached: the next attempt calls Bodhan again
+        await tools.transcribe_audio(services, str(audio))
+    assert fake_bodhan.count("transcribe") == 4
+
+
+def test_garbled_text_is_detected_but_real_text_is_not():
+    assert T.garbled_reason(GARBLED) and T.detect_language(GARBLED)["best_guess"] is None
+    assert T.garbled_reason("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+    for sample in SAMPLES.values():
+        if isinstance(sample, str):
+            assert T.garbled_reason(sample) is None, sample[:40]
+
+
 @needs_ffmpeg
 async def test_transcribe_rejects_non_audio(services, tmp_path):
     f = tmp_path / "x.txt"

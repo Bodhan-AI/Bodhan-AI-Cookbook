@@ -56,6 +56,7 @@ If the budget can't cover verification, it is skipped and reported as skipped, n
 - **Concurrency:** limited per model (4 requests at a time).
 - **No waste:** a content-addressed SQLite cache means the same input is never sent to the same model twice, even across reruns, and concurrent identical requests share one call.
 - **Partial failures:** a failed page or audio segment is marked in the output and reported, while the rest is kept.
+- **Garbled model output:** indic-transcribe sometimes returns one character looping instead of words. That output is detected (too few letters, or one character over 40% of the text), never cached, and retried once with a fresh call, which is billed. If it is garbled again, the segment fails with `GARBLED_OUTPUT` and the agent reports the audio as unreadable instead of guessing a language from it.
 - **Errors the LLM can fix:** they come back with a hint (for example, "translate first, then pass the output path").
 
 ## Untrusted content

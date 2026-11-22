@@ -1,0 +1,94 @@
+{
+  "task": "Read this paragraph aloud in Bengali with a female voice",
+  "status": "refused",
+  "status_reason": "The budget is too small: this task needs at least about Rs 0.29 of Bodhan model calls, but --max-cost-inr is Rs 0.01.",
+  "finished_at": "2026-11-22T10:47:11+00:00",
+  "elapsed_s": 2.74,
+  "answer": "",
+  "refusal": {
+    "reasons": [
+      "The budget is too small: this task needs at least about Rs 0.29 of Bodhan model calls, but --max-cost-inr is Rs 0.01."
+    ]
+  },
+  "stop_reason": null,
+  "plan": {
+    "intent": "Read the paragraph in the provided text file aloud in Bengali using a female voice.",
+    "output_languages": [
+      "bn"
+    ],
+    "expected_outputs": [
+      {
+        "kind": "audio",
+        "language": "bn",
+        "description": "Female-voice audio reading the paragraph in Bengali."
+      }
+    ],
+    "steps": [
+      "Translate the text in input/paragraph.txt into Bengali.",
+      "Synthesize the Bengali translation as speech with a female voice."
+    ]
+  },
+  "llm": {
+    "model": "gpt-6-luna",
+    "calls": 1,
+    "prompt_tokens": 1656,
+    "completion_tokens": 142,
+    "note": "LLM token cost is not included in cost_inr (provider pricing varies)"
+  },
+  "budgets": {
+    "max_steps": 30,
+    "steps_used": 0,
+    "max_cost_inr": 0.01,
+    "max_seconds": 600.0,
+    "call_timeout_s": 180.0
+  },
+  "cost": {
+    "total_inr": 0.0,
+    "verification_inr": 0.0,
+    "by_tool_inr": {},
+    "min_estimate_inr": 0.2934,
+    "note": "Bodhan model spend only"
+  },
+  "steps": [],
+  "artifacts": [],
+  "verification": [],
+  "assumptions": [
+    "The file contains English text; translate it into Bengali before synthesizing the spoken audio."
+  ],
+  "warnings": [],
+  "injection_flags": [],
+  "missing_inputs": [],
+  "quality_targets": {
+    "task_completion": {
+      "met": false,
+      "status": "refused"
+    },
+    "honest_failure": {
+      "met": true,
+      "why": "no artifacts are produced for refused/failed tasks"
+    },
+    "verification": {
+      "met": true,
+      "checked": 0,
+      "passed": 0,
+      "why": ""
+    },
+    "no_waste": {
+      "met": true,
+      "reused_duplicate_calls": 0,
+      "why": "identical tool calls are reused; the server cache never resends the same input"
+    },
+    "budget": {
+      "met": true,
+      "cost_inr": 0.0,
+      "max_cost_inr": 0.01
+    },
+    "latency": {
+      "met": true,
+      "elapsed_s": 2.7,
+      "target_s": 30,
+      "why": ""
+    }
+  },
+  "failed_checks": 0
+}

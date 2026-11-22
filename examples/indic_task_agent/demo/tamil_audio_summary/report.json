@@ -1,0 +1,268 @@
+{
+  "task": "Make a two-minute Tamil audio summary of this chapter",
+  "status": "completed",
+  "status_reason": "All requested outputs were produced; checks passed where applicable.",
+  "finished_at": "2026-11-22T06:39:08+00:00",
+  "elapsed_s": 143.86,
+  "answer": "Created and saved the Tamil chapter summary as an AI-generated MP3. The narration is approximately 132 seconds long.",
+  "refusal": null,
+  "stop_reason": null,
+  "plan": {
+    "intent": "Create a two-minute spoken Tamil summary of the provided scanned chapter PDF.",
+    "output_languages": [
+      "ta"
+    ],
+    "expected_outputs": [
+      {
+        "kind": "audio",
+        "language": "ta",
+        "description": "Approximately two-minute Tamil audio summary of the chapter"
+      }
+    ],
+    "steps": [
+      "Run OCR on the PDF to extract the chapter text and identify its language.",
+      "Summarize the chapter into English at a length suitable for a two-minute spoken delivery.",
+      "Translate the summary into Tamil and synthesize it as audio, targeting 120 seconds."
+    ]
+  },
+  "llm": {
+    "model": "gpt-6-luna",
+    "calls": 12,
+    "prompt_tokens": 112691,
+    "completion_tokens": 1786,
+    "note": "LLM token cost is not included in cost_inr (provider pricing varies)"
+  },
+  "budgets": {
+    "max_steps": 30,
+    "steps_used": 10,
+    "max_cost_inr": 20.0,
+    "max_seconds": 600.0,
+    "call_timeout_s": 180.0
+  },
+  "cost": {
+    "total_inr": 1.19531,
+    "verification_inr": 0.21961,
+    "by_tool_inr": {
+      "ocr_document": 0.0,
+      "read_text": 0.0,
+      "write_text_artifact": 0.0,
+      "translate_text": 0.0073,
+      "synthesize_speech": 0.9684,
+      "save_artifact": 0.0
+    },
+    "min_estimate_inr": 2.464,
+    "note": "Bodhan model spend only"
+  },
+  "steps": [
+    {
+      "step": 1,
+      "tool": "ocr_document",
+      "ok": true,
+      "cost_inr": 0.0,
+      "cached": true,
+      "reused": false,
+      "latency_ms": 2968
+    },
+    {
+      "step": 2,
+      "tool": "read_text",
+      "ok": true,
+      "cost_inr": 0.0,
+      "cached": false,
+      "reused": false,
+      "latency_ms": 42
+    },
+    {
+      "step": 3,
+      "tool": "read_text",
+      "ok": true,
+      "cost_inr": 0.0,
+      "cached": false,
+      "reused": false,
+      "latency_ms": 19
+    },
+    {
+      "step": 4,
+      "tool": "write_text_artifact",
+      "ok": true,
+      "cost_inr": 0.0,
+      "cached": false,
+      "reused": false,
+      "latency_ms": 0
+    },
+    {
+      "step": 5,
+      "tool": "write_text_artifact",
+      "ok": true,
+      "cost_inr": 0.0,
+      "cached": false,
+      "reused": false,
+      "latency_ms": 0
+    },
+    {
+      "step": 6,
+      "tool": "write_text_artifact",
+      "ok": true,
+      "cost_inr": 0.0,
+      "cached": false,
+      "reused": false,
+      "latency_ms": 0
+    },
+    {
+      "step": 7,
+      "tool": "write_text_artifact",
+      "ok": true,
+      "cost_inr": 0.0,
+      "cached": false,
+      "reused": false,
+      "latency_ms": 0
+    },
+    {
+      "step": 8,
+      "tool": "translate_text",
+      "ok": true,
+      "cost_inr": 0.0073,
+      "cached": false,
+      "reused": false,
+      "latency_ms": 2547
+    },
+    {
+      "step": 9,
+      "tool": "synthesize_speech",
+      "ok": true,
+      "cost_inr": 0.9684,
+      "cached": false,
+      "reused": false,
+      "latency_ms": 46572
+    },
+    {
+      "step": 10,
+      "tool": "save_artifact",
+      "ok": true,
+      "cost_inr": 0.0,
+      "cached": false,
+      "reused": false,
+      "latency_ms": 0
+    }
+  ],
+  "artifacts": [
+    {
+      "file": "chapter_summary_en.md",
+      "kind": "markdown",
+      "language": "en",
+      "tool": "llm",
+      "description": "English summary sized for about two minutes of Tamil speech",
+      "bytes": 1357,
+      "verification": {
+        "check": "english_only",
+        "passed": true
+      }
+    },
+    {
+      "file": "chapter_summary_ta.mp3",
+      "kind": "audio",
+      "language": "ta",
+      "tool": "synthesize_speech",
+      "description": "Approximately two-minute Tamil audio summary of the chapter",
+      "bytes": 958492,
+      "verification": {
+        "check": "speech_back_transcription",
+        "passed": true,
+        "similarity": 0.844,
+        "duration_ratio": 0.98,
+        "problems": [],
+        "cost_inr": 0.21961,
+        "repairable": true
+      }
+    },
+    {
+      "file": "chapter_summary_ta_text.txt",
+      "kind": "text",
+      "language": "ta",
+      "tool": "speech_text",
+      "description": "The text spoken in chapter_summary_ta.mp3.",
+      "bytes": 4445,
+      "verification": {
+        "check": "spoken_text",
+        "passed": null,
+        "skipped": "checked through its audio's back-transcription"
+      }
+    }
+  ],
+  "verification": [
+    {
+      "file": "chapter_summary_en.md",
+      "round": 1,
+      "check": "english_only",
+      "passed": true
+    },
+    {
+      "file": "chapter_summary_ta.mp3",
+      "round": 1,
+      "check": "speech_back_transcription",
+      "passed": true,
+      "similarity": 0.844,
+      "duration_ratio": 0.98,
+      "problems": [],
+      "cost_inr": 0.21961,
+      "repairable": true
+    },
+    {
+      "file": "chapter_summary_ta_text.txt",
+      "round": 1,
+      "check": "spoken_text",
+      "passed": null,
+      "skipped": "checked through its audio's back-transcription"
+    },
+    {
+      "file": "chapter_summary_en.74d04d.ta.md",
+      "round": 1,
+      "intermediate": true,
+      "check": "translation_coverage",
+      "passed": true,
+      "length_ratio": 1.198,
+      "target_script_fraction": 0.992,
+      "problems": []
+    }
+  ],
+  "assumptions": [
+    "The chapter is scanned, so OCR will be used to extract its text and detect its language before summarizing and producing Tamil speech.",
+    "The scanned chapter was OCR-detected as English, so its summary was translated into Tamil before speech synthesis."
+  ],
+  "warnings": [],
+  "injection_flags": [],
+  "missing_inputs": [],
+  "quality_targets": {
+    "task_completion": {
+      "met": true,
+      "status": "completed"
+    },
+    "honest_failure": {
+      "met": true,
+      "why": "no artifacts are produced for refused/failed tasks"
+    },
+    "verification": {
+      "met": true,
+      "checked": 3,
+      "passed": 3,
+      "why": ""
+    },
+    "no_waste": {
+      "met": true,
+      "reused_duplicate_calls": 0,
+      "why": "identical tool calls are reused; the server cache never resends the same input"
+    },
+    "budget": {
+      "met": true,
+      "cost_inr": 1.1953,
+      "max_cost_inr": 20.0
+    },
+    "latency": {
+      "met": true,
+      "elapsed_s": 143.9,
+      "target_s": 300,
+      "why": ""
+    }
+  },
+  "failed_checks": 0
+}
