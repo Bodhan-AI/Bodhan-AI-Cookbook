@@ -29,12 +29,10 @@ from .errors import ToolError
 from .ledger import Ledger, estimate_ocr, estimate_speak, estimate_transcribe
 from .srt import build_cues, to_srt
 from .textproc import (
-    cer,
     is_separator_row,
     missing_numbers,
-    normalize_for_cer,
     render_table,
-    repetition_score,
+    speech_alignment,
     split_sentences,
     table_cells,
     table_shape,
@@ -457,10 +455,11 @@ def _pick_voice(lang: str, voice: str | None, gender: str | None) -> str:
 
 
 def _speech_issue(text: str, transcript: str, err: float) -> str | None:
-    ref, hyp = normalize_for_cer(text), normalize_for_cer(transcript)
-    if len(hyp) > 1.5 * len(ref) + 10 or repetition_score(transcript) > repetition_score(text) + 0.25:
+    """`err` is the number-aware error rate from speech_alignment; repeats and gaps are judged outside numbers."""
+    a = speech_alignment(text, transcript)
+    if a["insertions"] > 0.35:
         return "repetition"
-    if len(hyp) < 0.6 * len(ref):
+    if a["deletions"] > 0.35:
         return "omission"
     if err > CER_FLAG:
         return "mismatch"
@@ -513,7 +512,7 @@ async def synthesize_speech(ctx: ToolContext, language: str, text: str | None = 
         if not verify:
             return [(samples, sr)], ChunkCheck(index=i, chars=len(t), duration_s=round(len(samples) / sr, 2), cer=None), detail
         heard = await _back_transcribe(ctx, samples, sr, lang)
-        err = cer(t, heard)
+        err = speech_alignment(t, heard)["cer"]
         issue = _speech_issue(t, heard, err)
         detail.update(back_transcript=heard, cer=round(err, 3), issue=issue)
         check = ChunkCheck(index=i, chars=len(t), duration_s=round(len(samples) / sr, 2), cer=round(err, 3), issue=issue)
@@ -525,7 +524,7 @@ async def synthesize_speech(ctx: ToolContext, language: str, text: str | None = 
             return [(samples, sr)], check, detail
         takes = await asyncio.gather(*(synth(pt) for pt in parts))
         heard2 = " ".join(await asyncio.gather(*(_back_transcribe(ctx, s, r, lang) for s, r in takes)))
-        err2 = cer(t, heard2)
+        err2 = speech_alignment(t, heard2)["cer"]
         detail.update(retry_parts=parts, retry_back_transcript=heard2, retry_cer=round(err2, 3))
         if err2 < err:
             issue2 = _speech_issue(t, heard2, err2)

@@ -46,6 +46,13 @@ def test_numbers_compare_across_digit_scripts():
     assert missing_numbers("Price 120 and 45", "मूल्य 120") == ["45"]
 
 
+def test_normalisation_keeps_indic_vowel_signs():
+    from bodhan_mcp.textproc import normalize_for_cer
+
+    assert normalize_for_cer("पानी उबलता है।") == "पानी उबलता है"
+    assert normalize_for_cer("கோணங்கள்.") == "கோணங்கள்"
+
+
 def test_cer_ignores_punctuation_and_case():
     assert cer("Hello, World!", "hello world") == 0.0
     assert 0 < cer("नमस्ते दुनिया", "नमस्ते दुनी") < 0.3
@@ -86,3 +93,30 @@ def test_srt_cues_are_ordered_and_formatted():
     assert all(cues[i][0] <= cues[i + 1][0] for i in range(len(cues) - 1))
     assert fmt_ts(3661.5) == "01:01:01,500"
     assert "00:00:00,500 --> " in to_srt(cues)
+
+
+# Real Indic-Speak output from the Tamil demo: "90°" and "180°" are read aloud as English words in Tamil script.
+TA_TEXT = "ஒரு நேர்கோணம் 180° மற்றும் ஒரு பிரதிபலிப்பு கோணம் 180° மற்றும் 360° க்கு இடையில் உள்ளது. நிரப்பு கோணங்கள் 90° ஆகவும், நிரப்பிக் கோணங்கள் 180° ஆகவும் உள்ளன."
+TA_HEARD = ("ஒரு நேர்கோணம் ஒன் ஹண்ட்ரட் அண்ட் எயிட்டி டிகிரீஸ் மற்றும் ஒரு பிரதிபலிப்பு கோணம் ஒன் ஹண்ட்ரட் அண்ட் எயிட்டி டிகிரீஸ் "
+            "மற்றும் த்ரீ ஹண்ட்ரட் அண்ட் சிக்ஸ்டி டிகிரீஸ்க்கு இடையில் உள்ளது நிரப்பு கோணங்கள் நைன்டி டிகிரீஸ் ஆகவும் "
+            "நிரப்பிக் கோணங்கள் ஒன் ஹண்ட்ரட் அண்ட் எயிட்டி டிகிரீஸ் ஆகவும் உள்ளன")
+
+
+def test_spoken_numbers_are_not_errors():
+    from bodhan_mcp.textproc import speech_alignment
+
+    a = speech_alignment(TA_TEXT, TA_HEARD)
+    assert a["numbers"] == 5
+    assert a["cer"] < 0.2, a  # a plain CER on this real take is above 1.0
+
+
+def test_real_repetition_and_omission_still_caught():
+    from bodhan_mcp.textproc import speech_alignment
+    from bodhan_mcp.tools import _speech_issue
+
+    clean = "நிரப்பு கோணங்கள் ஆகவும் நிரப்பிக் கோணங்கள் ஆகவும் உள்ளன இது ஒரு சோதனை வாக்கியம்"
+    looped = clean + " " + clean
+    assert _speech_issue(clean, looped, speech_alignment(clean, looped)["cer"]) == "repetition"
+    cut = clean[: len(clean) // 3]
+    assert _speech_issue(clean, cut, speech_alignment(clean, cut)["cer"]) == "omission"
+    assert _speech_issue(TA_TEXT, TA_HEARD, speech_alignment(TA_TEXT, TA_HEARD)["cer"]) is None

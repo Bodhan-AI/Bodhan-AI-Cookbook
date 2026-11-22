@@ -203,10 +203,12 @@ def missing_numbers(source: str, output: str) -> list[str]:
 
 
 def normalize_for_cer(text: str) -> str:
+    """Lower-case, unify digits, drop punctuation. Keeps letters, digits and combining marks: Python's \\w does not
+    match Indic vowel signs (category M), so a regex like [^\\w] would silently strip matras from Hindi or Tamil."""
     text = unicodedata.normalize("NFC", normalize_digits(text)).lower()
-    text = re.sub(r"[‌‍]", "", text)  # zero-width joiners vary between systems
-    text = re.sub(r"[^\w\s]", " ", text)
-    return re.sub(r"\s+", " ", text).strip()
+    text = text.replace("\u200c", "").replace("\u200d", "")  # zero-width joiners vary between systems
+    kept = [ch if ch == "\u00a7" or ch.isspace() or unicodedata.category(ch)[0] in "LMN" else " " for ch in text]
+    return re.sub(r"\s+", " ", "".join(kept)).strip()
 
 
 def cer(reference: str, hypothesis: str) -> float:
@@ -214,6 +216,37 @@ def cer(reference: str, hypothesis: str) -> float:
     if not ref:
         return 0.0 if not hyp else 1.0
     return Levenshtein.distance(ref, hyp) / len(ref)
+
+
+NUMBER_SLOT = "\u00a7"  # stands in for a number in the reference; any spoken form of it is accepted
+
+
+def speech_alignment(reference: str, heard: str) -> dict:
+    """Compare text sent to TTS with its back-transcript, tolerant of how numbers are spoken.
+
+    Indic-Speak reads "90°" as words (often English words written in the target script), so a plain CER would flag
+    a correct take. Numbers in the reference become a slot; whatever the transcript has at a slot (or right beside
+    it) is not counted. Everything else counts as usual: insertions (repeats), deletions (omissions), substitutions.
+    """
+    ref = normalize_for_cer(re.sub(r"\d+(?:[.,:/]\d+)*", f" {NUMBER_SLOT} ", normalize_digits(reference)))
+    ref = re.sub(rf"\s*{NUMBER_SLOT}\s*", NUMBER_SLOT, ref)
+    hyp = normalize_for_cer(heard)
+    plain_len = len(ref.replace(NUMBER_SLOT, "")) or 1
+    ins = dels = subs = 0
+    for tag, i1, i2, j1, j2 in Levenshtein.opcodes(ref, hyp):
+        if tag == "equal":
+            continue
+        near = ref[max(0, i1 - 1): i2 + 1]
+        if NUMBER_SLOT in near:  # the spoken number, however it was said
+            continue
+        if tag == "insert":
+            ins += j2 - j1
+        elif tag == "delete":
+            dels += i2 - i1
+        else:
+            subs += max(i2 - i1, j2 - j1)
+    return {"cer": round((ins + dels + subs) / plain_len, 3), "insertions": ins / plain_len,
+            "deletions": dels / plain_len, "numbers": ref.count(NUMBER_SLOT)}
 
 
 def repetition_score(text: str, n: int = 4) -> float:

@@ -307,6 +307,9 @@ class Agent:
             return _err("invalid_argument", f"Refused: argument(s) {bad} contain Indian-language text written by you. "
                         "You may only write English. Pass Indian-language text by `path` to a file produced by a tool, "
                         "or write English and translate it with translate_text.")
+        if call.name == "synthesize_speech" and args.get("verify") is False:
+            args["verify"] = True  # the agent may not switch off its own checks
+            self.trace.log("act", "verify_forced", tool=call.name, why="LLM asked for verify=false; speech is always back-transcribed")
         key = f"{call.name}:{json.dumps(args, sort_keys=True, ensure_ascii=False)}"
         if key in self.done_calls:
             self.trace.log("act", "duplicate_skipped", tool=call.name, args=args)

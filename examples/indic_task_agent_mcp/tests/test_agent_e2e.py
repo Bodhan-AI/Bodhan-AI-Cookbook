@@ -122,7 +122,7 @@ def test_budget_stop_is_clean(workdir, env_keys, fake_api):
 
 
 @needs_ffmpeg
-def test_verification_failure_triggers_one_redo_then_partial(workdir, env_keys, fake_api):
+def test_llm_cannot_switch_off_speech_verification(workdir, env_keys, fake_api):
     inputs = workdir / "in"
     inputs.mkdir()
     (inputs / "t.txt").write_text("Hello there friend.", encoding="utf-8")
@@ -134,10 +134,11 @@ def test_verification_failure_triggers_one_redo_then_partial(workdir, env_keys, 
         audio = next(Path(p) for p in (workdir / "out" / "work").glob("*.mp3"))
         return LLMReply(tool_calls=[call("finish", answer="Done.", artifacts=[{"path": str(audio), "description": "speech"}])])
 
-    report, llm = run(workdir, "Read this aloud", str(inputs), [plan(), speak_unverified, finish, finish])
-    assert report["steps"]["redos"] == 1
-    assert report["status"] == "partial"
-    assert any("speech_verified" in x for x in report["limitations"])
+    report, llm = run(workdir, "Read this aloud", str(inputs), [plan(), speak_unverified, finish])
+    trace = (workdir / "out" / "trace.jsonl").read_text(encoding="utf-8")
+    assert "verify_forced" in trace
+    assert report["status"] == "completed"
+    assert any(c["name"] == "speech_verified" and c["passed"] for c in report["verification"]["checks"])
 
 
 def test_llm_outage_after_work_delivers_checked_partial_outputs(workdir, env_keys, fake_api):
