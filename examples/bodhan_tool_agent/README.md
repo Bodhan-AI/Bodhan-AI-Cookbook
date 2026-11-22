@@ -14,7 +14,7 @@ caller never sees them. Budgets, the file sandbox, the "no Indian-language text 
 verification gate are enforced by the agent loop, not requested in a prompt.
 
 - [Design notes](docs/DESIGN.md): architecture diagram, agent flow chart, tool granularity, verification, recovery
-- Tests: `make test` (54 tests, no network or API keys needed)
+- Tests: `make test` (58 tests, no network or API keys needed)
 
 ## Setup
 
@@ -71,6 +71,13 @@ Point any MCP client at it, e.g. Claude Desktop / Claude Code:
 or try it interactively with `npx @modelcontextprotocol/inspector .venv/bin/python -m bodhan_mcp`. The server is also
 driven end to end by the official MCP Python client in [tests/test_server_stdio.py](tests/test_server_stdio.py).
 
+To serve over the network instead, use Streamable HTTP with bearer-token auth (it refuses to start without a token):
+
+```bash
+BODHAN_MCP_TOKEN=choose-a-long-random-string python -m bodhan_mcp --transport http --host 127.0.0.1 --port 8000
+# clients connect to http://127.0.0.1:8000/mcp with the header  Authorization: Bearer <token>
+```
+
 Tools only read and write under `BODHAN_WORKDIR` (plus any `BODHAN_EXTRA_ROOTS`), take file paths instead of media, and
 return `{"ok": false, "error": {"code", "message", "hint", "retryable"}}` instead of raising.
 
@@ -99,6 +106,17 @@ that checks every translation and audio file before a run may end as `completed`
 | `inspect_media`, `list_files`, `list_voices`, `read_text_file`, `write_text_file` | Free helpers | `read_text_file` pages through large files |
 
 There is also a resource, `bodhan://voices`, with the voice library.
+
+## Stretch goals implemented
+
+| Stretch goal from the brief | Status |
+|---|---|
+| Streamable HTTP transport with simple token authentication | Done: `--transport http`, bearer token, constant-time compare, refuses to start without `BODHAN_MCP_TOKEN` ([tests/test_server_http.py](tests/test_server_http.py)) |
+| MCP resources | Done: the voice library is served as `bodhan://voices` |
+| Self-evaluation script with a pass rate | Done: `make eval` ([evals/run_suite.py](evals/run_suite.py), tasks in [demo/tasks.yaml](demo/tasks.yaml)); `--rescore` re-checks saved runs |
+| Parallel tool calls for independent steps | Done: several tool calls in one LLM turn run concurrently |
+| Thin UI that shows the plan and trace | Done as a static page: open [viewer/trace_viewer.html](viewer/trace_viewer.html) in a browser and load a run's `trace.jsonl` (and `report.json`). It is not live; it reads a finished run |
+| Resumable tasks | Not done: reruns are cheap because every Bodhan call is cached, but a half-finished run is not resumed |
 
 ## Honest-failure and safety behaviour
 
@@ -197,8 +215,8 @@ decoding, windowing, resampling and encoding, and poppler only to rasterise PDF 
 
 ## What I'd do next
 
-Streamable-HTTP transport with token auth, a resumable run state (not just a cache), word-level subtitle timing from window
-boundaries plus VAD, tuning verification thresholds against a labelled set, and a small web view over `trace.jsonl`.
+A resumable run state (not just a cache), word-level subtitle timing from window boundaries plus VAD, tuning verification
+thresholds against a labelled set, and a live (not post-hoc) view of the trace.
 
 ## AI assistance
 

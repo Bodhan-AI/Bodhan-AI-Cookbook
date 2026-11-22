@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent trace viewer</title>
+<style>
+  :root { --bg:#fff; --fg:#1a1a1a; --mute:#666; --line:#ddd; --ok:#1a7f37; --bad:#c62828; --warn:#9a6700; --chip:#f3f3f3; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#14161a; --fg:#e6e6e6; --mute:#9aa0a6; --line:#2e3238; --ok:#4cc26b; --bad:#ff6b6b; --warn:#e3b341; --chip:#1f2329; } }
+  body { font: 14px/1.45 system-ui, sans-serif; background: var(--bg); color: var(--fg); margin: 0; padding: 16px; }
+  h1 { font-size: 18px; margin: 0 0 4px; }
+  .sub { color: var(--mute); margin-bottom: 12px; }
+  .bar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+  .chip { background: var(--chip); padding: 2px 8px; border-radius: 10px; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { text-align: left; vertical-align: top; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+  th { color: var(--mute); font-weight: 600; position: sticky; top: 0; background: var(--bg); }
+  td.num { text-align: right; white-space: nowrap; }
+  .ok { color: var(--ok); } .bad { color: var(--bad); } .warn { color: var(--warn); }
+  details summary { cursor: pointer; }
+  pre { white-space: pre-wrap; word-break: break-word; margin: 4px 0 0; font-size: 12px; }
+  .kind-plan td, .kind-stop td, .kind-end td { background: var(--chip); }
+  @media (max-width: 700px) { th:nth-child(1), td:nth-child(1) { display: none; } }
+</style>
+</head>
+<body>
+<h1>Agent trace viewer</h1>
+<div class="sub">Open the <code>trace.jsonl</code> from a run (and optionally its <code>report.json</code>). Nothing leaves your browser.</div>
+<div class="bar">
+  <label>trace.jsonl <input type="file" id="trace" accept=".jsonl,.json,.txt"></label>
+  <label>report.json <input type="file" id="report" accept=".json"></label>
+</div>
+<div id="summary" class="bar"></div>
+<div id="out"></div>
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let trace = [], report = null;
+
+function readText(file) { return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsText(file); }); }
+
+$("trace").addEventListener("change", async e => {
+  const f = e.target.files[0]; if (!f) return;
+  trace = (await readText(f)).split("\n").filter(l => l.trim()).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
+  render();
+});
+$("report").addEventListener("change", async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try { report = JSON.parse(await readText(f)); } catch { report = null; }
+  render();
+});
+
+function detail(r) {
+  if (r.kind === "tool") return `<details><summary>${esc(r.tool)}(${esc(JSON.stringify(r.args).slice(0, 90))})</summary><pre>args: ${esc(JSON.stringify(r.args, null, 1))}\nresult: ${esc(r.result)}</pre></details>`;
+  if (r.kind === "llm") return esc((r.thought || "") + (r.calls?.length ? ` -> ${r.calls.join(", ")}` : ""));
+  if (r.kind === "plan") return `<details><summary>plan (${(r.steps || []).length} steps)</summary><pre>${esc((r.steps || []).map((s, i) => `${i + 1}. ${s}`).join("\n"))}\nassumptions: ${esc(JSON.stringify(r.assumptions || []))}</pre></details>`;
+  if (r.kind === "start") return esc(r.task);
+  if (r.kind === "stop") return esc(r.reason);
+  if (r.kind === "end") return esc(r.status);
+  return esc(r.error || JSON.stringify(r));
+}
+
+function render() {
+  const tools = trace.filter(r => r.kind === "tool");
+  const cost = Math.max(0, ...trace.map(r => r.total_cost_inr ?? 0));
+  const last = trace.at(-1)?.t ?? 0;
+  const fails = tools.filter(r => r.ok === false).length;
+  const status = report?.status ?? trace.find(r => r.kind === "end")?.status ?? "";
+  $("summary").innerHTML =
+    `<span class="chip">status: <b class="${status.startsWith("completed") || status === "impossible" ? "ok" : "bad"}">${esc(status || "n/a")}</b></span>` +
+    `<span class="chip">tool calls: ${tools.length} (${fails} failed)</span>` +
+    `<span class="chip">cost: Rs ${cost.toFixed(4)}${report ? " / cap " + esc(report.cost?.cap_inr) : ""}</span>` +
+    `<span class="chip">duration: ${last}s</span>` +
+    (report?.verification?.length ? `<span class="chip">verification: ${report.verification.map(v => esc(v.verdict)).join(", ")}</span>` : "");
+  $("out").innerHTML = `<table><thead><tr><th>t (s)</th><th>step</th><th>kind</th><th>detail</th><th>result</th><th>latency</th><th>cost Rs</th></tr></thead><tbody>` +
+    trace.map(r => {
+      const res = r.kind === "tool" ? `<span class="${r.ok ? "ok" : "bad"}">${r.ok ? "ok" : "error"}</span>` : "";
+      return `<tr class="kind-${esc(r.kind)}"><td class="num">${esc(r.t)}</td><td class="num">${esc(r.step)}</td><td>${esc(r.kind)}</td><td>${detail(r)}</td><td>${res}</td>` +
+             `<td class="num">${r.latency_ms != null ? esc(r.latency_ms) + " ms" : ""}</td><td class="num">${r.cost_inr != null ? Number(r.cost_inr).toFixed(4) : ""}</td></tr>`;
+    }).join("") + `</tbody></table>`;
+}
+</script>
+</body>
+</html>
