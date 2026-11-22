@@ -37,7 +37,9 @@ class LLMReply:
 
 
 class LLMError(RuntimeError):
-    pass
+    def __init__(self, message: str, *, too_large: bool = False):
+        super().__init__(message)
+        self.too_large = too_large
 
 
 def parse_text_tool_calls(content: str, tool_names: set[str]) -> list[ToolCall]:
@@ -122,7 +124,7 @@ class OpenAICompatLLM:
                     return await self.chat(messages, tools, temperature)
                 if status == 413:
                     raise LLMError(f"LLM request is larger than the provider allows per minute ({exc}). "
-                                   "Use a model or plan with a higher tokens-per-minute limit.") from exc
+                                   "Use a model or plan with a higher tokens-per-minute limit.", too_large=True) from exc
                 if status in (400, 401, 403, 404, 422):
                     raise LLMError(f"LLM request rejected ({status}): {exc}") from exc
                 delay = _retry_delay(exc) if status == 429 else None

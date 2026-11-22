@@ -172,3 +172,44 @@ def test_rate_limit_wait_is_read_from_the_provider():
     assert _retry_delay(E("Rate limit reached ... Please try again in 19.4625s. Need more tokens?")) == pytest.approx(19.9625)
     assert _retry_delay(E("try again in 1m2.5s")) == pytest.approx(63.0)
     assert _retry_delay(E("server exploded")) is None
+
+
+def test_skipped_input_file_is_caught_before_finish(workdir, env_keys, fake_api):
+    inputs = workdir / "in"
+    inputs.mkdir()
+    (inputs / "note_one.txt").write_text("First note.", encoding="utf-8")
+    (inputs / "note_two.txt").write_text("Second note.", encoding="utf-8")
+
+    def finish(m, t):
+        out = next((workdir / "out" / "work").glob("note_one.*.txt"))
+        return LLMReply(tool_calls=[call("finish", answer="Translated the note.", artifacts=[{"path": str(out), "description": "Tamil"}])])
+
+    script = [plan(), lambda m, t: LLMReply(tool_calls=[call("translate_text", target_language="ta", path=str(inputs / "note_one.txt"))]),
+              finish, finish]
+    report, llm = run(workdir, "Translate these notes into Tamil", str(inputs), script)
+    feedback = [m["content"] for msgs in llm.seen for m in msgs if m["role"] == "tool" and "never processed" in m["content"]]
+    assert feedback and "note_two.txt" in feedback[0]
+    assert report["status"] == "partial"
+
+
+def test_oversized_llm_request_is_compacted_and_retried(workdir, env_keys, fake_api):
+    from bodhan_agent.llm import LLMError
+
+    inputs = workdir / "in"
+    inputs.mkdir()
+    (inputs / "n.txt").write_text("Hello there 5.", encoding="utf-8")
+    state = {"raised": False}
+
+    def too_big_once(m, t):
+        if not state["raised"]:
+            state["raised"] = True
+            raise LLMError("Request too large (413)", too_large=True)
+        return LLMReply(tool_calls=[call("finish", answer="Translated.", artifacts=[
+            {"path": str(next((workdir / "out" / "work").glob("n.*.txt"))), "description": "Tamil text"}])])
+
+    script = [plan(), lambda m, t: LLMReply(tool_calls=[call("translate_text", target_language="ta", path=str(inputs / "n.txt"))]),
+              too_big_once, too_big_once]
+    report, llm = run(workdir, "Translate this note into Tamil", str(inputs), script)
+    assert report["status"] == "completed", report["errors"]
+    trace = (workdir / "out" / "trace.jsonl").read_text(encoding="utf-8")
+    assert "context_compacted" in trace

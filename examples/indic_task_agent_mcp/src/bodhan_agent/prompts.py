@@ -30,7 +30,9 @@ Hard rules:
    output format), make a reasonable assumption, carry on, and list it in finish.
 6. Keep cost low: do not repeat a call that already succeeded; speech synthesis is the most expensive step, so
    synthesize only the final text; translate before synthesizing; prefer one combined call over many.
-7. Check tool results (warnings, missing_numbers, verification, flags). If something failed, fix it once or
+7. Handle every input file the task refers to. When there are several, process each one (or say in the answer why
+   one was skipped); the run is checked for files that were silently left out.
+8. Check tool results (warnings, missing_numbers, verification, flags). If something failed, fix it once or
    report it. When done, call finish with an English answer, the deliverable file paths with one-line
    descriptions, assumptions and limitations. Answers to questions (for example which clips are in Telugu)
    go in the answer text.

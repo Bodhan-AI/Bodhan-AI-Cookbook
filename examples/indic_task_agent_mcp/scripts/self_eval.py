@@ -67,6 +67,11 @@ async def run_all(specs: list[dict], out_root: Path) -> list[dict]:
 
 
 def main() -> int:
+    import logging
+
+    logging.basicConfig(level=logging.WARNING, format="%(levelname)s %(name)s: %(message)s", force=True)
+    for noisy in ("httpx", "mcp", "openai", "httpcore", "bodhan_mcp.client"):
+        logging.getLogger(noisy).setLevel(logging.WARNING)
     ap = argparse.ArgumentParser()
     ap.add_argument("--tasks", default=str(ROOT / "tasks" / "demo_tasks.yaml"))
     ap.add_argument("--only", default="")

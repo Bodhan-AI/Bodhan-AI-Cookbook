@@ -17,6 +17,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import re
 import shutil
 import time
 from dataclasses import dataclass, field
@@ -125,6 +126,10 @@ class Agent:
         self.done_calls: dict[str, str] = {}
         self._ctx = ctx
         self.t0 = time.time()
+        self._short_results: dict[str, str] = {}
+        self._last_summary: dict[str, str] = {}
+        self._keep_full = 3  # most recent tool results sent in full; older ones as one-line summaries
+        self.used_inputs: set[str] = set()
 
     # ------------------------------------------------------------------ entry
     async def run(self) -> dict:
@@ -149,8 +154,10 @@ class Agent:
             async with create_connected_server_and_client_session(mcp_server.mcp._mcp_server) as session:
                 self.session = session
                 listed = await session.list_tools()
-                self.tools = [{"type": "function", "function": {"name": t.name, "description": t.description or "",
-                                                                 "parameters": t.inputSchema}} for t in listed.tools]
+                # The LLM sees short tool descriptions to keep every request small (some providers cap tokens per
+                # minute at 8K); third-party MCP clients still get the full descriptions from the server.
+                self.tools = [{"type": "function", "function": {"name": t.name, "description": _short(t.description or "", 260),
+                                                                 "parameters": _compact_schema(t.inputSchema)}} for t in listed.tools]
                 self.tools += [FINISH_TOOL, GIVE_UP_TOOL]
                 facts = await self._describe_inputs(pf)
                 await self._plan(facts)
@@ -232,7 +239,14 @@ class Agent:
                 return self._stop_budget(f"Reached the time limit ({cfg.max_minutes:.0f} min).")
             if self.ctx.ledger.remaining is not None and self.ctx.ledger.remaining < 0.001:
                 return self._stop_budget(f"Spent the whole ₹{cfg.max_cost_inr:.2f} budget.")
-            reply = await self.llm.chat(messages, self.tools)
+            try:
+                reply = await self.llm.chat(self._context(messages), self.tools)
+            except LLMError as exc:
+                if not exc.too_large or self._keep_full <= 0:
+                    raise
+                self._keep_full = 0  # shrink every earlier tool result to its summary and try once more
+                self.trace.log("act", "context_compacted", reason="request too large for the LLM provider")
+                reply = await self.llm.chat(self._context(messages), self.tools)
             st.model_steps += 1
             self.trace.log("act", "llm", reason=reply.content[:500], tool_calls=[c.name for c in reply.tool_calls],
                            prompt_tokens=reply.prompt_tokens, completion_tokens=reply.completion_tokens)
@@ -254,6 +268,7 @@ class Agent:
             contents = await asyncio.gather(*(self._exec(c, reply.content) for c in normal))
             for c, content in zip(normal, contents, strict=True):
                 messages.append({"role": "tool", "tool_call_id": c.id, "content": content})
+                self._short_results[c.id] = self._last_summary.get(c.id, content[:400])
             for c in reply.tool_calls:
                 if c.name in CONTROL and c is not control:
                     messages.append({"role": "tool", "tool_call_id": c.id, "content": "Ignored: only one finish/give_up per turn."})
@@ -268,6 +283,18 @@ class Agent:
             if feedback is None:
                 return
             messages.append({"role": "tool", "tool_call_id": control.id, "content": feedback})
+
+    def _context(self, messages: list[dict]) -> list[dict]:
+        """What the LLM is sent: the full history, but older tool results replaced by their short summaries."""
+        tool_idx = [i for i, m in enumerate(messages) if m["role"] == "tool"]
+        keep = set(tool_idx[-self._keep_full:]) if self._keep_full > 0 else set()
+        out = []
+        for i, m in enumerate(messages):
+            if m["role"] == "tool" and i not in keep and m.get("tool_call_id") in self._short_results:
+                out.append({**m, "content": "(earlier result, summarised) " + self._short_results[m["tool_call_id"]]})
+            else:
+                out.append(m)
+        return out
 
     async def _exec(self, call, reason: str) -> str:
         st = self.state
@@ -313,6 +340,10 @@ class Agent:
         cost = result.get("cost_inr", round(self.ctx.ledger.spent - spent0, 4))
         self.trace.log("act", "tool", tool=call.name, args=args, ok=True, latency_ms=latency, reason=reason[:300],
                        result_summary=_summary(result), cost_inr=cost, cumulative_cost_inr=round(self.ctx.ledger.spent, 4))
+        for k in ("path", "segments_path"):
+            if isinstance(args.get(k), str):
+                self.used_inputs.add(Path(args[k]).name)
+        self._last_summary[call.id] = json.dumps({"tool": call.name, **_summary(result)}, ensure_ascii=False)[:600]
         content, hits = wrap_untrusted(call.name, compact_result(result))
         if hits:
             msg = f"Instruction-like text in {call.name} output was treated as data and ignored: {hits}"
@@ -352,6 +383,11 @@ class Agent:
                 problems.append(f"Artifact {a['path']} does not exist.")
             else:
                 resolved.append((p, a))
+        skipped = [f.name for f in self.pf.files if f.name not in self.used_inputs
+                   and not re.search(rf"(?<![\w.-]){re.escape(f.stem)}(?![\w-])", answer)][:10]
+        if skipped and len(self.pf.files) <= 40:
+            problems.append(f"These input files were never processed or mentioned: {', '.join(skipped)}. "
+                            "Process them, or say in the answer why they were left out.")
         targets = [t for t in (st.plan or {}).get("target_languages", []) if isinstance(t, str)]
         ver = verify_artifacts([p for p, _ in resolved], self.records, targets, self.pf.duration_target_s)
         problems += [f"{c.artifact}: {c.name} failed ({c.detail})" for c in ver.failures()]
@@ -499,6 +535,40 @@ class Agent:
         (self.out / "result.md").write_text(render_result(self.cfg, st, delivered, report), encoding="utf-8")
         self.trace.log("end", "summary", status=st.status, cost_inr=ledger.get("total_inr"), wall_time_s=elapsed)
         return report
+
+
+def _short(text: str, limit: int) -> str:
+    """First sentences of a description, up to `limit` characters."""
+    text = " ".join(text.split())
+    if len(text) <= limit:
+        return text
+    cut = text[:limit]
+    return cut[: cut.rfind(". ") + 1] if ". " in cut else cut.rsplit(" ", 1)[0] + " ..."
+
+
+def _compact_schema(schema: dict) -> dict:
+    """Input schema with shorter parameter descriptions, no titles, null defaults or `anyOf [X, null]` wrappers.
+    Same meaning for the LLM, roughly half the tokens."""
+    if not isinstance(schema, dict):
+        return schema
+    variants = schema.get("anyOf")
+    if isinstance(variants, list):
+        real = [v for v in variants if not (isinstance(v, dict) and v.get("type") == "null")]
+        if len(real) == 1 and isinstance(real[0], dict):
+            schema = {**{k: v for k, v in schema.items() if k != "anyOf"}, **real[0]}
+    out = {}
+    for k, v in schema.items():
+        if k == "title" or (k == "default" and v is None):
+            continue
+        if k == "description" and isinstance(v, str):
+            out[k] = _short(v, 120)
+        elif isinstance(v, dict):
+            out[k] = _compact_schema(v)
+        elif isinstance(v, list):
+            out[k] = [_compact_schema(x) if isinstance(x, dict) else x for x in v]
+        else:
+            out[k] = v
+    return out
 
 
 def _unwrap(exc: BaseException) -> BaseException:
