@@ -1,0 +1,31 @@
+{
+  "status": "impossible",
+  "task": "Translate this video into French",
+  "stop_reason": null,
+  "steps": 1,
+  "max_steps": 30,
+  "elapsed_s": 2.6,
+  "total_cost_inr": 0.0,
+  "max_cost_inr": 20.0,
+  "cost_by_tool_inr": {},
+  "llm": {
+    "prompt": 4046,
+    "completion": 383,
+    "calls": 2
+  },
+  "backend": "in-process",
+  "verification": [],
+  "unverified_outputs": [],
+  "artifacts": [],
+  "assumptions": [
+    "The user requested translation to French, which is not supported by any Bodhan translation model (supported target languages are limited to Indian languages and English)."
+  ],
+  "notes": [],
+  "tool_calls": [],
+  "targets": {
+    "budget_respected": true,
+    "all_outputs_verified": true,
+    "duplicate_model_requests": 0,
+    "latency_under_5min": true
+  }
+}

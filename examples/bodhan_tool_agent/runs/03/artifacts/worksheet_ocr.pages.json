@@ -1,0 +1,60 @@
+[
+ {
+  "page": 1,
+  "markdown": "# Worksheet: Angles\n\nFill in the table.\n\n| Angle | Degrees |\n| --- | --- |\n| Right | 90 |\n| Straight | 180 |\n| Full turn | 360 |",
+  "blocks": [
+   {
+    "order": 0,
+    "label": "Header",
+    "type": "PageHeader",
+    "bbox_xyxy": [
+     59.3,
+     63.8,
+     396.9,
+     107.1
+    ],
+    "conf": 0.689,
+    "text": ""
+   },
+   {
+    "order": 1,
+    "label": "Title",
+    "type": "Title",
+    "bbox_xyxy": [
+     59.2,
+     65.1,
+     396.7,
+     106.5
+    ],
+    "conf": 0.855,
+    "text": "Worksheet: Angles"
+   },
+   {
+    "order": 2,
+    "label": "Paragraph",
+    "type": "Text",
+    "bbox_xyxy": [
+     60.4,
+     128.7,
+     250.8,
+     157.7
+    ],
+    "conf": 0.809,
+    "text": "Fill in the table."
+   },
+   {
+    "order": 3,
+    "label": "Table",
+    "type": "Table",
+    "bbox_xyxy": [
+     59.8,
+     194.9,
+     620.0,
+     437.7
+    ],
+    "conf": 0.983,
+    "text": "| Angle | Degrees |\n| --- | --- |\n| Right | 90 |\n| Straight | 180 |\n| Full turn | 360 |"
+   }
+  ]
+ }
+]

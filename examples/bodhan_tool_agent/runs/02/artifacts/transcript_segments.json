@@ -1,0 +1,15 @@
+{
+ "language": "hi",
+ "source": "D:\\bodhan-tool-agent\\bodhan-tool-agent\\demo_inputs\\voice_note_hindi.wav",
+ "duration_s": 7.77,
+ "segments": [
+  {
+   "id": 0,
+   "start": 0.0,
+   "end": 7.76,
+   "text": "नमस्ते मैं कल शाम पाँच बजे बाज़ार जाऊँगा मुझे तीन किलो सेब और दो किलो केले चाहिए",
+   "cached": false
+  }
+ ],
+ "skipped": []
+}

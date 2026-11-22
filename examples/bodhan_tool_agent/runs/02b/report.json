@@ -1,0 +1,77 @@
+{
+  "status": "completed",
+  "task": "Transcribe this Hindi voice note and give me English subtitles",
+  "stop_reason": null,
+  "error": null,
+  "steps": 4,
+  "max_steps": 30,
+  "elapsed_s": 87.5,
+  "total_cost_inr": 0.0,
+  "max_cost_inr": 20.0,
+  "cost_by_tool_inr": {
+    "transcribe_audio": 0.0,
+    "translate_segments": 0.0,
+    "write_subtitles": 0.0
+  },
+  "llm": {
+    "prompt": 18887,
+    "completion": 796,
+    "calls": 6
+  },
+  "backend": "in-process",
+  "verification": [
+    {
+      "kind": "translate_segments",
+      "target": "D:\\bodhan-tool-agent\\bodhan-tool-agent\\runs\\02b\\artifacts\\intermediate\\segments.en-75a97d6e.json",
+      "ok": true,
+      "details": [],
+      "method": "built-in per-segment checks"
+    }
+  ],
+  "unverified_outputs": [],
+  "artifacts": [
+    "D:\\bodhan-tool-agent\\bodhan-tool-agent\\runs\\02b\\artifacts\\subtitles.en.srt"
+  ],
+  "assumptions": [
+    "The audio language was auto‑detected as Hindi (hi) with low confidence, but the transcript was coherent, so we assumed it is Hindi."
+  ],
+  "notes": [],
+  "tool_calls": [
+    {
+      "tool": "transcribe_audio",
+      "arguments": {
+        "audio_path": "D:\\bodhan-tool-agent\\bodhan-tool-agent\\demo_inputs\\voice_note_hindi.wav"
+      },
+      "ok": true,
+      "latency_s": 0.33,
+      "cost_inr": 0.0
+    },
+    {
+      "tool": "translate_segments",
+      "arguments": {
+        "segments_path": "D:\\bodhan-tool-agent\\bodhan-tool-agent\\runs\\02b\\artifacts\\intermediate\\transcript-56facfd0.json",
+        "target_language": "en"
+      },
+      "ok": true,
+      "latency_s": 0.0,
+      "cost_inr": 0.0
+    },
+    {
+      "tool": "write_subtitles",
+      "arguments": {
+        "format": "srt",
+        "output_path": "subtitles.en.srt",
+        "segments_path": "D:\\bodhan-tool-agent\\bodhan-tool-agent\\runs\\02b\\artifacts\\intermediate\\segments.en-75a97d6e.json"
+      },
+      "ok": true,
+      "latency_s": 0.0,
+      "cost_inr": 0.0
+    }
+  ],
+  "targets": {
+    "budget_respected": true,
+    "all_outputs_verified": true,
+    "duplicate_model_requests": 0,
+    "latency_under_5min": true
+  }
+}

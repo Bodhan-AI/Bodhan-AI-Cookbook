@@ -1,0 +1,15 @@
+{
+ "language": "te",
+ "source": "D:\\bodhan-tool-agent\\bodhan-tool-agent\\demo_inputs\\clip3_telugu.wav",
+ "duration_s": 2.22,
+ "segments": [
+  {
+   "id": 0,
+   "start": 0.0,
+   "end": 2.22,
+   "text": "మా ఊరిలో పెద్ద చెరువు ఉంది",
+   "cached": false
+  }
+ ],
+ "skipped": []
+}

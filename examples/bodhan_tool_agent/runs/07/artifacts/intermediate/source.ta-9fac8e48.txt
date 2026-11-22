@@ -1,0 +1,1 @@
+This chapter introduces basic concepts of geometry, explaining that a line extends infinitely with length but no width, a point has no dimensions, and parallel lines are those that never intersect.
