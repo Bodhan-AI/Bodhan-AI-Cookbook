@@ -46,19 +46,24 @@ flowchart LR
 | Component | File | One line |
 |---|---|---|
 | CLI | `cli.py` | the exact required command; exit 0 / 1 (a language failed) / 2 (bad input or setup) |
-| Orchestrator | `pipeline.py` | shared stages once, then one isolated thread per language |
-| Bodhan client | `bodhan.py` | retries with backoff, a shared rate-limit cooldown, a concurrency cap, cost metering, caching |
-| LLM client | `llm.py` | JSON replies, optional settings dropped if rejected, cached, failures become one `LLMError` |
+| Orchestrator | `pipeline.py` | shared stages once, then one isolated thread per language; writes `report.json` |
+| Bodhan client | `bodhan.py` | retries with backoff, a shared rate-limit cooldown, a concurrency cap, cost metering per model and language, caching, fail-fast on spent credit |
+| LLM client | `llm.py` | JSON replies, optional settings dropped if rejected, cut-off replies fail fast, cached, failures become one `LLMError` |
+| Cache | `cache.py` | content-addressed disk cache for every model call (reruns are free and resumable) |
+| Media and audio | `media.py`, `audio.py` | ffprobe/ffmpeg ingest, trim, pitch-preserving stretch, EBU R128 loudness |
 | VAD | `vad.py` | Silero frame scores → speech regions; energy fallback |
-| Chunker | `chunking.py` | regions → chunks of 15 s or less, cut at the longest pause |
+| Speakers and voices | `voices.py` | pitch clusters → speakers, one consistent voice each; flexible `--voices` override |
+| Chunker | `chunking.py` | regions → chunks of 15 s or less, cut at the longest pause and at every speaker turn |
 | Transcribe | `transcribe.py` | Indic-Transcribe per chunk; an empty transcript is a logged skip |
-| Repair | `repair.py` | LLM fixes punctuation, numbers and mishearings and merges fragments; validator plus fallback |
-| Glossary | `glossary.py` | LLM term list, checked for literal presence; user YAML wins |
-| Translate | `translate.py` | translate, back-translate, check, judge, try alternatives, pick the best |
-| Voices | `voices.py` | pitch → male/female voice with hysteresis; `--voices` override |
-| Synthesis | `synth.py` | per-sentence TTS, back-transcription QA, re-takes, timing fit, condensing |
-| Mix | `mix.py` | placement, ducking, loudness, mux, subtitles |
-| Report | `report.py` | every quality target scored, with the reason for each miss |
+| Repair | `repair.py` | LLM fixes punctuation, numbers and mishearings and re-joins split sentences; validator, retry, fallback; unnecessary merges split back at sentence ends |
+| Glossary | `glossary.py` | LLM term list, checked for literal presence; flexible user YAML wins |
+| Romanized phrases | `romanized.py` | LLM English gloss for romanized Indian-language phrases, checked; used for other languages only |
+| Text checks | `textcheck.py` | script share, numbers (native digits normalised), glossary terms, native digits for speech |
+| Translate | `translate.py` | translate, back-translate, check, judge, try alternatives, pick the best; majority term rendering |
+| Synthesis | `synth.py` | TTS of 1–2 sentences per request, re-takes, timing fit, judged condensing |
+| Speech QA | `ttsqa.py` | number-aware CER, loop detector, omission/repetition classification |
+| Mix | `mix.py` | placement without overlap, −40 dB ducking under dub lines, bleed check, −16 LUFS, mux, subtitles |
+| Report | `report.py` | every quality target scored, with the reason for each miss; per-segment drift estimate |
 
 ## Workflow
 

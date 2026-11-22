@@ -1,14 +1,17 @@
-"""Choose an Indic-Speak voice for every unit, keeping each speaker's voice consistent.
+"""Tell speakers apart and give each one consistent Indic-Speak voice.
 
-Indic-Transcribe has no diarization and most languages have one male and one female
-voice, so we estimate each unit's speaking pitch from the source audio (plain
-autocorrelation, no speech model) and map low voices to the male voice and high voices
-to the female one. A unit only switches voice on clear evidence; otherwise it keeps the
-previous unit's voice, so one speaker never flip-flops between voices.
+Indic-Transcribe has no diarization and most languages have one male and one female voice.
+So each speech region's pitch is estimated from the source audio (plain autocorrelation, no
+speech model) and the regions are clustered: clearly separate clusters are different speakers
+(`plan_speakers`). Voices follow relative pitch, not a fixed cut-off, because Indic-Speak's own
+male voice speaks near 180 Hz. Two similar speakers get two voices of one gender where the
+language has them.
 
-`--voices` YAML overrides it all:
+`--voices` YAML overrides it all, in any of these shapes (bad entries become warnings):
     hi: Kavya                      # this voice for every speaker
     ta: {male: Arun, female: Anitha}
+    bn: [Sourav, Ishita]           # each voice's gender comes from the library
+    default: Amit                  # any language not listed
     style: educational lecture     # optional Indic-Speak style for all languages
 """
 

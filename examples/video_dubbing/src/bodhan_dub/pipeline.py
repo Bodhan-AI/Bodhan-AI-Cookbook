@@ -149,7 +149,7 @@ def run(opts: RunOptions, settings: Settings, client: BodhanClient | None = None
         "fallback_batches": repair_report.fell_back, "glossary_terms": len(terms), "romanized_glosses": glossed,
     })
 
-    # One voice per speaker: pitch decides male/female per unit (with hysteresis).
+    # Speakers were clustered by pitch before chunking; each keeps one voice. The LLM picks a style.
     speaker_units = {label: sum(u.speaker == label for u in units) for label in speakers}
     style = voice_cfg.style or choose_style(llm, units)
     log.info("voices planned", extra={"stage": "voices", "style": style,
