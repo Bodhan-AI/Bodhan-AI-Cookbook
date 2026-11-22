@@ -118,7 +118,7 @@ class BodhanClient:
                 return min(60.0, float(retry_after))
             except ValueError:
                 pass
-        return min(30.0, 1.0 * 2 ** (attempt - 1)) + random.uniform(0, 0.5)
+        return min(30.0, 2.0 * 2 ** (attempt - 1)) + random.uniform(0, 0.5)
 
     @staticmethod
     def _http_error(model: str, resp: httpx.Response) -> ToolError:

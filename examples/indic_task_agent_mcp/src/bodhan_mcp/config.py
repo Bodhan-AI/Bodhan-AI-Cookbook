@@ -33,7 +33,7 @@ class Settings:
     base_url: str = field(default_factory=_base_url)
     timeout_s: float = field(default_factory=lambda: float(os.environ.get("BODHAN_TIMEOUT_S", "120")))
     max_parallel: int = field(default_factory=lambda: int(os.environ.get("BODHAN_MAX_PARALLEL", "4")))
-    max_retries: int = 4
+    max_retries: int = 6
     cache_dir: Path = field(default_factory=lambda: Path(os.environ.get("BODHAN_CACHE_DIR", ".bodhan_cache")))
     output_dir: Path = field(default_factory=lambda: Path(os.environ.get("BODHAN_MCP_OUTPUT_DIR", "outputs/mcp")))
     allowed_dirs: list[Path] = field(default_factory=list)

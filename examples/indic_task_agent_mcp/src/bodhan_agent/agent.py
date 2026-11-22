@@ -244,6 +244,11 @@ class Agent:
                 return self._stop_budget(f"Reached the time limit ({cfg.max_minutes:.0f} min).")
             if self.ctx.ledger.remaining is not None and self.ctx.ledger.remaining < 0.001:
                 return self._stop_budget(f"Spent the whole ₹{cfg.max_cost_inr:.2f} budget.")
+            left = cfg.max_steps - st.steps
+            if left <= 4 and not getattr(self, "_warned_steps", False):
+                self._warned_steps = True
+                messages.append({"role": "user", "content": f"Only {left} tool calls are left. Stop refining: call finish now "
+                                 "with the best outputs you already have, and list anything unfinished under limitations."})
             try:
                 reply = await self.llm.chat(self._context(messages), self.tools)
             except LLMError as exc:
@@ -498,10 +503,12 @@ class Agent:
 
     def _stop_budget(self, why: str) -> None:
         st = self.state
-        st.status = "budget_exhausted"
-        st.answer = st.answer or f"Stopped: {why} The work finished before the stop is listed below."
-        st.limitations.append(why)
         self.trace.log("stop", "budget", reason=why)
+        self._salvage(f"Stopped before finishing: {why}")  # hand over what was already made, checked
+        if st.status == "failed":  # nothing was produced
+            st.status = "budget_exhausted"
+            st.answer = f"Stopped: {why} No output was finished before the stop."
+            st.limitations.append(why)
 
     def _resolve(self, path: str) -> Path | None:
         p = Path(path)

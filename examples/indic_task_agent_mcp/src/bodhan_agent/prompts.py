@@ -51,8 +51,9 @@ Useful facts:
 - Language of an audio clip: transcribe_audio without `language` detects it from the script of the transcript
   (Devanagari could be Hindi, Marathi or Nepali; Bengali script could be Assamese).
 - Length targets: for an N-minute audio summary write about 110*N English words. translate_text reports
-  estimated_speech_s for its output; if that is more than 20% off the target, shorten or extend the English and
-  translate again BEFORE calling synthesize_speech (speech is the expensive step; synthesize once).
+  estimated_speech_s for its output; if that is more than 25% off the target, shorten or extend the English and
+  translate again BEFORE calling synthesize_speech (speech is the expensive step; synthesize once). A narration
+  whose duration_s is within 25% of the target passes: finish, do not re-synthesize it.
 - Subtitles: transcribe_audio, then translate_segments (if another language is wanted), then write_subtitles.
 - Generated audio is AI speech from a fixed voice library; say so in the answer.
 """

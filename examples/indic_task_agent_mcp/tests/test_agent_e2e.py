@@ -307,3 +307,19 @@ async def test_translation_reports_estimated_speech_length(ctx, fake_api):
 
     res = await tools.translate_text(ctx, "ta", text="Lines and angles. " * 20)
     assert res.estimated_speech_s > 10
+
+
+def test_step_limit_delivers_verified_work_already_done(workdir, env_keys, fake_api):
+    """Live failure: a good narration existed, the model kept rewriting, hit the step limit and delivered nothing."""
+    inputs = workdir / "in"
+    inputs.mkdir()
+    (inputs / "p.txt").write_text("Lines and angles are the basis of geometry.", encoding="utf-8")
+    rewrite = lambda m, t: LLMReply(tool_calls=[call("write_text", content=f"Draft {len(m)}", name="draft.txt")])  # noqa: E731
+    script = [plan(target_languages=["ta"]),
+              lambda m, t: LLMReply(tool_calls=[call("translate_text", target_language="ta", path=str(inputs / "p.txt"))]),
+              rewrite, rewrite, rewrite, rewrite, rewrite, rewrite]
+    report, llm = run(workdir, "Translate this into Tamil", str(inputs), script, max_steps=5)
+    assert report["status"] == "partial"
+    assert any(a["path"].endswith(".txt") for a in report["artifacts"])
+    warned = [m for msgs in llm.seen for m in msgs if m["role"] == "user" and "tool calls are left" in m["content"]]
+    assert warned
