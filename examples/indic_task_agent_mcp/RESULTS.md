@@ -10,7 +10,7 @@ Media and run outputs are not committed (Cookbook rule).
 
 | # | Task | Status | Checks passed | Tool calls | LLM calls | LLM tokens | Wall time | Bodhan cost, cold cache* |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | Two-minute Tamil audio summary of an 8-page scanned chapter | completed | 8/8 | 16 | 20 | 91,767 | 326 s | ₹4.70 (₹3.10 + ₹1.60 OCR) |
+| 1 | Two-minute Tamil audio summary of an 8-page scanned chapter | completed | 8/8 | 12 | 17 | 77,900 | 202 s | ₹2.57 (₹0.97 + ₹1.60 OCR) |
 | 2 | Transcribe a 3-minute Hindi voice note, English subtitles | completed | 2/2 | 3 | 7 | 21,506 | 61 s | ₹0.34 |
 | 3 | Translate a worksheet photo into Marathi, keep the table | completed | 5/5 | 3 | 6 | 18,868 | 62 s | ₹0.21 |
 | 4 | Which of five clips are Telugu? Translate those to English | completed | 1/1 | 17 | 26 | 129,225 | 306 s | ₹0.05 |
@@ -21,16 +21,17 @@ Media and run outputs are not committed (Cookbook rule).
 | 9 | Read a paragraph aloud in Tamil with a ₹0.02 budget | budget_exhausted | n/a | 6 | 9 | 31,639 | 125 s | ₹0.0003 |
 
 \* Bodhan responses are cached by exact input, so reruns reuse earlier calls. This column is what the task costs with an
-empty cache, from the measured runs. Task 1 in the final run synthesized its narration three times (₹0.78, ₹1.29,
-₹1.00) while correcting the summary length after the fact; translate_text now reports `estimated_speech_s` so the
-length is fixed before paying for speech, which should bring the task to about ₹2.60 (₹1.60 of it OCR). Generating
-the five test clips cost ₹0.16 once. Wall times include waits for the free LLM tier's rate limits.
+empty cache, from the measured runs. Task 1's row is its final run (23 Nov), after two fixes found by earlier Tamil
+runs: translate_text now reports `estimated_speech_s`, so the summary length is settled before paying for speech
+(an earlier run synthesized three times for ₹4.70), and brackets are read as pauses (Indic-Speak had skipped a
+bracketed phrase). Its OCR came from cache in that run, so the ₹1.60 OCR figure is from the first cold run.
+Generating the five test clips cost ₹0.16 once. Wall times include waits for the free LLM tier's rate limits.
 
 ## What the checks found
 
 | Task | Highlights |
 | --- | --- |
-| 1 Tamil summary | Speech back-transcribed: mean CER 0.015, max 0.092, no chunk flagged; 100% of letters in Tamil script; all numbers kept; 122 s delivered for a 120 s target |
+| 1 Tamil summary | Speech back-transcribed in 9 chunks: mean CER 0.025, max 0.184, no chunk flagged; 100% of letters in Tamil script; all numbers kept; 105 s delivered for a 120 s target (within the 25% tolerance, and the result notes that a longer summary would land closer to two minutes) |
 | 2 Hindi subtitles | 33 ordered cues; the English reads naturally ("Hello, my name is Yamini Vijayvargiya. I am from Indore city in Madhya Pradesh.") |
 | 3 Marathi worksheet | Table intact, all numbers kept, 100% Marathi script. The judge noted that one Marathi term is used for both complementary and supplementary angles; that is the translation model's choice, recorded in result.md for a human, since the agent may not edit Marathi |
 | 4 Telugu clips | Script-based detection found clip_b, clip_c and clip_e (Telugu), clip_a (Hindi) and clip_d (English); the English translations match the source sentences. This task is the heaviest on the LLM (one transcription per turn) |

@@ -98,7 +98,7 @@ languages work but produce a quality warning.
 
 ## What the live runs changed
 
-Offline tests passed from the start; the hosted API and a real LLM still found eleven problems. Each one became a fix
+Offline tests passed from the start; the hosted API and a real LLM still found thirteen problems. Each one became a fix
 and, where possible, a regression test built from the real output.
 
 | Found in a live run | Fix |
@@ -114,6 +114,8 @@ and, where possible, a regression test built from the real output.
 | The planner never saw the tool list, invented `summarize_text`, and the agent gave up | The planner gets the real tool catalogue; the prompt says summarising is the LLM's own job; a give-up for a "missing capability" is challenged once |
 | The judge objected to a Marathi term the agent may not edit, causing a 15-call loop | The judge reports only fixable problems; wording notes go to result.md for a human |
 | Reading a translation with read_text replaced the record of who produced it, so its checks were skipped | Read-only tools never overwrite file provenance |
+| The Tamil summary was synthesized three times (₹4.70) while the model corrected its length after hearing it, and a later run kept retrying because the prompt and the check disagreed on the tolerance (20% vs 25%) | translate_text reports `estimated_speech_s` so length is fixed before paying for speech; one 25% tolerance everywhere; a warning when few tool calls remain; outputs are salvaged on a budget or step stop |
+| Indic-Speak silently skipped a bracketed Tamil phrase on both takes; back-transcription caught it and the run ended partial | Brackets become pauses before synthesis; the real chunk is a regression test |
 
 ## What I would do next
 
