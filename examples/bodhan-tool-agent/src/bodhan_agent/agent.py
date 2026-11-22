@@ -32,6 +32,7 @@ from bodhan_mcp.lang_utils import (
     SUPPORTED_INDIC_LANGUAGES,
     detect_script_language,
     extract_language_from_text,
+    extract_task_languages,
     is_language_supported,
 )
 from bodhan_mcp.pricing import BudgetExceededError, BudgetManager
@@ -89,6 +90,8 @@ class TaskAgent:
         self.verification_results: list[VerificationResult] = []
         self.source_texts: dict[str, str] = {}
         self.executed_calls: dict[str, dict[str, Any]] = {}
+        self.audio_language: str | None = None
+        self.target_language: str | None = None
         self.language_requested: str | None = None
         self.detected_script: str | None = None
         self.windows_count: int | None = None
@@ -103,15 +106,32 @@ class TaskAgent:
         # 1. Plain Code Pre-flight Checks (Zero LLM / Zero Paid Calls)
         # --------------------------------------------------------------------
         # Plain code language extraction from task
-        req_code, req_name = extract_language_from_text(self.task)
-        if req_code:
-            self.language_requested = req_code
-            self.assumptions.append(f"Task specified language: {req_name} ({req_code}).")
-        else:
+        lang_info = extract_task_languages(self.task)
+        self.audio_language = lang_info["audio_language"]
+        self.target_language = lang_info["target_language"]
+        self.language_requested = self.audio_language or self.target_language
+
+        if lang_info["is_ambiguous"]:
+            self.audio_language = None
+            self.target_language = None
             self.language_requested = None
             self.assumptions.append(
-                "No specific spoken language was requested in the task; submitted to Indic-Transcribe without language parameter (model auto-detection)."
+                f"Language assignment in task is ambiguous ({lang_info['ambiguity_reason']}); "
+                "sending no language parameter (relying on model auto-detection)."
             )
+        else:
+            if self.audio_language:
+                self.assumptions.append(
+                    f"Task specified audio language: {SUPPORTED_INDIC_LANGUAGES[self.audio_language]} ({self.audio_language})."
+                )
+            if self.target_language:
+                self.assumptions.append(
+                    f"Task specified target language: {SUPPORTED_INDIC_LANGUAGES[self.target_language]} ({self.target_language})."
+                )
+            if not self.audio_language and not self.target_language:
+                self.assumptions.append(
+                    "No specific spoken language was requested in the task; submitted without language parameter (model auto-detection)."
+                )
 
         # A. Check for impossible unsupported languages in prompt
         for pat in UNSUPPORTED_LANGUAGE_PATTERNS:
@@ -411,6 +431,8 @@ class TaskAgent:
             verification_results=self.verification_results,
             artifacts=list(dict.fromkeys(self.artifacts)),
             failures=self.failures,
+            audio_language=self.audio_language,
+            target_language=self.target_language,
             language_requested=self.language_requested,
             detected_script=self.detected_script,
             windows_count=self.windows_count,
@@ -435,15 +457,17 @@ class TaskAgent:
                     if not args.get("file_path") or not Path(args.get("file_path", "")).exists():
                         args["file_path"] = str(f.resolve())
                     break
+            if self.target_language and not args.get("target_language_code"):
+                args["target_language_code"] = self.target_language
         elif tool_name == "transcribe_audio":
             if not args.get("file_path") or not Path(args.get("file_path", "")).exists():
                 for f in valid_files:
                     if f.suffix.lower() in (".wav", ".mp3", ".m4a", ".flac"):
                         args["file_path"] = str(f.resolve())
                         break
-            # Bind language requested in task if not explicitly passed by LLM
-            if self.language_requested and not args.get("language"):
-                args["language"] = self.language_requested
+            # Bind audio language requested in task if not explicitly passed by LLM
+            if self.audio_language and not args.get("language"):
+                args["language"] = self.audio_language
         elif tool_name == "extract_document_text":
             if not args.get("file_path") or not Path(args.get("file_path", "")).exists():
                 for f in valid_files:
@@ -691,8 +715,8 @@ class TaskAgent:
         detected_script_name = SCRIPT_NAMES.get(detected_lang or "", "Unknown")
         self.detected_script = detected_script_name
 
-        if self.language_requested:
-            expected_script = EXPECTED_SCRIPT_FOR_LANG.get(self.language_requested, self.language_requested)
+        if self.audio_language:
+            expected_script = EXPECTED_SCRIPT_FOR_LANG.get(self.audio_language, self.audio_language)
             if detected_lang != expected_script:
                 self.verification_results.append(
                     VerificationResult(
@@ -700,7 +724,7 @@ class TaskAgent:
                         verification_type="transcript_quality",
                         passed=False,
                         notes=(
-                            f"Transcript verification failed: Task requested language '{self.language_requested}' "
+                            f"Transcript verification failed: Task requested audio language '{self.audio_language}' "
                             f"(expected {SCRIPT_NAMES.get(expected_script, expected_script)} script), "
                             f"but transcript is in {detected_script_name} script ({detected_lang})."
                         ),

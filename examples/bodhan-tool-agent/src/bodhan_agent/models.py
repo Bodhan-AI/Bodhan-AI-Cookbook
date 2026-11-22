@@ -64,6 +64,8 @@ class AgentReport:
     verification_results: list[VerificationResult] = field(default_factory=list)
     artifacts: list[str] = field(default_factory=list)
     failures: list[str] = field(default_factory=list)
+    audio_language: str | None = None
+    target_language: str | None = None
     language_requested: str | None = None
     detected_script: str | None = None
     windows_count: int | None = None
@@ -79,6 +81,8 @@ class AgentReport:
             "verification_results": [v.to_dict() for v in self.verification_results],
             "artifacts": self.artifacts,
             "failures": self.failures,
+            "audio_language": self.audio_language,
+            "target_language": self.target_language,
             "language_requested": self.language_requested,
             "detected_script": self.detected_script,
             "windows_count": self.windows_count,

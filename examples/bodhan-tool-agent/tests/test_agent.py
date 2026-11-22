@@ -675,6 +675,103 @@ class TestAgent(unittest.TestCase):
         self.assertNotIn("I have already finished everything before tools ran.", result_md)
         self.assertIn("Completed task: Transcribed audio", result_md)
 
+    def test_task_two_languages_separate_assignment_and_reporting(self):
+        """Tests that two languages in task assign audio_language and target_language separately."""
+        audio_file = self.samples_dir / "two_lang.wav"
+        audio_file.write_bytes(b"RIFFmockwav")
+
+        captured_transcribe_args = {}
+        def mock_transcribe(**kwargs):
+            captured_transcribe_args.update(kwargs)
+            return {
+                "success": True,
+                "transcript": "नमस्ते दुनिया",
+                "duration_s": 2.0,
+                "windows_count": 1,
+                "detected_script": "hi",
+                "language_requested": "hi",
+                "windows": [{"window_index": 0, "text": "नमस्ते दुनिया", "suspicious": False, "duration_s": 2.0}],
+                "cost_inr": 0.01,
+            }
+        self.mock_tools.transcribe_audio.side_effect = mock_transcribe
+
+        captured_translate_calls = []
+        def mock_translate(**kwargs):
+            captured_translate_calls.append(kwargs)
+            return {
+                "success": True,
+                "translated_text": "வணக்கம் உலகம்",
+                "target_language": kwargs.get("target_language_code", "ta"),
+                "cost_inr": 0.005,
+            }
+        self.mock_tools.translate_text.side_effect = mock_translate
+
+        plan = {
+            "steps": [
+                {"tool": "transcribe_audio", "args": {}},
+                {"tool": "translate_text", "args": {"text": "नमस्ते दुनिया"}},
+            ]
+        }
+        mock_llm = MockLLM(plan_dict=plan)
+        agent = TaskAgent(
+            task="Transcribe Hindi audio and translate to Tamil",
+            files=[audio_file],
+            out_dir=self.out_dir,
+            settings=self.mock_settings,
+            llm_client=mock_llm,
+            tools=self.mock_tools,
+        )
+        report = agent.run()
+
+        # Both languages assigned separately
+        self.assertEqual(report.audio_language, "hi")
+        self.assertEqual(report.target_language, "ta")
+        self.assertEqual(captured_transcribe_args.get("language"), "hi")
+        self.assertTrue(len(captured_translate_calls) >= 1)
+        self.assertEqual(captured_translate_calls[0].get("target_language_code"), "ta")
+
+        # Serialized in report.json
+        rep_dict = report.to_dict()
+        self.assertEqual(rep_dict["audio_language"], "hi")
+        self.assertEqual(rep_dict["target_language"], "ta")
+
+    def test_task_ambiguous_languages_sends_none_and_records_assumption(self):
+        """Tests that ambiguous language tasks send no language to models and record an assumption."""
+        audio_file = self.samples_dir / "ambig_lang.wav"
+        audio_file.write_bytes(b"RIFFmockwav")
+
+        captured_args = {}
+        def mock_transcribe(**kwargs):
+            captured_args.update(kwargs)
+            return {
+                "success": True,
+                "transcript": "नमस्ते",
+                "duration_s": 2.0,
+                "windows_count": 1,
+                "detected_script": "hi",
+                "language_requested": None,
+                "windows": [{"window_index": 0, "text": "नमस्ते", "suspicious": False, "duration_s": 2.0}],
+                "cost_inr": 0.01,
+            }
+        self.mock_tools.transcribe_audio.side_effect = mock_transcribe
+
+        mock_llm = MockLLM(plan_dict={"steps": [{"tool": "transcribe_audio", "args": {}}]})
+        agent = TaskAgent(
+            task="Transcribe audio in Hindi or Tamil",
+            files=[audio_file],
+            out_dir=self.out_dir,
+            settings=self.mock_settings,
+            llm_client=mock_llm,
+            tools=self.mock_tools,
+        )
+        report = agent.run()
+
+        # Both languages None
+        self.assertIsNone(report.audio_language)
+        self.assertIsNone(report.target_language)
+        self.assertIsNone(captured_args.get("language"))
+        self.assertTrue(any("ambiguous" in a.lower() for a in report.assumptions))
+
 
 if __name__ == "__main__":
     unittest.main()

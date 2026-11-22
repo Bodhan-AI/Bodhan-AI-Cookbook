@@ -4,6 +4,7 @@ import unittest
 from bodhan_mcp.lang_utils import (
     detect_script_language,
     extract_language_from_text,
+    extract_task_languages,
     is_language_supported,
 )
 
@@ -65,6 +66,41 @@ class TestLangUtils(unittest.TestCase):
         code, name = extract_language_from_text("Transcribe this audio file and save the transcript")
         self.assertIsNone(code)
         self.assertIsNone(name)
+
+    def test_language_extraction_rules(self):
+        # 1. "say hi" gives no language
+        code, name = extract_language_from_text("say hi")
+        self.assertIsNone(code)
+        self.assertIsNone(name)
+        info1 = extract_task_languages("say hi")
+        self.assertIsNone(info1["audio_language"])
+        self.assertIsNone(info1["target_language"])
+
+        # 2. "audio or video" gives no language
+        code, name = extract_language_from_text("audio or video")
+        self.assertIsNone(code)
+        self.assertIsNone(name)
+        info2 = extract_task_languages("audio or video")
+        self.assertIsNone(info2["audio_language"])
+        self.assertIsNone(info2["target_language"])
+
+        # 3. "Transcribe Hindi audio and translate to Tamil" gives audio=hi and target=ta
+        info3 = extract_task_languages("Transcribe Hindi audio and translate to Tamil")
+        self.assertEqual(info3["audio_language"], "hi")
+        self.assertEqual(info3["target_language"], "ta")
+        self.assertFalse(info3["is_ambiguous"])
+
+        # Explicit code forms
+        code, _ = extract_language_from_text("transcribe in hi")
+        self.assertEqual(code, "hi")
+        code, _ = extract_language_from_text("transcribe language=hi")
+        self.assertEqual(code, "hi")
+
+        # Ambiguous tasks
+        info_amb = extract_task_languages("Transcribe audio in Hindi or Tamil")
+        self.assertIsNone(info_amb["audio_language"])
+        self.assertIsNone(info_amb["target_language"])
+        self.assertTrue(info_amb["is_ambiguous"])
 
 
 if __name__ == "__main__":
