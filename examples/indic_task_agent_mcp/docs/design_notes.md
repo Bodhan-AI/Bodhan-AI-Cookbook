@@ -96,6 +96,25 @@ Language codes and names resolve through one table mirroring the Cookbook's `scr
 asking for output in a language no model supports ("into French") is refused in preflight. Indic-Speak's preview-tier
 languages work but produce a quality warning.
 
+## What the live runs changed
+
+Offline tests passed from the start; the hosted API and a real LLM still found eleven problems. Each one became a fix
+and, where possible, a regression test built from the real output.
+
+| Found in a live run | Fix |
+| --- | --- |
+| The documented `POST /translate` returns 404 on the hosted service | A probe showed Indic-Translate answers on `/v1/chat/completions` (text as one user turn, target language as a top-level field); the client uses that route and reads `finish_reason: length` as truncation |
+| Groq's free tier caps requests at 8K tokens per minute; the client gave up after 15 s while Groq asked for 19 s | The LLM client waits as long as the provider asks (Retry-After or "try again in Ns") |
+| Requests grew past 8K tokens as tool results piled up (413) | Shorter tool descriptions and compact schemas for the LLM (about 2,800 to 1,700 tokens), only the newest three tool results in full, and a compact-and-retry on 413 |
+| A run that lost its LLM after making the MP3 reported "failed" with no files | Outputs already made are delivered as partial, with their automatic checks |
+| The model skipped one of five input clips | finish checks that every input file was used or named in the answer |
+| Indic-Speak reads "180°" as "one hundred and eighty degrees"; plain CER flagged correct speech as repetition | Number-aware alignment: each number is a slot that accepts any spoken form; repeats and gaps elsewhere still count |
+| The CER normaliser stripped Indic vowel signs (Python's `\w` does not match combining marks) | Normalisation keeps letters, marks and digits |
+| The model re-ran speech with `verify=false` to get past a warning | The agent forces verification on; the prompt says checks are never worked around |
+| The planner never saw the tool list, invented `summarize_text`, and the agent gave up | The planner gets the real tool catalogue; the prompt says summarising is the LLM's own job; a give-up for a "missing capability" is challenged once |
+| The judge objected to a Marathi term the agent may not edit, causing a 15-call loop | The judge reports only fixable problems; wording notes go to result.md for a human |
+| Reading a translation with read_text replaced the record of who produced it, so its checks were skipped | Read-only tools never overwrite file provenance |
+
 ## What I would do next
 
 - Word-level subtitle timing by aligning back-transcripts of sub-windows.

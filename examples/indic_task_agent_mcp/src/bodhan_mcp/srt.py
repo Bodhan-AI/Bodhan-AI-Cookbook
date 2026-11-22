@@ -60,7 +60,13 @@ def build_cues(segments: list[dict], max_chars_per_line: int = 42, max_cue_s: fl
             out += [(s, mid, a), (mid, e, b)]
         else:
             out.append((s, e, p))
-    return out
+    # Audio windows overlap by 0.5 s at hard cuts; subtitles must not, so each cue starts where the last one ended.
+    fixed: list[tuple[float, float, str]] = []
+    for s, e, p in out:
+        if fixed and s < fixed[-1][1]:
+            s = fixed[-1][1]
+        fixed.append((s, max(e, s + 0.5), p))
+    return fixed
 
 
 def to_srt(cues: list[tuple[float, float, str]]) -> str:

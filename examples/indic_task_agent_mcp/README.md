@@ -59,6 +59,9 @@ python -m bodhan_agent \
 
 Exit code 0 means completed, or an impossible task correctly refused; 2 partial; 3 budget exhausted; 1 failed.
 
+Tested with **gpt-oss-120b** on Cerebras and on Groq (both OpenAI-compatible, open weights). Any OpenAI-compatible
+endpoint with tool calling works; free tiers add rate-limit waits, which the agent sits out automatically.
+
 The MCP server on its own (stdio):
 
 ```bash

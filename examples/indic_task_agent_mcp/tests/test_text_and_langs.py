@@ -120,3 +120,10 @@ def test_real_repetition_and_omission_still_caught():
     cut = clean[: len(clean) // 3]
     assert _speech_issue(clean, cut, speech_alignment(clean, cut)["cer"]) == "omission"
     assert _speech_issue(TA_TEXT, TA_HEARD, speech_alignment(TA_TEXT, TA_HEARD)["cer"]) is None
+
+
+def test_srt_cues_never_overlap_even_when_windows_do():
+    segs = [{"start": 0.0, "end": 28.0, "text": "First window ends here."},
+            {"start": 27.5, "end": 33.0, "text": "Second window overlaps by half a second."}]
+    cues = build_cues(segs)
+    assert all(cues[i][1] <= cues[i + 1][0] + 1e-9 for i in range(len(cues) - 1))

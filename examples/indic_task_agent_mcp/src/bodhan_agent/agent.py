@@ -78,6 +78,7 @@ GIVE_UP_TOOL = {
     },
 }
 CONTROL = {"finish", "give_up"}
+READ_ONLY_TOOLS = {"read_text", "inspect_file"}
 OUTPUT_KEYS = ("output_path", "audio_path", "transcript_path", "segments_path", "srt_path", "path", "details_path")
 
 
@@ -118,6 +119,9 @@ class Agent:
         self.out = cfg.out.resolve()
         self.work = self.out / "work"
         self.art_dir = self.out / "artifacts"
+        for d in (self.work, self.art_dir):  # only our own subfolders: a rerun must not mix in old outputs
+            if d.is_dir():
+                shutil.rmtree(d)
         for d in (self.out, self.work, self.art_dir):
             d.mkdir(parents=True, exist_ok=True)
         self.trace = Trace(self.out / "trace.jsonl")
@@ -345,7 +349,7 @@ class Agent:
         result = res.structuredContent or {}
         if "result" in result and len(result) == 1 and isinstance(result["result"], dict):
             result = result["result"]
-        for k in OUTPUT_KEYS:
+        for k in OUTPUT_KEYS if call.name not in READ_ONLY_TOOLS else ():  # a read must not replace who produced a file
             v = result.get(k)
             if isinstance(v, str) and v:
                 p = Path(v) if Path(v).is_absolute() else (Path.cwd() / v)

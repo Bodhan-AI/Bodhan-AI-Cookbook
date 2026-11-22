@@ -258,3 +258,18 @@ def test_indic_answer_is_withheld_without_downgrading_good_files(workdir, env_ke
     assert report["steps"]["redos"] == 1
     assert any("withheld" in x for x in report["limitations"])
     assert "पूरक" not in (workdir / "out" / "result.md").read_text(encoding="utf-8")
+
+
+def test_reading_a_translation_does_not_hide_its_checks(workdir, env_keys, fake_api):
+    """Live bug: read_text on a translation replaced the record of who made it, so its checks were skipped."""
+    inputs = workdir / "in"
+    inputs.mkdir()
+    (inputs / "w.txt").write_text("Angles of 30 and 60 degrees add up to 90.", encoding="utf-8")
+    script = [plan(target_languages=["mr"]),
+              lambda m, t: LLMReply(tool_calls=[call("translate_text", target_language="mr", path=str(inputs / "w.txt"))]),
+              lambda m, t: LLMReply(tool_calls=[call("read_text", path=last_tool_json(m)["output_path"])]),
+              lambda m, t: LLMReply(tool_calls=[call("finish", answer="Translated w.txt into Marathi.",
+                                                     artifacts=[{"path": last_tool_json(m)["path"], "description": "Marathi"}])])]
+    report, _ = run(workdir, "Translate this into Marathi", str(inputs), script)
+    names = {c["name"] for c in report["verification"]["checks"]}
+    assert {"numbers_preserved", "target_script", "complete"} <= names
