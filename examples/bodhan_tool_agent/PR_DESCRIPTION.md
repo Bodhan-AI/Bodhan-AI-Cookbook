@@ -220,7 +220,7 @@ Tools completely absorb model physical limits. Callers pass a file path and rece
 
 ## Demo Video
 
-🎥 **Demo Video Link:** `[PASTE_YOUR_UNLISTED_YOUTUBE_OR_LOOM_VIDEO_LINK_HERE]`
+🎥 **Demo Video Link:** [Bodhan Indic AI Agent Demonstration Video (Google Drive)](https://drive.google.com/file/d/13nspKqcyYHLC9HIHR7rAxFOT3BkWnckI/view?usp=sharing)
 
 *(A 4-minute demonstration walking through the MCP tool contract over stdio, live multi-step task execution, generated audio and Markdown artifacts, pre-flight financial and language refusal with ₹0.00 spend, and the 77-test test suite passing 100% on host and Docker.)*
 

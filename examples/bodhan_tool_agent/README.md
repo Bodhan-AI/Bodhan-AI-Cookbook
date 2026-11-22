@@ -136,6 +136,9 @@ Six reproducible demo tasks (including one impossible) are available under `demo
 | 5 | Read Bengali paragraph aloud (female voice) | `success` | ₹0.1236 | 0.02s | [Outputs & Trace](demo/outputs/task_5/result.md) |
 | 6 | **Impossible:** Translate MP4 into French | `impossible` | ₹0.0000 | 0.00s | [Honest Stop](demo/outputs/task_6/result.md) |
 
+### Demonstration Video
+🎥 **[Watch Demonstration Video Walkthrough (Google Drive)](https://drive.google.com/file/d/13nspKqcyYHLC9HIHR7rAxFOT3BkWnckI/view?usp=sharing)**
+
 To reproduce all demos:
 ```bash
 python scripts/prepare_demo_media.py
