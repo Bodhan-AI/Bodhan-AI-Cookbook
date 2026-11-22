@@ -36,6 +36,7 @@ from bodhan_agent.llm import (
     LLMTimeoutError,
 )
 from bodhan_mcp.config import Settings
+from bodhan_mcp.pricing import calculate_transcribe_cost
 from bodhan_mcp.tools import BodhanTools
 
 
@@ -1096,6 +1097,195 @@ class TestAgent(unittest.TestCase):
         notes = " ".join(v.notes for v in failed_trans)
         self.assertTrue("expected devanagari script" in notes.lower() or "exact copy" in notes.lower())
         self.assertTrue(len(report.failures) > 0)
+
+    def test_run_twice_with_same_out_starts_fresh_trace_and_report(self):
+        """Tests that running twice with the same out_dir overwrites/resets trace.jsonl and report.json rather than appending."""
+        text_file = self.samples_dir / "doc.txt"
+        text_file.write_text("Hello world test line.", encoding="utf-8")
+
+        # Run 1: 2 steps
+        plan1 = {
+            "steps": [
+                {"tool": "translate_text", "args": {"file_path": str(text_file), "target_language_code": "hi"}},
+                {"tool": "translate_text", "args": {"file_path": str(text_file), "target_language_code": "en"}},
+            ]
+        }
+        agent1 = TaskAgent(
+            task="Translate twice",
+            files=[text_file],
+            out_dir=self.out_dir,
+            settings=self.mock_settings,
+            llm_client=MockLLM(plan_dict=plan1),
+            tools=self.mock_tools,
+        )
+        report1 = agent1.run()
+        trace_lines1 = (self.out_dir / "trace.jsonl").read_text(encoding="utf-8").strip().splitlines()
+        self.assertEqual(len(trace_lines1), 3)  # 1 plan + 2 tool calls
+
+        # Run 2: 1 step pointing to the EXACT same out_dir
+        plan2 = {
+            "steps": [
+                {"tool": "translate_text", "args": {"file_path": str(text_file), "target_language_code": "hi"}},
+            ]
+        }
+        agent2 = TaskAgent(
+            task="Translate once",
+            files=[text_file],
+            out_dir=self.out_dir,
+            settings=self.mock_settings,
+            llm_client=MockLLM(plan_dict=plan2),
+            tools=self.mock_tools,
+        )
+        report2 = agent2.run()
+
+        # trace.jsonl must have been cleared, not appended
+        trace_lines2 = (self.out_dir / "trace.jsonl").read_text(encoding="utf-8").strip().splitlines()
+        self.assertEqual(len(trace_lines2), 2)  # 1 plan + 1 tool call (NOT 3 + 2 = 5!)
+        self.assertEqual(report2.steps_taken, 2)
+
+        # report.json must reflect run 2's task
+        report_data = json.loads((self.out_dir / "report.json").read_text(encoding="utf-8"))
+        self.assertEqual(report_data["task"], "Translate once")
+
+    def test_tiny_budget_stops_before_api_call_with_budget_exceeded_status(self):
+        """Tests that a 39s transcription with tiny budget (₹0.001) stops before API call and reports budget_exceeded."""
+        audio_file = self.samples_dir / "test_long.wav"
+        audio_file.write_bytes(b"RIFFmock39swav")
+
+        # Mock inspect reports 39.0s duration
+        def mock_inspect_long(path_str):
+            return {
+                "success": True,
+                "file_name": "test_long.wav",
+                "file_path": str(audio_file.resolve()),
+                "media_type": "audio",
+                "duration_s": 39.0,
+                "size_bytes": 100000,
+            }
+
+        self.mock_tools.inspect_media.side_effect = mock_inspect_long
+        self.mock_tools.transcribe_audio.reset_mock()
+
+        plan = {
+            "steps": [
+                {"tool": "transcribe_audio", "args": {"file_path": str(audio_file)}},
+            ]
+        }
+        agent = TaskAgent(
+            task="Transcribe the long audio",
+            files=[audio_file],
+            out_dir=self.out_dir,
+            max_cost_inr=0.001,
+            settings=self.mock_settings,
+            llm_client=MockLLM(plan_dict=plan),
+            tools=self.mock_tools,
+        )
+        report = agent.run()
+
+        # Zero API calls made
+        self.assertEqual(self.mock_tools.transcribe_audio.call_count, 0)
+        # Status MUST be budget_exceeded, NOT failed
+        self.assertEqual(report.status, "budget_exceeded")
+        self.assertEqual(report.total_cost_inr, 0.0)
+
+        # Failure note and summary must mention estimated cost and budget
+        self.assertTrue(len(report.failures) > 0)
+        failure_text = report.failures[0]
+        est_cost_str = f"{calculate_transcribe_cost(39.0):.4f}"
+        self.assertIn(est_cost_str, failure_text)
+        self.assertIn("0.001", failure_text)
+
+        result_md = (self.out_dir / "result.md").read_text(encoding="utf-8")
+        self.assertIn("BUDGET_EXCEEDED", result_md)
+        self.assertIn(est_cost_str, result_md)
+        self.assertIn("0.001", result_md)
+
+    def test_no_temp_files_left_in_artifacts_dir(self):
+        """Tests that temporary files (like *_converted_16k.wav or chunk files) never linger in artifacts/."""
+        source_file = self.samples_dir / "short_text.txt"
+        source_file.write_text("कक्षा सुबह नौ बजे शुरू होती है।", encoding="utf-8")
+
+        speech_wav = self.out_dir / "artifacts" / "speech_hi_short_text.wav"
+        speech_wav.parent.mkdir(parents=True, exist_ok=True)
+        # Create a valid mono wav
+        with wave.open(str(speech_wav), "wb") as w:
+            w.setnchannels(1)
+            w.setsampwidth(2)
+            w.setframerate(16000)
+            w.writeframes(b"\x00\x00" * 16000 * 2)
+
+        def mock_speech(text="", language="hi", output_path="", **kwargs):
+            return {"success": True, "audio_path": output_path, "cost_inr": 0.005}
+
+        self.mock_tools.synthesize_speech.side_effect = mock_speech
+
+        plan = {
+            "steps": [
+                {"tool": "synthesize_speech", "args": {"file_path": str(source_file), "language": "hi"}},
+            ]
+        }
+        agent = TaskAgent(
+            task="Read aloud short_text.txt in Hindi",
+            files=[source_file],
+            out_dir=self.out_dir,
+            settings=self.mock_settings,
+            llm_client=MockLLM(plan_dict=plan),
+            tools=self.mock_tools,
+        )
+        report = agent.run()
+
+        # Check all files in artifacts/
+        art_files = [f.name for f in (self.out_dir / "artifacts").iterdir()]
+        for f in art_files:
+            self.assertFalse(f.endswith("_converted_16k.wav"), f"Found temporary conversion file in artifacts: {f}")
+            self.assertFalse("chunk" in f.lower(), f"Found temporary chunk file in artifacts: {f}")
+
+    def test_report_records_cache_hit_would_be_cost_and_charged_cost(self):
+        """Tests that report.json records cache hit status, would_be_cost_inr, and cost_charged_inr."""
+        text_file = self.samples_dir / "sample.txt"
+        text_file.write_text("Hello world test text.", encoding="utf-8")
+
+        # Mock translate returning a cache hit (charged 0.0, would be 0.05)
+        def mock_cached_translate(text="", file_path="", target_language_code="hi", **kwargs):
+            return {
+                "success": True,
+                "translated_text": "नमस्ते दुनिया परीक्षण पाठ।",
+                "cost_inr": 0.0,
+                "would_be_cost_inr": 0.05,
+                "cached": True,
+            }
+
+        self.mock_tools.translate_text.side_effect = mock_cached_translate
+
+        plan = {
+            "steps": [
+                {"tool": "translate_text", "args": {"file_path": str(text_file), "target_language_code": "hi"}},
+            ]
+        }
+        agent = TaskAgent(
+            task="Translate sample.txt into Hindi",
+            files=[text_file],
+            out_dir=self.out_dir,
+            settings=self.mock_settings,
+            llm_client=MockLLM(plan_dict=plan),
+            tools=self.mock_tools,
+        )
+        report = agent.run()
+
+        report_file = self.out_dir / "report.json"
+        self.assertTrue(report_file.exists())
+        data = json.loads(report_file.read_text(encoding="utf-8"))
+
+        self.assertEqual(data["total_cost_inr"], 0.0)
+        self.assertGreaterEqual(data["total_would_be_cost_inr"], 0.05)
+
+        # Check step records in report.json
+        tool_steps = [s for s in data.get("steps", []) if s.get("tool") == "translate_text"]
+        self.assertEqual(len(tool_steps), 1)
+        step_entry = tool_steps[0]
+        self.assertTrue(step_entry["cached"])
+        self.assertEqual(step_entry["cost_charged_inr"], 0.0)
+        self.assertEqual(step_entry["would_be_cost_inr"], 0.05)
 
 
 if __name__ == "__main__":

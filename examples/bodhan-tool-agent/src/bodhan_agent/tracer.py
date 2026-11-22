@@ -38,6 +38,17 @@ class AgentTracer:
         self.result_file = self.out_dir / "result.md"
 
         self.traces: list[StepTrace] = []
+        self.reset()
+
+    def reset(self) -> None:
+        """Starts fresh by clearing in-memory traces and removing previous trace.jsonl, report.json, result.md."""
+        self.traces.clear()
+        for f in (self.trace_file, self.report_file, self.result_file):
+            if f.exists():
+                try:
+                    f.unlink()
+                except OSError:
+                    pass
 
     def record_step(self, trace: StepTrace) -> None:
         """Records a step to memory and appends to trace.jsonl atomically."""

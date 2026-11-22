@@ -13,6 +13,7 @@ from __future__ import annotations
 import base64
 import os
 import re
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -33,6 +34,7 @@ from bodhan_mcp.lang_utils import (
 )
 from bodhan_mcp.pdf_utils import render_pdf_to_images
 from bodhan_mcp.pricing import (
+    BudgetExceededError,
     BudgetManager,
     calculate_ocr_cost,
     calculate_speak_cost,
@@ -167,85 +169,103 @@ class BodhanTools:
         vad_val = "true" if (str(vad).lower() in ("true", "1")) else "false"
 
         try:
-            # 1. Convert to 16 kHz mono WAV
-            temp_wav = path.parent / f"{path.stem}_converted_16k.wav"
-            converted_path = convert_to_wav_16k_mono(path, temp_wav)
-            total_duration = get_audio_duration(converted_path)
+            with tempfile.TemporaryDirectory(prefix="bodhan_transcribe_") as work_dir:
+                work_path = Path(work_dir)
+                # 1. Convert to 16 kHz mono WAV inside work directory (never left in artifacts)
+                temp_wav = work_path / f"{path.stem}_converted_16k.wav"
+                converted_path = convert_to_wav_16k_mono(path, temp_wav)
+                total_duration = get_audio_duration(converted_path)
 
-            # 2. Window splitting (<= 30s)
-            windows = split_audio_at_silence(converted_path, max_window_s=30.0)
+                # 2. Window splitting (<= 30s) inside work directory
+                windows = split_audio_at_silence(converted_path, max_window_s=30.0, output_dir=work_path / "chunks")
 
-            window_results: list[dict[str, Any]] = []
-            combined_texts: list[str] = []
-            total_cost = 0.0
-            flagged_count = 0
+                window_results: list[dict[str, Any]] = []
+                combined_texts: list[str] = []
+                total_cost = 0.0
+                would_be_cost = 0.0
+                flagged_count = 0
+                all_cached = True
 
-            current_time = 0.0
-            for idx, win_path in enumerate(windows):
-                win_dur = get_audio_duration(win_path)
-                win_start = current_time
-                win_end = current_time + win_dur
-                current_time = win_end
+                current_time = 0.0
+                for idx, win_path in enumerate(windows):
+                    win_dur = get_audio_duration(win_path)
+                    win_start = current_time
+                    win_end = current_time + win_dur
+                    current_time = win_end
 
-                # Cache key explicitly includes normalized language and vad
-                cache_key = self.cache.generate_key(
-                    "indic-transcribe",
-                    win_path.read_bytes(),
-                    language=norm_lang or "none",
-                    vad=vad_val,
-                )
-                cached = self.cache.get_json(cache_key)
+                    est_win_cost = calculate_transcribe_cost(win_dur)
+                    would_be_cost += est_win_cost
 
-                if cached is not None:
-                    win_text = cached.get("text", "")
-                    win_cost = 0.0
-                else:
-                    win_cost = calculate_transcribe_cost(win_dur)
-                    self.budget.check_budget(win_cost)
+                    # Cache key explicitly includes normalized language and vad
+                    cache_key = self.cache.generate_key(
+                        "indic-transcribe",
+                        win_path.read_bytes(),
+                        language=norm_lang or "none",
+                        vad=vad_val,
+                    )
+                    cached = self.cache.get_json(cache_key)
 
-                    with open(win_path, "rb") as f:
-                        data = {"model": "indic-transcribe", "vad": vad_val}
-                        if norm_lang:
-                            data["language"] = norm_lang
-                        files = {"file": (win_path.name, f, "audio/wav")}
-                        resp = self.client.post("/v1/audio/transcriptions", model_id="indic-transcribe", data=data, files=files, timeout=90.0)
+                    if cached is not None:
+                        win_text = cached.get("text", "")
+                        win_cost = 0.0
+                    else:
+                        all_cached = False
+                        win_cost = est_win_cost
+                        self.budget.check_budget(win_cost)
 
-                    resp_data = resp.json()
-                    win_text = resp_data.get("text", "").strip()
-                    self.cache.set_json(cache_key, {"text": win_text, "duration": win_dur})
-                    self.budget.record_cost("indic-transcribe", win_cost, f"window_{idx}")
+                        with open(win_path, "rb") as f:
+                            data = {"model": "indic-transcribe", "vad": vad_val}
+                            if norm_lang:
+                                data["language"] = norm_lang
+                            files = {"file": (win_path.name, f, "audio/wav")}
+                            resp = self.client.post("/v1/audio/transcriptions", model_id="indic-transcribe", data=data, files=files, timeout=90.0)
 
-                total_cost += win_cost
-                is_empty = len(win_text.strip()) == 0
-                suspicious = is_empty and (win_dur >= 3.0)
-                if suspicious:
-                    flagged_count += 1
+                        resp_data = resp.json()
+                        win_text = resp_data.get("text", "").strip()
+                        self.cache.set_json(cache_key, {"text": win_text, "duration": win_dur})
+                        self.budget.record_cost("indic-transcribe", win_cost, f"window_{idx}")
 
-                window_results.append({
-                    "window_index": idx,
-                    "start_s": round(win_start, 2),
-                    "end_s": round(win_end, 2),
-                    "duration_s": round(win_dur, 2),
-                    "text": win_text,
-                    "is_empty": is_empty,
-                    "suspicious": suspicious,
-                })
-                if win_text:
-                    combined_texts.append(win_text)
+                    total_cost += win_cost
+                    is_empty = len(win_text.strip()) == 0
+                    suspicious = is_empty and (win_dur >= 3.0)
+                    if suspicious:
+                        flagged_count += 1
 
-            full_transcript = " ".join(combined_texts).strip()
+                    window_results.append({
+                        "window_index": idx,
+                        "start_s": round(win_start, 2),
+                        "end_s": round(win_end, 2),
+                        "duration_s": round(win_dur, 2),
+                        "text": win_text,
+                        "is_empty": is_empty,
+                        "suspicious": suspicious,
+                    })
+                    if win_text:
+                        combined_texts.append(win_text)
 
+                full_transcript = " ".join(combined_texts).strip()
+
+                return {
+                    "success": True,
+                    "transcript": full_transcript,
+                    "duration_s": round(total_duration, 2),
+                    "total_duration_s": round(total_duration, 2),
+                    "language_requested": norm_lang,
+                    "detected_script": detect_script_language(full_transcript),
+                    "windows_count": len(windows),
+                    "windows": window_results,
+                    "flagged_windows_count": flagged_count,
+                    "cost_inr": round(total_cost, 4),
+                    "would_be_cost_inr": round(would_be_cost, 4),
+                    "cached": all_cached if windows else False,
+                }
+
+        except BudgetExceededError as be:
             return {
-                "success": True,
-                "transcript": full_transcript,
-                "duration_s": round(total_duration, 2),
-                "total_duration_s": round(total_duration, 2),
-                "language_requested": norm_lang,
-                "detected_script": detect_script_language(full_transcript),
-                "windows_count": len(windows),
-                "windows": window_results,
-                "flagged_windows_count": flagged_count,
-                "cost_inr": round(total_cost, 4),
+                "success": False,
+                "error": str(be),
+                "budget_exceeded": True,
+                "actionable_tip": "Increase spend cap with --max-cost-inr or reduce input length.",
             }
 
         except Exception as e:
@@ -311,6 +331,8 @@ class BodhanTools:
             translated_paragraphs = []
             total_cost = 0.0
             total_tokens = 0
+            would_be_cost = 0.0
+            all_cached = True
 
             for para in paragraphs:
                 if not para.strip():
@@ -322,7 +344,10 @@ class BodhanTools:
 
                 if cached is not None:
                     trans_text = cached.get("content", "")
+                    cached_tokens = cached.get("tokens", max(1, len(trans_text.split())))
+                    would_be_cost += calculate_translate_cost(cached_tokens)
                 else:
+                    all_cached = False
                     payload = {
                         "model": "indic-translate",
                         "messages": [{"role": "user", "content": para}],
@@ -336,6 +361,8 @@ class BodhanTools:
                     out_tokens = usage.get("completion_tokens", len(trans_text.split()))
 
                     para_cost = calculate_translate_cost(out_tokens)
+                    would_be_cost += para_cost
+                    self.budget.check_budget(para_cost)
                     self.budget.record_cost("indic-translate", para_cost, f"translate_{lang_code}")
                     self.cache.set_json(cache_key, {"content": trans_text, "tokens": out_tokens})
                     total_cost += para_cost
@@ -352,6 +379,16 @@ class BodhanTools:
                 "target_script": target_script,
                 "tokens_count": total_tokens,
                 "cost_inr": round(total_cost, 4),
+                "would_be_cost_inr": round(would_be_cost, 4),
+                "cached": all_cached if paragraphs else False,
+            }
+
+        except BudgetExceededError as be:
+            return {
+                "success": False,
+                "error": str(be),
+                "budget_exceeded": True,
+                "actionable_tip": "Increase spend cap with --max-cost-inr or reduce input length.",
             }
 
         except Exception as e:
@@ -405,52 +442,52 @@ class BodhanTools:
         try:
             # 1. Split into chunks <= 150 characters
             chunks = _split_text_by_length(text, max_chars=150)
-            chunk_files: list[Path] = []
             total_cost = 0.0
+            would_be_cost = 0.0
+            all_cached = True
 
-            for i, chunk in enumerate(chunks):
-                cache_key = self.cache.generate_key("indic-speak", chunk, lang=lang_code, voice=resolved_voice, style=style)
-                cached_bytes = self.cache.get_bytes(cache_key)
+            with tempfile.TemporaryDirectory(prefix="bodhan_speech_") as work_dir:
+                work_path = Path(work_dir)
+                chunk_files: list[Path] = []
 
-                chunk_file = out_p.parent / f"chunk_{i:03d}_{cache_key[:8]}.wav"
+                for i, chunk in enumerate(chunks):
+                    cache_key = self.cache.generate_key("indic-speak", chunk, lang=lang_code, voice=resolved_voice, style=style)
+                    cached_bytes = self.cache.get_bytes(cache_key)
 
-                if cached_bytes is not None:
-                    chunk_file.write_bytes(cached_bytes)
-                else:
                     chunk_cost = calculate_speak_cost(len(chunk))
-                    self.budget.check_budget(chunk_cost)
+                    would_be_cost += chunk_cost
 
-                    instructions = {"lang": lang_code}
-                    if style:
-                        instructions["style"] = style
+                    chunk_file = work_path / f"chunk_{i:03d}_{cache_key[:8]}.wav"
 
-                    payload = {
-                        "model": "indic-speak",
-                        "input": chunk,
-                        "voice": resolved_voice,
-                        "instructions": json_instructions(instructions),
-                    }
+                    if cached_bytes is not None:
+                        chunk_file.write_bytes(cached_bytes)
+                    else:
+                        all_cached = False
+                        self.budget.check_budget(chunk_cost)
 
-                    resp = self.client.post("/v1/audio/speech", model_id="indic-speak", json_data=payload, timeout=45.0)
-                    chunk_bytes = resp.content
-                    self.cache.set_bytes(cache_key, chunk_bytes)
-                    chunk_file.write_bytes(chunk_bytes)
-                    self.budget.record_cost("indic-speak", chunk_cost, f"speak_{lang_code}_chunk_{i}")
-                    total_cost += chunk_cost
+                        instructions = {"lang": lang_code}
+                        if style:
+                            instructions["style"] = style
 
-                chunk_files.append(chunk_file)
+                        payload = {
+                            "model": "indic-speak",
+                            "input": chunk,
+                            "voice": resolved_voice,
+                            "instructions": json_instructions(instructions),
+                        }
 
-            # 2. Join chunks into single final WAV
-            join_audio_files(chunk_files, out_p)
-            duration_s = get_audio_duration(out_p)
+                        resp = self.client.post("/v1/audio/speech", model_id="indic-speak", json_data=payload, timeout=45.0)
+                        chunk_bytes = resp.content
+                        self.cache.set_bytes(cache_key, chunk_bytes)
+                        chunk_file.write_bytes(chunk_bytes)
+                        self.budget.record_cost("indic-speak", chunk_cost, f"speak_{lang_code}_chunk_{i}")
+                        total_cost += chunk_cost
 
-            # Clean temporary chunk files if not cached
-            for cf in chunk_files:
-                if cf != out_p and cf.exists():
-                    try:
-                        cf.unlink()
-                    except OSError:
-                        pass
+                    chunk_files.append(chunk_file)
+
+                # 2. Join chunks into single final WAV in out_p
+                join_audio_files(chunk_files, out_p)
+                duration_s = get_audio_duration(out_p)
 
             return {
                 "success": True,
@@ -459,8 +496,17 @@ class BodhanTools:
                 "chunks_count": len(chunks),
                 "voice": resolved_voice,
                 "cost_inr": round(total_cost, 4),
+                "would_be_cost_inr": round(would_be_cost, 4),
+                "cached": all_cached if chunks else False,
             }
 
+        except BudgetExceededError as be:
+            return {
+                "success": False,
+                "error": str(be),
+                "budget_exceeded": True,
+                "actionable_tip": "Increase spend cap with --max-cost-inr or reduce input length.",
+            }
         except Exception as e:
             return {
                 "success": False,
@@ -485,62 +531,78 @@ class BodhanTools:
             }
 
         try:
-            pages_to_ocr: list[Path] = []
-            if path.suffix.lower() == ".pdf":
-                pages_to_ocr = render_pdf_to_images(path)
-            else:
-                pages_to_ocr = [path]
-
-            page_results: list[dict[str, Any]] = []
-            markdown_parts: list[str] = []
             total_cost = 0.0
+            would_be_cost = 0.0
+            all_cached = True
 
-            for p_idx, p_img in enumerate(pages_to_ocr):
-                img_bytes = p_img.read_bytes()
-                cache_key = self.cache.generate_key("indic-ocr", img_bytes)
-                cached = self.cache.get_json(cache_key)
-
-                if cached is not None:
-                    p_text = cached.get("text", "")
-                    blocks = cached.get("blocks", [])
+            with tempfile.TemporaryDirectory(prefix="bodhan_ocr_pdf_") as work_dir:
+                if path.suffix.lower() == ".pdf":
+                    pages_to_ocr = render_pdf_to_images(path, output_dir=work_dir)
                 else:
+                    pages_to_ocr = [path]
+
+                page_results: list[dict[str, Any]] = []
+                markdown_parts: list[str] = []
+
+                for p_idx, p_img in enumerate(pages_to_ocr):
+                    img_bytes = p_img.read_bytes()
+                    cache_key = self.cache.generate_key("indic-ocr", img_bytes)
+                    cached = self.cache.get_json(cache_key)
+
                     page_cost = calculate_ocr_cost(1)
-                    self.budget.check_budget(page_cost)
+                    would_be_cost += page_cost
 
-                    b64 = base64.b64encode(img_bytes).decode("utf-8")
-                    mime = "image/png" if p_img.suffix.lower() == ".png" else "image/jpeg"
-                    payload = {
-                        "model": "indic-ocr",
-                        "messages": [
-                            {"role": "user", "content": [{"type": "image_url", "image_url": {"url": f"data:{mime};base64,{b64}"}}]}
-                        ],
-                    }
+                    if cached is not None:
+                        p_text = cached.get("text", "")
+                        blocks = cached.get("blocks", [])
+                    else:
+                        all_cached = False
+                        self.budget.check_budget(page_cost)
 
-                    resp = self.client.post("/v1/chat/completions", model_id="indic-ocr", json_data=payload, timeout=60.0)
-                    resp_data = resp.json()
-                    p_text = resp_data.get("choices", [{}])[0].get("message", {}).get("content", "").strip()
-                    blocks = resp_data.get("blocks", [])
+                        b64 = base64.b64encode(img_bytes).decode("utf-8")
+                        mime = "image/png" if p_img.suffix.lower() == ".png" else "image/jpeg"
+                        payload = {
+                            "model": "indic-ocr",
+                            "messages": [
+                                {"role": "user", "content": [{"type": "image_url", "image_url": {"url": f"data:{mime};base64,{b64}"}}]}
+                            ],
+                        }
 
-                    self.cache.set_json(cache_key, {"text": p_text, "blocks": blocks})
-                    self.budget.record_cost("indic-ocr", page_cost, f"ocr_page_{p_idx + 1}")
-                    total_cost += page_cost
+                        resp = self.client.post("/v1/chat/completions", model_id="indic-ocr", json_data=payload, timeout=60.0)
+                        resp_data = resp.json()
+                        p_text = resp_data.get("choices", [{}])[0].get("message", {}).get("content", "").strip()
+                        blocks = resp_data.get("blocks", [])
 
-                page_header = f"--- Page {p_idx + 1} ---"
-                markdown_parts.append(f"{page_header}\n\n{p_text}")
-                page_results.append({
-                    "page_number": p_idx + 1,
-                    "text": p_text,
-                    "blocks_count": len(blocks),
-                })
+                        self.cache.set_json(cache_key, {"text": p_text, "blocks": blocks})
+                        self.budget.record_cost("indic-ocr", page_cost, f"ocr_page_{p_idx + 1}")
+                        total_cost += page_cost
 
-            combined_markdown = "\n\n".join(markdown_parts)
+                    page_header = f"--- Page {p_idx + 1} ---"
+                    markdown_parts.append(f"{page_header}\n\n{p_text}")
+                    page_results.append({
+                        "page_number": p_idx + 1,
+                        "text": p_text,
+                        "blocks_count": len(blocks),
+                    })
 
+                combined_markdown = "\n\n".join(markdown_parts)
+
+                return {
+                    "success": True,
+                    "text": combined_markdown,
+                    "pages_count": len(pages_to_ocr),
+                    "pages": page_results,
+                    "cost_inr": round(total_cost, 4),
+                    "would_be_cost_inr": round(would_be_cost, 4),
+                    "cached": all_cached if pages_to_ocr else False,
+                }
+
+        except BudgetExceededError as be:
             return {
-                "success": True,
-                "text": combined_markdown,
-                "pages_count": len(pages_to_ocr),
-                "pages": page_results,
-                "cost_inr": round(total_cost, 4),
+                "success": False,
+                "error": str(be),
+                "budget_exceeded": True,
+                "actionable_tip": "Increase spend cap with --max-cost-inr or reduce input length.",
             }
 
         except Exception as e:

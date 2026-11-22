@@ -39,6 +39,8 @@ from bodhan_mcp.lang_utils import (
 from bodhan_mcp.pricing import (
     BudgetExceededError,
     BudgetManager,
+    calculate_ocr_cost,
+    calculate_speak_cost,
     calculate_transcribe_cost,
     calculate_translate_cost,
 )
@@ -124,10 +126,14 @@ class TaskAgent:
         self.windows_count: int | None = None
         self.audio_durations: dict[str, float] = {}
         self.last_transcription_result: dict[str, Any] = {}
+        self.step_records: list[dict[str, Any]] = []
 
     def run(self) -> AgentReport:
         """Executes the full agent loop and writes all required outputs."""
         start_time = time.perf_counter()
+        # Reset trace and output files so every run starts fresh
+        self.tracer.reset()
+        self.step_records.clear()
 
         # --------------------------------------------------------------------
         # 1. Plain Code Pre-flight Checks (Zero LLM / Zero Paid Calls)
@@ -343,6 +349,15 @@ class TaskAgent:
             cost_inr=0.0,
         )
         self.tracer.record_step(plan_trace)
+        self.step_records.append({
+            "step": step,
+            "tool": "generate_plan",
+            "cached": False,
+            "would_be_cost_inr": 0.0,
+            "cost_charged_inr": 0.0,
+            "arguments": {"task": self.task, "files": [f.name for f in valid_files]},
+            "result_summary": f"Generated plan with {len(planned_steps)} step(s).",
+        })
 
         # --------------------------------------------------------------------
         # 3. Plan Execution & Loop Control
@@ -353,11 +368,6 @@ class TaskAgent:
                 if step >= self.max_steps:
                     agent_status = "max_steps_reached"
                     self.failures.append(f"Reached step limit ({self.max_steps}).")
-                    break
-
-                if self.budget.remaining_inr <= 0.001:
-                    agent_status = "budget_exceeded"
-                    self.failures.append("Allocated cost budget was exhausted before completing all steps.")
                     break
 
                 tool_name = item.get("tool", "")
@@ -424,6 +434,46 @@ class TaskAgent:
                     self.tracer.record_step(rej_trace)
                     continue
 
+                # Pre-step budget estimate and enforcement (Requirement 5)
+                est_cost, est_desc = self._estimate_step_cost(tool_name, args)
+                is_step_cached = self._is_step_cached(tool_name, args)
+
+                if not is_step_cached and est_cost > self.budget.remaining_inr:
+                    step += 1
+                    agent_status = "budget_exceeded"
+                    fail_msg = (
+                        f"Estimated cost of {tool_name} for {est_desc} (₹{est_cost:.4f}) exceeds "
+                        f"remaining budget (₹{self.budget.remaining_inr:.4f}). "
+                        f"Task stopped before making paid API calls."
+                    )
+                    self.failures.append(fail_msg)
+                    self.step_records.append({
+                        "step": step,
+                        "tool": tool_name,
+                        "cached": False,
+                        "would_be_cost_inr": round(est_cost, 4),
+                        "cost_charged_inr": 0.0,
+                        "arguments": args,
+                        "result_summary": f"Halted: {fail_msg}",
+                    })
+                    rej_trace = StepTrace(
+                        step=step,
+                        timestamp=datetime.now(timezone.utc).isoformat(),
+                        plan=f"Pre-check budget for {tool_name}",
+                        tool=tool_name,
+                        arguments=args,
+                        result_summary=f"Halted: {fail_msg}",
+                        latency_ms=0,
+                        llm_latency_ms=0,
+                        tool_latency_ms=0,
+                        cost_inr=0.0,
+                        cached=False,
+                        would_be_cost_inr=round(est_cost, 4),
+                        cost_charged_inr=0.0,
+                    )
+                    self.tracer.record_step(rej_trace)
+                    break
+
                 step += 1
                 t_tool_start = time.perf_counter()
                 cost_before = self.budget.spent_inr
@@ -433,6 +483,55 @@ class TaskAgent:
 
                 self.executed_calls[raw_call_sig] = tool_res
                 self.executed_calls[call_sig] = tool_res
+
+                # Check if tool halted due to budget during execution
+                if tool_res.get("budget_exceeded") or (
+                    not tool_res.get("success", False) and "budget" in str(tool_res.get("error", "")).lower()
+                ):
+                    agent_status = "budget_exceeded"
+                    fail_msg = f"Step {step} ({tool_name}) exceeded budget: {tool_res.get('error')}"
+                    self.failures.append(fail_msg)
+                    would_be_val = tool_res.get("would_be_cost_inr", est_cost)
+                    self.step_records.append({
+                        "step": step,
+                        "tool": tool_name,
+                        "cached": False,
+                        "would_be_cost_inr": round(would_be_val, 4),
+                        "cost_charged_inr": round(step_cost, 4),
+                        "arguments": args,
+                        "result_summary": f"Failed: {tool_res.get('error')}",
+                    })
+                    trace = StepTrace(
+                        step=step,
+                        timestamp=datetime.now(timezone.utc).isoformat(),
+                        plan=f"Execute {tool_name}",
+                        tool=tool_name,
+                        arguments=args,
+                        result_summary=self._summarize_result(tool_res),
+                        latency_ms=tool_latency_ms,
+                        llm_latency_ms=0,
+                        tool_latency_ms=tool_latency_ms,
+                        cost_inr=step_cost,
+                        cached=False,
+                        would_be_cost_inr=round(would_be_val, 4),
+                        cost_charged_inr=round(step_cost, 4),
+                    )
+                    self.tracer.record_step(trace)
+                    break
+
+                cached_flag = tool_res.get("cached", (step_cost == 0.0 and tool_res.get("success", False)))
+                charged_amt = tool_res.get("cost_inr", step_cost)
+                would_be_amt = tool_res.get("would_be_cost_inr", charged_amt if not cached_flag else est_cost)
+
+                self.step_records.append({
+                    "step": step,
+                    "tool": tool_name,
+                    "cached": cached_flag,
+                    "would_be_cost_inr": round(would_be_amt, 4),
+                    "cost_charged_inr": round(charged_amt, 4),
+                    "arguments": args,
+                    "result_summary": self._summarize_result(tool_res),
+                })
 
                 trace = StepTrace(
                     step=step,
@@ -444,8 +543,10 @@ class TaskAgent:
                     latency_ms=tool_latency_ms,
                     llm_latency_ms=0,
                     tool_latency_ms=tool_latency_ms,
-                    cost_inr=step_cost,
-                    cached=(step_cost == 0.0 and tool_res.get("success", False)),
+                    cost_inr=charged_amt,
+                    cached=cached_flag,
+                    would_be_cost_inr=round(would_be_amt, 4),
+                    cost_charged_inr=round(charged_amt, 4),
                 )
                 self.tracer.record_step(trace)
 
@@ -509,9 +610,11 @@ class TaskAgent:
             self.failures.append("Task requested OCR text extraction, but no OCR artifact was produced.")
 
         # Separate and prioritize statuses accurately
-        if agent_status in ("timeout", "impossible_task"):
+        if agent_status in ("timeout", "impossible_task", "budget_exceeded"):
             pass
         elif self.budget.remaining_inr <= 0.001 and self.budget.spent_inr >= self.max_cost_inr:
+            agent_status = "budget_exceeded"
+        elif any("budget" in f.lower() or "spend cap" in f.lower() or "exceeds remaining budget" in f.lower() for f in self.failures):
             agent_status = "budget_exceeded"
         elif step >= self.max_steps and (any_failed_step or final_artifact_missing):
             agent_status = "max_steps_reached"
@@ -530,12 +633,15 @@ class TaskAgent:
 
         # Final Report Generation
         total_time = time.perf_counter() - start_time
+        total_would_be = sum(s.get("would_be_cost_inr", 0.0) for s in self.step_records)
         report = AgentReport(
             status=agent_status,
             task=self.task,
             steps_taken=step,
             total_cost_inr=self.budget.spent_inr,
+            total_would_be_cost_inr=round(total_would_be, 4),
             total_time_s=total_time,
+            steps=self.step_records,
             assumptions=list(dict.fromkeys(self.assumptions)),
             verification_results=self.verification_results,
             artifacts=list(dict.fromkeys(self.artifacts)),
@@ -725,6 +831,121 @@ class TaskAgent:
                     if f.suffix.lower() in (".png", ".jpg", ".jpeg", ".pdf"):
                         args["file_path"] = str(f.resolve())
                         break
+
+    def _estimate_step_cost(self, tool_name: str, args: dict[str, Any]) -> tuple[float, str]:
+        """Estimates the INR cost of executing a tool call before calling the API."""
+        if tool_name == "transcribe_audio":
+            fp = args.get("file_path", "")
+            dur = 0.0
+            if fp:
+                p = Path(fp)
+                dur = (
+                    self.audio_durations.get(str(p.resolve()))
+                    or self.audio_durations.get(p.name)
+                    or (get_audio_duration(p) if p.exists() else 0.0)
+                )
+            if dur <= 0.0:
+                dur = 30.0
+            cost = calculate_transcribe_cost(dur)
+            return cost, f"{dur:.1f}s audio transcription"
+
+        elif tool_name == "translate_text":
+            text = args.get("text", "")
+            if not text and args.get("file_path"):
+                p = Path(args["file_path"])
+                if p.exists() and p.suffix.lower() in (".txt", ".md", ".json"):
+                    try:
+                        text = p.read_text(encoding="utf-8")
+                    except Exception:
+                        text = ""
+            if not text and self.last_produced_text:
+                text = self.last_produced_text
+            word_count = len(text.split()) if text else 100
+            tokens = max(1, int(word_count * 1.5))
+            cost = calculate_translate_cost(tokens)
+            return cost, f"{word_count} words ({tokens} est. tokens) translation"
+
+        elif tool_name == "synthesize_speech":
+            text = args.get("text", "")
+            if not text and args.get("file_path"):
+                p = Path(args["file_path"])
+                if p.exists() and p.suffix.lower() in (".txt", ".md", ".json"):
+                    try:
+                        text = p.read_text(encoding="utf-8")
+                    except Exception:
+                        text = ""
+            if not text and self.last_produced_text:
+                text = self.last_produced_text
+            char_count = len(text) if text else 100
+            cost = calculate_speak_cost(char_count)
+            return cost, f"{char_count} chars speech synthesis"
+
+        elif tool_name == "extract_document_text":
+            fp = args.get("file_path", "")
+            page_count = 1
+            if fp:
+                p = Path(fp)
+                if p.suffix.lower() == ".pdf" and p.exists():
+                    try:
+                        import pypdfium2 as pdfium
+                        doc = pdfium.PdfDocument(p)
+                        page_count = max(1, len(doc))
+                        doc.close()
+                    except Exception:
+                        page_count = 1
+            cost = calculate_ocr_cost(page_count)
+            return cost, f"{page_count} page(s) OCR"
+
+        return 0.0, "free operation"
+
+    def _is_step_cached(self, tool_name: str, args: dict[str, Any]) -> bool:
+        """Checks if a step's result is already cached in disk cache."""
+        try:
+            if not hasattr(self.tools, "cache") or not self.tools.cache:
+                return False
+            cache = self.tools.cache
+
+            if tool_name == "translate_text":
+                text = args.get("text", "")
+                if not text and args.get("file_path"):
+                    p = Path(args["file_path"])
+                    if p.exists() and p.suffix.lower() in (".txt", ".md", ".json"):
+                        text = p.read_text(encoding="utf-8")
+                if not text and self.last_produced_text:
+                    text = self.last_produced_text
+                target_lang = args.get("target_language_code", "hi")
+                script = args.get("target_script", "native")
+                key = cache.generate_key("indic-translate", text.strip().encode("utf-8"), target_lang=target_lang, script=script)
+                return cache.has(key)
+
+            elif tool_name == "synthesize_speech":
+                text = args.get("text", "")
+                if not text and args.get("file_path"):
+                    p = Path(args["file_path"])
+                    if p.exists() and p.suffix.lower() in (".txt", ".md", ".json"):
+                        text = p.read_text(encoding="utf-8")
+                if not text and self.last_produced_text:
+                    text = self.last_produced_text
+                lang = args.get("language", "hi")
+                voice = args.get("voice") or "default"
+                style = args.get("style") or "default"
+                key = cache.generate_key("indic-speak", text.strip().encode("utf-8"), language=lang, voice=voice, style=style)
+                return cache.has(key)
+
+            elif tool_name == "extract_document_text":
+                fp = args.get("file_path", "")
+                if fp:
+                    p = Path(fp)
+                    if p.exists() and p.suffix.lower() != ".pdf":
+                        key = cache.generate_key("indic-ocr", p.read_bytes())
+                        return cache.has(key)
+
+            elif tool_name == "transcribe_audio":
+                # Audio transcription caching is per-window after 16k mono WAV conversion
+                return False
+        except Exception:
+            return False
+        return False
 
     def _execute_and_save_tool(self, name: str, args: dict[str, Any]) -> dict[str, Any]:
         """Dispatches tool call and automatically saves outputs to artifacts/ in plain code."""
@@ -1321,8 +1542,11 @@ class TaskAgent:
         if status == "timeout":
             return f"The task timed out during execution. {self.failures[0] if self.failures else ''}"
         if status == "budget_exceeded":
+            budget_err = next((f for f in self.failures if "budget" in f.lower() or "cost" in f.lower() or "exceed" in f.lower()), None)
+            if budget_err:
+                return f"Task halted due to budget limit: {budget_err}"
             return (
-                f"The task halted because the spend cap (₹{self.max_cost_inr:.2f}) was reached. "
+                f"The task halted because the spend cap (₹{self.max_cost_inr:.4f}) was exceeded. "
                 f"Total spent: ₹{self.budget.spent_inr:.4f} across {len(self.executed_calls)} executed call(s)."
             )
         if status == "max_steps_reached":
@@ -1421,7 +1645,7 @@ class TaskAgent:
 
         while step < self.max_steps:
             step += 1
-            if self.budget.remaining_inr <= 0.001:
+            if self.budget.remaining_inr <= 0.0:
                 return "budget_exceeded", "Budget exhausted in fallback loop."
 
             try:
@@ -1451,11 +1675,63 @@ class TaskAgent:
                 # Reject duplicate
                 break
 
+            # Pre-step budget estimate in fallback loop
+            est_cost, est_desc = self._estimate_step_cost(name, args)
+            is_step_cached = self._is_step_cached(name, args)
+            if not is_step_cached and est_cost > self.budget.remaining_inr:
+                fail_msg = (
+                    f"Estimated cost of {name} for {est_desc} (₹{est_cost:.4f}) exceeds "
+                    f"remaining budget (₹{self.budget.remaining_inr:.4f}). "
+                    f"Task stopped before making paid API calls."
+                )
+                self.failures.append(fail_msg)
+                self.step_records.append({
+                    "step": step,
+                    "tool": name,
+                    "cached": False,
+                    "would_be_cost_inr": round(est_cost, 4),
+                    "cost_charged_inr": 0.0,
+                    "arguments": args,
+                    "result_summary": f"Halted: {fail_msg}",
+                })
+                rej_trace = StepTrace(
+                    step=step,
+                    timestamp=datetime.now(timezone.utc).isoformat(),
+                    plan=f"Pre-check budget for {name}",
+                    tool=name,
+                    arguments=args,
+                    result_summary=f"Halted: {fail_msg}",
+                    latency_ms=0,
+                    llm_latency_ms=0,
+                    tool_latency_ms=0,
+                    cost_inr=0.0,
+                    cached=False,
+                    would_be_cost_inr=round(est_cost, 4),
+                    cost_charged_inr=0.0,
+                )
+                self.tracer.record_step(rej_trace)
+                return "budget_exceeded", fail_msg
+
             cost_before = self.budget.spent_inr
             t0 = time.perf_counter()
             tool_res = self._execute_and_save_tool(name, args)
             tool_ms = int((time.perf_counter() - t0) * 1000)
+            step_cost = self.budget.spent_inr - cost_before
             self.executed_calls[call_sig] = tool_res
+
+            cached_flag = tool_res.get("cached", (step_cost == 0.0 and tool_res.get("success", False)))
+            charged_amt = tool_res.get("cost_inr", step_cost)
+            would_be_amt = tool_res.get("would_be_cost_inr", charged_amt if not cached_flag else est_cost)
+
+            self.step_records.append({
+                "step": step,
+                "tool": name,
+                "cached": cached_flag,
+                "would_be_cost_inr": round(would_be_amt, 4),
+                "cost_charged_inr": round(charged_amt, 4),
+                "arguments": args,
+                "result_summary": self._summarize_result(tool_res),
+            })
 
             trace = StepTrace(
                 step=step,
@@ -1467,9 +1743,19 @@ class TaskAgent:
                 latency_ms=llm_ms + tool_ms,
                 llm_latency_ms=llm_ms,
                 tool_latency_ms=tool_ms,
-                cost_inr=self.budget.spent_inr - cost_before,
+                cost_inr=charged_amt,
+                cached=cached_flag,
+                would_be_cost_inr=round(would_be_amt, 4),
+                cost_charged_inr=round(charged_amt, 4),
             )
             self.tracer.record_step(trace)
+
+            if tool_res.get("budget_exceeded") or (
+                not tool_res.get("success", False) and "budget" in str(tool_res.get("error", "")).lower()
+            ):
+                fail_msg = f"Step {step} ({name}) exceeded budget: {tool_res.get('error')}"
+                self.failures.append(fail_msg)
+                return "budget_exceeded", fail_msg
 
             # Auto-finish once an artifact is produced and verified
             if self.artifacts:

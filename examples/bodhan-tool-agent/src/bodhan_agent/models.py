@@ -17,10 +17,14 @@ class StepTrace:
     latency_ms: int
     cost_inr: float
     cached: bool = False
+    would_be_cost_inr: float = 0.0
+    cost_charged_inr: float = 0.0
     llm_latency_ms: int = 0
     tool_latency_ms: int = 0
 
     def to_dict(self) -> dict[str, Any]:
+        charged = self.cost_charged_inr if self.cost_charged_inr else self.cost_inr
+        would_be = self.would_be_cost_inr if self.would_be_cost_inr else (0.0 if self.cached else charged)
         return {
             "step": self.step,
             "timestamp": self.timestamp,
@@ -31,8 +35,10 @@ class StepTrace:
             "latency_ms": self.latency_ms,
             "llm_latency_ms": self.llm_latency_ms,
             "tool_latency_ms": self.tool_latency_ms,
-            "cost_inr": round(self.cost_inr, 4),
+            "cost_inr": round(charged, 4),
             "cached": self.cached,
+            "would_be_cost_inr": round(would_be, 4),
+            "cost_charged_inr": round(charged, 4),
         }
 
 
@@ -60,6 +66,8 @@ class AgentReport:
     steps_taken: int
     total_cost_inr: float
     total_time_s: float
+    steps: list[dict[str, Any]] = field(default_factory=list)
+    total_would_be_cost_inr: float = 0.0
     assumptions: list[str] = field(default_factory=list)
     verification_results: list[VerificationResult] = field(default_factory=list)
     artifacts: list[str] = field(default_factory=list)
@@ -76,7 +84,9 @@ class AgentReport:
             "task": self.task,
             "steps_taken": self.steps_taken,
             "total_cost_inr": round(self.total_cost_inr, 4),
+            "total_would_be_cost_inr": round(self.total_would_be_cost_inr, 4),
             "total_time_s": round(self.total_time_s, 2),
+            "steps": self.steps,
             "assumptions": self.assumptions,
             "verification_results": [v.to_dict() for v in self.verification_results],
             "artifacts": self.artifacts,
