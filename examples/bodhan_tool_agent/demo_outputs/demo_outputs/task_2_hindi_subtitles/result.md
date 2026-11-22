@@ -3,7 +3,7 @@
 **Task:** Transcribe this Hindi voice note and give me English subtitles  
 **Status:** `COMPLETED`  
 **Total Cost:** ₹0.0019  
-**Duration:** 0.13 seconds  
+**Duration:** 0.12 seconds  
 **Steps Taken:** 3  
 
 ## Final Answer / Summary
@@ -16,7 +16,7 @@ Successfully transcribed Hindi voice note and generated English SRT subtitles.
 
 ## Generated Artifacts
 
-- [subtitles.en.srt](..\..\..\out\artifacts\subtitles.en.srt)
+- [subtitles.en.srt](artifacts\subtitles.en.srt)
 
 ## Verification Checks
 
@@ -28,6 +28,6 @@ Successfully transcribed Hindi voice note and generated English SRT subtitles.
 
 | Step | Tool | Plan / Intent | Cost (INR) | Latency |
 |---|---|---|---|---|
-| 1 | `transcribe_audio` | Transcribe the Hindi voice note to get timestamped segments ... | ₹0.0017 | 50.8ms |
-| 2 | `translate_text` | Translate transcribed Hindi text to English subtitles using ... | ₹0.0002 | 50.5ms |
+| 1 | `transcribe_audio` | Transcribe the Hindi voice note to get timestamped segments ... | ₹0.0017 | 50.5ms |
+| 2 | `translate_text` | Translate transcribed Hindi text to English subtitles using ... | ₹0.0002 | 52.7ms |
 | 3 | `finish_task` | Subtitles generated and verified. Conclude task.... | ₹0.0000 | 1.0ms |

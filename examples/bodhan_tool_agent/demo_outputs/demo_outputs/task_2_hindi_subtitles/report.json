@@ -3,7 +3,7 @@
   "status": "COMPLETED",
   "total_steps": 3,
   "total_cost_inr": 0.0019,
-  "total_duration_seconds": 0.13,
+  "total_duration_seconds": 0.12,
   "cache_hits": 0,
   "cache_misses": 2,
   "verifications": [
@@ -15,7 +15,7 @@
     }
   ],
   "artifacts": [
-    "./out/artifacts/subtitles.en.srt"
+    "C:\\Users\\Hksona\\Downloads\\Bodhan Ai\\examples\\demo_outputs\\task_2_hindi_subtitles\\artifacts\\subtitles.en.srt"
   ],
   "explanation": null,
   "final_answer": "Successfully transcribed Hindi voice note and generated English SRT subtitles."

@@ -3,7 +3,7 @@
   "status": "COMPLETED",
   "total_steps": 5,
   "total_cost_inr": 0.2272,
-  "total_duration_seconds": 0.51,
+  "total_duration_seconds": 1.05,
   "cache_hits": 0,
   "cache_misses": 4,
   "verifications": [
@@ -23,8 +23,8 @@
   "artifacts": [
     "C:\\Users\\Hksona\\Downloads\\Bodhan Ai\\examples\\demo_outputs\\task_1_tamil_summary\\artifacts\\chapter_extracted.md",
     "C:\\Users\\Hksona\\Downloads\\Bodhan Ai\\examples\\demo_outputs\\task_1_tamil_summary\\artifacts\\speech_ta_0.wav",
-    "./out/artifacts/tamil_summary.wav",
-    "./out/artifacts/summary.ta.md"
+    "C:\\Users\\Hksona\\Downloads\\Bodhan Ai\\examples\\demo_outputs\\task_1_tamil_summary\\artifacts\\tamil_summary.wav",
+    "C:\\Users\\Hksona\\Downloads\\Bodhan Ai\\examples\\demo_outputs\\task_1_tamil_summary\\artifacts\\summary.ta.md"
   ],
   "explanation": null,
   "final_answer": "Successfully created two-minute Tamil audio summary and Markdown document."

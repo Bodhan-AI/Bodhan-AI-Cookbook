@@ -1,0 +1,23 @@
+1
+00:00:00,000 --> 00:00:25,000
+Hello, this is the voice note audio recording covering class 9 mathematics.
+
+2
+00:00:25,000 --> 00:00:55,000
+Today we are reviewing the fundamental concepts of lines and angles.
+
+3
+00:00:55,000 --> 00:01:25,000
+When two straight lines intersect at a point, the vertically opposite angles are equal.
+
+4
+00:01:25,000 --> 00:01:55,000
+The linear pair axiom states that adjacent angles on a straight line sum to 180 degrees.
+
+5
+00:01:55,000 --> 00:02:30,000
+For parallel lines cut by a transversal, corresponding angles and alternate interior angles are equal.
+
+6
+00:02:30,000 --> 00:03:00,000
+Please complete the exercises and practice problems provided in the lesson worksheet.

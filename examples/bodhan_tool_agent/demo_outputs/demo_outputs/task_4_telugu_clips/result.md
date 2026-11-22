@@ -16,7 +16,7 @@ Identified Telugu clips and translated content to English.
 
 ## Generated Artifacts
 
-- [telugu_translations.md](..\..\..\out\artifacts\telugu_translations.md)
+- [telugu_translations.md](artifacts\telugu_translations.md)
 
 ## Verification Checks
 
@@ -28,6 +28,6 @@ Identified Telugu clips and translated content to English.
 
 | Step | Tool | Plan / Intent | Cost (INR) | Latency |
 |---|---|---|---|---|
-| 1 | `transcribe_audio` | Transcribe audio clips using Indic-Transcribe to identify la... | ₹0.0017 | 50.8ms |
-| 2 | `translate_text` | Translate identified Telugu clip text into English using Ind... | ₹0.0001 | 52.2ms |
+| 1 | `transcribe_audio` | Transcribe audio clips using Indic-Transcribe to identify la... | ₹0.0017 | 51.7ms |
+| 2 | `translate_text` | Translate identified Telugu clip text into English using Ind... | ₹0.0001 | 52.7ms |
 | 3 | `finish_task` | Classification and translation complete.... | ₹0.0000 | 1.0ms |

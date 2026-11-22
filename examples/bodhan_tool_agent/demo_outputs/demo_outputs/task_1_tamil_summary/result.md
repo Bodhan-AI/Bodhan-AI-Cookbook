@@ -3,7 +3,7 @@
 **Task:** Make a two-minute Tamil audio summary of this chapter  
 **Status:** `COMPLETED`  
 **Total Cost:** ₹0.2272  
-**Duration:** 0.51 seconds  
+**Duration:** 1.05 seconds  
 **Steps Taken:** 5  
 
 ## Final Answer / Summary
@@ -18,8 +18,8 @@ Successfully created two-minute Tamil audio summary and Markdown document.
 
 - [chapter_extracted.md](artifacts\chapter_extracted.md)
 - [speech_ta_0.wav](artifacts\speech_ta_0.wav)
-- [tamil_summary.wav](..\..\..\out\artifacts\tamil_summary.wav)
-- [summary.ta.md](..\..\..\out\artifacts\summary.ta.md)
+- [tamil_summary.wav](artifacts\tamil_summary.wav)
+- [summary.ta.md](artifacts\summary.ta.md)
 
 ## Verification Checks
 
@@ -32,8 +32,8 @@ Successfully created two-minute Tamil audio summary and Markdown document.
 
 | Step | Tool | Plan / Intent | Cost (INR) | Latency |
 |---|---|---|---|---|
-| 1 | `extract_text_ocr` | Extract document text and structure using Indic-OCR.... | ₹0.2000 | 50.7ms |
-| 2 | `translate_text` | Synthesizing English summary from OCR content, then translat... | ₹0.0016 | 50.8ms |
-| 3 | `synthesize_speech` | Synthesizing Tamil speech using Indic-Speak with chunking.... | ₹0.0216 | 63.1ms |
-| 4 | `transcribe_audio` | Verifying synthesized Tamil audio summary by back-transcribi... | ₹0.0040 | 53.3ms |
+| 1 | `extract_text_ocr` | Extract document text and structure using Indic-OCR.... | ₹0.2000 | 57.2ms |
+| 2 | `translate_text` | Synthesizing English summary from OCR content, then translat... | ₹0.0016 | 52.8ms |
+| 3 | `synthesize_speech` | Synthesizing Tamil speech using Indic-Speak with chunking.... | ₹0.0216 | 64.3ms |
+| 4 | `transcribe_audio` | Verifying synthesized Tamil audio summary by back-transcribi... | ₹0.0040 | 50.9ms |
 | 5 | `finish_task` | Verification passed. Conclude task with artifacts.... | ₹0.0000 | 1.0ms |
