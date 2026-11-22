@@ -42,7 +42,8 @@ def segment_drift_ms(lines: Sequence[DubLine], segment_starts: dict[str, list[fl
 
 def language_report(lang: str, translated: LanguageResult, lines: Sequence[DubLine], *, input_s: float,
                     output_s: float | None, speech_lufs: float | None, timings: dict[str, float],
-                    segment_starts: dict[str, list[float]] | None = None) -> dict[str, Any]:
+                    segment_starts: dict[str, list[float]] | None = None,
+                    voice_bleed_s: float | None = None) -> dict[str, Any]:
     spoken = [ln for ln in lines if ln.sentences]
     skipped = [{"id": ln.unit.id, "reason": "; ".join(ln.notes) or ln.unit.note} for ln in lines if not ln.sentences]
     sync = [round((ln.placed_start - ln.unit.start) * 1000) for ln in spoken]
@@ -74,6 +75,9 @@ def language_report(lang: str, translated: LanguageResult, lines: Sequence[DubLi
     if far:
         misses.append(f"estimated sync inside merged lines: {len(far)} of {len(drift)} source segments drift more "
                       f"than 300 ms (worst {max(far, key=abs):+d} ms), assuming even pace within each line")
+    if voice_bleed_s and voice_bleed_s > 1.0:
+        misses.append(f"original audio audible for {voice_bleed_s:.1f}s in pauses of dubbed lines (ducking too shallow "
+                      "for this source; vocal separation would remove it)")
     if speech_lufs is not None and not -17.0 <= speech_lufs <= -15.0:
         misses.append(f"speech loudness {speech_lufs} LUFS outside -16 ±1")
 
@@ -96,6 +100,7 @@ def language_report(lang: str, translated: LanguageResult, lines: Sequence[DubLi
                 "plain_max": round(max(plain), 3) if plain else None},
         "total_length_ms": length_ms,
         "speech_lufs": speech_lufs,
+        "original_voice_bleed_s": voice_bleed_s,
         "retries": {
             "translation_alternatives": sum(max(0, len(u.candidates) - 1) for u in translated.units),
             "tts_retakes": sum(len(s.takes) - 1 for ln in spoken for s in ln.sentences),

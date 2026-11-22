@@ -255,6 +255,7 @@ def run_language(job: LanguageJob, lang: str) -> dict[str, Any]:
     summary = report.language_report(lang, translated, lines, input_s=job.info.duration_s,
                                      output_s=mixed.output_duration_s if mixed else None,
                                      speech_lufs=mixed.speech_lufs if mixed else None, timings=timings,
+                                     voice_bleed_s=mixed.voice_bleed_s if mixed else None,
                                      segment_starts=job.segment_starts)
     write_json(out_dir / f"segments.{lang}.json", {
         "lang": lang, "summary": summary,

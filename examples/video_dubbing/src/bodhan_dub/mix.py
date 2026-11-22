@@ -2,7 +2,7 @@
 
 * Placement: each line starts at its source start, or just after the previous line if
   that one ran long, so lines never overlap. The shift is the reported sync error.
-* Bed: the original audio stays, so music and effects keep playing. It is ducked to -26 dB,
+* Bed: the original audio stays, so music and effects keep playing. It is ducked to -40 dB,
   with short ramps, only where a dub line replaces the original speech (the source span of
   each dubbed unit and wherever its line actually plays). Music, vocals the LLM marked as not
   narration, and lines that could not be dubbed keep their original audio: no silent holes.
@@ -27,7 +27,12 @@ from .synth import SENTENCE_GAP_S, DubLine
 
 log = logging.getLogger(__name__)
 
-DUCK_GAIN = 10 ** (-26 / 20)
+# -40 dB, not a voice-over's usual -20 to -26 dB: on a speech-only video, -26 dB left the
+# original English audible in every pause inside a dub line (a listener heard "Tamil, then a quick
+# English sound"; measured 20 s of it in the demo). Music and effects still play at full level
+# between lines; keeping them *under* speech would need vocal separation (see README).
+DUCK_GAIN = 10 ** (-40 / 20)
+BLEED_FLOOR_DBFS = -50.0  # original audio louder than this in a dub pause counts as audible bleed
 RAMP_S = 0.15
 MIN_GAP_S = 0.08
 TARGET_LUFS = -16.0
@@ -61,6 +66,32 @@ def line_audio(line: DubLine) -> np.ndarray:
     return audio.stretch_and_resample(np.concatenate(pieces), rate, line.tempo)
 
 
+def _frame_db(x: np.ndarray, start: int, frames: int, frame: int) -> np.ndarray:
+    chunk = x[start:start + frames * frame].reshape(frames, frame)
+    return 20 * np.log10(np.sqrt((chunk ** 2).mean(axis=1)) + 1e-9)
+
+
+def voice_bleed_seconds(ducked_bed: np.ndarray, dub: np.ndarray, lines: Sequence[DubLine],
+                        rate: int = audio.MIX_RATE, frame_s: float = 0.02) -> float:
+    """Seconds inside dub lines where the dub is silent but the original track is still audible.
+
+    That is the "Tamil, then a quick English sound" effect: the original voice showing through
+    the pauses of the dubbed speech. Reported, so a too-shallow duck shows up in report.json.
+    """
+    frame = int(rate * frame_s)
+    total = 0
+    for ln in lines:
+        if not ln.sentences:
+            continue
+        a, b = int(ln.placed_start * rate), int(ln.placed_end * rate)
+        m = (b - a) // frame
+        if m <= 0:
+            continue
+        dub_db, bed_db = (_frame_db(x, a, m, frame) for x in (dub, ducked_bed))
+        total += int(np.sum((dub_db < -45) & (bed_db > BLEED_FLOOR_DBFS)))
+    return round(total * frame_s, 2)
+
+
 def duck_envelope(n: int, intervals: Sequence[tuple[float, float]], rate: int = audio.MIX_RATE) -> np.ndarray:
     env = np.ones(n, dtype=np.float32)
     ramp = int(RAMP_S * rate)
@@ -81,6 +112,7 @@ def duck_envelope(n: int, intervals: Sequence[tuple[float, float]], rate: int = 
 class MixResult:
     speech_lufs: float | None
     output_duration_s: float
+    voice_bleed_s: float = 0.0  # seconds where the original track is audible in pauses of a dub line
 
 
 def render(lines: Sequence[DubLine], source: Path, video_s: float, out_video: Path, work: Path, lang: str,
@@ -113,7 +145,9 @@ def _render(lines: Sequence[DubLine], source: Path, video_s: float, out_video: P
 
     bed = audio.decode_audio(source, audio.MIX_RATE, 2)
     bed = np.pad(bed, ((0, max(0, n - len(bed))), (0, 0)))[:n]
-    mix = bed * duck_envelope(n, duck_intervals(lines))[:, None] + dub[:, None]
+    ducked_bed = bed * duck_envelope(n, duck_intervals(lines))[:, None]
+    bleed = voice_bleed_seconds(ducked_bed.mean(axis=1), dub, lines)
+    mix = ducked_bed + dub[:, None]
     peak = float(np.max(np.abs(mix))) if n else 0.0
     if peak > 0.99:  # music peaks plus speech: scale the whole mix, never clip
         mix *= 0.99 / peak
@@ -125,7 +159,7 @@ def _render(lines: Sequence[DubLine], source: Path, video_s: float, out_video: P
     mux(source, mix_wav, out_video, lang, has_video)
     # No speech at all (a music-only video) has no measurable loudness: None, not -inf, keeps report.json valid JSON.
     lufs = round(speech_lufs, 2) if np.isfinite(speech_lufs) else None
-    return MixResult(speech_lufs=lufs, output_duration_s=media.probe(out_video).duration_s)
+    return MixResult(speech_lufs=lufs, output_duration_s=media.probe(out_video).duration_s, voice_bleed_s=bleed)
 
 
 def mux(source: Path, mix_wav: Path, out_video: Path, lang: str, has_video: bool) -> None:

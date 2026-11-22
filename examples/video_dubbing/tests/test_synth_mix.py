@@ -317,3 +317,14 @@ def test_segment_drift_is_estimated_inside_merged_lines():
     mix.place([line], video_s=30.0)
     # segments starting at 0 s and 5 s: the second is heard at 6 s, 1 s late
     assert segment_drift_ms([line], {"u0000": [0.0, 5.0]}) == [0, 1000]
+
+
+def test_voice_bleed_counts_original_audio_heard_in_dub_pauses():
+    rate = 1000
+    line = line_with(4.0, 4.0, start=0.0, end=4.0)
+    mix.place([line], video_s=4.0)
+    dub = np.zeros(4 * rate, np.float32)
+    dub[: 2 * rate] = 0.3  # dub speaks for 2 s, then pauses for 2 s
+    bed = np.full(4 * rate, 0.3, np.float32)
+    assert mix.voice_bleed_seconds(bed, dub, [line], rate=rate) == 2.0
+    assert mix.voice_bleed_seconds(bed * mix.DUCK_GAIN, dub, [line], rate=rate) == 0.0  # -40 dB: inaudible
