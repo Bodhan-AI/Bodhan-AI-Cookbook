@@ -40,27 +40,23 @@ pip install -e .[dev] && pytest    # 179 passing tests (smoke & compliance)
 
 ```mermaid
 flowchart TD
-  PDF["PDF / Image folder"] --> ING["Ingest\nPyMuPDF → PNG"]
-  ING --> OCR["OCR\nindic-ocr · 3 workers\nmax_tokens ladder on 502"]
-  OCR --> CLN["Cleanup\n11 block rules + 3 page rules"]
-  CLN --> ASM["Assemble\nlesson.src.md + sections.json"]
+    PDF["PDF / Image folder"] --> ING["Ingest<br/>PyMuPDF to PNG"]
+    ING --> OCR["OCR<br/>indic-ocr (3 workers)<br/>max_tokens ladder on 502"]
+    OCR --> CLN["Cleanup<br/>11 block rules + 3 page rules"]
+    CLN --> ASM["Assemble<br/>lesson.src.md + sections.json"]
+    ASM --> FIG["Figures<br/>Qwen 27B vision<br/>caption fallback"]
+    FIG --> NAR["Narrate<br/>gpt-oss-120b via Groq<br/>group, batch, validate, repair"]
+    NAR --> TR
 
-  ASM --> FIG["Figures\nQwen 27B vision\ncaption fallback"]
-  FIG --> NAR["Narrate\ngpt-oss-120b via Groq\ngroup → batch → validate → repair"]
+    subgraph LOC["Localize (per language in parallel)"]
+        TR["indic-translate<br/>4 workers"] --> CHK["Chunk <= 250 chars"]
+        CHK --> SP["indic-speak<br/>6 workers"]
+        SP --> CER["indic-transcribe<br/>CER check, re-speak if CER above 0.45"]
+        CER --> AUD["Join WAV and ffmpeg<br/>-16 LUFS MP3"]
+    end
 
-  NAR --> LOC
-
-  subgraph LOC["Localize — per language in parallel"]
-    TR["indic-translate\n4 workers"] --> CHK["Chunk ≤250 chars"]
-    CHK --> SP["indic-speak\n6 workers"]
-    SP --> CER["indic-transcribe\nCER check → re-speak if > 0.45"]
-    CER --> AUD["Join WAV · ffmpeg\n-16 LUFS MP3"]
-  end
-
-  AUD --> OUT["out/lang/lesson.lang.mp3\nout/report.json"]
+    AUD --> OUT["out/lang/lesson.lang.mp3<br/>out/report.json"]
 ```
-
-
 
 | Stage | Module | What it does |
 |---|---|---|
@@ -76,25 +72,32 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-  A[Page images] --> B[Indic-OCR] -->|HTTP 502| B2[retry with larger max_tokens] --> B
-  B --> C[Drop furniture; flag doubtful blocks]
-  C --> D[Assemble elements and sections]
-  D --> E[Figures: vision LLM -> description]
-  E --> F[Narration batch via LLM]
-  F --> G{Valid? no symbols, word cap, no invented numbers, no Indic script}
-  G -- no, up to 2 retries with feedback --> F
-  G -- 413/429/truncated --> H[split batch] --> F
-  G -- still failing --> I[deterministic fallback narration]
-  G -- yes --> J[English narration script]
-  I --> J
-  J --> K[Indic-Translate per unit] -->|truncated| K2[sentence by sentence] --> L
-  K --> L[Chunk to <= 250 chars]
-  L --> M[Indic-Speak, primary voice]
-  M --> N[Indic-Transcribe -> CER]
-  N --> O{duration odd or CER > 0.45?}
-  O -- yes --> P[alternate voice, keep the better] --> Q
-  O -- no --> Q[Join with gaps, loudnorm, MP3]
-  Q --> R[report.json]
+    A["Page images"] --> B["Indic-OCR"]
+    B -->|"HTTP 502"| B2["Retry with larger max_tokens"]
+    B2 --> B
+    B --> C["Drop furniture; flag doubtful blocks"]
+    C --> D["Assemble elements and sections"]
+    D --> E["Figures: vision LLM to description"]
+    E --> F["Narration batch via LLM"]
+    F --> G{"Valid?"}
+    G -->|"No"| H["Retry with feedback, up to 2 times"]
+    H --> F
+    G -->|"413 or truncated"| I["Split batch"]
+    I --> F
+    G -->|"Still failing"| J["Deterministic fallback narration"]
+    G -->|"Yes"| K["English narration script"]
+    J --> K
+    K --> L["Indic-Translate per unit"]
+    L -->|"Truncated"| M["Sentence-by-sentence translation"]
+    M --> N["Chunk to <= 250 characters"]
+    L --> N
+    N --> O["Indic-Speak"]
+    O --> P["Indic-Transcribe to CER"]
+    P --> Q{"Duration odd or CER > 0.45?"}
+    Q -->|"Yes"| R["Alternate voice, keep better result"]
+    R --> S["Join with gaps, loudnorm, MP3"]
+    Q -->|"No"| S
+    S --> T["report.json"]
 ```
 
 ## Where the LLM is used, and why
@@ -115,15 +118,20 @@ flowchart TD
   angles to find angle A O C. Then use the given sum to find angle B O E, and finally use angles on a line."
 
 ## Bodhan models used
-Hosted API (`https://api.bodhan.ai/v1`): `indic-ocr` (table format markdown), `indic-translate`
-(`script: native`, `max_output_tokens`, truncation detected by `finish_reason`), `indic-speak` (voice by
-language, `style: educational lecture`, chunks of at most 250 characters), `indic-transcribe` (per chunk,
-under the 30 s limit).
+
+All core OCR, translation, speech synthesis, and verification calls are hosted at `https://api.bodhan.ai/v1`:
+
+| Model | Purpose | Configuration & Tuning | Error & Edge-Case Handling |
+|---|---|---|---|
+| `indic-ocr` | Text and layout block extraction from 150 DPI page scans | Markdown table format, 3 concurrent worker threads | Escalates `max_tokens` (2048 -> 4096 -> 8192) on HTTP 502; cached per page |
+| `indic-translate` | Translating English narration units into target Indian languages | `script: native`, `max_output_tokens: 2048`, 4 concurrent workers | Fallback to sentence-by-sentence translation if response is truncated |
+| `indic-speak` | Pedagogical speech synthesis across 13 Indian languages | `style: educational lecture`, sentence chunks <= 250 chars, 6 workers | Re-speaks with secondary voice if CER > 0.45 or duration is suspect |
+| `indic-transcribe` | Automated ASR back-transcription for CER audio verification | Chunks <= 30 seconds (within API input limit) | Non-fatal logging as `check_error` under 429 rate limits; cached on retry |
 
 ## Results
 Demo chapter: NCERT Class 9 Maths, Lines and Angles, **first 10 pages** processed (OCR cost limited the rest).
 
-| | Hindi | Tamil | Bengali |
+| Metric | Hindi | Tamil | Bengali |
 |---|---|---|---|
 | Narration units | 72 | 72 | 72 |
 | Audio chunks spoken | 117 of 117 | 141 of 141 | 118 of 118 |
@@ -158,4 +166,4 @@ Honest evaluation of current scope and production trade-offs:
 - **Deferred features:** Handwriting extraction, terminology glossary enforcement, multi-column reading order reconstruction, and per-sentence MP3 chapter markers.
 
 ## AI assistance
-Built with Claude Code (Claude Sonnet 5.5) and Antigravity for design, implementation and tests. 
+Built with Claude Code (Claude Sonnet 5.5) and Antigravity for design, implementation and tests.
