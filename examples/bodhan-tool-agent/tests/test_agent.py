@@ -23,6 +23,7 @@ import json
 import shutil
 import tempfile
 import unittest
+import wave
 from pathlib import Path
 from unittest.mock import MagicMock
 
@@ -144,11 +145,20 @@ class TestAgent(unittest.TestCase):
             "windows": [{"window_index": 0, "text": "नमस्ते दुनिया यह एक परीक्षण है", "suspicious": False, "duration_s": 5.0}],
             "cost_inr": 0.01,
         }
-        self.mock_tools.translate_text.return_value = {
-            "success": True,
-            "translated_text": "नमस्ते दुनिया",
-            "cost_inr": 0.005,
-        }
+        def default_mock_translate(text="", file_path="", target_language_code="hi", **kwargs):
+            if target_language_code == "en":
+                return {
+                    "success": True,
+                    "translated_text": "Hello world this is a test",
+                    "cost_inr": 0.005,
+                }
+            return {
+                "success": True,
+                "translated_text": "नमस्ते दुनिया यह एक परीक्षण है",
+                "cost_inr": 0.005,
+            }
+
+        self.mock_tools.translate_text.side_effect = default_mock_translate
 
     def tearDown(self):
         shutil.rmtree(self.temp_dir, ignore_errors=True)
@@ -917,6 +927,175 @@ class TestAgent(unittest.TestCase):
         # Must not be success because speech verification failed
         self.assertNotEqual(report.status, "success")
         self.assertTrue(any(v.verification_type == "speech_quality" and not v.passed for v in report.verification_results))
+
+    def test_translate_then_speak_prioritizes_produced_text_over_input_file(self):
+        """Tests that synthesize_speech prioritizes translated Hindi text over input file_path or source text."""
+        source_file = self.samples_dir / "short_text.txt"
+        source_file.write_text("The class starts at nine in the morning.", encoding="utf-8")
+
+        def mock_translate(text="", file_path="", target_language_code="hi", **kwargs):
+            if target_language_code == "hi":
+                return {"success": True, "translated_text": "कक्षा सुबह नौ बजे शुरू होती है।", "cost_inr": 0.005}
+            return {"success": True, "translated_text": "The class starts at nine in the morning.", "cost_inr": 0.005}
+
+        self.mock_tools.translate_text.side_effect = mock_translate
+
+        captured_synthesize_args = []
+
+        def mock_synthesize(text="", output_path="", language="hi", **kwargs):
+            captured_synthesize_args.append({"text": text, "language": language})
+            p = Path(output_path)
+            with wave.open(str(p), "wb") as w:
+                w.setnchannels(1)
+                w.setsampwidth(2)
+                w.setframerate(16000)
+                w.writeframes(b"\x00\x00" * 16000 * 2)
+            return {"success": True, "audio_path": str(p.resolve())}
+
+        self.mock_tools.synthesize_speech.side_effect = mock_synthesize
+
+        self.mock_tools.transcribe_audio.return_value = {
+            "success": True,
+            "transcript": "कक्षा सुबह नौ बजे शुरू होती है",
+            "duration_s": 2.0,
+            "windows_count": 1,
+            "detected_script": "hi",
+            "language_requested": "hi",
+            "cost_inr": 0.01,
+        }
+
+        # Step 2 passes file_path AND original English text
+        plan = {
+            "steps": [
+                {"tool": "translate_text", "args": {"file_path": str(source_file), "target_language_code": "hi"}},
+                {
+                    "tool": "synthesize_speech",
+                    "args": {
+                        "file_path": str(source_file),
+                        "text": "The class starts at nine in the morning.",
+                        "language": "hi",
+                    },
+                },
+            ]
+        }
+
+        agent = TaskAgent(
+            task="Translate short_text.txt into Hindi and speak it aloud as audio",
+            files=[source_file],
+            out_dir=self.out_dir,
+            settings=self.mock_settings,
+            llm_client=MockLLM(plan_dict=plan),
+            tools=self.mock_tools,
+        )
+        report = agent.run()
+
+        # synthesize_speech received the Hindi translation, NOT English
+        self.assertTrue(len(captured_synthesize_args) >= 1)
+        self.assertEqual(captured_synthesize_args[0]["text"], "कक्षा सुबह नौ बजे शुरू होती है।")
+
+        # Assumption note recorded explaining the override
+        self.assertTrue(
+            any(
+                "Chaining override" in a and "Prioritized previous step's generated text output" in a
+                for a in report.assumptions
+            )
+        )
+
+        self.assertEqual(report.status, "success")
+        self.assertTrue(
+            any(v.verification_type == "speech_back_transcription" and v.passed for v in report.verification_results)
+        )
+
+    def test_speech_verification_fails_on_wrong_script_or_language(self):
+        """Tests that English audio for a Hindi speech request fails speech verification."""
+        source_file = self.samples_dir / "short_text.txt"
+        source_file.write_text("The class starts at nine in the morning.", encoding="utf-8")
+
+        def mock_translate(text="", file_path="", target_language_code="hi", **kwargs):
+            return {"success": True, "translated_text": "कक्षा सुबह नौ बजे शुरू होती है।", "cost_inr": 0.005}
+
+        self.mock_tools.translate_text.side_effect = mock_translate
+
+        def mock_synthesize(output_path="", **kwargs):
+            p = Path(output_path)
+            with wave.open(str(p), "wb") as w:
+                w.setnchannels(1)
+                w.setsampwidth(2)
+                w.setframerate(16000)
+                w.writeframes(b"\x00\x00" * 16000 * 2)
+            return {"success": True, "audio_path": str(p.resolve())}
+
+        self.mock_tools.synthesize_speech.side_effect = mock_synthesize
+
+        # Back-transcription returns Latin/English text because audio was English
+        self.mock_tools.transcribe_audio.return_value = {
+            "success": True,
+            "transcript": "The class starts at nine in the morning.",
+            "duration_s": 2.0,
+            "cost_inr": 0.01,
+        }
+
+        plan = {
+            "steps": [
+                {"tool": "translate_text", "args": {"file_path": str(source_file), "target_language_code": "hi"}},
+                {"tool": "synthesize_speech", "args": {"language": "hi"}},
+            ]
+        }
+
+        agent = TaskAgent(
+            task="Translate short_text.txt into Hindi and speak it aloud",
+            files=[source_file],
+            out_dir=self.out_dir,
+            settings=self.mock_settings,
+            llm_client=MockLLM(plan_dict=plan),
+            tools=self.mock_tools,
+        )
+        report = agent.run()
+
+        # Speech verification fails because of script mismatch
+        self.assertNotEqual(report.status, "success")
+        failed_speech = [
+            v for v in report.verification_results
+            if v.verification_type == "speech_back_transcription" and not v.passed
+        ]
+        self.assertTrue(len(failed_speech) > 0)
+        self.assertIn("Latin script", failed_speech[0].notes)
+        self.assertIn("Devanagari script", failed_speech[0].notes)
+        self.assertTrue(any("Latin script" in f for f in report.failures))
+
+    def test_translation_verification_fails_when_echoing_source_or_wrong_script(self):
+        """Tests that a translation identical to the English source fails translation verification."""
+        source_file = self.samples_dir / "short_text.txt"
+        source_file.write_text("The class starts at nine in the morning.", encoding="utf-8")
+
+        # Mock translate echoes the exact English source text (untranslated)
+        def mock_translate_echo(text="", file_path="", target_language_code="hi", **kwargs):
+            return {"success": True, "translated_text": "The class starts at nine in the morning.", "cost_inr": 0.005}
+
+        self.mock_tools.translate_text.side_effect = mock_translate_echo
+
+        plan = {
+            "steps": [
+                {"tool": "translate_text", "args": {"file_path": str(source_file), "target_language_code": "hi"}},
+            ]
+        }
+
+        agent = TaskAgent(
+            task="Translate short_text.txt into Hindi",
+            files=[source_file],
+            out_dir=self.out_dir,
+            settings=self.mock_settings,
+            llm_client=MockLLM(plan_dict=plan),
+            tools=self.mock_tools,
+        )
+        report = agent.run()
+
+        self.assertEqual(report.status, "failed")
+        failed_trans = [v for v in report.verification_results if not v.passed]
+        self.assertTrue(len(failed_trans) > 0)
+        notes = " ".join(v.notes for v in failed_trans)
+        self.assertTrue("expected devanagari script" in notes.lower() or "exact copy" in notes.lower())
+        self.assertTrue(len(report.failures) > 0)
 
 
 if __name__ == "__main__":

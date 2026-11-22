@@ -366,6 +366,25 @@ class TaskAgent:
                 # Ensure file_path is resolved from input files if LLM missed it
                 self._bind_default_file_args(tool_name, args, valid_files)
 
+                # Repeated-call guard: reject identical calls before reference mutation
+                raw_call_sig = f"{tool_name}:{json.dumps(args, sort_keys=True)}"
+                if raw_call_sig in self.executed_calls:
+                    step += 1
+                    rej_trace = StepTrace(
+                        step=step,
+                        timestamp=datetime.now(timezone.utc).isoformat(),
+                        plan=f"Guard rejected repeated call to {tool_name}",
+                        tool=tool_name,
+                        arguments=args,
+                        result_summary="Rejected: Identical tool call was already completed. Skipping duplicate execution.",
+                        latency_ms=0,
+                        llm_latency_ms=0,
+                        tool_latency_ms=0,
+                        cost_inr=0.0,
+                    )
+                    self.tracer.record_step(rej_trace)
+                    continue
+
                 # Resolve step references and check for unresolved placeholders in plain code
                 resolved_ok, err_msg = self._resolve_step_references(tool_name, args, valid_files)
                 if not resolved_ok:
@@ -386,7 +405,7 @@ class TaskAgent:
                     self.failures.append(f"Step {step} ({tool_name}) failed: {err_msg}")
                     continue
 
-                # Repeated-call guard: reject identical calls
+                # Repeated-call guard: reject identical calls after reference resolution
                 call_sig = f"{tool_name}:{json.dumps(args, sort_keys=True)}"
                 if call_sig in self.executed_calls:
                     step += 1
@@ -412,6 +431,7 @@ class TaskAgent:
                 tool_latency_ms = int((time.perf_counter() - t_tool_start) * 1000)
                 step_cost = self.budget.spent_inr - cost_before
 
+                self.executed_calls[raw_call_sig] = tool_res
                 self.executed_calls[call_sig] = tool_res
 
                 trace = StepTrace(
@@ -441,6 +461,11 @@ class TaskAgent:
         # --------------------------------------------------------------------
         # Verify all produced artifacts against real source
         self._verify_all_artifacts()
+
+        # Collect failure notes from any failed verification into self.failures
+        for v in self.verification_results:
+            if not v.passed and v.notes not in self.failures:
+                self.failures.append(v.notes)
 
         # Check for verification failures and artifact states
         has_failed_verification = any(not v.passed for v in self.verification_results)
@@ -596,22 +621,57 @@ class TaskAgent:
                     if resolved_stem:
                         args["source_artifact_stem"] = resolved_stem
 
-        # 2. Chaining fallbacks when text argument was omitted or left empty
+        # 2. Chaining rule: within a plan, if an earlier step produced text (for example a translation),
+        # synthesize_speech and translate_text must use that produced text.
+        # A file_path pointing at an original input file must never override it.
+        # If both are present, use the step output and record a plain-code note in the report.
         if tool_name in ("translate_text", "synthesize_speech"):
-            current_text = args.get("text", "")
-            has_valid_file = bool(args.get("file_path") and Path(args["file_path"]).exists())
-            if (not current_text or not current_text.strip()) and not has_valid_file:
-                # If a previous step produced text, chain it
-                if self.last_produced_text and self.last_produced_text.strip():
-                    args["text"] = clean_ocr_text(self.last_produced_text)
+            if self.last_produced_text and self.last_produced_text.strip():
+                clean_prev_text = clean_ocr_text(self.last_produced_text)
+                fp = args.get("file_path")
+                curr_text = args.get("text", "")
+
+                if fp:
+                    # Both an earlier step output text AND a file_path are present.
+                    # Previous step output takes strict priority over input file.
+                    args["text"] = clean_prev_text
                     if self.last_artifact_stem:
                         args["source_artifact_stem"] = self.last_artifact_stem
-            # For synthesize_speech, if file_path was passed instead of text, read file content
-            elif tool_name == "synthesize_speech" and (not current_text or not current_text.strip()) and has_valid_file:
-                p = Path(args["file_path"])
-                if p.suffix.lower() in (".txt", ".md", ".json"):
-                    args["text"] = clean_ocr_text(p.read_text(encoding="utf-8"))
-                    args["source_artifact_stem"] = p.stem
+                    note = (
+                        f"Chaining override: Prioritized previous step's generated text output "
+                        f"over input file '{fp}' for {tool_name}."
+                    )
+                    if note not in self.assumptions:
+                        self.assumptions.append(note)
+                    args.pop("file_path", None)
+                elif not curr_text or not curr_text.strip():
+                    args["text"] = clean_prev_text
+                    if self.last_artifact_stem:
+                        args["source_artifact_stem"] = self.last_artifact_stem
+                else:
+                    # Check if curr_text matches an original input file's content
+                    is_input_text = any(
+                        curr_text.strip() == src.strip() for src in self.source_texts.values() if src.strip()
+                    )
+                    if is_input_text:
+                        args["text"] = clean_prev_text
+                        if self.last_artifact_stem:
+                            args["source_artifact_stem"] = self.last_artifact_stem
+                        note = (
+                            f"Chaining override: Prioritized previous step's generated text output "
+                            f"over original input text for {tool_name}."
+                        )
+                        if note not in self.assumptions:
+                            self.assumptions.append(note)
+            else:
+                # No earlier step produced text (first step in plan)
+                curr_text = args.get("text", "")
+                has_valid_file = bool(args.get("file_path") and Path(args["file_path"]).exists())
+                if tool_name == "synthesize_speech" and (not curr_text or not curr_text.strip()) and has_valid_file:
+                    p = Path(args["file_path"])
+                    if p.suffix.lower() in (".txt", ".md", ".json"):
+                        args["text"] = clean_ocr_text(p.read_text(encoding="utf-8"))
+                        args["source_artifact_stem"] = p.stem
 
         # 3. Clean OCR page markers from text if present
         if args.get("text"):
@@ -638,13 +698,18 @@ class TaskAgent:
 
         if tool_name == "translate_text":
             # If an input text file exists, bind its real file_path so the real source is translated
-            for f in valid_files:
-                if f.suffix.lower() in (".txt", ".md", ".json"):
-                    if not args.get("file_path") or not Path(args.get("file_path", "")).exists():
-                        args["file_path"] = str(f.resolve())
-                    break
+            # ONLY IF no earlier step produced text!
+            if not self.last_produced_text:
+                for f in valid_files:
+                    if f.suffix.lower() in (".txt", ".md", ".json"):
+                        if not args.get("file_path") or not Path(args.get("file_path", "")).exists():
+                            args["file_path"] = str(f.resolve())
+                        break
             if self.target_language and not args.get("target_language_code"):
                 args["target_language_code"] = self.target_language
+        elif tool_name == "synthesize_speech":
+            if (self.target_language or self.language_requested) and not args.get("language"):
+                args["language"] = self.target_language or self.language_requested
         elif tool_name == "transcribe_audio":
             if not args.get("file_path") or not Path(args.get("file_path", "")).exists():
                 for f in valid_files:
@@ -881,6 +946,8 @@ class TaskAgent:
 
                 # Find upstream source text
                 up_info = self.upstream_sources.get(art_path.name, {})
+                if up_info.get("target_lang"):
+                    target_lang = up_info["target_lang"]
                 upstream_text = up_info.get("source_text", "").strip()
                 if not upstream_text:
                     for src_text in self.source_texts.values():
@@ -899,14 +966,74 @@ class TaskAgent:
                     )
                     continue
 
-                # 1. Back-translate artifact to English
+                if not content:
+                    self.verification_results.append(
+                        VerificationResult(
+                            artifact=art_path.name,
+                            verification_type="source_fidelity",
+                            passed=False,
+                            notes="Translation verification failed: Output translation artifact is empty.",
+                        )
+                    )
+                    continue
+
+                # 1. Output script must match target language (Requirement 4)
+                expected_script = EXPECTED_SCRIPT_FOR_LANG.get(target_lang, target_lang)
+                expected_script_name = SCRIPT_NAMES.get(expected_script, expected_script)
+                detected_target_script = detect_script_language(content)
+                detected_script_name = SCRIPT_NAMES.get(detected_target_script, detected_target_script or "Unknown")
+
+                if detected_target_script != expected_script:
+                    self.verification_results.append(
+                        VerificationResult(
+                            artifact=art_path.name,
+                            verification_type="target_script_matching",
+                            passed=False,
+                            notes=(
+                                f"Translation verification failed: Target language '{target_lang}' expected "
+                                f"{expected_script_name} script, but translated text is in "
+                                f"{detected_script_name} script ({detected_target_script})."
+                            ),
+                        )
+                    )
+                    continue
+
+                # 2. Verify that the translation is not simply an exact copy of the source (Requirement 4)
+                is_exact_copy = (
+                    content.strip().lower() == upstream_text.strip().lower()
+                    or any(content.strip().lower() == src.strip().lower() for src in self.source_texts.values() if src.strip())
+                )
+                if is_exact_copy and target_lang != "en":
+                    self.verification_results.append(
+                        VerificationResult(
+                            artifact=art_path.name,
+                            verification_type="source_fidelity",
+                            passed=False,
+                            notes="Translation verification failed: Translated text is an exact copy of the source text (untranslated).",
+                        )
+                    )
+                    continue
+                elif content.strip().lower() == upstream_text.strip().lower() and target_lang == "en":
+                    detected_up_script = detect_script_language(upstream_text)
+                    if detected_up_script != "en":
+                        self.verification_results.append(
+                            VerificationResult(
+                                artifact=art_path.name,
+                                verification_type="source_fidelity",
+                                passed=False,
+                                notes="Translation verification failed: Translated text is an exact copy of the non-English source text.",
+                            )
+                        )
+                        continue
+
+                # 3. Back-translate artifact to English
                 if target_lang == "en":
                     back_en = content
                 else:
                     back_res = self.tools.translate_text(text=content, target_language_code="en")
                     back_en = back_res.get("translated_text", "").strip()
 
-                # 2. Convert upstream text to English for comparison
+                # 4. Convert upstream text to English for comparison
                 detected_up_script = detect_script_language(upstream_text)
                 if detected_up_script == "en":
                     source_en = upstream_text
@@ -941,6 +1068,9 @@ class TaskAgent:
                 dur = get_audio_duration(art_path)
                 up_info = self.upstream_sources.get(art_name, {})
                 source_text = up_info.get("source_text", "").strip()
+                speech_lang = up_info.get("lang") or getattr(self, "target_language", None) or getattr(self, "audio_language", None) or "hi"
+                expected_script = EXPECTED_SCRIPT_FOR_LANG.get(speech_lang, speech_lang)
+                expected_script_name = SCRIPT_NAMES.get(expected_script, expected_script)
 
                 if dur <= 0.2:
                     self.verification_results.append(
@@ -949,6 +1079,17 @@ class TaskAgent:
                             verification_type="speech_quality",
                             passed=False,
                             notes=f"Speech verification failed: Audio duration is too short or empty ({dur:.2f}s).",
+                        )
+                    )
+                    continue
+
+                if not source_text:
+                    self.verification_results.append(
+                        VerificationResult(
+                            artifact=art_name,
+                            verification_type="speech_quality",
+                            passed=False,
+                            notes="Speech verification failed: No intended speech text recorded for verification.",
                         )
                     )
                     continue
@@ -969,10 +1110,27 @@ class TaskAgent:
                         )
                         continue
 
+                # Check script of the text that was supposed to be spoken
+                source_script = detect_script_language(source_text)
+                if source_script != expected_script:
+                    self.verification_results.append(
+                        VerificationResult(
+                            artifact=art_name,
+                            verification_type="speech_quality",
+                            passed=False,
+                            notes=(
+                                f"Speech verification failed: Intended speech text for '{speech_lang}' is in "
+                                f"{SCRIPT_NAMES.get(source_script, source_script or 'Unknown')} script, "
+                                f"expected {expected_script_name} script."
+                            ),
+                        )
+                    )
+                    continue
+
                 # Back-transcribe with indic-transcribe (capped at ₹0.30 and budget respected)
                 est_cost = calculate_transcribe_cost(dur)
                 if est_cost <= 0.30 and self.budget.remaining_inr >= est_cost:
-                    back_trans = self.tools.transcribe_audio(str(art_path))
+                    back_trans = self.tools.transcribe_audio(str(art_path), language=speech_lang)
                     transcript = back_trans.get("transcript", "").strip()
                     if not transcript:
                         self.verification_results.append(
@@ -984,33 +1142,48 @@ class TaskAgent:
                             )
                         )
                     else:
-                        src_words = source_text.split()
-                        trans_words = transcript.split()
-                        ratio = len(trans_words) / float(len(src_words)) if len(src_words) > 0 else 1.0
-                        if ratio < 0.25 or ratio > 3.5:
+                        detected_trans_script = detect_script_language(transcript)
+                        if detected_trans_script != expected_script:
                             self.verification_results.append(
                                 VerificationResult(
                                     artifact=art_name,
                                     verification_type="speech_back_transcription",
                                     passed=False,
                                     notes=(
-                                        f"Speech verification failed back-transcription length check: "
-                                        f"source has {len(src_words)} words, transcript has {len(trans_words)} words."
+                                        f"Speech verification failed: Audio was expected to be spoken in '{speech_lang}' "
+                                        f"({expected_script_name} script), but back-transcription returned text in "
+                                        f"{SCRIPT_NAMES.get(detected_trans_script, detected_trans_script or 'Unknown')} script: '{transcript[:100]}'."
                                     ),
                                 )
                             )
                         else:
-                            self.verification_results.append(
-                                VerificationResult(
-                                    artifact=art_name,
-                                    verification_type="speech_back_transcription",
-                                    passed=True,
-                                    notes=(
-                                        f"Verified speech audio ({dur:.2f}s, {len(source_text)} chars) "
-                                        f"with back-transcription fidelity ({len(transcript)} chars)."
-                                    ),
+                            src_words = source_text.split()
+                            trans_words = transcript.split()
+                            ratio = len(trans_words) / float(len(src_words)) if len(src_words) > 0 else 1.0
+                            if ratio < 0.25 or ratio > 3.5:
+                                self.verification_results.append(
+                                    VerificationResult(
+                                        artifact=art_name,
+                                        verification_type="speech_back_transcription",
+                                        passed=False,
+                                        notes=(
+                                            f"Speech verification failed back-transcription length check: "
+                                            f"source has {len(src_words)} words, transcript has {len(trans_words)} words (ratio={ratio:.2f})."
+                                        ),
+                                    )
                                 )
-                            )
+                            else:
+                                self.verification_results.append(
+                                    VerificationResult(
+                                        artifact=art_name,
+                                        verification_type="speech_back_transcription",
+                                        passed=True,
+                                        notes=(
+                                            f"Verified speech audio ({dur:.2f}s, {len(source_text)} chars) in {expected_script_name} script "
+                                            f"with back-transcription fidelity ({len(transcript)} chars)."
+                                        ),
+                                    )
+                                )
                 else:
                     self.verification_results.append(
                         VerificationResult(
