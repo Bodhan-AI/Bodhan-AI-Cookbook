@@ -378,3 +378,23 @@ def test_usage_reports_cache_hits(kit, api):
     k.translate_text("hi", text="hello")
     u = k.get_usage()
     assert u["calls"] == 2 and u["cached_calls"] == 1 and u["total_inr"] >= 0
+    
+
+
+# ---- read_text ----------------------------------------------------------------------------
+def test_read_text_slices_and_reports_whether_more_remains(kit, tmp_path):
+    f = tmp_path / "long.txt"
+    f.write_text("abcdefghij" * 100, encoding="utf-8")  # 1000 chars
+    k = kit()
+    first = k.read_text(str(f), start=0, max_chars=300)
+    assert first["text"] == "abcdefghij" * 30 and first["has_more"] is True and first["total_chars"] == 1000
+    last = k.read_text(str(f), start=first["end"], max_chars=8000)
+    assert last["end"] == 1000 and last["has_more"] is False
+
+
+def test_read_text_only_reads_text_files(kit, tmp_path):
+    exe = tmp_path / "tool.exe"
+    exe.write_bytes(b"MZ")
+    with pytest.raises(BodhanError) as e:
+        kit().read_text(str(exe))
+    assert e.value.code == "unsupported_file"
