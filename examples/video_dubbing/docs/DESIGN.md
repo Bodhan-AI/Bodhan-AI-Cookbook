@@ -78,7 +78,8 @@ flowchart TD
     E3 -- yes --> SP
     SP[split merges at segment boundaries that are sentence ends] --> F
     E4 --> F[LLM glossary, filtered to terms really in the text]
-    F --> G[voice per speaker · LLM picks a style]
+    F --> RG[LLM: English gloss for romanized Indian-language phrases, checked]
+    RG --> G[voice per speaker · LLM picks a style]
     G --> L{{for each language, in parallel and isolated}}
     L --> T1[Indic-Translate unit] --> T2[back-translate to English]
     T2 --> T3{checks: script, numbers,<br/>glossary terms in back-translation}
@@ -106,6 +107,7 @@ flowchart TD
 |---|---|---|---|
 | Transcript repair | punctuation, numbers as digits, obvious mishearings, which fragments form one sentence, what is not narration | ids exact and in order, no merge across pauses over 1.5 s, units of 25 s or less, word overlap with the raw ASR of at least 0.7 | re-ask once with the error list, then raw segments with basic cleanup |
 | Glossary | which names, acronyms, technical terms and figure labels must stay consistent | each term must literally occur in the transcript | user glossary only |
+| Romanized phrases | which words are romanized Indian-language speech (not names, foods, festivals or loanwords), their English meaning, and their language | numbers and glossary terms kept; ≥50% of the line's words unchanged; length plausible | the line keeps its original wording |
 | Speaking style | the Indic-Speak style matching the genre (a lesson → "educational lecture") | must be one of the 14 documented styles | neutral voice |
 | Translation judge | per unit, whether the back-translation still means the source (ok / minor / major) | verdicts must reference known ids; deterministic checks run regardless | deterministic checks alone decide |
 | Condensing | a shorter English wording of a line that runs long | shorter by at least 3%, same numbers, same glossary terms; then re-translated and re-checked | gentle stretch up to 1.2×, then the overrun is reported |

@@ -10,11 +10,11 @@ import json
 import logging
 import time
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
 from typing import Any
 
-from . import chunking, glossary, media, mix, report, vad, voices
+from . import chunking, glossary, media, mix, report, romanized, vad, voices
 from .bodhan import BodhanClient
 from .cache import DiskCache
 from .config import Settings
@@ -129,6 +129,8 @@ def run(opts: RunOptions, settings: Settings, client: BodhanClient | None = None
     repair_params = RepairParams()
     units, repair_report = repair_transcript(llm, segments, repair_params)
     terms = glossary.build_glossary(llm, units, user_terms)
+    # Romanized Indian-language phrases ("ekdum mast") get an English gloss for other languages.
+    glossed = romanized.add_glosses(llm, units, terms)
     stage_s["repair_and_glossary"] = time.perf_counter() - t0
 
     write_json(opts.out / "transcript.en.json", {
@@ -144,7 +146,7 @@ def run(opts: RunOptions, settings: Settings, client: BodhanClient | None = None
     log.info("english transcript ready", extra={
         "stage": "repair", "raw_segments": len(segments), "units": len(units),
         "dropped": sum(u.dropped is not None for u in units),
-        "fallback_batches": repair_report.fell_back, "glossary_terms": len(terms),
+        "fallback_batches": repair_report.fell_back, "glossary_terms": len(terms), "romanized_glosses": glossed,
     })
 
     # One voice per speaker: pitch decides male/female per unit (with hysteresis).
@@ -220,18 +222,23 @@ def run_language(job: LanguageJob, lang: str) -> dict[str, Any]:
     timings: dict[str, float] = {}
     translated = LanguageResult(lang=lang)
     lines: list[DubLine] = []
+    glossed_for_lang = 0
     mixed: mix.MixResult | None = None
     stage = "translate"
     try:
         t0 = time.perf_counter()
-        translated = job.translator.translate_language(job.units, lang)
+        # Each language translates the English meant for it: a line's romanized phrases stay as
+        # spoken for their own language and are glossed into English for the others.
+        lang_units = [replace(u, text=romanized.text_for(u, lang)) for u in job.units]
+        glossed_for_lang = sum(lu.text != u.text for lu, u in zip(lang_units, job.units, strict=True))
+        translated = job.translator.translate_language(lang_units, lang)
         timings["translate"] = time.perf_counter() - t0
 
         stage, t0 = "synthesize", time.perf_counter()
         speaker_voice = {k: (voices.voice_for_speaker(lang, sp, job.voice_cfg), sp.gender)
                          for k, sp in job.speakers.items()}
         voice_of = {u.id: speaker_voice.get(u.speaker, speaker_voice[min(speaker_voice)]) for u in job.units}
-        lines = job.synthesizer.synthesize_language(translated.units, job.units, voice_of, lang,
+        lines = job.synthesizer.synthesize_language(translated.units, lang_units, voice_of, lang,
                                                     job.info.duration_s)
         timings["synthesize"] = time.perf_counter() - t0
 
@@ -257,6 +264,7 @@ def run_language(job: LanguageJob, lang: str) -> dict[str, Any]:
                                      speech_lufs=mixed.speech_lufs if mixed else None, timings=timings,
                                      voice_bleed_s=mixed.voice_bleed_s if mixed else None,
                                      segment_starts=job.segment_starts)
+    summary["romanized_glosses_used"] = glossed_for_lang
     write_json(out_dir / f"segments.{lang}.json", {
         "lang": lang, "summary": summary,
         "segments": [ln.to_dict() for ln in lines] if lines else [u.to_dict() for u in translated.units],

@@ -52,6 +52,8 @@ class Unit:
     repaired_by: str = "llm"  # "llm" or "fallback"
     dropped: str | None = None  # reason, when the LLM judged this not to be narration
     speaker: int = 0
+    gloss: str | None = None  # text with romanized Indian-language phrases in plain English (romanized.py)
+    gloss_lang: str | None = None  # language of those phrases; it translates the original wording instead
     fidelity: float = 1.0
 
     def to_dict(self) -> dict:
