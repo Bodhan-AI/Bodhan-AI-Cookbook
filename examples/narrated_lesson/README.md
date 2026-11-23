@@ -6,6 +6,10 @@
 **Languages shown:** Hindi, Tamil, Bengali + Indic-source demo (Hindi → Konkani)  
 **Format:** CLI
 
+**Sample narration**
+
+https://github.com/user-attachments/assets/24676ec6-b759-413b-a9e8-03c71860c78e
+
 ## What it does
 
 Point the CLI at a scanned PDF (or a folder of page images). The pipeline reads pages with Indic-OCR, cleans layout, builds one lesson markdown, translates it, writes a narration script, speaks each section to MP3, then back-transcribes to catch bad audio.
