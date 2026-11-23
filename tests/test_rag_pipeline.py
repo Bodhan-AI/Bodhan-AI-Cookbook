@@ -13,6 +13,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from langchain_core.documents import Document
+from langchain_core.embeddings import Embeddings
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import AIMessage, BaseMessage
 from langchain_core.outputs import ChatGeneration, ChatResult
@@ -58,9 +59,11 @@ from examples.rag.generation import (  # noqa: E402
 from examples.rag.ingestion import ingest_documents  # noqa: E402
 from examples.rag.retrieval import get_retriever, retrieve_passages  # noqa: E402
 from examples.rag.vector_store import (  # noqa: E402
+    StaleChunkCleanupError,
     count_prefixed_tokens,
     create_vector_store,
     generate_chunk_id,
+    get_source_identity,
     get_vector_store,
     index_documents,
     normalize_metadata_for_chroma,
@@ -777,15 +780,17 @@ def test_chroma_deterministic_document_ids() -> None:
     id1 = generate_chunk_id("notices/scholarship.pdf", 1, 1, "Sample text")
     id2 = generate_chunk_id("notices/scholarship.pdf", 1, 1, "Sample text")
     assert id1 == id2
-    assert id1.startswith("scholarship.pdf:p1:c1:")
+    assert id1.startswith("scholarship.pdf_")
+    assert ":p1:c1:" in id1
 
     # Different content -> different hash
     id3 = generate_chunk_id("notices/scholarship.pdf", 1, 1, "Different text")
     assert id1 != id3
 
-    # Fallback when source is None
+    # Fallback when source is None -> content-derived fingerprint
     id_fallback = generate_chunk_id(None, None, 1, "Sample text")
-    assert id_fallback.startswith("unknown_source:p0:c1:")
+    assert id_fallback.startswith("content_doc_")
+    assert ":p0:c1:" in id_fallback
 
 
 def test_chroma_duplicate_ingestion_prevention(tmp_path: Path, fake_embeddings: DeterministicFakeEmbeddings) -> None:
@@ -862,16 +867,348 @@ def test_chroma_missing_dependency_raises(tmp_path: Path) -> None:
             get_vector_store(provider="chroma", persist_directory=str(tmp_path / "err"))
 
 
-def test_chroma_invalid_configuration(tmp_path: Path) -> None:
+def test_chroma_invalid_configuration(tmp_path: Path, fake_embeddings: DeterministicFakeEmbeddings) -> None:
     """Verify ValueError is raised on empty collection name, empty persist directory, or unknown provider."""
     with pytest.raises(ValueError, match="CHROMA_COLLECTION_NAME cannot be empty"):
-        get_vector_store(provider="chroma", collection_name="", persist_directory=str(tmp_path / "bad"))
+        get_vector_store(
+            provider="chroma",
+            embeddings=fake_embeddings,
+            collection_name="",
+            persist_directory=str(tmp_path / "bad"),
+        )
 
     with pytest.raises(ValueError, match="CHROMA_PERSIST_DIRECTORY cannot be empty"):
-        get_vector_store(provider="chroma", collection_name="col", persist_directory="  ")
+        get_vector_store(
+            provider="chroma",
+            embeddings=fake_embeddings,
+            collection_name="col",
+            persist_directory="  ",
+        )
 
     with pytest.raises(ValueError, match="Unsupported VECTOR_STORE_PROVIDER"):
         get_vector_store(provider="pgvector")
+
+
+def test_chroma_missing_embeddings_raises(tmp_path: Path) -> None:
+    """Verify Chroma rejects embeddings=None with an actionable ValueError."""
+    with pytest.raises(ValueError, match="An explicit LangChain Embeddings instance"):
+        get_vector_store(
+            provider="chroma",
+            embeddings=None,
+            persist_directory=str(tmp_path / "no_emb"),
+        )
+
+    # In contrast, InMemory accepts embeddings=None (or mock)
+    inmem_store = get_vector_store(provider="inmemory", embeddings=None)
+    assert inmem_store is not None
+
+
+def test_chroma_e5_adapter_used_for_doc_and_query_embedding(tmp_path: Path) -> None:
+    """Verify supplied E5 adapter is used for both document and query embedding operations."""
+    call_log: list[str] = []
+
+    class MockBaseEmbeddings(Embeddings):
+        def embed_documents(self, texts: list[str]) -> list[list[float]]:
+            call_log.append("embed_documents")
+            for text in texts:
+                assert text.startswith("passage: ")
+            return [[0.1] * 384 for _ in texts]
+
+        def embed_query(self, text: str) -> list[float]:
+            call_log.append("embed_query")
+            assert text.startswith("query: ")
+            return [0.1] * 384
+
+    base_emb = MockBaseEmbeddings()
+    adapter = E5EmbeddingsAdapter(base_embeddings=base_emb)
+    vs = get_vector_store(
+        provider="chroma",
+        embeddings=adapter,
+        persist_directory=str(tmp_path / "e5_calls"),
+    )
+    docs = [Document(page_content="Scholarship eligibility notice text", metadata={"source": "notice.pdf", "page_number": 1})]
+    index_documents(vs, docs)
+    assert "embed_documents" in call_log
+
+    vs.similarity_search("scholarship", k=1)
+    assert "embed_query" in call_log
+
+
+def test_chroma_embedding_failure_preserves_old_content(tmp_path: Path, fake_embeddings: DeterministicFakeEmbeddings) -> None:
+    """Verify that if embedding generation fails during update, previous documents are completely preserved."""
+    db_dir = tmp_path / "chroma_emb_fail"
+    vs = get_vector_store(
+        provider="chroma",
+        embeddings=fake_embeddings,
+        persist_directory=str(db_dir),
+    )
+    v1_docs = [
+        Document(page_content="Original valid document content", metadata={"source": "doc_stable.pdf", "page_number": 1}),
+    ]
+    index_documents(vs, v1_docs)
+    assert vs._collection.count() == 1
+
+    class FailingEmbeddings(DeterministicFakeEmbeddings):
+        def embed_documents(self, texts: list[str]) -> list[list[float]]:
+            raise RuntimeError("Simulated network outage during embedding generation")
+
+    failing_vs = get_vector_store(
+        provider="chroma",
+        embeddings=FailingEmbeddings(vocab_size=384),
+        persist_directory=str(db_dir),
+    )
+    v2_docs = [
+        Document(page_content="Replacement content that fails to embed", metadata={"source": "doc_stable.pdf", "page_number": 1}),
+    ]
+
+    with pytest.raises(RuntimeError, match="Simulated network outage during embedding generation"):
+        index_documents(failing_vs, v2_docs)
+
+    reopened_vs = get_vector_store(
+        provider="chroma",
+        embeddings=fake_embeddings,
+        persist_directory=str(db_dir),
+    )
+    assert reopened_vs._collection.count() == 1
+    res = reopened_vs.similarity_search("Original valid document", k=2)
+    assert len(res) == 1
+    assert "Original valid document content" in res[0].page_content
+
+
+def test_chroma_upsert_failure_preserves_old_content(
+    tmp_path: Path,
+    fake_embeddings: DeterministicFakeEmbeddings,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Verify that if add_documents fails, old documents remain preserved and are not deleted."""
+    db_dir = tmp_path / "chroma_upsert_fail"
+    vs = get_vector_store(
+        provider="chroma",
+        embeddings=fake_embeddings,
+        persist_directory=str(db_dir),
+    )
+    v1_docs = [
+        Document(page_content="Stable original chunk 1", metadata={"source": "doc_upsert.pdf", "page_number": 1}),
+        Document(page_content="Stable original chunk 2", metadata={"source": "doc_upsert.pdf", "page_number": 1}),
+    ]
+    index_documents(vs, v1_docs)
+    assert vs._collection.count() == 2
+
+    def mock_failing_add(*args: Any, **kwargs: Any) -> list[str]:
+        raise RuntimeError("Simulated Chroma database disk write failure during upsert")
+
+    monkeypatch.setattr(vs, "add_documents", mock_failing_add)
+
+    v2_docs = [
+        Document(page_content="New chunk replacing old ones", metadata={"source": "doc_upsert.pdf", "page_number": 1}),
+    ]
+    with pytest.raises(RuntimeError, match="Simulated Chroma database disk write failure"):
+        index_documents(vs, v2_docs)
+
+    monkeypatch.undo()
+    assert vs._collection.count() == 2
+    res = vs.similarity_search("Stable original", k=5)
+    assert len(res) == 2
+
+
+def test_chroma_stale_cleanup_failure_surfaces_diagnostic(
+    tmp_path: Path,
+    fake_embeddings: DeterministicFakeEmbeddings,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Verify that if stale deletion fails, StaleChunkCleanupError is raised and new documents remain intact."""
+    db_dir = tmp_path / "chroma_cleanup_fail"
+    vs = get_vector_store(
+        provider="chroma",
+        embeddings=fake_embeddings,
+        persist_directory=str(db_dir),
+    )
+    v1_docs = [
+        Document(page_content="V1 chunk 1 to be replaced", metadata={"source": "cleanup.pdf", "page_number": 1}),
+        Document(page_content="V1 chunk 2 to be replaced", metadata={"source": "cleanup.pdf", "page_number": 1}),
+    ]
+    index_documents(vs, v1_docs)
+    assert vs._collection.count() == 2
+
+    def mock_failing_delete(*args: Any, **kwargs: Any) -> None:
+        raise RuntimeError("Simulated failure deleting stale records from Chroma index")
+
+    monkeypatch.setattr(vs._collection, "delete", mock_failing_delete)
+
+    v2_docs = [
+        Document(page_content="V2 unified new content", metadata={"source": "cleanup.pdf", "page_number": 1}),
+    ]
+    with pytest.raises(StaleChunkCleanupError) as exc_info:
+        index_documents(vs, v2_docs)
+
+    assert "Failed to delete" in str(exc_info.value)
+    assert len(exc_info.value.stale_ids) == 2
+
+    monkeypatch.undo()
+    assert vs._collection.count() == 3
+    res = vs.similarity_search("V2 unified", k=1)
+    assert len(res) == 1
+    assert "V2 unified new content" in res[0].page_content
+
+
+def test_chroma_partial_page_update_preserves_unrelated_pages(tmp_path: Path, fake_embeddings: DeterministicFakeEmbeddings) -> None:
+    """Verify updating only page 2 of a multi-page document preserves page 1 chunks untouched."""
+    db_dir = tmp_path / "chroma_partial_pages"
+    vs = get_vector_store(
+        provider="chroma",
+        embeddings=fake_embeddings,
+        persist_directory=str(db_dir),
+    )
+    initial_docs = [
+        Document(page_content="Page 1 Notice rules and eligibility", metadata={"source": "circular.pdf", "page_number": 1}),
+        Document(page_content="Page 1 Important dates and deadlines", metadata={"source": "circular.pdf", "page_number": 1}),
+        Document(page_content="Page 2 Stale fee structure paragraph 1", metadata={"source": "circular.pdf", "page_number": 2}),
+        Document(page_content="Page 2 Stale fee structure paragraph 2", metadata={"source": "circular.pdf", "page_number": 2}),
+    ]
+    index_documents(vs, initial_docs)
+    assert vs._collection.count() == 4
+
+    page_2_update = [
+        Document(page_content="Page 2 Revised fee structure: completely updated", metadata={"source": "circular.pdf", "page_number": 2}),
+    ]
+    index_documents(vs, page_2_update)
+
+    assert vs._collection.count() == 3
+
+    p1_results = vs.similarity_search("Notice rules and eligibility", k=5)
+    assert any("Page 1 Notice rules" in r.page_content for r in p1_results)
+
+    p2_results = vs.similarity_search("Revised fee structure", k=5)
+    assert len(p2_results) >= 1
+    assert "Revised fee structure: completely updated" in p2_results[0].page_content
+    assert not any("Stale fee structure" in r.page_content for r in p2_results)
+
+
+def test_source_identity_different_directories_same_filename(tmp_path: Path, fake_embeddings: DeterministicFakeEmbeddings) -> None:
+    """Verify files with identical filenames in different directories produce distinct identities and no collisions."""
+    source_a = "/notices/2025/scholarship.pdf"
+    source_b = "/notices/2026/scholarship.pdf"
+
+    ident_a = get_source_identity(metadata={"source": source_a}, content="text")
+    ident_b = get_source_identity(metadata={"source": source_b}, content="text")
+    assert ident_a != ident_b
+    assert ident_a.startswith("scholarship.pdf_")
+    assert ident_b.startswith("scholarship.pdf_")
+
+    id_a = generate_chunk_id(source_a, 1, 1, "identical text")
+    id_b = generate_chunk_id(source_b, 1, 1, "identical text")
+    assert id_a != id_b
+
+    db_dir = tmp_path / "chroma_diff_dirs"
+    vs = get_vector_store(provider="chroma", embeddings=fake_embeddings, persist_directory=str(db_dir))
+    doc_a = Document(page_content="2025 notice content", metadata={"source": source_a, "page_number": 1})
+    doc_b = Document(page_content="2026 notice content", metadata={"source": source_b, "page_number": 1})
+    index_documents(vs, [doc_a, doc_b])
+    assert vs._collection.count() == 2
+
+    doc_b_updated = Document(page_content="2026 notice updated content", metadata={"source": source_b, "page_number": 1})
+    index_documents(vs, [doc_b_updated])
+    assert vs._collection.count() == 2
+
+    res_a = vs.similarity_search("2025 notice", k=2)
+    assert any(r.metadata.get("source") == source_a for r in res_a)
+
+
+def test_source_identity_same_content_different_source() -> None:
+    """Verify distinct source identities and chunk IDs when identical content appears in different documents."""
+    text = "Students must maintain minimum 75% attendance to remain eligible."
+    ident1 = get_source_identity(metadata={"source": "dept_math/rules.pdf"}, content=text)
+    ident2 = get_source_identity(metadata={"source": "dept_physics/rules.pdf"}, content=text)
+    assert ident1 != ident2
+
+    cid1 = generate_chunk_id("dept_math/rules.pdf", 1, 1, text)
+    cid2 = generate_chunk_id("dept_physics/rules.pdf", 1, 1, text)
+    assert cid1 != cid2
+
+
+def test_source_identity_missing_source_fallback() -> None:
+    """Verify missing source metadata uses content fingerprint to avoid colliding unrelated documents."""
+    ident1 = get_source_identity(metadata={}, content="Unique notice content alpha")
+    ident2 = get_source_identity(metadata={}, content="Different notice content beta")
+    assert ident1 != ident2
+    assert ident1.startswith("content_doc_")
+    assert ident2.startswith("content_doc_")
+
+
+def test_source_identity_explicit_source_id_precedence() -> None:
+    """Verify explicit source_id or document_id takes precedence over path derivation."""
+    meta_src_id = {"source_id": "custom_uuid_001", "source": "/long/path/file.pdf"}
+    assert get_source_identity(meta_src_id, "text") == "custom_uuid_001"
+
+    meta_doc_id = {"document_id": "doc_id_999", "source": "/long/path/file.pdf"}
+    assert get_source_identity(meta_doc_id, "text") == "doc_id_999"
+
+
+def test_source_identity_deterministic_across_processes() -> None:
+    """Verify get_source_identity is strictly deterministic across multiple invocations."""
+    meta = {"source": "/var/data/academic_calendar.pdf"}
+    results = [get_source_identity(meta, "calendar details") for _ in range(10)]
+    assert len(set(results)) == 1
+
+
+def test_chroma_citation_provenance_remains_distinct(tmp_path: Path, fake_embeddings: DeterministicFakeEmbeddings) -> None:
+    """Verify retrieved documents preserve exact source paths for citations."""
+    db_dir = tmp_path / "chroma_citations"
+    vs = get_vector_store(provider="chroma", embeddings=fake_embeddings, persist_directory=str(db_dir))
+    doc1 = Document(page_content="First notice text", metadata={"source": "notices/2025/doc.pdf", "page_number": 1})
+    doc2 = Document(page_content="Second notice text", metadata={"source": "notices/2026/doc.pdf", "page_number": 1})
+    index_documents(vs, [doc1, doc2])
+
+    res = vs.similarity_search("First notice", k=2)
+    sources = {r.metadata.get("source") for r in res}
+    assert "notices/2025/doc.pdf" in sources
+
+
+def test_chroma_new_cosine_collection(tmp_path: Path, fake_embeddings: DeterministicFakeEmbeddings) -> None:
+    """Verify new Chroma collection configures and persists cosine distance."""
+    db_dir = tmp_path / "chroma_new_cosine"
+    vs = get_vector_store(provider="chroma", embeddings=fake_embeddings, persist_directory=str(db_dir))
+    col = vs._collection
+    assert col.configuration.get("hnsw", {}).get("space") == "cosine"
+    assert col.metadata.get("hnsw:space") == "cosine"
+
+
+def test_chroma_reopen_cosine_collection_succeeds(tmp_path: Path, fake_embeddings: DeterministicFakeEmbeddings) -> None:
+    """Verify reopening an existing cosine collection succeeds and query behavior works as expected."""
+    db_dir = tmp_path / "chroma_reopen"
+    vs1 = get_vector_store(provider="chroma", embeddings=fake_embeddings, persist_directory=str(db_dir))
+    index_documents(vs1, [Document(page_content="Persistent queryable content", metadata={"source": "memo.pdf", "page_number": 1})])
+
+    # Reopen
+    vs2 = get_vector_store(provider="chroma", embeddings=fake_embeddings, persist_directory=str(db_dir))
+    assert vs2._collection.configuration.get("hnsw", {}).get("space") == "cosine"
+    res = vs2.similarity_search("Persistent queryable", k=1)
+    assert len(res) == 1
+    assert "Persistent queryable content" in res[0].page_content
+
+
+def test_chroma_incompatible_distance_metric_raises(tmp_path: Path, fake_embeddings: DeterministicFakeEmbeddings) -> None:
+    """Verify attempting to open an existing L2 collection raises an actionable ValueError."""
+    from langchain_chroma import Chroma
+
+    db_dir = tmp_path / "chroma_incompatible_l2"
+    col_name = "test_l2_collection"
+    # Create an L2 collection directly
+    Chroma(
+        collection_name=col_name,
+        embedding_function=fake_embeddings,
+        persist_directory=str(db_dir),
+        collection_metadata={"hnsw:space": "l2"},
+        collection_configuration={"hnsw": {"space": "l2"}},
+    )
+
+    with pytest.raises(ValueError, match="exists with distance metric 'l2', but Bodhan multilingual RAG requires 'cosine'"):
+        get_vector_store(
+            provider="chroma",
+            embeddings=fake_embeddings,
+            collection_name=col_name,
+            persist_directory=str(db_dir),
+        )
 
 
 def test_vector_store_switching_chroma_and_inmemory(tmp_path: Path, fake_embeddings: DeterministicFakeEmbeddings) -> None:

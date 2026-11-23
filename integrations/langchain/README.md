@@ -339,28 +339,48 @@ The RAG pipeline supports two vector-store backends: **ChromaDB** (`langchain-ch
 - **ChromaDB vs. InMemoryVectorStore**:
   - `chroma` (Default): Stores embeddings and document metadata on local disk in a configurable persistence directory (`CHROMA_PERSIST_DIRECTORY`, default `./.chroma`). Chunks and index structures survive process restarts, eliminating the need to re-extract or re-embed documents on every query run.
   - `inmemory`: Ephemeral in-process store (`langchain_core.vectorstores.InMemoryVectorStore`). Ideal for rapid experimentation, unit tests, and environments where disk persistence is not desired.
-- **Explicit Cosine Distance Metric**: Multilingual E5 Small embeddings are L2-normalized. The Chroma collection explicitly configures cosine distance via `collection_metadata={"hnsw:space": "cosine"}` to guarantee true cosine similarity search.
-- **Deterministic Chunk IDs & Idempotent Ingestion**: To prevent duplicate chunks across multiple runs, chunk IDs are generated deterministically based on source identity, page number, chunk index, and SHA-256 content digest:
-  ```text
-  {clean_source}:p{page_number}:c{chunk_index}:{sha256_hash[:16]}
-  ```
-  - Re-ingesting the exact same source updates records idempotently without inflating document count.
-  - Re-ingesting an updated document automatically purges stale chunks from previous revisions.
-  - Safe fallback: When source metadata is absent, chunks fall back to `"unknown_source:p0:c{index}:{hash}"`.
+- **Local Persistence Layout (SQLite + HNSW Index)**:
+  - Chroma persists data locally as an embedded SQLite database (`chroma.sqlite3`) for metadata, document content, and collection catalogs, alongside binary HNSW index segment files for fast approximate nearest-neighbor vector search.
+  - *Note on Legacy Formats*: Older Chroma releases (<0.4.0) used DuckDB and Parquet files; modern Chroma (`chromadb>=0.5.0` with `langchain-chroma>=0.2.0`) uses SQLite and HNSW segment files exclusively.
+- **Automatic Persistence**:
+  - All chunk insertions, updates, and stale deletions are automatically synchronized and persisted to disk upon execution. No explicit `persist()` method is needed.
+- **Reopening an Existing Collection**:
+  - Simply instantiate the pipeline with the existing `CHROMA_PERSIST_DIRECTORY` and `CHROMA_COLLECTION_NAME`. The collection is reopened without re-embedding or recreating index structures, allowing instant similarity retrieval across application runs.
+- **Backup and Reset Cautions**:
+  - *Backup*: Before copying or backing up the persistence directory (`.chroma/`), ensure no active process or background thread is actively writing to Chroma to avoid SQLite write-ahead log (`WAL`) file inconsistencies.
+  - *Reset*: To safely reset the local vector database, stop the application and delete the persistence directory:
+    ```bash
+    # Linux / macOS
+    rm -rf .chroma
+    # Windows PowerShell
+    Remove-Item -Recurse -Force .chroma
+    ```
+- **Explicit Cosine Distance Metric & Re-indexing Incompatibility**:
+  - Multilingual E5 Small embeddings are L2-normalized dense vectors, which require cosine distance for accurate semantic ranking.
+  - New collections are configured using `collection_configuration={"hnsw": {"space": "cosine"}}` and `collection_metadata={"hnsw:space": "cosine"}`.
+  - *Immutable Metric*: Chroma's HNSW index distance metric cannot be modified after collection creation. On opening or reopening a collection, `get_vector_store()` validates the actual persisted metric. If an existing collection was created with L2 distance (e.g. Chroma default without configuration), `get_vector_store()` raises an actionable `ValueError` instructing the user to configure a new `CHROMA_COLLECTION_NAME` or delete the incompatible `.chroma` directory and re-index.
+- **Mandatory E5 Embedding Adapter for Chroma**:
+  - Chroma vector stores require an explicit LangChain `Embeddings` instance. Passing `embeddings=None` raises a descriptive `ValueError` to prevent Chroma from silently falling back to its internal `all-MiniLM-L6-v2` model.
+- **Collision-Free Source Identity & Deterministic Chunk IDs**:
+  - Chunk IDs are generated deterministically based on source identity, page number, chunk index, and SHA-256 content digest:
+    ```text
+    {source_id}:p{page_number}:c{chunk_index}:{sha256_hash[:16]}
+    ```
+  - **Source Identity Derivation Hierarchy**:
+    1. *Explicit ID*: Prefers `metadata["source_id"]` or `metadata["document_id"]` if provided.
+    2. *Normalized Path + Hash*: When `metadata["source"]` is present, normalizes the full path and appends an 8-character SHA-256 digest (`{basename}_{path_hash[:8]}`). This guarantees that files with identical basenames in different directories (e.g. `/notices/2025/doc.pdf` vs `/notices/2026/doc.pdf`) have distinct identities and cleanup scopes without colliding.
+    3. *Content Fingerprint Fallback*: If source metadata is absent, generates `content_doc_{hash[:12]}` from the text content so unrelated documents never share a single `unknown_source` scope.
+  - *Provenance Preservation*: Original `metadata["source"]` is preserved unmodified for clean, authentic citation display.
+- **Stale Chunk Cleanup Order & Partial-Page Updates**:
+  - *Upsert-First Safety*: New chunks are chunked, validated, normalized, and upserted into Chroma *before* any old chunks are purged. If embedding generation or upsert fails, previously valid documents remain completely preserved in the store.
+  - *Partial-Page Updates*: Stale chunk cleanup is scoped strictly to the pages present in the current update batch. For example, updating page 2 of a notice purges only stale page 2 chunks, preserving page 1 chunks of the same document untouched.
+  - *Failure Diagnostic*: Stale deletion errors raise `StaleChunkCleanupError` with uncleaned IDs and diagnostics while preserving newly inserted content.
 - **Metadata Normalization & Citation Survival**: Chroma requires scalar metadata values (`str`, `int`, `float`, `bool`). The indexing pipeline normalizes complex or nested metadata (e.g. OCR layout structures or bounding boxes) into JSON strings, preventing runtime validation errors while ensuring `source`, `page` (0-indexed), and `page_number` (1-indexed) survive vector retrieval intact for verified citation mapping.
-- **Reopening an Existing Collection**: Simply instantiate the pipeline with the existing `CHROMA_PERSIST_DIRECTORY` and `CHROMA_COLLECTION_NAME`. The collection is reopened without re-embedding.
 - **Selecting InMemory Backend**:
   ```bash
   export VECTOR_STORE_PROVIDER="inmemory"
   ```
-- **Clearing Local Chroma Data Safely**: To reset the local vector database, delete the local persistence directory:
-  ```bash
-  # Linux / macOS
-  rm -rf .chroma
-  # Windows PowerShell
-  Remove-Item -Recurse -Force .chroma
-  ```
-- **Avoiding Committing Local Database Files**: The Chroma persistence directory (`.chroma/` and `**/.chroma/`) is registered in `.gitignore` to prevent committing SQLite files or Parquet index artifacts to source control.
+- **Avoiding Committing Local Database Files**: The Chroma persistence directory (`.chroma/` and `**/.chroma/`) is registered in `.gitignore` to prevent committing local SQLite database files or index segment artifacts to source control.
 
 ---
 

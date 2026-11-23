@@ -23,6 +23,71 @@ E5_HARD_SEQUENCE_LIMIT = 512
 E5_DOCUMENT_PREFIX = "passage: "
 
 
+class StaleChunkCleanupError(RuntimeError):
+    """Raised when deletion of stale chunks fails after successful document insertion.
+
+    Preserves newly inserted content while surfacing diagnostic information and uncleaned
+    stale chunk IDs to the caller.
+    """
+
+    def __init__(self, message: str, stale_ids: list[str] | set[str] | None = None) -> None:
+        super().__init__(message)
+        self.stale_ids = sorted(list(stale_ids)) if stale_ids else []
+
+
+def _extract_page_number(meta: dict[str, Any] | None) -> int:
+    """Safely extract an integer page number from metadata, defaulting to 1."""
+    if not meta:
+        return 1
+    for key in ("page_number", "page"):
+        val = meta.get(key)
+        if val is not None:
+            try:
+                return int(val)
+            except (ValueError, TypeError):
+                pass
+    return 1
+
+
+def get_source_identity(
+    metadata: dict[str, Any] | None = None,
+    content: str | None = None,
+) -> str:
+    """Derive a stable, collision-free source identity string.
+
+    Derivation hierarchy:
+      1. Explicit 'source_id' or 'document_id' in metadata if provided and non-empty.
+      2. Normalized full source path or URI from metadata['source']:
+         Combines cleaned basename and an 8-character SHA-256 hash of the normalized path:
+         f"{base_name}_{path_hash[:8]}". This guarantees distinct identities for files with
+         identical basenames in different directories (e.g. '/notices/2025/doc.pdf' vs
+         '/notices/2026/doc.pdf') while keeping chunk IDs readable and citation provenance intact.
+      3. Content fingerprint fallback when metadata['source'] is missing:
+         'content_doc_{content_hash[:12]}', derived from a 12-character SHA-256 digest of content.
+         This prevents unrelated unsourced documents from colliding or sharing a single
+         'unknown_source' cleanup scope.
+    """
+    if metadata:
+        for key in ("source_id", "document_id"):
+            val = metadata.get(key)
+            if val is not None and str(val).strip():
+                return str(val).strip().replace(" ", "_")
+
+        raw_source = metadata.get("source")
+        if raw_source is not None and str(raw_source).strip():
+            raw_str = str(raw_source).strip()
+            norm_path = os.path.normpath(raw_str).replace("\\", "/")
+            base_name = Path(norm_path).name.replace(" ", "_") or "doc"
+            path_hash = hashlib.sha256(norm_path.encode("utf-8")).hexdigest()[:8]
+            return f"{base_name}_{path_hash}"
+
+    if content is not None and content.strip():
+        content_hash = hashlib.sha256(content.strip().encode("utf-8")).hexdigest()[:12]
+        return f"content_doc_{content_hash}"
+
+    return "unknown_source"
+
+
 def get_token_length_fn(tokenizer: Any = None, strict: bool = False):
     """Build a token-counting length function for text splitters."""
     if tokenizer is not None:
@@ -172,24 +237,28 @@ def generate_chunk_id(
     page: int | None,
     chunk_index: int,
     content: str,
+    source_id: str | None = None,
 ) -> str:
     """Generate a stable, deterministic chunk identifier for idempotent indexing.
 
     Components:
-      - Source identity: normalized base filename or clean identifier.
-        Fallback to 'unknown_source' when missing.
-      - Page identity: 'p{page}' (e.g. 'p1'). Fallback to 'p0'.
+      - Source identity: explicit source_id if provided; otherwise derived via get_source_identity
+        from source and content.
+      - Page identity: 'p{page}' (e.g. 'p1'). Fallback to 'p0' if page is None.
       - Chunk index: 'c{chunk_index}' (1-indexed chunk order).
       - Content hash: 16-character SHA-256 digest of page_content.
     """
-    if source:
-        clean_source = Path(source).name.replace(" ", "_")
+    if source_id is not None and str(source_id).strip():
+        src_ident = str(source_id).strip().replace(" ", "_")
     else:
-        clean_source = "unknown_source"
+        src_ident = get_source_identity(
+            metadata={"source": source} if source else None,
+            content=content,
+        )
 
     page_num = page if page is not None else 0
     content_hash = hashlib.sha256(content.encode("utf-8")).hexdigest()[:16]
-    return f"{clean_source}:p{page_num}:c{chunk_index}:{content_hash}"
+    return f"{src_ident}:p{page_num}:c{chunk_index}:{content_hash}"
 
 
 def get_vector_store(
@@ -204,7 +273,7 @@ def get_vector_store(
 
     Args:
         provider: Vector store provider ('chroma' or 'inmemory'). Defaults to 'chroma'.
-        embeddings: Embeddings model instance (such as E5EmbeddingsAdapter).
+        embeddings: Embeddings model instance (such as E5EmbeddingsAdapter). Required for Chroma.
         persist_directory: Local storage directory for ChromaDB persistence.
         collection_name: ChromaDB collection identifier.
         collection_metadata: Optional ChromaDB collection metadata (defaults to cosine distance).
@@ -215,7 +284,8 @@ def get_vector_store(
 
     Raises:
         ImportError: When Chroma backend is requested but 'langchain-chroma' / 'chromadb' is not installed.
-        ValueError: When an unsupported provider is requested or Chroma parameters are invalid.
+        ValueError: When an unsupported provider is requested, Chroma parameters are invalid,
+                    embeddings is None for Chroma, or collection exists with an incompatible distance metric.
     """
     effective_provider = config.vector_store_provider if config else provider
     effective_provider = (effective_provider or "").strip().lower()
@@ -228,6 +298,13 @@ def get_vector_store(
                 "ChromaDB vector store requires 'langchain-chroma' and 'chromadb'. "
                 "Install with: pip install -r requirements-rag-chroma.txt (or pip install langchain-chroma chromadb)"
             ) from exc
+
+        if embeddings is None:
+            raise ValueError(
+                "An explicit LangChain Embeddings instance (such as E5EmbeddingsAdapter) "
+                "is required when using Chroma vector store. Passing embeddings=None is disallowed "
+                "to prevent Chroma from silently falling back to its default all-MiniLM-L6-v2 model."
+            )
 
         eff_dir = config.chroma_persist_directory if config else persist_directory
         eff_col = config.chroma_collection_name if config else collection_name
@@ -245,12 +322,35 @@ def get_vector_store(
         if collection_metadata:
             meta.update(collection_metadata)
 
-        return Chroma(
+        store = Chroma(
             collection_name=eff_col,
             embedding_function=embeddings,
             persist_directory=eff_dir,
             collection_metadata=meta,
+            collection_configuration={"hnsw": {"space": "cosine"}},
         )
+
+        # Verify actual persisted collection distance metric
+        if hasattr(store, "_collection"):
+            col = store._collection
+            persisted_space: str | None = None
+            if hasattr(col, "configuration") and isinstance(col.configuration, dict):
+                hnsw_cfg = col.configuration.get("hnsw")
+                if isinstance(hnsw_cfg, dict):
+                    persisted_space = hnsw_cfg.get("space")
+            if not persisted_space and hasattr(col, "metadata") and isinstance(col.metadata, dict):
+                persisted_space = col.metadata.get("hnsw:space")
+
+            if persisted_space and str(persisted_space).strip().lower() != "cosine":
+                raise ValueError(
+                    f"Chroma collection {eff_col!r} exists with distance metric {persisted_space!r}, "
+                    "but Bodhan multilingual RAG requires 'cosine' distance for E5 normalized embeddings. "
+                    "Chroma does not support changing the distance metric of an existing collection. "
+                    "Please configure a new CHROMA_COLLECTION_NAME or delete the existing collection directory "
+                    f"({eff_dir!r}) and re-index your documents."
+                )
+
+        return store
 
     if effective_provider == "inmemory":
         return InMemoryVectorStore(embedding=embeddings)
@@ -273,6 +373,20 @@ def index_documents(
 ) -> list[Document]:
     """Chunk documents with tokenizer awareness and index into vector store with stable IDs and idempotency.
 
+    Supports partial-page updates: When updating specific pages of a multi-page document,
+    only stale chunks on the pages included in the current batch are removed. Chunks from
+    unrelated pages of the same document are preserved.
+
+    Cleanup Safety:
+      1. New chunks are chunked, validated, and normalized.
+      2. New documents are upserted FIRST into the vector store.
+      3. If embedding generation or upsert fails, old documents are completely preserved.
+      4. Stale chunks from previous versions of the updated pages are queried and deleted
+         only after successful upsert.
+      5. Any failure during stale chunk deletion raises StaleChunkCleanupError, surfacing
+         the diagnostic and uncleaned stale IDs to the caller while preserving the newly
+         inserted content.
+
     Args:
         vector_store: Target LangChain VectorStore (Chroma or InMemoryVectorStore).
         documents: Source Document objects with metadata.
@@ -285,6 +399,10 @@ def index_documents(
 
     Returns:
         List of indexed Document chunks with assigned chunk_id and stable IDs.
+
+    Raises:
+        ValueError: If documents list is empty.
+        StaleChunkCleanupError: If stale chunk deletion fails after successful insertion.
     """
     if not documents:
         raise ValueError("Cannot index empty document list.")
@@ -310,47 +428,87 @@ def index_documents(
         strict=is_strict,
     )
 
-    # Generate deterministic chunk IDs
+    # 1. Derive stable source identities and generate deterministic chunk IDs
     chunk_ids: list[str] = []
     for chunk in chunks:
-        raw_source = chunk.metadata.get("source")
-        page_val = chunk.metadata.get("page_number", chunk.metadata.get("page", 1))
+        src_id = get_source_identity(chunk.metadata, chunk.page_content)
+        chunk.metadata["source_id"] = src_id
+        page_val = _extract_page_number(chunk.metadata)
         chunk_idx = chunk.metadata.get("chunk_id", 1)
         cid = generate_chunk_id(
-            source=raw_source,
+            source=chunk.metadata.get("source"),
             page=page_val,
             chunk_index=chunk_idx,
             content=chunk.page_content,
+            source_id=src_id,
         )
         chunk_ids.append(cid)
 
     # Handle Chroma vs InMemory indexing
     is_chroma = hasattr(vector_store, "_collection")
     if is_chroma:
-        # 1. Normalize metadata for Chroma compatibility
+        # 1. Normalize metadata for Chroma scalar constraints
         for chunk in chunks:
             chunk.metadata = normalize_metadata_for_chroma(chunk.metadata)
 
-        # 2. Idempotent ingestion & stale chunk cleanup per document source
-        sources = {chunk.metadata.get("source") for chunk in chunks if chunk.metadata.get("source")}
-        for source in sources:
-            try:
-                existing = vector_store._collection.get(where={"source": source})
-                existing_ids = set(existing.get("ids", []))
-                new_ids_for_source = {
-                    cid for chunk, cid in zip(chunks, chunk_ids, strict=True) if chunk.metadata.get("source") == source
-                }
-                stale_ids = existing_ids - new_ids_for_source
-                if stale_ids:
-                    vector_store._collection.delete(ids=list(stale_ids))
-            except Exception:
-                pass  # If query fails or where is unsupported, proceed to upsert
-
+        # 2. Upsert new documents FIRST into Chroma
         vector_store.add_documents(chunks, ids=chunk_ids)
         backend_name = "Chroma"
+
+        # 3. Steps 5-7: Query existing records, identify stale IDs for updated pages, and delete
+        source_page_map: dict[str, set[int]] = {}
+        source_new_ids: dict[str, set[str]] = {}
+        for chunk, cid in zip(chunks, chunk_ids, strict=True):
+            sid = str(chunk.metadata.get("source_id", ""))
+            if not sid:
+                continue
+            pg = _extract_page_number(chunk.metadata)
+            source_page_map.setdefault(sid, set()).add(pg)
+            source_new_ids.setdefault(sid, set()).add(cid)
+
+        all_stale_ids: list[str] = []
+        for sid, updated_pages in source_page_map.items():
+            new_ids = source_new_ids[sid]
+            try:
+                existing = vector_store._collection.get(
+                    where={"source_id": sid},
+                    include=["metadatas"],
+                )
+                existing_ids = existing.get("ids") or []
+                existing_metas = existing.get("metadatas") or []
+                for eid, emeta in zip(existing_ids, existing_metas, strict=False):
+                    if eid in new_ids:
+                        continue
+                    # Check if this existing chunk belongs to a page that was updated
+                    if emeta and isinstance(emeta, dict):
+                        epg = _extract_page_number(emeta)
+                        if epg in updated_pages:
+                            all_stale_ids.append(eid)
+                    else:
+                        all_stale_ids.append(eid)
+            except Exception as exc:
+                raise StaleChunkCleanupError(
+                    f"Failed to query existing records for source_id {sid!r} during stale chunk cleanup: {exc}",
+                    stale_ids=[],
+                ) from exc
+
+        if all_stale_ids:
+            try:
+                vector_store._collection.delete(ids=all_stale_ids)
+            except Exception as exc:
+                raise StaleChunkCleanupError(
+                    f"Failed to delete {len(all_stale_ids)} stale chunk(s) after successful document upsert: {exc}",
+                    stale_ids=all_stale_ids,
+                ) from exc
     else:
         vector_store.add_documents(chunks, ids=chunk_ids)
         backend_name = "InMemoryVectorStore"
+
+    print(
+        f"  -> Successfully indexed {len(chunks)} passage chunk(s) across "
+        f"{len(documents)} document(s) in {backend_name}."
+    )
+    return chunks
 
     print(
         f"  -> Successfully indexed {len(chunks)} passage chunk(s) across "

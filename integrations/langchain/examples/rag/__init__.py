@@ -18,8 +18,10 @@ from .generation import (
 from .ingestion import ingest_documents
 from .retrieval import get_retriever, retrieve_passages
 from .vector_store import (
+    StaleChunkCleanupError,
     create_vector_store,
     generate_chunk_id,
+    get_source_identity,
     get_vector_store,
     index_documents,
     normalize_metadata_for_chroma,
@@ -34,6 +36,8 @@ __all__ = [
     "get_vector_store",
     "index_documents",
     "generate_chunk_id",
+    "get_source_identity",
+    "StaleChunkCleanupError",
     "normalize_metadata_for_chroma",
     "get_retriever",
     "retrieve_passages",

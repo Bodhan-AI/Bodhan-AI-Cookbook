@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 from langchain_core.documents import Document
-from langchain_core.vectorstores import InMemoryVectorStore, VectorStoreRetriever
+from langchain_core.vectorstores import VectorStore, VectorStoreRetriever
 
 
 def get_retriever(
-    vector_store: InMemoryVectorStore,
+    vector_store: VectorStore,
     top_k: int = 4,
 ) -> VectorStoreRetriever:
     """Create a LangChain VectorStoreRetriever with configurable top_k."""
