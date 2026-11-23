@@ -891,6 +891,59 @@ def test_rag_generation_error_empty_response() -> None:
     assert "empty response" in err.message.lower()
 
 
+def test_rag_generation_valid_text_blocks() -> None:
+    """Verify list of supported text blocks is parsed and joined into valid answer string."""
+    mock_llm = MagicMock(spec=BaseChatModel)
+    mock_llm.invoke.return_value = AIMessage(
+        content=[
+            {"type": "text", "text": "Scholarship eligibility requires 55% marks "},
+            {"type": "text", "text": "according to official guidelines [S1]."},
+        ]
+    )
+
+    ans = generate_grounded_answer(mock_llm, "Query?", "<document id='S1'>text</document>")
+    assert ans == "Scholarship eligibility requires 55% marks according to official guidelines [S1]."
+
+
+def test_rag_generation_error_invalid_response_formats() -> None:
+    """Verify unsupported response types (dict, tool blocks, raw objects) raise category='invalid_response'."""
+    mock_llm = MagicMock(spec=BaseChatModel)
+
+    # 1. Dictionary content inside message
+    mock_msg_dict = MagicMock()
+    mock_msg_dict.content = {"error": "Unexpected JSON object"}
+    mock_llm.invoke.return_value = mock_msg_dict
+    with pytest.raises(RAGGenerationError) as exc_info1:
+        generate_grounded_answer(mock_llm, "Query?", "<document id='S1'>text</document>")
+    assert exc_info1.value.category == "invalid_response"
+
+    # 2. Unsupported content block (e.g. tool_use or image)
+    mock_llm.invoke.return_value = AIMessage(content=[{"type": "tool_use", "name": "calculator", "args": {}}])
+    with pytest.raises(RAGGenerationError) as exc_info2:
+        generate_grounded_answer(mock_llm, "Query?", "<document id='S1'>text</document>")
+    assert exc_info2.value.category == "invalid_response"
+
+    # 3. Numeric / primitive content inside message
+    mock_msg_num = MagicMock()
+    mock_msg_num.content = 99999
+    mock_llm.invoke.return_value = mock_msg_num
+    with pytest.raises(RAGGenerationError) as exc_info3:
+        generate_grounded_answer(mock_llm, "Query?", "<document id='S1'>text</document>")
+    assert exc_info3.value.category == "invalid_response"
+
+    # 4. Entire response is an arbitrary dict instead of message or string
+    mock_llm.invoke.return_value = {"unsupported": "response"}
+    with pytest.raises(RAGGenerationError) as exc_info4:
+        generate_grounded_answer(mock_llm, "Query?", "<document id='S1'>text</document>")
+    assert exc_info4.value.category == "invalid_response"
+
+    # 5. Empty text blocks list raises empty_response
+    mock_llm.invoke.return_value = AIMessage(content=[{"type": "text", "text": "   "}])
+    with pytest.raises(RAGGenerationError) as exc_info5:
+        generate_grounded_answer(mock_llm, "Query?", "<document id='S1'>text</document>")
+    assert exc_info5.value.category == "empty_response"
+
+
 # ==============================================================================
 # 7. MULTILINGUAL QUERY & LOCALIZATION PRESERVATION TESTS
 # ==============================================================================

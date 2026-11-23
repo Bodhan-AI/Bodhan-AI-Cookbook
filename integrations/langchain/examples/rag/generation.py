@@ -255,17 +255,56 @@ def generate_grounded_answer(
         ) from exc
 
     # Response parsing & validation
-    if isinstance(response, AIMessage):
-        content = response.content
-    elif hasattr(response, "content"):
-        content = str(response.content)
+    raw_content: Any
+    if isinstance(response, (AIMessage, BaseMessage)) or hasattr(response, "content"):
+        raw_content = response.content
+    elif isinstance(response, str):
+        raw_content = response
     else:
-        content = str(response)
-
-    if content is None or not str(content).strip():
         raise RAGGenerationError(
-            message="Groq returned an empty response with no answer content.",
-            category="empty_response",
+            f"Groq returned an unsupported response object of type '{type(response).__name__}'. "
+            "Expected an AIMessage or valid text response.",
+            category="invalid_response",
         )
 
-    return str(content).strip()
+    # 1. Standard string content
+    if isinstance(raw_content, str):
+        content_text = raw_content.strip()
+        if not content_text:
+            raise RAGGenerationError(
+                "Groq returned an empty response with no answer content.",
+                category="empty_response",
+            )
+        return content_text
+
+    # 2. Supported list of text blocks
+    if isinstance(raw_content, list):
+        text_parts: list[str] = []
+        for block in raw_content:
+            if isinstance(block, str):
+                text_parts.append(block)
+            elif isinstance(block, dict) and block.get("type") == "text" and isinstance(block.get("text"), str):
+                text_parts.append(block["text"])
+            elif isinstance(block, dict) and "text" in block and isinstance(block["text"], str) and "type" not in block:
+                text_parts.append(block["text"])
+            else:
+                block_type = block.get("type") if isinstance(block, dict) else type(block).__name__
+                raise RAGGenerationError(
+                    f"Groq response contains an unsupported content block of type '{block_type}'. "
+                    "Only text content blocks are supported for grounded answers.",
+                    category="invalid_response",
+                )
+        joined_text = "".join(text_parts).strip()
+        if not joined_text:
+            raise RAGGenerationError(
+                "Groq returned an empty response with no answer content.",
+                category="empty_response",
+            )
+        return joined_text
+
+    # 3. Reject any unsupported format (dict, int, or arbitrary object representations)
+    raise RAGGenerationError(
+        f"Groq returned an unsupported response content format of type '{type(raw_content).__name__}'. "
+        "Expected a text string or supported text-block list.",
+        category="invalid_response",
+    )
