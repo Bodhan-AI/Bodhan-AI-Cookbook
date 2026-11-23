@@ -1,0 +1,573 @@
+{
+  "calibration": {
+    "cells": {
+      "_all|_all": {
+        "category": "_all",
+        "category_accuracy": 1.0,
+        "f1": 0.6667,
+        "labels": 4,
+        "lang": "_all",
+        "localization": 1.0,
+        "low_support": true,
+        "precision": 0.6,
+        "predictions": 5,
+        "recall": 0.75
+      },
+      "_all|addition": {
+        "category": "addition",
+        "category_accuracy": null,
+        "f1": null,
+        "labels": 0,
+        "lang": "_all",
+        "localization": null,
+        "low_support": true,
+        "precision": 0.0,
+        "predictions": 1,
+        "recall": null
+      },
+      "_all|format": {
+        "category": "format",
+        "category_accuracy": 1.0,
+        "f1": 1.0,
+        "labels": 1,
+        "lang": "_all",
+        "localization": 1.0,
+        "low_support": true,
+        "precision": 1.0,
+        "predictions": 1,
+        "recall": 1.0
+      },
+      "_all|number_unit": {
+        "category": "number_unit",
+        "category_accuracy": 1.0,
+        "f1": 0.5,
+        "labels": 2,
+        "lang": "_all",
+        "localization": 1.0,
+        "low_support": true,
+        "precision": 0.5,
+        "predictions": 2,
+        "recall": 0.5
+      },
+      "_all|wrong_language_script": {
+        "category": "wrong_language_script",
+        "category_accuracy": 1.0,
+        "f1": 1.0,
+        "labels": 1,
+        "lang": "_all",
+        "localization": 1.0,
+        "low_support": true,
+        "precision": 1.0,
+        "predictions": 1,
+        "recall": 1.0
+      },
+      "bn|_all": {
+        "category": "_all",
+        "category_accuracy": 1.0,
+        "f1": 1.0,
+        "labels": 1,
+        "lang": "bn",
+        "localization": 1.0,
+        "low_support": true,
+        "precision": 1.0,
+        "predictions": 1,
+        "recall": 1.0
+      },
+      "bn|wrong_language_script": {
+        "category": "wrong_language_script",
+        "category_accuracy": 1.0,
+        "f1": 1.0,
+        "labels": 1,
+        "lang": "bn",
+        "localization": 1.0,
+        "low_support": true,
+        "precision": 1.0,
+        "predictions": 1,
+        "recall": 1.0
+      },
+      "hi|_all": {
+        "category": "_all",
+        "category_accuracy": 1.0,
+        "f1": 1.0,
+        "labels": 1,
+        "lang": "hi",
+        "localization": 1.0,
+        "low_support": true,
+        "precision": 1.0,
+        "predictions": 1,
+        "recall": 1.0
+      },
+      "hi|number_unit": {
+        "category": "number_unit",
+        "category_accuracy": 1.0,
+        "f1": 1.0,
+        "labels": 1,
+        "lang": "hi",
+        "localization": 1.0,
+        "low_support": true,
+        "precision": 1.0,
+        "predictions": 1,
+        "recall": 1.0
+      },
+      "ta|_all": {
+        "category": "_all",
+        "category_accuracy": 1.0,
+        "f1": 0.4,
+        "labels": 2,
+        "lang": "ta",
+        "localization": 1.0,
+        "low_support": true,
+        "precision": 0.3333,
+        "predictions": 3,
+        "recall": 0.5
+      },
+      "ta|addition": {
+        "category": "addition",
+        "category_accuracy": null,
+        "f1": null,
+        "labels": 0,
+        "lang": "ta",
+        "localization": null,
+        "low_support": true,
+        "precision": 0.0,
+        "predictions": 1,
+        "recall": null
+      },
+      "ta|format": {
+        "category": "format",
+        "category_accuracy": 1.0,
+        "f1": 1.0,
+        "labels": 1,
+        "lang": "ta",
+        "localization": 1.0,
+        "low_support": true,
+        "precision": 1.0,
+        "predictions": 1,
+        "recall": 1.0
+      },
+      "ta|number_unit": {
+        "category": "number_unit",
+        "category_accuracy": null,
+        "f1": null,
+        "labels": 1,
+        "lang": "ta",
+        "localization": null,
+        "low_support": true,
+        "precision": 0.0,
+        "predictions": 1,
+        "recall": 0.0
+      }
+    },
+    "false_alarms": {
+      "_all": {
+        "clean_items": 6,
+        "flagged": 0,
+        "rate": 0.0
+      },
+      "bn": {
+        "clean_items": 2,
+        "flagged": 0,
+        "rate": 0.0
+      },
+      "hi": {
+        "clean_items": 3,
+        "flagged": 0,
+        "rate": 0.0
+      },
+      "ta": {
+        "clean_items": 1,
+        "flagged": 0,
+        "rate": 0.0
+      }
+    }
+  },
+  "diff": null,
+  "items": [
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00026,
+      "flags": [],
+      "id": "t01",
+      "judge_verdict": "ok",
+      "lang": "hi",
+      "reference": "",
+      "signal": null,
+      "source": "Water boils at 100 degrees at sea level.",
+      "status": "clean",
+      "translation": "समुद्र तल पर पानी 100 डिग्री पर उबलता है।",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00018,
+      "flags": [
+        {
+          "category": "number_unit",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "missing_or_changed",
+                "raw": "100 mg",
+                "unit": "mg",
+                "value": "100"
+              },
+              "explanation": "missing_or_changed",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            },
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "extra_in_translation",
+                "raw": "90",
+                "unit": null,
+                "value": "90"
+              },
+              "explanation": "extra_in_translation",
+              "noisy": false,
+              "score": 0.8,
+              "strength": "medium"
+            }
+          ],
+          "severity": "major",
+          "source_span": [
+            12,
+            18
+          ],
+          "target_span": [
+            16,
+            18
+          ]
+        }
+      ],
+      "id": "t02",
+      "judge_verdict": "error",
+      "lang": "hi",
+      "reference": "",
+      "signal": null,
+      "source": "The dose is 100 mg per day.",
+      "status": "flagged",
+      "translation": "खुराक प्रति दिन 90 मिलीग्राम है।",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00012,
+      "flags": [],
+      "id": "t03",
+      "judge_verdict": "ok",
+      "lang": "ta",
+      "reference": "",
+      "signal": null,
+      "source": "The sun is a star.",
+      "status": "clean",
+      "translation": "சூரியன் ஒரு நட்சத்திரம்.",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00022,
+      "flags": [
+        {
+          "category": "format",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t3_format",
+              "details": {
+                "braces": [
+                  0,
+                  0
+                ],
+                "dollar": 1,
+                "issue": "unbalanced_markup",
+                "latex_env": [
+                  0,
+                  0
+                ]
+              },
+              "explanation": "unbalanced_markup",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            },
+            {
+              "check": "t3_format",
+              "details": {
+                "issue": "math_body_changed",
+                "source": [
+                  "A = \\pi r^2"
+                ],
+                "translation": []
+              },
+              "explanation": "math_body_changed",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            }
+          ],
+          "severity": "major",
+          "source_span": null,
+          "target_span": [
+            0,
+            29
+          ]
+        }
+      ],
+      "id": "t04",
+      "judge_verdict": "ok",
+      "lang": "ta",
+      "reference": "",
+      "signal": null,
+      "source": "The area is $A = \\pi r^2$ exactly.",
+      "status": "flagged",
+      "translation": "பரப்பளவு $A = \\pi r^2 சரியாக.",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": true,
+      "cost_inr": 0.00014,
+      "flags": [],
+      "id": "t05",
+      "judge_verdict": "error",
+      "lang": "bn",
+      "reference": "",
+      "signal": null,
+      "source": "Rivers flow to the sea.",
+      "status": "uncertain",
+      "translation": "নদী সমুদ্রে প্রবাহিত হয়।",
+      "uncertain_categories": [
+        "number_unit"
+      ]
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00022,
+      "flags": [
+        {
+          "category": "wrong_language_script",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t1_script_language",
+              "details": {
+                "reason": "translation identical to source (untranslated)"
+              },
+              "explanation": "translation identical to source (untranslated)",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            }
+          ],
+          "severity": "critical",
+          "source_span": null,
+          "target_span": [
+            0,
+            33
+          ]
+        }
+      ],
+      "id": "t06",
+      "judge_verdict": "error",
+      "lang": "bn",
+      "reference": "",
+      "signal": null,
+      "source": "Photosynthesis happens in leaves.",
+      "status": "flagged",
+      "translation": "Photosynthesis happens in leaves.",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00018,
+      "flags": [],
+      "id": "t07",
+      "judge_verdict": "ok",
+      "lang": "hi",
+      "reference": "",
+      "signal": null,
+      "source": "There are 7 days in a week.",
+      "status": "clean",
+      "translation": "एक सप्ताह में 7 दिन होते हैं।",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00018,
+      "flags": [
+        {
+          "category": "addition",
+          "confidence": 0.85,
+          "evidence": [
+            {
+              "check": "judge",
+              "details": {
+                "explanation": "The translation adds information about the tower's width (99 metres) that is not present in the source sentence.",
+                "located": true,
+                "parse_ok": true,
+                "quote_verbatim": true,
+                "verdict": "error"
+              },
+              "explanation": "The translation adds information about the tower's width (99 metres) that is not present in the source sentence.",
+              "noisy": true,
+              "score": 1.0,
+              "strength": "medium"
+            }
+          ],
+          "severity": "major",
+          "source_span": null,
+          "target_span": [
+            26,
+            49
+          ]
+        },
+        {
+          "category": "number_unit",
+          "confidence": 0.78,
+          "evidence": [
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "extra_in_translation",
+                "raw": "99",
+                "unit": null,
+                "value": "99"
+              },
+              "explanation": "extra_in_translation",
+              "noisy": false,
+              "score": 0.8,
+              "strength": "medium"
+            }
+          ],
+          "severity": "major",
+          "source_span": null,
+          "target_span": [
+            33,
+            35
+          ]
+        }
+      ],
+      "id": "t08",
+      "judge_verdict": "error",
+      "lang": "ta",
+      "reference": "",
+      "signal": null,
+      "source": "The tower is 50 metres tall.",
+      "status": "flagged",
+      "translation": "கோபுரம் 50 மீட்டர் உயரம், மேலும் 99 மீட்டர் அகலம்.",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00018,
+      "flags": [],
+      "id": "t09",
+      "judge_verdict": "ok",
+      "lang": "bn",
+      "reference": "",
+      "signal": null,
+      "source": "Honey is sweet and healthy.",
+      "status": "clean",
+      "translation": "মধু মিষ্টি এবং স্বাস্থ্যকর।",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00012,
+      "flags": [],
+      "id": "t10",
+      "judge_verdict": "ok",
+      "lang": "hi",
+      "reference": "",
+      "signal": null,
+      "source": "Ice is frozen water.",
+      "status": "clean",
+      "translation": "बर्फ जमा हुआ पानी है।",
+      "uncertain_categories": []
+    }
+  ],
+  "summary": {
+    "by_language": {
+      "bn": {
+        "clean": 1,
+        "flagged": 1,
+        "flags_by_category": {
+          "wrong_language_script": 1
+        },
+        "mqm_penalty": 10.0,
+        "skipped": 0,
+        "total": 3,
+        "uncertain": 1
+      },
+      "hi": {
+        "clean": 3,
+        "flagged": 1,
+        "flags_by_category": {
+          "number_unit": 1
+        },
+        "mqm_penalty": 5.0,
+        "skipped": 0,
+        "total": 4,
+        "uncertain": 0
+      },
+      "ta": {
+        "clean": 1,
+        "flagged": 2,
+        "flags_by_category": {
+          "addition": 1,
+          "format": 1,
+          "number_unit": 1
+        },
+        "mqm_penalty": 15.0,
+        "skipped": 0,
+        "total": 3,
+        "uncertain": 0
+      }
+    },
+    "calibration_summary": {
+      "category_accuracy": 1.0,
+      "f1": 0.6667,
+      "false_alarm_rate": 0.0,
+      "localization": 1.0,
+      "precision": 0.6,
+      "recall": 0.75
+    },
+    "checker_disagreements": 1,
+    "cost": {
+      "logical_total_inr": 0.0018
+    },
+    "flags_by_category": {
+      "addition": 1,
+      "format": 1,
+      "number_unit": 2,
+      "wrong_language_script": 1
+    },
+    "flags_by_severity": {
+      "critical": 1,
+      "major": 4
+    },
+    "judge_consistency": {
+      "category_agreement": 0.95,
+      "items": 10,
+      "measured": true,
+      "verdict_agreement": 1.0
+    },
+    "load": {
+      "duplicate_ids": 0,
+      "loaded": 10,
+      "skipped": 0
+    },
+    "skipped_for_budget": [],
+    "skipped_reasons": {},
+    "totals": {
+      "clean": 5,
+      "flagged": 4,
+      "items": 10,
+      "skipped": 0,
+      "uncertain": 1
+    }
+  }
+}

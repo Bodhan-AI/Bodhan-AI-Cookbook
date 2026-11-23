@@ -1,0 +1,81 @@
+{
+  "by_language": {
+    "bn": {
+      "clean": 1,
+      "flagged": 1,
+      "flags_by_category": {
+        "wrong_language_script": 1
+      },
+      "mqm_penalty": 10.0,
+      "skipped": 0,
+      "total": 3,
+      "uncertain": 1
+    },
+    "hi": {
+      "clean": 3,
+      "flagged": 1,
+      "flags_by_category": {
+        "number_unit": 1
+      },
+      "mqm_penalty": 5.0,
+      "skipped": 0,
+      "total": 4,
+      "uncertain": 0
+    },
+    "ta": {
+      "clean": 1,
+      "flagged": 2,
+      "flags_by_category": {
+        "addition": 1,
+        "format": 1,
+        "number_unit": 1
+      },
+      "mqm_penalty": 15.0,
+      "skipped": 0,
+      "total": 3,
+      "uncertain": 0
+    }
+  },
+  "calibration_summary": {
+    "category_accuracy": 1.0,
+    "f1": 0.6667,
+    "false_alarm_rate": 0.0,
+    "localization": 1.0,
+    "precision": 0.6,
+    "recall": 0.75
+  },
+  "checker_disagreements": 1,
+  "cost": {
+    "logical_total_inr": 0.0018
+  },
+  "flags_by_category": {
+    "addition": 1,
+    "format": 1,
+    "number_unit": 2,
+    "wrong_language_script": 1
+  },
+  "flags_by_severity": {
+    "critical": 1,
+    "major": 4
+  },
+  "judge_consistency": {
+    "category_agreement": 0.95,
+    "items": 10,
+    "measured": true,
+    "verdict_agreement": 1.0
+  },
+  "load": {
+    "duplicate_ids": 0,
+    "loaded": 10,
+    "skipped": 0
+  },
+  "skipped_for_budget": [],
+  "skipped_reasons": {},
+  "totals": {
+    "clean": 5,
+    "flagged": 4,
+    "items": 10,
+    "skipped": 0,
+    "uncertain": 1
+  }
+}

@@ -1,0 +1,10 @@
+{"id": "t01", "source": "Water boils at 100 degrees at sea level.", "lang": "hi", "translation": "समुद्र तल पर पानी 100 डिग्री पर उबलता है।"}
+{"id": "t02", "source": "The dose is 100 mg per day.", "lang": "hi", "translation": "खुराक प्रति दिन 90 मिलीग्राम है।", "labels": [{"type": "number_unit", "severity": "major", "span": [12, 15], "span_space": "source", "annotator": "candidate"}]}
+{"id": "t03", "source": "The sun is a star.", "lang": "ta", "translation": "சூரியன் ஒரு நட்சத்திரம்."}
+{"id": "t04", "source": "The area is $A = \\pi r^2$ exactly.", "lang": "ta", "translation": "பரப்பளவு $A = \\pi r^2 சரியாக.", "labels": [{"type": "format", "severity": "major", "span": [0, 30], "span_space": "target", "annotator": "candidate"}]}
+{"id": "t05", "source": "Rivers flow to the sea.", "lang": "bn", "translation": "নদী সমুদ্রে প্রবাহিত হয়।"}
+{"id": "t06", "source": "Photosynthesis happens in leaves.", "lang": "bn", "translation": "Photosynthesis happens in leaves.", "labels": [{"type": "wrong_language_script", "severity": "critical", "span": [0, 33], "span_space": "target", "annotator": "candidate"}]}
+{"id": "t07", "source": "There are 7 days in a week.", "lang": "hi", "translation": "एक सप्ताह में 7 दिन होते हैं।"}
+{"id": "t08", "source": "The tower is 50 metres tall.", "lang": "ta", "translation": "கோபுரம் 50 மீட்டர் உயரம், மேலும் 99 மீட்டர் அகலம்.", "labels": [{"type": "number_unit", "severity": "major", "span": [0, 10], "span_space": "target", "annotator": "candidate"}]}
+{"id": "t09", "source": "Honey is sweet and healthy.", "lang": "bn", "translation": "মধু মিষ্টি এবং স্বাস্থ্যকর।"}
+{"id": "t10", "source": "Ice is frozen water.", "lang": "hi", "translation": "बर्फ जमा हुआ पानी है।"}

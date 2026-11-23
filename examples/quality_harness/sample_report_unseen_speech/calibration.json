@@ -1,0 +1,142 @@
+{
+  "fit": {
+    "false_alarm_constraint": 0.1,
+    "final_f1": 0.0,
+    "final_false_alarm": 1.0,
+    "fitted_thresholds_path": "thresholds.fitted.json",
+    "searched": {
+      "judge_confidence_cut": {
+        "chosen": 0.5,
+        "trials": [
+          {
+            "f1": 0.0,
+            "false_alarm": 1.0,
+            "value": 0.3
+          },
+          {
+            "f1": 0.0,
+            "false_alarm": 1.0,
+            "value": 0.4
+          },
+          {
+            "f1": 0.0,
+            "false_alarm": 1.0,
+            "value": 0.5
+          },
+          {
+            "f1": 0.0,
+            "false_alarm": 1.0,
+            "value": 0.6
+          },
+          {
+            "f1": 0.0,
+            "false_alarm": 1.0,
+            "value": 0.7
+          }
+        ]
+      }
+    }
+  },
+  "metrics": {
+    "cells": {
+      "_all|_all": {
+        "category": "_all",
+        "category_accuracy": null,
+        "f1": null,
+        "labels": 3,
+        "lang": "_all",
+        "localization": null,
+        "low_support": true,
+        "precision": null,
+        "predictions": 0,
+        "recall": 0.0
+      },
+      "_all|speech_garbled": {
+        "category": "speech_garbled",
+        "category_accuracy": null,
+        "f1": null,
+        "labels": 1,
+        "lang": "_all",
+        "localization": null,
+        "low_support": true,
+        "precision": null,
+        "predictions": 0,
+        "recall": 0.0
+      },
+      "_all|speech_omission": {
+        "category": "speech_omission",
+        "category_accuracy": null,
+        "f1": null,
+        "labels": 1,
+        "lang": "_all",
+        "localization": null,
+        "low_support": true,
+        "precision": null,
+        "predictions": 0,
+        "recall": 0.0
+      },
+      "_all|speech_repetition": {
+        "category": "speech_repetition",
+        "category_accuracy": null,
+        "f1": null,
+        "labels": 1,
+        "lang": "_all",
+        "localization": null,
+        "low_support": true,
+        "precision": null,
+        "predictions": 0,
+        "recall": 0.0
+      },
+      "mr|_all": {
+        "category": "_all",
+        "category_accuracy": null,
+        "f1": null,
+        "labels": 3,
+        "lang": "mr",
+        "localization": null,
+        "low_support": true,
+        "precision": null,
+        "predictions": 0,
+        "recall": 0.0
+      },
+      "mr|speech_garbled": {
+        "category": "speech_garbled",
+        "category_accuracy": null,
+        "f1": null,
+        "labels": 1,
+        "lang": "mr",
+        "localization": null,
+        "low_support": true,
+        "precision": null,
+        "predictions": 0,
+        "recall": 0.0
+      },
+      "mr|speech_omission": {
+        "category": "speech_omission",
+        "category_accuracy": null,
+        "f1": null,
+        "labels": 1,
+        "lang": "mr",
+        "localization": null,
+        "low_support": true,
+        "precision": null,
+        "predictions": 0,
+        "recall": 0.0
+      },
+      "mr|speech_repetition": {
+        "category": "speech_repetition",
+        "category_accuracy": null,
+        "f1": null,
+        "labels": 1,
+        "lang": "mr",
+        "localization": null,
+        "low_support": true,
+        "precision": null,
+        "predictions": 0,
+        "recall": 0.0
+      }
+    },
+    "false_alarms": {}
+  },
+  "note": "Only explicitly labelled items are scored; spans use the declared space."
+}

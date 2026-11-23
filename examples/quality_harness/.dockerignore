@@ -1,0 +1,17 @@
+.env
+.env.*
+!.env.example
+.venv/
+.venv_win/
+.cache/
+.cache_test/
+.pytest_cache/
+.ruff_cache/
+__pycache__/
+*.pyc
+*.key
+*.wav
+*.mp3
+*.flac
+*.ogg
+report/

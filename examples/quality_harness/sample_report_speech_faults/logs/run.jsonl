@@ -1,0 +1,4 @@
+{"duplicate_ids": 0, "event": "dataset_loaded", "level": "info", "loaded": 3, "skipped": 0, "ts": 1795459745.25}
+{"event": "triage", "level": "info", "selected": 3, "speech_candidates": 3, "ts": 1795459745.371}
+{"event": "calibration_done", "f1": 0.5, "labelled": 3, "level": "info", "ts": 1795459745.689}
+{"event": "run_complete", "exit_code": 0, "items": 3, "level": "info", "ts": 1795459745.693}

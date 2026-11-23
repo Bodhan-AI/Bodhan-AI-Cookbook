@@ -1,0 +1,3727 @@
+{
+  "calibration": {
+    "cells": {
+      "_all|_all": {
+        "category": "_all",
+        "category_accuracy": 0.7111,
+        "f1": 0.678,
+        "labels": 54,
+        "lang": "_all",
+        "localization": 0.7111,
+        "low_support": false,
+        "precision": 0.5714,
+        "predictions": 56,
+        "recall": 0.8333
+      },
+      "_all|addition": {
+        "category": "addition",
+        "category_accuracy": 0.0,
+        "f1": 0.0,
+        "labels": 19,
+        "lang": "_all",
+        "localization": 0.0,
+        "low_support": false,
+        "precision": 0.0,
+        "predictions": 2,
+        "recall": 0.0
+      },
+      "_all|format": {
+        "category": "format",
+        "category_accuracy": 1.0,
+        "f1": 0.2222,
+        "labels": 1,
+        "lang": "_all",
+        "localization": 1.0,
+        "low_support": true,
+        "precision": 0.125,
+        "predictions": 8,
+        "recall": 1.0
+      },
+      "_all|number_unit": {
+        "category": "number_unit",
+        "category_accuracy": 1.0,
+        "f1": 0.6316,
+        "labels": 12,
+        "lang": "_all",
+        "localization": 1.0,
+        "low_support": false,
+        "precision": 0.4615,
+        "predictions": 26,
+        "recall": 1.0
+      },
+      "_all|omission": {
+        "category": "omission",
+        "category_accuracy": 0.0,
+        "f1": null,
+        "labels": 3,
+        "lang": "_all",
+        "localization": 0.0,
+        "low_support": true,
+        "precision": null,
+        "predictions": 0,
+        "recall": 0.0
+      },
+      "_all|term_entity": {
+        "category": "term_entity",
+        "category_accuracy": null,
+        "f1": null,
+        "labels": 0,
+        "lang": "_all",
+        "localization": null,
+        "low_support": true,
+        "precision": 0.0,
+        "predictions": 1,
+        "recall": null
+      },
+      "_all|wrong_language_script": {
+        "category": "wrong_language_script",
+        "category_accuracy": 1.0,
+        "f1": 1.0,
+        "labels": 19,
+        "lang": "_all",
+        "localization": 1.0,
+        "low_support": false,
+        "precision": 1.0,
+        "predictions": 19,
+        "recall": 1.0
+      },
+      "bn|_all": {
+        "category": "_all",
+        "category_accuracy": 0.875,
+        "f1": 0.8058,
+        "labels": 18,
+        "lang": "bn",
+        "localization": 0.875,
+        "low_support": false,
+        "precision": 0.7368,
+        "predictions": 19,
+        "recall": 0.8889
+      },
+      "bn|addition": {
+        "category": "addition",
+        "category_accuracy": 0.0,
+        "f1": null,
+        "labels": 4,
+        "lang": "bn",
+        "localization": 0.0,
+        "low_support": true,
+        "precision": null,
+        "predictions": 0,
+        "recall": 0.0
+      },
+      "bn|format": {
+        "category": "format",
+        "category_accuracy": 1.0,
+        "f1": 0.5,
+        "labels": 1,
+        "lang": "bn",
+        "localization": 1.0,
+        "low_support": true,
+        "precision": 0.3333,
+        "predictions": 3,
+        "recall": 1.0
+      },
+      "bn|number_unit": {
+        "category": "number_unit",
+        "category_accuracy": 1.0,
+        "f1": 0.8235,
+        "labels": 7,
+        "lang": "bn",
+        "localization": 1.0,
+        "low_support": false,
+        "precision": 0.7,
+        "predictions": 10,
+        "recall": 1.0
+      },
+      "bn|wrong_language_script": {
+        "category": "wrong_language_script",
+        "category_accuracy": 1.0,
+        "f1": 1.0,
+        "labels": 6,
+        "lang": "bn",
+        "localization": 1.0,
+        "low_support": false,
+        "precision": 1.0,
+        "predictions": 6,
+        "recall": 1.0
+      },
+      "hi|_all": {
+        "category": "_all",
+        "category_accuracy": 0.7692,
+        "f1": 0.7123,
+        "labels": 17,
+        "lang": "hi",
+        "localization": 0.7692,
+        "low_support": false,
+        "precision": 0.6667,
+        "predictions": 15,
+        "recall": 0.7647
+      },
+      "hi|addition": {
+        "category": "addition",
+        "category_accuracy": 0.0,
+        "f1": null,
+        "labels": 7,
+        "lang": "hi",
+        "localization": 0.0,
+        "low_support": false,
+        "precision": null,
+        "predictions": 0,
+        "recall": 0.0
+      },
+      "hi|format": {
+        "category": "format",
+        "category_accuracy": null,
+        "f1": null,
+        "labels": 0,
+        "lang": "hi",
+        "localization": null,
+        "low_support": true,
+        "precision": 0.0,
+        "predictions": 2,
+        "recall": null
+      },
+      "hi|number_unit": {
+        "category": "number_unit",
+        "category_accuracy": 1.0,
+        "f1": 0.6667,
+        "labels": 3,
+        "lang": "hi",
+        "localization": 1.0,
+        "low_support": true,
+        "precision": 0.5,
+        "predictions": 6,
+        "recall": 1.0
+      },
+      "hi|wrong_language_script": {
+        "category": "wrong_language_script",
+        "category_accuracy": 1.0,
+        "f1": 1.0,
+        "labels": 7,
+        "lang": "hi",
+        "localization": 1.0,
+        "low_support": false,
+        "precision": 1.0,
+        "predictions": 7,
+        "recall": 1.0
+      },
+      "ta|_all": {
+        "category": "_all",
+        "category_accuracy": 0.5,
+        "f1": 0.5079,
+        "labels": 19,
+        "lang": "ta",
+        "localization": 0.5,
+        "low_support": false,
+        "precision": 0.3636,
+        "predictions": 22,
+        "recall": 0.8421
+      },
+      "ta|addition": {
+        "category": "addition",
+        "category_accuracy": 0.0,
+        "f1": 0.0,
+        "labels": 8,
+        "lang": "ta",
+        "localization": 0.0,
+        "low_support": false,
+        "precision": 0.0,
+        "predictions": 2,
+        "recall": 0.0
+      },
+      "ta|format": {
+        "category": "format",
+        "category_accuracy": null,
+        "f1": null,
+        "labels": 0,
+        "lang": "ta",
+        "localization": null,
+        "low_support": true,
+        "precision": 0.0,
+        "predictions": 3,
+        "recall": null
+      },
+      "ta|number_unit": {
+        "category": "number_unit",
+        "category_accuracy": 1.0,
+        "f1": 0.3333,
+        "labels": 2,
+        "lang": "ta",
+        "localization": 1.0,
+        "low_support": true,
+        "precision": 0.2,
+        "predictions": 10,
+        "recall": 1.0
+      },
+      "ta|omission": {
+        "category": "omission",
+        "category_accuracy": 0.0,
+        "f1": null,
+        "labels": 3,
+        "lang": "ta",
+        "localization": 0.0,
+        "low_support": true,
+        "precision": null,
+        "predictions": 0,
+        "recall": 0.0
+      },
+      "ta|term_entity": {
+        "category": "term_entity",
+        "category_accuracy": null,
+        "f1": null,
+        "labels": 0,
+        "lang": "ta",
+        "localization": null,
+        "low_support": true,
+        "precision": 0.0,
+        "predictions": 1,
+        "recall": null
+      },
+      "ta|wrong_language_script": {
+        "category": "wrong_language_script",
+        "category_accuracy": 1.0,
+        "f1": 1.0,
+        "labels": 6,
+        "lang": "ta",
+        "localization": 1.0,
+        "low_support": false,
+        "precision": 1.0,
+        "predictions": 6,
+        "recall": 1.0
+      }
+    },
+    "false_alarms": {}
+  },
+  "diff": null,
+  "items": [
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.0005,
+      "flags": [
+        {
+          "category": "number_unit",
+          "confidence": 0.78,
+          "evidence": [
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "extra_in_translation",
+                "raw": "90",
+                "unit": null,
+                "value": "90"
+              },
+              "explanation": "extra_in_translation",
+              "noisy": false,
+              "score": 0.8,
+              "strength": "medium"
+            }
+          ],
+          "severity": "major",
+          "source_span": null,
+          "target_span": [
+            70,
+            72
+          ]
+        }
+      ],
+      "id": "src-000",
+      "judge_verdict": null,
+      "lang": "hi",
+      "reference": "",
+      "signal": null,
+      "source": "Water boils at 100 degrees Celsius at sea level.",
+      "status": "flagged",
+      "translation": "समुद्र तल पर पानी 100 डिग्री सेल्सियस पर उबलता है। एक मानक फुटबॉल मैच 90 मिनट तक चलता है।",
+      "uncertain_categories": [
+        "addition"
+      ]
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00026,
+      "flags": [],
+      "id": "src-001",
+      "judge_verdict": null,
+      "lang": "ta",
+      "reference": "",
+      "signal": null,
+      "source": "The human heart beats about 70 times per minute.",
+      "status": "clean",
+      "translation": "மனித இதயம் நிமிடத்திற்கு சுமார் 70 முறை துடிக்கிறது.",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00076,
+      "flags": [
+        {
+          "category": "number_unit",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "missing_or_changed",
+                "raw": "300",
+                "unit": null,
+                "value": "300"
+              },
+              "explanation": "missing_or_changed",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            },
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "missing_or_changed",
+                "raw": "000",
+                "unit": null,
+                "value": "0"
+              },
+              "explanation": "missing_or_changed",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            },
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "extra_in_translation",
+                "raw": "3,00,000",
+                "unit": null,
+                "value": "300000"
+              },
+              "explanation": "extra_in_translation",
+              "noisy": false,
+              "score": 0.8,
+              "strength": "medium"
+            },
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "extra_in_translation",
+                "raw": "2",
+                "unit": null,
+                "value": "2"
+              },
+              "explanation": "extra_in_translation",
+              "noisy": false,
+              "score": 0.8,
+              "strength": "medium"
+            }
+          ],
+          "severity": "major",
+          "source_span": [
+            25,
+            28
+          ],
+          "target_span": [
+            26,
+            34
+          ]
+        }
+      ],
+      "id": "src-002",
+      "judge_verdict": null,
+      "lang": "bn",
+      "reference": "",
+      "signal": null,
+      "source": "Light travels at roughly 300000 kilometres per second.",
+      "status": "flagged",
+      "translation": "আলো প্রায় প্রতি সেকেন্ডে ৩,০০,০০০ কিলোমিটার বেগে চলে। বৃত্তের ক্ষেত্রফল হল $A = \\pi r^2$ যেখানে r হল ব্যাসার্ধ।",
+      "uncertain_categories": [
+        "addition"
+      ]
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00026,
+      "flags": [],
+      "id": "src-003",
+      "judge_verdict": null,
+      "lang": "hi",
+      "reference": "",
+      "signal": null,
+      "source": "A year on Earth lasts about 365 days.",
+      "status": "clean",
+      "translation": "पृथ्वी पर एक वर्ष लगभग 365 दिनों का होता है।",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00038,
+      "flags": [],
+      "id": "src-004",
+      "judge_verdict": null,
+      "lang": "ta",
+      "reference": "",
+      "signal": null,
+      "source": "The Moon is about 384000 kilometres from Earth.",
+      "status": "uncertain",
+      "translation": "சந்திரன் பூமியிலிருந்து சுமார் 384000 கிலோமீட்டர் தொலைவில் உள்ளது. # அறிக்கை",
+      "uncertain_categories": [
+        "addition"
+      ]
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.0003,
+      "flags": [],
+      "id": "src-005",
+      "judge_verdict": null,
+      "lang": "bn",
+      "reference": "",
+      "signal": null,
+      "source": "Sound travels at about 343 metres per second in air.",
+      "status": "clean",
+      "translation": "শব্দ বাতাসে প্রায় ৩৪৩ মিটার প্রতি সেকেন্ডে চলে।",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00024,
+      "flags": [],
+      "id": "src-006",
+      "judge_verdict": null,
+      "lang": "hi",
+      "reference": "",
+      "signal": null,
+      "source": "An adult human body has 206 bones.",
+      "status": "clean",
+      "translation": "एक वयस्क मानव शरीर में 206 हड्डियाँ होती हैं।",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00022,
+      "flags": [
+        {
+          "category": "wrong_language_script",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t1_script_language",
+              "details": {
+                "reason": "translation identical to source (untranslated)"
+              },
+              "explanation": "translation identical to source (untranslated)",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            }
+          ],
+          "severity": "critical",
+          "source_span": null,
+          "target_span": [
+            0,
+            50
+          ]
+        }
+      ],
+      "id": "src-007",
+      "judge_verdict": null,
+      "lang": "ta",
+      "reference": "",
+      "signal": null,
+      "source": "The boiling point of water drops at high altitude.",
+      "status": "flagged",
+      "translation": "The boiling point of water drops at high altitude.",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00032,
+      "flags": [
+        {
+          "category": "wrong_language_script",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t1_script_language",
+              "details": {
+                "reason": "translation identical to source (untranslated)"
+              },
+              "explanation": "translation identical to source (untranslated)",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            }
+          ],
+          "severity": "critical",
+          "source_span": null,
+          "target_span": [
+            0,
+            41
+          ]
+        }
+      ],
+      "id": "src-008",
+      "judge_verdict": null,
+      "lang": "bn",
+      "reference": "",
+      "signal": null,
+      "source": "A week has 7 days and a day has 24 hours.",
+      "status": "flagged",
+      "translation": "A week has 7 days and a day has 24 hours.",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.0004,
+      "flags": [],
+      "id": "src-009",
+      "judge_verdict": null,
+      "lang": "hi",
+      "reference": "",
+      "signal": null,
+      "source": "The freezing point of water is 0 degrees Celsius.",
+      "status": "uncertain",
+      "translation": "पानी का हिमांक 0 डिग्री सेल्सियस है। महात्मा गांधी ने भारतीय स्वतंत्रता आंदोलन का नेतृत्व किया।",
+      "uncertain_categories": [
+        "addition"
+      ]
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.0006,
+      "flags": [
+        {
+          "category": "addition",
+          "confidence": 0.62,
+          "evidence": [
+            {
+              "check": "t4_length_ratio",
+              "details": {
+                "ratio": 3.029,
+                "src_len": 34,
+                "tgt_len": 103,
+                "z": null
+              },
+              "explanation": "",
+              "noisy": true,
+              "score": 3.0294,
+              "strength": "weak"
+            },
+            {
+              "check": "t7_sentence_coverage",
+              "details": {
+                "back_sentences": 2,
+                "src_sentences": 1
+              },
+              "explanation": "",
+              "noisy": true,
+              "score": 0.5,
+              "strength": "weak"
+            }
+          ],
+          "severity": "minor",
+          "source_span": null,
+          "target_span": null
+        },
+        {
+          "category": "number_unit",
+          "confidence": 0.78,
+          "evidence": [
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "extra_in_translation",
+                "raw": "250",
+                "unit": null,
+                "value": "250"
+              },
+              "explanation": "extra_in_translation",
+              "noisy": false,
+              "score": 0.8,
+              "strength": "medium"
+            },
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "extra_in_translation",
+                "raw": "2",
+                "unit": null,
+                "value": "2"
+              },
+              "explanation": "extra_in_translation",
+              "noisy": false,
+              "score": 0.8,
+              "strength": "medium"
+            }
+          ],
+          "severity": "major",
+          "source_span": null,
+          "target_span": [
+            62,
+            65
+          ]
+        }
+      ],
+      "id": "src-010",
+      "judge_verdict": null,
+      "lang": "ta",
+      "reference": "",
+      "signal": null,
+      "source": "Mount Everest is 8849 metres tall.",
+      "status": "flagged",
+      "translation": "எவரெஸ்ட் சிகரம் 8849 மீட்டர் உயரம் கொண்டது. இந்த செய்முறைக்கு 250 கிராம் மாவு மற்றும் 2 முட்டைகள் தேவை.",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00024,
+      "flags": [],
+      "id": "src-011",
+      "judge_verdict": null,
+      "lang": "bn",
+      "reference": "",
+      "signal": null,
+      "source": "The Pacific Ocean is the largest ocean on Earth.",
+      "status": "uncertain",
+      "translation": "প্রশান্ত মহাসাগর পৃথিবীর বৃহত্তম মহাসাগর।",
+      "uncertain_categories": [
+        "term_entity"
+      ]
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00024,
+      "flags": [],
+      "id": "src-012",
+      "judge_verdict": null,
+      "lang": "hi",
+      "reference": "",
+      "signal": null,
+      "source": "A standard football match lasts 90 minutes.",
+      "status": "clean",
+      "translation": "एक मानक फुटबॉल मैच 90 मिनट तक चलता है।",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00032,
+      "flags": [],
+      "id": "src-013",
+      "judge_verdict": null,
+      "lang": "ta",
+      "reference": "",
+      "signal": null,
+      "source": "The speed limit on the highway is 100 km/h.",
+      "status": "clean",
+      "translation": "நெடுஞ்சாலையில் வேக வரம்பு மணிக்கு 100 கிமீ ஆகும்.",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00032,
+      "flags": [],
+      "id": "src-014",
+      "judge_verdict": null,
+      "lang": "bn",
+      "reference": "",
+      "signal": null,
+      "source": "The recipe needs 250 grams of flour and 2 eggs.",
+      "status": "clean",
+      "translation": "রেসিপিটির জন্য ২৫০ গ্রাম ময়দা এবং ২টি ডিম প্রয়োজন।",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00018,
+      "flags": [],
+      "id": "src-015",
+      "judge_verdict": null,
+      "lang": "hi",
+      "reference": "",
+      "signal": null,
+      "source": "Albert Einstein developed the theory of relativity.",
+      "status": "clean",
+      "translation": "अल्बर्ट आइंस्टीन ने सापेक्षता का सिद्धांत विकसित किया।",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00018,
+      "flags": [],
+      "id": "src-016",
+      "judge_verdict": null,
+      "lang": "ta",
+      "reference": "",
+      "signal": null,
+      "source": "The Ganga river flows through northern India.",
+      "status": "uncertain",
+      "translation": "கங்கை நதி வட இந்தியாவின் வழியாக பாய்கிறது.",
+      "uncertain_categories": [
+        "term_entity"
+      ]
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00032,
+      "flags": [],
+      "id": "src-017",
+      "judge_verdict": null,
+      "lang": "bn",
+      "reference": "",
+      "signal": null,
+      "source": "NASA launched the James Webb Space Telescope in 2021.",
+      "status": "clean",
+      "translation": "২০২১ সালে নাসা জেমস ওয়েব স্পেস টেলিস্কোপ উৎক্ষেপণ করে।",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.0002,
+      "flags": [],
+      "id": "src-018",
+      "judge_verdict": null,
+      "lang": "hi",
+      "reference": "",
+      "signal": null,
+      "source": "Mahatma Gandhi led the Indian independence movement.",
+      "status": "clean",
+      "translation": "महात्मा गांधी ने भारतीय स्वतंत्रता आंदोलन का नेतृत्व किया।",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.0002,
+      "flags": [
+        {
+          "category": "wrong_language_script",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t1_script_language",
+              "details": {
+                "reason": "translation identical to source (untranslated)"
+              },
+              "explanation": "translation identical to source (untranslated)",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            }
+          ],
+          "severity": "critical",
+          "source_span": null,
+          "target_span": [
+            0,
+            49
+          ]
+        }
+      ],
+      "id": "src-019",
+      "judge_verdict": null,
+      "lang": "ta",
+      "reference": "",
+      "signal": null,
+      "source": "The World Health Organization is based in Geneva.",
+      "status": "flagged",
+      "translation": "The World Health Organization is based in Geneva.",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.0002,
+      "flags": [
+        {
+          "category": "wrong_language_script",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t1_script_language",
+              "details": {
+                "reason": "translation identical to source (untranslated)"
+              },
+              "explanation": "translation identical to source (untranslated)",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            }
+          ],
+          "severity": "critical",
+          "source_span": null,
+          "target_span": [
+            0,
+            57
+          ]
+        }
+      ],
+      "id": "src-020",
+      "judge_verdict": null,
+      "lang": "bn",
+      "reference": "",
+      "signal": null,
+      "source": "DNA carries the genetic instructions of living organisms.",
+      "status": "flagged",
+      "translation": "DNA carries the genetic instructions of living organisms.",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00016,
+      "flags": [
+        {
+          "category": "wrong_language_script",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t1_script_language",
+              "details": {
+                "reason": "translation identical to source (untranslated)"
+              },
+              "explanation": "translation identical to source (untranslated)",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            }
+          ],
+          "severity": "critical",
+          "source_span": null,
+          "target_span": [
+            0,
+            33
+          ]
+        }
+      ],
+      "id": "src-021",
+      "judge_verdict": null,
+      "lang": "hi",
+      "reference": "",
+      "signal": null,
+      "source": "The Taj Mahal is located in Agra.",
+      "status": "flagged",
+      "translation": "The Taj Mahal is located in Agra.",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00034,
+      "flags": [],
+      "id": "src-022",
+      "judge_verdict": null,
+      "lang": "ta",
+      "reference": "",
+      "signal": null,
+      "source": "Isaac Newton described the three laws of motion.",
+      "status": "uncertain",
+      "translation": "ஐசக் நியூட்டன் இயக்கத்தின் மூன்று விதிகளையும் விவரித்தார். தாஜ்மஹால் ஆக்ராவில் அமைந்துள்ளது.",
+      "uncertain_categories": [
+        "addition"
+      ]
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00026,
+      "flags": [],
+      "id": "src-023",
+      "judge_verdict": null,
+      "lang": "bn",
+      "reference": "",
+      "signal": null,
+      "source": "The Amazon rainforest produces much of the world's oxygen.",
+      "status": "clean",
+      "translation": "আমাজন রেইনফরেস্ট বিশ্বের বেশিরভাগ অক্সিজেন উৎপাদন করে।",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00022,
+      "flags": [],
+      "id": "src-024",
+      "judge_verdict": null,
+      "lang": "hi",
+      "reference": "",
+      "signal": null,
+      "source": "Marie Curie won Nobel Prizes in Physics and Chemistry.",
+      "status": "clean",
+      "translation": "मैरी क्यूरी ने भौतिकी और रसायन विज्ञान में नोबेल पुरस्कार जीते।",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00024,
+      "flags": [],
+      "id": "src-025",
+      "judge_verdict": null,
+      "lang": "ta",
+      "reference": "",
+      "signal": null,
+      "source": "The Sahara is the largest hot desert on Earth.",
+      "status": "clean",
+      "translation": "சஹாரா பாலைவனம் பூமியில் உள்ள மிகப்பெரிய வெப்பமான பாலைவனமாகும்.",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00046,
+      "flags": [],
+      "id": "src-026",
+      "judge_verdict": null,
+      "lang": "bn",
+      "reference": "",
+      "signal": null,
+      "source": "H2O is the chemical formula for water.",
+      "status": "uncertain",
+      "translation": "H2O হল জলের রাসায়নিক সূত্র। আমাজন রেইনফরেস্ট বিশ্বের বেশিরভাগ অক্সিজেন উৎপাদন করে।",
+      "uncertain_categories": [
+        "addition"
+      ]
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00058,
+      "flags": [],
+      "id": "src-027",
+      "judge_verdict": null,
+      "lang": "hi",
+      "reference": "",
+      "signal": null,
+      "source": "Photosynthesis is the process by which plants make food. They use sunlight, water and carbon dioxide. The result is glucose and oxygen.",
+      "status": "clean",
+      "translation": "प्रकाश संश्लेषण वह प्रक्रिया है जिससे पौधे भोजन बनाते हैं। वे सूर्य के प्रकाश, पानी और कार्बन डाइऑक्साइड का उपयोग करते हैं। इसका परिणाम ग्लूकोज और ऑक्सीजन होता है।",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00056,
+      "flags": [],
+      "id": "src-028",
+      "judge_verdict": null,
+      "lang": "ta",
+      "reference": "",
+      "signal": null,
+      "source": "The water cycle moves water around the planet. Water evaporates from oceans and rivers. It condenses into clouds and later falls as rain.",
+      "status": "uncertain",
+      "translation": "நீரின் சுழற்சி நீரை பூமியைச் சுற்றி நகர்த்துகிறது. கடல்கள் மற்றும் ஆறுகளிலிருந்து நீர் ஆவியாகிறது. அது மேகங்களாகக் குளிர்ந்து பின்னர் மழையாகப் பொழிகிறது.",
+      "uncertain_categories": [
+        "omission"
+      ]
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00082,
+      "flags": [
+        {
+          "category": "number_unit",
+          "confidence": 0.78,
+          "evidence": [
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "extra_in_translation",
+                "raw": "250",
+                "unit": null,
+                "value": "250"
+              },
+              "explanation": "extra_in_translation",
+              "noisy": false,
+              "score": 0.8,
+              "strength": "medium"
+            },
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "extra_in_translation",
+                "raw": "2",
+                "unit": null,
+                "value": "2"
+              },
+              "explanation": "extra_in_translation",
+              "noisy": false,
+              "score": 0.8,
+              "strength": "medium"
+            }
+          ],
+          "severity": "major",
+          "source_span": null,
+          "target_span": [
+            118,
+            121
+          ]
+        }
+      ],
+      "id": "src-029",
+      "judge_verdict": null,
+      "lang": "bn",
+      "reference": "",
+      "signal": null,
+      "source": "A balanced diet includes proteins, carbohydrates and fats. It also needs vitamins and minerals. Drinking enough water is important too.",
+      "status": "flagged",
+      "translation": "সুষম খাদ্যে প্রোটিন, কার্বোহাইড্রেট ও ফ্যাট থাকে। ভিটামিন ও খনিজও প্রয়োজন। পর্যাপ্ত জল পান করাও জরুরি। রেসিপিটির জন্য ২৫০ গ্রাম ময়দা এবং ২টি ডিম প্রয়োজন।",
+      "uncertain_categories": [
+        "addition"
+      ]
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00046,
+      "flags": [],
+      "id": "src-030",
+      "judge_verdict": null,
+      "lang": "hi",
+      "reference": "",
+      "signal": null,
+      "source": "Earthquakes happen when tectonic plates move suddenly. The energy travels as seismic waves. Strong earthquakes can damage buildings.",
+      "status": "clean",
+      "translation": "भूकंप तब आते हैं जब टेक्टोनिक प्लेट्स अचानक हिलती हैं। ऊर्जा भूकंपीय तरंगों के रूप में यात्रा करती है। मजबूत भूकंप इमारतों को नुकसान पहुंचा सकते हैं।",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00054,
+      "flags": [],
+      "id": "src-031",
+      "judge_verdict": null,
+      "lang": "ta",
+      "reference": "",
+      "signal": null,
+      "source": "Vaccines train the immune system to fight disease. They contain weakened or inactive germs. After vaccination the body remembers the germ.",
+      "status": "clean",
+      "translation": "நோய்களுக்கு எதிராக போராட தடுப்பூசிகள் நோய் எதிர்ப்பு அமைப்பிற்கு பயிற்சி அளிக்கின்றன. அவை பலவீனமான அல்லது செயலற்ற கிருமிகளைக் கொண்டுள்ளன. தடுப்பூசிக்குப் பிறகு உடல் கிருமியை நினைவில் கொள்கிறது.",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.0006,
+      "flags": [],
+      "id": "src-032",
+      "judge_verdict": null,
+      "lang": "bn",
+      "reference": "",
+      "signal": null,
+      "source": "## Planets\n\n| Planet | Moons |\n| --- | --- |\n| Earth | 1 |\n| Mars | 2 |",
+      "status": "clean",
+      "translation": "## গ্রহসমূহ\n\n| গ্রহ | উপগ্রহসমূহ |\n| --- | --- |\n| পৃথিবী | ১ |\n| মঙ্গল | ২ |",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00048,
+      "flags": [],
+      "id": "src-033",
+      "judge_verdict": null,
+      "lang": "hi",
+      "reference": "",
+      "signal": null,
+      "source": "### Shopping list\n\n- 2 apples\n- 500 g rice\n- 1 litre milk",
+      "status": "clean",
+      "translation": "### खरीदारी की सूची\n\n- 2 सेब\n- 500 ग्राम चावल\n- 1 लीटर दूध",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00044,
+      "flags": [],
+      "id": "src-034",
+      "judge_verdict": null,
+      "lang": "ta",
+      "reference": "",
+      "signal": null,
+      "source": "# Report\n\nThe **temperature** rose by 3 degrees. See the *summary* below.",
+      "status": "clean",
+      "translation": "# அறிக்கை\n\n**வெப்பநிலை** 3 டிகிரி அதிகரித்துள்ளது. கீழே உள்ள *சுருக்கத்தை* பார்க்கவும்.",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.0007,
+      "flags": [
+        {
+          "category": "wrong_language_script",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t1_script_language",
+              "details": {
+                "reason": "translation identical to source (untranslated)"
+              },
+              "explanation": "translation identical to source (untranslated)",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            }
+          ],
+          "severity": "critical",
+          "source_span": null,
+          "target_span": [
+            0,
+            75
+          ]
+        }
+      ],
+      "id": "src-035",
+      "judge_verdict": null,
+      "lang": "bn",
+      "reference": "",
+      "signal": null,
+      "source": "| Metal | Melting point |\n| --- | --- |\n| Iron | 1538 C |\n| Gold | 1064 C |",
+      "status": "flagged",
+      "translation": "| Metal | Melting point |\n| --- | --- |\n| Iron | 1538 C |\n| Gold | 1064 C |",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00044,
+      "flags": [
+        {
+          "category": "format",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t3_format",
+              "details": {
+                "issue": "math_body_changed",
+                "source": [
+                  "A = \\pi r^2"
+                ],
+                "translation": [
+                  "A = \\pi r^7"
+                ]
+              },
+              "explanation": "math_body_changed",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            }
+          ],
+          "severity": "major",
+          "source_span": null,
+          "target_span": [
+            0,
+            58
+          ]
+        },
+        {
+          "category": "number_unit",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "missing_or_changed",
+                "raw": "2",
+                "unit": null,
+                "value": "2"
+              },
+              "explanation": "missing_or_changed",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            },
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "extra_in_translation",
+                "raw": "7",
+                "unit": null,
+                "value": "7"
+              },
+              "explanation": "extra_in_translation",
+              "noisy": false,
+              "score": 0.8,
+              "strength": "medium"
+            }
+          ],
+          "severity": "major",
+          "source_span": [
+            35,
+            36
+          ],
+          "target_span": [
+            33,
+            34
+          ]
+        }
+      ],
+      "id": "src-036",
+      "judge_verdict": null,
+      "lang": "hi",
+      "reference": "",
+      "signal": null,
+      "source": "The area of a circle is $A = \\pi r^2$ where r is the radius.",
+      "status": "flagged",
+      "translation": "एक वृत्त का क्षेत्रफल $A = \\pi r^7$ है जहाँ r त्रिज्या है।",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00036,
+      "flags": [],
+      "id": "src-037",
+      "judge_verdict": null,
+      "lang": "ta",
+      "reference": "",
+      "signal": null,
+      "source": "Energy and mass are related by $E = mc^2$ in physics.",
+      "status": "clean",
+      "translation": "இயற்பியலில் ஆற்றலும் நிறையும் $E = mc^2$ என்ற சமன்பாட்டால் தொடர்புபடுத்தப்படுகின்றன.",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00056,
+      "flags": [
+        {
+          "category": "format",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t3_format",
+              "details": {
+                "issue": "math_body_changed",
+                "source": [
+                  "x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}"
+                ],
+                "translation": [
+                  "x = \\frac{-b \\pm \\sqrt{b^2 - 5ac}}{2a}"
+                ]
+              },
+              "explanation": "math_body_changed",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            }
+          ],
+          "severity": "major",
+          "source_span": null,
+          "target_span": [
+            0,
+            69
+          ]
+        },
+        {
+          "category": "number_unit",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "missing_or_changed",
+                "raw": "4",
+                "unit": null,
+                "value": "4"
+              },
+              "explanation": "missing_or_changed",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            },
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "extra_in_translation",
+                "raw": "5",
+                "unit": null,
+                "value": "5"
+              },
+              "explanation": "extra_in_translation",
+              "noisy": false,
+              "score": 0.8,
+              "strength": "medium"
+            }
+          ],
+          "severity": "major",
+          "source_span": [
+            55,
+            56
+          ],
+          "target_span": [
+            58,
+            59
+          ]
+        }
+      ],
+      "id": "src-038",
+      "judge_verdict": null,
+      "lang": "bn",
+      "reference": "",
+      "signal": null,
+      "source": "The quadratic formula is $x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$.",
+      "status": "flagged",
+      "translation": "দ্বিঘাত সমীকরণের সূত্রটি হল $x = \\frac{-b \\pm \\sqrt{b^2 - 5ac}}{2a}$।",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00028,
+      "flags": [],
+      "id": "src-039",
+      "judge_verdict": null,
+      "lang": "hi",
+      "reference": "",
+      "signal": null,
+      "source": "Newton's second law is written as $F = ma$.",
+      "status": "clean",
+      "translation": "न्यूटन का दूसरा नियम $F = ma$ के रूप में लिखा जाता है।",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00092,
+      "flags": [
+        {
+          "category": "number_unit",
+          "confidence": 0.78,
+          "evidence": [
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "extra_in_translation",
+                "raw": "300",
+                "unit": null,
+                "value": "300"
+              },
+              "explanation": "extra_in_translation",
+              "noisy": false,
+              "score": 0.8,
+              "strength": "medium"
+            },
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "extra_in_translation",
+                "raw": "000",
+                "unit": null,
+                "value": "0"
+              },
+              "explanation": "extra_in_translation",
+              "noisy": false,
+              "score": 0.8,
+              "strength": "medium"
+            }
+          ],
+          "severity": "major",
+          "source_span": null,
+          "target_span": [
+            104,
+            107
+          ]
+        }
+      ],
+      "id": "src-040",
+      "judge_verdict": null,
+      "lang": "ta",
+      "reference": "",
+      "signal": null,
+      "source": "The sum of the first n integers is $$\\sum_{i=1}^{n} i = \\frac{n(n+1)}{2}.$$",
+      "status": "flagged",
+      "translation": "முதல் n முழு எண்களின் கூட்டுத்தொகை $$\\sum_{i=1}^{n} i = \\frac{n(n+1)}{2}.$$ ஒளி தோராயமாக ஒரு வினாடிக்கு 300000 கிலோமீட்டர் வேகத்தில் பயணிக்கிறது.",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00028,
+      "flags": [
+        {
+          "category": "number_unit",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "missing_or_changed",
+                "raw": "100",
+                "unit": null,
+                "value": "100"
+              },
+              "explanation": "missing_or_changed",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            },
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "extra_in_translation",
+                "raw": "103",
+                "unit": null,
+                "value": "103"
+              },
+              "explanation": "extra_in_translation",
+              "noisy": false,
+              "score": 0.8,
+              "strength": "medium"
+            }
+          ],
+          "severity": "major",
+          "source_span": [
+            15,
+            18
+          ],
+          "target_span": [
+            16,
+            19
+          ]
+        }
+      ],
+      "id": "src-041",
+      "judge_verdict": null,
+      "lang": "bn",
+      "reference": "",
+      "signal": null,
+      "source": "Water boils at 100 degrees Celsius at sea level.",
+      "status": "flagged",
+      "translation": "সমুদ্রপৃষ্ঠে জল 103 ডিগ্রি সেলসিয়াসে ফোটে।",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00026,
+      "flags": [
+        {
+          "category": "number_unit",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "missing_or_changed",
+                "raw": "70",
+                "unit": null,
+                "value": "70"
+              },
+              "explanation": "missing_or_changed",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            },
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "extra_in_translation",
+                "raw": "78",
+                "unit": null,
+                "value": "78"
+              },
+              "explanation": "extra_in_translation",
+              "noisy": false,
+              "score": 0.8,
+              "strength": "medium"
+            }
+          ],
+          "severity": "major",
+          "source_span": [
+            28,
+            30
+          ],
+          "target_span": [
+            15,
+            17
+          ]
+        }
+      ],
+      "id": "src-042",
+      "judge_verdict": null,
+      "lang": "hi",
+      "reference": "",
+      "signal": null,
+      "source": "The human heart beats about 70 times per minute.",
+      "status": "flagged",
+      "translation": "मानव हृदय लगभग 78 बार प्रति मिनट धड़कता है।",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00034,
+      "flags": [
+        {
+          "category": "wrong_language_script",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t1_script_language",
+              "details": {
+                "reason": "translation identical to source (untranslated)"
+              },
+              "explanation": "translation identical to source (untranslated)",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            }
+          ],
+          "severity": "critical",
+          "source_span": null,
+          "target_span": [
+            0,
+            54
+          ]
+        }
+      ],
+      "id": "src-043",
+      "judge_verdict": null,
+      "lang": "ta",
+      "reference": "",
+      "signal": null,
+      "source": "Light travels at roughly 300000 kilometres per second.",
+      "status": "flagged",
+      "translation": "Light travels at roughly 300000 kilometres per second.",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00026,
+      "flags": [
+        {
+          "category": "number_unit",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "missing_or_changed",
+                "raw": "365",
+                "unit": null,
+                "value": "365"
+              },
+              "explanation": "missing_or_changed",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            },
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "extra_in_translation",
+                "raw": "369",
+                "unit": null,
+                "value": "369"
+              },
+              "explanation": "extra_in_translation",
+              "noisy": false,
+              "score": 0.8,
+              "strength": "medium"
+            }
+          ],
+          "severity": "major",
+          "source_span": [
+            28,
+            31
+          ],
+          "target_span": [
+            23,
+            26
+          ]
+        }
+      ],
+      "id": "src-044",
+      "judge_verdict": null,
+      "lang": "bn",
+      "reference": "",
+      "signal": null,
+      "source": "A year on Earth lasts about 365 days.",
+      "status": "flagged",
+      "translation": "পৃথিবীতে এক বছর প্রায় 369 দিন স্থায়ী হয়।",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00054,
+      "flags": [],
+      "id": "src-045",
+      "judge_verdict": null,
+      "lang": "hi",
+      "reference": "",
+      "signal": null,
+      "source": "The Moon is about 384000 kilometres from Earth.",
+      "status": "uncertain",
+      "translation": "चंद्रमा पृथ्वी से लगभग 384000 किलोमीटर दूर है। आइजैक न्यूटन ने गति के तीन नियमों का वर्णन किया।",
+      "uncertain_categories": [
+        "addition",
+        "mistranslation"
+      ]
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.0003,
+      "flags": [],
+      "id": "src-046",
+      "judge_verdict": null,
+      "lang": "ta",
+      "reference": "",
+      "signal": null,
+      "source": "Sound travels at about 343 metres per second in air.",
+      "status": "clean",
+      "translation": "ஒலி காற்றில் ஒரு வினாடிக்கு சுமார் 343 மீட்டர் வேகத்தில் பயணிக்கிறது.",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00022,
+      "flags": [],
+      "id": "src-047",
+      "judge_verdict": null,
+      "lang": "bn",
+      "reference": "",
+      "signal": null,
+      "source": "An adult human body has 206 bones.",
+      "status": "clean",
+      "translation": "একজন প্রাপ্তবয়স্ক মানুষের শরীরে ২০৬টি হাড় থাকে।",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00022,
+      "flags": [
+        {
+          "category": "wrong_language_script",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t1_script_language",
+              "details": {
+                "reason": "translation identical to source (untranslated)"
+              },
+              "explanation": "translation identical to source (untranslated)",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            }
+          ],
+          "severity": "critical",
+          "source_span": null,
+          "target_span": [
+            0,
+            50
+          ]
+        }
+      ],
+      "id": "src-048",
+      "judge_verdict": null,
+      "lang": "hi",
+      "reference": "",
+      "signal": null,
+      "source": "The boiling point of water drops at high altitude.",
+      "status": "flagged",
+      "translation": "The boiling point of water drops at high altitude.",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00036,
+      "flags": [],
+      "id": "src-049",
+      "judge_verdict": null,
+      "lang": "ta",
+      "reference": "",
+      "signal": null,
+      "source": "A week has 7 days and a day has 24 hours.",
+      "status": "uncertain",
+      "translation": "ஒரு வாரத்தில் 7 நாட்களும் ஒரு நாளில் 24 மணிநேரமும் உள்ளன.",
+      "uncertain_categories": [
+        "mistranslation"
+      ]
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00024,
+      "flags": [
+        {
+          "category": "number_unit",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "missing_or_changed",
+                "raw": "0",
+                "unit": null,
+                "value": "0"
+              },
+              "explanation": "missing_or_changed",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            },
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "extra_in_translation",
+                "raw": "3",
+                "unit": null,
+                "value": "3"
+              },
+              "explanation": "extra_in_translation",
+              "noisy": false,
+              "score": 0.8,
+              "strength": "medium"
+            }
+          ],
+          "severity": "major",
+          "source_span": [
+            31,
+            32
+          ],
+          "target_span": [
+            16,
+            17
+          ]
+        }
+      ],
+      "id": "src-050",
+      "judge_verdict": null,
+      "lang": "bn",
+      "reference": "",
+      "signal": null,
+      "source": "The freezing point of water is 0 degrees Celsius.",
+      "status": "flagged",
+      "translation": "জলের হিমাঙ্ক হল 3 ডিগ্রি সেলসিয়াস।",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00024,
+      "flags": [],
+      "id": "src-051",
+      "judge_verdict": null,
+      "lang": "hi",
+      "reference": "",
+      "signal": null,
+      "source": "Mount Everest is 8849 metres tall.",
+      "status": "clean",
+      "translation": "माउंट एवरेस्ट 8849 मीटर ऊँचा है।",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00054,
+      "flags": [
+        {
+          "category": "addition",
+          "confidence": 0.62,
+          "evidence": [
+            {
+              "check": "t4_length_ratio",
+              "details": {
+                "ratio": 2.604,
+                "src_len": 48,
+                "tgt_len": 125,
+                "z": null
+              },
+              "explanation": "",
+              "noisy": true,
+              "score": 2.6042,
+              "strength": "weak"
+            },
+            {
+              "check": "t7_sentence_coverage",
+              "details": {
+                "back_sentences": 2,
+                "src_sentences": 1
+              },
+              "explanation": "",
+              "noisy": true,
+              "score": 0.5,
+              "strength": "weak"
+            }
+          ],
+          "severity": "minor",
+          "source_span": null,
+          "target_span": null
+        },
+        {
+          "category": "number_unit",
+          "confidence": 0.78,
+          "evidence": [
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "extra_in_translation",
+                "raw": "300",
+                "unit": null,
+                "value": "300"
+              },
+              "explanation": "extra_in_translation",
+              "noisy": false,
+              "score": 0.8,
+              "strength": "medium"
+            },
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "extra_in_translation",
+                "raw": "000",
+                "unit": null,
+                "value": "0"
+              },
+              "explanation": "extra_in_translation",
+              "noisy": false,
+              "score": 0.8,
+              "strength": "medium"
+            }
+          ],
+          "severity": "major",
+          "source_span": null,
+          "target_span": [
+            84,
+            87
+          ]
+        }
+      ],
+      "id": "src-052",
+      "judge_verdict": null,
+      "lang": "ta",
+      "reference": "",
+      "signal": null,
+      "source": "The Pacific Ocean is the largest ocean on Earth.",
+      "status": "flagged",
+      "translation": "பசிபிக் பெருங்கடல் பூமியில் உள்ள மிகப்பெரிய கடல் ஆகும். ஒளி தோராயமாக ஒரு வினாடிக்கு 300000 கிலோமீட்டர் வேகத்தில் பயணிக்கிறது.",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00022,
+      "flags": [],
+      "id": "src-053",
+      "judge_verdict": null,
+      "lang": "bn",
+      "reference": "",
+      "signal": null,
+      "source": "A standard football match lasts 90 minutes.",
+      "status": "clean",
+      "translation": "একটি আদর্শ ফুটবল ম্যাচ ৯০ মিনিট স্থায়ী হয়।",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00032,
+      "flags": [],
+      "id": "src-054",
+      "judge_verdict": null,
+      "lang": "hi",
+      "reference": "",
+      "signal": null,
+      "source": "The speed limit on the highway is 100 km/h.",
+      "status": "clean",
+      "translation": "राजमार्ग पर गति सीमा 100 किमी/घंटा है।",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00032,
+      "flags": [],
+      "id": "src-055",
+      "judge_verdict": null,
+      "lang": "ta",
+      "reference": "",
+      "signal": null,
+      "source": "The recipe needs 250 grams of flour and 2 eggs.",
+      "status": "clean",
+      "translation": "இந்த செய்முறைக்கு 250 கிராம் மாவு மற்றும் 2 முட்டைகள் தேவை.",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00018,
+      "flags": [],
+      "id": "src-056",
+      "judge_verdict": null,
+      "lang": "bn",
+      "reference": "",
+      "signal": null,
+      "source": "Albert Einstein developed the theory of relativity.",
+      "status": "clean",
+      "translation": "আলবার্ট আইনস্টাইন আপেক্ষিকতার তত্ত্ব উদ্ভাবন করেন।",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.0004,
+      "flags": [
+        {
+          "category": "number_unit",
+          "confidence": 0.78,
+          "evidence": [
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "extra_in_translation",
+                "raw": "206",
+                "unit": null,
+                "value": "206"
+              },
+              "explanation": "extra_in_translation",
+              "noisy": false,
+              "score": 0.8,
+              "strength": "medium"
+            }
+          ],
+          "severity": "major",
+          "source_span": null,
+          "target_span": [
+            61,
+            64
+          ]
+        }
+      ],
+      "id": "src-057",
+      "judge_verdict": null,
+      "lang": "hi",
+      "reference": "",
+      "signal": null,
+      "source": "The Ganga river flows through northern India.",
+      "status": "flagged",
+      "translation": "गंगा नदी उत्तरी भारत से होकर बहती है। एक वयस्क मानव शरीर में 206 हड्डियाँ होती हैं।",
+      "uncertain_categories": [
+        "addition",
+        "term_entity"
+      ]
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.0003,
+      "flags": [
+        {
+          "category": "wrong_language_script",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t1_script_language",
+              "details": {
+                "reason": "translation identical to source (untranslated)"
+              },
+              "explanation": "translation identical to source (untranslated)",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            }
+          ],
+          "severity": "critical",
+          "source_span": null,
+          "target_span": [
+            0,
+            53
+          ]
+        }
+      ],
+      "id": "src-058",
+      "judge_verdict": null,
+      "lang": "ta",
+      "reference": "",
+      "signal": null,
+      "source": "NASA launched the James Webb Space Telescope in 2021.",
+      "status": "flagged",
+      "translation": "NASA launched the James Webb Space Telescope in 2021.",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.0002,
+      "flags": [],
+      "id": "src-059",
+      "judge_verdict": null,
+      "lang": "bn",
+      "reference": "",
+      "signal": null,
+      "source": "Mahatma Gandhi led the Indian independence movement.",
+      "status": "clean",
+      "translation": "মহাত্মা গান্ধী ভারতীয় স্বাধীনতা আন্দোলনের নেতৃত্ব দিয়েছিলেন।",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00048,
+      "flags": [
+        {
+          "category": "number_unit",
+          "confidence": 0.78,
+          "evidence": [
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "extra_in_translation",
+                "raw": "70",
+                "unit": null,
+                "value": "70"
+              },
+              "explanation": "extra_in_translation",
+              "noisy": false,
+              "score": 0.8,
+              "strength": "medium"
+            }
+          ],
+          "severity": "major",
+          "source_span": null,
+          "target_span": [
+            64,
+            66
+          ]
+        }
+      ],
+      "id": "src-060",
+      "judge_verdict": null,
+      "lang": "hi",
+      "reference": "",
+      "signal": null,
+      "source": "The World Health Organization is based in Geneva.",
+      "status": "flagged",
+      "translation": "विश्व स्वास्थ्य संगठन का मुख्यालय जिनेवा में है। मानव हृदय लगभग 70 बार प्रति मिनट धड़कता है।",
+      "uncertain_categories": [
+        "addition"
+      ]
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.0002,
+      "flags": [],
+      "id": "src-061",
+      "judge_verdict": null,
+      "lang": "ta",
+      "reference": "",
+      "signal": null,
+      "source": "DNA carries the genetic instructions of living organisms.",
+      "status": "clean",
+      "translation": "டிஎன்ஏ உயிருள்ள உயிரினங்களின் மரபணு வழிமுறைகளை எடுத்துச் செல்கிறது.",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00016,
+      "flags": [
+        {
+          "category": "wrong_language_script",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t1_script_language",
+              "details": {
+                "reason": "translation identical to source (untranslated)"
+              },
+              "explanation": "translation identical to source (untranslated)",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            }
+          ],
+          "severity": "critical",
+          "source_span": null,
+          "target_span": [
+            0,
+            33
+          ]
+        }
+      ],
+      "id": "src-062",
+      "judge_verdict": null,
+      "lang": "bn",
+      "reference": "",
+      "signal": null,
+      "source": "The Taj Mahal is located in Agra.",
+      "status": "flagged",
+      "translation": "The Taj Mahal is located in Agra.",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.0002,
+      "flags": [
+        {
+          "category": "wrong_language_script",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t1_script_language",
+              "details": {
+                "reason": "translation identical to source (untranslated)"
+              },
+              "explanation": "translation identical to source (untranslated)",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            }
+          ],
+          "severity": "critical",
+          "source_span": null,
+          "target_span": [
+            0,
+            48
+          ]
+        }
+      ],
+      "id": "src-063",
+      "judge_verdict": null,
+      "lang": "hi",
+      "reference": "",
+      "signal": null,
+      "source": "Isaac Newton described the three laws of motion.",
+      "status": "flagged",
+      "translation": "Isaac Newton described the three laws of motion.",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00026,
+      "flags": [
+        {
+          "category": "wrong_language_script",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t1_script_language",
+              "details": {
+                "reason": "translation identical to source (untranslated)"
+              },
+              "explanation": "translation identical to source (untranslated)",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            }
+          ],
+          "severity": "critical",
+          "source_span": null,
+          "target_span": [
+            0,
+            58
+          ]
+        }
+      ],
+      "id": "src-064",
+      "judge_verdict": null,
+      "lang": "ta",
+      "reference": "",
+      "signal": null,
+      "source": "The Amazon rainforest produces much of the world's oxygen.",
+      "status": "flagged",
+      "translation": "The Amazon rainforest produces much of the world's oxygen.",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00024,
+      "flags": [],
+      "id": "src-065",
+      "judge_verdict": null,
+      "lang": "bn",
+      "reference": "",
+      "signal": null,
+      "source": "Marie Curie won Nobel Prizes in Physics and Chemistry.",
+      "status": "uncertain",
+      "translation": "মারি কুরি পদার্থবিদ্যা ও রসায়নে নোবেল পুরস্কার জিতেছিলেন।",
+      "uncertain_categories": [
+        "term_entity"
+      ]
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00022,
+      "flags": [
+        {
+          "category": "wrong_language_script",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t1_script_language",
+              "details": {
+                "reason": "translation identical to source (untranslated)"
+              },
+              "explanation": "translation identical to source (untranslated)",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            }
+          ],
+          "severity": "critical",
+          "source_span": null,
+          "target_span": [
+            0,
+            46
+          ]
+        }
+      ],
+      "id": "src-066",
+      "judge_verdict": null,
+      "lang": "hi",
+      "reference": "",
+      "signal": null,
+      "source": "The Sahara is the largest hot desert on Earth.",
+      "status": "flagged",
+      "translation": "The Sahara is the largest hot desert on Earth.",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00022,
+      "flags": [
+        {
+          "category": "number_unit",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "missing_or_changed",
+                "raw": "2",
+                "unit": null,
+                "value": "2"
+              },
+              "explanation": "missing_or_changed",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            },
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "extra_in_translation",
+                "raw": "4",
+                "unit": null,
+                "value": "4"
+              },
+              "explanation": "extra_in_translation",
+              "noisy": false,
+              "score": 0.8,
+              "strength": "medium"
+            }
+          ],
+          "severity": "major",
+          "source_span": [
+            1,
+            2
+          ],
+          "target_span": [
+            1,
+            2
+          ]
+        },
+        {
+          "category": "term_entity",
+          "confidence": 0.78,
+          "evidence": [
+            {
+              "check": "t6_term_entity",
+              "details": {
+                "confirmed_absent_in_backtranslation": true,
+                "kind": "alnum",
+                "term": "H2O"
+              },
+              "explanation": "",
+              "noisy": false,
+              "score": 0.7,
+              "strength": "medium"
+            }
+          ],
+          "severity": "major",
+          "source_span": [
+            0,
+            3
+          ],
+          "target_span": null
+        }
+      ],
+      "id": "src-067",
+      "judge_verdict": null,
+      "lang": "ta",
+      "reference": "",
+      "signal": null,
+      "source": "H2O is the chemical formula for water.",
+      "status": "flagged",
+      "translation": "H4O என்பது நீரின் வேதியியல் சூத்திரம்.",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00054,
+      "flags": [],
+      "id": "src-068",
+      "judge_verdict": null,
+      "lang": "bn",
+      "reference": "",
+      "signal": null,
+      "source": "Photosynthesis is the process by which plants make food. They use sunlight, water and carbon dioxide. The result is glucose and oxygen.",
+      "status": "uncertain",
+      "translation": "সালোকসংশ্লেষণ হল সেই প্রক্রিয়া যার মাধ্যমে উদ্ভিদ খাদ্য তৈরি করে। তারা সূর্যের আলো, জল এবং কার্বন ডাই অক্সাইড ব্যবহার করে। এর ফলে গ্লুকোজ ও অক্সিজেন উৎপন্ন হয়।",
+      "uncertain_categories": [
+        "omission"
+      ]
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00058,
+      "flags": [],
+      "id": "src-069",
+      "judge_verdict": null,
+      "lang": "hi",
+      "reference": "",
+      "signal": null,
+      "source": "The water cycle moves water around the planet. Water evaporates from oceans and rivers. It condenses into clouds and later falls as rain.",
+      "status": "uncertain",
+      "translation": "जलचक्र पानी को ग्रह के चारों ओर घुमाता है। समुद्रों और नदियों से पानी वाष्पित होता है। यह बादलों में संघनित होता है और बाद में बारिश के रूप में गिरता है।",
+      "uncertain_categories": [
+        "omission"
+      ]
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00034,
+      "flags": [],
+      "id": "src-070",
+      "judge_verdict": null,
+      "lang": "ta",
+      "reference": "",
+      "signal": null,
+      "source": "A balanced diet includes proteins, carbohydrates and fats. It also needs vitamins and minerals. Drinking enough water is important too.",
+      "status": "uncertain",
+      "translation": "சமச்சீர் உணவில் புரதங்கள், கார்போஹைட்ரேட்டுகள் மற்றும் கொழுப்புகள் அடங்கும். மேலும் வைட்டமின்கள் மற்றும் தாதுக்கள் தேவை.",
+      "uncertain_categories": [
+        "omission"
+      ]
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00046,
+      "flags": [],
+      "id": "src-071",
+      "judge_verdict": null,
+      "lang": "bn",
+      "reference": "",
+      "signal": null,
+      "source": "Earthquakes happen when tectonic plates move suddenly. The energy travels as seismic waves. Strong earthquakes can damage buildings.",
+      "status": "clean",
+      "translation": "ভূমিকম্প ঘটে যখন টেকটোনিক প্লেটগুলি হঠাৎ করে সরে যায়। শক্তি ভূমিকম্প তরঙ্গ হিসাবে ভ্রমণ করে। শক্তিশালী ভূমিকম্প ভবনগুলির ক্ষতি করতে পারে।",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00054,
+      "flags": [],
+      "id": "src-072",
+      "judge_verdict": null,
+      "lang": "hi",
+      "reference": "",
+      "signal": null,
+      "source": "Vaccines train the immune system to fight disease. They contain weakened or inactive germs. After vaccination the body remembers the germ.",
+      "status": "clean",
+      "translation": "टीके रोग से लड़ने के लिए प्रतिरक्षा प्रणाली को प्रशिक्षित करते हैं। उनमें कमजोर या निष्क्रिय कीटाणु होते हैं। टीकाकरण के बाद शरीर कीटाणु को याद रखता है।",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00046,
+      "flags": [
+        {
+          "category": "format",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t3_format",
+              "details": {
+                "issue": "table_rows_mismatch",
+                "source": 4,
+                "translation": 3
+              },
+              "explanation": "table_rows_mismatch",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            }
+          ],
+          "severity": "major",
+          "source_span": null,
+          "target_span": [
+            0,
+            62
+          ]
+        },
+        {
+          "category": "number_unit",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "missing_or_changed",
+                "raw": "2",
+                "unit": null,
+                "value": "2"
+              },
+              "explanation": "missing_or_changed",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            }
+          ],
+          "severity": "major",
+          "source_span": [
+            68,
+            69
+          ],
+          "target_span": null
+        }
+      ],
+      "id": "src-073",
+      "judge_verdict": null,
+      "lang": "ta",
+      "reference": "",
+      "signal": null,
+      "source": "## Planets\n\n| Planet | Moons |\n| --- | --- |\n| Earth | 1 |\n| Mars | 2 |",
+      "status": "flagged",
+      "translation": "## கிரகங்கள்\n\n| கிரகம் | நிலவுகள் |\n| --- | --- |\n| பூமி | 1 |",
+      "uncertain_categories": [
+        "omission",
+        "term_entity"
+      ]
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00036,
+      "flags": [
+        {
+          "category": "number_unit",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "missing_or_changed",
+                "raw": "500 g",
+                "unit": "g",
+                "value": "500"
+              },
+              "explanation": "missing_or_changed",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            },
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "extra_in_translation",
+                "raw": "507",
+                "unit": null,
+                "value": "507"
+              },
+              "explanation": "extra_in_translation",
+              "noisy": false,
+              "score": 0.8,
+              "strength": "medium"
+            }
+          ],
+          "severity": "major",
+          "source_span": [
+            32,
+            37
+          ],
+          "target_span": [
+            35,
+            38
+          ]
+        }
+      ],
+      "id": "src-074",
+      "judge_verdict": null,
+      "lang": "bn",
+      "reference": "",
+      "signal": null,
+      "source": "### Shopping list\n\n- 2 apples\n- 500 g rice\n- 1 litre milk",
+      "status": "flagged",
+      "translation": "### কেনাকাটার তালিকা\n\n- ২টা আপেল\n- 507 গ্রাম চাল\n- ১ লিটার দুধ",
+      "uncertain_categories": [
+        "mistranslation"
+      ]
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.0004,
+      "flags": [],
+      "id": "src-075",
+      "judge_verdict": null,
+      "lang": "hi",
+      "reference": "",
+      "signal": null,
+      "source": "# Report\n\nThe **temperature** rose by 3 degrees. See the *summary* below.",
+      "status": "clean",
+      "translation": "# रिपोर्ट\n\n**तापमान** में 3 डिग्री की वृद्धि हुई। नीचे *सारांश* देखें।",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00042,
+      "flags": [
+        {
+          "category": "format",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t3_format",
+              "details": {
+                "issue": "table_rows_mismatch",
+                "source": 4,
+                "translation": 3
+              },
+              "explanation": "table_rows_mismatch",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            }
+          ],
+          "severity": "major",
+          "source_span": null,
+          "target_span": [
+            0,
+            53
+          ]
+        },
+        {
+          "category": "number_unit",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "missing_or_changed",
+                "raw": "106",
+                "unit": null,
+                "value": "106"
+              },
+              "explanation": "missing_or_changed",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            },
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "missing_or_changed",
+                "raw": "4",
+                "unit": null,
+                "value": "4"
+              },
+              "explanation": "missing_or_changed",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            }
+          ],
+          "severity": "major",
+          "source_span": [
+            67,
+            70
+          ],
+          "target_span": null
+        }
+      ],
+      "id": "src-076",
+      "judge_verdict": null,
+      "lang": "ta",
+      "reference": "",
+      "signal": null,
+      "source": "| Metal | Melting point |\n| --- | --- |\n| Iron | 1538 C |\n| Gold | 1064 C |",
+      "status": "flagged",
+      "translation": "| உலோகம் | உருகுநிலை |\n|---|---|\n| இரும்பு | 1538 C |",
+      "uncertain_categories": [
+        "omission",
+        "term_entity"
+      ]
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00046,
+      "flags": [
+        {
+          "category": "format",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t3_format",
+              "details": {
+                "issue": "math_body_changed",
+                "source": [
+                  "A = \\pi r^2"
+                ],
+                "translation": [
+                  "A = \\pi r^11"
+                ]
+              },
+              "explanation": "math_body_changed",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            }
+          ],
+          "severity": "major",
+          "source_span": null,
+          "target_span": [
+            0,
+            58
+          ]
+        },
+        {
+          "category": "number_unit",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "missing_or_changed",
+                "raw": "2",
+                "unit": null,
+                "value": "2"
+              },
+              "explanation": "missing_or_changed",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            },
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "extra_in_translation",
+                "raw": "11",
+                "unit": null,
+                "value": "11"
+              },
+              "explanation": "extra_in_translation",
+              "noisy": false,
+              "score": 0.8,
+              "strength": "medium"
+            }
+          ],
+          "severity": "major",
+          "source_span": [
+            35,
+            36
+          ],
+          "target_span": [
+            32,
+            34
+          ]
+        }
+      ],
+      "id": "src-077",
+      "judge_verdict": null,
+      "lang": "bn",
+      "reference": "",
+      "signal": null,
+      "source": "The area of a circle is $A = \\pi r^2$ where r is the radius.",
+      "status": "flagged",
+      "translation": "বৃত্তের ক্ষেত্রফল হল $A = \\pi r^11$ যেখানে r হল ব্যাসার্ধ।",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00032,
+      "flags": [
+        {
+          "category": "format",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t3_format",
+              "details": {
+                "issue": "math_body_changed",
+                "source": [
+                  "E = mc^2"
+                ],
+                "translation": [
+                  "E = mc^7"
+                ]
+              },
+              "explanation": "math_body_changed",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            }
+          ],
+          "severity": "major",
+          "source_span": null,
+          "target_span": [
+            0,
+            60
+          ]
+        },
+        {
+          "category": "number_unit",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "missing_or_changed",
+                "raw": "2",
+                "unit": null,
+                "value": "2"
+              },
+              "explanation": "missing_or_changed",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            },
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "extra_in_translation",
+                "raw": "7",
+                "unit": null,
+                "value": "7"
+              },
+              "explanation": "extra_in_translation",
+              "noisy": false,
+              "score": 0.8,
+              "strength": "medium"
+            }
+          ],
+          "severity": "major",
+          "source_span": [
+            39,
+            40
+          ],
+          "target_span": [
+            38,
+            39
+          ]
+        }
+      ],
+      "id": "src-078",
+      "judge_verdict": null,
+      "lang": "hi",
+      "reference": "",
+      "signal": null,
+      "source": "Energy and mass are related by $E = mc^2$ in physics.",
+      "status": "flagged",
+      "translation": "भौतिकी में ऊर्जा और द्रव्यमान $E = mc^7$ द्वारा संबंधित हैं।",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00056,
+      "flags": [
+        {
+          "category": "format",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t3_format",
+              "details": {
+                "issue": "math_body_changed",
+                "source": [
+                  "x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}"
+                ],
+                "translation": [
+                  "x = \\frac{-b \\pm \\sqrt{b^3 - 4ac}}{2a}"
+                ]
+              },
+              "explanation": "math_body_changed",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            }
+          ],
+          "severity": "major",
+          "source_span": null,
+          "target_span": [
+            0,
+            64
+          ]
+        },
+        {
+          "category": "number_unit",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "missing_or_changed",
+                "raw": "2",
+                "unit": null,
+                "value": "2"
+              },
+              "explanation": "missing_or_changed",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            },
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "extra_in_translation",
+                "raw": "3",
+                "unit": null,
+                "value": "3"
+              },
+              "explanation": "extra_in_translation",
+              "noisy": false,
+              "score": 0.8,
+              "strength": "medium"
+            }
+          ],
+          "severity": "major",
+          "source_span": [
+            51,
+            52
+          ],
+          "target_span": [
+            43,
+            44
+          ]
+        }
+      ],
+      "id": "src-079",
+      "judge_verdict": null,
+      "lang": "ta",
+      "reference": "",
+      "signal": null,
+      "source": "The quadratic formula is $x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$.",
+      "status": "flagged",
+      "translation": "இருபடி சூத்திரம் $x = \\frac{-b \\pm \\sqrt{b^3 - 4ac}}{2a}$ ஆகும்.",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00026,
+      "flags": [
+        {
+          "category": "format",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t3_format",
+              "details": {
+                "braces": [
+                  0,
+                  0
+                ],
+                "dollar": 1,
+                "issue": "unbalanced_markup",
+                "latex_env": [
+                  0,
+                  0
+                ]
+              },
+              "explanation": "unbalanced_markup",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            },
+            {
+              "check": "t3_format",
+              "details": {
+                "issue": "math_body_changed",
+                "source": [
+                  "F = ma"
+                ],
+                "translation": []
+              },
+              "explanation": "math_body_changed",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            }
+          ],
+          "severity": "major",
+          "source_span": null,
+          "target_span": [
+            0,
+            49
+          ]
+        }
+      ],
+      "id": "src-080",
+      "judge_verdict": null,
+      "lang": "bn",
+      "reference": "",
+      "signal": null,
+      "source": "Newton's second law is written as $F = ma$.",
+      "status": "flagged",
+      "translation": "নিউটনের দ্বিতীয় সূত্রটি লেখা হয় F = ma$ হিসেবে।",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00062,
+      "flags": [
+        {
+          "category": "format",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t3_format",
+              "details": {
+                "issue": "math_body_changed",
+                "source": [
+                  "\\sum_{i=1}^{n} i = \\frac{n(n+1)}{2}."
+                ],
+                "translation": [
+                  "\\sum_{i=1}^{n} i = \\frac{n(n+1)}{2}"
+                ]
+              },
+              "explanation": "math_body_changed",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            }
+          ],
+          "severity": "major",
+          "source_span": null,
+          "target_span": [
+            0,
+            68
+          ]
+        }
+      ],
+      "id": "src-081",
+      "judge_verdict": null,
+      "lang": "hi",
+      "reference": "",
+      "signal": null,
+      "source": "The sum of the first n integers is $$\\sum_{i=1}^{n} i = \\frac{n(n+1)}{2}.$$",
+      "status": "flagged",
+      "translation": "पहले n पूर्णांकों का योग $$\\sum_{i=1}^{n} i = \\frac{n(n+1)}{2}$$ है।",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00036,
+      "flags": [],
+      "id": "src-082",
+      "judge_verdict": null,
+      "lang": "ta",
+      "reference": "",
+      "signal": null,
+      "source": "Water boils at 100 degrees Celsius at sea level.",
+      "status": "clean",
+      "translation": "கடல் மட்டத்தில் நீர் 100 டிகிரி செல்சியஸ் வெப்பநிலையில் கொதிக்கிறது.",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00026,
+      "flags": [
+        {
+          "category": "number_unit",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "missing_or_changed",
+                "raw": "70",
+                "unit": null,
+                "value": "70"
+              },
+              "explanation": "missing_or_changed",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            },
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "extra_in_translation",
+                "raw": "78",
+                "unit": null,
+                "value": "78"
+              },
+              "explanation": "extra_in_translation",
+              "noisy": false,
+              "score": 0.8,
+              "strength": "medium"
+            }
+          ],
+          "severity": "major",
+          "source_span": [
+            28,
+            30
+          ],
+          "target_span": [
+            37,
+            39
+          ]
+        }
+      ],
+      "id": "src-083",
+      "judge_verdict": null,
+      "lang": "bn",
+      "reference": "",
+      "signal": null,
+      "source": "The human heart beats about 70 times per minute.",
+      "status": "flagged",
+      "translation": "মানুষের হৃদপিণ্ড প্রতি মিনিটে প্রায় 78 বার স্পন্দিত হয়।",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00034,
+      "flags": [
+        {
+          "category": "wrong_language_script",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t1_script_language",
+              "details": {
+                "reason": "translation identical to source (untranslated)"
+              },
+              "explanation": "translation identical to source (untranslated)",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            }
+          ],
+          "severity": "critical",
+          "source_span": null,
+          "target_span": [
+            0,
+            54
+          ]
+        }
+      ],
+      "id": "src-084",
+      "judge_verdict": null,
+      "lang": "hi",
+      "reference": "",
+      "signal": null,
+      "source": "Light travels at roughly 300000 kilometres per second.",
+      "status": "flagged",
+      "translation": "Light travels at roughly 300000 kilometres per second.",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00026,
+      "flags": [],
+      "id": "src-085",
+      "judge_verdict": null,
+      "lang": "ta",
+      "reference": "",
+      "signal": null,
+      "source": "A year on Earth lasts about 365 days.",
+      "status": "clean",
+      "translation": "பூமியில் ஒரு வருடம் சுமார் 365 நாட்கள் நீடிக்கும்.",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00032,
+      "flags": [
+        {
+          "category": "wrong_language_script",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t1_script_language",
+              "details": {
+                "reason": "translation identical to source (untranslated)"
+              },
+              "explanation": "translation identical to source (untranslated)",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            }
+          ],
+          "severity": "critical",
+          "source_span": null,
+          "target_span": [
+            0,
+            47
+          ]
+        }
+      ],
+      "id": "src-086",
+      "judge_verdict": null,
+      "lang": "bn",
+      "reference": "",
+      "signal": null,
+      "source": "The Moon is about 384000 kilometres from Earth.",
+      "status": "flagged",
+      "translation": "The Moon is about 384000 kilometres from Earth.",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00046,
+      "flags": [],
+      "id": "src-087",
+      "judge_verdict": null,
+      "lang": "hi",
+      "reference": "",
+      "signal": null,
+      "source": "Sound travels at about 343 metres per second in air.",
+      "status": "uncertain",
+      "translation": "ध्वनि हवा में लगभग 343 मीटर प्रति सेकंड की गति से यात्रा करती है। ताजमहल आगरा में स्थित है।",
+      "uncertain_categories": [
+        "addition"
+      ]
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00028,
+      "flags": [],
+      "id": "src-088",
+      "judge_verdict": null,
+      "lang": "ta",
+      "reference": "",
+      "signal": null,
+      "source": "An adult human body has 206 bones.",
+      "status": "clean",
+      "translation": "ஒரு வயது வந்த மனித உடலில் 206 எலும்புகள் உள்ளன.",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00022,
+      "flags": [
+        {
+          "category": "wrong_language_script",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t1_script_language",
+              "details": {
+                "reason": "translation identical to source (untranslated)"
+              },
+              "explanation": "translation identical to source (untranslated)",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            }
+          ],
+          "severity": "critical",
+          "source_span": null,
+          "target_span": [
+            0,
+            50
+          ]
+        }
+      ],
+      "id": "src-089",
+      "judge_verdict": null,
+      "lang": "bn",
+      "reference": "",
+      "signal": null,
+      "source": "The boiling point of water drops at high altitude.",
+      "status": "flagged",
+      "translation": "The boiling point of water drops at high altitude.",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.0004,
+      "flags": [],
+      "id": "src-090",
+      "judge_verdict": null,
+      "lang": "hi",
+      "reference": "",
+      "signal": null,
+      "source": "A week has 7 days and a day has 24 hours.",
+      "status": "uncertain",
+      "translation": "एक सप्ताह में 7 दिन होते हैं और एक दिन में 24 घंटे होते हैं।",
+      "uncertain_categories": [
+        "mistranslation"
+      ]
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00024,
+      "flags": [
+        {
+          "category": "wrong_language_script",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t1_script_language",
+              "details": {
+                "reason": "translation identical to source (untranslated)"
+              },
+              "explanation": "translation identical to source (untranslated)",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            }
+          ],
+          "severity": "critical",
+          "source_span": null,
+          "target_span": [
+            0,
+            49
+          ]
+        }
+      ],
+      "id": "src-091",
+      "judge_verdict": null,
+      "lang": "ta",
+      "reference": "",
+      "signal": null,
+      "source": "The freezing point of water is 0 degrees Celsius.",
+      "status": "flagged",
+      "translation": "The freezing point of water is 0 degrees Celsius.",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00028,
+      "flags": [],
+      "id": "src-092",
+      "judge_verdict": null,
+      "lang": "bn",
+      "reference": "",
+      "signal": null,
+      "source": "Mount Everest is 8849 metres tall.",
+      "status": "clean",
+      "translation": "মাউন্ট এভারেস্টের উচ্চতা ৮৮৪৯ মিটার।",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00028,
+      "flags": [],
+      "id": "src-093",
+      "judge_verdict": null,
+      "lang": "hi",
+      "reference": "",
+      "signal": null,
+      "source": "The Pacific Ocean is the largest ocean on Earth.",
+      "status": "uncertain",
+      "translation": "प्रशांत महासागर पृथ्वी का सबसे बड़ा महासागर है। ### खरीदारी की सूची",
+      "uncertain_categories": [
+        "addition"
+      ]
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00024,
+      "flags": [],
+      "id": "src-094",
+      "judge_verdict": null,
+      "lang": "ta",
+      "reference": "",
+      "signal": null,
+      "source": "A standard football match lasts 90 minutes.",
+      "status": "clean",
+      "translation": "ஒரு நிலையான கால்பந்து போட்டி 90 நிமிடங்கள் நீடிக்கும்.",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00054,
+      "flags": [
+        {
+          "category": "number_unit",
+          "confidence": 0.78,
+          "evidence": [
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "extra_in_translation",
+                "raw": "365",
+                "unit": null,
+                "value": "365"
+              },
+              "explanation": "extra_in_translation",
+              "noisy": false,
+              "score": 0.8,
+              "strength": "medium"
+            }
+          ],
+          "severity": "major",
+          "source_span": null,
+          "target_span": [
+            58,
+            61
+          ]
+        }
+      ],
+      "id": "src-095",
+      "judge_verdict": null,
+      "lang": "bn",
+      "reference": "",
+      "signal": null,
+      "source": "The speed limit on the highway is 100 km/h.",
+      "status": "flagged",
+      "translation": "মহাসড়কে গতিসীমা হল ১০০ কিমি/ঘণ্টা। পৃথিবীতে এক বছর প্রায় ৩৬৫ দিন স্থায়ী হয়।",
+      "uncertain_categories": [
+        "addition"
+      ]
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.0004,
+      "flags": [],
+      "id": "src-096",
+      "judge_verdict": null,
+      "lang": "hi",
+      "reference": "",
+      "signal": null,
+      "source": "The recipe needs 250 grams of flour and 2 eggs.",
+      "status": "clean",
+      "translation": "रेसिपी के लिए 250 ग्राम आटा और 2 अंडे चाहिए।",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00018,
+      "flags": [],
+      "id": "src-097",
+      "judge_verdict": null,
+      "lang": "ta",
+      "reference": "",
+      "signal": null,
+      "source": "Albert Einstein developed the theory of relativity.",
+      "status": "clean",
+      "translation": "ஆல்பர்ட் ஐன்ஸ்டீன் சார்பியல் கோட்பாட்டை உருவாக்கினார்.",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.0002,
+      "flags": [],
+      "id": "src-098",
+      "judge_verdict": null,
+      "lang": "bn",
+      "reference": "",
+      "signal": null,
+      "source": "The Ganga river flows through northern India.",
+      "status": "uncertain",
+      "translation": "গঙ্গা নদী উত্তর ভারতের মধ্য দিয়ে প্রবাহিত হয়।",
+      "uncertain_categories": [
+        "term_entity"
+      ]
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.0003,
+      "flags": [],
+      "id": "src-099",
+      "judge_verdict": null,
+      "lang": "hi",
+      "reference": "",
+      "signal": null,
+      "source": "NASA launched the James Webb Space Telescope in 2021.",
+      "status": "clean",
+      "translation": "नासा ने 2021 में जेम्स वेब स्पेस टेलीस्कोप का प्रक्षेपण किया।",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00046,
+      "flags": [
+        {
+          "category": "number_unit",
+          "confidence": 0.78,
+          "evidence": [
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "extra_in_translation",
+                "raw": "100",
+                "unit": null,
+                "value": "100"
+              },
+              "explanation": "extra_in_translation",
+              "noisy": false,
+              "score": 0.8,
+              "strength": "medium"
+            }
+          ],
+          "severity": "major",
+          "source_span": null,
+          "target_span": [
+            76,
+            79
+          ]
+        }
+      ],
+      "id": "src-100",
+      "judge_verdict": null,
+      "lang": "ta",
+      "reference": "",
+      "signal": null,
+      "source": "Mahatma Gandhi led the Indian independence movement.",
+      "status": "flagged",
+      "translation": "மகாத்மா காந்தி இந்திய விடுதலை இயக்கத்தை வழிநடத்தினார். கடல் மட்டத்தில் நீர் 100 டிகிரி செல்சியஸ் வெப்பநிலையில் கொதிக்கிறது.",
+      "uncertain_categories": [
+        "addition"
+      ]
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.0002,
+      "flags": [],
+      "id": "src-101",
+      "judge_verdict": null,
+      "lang": "bn",
+      "reference": "",
+      "signal": null,
+      "source": "The World Health Organization is based in Geneva.",
+      "status": "clean",
+      "translation": "বিশ্ব স্বাস্থ্য সংস্থা জেনেভাতে অবস্থিত।",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.0002,
+      "flags": [
+        {
+          "category": "wrong_language_script",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t1_script_language",
+              "details": {
+                "reason": "translation identical to source (untranslated)"
+              },
+              "explanation": "translation identical to source (untranslated)",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            }
+          ],
+          "severity": "critical",
+          "source_span": null,
+          "target_span": [
+            0,
+            57
+          ]
+        }
+      ],
+      "id": "src-102",
+      "judge_verdict": null,
+      "lang": "hi",
+      "reference": "",
+      "signal": null,
+      "source": "DNA carries the genetic instructions of living organisms.",
+      "status": "flagged",
+      "translation": "DNA carries the genetic instructions of living organisms.",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00042,
+      "flags": [
+        {
+          "category": "number_unit",
+          "confidence": 0.78,
+          "evidence": [
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "extra_in_translation",
+                "raw": "0",
+                "unit": null,
+                "value": "0"
+              },
+              "explanation": "extra_in_translation",
+              "noisy": false,
+              "score": 0.8,
+              "strength": "medium"
+            }
+          ],
+          "severity": "major",
+          "source_span": null,
+          "target_span": [
+            49,
+            50
+          ]
+        }
+      ],
+      "id": "src-103",
+      "judge_verdict": null,
+      "lang": "ta",
+      "reference": "",
+      "signal": null,
+      "source": "The Taj Mahal is located in Agra.",
+      "status": "flagged",
+      "translation": "தாஜ்மஹால் ஆக்ராவில் அமைந்துள்ளது. நீரின் உறைநிலை 0 டிகிரி செல்சியஸ் ஆகும்.",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00018,
+      "flags": [],
+      "id": "src-104",
+      "judge_verdict": null,
+      "lang": "bn",
+      "reference": "",
+      "signal": null,
+      "source": "Isaac Newton described the three laws of motion.",
+      "status": "clean",
+      "translation": "আইজ্যাক নিউটন গতির তিনটি সূত্র বর্ণনা করেছেন।",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00026,
+      "flags": [
+        {
+          "category": "wrong_language_script",
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "check": "t1_script_language",
+              "details": {
+                "reason": "translation identical to source (untranslated)"
+              },
+              "explanation": "translation identical to source (untranslated)",
+              "noisy": false,
+              "score": 1.0,
+              "strength": "strong"
+            }
+          ],
+          "severity": "critical",
+          "source_span": null,
+          "target_span": [
+            0,
+            58
+          ]
+        }
+      ],
+      "id": "src-105",
+      "judge_verdict": null,
+      "lang": "hi",
+      "reference": "",
+      "signal": null,
+      "source": "The Amazon rainforest produces much of the world's oxygen.",
+      "status": "flagged",
+      "translation": "The Amazon rainforest produces much of the world's oxygen.",
+      "uncertain_categories": []
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00042,
+      "flags": [
+        {
+          "category": "number_unit",
+          "confidence": 0.78,
+          "evidence": [
+            {
+              "check": "t2_number_unit",
+              "details": {
+                "issue": "extra_in_translation",
+                "raw": "2",
+                "unit": null,
+                "value": "2"
+              },
+              "explanation": "extra_in_translation",
+              "noisy": false,
+              "score": 0.8,
+              "strength": "medium"
+            }
+          ],
+          "severity": "major",
+          "source_span": null,
+          "target_span": [
+            68,
+            69
+          ]
+        }
+      ],
+      "id": "src-106",
+      "judge_verdict": null,
+      "lang": "ta",
+      "reference": "",
+      "signal": null,
+      "source": "Marie Curie won Nobel Prizes in Physics and Chemistry.",
+      "status": "flagged",
+      "translation": "மேரி கியூரி இயற்பியல் மற்றும் வேதியியலில் நோபல் பரிசுகளை வென்றார். H2O என்பது நீரின் வேதியியல் சூத்திரம்.",
+      "uncertain_categories": [
+        "addition"
+      ]
+    },
+    {
+      "checker_disagreement": false,
+      "cost_inr": 0.00024,
+      "flags": [],
+      "id": "src-107",
+      "judge_verdict": null,
+      "lang": "bn",
+      "reference": "",
+      "signal": null,
+      "source": "The Sahara is the largest hot desert on Earth.",
+      "status": "uncertain",
+      "translation": "সাহারা পৃথিবীর বৃহত্তম উষ্ণ মরুভূমি।",
+      "uncertain_categories": [
+        "term_entity"
+      ]
+    }
+  ],
+  "summary": {
+    "by_language": {
+      "bn": {
+        "clean": 13,
+        "flagged": 17,
+        "flags_by_category": {
+          "format": 3,
+          "number_unit": 10,
+          "wrong_language_script": 6
+        },
+        "mqm_penalty": 125.0,
+        "skipped": 0,
+        "total": 36,
+        "uncertain": 6
+      },
+      "hi": {
+        "clean": 16,
+        "flagged": 14,
+        "flags_by_category": {
+          "format": 3,
+          "number_unit": 6,
+          "wrong_language_script": 7
+        },
+        "mqm_penalty": 115.0,
+        "skipped": 0,
+        "total": 36,
+        "uncertain": 6
+      },
+      "ta": {
+        "clean": 14,
+        "flagged": 16,
+        "flags_by_category": {
+          "addition": 2,
+          "format": 3,
+          "number_unit": 10,
+          "term_entity": 1,
+          "wrong_language_script": 6
+        },
+        "mqm_penalty": 132.0,
+        "skipped": 0,
+        "total": 36,
+        "uncertain": 6
+      }
+    },
+    "calibration_summary": {
+      "category_accuracy": 0.7111,
+      "f1": 0.678,
+      "false_alarm_rate": null,
+      "localization": 0.7111,
+      "precision": 0.5714,
+      "recall": 0.8333
+    },
+    "checker_disagreements": 0,
+    "cost": {
+      "logical_total_inr": 0.038
+    },
+    "evaluation_scope": {
+      "judge_enabled": false,
+      "speech_enabled": false
+    },
+    "flags_by_category": {
+      "addition": 2,
+      "format": 9,
+      "number_unit": 26,
+      "term_entity": 1,
+      "wrong_language_script": 19
+    },
+    "flags_by_severity": {
+      "critical": 19,
+      "major": 36,
+      "minor": 2
+    },
+    "judge_consistency": {
+      "measured": false
+    },
+    "load": {
+      "duplicate_ids": 0,
+      "loaded": 108,
+      "skipped": 0
+    },
+    "skipped_for_budget": [],
+    "skipped_reasons": {},
+    "totals": {
+      "clean": 43,
+      "flagged": 47,
+      "items": 108,
+      "skipped": 0,
+      "uncertain": 18
+    }
+  }
+}

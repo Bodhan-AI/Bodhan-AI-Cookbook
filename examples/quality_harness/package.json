@@ -1,0 +1,6 @@
+{
+  "name": "bodhan-quality-harness-assets",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Static dashboard assets for the Python quality harness"
+}

@@ -1,0 +1,19 @@
+id,lang,uncertain_categories,evidence_checks,note
+src-004,ta,addition,t7_sentence_coverage,needs human label
+src-009,hi,addition,t7_sentence_coverage,needs human label
+src-011,bn,term_entity,t6_term_entity,needs human label
+src-016,ta,term_entity,t6_term_entity,needs human label
+src-022,ta,addition,t7_sentence_coverage,needs human label
+src-026,bn,addition,t7_sentence_coverage,needs human label
+src-028,ta,omission,t7_sentence_coverage,needs human label
+src-045,hi,addition;mistranslation,roundtrip;t7_sentence_coverage,needs human label
+src-049,ta,mistranslation,roundtrip,needs human label
+src-065,bn,term_entity,t6_term_entity,needs human label
+src-068,bn,omission,t7_sentence_coverage,needs human label
+src-069,hi,omission,t7_sentence_coverage,needs human label
+src-070,ta,omission,t7_sentence_coverage,needs human label
+src-087,hi,addition,t7_sentence_coverage,needs human label
+src-090,hi,mistranslation,roundtrip,needs human label
+src-093,hi,addition,t7_sentence_coverage,needs human label
+src-098,bn,term_entity,t6_term_entity,needs human label
+src-107,bn,term_entity,t6_term_entity,needs human label

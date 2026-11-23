@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="paper">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quality Harness — Proof Sheet</title>
+<style>:root{
+  --paper:#f7f3ea; --ink:#23201b; --ink-soft:#5b5347; --rule:#ddd3c0; --card:#fffdf7;
+  --accent:#7a1f1f; --accent-soft:#9c6b2e;
+  --minor:#5b6b7a; --major:#b8860b; --critical:#a01c1c;
+  --minor-bg:#e7ecf1; --major-bg:#f6e8c6; --critical-bg:#f3d9d4;
+  --good:#2f6b43; --bad:#a01c1c; --chip:#efe8d6;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"SF Mono",ui-monospace,"Cascadia Code",Menlo,Consolas,monospace;
+  --indic:"Noto Sans Devanagari","Noto Sans Tamil","Noto Sans Bengali","Nirmala UI","Mangal","Latha","Vrinda",system-ui;
+  --shadow:0 2px 8px rgba(40,30,15,.08),0 12px 40px rgba(40,30,15,.06);
+}
+html[data-theme="midnight"]{
+  --paper:#15181f; --ink:#ece3cf; --ink-soft:#a99f8c; --rule:#2c313c; --card:#1b1f28;
+  --accent:#e0836a; --accent-soft:#d8b06a;
+  --minor:#8fa6bd; --major:#e0b84a; --critical:#ef6a5a;
+  --minor-bg:#232a35; --major-bg:#332d1c; --critical-bg:#3a2320;
+  --good:#6fcf97; --bad:#ef6a5a; --chip:#262b35;
+  --shadow:0 2px 10px rgba(0,0,0,.4),0 18px 50px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);
+  font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:var(--serif);font-weight:600;letter-spacing:.2px}
+a{color:var(--accent)}
+.skip{position:absolute;left:-999px}.skip:focus{left:8px;top:8px;background:var(--card);padding:6px;z-index:50}
+:lang(hi),:lang(ta),:lang(bn),.indic{font-family:var(--indic);line-height:1.8}
+
+.strip{display:flex;align-items:center;gap:20px;padding:18px 26px;border-bottom:2px solid var(--rule);
+  position:sticky;top:0;background:var(--paper);z-index:20}
+.strip-title{display:flex;align-items:center;gap:14px}
+.monogram{font-family:var(--serif);font-size:34px;color:var(--accent);line-height:1}
+.strip h1{margin:0;font-size:21px}
+.sub{margin:0;color:var(--ink-soft);font-size:12.5px;font-style:italic}
+.strip-meta{display:flex;flex-wrap:wrap;gap:6px 18px;margin-left:auto;font-size:12.5px;color:var(--ink-soft)}
+.strip-meta b{color:var(--ink);font-variant-numeric:tabular-nums}
+.strip-actions{display:flex;gap:8px}
+.btn{font-family:var(--sans);background:var(--card);color:var(--ink);border:1px solid var(--rule);
+  border-radius:8px;padding:7px 11px;cursor:pointer;font-size:14px}
+.btn:hover{border-color:var(--accent)}
+.btn.ghost{background:transparent}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;padding:22px 26px}
+.kpi{background:var(--card);border:1px solid var(--rule);border-radius:14px;padding:16px 18px;box-shadow:var(--shadow)}
+.kpi .label{font-size:12px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.6px}
+.kpi .value{font-family:var(--serif);font-size:38px;line-height:1.05;margin:4px 0 2px;font-variant-numeric:tabular-nums}
+.kpi .target{font-size:12px;color:var(--ink-soft)}
+.gauge{height:6px;border-radius:4px;background:var(--rule);margin-top:10px;position:relative;overflow:visible}
+.gauge > i{position:absolute;left:0;top:0;height:100%;border-radius:4px;background:var(--good)}
+.gauge.miss > i{background:var(--bad)}
+.gauge .tick{position:absolute;top:-3px;width:2px;height:12px;background:var(--ink)}
+
+.tabs{display:flex;gap:4px;padding:0 26px;border-bottom:1px solid var(--rule)}
+.tab{background:transparent;border:0;border-bottom:3px solid transparent;color:var(--ink-soft);
+  padding:12px 14px;cursor:pointer;font-size:14px;font-weight:600}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.panel{padding:22px 26px;max-width:1200px}
+
+.heatmap-wrap h2{margin:.2em 0 .5em;font-size:16px}
+.heatmap{display:grid;gap:3px;overflow:auto}
+.hm-cell{min-width:46px;height:40px;border-radius:5px;display:flex;align-items:flex-end;justify-content:flex-end;
+  padding:3px 5px;font-size:10px;color:#fff;cursor:pointer;position:relative;font-variant-numeric:tabular-nums}
+.hm-head{background:transparent;color:var(--ink-soft);font-size:11px;align-items:center;justify-content:center;cursor:default}
+.hm-cell.low-support{outline:2px dashed var(--rule);outline-offset:-2px}
+.hint{color:var(--ink-soft);font-size:12px;font-style:italic}
+
+.filterbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:18px 0 10px;
+  padding:12px;background:var(--card);border:1px solid var(--rule);border-radius:12px;position:sticky;top:76px;z-index:10}
+.filterbar input[type=search],.filterbar select{font-family:var(--sans);background:var(--paper);color:var(--ink);
+  border:1px solid var(--rule);border-radius:8px;padding:7px 9px;font-size:13.5px}
+.filterbar input[type=search]{min-width:200px;flex:1}
+.chk{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-soft)}
+.count{margin-left:auto;font-size:12.5px;color:var(--ink-soft)}
+
+.items{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.row{display:grid;grid-template-columns:120px 54px 90px 1fr auto;gap:12px;align-items:center;
+  background:var(--card);border:1px solid var(--rule);border-radius:10px;padding:11px 14px;cursor:pointer}
+.row:hover{border-color:var(--accent)}
+.row .rid{font-family:var(--mono);font-size:13px}
+.chip{display:inline-block;background:var(--chip);border-radius:999px;padding:2px 9px;font-size:11.5px;color:var(--ink-soft)}
+.status{font-size:12px;font-weight:600}
+.status.flagged{color:var(--critical)}.status.uncertain{color:var(--major)}
+.status.clean{color:var(--good)}.status.skipped{color:var(--ink-soft)}
+.flagchips{display:flex;flex-wrap:wrap;gap:5px}
+.fchip{display:inline-flex;align-items:center;gap:5px;border-radius:6px;padding:2px 8px;font-size:11.5px;border:1px solid}
+.fchip.minor{color:var(--minor);border-color:var(--minor);background:var(--minor-bg)}
+.fchip.major{color:var(--major);border-color:var(--major);background:var(--major-bg)}
+.fchip.critical{color:var(--critical);border-color:var(--critical);background:var(--critical-bg)}
+.fchip .dot{width:7px;height:7px;border-radius:50%}
+.fchip.minor .dot{background:var(--minor)}.fchip.major .dot{background:var(--major)}.fchip.critical .dot{background:var(--critical)}
+.cost{font-family:var(--mono);font-size:12px;color:var(--ink-soft)}
+
+.drawer{position:fixed;top:0;right:0;width:min(640px,96vw);height:100%;background:var(--paper);
+  border-left:2px solid var(--rule);box-shadow:var(--shadow);z-index:40;overflow:auto;transform:translateX(0)}
+.drawer[hidden]{display:none}
+.drawer-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:16px 20px;
+  border-bottom:1px solid var(--rule);position:sticky;top:0;background:var(--paper)}
+.proof-id{font-family:var(--mono);font-weight:700}
+.drawer-nav{display:flex;gap:6px}
+.drawer-body{padding:18px 20px}
+.scrim{position:fixed;inset:0;background:rgba(20,15,5,.35);z-index:30}
+.scrim[hidden]{display:none}
+
+.textcard{background:var(--card);border:1px solid var(--rule);border-radius:10px;padding:14px;margin:0 0 14px}
+.textcard h4{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-soft)}
+.texthost{white-space:pre-wrap;word-break:break-word}
+mark{border-radius:3px;padding:0 1px;color:inherit}
+mark.minor{background:var(--minor-bg);box-shadow:inset 0 -2px var(--minor)}
+mark.major{background:var(--major-bg);box-shadow:inset 0 -2px var(--major)}
+mark.critical{background:var(--critical-bg);text-decoration:underline wavy var(--critical)}
+mark .marker{font-family:var(--mono);font-size:9px;vertical-align:super;color:var(--accent);font-weight:700}
+
+.evcard{border:1px solid var(--rule);border-left:4px solid var(--accent-soft);border-radius:8px;
+  padding:11px 13px;margin:0 0 10px;background:var(--card)}
+.evcard .evhead{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--ink-soft)}
+.evcard .evhead .cat{font-weight:700;color:var(--ink)}
+.evcard .noisy{font-size:10.5px;border:1px solid var(--rule);border-radius:4px;padding:0 5px}
+.evcard details{margin-top:8px}
+.evcard pre{white-space:pre-wrap;word-break:break-word;background:var(--paper);border-radius:6px;padding:8px;
+  font-family:var(--mono);font-size:11.5px;margin:6px 0 0}
+.why{font-style:italic;color:var(--ink-soft);margin:6px 0 14px}
+
+.wave{display:flex;align-items:flex-end;gap:1px;height:46px;background:var(--card);border:1px solid var(--rule);
+  border-radius:8px;padding:5px;margin:4px 0 12px}
+.wave i{flex:1;background:var(--accent-soft);min-height:1px;border-radius:1px}
+
+table.grid{border-collapse:collapse;width:100%;font-size:13px;margin:6px 0 18px}
+table.grid th,table.grid td{border:1px solid var(--rule);padding:7px 9px;text-align:left;font-variant-numeric:tabular-nums}
+table.grid th{background:var(--card);font-family:var(--sans)}
+.pill{font-size:11px;border-radius:999px;padding:1px 8px}
+.pill.good{background:var(--minor-bg);color:var(--good)}.pill.bad{background:var(--critical-bg);color:var(--bad)}
+
+.help{position:fixed;inset:auto 20px 20px auto;background:var(--card);border:1px solid var(--rule);
+  border-radius:12px;padding:16px 18px;box-shadow:var(--shadow);z-index:60;max-width:300px}
+.help[hidden]{display:none}.help kbd{font-family:var(--mono);background:var(--paper);border:1px solid var(--rule);
+  border-radius:4px;padding:0 5px}
+.help ul{margin:8px 0;padding-left:18px}.help li{margin:4px 0}
+
+.foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:18px 26px;margin-top:20px;
+  border-top:1px solid var(--rule);color:var(--ink-soft);font-size:12px}
+.empty{color:var(--ink-soft);font-style:italic;padding:30px;text-align:center}
+
+@media (max-width:640px){
+  .row{grid-template-columns:1fr auto;grid-auto-rows:min-content}
+  .row .rcat{grid-column:1/-1}
+  .strip{flex-wrap:wrap}
+}
+@media (prefers-reduced-motion:no-preference){
+  .row,.kpi,.evcard{transition:border-color .15s ease, transform .15s ease}
+  .drawer{transition:transform .2s ease}
+}
+@media print{
+  .tabs,.filterbar,.strip-actions,.heatmap-wrap,#scrim,.help{display:none!important}
+  .drawer{position:static;width:100%;border:0;box-shadow:none}
+  body{background:#fff;color:#000}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="strip" role="banner">
+  <div class="strip-title">
+    <span class="monogram" aria-hidden="true">¶</span>
+    <div>
+      <h1>Translation &amp; Speech Quality</h1>
+      <p class="sub" id="run-sub">The proofreader's desk</p>
+    </div>
+  </div>
+  <div class="strip-meta" id="strip-meta"></div>
+  <div class="strip-actions">
+    <button id="theme-toggle" class="btn" aria-label="Toggle colour theme" title="Toggle theme (paper / midnight)">◐</button>
+    <button id="help-toggle" class="btn" aria-label="Keyboard shortcuts" title="Shortcuts (?)">?</button>
+  </div>
+</header>
+
+<section class="kpis" id="kpis" aria-label="Headline metrics"></section>
+
+<nav class="tabs" role="tablist" aria-label="Views">
+  <button class="tab" role="tab" data-tab="items" aria-selected="true">Proof sheet</button>
+  <button class="tab" role="tab" data-tab="calibration" aria-selected="false">Calibration</button>
+  <button class="tab" role="tab" data-tab="cost" aria-selected="false">Cost</button>
+  <button class="tab" role="tab" data-tab="review" aria-selected="false">Review queue</button>
+  <button class="tab" role="tab" data-tab="diff" aria-selected="false">Diff</button>
+</nav>
+
+<main id="main">
+  <section id="tab-items" class="panel" role="tabpanel">
+    <div class="heatmap-wrap">
+      <h2>Recall by language × category</h2>
+      <div id="heatmap" class="heatmap" role="img" aria-label="Recall heatmap by language and category"></div>
+      <p class="hint" id="heatmap-hint"></p>
+    </div>
+    <div class="filterbar" role="region" aria-label="Filters">
+      <input type="search" id="f-search" placeholder="Search id or text…" aria-label="Search">
+      <select id="f-lang" aria-label="Language"></select>
+      <select id="f-category" aria-label="Category"></select>
+      <select id="f-severity" aria-label="Severity">
+        <option value="">All severities</option><option>critical</option><option>major</option><option>minor</option>
+      </select>
+      <select id="f-status" aria-label="Status">
+        <option value="">All statuses</option><option>flagged</option><option>uncertain</option><option>clean</option><option>skipped</option>
+      </select>
+      <label class="chk"><input type="checkbox" id="f-disagree"> judge≠checks</label>
+      <span class="count" id="result-count"></span>
+      <button class="btn ghost" id="f-reset">reset</button>
+    </div>
+    <ol class="items" id="item-list" aria-label="Scored items"></ol>
+  </section>
+
+  <section id="tab-calibration" class="panel" role="tabpanel" hidden></section>
+  <section id="tab-cost" class="panel" role="tabpanel" hidden></section>
+  <section id="tab-review" class="panel" role="tabpanel" hidden></section>
+  <section id="tab-diff" class="panel" role="tabpanel" hidden></section>
+</main>
+
+<aside id="proof" class="drawer" role="dialog" aria-modal="true" aria-label="Item proof sheet" hidden>
+  <div class="drawer-head">
+    <div><span id="proof-id" class="proof-id"></span> <span id="proof-lang" class="chip"></span> <span id="proof-status" class="chip"></span></div>
+    <div class="drawer-nav">
+      <button class="btn ghost" id="proof-prev" title="Previous (k)">↑</button>
+      <button class="btn ghost" id="proof-next" title="Next (j)">↓</button>
+      <button class="btn" id="proof-close" title="Close (Esc)">✕</button>
+    </div>
+  </div>
+  <div class="drawer-body" id="proof-body"></div>
+</aside>
+<div id="scrim" class="scrim" hidden></div>
+
+<div id="help" class="help" hidden role="dialog" aria-label="Keyboard shortcuts">
+  <h3>Shortcuts</h3>
+  <ul>
+    <li><kbd>j</kbd> / <kbd>k</kbd> — next / previous item</li>
+    <li><kbd>Esc</kbd> — close</li>
+    <li><kbd>/</kbd> — focus search</li>
+    <li><kbd>t</kbd> — toggle theme</li>
+  </ul>
+  <button class="btn" id="help-close">close</button>
+</div>
+
+<footer class="foot">
+  <span>AI-generated audio is never committed. Markdown/LaTeX shown as plain text.</span>
+  <span id="foot-meta"></span>
+</footer>
+
+<script type="application/json" id="data">{"calibration": {"cells": {"_all|_all": {"category": "_all", "category_accuracy": 1.0, "f1": 0.6667, "labels": 4, "lang": "_all", "localization": 1.0, "low_support": true, "precision": 0.6, "predictions": 5, "recall": 0.75}, "_all|addition": {"category": "addition", "category_accuracy": null, "f1": null, "labels": 0, "lang": "_all", "localization": null, "low_support": true, "precision": 0.0, "predictions": 1, "recall": null}, "_all|format": {"category": "format", "category_accuracy": 1.0, "f1": 1.0, "labels": 1, "lang": "_all", "localization": 1.0, "low_support": true, "precision": 1.0, "predictions": 1, "recall": 1.0}, "_all|number_unit": {"category": "number_unit", "category_accuracy": 1.0, "f1": 0.5, "labels": 2, "lang": "_all", "localization": 1.0, "low_support": true, "precision": 0.5, "predictions": 2, "recall": 0.5}, "_all|wrong_language_script": {"category": "wrong_language_script", "category_accuracy": 1.0, "f1": 1.0, "labels": 1, "lang": "_all", "localization": 1.0, "low_support": true, "precision": 1.0, "predictions": 1, "recall": 1.0}, "bn|_all": {"category": "_all", "category_accuracy": 1.0, "f1": 1.0, "labels": 1, "lang": "bn", "localization": 1.0, "low_support": true, "precision": 1.0, "predictions": 1, "recall": 1.0}, "bn|wrong_language_script": {"category": "wrong_language_script", "category_accuracy": 1.0, "f1": 1.0, "labels": 1, "lang": "bn", "localization": 1.0, "low_support": true, "precision": 1.0, "predictions": 1, "recall": 1.0}, "hi|_all": {"category": "_all", "category_accuracy": 1.0, "f1": 1.0, "labels": 1, "lang": "hi", "localization": 1.0, "low_support": true, "precision": 1.0, "predictions": 1, "recall": 1.0}, "hi|number_unit": {"category": "number_unit", "category_accuracy": 1.0, "f1": 1.0, "labels": 1, "lang": "hi", "localization": 1.0, "low_support": true, "precision": 1.0, "predictions": 1, "recall": 1.0}, "ta|_all": {"category": "_all", "category_accuracy": 1.0, "f1": 0.4, "labels": 2, "lang": "ta", "localization": 1.0, "low_support": true, "precision": 0.3333, "predictions": 3, "recall": 0.5}, "ta|addition": {"category": "addition", "category_accuracy": null, "f1": null, "labels": 0, "lang": "ta", "localization": null, "low_support": true, "precision": 0.0, "predictions": 1, "recall": null}, "ta|format": {"category": "format", "category_accuracy": 1.0, "f1": 1.0, "labels": 1, "lang": "ta", "localization": 1.0, "low_support": true, "precision": 1.0, "predictions": 1, "recall": 1.0}, "ta|number_unit": {"category": "number_unit", "category_accuracy": null, "f1": null, "labels": 1, "lang": "ta", "localization": null, "low_support": true, "precision": 0.0, "predictions": 1, "recall": 0.0}}, "false_alarms": {"_all": {"clean_items": 6, "flagged": 0, "rate": 0.0}, "bn": {"clean_items": 2, "flagged": 0, "rate": 0.0}, "hi": {"clean_items": 3, "flagged": 0, "rate": 0.0}, "ta": {"clean_items": 1, "flagged": 0, "rate": 0.0}}}, "diff": null, "items": [{"checker_disagreement": false, "cost_inr": 0.00026, "flags": [], "id": "t01", "judge_verdict": "ok", "lang": "hi", "reference": "", "signal": null, "source": "Water boils at 100 degrees at sea level.", "status": "clean", "translation": "समुद्र तल पर पानी 100 डिग्री पर उबलता है।", "uncertain_categories": []}, {"checker_disagreement": false, "cost_inr": 0.00018, "flags": [{"category": "number_unit", "confidence": 0.95, "evidence": [{"check": "t2_number_unit", "details": {"issue": "missing_or_changed", "raw": "100 mg", "unit": "mg", "value": "100"}, "explanation": "missing_or_changed", "noisy": false, "score": 1.0, "strength": "strong"}, {"check": "t2_number_unit", "details": {"issue": "extra_in_translation", "raw": "90", "unit": null, "value": "90"}, "explanation": "extra_in_translation", "noisy": false, "score": 0.8, "strength": "medium"}], "severity": "major", "source_span": [12, 18], "target_span": [16, 18]}], "id": "t02", "judge_verdict": "error", "lang": "hi", "reference": "", "signal": null, "source": "The dose is 100 mg per day.", "status": "flagged", "translation": "खुराक प्रति दिन 90 मिलीग्राम है।", "uncertain_categories": []}, {"checker_disagreement": false, "cost_inr": 0.00012, "flags": [], "id": "t03", "judge_verdict": "ok", "lang": "ta", "reference": "", "signal": null, "source": "The sun is a star.", "status": "clean", "translation": "சூரியன் ஒரு நட்சத்திரம்.", "uncertain_categories": []}, {"checker_disagreement": false, "cost_inr": 0.00022, "flags": [{"category": "format", "confidence": 0.95, "evidence": [{"check": "t3_format", "details": {"braces": [0, 0], "dollar": 1, "issue": "unbalanced_markup", "latex_env": [0, 0]}, "explanation": "unbalanced_markup", "noisy": false, "score": 1.0, "strength": "strong"}, {"check": "t3_format", "details": {"issue": "math_body_changed", "source": ["A = \\pi r^2"], "translation": []}, "explanation": "math_body_changed", "noisy": false, "score": 1.0, "strength": "strong"}], "severity": "major", "source_span": null, "target_span": [0, 29]}], "id": "t04", "judge_verdict": "ok", "lang": "ta", "reference": "", "signal": null, "source": "The area is $A = \\pi r^2$ exactly.", "status": "flagged", "translation": "பரப்பளவு $A = \\pi r^2 சரியாக.", "uncertain_categories": []}, {"checker_disagreement": true, "cost_inr": 0.00014, "flags": [], "id": "t05", "judge_verdict": "error", "lang": "bn", "reference": "", "signal": null, "source": "Rivers flow to the sea.", "status": "uncertain", "translation": "নদী সমুদ্রে প্রবাহিত হয়।", "uncertain_categories": ["number_unit"]}, {"checker_disagreement": false, "cost_inr": 0.00022, "flags": [{"category": "wrong_language_script", "confidence": 0.95, "evidence": [{"check": "t1_script_language", "details": {"reason": "translation identical to source (untranslated)"}, "explanation": "translation identical to source (untranslated)", "noisy": false, "score": 1.0, "strength": "strong"}], "severity": "critical", "source_span": null, "target_span": [0, 33]}], "id": "t06", "judge_verdict": "error", "lang": "bn", "reference": "", "signal": null, "source": "Photosynthesis happens in leaves.", "status": "flagged", "translation": "Photosynthesis happens in leaves.", "uncertain_categories": []}, {"checker_disagreement": false, "cost_inr": 0.00018, "flags": [], "id": "t07", "judge_verdict": "ok", "lang": "hi", "reference": "", "signal": null, "source": "There are 7 days in a week.", "status": "clean", "translation": "एक सप्ताह में 7 दिन होते हैं।", "uncertain_categories": []}, {"checker_disagreement": false, "cost_inr": 0.00018, "flags": [{"category": "addition", "confidence": 0.85, "evidence": [{"check": "judge", "details": {"explanation": "The translation adds information about the tower's width (99 metres) that is not present in the source sentence.", "located": true, "parse_ok": true, "quote_verbatim": true, "verdict": "error"}, "explanation": "The translation adds information about the tower's width (99 metres) that is not present in the source sentence.", "noisy": true, "score": 1.0, "strength": "medium"}], "severity": "major", "source_span": null, "target_span": [26, 49]}, {"category": "number_unit", "confidence": 0.78, "evidence": [{"check": "t2_number_unit", "details": {"issue": "extra_in_translation", "raw": "99", "unit": null, "value": "99"}, "explanation": "extra_in_translation", "noisy": false, "score": 0.8, "strength": "medium"}], "severity": "major", "source_span": null, "target_span": [33, 35]}], "id": "t08", "judge_verdict": "error", "lang": "ta", "reference": "", "signal": null, "source": "The tower is 50 metres tall.", "status": "flagged", "translation": "கோபுரம் 50 மீட்டர் உயரம், மேலும் 99 மீட்டர் அகலம்.", "uncertain_categories": []}, {"checker_disagreement": false, "cost_inr": 0.00018, "flags": [], "id": "t09", "judge_verdict": "ok", "lang": "bn", "reference": "", "signal": null, "source": "Honey is sweet and healthy.", "status": "clean", "translation": "মধু মিষ্টি এবং স্বাস্থ্যকর।", "uncertain_categories": []}, {"checker_disagreement": false, "cost_inr": 0.00012, "flags": [], "id": "t10", "judge_verdict": "ok", "lang": "hi", "reference": "", "signal": null, "source": "Ice is frozen water.", "status": "clean", "translation": "बर्फ जमा हुआ पानी है।", "uncertain_categories": []}], "summary": {"by_language": {"bn": {"clean": 1, "flagged": 1, "flags_by_category": {"wrong_language_script": 1}, "mqm_penalty": 10.0, "skipped": 0, "total": 3, "uncertain": 1}, "hi": {"clean": 3, "flagged": 1, "flags_by_category": {"number_unit": 1}, "mqm_penalty": 5.0, "skipped": 0, "total": 4, "uncertain": 0}, "ta": {"clean": 1, "flagged": 2, "flags_by_category": {"addition": 1, "format": 1, "number_unit": 1}, "mqm_penalty": 15.0, "skipped": 0, "total": 3, "uncertain": 0}}, "calibration_summary": {"category_accuracy": 1.0, "f1": 0.6667, "false_alarm_rate": 0.0, "localization": 1.0, "precision": 0.6, "recall": 0.75}, "checker_disagreements": 1, "cost": {"logical_total_inr": 0.0018}, "flags_by_category": {"addition": 1, "format": 1, "number_unit": 2, "wrong_language_script": 1}, "flags_by_severity": {"critical": 1, "major": 4}, "judge_consistency": {"category_agreement": 0.95, "items": 10, "measured": true, "verdict_agreement": 1.0}, "load": {"duplicate_ids": 0, "loaded": 10, "skipped": 0}, "skipped_for_budget": [], "skipped_reasons": {}, "totals": {"clean": 5, "flagged": 4, "items": 10, "skipped": 0, "uncertain": 1}}}</script>
+<script>"use strict";
+(function () {
+  var DATA = JSON.parse(document.getElementById("data").textContent || "{}");
+  var ITEMS = DATA.items || [];
+  var SUMMARY = DATA.summary || {};
+  var CAL = DATA.calibration || {};
+  var DIFF = DATA.diff || null;
+  var SEV_RANK = { minor: 0, major: 1, critical: 2 };
+  var TARGETS = { recall: 0.8, false_alarm_rate: 0.1, localization: 0.7, category_accuracy: 0.7, judge: 0.9 };
+
+  // ---------- helpers ----------
+  function $(sel, root) { return (root || document).querySelector(sel); }
+  function ce(tag, attrs, kids) {
+    var e = document.createElement(tag);
+    if (attrs) for (var k in attrs) {
+      if (k === "class") e.className = attrs[k];
+      else if (k === "text") e.textContent = attrs[k];
+      else if (k === "html") e.textContent = attrs[k]; // never raw html
+      else if (k.slice(0, 2) === "on") e.addEventListener(k.slice(2), attrs[k]);
+      else if (attrs[k] != null) e.setAttribute(k, attrs[k]);
+    }
+    (kids || []).forEach(function (c) { if (c != null) e.appendChild(typeof c === "string" ? document.createTextNode(c) : c); });
+    return e;
+  }
+  function fmtPct(x) { return x == null ? "—" : (x * 100).toFixed(0) + "%"; }
+  function fmtNum(x) { return x == null ? "—" : (+x).toFixed(2); }
+
+  // ---------- theme ----------
+  function initTheme() {
+    var saved = null;
+    try { saved = localStorage.getItem("qh-theme"); } catch (e) {}
+    if (!saved) saved = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "midnight" : "paper";
+    document.documentElement.setAttribute("data-theme", saved);
+  }
+  function toggleTheme() {
+    var cur = document.documentElement.getAttribute("data-theme");
+    var next = cur === "midnight" ? "paper" : "midnight";
+    document.documentElement.setAttribute("data-theme", next);
+    try { localStorage.setItem("qh-theme", next); } catch (e) {}
+  }
+
+  // ---------- header ----------
+  function renderHeader() {
+    var t = SUMMARY.totals || {};
+    var cost = (SUMMARY.cost || {}).logical_total_inr;
+    var jc = SUMMARY.judge_consistency || {};
+    var meta = $("#strip-meta");
+    var bits = [
+      ["items", t.items], ["clean", t.clean], ["flagged", t.flagged],
+      ["uncertain", t.uncertain], ["skipped", t.skipped]
+    ];
+    bits.forEach(function (b) {
+      if (b[1] == null) return;
+      meta.appendChild(ce("span", {}, [b[0] + " ", ce("b", { text: String(b[1]) })]));
+    });
+    if (cost != null) meta.appendChild(ce("span", {}, ["cost ", ce("b", { text: "₹" + cost })]));
+    var langs = Object.keys(SUMMARY.by_language || {}).join(", ");
+    $("#run-sub").textContent = "The proofreader's desk — " + (langs || "no languages");
+    $("#foot-meta").textContent = jc.measured
+      ? "judge consistency " + fmtPct(jc.verdict_agreement) + " verdict / " + fmtPct(jc.category_agreement) + " category"
+      : "judge consistency not measured";
+  }
+
+  // ---------- KPIs ----------
+  function kpi(label, value, target, higherBetter) {
+    var met = value == null ? null : (higherBetter ? value >= target : value <= target);
+    var g = ce("div", { class: "gauge" + (met === false ? " miss" : "") });
+    var fill = Math.max(0, Math.min(1, value == null ? 0 : value));
+    g.appendChild(ce("i", { style: "width:" + (fill * 100).toFixed(1) + "%" }));
+    g.appendChild(ce("span", { class: "tick", style: "left:" + (target * 100).toFixed(1) + "%", title: "target" }));
+    return ce("div", { class: "kpi" }, [
+      ce("div", { class: "label", text: label }),
+      ce("div", { class: "value", text: value == null ? "—" : fmtPct(value) }),
+      ce("div", { class: "target", text: "target " + (higherBetter ? "≥ " : "≤ ") + fmtPct(target) }),
+      g
+    ]);
+  }
+  function renderKpis() {
+    var cs = SUMMARY.calibration_summary || {};
+    var jc = SUMMARY.judge_consistency || {};
+    var host = $("#kpis");
+    host.appendChild(kpi("Recall", cs.recall, TARGETS.recall, true));
+    host.appendChild(kpi("False alarms", cs.false_alarm_rate, TARGETS.false_alarm_rate, false));
+    host.appendChild(kpi("Localization", cs.localization, TARGETS.localization, true));
+    host.appendChild(kpi("Category accuracy", cs.category_accuracy, TARGETS.category_accuracy, true));
+    host.appendChild(kpi("Judge consistency", jc.measured ? jc.verdict_agreement : null, TARGETS.judge, true));
+  }
+
+  // ---------- heatmap ----------
+  function heatColor(recall) {
+    if (recall == null) return "var(--rule)";
+    var hue = Math.round(145 * recall); // 0 red -> 145 green
+    return "hsl(" + hue + ",48%,42%)";
+  }
+  function renderHeatmap() {
+    var cells = CAL.cells || {};
+    var langs = Object.keys(SUMMARY.by_language || {}).sort();
+    var cats = {};
+    Object.keys(cells).forEach(function (k) { var c = cells[k]; if (c.lang !== "_all" && c.category !== "_all") cats[c.category] = 1; });
+    var catList = Object.keys(cats).sort();
+    var hm = $("#heatmap");
+    if (!langs.length || !catList.length) { $("#heatmap-hint").textContent = "No labelled cells to chart (run with --calibration or labelled items)."; return; }
+    hm.style.gridTemplateColumns = "90px repeat(" + catList.length + ",1fr)";
+    hm.appendChild(ce("div", { class: "hm-cell hm-head" }));
+    catList.forEach(function (c) { hm.appendChild(ce("div", { class: "hm-cell hm-head", text: c.replace("_", " ") })); });
+    langs.forEach(function (lang) {
+      hm.appendChild(ce("div", { class: "hm-cell hm-head", text: lang }));
+      catList.forEach(function (cat) {
+        var c = cells[lang + "|" + cat];
+        var recall = c ? c.recall : null;
+        var cell = ce("div", {
+          class: "hm-cell" + (c && c.low_support ? " low-support" : ""),
+          style: "background:" + heatColor(recall),
+          title: c ? (lang + " / " + cat + " — recall " + fmtNum(recall) + ", precision " + fmtNum(c.precision) + ", n=" + c.labels) : "no labels",
+          onclick: function () { if (c) { setFilter("lang", lang); setFilter("category", cat); switchTab("items"); } }
+        }, [c ? (recall == null ? "·" : fmtNum(recall)) : ""]);
+        hm.appendChild(cell);
+      });
+    });
+    $("#heatmap-hint").textContent = "Cell = recall (greener is higher). Hover for precision & n. Dashed = low support. Click to filter.";
+  }
+
+  // ---------- filters + list ----------
+  var state = { search: "", lang: "", category: "", severity: "", status: "", disagree: false };
+  function allCategories() {
+    var s = {};
+    ITEMS.forEach(function (it) {
+      (it.flags || []).forEach(function (f) { s[f.category] = 1; });
+      (it.uncertain_categories || []).forEach(function (c) { s[c] = 1; });
+    });
+    return Object.keys(s).sort();
+  }
+  function populateSelects() {
+    var langs = Object.keys(SUMMARY.by_language || {}).sort();
+    var lsel = $("#f-lang"); lsel.appendChild(ce("option", { value: "", text: "All languages" }));
+    langs.forEach(function (l) { lsel.appendChild(ce("option", { value: l, text: l })); });
+    var csel = $("#f-category"); csel.appendChild(ce("option", { value: "", text: "All categories" }));
+    allCategories().forEach(function (c) { csel.appendChild(ce("option", { value: c, text: c })); });
+  }
+  function matches(it) {
+    if (state.lang && it.lang !== state.lang) return false;
+    if (state.status && it.status !== state.status) return false;
+    if (state.disagree && !it.checker_disagreement) return false;
+    if (state.category) {
+      var has = (it.flags || []).some(function (f) { return f.category === state.category; })
+        || (it.uncertain_categories || []).indexOf(state.category) >= 0;
+      if (!has) return false;
+    }
+    if (state.severity) {
+      if (!(it.flags || []).some(function (f) { return f.severity === state.severity; })) return false;
+    }
+    if (state.search) {
+      var q = state.search.toLowerCase();
+      var hay = (it.id + " " + it.source + " " + it.translation).toLowerCase();
+      if (hay.indexOf(q) < 0) return false;
+    }
+    return true;
+  }
+  function filtered() { return ITEMS.filter(matches); }
+
+  function fchip(f) {
+    return ce("span", { class: "fchip " + f.severity, title: "confidence " + fmtNum(f.confidence) },
+      [ce("span", { class: "dot" }), f.category]);
+  }
+  function renderList() {
+    var list = $("#item-list"); list.textContent = "";
+    var rows = filtered();
+    $("#result-count").textContent = rows.length + " / " + ITEMS.length + " items";
+    if (!rows.length) { list.appendChild(ce("li", { class: "empty", text: "No items match these filters." })); return; }
+    rows.forEach(function (it) {
+      var chips = ce("div", { class: "flagchips rcat" });
+      (it.flags || []).forEach(function (f) { chips.appendChild(fchip(f)); });
+      (it.uncertain_categories || []).forEach(function (c) {
+        chips.appendChild(ce("span", { class: "fchip minor", title: "uncertain" }, [ce("span", { class: "dot" }), c + " ?"]));
+      });
+      var row = ce("li", {
+        class: "row", tabindex: "0", role: "button",
+        onclick: function () { openProof(it.id); },
+        onkeydown: function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openProof(it.id); } }
+      }, [
+        ce("span", { class: "rid", text: it.id }),
+        ce("span", { class: "chip", lang: it.lang, text: it.lang }),
+        ce("span", { class: "status " + it.status, text: it.status }),
+        chips,
+        ce("span", { class: "cost", text: "₹" + (it.cost_inr || 0) })
+      ]);
+      list.appendChild(row);
+    });
+  }
+
+  function setFilter(key, val) {
+    state[key] = val;
+    var map = { search: "#f-search", lang: "#f-lang", category: "#f-category", severity: "#f-severity", status: "#f-status" };
+    if (map[key]) $(map[key]).value = val;
+    syncHash(); renderList();
+  }
+  function syncHash() {
+    var parts = [];
+    ["lang", "category", "severity", "status", "search"].forEach(function (k) { if (state[k]) parts.push(k + "=" + encodeURIComponent(state[k])); });
+    if (state.disagree) parts.push("disagree=1");
+    history.replaceState(null, "", parts.length ? "#" + parts.join("&") : "#");
+  }
+  function readHash() {
+    var h = (location.hash || "").replace(/^#/, "");
+    if (!h) return;
+    h.split("&").forEach(function (p) {
+      var kv = p.split("="); var k = kv[0], v = decodeURIComponent(kv[1] || "");
+      if (k === "disagree") state.disagree = v === "1";
+      else if (k in state) state[k] = v;
+    });
+    ["search:#f-search", "lang:#f-lang", "category:#f-category", "severity:#f-severity", "status:#f-status"].forEach(function (m) {
+      var a = m.split(":"); if ($(a[1])) $(a[1]).value = state[a[0]];
+    });
+    $("#f-disagree").checked = state.disagree;
+  }
+  function wireFilters() {
+    $("#f-search").addEventListener("input", function (e) { state.search = e.target.value; syncHash(); renderList(); });
+    ["lang", "category", "severity", "status"].forEach(function (k) {
+      $("#f-" + k).addEventListener("change", function (e) { state[k] = e.target.value; syncHash(); renderList(); });
+    });
+    $("#f-disagree").addEventListener("change", function (e) { state.disagree = e.target.checked; syncHash(); renderList(); });
+    $("#f-reset").addEventListener("click", function () {
+      state = { search: "", lang: "", category: "", severity: "", status: "", disagree: false };
+      ["#f-search", "#f-lang", "#f-category", "#f-severity", "#f-status"].forEach(function (s) { $(s).value = ""; });
+      $("#f-disagree").checked = false; syncHash(); renderList();
+    });
+  }
+
+  // ---------- proof sheet ----------
+  var proofOrder = [];
+  function highlight(text, spans) {
+    var host = ce("div", { class: "texthost" });
+    if (!text) { host.textContent = "(empty)"; return host; }
+    var valid = (spans || []).filter(function (s) { return s.span && s.span[1] > s.span[0] && s.span[0] >= 0; })
+      .sort(function (a, b) { return a.span[0] - b.span[0]; });
+    var pos = 0;
+    valid.forEach(function (s) {
+      var a = Math.max(pos, s.span[0]), b = Math.min(text.length, s.span[1]);
+      if (b <= pos) return; // overlap: skip
+      if (a > pos) host.appendChild(document.createTextNode(text.slice(pos, a)));
+      var m = ce("mark", { class: s.severity }, [text.slice(a, b)]);
+      m.appendChild(ce("span", { class: "marker", text: "[" + s.idx + "]" }));
+      host.appendChild(m);
+      pos = b;
+    });
+    if (pos < text.length) host.appendChild(document.createTextNode(text.slice(pos)));
+    return host;
+  }
+  function evidenceCard(f, idx) {
+    var head = ce("div", { class: "evhead" }, [
+      ce("span", { class: "cat", text: "[" + idx + "] " + f.category + " · " + f.severity }),
+      ce("span", { text: "conf " + fmtNum(f.confidence) })
+    ]);
+    var card = ce("div", { class: "evcard" }, [head]);
+    (f.evidence || []).forEach(function (e) {
+      var line = ce("div", { class: "evhead" }, [
+        ce("span", { text: e.check }),
+        ce("span", { class: "noisy", text: e.strength + (e.noisy ? " · noisy" : "") })
+      ]);
+      card.appendChild(line);
+      if (e.explanation) card.appendChild(ce("div", { text: e.explanation }));
+      var det = ce("details", {}, [ce("summary", { text: "evidence" }),
+        ce("pre", { text: JSON.stringify(e.details || {}, null, 1) })]);
+      card.appendChild(det);
+    });
+    return card;
+  }
+  function waveform(signal) {
+    if (!signal || !signal.rms || !signal.rms.length) return null;
+    var w = ce("div", { class: "wave", role: "img", "aria-label": "audio energy, duration " + (signal.duration_s || "?") + "s" });
+    signal.rms.forEach(function (v) { w.appendChild(ce("i", { style: "height:" + Math.max(2, v * 100).toFixed(0) + "%" })); });
+    return w;
+  }
+  function whyLine(it) {
+    if (it.status === "flagged") return "Flagged: at least one strong deterministic check, or a corroborated signal.";
+    if (it.status === "uncertain") return "Uncertain: only noisy evidence (e.g. judge or back-translation) with no corroboration — routed to review, not flagged.";
+    if (it.status === "skipped") return "Skipped — see items.jsonl for the reason.";
+    return "Clean: no check raised corroborated evidence.";
+  }
+  function openProof(id) {
+    proofOrder = filtered().map(function (x) { return x.id; });
+    var it = ITEMS.filter(function (x) { return x.id === id; })[0];
+    if (!it) return;
+    $("#proof-id").textContent = it.id;
+    $("#proof-lang").textContent = it.lang;
+    var st = $("#proof-status"); st.textContent = it.status; st.className = "chip status " + it.status;
+    var body = $("#proof-body"); body.textContent = "";
+
+    var srcSpans = [], tgtSpans = [];
+    (it.flags || []).forEach(function (f, i) {
+      if (f.source_span) srcSpans.push({ span: f.source_span, severity: f.severity, idx: i + 1 });
+      if (f.target_span) tgtSpans.push({ span: f.target_span, severity: f.severity, idx: i + 1 });
+    });
+    var src = ce("div", { class: "textcard" }, [ce("h4", { text: "Source (English)" })]);
+    src.appendChild(highlight(it.source, srcSpans));
+    body.appendChild(src);
+    var trh = highlight(it.translation, tgtSpans); trh.setAttribute("lang", it.lang); trh.className = "texthost indic";
+    body.appendChild(ce("div", { class: "textcard" }, [ce("h4", { text: "Translation (" + it.lang + ")" }), trh]));
+    if (it.reference) {
+      var rh = highlight(it.reference, []); rh.setAttribute("lang", it.lang); rh.className = "texthost indic";
+      body.appendChild(ce("div", { class: "textcard" }, [ce("h4", { text: "Reference" }), rh]));
+    }
+    var wave = waveform(it.signal);
+    if (wave) body.appendChild(ce("div", { class: "textcard" }, [ce("h4", { text: "Audio energy" }), wave]));
+
+    body.appendChild(ce("p", { class: "why", text: whyLine(it) }));
+    if (it.judge_verdict) body.appendChild(ce("p", { class: "why", text: "Judge verdict: " + it.judge_verdict + (it.checker_disagreement ? " (disagrees with checks)" : "") }));
+
+    (it.flags || []).forEach(function (f, i) { body.appendChild(evidenceCard(f, i + 1)); });
+    (it.uncertain_categories || []).forEach(function (c) {
+      body.appendChild(ce("div", { class: "evcard" }, [ce("div", { class: "evhead" }, [ce("span", { class: "cat", text: c + " — uncertain" })])]));
+    });
+
+    $("#proof").hidden = false; $("#scrim").hidden = false;
+    $("#proof-close").focus();
+  }
+  function closeProof() { $("#proof").hidden = true; $("#scrim").hidden = true; }
+  function stepProof(d) {
+    var cur = $("#proof-id").textContent;
+    var i = proofOrder.indexOf(cur);
+    if (i < 0) return;
+    var j = i + d;
+    if (j >= 0 && j < proofOrder.length) openProof(proofOrder[j]);
+  }
+
+  // ---------- tabs ----------
+  function switchTab(name) {
+    document.querySelectorAll(".tab").forEach(function (t) { t.setAttribute("aria-selected", t.dataset.tab === name ? "true" : "false"); });
+    document.querySelectorAll(".panel").forEach(function (p) { p.hidden = p.id !== "tab-" + name; });
+    if (name === "calibration") renderCalibration();
+    if (name === "cost") renderCost();
+    if (name === "review") renderReview();
+    if (name === "diff") renderDiff();
+  }
+  function gridTable(headers, rows) {
+    var t = ce("table", { class: "grid" });
+    t.appendChild(ce("tr", {}, headers.map(function (h) { return ce("th", { text: h }); })));
+    rows.forEach(function (r) { t.appendChild(ce("tr", {}, r.map(function (c) { return c instanceof Node ? ce("td", {}, [c]) : ce("td", { text: String(c) }); }))); });
+    return t;
+  }
+  function renderCalibration() {
+    var p = $("#tab-calibration"); if (p.dataset.done) return; p.dataset.done = "1";
+    var cells = CAL.cells || {};
+    var keys = Object.keys(cells).sort();
+    if (!keys.length) { p.appendChild(ce("p", { class: "empty", text: "No calibration (no labelled items)." })); return; }
+    p.appendChild(ce("h2", { text: "Precision / recall per language × category" }));
+    var rows = keys.map(function (k) {
+      var c = cells[k];
+      return [c.lang, c.category, c.labels, fmtNum(c.recall), fmtNum(c.precision), fmtNum(c.f1),
+        fmtNum(c.localization), fmtNum(c.category_accuracy), c.low_support ? "low" : ""];
+    });
+    p.appendChild(gridTable(["lang", "category", "n", "recall", "precision", "F1", "loc", "cat-acc", "support"], rows));
+    var fa = CAL.false_alarms || {};
+    p.appendChild(ce("h2", { text: "False-alarm rate (clean items flagged)" }));
+    p.appendChild(gridTable(["lang", "clean", "flagged", "rate"],
+      Object.keys(fa).sort().map(function (l) { return [l, fa[l].clean_items, fa[l].flagged, fmtNum(fa[l].rate)]; })));
+  }
+  function renderCost() {
+    var p = $("#tab-cost"); if (p.dataset.done) return; p.dataset.done = "1";
+    var cost = SUMMARY.cost || {};
+    p.appendChild(ce("h2", { text: "Cost (logical, cache-independent)" }));
+    p.appendChild(ce("p", { text: "Total logical model cost: ₹" + (cost.logical_total_inr != null ? cost.logical_total_inr : "—") + ". A cached rerun costs ₹0 (actual spend is in meta.json)." }));
+    var n = (SUMMARY.totals || {}).items || 1;
+    var per100 = cost.logical_total_inr != null ? (cost.logical_total_inr / n * 100) : null;
+    p.appendChild(gridTable(["metric", "value"], [
+      ["items", n], ["₹ this run (logical)", cost.logical_total_inr != null ? cost.logical_total_inr : "—"],
+      ["₹ per 100 items (extrapolated)", per100 != null ? per100.toFixed(4) : "—"],
+      ["skipped for budget", (SUMMARY.skipped_for_budget || []).length]
+    ]));
+  }
+  function renderReview() {
+    var p = $("#tab-review"); if (p.dataset.done) return; p.dataset.done = "1";
+    var unc = ITEMS.filter(function (it) { return it.status === "uncertain"; });
+    p.appendChild(ce("h2", { text: "Review queue — " + unc.length + " uncertain item(s)" }));
+    p.appendChild(ce("button", { class: "btn", onclick: function () { exportCsv(unc); } }, ["Download filtered CSV"]));
+    if (!unc.length) { p.appendChild(ce("p", { class: "empty", text: "Nothing to review." })); return; }
+    p.appendChild(gridTable(["id", "lang", "uncertain categories", "open"],
+      unc.map(function (it) {
+        return [it.id, it.lang, (it.uncertain_categories || []).join("; "),
+          ce("button", { class: "btn ghost", onclick: function () { openProof(it.id); } }, ["open"])];
+      })));
+  }
+  function exportCsv(rows) {
+    var lines = ["id,lang,status,uncertain_categories"];
+    rows.forEach(function (it) {
+      lines.push([it.id, it.lang, it.status, '"' + (it.uncertain_categories || []).join(";") + '"'].join(","));
+    });
+    var blob = new Blob([lines.join("\n")], { type: "text/csv" });
+    var a = ce("a", { href: URL.createObjectURL(blob), download: "review_queue.csv" });
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+  function renderDiff() {
+    var p = $("#tab-diff"); if (p.dataset.done) return; p.dataset.done = "1";
+    if (!DIFF) { p.appendChild(ce("p", { class: "empty", text: "No baseline diff (run with --baseline)." })); return; }
+    p.appendChild(ce("h2", { text: "Regressions " + (DIFF.regression_count || 0) + " · Improvements " + (DIFF.improvement_count || 0) }));
+    p.appendChild(ce("h3", { text: "New flags (regressions)" }));
+    p.appendChild(gridTable(["id", "category", "severity"], (DIFF.new_flags || []).map(function (f) { return [f.id, f.category, f.severity]; })));
+    p.appendChild(ce("h3", { text: "Resolved flags" }));
+    p.appendChild(gridTable(["id", "category", "severity"], (DIFF.resolved_flags || []).map(function (f) { return [f.id, f.category, f.severity]; })));
+  }
+
+  // ---------- keyboard ----------
+  function onKey(e) {
+    if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT") { if (e.key === "Escape") e.target.blur(); return; }
+    if (e.key === "Escape") { closeProof(); $("#help").hidden = true; }
+    else if (e.key === "j") stepProof(1);
+    else if (e.key === "k") stepProof(-1);
+    else if (e.key === "/") { e.preventDefault(); $("#f-search").focus(); }
+    else if (e.key === "t") toggleTheme();
+    else if (e.key === "?") $("#help").hidden = !$("#help").hidden;
+  }
+
+  // ---------- init ----------
+  function init() {
+    initTheme();
+    renderHeader(); renderKpis(); renderHeatmap(); populateSelects(); wireFilters();
+    readHash(); renderList();
+    $("#theme-toggle").addEventListener("click", toggleTheme);
+    $("#help-toggle").addEventListener("click", function () { $("#help").hidden = !$("#help").hidden; });
+    $("#help-close").addEventListener("click", function () { $("#help").hidden = true; });
+    $("#proof-close").addEventListener("click", closeProof);
+    $("#scrim").addEventListener("click", closeProof);
+    $("#proof-next").addEventListener("click", function () { stepProof(1); });
+    $("#proof-prev").addEventListener("click", function () { stepProof(-1); });
+    document.querySelectorAll(".tab").forEach(function (t) { t.addEventListener("click", function () { switchTab(t.dataset.tab); }); });
+    document.addEventListener("keydown", onKey);
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+</script>
+</body>
+</html>

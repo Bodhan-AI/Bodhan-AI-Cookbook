@@ -1,0 +1,108 @@
+{"id": "src-000", "source": "Water boils at 100 degrees Celsius at sea level.", "lang": "hi"}
+{"id": "src-001", "source": "The human heart beats about 70 times per minute.", "lang": "ta"}
+{"id": "src-002", "source": "Light travels at roughly 300000 kilometres per second.", "lang": "bn"}
+{"id": "src-003", "source": "A year on Earth lasts about 365 days.", "lang": "hi"}
+{"id": "src-004", "source": "The Moon is about 384000 kilometres from Earth.", "lang": "ta"}
+{"id": "src-005", "source": "Sound travels at about 343 metres per second in air.", "lang": "bn"}
+{"id": "src-006", "source": "An adult human body has 206 bones.", "lang": "hi"}
+{"id": "src-007", "source": "The boiling point of water drops at high altitude.", "lang": "ta"}
+{"id": "src-008", "source": "A week has 7 days and a day has 24 hours.", "lang": "bn"}
+{"id": "src-009", "source": "The freezing point of water is 0 degrees Celsius.", "lang": "hi"}
+{"id": "src-010", "source": "Mount Everest is 8849 metres tall.", "lang": "ta"}
+{"id": "src-011", "source": "The Pacific Ocean is the largest ocean on Earth.", "lang": "bn"}
+{"id": "src-012", "source": "A standard football match lasts 90 minutes.", "lang": "hi"}
+{"id": "src-013", "source": "The speed limit on the highway is 100 km/h.", "lang": "ta"}
+{"id": "src-014", "source": "The recipe needs 250 grams of flour and 2 eggs.", "lang": "bn"}
+{"id": "src-015", "source": "Albert Einstein developed the theory of relativity.", "lang": "hi"}
+{"id": "src-016", "source": "The Ganga river flows through northern India.", "lang": "ta"}
+{"id": "src-017", "source": "NASA launched the James Webb Space Telescope in 2021.", "lang": "bn"}
+{"id": "src-018", "source": "Mahatma Gandhi led the Indian independence movement.", "lang": "hi"}
+{"id": "src-019", "source": "The World Health Organization is based in Geneva.", "lang": "ta"}
+{"id": "src-020", "source": "DNA carries the genetic instructions of living organisms.", "lang": "bn"}
+{"id": "src-021", "source": "The Taj Mahal is located in Agra.", "lang": "hi"}
+{"id": "src-022", "source": "Isaac Newton described the three laws of motion.", "lang": "ta"}
+{"id": "src-023", "source": "The Amazon rainforest produces much of the world's oxygen.", "lang": "bn"}
+{"id": "src-024", "source": "Marie Curie won Nobel Prizes in Physics and Chemistry.", "lang": "hi"}
+{"id": "src-025", "source": "The Sahara is the largest hot desert on Earth.", "lang": "ta"}
+{"id": "src-026", "source": "H2O is the chemical formula for water.", "lang": "bn"}
+{"id": "src-027", "source": "Photosynthesis is the process by which plants make food. They use sunlight, water and carbon dioxide. The result is glucose and oxygen.", "lang": "hi"}
+{"id": "src-028", "source": "The water cycle moves water around the planet. Water evaporates from oceans and rivers. It condenses into clouds and later falls as rain.", "lang": "ta"}
+{"id": "src-029", "source": "A balanced diet includes proteins, carbohydrates and fats. It also needs vitamins and minerals. Drinking enough water is important too.", "lang": "bn"}
+{"id": "src-030", "source": "Earthquakes happen when tectonic plates move suddenly. The energy travels as seismic waves. Strong earthquakes can damage buildings.", "lang": "hi"}
+{"id": "src-031", "source": "Vaccines train the immune system to fight disease. They contain weakened or inactive germs. After vaccination the body remembers the germ.", "lang": "ta"}
+{"id": "src-032", "source": "## Planets\n\n| Planet | Moons |\n| --- | --- |\n| Earth | 1 |\n| Mars | 2 |", "lang": "bn"}
+{"id": "src-033", "source": "### Shopping list\n\n- 2 apples\n- 500 g rice\n- 1 litre milk", "lang": "hi"}
+{"id": "src-034", "source": "# Report\n\nThe **temperature** rose by 3 degrees. See the *summary* below.", "lang": "ta"}
+{"id": "src-035", "source": "| Metal | Melting point |\n| --- | --- |\n| Iron | 1538 C |\n| Gold | 1064 C |", "lang": "bn"}
+{"id": "src-036", "source": "The area of a circle is $A = \\pi r^2$ where r is the radius.", "lang": "hi"}
+{"id": "src-037", "source": "Energy and mass are related by $E = mc^2$ in physics.", "lang": "ta"}
+{"id": "src-038", "source": "The quadratic formula is $x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$.", "lang": "bn"}
+{"id": "src-039", "source": "Newton's second law is written as $F = ma$.", "lang": "hi"}
+{"id": "src-040", "source": "The sum of the first n integers is $$\\sum_{i=1}^{n} i = \\frac{n(n+1)}{2}.$$", "lang": "ta"}
+{"id": "src-041", "source": "Water boils at 100 degrees Celsius at sea level.", "lang": "bn"}
+{"id": "src-042", "source": "The human heart beats about 70 times per minute.", "lang": "hi"}
+{"id": "src-043", "source": "Light travels at roughly 300000 kilometres per second.", "lang": "ta"}
+{"id": "src-044", "source": "A year on Earth lasts about 365 days.", "lang": "bn"}
+{"id": "src-045", "source": "The Moon is about 384000 kilometres from Earth.", "lang": "hi"}
+{"id": "src-046", "source": "Sound travels at about 343 metres per second in air.", "lang": "ta"}
+{"id": "src-047", "source": "An adult human body has 206 bones.", "lang": "bn"}
+{"id": "src-048", "source": "The boiling point of water drops at high altitude.", "lang": "hi"}
+{"id": "src-049", "source": "A week has 7 days and a day has 24 hours.", "lang": "ta"}
+{"id": "src-050", "source": "The freezing point of water is 0 degrees Celsius.", "lang": "bn"}
+{"id": "src-051", "source": "Mount Everest is 8849 metres tall.", "lang": "hi"}
+{"id": "src-052", "source": "The Pacific Ocean is the largest ocean on Earth.", "lang": "ta"}
+{"id": "src-053", "source": "A standard football match lasts 90 minutes.", "lang": "bn"}
+{"id": "src-054", "source": "The speed limit on the highway is 100 km/h.", "lang": "hi"}
+{"id": "src-055", "source": "The recipe needs 250 grams of flour and 2 eggs.", "lang": "ta"}
+{"id": "src-056", "source": "Albert Einstein developed the theory of relativity.", "lang": "bn"}
+{"id": "src-057", "source": "The Ganga river flows through northern India.", "lang": "hi"}
+{"id": "src-058", "source": "NASA launched the James Webb Space Telescope in 2021.", "lang": "ta"}
+{"id": "src-059", "source": "Mahatma Gandhi led the Indian independence movement.", "lang": "bn"}
+{"id": "src-060", "source": "The World Health Organization is based in Geneva.", "lang": "hi"}
+{"id": "src-061", "source": "DNA carries the genetic instructions of living organisms.", "lang": "ta"}
+{"id": "src-062", "source": "The Taj Mahal is located in Agra.", "lang": "bn"}
+{"id": "src-063", "source": "Isaac Newton described the three laws of motion.", "lang": "hi"}
+{"id": "src-064", "source": "The Amazon rainforest produces much of the world's oxygen.", "lang": "ta"}
+{"id": "src-065", "source": "Marie Curie won Nobel Prizes in Physics and Chemistry.", "lang": "bn"}
+{"id": "src-066", "source": "The Sahara is the largest hot desert on Earth.", "lang": "hi"}
+{"id": "src-067", "source": "H2O is the chemical formula for water.", "lang": "ta"}
+{"id": "src-068", "source": "Photosynthesis is the process by which plants make food. They use sunlight, water and carbon dioxide. The result is glucose and oxygen.", "lang": "bn"}
+{"id": "src-069", "source": "The water cycle moves water around the planet. Water evaporates from oceans and rivers. It condenses into clouds and later falls as rain.", "lang": "hi"}
+{"id": "src-070", "source": "A balanced diet includes proteins, carbohydrates and fats. It also needs vitamins and minerals. Drinking enough water is important too.", "lang": "ta"}
+{"id": "src-071", "source": "Earthquakes happen when tectonic plates move suddenly. The energy travels as seismic waves. Strong earthquakes can damage buildings.", "lang": "bn"}
+{"id": "src-072", "source": "Vaccines train the immune system to fight disease. They contain weakened or inactive germs. After vaccination the body remembers the germ.", "lang": "hi"}
+{"id": "src-073", "source": "## Planets\n\n| Planet | Moons |\n| --- | --- |\n| Earth | 1 |\n| Mars | 2 |", "lang": "ta"}
+{"id": "src-074", "source": "### Shopping list\n\n- 2 apples\n- 500 g rice\n- 1 litre milk", "lang": "bn"}
+{"id": "src-075", "source": "# Report\n\nThe **temperature** rose by 3 degrees. See the *summary* below.", "lang": "hi"}
+{"id": "src-076", "source": "| Metal | Melting point |\n| --- | --- |\n| Iron | 1538 C |\n| Gold | 1064 C |", "lang": "ta"}
+{"id": "src-077", "source": "The area of a circle is $A = \\pi r^2$ where r is the radius.", "lang": "bn"}
+{"id": "src-078", "source": "Energy and mass are related by $E = mc^2$ in physics.", "lang": "hi"}
+{"id": "src-079", "source": "The quadratic formula is $x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$.", "lang": "ta"}
+{"id": "src-080", "source": "Newton's second law is written as $F = ma$.", "lang": "bn"}
+{"id": "src-081", "source": "The sum of the first n integers is $$\\sum_{i=1}^{n} i = \\frac{n(n+1)}{2}.$$", "lang": "hi"}
+{"id": "src-082", "source": "Water boils at 100 degrees Celsius at sea level.", "lang": "ta"}
+{"id": "src-083", "source": "The human heart beats about 70 times per minute.", "lang": "bn"}
+{"id": "src-084", "source": "Light travels at roughly 300000 kilometres per second.", "lang": "hi"}
+{"id": "src-085", "source": "A year on Earth lasts about 365 days.", "lang": "ta"}
+{"id": "src-086", "source": "The Moon is about 384000 kilometres from Earth.", "lang": "bn"}
+{"id": "src-087", "source": "Sound travels at about 343 metres per second in air.", "lang": "hi"}
+{"id": "src-088", "source": "An adult human body has 206 bones.", "lang": "ta"}
+{"id": "src-089", "source": "The boiling point of water drops at high altitude.", "lang": "bn"}
+{"id": "src-090", "source": "A week has 7 days and a day has 24 hours.", "lang": "hi"}
+{"id": "src-091", "source": "The freezing point of water is 0 degrees Celsius.", "lang": "ta"}
+{"id": "src-092", "source": "Mount Everest is 8849 metres tall.", "lang": "bn"}
+{"id": "src-093", "source": "The Pacific Ocean is the largest ocean on Earth.", "lang": "hi"}
+{"id": "src-094", "source": "A standard football match lasts 90 minutes.", "lang": "ta"}
+{"id": "src-095", "source": "The speed limit on the highway is 100 km/h.", "lang": "bn"}
+{"id": "src-096", "source": "The recipe needs 250 grams of flour and 2 eggs.", "lang": "hi"}
+{"id": "src-097", "source": "Albert Einstein developed the theory of relativity.", "lang": "ta"}
+{"id": "src-098", "source": "The Ganga river flows through northern India.", "lang": "bn"}
+{"id": "src-099", "source": "NASA launched the James Webb Space Telescope in 2021.", "lang": "hi"}
+{"id": "src-100", "source": "Mahatma Gandhi led the Indian independence movement.", "lang": "ta"}
+{"id": "src-101", "source": "The World Health Organization is based in Geneva.", "lang": "bn"}
+{"id": "src-102", "source": "DNA carries the genetic instructions of living organisms.", "lang": "hi"}
+{"id": "src-103", "source": "The Taj Mahal is located in Agra.", "lang": "ta"}
+{"id": "src-104", "source": "Isaac Newton described the three laws of motion.", "lang": "bn"}
+{"id": "src-105", "source": "The Amazon rainforest produces much of the world's oxygen.", "lang": "hi"}
+{"id": "src-106", "source": "Marie Curie won Nobel Prizes in Physics and Chemistry.", "lang": "ta"}
+{"id": "src-107", "source": "The Sahara is the largest hot desert on Earth.", "lang": "bn"}

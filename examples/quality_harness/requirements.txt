@@ -1,0 +1,2 @@
+# Pinned runtime and test dependencies, resolved for Python 3.11 and later.
+-r requirements.lock

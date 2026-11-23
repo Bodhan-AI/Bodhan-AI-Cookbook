@@ -1,0 +1,34 @@
+# secrets
+.env
+*.key
+
+# intermediate clean dataset
+data/demo_clean.jsonl
+
+# generated audio (never commit; regenerate with --generate)
+data/audio/
+**/*.wav
+**/*.mp3
+**/*.flac
+**/*.ogg
+
+# cache of model outputs
+.cache/
+cache/
+
+# run outputs (keep the committed sample_report/ only)
+report/
+!sample_report/
+
+# python
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+.venv/
+.venv_win/
+.cache_test/
+venv/

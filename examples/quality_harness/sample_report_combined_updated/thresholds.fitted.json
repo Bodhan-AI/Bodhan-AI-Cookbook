@@ -1,0 +1,20 @@
+{
+  "defaults": {
+    "asr_cer_baseline": 0.12,
+    "asr_cer_margin": 0.15,
+    "asr_min_deletion_fraction": 0.15,
+    "backtranslation_chrf_cut": 42.0,
+    "clipping_fraction": 0.01,
+    "duration_cps_high": 28.0,
+    "duration_cps_low": 5.0,
+    "judge_confidence_cut": 0.5,
+    "length_ratio_z_abs": 2.5,
+    "reference_chrf_cut": 40.0,
+    "script_min_fraction": 0.5,
+    "silence_internal_seconds": 1.5,
+    "term_min_variants_to_flag": 3.0
+  },
+  "judge_confidence_multiplier": {},
+  "low_support": [],
+  "per_language": {}
+}

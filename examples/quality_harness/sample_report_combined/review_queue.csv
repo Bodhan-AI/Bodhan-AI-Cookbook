@@ -1,0 +1,12 @@
+id,lang,uncertain_categories,evidence_checks,note
+src-011,bn,term_entity,t6_term_entity,needs human label
+src-016,ta,term_entity,t6_term_entity,needs human label
+src-024,hi,number_unit,judge,needs human label
+src-032,bn,speech_repetition,s5_repetition,needs human label
+src-049,ta,mistranslation,roundtrip,needs human label
+src-065,bn,term_entity,t6_term_entity,needs human label
+src-068,bn,omission,t7_sentence_coverage,needs human label
+src-069,hi,omission,t7_sentence_coverage,needs human label
+src-090,hi,mistranslation,roundtrip,needs human label
+src-098,bn,term_entity,t6_term_entity,needs human label
+src-107,bn,term_entity,t6_term_entity,needs human label

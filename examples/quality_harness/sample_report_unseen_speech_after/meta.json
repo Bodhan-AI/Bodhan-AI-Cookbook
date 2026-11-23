@@ -1,0 +1,27 @@
+{
+  "actual_spend_inr": {
+    "by_model": {},
+    "estimated": {},
+    "max_inr": 0.1,
+    "total_inr": 0
+  },
+  "config": {
+    "concurrency": 1,
+    "generate": false,
+    "judge_repeats": 1,
+    "langs": [
+      "mr"
+    ],
+    "max_cost_inr": 0.1,
+    "no_judge": true,
+    "no_speech": false,
+    "seed": 0,
+    "speech_sample_rate": 0.25
+  },
+  "ended_at": 1795461226.7409859,
+  "judge_token_usage": {},
+  "rubric_hash": "9c226b085c5c",
+  "runtime_seconds": 0.35,
+  "started_at": 1795461226.389957,
+  "version": "0.1.0"
+}

@@ -1,0 +1,4 @@
+{"duplicate_ids": 0, "event": "dataset_loaded", "level": "info", "loaded": 108, "skipped": 0, "ts": 1795459461.361}
+{"event": "calibration_done", "f1": 0.678, "labelled": 54, "level": "info", "ts": 1795459461.577}
+{"event": "dashboard_written", "level": "info", "path": "sample_report_demo\\dashboard.html", "ts": 1795459461.605}
+{"event": "run_complete", "exit_code": 0, "items": 108, "level": "info", "ts": 1795459461.605}

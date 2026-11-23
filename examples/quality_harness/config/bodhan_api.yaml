@@ -1,0 +1,32 @@
+# Model configuration; request formats are implemented in the clients. Check the live API
+# reference at https://console.bodhan.ai/api-docs/ before changing routes or models.
+
+base_url_env: BODHAN_BASE_URL
+default_base_url: https://api.bodhan.ai/v1
+
+translate:
+  key_env: BODHAN_TRANSLATE_KEY
+  model: indic-translate
+  endpoint: /chat/completions
+  # ₹ per 10,000 OUTPUT tokens
+  rate_inr_per_10k_output_tokens: 0.20
+
+speak:
+  key_env: BODHAN_SPEAK_KEY
+  model: indic-speak
+  endpoint: /audio/speech
+  default_voice: Kavya       # documented voice; the API accepts it for all supported languages
+  response_format: wav
+  sample_rate: 24000
+  max_input_chars: 2000      # assumption; chunk longer inputs
+  # ₹ per 10,000 INPUT characters
+  rate_inr_per_10k_input_chars: 6.0
+
+transcribe:
+  key_env: BODHAN_TRANSCRIBE_KEY
+  model: indic-transcribe
+  endpoint: /audio/transcriptions
+  response_format: json
+  max_audio_seconds: 30          # chunk audio longer than this at silence boundaries
+  # ₹ per INPUT audio minute
+  rate_inr_per_audio_minute: 0.10
