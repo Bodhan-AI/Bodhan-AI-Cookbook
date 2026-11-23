@@ -193,11 +193,12 @@ class Planner:
                 last_error = str(exc)
                 if guards.contains_indic(content) or "romanized" in last_error:
                     self.blocked += 1
+                safe, _ = guards.redact_text(content)
                 await self.trace.emit(
                     "plan", "llm", message=f"Plan attempt {attempt} rejected.", llm_tokens=reply.tokens,
                     latency_ms=reply.latency_ms, error=TraceError(code="invalid_plan", message=last_error),
+                    result_summary={"reply": safe},
                 )  # fmt: skip
-                safe, _ = guards.redact_text(content)
                 messages.append({"role": "assistant", "content": safe or "(empty reply)"})
                 messages.append({"role": "user", "content": prompts.plan_repair(last_error)})
                 continue

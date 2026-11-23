@@ -199,6 +199,13 @@ class PlanStep(PlanModel):
     )
     depends_on: list[str] = Field(default_factory=list, description="Ids of steps that must finish first.")
 
+    @field_validator("depends_on", mode="before")
+    @classmethod
+    def _drop_blank_refs(cls, value: object) -> object:
+        if isinstance(value, list):
+            return [ref for ref in value if not (isinstance(ref, str) and not ref.strip())]
+        return value
+
     @field_validator("id")
     @classmethod
     def _check_id(cls, value: str) -> str:
