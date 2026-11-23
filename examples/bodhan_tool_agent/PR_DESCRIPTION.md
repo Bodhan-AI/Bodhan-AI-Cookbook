@@ -98,7 +98,7 @@ Executed live end-to-end against `api.bodhan.ai` + DeepSeek on realistic inputs 
 - **Automated tests:** **58/58 unit & hardening regression tests passing** (`< 1s`) and `scripts/validate_recipe.py` reports **`OK — no findings`**.
 
 ## Demo video
-[Link to recorded 5-minute walkthrough video demonstrating agent CLI, MCP stdio client, and impossible task handling]
+(https://drive.google.com/file/d/1wLXtdUzHFWc2wiQrTiDvGWIGETHcvkkb/view?usp=drive_link)
 
 ## Trade-offs and known limitations
 - Audio chunking uses Python's standard `wave` library to stay lightweight; non-WAV formats (`.mp3`, `.mp4`, `.ogg`, `.m4a`, `.flac`, `.webm`) auto-convert when `ffmpeg` is installed and fail fast with an actionable conversion hint otherwise.
