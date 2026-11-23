@@ -301,10 +301,10 @@ def test_e5_prefix_idempotence(fake_embeddings: DeterministicFakeEmbeddings) -> 
 
 def test_no_e5_prefix_for_openai() -> None:
     """Verify that OpenAI embeddings are not wrapped in E5EmbeddingsAdapter."""
-    with patch("langchain_openai.OpenAIEmbeddings") as mock_openai_cls:
-        mock_instance = MagicMock()
-        mock_openai_cls.return_value = mock_instance
-
+    mock_instance = MagicMock()
+    mock_openai_cls = MagicMock(return_value=mock_instance)
+    mock_openai_module = MagicMock(OpenAIEmbeddings=mock_openai_cls)
+    with patch.dict("sys.modules", {"langchain_openai": mock_openai_module}):
         model = get_embedding_model("openai", model_name="text-embedding-3-small", api_key="sk-test")
         assert model is mock_instance
         assert not isinstance(model, E5EmbeddingsAdapter)
@@ -389,7 +389,9 @@ def test_strict_tokenizer_unavailable_raises() -> None:
 
     # 2. get_model_tokenizer in strict mode with simulated load failure
     from examples.rag.embeddings import get_model_tokenizer
-    with patch("transformers.AutoTokenizer.from_pretrained", side_effect=OSError("Network down / Model unavailable")):
+    mock_tf = MagicMock()
+    mock_tf.AutoTokenizer.from_pretrained.side_effect = OSError("Network down / Model unavailable")
+    with patch.dict("sys.modules", {"transformers": mock_tf}):
         with pytest.raises(RuntimeError, match="Failed to load tokenizer"):
             get_model_tokenizer("intfloat/multilingual-e5-small", strict=True)
 
