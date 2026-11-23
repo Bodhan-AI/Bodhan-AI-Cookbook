@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#FAF7F0"><meta name="description" content="Dub English videos into Indian languages and review every sentence.">
+<title>Bodhan Dub Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+ --bg:#FAF7F0;--p:#FFFFFF;--p2:#F4EEDF;--line:#E8DEC8;--field:#857858;
+ --tx:#1F1B14;--mut:#5C5346;
+ --gold:#D4AF37;--honey:#E6C76B;--bronze:#8A6914;--bronze-d:#6B500F;--tint:#F7EDC9;
+ --ac:#8A6914;--ok:#14663A;--warn:#7A5200;--bad:#B42318;
+ --shadow:0 2px 14px rgba(138,105,20,.08);--shadow-h:0 10px 30px rgba(138,105,20,.16);--glow:0 0 0 3px rgba(212,175,55,.28);
+ --r:16px;--lw:92px;
+ --serif:"Playfair Display",Georgia,"Times New Roman",serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.6 "DM Sans","Plus Jakarta Sans",system-ui,"Noto Sans","Noto Sans Devanagari","Noto Sans Tamil","Noto Sans Bengali",sans-serif;-webkit-font-smoothing:antialiased}
+[hidden]{display:none!important}
+a{color:var(--bronze);text-underline-offset:3px;cursor:pointer}
+a:hover{color:var(--bronze-d)}
+:focus-visible{outline:3px solid var(--bronze);outline-offset:2px;border-radius:8px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.skip{position:absolute;left:-999px;top:8px;background:var(--bronze);color:#fff;padding:12px 18px;border-radius:12px;z-index:100;text-decoration:none;font-weight:600}
+.skip:focus{left:16px}
+h1,h2{font-family:var(--serif);font-weight:700;letter-spacing:-.01em;color:var(--tx)}
+h1{font-size:clamp(34px,6vw,60px);line-height:1.08;margin:8px 0 16px}
+h2{font-size:clamp(24px,3.2vw,30px);margin:0 0 6px;line-height:1.2}
+h2.ct{font-family:inherit;font-size:17px;font-weight:700;letter-spacing:0;margin:0 0 12px;line-height:1.3}
+h1.pt{font-size:clamp(26px,4vw,34px);margin:0 0 6px;line-height:1.15}
+h3{margin:0 0 12px;font-size:17px;font-weight:700}
+.gold{background:linear-gradient(transparent 62%,rgba(230,199,107,.6) 62%);padding:0 4px}
+.mut{color:var(--mut)}
+code{background:var(--p2);padding:1px 6px;border-radius:6px;font-size:.9em}
+.sp{flex:1}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+
+/* header + navigation */
+header.top{position:sticky;top:0;z-index:50;background:rgba(250,247,240,.94);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.hbar{max-width:1240px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.brand{font-family:var(--serif);font-weight:700;font-size:22px;color:var(--tx);display:inline-flex;align-items:center;gap:10px;text-decoration:none;min-height:44px;margin-right:8px}
+.brand:hover{color:var(--tx)}
+.brand i{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--honey),var(--gold));box-shadow:0 0 0 3px rgba(212,175,55,.25);display:inline-block}
+nav{display:flex;gap:4px;flex-wrap:wrap}
+nav a{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;color:var(--mut);text-decoration:none;font-weight:600;font-size:15px;transition:background .2s,color .2s,box-shadow .2s}
+nav a:hover{background:var(--p2);color:var(--tx)}
+nav a.on{background:var(--tint);color:var(--tx);box-shadow:inset 0 -3px 0 var(--gold)}
+nav svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.qs{flex:1;min-width:240px;max-width:360px}
+.pill{display:inline-flex;align-items:center;min-height:30px;border-radius:999px;background:var(--p2);padding:2px 14px;font-size:13px;font-weight:600;color:var(--mut);border:1px solid var(--line)}
+.pill[data-s]{text-transform:capitalize}
+.cnt{font-family:"DM Sans",system-ui,sans-serif;font-size:15px;font-weight:500}
+.pill[data-s=done]{background:#DDF0E3;color:#14532D;border-color:#B7DEC2}
+.pill[data-s=running],.pill[data-s=queued]{background:#FCEFC4;color:#5E4300;border-color:#E6C76B}
+.pill[data-s=error],.pill[data-s=finished_with_errors]{background:#FBE0DC;color:#8E1B10;border-color:#F2B8B0}
+main{max-width:1240px;margin:0 auto;padding:32px 24px 72px;outline:none}
+.foot{max-width:1240px;margin:0 auto;padding:0 24px 40px;color:var(--mut);font-size:13px}
+
+/* surfaces */
+.card{background:var(--p);border:1px solid var(--line);border-radius:var(--r);padding:24px;box-shadow:var(--shadow);transition:border-color .2s,box-shadow .2s,transform .2s}
+.card:hover{border-color:var(--gold);box-shadow:var(--glow),var(--shadow-h)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px}
+.grid .card:hover{transform:translateY(-2px)}
+.pname{font-size:18px;margin:0 0 4px;word-break:break-word}
+.hero{text-align:center;padding:48px 24px 44px;margin-bottom:24px;border:1px solid var(--line);border-radius:24px;background:radial-gradient(900px 260px at 50% -40px,#FBF1D0,transparent),#fff;box-shadow:var(--shadow)}
+.hero p{max-width:600px;margin:0 auto 26px;color:var(--mut);font-size:17px}
+.qa{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:var(--p);border:1px solid var(--line);border-radius:var(--r);padding:16px 20px;box-shadow:var(--shadow);margin-bottom:14px}
+.qa .search{flex:1;min-width:220px}
+.status{margin:0 0 18px;font-size:14px}
+.status .bad{color:var(--bad);font-weight:600}
+.diag{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:8px 20px;margin:0 0 16px;box-shadow:var(--shadow)}
+.diag:empty{display:none}.diag ul{list-style:none;margin:0;padding:0}
+.diag li{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}.diag li:last-child{border:0}
+.diag .ic{flex:none;width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:14px}
+.diag .ic.ok{background:#DDF0E3;color:#14532D}.diag .ic.no{background:#FBE0DC;color:#8E1B10}.diag .ic.wt{background:#FCEFC4;color:#5E4300}
+.diag summary{cursor:pointer;min-height:44px;display:flex;align-items:center;color:var(--bronze);font-weight:600}
+.diag pre{white-space:pre-wrap;font:12px/1.5 ui-monospace,Menlo,Consolas,monospace;background:var(--p2);padding:12px;border-radius:10px;overflow-x:auto;margin:0 0 12px}
+
+/* controls (44px minimum targets) */
+.btn{background:var(--bronze);color:#fff;border:1px solid var(--bronze);border-radius:999px;padding:0 24px;min-height:44px;font:600 15px/1 "DM Sans",system-ui,sans-serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;transition:background .2s,box-shadow .2s,border-color .2s,transform .2s}
+.btn:hover{background:var(--bronze-d);border-color:var(--bronze-d);box-shadow:var(--glow);color:#fff}
+.btn:active{transform:translateY(1px)}
+.btn.g{background:#fff;color:var(--tx);border-color:#cdbf9f}
+.btn.g:hover{background:var(--tint);border-color:var(--gold);box-shadow:var(--glow);color:var(--tx)}
+.btn.sm{padding:0 16px;font-size:14px}
+.btn:disabled{opacity:.5;cursor:not-allowed;box-shadow:none}
+.btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+button{font-family:inherit}
+input[type=text],input[type=password],input[type=search],select,textarea{background:#fff;border:1px solid var(--field);border-radius:12px;padding:10px 14px;width:100%;min-height:44px;color:var(--tx);font:inherit;font-size:16px;transition:border-color .2s,box-shadow .2s}
+input::placeholder,textarea::placeholder{color:#6E6350}
+input:hover,select:hover,textarea:hover{border-color:var(--bronze)}
+input:focus-visible,select:focus-visible,textarea:focus-visible{border-color:var(--bronze);box-shadow:var(--glow);outline:3px solid var(--bronze);outline-offset:1px}
+textarea{min-height:92px;resize:vertical}
+input[type=checkbox]{width:22px;height:22px;accent-color:var(--bronze);margin:0 10px 0 0;flex:none}
+label:has(>input[type=checkbox]){display:inline-flex;align-items:center;min-height:44px;cursor:pointer}
+input[type=range]{width:100%;min-height:44px;accent-color:var(--bronze);padding:0;border:0;background:none}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-height:44px;display:inline-flex;align-items:center;padding:0 18px;border:1px solid var(--field);background:#fff;color:var(--tx);border-radius:999px;cursor:pointer;font-size:15px;font-weight:500;transition:background .2s,border-color .2s,box-shadow .2s}
+.chip:hover{border-color:var(--gold);box-shadow:var(--glow)}
+.chip.on{background:var(--tint);border-color:var(--bronze);box-shadow:inset 0 -3px 0 var(--gold);font-weight:700}
+.drop{border:2px dashed #b9a878;border-radius:var(--r);padding:40px 24px;text-align:center;background:#fff;transition:border-color .2s,background .2s}
+.drop.over{border-color:var(--bronze);background:var(--tint)}
+.tabs{display:flex;gap:4px;background:var(--p2);border-radius:14px;padding:4px;flex-wrap:wrap}
+.tabs button{min-height:44px;padding:0 18px;border:0;background:transparent;border-radius:10px;color:var(--mut);font-size:15px;font-weight:600;cursor:pointer;transition:background .2s,color .2s,box-shadow .2s}
+.tabs button:hover{color:var(--tx);background:rgba(255,255,255,.75)}
+.tabs button.on{background:#fff;color:var(--tx);box-shadow:0 1px 6px rgba(138,105,20,.18),inset 0 -3px 0 var(--gold)}
+.backlink{display:inline-flex;align-items:center;min-height:44px;color:var(--mut);text-decoration:none;font-weight:600}
+.backlink:hover{color:var(--tx)}
+
+/* tables + badges */
+table{width:100%;border-collapse:collapse}
+.tw{overflow-x:auto}
+.tw>table{min-width:560px}
+td,th{padding:14px 10px;border-bottom:1px solid var(--line);vertical-align:top;text-align:left}
+th{color:var(--mut);font-weight:700;font-size:12px;letter-spacing:.05em;text-transform:uppercase}
+.sent tr:hover td{background:#FDFBF4}
+.b{display:inline-block;font-size:12px;font-weight:600;border-radius:999px;padding:2px 10px;margin:0 4px 4px 0;background:#F1EBDC;color:#3D372C}
+.b.ok{background:#DDF0E3;color:#14532D}.b.warn{background:#FCEFC4;color:#5E4300}.b.bad{background:#FBE0DC;color:#8E1B10}
+.tr{font-size:17px;line-height:1.55}.en{color:var(--mut);font-size:13px}
+.edit{background:var(--p2);border:1px solid var(--line);border-radius:14px;padding:18px;margin:4px 0 10px}
+.edit label{display:block;font-size:13px;font-weight:600;color:var(--mut);margin:12px 0 6px}
+.edit fieldset.own{margin:18px 0 0;border:1px dashed #cdbf9f;border-radius:14px;padding:14px 16px;background:#fff}.edit fieldset.own legend{font-weight:700;padding:0 8px}
+.read{font-size:18px;line-height:1.6;background:var(--p2);border-radius:10px;padding:12px 14px;margin-bottom:12px}
+.osrow{display:grid;grid-template-columns:110px 1fr 1.2fr 110px;gap:14px;padding:12px 0;border-top:1px solid var(--line);align-items:start}.osrow textarea{min-height:64px}@media(max-width:820px){.osrow{grid-template-columns:1fr}}
+.edit label:has(>input[type=checkbox]){display:inline-flex;margin:0}
+.steps div{display:flex;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.steps .p{color:var(--mut)}
+.steps .bar{height:6px;background:var(--line);border-radius:3px;margin:6px 0;flex:1;overflow:hidden}
+.steps .bar i{display:block;height:6px;background:linear-gradient(90deg,var(--honey),var(--gold));border-radius:3px;transition:width .4s}
+.lane{position:relative;height:36px;background:#F1EBDC;border-radius:8px;margin:8px 0 8px var(--lw)}
+.lane .lab{position:absolute;left:calc(-1 * var(--lw));top:7px;width:calc(var(--lw) - 8px);color:var(--mut);font-size:12px;font-weight:600}
+.lane i{position:absolute;top:3px;bottom:3px;border-radius:6px;background:var(--gold);color:var(--tx);overflow:hidden;white-space:nowrap;font-size:11px;font-style:normal;padding:5px 6px;cursor:pointer;transition:filter .2s}
+.lane i:hover{filter:brightness(1.06);box-shadow:0 0 0 2px var(--bronze)}
+.lane i.o{background:#E4DAC2}.lane i.w{background:#F3D58A}.lane i.f{background:#F4B8B0}
+.lane i.s{background:repeating-linear-gradient(45deg,#EDE6D3,#EDE6D3 4px,#E3DAC2 4px,#E3DAC2 8px);color:#5C5346}
+.ph{position:absolute;top:-2px;bottom:-2px;width:3px;background:var(--bronze);border-radius:2px;z-index:3;pointer-events:none}
+.warn-box,.err-box{border-radius:12px;padding:12px 16px;margin-bottom:14px;border-left:4px solid}
+.warn-box{background:#FFF4D6;color:#5E4300;border-color:var(--gold)}
+.err-box{background:#FDECEA;color:#8E1B10;border-color:var(--bad)}
+video{width:100%;max-height:440px;background:#1F1B14;border-radius:12px}
+.cap{min-height:30px;text-align:center;margin-top:10px;font-size:18px;font-weight:500}
+.foot a{color:var(--bronze)}
+.foot .pill{display:flex;width:fit-content;margin:0 0 10px}
+
+@media(max-width:760px){
+ :root{--lw:0px}
+ header.top{position:static;backdrop-filter:none;-webkit-backdrop-filter:none;background:var(--bg)}
+ .hbar{padding:8px 16px}.qs{order:5;max-width:none;flex-basis:100%}
+ nav{position:fixed;left:0;right:0;bottom:0;z-index:60;display:grid;grid-template-columns:repeat(4,1fr);gap:2px;padding:6px 8px calc(6px + env(safe-area-inset-bottom));background:rgba(250,247,240,.98);border-top:1px solid var(--line);box-shadow:0 -4px 18px rgba(138,105,20,.10)}
+ nav a{flex-direction:column;justify-content:center;gap:2px;min-height:54px;padding:4px 2px;border-radius:12px;font-size:11.5px;line-height:1.15;text-align:center}
+ nav a svg{width:22px;height:22px}
+ nav a.on{background:var(--tint);box-shadow:inset 0 3px 0 var(--gold)}
+ main{padding:20px 16px 110px}.card{padding:18px}.hero{padding:32px 16px}.foot{padding-bottom:96px}
+ .sent>tbody>tr:first-child{display:none}
+ .sent,.sent>tbody,.sent>tbody>tr,.sent>tbody>tr>td{display:block;width:auto!important}
+ .sent>tbody>tr{border-bottom:1px solid var(--line);padding:10px 0}.sent>tbody>tr>td{border:0;padding:4px 0;text-align:left!important}
+ .sent>tbody>tr[hidden]{display:none}
+ .lane{margin-top:28px}.lane .lab{top:-22px;left:0;width:auto}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+
+/* gate */
+body.locked header.top,body.locked main,body.locked footer.foot{filter:blur(10px);user-select:none;pointer-events:none}
+#gate{position:fixed;inset:0;z-index:200;display:grid;place-items:center;padding:16px;background:rgba(250,247,240,.5);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);overflow:auto}
+.gcard{background:#fff;border:1px solid var(--line);border-radius:24px;box-shadow:0 24px 60px rgba(60,45,10,.18);width:100%;max-width:440px;padding:28px}
+.srv{display:flex;gap:12px;align-items:center;font-weight:600;min-height:28px}
+.dot{width:12px;height:12px;border-radius:50%;background:#cdbf9f;flex:none}
+.dot.ok{background:#2E7D4F}.dot.bad{background:#B3261E}.dot.wait{background:var(--gold);animation:pls 1.2s ease-in-out infinite}
+@keyframes pls{50%{opacity:.35}}
+</style></head><body>
+<a class="skip" href="#app">Skip to main content</a>
+<header class="top"><div class="hbar">
+ <a class="brand" href="#" aria-label="Bodhan Dub Studio home"><i aria-hidden="true"></i>Dub Studio</a>
+ <nav aria-label="Main">
+  <a data-r="" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Projects</span></a>
+  <a data-r="new" href="#new"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>New project</span></a>
+  <a data-r="test" href="#test"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg><span>Test connection</span></a>
+  <a data-r="token" href="#token" id="navtok"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M16 7l3 3"/></svg><span>Lock</span></a>
+ </nav>
+ <span class="sp"></span>
+ <div class="qs"><label class="sr" for="jump">Jump to a project or tool</label><input id="jump" type="search" list="jumplist" placeholder="Jump to…" autocomplete="off"><datalist id="jumplist"></datalist></div>
+</div></header>
+<main id="app" tabindex="-1"></main>
+<footer class="foot"><span class="pill">AI-dubbed output · Bodhan models only</span>Output is AI-generated speech from a fixed voice library. It does not clone or imitate the original speaker.</footer>
+<script>
+let _cfg={};try{const x=new XMLHttpRequest();x.open('GET','config.json',false);x.send();if(x.status==200)_cfg=JSON.parse(x.responseText)}catch{}   // Vercel: {"api":"https://your-backend"}; served by the backend itself: {"api":""}
+const BASE=String(_cfg.api||'').replace(/\/$/,'')
+let _mem=''
+try{localStorage.removeItem('dub_token')}catch{}
+const tok=()=>{try{return sessionStorage.getItem('dub_token')||_mem}catch{return _mem}}
+const setTok=t=>{_mem=t||'';try{if(t)sessionStorage.setItem('dub_token',t);else sessionStorage.removeItem('dub_token')}catch{}}
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)]
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))
+// ---------------- gate: server check, then access token. Everything behind it stays blurred and inert.
+let UNLOCK=null
+const PREVIEW=`<section class="hero" aria-hidden="true"><div style="font-family:var(--serif);font-size:clamp(34px,6vw,60px);line-height:1.08;margin:8px 0 16px">Every voice.<br><span class="gold">Every Indian language.</span></div><p>Upload an English video, pick the languages, and review every dubbed sentence.</p></section><div class="card" style="height:130px" aria-hidden="true"></div><div class="card" style="height:130px;margin-top:16px" aria-hidden="true"></div>`
+function setLocked(on){
+  document.body.classList.toggle('locked',on)
+  $$('header.top,main,footer.foot').forEach(e=>{if(on){e.setAttribute('inert','');e.setAttribute('aria-hidden','true')}else{e.removeAttribute('inert');e.removeAttribute('aria-hidden')}})
+}
+async function ping(ms=8000){
+  try{const ac=new AbortController(),to=setTimeout(()=>ac.abort(),ms);const r=await fetch(BASE+'/api/health',{cache:'no-store',signal:ac.signal});clearTimeout(to)
+    if(!r.ok)return{ok:false,msg:'HTTP '+r.status};return{ok:true,...(await r.json())}}catch{return{ok:false,msg:'no answer'}}
+}
+function unlock(msg){
+  if(UNLOCK)return UNLOCK
+  UNLOCK=new Promise(resolve=>{
+    if(!CFG)$('#app').innerHTML=PREVIEW
+    setLocked(true)
+    const g=document.createElement('div');g.id='gate';g.setAttribute('role','dialog');g.setAttribute('aria-modal','true');g.setAttribute('aria-labelledby','gt')
+    g.innerHTML=`<div class="gcard">
+      <div class="brand" style="margin:0 0 6px"><i aria-hidden="true"></i>Dub Studio</div>
+      <h1 id="gt" class="pt">Sign in</h1>
+      <p class="mut" style="margin:0 0 18px">Start the server, then enter the access token to continue.</p>
+      <div class="srv"><span id="gdot" class="dot wait" aria-hidden="true"></span><span id="gs" role="status" aria-live="polite">Checking the server…</span></div>
+      <p class="row" style="margin:12px 0 18px"><button type="button" class="btn sm" id="gstart" hidden>Start server</button></p>
+      <div id="gerr" class="err-box" role="alert" hidden></div>
+      <form id="gform" autocomplete="off">
+        <label for="gtok" style="display:block;font-size:13px;font-weight:600;margin-bottom:6px">Access token</label>
+        <input id="gtok" type="password" autocomplete="off" spellcheck="false" placeholder="DUB_ACCESS_TOKEN" style="margin-bottom:14px;font-family:ui-monospace,monospace" disabled>
+        <button class="btn" id="ggo" type="submit" disabled style="width:100%">Unlock</button>
+      </form>
+      <p class="mut" style="margin:14px 0 0;font-size:12px">Backend: <code>${esc(BASE||'(not set)')}</code> · the token is kept only for this browser tab.</p>
+    </div>`
+    document.body.appendChild(g)
+    const dot=$('#gdot',g),st=$('#gs',g),btn=$('#gstart',g),err=$('#gerr',g),inp=$('#gtok',g),go=$('#ggo',g)
+    const setSrv=(k,t)=>{dot.className='dot '+k;st.textContent=t}
+    const showErr=m=>{err.hidden=!m;err.textContent=m||''}
+    const finish=cfg=>{CFG=cfg;g.remove();setLocked(false);UNLOCK=null;resolve(cfg)}
+    let up=false,busy=false
+    const tryTok=async(t,quiet)=>{
+      if(busy)return;busy=true;go.disabled=true;showErr('')
+      try{const r=await fetch(BASE+'/api/config',{headers:{'X-Access-Token':t}})
+        if(r.status===401){setTok('');if(!quiet)showErr('That token was not accepted. Copy DUB_ACCESS_TOKEN from Render → your service → Environment.');inp.value='';inp.focus();return}
+        if(!r.ok)throw new Error((await r.json().catch(()=>({}))).detail||r.statusText)
+        const cfg=await r.json();setTok(t);finish(cfg)}
+      catch(e){showErr(e.message||'Could not reach the server.')}
+      finally{busy=false;if(g.isConnected)go.disabled=!up}
+    }
+    const serverUp=h=>{
+      up=true;btn.hidden=true;setSrv('ok','Server is running');inp.disabled=false;go.disabled=false
+      if(!h.auth){tryTok('',true);return}
+      if(tok())tryTok(tok(),true);else inp.focus()
+    }
+    const down=m=>{up=false;setSrv('bad',m||'Server is not running');btn.hidden=false;btn.disabled=false;inp.disabled=true;go.disabled=true;btn.focus()}
+    const wake=async()=>{
+      btn.disabled=true;showErr('');const t0=Date.now()
+      for(let i=0;i<45;i++){
+        setSrv('wait',`Starting the server… ${Math.round((Date.now()-t0)/1000)} s (Render can take 1–2 minutes)`)
+        const h=await ping();if(h.ok){serverUp(h);return}
+        await new Promise(r=>setTimeout(r,3000))
+      }
+      down('No answer after about 2 minutes. Open Render → your service → Logs: the server may have crashed on startup.')
+    }
+    btn.onclick=wake
+    $('#gform',g).onsubmit=e=>{e.preventDefault();const t=inp.value.trim();if(!t){showErr('Enter the access token.');inp.focus();return}tryTok(t,false)}
+    if(msg){setTok('');showErr(msg)}
+    ;(async()=>{const h=await ping();h.ok?serverUp(h):down('Server is not running')})()
+  })
+  return UNLOCK
+}
+function lock(){setTok('');CFG=null;history.replaceState(null,'',location.pathname+location.search);unlock().then(()=>route())}
+async function api(u,o={}){
+  // Always read a fresh token; do not reuse a previous headers object (stale token bug).
+  const opts={...o,headers:{...(o.headers||{}),'X-Access-Token':tok()}}
+  const r=await fetch(BASE+'/api'+u,opts)
+  if(r.status===401){
+    await unlock(tok()?'Token rejected. Enter the current access token.':'')
+    return api(u,o)  // retry with original options; header is rebuilt above
+  }
+  if(!r.ok){let m=r.statusText;try{m=(await r.json()).detail||m}catch{}throw new Error(m)}
+  return r.json()
+}
+const jput=(u,b,method='PUT')=>api(u,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(b)})
+const mmss=t=>`${Math.floor(t/60)}:${(t%60).toFixed(1).padStart(4,'0')}`
+let CFG,P=null,LANG=null,TAB='sentences',TIMER=null,DATA={},PREV='idle'
+const ALLV=()=>[...new Set(Object.values(CFG.voices).flatMap(v=>[...v.female,...v.male]))]
+const lname=c=>CFG.languages.find(l=>l.code==c)?.label||c
+window.onhashchange=route
+$('#jump').onchange=e=>{const h=JUMP.get(e.target.value);if(h){e.target.value='';e.target.blur();location.hash=h}}
+const fmtUp=s=>s<90?s+' s':s<5400?Math.round(s/60)+' min':(s/3600).toFixed(1)+' h'
+async function pingBackend(){const t0=performance.now(),ac=new AbortController(),to=setTimeout(()=>ac.abort(),90000)
+ try{const r=await fetch(BASE+'/api/health',{cache:'no-store',signal:ac.signal});const ms=Math.round(performance.now()-t0);if(!r.ok)return{ok:false,ms,msg:`answered with HTTP ${r.status}`};return{ok:true,ms,j:await r.json()}}
+ catch(e){return{ok:false,ms:Math.round(performance.now()-t0),msg:e.name=='AbortError'?'no answer after 90 s (the server may still be starting)':'cannot connect. Check \"api\" in config.json and that DUB_CORS_ORIGINS matches this site'}}finally{clearTimeout(to)}}
+const li=(c,t,d)=>`<li><span class="ic ${c}" aria-hidden="true">${c=='ok'?'✓':c=='no'?'✗':'!'}</span><span><b>${t}</b>${d?`<br><span class="mut">${d}</span>`:''}</span></li>`
+async function runDiag(){const o=$('#diagout');o.innerHTML='<p class="mut" style="margin:0">Checking the Render backend… a sleeping free server can take up to a minute to wake.</p>'
+ const hp=await pingBackend(),rows=[]
+ if(!hp.ok){o.innerHTML=`<ul>${li('no','Backend (Render) is not running',esc(hp.msg)+' · '+esc(BASE||'(same origin)'))}</ul><p class="row" style="margin:4px 0 12px"><button type="button" class="btn sm" onclick="wakeUp($('#wkst'),this)">Start server</button></p><p id="wkst" class="mut" role="status" aria-live="polite" style="margin:0 0 12px"></p>`;return}
+ const up=hp.j.uptime_s
+ rows.push(li(hp.ms>4000?'wt':'ok',`Backend (Render) is running · replied in ${hp.ms} ms`,hp.ms>4000?'It was asleep and has just woken up. Free plans are slow on the first request.':up!=null?`Up for ${fmtUp(up)}${up<120?' (just started or restarted)':''}`:''))
+ rows.push(li(hp.j.auth?'ok':'wt','Access token protection '+(hp.j.auth?'is on':'is OFF'),hp.j.auth?'':'Set DUB_ACCESS_TOKEN on the server.'))
+ rows.push(li(CFG.llm?'ok':'wt',CFG.llm?'LLM is configured':'LLM is not configured',CFG.llm?'':'Optional. Set LLM_BASE_URL, LLM_MODEL and LLM_API_KEY for smarter sentence grouping.'))
+ o.innerHTML=`<ul>${rows.join('')}</ul><p class="mut" style="margin:8px 0 0">Testing the Bodhan keys…</p>`
+ let d;try{d=await api('/diagnose',{method:'POST'})}catch(e){rows.push(li('no','The Bodhan test could not run',esc(e.message)));o.innerHTML=`<ul>${rows.join('')}</ul>`;return}
+ const ks=d.keys,miss=Object.entries(ks).filter(([,v])=>!v.set).map(([k])=>'BODHAN_'+k.toUpperCase()+'_KEY')
+ rows.push(li(miss.length?'no':'ok',miss.length?'Missing Bodhan keys: '+miss.join(', '):'All three Bodhan keys are set',Object.entries(ks).map(([k,v])=>`${k} …${esc(v.last4)}${v.has_whitespace?' (stray spaces!)':''}`).join(' · ')))
+ if(d.translate_key_same_as_transcribe||d.translate_key_same_as_speak)rows.push(li('no','The translate key equals another key','Each Bodhan key works for one model only. Create a key for indic-translate alone.'))
+ const tr=d.tests.find(t=>t.call.startsWith('transcribe')),trok=tr&&tr.status==200
+ rows.push(li(trok?'ok':'no',trok?'Transcribe works':'Transcribe fails',trok?'':(tr?.status?`HTTP ${tr.status}: ${esc(tr.body||'')}`+(tr.headers&&Object.keys(tr.headers).length?' · '+esc(JSON.stringify(tr.headers)):''):esc(tr?.error||''))+(tr?.status==429?' · Bodhan itself is refusing this key. Read its message above, check credit and per-minute limits in the console, and keep DUB_CONCURRENCY=1.':'')))
+ const tt=d.tests.filter(t=>t.call.startsWith('translate')),good=tt.find(t=>t.status==200)
+ const lim=t=>{const h=t?.headers||{},a=h['x-ratelimit-limit-requests'],b=h['x-ratelimit-limit-parallel-requests'];return a||b?`Limits for this key: ${a||'?'} requests per minute, ${b||'?'} at the same time. The app spaces its calls to this.`:''}
+ const rl=tt.find(t=>t.status==429)
+ const bud=tt.find(t=>/exceededbudget|budget_exceeded|over budget/i.test(t.body||''))
+ rows.push(li(good?'ok':bud?'no':rl?'wt':'no',good?'Translate works':bud?'This key has run out of budget':rl?'Translate is rate limited right now':'Translate fails',good?lim(good):bud?esc(bud.body||'')+' This is not a rate limit: the Bodhan account is over its budget. Ask Bodhan to top up or raise it; waiting will not help.':rl?esc(rl.body||'')+' '+lim(rl)+' Wait a minute and test again; retries count against the limit.':tt.map(t=>`${esc(t.call)} → ${t.status??esc(t.error)}`).join(' · ')+'. The key is probably not an indic-translate key.'))
+ const alt=Object.entries(d.translate_with_each_key||{}).find(([k,v])=>v.status==200&&k!='BODHAN_TRANSLATE_KEY')
+ if(!good&&alt)rows.push(li('no','Keys look mixed up',`The key in ${esc(alt[0])} is the one that works for translate. Put it in BODHAN_TRANSLATE_KEY.`))
+ const oc=d.tests.find(t=>t.call.startsWith('ocr'))
+ if(d.ocr_key_set)rows.push(li(oc&&oc.status==200?'ok':'no',oc&&oc.status==200?'On-screen text (Indic-OCR) works':'Indic-OCR fails',oc&&oc.status==200?'':esc(oc?(oc.status?`HTTP ${oc.status}: ${oc.body||''}`:oc.error):'')))
+ else rows.push(li('wt','On-screen text is optional','BODHAN_OCR_KEY is not set, so “Translate on-screen text” is skipped. Create a key for Indic-OCR to switch it on.'))
+ const sp=d.tests.find(t=>t.call=='speak'),spok=sp&&sp.status==200
+ rows.push(li(spok?'ok':'no',spok?'Speak works':'Speak fails',spok?'':esc(sp?.error||'')))
+ o.innerHTML=`<ul>${rows.join('')}</ul><details><summary>Technical details</summary><pre>${esc(JSON.stringify(d,null,2))}</pre></details>`}
+async function route(){if(!CFG)return;clearInterval(TIMER);const [v,id,l,t]=location.hash.slice(1).split('/');if(v==='token'){lock();return}if(v==='test'){TESTNEXT=true;location.hash='#';return}
+ const cur=v==='p'?'':(v||'');$$('nav a').forEach(a=>{const on=(a.dataset.r||'')===cur;a.classList.toggle('on',on);on?a.setAttribute('aria-current','page'):a.removeAttribute('aria-current')});
+ window.scrollTo(0,0);
+ if(v=='new')return renderNew();if(v=='p'&&id){LANG=l||LANG;TAB=t||TAB;return openProject(id)}return renderHome()}
+// ---------------- home
+let PS=[],FILT='all',TESTNEXT=false
+const JUMP=new Map([['Projects','#'],['New project','#new'],['Test Bodhan connection','#test'],['Lock','#token']])
+function fillJump(ps){const dl=$('#jumplist');if(!dl)return;[...JUMP.keys()].filter(k=>k.startsWith('Project: ')).forEach(k=>JUMP.delete(k))
+ ps.forEach(p=>{let k='Project: '+p.name;if(JUMP.has(k))k+=' ('+p.id.slice(0,4)+')';JUMP.set(k,'#p/'+p.id)})
+ dl.innerHTML=[...JUMP.keys()].map(k=>`<option value="${esc(k)}"></option>`).join('')}
+const bucket=j=>j=='running'||j=='queued'?'running':j=='error'||j=='finished_with_errors'?'attention':'done'
+function drawProjects(){const q=($('#q')?.value||'').trim().toLowerCase()
+ const list=PS.filter(p=>(FILT=='all'||bucket(p.job)==FILT)&&(!q||(p.name+' '+p.langs.map(lname).join(' ')).toLowerCase().includes(q)))
+ $('#plist').innerHTML=list.length?`<div class="grid">${list.map(p=>`<article class="card"><h2 class="ct pname">${esc(p.name)}</h2><div class="mut">${p.langs.map(lname).join(', ')}</div><div class="row" style="margin-top:18px"><span class="pill" data-s="${p.job}">${p.job=='idle'?'saved':p.job.replace(/_/g,' ')}</span><span class="sp"></span><button type="button" class="btn sm" onclick="location.hash='#p/${p.id}'" aria-label="Open project ${esc(p.name)}">Open</button><button type="button" class="btn g sm" onclick="delP('${p.id}')" aria-label="Delete project ${esc(p.name)}">Delete</button></div></article>`).join('')}</div>`
+  :`<div class="card mut">${PS.length?'No projects match your search or filter.':'No projects yet. Choose “New project” to dub your first video.'}</div>`
+ $('#count').textContent=`${list.length} of ${PS.length}`}
+async function renderHome(){PS=await api('/projects');fillJump(PS)
+ $('#app').innerHTML=`<section class="hero" aria-labelledby="hh"><h1 id="hh">Every voice.<br><span class="gold">Every Indian language.</span></h1><p>Upload an English video, pick the languages, and review every dubbed sentence: translation, voice, style and speed, with the checks that caught repeats, gaps and drift.</p><button type="button" class="btn" onclick="location.hash='#new'">Start a new project</button></section>
+ <section class="qa" aria-label="Quick actions"><div class="search"><label class="sr" for="q">Search projects</label><input id="q" type="search" placeholder="Search projects…" autocomplete="off"></div>
+ <div class="chips" id="flt" role="group" aria-label="Filter by status">${[['all','All'],['running','Running'],['done','Done'],['attention','Needs attention']].map(([k,n])=>`<button type="button" class="chip ${FILT==k?'on':''}" data-f="${k}" aria-pressed="${FILT==k}">${n}</button>`).join('')}</div>
+ <button type="button" class="btn g sm" id="diag">Test Bodhan connection</button><button type="button" class="btn g sm" id="gotok">Lock</button></section>
+ <p class="status mut" role="status">${CFG.missing_keys.length?'':'Keys loaded · '}${CFG.llm?'LLM connected':'No LLM configured (rule-based fallbacks)'} · unlocked</p>
+ <div id="diagout" class="diag" role="status" aria-live="polite"></div>
+ ${CFG.missing_keys.length?`<div class="err-box" role="alert">Missing environment variables: ${CFG.missing_keys.join(', ')}. Add them to .env and restart.</div>`:''}
+ <h2>Your projects <span id="count" class="mut cnt"></span></h2><div id="plist" style="margin-top:14px"></div>`
+ $('#diag').onclick=runDiag;$('#gotok').onclick=lock;$('#q').oninput=drawProjects
+ $$('#flt .chip').forEach(c=>c.onclick=()=>{FILT=c.dataset.f;$$('#flt .chip').forEach(x=>{x.classList.toggle('on',x===c);x.setAttribute('aria-pressed',x===c)});drawProjects()})
+ drawProjects();if(TESTNEXT){TESTNEXT=false;runDiag();$('#diagout').scrollIntoView({block:'center'})}}
+async function delP(id){if(confirm('Delete this project and its outputs?')){await api('/projects/'+id,{method:'DELETE'});renderHome()}}
+
+// ---------------- new project
+let NEW={langs:new Set(['hi','ta','bn']),file:null}
+function renderNew(){$('#app').innerHTML=`<h1 class="pt">New project</h1><div class="mut" style="margin-bottom:18px">Choose a video, the languages to dub into, and how it should sound.</div><div style="max-width:760px">
+<div class="card" style="margin-bottom:16px"><h2 class="ct">1 · Video (MP4, MOV, MKV or WebM, 1–15 minutes)</h2><div class="drop" id="drop" role="group" aria-label="Video drop zone"><div id="fn" aria-live="polite">${NEW.file?esc(NEW.file.name):'Drop a video here'}</div><p><button class="btn g" onclick="$('#f').click()">Choose a file</button></p></div><input id="f" type="file" accept="video/*,.mkv" aria-label="Choose a video file" hidden></div>
+<div class="card" style="margin-bottom:16px"><h2 class="ct">2 · Dub into</h2><div class="chips" id="chips" role="group" aria-label="Target languages">${CFG.languages.map(l=>`<button type="button" class="chip ${NEW.langs.has(l.code)?'on':''}" data-c="${l.code}" aria-pressed="${NEW.langs.has(l.code)}">${l.label}</button>`).join('')}</div>
+<p class="row"><label><input type="checkbox" id="cm"> Code-mixed output (e.g. Hinglish)</label></p>
+<p class="row" style="margin-top:4px"><label><input type="checkbox" id="ocr"> Translate on-screen text (slides, captions) with Indic-OCR</label></p><div class="mut" id="ocrh" style="margin:0 0 4px 26px">${CFG.ocr_key?'Samples a frame every 2 seconds and reads each changed frame once. The translated text is drawn over the original in each dubbed video.':'<b class="bad">BODHAN_OCR_KEY is not set on the server</b>, so this will be skipped. The dub itself is not affected.'}</div></div>
+<div class="card" style="margin-bottom:16px"><h2 class="ct">3 · Voice style (optional)</h2><select id="st" aria-label="Voice style"><option value="">Neutral (voice default)</option>${CFG.styles.map(s=>`<option>${esc(s)}</option>`).join('')}</select><div class="mut" style="margin-top:6px">Each speaker gets a consistent voice from the Indic-Speak library; change voices per speaker later.</div></div>
+<div class="card" style="margin-bottom:16px"><h2 class="ct">4 · Name</h2><input type="text" id="nm" placeholder="Project name" aria-label="Project name"></div>
+<button class="btn" id="go">Create and generate</button> <span id="err" role="alert" style="color:var(--bad);font-weight:600"></span></div>`;
+ const pick=f=>{NEW.file=f;$('#fn').textContent=f.name}
+ $('#f').onchange=e=>e.target.files[0]&&pick(e.target.files[0]);const d=$('#drop');d.ondragover=e=>{e.preventDefault();d.classList.add('over')};d.ondragleave=()=>d.classList.remove('over');d.ondrop=e=>{e.preventDefault();d.classList.remove('over');e.dataTransfer.files[0]&&pick(e.dataTransfer.files[0])}
+ $$('.chip').forEach(c=>c.onclick=()=>{const k=c.dataset.c;NEW.langs.has(k)?NEW.langs.delete(k):NEW.langs.add(k);c.classList.toggle('on');c.setAttribute('aria-pressed',NEW.langs.has(k))})
+ $('#go').onclick=async()=>{if(!NEW.file)return $('#err').textContent='Choose a video first';if(!NEW.langs.size)return $('#err').textContent='Pick at least one language';
+  const fd=new FormData();fd.append('file',NEW.file);fd.append('langs',[...NEW.langs].join(','));fd.append('name',$('#nm').value);fd.append('code_mixed',$('#cm').checked);fd.append('ocr',$('#ocr').checked);fd.append('style',$('#st').value);
+  $('#go').disabled=true;$('#go').textContent='Uploading…';try{const p=await api('/projects',{method:'POST',body:fd});NEW.file=null;location.hash='#p/'+p.id}catch(e){$('#err').textContent=e.message;$('#go').disabled=false;$('#go').textContent='Create and generate'}}}
+
+// ---------------- project
+async function openProject(id){await refresh(id,true);TIMER=setInterval(()=>refresh(id,false),1500)}
+async function refresh(id,force){let p;try{p=await api('/projects/'+id)}catch(e){return $('#app').innerHTML=`<div class="err-box" role="alert">${esc(e.message)}</div>`}
+ const prev=P?.job?.state,wasRunning=prev=='running'||prev=='queued';P=p;const st=p.job.state,running=st=='running'||st=='queued'
+ if(!LANG||!p.langs.includes(LANG))LANG=p.langs[0]
+ if(force||(wasRunning&&!running)){DATA={};await paint()}else if(running){$('#prog')?paintProgress():await paint()}}
+function stepsHtml(){const g=P.progress,names=[['probe','Reading video'],['vad','Finding speech'],['transcribe','Transcribing English'],['group_sentences','Grouping sentences'],['glossary','Building glossary']]
+ return `<div class="steps">${names.map(([k,n])=>`<div class="${g.source_stages.includes(k)?'':'p'}"><span class="sp">${g.source_stages.includes(k)?'✓':'·'} ${n}</span></div>`).join('')}${Object.entries(g.languages).map(([l,x])=>{const pc=x.total?Math.round(100*x.done/x.total):0;return `<div><span class="sp">${lname(l)} — ${x.stage=='segments'||x.stage=='translate+speak'?'translating & voicing':x.stage} ${x.total?`${x.done}/${x.total}`:''}${x.retries?` · ${x.retries} retries`:''}</span><span style="width:160px"><div class="bar"><i style="width:${x.stage=='done'?100:pc}%"></i></div></span></div>`}).join('')}${g.api_retries?`<div class="mut">${g.api_retries} API retries handled · last: ${esc(g.last_retry||'')} <span class="mut">(429 = rate limit or spent budget, 5xx = server busy; failed jobs show the exact error)</span></div>`:''}</div>`}
+function paintProgress(){const el=$('#prog');if(el)el.innerHTML=stepsHtml()}
+async function paint(){const p=P,st=p.job.state,running=st=='running'||st=='queued'
+ $('#app').innerHTML=`<div class="row"><div><a href="#" class="backlink">‹ All projects</a><h1 class="pt">${esc(p.name)}</h1><div class="mut">${p.report?.source?`${mmss(p.report.source.duration)} · ${p.report.source.segments} sentences · ${p.report.source.speakers.length} speaker(s) · sentences grouped by ${p.report.source.grouping}`:'analysing…'}</div></div><span class="sp"></span><span class="pill" data-s="${st}">${st.replace(/_/g,' ')}</span></div>
+ ${(st=='error'||p.job.error)?`<div class="err-box" role="alert">${esc(p.job.error)}</div>`:''}${p.report?.source?.warnings?.length?p.report.source.warnings.map(w=>`<div class="warn-box" role="status">${esc(w)}</div>`).join(''):''}
+ ${running?`<div class="card" style="margin:14px 0"><h2 class="ct">${p.report?'Applying your changes':'Dubbing'}…</h2><div id="prog" aria-live="polite">${stepsHtml()}</div></div>`:''}
+ <div class="row" style="margin:16px 0"><div class="tabs" role="group" aria-label="Language">${p.langs.map(l=>`<button type="button" class="${l==LANG?'on':''}" aria-pressed="${l==LANG}" onclick="go('${l}','${TAB}')">${lname(l)}</button>`).join('')}</div><span class="sp"></span><div class="tabs" role="group" aria-label="Project view">${[['sentences','Sentences'],['timeline','Timeline'],['terms','Glossary & voices'],['report','Report & export']].map(([k,n])=>`<button type="button" class="${k==TAB?'on':''}" aria-pressed="${k==TAB}" onclick="go('${LANG}','${k}')">${n}</button>`).join('')}</div></div><div id="pane"></div>`
+ if(!running)await pane()}
+function go(l,t){LANG=l;TAB=t;history.replaceState(null,'',`#p/${P.id}/${l}/${t}`);paint()}
+async function langData(){if(!DATA[LANG]){try{DATA[LANG]=await api(`/projects/${P.id}/lang/${LANG}`)}catch{DATA[LANG]=null}}return DATA[LANG]}
+async function pane(){const el=$('#pane');if(!el)return;if(TAB=='terms')return termsPane(el);if(TAB=='report')return reportPane(el)
+ const d=await langData();if(!d){el.innerHTML='<div class="card mut">Nothing to show for this language yet.</div>';return}
+ if(TAB=='timeline')return timelinePane(el,d);sentencesPane(el,d)}
+
+// ---- sentences
+const ACT={fit:'fits',borrow_gap:'uses pause after',lead:'starts slightly early',stretch:'sped up',condense:'too long',manual_speed:'manual speed'}
+function badges(s){const q=s.qa||{},b=[];b.push(`<span class="b ${s.status=='dubbed'?'ok':s.status=='failed'?'bad':'warn'}">${s.status}</span>`)
+ if(s.action)b.push(`<span class="b ${s.action=='condense'?'warn':''}">${ACT[s.action]||s.action}${s.stretch&&s.stretch!=1?' ×'+s.stretch.toFixed(2):''}</span>`)
+ if(s.sync_offset_ms!=null)b.push(`<span class="b ${Math.abs(s.sync_offset_ms)>300?'bad':''}">sync ${s.sync_offset_ms>0?'+':''}${s.sync_offset_ms} ms</span>`)
+ if(q.cer!=null)b.push(`<span class="b ${q.cer>.2?'warn':''}">CER ${(q.cer*100).toFixed(0)}%</span>`)
+ const r=s.retries||{};if(r.tts)b.push(`<span class="b warn">${r.tts} re-voice</span>`);if(r.condense)b.push(`<span class="b warn">${r.condense} shortened</span>`)
+ ;if(s.custom_voice)b.push('<span class="b ok">your own voice</span>');else if(s.style)b.push(`<span class="b">style: ${esc(s.style)}</span>`)
+ ;(q.flags||[]).filter(f=>f!='custom_voice').forEach(f=>b.push(`<span class="b bad">${f}</span>`));(s.notes||[]).filter(n=>n!='custom_voice').forEach(n=>b.push(`<span class="b">${esc(n)}</span>`));return b.join('')}
+function sentencesPane(el,d){const ov=d.overrides||{};el.innerHTML=`<div class="card" style="padding:6px 14px"><table class="sent" aria-label="Dubbed sentences"><tr><th style="width:90px">#  time</th><th style="width:300px">Checks</th><th>English → ${lname(LANG)}</th><th style="width:270px"><span class="sr">Actions</span></th></tr>${d.segments.map(s=>`<tr id="r${s.idx}"><td><b>${s.idx+1}</b><div class="mut">${mmss(s.start)}</div><div class="mut">${esc(s.speaker)}</div></td><td>${badges(s)}${ov[s.idx]?'<span class="b warn">edited</span>':''}</td>
+ <td><div class="tr" lang="${LANG}">${esc(s.translation)}</div><div class="en">${esc(s.source_text)}${s.english_used!=s.source_text?`<br>shortened to: ${esc(s.english_used)}`:''}</div></td>
+ <td style="text-align:right"><button class="btn g sm" data-play="${s.idx}" aria-label="Play sentence ${s.idx+1}" ${s.status=='failed'?'disabled':''}>▶ Play</button> <button class="btn g sm" data-edit="${s.idx}" aria-label="Edit sentence ${s.idx+1}">Edit</button> <button class="btn g sm" data-why="${s.idx}" aria-label="Why sentence ${s.idx+1} sounds this way">Why?</button></td></tr><tr id="x${s.idx}" hidden><td colspan="4"></td></tr>`).join('')}</table></div>
+ ${d.skipped?.length?`<div class="mut" style="margin-top:12px">${d.skipped.length} stretch(es) with no speech left untouched: ${d.skipped.map(k=>`${mmss(k.start)} (${esc(k.reason)})`).join(', ')}</div>`:''}${onscreenHTML(d)}`
+ $$('[data-play]').forEach(b=>b.onclick=()=>{const a=new Audio(`${BASE}/api/projects/${P.id}/file/clip?lang=${LANG}&idx=${b.dataset.play}&t=${Date.now()}`);a.play()})
+ $$('[data-osave]').forEach(b=>b.onclick=async()=>{const id=b.dataset.osave,it=d.onscreen.items.find(i=>i.id==id),t=$('#os_t'+id).value.trim(),h=$('#os_h'+id).checked,body={},m=$('#os_m'+id)
+  if(t&&t!=it.translation)body.text=t;if(h!=it.hidden)body.hide=h;if(!Object.keys(body).length){m.textContent='Nothing changed.';return}
+  b.disabled=true;m.textContent='Saving…';try{await jput(`/projects/${P.id}/lang/${LANG}/onscreen/${id}`,body,'PATCH');DATA={};await refresh(P.id,true)}catch(e){m.textContent=e.message;b.disabled=false}})
+ $$('[data-why]').forEach(b=>b.onclick=()=>toggle(b.dataset.why,'why',d));$$('[data-edit]').forEach(b=>b.onclick=()=>toggle(b.dataset.edit,'edit',d))}
+function onscreenHTML(d){const o=d.onscreen;if(!o||!o.items?.length)return ''
+ const bad=o.font_note&&!['noto','fontconfig'].includes(o.font_note)
+ return `<div class="card" style="margin-top:16px"><h2 class="ct">On-screen text · ${o.items.length}</h2><div class="mut" style="margin-bottom:6px">Text found on screen by Indic-OCR, translated, and drawn over the original while it was visible. Fix a translation or hide a text; the video is rebuilt from cache.${bad?` <b class="bad">No Indian-script font was found on the server (${esc(o.font_note)}), so letters may not draw correctly.</b>`:''}</div>
+ ${o.items.map(it=>`<div class="osrow"><div><b>${mmss(it.start)}–${mmss(it.end)}</b><div><span class="b ${it.status=='ok'?'ok':it.status=='failed'?'bad':''}">${esc(it.status)}</span></div></div>
+ <div><div class="en" style="font-size:13px">English</div>${esc(it.original)}</div>
+ <div><label for="os_t${it.id}" class="en" style="font-size:13px">${lname(LANG)}</label><textarea id="os_t${it.id}" lang="${LANG}" ${it.hidden?'disabled':''}>${esc(it.translation||'')}</textarea>${it.error?`<div class="bad" style="font-size:12px">${esc(it.error)}</div>`:''}</div>
+ <div><label><input type="checkbox" id="os_h${it.id}" ${it.hidden?'checked':''}> Hide</label><p style="margin:8px 0 0"><button type="button" class="btn g sm" data-osave="${it.id}">Save</button></p><span id="os_m${it.id}" class="mut" role="status" aria-live="polite"></span></div></div>`).join('')}</div>`}
+function toggle(i,kind,d){const row=$('#x'+i),s=d.segments[i];if(!row.hidden&&row.dataset.kind==kind){row.hidden=true;return}row.hidden=false;row.dataset.kind=kind
+ const c=row.firstElementChild;if(kind=='why'){c.innerHTML=`<div class="edit"><h2 class="ct">Why this line sounds the way it does</h2><div class="en">Back-transcript of the dubbed audio: <span lang="${LANG}">${esc(s.back_transcript||'—')}</span></div>${s.error?`<div class="err-box" role="alert">${esc(s.error)}</div>`:''}<div class="tw" tabindex="0" role="region" aria-label="Attempts table"><table><tr><th>Round</th><th>Voice try</th><th>Raw length</th><th>Fit action</th><th>Speed</th><th>Error rate</th><th>Flags</th></tr>${(s.attempts||[]).map(a=>`<tr><td>${a.cond}</td><td>${a.tts}</td><td>${a.raw_s}s</td><td>${ACT[a.action]||a.action}</td><td>×${a.stretch}</td><td>${(a.cer*100).toFixed(0)}%</td><td>${a.flags.join(', ')||'ok'}</td></tr>`).join('')}</table></div><div class="en">Voice ${esc(s.voice)} · slot ${mmss(s.start)}–${mmss(s.end)} · audio ${s.audio_duration}s</div></div>`;return}
+ const ov=d.overrides[i]||{},voices=ALLV(),own=CFG.voices[LANG]||{female:[],male:[]}
+ const en0=ov.english||s.source_text,tx0=ov.text||s.translation,st0=ov.style||s.style||'none',has=!!ov.custom_audio
+ const custom=!!s.custom_voice
+ c.innerHTML=`<div class="edit"><label for="e_en">English (changing this re-translates with Indic-Translate)</label><textarea id="e_en">${esc(en0)}</textarea>
+ <label for="e_tx">${lname(LANG)} text (type your own to skip translation; leave unchanged to keep Indic-Translate's)</label><textarea id="e_tx" lang="${LANG}">${esc(tx0)}</textarea>
+ <div class="row" style="margin-top:8px"><div style="flex:1"><label for="e_vo">AI voice</label><select id="e_vo">${voices.map(v=>`<option ${v==(ov.voice||s.voice)?'selected':''}>${v}</option>`).join('')}</select></div><div style="flex:1"><label for="e_st">Style / emotion</label><select id="e_st"><option value="none" ${st0=='none'?'selected':''}>Neutral (no style)</option>${CFG.styles.map(x=>`<option ${x==st0?'selected':''}>${esc(x)}</option>`).join('')}</select></div>
+ <div style="flex:1"><label for="e_sp">Speed <span id="e_sv">${ov.speed?'×'+ov.speed:'auto'}</span></label><input id="e_sp" type="range" min="${CFG.stretch[0]}" max="${CFG.stretch[1]}" step="0.01" value="${ov.speed||1}"><label><input type="checkbox" id="e_auto" ${ov.speed?'':'checked'}> automatic (fit to slot)</label></div></div>
+ <div class="row" style="margin-top:10px"><button type="button" class="btn g sm" id="e_prev">▶ Hear this voice and style</button><span id="e_pst" class="mut" role="status" aria-live="polite">A short test costs about ₹0.06 per 100 characters. How strongly a style shows depends on the voice and the sentence, so compare a few.</span></div>
+ ${custom?'<div class="mut" style="margin-top:8px"><b>Your own recording is currently used for this sentence</b>, so the AI voice and style above are not applied until you remove it.</div>':''}
+ <div class="row" style="margin-top:12px"><button class="btn sm" id="e_save">Save and re-voice</button><button class="btn g sm" id="e_reset">Reset line</button><span id="e_msg" class="mut" role="status" aria-live="polite">Only this line is re-translated and re-voiced; everything else comes from the cache. Speed is limited to ${CFG.stretch[0]}–${CFG.stretch[1]}×.</span></div>
+ <fieldset class="own"><legend>Use my own voice for this sentence</legend>
+  <p class="mut" style="margin:0 0 10px">Read the ${lname(LANG)} text aloud, or upload a recording. It replaces the AI voice for this one sentence and is fitted into its time slot (sped up by at most ${CFG.stretch[1]}× if too long). WAV, MP3, M4A, OGG or WebM, 0.3 to 60 seconds. Use only your own voice, or one you have permission to use.</p>
+  <div class="read" lang="${LANG}" id="e_read">${esc(tx0)}</div>
+  ${has?`<div class="row" style="margin-bottom:10px"><b>Current recording</b><audio controls preload="none" src="${BASE}/api/projects/${P.id}/file/custom?lang=${LANG}&idx=${i}&t=${Date.now()}" aria-label="Your current recording"></audio><button type="button" class="btn g sm" id="e_rm">Remove and use the AI voice</button></div>`:''}
+  <div class="row"><button type="button" class="btn g sm" id="e_rec">● Record</button><button type="button" class="btn g sm" id="e_stop" hidden>■ Stop</button><span class="mut">or</span><button type="button" class="btn g sm" id="e_pick">Upload a file</button><input type="file" id="e_file" accept="audio/*,.wav,.mp3,.m4a,.ogg,.webm,.opus" hidden aria-label="Upload a recording"><span id="e_rst" class="mut" role="status" aria-live="polite"></span></div>
+  <div id="e_take" hidden style="margin-top:10px"><audio controls id="e_ta" aria-label="Your new take"></audio><div class="row" style="margin-top:8px"><button type="button" class="btn sm" id="e_use">Use this recording</button><button type="button" class="btn g sm" id="e_drop">Discard</button></div></div>
+ </fieldset></div>`
+ const sp=$('#e_sp'),au=$('#e_auto'),vo0=$('#e_vo').value,msg=$('#e_msg')
+ sp.oninput=()=>{au.checked=false;$('#e_sv').textContent='×'+(+sp.value).toFixed(2)};au.onchange=()=>$('#e_sv').textContent=au.checked?'auto':'×'+(+sp.value).toFixed(2)
+ $('#e_tx').oninput=()=>$('#e_read').textContent=$('#e_tx').value
+ const done=async()=>{DATA={};await refresh(P.id,true)}
+ const send=async body=>{try{await jput(`/projects/${P.id}/lang/${LANG}/segments/${i}`,body,'PATCH');await done()}catch(e){msg.textContent=e.message;msg.className='bad'}}
+ $('#e_save').onclick=()=>{const b={},un=[];const en=$('#e_en').value.trim(),tx=$('#e_tx').value.trim()
+  if(en!=en0)b.english=en;if(tx!=tx0)b.text=tx;if($('#e_vo').value!=vo0)b.voice=$('#e_vo').value;if($('#e_st').value!=st0)b.style=$('#e_st').value
+  if(au.checked){if(ov.speed)un.push('speed')}else if(+sp.value!=ov.speed)b.speed=+sp.value
+  if(un.length)b.unset=un
+  if(!Object.keys(b).length){msg.className='mut';msg.textContent='Nothing changed.';return}
+  send(b)}
+ $('#e_reset').onclick=()=>send({reset:true})
+ $('#e_prev').onclick=async()=>{const st=$('#e_pst'),btn=$('#e_prev'),text=$('#e_tx').value.trim();if(!text){st.textContent='Type some text first.';return}
+  btn.disabled=true;st.textContent='Generating…'
+  try{const r=await fetch(`${BASE}/api/projects/${P.id}/lang/${LANG}/preview`,{method:'POST',headers:{'Content-Type':'application/json','X-Access-Token':tok()},body:JSON.stringify({text,voice:$('#e_vo').value,style:$('#e_st').value==='none'?'':$('#e_st').value})})
+   if(!r.ok){let m=r.statusText;try{m=(await r.json()).detail||m}catch{}throw new Error(m)}
+   const u=URL.createObjectURL(await r.blob());const a=new Audio(u);a.onended=()=>URL.revokeObjectURL(u);await a.play();st.textContent=`Played: ${$('#e_vo').value}, ${$('#e_st').value==='none'?'neutral':$('#e_st').value}.`}
+  catch(e){st.textContent='Could not generate: '+e.message}finally{btn.disabled=false}}
+ // ---- own voice: record in the browser or upload, review the take, then use it
+ let take=null,rec=null,stream=null,tmr=null
+ const rst=$('#e_rst'),showTake=(blob,name)=>{take={blob,name};const u=URL.createObjectURL(blob);$('#e_ta').src=u;$('#e_take').hidden=false}
+ const stopStream=()=>{clearInterval(tmr);if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;$('#e_rec').hidden=false;$('#e_stop').hidden=true}
+ $('#e_rec').onclick=async()=>{
+  if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){rst.textContent='This browser cannot record here. Upload a file instead.';return}
+  try{stream=await navigator.mediaDevices.getUserMedia({audio:true})}catch{rst.textContent='Microphone blocked. Allow it in the address bar, or upload a file.';return}
+  const chunks=[];rec=new MediaRecorder(stream);rec.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)}
+  rec.onstop=()=>{const t=rec.mimeType||'audio/webm';stopStream();if(chunks.length){showTake(new Blob(chunks,{type:t}),'take.'+(t.includes('ogg')?'ogg':t.includes('mp4')?'m4a':'webm'));rst.textContent='Recorded. Listen, then use it.'}}
+  rec.start();$('#e_rec').hidden=true;$('#e_stop').hidden=false;$('#e_stop').focus();let n=0;rst.textContent='Recording… 0 s'
+  tmr=setInterval(()=>{n++;rst.textContent=`Recording… ${n} s`;if(n>=60)rec.stop()},1000)}
+ $('#e_stop').onclick=()=>{if(rec&&rec.state!=='inactive')rec.stop()}
+ $('#e_pick').onclick=()=>$('#e_file').click()
+ $('#e_file').onchange=e=>{const f=e.target.files[0];if(f){showTake(f,f.name);rst.textContent=f.name}}
+ $('#e_drop').onclick=()=>{take=null;$('#e_take').hidden=true;$('#e_ta').removeAttribute('src');$('#e_file').value='';rst.textContent=''}
+ $('#e_use').onclick=async()=>{if(!take)return;const fd=new FormData();fd.append('file',take.blob,take.name);$('#e_use').disabled=true;rst.textContent='Uploading…'
+  try{await api(`/projects/${P.id}/lang/${LANG}/segments/${i}/voice`,{method:'POST',body:fd});await done()}catch(e){rst.textContent=e.message;$('#e_use').disabled=false}}
+ if($('#e_rm'))$('#e_rm').onclick=()=>send({unset:['custom_audio']})}
+
+// ---- timeline
+function timelinePane(el,d){const dur=P.transcript?.duration||d.segments.at(-1).end,pc=t=>100*t/dur
+ el.innerHTML=`<div class="card"><video id="vid" aria-label="Dubbed video preview" src="${BASE}/api/projects/${P.id}/file/video?lang=${LANG}" controls></video><div class="cap" id="cap" lang="${LANG}"></div><div class="row" style="justify-content:center;margin:6px 0"><button class="btn g sm" id="orig">Play original English</button><button class="btn g sm" id="dub">Play dubbed</button></div>
+ <div style="position:relative;margin-top:14px"><div style="position:relative"><div class="lane"><span class="lab">English speech</span>${(P.transcript?.segments||[]).map(s=>`<i class="o" data-t="${s.start}" style="left:${pc(s.start)}%;width:${pc(s.end-s.start)}%" title="${esc(s.text)}">${esc(s.text)}</i>`).join('')}</div>
+ <div class="lane"><span class="lab">${lname(LANG)} dub</span>${d.segments.filter(s=>s.placed_start!=null).map(s=>`<i class="${s.status=='dubbed'?'':s.status=='failed'?'f':'w'}" data-t="${s.placed_start}" style="left:${pc(s.placed_start)}%;width:${pc(s.audio_duration)}%" title="${esc(s.translation)}">${esc(s.translation)}</i>`).join('')}</div>
+ <div class="lane"><span class="lab">Left untouched</span>${(d.skipped||[]).map(k=>`<i class="s" data-t="${k.start}" style="left:${pc(k.start)}%;width:${Math.max(.6,pc(k.end-k.start))}%" title="${esc(k.reason)}"></i>`).join('')}</div>
+ <div class="ph" id="ph" style="left:var(--lw)"></div></div>
+ <div class="mut" style="margin-left:var(--lw);font-size:13px">Original music and effects stay in place where nobody speaks; English speech is replaced by the dub. Grey hatched = no speech found, nothing was invented there.</div>
+ </div></div>`
+ const v=$('#vid'),cap=$('#cap'),ph=$('#ph');v.ontimeupdate=()=>{ph.style.left=`calc(var(--lw) + (100% - var(--lw)) * ${v.currentTime/dur})`;const s=d.segments.find(s=>s.placed_start!=null&&v.currentTime>=s.placed_start&&v.currentTime<=s.placed_start+s.audio_duration);cap.textContent=s?s.translation:''}
+ $$('.lane i[data-t]').forEach(i=>i.onclick=()=>{v.currentTime=+i.dataset.t;v.play()});$('#orig').onclick=()=>{const t=v.currentTime;v.src=`${BASE}/api/projects/${P.id}/file/original`;v.onloadedmetadata=()=>{v.currentTime=t}};$('#dub').onclick=()=>{const t=v.currentTime;v.src=`${BASE}/api/projects/${P.id}/file/video?lang=${LANG}`;v.onloadedmetadata=()=>{v.currentTime=t}}}
+
+// ---- glossary & voices
+function termsPane(el){const g=P.transcript?.glossary||[],spk=[...new Set((P.transcript?.segments||[]).map(s=>s.speaker))],info={}
+ ;(P.transcript?.segments||[]).forEach(s=>{(info[s.speaker]??={gender:s.gender,n:0}).n++})
+ el.innerHTML=`<div class="card" style="margin-bottom:16px"><h2 class="ct">Glossary: terms that must be rendered the same way every time</h2><div class="mut" style="margin-bottom:8px">Type your own rendering per language to pin it; leave blank to let Indic-Translate render it and flag any line that varies. Only affected lines are re-translated and re-voiced.</div>
+ <div class="tw" tabindex="0" role="region" aria-label="Glossary table"><table id="gt"><tr><th>Term</th><th>Kind</th><th>From</th><th>Pin</th>${P.langs.map(l=>`<th>${lname(l)}</th>`).join('')}</tr>${g.map(t=>grow(t)).join('')}</table></div><div class="row" style="margin-top:10px"><button class="btn g sm" id="gadd">Add term</button><button class="btn sm" id="gsave">Apply and re-run</button></div></div>
+ <div class="card"><h2 class="ct">Speakers and voices</h2><div class="mut" style="margin-bottom:8px">Indic-Transcribe has no diarization, so speakers are grouped by voice pitch (a heuristic). Pick a voice per speaker, or leave Automatic.</div>
+ <div class="tw" tabindex="0" role="region" aria-label="Speakers table"><table><tr><th>Speaker</th><th>Detected</th><th>Lines</th><th>Voice for all languages</th></tr>${spk.map(s=>`<tr><td>${s}</td><td>${info[s].gender}</td><td>${info[s].n}</td><td><select data-spk="${s}" aria-label="Voice for speaker ${s}"><option value="">Automatic (language's own ${info[s].gender} voice)</option>${ALLV().map(v=>`<option ${P.voices_cfg?.speakers?.[s]==v?'selected':''}>${v}</option>`).join('')}</select></td></tr>`).join('')}</table></div><p><button class="btn sm" id="vsave">Apply and re-run</button></p></div>`
+ $('#gadd').onclick=()=>$('#gt').insertAdjacentHTML('beforeend',grow({term:'',kind:'term',pin:true,translations:{}}))
+ $('#gsave').onclick=async()=>{const terms=$$('#gt tr[data-g]').map(r=>({term:$('.t',r).value,kind:r.dataset.kind,pin:$('.p',r).checked,translations:Object.fromEntries($$('.tl',r).map(i=>[i.dataset.l,i.value]))}));try{await jput(`/projects/${P.id}/glossary`,{terms});DATA={};await refresh(P.id,true)}catch(e){alert(e.message)}}
+ $('#vsave').onclick=async()=>{const speakers=Object.fromEntries($$('[data-spk]').map(s=>[s.dataset.spk,s.value]));try{await jput(`/projects/${P.id}/voices`,{speakers});DATA={};await refresh(P.id,true)}catch(e){alert(e.message)}}}
+function grow(t){return `<tr data-g data-kind="${esc(t.kind||'term')}"><td><input class="t" type="text" value="${esc(t.term)}"></td><td>${esc(t.kind||'term')}</td><td>${t.source=='user'?'you':t.source=='llm'?'LLM':'you'}</td><td><input class="p" type="checkbox" ${t.pin!==false?'checked':''}></td>${P.langs.map(l=>`<td><input class="tl" data-l="${l}" type="text" lang="${l}" value="${esc(t.translations?.[l]||'')}"></td>`).join('')}</tr>`}
+
+// ---- report
+function reportPane(el){const r=P.report;if(!r){el.innerHTML='<div class="card mut">No report yet.</div>';return}const pid=P.id
+ const rows=Object.entries(r.languages).map(([l,x])=>x.status=='failed'?`<tr><td>${lname(l)}</td><td colspan="7" style="color:var(--bad)">failed: ${esc(x.error)}</td></tr>`:`<tr><td>${lname(l)}</td><td><span class="b ${x.status=='ok'?'ok':'warn'}">${x.status}</span></td><td>${x.segments.dubbed}/${x.segments.total}${x.segments.degraded?` (+${x.segments.degraded} degraded)`:''}</td><td>${x.retries.tts} re-voice · ${x.retries.condense} shortened</td><td>${x.qa.mean_cer==null?'—':(x.qa.mean_cer*100).toFixed(1)+'%'}</td><td>${x.targets.sync_within_300ms_pct??'—'}% within ±300 ms<br>speed ${x.targets.stretch_range?x.targets.stretch_range.map(v=>v.toFixed(2)).join('–')+'×':'—'}</td><td>${x.targets.output_length_diff_ms} ms · ${x.targets.speech_lufs?.toFixed?x.targets.speech_lufs.toFixed(1):'—'} LUFS</td><td>₹${x.cost.total_cost_inr} · ${x.seconds}s</td></tr>`).join('')
+ const misses=Object.entries(r.languages).flatMap(([l,x])=>(x.misses||[]).map(m=>`<li><b>${lname(l)}</b> · ${m.target}${m.segments?` (lines ${m.segments.map(i=>i+1).join(', ')})`:''}: ${esc(m.why)}</li>`))
+ const perMin=r.minutes_of_video?(r.cost_inr/r.minutes_of_video/Math.max(1,Object.keys(r.languages).length)).toFixed(2):'—'
+ el.innerHTML=`<div class="card" style="margin-bottom:16px"><h2 class="ct">Quality targets per language</h2><div class="tw" tabindex="0" role="region" aria-label="Quality targets table"><table><tr><th>Language</th><th>Status</th><th>Coverage</th><th>Retries</th><th>Mean CER</th><th>Sync · speed</th><th>Length · loudness</th><th>Cost · time</th></tr>${rows}</table></div>
+ <div style="margin-top:12px"><b>Targets missed</b>${misses.length?`<ul>${misses.join('')}</ul>`:'<div class="mut">None.</div>'}</div>${r.onscreen?`<div style="margin-top:12px"><b>On-screen text</b>: ${r.onscreen.error?`<span class="bad">skipped (${esc(r.onscreen.error)})</span>`:`${r.onscreen.items} text(s) found in ${r.onscreen.frames} sampled frames with ${r.onscreen.ocr_calls} Indic-OCR call(s)${Object.keys(r.onscreen.skipped||{}).length?`; not translated: ${Object.entries(r.onscreen.skipped).map(([k,v])=>`${v} ${esc(k)}`).join(', ')}`:''}`}</div>`:''}<div class="mut">Total ₹${r.cost_inr} · about ₹${perMin} per minute of video per language · ${r.total_seconds}s wall time.</div></div>
+ <div class="card"><h2 class="ct">Downloads</h2><div class="row">${P.langs.map(l=>`<a class="btn g sm" href="${BASE}/api/projects/${pid}/file/video?lang=${l}" download="video.${l}.mp4">${lname(l)} video</a><a class="btn g sm" href="${BASE}/api/projects/${pid}/file/srt?lang=${l}" download="subtitles.${l}.srt">${lname(l)} SRT</a><a class="btn g sm" href="${BASE}/api/projects/${pid}/file/segments?lang=${l}" download="segments.${l}.json">${lname(l)} segments</a>`).join('')}<a class="btn g sm" href="${BASE}/api/projects/${pid}/file/transcript" download="transcript.en.json">English transcript</a><a class="btn g sm" href="${BASE}/api/projects/${pid}/file/report" download="report.json">report.json</a><a class="btn g sm" href="${BASE}/api/projects/${pid}/file/log" download="run.log.jsonl">Structured log</a></div></div>`}
+
+// ---- start / wake the backend (Render free plans sleep when idle and wake on the next request)
+async function wakeUp(st,btn){if(btn)btn.disabled=true;const t0=Date.now()
+ for(let i=0;i<45;i++){const s=Math.round((Date.now()-t0)/1000);st.textContent=`Starting the server… ${s} s. Render can take 1–2 minutes to wake.`
+  try{const ac=new AbortController(),to=setTimeout(()=>ac.abort(),8000);const r=await fetch(BASE+'/api/health',{cache:'no-store',signal:ac.signal});clearTimeout(to);if(r.ok){st.textContent='Server is running. Loading…';location.reload();return}}catch{}
+  await new Promise(r=>setTimeout(r,3000))}
+ st.textContent='No answer after about 2 minutes. Open the Render dashboard, your service, then Logs: the server may have crashed on startup.';if(btn)btn.disabled=false}
+;(async()=>{await unlock();route();api('/projects').then(fillJump).catch(()=>{})})()
+</script></body></html>

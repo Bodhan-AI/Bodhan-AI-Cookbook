@@ -1,0 +1,14 @@
+.env
+out/
+webdata/
+outputs/*
+!outputs/.gitkeep
+sample_data/*.mp4
+sample_data/*.mov
+sample_data/*.mkv
+sample_data/*.webm
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+*.egg-info/

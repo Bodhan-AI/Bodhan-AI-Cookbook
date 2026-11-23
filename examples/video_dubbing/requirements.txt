@@ -1,0 +1,10 @@
+httpx==0.28.1
+openai==3.51.0
+numpy==2.5.3
+soundfile==0.14.0
+PyYAML==6.0.3
+fastapi==0.163.1
+uvicorn==0.54.0
+python-multipart==0.0.32
+pillow==12.3.0
+uharfbuzz==0.57.0
