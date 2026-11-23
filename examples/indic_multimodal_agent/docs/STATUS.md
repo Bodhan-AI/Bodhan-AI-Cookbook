@@ -100,7 +100,7 @@ python -m bodhan_agent --task "Transcribe this Hindi voice note and give me Engl
 
 ### 3. Run Scanned PDF -> Tamil Audio Summary CLI
 ```bash
-python -m bodhan_agent --task "OCR this scanned health report and give me a Tamil audio summary" --files samples/stage_a/health_report_3page.pdf --out out/run_pdf --max-cost-inr 5.0
+python -m bodhan_agent --task "OCR this scanned health report and give me a Tamil audio summary" --files samples/health_report_3page.pdf --out out/run_pdf --max-cost-inr 5.0
 ```
 
 ### 4. Run Markdown Table Translation CLI

@@ -99,7 +99,7 @@ Run CLI tasks:
 python -m bodhan_agent --task "Transcribe this Hindi voice note and give me English subtitles as an SRT file" --files samples/hindi_voicenote.mp3 --out out/run_srt --max-cost-inr 5.0
 
 # Pipeline A: Scanned health report -> Tamil audio summary
-python -m bodhan_agent --task "OCR this scanned health report and give me a Tamil audio summary" --files samples/stage_a/health_report_3page.pdf --out out/run_pdf --max-cost-inr 5.0
+python -m bodhan_agent --task "OCR this scanned health report and give me a Tamil audio summary" --files samples/health_report_3page.pdf --out out/run_pdf --max-cost-inr 5.0
 
 # Pipeline B: Village census table -> Marathi translated table
 python -m bodhan_agent --task "Translate this village census table to Marathi" --files sample_data/village_census.md --out out/run_table --max-cost-inr 5.0

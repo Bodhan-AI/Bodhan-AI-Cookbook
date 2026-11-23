@@ -25,13 +25,13 @@ cp .env.example .env
 python -m bodhan_agent --task "Transcribe this Hindi voice note and give me English subtitles as an SRT file" --files samples/hindi_voicenote.mp3 --out out/subtitles_run --max-cost-inr 5.0
 
 # Pipeline A: Multi-page scanned health report -> Tamil audio summary
-python -m bodhan_agent --task "OCR this scanned health report and give me a Tamil audio summary" --files samples/stage_a/health_report_3page.pdf --out out/pdf_run --max-cost-inr 5.0
+python -m bodhan_agent --task "OCR this scanned health report and give me a Tamil audio summary" --files samples/health_report_3page.pdf --out out/pdf_run --max-cost-inr 5.0
 
 # Pipeline B: Village census markdown table -> Marathi translated table
 python -m bodhan_agent --task "Translate this village census table to Marathi" --files sample_data/village_census.md --out out/table_run --max-cost-inr 5.0
 
 # Language Detection & Audio Screening
-python -m bodhan_agent --task "Which of the audio files in this folder are in a South Indian language? Name the languages and give a one-line English gist for each." --files samples/clips --out out/screening_run --max-cost-inr 5.0
+python -m bodhan_agent --task "Which of the audio files in this folder are in a South Indian language? Name the languages and give a one-line English gist for each." --files samples/neutral_clips --out out/screening_run --max-cost-inr 5.0
 
 # Impossible Task (Unsupported Language) -> Immediate honest refusal
 python -m bodhan_agent --task "Dub this voice note into Spanish" --files samples/hindi_voicenote.mp3 --out out/spanish_run --max-cost-inr 5.0
@@ -248,7 +248,7 @@ https://youtu.be/31qwb1IMsY0
 | Dub voice note into Spanish (Impossible Task) | 1 | 3.9s | ₹0.0000 | Immediate preflight refusal |
 | Marathi Subtitles under 5 paise budget | 4 | 14.5s | ₹0.0000 | Effective hard-cap budget manager |
 
-- **Total Development & Testing Bodhan Spend**: **< ₹2.50** (well below the ₹40.00 spend cap).
+- **Total Development & Testing Bodhan Spend**: **about ₹23.81** (well below the ₹40.00 spend cap).
 
 ---
 
