@@ -166,9 +166,42 @@ def test_rag_config_model_scoped_keys(monkeypatch: pytest.MonkeyPatch) -> None:
     assert cfg.validate_for_live() == []
 
 
+def test_rag_config_translation_key_aliases(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Verify BODHAN_TRANSLATE_API_KEY and BODHAN_TRANSLATION_API_KEY aliases and precedence."""
+    monkeypatch.delenv("BODHAN_API_KEY", raising=False)
+    monkeypatch.delenv("BODHAN_OCR_API_KEY", raising=False)
+    monkeypatch.delenv("BODHAN_TRANSLATE_API_KEY", raising=False)
+    monkeypatch.delenv("BODHAN_TRANSLATION_API_KEY", raising=False)
+
+    # 1. Canonical BODHAN_TRANSLATE_API_KEY only
+    monkeypatch.setenv("BODHAN_TRANSLATE_API_KEY", "canonical-trans-key")
+    cfg1 = RAGConfig.from_env()
+    assert cfg1.effective_translation_key == "canonical-trans-key"
+
+    # 2. Alias BODHAN_TRANSLATION_API_KEY only
+    monkeypatch.delenv("BODHAN_TRANSLATE_API_KEY", raising=False)
+    monkeypatch.setenv("BODHAN_TRANSLATION_API_KEY", "alias-trans-key")
+    cfg2 = RAGConfig.from_env()
+    assert cfg2.effective_translation_key == "alias-trans-key"
+
+    # 3. Precedence: canonical takes priority when both are set
+    monkeypatch.setenv("BODHAN_TRANSLATE_API_KEY", "canonical-trans-key")
+    monkeypatch.setenv("BODHAN_TRANSLATION_API_KEY", "alias-trans-key")
+    cfg3 = RAGConfig.from_env()
+    assert cfg3.effective_translation_key == "canonical-trans-key"
+
+    # 4. Fallback to unified BODHAN_API_KEY
+    monkeypatch.delenv("BODHAN_TRANSLATE_API_KEY", raising=False)
+    monkeypatch.delenv("BODHAN_TRANSLATION_API_KEY", raising=False)
+    monkeypatch.setenv("BODHAN_API_KEY", "unified-key")
+    cfg4 = RAGConfig.from_env()
+    assert cfg4.effective_translation_key == "unified-key"
+
+
 def test_rag_config_missing_keys_validation(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("BODHAN_API_KEY", raising=False)
     monkeypatch.delenv("BODHAN_OCR_API_KEY", raising=False)
+    monkeypatch.delenv("BODHAN_TRANSLATE_API_KEY", raising=False)
     monkeypatch.delenv("BODHAN_TRANSLATION_API_KEY", raising=False)
     monkeypatch.delenv("GROQ_API_KEY", raising=False)
 

@@ -199,7 +199,7 @@ def run_rag_pipeline(
             print("\n[CONFIGURATION REQUIRED]")
             print(f"Missing required environment variables for live RAG execution: {', '.join(missing)}")
             print("\nPlease configure credentials before executing billable requests:")
-            print('  export BODHAN_API_KEY="sk-..."           # (Or BODHAN_OCR_API_KEY & BODHAN_TRANSLATION_API_KEY)')
+            print('  export BODHAN_API_KEY="sk-..."           # (Or BODHAN_OCR_API_KEY & BODHAN_TRANSLATE_API_KEY)')
             print('  export GROQ_API_KEY="gsk_..."')
             print(f'  export GROQ_MODEL="{cfg.groq_model}"')
             print(f'  export EMBEDDING_PROVIDER="{cfg.embedding_provider}"')

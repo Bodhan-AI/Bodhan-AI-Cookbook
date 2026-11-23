@@ -12,16 +12,17 @@ class RAGConfig:
     """Runtime configuration for the Bodhan x Groq RAG pipeline."""
 
     # Bodhan API credentials (supports unified or model-scoped keys)
-    bodhan_api_key: Optional[str] = field(default=None, repr=False)
-    bodhan_ocr_api_key: Optional[str] = field(default=None, repr=False)
-    bodhan_translation_api_key: Optional[str] = field(default=None, repr=False)
+    bodhan_api_key: str | None = field(default=None, repr=False)
+    bodhan_ocr_api_key: str | None = field(default=None, repr=False)
+    bodhan_translate_api_key: str | None = field(default=None, repr=False)
+    bodhan_translation_api_key: str | None = field(default=None, repr=False)
 
     # Groq credentials & model configuration
-    groq_api_key: Optional[str] = field(default=None, repr=False)
+    groq_api_key: str | None = field(default=None, repr=False)
     groq_model: str = "openai/gpt-oss-120b"
     temperature: float = 0.0
     timeout: float = 30.0
-    max_output_tokens: Optional[int] = None
+    max_output_tokens: int | None = None
 
     # Multilingual Embedding configuration (independent of Groq)
     embedding_provider: str = "huggingface"
@@ -39,23 +40,36 @@ class RAGConfig:
 
     # Query & translation preferences
     query_language: str = "hi"
-    answer_language: Optional[str] = None
+    answer_language: str | None = None
     translate_query: bool = True
     translate_answer_back: bool = True
 
     @property
-    def effective_ocr_key(self) -> Optional[str]:
+    def effective_ocr_key(self) -> str | None:
         """Resolve effective API key for Indic OCR."""
         return self.bodhan_ocr_api_key or self.bodhan_api_key
 
     @property
-    def effective_translation_key(self) -> Optional[str]:
-        """Resolve effective API key for Indic Translation."""
-        return self.bodhan_translation_api_key or self.bodhan_api_key
+    def effective_translation_key(self) -> str | None:
+        """Resolve effective API key for Indic Translation.
+
+        Priority order:
+          1. bodhan_translate_api_key (canonical / documented)
+          2. bodhan_translation_api_key (backward-compatible alias)
+          3. bodhan_api_key (unified fallback)
+        """
+        return self.bodhan_translate_api_key or self.bodhan_translation_api_key or self.bodhan_api_key
 
     @classmethod
     def from_env(cls) -> RAGConfig:
         """Instantiate configuration from environment variables."""
+        try:
+            from dotenv import load_dotenv
+
+            load_dotenv()
+        except ImportError:
+            pass
+
         top_k_str = os.environ.get("TOP_K", "4")
         try:
             top_k = int(top_k_str)
@@ -74,6 +88,7 @@ class RAGConfig:
         return cls(
             bodhan_api_key=os.environ.get("BODHAN_API_KEY"),
             bodhan_ocr_api_key=os.environ.get("BODHAN_OCR_API_KEY"),
+            bodhan_translate_api_key=os.environ.get("BODHAN_TRANSLATE_API_KEY"),
             bodhan_translation_api_key=os.environ.get("BODHAN_TRANSLATION_API_KEY"),
             groq_api_key=os.environ.get("GROQ_API_KEY"),
             groq_model=os.environ.get("GROQ_MODEL", "openai/gpt-oss-120b"),
@@ -103,7 +118,7 @@ class RAGConfig:
         if not self.effective_ocr_key:
             missing.append("BODHAN_OCR_API_KEY or BODHAN_API_KEY")
         if not self.effective_translation_key:
-            missing.append("BODHAN_TRANSLATION_API_KEY or BODHAN_API_KEY")
+            missing.append("BODHAN_TRANSLATE_API_KEY (or BODHAN_TRANSLATION_API_KEY / BODHAN_API_KEY)")
         if not self.groq_api_key:
             missing.append("GROQ_API_KEY")
         return missing
