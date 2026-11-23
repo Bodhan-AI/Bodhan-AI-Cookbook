@@ -12,7 +12,7 @@ class TestConfig(unittest.TestCase):
             bodhan_translate_key="key_translate",
             bodhan_speak_key="key_speak",
             bodhan_ocr_key="key_ocr",
-            llm_base_url="https://api.openai.com/v1",
+            llm_base_url="https://llm.example.com/v1",
             llm_model="gpt-4o-mini",
             llm_api_key="key_llm",
         )
@@ -31,6 +31,28 @@ class TestConfig(unittest.TestCase):
         self.assertIn("BODHAN_TRANSLATE_KEY", missing)
         self.assertIn("BODHAN_SPEAK_KEY", missing)
         self.assertIn("BODHAN_OCR_KEY", missing)
+        self.assertIn("LLM_BASE_URL", missing)
+        self.assertIn("LLM_MODEL", missing)
+        self.assertIn("LLM_API_KEY", missing)
+
+    def test_llm_base_url_has_no_default_and_fails_validation_when_unset(self):
+        """Tests that LLM_BASE_URL has no default value and fails validation when unset."""
+        orig_env = dict(os.environ)
+        try:
+            # Unset all LLM variables
+            os.environ.pop("LLM_BASE_URL", None)
+            os.environ.pop("LLM_MODEL", None)
+            os.environ.pop("LLM_API_KEY", None)
+
+            from unittest.mock import patch
+            with patch("dotenv.load_dotenv"):
+                s = load_settings()
+            self.assertEqual(s.llm_base_url, "")
+            missing = validate_settings(s)
+            self.assertIn("LLM_BASE_URL", missing)
+        finally:
+            os.environ.clear()
+            os.environ.update(orig_env)
 
     def test_settings_timeout_and_retries_defaults_and_env(self):
         # Default values

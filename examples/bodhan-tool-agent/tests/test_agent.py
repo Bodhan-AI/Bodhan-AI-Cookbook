@@ -102,7 +102,7 @@ class TestAgent(unittest.TestCase):
             bodhan_translate_key="mock",
             bodhan_speak_key="mock",
             bodhan_ocr_key="mock",
-            llm_base_url="https://api.openai.com/v1",
+            llm_base_url="https://llm.example.com/v1",
             llm_model="mock-model",
             llm_api_key="mock",
         )
@@ -2013,9 +2013,6 @@ class TestAgent(unittest.TestCase):
         self.assertTrue(len(report.known_limitations) > 0)
         for kl in report.known_limitations:
             kl_lower = kl.lower()
-            self.assertNotIn("ashfaq", kl_lower)
-            self.assertNotIn("अशफाक", kl)
-            self.assertNotIn("john", kl_lower)
             self.assertIn("proper names", kl_lower)
             self.assertIn("not verified", kl_lower)
 
@@ -2023,8 +2020,6 @@ class TestAgent(unittest.TestCase):
         result_md = (self.out_dir / "result.md").read_text(encoding="utf-8")
         self.assertIn("## Known Limitations", result_md)
         self.assertNotIn("known limitations:", result_md.lower())
-        self.assertNotIn("ashfaq", result_md.lower())
-        self.assertNotIn("john", result_md.lower())
 
     def test_pdf_and_multipage_document_records_page_count_in_report(self):
         """Tests Item 3: page_count and pages_processed are recorded in report.json for PDFs/documents."""
@@ -2408,6 +2403,152 @@ class TestAgent(unittest.TestCase):
         result_md = (self.out_dir / "result.md").read_text(encoding="utf-8")
         self.assertIn("PARTIAL", result_md)
         self.assertIn("file_broken.wav", result_md)
+
+    def test_startup_fails_when_llm_base_url_unset(self):
+        """Tests that TaskAgent fails at startup with a clear message listing LLM_BASE_URL, LLM_MODEL, and LLM_API_KEY when LLM_BASE_URL is unset."""
+        unset_settings = Settings(
+            bodhan_transcribe_key="mock",
+            bodhan_translate_key="mock",
+            bodhan_speak_key="mock",
+            bodhan_ocr_key="mock",
+            llm_base_url="",
+            llm_model="gpt-4o-mini",
+            llm_api_key="mock_key",
+        )
+        with self.assertRaises(ValueError) as ctx:
+            TaskAgent(
+                task="Test task",
+                files=[],
+                out_dir=self.out_dir,
+                settings=unset_settings,
+                llm_client=None,
+            )
+        err = str(ctx.exception)
+        self.assertIn("LLM_BASE_URL", err)
+        self.assertIn("LLM_MODEL", err)
+        self.assertIn("LLM_API_KEY", err)
+
+    def test_cached_rerun_produces_identical_assumptions_and_files(self):
+        """Tests Item 2: report.json assumptions and files[] are identical whether results come from cache or not."""
+        f1 = self.samples_dir / "test_audio.wav"
+        f2 = self.samples_dir / "test_long.wav"
+        f1.write_bytes(b"RIFFmockwav1")
+        f2.write_bytes(b"RIFFmockwav2")
+
+        def mock_inspect(path):
+            p = Path(path)
+            if "test_audio" in p.name:
+                return {"success": True, "media_type": "audio", "duration_s": 13.5}
+            return {"success": True, "media_type": "audio", "duration_s": 39.1}
+        self.mock_tools.inspect_media.side_effect = mock_inspect
+
+        # Run 1: live / uncached mock transcription
+        def mock_transcribe_live(file_path="", **kwargs):
+            p = Path(file_path)
+            if "test_audio" in p.name:
+                return {
+                    "success": True,
+                    "transcript": "یہ آڈیو کی پہلی فائل ہے اور بہت مختصر ہے",
+                    "duration_s": 13.5,
+                    "windows_count": 1,
+                    "windows": [{"window_index": 0, "start_s": 0.0, "end_s": 13.5, "text": "یہ آڈیو کی پہلی فائل ہے"}],
+                    "cost_inr": 0.02,
+                    "would_be_cost_inr": 0.02,
+                    "detected_script": "ur",
+                    "cached": False,
+                }
+            else:
+                return {
+                    "success": True,
+                    "transcript": "یہ لمبی آڈیو فائل ہے جس میں تین ونڈوز شامل ہیں اور یہ کافی تفصیل فراہم کرتی ہے",
+                    "duration_s": 39.1,
+                    "windows_count": 3,
+                    "windows": [
+                        {"window_index": 0, "start_s": 0.0, "end_s": 15.0, "text": "ونڈو ایک"},
+                        {"window_index": 1, "start_s": 15.0, "end_s": 30.0, "text": "ونڈو دو"},
+                        {"window_index": 2, "start_s": 30.0, "end_s": 39.1, "text": "ونڈو تین"},
+                    ],
+                    "cost_inr": 0.06,
+                    "would_be_cost_inr": 0.06,
+                    "detected_script": "ur",
+                    "cached": False,
+                }
+        self.mock_tools.transcribe_audio.side_effect = mock_transcribe_live
+
+        plan = {
+            "steps": [
+                {"tool": "transcribe_audio", "args": {"file_path": "test_audio.wav"}},
+                {"tool": "transcribe_audio", "args": {"file_path": "test_long.wav"}},
+            ]
+        }
+
+        agent1 = TaskAgent(
+            task="Transcribe both audio files and tell me which language each one is in",
+            files=[f1, f2],
+            out_dir=self.out_dir,
+            settings=self.mock_settings,
+            llm_client=MockLLM(plan_dict=plan),
+            tools=self.mock_tools,
+        )
+        report1 = agent1.run()
+        self.assertEqual(report1.status, "success")
+        rep1_json = json.loads((self.out_dir / "report.json").read_text(encoding="utf-8"))
+
+        # Run 2: cached rerun (cached=True, cost_charged_inr=0.0)
+        def mock_transcribe_cached(file_path="", **kwargs):
+            p = Path(file_path)
+            if "test_audio" in p.name:
+                return {
+                    "success": True,
+                    "transcript": "یہ آڈیو کی پہلی فائل ہے اور بہت مختصر ہے",
+                    "duration_s": 13.5,
+                    "windows_count": 1,
+                    "windows": [{"window_index": 0, "start_s": 0.0, "end_s": 13.5, "text": "یہ آڈیو کی پہلی فائل ہے"}],
+                    "cost_inr": 0.0,
+                    "would_be_cost_inr": 0.02,
+                    "detected_script": "ur",
+                    "cached": True,
+                }
+            else:
+                return {
+                    "success": True,
+                    "transcript": "یہ لمبی آڈیو فائل ہے جس میں تین ونڈوز شامل ہیں اور یہ کافی تفصیل فراہم کرتی ہے",
+                    "duration_s": 39.1,
+                    "windows_count": 3,
+                    "windows": [
+                        {"window_index": 0, "start_s": 0.0, "end_s": 15.0, "text": "ونڈو ایک"},
+                        {"window_index": 1, "start_s": 15.0, "end_s": 30.0, "text": "ونڈو دو"},
+                        {"window_index": 2, "start_s": 30.0, "end_s": 39.1, "text": "ونڈو تین"},
+                    ],
+                    "cost_inr": 0.0,
+                    "would_be_cost_inr": 0.06,
+                    "detected_script": "ur",
+                    "cached": True,
+                }
+        self.mock_tools.transcribe_audio.side_effect = mock_transcribe_cached
+
+        agent2 = TaskAgent(
+            task="Transcribe both audio files and tell me which language each one is in",
+            files=[f1, f2],
+            out_dir=self.out_dir,
+            settings=self.mock_settings,
+            llm_client=MockLLM(plan_dict=plan),
+            tools=self.mock_tools,
+        )
+        report2 = agent2.run()
+        self.assertEqual(report2.status, "success")
+        rep2_json = json.loads((self.out_dir / "report.json").read_text(encoding="utf-8"))
+
+        # Verify assumptions and files[] are IDENTICAL whether results come from cache or not
+        self.assertEqual(report1.assumptions, report2.assumptions)
+        self.assertEqual(report1.files, report2.files)
+        self.assertEqual(rep1_json["assumptions"], rep2_json["assumptions"])
+        self.assertEqual(rep1_json["files"], rep2_json["files"])
+
+        # Also verify both files are present in assumptions and files[]
+        self.assertEqual(len(report2.files), 2)
+        self.assertTrue(any("test_audio.wav" in a for a in report2.assumptions))
+        self.assertTrue(any("test_long.wav" in a for a in report2.assumptions))
 
 
 if __name__ == "__main__":

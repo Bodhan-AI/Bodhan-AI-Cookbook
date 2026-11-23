@@ -78,10 +78,20 @@ def main(argv: list[str] | None = None) -> int:
         args = parse_args(argv)
         input_files = expand_input_files(args.files)
 
+        settings = load_settings()
+        if not settings.llm_base_url:
+            print(
+                "Missing required LLM configuration: LLM_BASE_URL is unset. "
+                "Please configure LLM_BASE_URL, LLM_MODEL, and LLM_API_KEY.",
+                file=sys.stderr,
+            )
+            return 1
+
         agent = TaskAgent(
             task=args.task,
             files=input_files,
             out_dir=args.out,
+            settings=settings,
             max_steps=args.max_steps,
             max_cost_inr=args.max_cost_inr,
         )

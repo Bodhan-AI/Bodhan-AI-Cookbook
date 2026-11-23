@@ -62,7 +62,7 @@ def load_settings(env_file: Path | str | None = None) -> Settings:
         bodhan_translate_key=os.environ.get("BODHAN_TRANSLATE_KEY", "").strip(),
         bodhan_speak_key=os.environ.get("BODHAN_SPEAK_KEY", "").strip(),
         bodhan_ocr_key=os.environ.get("BODHAN_OCR_KEY", "").strip(),
-        llm_base_url=os.environ.get("LLM_BASE_URL", "https://api.openai.com/v1").strip(),
+        llm_base_url=os.environ.get("LLM_BASE_URL", "").strip(),
         llm_model=os.environ.get("LLM_MODEL", "gpt-4o-mini").strip(),
         llm_api_key=os.environ.get("LLM_API_KEY", "").strip(),
         llm_timeout_s=llm_timeout_s,
@@ -81,4 +81,10 @@ def validate_settings(settings: Settings) -> list[str]:
         missing.append("BODHAN_SPEAK_KEY")
     if not settings.bodhan_ocr_key:
         missing.append("BODHAN_OCR_KEY")
+    if not settings.llm_base_url:
+        missing.append("LLM_BASE_URL")
+    if not settings.llm_model:
+        missing.append("LLM_MODEL")
+    if not settings.llm_api_key:
+        missing.append("LLM_API_KEY")
     return missing

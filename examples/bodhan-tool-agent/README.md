@@ -32,9 +32,9 @@ cp .env.example .env
 | `BODHAN_TRANSLATE_KEY` | Indic-Translate API Key | *Required* |
 | `BODHAN_SPEAK_KEY` | Indic-Speak API Key | *Required* |
 | `BODHAN_OCR_KEY` | Indic-OCR API Key | *Required* |
-| `LLM_BASE_URL` | OpenAI-compatible endpoint URL | `https://api.openai.com/v1` |
+| `LLM_BASE_URL` | Any OpenAI-compatible endpoint URL (e.g. local vLLM, Ollama, LiteLLM, or cloud provider) | *Required* (no default) |
 | `LLM_MODEL` | Orchestration model identifier | `gpt-4o-mini` |
-| `LLM_API_KEY` | LLM service API key | *Optional for local LLMs* |
+| `LLM_API_KEY` | API key for the OpenAI-compatible endpoint | *Required* (or dummy key for local endpoints) |
 | `LLM_TIMEOUT_S` | Per-call timeout for LLM calls (seconds) | `120` |
 | `LLM_MAX_RETRIES` | Max retry attempts for predictable wait times | `1` |
 

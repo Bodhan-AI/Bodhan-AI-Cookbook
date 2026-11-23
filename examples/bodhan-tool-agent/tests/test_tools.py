@@ -26,7 +26,7 @@ class TestBodhanTools(unittest.TestCase):
             bodhan_translate_key="mock_key",
             bodhan_speak_key="mock_key",
             bodhan_ocr_key="mock_key",
-            llm_base_url="https://api.openai.com/v1",
+            llm_base_url="https://llm.example.com/v1",
             llm_model="gpt-4o-mini",
             llm_api_key="mock_key",
         )

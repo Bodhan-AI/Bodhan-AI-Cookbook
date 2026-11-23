@@ -190,6 +190,11 @@ class TaskAgent:
         self.max_cost_inr = max_cost_inr
 
         self.settings = settings or load_settings()
+        if llm_client is None and not self.settings.llm_base_url:
+            raise ValueError(
+                "Missing required LLM configuration: LLM_BASE_URL is unset. "
+                "Please configure LLM_BASE_URL, LLM_MODEL, and LLM_API_KEY."
+            )
         self.tracer = AgentTracer(self.out_dir)
         self.budget = BudgetManager(max_cost_inr=self.max_cost_inr)
         self.cache = DiskCache()
