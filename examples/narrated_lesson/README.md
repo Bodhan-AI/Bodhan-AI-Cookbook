@@ -33,44 +33,59 @@ Per language you get: `lesson.{lang}.md`, `narration_script.{lang}.json`, sectio
 
 ## Getting started
 
-You need Bodhan API keys from [console.bodhan.ai](https://console.bodhan.ai), an OpenAI-compatible LLM key (layout + spoken plan), and **ffmpeg** (for Speak MP3 concat and loudness).
+You need Bodhan API keys from [console.bodhan.ai](https://console.bodhan.ai) and an OpenAI-compatible LLM key (layout + spoken plan).
 
-**Local vs Docker (ffmpeg)**
+**ffmpeg:** local install needs ffmpeg on your `PATH`. Docker already includes ffmpeg. `pip install -e .` installs Python packages only — not ffmpeg.
 
+### Path A — local (step by step)
 
-| Path       | What `pip` / the image installs                                | ffmpeg                                                                               |
-| ---------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| **Local**  | `pip install -e .` → Python deps only (`pyproject.toml`)       | Install **ffmpeg yourself** and keep it on your `PATH` (`ffmpeg -version` must work) |
-| **Docker** | Image runs `pip install -e .` **and** `apt-get install ffmpeg` | Included in the image — no host ffmpeg required                                      |
+1. **Clone and enter the recipe**
+   ```bash
+   git clone <your-fork-url>
+   cd Bodhan-AI-Cookbook/examples/narrated_lesson
+   ```
+2. **Create a venv and install Python deps**
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate          # Windows: .venv\Scripts\activate
+   pip install -e .                   # or: uv pip install -e .
+   ```
+3. **Add keys**
+   ```bash
+   cp .env.example .env               # paste BODHAN_* and LLM_* keys
+   ```
+4. **Install ffmpeg on your PATH** (not installed by pip)
+   ```bash
+   ffmpeg -version                    # must succeed
+   ```
+5. **Run** — see [Run](#run) below.
 
+`pip install -e .` loads pinned deps from `pyproject.toml` and registers the package (no `PYTHONPATH`). `requirements.txt` stays for Cookbook validation (same pins).
 
-Use either path: local needs ffmpeg on `PATH`; Docker already includes it.
+### Path B — Docker (step by step)
 
-```bash
-cd examples/narrated_lesson
-python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
-pip install -e .            # or: uv pip install -e .  (Python packages only — not ffmpeg)
-cp .env.example .env        # paste keys
-# then: install ffmpeg on PATH if you are not using Docker
-```
+ffmpeg is already in the image (`apt-get install ffmpeg` in the `Dockerfile`).
 
-One install is enough for Python: `pip install -e .` loads pinned deps from `pyproject.toml` and registers the package (no `PYTHONPATH`). `requirements.txt` stays for Cookbook validation (same pins).
-
-**Docker** (ffmpeg already in the image):
-
-```bash
-docker build -t narrated-lesson .
-docker run --rm --env-file .env \
-  -v "$PWD/sample_data:/data" -v "$PWD/outputs:/out" \
-  narrated-lesson \
-  --input /data/your_chapter.pdf --langs hi,ta,bn --out /out/demo_final --source-lang en
-```
-
-
+1. **Enter the recipe and create `.env`**
+   ```bash
+   cd Bodhan-AI-Cookbook/examples/narrated_lesson
+   cp .env.example .env               # paste keys
+   ```
+2. **Build the image**
+   ```bash
+   docker build -t narrated-lesson .
+   ```
+3. **Run**
+   ```bash
+   docker run --rm --env-file .env \
+     -v "$PWD/sample_data:/data" -v "$PWD/outputs:/out" \
+     narrated-lesson \
+     --input /data/your_chapter.pdf --langs hi,ta,bn --out /out/demo_final --source-lang en
+   ```
 
 ## Run
 
-English chapter → Hindi, Tamil, Bengali:
+**Step 1 — English chapter → Hindi, Tamil, Bengali**
 
 ```bash
 python -m bodhan_lesson \
@@ -80,7 +95,7 @@ python -m bodhan_lesson \
   --source-lang en
 ```
 
-Hindi chapter → Konkani (male voice **Sandeep** via `voices.yml`):
+**Step 2 — Hindi chapter → Konkani** (male voice **Sandeep** via `voices.yml`)
 
 ```bash
 python -m bodhan_lesson \
@@ -91,7 +106,7 @@ python -m bodhan_lesson \
   --voices voices.yml
 ```
 
-Open a reader when the run finishes, for example `outputs/demo_final/hi/reader.html` (keep it next to `lesson.hi.mp3`).
+**Step 3 — Open a reader** when the run finishes, for example `outputs/demo_final/hi/reader.html` (keep it next to `lesson.hi.mp3`).
 
 More flags, voices, and `--from` resume: [Flags, voices, and resume](#flags-voices-and-resume).
 
