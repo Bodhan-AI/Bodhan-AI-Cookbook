@@ -825,15 +825,28 @@ class BodhanClient:
                 try:
                     return self._translate_chat_completions(text, target_language, effective_script, token_limit)
                 except BodhanAPIError as fallback_err:
-                    raise BodhanAPIError(
+                    err_msg = (
                         f"Translation failed on both routes. Primary POST /translate: {primary_err.message}. "
-                        f"Fallback POST /v1/chat/completions: {fallback_err.message}.",
+                        f"Fallback POST /v1/chat/completions: {fallback_err.message}."
+                    )
+                    resp_body = {
+                        "primary_error": primary_err.response_body,
+                        "fallback_error": fallback_err.response_body,
+                    }
+                    req_id = fallback_err.request_id or primary_err.request_id
+                    if fallback_err.status_code == 401 or isinstance(fallback_err, BodhanAuthenticationError):
+                        raise BodhanAuthenticationError(
+                            message=err_msg,
+                            status_code=401,
+                            error_code=fallback_err.error_code or "AUTHENTICATION_ERROR",
+                            request_id=req_id,
+                            response_body=resp_body,
+                        ) from None
+                    raise BodhanAPIError(
+                        err_msg,
                         status_code=fallback_err.status_code or primary_err.status_code,
-                        request_id=fallback_err.request_id or primary_err.request_id,
-                        response_body={
-                            "primary_error": primary_err.response_body,
-                            "fallback_error": fallback_err.response_body,
-                        },
+                        request_id=req_id,
+                        response_body=resp_body,
                     ) from None
             raise
 
@@ -1248,14 +1261,27 @@ class BodhanAsyncClient:
                 try:
                     return await self._translate_chat_completions(text, target_language, effective_script, token_limit)
                 except BodhanAPIError as fallback_err:
-                    raise BodhanAPIError(
+                    err_msg = (
                         f"Translation failed on both routes. Primary POST /translate: {primary_err.message}. "
-                        f"Fallback POST /v1/chat/completions: {fallback_err.message}.",
+                        f"Fallback POST /v1/chat/completions: {fallback_err.message}."
+                    )
+                    resp_body = {
+                        "primary_error": primary_err.response_body,
+                        "fallback_error": fallback_err.response_body,
+                    }
+                    req_id = fallback_err.request_id or primary_err.request_id
+                    if fallback_err.status_code == 401 or isinstance(fallback_err, BodhanAuthenticationError):
+                        raise BodhanAuthenticationError(
+                            message=err_msg,
+                            status_code=401,
+                            error_code=fallback_err.error_code or "AUTHENTICATION_ERROR",
+                            request_id=req_id,
+                            response_body=resp_body,
+                        ) from None
+                    raise BodhanAPIError(
+                        err_msg,
                         status_code=fallback_err.status_code or primary_err.status_code,
-                        request_id=fallback_err.request_id or primary_err.request_id,
-                        response_body={
-                            "primary_error": primary_err.response_body,
-                            "fallback_error": fallback_err.response_body,
-                        },
+                        request_id=req_id,
+                        response_body=resp_body,
                     ) from None
             raise

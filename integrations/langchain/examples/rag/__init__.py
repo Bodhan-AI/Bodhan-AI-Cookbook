@@ -4,6 +4,8 @@ from .citations import (
     CitationInfo,
     extract_and_validate_citations,
     format_context_with_citations,
+    normalize_citation_markers,
+    strip_citation_markers,
 )
 from .config import RAGConfig
 from .embeddings import (
@@ -46,6 +48,8 @@ __all__ = [
     "CitationInfo",
     "format_context_with_citations",
     "extract_and_validate_citations",
+    "normalize_citation_markers",
+    "strip_citation_markers",
     "get_chat_model",
     "build_grounded_messages",
     "generate_grounded_answer",

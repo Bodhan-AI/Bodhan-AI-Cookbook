@@ -92,6 +92,27 @@ def format_context_with_citations(
     return formatted_context, citation_map
 
 
+def normalize_citation_markers(text: str) -> str:
+    """Normalize citation markers from Unicode bracket formats to canonical ASCII brackets [S1].
+
+    Supports:
+    - Standard ASCII brackets: [S1], [s1]
+    - Unicode black lenticular brackets: 【S1】, 【s1】
+    - Fullwidth square brackets: ［S1］, ［s1］
+
+    Args:
+        text: Input text potentially containing ASCII or Unicode citation brackets.
+
+    Returns:
+        Text with citation bracket variants normalized to standard square brackets [].
+    """
+    if not text:
+        return ""
+    normalized = text.replace("【", "[").replace("】", "]")
+    normalized = normalized.replace("［", "[").replace("］", "]")
+    return normalized
+
+
 def extract_and_validate_citations(
     response_text: str,
     citation_map: dict[str, CitationInfo],
@@ -100,6 +121,7 @@ def extract_and_validate_citations(
 
     Prevents the LLM from hallucinating citations: only identifiers genuinely present
     in citation_map are resolved to their source files and page numbers.
+    Supports both standard ASCII [S1] and Unicode 【S1】 bracketed citations.
 
     Args:
         response_text: Raw generation output from the model.
@@ -113,8 +135,11 @@ def extract_and_validate_citations(
     if not response_text:
         return [], []
 
-    # Match markers like [S1], [S2], [s1], [S1, S2], etc.
-    found_tokens = re.findall(r"\[[Ss](\d+)\]", response_text)
+    # Normalize Unicode citation brackets (e.g. 【S1】 -> [S1]) before extraction
+    normalized_text = normalize_citation_markers(response_text)
+
+    # Match markers like [S1], [S2], [s1], etc.
+    found_tokens = re.findall(r"\[[Ss](\d+)\]", normalized_text)
     cited_ids = [f"S{token}" for token in found_tokens]
 
     valid_labels: list[str] = []
@@ -137,8 +162,8 @@ def extract_and_validate_citations(
 def strip_citation_markers(text: str) -> str:
     """Remove citation markers from generated answer text before translation.
 
-    Strips [S1], [S2], [s1], [Citation: ...], etc., normalizing residual whitespace
-    so that translation APIs receive clean prose without syntax artifacts.
+    Strips [S1], [S2], [s1], [Citation: ...], Unicode 【S1】, 【s1】, etc., normalizing
+    residual whitespace so that translation APIs receive clean prose without syntax artifacts.
 
     Args:
         text: Raw answer string containing inline citation markers.
@@ -149,12 +174,17 @@ def strip_citation_markers(text: str) -> str:
     if not text:
         return ""
 
+    # Normalize citation markers to canonical ASCII brackets first
+    cleaned = normalize_citation_markers(text)
+
     # Remove [S1], [s1], [S12], etc.
-    cleaned = re.sub(r"\s*\[[Ss]\d+\]", "", text)
+    cleaned = re.sub(r"\s*\[[Ss]\d+\]", "", cleaned)
     # Remove explicit citation tags like [Citation: filename — Page N]
     cleaned = re.sub(r"\s*\[Citation:[^\]]+\]", "", cleaned)
     # Remove any stray double brackets or empty brackets
     cleaned = re.sub(r"\s*\[\s*\]", "", cleaned)
+    # Also strip any leftover Unicode citation tags or empty lenticular brackets if any
+    cleaned = re.sub(r"\s*【[^】]*】", "", cleaned)
     # Normalize multiple spaces and space before punctuation
     cleaned = re.sub(r" +", " ", cleaned)
     cleaned = re.sub(r"\s+([.,;:!?])", r"\1", cleaned)

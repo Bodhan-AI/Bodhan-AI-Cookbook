@@ -1897,6 +1897,71 @@ def test_citation_preservation_edge_cases() -> None:
     assert "S100" in invalid
 
 
+def test_citation_unicode_lenticular_markers_extraction() -> None:
+    """Verify Unicode lenticular 【S1】 markers are normalized, extracted, and validated."""
+    cit_map = {
+        "S1": CitationInfo(citation_id="S1", source_file="scholarship.pdf", page=0, page_number=1),
+        "S2": CitationInfo(citation_id="S2", source_file="guidelines.pdf", page=1, page_number=2),
+    }
+
+    # Pure Unicode markers
+    text_unicode = "Students receive ₹12,000 per annum【S1】 and must apply online【S2】."
+    valid, invalid = extract_and_validate_citations(text_unicode, cit_map)
+    assert valid == ["scholarship.pdf — Page 1", "guidelines.pdf — Page 2"]
+    assert invalid == []
+
+    # Mixed ASCII and Unicode markers
+    text_mixed = "Students receive ₹12,000 per annum [S1] and must apply online【S2】."
+    valid, invalid = extract_and_validate_citations(text_mixed, cit_map)
+    assert valid == ["scholarship.pdf — Page 1", "guidelines.pdf — Page 2"]
+    assert invalid == []
+
+    # Fullwidth square brackets ［S1］
+    text_fullwidth = "Assistance is provided［S1］."
+    valid, invalid = extract_and_validate_citations(text_fullwidth, cit_map)
+    assert valid == ["scholarship.pdf — Page 1"]
+    assert invalid == []
+
+
+def test_citation_unicode_duplicate_and_hallucinated() -> None:
+    """Verify duplicate and hallucinated Unicode citations are properly handled."""
+    cit_map = {
+        "S1": CitationInfo(citation_id="S1", source_file="docA.pdf", page=0, page_number=1),
+        "S2": CitationInfo(citation_id="S2", source_file="docA.pdf", page=0, page_number=1),  # Same source/page
+    }
+
+    # Duplicate citations across Unicode markers
+    text_dup = "Fact A【S1】 and Fact B【S2】 and repeated Fact A【S1】."
+    valid, invalid = extract_and_validate_citations(text_dup, cit_map)
+    assert valid == ["docA.pdf — Page 1"]
+    assert invalid == []
+
+    # Duplicate citations across mixed ASCII and Unicode markers
+    text_mixed_dup = "Fact A [S1] and Fact B【S1】."
+    valid, invalid = extract_and_validate_citations(text_mixed_dup, cit_map)
+    assert valid == ["docA.pdf — Page 1"]
+    assert invalid == []
+
+    # Hallucinated Unicode markers
+    text_hallucinated = "Verified fact【S1】 but fabricated claim【S99】 and another【S100】."
+    valid, invalid = extract_and_validate_citations(text_hallucinated, cit_map)
+    assert valid == ["docA.pdf — Page 1"]
+    assert "S99" in invalid
+    assert "S100" in invalid
+
+
+def test_strip_citation_markers_unicode() -> None:
+    """Verify strip_citation_markers strips both Unicode lenticular and ASCII markers cleanly."""
+    raw_unicode = "Students receive financial assistance of ₹12,000 per annum【S1】."
+    assert strip_citation_markers(raw_unicode) == "Students receive financial assistance of ₹12,000 per annum."
+
+    raw_mixed = "Benefit A [S1] and Benefit B【S2】 with note【Citation: notice.pdf — Page 1】."
+    assert strip_citation_markers(raw_mixed) == "Benefit A and Benefit B with note."
+
+    raw_fullwidth = "Assistance applies［s1］."
+    assert strip_citation_markers(raw_fullwidth) == "Assistance applies."
+
+
 def test_format_context_with_citations_structure() -> None:
     docs = [
         Document(

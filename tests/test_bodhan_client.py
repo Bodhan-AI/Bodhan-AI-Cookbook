@@ -1198,3 +1198,91 @@ async def test_async_client_model_specific_and_missing_credentials(monkeypatch: 
     with pytest.raises(BodhanAuthenticationError) as exc_o:
         await trans_only_client.ocr(PNG_HEADER)
     assert "Bodhan OCR API key is required" in str(exc_o.value)
+
+
+def test_translation_auto_fallback_preserves_authentication_error() -> None:
+    """Verify that when POST /translate returns 404 and fallback /v1/chat/completions returns 401,
+    BodhanClient preserves BodhanAuthenticationError (HTTP 401) rather than generic BodhanAPIError.
+    """
+    calls: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(request.url.path)
+        if request.url.path == "/translate":
+            return httpx.Response(404, json={"detail": "Not Found"})
+        if request.url.path == "/v1/chat/completions":
+            return httpx.Response(401, json={"error": {"message": "Invalid proxy server token passed.", "code": "invalid_api_key"}})
+        return httpx.Response(500)
+
+    mock_client = httpx.Client(transport=httpx.MockTransport(handler), base_url="https://api.bodhan.ai")
+    with BodhanClient(translate_api_key="invalid-key", http_client=mock_client) as client:
+        with pytest.raises(BodhanAuthenticationError) as exc_info:
+            client.translate("Hello", target_language="hi", transport="auto")
+
+    assert calls == ["/translate", "/v1/chat/completions"]
+    assert exc_info.value.status_code == 401
+    assert "Translation failed on both routes" in exc_info.value.message
+
+
+def test_translation_auto_fallback_server_error_raises_api_error() -> None:
+    """Verify that when POST /translate returns 404 and fallback /v1/chat/completions returns 500,
+    BodhanClient raises BodhanAPIError with status 500.
+    """
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/translate":
+            return httpx.Response(404, json={"detail": "Not Found"})
+        if request.url.path == "/v1/chat/completions":
+            return httpx.Response(500, json={"error": {"message": "Internal Server Error"}})
+        return httpx.Response(500)
+
+    mock_client = httpx.Client(transport=httpx.MockTransport(handler), base_url="https://api.bodhan.ai")
+    with BodhanClient(translate_api_key="valid-key", http_client=mock_client) as client:
+        with pytest.raises(BodhanAPIError) as exc_info:
+            client.translate("Hello", target_language="hi", transport="auto")
+
+    assert not isinstance(exc_info.value, BodhanAuthenticationError)
+    assert exc_info.value.status_code == 500
+    assert "Translation failed on both routes" in exc_info.value.message
+
+
+@pytest.mark.asyncio
+async def test_async_translation_auto_fallback_preserves_authentication_error() -> None:
+    """Verify that BodhanAsyncClient preserves BodhanAuthenticationError when fallback returns 401."""
+    calls: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(request.url.path)
+        if request.url.path == "/translate":
+            return httpx.Response(404, json={"detail": "Not Found"})
+        if request.url.path == "/v1/chat/completions":
+            return httpx.Response(401, json={"error": {"message": "Invalid proxy server token passed.", "code": "invalid_api_key"}})
+        return httpx.Response(500)
+
+    mock_async_http = httpx.AsyncClient(transport=httpx.MockTransport(handler), base_url="https://api.bodhan.ai")
+    async with BodhanAsyncClient(translate_api_key="invalid-key", http_client=mock_async_http) as client:
+        with pytest.raises(BodhanAuthenticationError) as exc_info:
+            await client.translate("Hello", target_language="hi", transport="auto")
+
+    assert calls == ["/translate", "/v1/chat/completions"]
+    assert exc_info.value.status_code == 401
+    assert "Translation failed on both routes" in exc_info.value.message
+
+
+@pytest.mark.asyncio
+async def test_async_translation_auto_fallback_server_error_raises_api_error() -> None:
+    """Verify that BodhanAsyncClient raises BodhanAPIError when fallback returns 500."""
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/translate":
+            return httpx.Response(404, json={"detail": "Not Found"})
+        if request.url.path == "/v1/chat/completions":
+            return httpx.Response(500, json={"error": {"message": "Internal Server Error"}})
+        return httpx.Response(500)
+
+    mock_async_http = httpx.AsyncClient(transport=httpx.MockTransport(handler), base_url="https://api.bodhan.ai")
+    async with BodhanAsyncClient(translate_api_key="valid-key", http_client=mock_async_http) as client:
+        with pytest.raises(BodhanAPIError) as exc_info:
+            await client.translate("Hello", target_language="hi", transport="auto")
+
+    assert not isinstance(exc_info.value, BodhanAuthenticationError)
+    assert exc_info.value.status_code == 500
+    assert "Translation failed on both routes" in exc_info.value.message

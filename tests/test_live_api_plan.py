@@ -96,7 +96,7 @@ def test_live_english_to_hindi_translation(live_client: BodhanClient) -> None:
 @pytest.mark.skipif(not LIVE_FLAG, reason=LIVE_REASON)
 def test_live_error_handling_invalid_auth() -> None:
     """Live Case 5: Verify live API response when invalid credentials are provided."""
-    invalid_client = BodhanClient(api_key="sk-" + "invalidlivekeyforerrortesting12345")
+    invalid_client = BodhanClient(translate_api_key="sk-" + "invalidlivekeyforerrortesting12345")
     with pytest.raises(BodhanAuthenticationError) as exc_info:
         invalid_client.translate("Test", target_language="hi")
     assert exc_info.value.status_code == 401
