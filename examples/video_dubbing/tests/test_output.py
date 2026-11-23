@@ -43,6 +43,19 @@ def test_overlapping_provenance_estimates_resolve_without_overlapping_slots():
     assert r[0]['end_seconds']==r[1]['start_seconds']
 
 
+def test_next_window_can_estimate_an_earlier_start_at_a_shared_boundary():
+    units, windows = unit_data()
+    windows.append({'id': 'w2', 'tokens': ['next', 'thought'], 'start_seconds': 16, 'end_seconds': 21})
+    units[0]['source_spans'][0]['start'] = 3
+    next_unit = deepcopy(units[0])
+    next_unit.update(id='unit-0002', text='next thought',
+                     source_spans=[{'window_id': 'w2', 'start': 0, 'end': 2}])
+    windows[0]['end_seconds'] = 19
+    windows[0]['tokens'] = ['longword', 'longword', 'longword', 'end']
+    first, second = source_timeline([units[0], next_unit], windows, detector())['units']
+    assert 16 < first['start_seconds'] < first['end_seconds'] == second['start_seconds'] < second['end_seconds']
+
+
 def test_reversed_or_invalid_source_references_rejected():
     units,windows=unit_data();units[0]['source_spans'][0]['end']=100
     with pytest.raises(MediaError):source_timeline(units,windows,detector())

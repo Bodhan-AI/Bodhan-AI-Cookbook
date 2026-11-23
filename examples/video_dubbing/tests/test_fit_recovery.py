@@ -128,3 +128,22 @@ def test_invalid_planner_identity_fails_only_its_unit(tmp_path):
         lambda *_:(json.dumps({'items':[{'id':'u1','language':'en','english':'Two angles share a vertex.'}]}),None))
     assert result['accepted']=={}
     assert result['errors']=={'ta/u1':'condensation_missing_or_mislabeled_unit'}
+
+
+def test_concurrent_budget_reservations_cannot_overspend(tmp_path):
+    from concurrent.futures import ThreadPoolExecutor
+
+    budget = Budget(tmp_path / 'budget.json', Decimal('1'))
+
+    def reserve(index):
+        try:
+            return budget.reserve(f'clip-{index}', Decimal('.25'))
+        except MediaError as error:
+            assert error.code == 'fit_budget_exceeded'
+            return None
+
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        accepted = [index for index in pool.map(reserve, range(12)) if index is not None]
+
+    assert sorted(accepted) == [0, 1, 2, 3]
+    assert Decimal(json.loads(budget.path.read_text())['conservative_spent_inr']) == 1

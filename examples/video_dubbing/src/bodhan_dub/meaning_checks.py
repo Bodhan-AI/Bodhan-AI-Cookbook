@@ -152,6 +152,21 @@ def assess_pairs(items,client,budget,settings,out,completion=sdk_completion,refe
         try:back=charged_translate(client,rows,'en',budget,'back_translate_'+lang)
         except MediaError as exc:
             back=getattr(exc,'partial_result',{'units':{}})
+            # A malformed completed batch can hide good translations for an entire language.
+            # Retry only missing IDs with distinct single-row requests and the same budget.
+            completed_invalid = exc.code in {'invalid_translation_structure', 'translation_meaning_response_failed'} or (
+                exc.code == 'previous_translation_attempt' and getattr(exc, 'previous_state', None) in {'complete', 'invalid'})
+            if len(rows) > 1 and completed_invalid:
+                for row in rows:
+                    if row['id'] in back['units']:
+                        continue
+                    try:
+                        single = charged_translate(client, [row], 'en', budget, 'back_translate_' + lang)
+                    except MediaError as single_error:
+                        if single_error.code in {'invalid_translation_structure', 'translation_meaning_response_failed'}:
+                            continue
+                        raise
+                    back['units'].update(single['units'])
             for item in batch:
                 if item['id'] not in back['units']:
                     key=lang+'/'+item['id'];failed[key]={'id':key,'ok':False,'issues':['Back-translation unavailable: '+exc.code],

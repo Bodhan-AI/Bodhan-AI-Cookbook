@@ -285,6 +285,12 @@ def before_speech(units,translated,env_file,budget,out,reference_glossary=None,c
                         continue
                     target=response['units'][item['id']]['translation'];candidate={**item,'english':english,'translation':target}
                     proof=assess_pairs([candidate],back,budget,settings,out/'repairs'/item['language']/item['id']/'meaning',reference_glossary=reference_glossary,review_cache=proofs/'repairs' if cache_root is not None else None)[key]
+                    if attempt and not proof['ok'] and proof.get('verification_term_ids'):
+                        alternate = assess_pairs([candidate], back, budget, settings,
+                            out/'repairs'/item['language']/item['id']/'final_unmasked',
+                            reference_glossary=None, review_cache=proofs/'repairs' if cache_root is not None else None)[key]
+                        if alternate['ok']:
+                            proof = {**alternate, 'verification_route': 'unmasked_back_translation'}
                     row['meaning_repair_attempts'].append({'attempt':attempt+1,'accepted':proof['ok']})
                     if proof['ok']:
                         row.update(source_text=english,translation=target);break

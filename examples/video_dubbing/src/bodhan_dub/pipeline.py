@@ -173,17 +173,29 @@ def run_pipeline(args):
             save('translation')
             translated=recover_translation_units(grouped['units'],translated,translator,budget,run/'translations')
             translated=before_speech(grouped['units'],translated,args.env_file,budget,run/'translations',reference_glossary=glossary,cache_root=cache/'meaning')
+            eligible = {
+                lang: data for lang, data in translated['languages'].items()
+                if data['status'] == 'translated' and len(data['units']) == len(grouped['units'])
+            }
+            for lang in langs:
+                if lang not in eligible:
+                    report['languages'][lang] = {
+                        'status': 'failed',
+                        'reason': 'Translation or meaning verification incomplete; see translation stage journals.',
+                        'unresolved_units': [row['id'] for row in translated['languages'].get(lang, {}).get('units', [])
+                                             if row['status'] != 'translated'],
+                    }
             save('translation_meaning_verification')
-            jobs,parents=speech_jobs(translated,voices)
+            jobs,parents=speech_jobs({**translated, 'languages': eligible},voices)
             if not jobs:raise MediaError('no_usable_translation','No language produced usable translated text.')
-            speech=tts.SpeechClient(keys[2],cache/'speech',ffmpeg,tts.SpeechSettings(attempts=3,workers=1),budget=budget)
+            speech=tts.SpeechClient(keys[2],cache/'speech',ffmpeg,tts.SpeechSettings(attempts=3,workers=2),budget=budget)
             generated=tts.synthesize_run(jobs,run/'parts',speech)
             assembled=assemble(parents,generated,run/'synthesis');save('speech_generation')
             usable=[]
             for lang in langs:
                 data=assembled['languages'].get(lang,{})
                 if translated['languages'][lang]['status']=='translated' and data.get('status')=='synthesized' and len(data.get('units',[]))==len(grouped['units']):usable.append(lang)
-                else:report['languages'][lang]={'status':'failed','reason':'Translation/source or synthesis incomplete; see stage journals.'}
+                elif lang in eligible:report['languages'][lang]={'status':'failed','reason':'Synthesis incomplete; see stage journals.'}
             if not usable:raise MediaError('no_complete_language','No language has complete source coverage; no incomplete video was finalized.')
             assembled['languages']={l:assembled['languages'][l] for l in usable};atomic_json(run/'synthesis/synthesis_report.json',assembled)
             qa_report=deepcopy(generated);qa_report['languages']={l:d for l,d in generated['languages'].items() if l in usable}
@@ -195,9 +207,9 @@ def run_pipeline(args):
                         if Path(u['result']['audio_path']).resolve()!=target.resolve():shutil.copyfile(u['result']['audio_path'],target)
             qa_rows=qa.inspect_synthesis(run/'parts/synthesis_report.json');qa_rows=[r for r in qa_rows if r['language'] in usable]
             requests=qa.prepare(qa_rows,run/'verification_parts',ffmpeg);amount=Decimal(qa.estimate(qa_rows)['one_attempt_cost_inr'])+Decimal('.00001')
-            recognizer=asr.TranscriptionClient(keys[0],cache/'asr',asr.RetrySettings(attempts=1,concurrency=1),allowed_languages=set(usable))
+            recognizer=asr.TranscriptionClient(keys[0],cache/'asr',asr.RetrySettings(attempts=1,concurrency=2),allowed_languages=set(usable))
             checked=stage_call(budget,'speech_verification',amount,
-                lambda:qa.verify(qa_rows,requests,run/'verification_parts',recognizer,amount,workers=1),lambda r:r['estimated_new_cost_inr'])
+                lambda:qa.verify(qa_rows,requests,run/'verification_parts',recognizer,amount,workers=2),lambda r:r['estimated_new_cost_inr'])
             atomic_json(run/'verification/verification_report.json',parent_checks(checked,parents));save('content_verification')
             remaining=budget.limit-budget.spent
             if remaining<=0:raise MediaError('fit_budget_exceeded','No allowance remains for fitting recovery.')

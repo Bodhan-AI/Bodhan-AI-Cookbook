@@ -10,6 +10,7 @@ import json
 from pathlib import Path
 import re
 import shutil
+import threading
 import unicodedata
 
 import numpy as np
@@ -129,20 +130,28 @@ class Budget:
         self.path=Path(path);self.limit=Decimal(limit)
         if not self.limit.is_finite() or self.limit<=0:raise MediaError('invalid_fit_budget','Use a positive finite rupee budget.')
         self.events=json.loads(self.path.read_text())['events'] if self.path.exists() else []
+        self._lock = threading.Lock()
         self.save()
     @property
     def spent(self):return sum((Decimal(e['amount_inr']) for e in self.events),Decimal(0))
     def save(self):atomic_json(self.path,{'limit_inr':str(self.limit),'conservative_spent_inr':str(self.spent),'events':self.events})
     def reserve(self,label,amount):
         amount=Decimal(amount)
-        if not amount.is_finite() or amount<0 or self.spent+amount>self.limit:
-            raise MediaError('fit_budget_exceeded','Fit-recovery budget would be exceeded; no new request started.')
-        self.events.append({'stage':label,'state':'reserved_if_billed','amount_inr':str(amount)});self.save();return len(self.events)-1
+        with self._lock:
+            if not amount.is_finite() or amount < 0 or self.spent + amount > self.limit:
+                raise MediaError('fit_budget_exceeded','Fit-recovery budget would be exceeded; no new request started.')
+            index = len(self.events)
+            self.events.append({'stage': label, 'state': 'reserved_if_billed', 'amount_inr': str(amount)})
+            self.save()
+            return index
+
     def settle(self,index,actual):
-        actual=Decimal(actual)
-        if not actual.is_finite() or actual<0 or actual>Decimal(self.events[index]['amount_inr'])+Decimal('.00001'):
-            raise MediaError('invalid_fit_charge','Reported estimate exceeds its reserved allowance.')
-        self.events[index].update(state='estimated_charge',amount_inr=str(actual));self.save()
+        actual = Decimal(actual)
+        with self._lock:
+            if not actual.is_finite() or actual < 0 or actual > Decimal(self.events[index]['amount_inr']) + Decimal('.00001'):
+                raise MediaError('invalid_fit_charge','Reported estimate exceeds its reserved allowance.')
+            self.events[index].update(state='estimated_charge', amount_inr=str(actual))
+            self.save()
 
 
 def english_proposals(items,settings,folder,round_number,completion=sdk_completion):
@@ -175,7 +184,7 @@ def english_proposals(items,settings,folder,round_number,completion=sdk_completi
             if any(' '+' '.join(WORD.findall(term.casefold()))+' ' not in word_sequence for term in expected[key].get('protected_english_terms',[])):
                 raise MediaError('condensation_changed_glossary_term','A configured English glossary term was removed.')
             accepted['/'.join(key)]=value
-        except MediaError as exc:errors['/'.join(key)]=exc.code
+        except MediaError as exc:errors['/'.join(key)]=exc.code + ': ' + str(exc)
     for key in expected.keys()-seen:
         errors['/'.join(key)]='condensation_missing_or_mislabeled_unit'
     # A separate English-only judgment checks relations, not merely token presence.

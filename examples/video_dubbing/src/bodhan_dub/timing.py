@@ -58,10 +58,20 @@ def source_timeline(units,windows,detector,long_pause=1.):
                     a['end_seconds']=x;b['start_seconds']=y
                     a['end_boundary_note']='Snapped to observed long VAD gap between distinct source-window spans.'
                     b['start_boundary_note']='Snapped to observed long VAD gap between distinct source-window spans.'
-            if b['start_seconds']<a['start_seconds'] or b['end_seconds']<=a['end_seconds']:raise ValueError
-            if a['end_seconds']>b['start_seconds']:
-                boundary=(a['end_seconds']+b['start_seconds'])/2
-                a['end_seconds']=boundary;b['start_seconds']=boundary
+            if b['end_seconds'] <= a['end_seconds']:
+                raise ValueError
+            if b['start_seconds'] < a['start_seconds']:
+                # Independent interpolation can put the next window's first
+                # words slightly before the preceding window's last words.
+                if not left['start_seconds'] < right['start_seconds'] < left['end_seconds']:
+                    raise ValueError
+            if a['end_seconds'] > b['start_seconds']:
+                # Choose from the shared interval so both units keep positive
+                # duration and the boundary stays within their source evidence.
+                shared_start = max(a['start_seconds'], b['start_seconds'])
+                boundary = (shared_start + a['end_seconds']) / 2
+                a['end_seconds'] = boundary
+                b['start_seconds'] = boundary
         for r in rows:
             r['speech_slots']=[{'start_seconds':a,'end_seconds':b} for a,b in subtract_gaps(r['start_seconds'],r['end_seconds'],gaps)]
             r['available_seconds']=sum(s['end_seconds']-s['start_seconds'] for s in r['speech_slots'])

@@ -145,3 +145,23 @@ def test_english_reviewer_receives_full_term_identity_without_native_text(tmp_pa
         return '{"checks":[{"id":"hi/u1","ok":true,"issues":[]}]}',None
     result=checks.assess_pairs([item],None,None,LLMSettings('https://example.test/v1','model','fake'),tmp_path,completion=complete,reference_glossary=glossary)
     assert result['hi/u1']['ok'] and item['translation']==native
+
+
+def test_malformed_batch_recovers_missing_back_translations(tmp_path, monkeypatch):
+    from bodhan_dub import meaning_checks as checks
+    calls = []
+    def translate(client, rows, *args):
+        calls.append([row['id'] for row in rows])
+        if len(rows) > 1:
+            error = MediaError('invalid_translation_structure', 'Malformed response')
+            error.partial_result = {'units': {'a': {'translation': 'First instruction.'}}}
+            raise error
+        return {'units': {'b': {'translation': 'Second instruction.'}}}
+    monkeypatch.setattr(checks, 'charged_translate', translate)
+    monkeypatch.setattr(checks, 'judge', lambda rows, *_: {
+        row['id']: {'id': row['id'], 'ok': True, 'issues': []} for row in rows})
+    items = [{'id': key, 'language': 'hi', 'translation': 'पाठ', 'original_english': source}
+             for key, source in [('a', 'First instruction.'), ('b', 'Second instruction.')]]
+    results = checks.assess_pairs(items, None, None, None, tmp_path)
+    assert calls == [['a', 'b'], ['b']]
+    assert all(result['ok'] for result in results.values())

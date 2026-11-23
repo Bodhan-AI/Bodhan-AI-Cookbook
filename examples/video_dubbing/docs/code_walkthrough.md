@@ -1498,3 +1498,29 @@ Regression coverage includes number-range preservation and a continuation that r
 A last-stage fallback may extend an earlier slot into the start of a long internal pause, after ordinary complete-phrase partitions have failed. It takes at most 2.25 seconds and leaves at least half the protected gap and at least 2.5 seconds silent. Later slot start times and the 1.2× speed limit stay fixed. On the demo, the final Tamil passage retained about 2.69 seconds of protected silence. The continuation reused its prior fitted candidate only after matching the accepted English plan, recorded synthesis hash and measured duration.
 
 The verified result contains 36 fitted groups, zero skips, three fully decodable MP4s and three validated SRT files. All 507 tests passed locally and in Docker. The result used hosted stages and automatic continuations, so a fresh hosted runtime and exact acoustic sync remain unverified.
+
+### Estimated boundaries between overlapping transcription windows
+
+The timeline estimates word positions independently within each transcription
+window. Near a shared boundary, the next unit can appear to start before the
+previous unit even when the source windows are in chronological order. The
+timeline now places the transition inside the intersection of the two estimated
+ranges. Both units keep positive duration, and protected pauses are still
+excluded from their usable slots. Reversed window order and invalid references
+still fail validation.
+
+In `timing.py`, `max()` selects the later of the two estimated starts. Averaging
+that value with the earlier end gives a shared boundary that closes one unit
+and opens the next. These positions remain estimates.
+
+When a completed back-translation batch has malformed output, the meaning
+check keeps the returned units and requests each missing unit individually.
+Each request goes through the existing budget check. An unknown batch outcome
+still blocks recovery. During fitting, the next English shortening attempt
+receives the actual validation message, including the missing instruction.
+
+The command records language failures as soon as translation verification ends.
+Only languages with complete verified text enter speech generation. Speech
+generation and verification each use two workers with the existing request
+pacing. The budget lock makes each reservation and journal update atomic
+across speech workers.
