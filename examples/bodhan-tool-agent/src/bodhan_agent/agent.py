@@ -29,12 +29,18 @@ from bodhan_mcp.config import Settings, load_settings
 from bodhan_mcp.ffmpeg_utils import get_audio_duration
 from bodhan_mcp.lang_utils import (
     EXPECTED_SCRIPT_FOR_LANG,
+    SCRIPT_CANDIDATE_LANGUAGES,
     SCRIPT_NAMES,
     SUPPORTED_INDIC_LANGUAGES,
+    UNCERTAINTY_NOTE,
     detect_script_language,
     extract_language_from_text,
     extract_task_languages,
+    format_language_answer,
+    get_candidate_languages_for_script,
+    is_language_identification_task,
     is_language_supported,
+    is_question_task,
 )
 from bodhan_mcp.pricing import (
     BudgetExceededError,
@@ -227,6 +233,13 @@ class TaskAgent:
         self.known_limitations: list[str] = []
         self.page_count: int | None = None
         self.pages_processed: int | None = None
+        self.files_report: list[dict[str, Any]] = []
+        self.file_transcription_meta: dict[str, dict[str, Any]] = {}
+        self.file_transcript_artifacts: dict[str, str] = {}
+        self.file_durations: dict[str, float] = {}
+        self.file_windows: dict[str, int] = {}
+        self.file_scripts: dict[str, str] = {}
+        self.language_answers: dict[str, str] = {}
 
     def run(self) -> AgentReport:
         """Executes the full agent loop and writes all required outputs."""
@@ -248,6 +261,13 @@ class TaskAgent:
         self.verification_results.clear()
         self.source_texts.clear()
         self.audio_durations.clear()
+        self.files_report.clear()
+        self.file_transcription_meta.clear()
+        self.file_transcript_artifacts.clear()
+        self.file_durations.clear()
+        self.file_windows.clear()
+        self.file_scripts.clear()
+        self.language_answers.clear()
         self.last_produced_text = None
         self.last_artifact_path = None
         self.last_artifact_stem = None
@@ -314,6 +334,7 @@ class TaskAgent:
                     known_limitations=self.known_limitations,
                     page_count=self.page_count,
                     pages_processed=self.pages_processed,
+                    files=[{"name": rf.name} for rf in self.raw_files],
                 )
                 self.tracer.write_report(report)
                 self.tracer.write_result_markdown(
@@ -340,6 +361,7 @@ class TaskAgent:
                     known_limitations=self.known_limitations,
                     page_count=self.page_count,
                     pages_processed=self.pages_processed,
+                    files=[{"name": rf.name} for rf in self.raw_files],
                 )
                 self.tracer.write_report(report)
                 self.tracer.write_result_markdown(
@@ -363,6 +385,7 @@ class TaskAgent:
                 dur = insp.get("duration_s", 0.0)
                 self.audio_durations[str(f_path.resolve())] = dur
                 self.audio_durations[f_path.name] = dur
+                self.file_durations[f_path.name] = dur
                 if is_vid:
                     self.assumptions.append(
                         f"Video input '{f_path.name}' ({dur:.1f}s) prepared for audio extraction and transcription."
@@ -408,6 +431,7 @@ class TaskAgent:
                 known_limitations=self.known_limitations,
                 page_count=self.page_count,
                 pages_processed=self.pages_processed,
+                files=[{"name": rf.name} for rf in self.raw_files],
             )
             self.tracer.write_report(report)
             self.tracer.write_result_markdown(
@@ -459,6 +483,7 @@ class TaskAgent:
                 page_count=self.page_count,
                 pages_processed=self.pages_processed,
                 language_ambiguity=self.language_ambiguity,
+                files=[{"name": rf.name} for rf in self.raw_files],
             )
             self.tracer.write_report(report)
             self.tracer.write_result_markdown(
@@ -500,6 +525,7 @@ class TaskAgent:
                 page_count=self.page_count,
                 pages_processed=self.pages_processed,
                 language_ambiguity=self.language_ambiguity,
+                files=[{"name": rf.name} for rf in self.raw_files],
             )
             self.tracer.write_report(report)
             self.tracer.write_result_markdown(
@@ -937,6 +963,85 @@ class TaskAgent:
                     if md not in self.failures:
                         self.failures.insert(0, md)
 
+        # Build per-file results
+        self.files_report = []
+        self.language_answers = {}
+        unanswered_question_files = []
+
+        is_lang_id = is_language_identification_task(self.task)
+        is_q = is_question_task(self.task)
+
+        for rf in self.raw_files:
+            fname = rf.name
+            meta = self.file_transcription_meta.get(fname, {})
+
+            dur = meta.get("duration_s")
+            if dur is None:
+                dur = self.file_durations.get(fname)
+            if dur is None:
+                dur = self.audio_durations.get(fname)
+
+            wins = meta.get("windows") or self.file_windows.get(fname)
+            art_path = self.file_transcript_artifacts.get(fname) or meta.get("artifact_rel_path")
+            detected_scr = meta.get("script") or self.file_scripts.get(fname)
+
+            # Check if an artifact exists matching rf.stem
+            if not art_path:
+                for a in self.artifacts:
+                    if Path(a).name == f"transcript_{rf.stem}.txt":
+                        art_path = f"artifacts/{Path(a).name}"
+                        break
+
+            if not detected_scr and art_path:
+                art_full = self.tracer.artifacts_dir / Path(art_path).name
+                if art_full.exists():
+                    txt = art_full.read_text(encoding="utf-8").strip()
+                    if txt:
+                        sc_code = detect_script_language(txt)
+                        detected_scr = SCRIPT_NAMES.get(sc_code, sc_code or "Unknown")
+
+            cand_langs = get_candidate_languages_for_script(detected_scr) if detected_scr else []
+
+            f_entry: dict[str, Any] = {
+                "name": fname,
+                "duration_s": dur,
+                "windows": wins,
+                "transcript_artifact": art_path,
+                "detected_script": detected_scr,
+                "candidate_languages": cand_langs,
+            }
+
+            if is_lang_id:
+                if detected_scr:
+                    ans_str = format_language_answer(detected_scr)
+                    f_entry["language_answer"] = ans_str
+                    f_entry["uncertainty_note"] = UNCERTAINTY_NOTE
+                    self.language_answers[fname] = ans_str
+                else:
+                    unanswered_question_files.append(fname)
+                    f_entry["language_answer"] = None
+                    f_entry["uncertainty_note"] = "The API returns no language; could not detect script because transcription failed or produced no transcript."
+            elif is_q:
+                if not art_path and not detected_scr:
+                    unanswered_question_files.append(fname)
+
+            self.files_report.append(f_entry)
+
+        # Status rule: a task that asks a question is a success only if the answer section addresses every file.
+        # If a file could not be answered, the status is partial.
+        question_missing_files = False
+        if is_q:
+            if is_lang_id and len(self.language_answers) < len(self.raw_files):
+                question_missing_files = True
+            elif unanswered_question_files:
+                question_missing_files = True
+
+        if question_missing_files:
+            miss_names = unanswered_question_files or [rf.name for rf in self.raw_files if rf.name not in self.language_answers]
+            q_fail_msg = f"Task asked a question ('{self.task}'), but could not answer for file(s): {', '.join(miss_names)}."
+            if q_fail_msg not in self.failures:
+                self.failures.append(q_fail_msg)
+
         # Separate and prioritize statuses accurately
         if agent_status in ("timeout", "impossible_task", "budget_exceeded"):
             pass
@@ -950,14 +1055,26 @@ class TaskAgent:
             agent_status = "failed"
             if not has_artifacts:
                 self.failures.append("Task ended without producing any verified artifact.")
-        elif any_failed_step or has_failed_verification or final_artifact_missing:
-            # Some artifacts were produced, but a required step failed or verification failed
+        elif any_failed_step or has_failed_verification or final_artifact_missing or question_missing_files:
+            # Some artifacts were produced, but a required step failed, verification failed, or a question could not be answered for all files
             agent_status = "partial"
         else:
             agent_status = "success"
 
         # Build final summary in plain code strictly from what actually occurred
         final_answer = self._build_plain_code_summary(agent_status)
+
+        # Top-level windows count and script resolution
+        total_wins = sum(f.get("windows") or 0 for f in self.files_report if f.get("windows"))
+        top_windows = total_wins if total_wins > 0 else self.windows_count
+
+        scripts_found = list(dict.fromkeys(f.get("detected_script") for f in self.files_report if f.get("detected_script")))
+        if len(scripts_found) == 1:
+            top_script = scripts_found[0]
+        elif len(scripts_found) > 1:
+            top_script = f"Mixed ({', '.join(scripts_found)})"
+        else:
+            top_script = self.detected_script
 
         # Final Report Generation
         total_time = time.perf_counter() - start_time
@@ -980,11 +1097,13 @@ class TaskAgent:
             audio_language=self.audio_language,
             target_language=self.target_language,
             language_requested=self.language_requested,
-            detected_script=self.detected_script,
-            windows_count=self.windows_count,
+            detected_script=top_script,
+            windows_count=top_windows,
             page_count=self.page_count,
             pages_processed=self.pages_processed,
             language_ambiguity=self.language_ambiguity,
+            files=self.files_report,
+            language_answers=self.language_answers,
         )
 
         self.tracer.write_report(report)
@@ -1692,9 +1811,15 @@ class TaskAgent:
                     res["artifact_path"] = saved_path
 
                     # Record metadata from tool
-                    self.windows_count = res.get("windows_count", len(res.get("windows", [])))
-                    if res.get("detected_script"):
-                        self.detected_script = res.get("detected_script")
+                    wins_cnt = res.get("windows_count", len(res.get("windows", [])))
+                    if wins_cnt == 0:
+                        wins_cnt = 1
+                    self.windows_count = wins_cnt
+
+                    scr_code = res.get("detected_script") or detect_script_language(res.get("transcript", ""))
+                    scr_name = SCRIPT_NAMES.get(scr_code, scr_code or "Unknown")
+                    self.detected_script = scr_name
+
                     if res.get("language_requested"):
                         self.language_requested = res.get("language_requested")
 
@@ -1702,6 +1827,35 @@ class TaskAgent:
                     dur_val = res.get("duration_s", 0.0) or res.get("total_duration_s", 0.0)
                     self.audio_durations[saved_path] = dur_val
                     self.audio_durations[art_file.name] = dur_val
+
+                    # Record per-file transcription metadata
+                    input_fp = args.get("file_path", "")
+                    in_name = Path(input_fp).name if input_fp else stem
+                    matched_file = None
+                    for rf in self.raw_files:
+                        if rf.name == in_name or rf.stem == stem:
+                            matched_file = rf.name
+                            break
+                    if not matched_file:
+                        matched_file = in_name
+
+                    meta_dict = {
+                        "windows": wins_cnt,
+                        "script": scr_name,
+                        "duration_s": dur_val,
+                        "input_file": matched_file,
+                        "artifact_name": art_file.name,
+                        "artifact_rel_path": f"artifacts/{art_file.name}",
+                        "windows_data": res.get("windows", []),
+                    }
+                    self.file_transcription_meta[art_file.name] = meta_dict
+                    self.file_transcription_meta[matched_file] = meta_dict
+                    self.file_transcription_meta[stem] = meta_dict
+
+                    self.file_transcript_artifacts[matched_file] = f"artifacts/{art_file.name}"
+                    self.file_durations[matched_file] = dur_val
+                    self.file_windows[matched_file] = wins_cnt
+                    self.file_scripts[matched_file] = scr_name
 
                     self.last_produced_text = res["transcript"]
                     self.last_artifact_path = saved_path
@@ -2285,8 +2439,10 @@ class TaskAgent:
             return
 
         # 2. Duration and CPS plausibility check
+        meta = self.file_transcription_meta.get(art_name, {})
         duration_s = (
-            self.audio_durations.get(str(art_path.resolve()))
+            meta.get("duration_s")
+            or self.audio_durations.get(str(art_path.resolve()))
             or self.audio_durations.get(art_path.name)
             or getattr(self, "last_transcription_result", {}).get("duration_s", 0.0)
             or getattr(self, "last_transcription_result", {}).get("total_duration_s", 0.0)
@@ -2334,7 +2490,8 @@ class TaskAgent:
         # 4. Detected script and language consistency
         detected_lang = detect_script_language(content)
         detected_script_name = SCRIPT_NAMES.get(detected_lang or "", "Unknown")
-        self.detected_script = detected_script_name
+        final_script = meta.get("script") or detected_script_name
+        self.detected_script = final_script
 
         if self.audio_language:
             expected_script = EXPECTED_SCRIPT_FOR_LANG.get(self.audio_language, self.audio_language)
@@ -2354,8 +2511,10 @@ class TaskAgent:
                 return
 
         # 5. Check flagged / suspicious windows
-        last_res = getattr(self, "last_transcription_result", {})
-        flagged_wins = [w for w in last_res.get("windows", []) if w.get("suspicious")]
+        flagged_wins = [w for w in meta.get("windows_data", []) if w.get("suspicious")]
+        if not flagged_wins and "windows_data" not in meta:
+            last_res = getattr(self, "last_transcription_result", {})
+            flagged_wins = [w for w in last_res.get("windows", []) if w.get("suspicious")]
         if flagged_wins:
             win_idxs = [w.get("window_index") for w in flagged_wins]
             self.verification_results.append(
@@ -2369,13 +2528,14 @@ class TaskAgent:
             return
 
         cps_str = f", {cps:.1f} chars/s" if duration_s > 0 else ""
-        wins_str = f", {self.windows_count} window(s)" if self.windows_count else ""
+        wins_cnt = meta.get("windows") or self.windows_count or 1
+        wins_str = f", {wins_cnt} window(s)"
         self.verification_results.append(
             VerificationResult(
                 artifact=art_name,
                 verification_type="transcript_quality",
                 passed=True,
-                notes=f"Verified transcript: {len(content)} chars{cps_str}{wins_str}, script: {detected_script_name}.",
+                notes=f"Verified transcript: {len(content)} chars{cps_str}{wins_str}, script: {final_script}.",
             )
         )
 
@@ -2404,15 +2564,27 @@ class TaskAgent:
             if self.language_ambiguity:
                 reasons = f"Language assignment in task was ambiguous ({self.language_ambiguity}). " + reasons
             return f"Task execution failed: {reasons}"
-        if status == "partial":
-            reasons = "; ".join(self.failures) if self.failures else "One or more steps failed."
-            if self.language_ambiguity:
-                reasons = f"Language assignment in task was ambiguous ({self.language_ambiguity}). " + reasons
-            return f"The task completed partially with {len(self.artifacts)} artifact(s), but encountered failures: {reasons}"
-
-        # Status is success
+        # Build detailed file summary & language answers
         parts = []
-        if any("transcript_" in a for a in self.artifacts):
+        if self.files_report and any(f.get("transcript_artifact") for f in self.files_report):
+            transcribed_files = [f for f in self.files_report if f.get("transcript_artifact")]
+            file_descs = []
+            for f_info in transcribed_files:
+                fn = f_info["name"]
+                dur = f_info.get("duration_s")
+                wins = f_info.get("windows") or 1
+                sc = f_info.get("detected_script") or "Indic"
+                art = f_info.get("transcript_artifact")
+                d_str = f" ({dur:.1f}s)" if dur is not None and dur > 0 else ""
+                w_str = f" across {wins} window(s)" if wins else ""
+                art_str = f" (artifact: {art})" if art else ""
+                file_descs.append(f"{fn}{d_str}{w_str} using Indic-Transcribe into {sc} script{art_str}")
+
+            if len(file_descs) == 1:
+                parts.append(f"Transcribed audio: {file_descs[0]}")
+            else:
+                parts.append(f"Transcribed {len(file_descs)} audio file(s): " + "; ".join(file_descs))
+        elif any("transcript_" in a for a in self.artifacts):
             dur = getattr(self, "last_transcription_result", {}).get("duration_s", "")
             script = self.detected_script or "Indic"
             wins = self.windows_count or 1
@@ -2421,6 +2593,17 @@ class TaskAgent:
             parts.append(
                 f"Transcribed audio{dur_str} across {wins} window(s) using Indic-Transcribe into {script} script{lang_str}"
             )
+
+        if is_language_identification_task(self.task) or self.language_answers:
+            ans_lines = []
+            for f_info in self.files_report:
+                fn = f_info["name"]
+                if f_info.get("language_answer"):
+                    ans_lines.append(f"{fn}: {f_info['language_answer']}")
+                else:
+                    ans_lines.append(f"{fn}: Could not determine language (transcription failed or no speech detected)")
+            parts.append("Language answers: " + " | ".join(ans_lines))
+
         if any("subtitles_" in a for a in self.artifacts):
             parts.append("generated approximate window-based SRT subtitles")
         if any("translated_" in a for a in self.artifacts):
@@ -2431,6 +2614,15 @@ class TaskAgent:
             parts.append("extracted document text using Indic-OCR")
 
         amb_note = f" Note on languages: {self.language_ambiguity}." if self.language_ambiguity else ""
+
+        if status == "partial":
+            reasons = "; ".join(self.failures) if self.failures else "One or more steps failed."
+            if self.language_ambiguity:
+                reasons = f"Language assignment in task was ambiguous ({self.language_ambiguity}). " + reasons
+            actions_summary = "; ".join(parts) if parts else f"{len(self.artifacts)} artifact(s) produced"
+            ans = f"The task completed partially ({actions_summary}), but encountered failures: {reasons}.{amb_note}"
+            return normalize_punctuation_spacing(ans)
+
         if parts:
             ans = "Completed task: " + "; ".join(parts) + "." + amb_note
         else:

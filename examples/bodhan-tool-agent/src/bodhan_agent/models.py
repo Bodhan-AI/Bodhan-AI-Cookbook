@@ -82,6 +82,8 @@ class AgentReport:
     known_limitations: list[str] = field(default_factory=list)
     page_count: int | None = None
     pages_processed: int | None = None
+    files: list[dict[str, Any]] = field(default_factory=list)
+    language_answers: dict[str, str] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         d = {
@@ -95,6 +97,7 @@ class AgentReport:
             "assumptions": self.assumptions,
             "verification_results": [v.to_dict() for v in self.verification_results],
             "artifacts": self.artifacts,
+            "files": self.files,
             "failures": self.failures,
             "warnings": self.warnings,
             "audio_language": self.audio_language,
@@ -106,6 +109,8 @@ class AgentReport:
             "pages_processed": self.pages_processed,
             "known_limitations": self.known_limitations,
         }
+        if self.language_answers:
+            d["language_answers"] = self.language_answers
         if self.language_ambiguity:
             d["language_ambiguity"] = self.language_ambiguity
         return d

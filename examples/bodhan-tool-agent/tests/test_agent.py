@@ -2175,6 +2175,240 @@ class TestAgent(unittest.TestCase):
         self.assertNotIn(" .", result_md)
         self.assertNotIn(" ?", result_md)
 
+    def test_multi_audio_per_file_windows_and_summary(self):
+        """Tests that two audio files with different durations/windows record per-file windows
+        in verification results, report.files[], and result.md summary without overwriting.
+        """
+        f1 = self.samples_dir / "test_audio.wav"
+        f2 = self.samples_dir / "test_long.wav"
+        f1.write_bytes(b"RIFFmockwav1")
+        f2.write_bytes(b"RIFFmockwav2")
+
+        def mock_inspect(path):
+            p = Path(path)
+            if p.name == "test_audio.wav":
+                return {"success": True, "media_type": "audio", "duration_s": 13.5}
+            return {"success": True, "media_type": "audio", "duration_s": 39.1}
+        self.mock_tools.inspect_media.side_effect = mock_inspect
+
+        def mock_transcribe(file_path="", **kwargs):
+            p = Path(file_path)
+            if "test_audio" in p.name:
+                return {
+                    "success": True,
+                    "transcript": "یہ آڈیو کی پہلی فائل ہے اور بہت مختصر ہے",
+                    "duration_s": 13.5,
+                    "windows_count": 1,
+                    "windows": [{"window_index": 0, "start_s": 0.0, "end_s": 13.5, "text": "یہ آڈیو کی پہلی فائل ہے"}],
+                    "cost_inr": 0.02,
+                    "detected_script": "ur",
+                }
+            else:
+                return {
+                    "success": True,
+                    "transcript": "یہ لمبی آڈیو فائل ہے جس میں تین ونڈوز شامل ہیں اور یہ کافی تفصیل فراہم کرتی ہے",
+                    "duration_s": 39.1,
+                    "windows_count": 3,
+                    "windows": [
+                        {"window_index": 0, "start_s": 0.0, "end_s": 15.0, "text": "ونڈو ایک"},
+                        {"window_index": 1, "start_s": 15.0, "end_s": 30.0, "text": "ونڈو دو"},
+                        {"window_index": 2, "start_s": 30.0, "end_s": 39.1, "text": "ونڈو تین"},
+                    ],
+                    "cost_inr": 0.06,
+                    "detected_script": "ur",
+                }
+        self.mock_tools.transcribe_audio.side_effect = mock_transcribe
+
+        plan = {
+            "steps": [
+                {"tool": "transcribe_audio", "args": {"file_path": "test_audio.wav"}},
+                {"tool": "transcribe_audio", "args": {"file_path": "test_long.wav"}},
+            ]
+        }
+
+        agent = TaskAgent(
+            task="Transcribe both audio files and tell me which language each one is in",
+            files=[f1, f2],
+            out_dir=self.out_dir,
+            settings=self.mock_settings,
+            llm_client=MockLLM(plan_dict=plan),
+            tools=self.mock_tools,
+        )
+        report = agent.run()
+
+        self.assertEqual(report.status, "success")
+
+        # 1. Verification results test_audio has 1 window, test_long has 3 windows (NEVER overwritten)
+        ver_f1 = next(v for v in report.verification_results if "transcript_test_audio.txt" in v.artifact)
+        ver_f2 = next(v for v in report.verification_results if "transcript_test_long.txt" in v.artifact)
+        self.assertIn("1 window(s)", ver_f1.notes)
+        self.assertNotIn("3 window(s)", ver_f1.notes)
+        self.assertIn("3 window(s)", ver_f2.notes)
+
+        # 2. report.files[] structure
+        self.assertEqual(len(report.files), 2)
+        entry1 = next(f for f in report.files if f["name"] == "test_audio.wav")
+        entry2 = next(f for f in report.files if f["name"] == "test_long.wav")
+
+        self.assertEqual(entry1["windows"], 1)
+        self.assertEqual(entry1["duration_s"], 13.5)
+        self.assertIn("transcript_test_audio.txt", entry1["transcript_artifact"])
+        self.assertEqual(entry1["detected_script"], "Arabic")
+        self.assertIn("Urdu", entry1["candidate_languages"])
+
+        self.assertEqual(entry2["windows"], 3)
+        self.assertEqual(entry2["duration_s"], 39.1)
+        self.assertIn("transcript_test_long.txt", entry2["transcript_artifact"])
+        self.assertEqual(entry2["detected_script"], "Arabic")
+        self.assertIn("Urdu", entry2["candidate_languages"])
+
+        # 3. Check serialized report.json on disk
+        rep_json = json.loads((self.out_dir / "report.json").read_text(encoding="utf-8"))
+        self.assertIn("files", rep_json)
+        self.assertEqual(len(rep_json["files"]), 2)
+
+        # 4. result.md summary describes every file
+        result_md = (self.out_dir / "result.md").read_text(encoding="utf-8")
+        self.assertIn("test_audio.wav", result_md)
+        self.assertIn("13.5s", result_md)
+        self.assertIn("1 window(s)", result_md)
+        self.assertIn("test_long.wav", result_md)
+        self.assertIn("39.1s", result_md)
+        self.assertIn("3 window(s)", result_md)
+
+    def test_language_answer_for_two_files_with_different_scripts(self):
+        """Tests that two audio files with different scripts (Arabic and Devanagari) produce
+        script-specific candidate languages, uncertainty notes, and avoid claiming single language as fact.
+        """
+        f1 = self.samples_dir / "audio_arabic.wav"
+        f2 = self.samples_dir / "audio_devanagari.wav"
+        f1.write_bytes(b"RIFFmockwav1")
+        f2.write_bytes(b"RIFFmockwav2")
+
+        def mock_transcribe(file_path="", **kwargs):
+            p = Path(file_path)
+            if "arabic" in p.name:
+                return {
+                    "success": True,
+                    "transcript": "یہ اردو کا ایک نمونہ ہے",
+                    "duration_s": 5.0,
+                    "windows_count": 1,
+                    "windows": [{"window_index": 0, "start_s": 0.0, "end_s": 5.0, "text": "یہ اردو کا ایک نمونہ ہے"}],
+                    "cost_inr": 0.01,
+                    "detected_script": "ur",
+                }
+            else:
+                return {
+                    "success": True,
+                    "transcript": "यह देवनागरी लिपि का एक उदाहरण है और मौसम अच्छा है",
+                    "duration_s": 6.0,
+                    "windows_count": 1,
+                    "windows": [{"window_index": 0, "start_s": 0.0, "end_s": 6.0, "text": "यह देवनागरी लिपि का एक उदाहरण है"}],
+                    "cost_inr": 0.01,
+                    "detected_script": "hi",
+                }
+        self.mock_tools.transcribe_audio.side_effect = mock_transcribe
+
+        plan = {
+            "steps": [
+                {"tool": "transcribe_audio", "args": {"file_path": "audio_arabic.wav"}},
+                {"tool": "transcribe_audio", "args": {"file_path": "audio_devanagari.wav"}},
+            ]
+        }
+
+        agent = TaskAgent(
+            task="Transcribe both audio files and tell me which language each one is in",
+            files=[f1, f2],
+            out_dir=self.out_dir,
+            settings=self.mock_settings,
+            llm_client=MockLLM(plan_dict=plan),
+            tools=self.mock_tools,
+        )
+        report = agent.run()
+
+        self.assertEqual(report.status, "success")
+
+        # Arabic file entry
+        entry_ar = next(f for f in report.files if f["name"] == "audio_arabic.wav")
+        self.assertEqual(entry_ar["detected_script"], "Arabic")
+        self.assertIn("Urdu", entry_ar["candidate_languages"])
+        self.assertIn("Urdu among the supported languages", entry_ar["language_answer"])
+        self.assertIn("The API returns no language", entry_ar["uncertainty_note"])
+
+        # Devanagari file entry
+        entry_dv = next(f for f in report.files if f["name"] == "audio_devanagari.wav")
+        self.assertEqual(entry_dv["detected_script"], "Devanagari")
+        self.assertIn("Hindi", entry_dv["candidate_languages"])
+        self.assertIn("Marathi", entry_dv["candidate_languages"])
+        self.assertIn("Hindi, Marathi", entry_dv["language_answer"])
+        self.assertIn("The API returns no language", entry_dv["uncertainty_note"])
+
+        # result.md checks
+        result_md = (self.out_dir / "result.md").read_text(encoding="utf-8")
+        self.assertIn("audio_arabic.wav", result_md)
+        self.assertIn("Arabic script", result_md)
+        self.assertIn("Urdu among the supported languages", result_md)
+        self.assertIn("audio_devanagari.wav", result_md)
+        self.assertIn("Devanagari script", result_md)
+        self.assertIn("Hindi, Marathi", result_md)
+        self.assertIn("The API returns no language, the script depends on the model, and Hindi and Urdu speech can produce either script", result_md)
+
+    def test_question_task_with_unanswered_file_yields_partial_status(self):
+        """Tests Item 4: A task that asks a question is a success only if the answer section
+        addresses every file. If a file could not be answered, status is partial.
+        """
+        f1 = self.samples_dir / "file_ok.wav"
+        f2 = self.samples_dir / "file_broken.wav"
+        f1.write_bytes(b"RIFFmockwav1")
+        f2.write_bytes(b"RIFFmockwav2")
+
+        def mock_transcribe(file_path="", **kwargs):
+            p = Path(file_path)
+            if "file_ok" in p.name:
+                return {
+                    "success": True,
+                    "transcript": "यह पहली फाइल है",
+                    "duration_s": 4.0,
+                    "windows_count": 1,
+                    "windows": [{"window_index": 0, "start_s": 0.0, "end_s": 4.0, "text": "यह पहली फाइल है"}],
+                    "cost_inr": 0.01,
+                    "detected_script": "hi",
+                }
+            else:
+                return {
+                    "success": False,
+                    "error": "Audio corruption or decode error",
+                }
+        self.mock_tools.transcribe_audio.side_effect = mock_transcribe
+
+        plan = {
+            "steps": [
+                {"tool": "transcribe_audio", "args": {"file_path": "file_ok.wav"}},
+                {"tool": "transcribe_audio", "args": {"file_path": "file_broken.wav"}},
+            ]
+        }
+
+        agent = TaskAgent(
+            task="Transcribe both audio files and tell me which language each one is in",
+            files=[f1, f2],
+            out_dir=self.out_dir,
+            settings=self.mock_settings,
+            llm_client=MockLLM(plan_dict=plan),
+            tools=self.mock_tools,
+        )
+        report = agent.run()
+
+        # Status must be partial, NEVER success
+        self.assertEqual(report.status, "partial")
+
+        # Failures records that the question could not be answered for file_broken.wav
+        self.assertTrue(any("file_broken.wav" in f for f in report.failures))
+
+        # result.md reflects partial status
+        result_md = (self.out_dir / "result.md").read_text(encoding="utf-8")
+        self.assertIn("PARTIAL", result_md)
+        self.assertIn("file_broken.wav", result_md)
+
 
 if __name__ == "__main__":
     unittest.main()

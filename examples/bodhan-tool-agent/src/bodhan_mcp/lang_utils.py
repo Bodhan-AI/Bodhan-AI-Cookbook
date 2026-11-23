@@ -75,6 +75,96 @@ EXPECTED_SCRIPT_FOR_LANG: dict[str, str] = {
     "en": "en",
 }
 
+# Candidate languages for each detected script family among Bodhan's 22 supported languages
+SCRIPT_CANDIDATE_LANGUAGES: dict[str, list[str]] = {
+    "Arabic": ["Urdu", "Kashmiri", "Sindhi"],
+    "Devanagari": ["Hindi", "Marathi", "Sanskrit", "Konkani", "Maithili", "Bodo", "Dogri", "Nepali"],
+    "Bengali": ["Bengali", "Assamese", "Manipuri"],
+    "Gurmukhi": ["Punjabi"],
+    "Gujarati": ["Gujarati"],
+    "Odia": ["Odia"],
+    "Tamil": ["Tamil"],
+    "Telugu": ["Telugu"],
+    "Kannada": ["Kannada"],
+    "Malayalam": ["Malayalam"],
+    "Latin": ["English"],
+}
+
+UNCERTAINTY_NOTE = (
+    "The API returns no language, the script depends on the model, and Hindi and Urdu speech can produce either script."
+)
+
+
+def get_candidate_languages_for_script(script_name: str | None) -> list[str]:
+    """Returns candidate supported languages for a given script family name."""
+    if not script_name:
+        return []
+    name = SCRIPT_NAMES.get(script_name, script_name)
+    return SCRIPT_CANDIDATE_LANGUAGES.get(name, [])
+
+
+def format_language_answer(script_name: str | None) -> str:
+    """Formats an honest language identification answer with candidates and uncertainty note."""
+    if not script_name:
+        return "Could not determine language or script."
+    name = SCRIPT_NAMES.get(script_name, script_name)
+    if name == "Arabic":
+        return (
+            f"Arabic script (candidate languages: Urdu among the supported languages; "
+            f"uncertainty note: {UNCERTAINTY_NOTE})"
+        )
+    elif name == "Devanagari":
+        return (
+            f"Devanagari script (candidate languages: Hindi, Marathi and the other languages that use it; "
+            f"uncertainty note: {UNCERTAINTY_NOTE})"
+        )
+    else:
+        cands = ", ".join(get_candidate_languages_for_script(name))
+        return (
+            f"{name} script (candidate languages: {cands}; "
+            f"uncertainty note: {UNCERTAINTY_NOTE})"
+        )
+
+
+def is_language_identification_task(task: str) -> bool:
+    """Returns True if the task asks to identify or determine spoken/written language."""
+    if not task:
+        return False
+    t = task.lower()
+    patterns = [
+        r"\bwhich\s+language\b",
+        r"\bwhat\s+language\b",
+        r"\bidentify\s+(?:the\s+)?language\b",
+        r"\bidentifying\s+(?:the\s+)?language\b",
+        r"\bdetect\s+(?:the\s+)?language\b",
+        r"\bdetecting\s+(?:the\s+)?language\b",
+        r"\btell\s+me\s+(?:which|what|the)?\s*language\b",
+        r"\blanguage\s+(?:of\s+each|each\s+one\s+is\s+in)\b",
+    ]
+    return any(re.search(p, t) for p in patterns)
+
+
+def is_question_task(task: str) -> bool:
+    """Returns True if the task asks a question about input files."""
+    if not task:
+        return False
+    if is_language_identification_task(task):
+        return True
+    t = task.lower().strip()
+    if "?" in t:
+        return True
+    question_triggers = [
+        r"\bwhich\b",
+        r"\bwhat\b",
+        r"\btell\s+me\b",
+        r"\bidentify\b",
+        r"\bfind\s+out\b",
+        r"\bhow\s+many\b",
+        r"\bis\s+it\b",
+        r"\bdoes\s+it\b",
+    ]
+    return any(re.search(trig, t) for trig in question_triggers)
+
 
 def find_language_mentions(text: str) -> list[tuple[int, int, str, str, str]]:
     """Finds all explicit language mentions in text.
