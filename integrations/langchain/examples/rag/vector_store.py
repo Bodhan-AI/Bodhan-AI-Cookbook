@@ -35,6 +35,16 @@ class StaleChunkCleanupError(RuntimeError):
         self.stale_ids = sorted(list(stale_ids)) if stale_ids else []
 
 
+def _get_item_metadata(item: Any) -> dict[str, Any]:
+    """Safely extract metadata dict from an InMemoryVectorStore item or Document."""
+    if isinstance(item, dict):
+        meta = item.get("metadata")
+        return meta if isinstance(meta, dict) else {}
+    if hasattr(item, "metadata") and isinstance(item.metadata, dict):
+        return item.metadata
+    return {}
+
+
 def _extract_page_number(meta: dict[str, Any] | None) -> int:
     """Safely extract an integer page number from metadata, defaulting to 1."""
     if not meta:
@@ -59,8 +69,8 @@ def get_source_identity(
       1. Explicit 'source_id' in metadata if present and non-empty.
       2. Explicit 'document_id' in metadata if present and non-empty.
       3. Normalized full source path or URI from metadata['source']:
-         Combines basename and an 8-character SHA-256 hash of the normalized path:
-         f"{base_name}_{path_hash[:8]}". This guarantees distinct identities for files with
+         Combines basename and a 64-character full SHA-256 hash of the normalized path:
+         f"{base_name}_{path_hash}". This guarantees distinct identities for files with
          identical basenames in different directories (e.g. '/notices/2025/doc.pdf' vs
          '/notices/2026/doc.pdf') while keeping chunk IDs readable and citation provenance intact.
       4. If none of the above exists, raises ValueError. Content-only hashing is strictly
@@ -85,7 +95,7 @@ def get_source_identity(
             raw_str = str(raw_source).strip()
             norm_path = os.path.normpath(raw_str).replace("\\", "/")
             base_name = Path(norm_path).name or "doc"
-            path_hash = hashlib.sha256(norm_path.encode("utf-8")).hexdigest()[:8]
+            path_hash = hashlib.sha256(norm_path.encode("utf-8")).hexdigest()
             return f"{base_name}_{path_hash}"
 
     raise ValueError(
@@ -476,19 +486,24 @@ def index_documents(
         # 2. Upsert new documents FIRST into Chroma
         vector_store.add_documents(chunks, ids=chunk_ids)
         backend_name = "Chroma"
+    else:
+        # Upsert new documents FIRST into InMemoryVectorStore
+        vector_store.add_documents(chunks, ids=chunk_ids)
+        backend_name = "InMemoryVectorStore"
 
-        # 3. Query existing records, identify stale IDs according to update_mode, and delete
-        source_page_map: dict[str, set[int]] = {}
-        source_new_ids: dict[str, set[str]] = {}
-        for chunk, cid in zip(chunks, chunk_ids, strict=True):
-            sid = str(chunk.metadata.get("source_id", ""))
-            if not sid:
-                continue
-            pg = _extract_page_number(chunk.metadata)
-            source_page_map.setdefault(sid, set()).add(pg)
-            source_new_ids.setdefault(sid, set()).add(cid)
+    # 3. Query existing records, identify stale IDs according to update_mode, and delete
+    source_page_map: dict[str, set[int]] = {}
+    source_new_ids: dict[str, set[str]] = {}
+    for chunk, cid in zip(chunks, chunk_ids, strict=True):
+        sid = str(chunk.metadata.get("source_id", ""))
+        if not sid:
+            continue
+        pg = _extract_page_number(chunk.metadata)
+        source_page_map.setdefault(sid, set()).add(pg)
+        source_new_ids.setdefault(sid, set()).add(cid)
 
-        all_stale_ids: list[str] = []
+    all_stale_ids: list[str] = []
+    if is_chroma:
         for sid, updated_pages in source_page_map.items():
             new_ids = source_new_ids[sid]
             try:
@@ -526,9 +541,42 @@ def index_documents(
                     f"Failed to delete {len(all_stale_ids)} stale chunk(s) after successful document upsert: {exc}",
                     stale_ids=all_stale_ids,
                 ) from exc
-    else:
-        vector_store.add_documents(chunks, ids=chunk_ids)
-        backend_name = "InMemoryVectorStore"
+    elif hasattr(vector_store, "store") and isinstance(vector_store.store, dict):
+        for sid, updated_pages in source_page_map.items():
+            new_ids = source_new_ids[sid]
+            try:
+                for eid, item in list(vector_store.store.items()):
+                    meta = _get_item_metadata(item)
+                    if meta.get("source_id") != sid:
+                        continue
+                    if eid in new_ids:
+                        continue
+                    if mode == "full_document":
+                        # In full_document mode, any old chunk for this source is stale
+                        all_stale_ids.append(eid)
+                    else:
+                        # In partial_pages mode, only stale chunks on updated pages are purged
+                        epg = _extract_page_number(meta)
+                        if epg in updated_pages:
+                            all_stale_ids.append(eid)
+            except Exception as exc:
+                raise StaleChunkCleanupError(
+                    f"Failed to inspect existing records for source_id {sid!r} in InMemoryVectorStore: {exc}",
+                    stale_ids=[],
+                ) from exc
+
+        if all_stale_ids:
+            try:
+                if hasattr(vector_store, "delete"):
+                    vector_store.delete(ids=all_stale_ids)
+                else:
+                    for sid_to_del in all_stale_ids:
+                        vector_store.store.pop(sid_to_del, None)
+            except Exception as exc:
+                raise StaleChunkCleanupError(
+                    f"Failed to delete {len(all_stale_ids)} stale chunk(s) after successful document upsert in InMemoryVectorStore: {exc}",
+                    stale_ids=all_stale_ids,
+                ) from exc
 
     print(
         f"  -> Successfully indexed {len(chunks)} passage chunk(s) across "
@@ -544,6 +592,18 @@ def delete_source_documents(
 ) -> int:
     """Safely delete all indexed chunks belonging to a specific source document.
 
+    Scoping Rules:
+      - When explicit 'source_id' is supplied:
+        Matches strictly on 'source_id'. Never falls back to deleting records matching display 'source'.
+        Returns 0 when the supplied identity does not exist. Applies the exact same scoping to Chroma
+        and InMemory backends.
+      - When only 'source' is supplied:
+        Derives canonical identity via get_source_identity(metadata={"source": source}).
+        Matches records where metadata['source_id'] == target_sid.
+        Falls back to legacy metadata matching only if no records match target_sid, and strictly restricts
+        deletion to legacy records that completely lack 'source_id' and match metadata['source'] == source.
+        Never deletes unrelated records that share a display filename.
+
     Args:
         vector_store: Target LangChain VectorStore (Chroma or InMemoryVectorStore).
         source_id: Explicit source identifier.
@@ -555,12 +615,18 @@ def delete_source_documents(
     Raises:
         ValueError: If neither source_id nor source is provided.
     """
-    if source_id is not None and str(source_id).strip():
-        target_sid = str(source_id).strip()
-    elif source is not None and str(source).strip():
-        target_sid = get_source_identity(metadata={"source": source})
-    else:
+    explicit_sid = str(source_id).strip() if source_id is not None and str(source_id).strip() else None
+    raw_source = str(source).strip() if source is not None and str(source).strip() else None
+
+    if explicit_sid is None and raw_source is None:
         raise ValueError("Either 'source_id' or 'source' must be provided to delete document chunks.")
+
+    if explicit_sid is not None:
+        target_sid = explicit_sid
+        allow_legacy_fallback = False
+    else:
+        target_sid = get_source_identity(metadata={"source": raw_source})
+        allow_legacy_fallback = True
 
     is_chroma = hasattr(vector_store, "_collection")
     if is_chroma:
@@ -569,13 +635,19 @@ def delete_source_documents(
             include=["metadatas"],
         )
         ids_to_delete = existing.get("ids") or []
-        # Fallback check by raw source if legacy metadata lacks source_id
-        if not ids_to_delete and source:
+
+        # Fallback check strictly for legacy records lacking source_id
+        if not ids_to_delete and allow_legacy_fallback and raw_source:
             legacy = vector_store._collection.get(
-                where={"source": str(source).strip()},
+                where={"source": raw_source},
                 include=["metadatas"],
             )
-            ids_to_delete = legacy.get("ids") or []
+            leg_ids = legacy.get("ids") or []
+            leg_metas = legacy.get("metadatas") or []
+            ids_to_delete = [
+                eid for eid, emeta in zip(leg_ids, leg_metas, strict=False)
+                if not (emeta and isinstance(emeta, dict) and emeta.get("source_id"))
+            ]
 
         if ids_to_delete:
             vector_store._collection.delete(ids=ids_to_delete)
@@ -583,12 +655,25 @@ def delete_source_documents(
 
     # InMemoryVectorStore support
     if hasattr(vector_store, "store") and isinstance(vector_store.store, dict):
-        matched_ids = [
-            cid for cid, doc in vector_store.store.items()
-            if doc.metadata.get("source_id") == target_sid or (source and doc.metadata.get("source") == source)
-        ]
-        for cid in matched_ids:
-            del vector_store.store[cid]
+        matched_ids: list[str] = []
+        for cid, item in vector_store.store.items():
+            meta = _get_item_metadata(item)
+            if meta.get("source_id") == target_sid:
+                matched_ids.append(cid)
+
+        # Fallback check strictly for legacy records lacking source_id
+        if not matched_ids and allow_legacy_fallback and raw_source:
+            for cid, item in vector_store.store.items():
+                meta = _get_item_metadata(item)
+                if not meta.get("source_id") and meta.get("source") == raw_source:
+                    matched_ids.append(cid)
+
+        if matched_ids:
+            if hasattr(vector_store, "delete"):
+                vector_store.delete(ids=matched_ids)
+            else:
+                for cid in matched_ids:
+                    vector_store.store.pop(cid, None)
         return len(matched_ids)
 
     return 0

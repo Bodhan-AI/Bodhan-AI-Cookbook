@@ -5,6 +5,8 @@ All tests run 100% offline without live network requests, credentials, or paid A
 
 from __future__ import annotations
 
+import hashlib
+import os
 import re
 import sys
 from pathlib import Path
@@ -1193,6 +1195,18 @@ def test_source_identity_deterministic_across_processes() -> None:
     assert len(set(results)) == 1
 
 
+def test_source_identity_full_sha256_hash() -> None:
+    """Verify get_source_identity derives a 64-character SHA-256 hash suffix for normalized paths."""
+    raw_path = "notices/2025/scholarship.pdf"
+    ident = get_source_identity(metadata={"source": raw_path})
+    assert ident.startswith("scholarship.pdf_")
+    suffix = ident[len("scholarship.pdf_"):]
+    assert len(suffix) == 64
+    norm_path = os.path.normpath(raw_path).replace("\\", "/")
+    expected_hash = hashlib.sha256(norm_path.encode("utf-8")).hexdigest()
+    assert suffix == expected_hash
+
+
 def test_chroma_citation_provenance_remains_distinct(tmp_path: Path, fake_embeddings: DeterministicFakeEmbeddings) -> None:
     """Verify retrieved documents preserve exact source paths for citations."""
     db_dir = tmp_path / "chroma_citations"
@@ -1401,6 +1415,248 @@ def test_chroma_delete_source_documents_missing_args_raises(tmp_path: Path, fake
     vs = get_vector_store(provider="chroma", embeddings=fake_embeddings, persist_directory=str(tmp_path / "del_err"))
     with pytest.raises(ValueError, match="Either 'source_id' or 'source' must be provided"):
         delete_source_documents(vs)
+
+
+def test_chroma_delete_source_documents_strict_scoping(
+    tmp_path: Path,
+    fake_embeddings: DeterministicFakeEmbeddings,
+) -> None:
+    """Verify deleting by explicit source_id in Chroma strictly deletes that source_id only, even with identical raw source."""
+    db_dir = tmp_path / "chroma_strict_del"
+    vs = get_vector_store(provider="chroma", embeddings=fake_embeddings, persist_directory=str(db_dir))
+    doc1 = Document(page_content="Notice Version 1", metadata={"source": "shared.pdf", "source_id": "sid_1", "page_number": 1})
+    doc2 = Document(page_content="Notice Version 2", metadata={"source": "shared.pdf", "source_id": "sid_2", "page_number": 1})
+    index_documents(vs, [doc1, doc2])
+    assert vs._collection.count() == 2
+
+    # Delete sid_1 explicitly
+    deleted = delete_source_documents(vs, source_id="sid_1", source="shared.pdf")
+    assert deleted == 1
+    assert vs._collection.count() == 1
+
+    remaining = vs._collection.get(include=["metadatas"])
+    assert remaining["ids"]
+    assert remaining["metadatas"][0]["source_id"] == "sid_2"
+    assert remaining["metadatas"][0]["source"] == "shared.pdf"
+
+
+def test_chroma_delete_source_documents_nonexistent_id(
+    tmp_path: Path,
+    fake_embeddings: DeterministicFakeEmbeddings,
+) -> None:
+    """Verify deleting a nonexistent source_id in Chroma returns 0 and does not delete records matching display source."""
+    db_dir = tmp_path / "chroma_nonexist_del"
+    vs = get_vector_store(provider="chroma", embeddings=fake_embeddings, persist_directory=str(db_dir))
+    doc = Document(page_content="Notice Content", metadata={"source": "important.pdf", "source_id": "real_sid", "page_number": 1})
+    index_documents(vs, [doc])
+    assert vs._collection.count() == 1
+
+    # Nonexistent source_id with matching source
+    deleted = delete_source_documents(vs, source_id="nonexistent_sid", source="important.pdf")
+    assert deleted == 0
+    assert vs._collection.count() == 1
+
+
+def test_inmemory_delete_source_documents_strict_scoping(
+    fake_embeddings: DeterministicFakeEmbeddings,
+) -> None:
+    """Verify deleting by explicit source_id in InMemory strictly deletes that source_id only, even with identical raw source."""
+    vs = get_vector_store(provider="inmemory", embeddings=fake_embeddings)
+    doc1 = Document(page_content="Notice Version 1", metadata={"source": "shared.pdf", "source_id": "sid_1", "page_number": 1})
+    doc2 = Document(page_content="Notice Version 2", metadata={"source": "shared.pdf", "source_id": "sid_2", "page_number": 1})
+    index_documents(vs, [doc1, doc2])
+    assert len(vs.store) == 2
+
+    # Delete sid_1 explicitly
+    deleted = delete_source_documents(vs, source_id="sid_1", source="shared.pdf")
+    assert deleted == 1
+    assert len(vs.store) == 1
+
+    remaining_id = list(vs.store.keys())[0]
+    meta = vs.store[remaining_id]["metadata"] if isinstance(vs.store[remaining_id], dict) else vs.store[remaining_id].metadata
+    assert meta["source_id"] == "sid_2"
+    assert meta["source"] == "shared.pdf"
+
+
+def test_inmemory_delete_source_documents_nonexistent_id(
+    fake_embeddings: DeterministicFakeEmbeddings,
+) -> None:
+    """Verify deleting a nonexistent source_id in InMemory returns 0 and does not delete records matching display source."""
+    vs = get_vector_store(provider="inmemory", embeddings=fake_embeddings)
+    doc = Document(page_content="Notice Content", metadata={"source": "important.pdf", "source_id": "real_sid", "page_number": 1})
+    index_documents(vs, [doc])
+    assert len(vs.store) == 1
+
+    deleted = delete_source_documents(vs, source_id="nonexistent_sid", source="important.pdf")
+    assert deleted == 0
+    assert len(vs.store) == 1
+
+
+def test_inmemory_delete_source_documents(
+    fake_embeddings: DeterministicFakeEmbeddings,
+) -> None:
+    """Verify delete_source_documents deletes all chunks for target document in InMemory while preserving others."""
+    vs = get_vector_store(provider="inmemory", embeddings=fake_embeddings)
+    docs_a = [
+        Document(page_content="Doc A page 1", metadata={"source": "docA.pdf", "page_number": 1}),
+        Document(page_content="Doc A page 2", metadata={"source": "docA.pdf", "page_number": 2}),
+    ]
+    docs_b = [
+        Document(page_content="Doc B page 1", metadata={"source": "docB.pdf", "page_number": 1}),
+    ]
+    index_documents(vs, docs_a + docs_b)
+    assert len(vs.store) == 3
+
+    # Delete docA by source
+    deleted = delete_source_documents(vs, source="docA.pdf")
+    assert deleted == 2
+    assert len(vs.store) == 1
+
+    res = vs.similarity_search("Doc B", k=2)
+    assert len(res) == 1
+    assert res[0].metadata["source"] == "docB.pdf"
+
+
+def test_inmemory_delete_source_documents_missing_args_raises(fake_embeddings: DeterministicFakeEmbeddings) -> None:
+    """Verify delete_source_documents raises ValueError if neither source nor source_id is provided for InMemory."""
+    vs = get_vector_store(provider="inmemory", embeddings=fake_embeddings)
+    with pytest.raises(ValueError, match="Either 'source_id' or 'source' must be provided"):
+        delete_source_documents(vs)
+
+
+def test_inmemory_full_document_replacement_10_to_8_pages(
+    fake_embeddings: DeterministicFakeEmbeddings,
+) -> None:
+    """Verify revising a 10-page document to 8 pages in InMemory purges stale chunks from pages 9 and 10."""
+    vs = get_vector_store(provider="inmemory", embeddings=fake_embeddings)
+    v1_docs = [
+        Document(page_content=f"Original notice clause page {i}", metadata={"source": "circular.pdf", "page_number": i})
+        for i in range(1, 11)
+    ]
+    index_documents(vs, v1_docs, update_mode="full_document")
+    assert len(vs.store) == 10
+
+    # Revision with only 8 pages and modified page 1
+    v2_docs = [
+        Document(
+            page_content="Updated notice clause page 1" if i == 1 else f"Original notice clause page {i}",
+            metadata={"source": "circular.pdf", "page_number": i},
+        )
+        for i in range(1, 9)
+    ]
+    index_documents(vs, v2_docs, update_mode="full_document")
+    assert len(vs.store) == 8
+
+    # Ensure pages 9 and 10 are completely gone
+    for item in vs.store.values():
+        meta = item["metadata"] if isinstance(item, dict) else item.metadata
+        assert meta["page_number"] <= 8
+
+
+def test_inmemory_partial_page_update_preserves_other_pages(
+    fake_embeddings: DeterministicFakeEmbeddings,
+) -> None:
+    """Verify partial_pages update in InMemory updates only target page and preserves unaffected pages."""
+    vs = get_vector_store(provider="inmemory", embeddings=fake_embeddings)
+    docs = [
+        Document(page_content="Regulations general overview", metadata={"source": "handbook.pdf", "page_number": 1}),
+        Document(page_content="Old fee schedule for 2024", metadata={"source": "handbook.pdf", "page_number": 2}),
+        Document(page_content="Disciplinary code appendix", metadata={"source": "handbook.pdf", "page_number": 3}),
+    ]
+    index_documents(vs, docs)
+    assert len(vs.store) == 3
+
+    # Update only page 2
+    updated_p2 = [
+        Document(page_content="New fee schedule for 2025", metadata={"source": "handbook.pdf", "page_number": 2})
+    ]
+    index_documents(vs, updated_p2, update_mode="partial_pages")
+    assert len(vs.store) == 3
+
+    p2_res = vs.similarity_search("New fee schedule", k=5)
+    assert any("New fee schedule for 2025" in r.page_content for r in p2_res)
+    assert not any("Old fee schedule for 2024" in r.page_content for r in p2_res)
+
+    p1_res = vs.similarity_search("Regulations general overview", k=5)
+    assert any("Regulations general overview" in r.page_content for r in p1_res)
+
+    p3_res = vs.similarity_search("Disciplinary code appendix", k=5)
+    assert any("Disciplinary code appendix" in r.page_content for r in p3_res)
+
+
+def test_inmemory_failed_upsert_preserves_old_data(
+    monkeypatch: pytest.MonkeyPatch,
+    fake_embeddings: DeterministicFakeEmbeddings,
+) -> None:
+    """Verify that if document upsert or embedding fails in InMemory, existing indexed data remains intact."""
+    vs = get_vector_store(provider="inmemory", embeddings=fake_embeddings)
+    initial_docs = [
+        Document(page_content=f"Initial chapter section {i}", metadata={"source": "manual.pdf", "page_number": i})
+        for i in range(1, 4)
+    ]
+    index_documents(vs, initial_docs)
+    assert len(vs.store) == 3
+
+    # Force add_documents to fail
+    def mock_add_documents(*args: Any, **kwargs: Any) -> list[str]:
+        raise RuntimeError("Simulated embedding/indexing explosion")
+
+    monkeypatch.setattr(vs, "add_documents", mock_add_documents)
+
+    replacement_docs = [
+        Document(page_content="Corrupted update", metadata={"source": "manual.pdf", "page_number": 1})
+    ]
+    with pytest.raises(RuntimeError, match="Simulated embedding/indexing explosion"):
+        index_documents(vs, replacement_docs, update_mode="full_document")
+
+    monkeypatch.undo()
+    assert len(vs.store) == 3
+    res = vs.similarity_search("Initial chapter", k=5)
+    assert len(res) == 3
+
+
+def test_inmemory_same_content_different_sources(
+    fake_embeddings: DeterministicFakeEmbeddings,
+) -> None:
+    """Verify two documents with identical content from different sources coexist in InMemory without collision."""
+    vs = get_vector_store(provider="inmemory", embeddings=fake_embeddings)
+    doc_a = Document(page_content="Common legal clause", metadata={"source": "/deptA/policy.pdf", "page_number": 1})
+    doc_b = Document(page_content="Common legal clause", metadata={"source": "/deptB/policy.pdf", "page_number": 1})
+    index_documents(vs, [doc_a, doc_b])
+    assert len(vs.store) == 2
+
+    # Verify both sources retrievable
+    res = vs.similarity_search("Common legal clause", k=5)
+    sources = {r.metadata.get("source") for r in res}
+    assert sources == {"/deptA/policy.pdf", "/deptB/policy.pdf"}
+
+
+def test_inmemory_stale_cleanup_failure_surfaces_diagnostic(
+    monkeypatch: pytest.MonkeyPatch,
+    fake_embeddings: DeterministicFakeEmbeddings,
+) -> None:
+    """Verify that if stale chunk deletion fails in InMemory, StaleChunkCleanupError surfaces uncleaned IDs."""
+    vs = get_vector_store(provider="inmemory", embeddings=fake_embeddings)
+    docs = [
+        Document(page_content="Section 1 original", metadata={"source": "policy.pdf", "page_number": 1}),
+        Document(page_content="Section 2 original", metadata={"source": "policy.pdf", "page_number": 2}),
+    ]
+    index_documents(vs, docs)
+    assert len(vs.store) == 2
+
+    # Mock delete method on vs to fail
+    def mock_delete(*args: Any, **kwargs: Any) -> None:
+        raise RuntimeError("InMemory deletion failure")
+
+    monkeypatch.setattr(vs, "delete", mock_delete)
+
+    update_docs = [
+        Document(page_content="Section 1 updated text", metadata={"source": "policy.pdf", "page_number": 1})
+    ]
+    with pytest.raises(StaleChunkCleanupError) as exc_info:
+        index_documents(vs, update_docs, update_mode="full_document")
+
+    assert len(exc_info.value.stale_ids) >= 1
 
 
 def test_chroma_invalid_update_mode_raises(tmp_path: Path, fake_embeddings: DeterministicFakeEmbeddings) -> None:
