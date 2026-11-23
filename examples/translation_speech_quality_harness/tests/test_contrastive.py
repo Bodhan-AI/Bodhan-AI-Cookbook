@@ -44,16 +44,14 @@ def test_contrastive_pairs_have_higher_clean_than_injected_score():
             Item(
                 "format-clean",
                 "hi",
-                "A title and list.",
+                "# A title\n- a list",
                 "# शीर्षक\n- सूची",
-                reference="# A title\n- a list",
             ),
             Item(
                 "format-bad",
                 "hi",
-                "A title and list.",
+                "# A title\n- a list",
                 "शीर्षक\n- सूची",
-                reference="# A title\n- a list",
             ),
         ),
         (

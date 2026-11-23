@@ -5,7 +5,9 @@ from .budget import Budget
 from .checks import LangStats, registered_checks, run_text_checks
 from .checks.reference import score_reference
 from .combine import combine_flags
+from .config import CHECK_THRESHOLDS
 from .dataset import DatasetResult
+from .lang_stats import compute_lang_stats
 
 
 def _translation_hash(translation: str | None) -> str | None:
@@ -16,19 +18,7 @@ def _translation_hash(translation: str | None) -> str | None:
 
 def run_pipeline(result: DatasetResult, budget: Budget) -> list[dict[str, Any]]:
     records: list[dict[str, Any]] = []
-    length_ratios = [
-        len(item.translation) / max(1, len(item.source))
-        for item in result.items
-        if item.translation
-    ]
-    if length_ratios:
-        length_ratios.sort()
-        median = length_ratios[len(length_ratios) // 2]
-        mad = sorted(abs(value - median) for value in length_ratios)
-        mad_value = mad[len(mad) // 2]
-    else:
-        median, mad_value = 1.0, 0.1
-    stats = LangStats(median_length_ratio=median, mad_length_ratio=max(mad_value, 0.01))
+    stats_by_lang = compute_lang_stats(result.items)
     text_checks = registered_checks("text")
 
     for item in result.items:
@@ -48,6 +38,7 @@ def run_pipeline(result: DatasetResult, budget: Budget) -> list[dict[str, Any]]:
                 "quarantined": False,
             })
             continue
+        stats = stats_by_lang.get(item.lang, LangStats(length_stats_reliable=False))
         decisions = [
             {
                 "check": spec.name,
@@ -55,6 +46,14 @@ def run_pipeline(result: DatasetResult, budget: Budget) -> list[dict[str, Any]]:
             }
             for spec in text_checks
         ]
+        if not stats.length_stats_reliable:
+            decisions.append({
+                "check": "text_length",
+                "reason": (
+                    f"abstained: fewer than {int(CHECK_THRESHOLDS['text_length_min_items']['value'])} "
+                    f"items for language {item.lang}"
+                ),
+            })
         try:
             flags = combine_flags([run_text_checks(item, stats)])
         except Exception as error:

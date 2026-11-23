@@ -12,6 +12,8 @@ from .registry import LangStats, register_check
 def check_length(item: Item, stats: LangStats) -> list[Flag]:
     if not item.translation or not item.source:
         return []
+    if not stats.length_stats_reliable:
+        return []
     ratio = len(item.translation) / max(1, len(item.source))
     multiplier = CHECK_THRESHOLDS["text_length_mad_multiplier"]["value"]
     cutoff = stats.median_length_ratio + multiplier * stats.mad_length_ratio

@@ -36,6 +36,10 @@ CHECK_THRESHOLDS: dict[str, CheckThreshold] = {
         "value": 0.1,
         "origin": "Fallback MAD when a language has no run-derived length statistics.",
     },
+    "text_length_min_items": {
+        "value": 8,
+        "origin": "Documented default: minimum items of one language before its run-derived length statistics are trusted.",
+    },
     "speech_max_duration_s": {
         "value": 30.0,
         "origin": "Single-request speech duration limit used by the speech check.",

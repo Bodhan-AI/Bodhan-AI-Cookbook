@@ -10,6 +10,8 @@ class LangStats:
     median_length_ratio: float = 1.0
     mad_length_ratio: float = CHECK_THRESHOLDS["text_length_default_mad"]["value"]
     extra: dict[str, Any] | None = None
+    sample_size: int = 0
+    length_stats_reliable: bool = True
 
 
 @dataclass(frozen=True)

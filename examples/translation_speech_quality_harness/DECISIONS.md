@@ -31,3 +31,6 @@
 
 - 2026-11-21: Live Bodhan Translate, Speak, and Transcribe probes all returned success; the configured Gemini chat-completions route returned HTTP 404 and remains NEEDS_HUMAN.
 - 2026-11-21: Calibration now rejects label IDs missing from run predictions, preventing mismatched datasets from producing misleading metrics.
+- 2026-11-22: Length statistics (median + MAD of translation/source length ratio) are now computed per language, never pooled; a language with fewer than 8 items abstains from the length check and records why in `decisions` (default documented in `config.py`).
+- 2026-11-22: Format check now compares the translation's markup skeleton with the SOURCE (headings, lists, table shape, fences, math delimiters, LaTeX commands, links, URLs, placeholders, HTML tags, bold); no reference is required. Extra emphasis/headings/lists/tables are treated as style and are not flagged; missing structure and extra must-survive tokens are.
+- 2026-11-22: Restored full `.gitignore` (venv, caches, egg-info, report output, audio) and added `.gitattributes` (LF) to stop CRLF noise in the PR.
