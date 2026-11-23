@@ -55,6 +55,13 @@ async def test_speech_repetition_is_detected_and_recovered(ctx, fake_api):
     assert any("differ" in w for w in res.warnings)
 
 
+async def test_speech_of_a_translated_file_names_the_language_once(ctx, fake_api, workdir):
+    src = workdir / "notes.hi.txt"
+    src.write_text("यह पहला वाक्य है।", encoding="utf-8")
+    res = await tools.synthesize_speech(ctx, "hi", path=str(src))
+    assert Path(res.audio_path).name == "notes.hi.mp3"
+
+
 async def test_speech_requires_target_script(ctx):
     with pytest.raises(ToolError) as exc:
         await tools.synthesize_speech(ctx, "ta", text="This is English text")

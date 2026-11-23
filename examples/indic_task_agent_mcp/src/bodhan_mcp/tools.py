@@ -116,6 +116,11 @@ def _text_input(ctx: ToolContext, text: str | None, path: str | None) -> tuple[s
     return text, "text"
 
 
+def _with_lang(stem: str, lang: str) -> str:
+    """`notes.ta` spoken in Tamil is `notes.ta.mp3`, not `notes.ta.ta.mp3`."""
+    return stem if stem.endswith(f".{lang}") else f"{stem}.{lang}"
+
+
 def _check_job_budget(ctx: ToolContext, estimate: float, what: str) -> None:
     """Refuse a whole job up front when it cannot fit the remaining budget, instead of spending part of it."""
     remaining = ctx.ledger.remaining
@@ -351,7 +356,7 @@ async def translate_text(ctx: ToolContext, target_language: str, text: str | Non
     if ratio < 0.35:
         warnings.append(f"Translation is much shorter than the source ({ratio:.0%}); content may be missing.")
     suffix = ".md" if (path and Path(path).suffix.lower() in (".md", ".markdown")) or any(u.kind in ("table", "code", "math") for u in units) else ".txt"
-    out = ctx.workspace.output_path(output_name, f"{stem}.{target}", suffix)
+    out = ctx.workspace.output_path(output_name, _with_lang(stem, target), suffix)
     out.write_text(translation + "\n", encoding="utf-8")
     return TranslateResult(
         output_path=ctx.workspace.rel(out), target_language=target, script=script,
@@ -543,7 +548,7 @@ async def synthesize_speech(ctx: ToolContext, language: str, text: str | None = 
     pieces = [piece for p, _, _ in produced for piece in p]
     checks = [c for _, c, _ in produced]
     joined = audio.join_with_pauses(pieces, sr=24_000)
-    out = ctx.workspace.output_path(output_name, f"{stem}.{lang}", ".mp3")
+    out = ctx.workspace.output_path(output_name, _with_lang(stem, lang), ".mp3")
     await asyncio.to_thread(audio.encode_mp3, joined, 24_000, out)
     cers = [c.cer for c in checks if c.cer is not None]
     flagged = [c for c in checks if c.issue]
