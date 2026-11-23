@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bodhan_tool_agent"
+version = "0.1.0"
+description = "Bodhan MCP Tool Server and Autonomous Task Agent"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+    { name = "Rudraksh Zodage" }
+]
+dependencies = [
+    "mcp==1.26.0",
+    "openai==2.32.0",
+    "httpx==0.28.1",
+    "pydantic==2.12.5",
+    "python-dotenv==1.2.2",
+    "pillow==11.3.0",
+    "pypdfium2==5.7.1",
+    "soundfile==0.14.0",
+    "fastapi==0.143.3",
+    "uvicorn==0.46.0",
+    "typer==0.15.2",
+    "rich==14.3.4",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==9.1.1",
+    "ruff==0.11.6",
+    "streamlit==1.45.1",
+]
+
+[project.scripts]
+bodhan-mcp = "bodhan_mcp.__main__:main"
+bodhan-agent = "bodhan_agent.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
