@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bodhan-dub"
+version = "0.1.0"
+description = "Agentic English-to-Indian-language video dubbing pipeline built on Bodhan Indic models"
+requires-python = ">=3.10"
+dependencies = [
+    "requests==2.32.3",
+    "numpy==2.1.3",
+    "python-dotenv==1.0.1",
+    "PyYAML==6.0.2",
+]
+
+[project.optional-dependencies]
+dev = ["pytest==8.3.3"]
+
+[tool.setuptools.packages.find]
+include = ["bodhan_dub*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["live: calls the real Bodhan API and needs a key"]
