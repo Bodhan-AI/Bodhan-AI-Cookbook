@@ -53,7 +53,9 @@ Offline: `pytest -q` → 37 passed. `python scripts/validate_recipe.py examples/
 Tool-level: `python -m bodhan_mcp` driven by the MCP Python SDK client and by raw JSON-RPC; `translate_text(target_language="fr")` returns a structured `unsupported_language` error instead of crashing.
 
 ## Demo video
-VIDEO_URL (2 min 44 s: architecture, tests, the 5 completed tasks with the generated Bengali and Tamil audio, the prompt-injection page, and all 3 impossible tasks)
+https://github.com/user-attachments/assets/d32f5b8e-9f55-4310-92e1-d70bd78c4747
+
+(2 min 44 s: architecture, tests, the 5 completed tasks with the generated Bengali and Tamil audio, the prompt-injection page, and all 3 impossible tasks)
 
 ## Trade-offs and known limitations
 - Script-based language ID cannot separate languages sharing a script (Hindi/Marathi, Bengali/Assamese); recorded as an assumption.
