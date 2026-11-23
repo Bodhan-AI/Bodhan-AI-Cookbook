@@ -12,7 +12,7 @@ This package empowers developers to build multilingual document processing pipel
 - **`BodhanOCRLoader`**: Native LangChain `BaseLoader` supporting images (`.png`, `.jpg`, `.jpeg`) and multi-page PDFs (via optional PyMuPDF rasterization). Performs magic byte signature validation, base64 data URL formatting, markdown extraction, layout block metadata preservation (including `order`, `label`, `type`, `bbox_xyxy` float coordinates, and `conf`), and exposes both `page` (zero-indexed page index) and `page_number` (one-indexed human-facing page number) metadata. Explicitly validates image formats and rejects unsupported types (such as WebP, GIF, SVG) with actionable error messages.
 - **`BodhanTranslationTransformer`**: LangChain `BaseDocumentTransformer` for translating documents across 22 Indian languages plus English (26 language codes). Features immutable document transformations, safe chunking preserving paragraph, sentence, and word boundaries with character fallback for unbroken tokens strictly bounded by `max_chunk_chars`, bounded async concurrency, and user-declared metadata provenance tracking.
 - **`BodhanTranslationTool`**: Pydantic v2-compliant LangChain `BaseTool` enabling conversational agents to dynamically invoke Bodhan Indic Translation with configurable target languages and script validation (omitting script automatically for English).
-- **Grounded Multilingual RAG**: Complete reference example demonstrating end-to-end ingestion of authentic Indic PDF notices, translation to English, semantic chunking, vector indexing with `InMemoryVectorStore` (and optional ChromaDB), and grounded companion LLM answers with citation tracking and out-of-domain rejection.
+- **Grounded Multilingual RAG**: Complete reference example demonstrating end-to-end ingestion of authentic Indic PDF notices, translation to English, semantic chunking, vector indexing with `InMemoryVectorStore`, and grounded companion LLM answers with citation tracking and prompt-guided out-of-domain refusal.
 
 ---
 
@@ -61,35 +61,26 @@ Optional Groq RAG dependencies:
 - `langchain==1.3.14`
 - `langchain-text-splitters==1.1.3`
 
-For running with local ChromaDB vector database (optional):
-
-```bash
-pip install -r requirements-rag-example.txt
-```
-
-Optional ChromaDB dependencies:
-- `chromadb==0.6.3`
-- `langchain==1.3.14`
-- `langchain-text-splitters==1.1.3`
-
 ### Environment Configuration
 
-Configure your Bodhan API keys in your environment or copy `.env.example` to `.env`:
+Configure your Bodhan API keys in your shell environment or create a `.env` file from `.env.example` (automatically loaded by `RAGConfig.from_env()` when `python-dotenv` is installed):
 
 ```bash
 cp .env.example .env
 ```
+
+If you are not using `python-dotenv`, export the variables directly in your shell environment.
 
 Bodhan console issues API keys on a per-model basis. Configure model-specific keys:
 
 ```bash
 # Linux / macOS
 export BODHAN_OCR_API_KEY="your-ocr-api-key"
-export BODHAN_TRANSLATE_API_KEY="your-translate-api-key"
+export BODHAN_TRANSLATE_API_KEY="your-translate-api-key"  # Canonical (BODHAN_TRANSLATION_API_KEY is also accepted)
 
 # Windows PowerShell
 $env:BODHAN_OCR_API_KEY="your-ocr-api-key"
-$env:BODHAN_TRANSLATE_API_KEY="your-translate-api-key"
+$env:BODHAN_TRANSLATE_API_KEY="your-translate-api-key"  # Canonical (BODHAN_TRANSLATION_API_KEY is also accepted)
 ```
 
 Alternatively, `BODHAN_API_KEY` is supported as a unified backward-compatible key across all endpoints:
