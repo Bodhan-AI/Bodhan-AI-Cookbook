@@ -78,8 +78,9 @@ def get_source_identity(
          unrelated documents with identical content.
 
     Note:
-      Explicit IDs ('source_id' and 'document_id') are preserved verbatim without lossy
-      normalization (e.g. 'a b' and 'a_b' remain distinct).
+      Explicit IDs ('source_id' and 'document_id') are stripped of leading and trailing
+      whitespace while preserving internal spaces, punctuation, and casing without lossy
+      character substitution (e.g. 'a b' and 'a_b' remain distinct).
     """
     if metadata:
         explicit_src_id = metadata.get("source_id")
@@ -260,7 +261,8 @@ def generate_chunk_id(
 
     Components:
       - Source identity: explicit source_id if provided; otherwise derived via get_source_identity
-        from source. Preserves spaces and punctuation without lossy normalization.
+        from source. Strips outer whitespace while preserving internal spaces and punctuation without
+        lossy character substitution.
       - Page identity: 'p{page}' (e.g. 'p1'). Fallback to 'p0' if page is None.
       - Chunk index: 'c{chunk_index}' (1-indexed chunk order).
       - Content hash: 16-character SHA-256 digest of page_content.
@@ -425,7 +427,8 @@ def index_documents(
         List of indexed Document chunks with assigned chunk_id and stable IDs.
 
     Raises:
-        ValueError: If documents list is empty, update_mode is invalid, or document identity cannot be derived.
+        ValueError: If documents list is empty, update_mode is invalid, no passage chunks can be
+                    generated (e.g. empty or whitespace content), or document identity cannot be derived.
         StaleChunkCleanupError: If stale chunk deletion fails after successful insertion.
     """
     if not documents:
@@ -459,6 +462,14 @@ def index_documents(
         tokenizer=effective_tokenizer,
         strict=is_strict,
     )
+
+    if not chunks:
+        raise ValueError(
+            "No passage chunks could be generated from the supplied documents. "
+            "Documents contain empty or whitespace-only content (e.g., blank OCR output). "
+            "To remove an existing document from the index, use delete_source_documents() instead "
+            "of indexing empty content."
+        )
 
     # 1. Derive stable source identities and generate deterministic chunk IDs
     chunk_ids: list[str] = []

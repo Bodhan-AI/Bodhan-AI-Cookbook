@@ -1171,6 +1171,10 @@ def test_source_identity_spaces_and_underscores_remain_distinct() -> None:
     assert id_under == "notice_alpha"
     assert id_space != id_under
 
+    # Verify outer whitespace is stripped while internal spaces are preserved
+    id_padded = get_source_identity(metadata={"source_id": "  notice alpha  "})
+    assert id_padded == "notice alpha"
+
     chunk_id_space = generate_chunk_id(None, 1, 1, "Notice content", source_id="notice alpha")
     chunk_id_under = generate_chunk_id(None, 1, 1, "Notice content", source_id="notice_alpha")
     assert chunk_id_space != chunk_id_under
@@ -1657,6 +1661,146 @@ def test_inmemory_stale_cleanup_failure_surfaces_diagnostic(
         index_documents(vs, update_docs, update_mode="full_document")
 
     assert len(exc_info.value.stale_ids) >= 1
+
+
+def test_chroma_empty_document_first_ingestion_raises(
+    tmp_path: Path,
+    fake_embeddings: DeterministicFakeEmbeddings,
+) -> None:
+    """Verify indexing an empty document in Chroma raises an actionable ValueError and leaves store empty."""
+    vs = get_vector_store(provider="chroma", embeddings=fake_embeddings, persist_directory=str(tmp_path / "chroma_empty_first"))
+    docs = [Document(page_content="", metadata={"source": "empty.pdf", "page_number": 1})]
+    with pytest.raises(ValueError, match="No passage chunks could be generated.*delete_source_documents"):
+        index_documents(vs, docs)
+    assert vs._collection.count() == 0
+
+
+def test_chroma_whitespace_only_document_raises(
+    tmp_path: Path,
+    fake_embeddings: DeterministicFakeEmbeddings,
+) -> None:
+    """Verify indexing whitespace-only document in Chroma raises actionable ValueError and leaves store empty."""
+    vs = get_vector_store(provider="chroma", embeddings=fake_embeddings, persist_directory=str(tmp_path / "chroma_ws_first"))
+    docs = [Document(page_content="   \n\t  \n  ", metadata={"source": "whitespace.pdf", "page_number": 1})]
+    with pytest.raises(ValueError, match="No passage chunks could be generated.*delete_source_documents"):
+        index_documents(vs, docs)
+    assert vs._collection.count() == 0
+
+
+def test_chroma_empty_full_document_update_preserves_old_data(
+    tmp_path: Path,
+    fake_embeddings: DeterministicFakeEmbeddings,
+) -> None:
+    """Verify attempting empty full_document update on existing Chroma source raises error and preserves old data."""
+    vs = get_vector_store(provider="chroma", embeddings=fake_embeddings, persist_directory=str(tmp_path / "chroma_empty_full"))
+    initial_docs = [
+        Document(page_content="Valid policy section 1 text", metadata={"source": "policy.pdf", "page_number": 1}),
+        Document(page_content="Valid policy section 2 text", metadata={"source": "policy.pdf", "page_number": 2}),
+    ]
+    index_documents(vs, initial_docs)
+    assert vs._collection.count() == 2
+
+    empty_update = [Document(page_content="", metadata={"source": "policy.pdf", "page_number": 1})]
+    with pytest.raises(ValueError, match="No passage chunks could be generated.*delete_source_documents"):
+        index_documents(vs, empty_update, update_mode="full_document")
+
+    # Verify old data remains completely intact
+    assert vs._collection.count() == 2
+    res = vs.similarity_search("Valid policy section", k=5)
+    assert len(res) == 2
+    assert any("section 1" in r.page_content for r in res)
+    assert any("section 2" in r.page_content for r in res)
+
+
+def test_chroma_empty_partial_page_update_preserves_old_data(
+    tmp_path: Path,
+    fake_embeddings: DeterministicFakeEmbeddings,
+) -> None:
+    """Verify attempting empty partial_pages update on existing Chroma source raises error and preserves old data."""
+    vs = get_vector_store(provider="chroma", embeddings=fake_embeddings, persist_directory=str(tmp_path / "chroma_empty_part"))
+    initial_docs = [
+        Document(page_content="Handbook rules page 1", metadata={"source": "handbook.pdf", "page_number": 1}),
+        Document(page_content="Handbook rules page 2", metadata={"source": "handbook.pdf", "page_number": 2}),
+    ]
+    index_documents(vs, initial_docs)
+    assert vs._collection.count() == 2
+
+    whitespace_update = [Document(page_content="   \n\t ", metadata={"source": "handbook.pdf", "page_number": 2})]
+    with pytest.raises(ValueError, match="No passage chunks could be generated.*delete_source_documents"):
+        index_documents(vs, whitespace_update, update_mode="partial_pages")
+
+    # Verify old data remains intact
+    assert vs._collection.count() == 2
+    res = vs.similarity_search("Handbook rules", k=5)
+    assert len(res) == 2
+
+
+def test_inmemory_empty_document_first_ingestion_raises(
+    fake_embeddings: DeterministicFakeEmbeddings,
+) -> None:
+    """Verify indexing an empty document in InMemory raises an actionable ValueError and leaves store empty."""
+    vs = get_vector_store(provider="inmemory", embeddings=fake_embeddings)
+    docs = [Document(page_content="", metadata={"source": "empty.pdf", "page_number": 1})]
+    with pytest.raises(ValueError, match="No passage chunks could be generated.*delete_source_documents"):
+        index_documents(vs, docs)
+    assert len(vs.store) == 0
+
+
+def test_inmemory_whitespace_only_document_raises(
+    fake_embeddings: DeterministicFakeEmbeddings,
+) -> None:
+    """Verify indexing whitespace-only document in InMemory raises actionable ValueError and leaves store empty."""
+    vs = get_vector_store(provider="inmemory", embeddings=fake_embeddings)
+    docs = [Document(page_content="   \n\t  \n  ", metadata={"source": "whitespace.pdf", "page_number": 1})]
+    with pytest.raises(ValueError, match="No passage chunks could be generated.*delete_source_documents"):
+        index_documents(vs, docs)
+    assert len(vs.store) == 0
+
+
+def test_inmemory_empty_full_document_update_preserves_old_data(
+    fake_embeddings: DeterministicFakeEmbeddings,
+) -> None:
+    """Verify attempting empty full_document update on existing InMemory source raises error and preserves old data."""
+    vs = get_vector_store(provider="inmemory", embeddings=fake_embeddings)
+    initial_docs = [
+        Document(page_content="Valid policy section 1 text", metadata={"source": "policy.pdf", "page_number": 1}),
+        Document(page_content="Valid policy section 2 text", metadata={"source": "policy.pdf", "page_number": 2}),
+    ]
+    index_documents(vs, initial_docs)
+    assert len(vs.store) == 2
+
+    empty_update = [Document(page_content="", metadata={"source": "policy.pdf", "page_number": 1})]
+    with pytest.raises(ValueError, match="No passage chunks could be generated.*delete_source_documents"):
+        index_documents(vs, empty_update, update_mode="full_document")
+
+    # Verify old data remains completely intact
+    assert len(vs.store) == 2
+    res = vs.similarity_search("Valid policy section", k=5)
+    assert len(res) == 2
+    assert any("section 1" in r.page_content for r in res)
+    assert any("section 2" in r.page_content for r in res)
+
+
+def test_inmemory_empty_partial_page_update_preserves_old_data(
+    fake_embeddings: DeterministicFakeEmbeddings,
+) -> None:
+    """Verify attempting empty partial_pages update on existing InMemory source raises error and preserves old data."""
+    vs = get_vector_store(provider="inmemory", embeddings=fake_embeddings)
+    initial_docs = [
+        Document(page_content="Handbook rules page 1", metadata={"source": "handbook.pdf", "page_number": 1}),
+        Document(page_content="Handbook rules page 2", metadata={"source": "handbook.pdf", "page_number": 2}),
+    ]
+    index_documents(vs, initial_docs)
+    assert len(vs.store) == 2
+
+    whitespace_update = [Document(page_content="   \n\t ", metadata={"source": "handbook.pdf", "page_number": 2})]
+    with pytest.raises(ValueError, match="No passage chunks could be generated.*delete_source_documents"):
+        index_documents(vs, whitespace_update, update_mode="partial_pages")
+
+    # Verify old data remains intact
+    assert len(vs.store) == 2
+    res = vs.similarity_search("Handbook rules", k=5)
+    assert len(res) == 2
 
 
 def test_chroma_invalid_update_mode_raises(tmp_path: Path, fake_embeddings: DeterministicFakeEmbeddings) -> None:
