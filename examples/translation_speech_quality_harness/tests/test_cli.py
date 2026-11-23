@@ -4,7 +4,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-
 RECIPE = Path(__file__).resolve().parents[1]
 
 
@@ -74,7 +73,7 @@ def test_fail_on_regression_and_stdout_summary(tmp_path: Path):
     assert (output / "diff.md").is_file()
 
 
-def test_calibration_rejects_items_without_matching_run_predictions(tmp_path: Path):
+def test_calibration_with_unmatched_items_warns_and_still_completes(tmp_path: Path):
     dataset = tmp_path / "run.jsonl"
     dataset.write_text(
         json.dumps(
@@ -112,5 +111,9 @@ def test_calibration_rejects_items_without_matching_run_predictions(tmp_path: Pa
         "--no-judge",
     )
 
-    assert result.returncode != 0
-    assert "--calibration items must also be present in --dataset" in result.stderr
+    assert result.returncode == 0, result.stderr
+    calibration_report = json.loads((tmp_path / "report" / "calibration.json").read_text(encoding="utf-8"))
+    metrics = calibration_report["metrics"]
+    assert metrics["status"] == "insufficient_support"
+    assert metrics["reason"] == "no_matching_labeled_items"
+    assert any("not in the run dataset" in warning for warning in metrics["warnings"])

@@ -2,7 +2,6 @@ import random
 
 from .models import Item, Label
 
-
 TEXT_CATEGORIES = (
     "omission",
     "addition",

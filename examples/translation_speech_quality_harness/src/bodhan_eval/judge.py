@@ -1,8 +1,8 @@
-from dataclasses import dataclass
 import difflib
 import json
 import re
 import secrets
+from dataclasses import dataclass
 from typing import Any, Protocol
 
 import httpx
@@ -11,7 +11,6 @@ from .config import JUDGE_DEFAULT_CONFIDENCE, JUDGE_MAX_FINDINGS_PER_ITEM
 from .models import Flag
 from .normalize import normalize
 from .spans import to_original_span
-
 
 MAX_JUDGE_FINDINGS = JUDGE_MAX_FINDINGS_PER_ITEM
 _CATEGORIES = {

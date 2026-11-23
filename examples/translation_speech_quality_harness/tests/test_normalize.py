@@ -1,7 +1,6 @@
 import unicodedata
 
 import pytest
-
 from bodhan_eval.normalize import extract_numbers, normalize
 
 

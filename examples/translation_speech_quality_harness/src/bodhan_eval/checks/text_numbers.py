@@ -1,9 +1,9 @@
 from collections import Counter
 
 from ..config import CHECK_DEFAULTS
-from .registry import LangStats, register_check
 from ..models import Flag, Item
 from ..normalize import extract_numbers
+from .registry import LangStats, register_check
 
 
 @register_check(name="text_numbers", categories=["number"], modality="text", cost_tier=0)

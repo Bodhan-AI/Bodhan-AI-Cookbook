@@ -1,8 +1,7 @@
-from dataclasses import dataclass, field
-from decimal import Decimal, InvalidOperation
 import re
 import unicodedata
-
+from dataclasses import dataclass, field
+from decimal import Decimal, InvalidOperation
 
 _DIGIT_BLOCKS = (
     0x0966,

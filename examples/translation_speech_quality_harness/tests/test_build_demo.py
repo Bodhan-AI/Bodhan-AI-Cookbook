@@ -5,7 +5,6 @@ from pathlib import Path
 import httpx
 import pytest
 
-
 SCRIPT_PATH = Path(__file__).resolve().parents[1] / "scripts" / "build_demo.py"
 SPEC = importlib.util.spec_from_file_location("build_demo", SCRIPT_PATH)
 assert SPEC is not None and SPEC.loader is not None

@@ -3,7 +3,6 @@ from pathlib import Path
 
 from bodhan_eval.config import CHECK_DEFAULTS, CHECK_THRESHOLDS
 
-
 RECIPE = Path(__file__).resolve().parents[1]
 
 

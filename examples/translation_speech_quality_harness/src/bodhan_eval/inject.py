@@ -1,6 +1,6 @@
+import io
 import random
 import wave
-import io
 
 import numpy as np
 

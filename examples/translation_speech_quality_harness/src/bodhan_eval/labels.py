@@ -1,6 +1,5 @@
 import re
 
-
 _CATEGORY_ALIASES = {
     "number": "number",
     "unit": "number",

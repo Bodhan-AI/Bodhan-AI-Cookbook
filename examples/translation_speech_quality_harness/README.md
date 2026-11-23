@@ -16,8 +16,10 @@ python -m pip install -e .\examples\translation_speech_quality_harness
 ```
 
 Copy `.env.example` to `.env` only for real, opt-in API runs. Tests use `test-key` and mocks.
-From the repository root, run the recipe contract validator with
-`python examples\translation_speech_quality_harness\scripts\validate_recipe.py`.
+From the repository root, run the Cookbook recipe validator with
+`python scripts\validate_recipe.py examples\translation_speech_quality_harness`.
+A recipe-local copy of the same contract checks is in `scripts\validate_recipe.py`
+(`python examples\translation_speech_quality_harness\scripts\validate_recipe.py examples\translation_speech_quality_harness`).
 
 The candidate-triggered LLM judge requires `LLM_BASE_URL`, `LLM_MODEL`, and
 `LLM_API_KEY` in the repository-root `.env`. Use the OpenAI-compatible endpoint
@@ -76,8 +78,10 @@ python -m bodhan_eval `
   --no-speech --no-judge --max-cost-inr 0
 ```
 
-The CLI rejects calibration labels whose `(id, lang)` pair is absent from the
-run dataset; labels for a different dataset cannot be applied to the demo file.
+Calibration labels may be the dataset itself or a labels-only file (`id`, `lang`, `labels`). Labels whose
+`(id, lang)` pair is absent from the run are ignored with a warning recorded in `calibration.json`.
+`--span-ref auto|translation|source` chooses which span a label is matched against (default `auto`:
+whichever of the flag's translation and source spans overlaps the label best).
 
 The Bodhan Translate client uses Bodhan's OpenAI-compatible `/v1/chat/completions` transport, with `indic-translate`, the target language, and `max_output_tokens`; it maps the response's `finish_reason` to the truncation signal. Verify provider routes against the current [Bodhan API reference](https://api.bodhan.ai/api-docs/).
 
@@ -121,3 +125,4 @@ and tested. Not yet implemented or not yet measured:
 - No injector-based recall/false-alarm results; the held-out numbers come from 80 self-annotated IN22
   reference rows and show recall 0 without the judge.
 - Calls are sequential (no concurrency).
+- Localization is matched at IoU >= 0.3, not the brief's 70% overlap target.

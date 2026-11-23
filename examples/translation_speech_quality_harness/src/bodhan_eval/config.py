@@ -4,7 +4,6 @@ from typing import TypedDict
 
 from dotenv import load_dotenv
 
-
 load_dotenv()
 
 CONFIG_DIR = Path(__file__).resolve().parent

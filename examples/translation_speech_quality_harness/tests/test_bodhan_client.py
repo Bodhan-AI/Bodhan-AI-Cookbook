@@ -2,7 +2,6 @@ import json
 
 import httpx
 import pytest
-
 from bodhan_eval.budget import Budget
 from bodhan_eval.cache import Cache
 from bodhan_eval.client.bodhan import BodhanClient

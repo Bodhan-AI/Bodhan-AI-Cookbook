@@ -2,7 +2,6 @@ import wave
 
 import numpy as np
 import pytest
-
 from bodhan_eval.audio import (
     FfmpegMissing,
     chunk_at_silence,

@@ -2,7 +2,6 @@ import unicodedata
 
 from sacrebleu.metrics import BLEU, CHRF
 
-
 _CHRF = CHRF(word_order=2)
 _BLEU = BLEU(tokenize="none")
 

@@ -1,12 +1,11 @@
-from collections import Counter, defaultdict
-from dataclasses import dataclass
 import html
 import json
-from pathlib import Path
 import random
 import re
+from collections import Counter, defaultdict
+from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
-
 
 _BOOTSTRAP_SAMPLES = 2000
 
@@ -183,7 +182,7 @@ def diff_markdown(
                     f"{_markdown_text(key[0])} ({_markdown_text(key[1])})"
                 )
             for old_flag, new_flag in zip(
-                old_by_identity[identity], new_by_identity[identity]
+                old_by_identity[identity], new_by_identity[identity], strict=False
             ):
                 if old_flag.get("severity") != new_flag.get("severity"):
                     examples[category].append(

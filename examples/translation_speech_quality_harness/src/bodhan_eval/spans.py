@@ -1,8 +1,7 @@
-from dataclasses import dataclass
 import re
+from dataclasses import dataclass
 
 from .normalize import Normalized
-
 
 Span = tuple[int, int]
 

@@ -1,12 +1,11 @@
 """Length statistics must be computed per language, never pooled across languages."""
 
+from bodhan_eval.budget import Budget
 from bodhan_eval.checks import LangStats
 from bodhan_eval.dataset import DatasetResult
-from bodhan_eval.budget import Budget
 from bodhan_eval.lang_stats import compute_lang_stats
 from bodhan_eval.models import Item
 from bodhan_eval.pipeline import run_pipeline
-
 
 _CHAR = {"hi": "\u0915", "ta": "\u0b95"}
 

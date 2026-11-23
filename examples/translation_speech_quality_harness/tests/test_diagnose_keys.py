@@ -1,7 +1,6 @@
 import importlib.util
 from pathlib import Path
 
-
 SCRIPT_PATH = Path(__file__).resolve().parents[1] / "scripts" / "diagnose_keys.py"
 SPEC = importlib.util.spec_from_file_location("diagnose_keys", SCRIPT_PATH)
 assert SPEC is not None and SPEC.loader is not None

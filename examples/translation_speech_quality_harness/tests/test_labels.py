@@ -1,5 +1,4 @@
 import pytest
-
 from bodhan_eval.labels import canonical_category, canonical_severity
 
 

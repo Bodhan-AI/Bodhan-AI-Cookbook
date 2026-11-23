@@ -5,7 +5,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-
 RECIPE = Path(__file__).resolve().parents[1]
 
 

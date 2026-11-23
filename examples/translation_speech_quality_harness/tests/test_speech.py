@@ -1,11 +1,13 @@
 import numpy as np
 import pytest
-
 from bodhan_eval.audio import WavData
-from bodhan_eval.checks.speech import check_speech, check_speech_with_transcriber
+from bodhan_eval.checks.speech import (
+    check_speech,
+    check_speech_with_transcriber,
+    mask_numbers,
+)
 from bodhan_eval.client.errors import BodhanAPIError
 from bodhan_eval.models import Item
-from bodhan_eval.checks.speech import mask_numbers
 
 
 def test_speech_number_masking():

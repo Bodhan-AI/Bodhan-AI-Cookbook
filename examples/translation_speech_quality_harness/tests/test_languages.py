@@ -1,5 +1,4 @@
 import pytest
-
 from bodhan_eval.languages import dominant_script, get_lang
 
 

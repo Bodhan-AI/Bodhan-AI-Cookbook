@@ -3,9 +3,8 @@ from __future__ import annotations
 import csv
 import json
 import random
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable
-
 
 TEXT_LABEL_TYPES = {
     "omission",

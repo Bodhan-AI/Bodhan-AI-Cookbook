@@ -5,8 +5,8 @@ Prose is free to change; headings, list markers, table shape, code fences, math
 delimiters, LaTeX commands, links, placeholders and HTML tags must survive.
 """
 
-from collections import Counter
 import re
+from collections import Counter
 
 from ..config import CHECK_DEFAULTS
 from ..models import Flag, Item

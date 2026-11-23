@@ -1,5 +1,5 @@
-from dataclasses import dataclass
 import difflib
+from dataclasses import dataclass
 
 from ..config import CHECK_DEFAULTS
 from ..models import Flag, Item

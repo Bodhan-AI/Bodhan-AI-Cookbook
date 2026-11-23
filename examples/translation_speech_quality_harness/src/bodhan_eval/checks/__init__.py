@@ -1,5 +1,5 @@
 from ..models import Flag, Item
-from .registry import CHECK_REGISTRY, LangStats, registered_checks, register_check
+from .registry import CHECK_REGISTRY, LangStats, register_check, registered_checks
 from .text_format import check_format
 from .text_language import check_language
 from .text_length import check_length

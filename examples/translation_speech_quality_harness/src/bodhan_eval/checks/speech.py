@@ -1,9 +1,9 @@
-from collections import Counter
 import re
+from collections import Counter
 from typing import Protocol
 
-from ..config import CHECK_DEFAULTS, CHECK_THRESHOLDS
 from ..audio import WavData, silence_stats, voiced_regions
+from ..config import CHECK_DEFAULTS, CHECK_THRESHOLDS
 from ..models import Flag, Item
 
 

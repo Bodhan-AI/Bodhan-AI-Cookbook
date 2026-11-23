@@ -1,10 +1,10 @@
 from __future__ import annotations
 
+import tempfile
+import wave
 from contextlib import contextmanager
 from io import BytesIO
 from pathlib import Path
-import tempfile
-import wave
 from typing import Any, Protocol
 
 import httpx
@@ -12,8 +12,8 @@ import numpy as np
 
 from .audio import FfmpegMissing, WavData, chunk_at_silence, to_wav
 from .budget import Budget
-from .client.errors import BodhanAPIError, BudgetExhausted
 from .checks.speech import check_speech
+from .client.errors import BodhanAPIError, BudgetExhausted
 from .dataset import DatasetResult
 from .languages import get_lang
 from .models import Flag, Item
@@ -93,7 +93,7 @@ def _error_code(error: Exception) -> str:
         return "transport_error"
     if isinstance(error, FfmpegMissing):
         return "ffmpeg_missing"
-    if isinstance(error, (OSError, wave.Error, EOFError)):
+    if isinstance(error, OSError | wave.Error | EOFError):
         return "invalid_audio"
     if isinstance(error, ValueError):
         return "invalid_audio"

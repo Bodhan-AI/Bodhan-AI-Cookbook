@@ -1,6 +1,5 @@
 import httpx
 import pytest
-
 from bodhan_eval.cache import Cache
 from bodhan_eval.client.llm import LLMClient
 

@@ -1,5 +1,5 @@
-from .registry import LangStats, register_check
 from ..models import Flag, Item
+from .registry import LangStats, register_check
 
 
 @register_check(name="toy", categories=["mistranslation"], modality="text", cost_tier=0)

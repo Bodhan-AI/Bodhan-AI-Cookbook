@@ -1,13 +1,13 @@
-from dataclasses import dataclass, field
 import json
 import math
 import os
+import wave
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
-import wave
 
-from .config import MAX_AUDIO_FILE_BYTES, MAX_JSONL_LINE_BYTES, CHECK_THRESHOLDS
+from .config import CHECK_THRESHOLDS, MAX_AUDIO_FILE_BYTES, MAX_JSONL_LINE_BYTES
 from .labels import canonical_category, canonical_severity
 from .languages import get_lang
 from .models import Item, Label
@@ -72,7 +72,7 @@ def _parse_labels(
         if isinstance(span, list):
             if (
                 len(span) == 2
-                and all(isinstance(value, (int, float)) for value in span)
+                and all(isinstance(value, int | float) for value in span)
                 and all(math.isfinite(value) for value in span)
             ):
                 parsed_span: tuple[int, int] | list[float] | None
@@ -259,10 +259,10 @@ def read_dataset(path: Path, langs: set[str] | None = None) -> DatasetResult:
                     reference=_safe_text(reference) if reference is not None else None,
                     audio=audio_path,
                     labels=_parse_labels(
-                        raw.get("labels"),
+                        raw["labels"] if "labels" in raw else [],
                         result.warnings,
                         line_number,
-                        len(source),
+                        max(len(source), len(translation) if translation is not None else 0),
                     ),
                     raw=raw,
                 )

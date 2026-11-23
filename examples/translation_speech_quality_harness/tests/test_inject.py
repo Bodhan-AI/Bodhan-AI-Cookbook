@@ -3,7 +3,6 @@ import random
 from bodhan_eval.inject import build_dataset, inject_text
 from bodhan_eval.models import Item
 
-
 TEXT_CATEGORIES = ("omission", "addition", "mistranslation", "number", "term", "format", "language")
 
 

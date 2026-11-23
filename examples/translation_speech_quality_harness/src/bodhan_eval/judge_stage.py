@@ -11,7 +11,6 @@ from .judge import (
 )
 from .models import Flag, Item
 
-
 _JUDGE_CATEGORIES = {"addition", "mistranslation", "omission", "term"}
 
 

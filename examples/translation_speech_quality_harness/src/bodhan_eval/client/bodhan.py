@@ -1,13 +1,12 @@
 import asyncio
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable
 
 import httpx
 
 from ..budget import Budget
 from ..cache import Cache, make_key
 from .errors import BodhanAPIError, BudgetExhausted
-
 
 BASE_URL = "https://api.bodhan.ai"
 

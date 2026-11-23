@@ -2,13 +2,12 @@ import argparse
 import importlib
 import json
 import os
-from pathlib import Path
 import sys
+from pathlib import Path
 from typing import Any
 
 import httpx
 from dotenv import load_dotenv
-
 
 RECIPE_DIR = Path(__file__).resolve().parents[1]
 REPO_ROOT = RECIPE_DIR.parents[1]
@@ -153,7 +152,7 @@ def rows_to_items(
                 "turn",
             ):
                 value = row.get(field_name)
-                if isinstance(value, (str, int, float)):
+                if isinstance(value, str | int | float):
                     record[f"dataset_{field_name}"] = value
             records.append(record)
     if missing:

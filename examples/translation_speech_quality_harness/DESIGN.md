@@ -89,6 +89,13 @@ are listed as *unchecked* rather than silently passed.
 
 ## Calibration
 
+`--calibration` accepts the dataset itself or a labels-only file (`id`, `lang`, `labels`); labels attach to the
+run's items by `(id, lang)`. Labels for items missing from the run are ignored with a warning in
+`calibration.json`; they never abort the run. A label span may point into the translation or the source:
+`--span-ref auto` (default) matches against whichever predicted span overlaps best, `translation` and
+`source` restrict matching to one. A match needs category equality and IoU >= 0.3 on the chosen span;
+a prediction or label with no usable span matches on category alone.
+
 Labelled items are split by source text into dev and test. Thresholds are swept on dev only and reported
 on held-out test items with Wilson intervals and support counts; categories without support are marked
 `insufficient_support`. Own labels are tagged `annotator: "self"` and injector labels `annotator: "injector"`
@@ -108,7 +115,7 @@ counted and reported.
   errors (mistranslation, term, omission inside normal-length text) are only seen by the judge when a
   deterministic check already flagged the item. Recall for those categories is low.
 - Speech omission/truncation (WER/CER against the input text) and clipping are not checked.
-- Span matching compares against the translation span only; a labelled source span is not used.
+- Localization is matched at IoU >= 0.3; the brief's 70% overlap target is not enforced as a match threshold.
 - Injector-based recall and false-alarm numbers have not been produced; the only labelled data is 80
   self-annotated rows of IN22 reference text.
 - Calls run sequentially; there is no concurrency yet.

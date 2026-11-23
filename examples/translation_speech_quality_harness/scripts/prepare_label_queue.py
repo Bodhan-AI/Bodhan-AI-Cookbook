@@ -1,13 +1,15 @@
 import argparse
 import json
-from pathlib import Path
 import sys
-
+from pathlib import Path
 
 RECIPE_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RECIPE_DIR / "src"))
 
-from bodhan_eval.label_workflow import build_label_queue, write_label_queue  # noqa: E402
+from bodhan_eval.label_workflow import (  # noqa: E402
+    build_label_queue,
+    write_label_queue,
+)
 
 
 def read_jsonl(path: Path) -> list[dict]:

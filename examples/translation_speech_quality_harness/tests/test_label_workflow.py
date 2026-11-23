@@ -3,7 +3,6 @@ import json
 from pathlib import Path
 
 import pytest
-
 from bodhan_eval.dataset import read_dataset
 from bodhan_eval.label_workflow import (
     build_label_queue,

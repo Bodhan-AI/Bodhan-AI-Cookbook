@@ -2,11 +2,10 @@ import json
 
 import httpx
 import pytest
-
 from bodhan_eval.judge import (
     MAX_JUDGE_FINDINGS,
-    build_judge_prompt,
     append_judge_flags,
+    build_judge_prompt,
     clean_judge_reply,
     detect_prompt_injection,
     judge_item,

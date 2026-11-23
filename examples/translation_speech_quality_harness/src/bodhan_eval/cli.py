@@ -1,11 +1,12 @@
 import argparse
-from pathlib import Path
 import json
 import time
+from pathlib import Path
 
 from .budget import Budget
 from .cache import Cache
 from .calibrate import evaluate_labeled_items, leave_one_language_out
+from .calibration_io import load_calibration_items
 from .client.bodhan import BodhanClient
 from .client.llm import LLMClient
 from .config import (
@@ -190,39 +191,33 @@ def main(argv: list[str] | None = None) -> int:
             asyncio.run(judge())
     calibration_result = None
     if args.calibration is not None:
-        calibration_data = read_dataset(args.calibration, langs)
-        run_keys = {
-            (record["id"], record["lang"])
-            for record in records
-            if not record.get("quarantined", False)
-        }
-        calibration_keys = {
-            (item.id, item.lang)
-            for item in calibration_data.items
-        }
-        unmatched = calibration_keys - run_keys
-        if unmatched:
-            parser.error(
-                "--calibration items must also be present in --dataset "
-                f"(unmatched id/lang pairs: {len(unmatched)}); run the harness "
-                "on the labeled dataset or provide labels for matching items"
-            )
+        calibration_items, calibration_warnings = load_calibration_items(
+            args.calibration,
+            langs,
+            result.items,
+        )
         prediction_map = {
             (record["id"], record["lang"]): record["flags"]
             for record in records
         }
         calibration_result = evaluate_labeled_items(
-            calibration_data.items,
+            calibration_items,
             prediction_map,
             seed=args.seed,
+            span_ref=args.span_ref,
         )
-        labeled_languages = {item.lang for item in calibration_data.items}
+        if not calibration_items:
+            calibration_result["reason"] = "no_matching_labeled_items"
+        calibration_result["span_ref"] = args.span_ref
+        calibration_result["warnings"] = calibration_warnings
+        labeled_languages = {item.lang for item in calibration_items}
         if labeled_languages:
             calibration_result["generalization"] = {
                 "leave_one_language_out": leave_one_language_out(
-                    calibration_data.items,
+                    calibration_items,
                     prediction_map,
                     seed=args.seed,
+                    span_ref=args.span_ref,
                 ),
                 "unseen_languages": {
                     lang: {

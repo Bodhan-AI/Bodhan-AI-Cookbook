@@ -1,7 +1,6 @@
 import argparse
-from pathlib import Path
 import sys
-
+from pathlib import Path
 
 RECIPE_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RECIPE_DIR / "src"))

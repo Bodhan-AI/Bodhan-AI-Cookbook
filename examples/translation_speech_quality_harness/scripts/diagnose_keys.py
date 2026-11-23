@@ -2,13 +2,12 @@ import argparse
 import asyncio
 import io
 import os
-from pathlib import Path
 import sys
 import wave
+from pathlib import Path
 
 import httpx
 from dotenv import load_dotenv
-
 
 RECIPE_DIR = Path(__file__).resolve().parents[1]
 REPO_ROOT = RECIPE_DIR.parents[1]
@@ -19,7 +18,6 @@ from bodhan_eval.cache import Cache  # noqa: E402
 from bodhan_eval.client.bodhan import BodhanClient  # noqa: E402
 from bodhan_eval.client.errors import BodhanAPIError  # noqa: E402
 from bodhan_eval.client.llm import LLMClient  # noqa: E402
-
 
 KEY_NAMES = (
     "BODHAN_TRANSLATE_KEY",

@@ -31,7 +31,7 @@
               "items": 20,
               "per_category": {
                 "mistranslation": {
-                  "false_negatives": 3,
+                  "false_negatives": 4,
                   "false_positives": 0,
                   "insufficient_support": false,
                   "precision": 0.0,
@@ -43,12 +43,12 @@
                   "recall": 0.0,
                   "recall_ci95": [
                     0.0,
-                    0.5615060804490177
+                    0.48990002040399916
                   ],
                   "span_overlap_mean": 0.0,
                   "span_support": 0,
-                  "support_negatives": 17,
-                  "support_positives": 3,
+                  "support_negatives": 16,
+                  "support_positives": 4,
                   "true_positives": 0
                 },
                 "number": {
@@ -112,27 +112,6 @@
                   "span_support": 0,
                   "support_negatives": 18,
                   "support_positives": 2,
-                  "true_positives": 0
-                },
-                "unmapped": {
-                  "false_negatives": 1,
-                  "false_positives": 0,
-                  "insufficient_support": false,
-                  "precision": 0.0,
-                  "precision_ci95": [
-                    0.0,
-                    0.0
-                  ],
-                  "predicted": 0,
-                  "recall": 0.0,
-                  "recall_ci95": [
-                    0.0,
-                    0.7934567085261071
-                  ],
-                  "span_overlap_mean": 0.0,
-                  "span_support": 0,
-                  "support_negatives": 19,
-                  "support_positives": 1,
                   "true_positives": 0
                 }
               }
@@ -358,8 +337,8 @@
               "mistranslation": {
                 "f0_5": 0.0,
                 "status": "swept",
-                "support_negatives": 35,
-                "support_positives": 5,
+                "support_negatives": 34,
+                "support_positives": 6,
                 "threshold": 1.0,
                 "threshold_origin": "swept"
               },
@@ -395,13 +374,6 @@
                 "status": "insufficient_support",
                 "support_negatives": 38,
                 "support_positives": 2,
-                "threshold": 0.5,
-                "threshold_origin": "defaults_not_tuned"
-              },
-              "unmapped": {
-                "status": "insufficient_support",
-                "support_negatives": 39,
-                "support_positives": 1,
                 "threshold": 0.5,
                 "threshold_origin": "defaults_not_tuned"
               }
@@ -488,8 +460,8 @@
               "mistranslation": {
                 "f0_5": 0.0,
                 "status": "swept",
-                "support_negatives": 52,
-                "support_positives": 8,
+                "support_negatives": 51,
+                "support_positives": 9,
                 "threshold": 1.0,
                 "threshold_origin": "swept"
               },
@@ -528,13 +500,6 @@
                 "support_positives": 8,
                 "threshold": 1.0,
                 "threshold_origin": "swept"
-              },
-              "unmapped": {
-                "status": "insufficient_support",
-                "support_negatives": 59,
-                "support_positives": 1,
-                "threshold": 0.5,
-                "threshold_origin": "defaults_not_tuned"
               }
             }
           }
@@ -581,7 +546,7 @@
                 "items": 20,
                 "per_category": {
                   "mistranslation": {
-                    "false_negatives": 3,
+                    "false_negatives": 4,
                     "false_positives": 0,
                     "insufficient_support": false,
                     "precision": 0.0,
@@ -593,12 +558,12 @@
                     "recall": 0.0,
                     "recall_ci95": [
                       0.0,
-                      0.5615060804490177
+                      0.48990002040399916
                     ],
                     "span_overlap_mean": 0.0,
                     "span_support": 0,
-                    "support_negatives": 17,
-                    "support_positives": 3,
+                    "support_negatives": 16,
+                    "support_positives": 4,
                     "true_positives": 0
                   },
                   "number": {
@@ -662,27 +627,6 @@
                     "span_support": 0,
                     "support_negatives": 18,
                     "support_positives": 2,
-                    "true_positives": 0
-                  },
-                  "unmapped": {
-                    "false_negatives": 1,
-                    "false_positives": 0,
-                    "insufficient_support": false,
-                    "precision": 0.0,
-                    "precision_ci95": [
-                      0.0,
-                      0.0
-                    ],
-                    "predicted": 0,
-                    "recall": 0.0,
-                    "recall_ci95": [
-                      0.0,
-                      0.7934567085261071
-                    ],
-                    "span_overlap_mean": 0.0,
-                    "span_support": 0,
-                    "support_negatives": 19,
-                    "support_positives": 1,
                     "true_positives": 0
                   }
                 }
@@ -908,8 +852,8 @@
                 "mistranslation": {
                   "f0_5": 0.0,
                   "status": "swept",
-                  "support_negatives": 35,
-                  "support_positives": 5,
+                  "support_negatives": 34,
+                  "support_positives": 6,
                   "threshold": 1.0,
                   "threshold_origin": "swept"
                 },
@@ -945,13 +889,6 @@
                   "status": "insufficient_support",
                   "support_negatives": 38,
                   "support_positives": 2,
-                  "threshold": 0.5,
-                  "threshold_origin": "defaults_not_tuned"
-                },
-                "unmapped": {
-                  "status": "insufficient_support",
-                  "support_negatives": 39,
-                  "support_positives": 1,
                   "threshold": 0.5,
                   "threshold_origin": "defaults_not_tuned"
                 }
@@ -1038,8 +975,8 @@
                 "mistranslation": {
                   "f0_5": 0.0,
                   "status": "swept",
-                  "support_negatives": 52,
-                  "support_positives": 8,
+                  "support_negatives": 51,
+                  "support_positives": 9,
                   "threshold": 1.0,
                   "threshold_origin": "swept"
                 },
@@ -1078,13 +1015,6 @@
                   "support_positives": 8,
                   "threshold": 1.0,
                   "threshold_origin": "swept"
-                },
-                "unmapped": {
-                  "status": "insufficient_support",
-                  "support_negatives": 59,
-                  "support_positives": 1,
-                  "threshold": 0.5,
-                  "threshold_origin": "defaults_not_tuned"
                 }
               }
             }
@@ -1309,6 +1239,7 @@
     },
     "reason": null,
     "seed": 20261119,
+    "span_ref": "auto",
     "status": "ok",
     "support": {
       "dev_sources": 33,
@@ -1350,8 +1281,8 @@
       "mistranslation": {
         "f0_5": 0.0,
         "status": "swept",
-        "support_negatives": 34,
-        "support_positives": 6,
+        "support_negatives": 33,
+        "support_positives": 7,
         "threshold": 1.0,
         "threshold_origin": "swept"
       },
@@ -1389,15 +1320,9 @@
         "support_positives": 4,
         "threshold": 0.5,
         "threshold_origin": "defaults_not_tuned"
-      },
-      "unmapped": {
-        "status": "insufficient_support",
-        "support_negatives": 39,
-        "support_positives": 1,
-        "threshold": 0.5,
-        "threshold_origin": "defaults_not_tuned"
       }
-    }
+    },
+    "warnings": []
   },
   "threshold_origin": "swept",
   "thresholds": {
@@ -1433,8 +1358,8 @@
       "mistranslation": {
         "f0_5": 0.0,
         "status": "swept",
-        "support_negatives": 34,
-        "support_positives": 6,
+        "support_negatives": 33,
+        "support_positives": 7,
         "threshold": 1.0,
         "threshold_origin": "swept"
       },
@@ -1470,13 +1395,6 @@
         "status": "insufficient_support",
         "support_negatives": 36,
         "support_positives": 4,
-        "threshold": 0.5,
-        "threshold_origin": "defaults_not_tuned"
-      },
-      "unmapped": {
-        "status": "insufficient_support",
-        "support_negatives": 39,
-        "support_positives": 1,
         "threshold": 0.5,
         "threshold_origin": "defaults_not_tuned"
       }

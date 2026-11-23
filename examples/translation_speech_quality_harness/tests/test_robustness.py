@@ -4,7 +4,6 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-
 from bodhan_eval.budget import Budget
 from bodhan_eval.dataset import read_dataset
 from bodhan_eval.pipeline import run_pipeline
@@ -71,7 +70,7 @@ def test_language_aliases_types_labels_and_surrogates_are_safe(tmp_path: Path):
     rows = [
         _row(id=7, lang="HI-IN", translation="नमस्ते", source="safe"),
         _row(id="wrong-type", translation=123),
-        _row(id="regional", lang="hi-" "IN", source="second"),
+        _row(id="regional", lang="hi-IN", source="second"),
         _row(id="tai", lang="TA", source="third", translation="தமிழ்"),
         _row(id="bad-label", labels=[{"type": "number", "span": [0]}]),
         _row(id="null-labels", labels=None),

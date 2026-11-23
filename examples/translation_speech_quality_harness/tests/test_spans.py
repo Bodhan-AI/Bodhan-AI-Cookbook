@@ -1,7 +1,7 @@
 import random
 
-from bodhan_eval.spans import overlap, sentence_split, to_original_span
 from bodhan_eval.normalize import normalize
+from bodhan_eval.spans import overlap, sentence_split, to_original_span
 
 
 def test_to_original_span_maps_normalized_span():

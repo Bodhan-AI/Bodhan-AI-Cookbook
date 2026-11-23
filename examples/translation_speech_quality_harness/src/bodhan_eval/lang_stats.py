@@ -1,8 +1,8 @@
 """Per-language robust length statistics derived from the run's own items."""
 
 from collections import defaultdict
+from collections.abc import Iterable
 from statistics import median
-from typing import Iterable
 
 from .checks.registry import LangStats
 from .config import CHECK_THRESHOLDS

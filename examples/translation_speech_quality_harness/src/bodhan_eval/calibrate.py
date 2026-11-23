@@ -1,13 +1,12 @@
+import random
 from dataclasses import dataclass
 from math import sqrt
-import random
 from typing import Any
 
 from .config import DEFAULT_CALIBRATION_THRESHOLD
 from .labels import canonical_category
 from .models import Item, Label
 from .spans import overlap
-
 
 _CALIBRATION_CATEGORIES = (
     "omission",
@@ -72,21 +71,47 @@ def bootstrap_mean_ci(
 
 
 def _span(value: Any) -> tuple[float, float] | None:
-    if isinstance(value, (tuple, list)) and len(value) == 2:
+    if isinstance(value, tuple | list) and len(value) == 2:
         start, end = value
-        if isinstance(start, (int, float)) and isinstance(end, (int, float)):
+        if isinstance(start, int | float) and isinstance(end, int | float):
             return (float(start), float(end))
     return None
 
 
-def _matches(gold: Label, predicted: dict[str, Any]) -> tuple[bool, float | None]:
+def _predicted_spans(predicted: dict[str, Any], span_ref: str) -> list[tuple[float, float]]:
+    """Spans of a prediction that a label can be compared with, per ``--span-ref``."""
+    spans: list[tuple[float, float] | None] = []
+    if span_ref in {"auto", "translation"}:
+        spans.append(_span(predicted.get("span")))
+    if span_ref in {"auto", "source"}:
+        spans.append(_span(predicted.get("source_span")))
+    return [span for span in spans if span is not None]
+
+
+def _best_overlap(
+    gold_span: tuple[float, float],
+    predicted: dict[str, Any],
+    span_ref: str,
+) -> float | None:
+    candidates = _predicted_spans(predicted, span_ref)
+    if not candidates:
+        return None
+    return max(overlap(gold_span, span, mode="iou") for span in candidates)
+
+
+def _matches(
+    gold: Label,
+    predicted: dict[str, Any],
+    span_ref: str = "auto",
+) -> tuple[bool, float | None]:
     if gold.type != predicted.get("category"):
         return False, None
     gold_span = _span(gold.span)
-    predicted_span = _span(predicted.get("span"))
-    if gold_span is None or predicted_span is None:
+    if gold_span is None:
         return True, None
-    span_overlap = overlap(gold_span, predicted_span, mode="iou")
+    span_overlap = _best_overlap(gold_span, predicted, span_ref)
+    if span_overlap is None:
+        return True, None
     return span_overlap >= 0.3, span_overlap
 
 
@@ -95,6 +120,7 @@ def _metric_record(
     predictions: list[dict[str, Any]],
     item_count: int,
     positive_items: int,
+    span_ref: str = "auto",
 ) -> dict[str, Any]:
     unmatched_gold = set(range(len(labels)))
     true_positives = 0
@@ -102,7 +128,7 @@ def _metric_record(
     for prediction in predictions:
         candidates: list[tuple[int, float | None]] = []
         for index in unmatched_gold:
-            matched, span_overlap = _matches(labels[index], prediction)
+            matched, span_overlap = _matches(labels[index], prediction, span_ref)
             if matched:
                 candidates.append((index, span_overlap))
         if candidates:
@@ -147,21 +173,21 @@ def _metric_record(
 def _category_accuracy(
     labels: list[Label],
     predictions: list[dict[str, Any]],
+    span_ref: str = "auto",
 ) -> dict[str, Any]:
     unmatched_gold = set(range(len(labels)))
     correct = 0
     support = 0
     for prediction in predictions:
-        predicted_span = _span(prediction.get("span"))
-        if predicted_span is None:
+        if not _predicted_spans(prediction, span_ref):
             continue
         candidates: list[tuple[int, float]] = []
         for index in unmatched_gold:
             label_span = _span(labels[index].span)
             if label_span is None:
                 continue
-            span_overlap = overlap(label_span, predicted_span, mode="iou")
-            if span_overlap >= 0.3:
+            span_overlap = _best_overlap(label_span, prediction, span_ref)
+            if span_overlap is not None and span_overlap >= 0.3:
                 candidates.append((index, span_overlap))
         if not candidates:
             continue
@@ -242,6 +268,7 @@ def _annotator_metrics(
     items: list[Item],
     predictions: dict[tuple[str, str], list[dict[str, Any]]],
     annotator: str,
+    span_ref: str = "auto",
 ) -> dict[str, dict[str, Any]]:
     result: dict[str, dict[str, Any]] = {}
     for lang in sorted({item.lang for item in items}):
@@ -273,6 +300,7 @@ def _annotator_metrics(
                 predictions_by_category.get(category, []),
                 len(lang_items),
                 len(label_items_by_category.get(category, set())),
+                span_ref,
             )
         clean_items = [
             item for item in lang_items
@@ -288,7 +316,7 @@ def _annotator_metrics(
         result[lang] = {
             "items": len(lang_items),
             "per_category": per_category,
-            "category_accuracy": _category_accuracy(all_labels, all_predictions),
+            "category_accuracy": _category_accuracy(all_labels, all_predictions, span_ref),
             "clean_items": len(clean_items),
             "false_alarm_items": false_alarm_items,
             "false_alarm_rate": round(
@@ -380,6 +408,7 @@ def leave_one_language_out(
     labeled_items: list[Item],
     predictions: dict[tuple[str, str], list[dict[str, Any]]],
     seed: int,
+    span_ref: str = "auto",
 ) -> dict[str, Any]:
     languages = sorted({item.lang for item in labeled_items})
     results: dict[str, Any] = {}
@@ -417,6 +446,7 @@ def leave_one_language_out(
                 test_items,
                 test_predictions,
                 annotator,
+                span_ref,
             ).get(held_out, {})
             lang_metrics[annotator] = {
                 "items": len(test_items),
@@ -445,6 +475,7 @@ def evaluate_labeled_items(
     labeled_items: list[Item],
     predictions: dict[tuple[str, str], list[dict[str, Any]]],
     seed: int,
+    span_ref: str = "auto",
 ) -> dict[str, Any]:
     split = split_by_source(labeled_items, seed)
     test_items = split.test
@@ -485,7 +516,7 @@ def evaluate_labeled_items(
 
     test_predictions = _apply_thresholds(test_items, predictions, thresholds)
     metrics = {
-        annotator: _annotator_metrics(test_items, test_predictions, annotator)
+        annotator: _annotator_metrics(test_items, test_predictions, annotator, span_ref)
         for annotator in annotators
     }
     test_gold_count = sum(

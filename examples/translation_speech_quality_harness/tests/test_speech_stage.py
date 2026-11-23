@@ -4,7 +4,6 @@ from typing import Any
 
 import numpy as np
 import pytest
-
 from bodhan_eval.budget import Budget
 from bodhan_eval.client.errors import BodhanAPIError
 from bodhan_eval.models import Item
