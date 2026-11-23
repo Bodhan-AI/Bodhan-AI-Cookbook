@@ -156,24 +156,57 @@ def generate_grounded_answer(
         sanitized_msg = sanitize_error_message(raw_msg)
         err_lower = raw_msg.lower()
 
-        # 1. Authentication failure
-        if "401" in raw_msg or "unauthorized" in err_lower or "invalid api key" in err_lower or "authentication" in err_lower:
-            raise RAGGenerationError(
-                message=f"Groq API authentication failed (HTTP 401). Please verify your GROQ_API_KEY. Diagnostic: {sanitized_msg}",
-                category="auth",
-                status_code=401,
-                original_error=exc,
-            ) from exc
+        # Extract structured status_code from exception or response object
+        status_code: int | None = None
+        if hasattr(exc, "status_code") and isinstance(exc.status_code, int):
+            status_code = exc.status_code
+        elif hasattr(exc, "response") and hasattr(exc.response, "status_code") and isinstance(exc.response.status_code, int):
+            status_code = exc.response.status_code
+        elif hasattr(exc, "code") and isinstance(exc.code, int):
+            status_code = exc.code
 
-        # 2. Rate limit (HTTP 429)
-        if "429" in raw_msg or "rate limit" in err_lower:
-            retry_after = None
+        # Fallback regex extraction of HTTP status code from error string
+        if status_code is None:
+            code_match = re.search(r"\b(400|401|403|404|408|429|500|502|503|504)\b", raw_msg)
+            if code_match:
+                try:
+                    status_code = int(code_match.group(1))
+                except ValueError:
+                    status_code = None
+
+        # Extract retry_after from structured headers if available
+        retry_after: float | None = None
+        resp_obj = getattr(exc, "response", None)
+        headers = getattr(resp_obj, "headers", None) if resp_obj is not None else getattr(exc, "headers", None)
+        if headers and hasattr(headers, "get"):
+            hdr_val = headers.get("retry-after") or headers.get("Retry-After")
+            if hdr_val is not None:
+                try:
+                    retry_after = float(hdr_val)
+                except (ValueError, TypeError):
+                    retry_after = None
+
+        # Fallback regex extraction for retry_after
+        if retry_after is None:
             retry_match = re.search(r"retry[-_]after[:\s]+(\d+(?:\.\d+)?)", raw_msg, re.IGNORECASE)
             if retry_match:
                 try:
                     retry_after = float(retry_match.group(1))
                 except ValueError:
                     retry_after = None
+
+        # 1. Authentication failure (HTTP 401 / 403)
+        if status_code in (401, 403) or "unauthorized" in err_lower or "invalid api key" in err_lower or "authentication" in err_lower:
+            effective_code = status_code if status_code in (401, 403) else 401
+            raise RAGGenerationError(
+                message=f"Groq API authentication failed (HTTP {effective_code}). Please verify your GROQ_API_KEY. Diagnostic: {sanitized_msg}",
+                category="auth",
+                status_code=effective_code,
+                original_error=exc,
+            ) from exc
+
+        # 2. Rate limit (HTTP 429)
+        if status_code == 429 or "rate limit" in err_lower:
             delay_hint = f"Retry after {retry_after} seconds." if retry_after else "Please wait before retrying."
             raise RAGGenerationError(
                 message=f"Groq API rate limit exceeded (HTTP 429). {delay_hint} Diagnostic: {sanitized_msg}",
@@ -183,32 +216,33 @@ def generate_grounded_answer(
                 original_error=exc,
             ) from exc
 
-        # 3. Timeout
-        if isinstance(exc, TimeoutError) or "timeout" in err_lower or "timed out" in err_lower:
+        # 3. Timeout (HTTP 408 / TimeoutError)
+        if (status_code == 408 or isinstance(exc, TimeoutError) or "timeout" in err_lower or "timed out" in err_lower) and not (status_code is not None and 500 <= status_code <= 599):
             raise RAGGenerationError(
                 message=(
                     f"Groq answer generation request timed out. Please check network connectivity or increase request timeout. "
                     f"Diagnostic: {sanitized_msg}"
                 ),
                 category="timeout",
-                status_code=408,
+                status_code=status_code or 408,
                 original_error=exc,
             ) from exc
 
         # 4. Network / Connection errors
-        if "connection" in err_lower or "failed to establish" in err_lower or "network" in err_lower:
+        if isinstance(exc, (ConnectionError, OSError)) or "connection" in err_lower or "failed to establish" in err_lower or "network" in err_lower:
             raise RAGGenerationError(
                 message=f"Network error connecting to Groq API. Please verify internet connectivity. Diagnostic: {sanitized_msg}",
                 category="network",
                 original_error=exc,
             ) from exc
 
-        # 5. Server errors (HTTP 500, 502, 503)
-        if any(code in raw_msg for code in ("500", "502", "503", "504")) or "internal server error" in err_lower or "service unavailable" in err_lower:
+        # 5. Server errors (HTTP 500, 502, 503, 504)
+        if (status_code is not None and 500 <= status_code <= 599) or any(code in raw_msg for code in ("500", "502", "503", "504")) or "internal server error" in err_lower or "service unavailable" in err_lower or "bad gateway" in err_lower:
+            server_code = status_code if (status_code is not None and 500 <= status_code <= 599) else 500
             raise RAGGenerationError(
-                message=f"Groq service error (HTTP 5xx). The remote inference server encountered an internal error. Diagnostic: {sanitized_msg}",
+                message=f"Groq service error (HTTP {server_code}). The remote inference server encountered an internal error. Diagnostic: {sanitized_msg}",
                 category="server",
-                status_code=500,
+                status_code=server_code,
                 original_error=exc,
             ) from exc
 
@@ -216,6 +250,7 @@ def generate_grounded_answer(
         raise RAGGenerationError(
             message=f"Groq answer generation failed: {sanitized_msg}",
             category="general",
+            status_code=status_code,
             original_error=exc,
         ) from exc
 

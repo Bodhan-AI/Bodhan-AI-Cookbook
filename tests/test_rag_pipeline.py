@@ -763,7 +763,7 @@ def test_rag_generation_error_network() -> None:
 
 
 def test_rag_generation_error_server() -> None:
-    """Verify HTTP 500/503 server error produces categorized RAGGenerationError."""
+    """Verify HTTP 500/503 server error produces categorized RAGGenerationError with preserved status code."""
     mock_llm = MagicMock(spec=BaseChatModel)
     mock_llm.invoke.side_effect = Exception("HTTP 503: Service Unavailable")
 
@@ -772,7 +772,57 @@ def test_rag_generation_error_server() -> None:
 
     err = exc_info.value
     assert err.category == "server"
-    assert err.status_code == 500
+    assert err.status_code == 503
+
+
+def test_rag_generation_error_structured_attributes() -> None:
+    """Verify error classification extracts status_code and retry_after from structured exception objects."""
+    class StructuredGroqError(Exception):
+        def __init__(self, message: str, status_code: int, headers: dict[str, str]) -> None:
+            super().__init__(message)
+            self.status_code = status_code
+            self.response = MagicMock()
+            self.response.status_code = status_code
+            self.response.headers = headers
+
+    # 1. Structured 429 with retry-after header
+    mock_llm = MagicMock(spec=BaseChatModel)
+    mock_llm.invoke.side_effect = StructuredGroqError(
+        "Rate limit exceeded",
+        status_code=429,
+        headers={"retry-after": "12.5"},
+    )
+    with pytest.raises(RAGGenerationError) as exc_info:
+        generate_grounded_answer(mock_llm, "Query?", "<document id='S1'>text</document>")
+    err = exc_info.value
+    assert err.category == "rate_limit"
+    assert err.status_code == 429
+    assert err.retry_after == 12.5
+    assert "Retry after 12.5 seconds." in err.message
+
+    # 2. Structured 502 Bad Gateway preserves status code 502
+    mock_llm.invoke.side_effect = StructuredGroqError(
+        "Bad Gateway",
+        status_code=502,
+        headers={},
+    )
+    with pytest.raises(RAGGenerationError) as exc_info2:
+        generate_grounded_answer(mock_llm, "Query?", "<document id='S1'>text</document>")
+    err2 = exc_info2.value
+    assert err2.category == "server"
+    assert err2.status_code == 502
+
+    # 3. Structured 504 Gateway Timeout preserves status code 504
+    mock_llm.invoke.side_effect = StructuredGroqError(
+        "Gateway Timeout",
+        status_code=504,
+        headers={},
+    )
+    with pytest.raises(RAGGenerationError) as exc_info3:
+        generate_grounded_answer(mock_llm, "Query?", "<document id='S1'>text</document>")
+    err3 = exc_info3.value
+    assert err3.category == "server"
+    assert err3.status_code == 504
 
 
 def test_rag_generation_error_empty_response() -> None:
