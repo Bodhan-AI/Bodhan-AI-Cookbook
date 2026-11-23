@@ -1,5 +1,4 @@
 """One-command orchestration; all native language generation stays with Bodhan."""
-from copy import deepcopy
 from decimal import Decimal
 import json
 from pathlib import Path
@@ -72,20 +71,6 @@ def speech_jobs(report, voices):
             parents.append({'id':unit['id'],'text':unit['translation'],'children':children,'voice':voice,
                             'language':lang,'source_window_envelope':unit['source_window_envelope']})
     return jobs,{'parents':parents}
-
-
-def parent_checks(checks, parents):
-    result={'languages':{},'limitations':checks.get('limitations',[])}
-    for parent in parents['parents']:
-        lang=parent['language'];lookup={u['id']:u for u in checks['languages'].get(lang,{}).get('units',[])}
-        children=[lookup.get(c,{}) for c in parent['children']]
-        row={'id':parent['id'],'status':'incomplete','cer':None}
-        if all(c.get('hypothesis_text') is not None for c in children):
-            hypothesis=' '.join(c['hypothesis_text'] for c in children)
-            metric=qa.character_error_rate(parent['text'],hypothesis)
-            row.update(**metric,hypothesis_text=hypothesis,status='pass' if metric['cer']<=.2 else 'warning')
-        result['languages'].setdefault(lang,{'units':[]})['units'].append(row)
-    return result
 
 
 def run_pipeline(args):
@@ -198,19 +183,18 @@ def run_pipeline(args):
                 elif lang in eligible:report['languages'][lang]={'status':'failed','reason':'Synthesis incomplete; see stage journals.'}
             if not usable:raise MediaError('no_complete_language','No language has complete source coverage; no incomplete video was finalized.')
             assembled['languages']={l:assembled['languages'][l] for l in usable};atomic_json(run/'synthesis/synthesis_report.json',assembled)
-            qa_report=deepcopy(generated);qa_report['languages']={l:d for l,d in generated['languages'].items() if l in usable}
-            # Verification inspector resolves audio next to the synthesis report.
-            for lang,data in qa_report['languages'].items():
-                for u in data['units']:
-                    if u['status']=='synthesized':
-                        target=run/'parts'/lang/(u['id']+'.wav')
-                        if Path(u['result']['audio_path']).resolve()!=target.resolve():shutil.copyfile(u['result']['audio_path'],target)
-            qa_rows=qa.inspect_synthesis(run/'parts/synthesis_report.json');qa_rows=[r for r in qa_rows if r['language'] in usable]
-            requests=qa.prepare(qa_rows,run/'verification_parts',ffmpeg);amount=Decimal(qa.estimate(qa_rows)['one_attempt_cost_inr'])+Decimal('.00001')
-            recognizer=asr.TranscriptionClient(keys[0],cache/'asr',asr.RetrySettings(attempts=1,concurrency=2),allowed_languages=set(usable))
-            checked=stage_call(budget,'speech_verification',amount,
-                lambda:qa.verify(qa_rows,requests,run/'verification_parts',recognizer,amount,workers=2),lambda r:r['estimated_new_cost_inr'])
-            atomic_json(run/'verification/verification_report.json',parent_checks(checked,parents));save('content_verification')
+            # Verify the assembled narration once per unit. The verifier still
+            # splits long audio into bounded overlapping recognition windows.
+            qa_rows = qa.inspect_synthesis(run/'synthesis/synthesis_report.json')
+            verification_dir = run/'verification'
+            requests = qa.prepare(qa_rows, verification_dir, ffmpeg)
+            amount = Decimal(qa.estimate(qa_rows)['one_attempt_cost_inr']) + Decimal('.00001')
+            recognizer = asr.TranscriptionClient(keys[0], cache/'asr',
+                asr.RetrySettings(attempts=1, concurrency=2), allowed_languages=set(usable))
+            stage_call(budget, 'speech_verification', amount,
+                lambda: qa.verify(qa_rows, requests, verification_dir, recognizer, amount, workers=2),
+                lambda result: result['estimated_new_cost_inr'])
+            save('content_verification')
             remaining=budget.limit-budget.spent
             if remaining<=0:raise MediaError('fit_budget_exceeded','No allowance remains for fitting recovery.')
             fitted=run_fit(run,out/'_fit',args.env_file,remaining,ffmpeg=ffmpeg,provider_cache=cache)

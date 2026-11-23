@@ -1524,3 +1524,9 @@ Only languages with complete verified text enter speech generation. Speech
 generation and verification each use two workers with the existing request
 pacing. The budget lock makes each reservation and journal update atomic
 across speech workers.
+
+Content verification reads each assembled narration WAV and checks its hash
+against the synthesis report. Short synthesis pieces therefore share one
+recognition request when the assembled audio fits the verification window.
+Long units still use bounded overlapping windows. On the saved Tamil replay
+this changed the verification request count from 62 to 28.
