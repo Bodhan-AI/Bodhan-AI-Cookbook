@@ -216,11 +216,21 @@ print("Translation Result:", result)
 Integrating with an agent:
 
 ```python
-from langchain.agents import create_openai_tools_agent, AgentExecutor
-from langchain_core.prompts import ChatPromptTemplate
+from bodhan_langchain import BodhanTranslationTool
+from langchain.agents import create_agent
+from langchain_groq import ChatGroq
 
+# 1. Initialize Bodhan translation tool
 tools = [BodhanTranslationTool(target_language="en")]
-# Pass tools to your agent definition...
+
+# 2. Initialize chat model (e.g. ChatGroq)
+model = ChatGroq(model="openai/gpt-oss-120b", temperature=0.0)
+
+# 3. Create agent
+agent = create_agent(model=model, tools=tools)
+
+# 4. Invoke agent
+response = agent.invoke({"messages": [{"role": "user", "content": "Translate 'வணக்கம்' into English."}]})
 ```
 
 ---
