@@ -1,0 +1,433 @@
+{
+  "_comment": "Language registry. Adding a language = adding an entry here; no code changes. 'script' names a key in 'scripts'. 'function_words' and 'marker_chars' are optional and only used to tell apart languages that share a script (e.g. hi/mr/ne, bn/as). Voices come from scripts/bodhan_api_rules.json in the Cookbook.",
+  "scripts": {
+    "LATIN": [
+      [
+        65,
+        90
+      ],
+      [
+        97,
+        122
+      ],
+      [
+        192,
+        591
+      ]
+    ],
+    "DEVANAGARI": [
+      [
+        2304,
+        2431
+      ],
+      [
+        43232,
+        43263
+      ],
+      [
+        7376,
+        7423
+      ]
+    ],
+    "BENGALI": [
+      [
+        2432,
+        2559
+      ]
+    ],
+    "GURMUKHI": [
+      [
+        2560,
+        2687
+      ]
+    ],
+    "GUJARATI": [
+      [
+        2688,
+        2815
+      ]
+    ],
+    "ORIYA": [
+      [
+        2816,
+        2943
+      ]
+    ],
+    "TAMIL": [
+      [
+        2944,
+        3071
+      ],
+      [
+        73664,
+        73727
+      ]
+    ],
+    "TELUGU": [
+      [
+        3072,
+        3199
+      ]
+    ],
+    "KANNADA": [
+      [
+        3200,
+        3327
+      ]
+    ],
+    "MALAYALAM": [
+      [
+        3328,
+        3455
+      ]
+    ],
+    "ARABIC": [
+      [
+        1536,
+        1791
+      ],
+      [
+        1872,
+        1919
+      ],
+      [
+        2208,
+        2303
+      ],
+      [
+        64336,
+        65023
+      ],
+      [
+        65136,
+        65279
+      ]
+    ],
+    "MEETEI_MAYEK": [
+      [
+        43968,
+        44031
+      ],
+      [
+        43744,
+        43775
+      ]
+    ],
+    "OL_CHIKI": [
+      [
+        7248,
+        7295
+      ]
+    ]
+  },
+  "languages": {
+    "as": {
+      "name": "Assamese",
+      "script": "BENGALI",
+      "voices": [
+        "Prastuti",
+        "Ankur"
+      ],
+      "marker_chars": [
+        "ৰ",
+        "ৱ"
+      ],
+      "function_words": [
+        "আৰু",
+        "নহয়",
+        "কৰে",
+        "পৰা",
+        "বাবে"
+      ]
+    },
+    "bn": {
+      "name": "Bengali",
+      "script": "BENGALI",
+      "voices": [
+        "Ishita",
+        "Sourav"
+      ],
+      "marker_chars": [
+        "র"
+      ],
+      "function_words": [
+        "এবং",
+        "করে",
+        "এর",
+        "যে",
+        "থেকে",
+        "জন্য"
+      ]
+    },
+    "brx": {
+      "name": "Bodo",
+      "script": "DEVANAGARI",
+      "voices": [
+        "Gwrbw",
+        "Sansuma"
+      ]
+    },
+    "doi": {
+      "name": "Dogri",
+      "script": "DEVANAGARI",
+      "voices": [
+        "Preeti",
+        "Sham"
+      ]
+    },
+    "en": {
+      "name": "English",
+      "script": "LATIN",
+      "voices": []
+    },
+    "gu": {
+      "name": "Gujarati",
+      "script": "GUJARATI",
+      "voices": [
+        "Dhara",
+        "Parth"
+      ]
+    },
+    "hi": {
+      "name": "Hindi",
+      "script": "DEVANAGARI",
+      "voices": [
+        "Kavya",
+        "Suhani",
+        "Amit"
+      ],
+      "function_words": [
+        "है",
+        "हैं",
+        "के",
+        "की",
+        "का",
+        "में",
+        "और",
+        "से",
+        "को",
+        "यह",
+        "नहीं"
+      ]
+    },
+    "kn": {
+      "name": "Kannada",
+      "script": "KANNADA",
+      "voices": [
+        "Deepika",
+        "Adarsh"
+      ]
+    },
+    "kok": {
+      "name": "Konkani",
+      "script": "DEVANAGARI",
+      "voices": [
+        "Anjali",
+        "Sandeep"
+      ],
+      "function_words": [
+        "आसा",
+        "आनी"
+      ]
+    },
+    "ks": {
+      "name": "Kashmiri",
+      "script": "ARABIC",
+      "voices": [
+        "Zoon",
+        "Ishfaq"
+      ],
+      "marker_chars": [
+        "ۄ",
+        "ؠ",
+        "ٲ"
+      ]
+    },
+    "ks-Deva": {
+      "name": "Kashmiri (Devanagari)",
+      "script": "DEVANAGARI",
+      "voices": [
+        "Zoon",
+        "Ishfaq"
+      ],
+      "tts_lang": "ks",
+      "asr_lang": "ks"
+    },
+    "mai": {
+      "name": "Maithili",
+      "script": "DEVANAGARI",
+      "voices": [
+        "Vaidehi",
+        "Madhukar"
+      ],
+      "function_words": [
+        "अछि",
+        "छल",
+        "सेहो"
+      ]
+    },
+    "ml": {
+      "name": "Malayalam",
+      "script": "MALAYALAM",
+      "voices": [
+        "Lakshmi",
+        "Kiran"
+      ]
+    },
+    "mni": {
+      "name": "Manipuri",
+      "script": "MEETEI_MAYEK",
+      "voices": [
+        "Thoibi",
+        "Chaoba"
+      ]
+    },
+    "mni-Beng": {
+      "name": "Manipuri (Bengali script)",
+      "script": "BENGALI",
+      "voices": [
+        "Thoibi",
+        "Chaoba"
+      ],
+      "tts_lang": "mni",
+      "asr_lang": "mni"
+    },
+    "mr": {
+      "name": "Marathi",
+      "script": "DEVANAGARI",
+      "voices": [
+        "Anagha",
+        "Chinmay"
+      ],
+      "function_words": [
+        "आहे",
+        "आहेत",
+        "आणि",
+        "नाही",
+        "म्हणून",
+        "आपल्या"
+      ]
+    },
+    "ne": {
+      "name": "Nepali",
+      "script": "DEVANAGARI",
+      "voices": [
+        "Srijana",
+        "Sagar"
+      ],
+      "function_words": [
+        "छ",
+        "छन्",
+        "र",
+        "पनि",
+        "यो",
+        "थियो",
+        "भने"
+      ]
+    },
+    "or": {
+      "name": "Odia",
+      "script": "ORIYA",
+      "voices": [
+        "Itishree",
+        "Akash"
+      ]
+    },
+    "pa": {
+      "name": "Punjabi",
+      "script": "GURMUKHI",
+      "voices": [
+        "Kaur",
+        "Manpreet"
+      ]
+    },
+    "sa": {
+      "name": "Sanskrit",
+      "script": "DEVANAGARI",
+      "voices": [
+        "Bharati",
+        "Aryaman"
+      ],
+      "function_words": [
+        "अस्ति",
+        "च",
+        "एव",
+        "इति",
+        "भवति"
+      ]
+    },
+    "sat": {
+      "name": "Santali",
+      "script": "OL_CHIKI",
+      "voices": [
+        "Phulmani",
+        "Sibu"
+      ]
+    },
+    "sd": {
+      "name": "Sindhi (Devanagari)",
+      "script": "DEVANAGARI",
+      "voices": [
+        "Moomal",
+        "Rano"
+      ]
+    },
+    "sd-Arab": {
+      "name": "Sindhi (Perso-Arabic)",
+      "script": "ARABIC",
+      "voices": [
+        "Moomal",
+        "Rano"
+      ],
+      "tts_lang": "sd",
+      "asr_lang": "sd",
+      "marker_chars": [
+        "ڄ",
+        "ڃ",
+        "ڇ",
+        "ڏ",
+        "ڙ",
+        "ڪ",
+        "ڻ"
+      ]
+    },
+    "ta": {
+      "name": "Tamil",
+      "script": "TAMIL",
+      "voices": [
+        "Anitha",
+        "Arun"
+      ]
+    },
+    "te": {
+      "name": "Telugu",
+      "script": "TELUGU",
+      "voices": [
+        "Sravani",
+        "Vamsi"
+      ]
+    },
+    "ur": {
+      "name": "Urdu",
+      "script": "ARABIC",
+      "voices": [
+        "Saba",
+        "Zaid"
+      ],
+      "function_words": [
+        "ہے",
+        "کے",
+        "کی",
+        "میں",
+        "اور",
+        "سے",
+        "کو"
+      ]
+    }
+  },
+  "priors": {
+    "_comment": "Fallbacks used only when the dataset has too few items in a language to estimate these from the data itself.",
+    "length_ratio": 1.05,
+    "chars_per_second": 13.0
+  }
+}

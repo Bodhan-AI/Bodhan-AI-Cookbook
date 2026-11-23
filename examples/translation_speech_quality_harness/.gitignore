@@ -1,0 +1,25 @@
+# secrets
+.env
+.env.*
+!.env.example
+# python
+.venv/
+venv/
+__pycache__/
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+# run artefacts: model cache, reports, generated audio (audio is linked from the README, never committed)
+.cache/
+outputs/*
+!outputs/.gitkeep
+*.wav
+*.mp3
+*.flac
+*.ogg
+# the independent exam set lives in a sibling folder, but never commit it here either
+exam/

@@ -1,0 +1,2 @@
+{"id": "hi-03", "lang": "hi", "labels": [{"type": "untranslated", "severity": "critical", "span": [0, 48], "annotator": "fixture"}]}
+{"id": "cal-01", "lang": "hi", "source": "Ice melts at 0 °C.", "translation": "बर्फ 0 °C पर पिघलती है।", "labels": []}

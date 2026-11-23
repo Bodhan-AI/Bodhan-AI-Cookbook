@@ -1,0 +1,627 @@
+{
+  "base_thresholds": {
+    "addition": 0.5,
+    "format": 0.5,
+    "mistranslation": 0.5,
+    "number": 0.5,
+    "omission": 0.5,
+    "speech_garbled": 0.5,
+    "speech_omission": 0.5,
+    "speech_repetition": 0.5,
+    "term": 0.5,
+    "wrong_language": 0.5
+  },
+  "cross_validated": {
+    "category_accuracy": 1.0,
+    "category_accuracy_exact": 1.0,
+    "clean_items": 20,
+    "false_alarm_rate": 0.0,
+    "item_recall": 0.85,
+    "labelled_items": 40,
+    "labels": 27,
+    "localization": 0.9524,
+    "per_category": {
+      "addition": {
+        "category_accuracy": 1.0,
+        "category_correct": 2,
+        "detected": 2,
+        "f1": 1.0,
+        "flags": 2,
+        "flags_matched": 2,
+        "labels": 2,
+        "localizable": 2,
+        "localization": 1.0,
+        "localized": 2,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "format": {
+        "category_accuracy": 1.0,
+        "category_correct": 2,
+        "detected": 2,
+        "f1": 1.0,
+        "flags": 2,
+        "flags_matched": 2,
+        "labels": 2,
+        "localizable": 2,
+        "localization": 1.0,
+        "localized": 2,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "mistranslation": {
+        "category_accuracy": 1.0,
+        "category_correct": 3,
+        "detected": 3,
+        "f1": 1.0,
+        "flags": 3,
+        "flags_matched": 3,
+        "labels": 3,
+        "localizable": 3,
+        "localization": 1.0,
+        "localized": 3,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "number": {
+        "category_accuracy": 1.0,
+        "category_correct": 1,
+        "detected": 1,
+        "f1": 0.5,
+        "flags": 1,
+        "flags_matched": 1,
+        "labels": 3,
+        "localizable": 1,
+        "localization": 1.0,
+        "localized": 1,
+        "precision": 1.0,
+        "recall": 0.3333
+      },
+      "omission": {
+        "category_accuracy": 1.0,
+        "category_correct": 3,
+        "detected": 3,
+        "f1": 1.0,
+        "flags": 3,
+        "flags_matched": 3,
+        "labels": 3,
+        "localizable": 3,
+        "localization": 1.0,
+        "localized": 3,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "speech_garbled": {
+        "category_accuracy": 1.0,
+        "category_correct": 1,
+        "detected": 1,
+        "f1": 0.5,
+        "flags": 2,
+        "flags_matched": 1,
+        "labels": 2,
+        "localizable": 1,
+        "localization": 0.0,
+        "localized": 0,
+        "precision": 0.5,
+        "recall": 0.5
+      },
+      "speech_omission": {
+        "category_accuracy": 1.0,
+        "category_correct": 4,
+        "detected": 4,
+        "f1": 0.8,
+        "flags": 5,
+        "flags_matched": 4,
+        "labels": 5,
+        "localizable": 4,
+        "localization": 1.0,
+        "localized": 4,
+        "precision": 0.8,
+        "recall": 0.8
+      },
+      "speech_repetition": {
+        "category_accuracy": 1.0,
+        "category_correct": 1,
+        "detected": 1,
+        "f1": 0.6667,
+        "flags": 1,
+        "flags_matched": 1,
+        "labels": 2,
+        "localizable": 1,
+        "localization": 1.0,
+        "localized": 1,
+        "precision": 1.0,
+        "recall": 0.5
+      },
+      "term": {
+        "category_accuracy": 1.0,
+        "category_correct": 2,
+        "detected": 2,
+        "f1": 0.6667,
+        "flags": 3,
+        "flags_matched": 2,
+        "labels": 3,
+        "localizable": 2,
+        "localization": 1.0,
+        "localized": 2,
+        "precision": 0.6667,
+        "recall": 0.6667
+      },
+      "wrong_language": {
+        "category_accuracy": 1.0,
+        "category_correct": 2,
+        "detected": 2,
+        "f1": 1.0,
+        "flags": 2,
+        "flags_matched": 2,
+        "labels": 2,
+        "localizable": 2,
+        "localization": 1.0,
+        "localized": 2,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    "per_language": {
+      "bn": {
+        "clean_flagged": 0,
+        "clean_items": 7,
+        "detected": 4,
+        "false_alarm_rate": 0.0,
+        "labels": 8,
+        "recall": 0.5
+      },
+      "hi": {
+        "clean_flagged": 0,
+        "clean_items": 7,
+        "detected": 7,
+        "false_alarm_rate": 0.0,
+        "labels": 8,
+        "recall": 0.875
+      },
+      "ta": {
+        "clean_flagged": 0,
+        "clean_items": 6,
+        "detected": 10,
+        "false_alarm_rate": 0.0,
+        "labels": 11,
+        "recall": 0.9091
+      }
+    },
+    "precision": 0.875,
+    "recall": 0.7778
+  },
+  "evaluation": {
+    "category_accuracy": 1.0,
+    "category_accuracy_exact": 1.0,
+    "clean_items": 20,
+    "false_alarm_rate": 0.0,
+    "item_recall": 0.85,
+    "labelled_items": 40,
+    "labels": 27,
+    "localization": 0.9524,
+    "per_category": {
+      "addition": {
+        "category_accuracy": 1.0,
+        "category_correct": 2,
+        "detected": 2,
+        "f1": 1.0,
+        "flags": 2,
+        "flags_matched": 2,
+        "labels": 2,
+        "localizable": 2,
+        "localization": 1.0,
+        "localized": 2,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "format": {
+        "category_accuracy": 1.0,
+        "category_correct": 2,
+        "detected": 2,
+        "f1": 1.0,
+        "flags": 2,
+        "flags_matched": 2,
+        "labels": 2,
+        "localizable": 2,
+        "localization": 1.0,
+        "localized": 2,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "mistranslation": {
+        "category_accuracy": 1.0,
+        "category_correct": 3,
+        "detected": 3,
+        "f1": 1.0,
+        "flags": 3,
+        "flags_matched": 3,
+        "labels": 3,
+        "localizable": 3,
+        "localization": 1.0,
+        "localized": 3,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "number": {
+        "category_accuracy": 1.0,
+        "category_correct": 1,
+        "detected": 1,
+        "f1": 0.5,
+        "flags": 1,
+        "flags_matched": 1,
+        "labels": 3,
+        "localizable": 1,
+        "localization": 1.0,
+        "localized": 1,
+        "precision": 1.0,
+        "recall": 0.3333
+      },
+      "omission": {
+        "category_accuracy": 1.0,
+        "category_correct": 3,
+        "detected": 3,
+        "f1": 1.0,
+        "flags": 3,
+        "flags_matched": 3,
+        "labels": 3,
+        "localizable": 3,
+        "localization": 1.0,
+        "localized": 3,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "speech_garbled": {
+        "category_accuracy": 1.0,
+        "category_correct": 1,
+        "detected": 1,
+        "f1": 0.5,
+        "flags": 2,
+        "flags_matched": 1,
+        "labels": 2,
+        "localizable": 1,
+        "localization": 0.0,
+        "localized": 0,
+        "precision": 0.5,
+        "recall": 0.5
+      },
+      "speech_omission": {
+        "category_accuracy": 1.0,
+        "category_correct": 4,
+        "detected": 4,
+        "f1": 0.8,
+        "flags": 5,
+        "flags_matched": 4,
+        "labels": 5,
+        "localizable": 4,
+        "localization": 1.0,
+        "localized": 4,
+        "precision": 0.8,
+        "recall": 0.8
+      },
+      "speech_repetition": {
+        "category_accuracy": 1.0,
+        "category_correct": 1,
+        "detected": 1,
+        "f1": 0.6667,
+        "flags": 1,
+        "flags_matched": 1,
+        "labels": 2,
+        "localizable": 1,
+        "localization": 1.0,
+        "localized": 1,
+        "precision": 1.0,
+        "recall": 0.5
+      },
+      "term": {
+        "category_accuracy": 1.0,
+        "category_correct": 2,
+        "detected": 2,
+        "f1": 0.6667,
+        "flags": 3,
+        "flags_matched": 2,
+        "labels": 3,
+        "localizable": 2,
+        "localization": 1.0,
+        "localized": 2,
+        "precision": 0.6667,
+        "recall": 0.6667
+      },
+      "wrong_language": {
+        "category_accuracy": 1.0,
+        "category_correct": 2,
+        "detected": 2,
+        "f1": 1.0,
+        "flags": 2,
+        "flags_matched": 2,
+        "labels": 2,
+        "localizable": 2,
+        "localization": 1.0,
+        "localized": 2,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    "per_language": {
+      "bn": {
+        "clean_flagged": 0,
+        "clean_items": 7,
+        "detected": 4,
+        "false_alarm_rate": 0.0,
+        "labels": 8,
+        "recall": 0.5
+      },
+      "hi": {
+        "clean_flagged": 0,
+        "clean_items": 7,
+        "detected": 7,
+        "false_alarm_rate": 0.0,
+        "labels": 8,
+        "recall": 0.875
+      },
+      "ta": {
+        "clean_flagged": 0,
+        "clean_items": 6,
+        "detected": 10,
+        "false_alarm_rate": 0.0,
+        "labels": 11,
+        "recall": 0.9091
+      }
+    },
+    "precision": 0.875,
+    "recall": 0.7778
+  },
+  "judge_consistency": {
+    "items": 180,
+    "per_language": {
+      "bn": 0.9,
+      "hi": 0.9167,
+      "ta": 0.85
+    },
+    "repeat": {
+      "items": 18,
+      "same_categories_rate": 0.8889
+    },
+    "same_categories_rate": 0.8889,
+    "same_verdict_rate": 0.9444,
+    "tie_break_rate": 0.1111
+  },
+  "per_check": {
+    "asr": {
+      "precision": 0.5556,
+      "recall_by_category": {
+        "speech_omission": 0.8,
+        "speech_repetition": 0.5
+      },
+      "signals": 9
+    },
+    "audio_stats": {
+      "precision": 1.0,
+      "recall_by_category": {},
+      "signals": 1
+    },
+    "back_translation": {
+      "precision": 0.4286,
+      "recall_by_category": {
+        "mistranslation": 0.3333,
+        "omission": 0.3333
+      },
+      "signals": 7
+    },
+    "entities": {
+      "precision": 0.25,
+      "recall_by_category": {},
+      "signals": 4
+    },
+    "format": {
+      "precision": 1.0,
+      "recall_by_category": {
+        "format": 1.0
+      },
+      "signals": 2
+    },
+    "judge": {
+      "precision": 0.4706,
+      "recall_by_category": {
+        "addition": 1.0,
+        "format": 1.0,
+        "mistranslation": 1.0,
+        "number": 0.3333,
+        "omission": 1.0,
+        "term": 0.6667,
+        "wrong_language": 1.0
+      },
+      "signals": 34
+    },
+    "numbers": {
+      "precision": 1.0,
+      "recall_by_category": {
+        "number": 0.3333
+      },
+      "signals": 1
+    },
+    "script": {
+      "precision": 1.0,
+      "recall_by_category": {
+        "wrong_language": 1.0
+      },
+      "signals": 2
+    }
+  },
+  "threshold_source": "defaults",
+  "thresholds": {
+    "addition": 0.5,
+    "format": 0.5,
+    "mistranslation": 0.5,
+    "number": 0.5,
+    "omission": 0.5,
+    "speech_garbled": 0.5,
+    "speech_omission": 0.7,
+    "speech_repetition": 0.5,
+    "term": 0.5,
+    "wrong_language": 0.5
+  },
+  "tuning": {
+    "categories": {
+      "addition": {
+        "labels": 2,
+        "reason": "fewer than 5 labels",
+        "threshold": 0.5,
+        "tuned": false
+      },
+      "format": {
+        "labels": 2,
+        "reason": "fewer than 5 labels",
+        "threshold": 0.5,
+        "tuned": false
+      },
+      "mistranslation": {
+        "labels": 3,
+        "reason": "fewer than 5 labels",
+        "threshold": 0.5,
+        "tuned": false
+      },
+      "number": {
+        "labels": 3,
+        "reason": "fewer than 5 labels",
+        "threshold": 0.5,
+        "tuned": false
+      },
+      "omission": {
+        "labels": 3,
+        "reason": "fewer than 5 labels",
+        "threshold": 0.5,
+        "tuned": false
+      },
+      "speech_garbled": {
+        "labels": 2,
+        "reason": "fewer than 5 labels",
+        "threshold": 0.5,
+        "tuned": false
+      },
+      "speech_omission": {
+        "curve": [
+          {
+            "f1": 0.8,
+            "p": 0.8,
+            "r": 0.8,
+            "t": 0.3
+          },
+          {
+            "f1": 0.8,
+            "p": 0.8,
+            "r": 0.8,
+            "t": 0.35
+          },
+          {
+            "f1": 0.8,
+            "p": 0.8,
+            "r": 0.8,
+            "t": 0.4
+          },
+          {
+            "f1": 0.8,
+            "p": 0.8,
+            "r": 0.8,
+            "t": 0.45
+          },
+          {
+            "f1": 0.8,
+            "p": 0.8,
+            "r": 0.8,
+            "t": 0.5
+          },
+          {
+            "f1": 0.8,
+            "p": 0.8,
+            "r": 0.8,
+            "t": 0.55
+          },
+          {
+            "f1": 0.8,
+            "p": 0.8,
+            "r": 0.8,
+            "t": 0.6
+          },
+          {
+            "f1": 0.8,
+            "p": 0.8,
+            "r": 0.8,
+            "t": 0.65
+          },
+          {
+            "f1": 0.8,
+            "p": 0.8,
+            "r": 0.8,
+            "t": 0.7
+          },
+          {
+            "f1": 0.6667,
+            "p": 0.75,
+            "r": 0.6,
+            "t": 0.75
+          },
+          {
+            "f1": 0.6667,
+            "p": 0.75,
+            "r": 0.6,
+            "t": 0.8
+          },
+          {
+            "f1": 0.75,
+            "p": 1.0,
+            "r": 0.6,
+            "t": 0.85
+          },
+          {
+            "f1": 0.3333,
+            "p": 1.0,
+            "r": 0.2,
+            "t": 0.9
+          }
+        ],
+        "f1": 0.8,
+        "labels": 5,
+        "precision": 0.8,
+        "recall": 0.8,
+        "threshold": 0.7,
+        "tuned": true
+      },
+      "speech_repetition": {
+        "labels": 2,
+        "reason": "fewer than 5 labels",
+        "threshold": 0.5,
+        "tuned": false
+      },
+      "term": {
+        "labels": 3,
+        "reason": "fewer than 5 labels",
+        "threshold": 0.5,
+        "tuned": false
+      },
+      "wrong_language": {
+        "labels": 2,
+        "reason": "fewer than 5 labels",
+        "threshold": 0.5,
+        "tuned": false
+      }
+    },
+    "grid": [
+      0.3,
+      0.35,
+      0.4,
+      0.45,
+      0.5,
+      0.55,
+      0.6,
+      0.65,
+      0.7,
+      0.75,
+      0.8,
+      0.85,
+      0.9
+    ],
+    "method": "per-category F1 grid search over fused scores; ties -> higher threshold",
+    "min_labels_to_tune": 5
+  }
+}

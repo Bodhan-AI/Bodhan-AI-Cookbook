@@ -1,0 +1,597 @@
+[
+ {
+  "id": "geo-01",
+  "kind": "fact",
+  "subject": "Geography",
+  "ncert": "Class 9 Geography (Contemporary India I): Physical Features of India",
+  "title": "Kangchenjunga",
+  "revid": 1386745234,
+  "adapted": [
+   "Its summit lies at 8,586 m in a section of the Himalayas"
+  ]
+ },
+ {
+  "id": "geo-02",
+  "kind": "fact",
+  "subject": "Geography",
+  "ncert": "Class 9 Geography (Contemporary India I): Drainage",
+  "title": "Ganges",
+  "revid": 1383946766,
+  "adapted": [
+   "The Ganges is a trans-boundary river of Asia which flows through India and Bangladesh",
+   "The 2,525-kilometre-long river rises in the western Himalayas in the Indian state of Uttarakhand"
+  ]
+ },
+ {
+  "id": "geo-03",
+  "kind": "fact",
+  "subject": "Geography",
+  "ncert": "Class 9 Geography (Contemporary India I): India – Size and Location",
+  "title": "Geography of India",
+  "revid": 1385472360,
+  "adapted": [
+   "India is the seventh-largest country in the world, with a total area of 3,287,263 square kilometres",
+   "India measures 3,214 km from north to south and 2,933 km from east to west"
+  ]
+ },
+ {
+  "id": "geo-04",
+  "kind": "fact",
+  "subject": "Geography",
+  "ncert": "Class 10 Geography (Contemporary India II): Water Resources",
+  "title": "Bhakra Dam",
+  "revid": 1383449831,
+  "adapted": []
+ },
+ {
+  "id": "geo-05",
+  "kind": "fact",
+  "subject": "Geography",
+  "ncert": "Class 10 Geography (Contemporary India II): Agriculture",
+  "title": "Agriculture in India",
+  "revid": 1386855292,
+  "adapted": []
+ },
+ {
+  "id": "geo-06",
+  "kind": "fact",
+  "subject": "Geography",
+  "ncert": "Class 9 Geography (Contemporary India I): Climate",
+  "title": "Climate of India",
+  "revid": 1385255101,
+  "adapted": []
+ },
+ {
+  "id": "phy-01",
+  "kind": "fact",
+  "subject": "Physics",
+  "ncert": "Class 11 Physics: Units and Measurement",
+  "title": "Speed of light",
+  "revid": 1384718539,
+  "adapted": []
+ },
+ {
+  "id": "phy-02",
+  "kind": "fact",
+  "subject": "Physics",
+  "ncert": "Class 9 Science: Gravitation",
+  "title": "Gravity of Earth",
+  "revid": 1384882484,
+  "adapted": [
+   "Near Earth's surface, the acceleration due to gravity, accurate to 2 significant figures, is 9.8 m/s²"
+  ]
+ },
+ {
+  "id": "phy-03",
+  "kind": "fact",
+  "subject": "Physics",
+  "ncert": "Class 9 Science: Sound",
+  "title": "Speed of sound",
+  "revid": 1385686216,
+  "adapted": [
+   "At 20 °C, the speed of sound in air is about 343 m/s, or 1 km in 2.92 s",
+   "At 0 °C, the speed of sound in dry air is about 331 m/s"
+  ]
+ },
+ {
+  "id": "chem-01",
+  "kind": "fact",
+  "subject": "Chemistry",
+  "ncert": "Class 9 Science: Matter in Our Surroundings",
+  "title": "Properties of water",
+  "revid": 1384697386,
+  "adapted": []
+ },
+ {
+  "id": "chem-02",
+  "kind": "fact",
+  "subject": "Chemistry",
+  "ncert": "Class 9 Science: Structure of the Atom",
+  "title": "Electron",
+  "revid": 1386707997,
+  "adapted": [
+   "The electron is a subatomic particle whose electric charge is negative one elementary charge"
+  ]
+ },
+ {
+  "id": "bio-01",
+  "kind": "fact",
+  "subject": "Biology",
+  "ncert": "Class 9 Science: The Fundamental Unit of Life",
+  "title": "Cell theory",
+  "revid": 1384580439,
+  "adapted": []
+ },
+ {
+  "id": "bio-02",
+  "kind": "fact",
+  "subject": "Biology",
+  "ncert": "Class 10 Science: Life Processes",
+  "title": "Heart",
+  "revid": 1385089655,
+  "adapted": []
+ },
+ {
+  "id": "bio-03",
+  "kind": "fact",
+  "subject": "Biology",
+  "ncert": "Class 12 Biology: Human Health and Disease",
+  "title": "Malaria",
+  "revid": 1387027699,
+  "adapted": []
+ },
+ {
+  "id": "hist-01",
+  "kind": "fact",
+  "subject": "History",
+  "ncert": "Class 12 History (Themes in Indian History I): Bricks, Beads and Bones – The Harappan Civilisation",
+  "title": "Indus Valley Civilisation",
+  "revid": 1387089616,
+  "adapted": [
+   "The Indus Valley Civilisation was a Bronze Age civilisation in the northwestern regions of South Asia, lasting from 3300 BCE to 1300 BCE, and in its mature form from 2600 BCE to 1900 BCE"
+  ]
+ },
+ {
+  "id": "hist-02",
+  "kind": "fact",
+  "subject": "History",
+  "ncert": "Class 10 History (India and the Contemporary World II): Nationalism in India",
+  "title": "Salt March",
+  "revid": 1386404353,
+  "adapted": [
+   "The 24 day march lasted from 12 March 1930 to 6 April 1930 as a direct action campaign of tax resistance and nonviolent protest against the British salt monopoly",
+   "The march spanned 387 kilometres, from Sabarmati Ashram to Dandi"
+  ]
+ },
+ {
+  "id": "hist-03",
+  "kind": "fact",
+  "subject": "History",
+  "ncert": "Class 9 History (India and the Contemporary World I): The French Revolution",
+  "title": "Storming of the Bastille",
+  "revid": 1383995988,
+  "adapted": [
+   "The Storming of the Bastille, which occurred in Paris, France, on 14 July 1789, was an act of political violence by revolutionary insurgents who attempted to storm and seize control of the medieval armoury, fortress, and political prison known as the Bastille"
+  ]
+ },
+ {
+  "id": "civ-01",
+  "kind": "fact",
+  "subject": "Political Science",
+  "ncert": "Class 9 Political Science (Democratic Politics I): Constitutional Design",
+  "title": "Constitution of India",
+  "revid": 1387140012,
+  "adapted": []
+ },
+ {
+  "id": "civ-02",
+  "kind": "fact",
+  "subject": "Political Science",
+  "ncert": "Class 9 Political Science (Democratic Politics I): Electoral Politics",
+  "title": "Election Commission of India",
+  "revid": 1383559941,
+  "adapted": [
+   "Established as per the Constitution of India, it is headed by a chief election commissioner and consists of two other election commissioners as constituent members"
+  ]
+ },
+ {
+  "id": "eco-01",
+  "kind": "fact",
+  "subject": "Economics",
+  "ncert": "Class 10 Economics (Understanding Economic Development): Money and Credit",
+  "title": "Reserve Bank of India",
+  "revid": 1384839949,
+  "adapted": []
+ },
+ {
+  "id": "sci-01",
+  "kind": "fact",
+  "subject": "Physics",
+  "ncert": "Class 11 Physics: Gravitation (satellites)",
+  "title": "Chandrayaan-3",
+  "revid": 1384830209,
+  "adapted": [
+   "Chandrayaan-3 was launched on 14 July 2023, at 14:35 IST from Satish Dhawan Space Centre in Sriharikota, Andhra Pradesh"
+  ]
+ },
+ {
+  "id": "bio-04",
+  "kind": "paragraph",
+  "subject": "Biology",
+  "ncert": "Class 11 Biology: Photosynthesis in Higher Plants",
+  "title": "Photosynthesis",
+  "revid": 1385696147,
+  "adapted": [
+   "Photosynthesis is a system of biological processes by which photopigment-bearing autotrophic organisms, such as most plants, algae and cyanobacteria, convert light energy into the chemical energy necessary to fuel their metabolism"
+  ]
+ },
+ {
+  "id": "geo-07",
+  "kind": "paragraph",
+  "subject": "Geography",
+  "ncert": "Class 11 Geography (Fundamentals of Physical Geography): Water in the Atmosphere",
+  "title": "Water cycle",
+  "revid": 1368240581,
+  "adapted": []
+ },
+ {
+  "id": "phy-04",
+  "kind": "paragraph",
+  "subject": "Physics",
+  "ncert": "Class 10 Science: The Human Eye and the Colourful World",
+  "title": "Rainbow",
+  "revid": 1386219386,
+  "adapted": []
+ },
+ {
+  "id": "chem-03",
+  "kind": "paragraph",
+  "subject": "Chemistry",
+  "ncert": "Class 10 Science: Acids, Bases and Salts",
+  "title": "PH",
+  "revid": 1386393044,
+  "adapted": [
+   "In chemistry, pH is a logarithmic scale used to specify the acidity or basicity of aqueous solutions",
+   "Acidic solutions are measured to have lower pH values than basic or alkaline solutions",
+   "At 25 °C, solutions of which the pH is less than 7 are acidic, and solutions of which the pH is greater than 7 are basic"
+  ]
+ },
+ {
+  "id": "phy-05",
+  "kind": "paragraph",
+  "subject": "Physics",
+  "ncert": "Class 10 Science: Magnetic Effects of Electric Current",
+  "title": "Electromagnet",
+  "revid": 1382781306,
+  "adapted": []
+ },
+ {
+  "id": "bio-05",
+  "kind": "paragraph",
+  "subject": "Biology",
+  "ncert": "Class 12 Biology: Molecular Basis of Inheritance",
+  "title": "DNA",
+  "revid": 1386029671,
+  "adapted": [
+   "Deoxyribonucleic acid (DNA) is a polymer composed of two polynucleotide chains that coil around each other in a double helical structure"
+  ]
+ },
+ {
+  "id": "geo-08",
+  "kind": "paragraph",
+  "subject": "Geography",
+  "ncert": "Class 10 Science: Our Environment (ozone layer)",
+  "title": "Ozone layer",
+  "revid": 1384696269,
+  "adapted": [
+   "The ozone layer is mainly found in the lower portion of the stratosphere, from approximately 15 to 35 kilometers above Earth, although its thickness varies seasonally and geographically"
+  ]
+ },
+ {
+  "id": "geo-09",
+  "kind": "paragraph",
+  "subject": "Geography",
+  "ncert": "Class 11 Geography (Fundamentals of Physical Geography): Interior of the Earth",
+  "title": "Internal structure of Earth",
+  "revid": 1386795840,
+  "adapted": []
+ },
+ {
+  "id": "hist-04",
+  "kind": "paragraph",
+  "subject": "History",
+  "ncert": "Class 10 History (India and the Contemporary World II): Nationalism in India",
+  "title": "Non-cooperation movement (1919–1922)",
+  "revid": 1385930236,
+  "adapted": []
+ },
+ {
+  "id": "hist-05",
+  "kind": "paragraph",
+  "subject": "History",
+  "ncert": "Class 12 History (Themes in Indian History I): Kings, Farmers and Towns",
+  "title": "Ashoka",
+  "revid": 1386648500,
+  "adapted": [
+   "Ashoka, most commonly known as Ashoka the Great, was Emperor of Magadha from c. 268 BCE until his death, and the third ruler of the Maurya Empire"
+  ]
+ },
+ {
+  "id": "civ-03",
+  "kind": "paragraph",
+  "subject": "Political Science",
+  "ncert": "Class 10 Political Science (Democratic Politics II): Federalism",
+  "title": "Panchayati raj in India",
+  "revid": 1386441937,
+  "adapted": [
+   "Part IX of the Indian Constitution stipulates that in states or Union Territories with more than two million inhabitants there are three levels of PRIs: the gram panchayat at village level, the panchayat samiti at block level, and the zilla panchayat (district council) at district level"
+  ]
+ },
+ {
+  "id": "hist-06",
+  "kind": "paragraph",
+  "subject": "History",
+  "ncert": "Class 12 History (Themes in Indian History II): Kings and Chronicles – The Mughal Courts",
+  "title": "Taj Mahal",
+  "revid": 1387133948,
+  "adapted": [
+   "The Taj Mahal is an ivory-white marble mausoleum on the right bank of the river Yamuna in Agra, Uttar Pradesh, India",
+   "It was commissioned in 1631 by the fifth Mughal emperor, Shah Jahan, to house the tomb of his late wife, Mumtaz Mahal; it also houses the tomb of Shah Jahan himself",
+   "The tomb is the centrepiece of a 17-hectare complex, which includes a mosque and a guest house, and is set in formal gardens bounded on three sides by a crenellated wall"
+  ]
+ },
+ {
+  "id": "geo-10",
+  "kind": "paragraph",
+  "subject": "Geography",
+  "ncert": "Class 10 Geography (Contemporary India II): Forest and Wildlife Resources",
+  "title": "Project Tiger",
+  "revid": 1382235329,
+  "adapted": []
+ },
+ {
+  "id": "geo-11",
+  "kind": "paragraph",
+  "subject": "Geography",
+  "ncert": "Class 11 Geography (Fundamentals of Physical Geography): Solar Radiation, Heat Balance and Temperature",
+  "title": "Greenhouse effect",
+  "revid": 1380683019,
+  "adapted": []
+ },
+ {
+  "id": "eco-02",
+  "kind": "paragraph",
+  "subject": "Economics",
+  "ncert": "Class 9 Economics: Food Security in India",
+  "title": "Green Revolution in India",
+  "revid": 1381722612,
+  "adapted": []
+ },
+ {
+  "id": "civ-04",
+  "kind": "markdown",
+  "subject": "Political Science",
+  "ncert": "Class 9 Political Science (Democratic Politics I): Democratic Rights",
+  "title": "Fundamental rights in India",
+  "revid": 1378941196,
+  "adapted": []
+ },
+ {
+  "id": "geo-12",
+  "kind": "markdown",
+  "subject": "Geography",
+  "ncert": "Class 10 Geography (Contemporary India II): Minerals and Energy Resources",
+  "title": "Renewable energy in India",
+  "revid": 1386874904,
+  "adapted": []
+ },
+ {
+  "id": "bio-06",
+  "kind": "markdown",
+  "subject": "Biology",
+  "ncert": "Class 9 Science: Tissues",
+  "title": "Tissue (biology)",
+  "revid": 1385632505,
+  "adapted": []
+ },
+ {
+  "id": "phy-06",
+  "kind": "markdown",
+  "subject": "Physics",
+  "ncert": "Class 9 Science: Force and Laws of Motion",
+  "title": "Newton's laws of motion",
+  "revid": 1383155631,
+  "adapted": [
+   "The three laws of motion were first stated by Isaac Newton in his Philosophiæ Naturalis Principia Mathematica, originally published in 1687"
+  ]
+ },
+ {
+  "id": "chem-04",
+  "kind": "markdown",
+  "subject": "Chemistry",
+  "ncert": "Class 9 Science: Is Matter Around Us Pure?",
+  "title": "Separation process",
+  "revid": 1370920766,
+  "adapted": []
+ },
+ {
+  "id": "geo-13",
+  "kind": "markdown",
+  "subject": "Geography",
+  "ncert": "Class 11 Geography (Fundamentals of Physical Geography): Composition and Structure of Atmosphere",
+  "title": "Atmosphere of Earth",
+  "revid": 1381726987,
+  "adapted": [
+   "This layer extends from the top of the troposphere at roughly 12 km above Earth's surface to the stratopause at an altitude of about 50 to 55 km",
+   "It extends from the mesopause at an altitude of about 80 km up to the thermopause at an altitude range of 500–1000 km"
+  ]
+ },
+ {
+  "id": "eco-03",
+  "kind": "markdown",
+  "subject": "Economics",
+  "ncert": "Class 10 Economics (Understanding Economic Development): Sectors of the Indian Economy",
+  "title": "Economic sector",
+  "revid": 1381461405,
+  "adapted": []
+ },
+ {
+  "id": "eco-04",
+  "kind": "markdown",
+  "subject": "Economics",
+  "ncert": "Class 10 Economics: Consumer Rights",
+  "title": "Consumer Protection Act, 2019",
+  "revid": 1369200430,
+  "adapted": []
+ },
+ {
+  "id": "sci-02",
+  "kind": "markdown",
+  "subject": "Science",
+  "ncert": "Class 6 Science (Curiosity): The Wonderful World of Science",
+  "title": "Scientific method",
+  "revid": 1381348974,
+  "adapted": []
+ },
+ {
+  "id": "phy-07",
+  "kind": "table",
+  "subject": "Physics",
+  "ncert": "Class 11 Physics: Units and Measurement",
+  "title": "International System of Units",
+  "revid": 1386810462,
+  "adapted": [
+   "The International System of Units, internationally known by the abbreviation SI, is the modern form of the metric system and the world's most widely used system of measurement"
+  ]
+ },
+ {
+  "id": "phy-08",
+  "kind": "table",
+  "subject": "Physics",
+  "ncert": "Class 11 Physics: Units and Measurement",
+  "title": "International System of Units",
+  "revid": 1386810462,
+  "adapted": []
+ },
+ {
+  "id": "geo-14",
+  "kind": "table",
+  "subject": "Geography",
+  "ncert": "Class 9 Geography (Contemporary India I): Drainage",
+  "title": "List of rivers of India",
+  "revid": 1386598881,
+  "adapted": []
+ },
+ {
+  "id": "chem-05",
+  "kind": "table",
+  "subject": "Chemistry",
+  "ncert": "Class 11 Chemistry: Classification of Elements and Periodicity in Properties",
+  "title": "List of chemical elements",
+  "revid": 1384916014,
+  "adapted": [
+   "Atomic weight (Da)"
+  ]
+ },
+ {
+  "id": "hist-07",
+  "kind": "table",
+  "subject": "History",
+  "ncert": "Class 12 History (Themes in Indian History II): Kings and Chronicles – The Mughal Courts",
+  "title": "List of emperors of the Mughal Empire",
+  "revid": 1387188323,
+  "adapted": []
+ },
+ {
+  "id": "bio-07",
+  "kind": "table",
+  "subject": "Biology",
+  "ncert": "Class 6 Science (Curiosity): Mindful Eating – A Path to a Healthy Body",
+  "title": "Vitamin",
+  "revid": 1384878089,
+  "adapted": []
+ },
+ {
+  "id": "phy-09",
+  "kind": "latex",
+  "subject": "Physics",
+  "ncert": "Class 10 Science: Electricity",
+  "title": "Ohm's law",
+  "revid": 1386918016,
+  "adapted": []
+ },
+ {
+  "id": "phy-10",
+  "kind": "latex",
+  "subject": "Physics",
+  "ncert": "Class 9 Science: Motion",
+  "title": "Equations of motion",
+  "revid": 1386956605,
+  "adapted": [
+   "They are often referred to as the SUVAT equations, where \"SUVAT\" is an acronym from the variables"
+  ]
+ },
+ {
+  "id": "phy-11",
+  "kind": "latex",
+  "subject": "Physics",
+  "ncert": "Class 9 Science: Work and Energy",
+  "title": "Kinetic energy",
+  "revid": 1370969006,
+  "adapted": []
+ },
+ {
+  "id": "math-01",
+  "kind": "latex",
+  "subject": "Mathematics",
+  "ncert": "Class 10 Mathematics: Quadratic Equations",
+  "title": "Quadratic formula",
+  "revid": 1382357522,
+  "adapted": []
+ },
+ {
+  "id": "math-02",
+  "kind": "latex",
+  "subject": "Mathematics",
+  "ncert": "Class 10 Mathematics: Areas Related to Circles",
+  "title": "Area of a circle",
+  "revid": 1381258236,
+  "adapted": []
+ },
+ {
+  "id": "math-03",
+  "kind": "latex",
+  "subject": "Mathematics",
+  "ncert": "Class 10 Mathematics: Triangles",
+  "title": "Pythagorean theorem",
+  "revid": 1386629982,
+  "adapted": []
+ },
+ {
+  "id": "math-04",
+  "kind": "latex",
+  "subject": "Mathematics",
+  "ncert": "Class 10 Mathematics: Arithmetic Progressions",
+  "title": "Arithmetic progression",
+  "revid": 1381409546,
+  "adapted": []
+ },
+ {
+  "id": "phy-12",
+  "kind": "latex",
+  "subject": "Physics",
+  "ncert": "Class 10 Science: Light – Reflection and Refraction",
+  "title": "Lens",
+  "revid": 1384860947,
+  "adapted": []
+ },
+ {
+  "id": "phy-13",
+  "kind": "latex",
+  "subject": "Physics",
+  "ncert": "Class 9 Science: Gravitation",
+  "title": "Newton's law of universal gravitation",
+  "revid": 1386488007,
+  "adapted": []
+ }
+]

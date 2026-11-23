@@ -1,0 +1,30 @@
+{
+  "_comment": "Error taxonomy. 'aliases' maps label 'type' strings found in datasets to our canonical categories, so new label vocabularies need only a line here. 'group' is used for lenient matching (a generic 'omission' label matches both translation and speech omission). 'precedence' breaks ties when signals of different categories land on the same span.",
+  "categories": {
+    "omission":          {"area": "translation", "group": "omission",   "default_severity": "major"},
+    "addition":          {"area": "translation", "group": "addition",   "default_severity": "major"},
+    "mistranslation":    {"area": "translation", "group": "meaning",    "default_severity": "major"},
+    "number":            {"area": "translation", "group": "number",     "default_severity": "major"},
+    "term":              {"area": "translation", "group": "meaning",    "default_severity": "major"},
+    "format":            {"area": "translation", "group": "format",     "default_severity": "major"},
+    "wrong_language":    {"area": "translation", "group": "language",   "default_severity": "critical"},
+    "speech_omission":   {"area": "speech",      "group": "omission",   "default_severity": "major"},
+    "speech_repetition": {"area": "speech",      "group": "repetition", "default_severity": "major"},
+    "speech_garbled":    {"area": "speech",      "group": "garbled",    "default_severity": "major"}
+  },
+  "precedence": ["wrong_language", "format", "number", "omission", "addition", "term", "mistranslation", "speech_omission", "speech_repetition", "speech_garbled"],
+  "aliases": {
+    "omission": "omission", "translation_omission": "omission", "missing": "omission", "deletion": "omission",
+    "addition": "addition", "translation_addition": "addition", "insertion": "addition", "extra": "addition",
+    "mistranslation": "mistranslation", "meaning": "mistranslation", "accuracy": "mistranslation", "wrong_meaning": "mistranslation",
+    "number": "number", "number_or_unit": "number", "numbers": "number", "unit": "number", "date": "number", "quantity": "number",
+    "term": "term", "term_or_entity": "term", "entity": "term", "terminology": "term", "name": "term", "named_entity": "term",
+    "format": "format", "formatting": "format", "markdown": "format", "latex": "format", "table": "format", "markup": "format",
+    "wrong_language": "wrong_language", "wrong_language_or_script": "wrong_language", "language": "wrong_language", "script": "wrong_language", "wrong_script": "wrong_language", "untranslated": "wrong_language",
+    "speech_omission": "speech_omission", "speech_omission_or_truncation": "speech_omission", "omission_or_truncation": "speech_omission", "truncation": "speech_omission", "speech_truncation": "speech_omission",
+    "speech_repetition": "speech_repetition", "repetition": "speech_repetition", "repeat": "speech_repetition", "loop": "speech_repetition",
+    "speech_garbled": "speech_garbled", "garbled": "speech_garbled", "garbled_audio": "speech_garbled", "noise": "speech_garbled", "silence": "speech_garbled", "unintelligible": "speech_garbled", "clipping": "speech_garbled"
+  },
+  "severities": {"minor": 1, "major": 5, "critical": 10},
+  "severity_aliases": {"low": "minor", "minor": "minor", "medium": "major", "major": "major", "high": "critical", "critical": "critical", "severe": "critical"}
+}

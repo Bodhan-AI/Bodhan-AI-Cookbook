@@ -1,0 +1,461 @@
+{
+  "coverage": {
+    "excluded": 40,
+    "missing_from_report": 0,
+    "not_ok_in_report": 0,
+    "unlabelled_skipped": 15
+  },
+  "headline": {
+    "category_accuracy": 0.9635,
+    "category_accuracy_exact": 0.8978,
+    "clean_items": 24,
+    "error_items": 101,
+    "false_alarm_rate": 0.0,
+    "item_recall": 0.901,
+    "labels": 157,
+    "localization": 0.8394,
+    "precision": 0.8832,
+    "recall": 0.8726,
+    "scored_items": 125
+  },
+  "matrix": {
+    "bn": {
+      "format": {
+        "detected": 4,
+        "labels": 4
+      },
+      "mistranslation": {
+        "detected": 9,
+        "labels": 10
+      },
+      "number": {
+        "detected": 5,
+        "labels": 5
+      },
+      "omission": {
+        "detected": 3,
+        "labels": 5
+      },
+      "speech_garbled": {
+        "detected": 1,
+        "labels": 2
+      },
+      "speech_omission": {
+        "detected": 9,
+        "labels": 9
+      },
+      "speech_repetition": {
+        "detected": 6,
+        "labels": 6
+      },
+      "term": {
+        "detected": 1,
+        "labels": 1
+      },
+      "wrong_language": {
+        "detected": 3,
+        "labels": 3
+      }
+    },
+    "hi": {
+      "addition": {
+        "detected": 2,
+        "labels": 2
+      },
+      "format": {
+        "detected": 3,
+        "labels": 3
+      },
+      "mistranslation": {
+        "detected": 4,
+        "labels": 4
+      },
+      "number": {
+        "detected": 1,
+        "labels": 1
+      },
+      "omission": {
+        "detected": 2,
+        "labels": 2
+      },
+      "speech_garbled": {
+        "detected": 4,
+        "labels": 4
+      },
+      "speech_omission": {
+        "detected": 9,
+        "labels": 15
+      },
+      "speech_repetition": {
+        "detected": 7,
+        "labels": 7
+      },
+      "term": {
+        "detected": 1,
+        "labels": 2
+      },
+      "wrong_language": {
+        "detected": 1,
+        "labels": 1
+      }
+    },
+    "ta": {
+      "addition": {
+        "detected": 1,
+        "labels": 1
+      },
+      "format": {
+        "detected": 2,
+        "labels": 2
+      },
+      "mistranslation": {
+        "detected": 8,
+        "labels": 11
+      },
+      "number": {
+        "detected": 5,
+        "labels": 5
+      },
+      "omission": {
+        "detected": 16,
+        "labels": 17
+      },
+      "speech_garbled": {
+        "detected": 4,
+        "labels": 4
+      },
+      "speech_omission": {
+        "detected": 15,
+        "labels": 17
+      },
+      "speech_repetition": {
+        "detected": 3,
+        "labels": 3
+      },
+      "term": {
+        "detected": 6,
+        "labels": 9
+      },
+      "wrong_language": {
+        "detected": 2,
+        "labels": 2
+      }
+    }
+  },
+  "per_category": {
+    "addition": {
+      "category_accuracy": 1.0,
+      "category_correct": 3,
+      "detected": 3,
+      "f1": 1.0,
+      "flags": 4,
+      "flags_matched": 4,
+      "labels": 3,
+      "localizable": 3,
+      "localization": 1.0,
+      "localized": 3,
+      "precision": 1.0,
+      "recall": 1.0
+    },
+    "format": {
+      "category_accuracy": 1.0,
+      "category_correct": 9,
+      "detected": 9,
+      "f1": 0.8889,
+      "flags": 10,
+      "flags_matched": 8,
+      "labels": 9,
+      "localizable": 9,
+      "localization": 0.8889,
+      "localized": 8,
+      "precision": 0.8,
+      "recall": 1.0
+    },
+    "mistranslation": {
+      "category_accuracy": 0.9048,
+      "category_correct": 19,
+      "detected": 21,
+      "f1": 0.8877,
+      "flags": 17,
+      "flags_matched": 16,
+      "labels": 25,
+      "localizable": 21,
+      "localization": 0.8571,
+      "localized": 18,
+      "precision": 0.9412,
+      "recall": 0.84
+    },
+    "number": {
+      "category_accuracy": 0.9091,
+      "category_correct": 10,
+      "detected": 11,
+      "f1": 0.9091,
+      "flags": 12,
+      "flags_matched": 10,
+      "labels": 11,
+      "localizable": 11,
+      "localization": 1.0,
+      "localized": 11,
+      "precision": 0.8333,
+      "recall": 1.0
+    },
+    "omission": {
+      "category_accuracy": 0.9524,
+      "category_correct": 20,
+      "detected": 21,
+      "f1": 0.8873,
+      "flags": 20,
+      "flags_matched": 18,
+      "labels": 24,
+      "localizable": 21,
+      "localization": 0.7143,
+      "localized": 15,
+      "precision": 0.9,
+      "recall": 0.875
+    },
+    "speech_garbled": {
+      "category_accuracy": 1.0,
+      "category_correct": 9,
+      "detected": 9,
+      "f1": 0.72,
+      "flags": 15,
+      "flags_matched": 9,
+      "labels": 10,
+      "localizable": 9,
+      "localization": 0.7778,
+      "localized": 7,
+      "precision": 0.6,
+      "recall": 0.9
+    },
+    "speech_omission": {
+      "category_accuracy": 1.0,
+      "category_correct": 33,
+      "detected": 33,
+      "f1": 0.8779,
+      "flags": 29,
+      "flags_matched": 28,
+      "labels": 41,
+      "localizable": 33,
+      "localization": 0.8788,
+      "localized": 29,
+      "precision": 0.9655,
+      "recall": 0.8049
+    },
+    "speech_repetition": {
+      "category_accuracy": 0.9375,
+      "category_correct": 15,
+      "detected": 16,
+      "f1": 0.9677,
+      "flags": 16,
+      "flags_matched": 15,
+      "labels": 16,
+      "localizable": 16,
+      "localization": 0.8125,
+      "localized": 13,
+      "precision": 0.9375,
+      "recall": 1.0
+    },
+    "term": {
+      "category_accuracy": 1.0,
+      "category_correct": 8,
+      "detected": 8,
+      "f1": 0.7568,
+      "flags": 8,
+      "flags_matched": 7,
+      "labels": 12,
+      "localizable": 8,
+      "localization": 0.625,
+      "localized": 5,
+      "precision": 0.875,
+      "recall": 0.6667
+    },
+    "wrong_language": {
+      "category_accuracy": 1.0,
+      "category_correct": 6,
+      "detected": 6,
+      "f1": 1.0,
+      "flags": 6,
+      "flags_matched": 6,
+      "labels": 6,
+      "localizable": 6,
+      "localization": 1.0,
+      "localized": 6,
+      "precision": 1.0,
+      "recall": 1.0
+    }
+  },
+  "per_language": {
+    "bn": {
+      "clean_flagged": 0,
+      "clean_items": 8,
+      "detected": 41,
+      "false_alarm_rate": 0.0,
+      "labels": 45,
+      "recall": 0.9111
+    },
+    "hi": {
+      "clean_flagged": 0,
+      "clean_items": 12,
+      "detected": 34,
+      "false_alarm_rate": 0.0,
+      "labels": 41,
+      "recall": 0.8293
+    },
+    "ta": {
+      "clean_flagged": 0,
+      "clean_items": 4,
+      "detected": 62,
+      "false_alarm_rate": 0.0,
+      "labels": 71,
+      "recall": 0.8732
+    }
+  },
+  "per_method": {
+    "ai-review": {
+      "detected": 77,
+      "labels": 96,
+      "recall": 0.8021
+    },
+    "injector:clip_region": {
+      "detected": 2,
+      "labels": 2,
+      "recall": 1.0
+    },
+    "injector:cut_middle": {
+      "detected": 4,
+      "labels": 5,
+      "recall": 0.8
+    },
+    "injector:drop_phrase": {
+      "detected": 2,
+      "labels": 2,
+      "recall": 1.0
+    },
+    "injector:drop_sentence": {
+      "detected": 1,
+      "labels": 1,
+      "recall": 1.0
+    },
+    "injector:entity_swap": {
+      "detected": 1,
+      "labels": 1,
+      "recall": 1.0
+    },
+    "injector:extra_clause": {
+      "detected": 1,
+      "labels": 1,
+      "recall": 1.0
+    },
+    "injector:first_digit": {
+      "detected": 3,
+      "labels": 3,
+      "recall": 1.0
+    },
+    "injector:foreign_sentence": {
+      "detected": 1,
+      "labels": 1,
+      "recall": 1.0
+    },
+    "injector:garble_entity": {
+      "detected": 1,
+      "labels": 1,
+      "recall": 1.0
+    },
+    "injector:heading_marker": {
+      "detected": 1,
+      "labels": 1,
+      "recall": 1.0
+    },
+    "injector:insert_silence": {
+      "detected": 3,
+      "labels": 3,
+      "recall": 1.0
+    },
+    "injector:last_digit": {
+      "detected": 1,
+      "labels": 1,
+      "recall": 1.0
+    },
+    "injector:month_swap": {
+      "detected": 1,
+      "labels": 1,
+      "recall": 1.0
+    },
+    "injector:negation": {
+      "detected": 2,
+      "labels": 2,
+      "recall": 1.0
+    },
+    "injector:noise_burst": {
+      "detected": 4,
+      "labels": 4,
+      "recall": 1.0
+    },
+    "injector:other_language": {
+      "detected": 4,
+      "labels": 4,
+      "recall": 1.0
+    },
+    "injector:quantifier_swap": {
+      "detected": 2,
+      "labels": 2,
+      "recall": 1.0
+    },
+    "injector:repeat_sentence": {
+      "detected": 1,
+      "labels": 1,
+      "recall": 1.0
+    },
+    "injector:repeat_stretch": {
+      "detected": 15,
+      "labels": 15,
+      "recall": 1.0
+    },
+    "injector:source_english": {
+      "detected": 1,
+      "labels": 1,
+      "recall": 1.0
+    },
+    "injector:table_pipe": {
+      "detected": 1,
+      "labels": 1,
+      "recall": 1.0
+    },
+    "injector:table_separator": {
+      "detected": 1,
+      "labels": 1,
+      "recall": 1.0
+    },
+    "injector:truncate_tail": {
+      "detected": 1,
+      "labels": 1,
+      "recall": 1.0
+    },
+    "injector:word_swap": {
+      "detected": 6,
+      "labels": 6,
+      "recall": 1.0
+    }
+  },
+  "per_severity": {
+    "critical": {
+      "detected": 15,
+      "labels": 15,
+      "recall": 1.0
+    },
+    "major": {
+      "detected": 100,
+      "labels": 119,
+      "recall": 0.8403
+    },
+    "minor": {
+      "detected": 22,
+      "labels": 23,
+      "recall": 0.9565
+    }
+  },
+  "review_queue": {
+    "caught_by_review_queue": 12,
+    "missed_labels": 20
+  }
+}

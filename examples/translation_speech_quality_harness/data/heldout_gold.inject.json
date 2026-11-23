@@ -1,0 +1,43 @@
+{
+  "audio_dropped": 0,
+  "audio_edited": 0,
+  "audio_resynthesised": 0,
+  "categories": "all",
+  "clean": 13,
+  "injected": 7,
+  "items": 20,
+  "not_injectable": 0,
+  "passed_through": 0,
+  "per_category": {
+    "addition": 2,
+    "number": 1,
+    "omission": 2,
+    "wrong_language": 2
+  },
+  "per_language": {
+    "mr": {
+      "injected": 2,
+      "items": 10
+    },
+    "te": {
+      "injected": 5,
+      "items": 10
+    }
+  },
+  "per_method": {
+    "drop_phrase": 1,
+    "drop_sentence": 1,
+    "first_digit": 1,
+    "foreign_sentence": 2,
+    "source_english": 2
+  },
+  "per_severity": {
+    "critical": 5,
+    "major": 1,
+    "minor": 1
+  },
+  "rate": 0.5,
+  "seed": 13,
+  "skipped": 0,
+  "with_models": true
+}
