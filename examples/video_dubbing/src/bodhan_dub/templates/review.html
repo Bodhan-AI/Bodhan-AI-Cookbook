@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Speech boundary review · Bodhan</title>
+<style>
+:root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#17243a;background:#eef2f7;font-size:16px;--blue:#2057dc;--muted:#53637a;--line:#dce3ed}*{box-sizing:border-box}body{margin:0}header{background:#13233f;color:#fff;padding:2rem max(1.25rem,calc((100vw - 1080px)/2))}header p{color:#c5d2e7;margin:.6rem 0 0;max-width:48rem;line-height:1.6}.eyebrow{text-transform:uppercase;letter-spacing:.13em;font-size:.8rem;color:#afc7ff}h1{font-size:clamp(1.6rem,4vw,2.3rem);margin:.5rem 0}h2{font-size:1.1rem;margin:0}.wrap{max-width:1120px;margin:0 auto;padding:1.5rem 1.25rem 3rem}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1rem}.stat,.panel{background:white;border:1px solid var(--line);border-radius:14px}.stat{padding:1rem 1.25rem}.stat strong{font-size:1.7rem;display:block;margin-top:.25rem}.label,.muted{color:var(--muted)}.label{font-size:.875rem}.panel{padding:1.25rem;margin-bottom:1rem}.playback{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;justify-content:space-between;margin-bottom:.8rem}.time{font-variant-numeric:tabular-nums;font-size:1.2rem;font-weight:650}audio{width:100%;margin:.6rem 0 1rem}.controls{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap}button,select{font:inherit;font-size:.9rem;border:1px solid #c6d0e0;border-radius:8px;padding:.6rem .85rem;background:white;color:inherit;cursor:pointer}button:hover{background:#edf3ff;border-color:#94b1ed}button:focus-visible,select:focus-visible{outline:3px solid #ffbe45;outline-offset:3px}.primary{background:var(--blue);border-color:var(--blue);color:white}.primary:hover{background:#1744b0}select{appearance:none;padding-right:2rem;background:white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='m1 1 5 5 5-5' fill='none' stroke='%2353637a' stroke-width='2'/%3E%3C/svg%3E") no-repeat right .65rem center}.selection{margin:.9rem 0 0;color:var(--muted);line-height:1.5;font-size:.9rem}.timeline-wrap{padding:.9rem 0 .3rem}.timeline{position:relative;display:flex;height:48px;gap:0;border-radius:7px;overflow:hidden;background:#e4e9f1}.segment{padding:0;border:0;border-right:1px solid white;border-radius:0;min-width:0;flex-shrink:0;background:#3369e8}.segment.gap{background:#d5dce8}.segment:hover{background:#163a84}.segment.gap:hover{background:#8997ad}.segment.selected{box-shadow:inset 0 0 0 3px #ffbf47}.playhead{position:absolute;top:0;bottom:0;width:2px;background:#111;pointer-events:none;z-index:2}.ticks{display:flex;justify-content:space-between;font-variant-numeric:tabular-nums;color:var(--muted);font-size:.8rem;margin-top:.4rem}.legend{display:flex;gap:1rem;flex-wrap:wrap;font-size:.875rem;color:var(--muted);margin:.6rem 0}.swatch{display:inline-block;width:.75rem;height:.75rem;border-radius:2px;background:#3369e8;margin-right:.35rem}.swatch.gray{background:#d5dce8}.review-heading{display:flex;justify-content:space-between;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:1rem}.tabs{display:flex;gap:.4rem;flex-wrap:wrap}.tabs button[aria-pressed=true]{background:#e8efff;color:#1645b5;border-color:#9bb6ed}.list{max-height:450px;overflow-y:auto;border-top:1px solid var(--line)}.region-row{width:100%;text-align:left;display:grid;grid-template-columns:1.1fr 1.7fr .6fr;gap:.8rem;border:0;border-bottom:1px solid var(--line);border-radius:0;padding:.9rem .6rem;align-items:center;font-variant-numeric:tabular-nums}.region-row.selected{background:#eaf0ff;box-shadow:inset 3px 0 var(--blue)}.tag{font-size:.8rem;color:var(--muted);display:block;margin-top:.2rem}.duration{justify-self:end;color:var(--muted)}.notice{padding:.9rem 1rem;border:1px solid #e2c174;background:#fff8e7;border-radius:9px;color:#614b19;font-size:.9rem;line-height:1.6;margin-top:1rem}.error{color:#912d2d;background:#fff0ef;padding:.8rem;border-radius:8px}.hidden{display:none}.empty{padding:1rem;color:var(--muted)}footer{font-size:.875rem;color:var(--muted);line-height:1.6} @media(max-width:600px){.stats{gap:.5rem}.stat{padding:.8rem}.stat strong{font-size:1.3rem}.panel{padding:1rem}.region-row{grid-template-columns:1fr 1.3fr;gap:.4rem}.duration{display:none}.wrap{padding:1rem .7rem}.controls{gap:.5rem}}
+</style>
+</head>
+<body>
+<header><div class="eyebrow">Bodhan · local development tool</div><h1>Listen. Check the boundaries.</h1><p>Select a speech region or a gap to hear it in context. These are detector estimates—not word timestamps or verified silence.</p></header>
+<main class="wrap"><div id="mode-note" class="notice hidden"></div>
+<section class="stats" aria-label="Recording summary"><div class="stat"><span class="label">Recording</span><strong id="duration">—</strong></div><div class="stat"><span class="label">Speech regions</span><strong id="speech-count">—</strong></div><div class="stat"><span class="label">Detected speech</span><strong id="speech-duration">—</strong></div></section>
+<section class="panel" aria-label="Audio playback">
+<div class="playback"><h2>Original extracted audio</h2><span class="time" id="clock">0:00.000</span></div>
+<div id="audio-error" class="error hidden" role="alert"></div>
+<audio id="audio" controls preload="metadata" src="review_audio.mp3">Your browser does not support audio playback.</audio>
+<div class="controls"><button class="primary" id="play-full">Play full audio</button><button id="replay" disabled>Replay selection</button><label for="context">Boundary buffer</label><select id="context"><option value="0" selected>None (exact region)</option><option value="0.25">0.25 seconds</option><option value="0.5">0.5 seconds</option><option value="1">1 second</option></select></div>
+<p id="selection" class="selection" aria-live="polite">No region selected. Full audio playback remains available.</p>
+<div class="timeline-wrap"><div id="timeline" class="timeline" aria-label="Clickable speech and gap timeline"><div class="playhead" id="playhead"></div></div><div class="ticks"><span>0:00</span><span id="half">—</span><span id="end">—</span></div></div>
+<div class="legend"><span><i class="swatch"></i>Speech estimate</span><span><i class="swatch gray"></i>Gap / not classified speech</span></div>
+<p id="playback-status" class="selection" role="status">Ready. Selecting a region plays only its range plus the chosen buffer.</p>
+</section>
+<section class="panel" aria-label="Review regions"><div class="review-heading"><h2>Jump to a region</h2><div class="tabs" role="group" aria-label="Region filter"><button id="filter-speech" aria-pressed="true">Speech</button><button id="filter-gaps" aria-pressed="false">Gaps</button><button id="filter-all" aria-pressed="false">All</button></div></div><div id="list" class="list"></div><div class="notice">Listen for clipped beginnings or endings, abrupt cuts, and speech inside a supposed gap. A buffer helps reveal boundary errors. This page does not grade accuracy or change detector settings.</div></section>
+<footer>Local audio and saved detection data only. No analytics, API calls, uploads, or external assets. Playback does not modify the source or mark any region as verified.</footer>
+</main>
+<script id="review-data" type="application/json">__REVIEW_DATA__</script>
+<script>
+'use strict';
+const data = JSON.parse(document.getElementById('review-data').textContent);
+if(data.mode==='protected'){
+  document.querySelector('h1').textContent='Protected speech groups';
+  const note=document.getElementById('mode-note');note.textContent=`Automatic ${data.protectionContextMs/1000}-second safety context is included in these groups; overlapping groups are merged. Extra playback buffer is off by default. These are protected listening/transcription ranges, not word-perfect VAD boundaries. Original detections remain saved separately.`;note.classList.remove('hidden');
+}
+const audio = document.getElementById('audio');
+const list = document.getElementById('list');
+const timeline = document.getElementById('timeline');
+const context = document.getElementById('context');
+const status = document.getElementById('playback-status');
+const regions = [...data.speech.map(r=>({...r,kind:'speech'})), ...data.gaps.map(r=>({...r,kind:'gap'}))].sort((a,b)=>a.start_sample-b.start_sample);
+let selected = null, stopAt = null, filter = 'speech', stopTimer = null, playbackRequest = 0, mutedForSeek = false, savedMute = false;
+function timeLabel(seconds, precise=true){
+  const millis=Math.round(Math.max(0,seconds)*1000), mins=Math.floor(millis/60000), secs=Math.floor(millis%60000/1000);
+  return `${mins}:${String(secs).padStart(2,'0')}${precise?'.'+String(millis%1000).padStart(3,'0'):''}`;
+}
+document.getElementById('duration').textContent=timeLabel(data.duration,false);
+document.getElementById('speech-count').textContent=data.speech.length;
+document.getElementById('speech-duration').textContent=`${data.speechSeconds.toFixed(1)} s`;
+document.getElementById('half').textContent=timeLabel(data.duration/2,false);
+document.getElementById('end').textContent=timeLabel(data.duration,false);
+document.getElementById('filter-speech').textContent=`Speech (${data.speech.length})`;
+document.getElementById('filter-gaps').textContent=`Gaps (${data.gaps.length})`;
+function title(r){return `${r.kind==='speech'?'Speech':'Gap'} ${Number(r.id.split('-').pop())}`;}
+function clearStop(){stopAt=null;if(stopTimer!==null){clearInterval(stopTimer);stopTimer=null;}}
+function checkStop(){
+  if(stopAt!==null && audio.currentTime>=stopAt){const end=stopAt;audio.pause();clearStop();audio.currentTime=end;status.textContent='Selection finished. Replay it or choose another region.';}
+}
+function updateClock(){document.getElementById('clock').textContent=timeLabel(audio.currentTime);document.getElementById('playhead').style.left=`${Math.min(100,audio.currentTime/data.duration*100)}%`;checkStop();}
+function markSelection(){
+  document.querySelectorAll('[data-region]').forEach(el=>{const active=selected && el.dataset.region===selected.id;el.classList.toggle('selected',Boolean(active));el.setAttribute('aria-pressed',String(Boolean(active)));});
+}
+function waitForAudio(event, action, ready){
+  return new Promise((resolve,reject)=>{
+    let timeout;
+    function cleanup(){clearTimeout(timeout);audio.removeEventListener(event,onReady);audio.removeEventListener('error',onError);}
+    function onReady(){if(ready()){cleanup();resolve();}}
+    function onError(){cleanup();reject(new Error('Audio could not be loaded or seeked.'));}
+    audio.addEventListener(event,onReady);audio.addEventListener('error',onError);
+    timeout=setTimeout(onError,12000);
+    try{action();onReady();}catch(error){cleanup();reject(error);}
+  });
+}
+async function startPlayback(start,end,request,message){
+  try{
+    if(!mutedForSeek){savedMute=audio.muted;mutedForSeek=true;}
+    audio.muted=true;
+    // Invoke play synchronously in the user's click to retain browser activation.
+    // Keep playback muted until the exact requested seek has completed.
+    const started=audio.play();started.catch(()=>{});
+    if(audio.readyState<1)await waitForAudio('loadedmetadata',()=>{},()=>audio.readyState>=1);
+    if(request!==playbackRequest)return;
+    await waitForAudio('seeked',()=>{audio.currentTime=start;},()=>!audio.seeking && Math.abs(audio.currentTime-start)<0.05);
+    if(request!==playbackRequest)return;
+    stopAt=end;updateClock();
+    await started;
+    if(request!==playbackRequest)return;
+    audio.muted=savedMute;mutedForSeek=false;
+    if(end!==null)stopTimer=setInterval(checkStop,25);
+    status.textContent=message;
+  }catch(error){
+    if(request===playbackRequest){audio.pause();audio.muted=savedMute;mutedForSeek=false;clearStop();status.textContent='Could not start at the requested time. Check audio loading or use the player controls; playback was not started from zero.';}
+  }
+}
+function playRegion(r){
+  const request=++playbackRequest;clearStop();audio.pause();selected=r;
+  const buffer=Number(context.value), start=Math.max(0,r.start_seconds-buffer), end=Math.min(data.duration,r.end_seconds+buffer);
+  document.getElementById('selection').textContent=`${title(r)} · ${timeLabel(r.start_seconds)} – ${timeLabel(r.end_seconds)} · playing ${timeLabel(start)} – ${timeLabel(end)}${buffer?' with context':' (exact region)'}`;
+  document.getElementById('replay').disabled=false;
+  status.textContent=`Seeking to ${timeLabel(start)} before playback…`;
+  markSelection();
+  return startPlayback(start,end,request,buffer?`Playing ${title(r).toLowerCase()} with ${buffer} seconds of context at each available edge.`:`Playing ${title(r).toLowerCase()} from its exact saved start time.`);
+}
+function renderList(){
+  list.replaceChildren();const shown=regions.filter(r=>filter==='all' || (filter==='speech'?r.kind==='speech':r.kind==='gap'));
+  if(!shown.length){const empty=document.createElement('p');empty.className='empty';empty.textContent='No regions in this category. This may be a detector miss; listen to the full audio.';list.append(empty);}
+  for(const r of shown){
+    const button=document.createElement('button');button.className='region-row';button.dataset.region=r.id;
+    button.setAttribute('aria-label',`Play ${title(r)} from ${timeLabel(r.start_seconds)} to ${timeLabel(r.end_seconds)}`);
+    const label=document.createElement('span');label.textContent=title(r);
+    const tag=document.createElement('span');tag.className='tag';tag.textContent=r.kind==='speech'?(r.source_region_ids?.length?`Includes original speech ${r.source_region_ids.map(id=>Number(id.split('-').pop())).join(', ')}`:'Speech estimate'):'Check for missed speech';label.append(tag);
+    const times=document.createElement('span');times.textContent=`${timeLabel(r.start_seconds)} – ${timeLabel(r.end_seconds)}`;
+    const duration=document.createElement('span');duration.className='duration';duration.textContent=`${(r.end_seconds-r.start_seconds).toFixed(2)} s`;
+    button.append(label,times,duration);button.addEventListener('click',()=>playRegion(r));list.append(button);
+  }markSelection();
+}
+for(const r of regions){
+  const button=document.createElement('button');button.className='segment'+(r.kind==='gap'?' gap':'');button.dataset.region=r.id;
+  button.style.width=`${(r.end_seconds-r.start_seconds)/data.duration*100}%`;
+  button.title=`${title(r)} · ${timeLabel(r.start_seconds)} – ${timeLabel(r.end_seconds)}`;
+  button.setAttribute('aria-label',button.title);button.addEventListener('click',()=>playRegion(r));timeline.insertBefore(button,document.getElementById('playhead'));
+}
+for(const [id,value] of [['filter-speech','speech'],['filter-gaps','gaps'],['filter-all','all']]){
+  document.getElementById(id).addEventListener('click',()=>{filter=value;for(const button of document.querySelectorAll('.tabs button'))button.setAttribute('aria-pressed',String(button.id===id));renderList();});
+}
+document.getElementById('replay').addEventListener('click',()=>selected?playRegion(selected):undefined);
+document.getElementById('play-full').addEventListener('click',()=>{const request=++playbackRequest;clearStop();audio.pause();status.textContent='Preparing full recording…';return startPlayback(0,null,request,'Playing full recording; selection stop is disabled.');});
+context.addEventListener('change',()=>{if(selected){++playbackRequest;audio.pause();if(mutedForSeek){audio.muted=savedMute;mutedForSeek=false;}clearStop();status.textContent='Buffer changed. Replay the selection to use it.';}});
+audio.addEventListener('timeupdate',updateClock);
+audio.addEventListener('ended',()=>{clearStop();status.textContent='Recording finished.';});
+audio.addEventListener('seeking',()=>{if(stopAt!==null && audio.currentTime>stopAt){clearStop();status.textContent='Seeked beyond selection; now using normal audio playback.';}});
+audio.addEventListener('error',()=>{++playbackRequest;clearStop();const message=document.getElementById('audio-error');message.textContent='Cannot load audio. Keep this page beside review_audio.mp3, or serve this run folder locally.';message.classList.remove('hidden');});
+renderList();updateClock();
+</script>
+</body></html>

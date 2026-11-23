@@ -1,0 +1,16 @@
+{
+  "platform": "macOS arm64",
+  "python": "3.12.14",
+  "model_sha256": "e1122837f4154c511485fe0b9c64455f7b929c96fbb8d79fbdb336383ebd3720",
+  "silero_version": "6.2.3",
+  "torch_version": "2.8.0",
+  "tests_passed": 44,
+  "positive_fixture_required_for_two_tests": true,
+  "ground_truth_review": "Controlled synthetic-pause fixture verified; demo not fully reviewed by listening.",
+  "demo_summary": {
+    "speech_region_count": 39,
+    "speech_seconds": 222.588,
+    "non_speech_seconds": 106.6786875,
+    "longest_speech_region_seconds": 19.139999999999986
+  }
+}

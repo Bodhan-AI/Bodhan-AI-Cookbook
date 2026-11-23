@@ -1,0 +1,15 @@
+{
+  "policy": "Terms extracted from the cited educational references or existing Bodhan output; supplied only as hints. All final native text must still be returned by Indic-Translate.",
+  "sources": [
+    "https://ncert.nic.in/pdf/publication/exemplarproblem/classIX/mathematics%28hindi%29/ihep206.pdf",
+    "https://www.ncert.nic.in/pdf/publication/otherpublications/Uchcha_Prathmik_Ganit_Kit_in_Nirdesh_Pustika.pdf",
+    "https://nie.lk/pdffiles/tg/sGr8_TG%20Maths.pdf",
+    "https://nie.lk/pdffiles/other/tOM%20Geo01.pdf",
+    "https://www.ebookbou.edu.bd/Books/Text/SOE/BEd/edbn1421/edbn_1421.pdf",
+    "https://www.ebookbou.edu.bd/Books/Text/OS/SSC/ssc_1653/Unit-09.pdf",
+    "https://www.scerttripura.org/pdf/class9/IX%20Math%20Bengali%20version%20workbook.pdf",
+    "https://docs.steinhardt.nyu.edu/pdfs/metrocenter/atn293/hsgeometry/hs_geometry_bengali.pdf"
+  ],
+  "non_common_arms_source": "Previously returned by Bodhan in Bengali group unit-0012-0013; reused as a term hint, never patched into generated text.",
+  "linear_pair_note": "Use the concise Bengali textbook term from SCERT Tripura, also listed by NYU, rather than the longer synonymous compound."
+}
