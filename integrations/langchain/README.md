@@ -12,7 +12,7 @@ This package empowers developers to build multilingual document processing pipel
 - **`BodhanOCRLoader`**: Native LangChain `BaseLoader` supporting images (`.png`, `.jpg`, `.jpeg`) and multi-page PDFs (via optional PyMuPDF rasterization). Performs magic byte signature validation, base64 data URL formatting, markdown extraction, layout block metadata preservation (including `order`, `label`, `type`, `bbox_xyxy` float coordinates, and `conf`), and exposes both `page` (zero-indexed page index) and `page_number` (one-indexed human-facing page number) metadata. Explicitly validates image formats and rejects unsupported types (such as WebP, GIF, SVG) with actionable error messages.
 - **`BodhanTranslationTransformer`**: LangChain `BaseDocumentTransformer` for translating documents across 22 Indian languages plus English (26 language codes). Features immutable document transformations, safe chunking preserving paragraph, sentence, and word boundaries with character fallback for unbroken tokens strictly bounded by `max_chunk_chars`, bounded async concurrency, and user-declared metadata provenance tracking.
 - **`BodhanTranslationTool`**: Pydantic v2-compliant LangChain `BaseTool` enabling conversational agents to dynamically invoke Bodhan Indic Translation with configurable target languages and script validation (omitting script automatically for English).
-- **Grounded Multilingual RAG**: Complete reference example demonstrating end-to-end ingestion of authentic Indic PDF notices, translation to English, semantic chunking, vector indexing with `InMemoryVectorStore`, and grounded companion LLM answers with citation tracking and prompt-guided out-of-domain refusal.
+- **Grounded Multilingual RAG**: Complete reference example demonstrating end-to-end ingestion of authentic Indic PDF notices, translation to English, semantic chunking, persistent local vector indexing with ChromaDB (`langchain-chroma`) or optional `InMemoryVectorStore`, and grounded companion LLM answers with citation tracking and prompt-guided out-of-domain refusal.
 
 ---
 
@@ -48,11 +48,16 @@ PDF dependencies:
 > [!IMPORTANT]
 > **PyMuPDF Licensing Notice**: PyMuPDF is licensed under GNU AGPLv3 and also available under a commercial license from Artifex Software, Inc. If you are developing proprietary software and cannot comply with the terms of the AGPLv3, please ensure you acquire an appropriate commercial license from Artifex before deploying PyMuPDF in production. Core image OCR and translation do not require PyMuPDF.
 
-For running the Bodhan x Groq Multilingual RAG pipeline with real Groq generation:
+For running the Bodhan x Groq Multilingual RAG pipeline with ChromaDB vector store and real Groq generation:
 
 ```bash
+pip install -r requirements-rag-chroma.txt
 pip install -r requirements-rag-groq.txt
 ```
+
+Optional Chroma Vector Store dependencies:
+- `langchain-chroma>=0.2.0`
+- `chromadb>=0.5.0`
 
 Optional Groq RAG dependencies:
 - `langchain-groq>=0.2.0`
@@ -95,6 +100,15 @@ export BODHAN_API_KEY="your-unified-api-key"
 
 # Windows PowerShell
 $env:BODHAN_API_KEY="your-unified-api-key"
+```
+
+For the Multilingual RAG pipeline, configure vector store preferences (defaults to local ChromaDB):
+
+```bash
+# Vector store provider (default: chroma, optional: inmemory)
+export VECTOR_STORE_PROVIDER="chroma"
+export CHROMA_PERSIST_DIRECTORY="./.chroma"
+export CHROMA_COLLECTION_NAME="bodhan_multilingual_rag"
 ```
 
 ---
@@ -264,7 +278,7 @@ The pipeline showcases a production-ready multilingual knowledge retrieval workf
 2. **Translation Normalization**: Normalizes extracted Indic text into English using `BodhanTranslationTransformer`.
 3. **Tokenizer-Aware Chunking**: Splits translated documents into passages using tokenizer-aware boundaries (`max_chunk_tokens=480`, `chunk_token_overlap=40`) while strictly guaranteeing sequence limit safety and preserving source and page metadata.
 4. **Multilingual E5 Embeddings**: Embeds chunks using `intfloat/multilingual-e5-small` via HuggingFace (512 token max sequence length, 384 dimensions) wrapped in an `E5EmbeddingsAdapter` that automatically enforces `passage: ` prefixing.
-5. **Vector Indexing**: Indexes chunks into an in-process `InMemoryVectorStore` using cosine similarity (384-dimensional dense vectors).
+5. **Vector Indexing**: Indexes chunks into local persistent ChromaDB (default) or InMemoryVectorStore using cosine similarity (384-dimensional dense vectors) with deterministic chunk IDs and idempotent upserting.
 6. **Query Translation & Validation**: Indic questions (Hindi, Tamil, Bengali) are translated to English via `BodhanTranslationTool`. The search query is validated against token limits and prefixed with `query: `.
 7. **Retriever**: Pulls the top supporting context chunks with source and page provenance.
 8. **Real Groq Generation**: Encapsulates retrieved passages in structured XML delimiters (`<retrieved_context>`, `<document>`, `<content>`) and invokes `ChatGroq` with strict grounding and prompt-injection defense rules.
@@ -316,6 +330,37 @@ Answer generation via `ChatGroq` is protected by structured exception handling:
   export OPENAI_API_KEY="sk-..."
   ```
   OpenAI embeddings do not apply E5 prefixes. For offline unit testing, set `EMBEDDING_PROVIDER="fake"`.
+
+#### Vector Store Architecture: ChromaDB & InMemoryVectorStore
+
+The RAG pipeline supports two vector-store backends: **ChromaDB** (`langchain-chroma`, default) and **InMemoryVectorStore** (lightweight alternative).
+
+- **Why ChromaDB?**: Chroma provides persistent local vector storage across application restarts without requiring external server processes, Docker containers, or cloud database credentials. It integrates natively with LangChain via the official `langchain-chroma` package.
+- **ChromaDB vs. InMemoryVectorStore**:
+  - `chroma` (Default): Stores embeddings and document metadata on local disk in a configurable persistence directory (`CHROMA_PERSIST_DIRECTORY`, default `./.chroma`). Chunks and index structures survive process restarts, eliminating the need to re-extract or re-embed documents on every query run.
+  - `inmemory`: Ephemeral in-process store (`langchain_core.vectorstores.InMemoryVectorStore`). Ideal for rapid experimentation, unit tests, and environments where disk persistence is not desired.
+- **Explicit Cosine Distance Metric**: Multilingual E5 Small embeddings are L2-normalized. The Chroma collection explicitly configures cosine distance via `collection_metadata={"hnsw:space": "cosine"}` to guarantee true cosine similarity search.
+- **Deterministic Chunk IDs & Idempotent Ingestion**: To prevent duplicate chunks across multiple runs, chunk IDs are generated deterministically based on source identity, page number, chunk index, and SHA-256 content digest:
+  ```text
+  {clean_source}:p{page_number}:c{chunk_index}:{sha256_hash[:16]}
+  ```
+  - Re-ingesting the exact same source updates records idempotently without inflating document count.
+  - Re-ingesting an updated document automatically purges stale chunks from previous revisions.
+  - Safe fallback: When source metadata is absent, chunks fall back to `"unknown_source:p0:c{index}:{hash}"`.
+- **Metadata Normalization & Citation Survival**: Chroma requires scalar metadata values (`str`, `int`, `float`, `bool`). The indexing pipeline normalizes complex or nested metadata (e.g. OCR layout structures or bounding boxes) into JSON strings, preventing runtime validation errors while ensuring `source`, `page` (0-indexed), and `page_number` (1-indexed) survive vector retrieval intact for verified citation mapping.
+- **Reopening an Existing Collection**: Simply instantiate the pipeline with the existing `CHROMA_PERSIST_DIRECTORY` and `CHROMA_COLLECTION_NAME`. The collection is reopened without re-embedding.
+- **Selecting InMemory Backend**:
+  ```bash
+  export VECTOR_STORE_PROVIDER="inmemory"
+  ```
+- **Clearing Local Chroma Data Safely**: To reset the local vector database, delete the local persistence directory:
+  ```bash
+  # Linux / macOS
+  rm -rf .chroma
+  # Windows PowerShell
+  Remove-Item -Recurse -Force .chroma
+  ```
+- **Avoiding Committing Local Database Files**: The Chroma persistence directory (`.chroma/` and `**/.chroma/`) is registered in `.gitignore` to prevent committing SQLite files or Parquet index artifacts to source control.
 
 ---
 
