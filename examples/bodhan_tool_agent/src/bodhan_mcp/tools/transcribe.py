@@ -16,6 +16,8 @@ from bodhan_core.errors import ErrorCode, ToolError
 from bodhan_core.ledger import cost_transcribe
 from bodhan_mcp.runtime import get_client
 
+INLINE_TEXT_LIMIT = 1500  # short outputs come back inline, so callers need no read_text round trip
+
 STYLES = {
     "transcript": {"max_s": audio.MAX_WINDOW_S, "min_s": None},
     "subtitle": {"max_s": 7.0, "min_s": 1.5},
@@ -115,6 +117,7 @@ async def transcribe_audio(
         "complete": not failed,
         "chars": len(transcript),
         "preview": workspace.preview(transcript),
+        **({"text": transcript} if len(transcript) <= INLINE_TEXT_LIMIT else {}),
         "untrusted_content": True,
         "warnings": warnings,
         "cost_inr": round(cost, 4),

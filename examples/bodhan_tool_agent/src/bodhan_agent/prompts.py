@@ -23,15 +23,20 @@ TOOL PATTERNS (combine as needed)
 - Subtitles → transcribe_audio(segment_style="subtitle") → translate_segments → make_srt.
 - Translation → translate_text(path=..., target_language=...); Markdown tables are preserved.
 - Input already in the requested language → use its path directly (no translation step).
+- Several inputs needing the same tool → call it for ALL of them in the same turn (they run in parallel).
+- Tool results already include the detected language/script and a preview. Use read_text only when you
+  need more of the text than the preview shows.
 - Speech → synthesize_speech(path=<file in that language>, language=..., gender/voice/style as asked).
 - Summaries or answers about a non-English source: translate_text(target_language="en") first, then
   summarize_text(path=<English file>, target_words=N) or read_text. Then, if the summary must be in an
   Indian language, translate_text(path=<summary path>) and use that output.
-- Spoken length: English speech runs at about 130 words per minute; Indian-language speech of a
-  translated text is usually a little longer. For "N minutes of audio", aim for about 110*N English words.
+- Spoken length: for "N minutes of audio" in an Indian language, write about 108*N English words before
+  translating (translated speech runs longer than English).
 - Which language is a clip or page in? Read the language/script fields that the tools return. Devanagari
   is shared by Hindi, Marathi, Nepali and others: if it matters, say which you assumed.
-- Final deliverables are files: pass their paths to finish(artifacts=[...]). Put explanations in finish(answer=...)."""
+- Final deliverables are files: pass their paths to finish(artifacts=[...]). Put explanations in finish(answer=...).
+- finish(assumptions=...) lists only assumptions that still hold after seeing the content (e.g. the source
+  language you detected, the voice you chose), not guesses made before reading the files."""
 
 PLAN_SYSTEM = f"""\
 You plan multi-step Indian-language tasks for an agent that has these Bodhan tools:
@@ -68,8 +73,12 @@ read its compact result, decide the next call. Independent calls may be made in 
 {TOOL_PATTERNS}
 
 When every deliverable exists, call finish(answer, artifacts, assumptions). The answer is English text
-for the user (what was done, key results, caveats). If the task cannot be completed, call
+for the user (what was done, key results, caveats). Do not put file paths in the answer: artifacts are
+listed for the user separately. If the task cannot be completed, call
 give_up(reason). Your outputs are checked automatically after finish, and you may be asked to repair them."""
+
+
+ENGLISH_WORDS_PER_MINUTE = 108  # measured: 270 English words -> 150 s of Tamil speech
 
 
 def act_user(task: str, manifest: list[dict], plan: dict, missing: list[str]) -> str:
@@ -78,6 +87,12 @@ def act_user(task: str, manifest: list[dict], plan: dict, missing: list[str]) ->
     lines = [f"TASK: {task}", "", "INPUT FILES (manifest):", json.dumps(manifest, ensure_ascii=False, indent=None)]
     if missing:
         lines += ["", f"MISSING INPUT PATHS: {missing}"]
+    for d in plan.get("deliverables") or []:
+        if d.get("kind") == "audio" and d.get("target_duration_s"):
+            words = int(d["target_duration_s"] / 60 * ENGLISH_WORDS_PER_MINUTE)
+            lines += ["", f"LENGTH TARGET: for {d['target_duration_s']:.0f}s of {d.get('language')} audio, write the English "
+                          f"text at about {words} words (measured: translated Indian-language speech runs longer than "
+                          f"English)."]
     lines += ["", "PLAN:", json.dumps({k: plan.get(k) for k in ("understanding", "deliverables", "steps", "assumptions")},
                                       ensure_ascii=False)]
     lines += ["", "Begin."]

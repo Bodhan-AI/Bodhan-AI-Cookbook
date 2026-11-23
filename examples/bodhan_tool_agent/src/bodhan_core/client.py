@@ -31,6 +31,7 @@ from .ledger import Ledger, cost_ocr, cost_speak, cost_transcribe, cost_translat
 
 QUOTA_WORDS = ("credit", "quota", "balance", "budget", "insufficient", "billing")
 MAX_RETRY_AFTER_S = 30.0
+RATE_LIMIT_RETRIES = 6  # 429s are worth waiting out (≈70 s in total); other errors use settings.max_retries
 
 
 @dataclass
@@ -194,9 +195,12 @@ class BodhanClient:
                 result = self._parse(model, resp, binary)
                 break
             except _Retry as r:
-                if attempts > self.settings.max_retries:
+                rate_limited = r.error.info.code is ErrorCode.RATE_LIMITED
+                limit = max(RATE_LIMIT_RETRIES, self.settings.max_retries) if rate_limited else self.settings.max_retries
+                if attempts > limit:
                     raise r.error from None
-                await self._sleep(r.retry_after if r.retry_after is not None else _backoff(attempts))
+                wait = r.retry_after if r.retry_after is not None else _backoff(attempts, cap=20 if rate_limited else 16)
+                await self._sleep(wait)
             except httpx.TimeoutException:
                 if attempts > self.settings.max_retries:
                     raise ToolError(
@@ -279,8 +283,8 @@ class _Retry(Exception):
         self.retry_after = retry_after
 
 
-def _backoff(attempt: int) -> float:
-    return min(2 ** (attempt - 1), 16) + random.uniform(0, 0.5)
+def _backoff(attempt: int, cap: float = 16) -> float:
+    return min(2 ** (attempt - 1), cap) + random.uniform(0, 0.5)
 
 
 def _retry_after(resp: httpx.Response) -> float | None:

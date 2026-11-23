@@ -16,6 +16,7 @@ from bodhan_mcp.runtime import get_client
 RENDER_DPI = 200
 MAX_LONG_SIDE = 2400  # downscale huge phone photos; OCR quality is fine and uploads stay small
 DEFAULT_MAX_PAGES = 50
+INLINE_TEXT_LIMIT = 1500  # short outputs come back inline, so callers need no read_text round trip
 
 
 def parse_pages(spec: str | None, total: int) -> list[int]:
@@ -135,6 +136,7 @@ async def ocr_document(
         "page_scripts": [{"page": i["page"], "script": i["script"]["script"], "candidates": i["script"]["candidates"]}
                          for i in page_info],
         "preview": workspace.preview(markdown),
+        **({"text": markdown} if len(markdown) <= INLINE_TEXT_LIMIT else {}),
         "untrusted_content": True,
         "cost_inr": round(cost, 4),
         "cached_pages": cached,

@@ -122,7 +122,9 @@ async def _pipeline(cfg: RunConfig, trace: Trace, st: _State, work: Path, starte
                     trace.log("verify", checks=st.verification.checks, missed_targets=st.verification.missed_targets,
                               after_repair=True)
         st.answer = outcome.answer
-        st.assumptions += outcome.assumptions
+        if outcome.assumptions:
+            # Made after seeing the content: these replace the plan's up-front guesses.
+            st.assumptions = [a for a in st.assumptions if a not in plan.assumptions] + outcome.assumptions
         st.cost_inr, st.steps = budget.cost_inr, budget.steps
         st.llm_usage = llm.usage
         if outcome.status == "finished":

@@ -33,7 +33,7 @@ The agent reads its LLM from `LLM_BASE_URL`, `LLM_MODEL` and `LLM_API_KEY` (any 
 | `openai/gpt-oss-120b` | Groq (`https://api.groq.com/openai/v1`) | Main development model. The free tier allows 8,000 tokens per minute, so multi-step runs spend some time waiting out rate limits (logged as `llm_wait_s`). |
 | `qwen2.5:7b` | Ollama on a CPU-only laptop (`http://localhost:11434/v1`, `LLM_API_KEY=ollama`) | Robustness check: same tasks, same results, but about 7× slower. Start Ollama with `OLLAMA_CONTEXT_LENGTH=16384`, because the default 4k context silently truncates the agent's prompt. |
 
-To create small demo inputs (git-ignored, under ₹0.01): `python scripts/make_demo_inputs.py`.
+To create the demo inputs (git-ignored): `python scripts/make_demo_inputs.py` (under ₹0.01) and `python scripts/make_full_demo_inputs.py` (about ₹0.20). The second makes an 8-page scanned Hindi chapter (original English text, translated by Indic-Translate, rendered as noisy page images with no text layer) and five unlabelled speech clips in Hindi, Telugu, Kannada, Telugu and Tamil (Indic-Translate + Indic-Speak).
 
 Or with Docker: `docker build -t bodhan-tool-agent .`
 
@@ -120,10 +120,14 @@ The tests never read `.env`. The end-to-end agent tests run the real CLI and the
 | Transcribe this Hindi voice note and give me English subtitles | 6 s WAV | ✅ completed | 6 | ₹0.00 (cached) / ₹0.01 | 78 s (64 s rate-limit waits) | English SRT |
 | Read this paragraph aloud in Bengali with a female voice | Bengali .txt | ✅ completed | 7 | ₹0.11 | 91 s (61 s waits) | 13 s MP3 (voice Ishita), back-transcription passed |
 | Translate this worksheet into Marathi and keep the table | worksheet PNG | ✅ completed | 5 | ₹0.20 | 66 s (52 s waits) | Marathi Markdown, 3×4 table intact |
+| Make a two-minute Tamil audio summary of this chapter | 8-page scanned Hindi PDF | ✅ completed | 10 | ₹2.94 | 230 s (83 s waits) | 150 s Tamil MP3 (voice Anitha); all 10 pieces passed back-transcription (min similarity 98.4%) |
+| Which of these clips are in Telugu? Translate those into English | 5 unlabelled WAV clips | ✅ completed: clip2 and clip4, correct | 10 | ₹0.04 | 270 s (249 s waits) | Two English translations; Hindi, Kannada and Tamil clips correctly excluded |
 | Translate this video into French | MP4 | ⛔ impossible (correct) | 0 | ₹0.00 | 5 s | Clear explanation, no artifacts |
 | Same worksheet task on `qwen2.5:7b` (local Ollama, CPU) | worksheet PNG | ✅ completed | 4 | ₹0.00 (cached) | 410 s | Same Marathi Markdown |
 
-In the Bengali run the LLM tried to pass Bengali text it had copied into `translate_text`. The guard blocked it (`POLICY_VIOLATION`), and the agent switched to passing the file path. Outputs and traces stay out of git; regenerate them with the commands above.
+Recovery seen in live runs:
+- In the chapter run, Indic-Translate returned 429 ("Maximum rate limit reached for the model"). The agent retried, and cached pieces made the retry cheap; the client now waits out 429s for up to about 70 s.
+- In the chapter and Bengali runs, the LLM tried to pass Indian-language text it had copied into `translate_text`. Both times the guard blocked it (`POLICY_VIOLATION`) and the agent switched to passing the file path. Outputs and traces stay out of git; regenerate them with the commands above.
 
 ## Roadmap
 
@@ -131,7 +135,8 @@ In the Bengali run the LLM tried to pass Bengali text it had copied into `transl
 - [x] Bodhan HTTP client: retries, backoff, concurrency limit, cache, cost ledger
 - [x] Model tools with chunking and limit handling
 - [x] Agent loop: plan, act, verify, retry, budgets
-- [ ] Full demo set (scanned PDF summary, multi-clip language ID), self-evaluation suite, demo video
+- [x] All six demo tasks from the brief, run live
+- [ ] Self-evaluation suite, demo video
 
 ## Limitations
 

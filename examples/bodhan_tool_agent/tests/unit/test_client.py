@@ -210,3 +210,13 @@ async def test_translate_truncation_and_unsupported_language(tmp_path):
     with pytest.raises(ToolError) as exc:
         await client.translate("Hello", target_language="fr")
     assert exc.value.info.code is ErrorCode.UNSUPPORTED_LANGUAGE
+
+
+@respx.mock
+async def test_rate_limits_get_more_patience_than_other_errors(tmp_path):
+    busy = httpx.Response(429, json={"error": {"message": "Maximum rate limit reached for the model", "code": "429"}})
+    route = respx.post(f"{BASE}/v1/chat/completions").mock(side_effect=[busy] * 5 + [httpx.Response(200, json=chat("ok"))])
+    client, sleeps = make_client(tmp_path, retries=1)  # 1 retry for 5xx, but 429s are waited out
+    r = await client.translate("Hi", target_language="hi")
+    assert r.data["translation"] == "ok" and route.call_count == 6
+    assert len(sleeps) == 5 and max(sleeps) <= 20.5
