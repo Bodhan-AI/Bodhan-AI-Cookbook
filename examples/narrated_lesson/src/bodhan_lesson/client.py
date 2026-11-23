@@ -124,8 +124,9 @@ class BodhanClient:
         return value
 
     @staticmethod
-    def _backoff(attempt: int) -> float:
-        return 2 ** attempt + random.random()
+    def _backoff(attempt: int, status: int | None = None) -> float:
+        base = 5 if status == 429 else 1          # rate limits need longer waits than a blip
+        return min(60.0, base * 2 ** attempt) + random.random()
 
     @staticmethod
     def _retry_after(resp: requests.Response) -> float:
@@ -134,8 +135,12 @@ class BodhanClient:
         except ValueError:
             return 0.0
 
-    def _send(self, url: str, key: str, *, retries: int = 4, **kw) -> requests.Response:
-        """POST with backoff on 429 and 5xx. Raises BodhanError on final failure."""
+    def _send(self, url: str, key: str, *, retries: int = 6, **kw) -> requests.Response:
+        """POST with backoff on 429 and 5xx. Raises BodhanError on final failure.
+
+        A 'truncated' recognizer error is retried at most twice: the same request has both failed
+        and succeeded in practice, but it can also fail every time.
+        """
         timeout = kw.pop("timeout", 180)
         for attempt in range(retries + 1):
             last = attempt == retries
@@ -146,8 +151,10 @@ class BodhanClient:
                     raise BodhanError(None, "network", str(exc)) from exc
                 time.sleep(self._backoff(attempt))
                 continue
-            if resp.status_code in RETRYABLE and not last:
-                time.sleep(min(self._retry_after(resp) or self._backoff(attempt), 30))
+            truncated = "truncated" in resp.text.lower()
+            retryable = resp.status_code in RETRYABLE and (not truncated or attempt < 2)
+            if retryable and not last:
+                time.sleep(min(self._retry_after(resp) or self._backoff(attempt, resp.status_code), 60))
                 continue
             if not resp.ok:
                 raise BodhanError.from_response(resp)

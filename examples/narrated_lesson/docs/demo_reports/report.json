@@ -1,0 +1,141 @@
+{
+  "input": "local_data\\lines_and_angles.pdf",
+  "languages": [
+    "hi",
+    "ta",
+    "bn"
+  ],
+  "stages": {
+    "ocr": {
+      "pages": 20,
+      "failed_pages": [],
+      "seconds": 215.3,
+      "pages_with_split": [
+        8
+      ],
+      "cost_inr": 0.0,
+      "cost_inr_per_page": 0.0
+    },
+    "assembly": {
+      "seconds": 0.1,
+      "dropped_by_reason": {
+        "catalog_code": 1,
+        "header_or_footer_label": 6,
+        "running_header_or_footer": 7,
+        "website_banner": 1
+      },
+      "merged_across_pages": [
+        {
+          "from_page": 1,
+          "to_page": 2
+        }
+      ],
+      "flagged_elements": [],
+      "labels_seen": {
+        "Paragraph": 109,
+        "Chapter-title": 9,
+        "Section-title": 11,
+        "Image-caption": 47,
+        "Diagram": 38,
+        "Header": 6,
+        "Equation": 51,
+        "Solved-example": 11,
+        "Question": 15,
+        "List": 3
+      }
+    },
+    "translation": {
+      "hi": {
+        "language": "hi",
+        "elements": 239,
+        "api_groups": 33,
+        "translation_issues": [],
+        "structure": {
+          "same_order_and_types": true,
+          "equations_identical": true,
+          "headings": 13,
+          "tables": 0,
+          "equations": 50
+        },
+        "seconds": 126.2,
+        "cost_inr": 0.18528
+      },
+      "ta": {
+        "language": "ta",
+        "elements": 239,
+        "api_groups": 33,
+        "translation_issues": [
+          {
+            "page": 10,
+            "type": "heading",
+            "issues": [
+              "kept_in_english:numerals_changed"
+            ]
+          }
+        ],
+        "structure": {
+          "same_order_and_types": true,
+          "equations_identical": true,
+          "headings": 13,
+          "tables": 0,
+          "equations": 50
+        },
+        "seconds": 615.9,
+        "cost_inr": 0.31574
+      },
+      "bn": {
+        "language": "bn",
+        "elements": 239,
+        "api_groups": 33,
+        "translation_issues": [
+          {
+            "page": 14,
+            "type": "paragraph",
+            "issues": [
+              "kept_in_english:placeholder_1_count_0,numerals_changed"
+            ]
+          }
+        ],
+        "structure": {
+          "same_order_and_types": true,
+          "equations_identical": true,
+          "headings": 13,
+          "tables": 0,
+          "equations": 50
+        },
+        "seconds": 736.0,
+        "cost_inr": 0.30906
+      }
+    }
+  },
+  "problems": [
+    "ta: 1 pieces kept in English",
+    "bn: 1 pieces kept in English"
+  ],
+  "not_implemented": [
+    "narration script",
+    "speech synthesis",
+    "speech quality check (back-transcription)"
+  ],
+  "cost": {
+    "by_service": {
+      "ocr": {
+        "calls": 21,
+        "cached_calls": 21,
+        "units": 21,
+        "cost_inr": 0.0,
+        "seconds": 0.0
+      },
+      "translate": {
+        "calls": 448,
+        "cached_calls": 54,
+        "units": 40504,
+        "cost_inr": 0.8100799999999992,
+        "seconds": 5726.898143768311
+      }
+    },
+    "total_inr": 0.81008
+  },
+  "total_seconds": 1693.4,
+  "ok": false
+}
