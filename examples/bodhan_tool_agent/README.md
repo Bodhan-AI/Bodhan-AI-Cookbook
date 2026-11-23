@@ -124,7 +124,7 @@ Notes from the run:
 - `POST /translate` returned HTTP 404 on 23 Nov 2026, so the client falls back to the equivalent documented `POST /v1/chat/completions` transport and remembers the choice for the rest of the run (`tests/test_tools.py::test_translate_falls_back_to_chat_transport_on_404`).
 - The missing-file task is decided in code before any LLM or model call.
 
-**Demo video (2 min 44 s):** VIDEO_URL
+**Demo video (2 min 44 s):** https://github.com/user-attachments/assets/d32f5b8e-9f55-4310-92e1-d70bd78c4747 (also embedded in [PR #100](https://github.com/Bodhan-AI/Bodhan-AI-Cookbook/pull/100))
 
 **MCP client used for the tool-level check:** the official MCP Python SDK client (`tests/test_mcp_stdio.py`) and raw JSON-RPC over stdio; the MCP Inspector command above also works.
 
