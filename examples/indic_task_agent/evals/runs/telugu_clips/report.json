@@ -1,0 +1,88 @@
+{
+  "status": "success",
+  "task": "Which of these clips are in Telugu? Translate those into English",
+  "model": "claude-opus-5-5",
+  "inputs": [
+    "C:\\Users\\Nilay\\Downloads\\indic_task_agent\\indic_task_agent\\sample_data\\demo\\clips\\clip_1.mp3",
+    "C:\\Users\\Nilay\\Downloads\\indic_task_agent\\indic_task_agent\\sample_data\\demo\\clips\\clip_2.wav",
+    "C:\\Users\\Nilay\\Downloads\\indic_task_agent\\indic_task_agent\\sample_data\\demo\\clips\\clip_3.ogg",
+    "C:\\Users\\Nilay\\Downloads\\indic_task_agent\\indic_task_agent\\sample_data\\demo\\clips\\clip_4.m4a",
+    "C:\\Users\\Nilay\\Downloads\\indic_task_agent\\indic_task_agent\\sample_data\\demo\\clips\\clip_5.flac"
+  ],
+  "missing_inputs": [],
+  "steps": 3,
+  "max_steps": 30,
+  "tool_calls": 12,
+  "total_cost_inr": 0.0466,
+  "max_cost_inr": 20.0,
+  "cost_note": "Bodhan model calls only, at hosted prices; LLM tokens are reported separately.",
+  "llm_tokens": 33126,
+  "elapsed_s": 21.75,
+  "stop_reason": null,
+  "plan": [
+    "Transcribe all 5 clips with language auto-detect (parallel)",
+    "Identify Telugu clips from detected language",
+    "Translate Telugu transcripts to English, save to artifacts",
+    "Finish with list"
+  ],
+  "assumptions": [
+    "Language is determined by transcribe_audio auto-detection",
+    "Deliverable is English translation text files per Telugu clip",
+    "Each clip's language was taken from automatic detection during transcription.",
+    "\"Translate\" means English text, not English audio."
+  ],
+  "artifacts": [
+    "clip_2_english.txt",
+    "clip_2_telugu_transcript.txt",
+    "clip_4_english.txt",
+    "clip_4_telugu_transcript.txt"
+  ],
+  "verification": [
+    {
+      "artifact": "clip_2_english.txt",
+      "tool": "translate_text",
+      "verification": {
+        "passed": true,
+        "method": "coverage: 1 units, each non-empty, complete, in Latin script, plausible length",
+        "score": null,
+        "issues": []
+      }
+    },
+    {
+      "artifact": "clip_2_telugu_transcript.txt",
+      "tool": "agent",
+      "verification": null
+    },
+    {
+      "artifact": "clip_4_english.txt",
+      "tool": "translate_text",
+      "verification": {
+        "passed": true,
+        "method": "coverage: 1 units, each non-empty, complete, in Latin script, plausible length",
+        "score": null,
+        "issues": []
+      }
+    },
+    {
+      "artifact": "clip_4_telugu_transcript.txt",
+      "tool": "agent",
+      "verification": null
+    }
+  ],
+  "completed_steps": [
+    "inspect_media: path=C:\\Users\\Nilay\\Downloads\\indic_task_agent\\indic_task_agent\\sample_data\\demo\\clip...[92 chars]",
+    "inspect_media: path=C:\\Users\\Nilay\\Downloads\\indic_task_agent\\indic_task_agent\\sample_data\\demo\\clip...[92 chars]",
+    "inspect_media: path=C:\\Users\\Nilay\\Downloads\\indic_task_agent\\indic_task_agent\\sample_data\\demo\\clip...[92 chars]",
+    "inspect_media: path=C:\\Users\\Nilay\\Downloads\\indic_task_agent\\indic_task_agent\\sample_data\\demo\\clip...[92 chars]",
+    "inspect_media: path=C:\\Users\\Nilay\\Downloads\\indic_task_agent\\indic_task_agent\\sample_data\\demo\\clip...[93 chars]",
+    "transcribe_audio: path=C:\\Users\\Nilay\\Downloads\\indic_task_agent\\indic_task_agent\\sample_data\\demo\\clip...[92 chars]",
+    "transcribe_audio: path=C:\\Users\\Nilay\\Downloads\\indic_task_agent\\indic_task_agent\\sample_data\\demo\\clip...[92 chars]",
+    "transcribe_audio: path=C:\\Users\\Nilay\\Downloads\\indic_task_agent\\indic_task_agent\\sample_data\\demo\\clip...[93 chars]",
+    "transcribe_audio: path=C:\\Users\\Nilay\\Downloads\\indic_task_agent\\indic_task_agent\\sample_data\\demo\\clip...[92 chars]",
+    "transcribe_audio: path=C:\\Users\\Nilay\\Downloads\\indic_task_agent\\indic_task_agent\\sample_data\\demo\\clip...[92 chars]",
+    "translate_text: path=C:\\Users\\Nilay\\Downloads\\indic_task_agent\\indic_task_agent\\evals\\runs\\telugu_cli...[124 chars], target_language=en, output_path=C:\\Users\\Nilay\\Downloads\\indic_task_agent\\indic_task_agent\\evals\\runs\\telugu_cli...[111 chars]",
+    "translate_text: path=C:\\Users\\Nilay\\Downloads\\indic_task_agent\\indic_task_agent\\evals\\runs\\telugu_cli...[124 chars], target_language=en, output_path=C:\\Users\\Nilay\\Downloads\\indic_task_agent\\indic_task_agent\\evals\\runs\\telugu_cli...[111 chars]"
+  ],
+  "errors": [],
+  "quality_target_misses": []
+}

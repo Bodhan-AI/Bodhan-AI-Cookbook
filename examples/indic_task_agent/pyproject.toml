@@ -1,0 +1,36 @@
+[project]
+name = "indic-task-agent"
+version = "0.1.0"
+description = "MCP tool server for Bodhan's Indic models, plus a task agent that uses it."
+requires-python = ">=3.11"
+dependencies = [
+    "httpx2==2.16.2",
+    "mcp==2.3.0",
+    "openai==3.57.0",
+    "pymupdf==2.1",
+    "python-dotenv==1.2.4",
+]
+
+[dependency-groups]
+dev = ["pytest==9.2.0"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/bodhan_mcp", "src/bodhan_agent"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 160
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["B905", "E501"]  # zip() over lists we built to equal length; long prose strings
+
+[tool.ruff.lint.isort]
+known-first-party = ["bodhan_mcp", "bodhan_agent", "fakes"]
