@@ -1517,10 +1517,10 @@ class TestAgent(unittest.TestCase):
         def mock_transcribe(file_path="", **kwargs):
             return {
                 "success": True,
-                "transcript": "मेरा नाम अशफाक है और आज मौसम बहुत अच्छा है मैं कल सुबह नौ बजे स्कूल जाऊँगा",
+                "transcript": "आज मौसम बहुत अच्छा है और मैं कल सुबह नौ बजे स्कूल जाऊँगा",
                 "windows": [{
                     "window_index": 0,
-                    "text": "मेरा नाम अशफाक है और आज मौसम बहुत अच्छा है मैं कल सुबह नौ बजे स्कूल जाऊँगा",
+                    "text": "आज मौसम बहुत अच्छा है और मैं कल सुबह नौ बजे स्कूल जाऊँगा",
                     "start_s": 0.0,
                     "end_s": 13.5,
                 }],
@@ -1541,7 +1541,7 @@ class TestAgent(unittest.TestCase):
                     "args": {
                         "source_language": "en",
                         "target_language": "hi",
-                        "text": "मेरा नाम अशफाक है और आज मौसम बहुत अच्छा है मैं कल सुबह नौ बजे स्कूल जाऊँगा",
+                        "text": "आज मौसम बहुत अच्छा है और मैं कल सुबह नौ बजे स्कूल जाऊँगा",
                     },
                 },
             ]
@@ -1632,7 +1632,7 @@ class TestAgent(unittest.TestCase):
         }
         self.mock_tools.transcribe_audio.return_value = {
             "success": True,
-            "transcript": "मेरा नाम अशफाक है और आज मौसम बहुत अच्छा है मैं कल सुबह नौ बजे स्कूल जाऊँगा",
+            "transcript": "आज मौसम बहुत अच्छा है और मैं कल सुबह नौ बजे स्कूल जाऊँगा",
             "duration_s": 13.5,
             "windows_count": 1,
             "windows": [
@@ -1640,7 +1640,7 @@ class TestAgent(unittest.TestCase):
                     "window_index": 1,
                     "start_s": 0.0,
                     "end_s": 13.5,
-                    "text": "मेरा नाम अशफाक है और आज मौसम बहुत अच्छा है मैं कल सुबह नौ बजे स्कूल जाऊँगा",
+                    "text": "आज मौसम बहुत अच्छा है और मैं कल सुबह नौ बजे स्कूल जाऊँगा",
                 }
             ],
             "detected_script": "Devanagari",
@@ -1649,7 +1649,7 @@ class TestAgent(unittest.TestCase):
         self.mock_tools.translate_text.side_effect = None
         self.mock_tools.translate_text.return_value = {
             "success": True,
-            "translated_text": "My name is Ashfaq and today the weather is very nice I will go to school tomorrow morning at nine o'clock",
+            "translated_text": "Today the weather is very nice and I will go to school tomorrow morning at nine o'clock",
             "target_language": "en",
         }
 
@@ -1662,7 +1662,7 @@ class TestAgent(unittest.TestCase):
                     "args": {
                         "source_language": "hi",
                         "target_language": "en",
-                        "text": "मेरा नाम अशफाक है और आज मौसम बहुत अच्छा है मैं कल सुबह नौ बजे स्कूल जाऊँगा",
+                        "text": "आज मौसम बहुत अच्छा है और मैं कल सुबह नौ बजे स्कूल जाऊँगा",
                     },
                 },
             ]
@@ -1693,7 +1693,7 @@ class TestAgent(unittest.TestCase):
 
         # 4. English SRT verification: segment count matches (1 segment), script is Latin
         en_srt_content = en_srt.read_text(encoding="utf-8")
-        self.assertIn("My name is Ashfaq", en_srt_content)
+        self.assertIn("Today the weather is very nice", en_srt_content)
         self.assertIn("00:00:00,000 --> 00:00:13,500", en_srt_content)
         self.assertTrue(any("subtitles_test_video_en.srt" in a for a in report.artifacts))
 
@@ -1715,7 +1715,7 @@ class TestAgent(unittest.TestCase):
         }
         self.mock_tools.transcribe_audio.return_value = {
             "success": True,
-            "transcript": "मेरा नाम अशफाक है और आज मौसम बहुत अच्छा है",
+            "transcript": "आज मौसम बहुत अच्छा है और धूप निकली है",
             "duration_s": 13.5,
             "windows_count": 1,
             "windows": [
@@ -1723,7 +1723,7 @@ class TestAgent(unittest.TestCase):
                     "window_index": 1,
                     "start_s": 0.0,
                     "end_s": 13.5,
-                    "text": "मेरा नाम अशफाक है और आज मौसम बहुत अच्छा है",
+                    "text": "आज मौसम बहुत अच्छा है और धूप निकली है",
                 }
             ],
             "detected_script": "Devanagari",
@@ -1744,7 +1744,7 @@ class TestAgent(unittest.TestCase):
                     "args": {
                         "source_language": "hi",
                         "target_language": "en",
-                        "text": "मेरा नाम अशफाक है और आज मौसम बहुत अच्छा है",
+                        "text": "आज मौसम बहुत अच्छा है और धूप निकली है",
                     },
                 },
             ]
@@ -1836,17 +1836,17 @@ class TestAgent(unittest.TestCase):
         def mock_build_srt(windows, output_path=None):
             p = Path(output_path) if output_path else self.out_dir / "artifacts" / "subtitles_test_video.srt"
             p.parent.mkdir(parents=True, exist_ok=True)
-            p.write_text("1\n00:00:00,000 --> 00:00:05,000\nमेरा नाम अशफाक है\n", encoding="utf-8")
+            p.write_text("1\n00:00:00,000 --> 00:00:05,000\nआज का दिन बहुत अच्छा है\n", encoding="utf-8")
             return {"success": True, "srt_path": str(p)}
 
         self.mock_tools.build_srt.side_effect = mock_build_srt
 
         self.mock_tools.transcribe_audio.return_value = {
             "success": True,
-            "transcript": "मेरा नाम अशफाक है",
+            "transcript": "आज का दिन बहुत अच्छा है",
             "duration_s": 5.0,
             "windows_count": 1,
-            "windows": [{"window_index": 1, "start_s": 0.0, "end_s": 5.0, "text": "मेरा नाम अशफाक है"}],
+            "windows": [{"window_index": 1, "start_s": 0.0, "end_s": 5.0, "text": "आज का दिन बहुत अच्छा है"}],
             "cost_inr": 0.0,
             "would_be_cost_inr": 0.02,
             "cached": True,
@@ -1856,7 +1856,7 @@ class TestAgent(unittest.TestCase):
         def mock_translate(text="", file_path="", target_language_code="en", target_script="native"):
             return {
                 "success": True,
-                "translated_text": "my name is john",
+                "translated_text": "today is a very good day",
                 "cost_inr": 0.0004,
                 "would_be_cost_inr": 0.0004,
                 "cached": False,
@@ -1950,7 +1950,7 @@ class TestAgent(unittest.TestCase):
         rep_path = self.out_dir / "report.json"
         rep_json = json.loads(rep_path.read_text(encoding="utf-8"))
         self.assertIn("warnings", rep_json)
-        self.assertIn("known limitations", rep_json)
+        self.assertNotIn("known limitations", rep_json)
         self.assertIn("known_limitations", rep_json)
         self.assertTrue(any("100" in w for w in rep_json["warnings"]))
         self.assertTrue(any("NASA" in w for w in rep_json["warnings"]))
@@ -1964,6 +1964,216 @@ class TestAgent(unittest.TestCase):
         for v in report.verification_results:
             self.assertNotIn("name verified", v.notes.lower())
             self.assertNotIn("names verified", v.notes.lower())
+
+    def test_known_limitations_single_key_and_generic_text(self):
+        """Tests Item 1 & 2: report.json contains ONLY 'known_limitations' (no 'known limitations'),
+        and limitation text is completely generic with no test file names or specific examples.
+        """
+        text_file = self.samples_dir / "sample_doc.txt"
+        text_file.write_text("कक्षा सुबह नौ बजे शुरू होती है।", encoding="utf-8")
+
+        self.mock_tools.translate_text.return_value = {
+            "success": True,
+            "translated_text": "The class starts at nine in the morning.",
+            "cost_inr": 0.0002,
+            "would_be_cost_inr": 0.0002,
+            "cached": False,
+            "target_language": "en",
+        }
+
+        plan = {
+            "steps": [
+                {"tool": "translate_text", "args": {"file_path": "sample_doc.txt", "target_language": "en"}},
+            ]
+        }
+
+        agent = TaskAgent(
+            task="Translate this Hindi text to English",
+            files=[text_file],
+            out_dir=self.out_dir,
+            settings=self.mock_settings,
+            llm_client=MockLLM(plan_dict=plan),
+            tools=self.mock_tools,
+        )
+        report = agent.run()
+
+        self.assertEqual(report.status, "success")
+        rep_dict = report.to_dict()
+
+        # Item 1: 'known_limitations' is present; 'known limitations' with space is NOT present
+        self.assertIn("known_limitations", rep_dict)
+        self.assertNotIn("known limitations", rep_dict)
+
+        rep_path = self.out_dir / "report.json"
+        rep_json = json.loads(rep_path.read_text(encoding="utf-8"))
+        self.assertIn("known_limitations", rep_json)
+        self.assertNotIn("known limitations", rep_json)
+
+        # Item 2: Generic limitations text without test file names or specific examples
+        self.assertTrue(len(report.known_limitations) > 0)
+        for kl in report.known_limitations:
+            kl_lower = kl.lower()
+            self.assertNotIn("ashfaq", kl_lower)
+            self.assertNotIn("अशफाक", kl)
+            self.assertNotIn("john", kl_lower)
+            self.assertIn("proper names", kl_lower)
+            self.assertIn("not verified", kl_lower)
+
+        # result.md has ## Known Limitations and generic text
+        result_md = (self.out_dir / "result.md").read_text(encoding="utf-8")
+        self.assertIn("## Known Limitations", result_md)
+        self.assertNotIn("known limitations:", result_md.lower())
+        self.assertNotIn("ashfaq", result_md.lower())
+        self.assertNotIn("john", result_md.lower())
+
+    def test_pdf_and_multipage_document_records_page_count_in_report(self):
+        """Tests Item 3: page_count and pages_processed are recorded in report.json for PDFs/documents."""
+        pdf_file = self.samples_dir / "document.pdf"
+        pdf_file.write_bytes(b"%PDF-1.4 dummy pdf bytes")
+
+        self.mock_tools.inspect_media.return_value = {
+            "success": True,
+            "file_name": "document.pdf",
+            "file_path": str(pdf_file.resolve()),
+            "media_type": "document",
+            "page_count": 5,
+            "size_bytes": 10240,
+        }
+
+        self.mock_tools.extract_document_text.return_value = {
+            "success": True,
+            "text": "पहला पृष्ठ पाठ । दूसरा पृष्ठ पाठ ।",
+            "pages_count": 5,
+            "pages": [
+                {"page_number": 1, "text": "पहला पृष्ठ पाठ ।"},
+                {"page_number": 2, "text": "दूसरा पृष्ठ पाठ ।"},
+            ],
+            "cost_inr": 0.05,
+            "would_be_cost_inr": 0.05,
+            "cached": False,
+        }
+
+        self.mock_tools.translate_text.return_value = {
+            "success": True,
+            "translated_text": "First page text. Second page text.",
+            "cost_inr": 0.001,
+            "would_be_cost_inr": 0.001,
+            "cached": False,
+            "target_language": "en",
+        }
+
+        plan = {
+            "steps": [
+                {"tool": "extract_document_text", "args": {"file_path": "document.pdf"}},
+                {"tool": "translate_text", "args": {"target_language": "en"}},
+            ]
+        }
+
+        agent = TaskAgent(
+            task="Extract Hindi text from PDF and translate to English",
+            files=[pdf_file],
+            out_dir=self.out_dir,
+            settings=self.mock_settings,
+            llm_client=MockLLM(plan_dict=plan),
+            tools=self.mock_tools,
+        )
+        report = agent.run()
+
+        self.assertEqual(report.status, "success")
+        self.assertEqual(report.page_count, 5)
+        self.assertEqual(report.pages_processed, 5)
+
+        # Check to_dict serialization
+        rep_dict = report.to_dict()
+        self.assertEqual(rep_dict["page_count"], 5)
+        self.assertEqual(rep_dict["pages_processed"], 5)
+
+        # Check report.json on disk
+        rep_path = self.out_dir / "report.json"
+        rep_json = json.loads(rep_path.read_text(encoding="utf-8"))
+        self.assertEqual(rep_json["page_count"], 5)
+        self.assertEqual(rep_json["pages_processed"], 5)
+
+    def test_normalize_spacing_before_sentence_final_punctuation(self):
+        """Tests Item 4: Normalize spacing before sentence-final punctuation (' .' -> '.', ' ।' -> '।')
+        in plain code before translating OCR text and in the final English output.
+        """
+        from bodhan_agent.agent import normalize_punctuation_spacing, clean_ocr_text
+
+        # 1. Plain code helper directly
+        raw_text = "This is a sentence . Another sentence । Question ? Exclamation ! Colon : Semicolon ; Done ."
+        normalized = normalize_punctuation_spacing(raw_text)
+        self.assertEqual(
+            normalized,
+            "This is a sentence. Another sentence। Question? Exclamation! Colon: Semicolon; Done."
+        )
+
+        # 2. clean_ocr_text normalizes spacing and removes markers
+        ocr_input = "--- Page 1 ---\nयह एक वाक्य है । दूसरा वाक्य यहाँ है .\n"
+        cleaned = clean_ocr_text(ocr_input)
+        self.assertEqual(cleaned, "यह एक वाक्य है। दूसरा वाक्य यहाँ है.")
+
+        # 3. OCR then translate flow verifies normalization before translation and in final output
+        img_file = self.samples_dir / "scanned_doc.png"
+        img_file.write_bytes(b"\x89PNG\r\n\x1a\n\x00dummy")
+
+        self.mock_tools.extract_document_text.return_value = {
+            "success": True,
+            "text": "--- Page 1 ---\nकक्षा सुबह नौ बजे शुरू होती है । क्या सब तैयार हैं ?\n",
+            "cost_inr": 0.05,
+            "pages_count": 1,
+        }
+
+        captured_translate_input = []
+
+        def mock_translate(text="", file_path="", target_language="en", **kwargs):
+            captured_translate_input.append(text)
+            # Simulated translation model output with unnormalized spacing
+            return {
+                "success": True,
+                "translated_text": "The class starts at nine in the morning . Is everyone ready ?",
+                "cost_inr": 0.0002,
+                "target_language": "en",
+            }
+        self.mock_tools.translate_text.side_effect = mock_translate
+
+        plan = {
+            "steps": [
+                {"tool": "extract_document_text", "args": {"file_path": "scanned_doc.png"}},
+                {"tool": "translate_text", "args": {"target_language": "en"}},
+            ]
+        }
+
+        agent = TaskAgent(
+            task="Extract Hindi text and translate to English",
+            files=[img_file],
+            out_dir=self.out_dir,
+            settings=self.mock_settings,
+            llm_client=MockLLM(plan_dict=plan),
+            tools=self.mock_tools,
+        )
+        report = agent.run()
+
+        self.assertEqual(report.status, "success")
+
+        # The OCR input passed to translate_text had punctuation spacing normalized in plain code
+        self.assertTrue(len(captured_translate_input) > 0)
+        self.assertNotIn(" ।", captured_translate_input[0])
+        self.assertNotIn(" ?", captured_translate_input[0])
+        self.assertIn("।", captured_translate_input[0])
+        self.assertIn("?", captured_translate_input[0])
+        self.assertEqual(captured_translate_input[0], "कक्षा सुबह नौ बजे शुरू होती है। क्या सब तैयार हैं?")
+
+        # The generated artifact has normalized punctuation spacing (" ." -> ".", " ?" -> "?")
+        trans_artifacts = [a for a in report.artifacts if "translated_" in a]
+        self.assertTrue(len(trans_artifacts) > 0)
+        artifact_content = Path(trans_artifacts[0]).read_text(encoding="utf-8")
+        self.assertEqual(artifact_content.strip(), "The class starts at nine in the morning. Is everyone ready?")
+
+        # Plain code summary in result.md is also normalized
+        result_md = (self.out_dir / "result.md").read_text(encoding="utf-8")
+        self.assertNotIn(" .", result_md)
+        self.assertNotIn(" ?", result_md)
 
 
 if __name__ == "__main__":

@@ -80,6 +80,8 @@ class AgentReport:
     language_ambiguity: str | None = None
     warnings: list[str] = field(default_factory=list)
     known_limitations: list[str] = field(default_factory=list)
+    page_count: int | None = None
+    pages_processed: int | None = None
 
     def to_dict(self) -> dict[str, Any]:
         d = {
@@ -100,8 +102,9 @@ class AgentReport:
             "language_requested": self.language_requested,
             "detected_script": self.detected_script,
             "windows_count": self.windows_count,
+            "page_count": self.page_count,
+            "pages_processed": self.pages_processed,
             "known_limitations": self.known_limitations,
-            "known limitations": self.known_limitations,
         }
         if self.language_ambiguity:
             d["language_ambiguity"] = self.language_ambiguity

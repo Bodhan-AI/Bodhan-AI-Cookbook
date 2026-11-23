@@ -159,7 +159,7 @@ def probe_transcribe() -> None:
         res_data = resp.json()
         text = res_data.get("text", "")
         # Check if text repeats (since we joined audio 5 times, check if repetition is detected)
-        occurrences = text.count("अशफाक")
+        occurrences = text.count("मौसम")
         summary = f"Success in {latency:.1f}s. Transcript chars={len(text)}, detected phrase occurrences={occurrences} of 5"
         print(f"{summary}\nSample: {text[:140]}...")
         set_cache(cache_key, {"text": text, "summary": summary, "latency": latency})

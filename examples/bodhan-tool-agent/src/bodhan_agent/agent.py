@@ -53,14 +53,22 @@ UNSUPPORTED_LANGUAGE_PATTERNS = [
 ]
 
 
+def normalize_punctuation_spacing(text: str) -> str:
+    """Normalizes spacing before sentence-final and common punctuation marks (" ." to ".", " ।" to "।")."""
+    if not text:
+        return ""
+    # Strip whitespace immediately before sentence-final and common punctuation marks
+    return re.sub(r"[ \t]+([.।॥?!,:;])", r"\1", text)
+
+
 def clean_ocr_text(text: str) -> str:
-    """Strips OCR page markers like '--- Page 1 ---' from text."""
+    """Strips OCR page markers like '--- Page 1 ---' from text and normalizes punctuation spacing."""
     if not text:
         return ""
     cleaned = re.sub(r"(?m)^\s*---\s*Page\s+\d+\s*---\s*$", "", text)
     cleaned = re.sub(r"---\s*Page\s+\d+\s*---", "", cleaned)
     cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
-    return cleaned.strip()
+    return normalize_punctuation_spacing(cleaned.strip())
 
 
 PLACEHOLDER_REGEX = re.compile(
@@ -71,7 +79,7 @@ PLACEHOLDER_REGEX = re.compile(
 PROPER_NOUN_LIMITATION = (
     "Proper names and named entities in Indian languages do not use capitalization and cannot be "
     "reliably identified or verified by plain-code checks; translation models may mistranslate "
-    "or substitute personal names (e.g., 'john' for 'अशफाक') without detection. Personal names are not verified."
+    "or substitute personal names without detection. Personal names are not verified."
 )
 
 INDIC_DIGIT_MAP: dict[str, str] = {}
@@ -217,6 +225,8 @@ class TaskAgent:
         self.step_counter: int = 0
         self.warnings: list[str] = []
         self.known_limitations: list[str] = []
+        self.page_count: int | None = None
+        self.pages_processed: int | None = None
 
     def run(self) -> AgentReport:
         """Executes the full agent loop and writes all required outputs."""
@@ -227,6 +237,8 @@ class TaskAgent:
         self.step_counter = 0
         self.warnings.clear()
         self.known_limitations.clear()
+        self.page_count = None
+        self.pages_processed = None
         self.artifacts.clear()
         self.step_outputs.clear()
         self.upstream_sources.clear()
@@ -300,6 +312,8 @@ class TaskAgent:
                     failures=[f"Requested unsupported language: {unsupported_name}"],
                     warnings=self.warnings,
                     known_limitations=self.known_limitations,
+                    page_count=self.page_count,
+                    pages_processed=self.pages_processed,
                 )
                 self.tracer.write_report(report)
                 self.tracer.write_result_markdown(
@@ -324,6 +338,8 @@ class TaskAgent:
                     failures=[f"File not found: {f_path}"],
                     warnings=self.warnings,
                     known_limitations=self.known_limitations,
+                    page_count=self.page_count,
+                    pages_processed=self.pages_processed,
                 )
                 self.tracer.write_report(report)
                 self.tracer.write_result_markdown(
@@ -359,7 +375,12 @@ class TaskAgent:
                 chars = insp.get("char_count", 0)
                 self.assumptions.append(f"Text file '{f_path.name}' ({chars} chars) loaded as source text in plain code.")
             elif f_path.suffix.lower() in (".png", ".jpg", ".jpeg", ".pdf"):
-                self.assumptions.append(f"Document file '{f_path.name}' targeted for Indic-OCR extraction.")
+                pc = insp.get("page_count")
+                if pc:
+                    self.page_count = pc
+                    self.assumptions.append(f"Document file '{f_path.name}' ({pc} page(s)) targeted for Indic-OCR extraction.")
+                else:
+                    self.assumptions.append(f"Document file '{f_path.name}' targeted for Indic-OCR extraction.")
 
             # Store full source text in plain code for text/markdown files
             if f_path.suffix.lower() in (".txt", ".md", ".json"):
@@ -385,6 +406,8 @@ class TaskAgent:
                 failures=["Initial budget was 0 INR."],
                 warnings=self.warnings,
                 known_limitations=self.known_limitations,
+                page_count=self.page_count,
+                pages_processed=self.pages_processed,
             )
             self.tracer.write_report(report)
             self.tracer.write_result_markdown(
@@ -433,6 +456,8 @@ class TaskAgent:
                 failures=self.failures,
                 warnings=self.warnings,
                 known_limitations=self.known_limitations,
+                page_count=self.page_count,
+                pages_processed=self.pages_processed,
                 language_ambiguity=self.language_ambiguity,
             )
             self.tracer.write_report(report)
@@ -472,6 +497,8 @@ class TaskAgent:
                 failures=self.failures,
                 warnings=self.warnings,
                 known_limitations=self.known_limitations,
+                page_count=self.page_count,
+                pages_processed=self.pages_processed,
                 language_ambiguity=self.language_ambiguity,
             )
             self.tracer.write_report(report)
@@ -955,6 +982,8 @@ class TaskAgent:
             language_requested=self.language_requested,
             detected_script=self.detected_script,
             windows_count=self.windows_count,
+            page_count=self.page_count,
+            pages_processed=self.pages_processed,
             language_ambiguity=self.language_ambiguity,
         )
 
@@ -1606,32 +1635,35 @@ class TaskAgent:
         try:
             if name == "translate_text":
                 target_param = args.get("target_language_code") or args.get("target_language") or "hi"
+                text_input = normalize_punctuation_spacing(args.get("text", ""))
                 res = self.tools.translate_text(
-                    text=args.get("text", ""),
+                    text=text_input,
                     file_path=args.get("file_path", ""),
                     target_language_code=target_param,
                     target_script=args.get("target_script", "native"),
                 )
                 if res.get("success") and res.get("translated_text"):
                     target_lang = res.get("target_language") or target_param
+                    trans_norm = normalize_punctuation_spacing(res["translated_text"])
+                    res["translated_text"] = trans_norm
                     stem = self._get_base_stem(args.get("source_artifact_stem") or args.get("file_path"))
                     art_file = self.tracer.artifacts_dir / f"translated_{target_lang}_{stem}.txt"
-                    art_file.write_text(res["translated_text"], encoding="utf-8")
+                    art_file.write_text(trans_norm, encoding="utf-8")
                     saved_path = str(art_file.resolve())
                     self.artifacts.append(saved_path)
                     res["artifact_path"] = saved_path
 
-                    input_source = args.get("text", "")
+                    input_source = text_input
                     if not input_source and args.get("file_path") and Path(args["file_path"]).exists():
-                        input_source = Path(args["file_path"]).read_text(encoding="utf-8")
+                        input_source = normalize_punctuation_spacing(Path(args["file_path"]).read_text(encoding="utf-8"))
 
-                    self.last_produced_text = res["translated_text"]
+                    self.last_produced_text = trans_norm
                     self.last_artifact_path = saved_path
                     self.last_artifact_stem = art_file.stem
                     self.step_outputs.append({
                         "tool": "translate_text",
-                        "text": res["translated_text"],
-                        "cleaned_text": res["translated_text"],
+                        "text": trans_norm,
+                        "cleaned_text": trans_norm,
                         "artifact_path": saved_path,
                         "artifact_stem": art_file.stem,
                     })
@@ -1726,6 +1758,11 @@ class TaskAgent:
             elif name == "extract_document_text":
                 res = self.tools.extract_document_text(file_path=args.get("file_path", ""))
                 if res.get("success") and res.get("text"):
+                    cnt = res.get("pages_count") or len(res.get("pages", []))
+                    if cnt:
+                        self.pages_processed = cnt
+                        if not self.page_count:
+                            self.page_count = cnt
                     stem = self._get_base_stem(args.get("file_path", "doc"))
                     art_file = self.tracer.artifacts_dir / f"ocr_{stem}.md"
                     art_file.write_text(res["text"], encoding="utf-8")
@@ -2395,8 +2432,10 @@ class TaskAgent:
 
         amb_note = f" Note on languages: {self.language_ambiguity}." if self.language_ambiguity else ""
         if parts:
-            return "Completed task: " + "; ".join(parts) + "." + amb_note
-        return "Task completed successfully and artifacts were verified." + amb_note
+            ans = "Completed task: " + "; ".join(parts) + "." + amb_note
+        else:
+            ans = "Task completed successfully and artifacts were verified." + amb_note
+        return normalize_punctuation_spacing(ans)
 
     def _verify_translation_fidelity(self, source_en: str, back_en: str) -> tuple[bool, str]:
         """Compares back-translated English against real source English."""
