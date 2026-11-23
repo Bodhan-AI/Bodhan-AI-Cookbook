@@ -92,6 +92,18 @@ class MockTestGroundedChatModel(BaseChatModel):
         return ChatResult(generations=[ChatGeneration(message=AIMessage(content=answer))])
 
 
+def is_translation_error(text: str) -> bool:
+    """Check if returned text represents an error string from translation tool."""
+    if not text:
+        return False
+    t_lower = text.strip().lower()
+    return (
+        t_lower.startswith("error executing")
+        or t_lower.startswith("error:")
+        or "error executing bodhan translation" in t_lower
+    )
+
+
 def answer_multilingual_query(
     query: str,
     query_lang: str,
@@ -100,20 +112,26 @@ def answer_multilingual_query(
     translation_tool: BodhanTranslationTool | None = None,
     translate_answer_back: bool = True,
     target_answer_lang: str | None = None,
+    translate_query: bool = True,
 ) -> dict[str, Any]:
     """Execute end-to-end question answering for a single user query."""
     clean_query = query.strip()
     is_indic = query_lang.lower() not in ("en", "english")
 
     # Step A: Translate Indic query to English if needed
-    if is_indic and translation_tool is not None:
+    if translate_query and is_indic and translation_tool is not None:
         try:
-            english_query = translation_tool.invoke({
+            res = translation_tool.invoke({
                 "text": clean_query,
                 "target_language": "en",
                 "source_language": query_lang,
             })
-            english_query = str(english_query).strip()
+            res_str = str(res).strip()
+            if is_translation_error(res_str):
+                print(f"  [WARNING] Query translation returned error: {res_str}. Falling back to raw query.")
+                english_query = clean_query
+            else:
+                english_query = res_str
         except Exception as exc:
             print(f"  [WARNING] Query translation failed: {exc}. Using raw query.")
             english_query = clean_query
@@ -141,11 +159,16 @@ def answer_multilingual_query(
             # Strip inline citation markers ([S1], [S2]) before translation
             clean_body = strip_citation_markers(english_answer)
             try:
-                translated_body = translation_tool.invoke({
+                res = translation_tool.invoke({
                     "text": clean_body,
                     "target_language": desired_lang,
                 })
-                translated_body = str(translated_body).strip()
+                res_str = str(res).strip()
+                if is_translation_error(res_str):
+                    print(f"  [WARNING] Answer translation returned error: {res_str}. Retaining English answer body.")
+                    translated_body = clean_body
+                else:
+                    translated_body = res_str
             except Exception as exc:
                 print(f"  [WARNING] Answer translation back to '{desired_lang}' failed: {exc}")
                 translated_body = clean_body
@@ -299,6 +322,7 @@ def run_rag_pipeline(
                 translation_tool=translation_tool,
                 translate_answer_back=cfg.translate_answer_back,
                 target_answer_lang=custom_answer_lang or cfg.answer_language,
+                translate_query=cfg.translate_query,
             )
             results.append(res)
         except RAGGenerationError as exc:

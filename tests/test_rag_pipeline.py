@@ -24,6 +24,7 @@ if str(LANGCHAIN_DIR) not in sys.path:
     sys.path.insert(0, str(LANGCHAIN_DIR))
 
 from bodhan_langchain import (  # noqa: E402
+    BodhanAPIError,
     BodhanClient,
     BodhanTranslationTool,
     OCRBlock,
@@ -920,6 +921,93 @@ def test_answer_multilingual_query_translation_failure_preserves_citations(
     assert localized is not None
     # Falls back to cleaned english body + verified sources
     assert localized == "Verified fact.\n\nSources:\n- test.pdf — Page 1"
+
+
+def test_translation_tool_bodhan_api_error_query_fallback(
+    fake_embeddings: DeterministicFakeEmbeddings,
+) -> None:
+    """Verify that BodhanAPIError inside BodhanTranslationTool does not send error string as query."""
+    docs = [Document(page_content="Valid document text", metadata={"source": "test.pdf", "page_number": 1})]
+    vs = create_vector_store(docs, fake_embeddings)
+    retriever = get_retriever(vs, top_k=1)
+
+    mock_client = MagicMock(spec=BodhanClient)
+    mock_client.translate.side_effect = BodhanAPIError(status_code=401, message="Invalid API key")
+    real_tool = BodhanTranslationTool(client=mock_client)
+
+    mock_llm = MockGroundedChatModel(canned_answer="Verified fact [S1].")
+
+    result = answer_multilingual_query(
+        query="छात्रवृत्ति योजना",
+        query_lang="hi",
+        retriever=retriever,
+        chat_model=mock_llm,
+        translation_tool=real_tool,
+        translate_query=True,
+    )
+
+    # Must NOT send error string as query! Must fall back to raw query.
+    assert result["english_query"] == "छात्रवृत्ति योजना"
+    assert "Error executing Bodhan translation" not in result["english_query"]
+
+
+def test_translation_tool_bodhan_api_error_answer_preservation(
+    fake_embeddings: DeterministicFakeEmbeddings,
+) -> None:
+    """Verify that BodhanAPIError during answer translation returns clean English answer with citations."""
+    docs = [Document(page_content="Valid document text", metadata={"source": "test.pdf", "page_number": 1})]
+    vs = create_vector_store(docs, fake_embeddings)
+    retriever = get_retriever(vs, top_k=1)
+
+    mock_client = MagicMock(spec=BodhanClient)
+
+    def side_effect_fn(text, target_language, **kwargs):
+        if target_language == "en":
+            return TranslationResponse(text="Scholarship scheme", target_language="en", source_language="hi")
+        raise BodhanAPIError(status_code=500, message="Remote server error")
+
+    mock_client.translate.side_effect = side_effect_fn
+    real_tool = BodhanTranslationTool(client=mock_client)
+
+    mock_llm = MockGroundedChatModel(canned_answer="Eligible students receive funds [S1].")
+
+    result = answer_multilingual_query(
+        query="छात्रवृत्ति योजना",
+        query_lang="hi",
+        retriever=retriever,
+        chat_model=mock_llm,
+        translation_tool=real_tool,
+        translate_answer_back=True,
+    )
+
+    assert result["english_query"] == "Scholarship scheme"
+    # Localized answer must retain English answer + sources footer, NOT the error string!
+    assert result["localized_answer"] == "Eligible students receive funds.\n\nSources:\n- test.pdf — Page 1"
+    assert "Error executing Bodhan translation" not in result["localized_answer"]
+
+
+def test_translate_query_disabled_flag(
+    fake_embeddings: DeterministicFakeEmbeddings,
+) -> None:
+    """Verify translate_query=False skips query translation and uses raw query directly."""
+    docs = [Document(page_content="Valid text", metadata={"source": "test.pdf", "page_number": 1})]
+    vs = create_vector_store(docs, fake_embeddings)
+    retriever = get_retriever(vs, top_k=1)
+
+    mock_tool = MagicMock(spec=BodhanTranslationTool)
+    mock_llm = MockGroundedChatModel(canned_answer="Answer [S1].")
+
+    result = answer_multilingual_query(
+        query="हिन्दी प्रश्न",
+        query_lang="hi",
+        retriever=retriever,
+        chat_model=mock_llm,
+        translation_tool=mock_tool,
+        translate_query=False,
+    )
+
+    # Tool should not have been called for query translation
+    assert result["english_query"] == "हिन्दी प्रश्न"
 
 
 # ==============================================================================
