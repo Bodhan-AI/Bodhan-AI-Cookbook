@@ -29,20 +29,34 @@ Per language you get: `lesson.{lang}.md`, `narration_script.{lang}.json`, sectio
 - [AI assistance](#ai-assistance)
 - [Tests](#tests)
 
+
+
 ## Getting started
 
-You need Bodhan API keys from [console.bodhan.ai](https://console.bodhan.ai), an OpenAI-compatible LLM key (layout + spoken plan), and **ffmpeg** on your PATH.
+You need Bodhan API keys from [console.bodhan.ai](https://console.bodhan.ai), an OpenAI-compatible LLM key (layout + spoken plan), and **ffmpeg** (for Speak MP3 concat and loudness).
+
+**Local vs Docker (ffmpeg)**
+
+
+| Path       | What `pip` / the image installs                                | ffmpeg                                                                               |
+| ---------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| **Local**  | `pip install -e .` → Python deps only (`pyproject.toml`)       | Install **ffmpeg yourself** and keep it on your `PATH` (`ffmpeg -version` must work) |
+| **Docker** | Image runs `pip install -e .` **and** `apt-get install ffmpeg` | Included in the image — no host ffmpeg required                                      |
+
+
+Use either path: local needs ffmpeg on `PATH`; Docker already includes it.
 
 ```bash
 cd examples/narrated_lesson
 python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
-pip install -e .            # or: uv pip install -e .
+pip install -e .            # or: uv pip install -e .  (Python packages only — not ffmpeg)
 cp .env.example .env        # paste keys
+# then: install ffmpeg on PATH if you are not using Docker
 ```
 
-One install is enough: `pip install -e .` loads pinned deps from `pyproject.toml` and registers the package (no `PYTHONPATH`). `requirements.txt` stays for Cookbook validation (same pins).
+One install is enough for Python: `pip install -e .` loads pinned deps from `pyproject.toml` and registers the package (no `PYTHONPATH`). `requirements.txt` stays for Cookbook validation (same pins).
 
-**Docker** :
+**Docker** (ffmpeg already in the image):
 
 ```bash
 docker build -t narrated-lesson .
@@ -51,6 +65,8 @@ docker run --rm --env-file .env \
   narrated-lesson \
   --input /data/your_chapter.pdf --langs hi,ta,bn --out /out/demo_final --source-lang en
 ```
+
+
 
 ## Run
 
@@ -149,6 +165,8 @@ flowchart TB
 | Speak           | `speak`          | Turn the script into audio (section clips + full lesson MP3)                                                               |
 | QA              | `qa`             | Listen back with Transcribe; warn if the text match is weak; retry Speak once if audio repeats or skips; even out loudness |
 | Report / reader | `cli` / `reader` | Write `report.json`, then a sync `reader.html` per language                                                                |
+
+
 
 
 ## Workflow
@@ -285,7 +303,7 @@ Keep scans in `sample_data/` (gitignored). Prefer a short PDF while iterating.
 
 **Size and tools**
 
-- Input capped at **30 pages** and **30 MB**. You need **ffmpeg** installed to build MP3s and even out loudness.
+- Input capped at **30 pages** and **30 MB**. You need **ffmpeg** to build MP3s and even out loudness — install it on your `PATH` for local runs; the **Docker** image already includes it.
 
 **Flags we accepted but did not finish**
 
@@ -312,7 +330,11 @@ Keep scans in `sample_data/` (gitignored). Prefer a short PDF while iterating.
 - Default **3** languages at once (`LANG_WORKERS=3`). Use `LANG_WORKERS=1` if you hit rate limits and want one language after another.
 - Most of the clock time is **Speak** (speech synthesis), not OCR or translate.
 
+
+
 ## Cost and runtime
+
+
 
 ### Which models we use (and for what)
 
@@ -336,6 +358,8 @@ Keep scans in `sample_data/` (gitignored). Prefer a short PDF while iterating.
 | Speak         | ₹6 per 10K characters spoken                                                            |
 | Transcribe    | ₹0.10 per minute of audio                                                               |
 | Companion LLM | about **$1.50 / 1M** input tokens and **$9 / 1M** output tokens (Gemini 3.5 Flash list) |
+
+
 
 
 ### What we observed in testing
