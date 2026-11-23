@@ -1,0 +1,3 @@
+# Inputs are videos (too large for git). Run on your own clip, or generate a tiny
+# synthetic sample with: PYTHONPATH=tests python tests/fixtures/make_sample.py sample.mp4
+# The demo input and outputs are linked from the README (kept out of git).

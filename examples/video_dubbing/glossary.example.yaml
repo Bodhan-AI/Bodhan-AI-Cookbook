@@ -1,0 +1,11 @@
+# Optional terminology glossary (--glossary glossary.example.yaml).
+# Terms listed here are merged on top of the LLM-extracted glossary and steer the
+# ENGLISH side + the condensing prompt so they are kept consistent and never dropped.
+# They are NOT substituted into the Indic output — all target text comes from
+# Indic-Translate (see README "Terminology consistency").
+terms:
+  - Pythagoras
+  - hypotenuse
+  - equilateral
+  - "180 degrees"
+  - NCERT

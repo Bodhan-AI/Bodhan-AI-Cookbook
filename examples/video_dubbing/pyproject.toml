@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bodhan-dub"
+version = "0.1.0"
+description = "Agentic English→Indian-language video dubbing pipeline on Bodhan's Indic models"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Bodhan Cookbook contributor" }]
+
+# Lean, compile-free runtime deps for reproducibility across Python versions.
+# Audio decode/resample/stretch/loudnorm are all delegated to ffmpeg (no scipy/librosa/torch).
+dependencies = [
+  "httpx>=0.27,<1",
+  "tenacity>=8.2,<10",
+  "python-dotenv>=1.0,<2",
+  "numpy>=1.24",
+  "soundfile>=0.12",
+  "PyYAML>=6.0",
+  "imageio-ffmpeg>=0.4",   # bundled static ffmpeg fallback when system ffmpeg is absent
+]
+
+[project.optional-dependencies]
+# Higher-quality VAD backends, selectable via --vad. Core pipeline works without them.
+vad = ["webrtcvad-wheels>=2.0"]
+vad-silero = ["silero-vad>=5.1", "torch>=2.2"]
+dev = ["pytest>=8", "pytest-asyncio>=0.23"]
+notebook = ["nbformat>=5", "nbclient>=0.9", "ipykernel>=6"]
+
+[project.scripts]
+bodhan-dub = "bodhan_dub.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+# Broad `except` + null-cache `pass` are deliberate: the pipeline degrades gracefully
+# (LLM/cache/QA failures must never abort a run), so we don't lint those categories.
+ignore = ["B904"]
