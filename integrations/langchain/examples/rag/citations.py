@@ -3,10 +3,21 @@
 from __future__ import annotations
 
 import re
+import xml.sax.saxutils as saxutils
 from dataclasses import dataclass
 from pathlib import Path
 
 from langchain_core.documents import Document
+
+
+def escape_xml_text(text: str) -> str:
+    """Escape <, >, and & in text content for safe XML embedding."""
+    return saxutils.escape(str(text))
+
+
+def escape_xml_attribute(value: object) -> str:
+    """Escape attributes safely for XML attribute values."""
+    return saxutils.escape(str(value), {'"': "&quot;", "'": "&apos;"})
 
 
 @dataclass
@@ -65,9 +76,14 @@ def format_context_with_citations(
             preview=content[:100],
         )
 
+        escaped_cit_id = escape_xml_attribute(cit_id)
+        escaped_source = escape_xml_attribute(filename)
+        escaped_page = escape_xml_attribute(page_1)
+        escaped_content = escape_xml_text(content)
+
         block = (
-            f'<document id="{cit_id}" source="{filename}" page="{page_1}">\n'
-            f"<content>\n{content}\n</content>\n"
+            f'<document id="{escaped_cit_id}" source="{escaped_source}" page="{escaped_page}">\n'
+            f"<content>\n{escaped_content}\n</content>\n"
             f"</document>"
         )
         context_blocks.append(block)
