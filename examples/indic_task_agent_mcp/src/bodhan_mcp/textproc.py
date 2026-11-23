@@ -231,32 +231,77 @@ def cer(reference: str, hypothesis: str) -> float:
 NUMBER_SLOT = "\u00a7"  # stands in for a number in the reference; any spoken form of it is accepted
 
 
-def speech_alignment(reference: str, heard: str) -> dict:
-    """Compare text sent to TTS with its back-transcript, tolerant of how numbers are spoken.
+def _script(ch: str) -> str:
+    return unicodedata.name(ch, "UNKNOWN").split()[0]
 
-    Indic-Speak reads "90°" as words (often English words written in the target script), so a plain CER would flag
-    a correct take. Numbers in the reference become a slot; whatever the transcript has at a slot (or right beside
-    it) is not counted. Everything else counts as usual: insertions (repeats), deletions (omissions), substitutions.
+
+def _slot_spans(text: str) -> tuple[str, list[int]]:
+    """Replace numbers, and each run of words outside the text's main script (Latin labels such as "AOC" in Tamil,
+    maths symbols such as "∠" or "="), with a slot. TTS reads these its own way ("ஈக்குவல்ஸ்" for "=", "ஏஓசி" for
+    "AOC"), so the transcript cannot be expected to spell them as written. Returns the slotted text and, per slot, how
+    many characters of transcript it may absorb: enough for any spoken form, never enough to hide a repeated sentence."""
+    letters = [_script(ch) for ch in text if unicodedata.category(ch)[0] in "LM"]
+    main = max(set(letters), key=letters.count) if letters else ""
+    number = re.compile(r"\d+(?:[.,:/]\d+)*")
+    out: list[str] = []
+    caps: list[int] = []
+    foreign = ""
+
+    def close_foreign() -> None:
+        nonlocal foreign
+        if foreign:
+            out.append(NUMBER_SLOT)
+            caps.append(SLOT_CHARS_PER_CHAR * len(foreign) + 10)
+            foreign = ""
+
+    for word in text.split():
+        if any(unicodedata.category(ch)[0] in "LM" and _script(ch) == main for ch in word):
+            close_foreign()
+            for m in number.finditer(word):
+                caps.append(SLOT_CHARS_PER_CHAR * len(m.group(0)) + 10)
+            out.append(number.sub(f" {NUMBER_SLOT} ", word))
+        else:
+            foreign += word
+    close_foreign()
+    return " ".join(out), caps
+
+
+SLOT_CHARS_PER_CHAR = 8  # "125°" is read as about 40 characters of Tamil ("ஒன் ஹன்ட்ரட் அண்ட் ட்வென்டி ஃபைவ் டிகிரீஸ்")
+
+
+def speech_alignment(reference: str, heard: str) -> dict:
+    """Compare text sent to TTS with its back-transcript, tolerant of how numbers and symbols are spoken.
+
+    Indic-Speak reads "90°" as words (often English words written in the target script), and reads Latin labels and
+    maths symbols aloud the same way, so a plain CER would flag a correct take. Numbers, and runs of words outside the
+    text's own script, become slots; transcript around a slot is excused up to that slot's budget. Everything else
+    counts as usual: insertions (repeats), deletions (omissions), substitutions.
     """
-    ref = normalize_for_cer(re.sub(r"\d+(?:[.,:/]\d+)*", f" {NUMBER_SLOT} ", normalize_digits(reference)))
-    ref = re.sub(rf"\s*{NUMBER_SLOT}\s*", NUMBER_SLOT, ref)
+    slotted, caps = _slot_spans(normalize_digits(reference))
+    ref = re.sub(rf"\s*{NUMBER_SLOT}\s*", NUMBER_SLOT, normalize_for_cer(slotted))
     hyp = normalize_for_cer(heard)
+    slot_pos = [i for i, ch in enumerate(ref) if ch == NUMBER_SLOT]
+    budget = dict(zip(slot_pos, caps + [60] * (len(slot_pos) - len(caps)), strict=False))
     plain_len = len(ref.replace(NUMBER_SLOT, "")) or 1
     ins = dels = subs = 0
     for tag, i1, i2, j1, j2 in Levenshtein.opcodes(ref, hyp):
         if tag == "equal":
             continue
-        near = ref[max(0, i1 - 1): i2 + 1]
-        if NUMBER_SLOT in near:  # the spoken number, however it was said
-            continue
+        native = i2 - i1 - ref[i1:i2].count(NUMBER_SLOT)  # reference letters involved; a slot itself costs nothing
+        heard_extra = j2 - j1  # transcript material here, which may be a slot's spoken form
+        for pos in range(max(0, i1 - 1), min(len(ref), i2 + 1)):
+            if pos in budget and heard_extra:
+                take = min(heard_extra, budget[pos])
+                budget[pos] -= take
+                heard_extra -= take
         if tag == "insert":
-            ins += j2 - j1
+            ins += heard_extra
         elif tag == "delete":
-            dels += i2 - i1
+            dels += native  # skipped words are never excused, even next to a number
         else:
-            subs += max(i2 - i1, j2 - j1)
+            subs += max(native, heard_extra)
     return {"cer": round((ins + dels + subs) / plain_len, 3), "insertions": ins / plain_len,
-            "deletions": dels / plain_len, "numbers": ref.count(NUMBER_SLOT)}
+            "deletions": dels / plain_len, "numbers": len(slot_pos)}
 
 
 def repetition_score(text: str, n: int = 4) -> float:

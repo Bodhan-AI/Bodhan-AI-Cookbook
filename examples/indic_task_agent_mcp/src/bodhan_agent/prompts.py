@@ -56,6 +56,9 @@ Useful facts:
   whose duration_s is within 25% of the target passes: finish, do not re-synthesize it.
 - Subtitles: transcribe_audio, then translate_segments (if another language is wanted), then write_subtitles.
 - Generated audio is AI speech from a fixed voice library; say so in the answer.
+- If synthesize_speech still reports flagged chunks after its own retry, do not synthesize the same text again with
+  another voice or style: that does not change what the voice reads. Deliver it and report the flagged chunks.
+- In text meant to be read aloud, write maths in words ("angle AOC is 125 degrees"), not symbols such as ∠ or =.
 """
 
 PLANNER = """Plan the task below before acting, using only the tools listed under AVAILABLE TOOLS (plus your own

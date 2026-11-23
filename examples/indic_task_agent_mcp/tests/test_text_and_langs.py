@@ -122,6 +122,35 @@ def test_real_repetition_and_omission_still_caught():
     assert _speech_issue(TA_TEXT, TA_HEARD, speech_alignment(TA_TEXT, TA_HEARD)["cer"]) is None
 
 
+# Live Tamil chunks (23 Nov) that Indic-Speak read correctly but the old check flagged: the angle labels and "="
+# are read as English words written in Tamil script, which no spelling of "∠AOC = 125°" can match.
+TA_LABELS = [
+    ("∠AOC = 125° மற்றும் ∠COB = 55° என்ற கோணங்களைக் கணக்கிடுவதன் மூலம், அவற்றின் கூடுதல் 180°க்கு சமம் என்பதை "
+     "உறுதிசெய்து, கருதுகோளை உறுதிப்படுத்துகிறது.",
+     "வார் ஐஓசி ஈக்குவல்ஸ் ஒன் ஹன்ட்ரட் அண்ட் ட்வென்டி ஃபைவ் டிகிரீஸ் மற்றும் டிசிஓபி ஈக்குவல்ஸ் ஃபிஃப்டி ஃபைவ் டிகிரீஸ் "
+     "என்ற கோணங்களைக் கணக்கிடுவதன் மூலம் அவற்றின் கூடுதல் ஒன் ஹன்ட்ரட் அண்ட் எய்ட்டி டிகிரீஸ்க்கு சமம் என்பதை "
+     "உறுதிசெய்து கருதுகோளை உறுதிப்படுத்துகிறது"),
+    ("எடுத்துக்காட்டு 2 இல் PQ மற்றும் RS கோடுகள் O இல் வெட்டுகின்றன, கோண விகிதம் ∠POR : ∠ROQ = 5 : 7, இது "
+     "∠POR = 75° மற்றும் ∠ROQ = 105° ஐக் கொடுக்கிறது.",
+     "எடுத்துக்காட்டு டூயில் பிக்யூ மற்றும் ஆர்எஸ் கோடுகள் ஓ இல் வெட்டுகின்றன கோண விகிதம் ஃபோ ஃபோ பயோ செவன் இது ஃபோ "
+     "பயோ செவன்டி ஃபைவ் டிகிரீஸ் மற்றும் ஃபோ பயோ பேரோ ஒன் எஸ் ஃபைவ் டிகிரீஸ் ஐக் கொடுக்கிறது"),
+]
+
+
+def test_labels_and_symbols_read_aloud_are_not_errors():
+    from bodhan_mcp.textproc import speech_alignment
+    from bodhan_mcp.tools import _speech_issue
+
+    for text, heard in TA_LABELS:
+        a = speech_alignment(text, heard)
+        assert a["cer"] < 0.2 and _speech_issue(text, heard, a["cer"]) is None, a
+    text, heard = TA_LABELS[0]
+    twice = heard + " " + heard  # slots absorb a spoken label, never a repeated sentence
+    assert _speech_issue(text, twice, speech_alignment(text, twice)["cer"]) == "repetition"
+    english = speech_alignment("The bus leaves every 20 minutes from platform B.", "the bus leaves every twenty minutes")
+    assert english["deletions"] > 0.1  # in English text, Latin words are the text itself and still count
+
+
 def test_srt_cues_never_overlap_even_when_windows_do():
     segs = [{"start": 0.0, "end": 28.0, "text": "First window ends here."},
             {"start": 27.5, "end": 33.0, "text": "Second window overlaps by half a second."}]
