@@ -137,22 +137,32 @@ def _score_mention_role(text: str, mention: tuple[int, int, str, str, str]) -> t
     """Scores a language mention for audio vs target role in the task."""
     start, end, code, name, _ = mention
     clause = _get_clause_for_pos(text, start).lower()
-    pre_word = text[max(0, start - 25):start].lower()
-    post_word = text[end:min(len(text), end + 25)].lower()
+    pre_word = text[max(0, start - 35):start].lower()
+    post_word = text[end:min(len(text), end + 35)].lower()
 
     audio_score = 0
     target_score = 0
 
-    if re.search(r"\b(?:transcrib\w*|audio|recording|speech|voice|wav|listen|clip|video|subtitles?|captions?|srt)\b", clause):
-        audio_score += 3
-    if re.search(r"^\s*(?:audio|clip|recording|voice|speech|wav|video|subtitles?|captions?|srt)\b", post_word):
-        audio_score += 3
-    if re.search(r"\bfrom\s*$", pre_word.strip()):
+    # Audio cues (input media)
+    if re.search(r"\b(?:transcrib\w*|audio|recording|speech|voice|wav|listen|clip|video)\b", clause):
         audio_score += 2
+    if re.search(r"^\s*(?:audio|clip|recording|voice|speech|wav|video)\b", post_word):
+        audio_score += 6
+    if re.search(r"\bfrom\s*$", pre_word.strip()):
+        audio_score += 5
+    if re.search(r"\b(?:transcrib\w*|listen\s+to|watch)\s*$", pre_word.strip()):
+        audio_score += 4
 
+    # Target cues (output deliverable)
+    if re.search(r"^\s*(?:subtitles?|captions?|srt)\b", post_word):
+        target_score += 6
+    if re.search(r"\b(?:subtitles?|captions?|srt)\s+(?:in|into|to)\s*$", pre_word.strip()):
+        target_score += 6
     if re.search(r"\b(?:translat\w*|synthesiz\w*|speak|tts)\b", clause):
-        target_score += 3
+        target_score += 2
     if re.search(r"\b(?:to|into)\s*$", pre_word.strip()):
+        target_score += 5
+    if re.search(r"\b(?:in)\s*$", pre_word.strip()):
         target_score += 4
     if re.search(r"\b(?:target|destination)\b", clause):
         target_score += 3
@@ -188,6 +198,125 @@ def extract_task_languages(text: str) -> dict[str, Any]:
 
     distinct_codes = list(dict.fromkeys(m[2] for m in mentions))
 
+    # --------------------------------------------------------------------
+    # Explicit Syntactic Role Rules (Requirement 2)
+    # --------------------------------------------------------------------
+    # Rule A: "<Lang A> subtitles/captions/srt for ... <Lang B> video/audio"
+    m_sub_for = re.search(
+        r"\b([a-zA-Z]+)\s+(?:subtitles?|captions?|srt)\s+(?:for|of|from)\s+(?:this\s+|the\s+|a\s+|an\s+)?([a-zA-Z]+)\s+(?:video|audio|recording|clip|media|speech|file)\b",
+        text,
+        re.IGNORECASE,
+    )
+    if m_sub_for:
+        w1, w2 = m_sub_for.group(1).lower(), m_sub_for.group(2).lower()
+        supp1, c1, _ = is_language_supported(w1)
+        supp2, c2, _ = is_language_supported(w2)
+        if supp1 and supp2 and c1 and c2:
+            return {
+                "audio_language": c2,
+                "target_language": c1,
+                "audio_language_name": SUPPORTED_INDIC_LANGUAGES[c2],
+                "target_language_name": SUPPORTED_INDIC_LANGUAGES[c1],
+                "is_ambiguous": False,
+                "ambiguity_reason": None,
+            }
+
+    # Rule B: "translate/subtitle X from <Lang B> to <Lang A>"
+    m_from_to = re.search(
+        r"\b(?:translate|subtitle|subtitles?|transcrib\w*)\b.*?\bfrom\s+([a-zA-Z]+)\s+(?:to|into)\s+([a-zA-Z]+)\b",
+        text,
+        re.IGNORECASE,
+    )
+    if m_from_to:
+        w_from, w_to = m_from_to.group(1).lower(), m_from_to.group(2).lower()
+        supp_from, c_from, _ = is_language_supported(w_from)
+        supp_to, c_to, _ = is_language_supported(w_to)
+        if supp_from and supp_to and c_from and c_to:
+            return {
+                "audio_language": c_from,
+                "target_language": c_to,
+                "audio_language_name": SUPPORTED_INDIC_LANGUAGES[c_from],
+                "target_language_name": SUPPORTED_INDIC_LANGUAGES[c_to],
+                "is_ambiguous": False,
+                "ambiguity_reason": None,
+            }
+
+    # Rule C: "<Lang B> audio/video into/to <Lang A>"
+    m_audio_into = re.search(
+        r"\b([a-zA-Z]+)\s+(?:audio|video|clip|recording|speech|file)\s+(?:into|to)\s+([a-zA-Z]+)\b",
+        text,
+        re.IGNORECASE,
+    )
+    if m_audio_into:
+        w_b, w_a = m_audio_into.group(1).lower(), m_audio_into.group(2).lower()
+        supp_b, cb, _ = is_language_supported(w_b)
+        supp_a, ca, _ = is_language_supported(w_a)
+        if supp_b and supp_a and cb and ca:
+            return {
+                "audio_language": cb,
+                "target_language": ca,
+                "audio_language_name": SUPPORTED_INDIC_LANGUAGES[cb],
+                "target_language_name": SUPPORTED_INDIC_LANGUAGES[ca],
+                "is_ambiguous": False,
+                "ambiguity_reason": None,
+            }
+
+    # Rule D: "(subtitles?|captions?|srt) ... for ... <Lang B> video/audio ... in <Lang A>"
+    m_sub_in = re.search(
+        r"\b(?:subtitles?|captions?|srt)\s+(?:for|of|from)\s+(?:this\s+|the\s+|a\s+|an\s+)?([a-zA-Z]+)\s+(?:video|audio|recording|clip|media)\s+in\s+([a-zA-Z]+)\b",
+        text,
+        re.IGNORECASE,
+    )
+    if m_sub_in:
+        w_b, w_a = m_sub_in.group(1).lower(), m_sub_in.group(2).lower()
+        supp_b, cb, _ = is_language_supported(w_b)
+        supp_a, ca, _ = is_language_supported(w_a)
+        if supp_b and supp_a and cb and ca:
+            return {
+                "audio_language": cb,
+                "target_language": ca,
+                "audio_language_name": SUPPORTED_INDIC_LANGUAGES[cb],
+                "target_language_name": SUPPORTED_INDIC_LANGUAGES[ca],
+                "is_ambiguous": False,
+                "ambiguity_reason": None,
+            }
+
+    # Disjunction check: "Hindi or Tamil", "Hindi / Tamil"
+    m_or = re.search(r"\b([a-zA-Z]+)\s*(?:or|/|\|)\s*([a-zA-Z]+)\b", text, re.IGNORECASE)
+    if m_or:
+        w1, w2 = m_or.group(1).lower(), m_or.group(2).lower()
+        supp1, c1, _ = is_language_supported(w1)
+        supp2, c2, _ = is_language_supported(w2)
+        if supp1 and supp2 and c1 and c2:
+            return {
+                "audio_language": None,
+                "target_language": None,
+                "audio_language_name": None,
+                "target_language_name": None,
+                "is_ambiguous": True,
+                "ambiguity_reason": f"Disjunctive language choices in task: {SUPPORTED_INDIC_LANGUAGES[c1]} or {SUPPORTED_INDIC_LANGUAGES[c2]}",
+            }
+
+    # Rule E: "<Lang B> (video|audio|clip|recording|speech) ... in <Lang A>"
+    m_b_in_a = re.search(
+        r"\b([a-zA-Z]+)\s+(?:video|audio|recording|clip|media|speech)\b.*?\bin\s+([a-zA-Z]+)\b",
+        text,
+        re.IGNORECASE,
+    )
+    if m_b_in_a:
+        w_b, w_a = m_b_in_a.group(1).lower(), m_b_in_a.group(2).lower()
+        supp_b, cb, _ = is_language_supported(w_b)
+        supp_a, ca, _ = is_language_supported(w_a)
+        if supp_b and supp_a and cb and ca:
+            return {
+                "audio_language": cb,
+                "target_language": ca,
+                "audio_language_name": SUPPORTED_INDIC_LANGUAGES[cb],
+                "target_language_name": SUPPORTED_INDIC_LANGUAGES[ca],
+                "is_ambiguous": False,
+                "ambiguity_reason": None,
+            }
+
     # Single distinct language
     if len(distinct_codes) == 1:
         code = distinct_codes[0]
@@ -197,9 +326,8 @@ def extract_task_languages(text: str) -> dict[str, Any]:
         )
         has_translate = bool(re.search(r"\b(?:translat\w*)\b", text, re.IGNORECASE))
 
-        # Rule 4: when the task names exactly one language and asks for transcription,
-        # subtitles or captions without the word translate, treat it as the audio language
-        # and plan no translation.
+        # When task names exactly one language and asks for transcription/subtitles/captions
+        # without the word translate, treat it as audio language and plan no translation.
         if has_transcribe_or_subtitles and not has_translate:
             return {
                 "audio_language": code,

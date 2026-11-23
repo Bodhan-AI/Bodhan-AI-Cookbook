@@ -165,7 +165,15 @@ class TestAgent(unittest.TestCase):
             if output_path:
                 p = Path(output_path)
                 p.parent.mkdir(parents=True, exist_ok=True)
-                p.write_text("1\n00:00:00,000 --> 00:00:05,000\nSubtitles\n", encoding="utf-8")
+                lines = []
+                for i, seg in enumerate(windows_or_segments, 1):
+                    txt = seg.get("text", "")
+                    start_s = float(seg.get("start_s", 0.0))
+                    end_s = float(seg.get("end_s", start_s + 5.0))
+                    from bodhan_mcp.tools import format_srt_timestamp
+                    lines.append(f"{i}\n{format_srt_timestamp(start_s)} --> {format_srt_timestamp(end_s)}\n{txt}\n")
+                content = "\n".join(lines) if lines else "1\n00:00:00,000 --> 00:00:05,000\nSubtitles\n"
+                p.write_text(content, encoding="utf-8")
                 return {"success": True, "srt_path": str(p.resolve())}
             return {"success": True}
 
@@ -1605,6 +1613,208 @@ class TestAgent(unittest.TestCase):
         current_art_files = [f.name for f in artifacts_dir.iterdir()]
         self.assertNotIn("speech_hi_old_converted_16k.wav", current_art_files)
         self.assertEqual(report.status, "success")
+
+    def test_out_video4_replay_creates_english_subtitles_and_succeeds(self):
+        """Tests that replaying the plan from out/video4 on 'Create English subtitles for this Hindi video'
+        generates subtitles_test_video_en.srt in Latin script and achieves status 'success'.
+        """
+        video_file = self.samples_dir / "test_video.mp4"
+        video_file.write_bytes(b"dummy mp4 video bytes")
+
+        work_audio = self.out_dir / "work" / "extracted_test_video.wav"
+        work_audio.parent.mkdir(parents=True, exist_ok=True)
+        work_audio.write_bytes(b"dummy wav bytes")
+
+        self.mock_tools.extract_audio_from_video.return_value = {
+            "success": True,
+            "audio_path": str(work_audio.resolve()),
+            "duration_s": 13.5,
+        }
+        self.mock_tools.transcribe_audio.return_value = {
+            "success": True,
+            "transcript": "मेरा नाम अशफाक है और आज मौसम बहुत अच्छा है मैं कल सुबह नौ बजे स्कूल जाऊँगा",
+            "duration_s": 13.5,
+            "windows_count": 1,
+            "windows": [
+                {
+                    "window_index": 1,
+                    "start_s": 0.0,
+                    "end_s": 13.5,
+                    "text": "मेरा नाम अशफाक है और आज मौसम बहुत अच्छा है मैं कल सुबह नौ बजे स्कूल जाऊँगा",
+                }
+            ],
+            "detected_script": "Devanagari",
+            "language_requested": "hi",
+        }
+        self.mock_tools.translate_text.side_effect = None
+        self.mock_tools.translate_text.return_value = {
+            "success": True,
+            "translated_text": "My name is Ashfaq and today the weather is very nice I will go to school tomorrow morning at nine o'clock",
+            "target_language": "en",
+        }
+
+        # Exact plan structure from out/video4
+        plan = {
+            "steps": [
+                {"tool": "transcribe_audio", "args": {"file_path": "test_video.mp4"}},
+                {
+                    "tool": "translate_text",
+                    "args": {
+                        "source_language": "hi",
+                        "target_language": "en",
+                        "text": "मेरा नाम अशफाक है और आज मौसम बहुत अच्छा है मैं कल सुबह नौ बजे स्कूल जाऊँगा",
+                    },
+                },
+            ]
+        }
+
+        agent = TaskAgent(
+            task="Create English subtitles for this Hindi video",
+            files=[video_file],
+            out_dir=self.out_dir,
+            settings=self.mock_settings,
+            llm_client=MockLLM(plan_dict=plan),
+            tools=self.mock_tools,
+        )
+        report = agent.run()
+
+        # 1. Role assignment: Hindi is audio language, English is target language
+        self.assertEqual(report.audio_language, "hi")
+        self.assertEqual(report.target_language, "en")
+
+        # 2. Status is success because all requested deliverables exist
+        self.assertEqual(report.status, "success")
+
+        # 3. Both original and English translated SRT exist
+        orig_srt = self.out_dir / "artifacts" / "subtitles_test_video.srt"
+        en_srt = self.out_dir / "artifacts" / "subtitles_test_video_en.srt"
+        self.assertTrue(orig_srt.exists())
+        self.assertTrue(en_srt.exists())
+
+        # 4. English SRT verification: segment count matches (1 segment), script is Latin
+        en_srt_content = en_srt.read_text(encoding="utf-8")
+        self.assertIn("My name is Ashfaq", en_srt_content)
+        self.assertIn("00:00:00,000 --> 00:00:13,500", en_srt_content)
+        self.assertTrue(any("subtitles_test_video_en.srt" in a for a in report.artifacts))
+
+    def test_out_video4_status_not_success_if_english_subtitles_missing(self):
+        """Tests that status must NOT be 'success' unless an English SRT exists,
+        and the missing deliverable is listed first in result.md.
+        """
+        video_file = self.samples_dir / "test_video.mp4"
+        video_file.write_bytes(b"dummy mp4 video bytes")
+
+        work_audio = self.out_dir / "work" / "extracted_test_video.wav"
+        work_audio.parent.mkdir(parents=True, exist_ok=True)
+        work_audio.write_bytes(b"dummy wav bytes")
+
+        self.mock_tools.extract_audio_from_video.return_value = {
+            "success": True,
+            "audio_path": str(work_audio.resolve()),
+            "duration_s": 13.5,
+        }
+        self.mock_tools.transcribe_audio.return_value = {
+            "success": True,
+            "transcript": "मेरा नाम अशफाक है और आज मौसम बहुत अच्छा है",
+            "duration_s": 13.5,
+            "windows_count": 1,
+            "windows": [
+                {
+                    "window_index": 1,
+                    "start_s": 0.0,
+                    "end_s": 13.5,
+                    "text": "मेरा नाम अशफाक है और आज मौसम बहुत अच्छा है",
+                }
+            ],
+            "detected_script": "Devanagari",
+            "language_requested": "hi",
+        }
+        # Simulate translation failure so English subtitles are not generated
+        self.mock_tools.translate_text.side_effect = None
+        self.mock_tools.translate_text.return_value = {
+            "success": False,
+            "error": "Translation service unavailable",
+        }
+
+        plan = {
+            "steps": [
+                {"tool": "transcribe_audio", "args": {"file_path": "test_video.mp4"}},
+                {
+                    "tool": "translate_text",
+                    "args": {
+                        "source_language": "hi",
+                        "target_language": "en",
+                        "text": "मेरा नाम अशफाक है और आज मौसम बहुत अच्छा है",
+                    },
+                },
+            ]
+        }
+
+        agent = TaskAgent(
+            task="Create English subtitles for this Hindi video",
+            files=[video_file],
+            out_dir=self.out_dir,
+            settings=self.mock_settings,
+            llm_client=MockLLM(plan_dict=plan),
+            tools=self.mock_tools,
+        )
+        report = agent.run()
+
+        # Status must not be success
+        self.assertNotEqual(report.status, "success")
+        self.assertEqual(report.status, "partial")
+
+        # Missing deliverable must be listed first in failures
+        self.assertTrue(report.failures)
+        self.assertIn("Task requested English subtitles, but no SRT artifact", report.failures[0])
+
+        # In result.md, the missing deliverable must appear first under Failed Steps
+        result_md = (self.out_dir / "result.md").read_text(encoding="utf-8")
+        self.assertIn("## Failed Steps", result_md)
+        first_bullet = [line for line in result_md.splitlines() if line.startswith("- ")][0]
+        self.assertIn("Task requested English subtitles", first_bullet)
+
+    def test_ambiguous_language_task_recorded_plainly_in_report_and_summary(self):
+        """Tests that when language roles are truly ambiguous, report.json and final message state it plainly."""
+        audio_file = self.samples_dir / "test_audio.wav"
+        audio_file.write_bytes(b"dummy wav bytes")
+
+        self.mock_tools.transcribe_audio.return_value = {
+            "success": True,
+            "transcript": "Hello world",
+            "duration_s": 5.0,
+            "windows_count": 1,
+            "windows": [{"window_index": 1, "start_s": 0.0, "end_s": 5.0, "text": "Hello world"}],
+            "detected_script": "Latin",
+        }
+
+        plan = {
+            "steps": [
+                {"tool": "transcribe_audio", "args": {"file_path": "test_audio.wav"}},
+            ]
+        }
+
+        agent = TaskAgent(
+            task="Transcribe audio in Hindi or Tamil",
+            files=[audio_file],
+            out_dir=self.out_dir,
+            settings=self.mock_settings,
+            llm_client=MockLLM(plan_dict=plan),
+            tools=self.mock_tools,
+        )
+        report = agent.run()
+
+        # Report contains language_ambiguity field
+        self.assertIsNotNone(report.language_ambiguity)
+        self.assertIn("Disjunctive language choices", report.language_ambiguity)
+
+        # Assumptions explicitly document the ambiguity
+        self.assertTrue(any("ambiguous" in a.lower() for a in report.assumptions))
+
+        # Serialized report.json includes language_ambiguity
+        rep_dict = report.to_dict()
+        self.assertIn("language_ambiguity", rep_dict)
+        self.assertIn("Disjunctive language choices", rep_dict["language_ambiguity"])
 
 
 if __name__ == "__main__":

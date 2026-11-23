@@ -77,9 +77,10 @@ class AgentReport:
     language_requested: str | None = None
     detected_script: str | None = None
     windows_count: int | None = None
+    language_ambiguity: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        d = {
             "status": self.status,
             "task": self.task,
             "steps_taken": self.steps_taken,
@@ -97,3 +98,6 @@ class AgentReport:
             "detected_script": self.detected_script,
             "windows_count": self.windows_count,
         }
+        if self.language_ambiguity:
+            d["language_ambiguity"] = self.language_ambiguity
+        return d

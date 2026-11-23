@@ -95,6 +95,31 @@ class TestLangUtils(unittest.TestCase):
         self.assertEqual(info4["audio_language"], "hi")
         self.assertIsNone(info4["target_language"])
 
+        # 5. Role rules (Requirement 2):
+        # "<Language A> subtitles/captions for this <Language B> video/audio"
+        info5 = extract_task_languages("Create English subtitles for this Hindi video")
+        self.assertEqual(info5["audio_language"], "hi")
+        self.assertEqual(info5["target_language"], "en")
+        self.assertFalse(info5["is_ambiguous"])
+
+        # "translate/subtitle X from B to A"
+        info6 = extract_task_languages("Subtitle this from Hindi to English")
+        self.assertEqual(info6["audio_language"], "hi")
+        self.assertEqual(info6["target_language"], "en")
+        self.assertFalse(info6["is_ambiguous"])
+
+        # "B audio into A"
+        info7 = extract_task_languages("Hindi audio into English")
+        self.assertEqual(info7["audio_language"], "hi")
+        self.assertEqual(info7["target_language"], "en")
+        self.assertFalse(info7["is_ambiguous"])
+
+        # "in A"
+        info8 = extract_task_languages("Create subtitles for this Hindi video in English")
+        self.assertEqual(info8["audio_language"], "hi")
+        self.assertEqual(info8["target_language"], "en")
+        self.assertFalse(info8["is_ambiguous"])
+
         # Explicit code forms
         code, _ = extract_language_from_text("transcribe in hi")
         self.assertEqual(code, "hi")

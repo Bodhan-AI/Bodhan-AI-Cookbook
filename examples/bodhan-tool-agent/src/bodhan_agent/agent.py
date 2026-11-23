@@ -124,6 +124,7 @@ class TaskAgent:
         self.language_requested: str | None = None
         self.detected_script: str | None = None
         self.windows_count: int | None = None
+        self.language_ambiguity: str | None = None
         self.audio_durations: dict[str, float] = {}
         self.last_transcription_result: dict[str, Any] = {}
         self.step_records: list[dict[str, Any]] = []
@@ -155,6 +156,7 @@ class TaskAgent:
         self.audio_language = lang_info["audio_language"]
         self.target_language = lang_info["target_language"]
         self.language_requested = self.audio_language or self.target_language
+        self.language_ambiguity = lang_info.get("ambiguity_reason") if lang_info.get("is_ambiguous") else None
 
         if lang_info["is_ambiguous"]:
             self.audio_language = None
@@ -325,6 +327,7 @@ class TaskAgent:
                 verification_results=self.verification_results,
                 artifacts=self.artifacts,
                 failures=self.failures,
+                language_ambiguity=self.language_ambiguity,
             )
             self.tracer.write_report(report)
             self.tracer.write_result_markdown(
@@ -360,6 +363,7 @@ class TaskAgent:
                 verification_results=self.verification_results,
                 artifacts=self.artifacts,
                 failures=self.failures,
+                language_ambiguity=self.language_ambiguity,
             )
             self.tracer.write_report(report)
             self.tracer.write_result_markdown(
@@ -650,6 +654,16 @@ class TaskAgent:
             # Fallback to interactive tool loop if plan was empty
             agent_status, final_answer = self._run_interactive_fallback(valid_files, file_summaries, step, final_answer)
 
+        # Requirement 4: If target language differs from audio language, ensure translated SRT exists
+        if self.target_language and self.target_language != self.audio_language:
+            for art in list(self.artifacts):
+                p = Path(art)
+                if p.suffix.lower() == ".srt" and not p.stem.endswith(f"_{self.target_language}"):
+                    stem = self._get_base_stem(p)
+                    target_srt = p.parent / f"subtitles_{stem}_{self.target_language}.srt"
+                    if not target_srt.exists():
+                        self._translate_srt_file(p, self.target_language)
+
         # --------------------------------------------------------------------
         # 4. Final Verification & Status Determination
         # --------------------------------------------------------------------
@@ -674,7 +688,7 @@ class TaskAgent:
         task_wants_speech = bool(
             re.search(r"\b(?:synthesiz\w*|speak\w*|read\s+(?:it\s+)?aloud|tts|generate\s+speech|voice\s+output)\b", task_lower)
         )
-        task_wants_subtitles = bool(re.search(r"\b(?:subtitles|srt)\b", task_lower))
+        task_wants_subtitles = bool(re.search(r"\b(?:subtitles?|captions?|srt)\b", task_lower))
         task_wants_translation = bool(re.search(r"\b(?:translat\w*)\b", task_lower))
         task_wants_transcription = bool(re.search(r"\b(?:transcrib\w*)\b", task_lower))
         task_wants_ocr = bool(re.search(r"\b(?:ocr|extract\s+(?:the\s+)?text)\b", task_lower))
@@ -686,21 +700,71 @@ class TaskAgent:
         has_ocr = any("ocr_" in Path(a).name for a in self.artifacts)
 
         final_artifact_missing = False
-        if task_wants_speech and not has_speech:
-            final_artifact_missing = True
-            self.failures.append("Task requested speech/audio output, but no speech audio artifact was produced.")
-        if task_wants_subtitles and not has_subtitles:
-            final_artifact_missing = True
-            self.failures.append("Task requested subtitles, but no SRT artifact was produced.")
-        if task_wants_translation and not has_translation and not task_wants_speech:
-            final_artifact_missing = True
-            self.failures.append("Task requested translation, but no translated artifact was produced.")
-        if task_wants_transcription and not has_transcript:
-            final_artifact_missing = True
-            self.failures.append("Task requested audio transcription, but no transcript artifact was produced.")
-        if task_wants_ocr and not has_ocr and not has_translation:
-            final_artifact_missing = True
-            self.failures.append("Task requested OCR text extraction, but no OCR artifact was produced.")
+        missing_deliverables: list[str] = []
+
+        if agent_status not in ("budget_exceeded", "timeout", "impossible_task"):
+            if task_wants_speech and not has_speech:
+                final_artifact_missing = True
+                missing_deliverables.append("Task requested speech/audio output, but no speech audio artifact was produced.")
+
+            if task_wants_subtitles:
+                req_sub_lang = self.target_language or (self.audio_language if not task_wants_translation else None)
+                if req_sub_lang:
+                    expected_sub_script = EXPECTED_SCRIPT_FOR_LANG.get(req_sub_lang, req_sub_lang)
+                    expected_sub_name = SCRIPT_NAMES.get(expected_sub_script, expected_sub_script)
+                    has_matching_sub = False
+                    for a in self.artifacts:
+                        if a.endswith(".srt") and Path(a).exists():
+                            content = Path(a).read_text(encoding="utf-8")
+                            segs = self._parse_srt(content)
+                            combined_text = " ".join(s["text"] for s in segs)
+                            if detect_script_language(combined_text) == expected_sub_script:
+                                has_matching_sub = True
+                                break
+                    if not has_matching_sub:
+                        final_artifact_missing = True
+                        missing_deliverables.append(
+                            f"Task requested {SUPPORTED_INDIC_LANGUAGES.get(req_sub_lang, req_sub_lang)} subtitles, "
+                            f"but no SRT artifact matching {expected_sub_name} script was produced."
+                        )
+                elif not has_subtitles:
+                    final_artifact_missing = True
+                    missing_deliverables.append("Task requested subtitles, but no SRT artifact was produced.")
+
+            if task_wants_translation and not has_translation and not task_wants_speech:
+                if self.target_language:
+                    expected_trans_script = EXPECTED_SCRIPT_FOR_LANG.get(self.target_language, self.target_language)
+                    expected_trans_name = SCRIPT_NAMES.get(expected_trans_script, expected_trans_script)
+                    has_matching_trans = False
+                    for a in self.artifacts:
+                        if Path(a).name.startswith("translated_") and Path(a).exists():
+                            text_c = Path(a).read_text(encoding="utf-8")
+                            if detect_script_language(text_c) == expected_trans_script:
+                                has_matching_trans = True
+                                break
+                    if not has_matching_trans:
+                        final_artifact_missing = True
+                        missing_deliverables.append(
+                            f"Task requested {SUPPORTED_INDIC_LANGUAGES.get(self.target_language, self.target_language)} translation, "
+                            f"but no translated artifact matching {expected_trans_name} script was produced."
+                        )
+                else:
+                    final_artifact_missing = True
+                    missing_deliverables.append("Task requested translation, but no translated artifact was produced.")
+
+            if task_wants_transcription and not has_transcript:
+                final_artifact_missing = True
+                missing_deliverables.append("Task requested audio transcription, but no transcript artifact was produced.")
+
+            if task_wants_ocr and not has_ocr and not has_translation:
+                final_artifact_missing = True
+                missing_deliverables.append("Task requested OCR text extraction, but no OCR artifact was produced.")
+
+            # Missing deliverables must be listed first in failures so they appear first in result.md
+            if missing_deliverables:
+                for md in reversed(missing_deliverables):
+                    if md not in self.failures:
+                        self.failures.insert(0, md)
 
         # Separate and prioritize statuses accurately
         if agent_status in ("timeout", "impossible_task", "budget_exceeded"):
@@ -744,6 +808,7 @@ class TaskAgent:
             language_requested=self.language_requested,
             detected_script=self.detected_script,
             windows_count=self.windows_count,
+            language_ambiguity=self.language_ambiguity,
         )
 
         self.tracer.write_report(report)
@@ -1009,6 +1074,73 @@ class TaskAgent:
                 s = s[:-len(suffix)]
         return s
 
+    def _parse_srt(self, srt_content: str) -> list[dict[str, Any]]:
+        """Parses SRT content into list of segments with index, timeline, and text."""
+        raw_blocks = re.split(r"\n\s*\n", srt_content.strip())
+        blocks = []
+        for raw in raw_blocks:
+            lines = [ln.strip() for ln in raw.strip().splitlines() if ln.strip()]
+            if len(lines) < 2:
+                continue
+            idx_line = lines[0]
+            if "-->" in idx_line:
+                time_line = idx_line
+                text_lines = lines[1:]
+                idx = len(blocks) + 1
+            else:
+                try:
+                    idx = int(idx_line)
+                except ValueError:
+                    idx = len(blocks) + 1
+                if len(lines) < 2:
+                    continue
+                time_line = lines[1]
+                text_lines = lines[2:]
+            if "-->" not in time_line:
+                continue
+            text = "\n".join(text_lines).strip()
+            blocks.append({
+                "index": idx,
+                "timeline": time_line,
+                "text": text,
+            })
+        return blocks
+
+    def _translate_srt_file(self, srt_path: Path, target_lang: str) -> Path | None:
+        """Translates each SRT segment separately in plain code, preserving timestamps."""
+        if not srt_path.exists():
+            return None
+        content = srt_path.read_text(encoding="utf-8")
+        segments = self._parse_srt(content)
+        if not segments:
+            return None
+
+        stem = self._get_base_stem(srt_path)
+        out_name = f"subtitles_{stem}_{target_lang}.srt"
+        out_path = srt_path.parent / out_name
+
+        translated_blocks = []
+        for seg in segments:
+            seg_text = seg["text"].strip()
+            if seg_text:
+                res = self.tools.translate_text(text=seg_text, target_language_code=target_lang)
+                trans_text = res.get("translated_text", "").strip() or seg_text
+            else:
+                trans_text = ""
+            translated_blocks.append(f"{seg['index']}\n{seg['timeline']}\n{trans_text}\n")
+
+        new_content = "\n".join(translated_blocks) + "\n"
+        out_path.write_text(new_content, encoding="utf-8")
+        resolved_path = str(out_path.resolve())
+        if resolved_path not in self.artifacts:
+            self.artifacts.append(resolved_path)
+        self.upstream_sources[out_name] = {
+            "source_srt": str(srt_path.resolve()),
+            "target_lang": target_lang,
+            "segment_count": len(segments),
+        }
+        return out_path
+
     def _should_skip_translation(self, args: dict[str, Any]) -> tuple[bool, str]:
         """Evaluates whether translate_text should be skipped in plain code (Requirements 2 & 3)."""
         raw_target = (
@@ -1040,13 +1172,30 @@ class TaskAgent:
         # derive source language from script or from previous step's language
         if text and detected_code and detected_code != "en":
             derived_src = self.audio_language or detected_code
-            if args.get("source_language") == "en" or not args.get("source_language"):
+            if args.get("source_language") in ("en", None):
                 args["source_language"] = derived_src
-            if args.get("source_language_code") == "en" or not args.get("source_language_code"):
+            if args.get("source_language_code") in ("en", None):
                 args["source_language_code"] = derived_src
+            if (
+                args.get("source_language")
+                and args.get("source_language_code")
+                and args.get("source_language") != args.get("source_language_code")
+            ):
+                args["source_language"] = args.get("source_language_code") or args.get("source_language")
+                args["source_language_code"] = args["source_language"]
 
-        # Requirement 3: When the task asks for subtitles, captions or a transcript only,
-        # drop any translation step the plan adds unless the task names a different target language or uses translate
+        # Requirement 3: Translation skip rule: must apply ONLY when no target language differs from the audio language.
+        # When a target language is named and differs, translation is required.
+        effective_target = target_code or self.target_language
+        effective_audio = self.audio_language
+        if (effective_target and effective_audio and effective_target != effective_audio) or (
+            self.target_language and self.audio_language and self.target_language != self.audio_language
+        ):
+            return False, ""
+        if effective_target and detected_code and effective_target != detected_code:
+            return False, ""
+
+        # When the task asks for subtitles, captions or a transcript only without translation
         task_lower = self.task.lower()
         task_is_subtitles_or_transcription_only = bool(
             re.search(r"\b(?:subtitles?|captions?|srt|transcript(?:ion)?|transcrib\w*)\b", task_lower)
@@ -1280,6 +1429,12 @@ class TaskAgent:
                         "source_stem": stem,
                         "target_lang": target_lang,
                     }
+
+                    # Translate SRT if original exists and translated SRT not created yet
+                    orig_srt = self.tracer.artifacts_dir / f"subtitles_{stem}.srt"
+                    target_srt = self.tracer.artifacts_dir / f"subtitles_{stem}_{target_lang}.srt"
+                    if orig_srt.exists() and not target_srt.exists() and target_lang != self.audio_language:
+                        self._translate_srt_file(orig_srt, target_lang)
                 return res
 
             elif name == "transcribe_audio":
@@ -1329,6 +1484,8 @@ class TaskAgent:
                         srt_file = self.tracer.artifacts_dir / f"subtitles_{stem}.srt"
                         self.tools.build_srt(res["windows"], output_path=str(srt_file))
                         self.artifacts.append(str(srt_file.resolve()))
+                        if self.target_language and self.target_language != self.audio_language:
+                            self._translate_srt_file(srt_file, self.target_language)
                 return res
 
             elif name == "synthesize_speech":
@@ -1437,6 +1594,8 @@ class TaskAgent:
                 res = self.tools.build_srt(segs, output_path=out_p)
                 if res.get("success") and res.get("srt_path"):
                     self.artifacts.append(res["srt_path"])
+                    if self.target_language and self.target_language != self.audio_language:
+                        self._translate_srt_file(Path(res["srt_path"]), self.target_language)
                 return res
 
             elif name == "finish_task":
@@ -1719,6 +1878,134 @@ class TaskAgent:
             elif art_path.name.startswith("transcript_") and art_path.suffix.lower() == ".txt":
                 self._verify_transcript_artifact(art_path)
 
+            # Verify Subtitles (SRT)
+            elif art_path.suffix.lower() == ".srt":
+                self._verify_srt_artifact(art_path)
+
+    def _verify_srt_artifact(self, art_path: Path) -> None:
+        """Verifies SRT subtitle artifacts: non-empty, segment count match, script match."""
+        art_name = art_path.name
+        if not art_path.exists() or art_path.stat().st_size == 0:
+            self.verification_results.append(
+                VerificationResult(
+                    artifact=art_name,
+                    verification_type="subtitles_quality",
+                    passed=False,
+                    notes="SRT verification failed: Subtitle file is missing or empty (0 bytes).",
+                )
+            )
+            return
+
+        content = art_path.read_text(encoding="utf-8").strip()
+        segments = self._parse_srt(content)
+        if not segments:
+            self.verification_results.append(
+                VerificationResult(
+                    artifact=art_name,
+                    verification_type="subtitles_quality",
+                    passed=False,
+                    notes="SRT verification failed: No valid subtitle segments found.",
+                )
+            )
+            return
+
+        # Check if this is a translated SRT (e.g. subtitles_..._<target>.srt)
+        up_info = self.upstream_sources.get(art_name, {})
+        target_lang = up_info.get("target_lang")
+        if not target_lang:
+            parts = art_path.stem.split("_")
+            if len(parts) >= 3 and len(parts[-1]) in (2, 3) and parts[-1] in SUPPORTED_INDIC_LANGUAGES:
+                target_lang = parts[-1]
+            elif self.target_language and art_path.stem.endswith(f"_{self.target_language}"):
+                target_lang = self.target_language
+
+        if target_lang and target_lang != self.audio_language:
+            # 1. Segment count check against source SRT
+            src_srt_path_str = up_info.get("source_srt")
+            source_srt_path = Path(src_srt_path_str) if src_srt_path_str else None
+            if not source_srt_path or not source_srt_path.exists():
+                stem = self._get_base_stem(art_path)
+                candidate = art_path.parent / f"subtitles_{stem}.srt"
+                if candidate.exists() and candidate != art_path:
+                    source_srt_path = candidate
+
+            if source_srt_path and source_srt_path.exists():
+                src_content = source_srt_path.read_text(encoding="utf-8").strip()
+                src_segments = self._parse_srt(src_content)
+                if len(segments) != len(src_segments):
+                    self.verification_results.append(
+                        VerificationResult(
+                            artifact=art_name,
+                            verification_type="subtitles_segment_count",
+                            passed=False,
+                            notes=(
+                                f"SRT verification failed: Segment count mismatch: translated SRT has "
+                                f"{len(segments)} segments, but source SRT has {len(src_segments)} segments."
+                            ),
+                        )
+                    )
+                    return
+
+            # 2. Script check for target language
+            expected_script = EXPECTED_SCRIPT_FOR_LANG.get(target_lang, target_lang)
+            expected_script_name = SCRIPT_NAMES.get(expected_script, expected_script)
+            combined_text = " ".join(s["text"] for s in segments)
+            detected_script = detect_script_language(combined_text)
+            detected_script_name = SCRIPT_NAMES.get(detected_script, detected_script or "Unknown")
+
+            if detected_script != expected_script:
+                self.verification_results.append(
+                    VerificationResult(
+                        artifact=art_name,
+                        verification_type="subtitles_target_script",
+                        passed=False,
+                        notes=(
+                            f"SRT verification failed: Subtitles for '{target_lang}' expected "
+                            f"{expected_script_name} script, but text is in {detected_script_name} script ({detected_script})."
+                        ),
+                    )
+                )
+                return
+
+            self.verification_results.append(
+                VerificationResult(
+                    artifact=art_name,
+                    verification_type="subtitles_quality",
+                    passed=True,
+                    notes=f"Verified translated subtitles: {len(segments)} segment(s) matching source count, in {expected_script_name} script.",
+                )
+            )
+        else:
+            # Original SRT verification
+            if self.audio_language:
+                expected_script = EXPECTED_SCRIPT_FOR_LANG.get(self.audio_language, self.audio_language)
+                expected_script_name = SCRIPT_NAMES.get(expected_script, expected_script)
+                combined_text = " ".join(s["text"] for s in segments)
+                detected_script = detect_script_language(combined_text)
+                detected_script_name = SCRIPT_NAMES.get(detected_script, detected_script or "Unknown")
+                if detected_script != expected_script:
+                    self.verification_results.append(
+                        VerificationResult(
+                            artifact=art_name,
+                            verification_type="subtitles_audio_script",
+                            passed=False,
+                            notes=(
+                                f"SRT verification failed: Subtitles for audio language '{self.audio_language}' expected "
+                                f"{expected_script_name} script, but text is in {detected_script_name} script ({detected_script})."
+                            ),
+                        )
+                    )
+                    return
+
+            self.verification_results.append(
+                VerificationResult(
+                    artifact=art_name,
+                    verification_type="subtitles_quality",
+                    passed=True,
+                    notes=f"Verified original subtitles: {len(segments)} segment(s).",
+                )
+            )
+
     def _verify_transcript_artifact(self, art_path: Path) -> None:
         """Verifies transcript text quality, duration plausibility, repetition, and script matching in plain code."""
         content = art_path.read_text(encoding="utf-8").strip()
@@ -1853,9 +2140,13 @@ class TaskAgent:
             return f"The task reached the maximum step limit ({self.max_steps}) before full completion."
         if status == "failed":
             reasons = "; ".join(self.failures) if self.failures else "Task did not produce verified artifacts."
+            if self.language_ambiguity:
+                reasons = f"Language assignment in task was ambiguous ({self.language_ambiguity}). " + reasons
             return f"Task execution failed: {reasons}"
         if status == "partial":
             reasons = "; ".join(self.failures) if self.failures else "One or more steps failed."
+            if self.language_ambiguity:
+                reasons = f"Language assignment in task was ambiguous ({self.language_ambiguity}). " + reasons
             return f"The task completed partially with {len(self.artifacts)} artifact(s), but encountered failures: {reasons}"
 
         # Status is success
@@ -1878,9 +2169,10 @@ class TaskAgent:
         if any("ocr_" in a for a in self.artifacts):
             parts.append("extracted document text using Indic-OCR")
 
+        amb_note = f" Note on languages: {self.language_ambiguity}." if self.language_ambiguity else ""
         if parts:
-            return "Completed task: " + "; ".join(parts) + "."
-        return "Task completed successfully and artifacts were verified."
+            return "Completed task: " + "; ".join(parts) + "." + amb_note
+        return "Task completed successfully and artifacts were verified." + amb_note
 
     def _verify_translation_fidelity(self, source_en: str, back_en: str) -> tuple[bool, str]:
         """Compares back-translated English against real source English."""
