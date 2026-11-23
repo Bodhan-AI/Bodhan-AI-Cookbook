@@ -1,0 +1,92 @@
+{
+  "status": "completed",
+  "llm_status": "completed",
+  "stop_reason": "finished",
+  "task": "Read this paragraph aloud in Bengali with a female voice",
+  "steps": 2,
+  "max_steps": 30,
+  "cost_inr": {
+    "total": 0.0789,
+    "by_model": {
+      "indic-translate": 0.0006,
+      "indic-speak": 0.0618,
+      "indic-transcribe": 0.0165
+    },
+    "budget": 20.0,
+    "within_budget": true
+  },
+  "model_calls": {
+    "made": 5,
+    "cache_hits": 0
+  },
+  "elapsed_sec": 78.5,
+  "plan": [
+    "Translate the English paragraph (paragraph.txt) to Bengali using translate_text.",
+    "Synthesize speech from the Bengali translation using synthesize_speech with language 'bn' and female voice.",
+    "Return the audio file as the final artifact."
+  ],
+  "assumptions": [
+    "The paragraph is in English and needs translation to Bengali.",
+    "A female voice is desired; default female voice will be used.",
+    "The input paragraph is in English and needed translation to Bengali.",
+    "A default female voice was acceptable for the Bengali synthesis."
+  ],
+  "verification": {
+    "status": "completed",
+    "checks": [
+      {
+        "artifact": "demo/runs/bengali_female_voice/artifacts/paragraph_bn.txt",
+        "check": "translation coverage",
+        "passed": true,
+        "detail": {
+          "length_ratio": 1.02,
+          "numbers_checked": 1
+        }
+      },
+      {
+        "artifact": "demo/runs/bengali_female_voice/artifacts/paragraph_bn.mp3",
+        "check": "audio back-transcription",
+        "passed": true,
+        "detail": {
+          "mean_cer": 0.0196,
+          "max_cer": 0.0392,
+          "regenerated": 0,
+          "failed_sentences": []
+        }
+      }
+    ],
+    "artifacts": [
+      "demo/runs/bengali_female_voice/artifacts/paragraph_bn.mp3"
+    ],
+    "missing_artifacts": [],
+    "not_produced_by_tools": [],
+    "notes": [],
+    "all_passed": true
+  },
+  "artifacts": [
+    "demo/runs/bengali_female_voice/artifacts/paragraph_bn.mp3"
+  ],
+  "inputs": {
+    "files": [
+      {
+        "path": "demo/inputs/paragraph.txt",
+        "name": "paragraph.txt",
+        "kind": "text",
+        "bytes": 102,
+        "chars": 102,
+        "script": {
+          "script": "Latin",
+          "language": "en",
+          "candidates": [
+            "en"
+          ],
+          "confidence": 1.0,
+          "note": "Latin script: English, or romanised Indic text"
+        },
+        "preview": "Water is precious. Close the tap while brushing your teeth and you can save up to 6 litres every day."
+      }
+    ],
+    "missing": []
+  },
+  "llm_model": "openai/gpt-oss-120b"
+}
