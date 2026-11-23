@@ -1,0 +1,13 @@
+{
+ "source": "demo/inputs/clips/clip_2.wav",
+ "language": "mr",
+ "duration_sec": 2.39,
+ "text": "कृपया कल अपनी नोटबुक लाएँ",
+ "segments": [
+  {
+   "start": 0.0,
+   "end": 2.39,
+   "text": "कृपया कल अपनी नोटबुक लाएँ"
+  }
+ ]
+}
