@@ -1,0 +1,6377 @@
+{
+  "meta": {
+    "title": "MAHABHARATA — The Living Epic",
+    "version": "1.0.0",
+    "subtitle": "A voyage through the great Bharata story, from the Naimisha forest to the Himalayan snows",
+    "tagline": "Every question opens another chapter. Every discovery reveals another truth.",
+    "content_note": "The Mahabharata survives in many manuscripts, recensions and living retellings: the Northern and Southern recensions, the Pune Critical Edition (BORI, 1933–1966) that reconstructs a common text, and countless regional, folk, theatrical and devotional versions. This voyage follows the main storyline shared by most of them and flags episodes that are variant, later or popular additions (for example the Ganesha-as-scribe story, Krishna as the source of Draupadi's endless garment, Draupadi's mocking laugh at the Maya Sabha, or Abhimanyu learning the chakravyuha in the womb). Places are shown as described in the epic on a schematic map; modern identifications are traditional, not proven. Interpretations of motive and morality are offered as questions, not verdicts. Battle scenes are depicted without gore.",
+    "start_chapter": "ch01"
+  },
+  "locations": [
+    {
+      "id": "naimisharanya",
+      "name": "Naimisha Forest",
+      "sanskrit_name": "Naimiṣāraṇya",
+      "kind": "forest",
+      "description": "A sacred forest where, as described in the epic, the sage Shaunaka and his companions hold a twelve-year sacrificial session. Here the bard Ugrashravas arrives and agrees to retell the Bharata story as he heard it at King Janamejaya's sacrifice, so the whole epic unfolds as a tale told among listening sages.",
+      "traditional_identification": "traditionally identified with Nimsar (Naimisharanya) in Sitapur district, Uttar Pradesh",
+      "map": {
+        "x": 800,
+        "y": 330,
+        "region": "east",
+        "icon": "hermitage"
+      },
+      "palette": {
+        "sky": "#e9d9b0",
+        "fog": "#c9d3b0",
+        "ground": "#5d6b3a",
+        "accent": "#d98c3a",
+        "light": "#ffe2a8"
+      },
+      "theme": "sacred",
+      "base_layout": [
+        {
+          "asset": "arch.hermitage",
+          "position": [
+            0,
+            0,
+            -34
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.2
+        },
+        {
+          "asset": "arch.yajna_altar",
+          "position": [
+            0,
+            0,
+            -22
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "obj.sacred_tree",
+          "position": [
+            -24,
+            0,
+            -28
+          ],
+          "rotation": [
+            0,
+            15,
+            0
+          ],
+          "scale": 1.3
+        },
+        {
+          "asset": "obj.sacred_tree",
+          "position": [
+            26,
+            0,
+            -32
+          ],
+          "rotation": [
+            0,
+            -20,
+            0
+          ],
+          "scale": 1.1
+        },
+        {
+          "asset": "env.sacred_grove",
+          "position": [
+            -40,
+            0,
+            -58
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "env.forest",
+          "position": [
+            0,
+            0,
+            -100
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1,
+          "instances": 60,
+          "scatter_radius": 60
+        },
+        {
+          "asset": "env.forest",
+          "position": [
+            -75,
+            0,
+            10
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1,
+          "instances": 30,
+          "scatter_radius": 40
+        },
+        {
+          "asset": "env.forest",
+          "position": [
+            75,
+            0,
+            10
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1,
+          "instances": 30,
+          "scatter_radius": 40
+        },
+        {
+          "asset": "env.mist",
+          "position": [
+            0,
+            0,
+            -60
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1,
+          "instances": 6,
+          "scatter_radius": 30
+        }
+      ],
+      "default_lighting": {
+        "preset": "dawn",
+        "intensity": 0.9,
+        "color": "#ffd9a0"
+      },
+      "ambient_audio": {
+        "bed": "forest",
+        "volume": 0.55
+      },
+      "chapters": [],
+      "paths_to": [
+        "hastinapura",
+        "ganga"
+      ]
+    },
+    {
+      "id": "hastinapura",
+      "name": "Hastinapura",
+      "sanskrit_name": "Hastināpura",
+      "kind": "city",
+      "description": "The capital of the Kuru kings, as described in the epic a walled city of palaces, assembly halls and gates on the Ganga plain. Shantanu, Bhishma, Dhritarashtra and Pandu rule or serve here, and the rival cousins grow up within its courts. It is the political heart of the story from its opening generations to the war's aftermath.",
+      "traditional_identification": "traditionally identified with Hastinapur in Meerut district, Uttar Pradesh",
+      "map": {
+        "x": 480,
+        "y": 255,
+        "region": "ganga_plain",
+        "icon": "palace"
+      },
+      "palette": {
+        "sky": "#f2d7a6",
+        "fog": "#e8cfa0",
+        "ground": "#c9a874",
+        "accent": "#c9a14a",
+        "light": "#fff1cf"
+      },
+      "theme": "royal",
+      "base_layout": [
+        {
+          "asset": "arch.hastinapura_palace",
+          "position": [
+            0,
+            0,
+            -45
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "arch.royal_courtyard",
+          "position": [
+            0,
+            0,
+            -26
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "arch.pillared_corridor",
+          "position": [
+            -30,
+            0,
+            -30
+          ],
+          "rotation": [
+            0,
+            90,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "arch.pillared_corridor",
+          "position": [
+            30,
+            0,
+            -30
+          ],
+          "rotation": [
+            0,
+            -90,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "obj.banner",
+          "position": [
+            -16,
+            0,
+            -20
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "obj.banner",
+          "position": [
+            16,
+            0,
+            -20
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "arch.city_gate",
+          "position": [
+            0,
+            0,
+            70
+          ],
+          "rotation": [
+            0,
+            180,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "env.road",
+          "position": [
+            0,
+            0,
+            45
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "env.palace_garden",
+          "position": [
+            -48,
+            0,
+            6
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "arch.city_walls",
+          "position": [
+            0,
+            0,
+            -110
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            3,
+            1,
+            1
+          ]
+        },
+        {
+          "asset": "env.city_skyline",
+          "position": [
+            0,
+            0,
+            -150
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.5
+        }
+      ],
+      "default_lighting": {
+        "preset": "day",
+        "intensity": 1.1,
+        "color": "#fff1cf"
+      },
+      "ambient_audio": {
+        "bed": "palace",
+        "volume": 0.5
+      },
+      "chapters": [],
+      "paths_to": [
+        "naimisharanya",
+        "ganga",
+        "gurukul",
+        "varanavata",
+        "dyuta_sabha",
+        "indraprastha",
+        "panchala",
+        "kurukshetra",
+        "hastinapura_postwar"
+      ]
+    },
+    {
+      "id": "ganga",
+      "name": "The Ganga",
+      "sanskrit_name": "Gaṅgā",
+      "kind": "river",
+      "description": "The great river, as described in the epic both a waterway of the Kuru land and the goddess Ganga herself, who marries King Shantanu and is the mother of Bhishma. Its banks host moments of birth, vow, secret meeting and mourning: Karna's river-borne childhood, his noon worship of the sun, Kunti's plea to him, and the elders' last years nearby.",
+      "traditional_identification": "traditionally identified with the Ganga of northern India, especially its upper course through the Kuru country",
+      "map": {
+        "x": 580,
+        "y": 300,
+        "region": "ganga_plain",
+        "icon": "river"
+      },
+      "palette": {
+        "sky": "#cfe3ef",
+        "fog": "#dfeaf0",
+        "ground": "#d8c9a6",
+        "accent": "#3f8fa8",
+        "light": "#fff6e0"
+      },
+      "theme": "divine",
+      "base_layout": [
+        {
+          "asset": "env.ganga_water",
+          "position": [
+            0,
+            0,
+            -52
+          ],
+          "rotation": [
+            0,
+            90,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "obj.sacred_tree",
+          "position": [
+            -26,
+            0,
+            -20
+          ],
+          "rotation": [
+            0,
+            30,
+            0
+          ],
+          "scale": 1.4
+        },
+        {
+          "asset": "obj.water_vessel",
+          "position": [
+            13,
+            0,
+            -17
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "env.forest",
+          "position": [
+            -90,
+            0,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1,
+          "instances": 25,
+          "scatter_radius": 40
+        },
+        {
+          "asset": "env.forest",
+          "position": [
+            90,
+            0,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1,
+          "instances": 25,
+          "scatter_radius": 40
+        },
+        {
+          "asset": "env.mist",
+          "position": [
+            0,
+            0,
+            -48
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1,
+          "instances": 8,
+          "scatter_radius": 25
+        },
+        {
+          "asset": "env.mountains",
+          "position": [
+            0,
+            0,
+            -260
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 2.0
+        }
+      ],
+      "default_lighting": {
+        "preset": "dawn",
+        "intensity": 1.0,
+        "color": "#ffe6c0"
+      },
+      "ambient_audio": {
+        "bed": "river",
+        "volume": 0.6
+      },
+      "chapters": [],
+      "paths_to": [
+        "hastinapura",
+        "panchala",
+        "naimisharanya",
+        "himalaya"
+      ]
+    },
+    {
+      "id": "gurukul",
+      "name": "Drona's School",
+      "sanskrit_name": "Gurukula",
+      "kind": "hermitage",
+      "description": "The training ground where, as described in the epic, Kripa and then Drona teach the Kuru and Pandava princes archery, chariot-fighting, mace and sword. Its tests of focus and skill reveal Arjuna's talent, and its gate is where the Nishada prince Ekalavya is turned away.",
+      "traditional_identification": "traditionally identified, by local tradition only, with Gurugram (Gurgaon), Haryana; the epic gives no precise site",
+      "map": {
+        "x": 440,
+        "y": 222,
+        "region": "ganga_plain",
+        "icon": "hermitage"
+      },
+      "palette": {
+        "sky": "#d9e6c8",
+        "fog": "#c4d6b0",
+        "ground": "#6f7f45",
+        "accent": "#b8833d",
+        "light": "#fff0c8"
+      },
+      "theme": "sacred",
+      "base_layout": [
+        {
+          "asset": "arch.gurukul",
+          "position": [
+            0,
+            0,
+            -36
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "arch.hermitage",
+          "position": [
+            -32,
+            0,
+            -28
+          ],
+          "rotation": [
+            0,
+            30,
+            0
+          ],
+          "scale": 0.9
+        },
+        {
+          "asset": "obj.sacred_tree",
+          "position": [
+            22,
+            0,
+            -24
+          ],
+          "rotation": [
+            0,
+            -15,
+            0
+          ],
+          "scale": 1.2
+        },
+        {
+          "asset": "obj.arrows",
+          "position": [
+            -18,
+            0,
+            -12
+          ],
+          "rotation": [
+            0,
+            20,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "env.sacred_grove",
+          "position": [
+            40,
+            0,
+            -55
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "env.forest",
+          "position": [
+            0,
+            0,
+            -110
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1,
+          "instances": 50,
+          "scatter_radius": 55
+        },
+        {
+          "asset": "env.forest",
+          "position": [
+            -80,
+            0,
+            20
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1,
+          "instances": 25,
+          "scatter_radius": 35
+        },
+        {
+          "asset": "env.forest",
+          "position": [
+            80,
+            0,
+            20
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1,
+          "instances": 25,
+          "scatter_radius": 35
+        }
+      ],
+      "default_lighting": {
+        "preset": "day",
+        "intensity": 1.0,
+        "color": "#fff0c8"
+      },
+      "ambient_audio": {
+        "bed": "forest",
+        "volume": 0.5
+      },
+      "chapters": [],
+      "paths_to": [
+        "hastinapura",
+        "panchala"
+      ]
+    },
+    {
+      "id": "varanavata",
+      "name": "Varanavata",
+      "sanskrit_name": "Vāraṇāvata",
+      "kind": "city",
+      "description": "A town where, as described in the epic, Duryodhana has a house of lac and other flammable materials built for the Pandavas, intending to burn them inside. Warned by Vidura, the brothers and Kunti escape through a tunnel into the forest, beginning years of hidden wandering.",
+      "traditional_identification": "traditionally identified with Barnawa in Baghpat district, Uttar Pradesh",
+      "map": {
+        "x": 440,
+        "y": 345,
+        "region": "ganga_plain",
+        "icon": "city"
+      },
+      "palette": {
+        "sky": "#d9a46f",
+        "fog": "#b98a62",
+        "ground": "#8a6a48",
+        "accent": "#c8441c",
+        "light": "#ffb070"
+      },
+      "theme": "conflict",
+      "base_layout": [
+        {
+          "asset": "arch.lac_house",
+          "position": [
+            0,
+            0,
+            -38
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "obj.lamp",
+          "position": [
+            -15,
+            0,
+            -22
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "obj.lamp",
+          "position": [
+            15,
+            0,
+            -22
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "env.road",
+          "position": [
+            0,
+            0,
+            40
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "arch.city_walls",
+          "position": [
+            0,
+            0,
+            -95
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            2,
+            1,
+            1
+          ]
+        },
+        {
+          "asset": "env.forest",
+          "position": [
+            -70,
+            0,
+            -40
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1,
+          "instances": 30,
+          "scatter_radius": 35
+        },
+        {
+          "asset": "env.forest",
+          "position": [
+            70,
+            0,
+            -40
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1,
+          "instances": 30,
+          "scatter_radius": 35
+        }
+      ],
+      "default_lighting": {
+        "preset": "night",
+        "intensity": 0.7,
+        "color": "#ffb070"
+      },
+      "ambient_audio": {
+        "bed": "fire_crackle",
+        "volume": 0.45
+      },
+      "chapters": [],
+      "paths_to": [
+        "hastinapura",
+        "panchala",
+        "ganga"
+      ]
+    },
+    {
+      "id": "panchala",
+      "name": "Panchala",
+      "sanskrit_name": "Pāñcāla",
+      "kind": "kingdom",
+      "description": "King Drupada's realm east of the Kuru land, with its capital Kampilya, as described in the epic. Drupada's children Draupadi and Dhrishtadyumna are born from a sacrificial fire here, and at Draupadi's swayamvara a disguised Arjuna wins her by hitting a target few could reach.",
+      "traditional_identification": "traditionally identified with the region of Kampil (ancient Kampilya), Farrukhabad district, Uttar Pradesh",
+      "map": {
+        "x": 650,
+        "y": 310,
+        "region": "ganga_plain",
+        "icon": "palace"
+      },
+      "palette": {
+        "sky": "#f6dcc0",
+        "fog": "#efd2b8",
+        "ground": "#c79f7e",
+        "accent": "#b8325a",
+        "light": "#fff0dc"
+      },
+      "theme": "royal",
+      "base_layout": [
+        {
+          "asset": "arch.swayamvara_arena",
+          "position": [
+            0,
+            0,
+            -42
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.2
+        },
+        {
+          "asset": "obj.fish_target",
+          "position": [
+            0,
+            0,
+            -36
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "arch.royal_balcony",
+          "position": [
+            -30,
+            0,
+            -30
+          ],
+          "rotation": [
+            0,
+            45,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "arch.royal_balcony",
+          "position": [
+            30,
+            0,
+            -30
+          ],
+          "rotation": [
+            0,
+            -45,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "obj.banner",
+          "position": [
+            -20,
+            0,
+            -16
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "obj.banner",
+          "position": [
+            20,
+            0,
+            -16
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "env.palace_garden",
+          "position": [
+            55,
+            0,
+            10
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "env.city_skyline",
+          "position": [
+            0,
+            0,
+            -150
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.2
+        }
+      ],
+      "default_lighting": {
+        "preset": "golden_hour",
+        "intensity": 1.1,
+        "color": "#ffd6a8"
+      },
+      "ambient_audio": {
+        "bed": "assembly_murmur",
+        "volume": 0.5
+      },
+      "chapters": [],
+      "paths_to": [
+        "varanavata",
+        "hastinapura",
+        "indraprastha",
+        "ganga",
+        "gurukul"
+      ]
+    },
+    {
+      "id": "indraprastha",
+      "name": "Indraprastha",
+      "sanskrit_name": "Indraprastha",
+      "kind": "city",
+      "description": "The Pandavas' own capital, built, as described in the epic, on the wild Khandavaprastha tract they receive as their half of the kingdom. It grows into a splendid city whose glory, and Yudhishthira's imperial Rajasuya, stir Duryodhana's envy.",
+      "traditional_identification": "traditionally identified with the Purana Qila area of Delhi",
+      "map": {
+        "x": 400,
+        "y": 300,
+        "region": "ganga_plain",
+        "icon": "palace"
+      },
+      "palette": {
+        "sky": "#e6eef5",
+        "fog": "#e9e3d4",
+        "ground": "#d8c7a0",
+        "accent": "#d4af37",
+        "light": "#fffbe8"
+      },
+      "theme": "royal",
+      "base_layout": [
+        {
+          "asset": "arch.indraprastha_palace",
+          "position": [
+            0,
+            0,
+            -48
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.1
+        },
+        {
+          "asset": "arch.royal_courtyard",
+          "position": [
+            0,
+            0,
+            -26
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "env.palace_garden",
+          "position": [
+            -45,
+            0,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "env.palace_garden",
+          "position": [
+            45,
+            0,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "env.lake",
+          "position": [
+            0,
+            0,
+            32
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 0.7
+        },
+        {
+          "asset": "arch.city_gate",
+          "position": [
+            0,
+            0,
+            75
+          ],
+          "rotation": [
+            0,
+            180,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "arch.city_walls",
+          "position": [
+            0,
+            0,
+            -120
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            3,
+            1,
+            1
+          ]
+        },
+        {
+          "asset": "env.city_skyline",
+          "position": [
+            0,
+            0,
+            -160
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.4
+        },
+        {
+          "asset": "env.forest",
+          "position": [
+            0,
+            0,
+            -230
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1,
+          "instances": 40,
+          "scatter_radius": 70
+        }
+      ],
+      "default_lighting": {
+        "preset": "day",
+        "intensity": 1.2,
+        "color": "#fffbe8"
+      },
+      "ambient_audio": {
+        "bed": "palace",
+        "volume": 0.5
+      },
+      "chapters": [],
+      "paths_to": [
+        "hastinapura",
+        "rajasuya_sabha",
+        "panchala",
+        "dwaraka"
+      ]
+    },
+    {
+      "id": "rajasuya_sabha",
+      "name": "The Maya Sabha",
+      "sanskrit_name": "Maya Sabhā",
+      "kind": "assembly",
+      "description": "The assembly hall built for the Pandavas by the asura architect Maya, as described in the epic a palace of illusions where crystal floors look like water and pools look like floors. Here Yudhishthira holds the Rajasuya, Krishna receives the first honour, Shishupala is slain, and Duryodhana is humiliated by its tricks.",
+      "traditional_identification": null,
+      "map": {
+        "x": 368,
+        "y": 330,
+        "region": "ganga_plain",
+        "icon": "assembly"
+      },
+      "palette": {
+        "sky": "#d6e4f2",
+        "fog": "#cfe0ea",
+        "ground": "#b9d3d8",
+        "accent": "#7fd1d9",
+        "light": "#f4fbff"
+      },
+      "theme": "royal",
+      "base_layout": [
+        {
+          "asset": "arch.maya_sabha",
+          "position": [
+            0,
+            0,
+            -40
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "arch.yajna_altar",
+          "position": [
+            0,
+            0,
+            -22
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "obj.throne",
+          "position": [
+            0,
+            0,
+            -46
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "arch.pillared_corridor",
+          "position": [
+            -28,
+            0,
+            -26
+          ],
+          "rotation": [
+            0,
+            90,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "arch.pillared_corridor",
+          "position": [
+            28,
+            0,
+            -26
+          ],
+          "rotation": [
+            0,
+            -90,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "obj.banner",
+          "position": [
+            -18,
+            0,
+            -15
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "obj.banner",
+          "position": [
+            18,
+            0,
+            -15
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "env.lake",
+          "position": [
+            -28,
+            0,
+            12
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 0.45
+        }
+      ],
+      "default_lighting": {
+        "preset": "celestial",
+        "intensity": 1.2,
+        "color": "#e8f6ff"
+      },
+      "ambient_audio": {
+        "bed": "assembly_murmur",
+        "volume": 0.5
+      },
+      "chapters": [],
+      "paths_to": [
+        "indraprastha",
+        "dyuta_sabha"
+      ]
+    },
+    {
+      "id": "dyuta_sabha",
+      "name": "The Dice Hall",
+      "sanskrit_name": "Dyūta Sabhā",
+      "kind": "assembly",
+      "description": "The assembly hall at Hastinapura where, as described in the epic, Yudhishthira plays dice against Shakuni and loses his kingdom, his brothers, himself and Draupadi. The questions Draupadi asks here about law and ownership are left hanging over the whole assembly of elders.",
+      "traditional_identification": null,
+      "map": {
+        "x": 458,
+        "y": 290,
+        "region": "ganga_plain",
+        "icon": "assembly"
+      },
+      "palette": {
+        "sky": "#2d1d1a",
+        "fog": "#4a2a22",
+        "ground": "#5b3a26",
+        "accent": "#b3261e",
+        "light": "#ffb35c"
+      },
+      "theme": "conflict",
+      "base_layout": [
+        {
+          "asset": "arch.dice_hall",
+          "position": [
+            0,
+            0,
+            -32
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "obj.throne",
+          "position": [
+            0,
+            0,
+            -44
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "arch.pillared_corridor",
+          "position": [
+            -26,
+            0,
+            -24
+          ],
+          "rotation": [
+            0,
+            90,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "arch.pillared_corridor",
+          "position": [
+            26,
+            0,
+            -24
+          ],
+          "rotation": [
+            0,
+            -90,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "obj.lamp",
+          "position": [
+            -16,
+            0,
+            -20
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "obj.lamp",
+          "position": [
+            16,
+            0,
+            -20
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "obj.lamp",
+          "position": [
+            -18,
+            0,
+            -38
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "obj.lamp",
+          "position": [
+            18,
+            0,
+            -38
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "obj.palace_door",
+          "position": [
+            0,
+            0,
+            22
+          ],
+          "rotation": [
+            0,
+            180,
+            0
+          ],
+          "scale": 1.0
+        }
+      ],
+      "default_lighting": {
+        "preset": "torchlit",
+        "intensity": 0.9,
+        "color": "#ffb35c"
+      },
+      "ambient_audio": {
+        "bed": "assembly_murmur",
+        "volume": 0.45
+      },
+      "chapters": [],
+      "paths_to": [
+        "hastinapura",
+        "rajasuya_sabha",
+        "kamyaka_forest"
+      ]
+    },
+    {
+      "id": "kamyaka_forest",
+      "name": "Kamyaka Forest",
+      "sanskrit_name": "Kāmyaka Vana",
+      "kind": "forest",
+      "description": "A forest of the exile years, as described in the epic, where the Pandavas and Draupadi live among sages and wild creatures. Bhima kills the rakshasa Kirmira on its threshold, and visitors from Krishna to wandering sages bring stories and counsel.",
+      "traditional_identification": "traditionally identified with a forest tract near the Sarasvati in the Kurukshetra region (Kamyaka tirtha at Kamoda, Haryana)",
+      "map": {
+        "x": 250,
+        "y": 262,
+        "region": "west",
+        "icon": "forest"
+      },
+      "palette": {
+        "sky": "#b9cfa9",
+        "fog": "#9fb88d",
+        "ground": "#3f5a2c",
+        "accent": "#8db04a",
+        "light": "#f3f0c0"
+      },
+      "theme": "wilderness",
+      "base_layout": [
+        {
+          "asset": "obj.sacred_tree",
+          "position": [
+            0,
+            0,
+            -34
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.6
+        },
+        {
+          "asset": "arch.hermitage",
+          "position": [
+            -30,
+            0,
+            -36
+          ],
+          "rotation": [
+            0,
+            20,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "env.river",
+          "position": [
+            0,
+            0,
+            -62
+          ],
+          "rotation": [
+            0,
+            90,
+            0
+          ],
+          "scale": 0.6
+        },
+        {
+          "asset": "env.forest",
+          "position": [
+            0,
+            0,
+            -110
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1,
+          "instances": 70,
+          "scatter_radius": 60
+        },
+        {
+          "asset": "env.forest",
+          "position": [
+            -70,
+            0,
+            15
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1,
+          "instances": 35,
+          "scatter_radius": 40
+        },
+        {
+          "asset": "env.forest",
+          "position": [
+            70,
+            0,
+            15
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1,
+          "instances": 35,
+          "scatter_radius": 40
+        },
+        {
+          "asset": "env.forest",
+          "position": [
+            0,
+            0,
+            95
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1,
+          "instances": 30,
+          "scatter_radius": 40
+        },
+        {
+          "asset": "env.mist",
+          "position": [
+            0,
+            0,
+            -50
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1,
+          "instances": 10,
+          "scatter_radius": 30
+        }
+      ],
+      "default_lighting": {
+        "preset": "overcast",
+        "intensity": 0.85,
+        "color": "#e8f0d0"
+      },
+      "ambient_audio": {
+        "bed": "forest",
+        "volume": 0.6
+      },
+      "chapters": [],
+      "paths_to": [
+        "dyuta_sabha",
+        "dwaita_forest",
+        "himalaya"
+      ]
+    },
+    {
+      "id": "dwaita_forest",
+      "name": "Dvaita Forest",
+      "sanskrit_name": "Dvaitavana",
+      "kind": "forest",
+      "description": "A forest with a lake where, as described in the epic, the Pandavas spend part of their exile. Near the end of the twelve years a yaksha guarding a pool strikes down four brothers and questions Yudhishthira on dharma before revealing himself as Dharma.",
+      "traditional_identification": "traditionally identified with a lake-forest in the Sarasvati region of Haryana; local identifications vary",
+      "map": {
+        "x": 228,
+        "y": 335,
+        "region": "west",
+        "icon": "forest"
+      },
+      "palette": {
+        "sky": "#c3d7cf",
+        "fog": "#a9c4bb",
+        "ground": "#4a5e3a",
+        "accent": "#3e8a86",
+        "light": "#e8f2e0"
+      },
+      "theme": "wilderness",
+      "base_layout": [
+        {
+          "asset": "env.lake",
+          "position": [
+            0,
+            0,
+            -36
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.4
+        },
+        {
+          "asset": "obj.sacred_tree",
+          "position": [
+            -24,
+            0,
+            -26
+          ],
+          "rotation": [
+            0,
+            10,
+            0
+          ],
+          "scale": 1.3
+        },
+        {
+          "asset": "arch.hermitage",
+          "position": [
+            32,
+            0,
+            -24
+          ],
+          "rotation": [
+            0,
+            -30,
+            0
+          ],
+          "scale": 0.9
+        },
+        {
+          "asset": "env.forest",
+          "position": [
+            0,
+            0,
+            -120
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1,
+          "instances": 50,
+          "scatter_radius": 55
+        },
+        {
+          "asset": "env.forest",
+          "position": [
+            -75,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1,
+          "instances": 30,
+          "scatter_radius": 40
+        },
+        {
+          "asset": "env.forest",
+          "position": [
+            75,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1,
+          "instances": 30,
+          "scatter_radius": 40
+        },
+        {
+          "asset": "env.mist",
+          "position": [
+            0,
+            0,
+            -40
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1,
+          "instances": 8,
+          "scatter_radius": 20
+        }
+      ],
+      "default_lighting": {
+        "preset": "dusk",
+        "intensity": 0.8,
+        "color": "#ffd2a0"
+      },
+      "ambient_audio": {
+        "bed": "forest",
+        "volume": 0.5
+      },
+      "chapters": [],
+      "paths_to": [
+        "kamyaka_forest",
+        "virata"
+      ]
+    },
+    {
+      "id": "virata",
+      "name": "Virata's Court (Matsya)",
+      "sanskrit_name": "Virāṭa / Matsya",
+      "kind": "kingdom",
+      "description": "The Matsya kingdom of King Virata, where, as described in the epic, the Pandavas and Draupadi spend the thirteenth year of exile in disguise as servants of the court. Kichaka's harassment of Draupadi and the Kaurava cattle raid test their secrecy to breaking point.",
+      "traditional_identification": "traditionally identified with Bairat (Viratnagar), Jaipur district, Rajasthan",
+      "map": {
+        "x": 300,
+        "y": 425,
+        "region": "south",
+        "icon": "palace"
+      },
+      "palette": {
+        "sky": "#f0e0b8",
+        "fog": "#e5d4ad",
+        "ground": "#b49a62",
+        "accent": "#b5562e",
+        "light": "#fff3d6"
+      },
+      "theme": "royal",
+      "base_layout": [
+        {
+          "asset": "arch.sabha_hall",
+          "position": [
+            0,
+            0,
+            -40
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "arch.royal_courtyard",
+          "position": [
+            0,
+            0,
+            -24
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 0.9
+        },
+        {
+          "asset": "env.palace_garden",
+          "position": [
+            40,
+            0,
+            -20
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 0.9
+        },
+        {
+          "asset": "obj.sacred_tree",
+          "position": [
+            -60,
+            0,
+            -60
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.1
+        },
+        {
+          "asset": "env.road",
+          "position": [
+            0,
+            0,
+            40
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "arch.city_gate",
+          "position": [
+            0,
+            0,
+            70
+          ],
+          "rotation": [
+            0,
+            180,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "arch.city_walls",
+          "position": [
+            0,
+            0,
+            -100
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            2.5,
+            1,
+            1
+          ]
+        },
+        {
+          "asset": "env.forest",
+          "position": [
+            -90,
+            0,
+            30
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1,
+          "instances": 20,
+          "scatter_radius": 30
+        }
+      ],
+      "default_lighting": {
+        "preset": "day",
+        "intensity": 1.05,
+        "color": "#fff3d6"
+      },
+      "ambient_audio": {
+        "bed": "palace",
+        "volume": 0.45
+      },
+      "chapters": [],
+      "paths_to": [
+        "dwaita_forest",
+        "upaplavya",
+        "hastinapura"
+      ]
+    },
+    {
+      "id": "upaplavya",
+      "name": "Upaplavya",
+      "sanskrit_name": "Upaplavya",
+      "kind": "city",
+      "description": "A town in the Matsya country where, as described in the epic, the Pandavas set up their base after the year in disguise. Envoys come and go from here, Krishna sets out on his peace mission, and allied armies gather before marching to Kurukshetra.",
+      "traditional_identification": null,
+      "map": {
+        "x": 345,
+        "y": 465,
+        "region": "south",
+        "icon": "city"
+      },
+      "palette": {
+        "sky": "#e3c49b",
+        "fog": "#d0ad85",
+        "ground": "#9a7a52",
+        "accent": "#c0603a",
+        "light": "#ffe0b0"
+      },
+      "theme": "conflict",
+      "base_layout": [
+        {
+          "asset": "arch.battle_camp",
+          "position": [
+            0,
+            0,
+            -40
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "arch.chariot_shelter",
+          "position": [
+            -30,
+            0,
+            -25
+          ],
+          "rotation": [
+            0,
+            30,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "obj.banner",
+          "position": [
+            -16,
+            0,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "obj.banner",
+          "position": [
+            16,
+            0,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "obj.chariot_generic",
+          "position": [
+            26,
+            0,
+            -22
+          ],
+          "rotation": [
+            0,
+            -40,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "obj.horse",
+          "position": [
+            32,
+            0,
+            -15
+          ],
+          "rotation": [
+            0,
+            -60,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "env.road",
+          "position": [
+            0,
+            0,
+            45
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "env.dust",
+          "position": [
+            0,
+            0,
+            -60
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1,
+          "instances": 6,
+          "scatter_radius": 30
+        },
+        {
+          "asset": "env.mountains",
+          "position": [
+            0,
+            0,
+            -240
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.5
+        }
+      ],
+      "default_lighting": {
+        "preset": "golden_hour",
+        "intensity": 1.0,
+        "color": "#ffd8a0"
+      },
+      "ambient_audio": {
+        "bed": "wind",
+        "volume": 0.45
+      },
+      "chapters": [],
+      "paths_to": [
+        "virata",
+        "hastinapura",
+        "dwaraka",
+        "kurukshetra"
+      ]
+    },
+    {
+      "id": "dwaraka",
+      "name": "Dwaraka",
+      "sanskrit_name": "Dvārakā",
+      "kind": "city",
+      "description": "Krishna's city of the Yadavas on the western sea, as described in the epic a fortified and gleaming capital. Duryodhana and Arjuna both come here to seek Krishna's help before the war, and after the Yadavas destroy one another the sea swallows the city.",
+      "traditional_identification": "traditionally identified with Dwarka on the Gujarat coast",
+      "map": {
+        "x": 80,
+        "y": 520,
+        "region": "west",
+        "icon": "city"
+      },
+      "palette": {
+        "sky": "#9fd0e6",
+        "fog": "#cfe7ef",
+        "ground": "#e6d6ae",
+        "accent": "#2f6fb0",
+        "light": "#fff8e6"
+      },
+      "theme": "divine",
+      "base_layout": [
+        {
+          "asset": "arch.dwaraka_city",
+          "position": [
+            0,
+            0,
+            -55
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.3
+        },
+        {
+          "asset": "arch.city_gate",
+          "position": [
+            0,
+            0,
+            -24
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "arch.city_walls",
+          "position": [
+            0,
+            0,
+            -90
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            3,
+            1,
+            1
+          ]
+        },
+        {
+          "asset": "env.palace_garden",
+          "position": [
+            40,
+            0,
+            -25
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "obj.banner",
+          "position": [
+            -18,
+            0,
+            -16
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "env.lake",
+          "position": [
+            -160,
+            0,
+            -40
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            6,
+            1,
+            6
+          ]
+        },
+        {
+          "asset": "env.clouds",
+          "position": [
+            0,
+            60,
+            -150
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1,
+          "instances": 8,
+          "scatter_radius": 80
+        }
+      ],
+      "default_lighting": {
+        "preset": "day",
+        "intensity": 1.15,
+        "color": "#fff8e6"
+      },
+      "ambient_audio": {
+        "bed": "wind",
+        "volume": 0.5
+      },
+      "chapters": [],
+      "paths_to": [
+        "indraprastha",
+        "upaplavya",
+        "himalaya"
+      ]
+    },
+    {
+      "id": "kurukshetra",
+      "name": "Kurukshetra",
+      "sanskrit_name": "Kurukṣetra",
+      "kind": "battlefield",
+      "description": "The plain the epic calls dharmakshetra, the field of dharma, where eighteen armies meet for an eighteen-day war. Here, as described in the epic, Krishna speaks the Bhagavad Gita to Arjuna between the two hosts, and here the last duels, the night raid and the lament of the women unfold.",
+      "traditional_identification": "traditionally identified with Kurukshetra, Haryana (with Jyotisar traditionally named as the place of the Gita)",
+      "map": {
+        "x": 345,
+        "y": 215,
+        "region": "north",
+        "icon": "battlefield"
+      },
+      "palette": {
+        "sky": "#e0b48a",
+        "fog": "#c99b72",
+        "ground": "#8c6a46",
+        "accent": "#c0392b",
+        "light": "#ffd3a0"
+      },
+      "theme": "conflict",
+      "base_layout": [
+        {
+          "asset": "arch.battle_camp",
+          "position": [
+            -62,
+            0,
+            -50
+          ],
+          "rotation": [
+            0,
+            30,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "arch.battle_camp",
+          "position": [
+            62,
+            0,
+            -50
+          ],
+          "rotation": [
+            0,
+            -30,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "env.battlefield_terrain",
+          "position": [
+            0,
+            0,
+            -60
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "env.army_formation",
+          "position": [
+            -55,
+            0,
+            -100
+          ],
+          "rotation": [
+            0,
+            20,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "env.army_formation",
+          "position": [
+            55,
+            0,
+            -100
+          ],
+          "rotation": [
+            0,
+            -20,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "obj.war_drum",
+          "position": [
+            -30,
+            0,
+            -20
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "obj.war_drum",
+          "position": [
+            30,
+            0,
+            -20
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "obj.banner",
+          "position": [
+            -22,
+            0,
+            -36
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "obj.banner",
+          "position": [
+            22,
+            0,
+            -36
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "env.dust",
+          "position": [
+            0,
+            0,
+            -55
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1,
+          "instances": 10,
+          "scatter_radius": 30
+        }
+      ],
+      "default_lighting": {
+        "preset": "dawn",
+        "intensity": 1.0,
+        "color": "#ffd3a0"
+      },
+      "ambient_audio": {
+        "bed": "battlefield_distant",
+        "volume": 0.5
+      },
+      "chapters": [],
+      "paths_to": [
+        "upaplavya",
+        "bhishma_battlefield",
+        "hastinapura",
+        "karna_battlefield"
+      ]
+    },
+    {
+      "id": "bhishma_battlefield",
+      "name": "Field of Bhishma's Fall",
+      "sanskrit_name": "Kurukṣetra (Bhīṣma Parva)",
+      "kind": "battlefield",
+      "description": "The part of Kurukshetra where, as described in the epic, Bhishma commands the Kaurava army for ten days and falls on the tenth, pierced by so many arrows that he lies on a bed of them. He remains here until the sun turns north, and after the war Yudhishthira comes to hear his long teachings.",
+      "traditional_identification": "traditionally identified with Bhishma Kund at Narkatari, near Kurukshetra",
+      "map": {
+        "x": 298,
+        "y": 188,
+        "region": "north",
+        "icon": "battlefield"
+      },
+      "palette": {
+        "sky": "#d98f5c",
+        "fog": "#b87a55",
+        "ground": "#7a5a3e",
+        "accent": "#f2efe6",
+        "light": "#ffc890"
+      },
+      "theme": "conflict",
+      "base_layout": [
+        {
+          "asset": "obj.banner",
+          "position": [
+            0,
+            0,
+            -36
+          ],
+          "rotation": [
+            0,
+            0,
+            -14
+          ],
+          "scale": 1.3
+        },
+        {
+          "asset": "env.battlefield_terrain",
+          "position": [
+            0,
+            0,
+            -60
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "obj.arrows",
+          "position": [
+            0,
+            0,
+            -45
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1,
+          "instances": 20,
+          "scatter_radius": 15
+        },
+        {
+          "asset": "obj.chariot_generic",
+          "position": [
+            -28,
+            0,
+            -26
+          ],
+          "rotation": [
+            0,
+            30,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "env.army_formation",
+          "position": [
+            -60,
+            0,
+            -90
+          ],
+          "rotation": [
+            0,
+            15,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "env.army_formation",
+          "position": [
+            60,
+            0,
+            -90
+          ],
+          "rotation": [
+            0,
+            -15,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "arch.battle_camp",
+          "position": [
+            0,
+            0,
+            -140
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "env.dust",
+          "position": [
+            0,
+            0,
+            -55
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1,
+          "instances": 8,
+          "scatter_radius": 30
+        }
+      ],
+      "default_lighting": {
+        "preset": "dusk",
+        "intensity": 0.9,
+        "color": "#ffb878"
+      },
+      "ambient_audio": {
+        "bed": "battlefield_near",
+        "volume": 0.45
+      },
+      "chapters": [],
+      "paths_to": [
+        "kurukshetra",
+        "drona_battlefield",
+        "hastinapura_postwar"
+      ]
+    },
+    {
+      "id": "drona_battlefield",
+      "name": "Field of Drona's Command",
+      "sanskrit_name": "Kurukṣetra (Droṇa Parva)",
+      "kind": "battlefield",
+      "description": "The part of Kurukshetra where, as described in the epic, Drona leads the Kauravas from the eleventh to the fifteenth day. It sees the chakravyuha that traps Abhimanyu, Arjuna's race to kill Jayadratha before sunset, a night battle in which Ghatotkacha falls, and Drona's own death.",
+      "traditional_identification": null,
+      "map": {
+        "x": 335,
+        "y": 168,
+        "region": "north",
+        "icon": "battlefield"
+      },
+      "palette": {
+        "sky": "#b9714f",
+        "fog": "#9c6046",
+        "ground": "#6e4c34",
+        "accent": "#d2691e",
+        "light": "#ffbf80"
+      },
+      "theme": "conflict",
+      "base_layout": [
+        {
+          "asset": "env.army_formation",
+          "position": [
+            0,
+            0,
+            -55
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.2
+        },
+        {
+          "asset": "env.battlefield_terrain",
+          "position": [
+            0,
+            0,
+            -60
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "obj.chariot_generic",
+          "position": [
+            -30,
+            0,
+            -28
+          ],
+          "rotation": [
+            0,
+            25,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "obj.war_drum",
+          "position": [
+            24,
+            0,
+            -22
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "obj.banner",
+          "position": [
+            -20,
+            0,
+            -40
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "obj.banner",
+          "position": [
+            22,
+            0,
+            -42
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "env.dust",
+          "position": [
+            0,
+            0,
+            -50
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1,
+          "instances": 10,
+          "scatter_radius": 28
+        },
+        {
+          "asset": "env.mist",
+          "position": [
+            0,
+            0,
+            -80
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1,
+          "instances": 8,
+          "scatter_radius": 40
+        }
+      ],
+      "default_lighting": {
+        "preset": "storm",
+        "intensity": 0.8,
+        "color": "#ffbf80"
+      },
+      "ambient_audio": {
+        "bed": "battlefield_near",
+        "volume": 0.5
+      },
+      "chapters": [],
+      "paths_to": [
+        "bhishma_battlefield",
+        "karna_battlefield"
+      ]
+    },
+    {
+      "id": "karna_battlefield",
+      "name": "Field of Karna's Last Stand",
+      "sanskrit_name": "Kurukṣetra (Karṇa Parva)",
+      "kind": "battlefield",
+      "description": "The part of Kurukshetra where, as described in the epic, Karna commands on the sixteenth and seventeenth days with Shalya as his charioteer. Here Bhima fulfils his vow against Dushasana, and Karna's chariot wheel sinks into the earth during his final duel with Arjuna.",
+      "traditional_identification": null,
+      "map": {
+        "x": 382,
+        "y": 180,
+        "region": "north",
+        "icon": "battlefield"
+      },
+      "palette": {
+        "sky": "#e8a04a",
+        "fog": "#c98544",
+        "ground": "#7e5634",
+        "accent": "#f0b429",
+        "light": "#ffcf70"
+      },
+      "theme": "conflict",
+      "base_layout": [
+        {
+          "asset": "obj.chariot_generic",
+          "position": [
+            0,
+            0,
+            -38
+          ],
+          "rotation": [
+            0,
+            15,
+            8
+          ],
+          "scale": 1.1
+        },
+        {
+          "asset": "env.battlefield_terrain",
+          "position": [
+            0,
+            0,
+            -60
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "obj.banner",
+          "position": [
+            -18,
+            0,
+            -28
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "obj.kapidhvaja_banner",
+          "position": [
+            26,
+            0,
+            -50
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "env.army_formation",
+          "position": [
+            -70,
+            0,
+            -100
+          ],
+          "rotation": [
+            0,
+            20,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "env.army_formation",
+          "position": [
+            70,
+            0,
+            -100
+          ],
+          "rotation": [
+            0,
+            -20,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "env.dust",
+          "position": [
+            0,
+            0,
+            -50
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1,
+          "instances": 10,
+          "scatter_radius": 28
+        }
+      ],
+      "default_lighting": {
+        "preset": "golden_hour",
+        "intensity": 1.1,
+        "color": "#ffcf70"
+      },
+      "ambient_audio": {
+        "bed": "battlefield_near",
+        "volume": 0.5
+      },
+      "chapters": [],
+      "paths_to": [
+        "drona_battlefield",
+        "kurukshetra",
+        "hastinapura_postwar"
+      ]
+    },
+    {
+      "id": "hastinapura_postwar",
+      "name": "Hastinapura After the War",
+      "sanskrit_name": "Hastināpura",
+      "kind": "city",
+      "description": "The Kuru capital after the war, as described in the epic a city of widows and mourning to which Yudhishthira returns, reluctantly, to be crowned. From here he performs the horse sacrifice, watches the elders leave for the forest, and finally sets out on the last journey.",
+      "traditional_identification": "traditionally identified with Hastinapur in Meerut district, Uttar Pradesh",
+      "map": {
+        "x": 518,
+        "y": 222,
+        "region": "ganga_plain",
+        "icon": "palace"
+      },
+      "palette": {
+        "sky": "#a9a39a",
+        "fog": "#9c958c",
+        "ground": "#7f776c",
+        "accent": "#8c7a5a",
+        "light": "#e8e0d0"
+      },
+      "theme": "aftermath",
+      "base_layout": [
+        {
+          "asset": "arch.hastinapura_palace",
+          "position": [
+            0,
+            0,
+            -45
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "arch.royal_courtyard",
+          "position": [
+            0,
+            0,
+            -26
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "arch.yajna_altar",
+          "position": [
+            26,
+            0,
+            -22
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "obj.lamp",
+          "position": [
+            -15,
+            0,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "obj.lamp",
+          "position": [
+            15,
+            0,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "obj.funeral_pyre",
+          "position": [
+            -60,
+            0,
+            -30
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1,
+          "instances": 5,
+          "scatter_radius": 10
+        },
+        {
+          "asset": "arch.city_walls",
+          "position": [
+            0,
+            0,
+            -110
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            3,
+            1,
+            1
+          ]
+        },
+        {
+          "asset": "env.mist",
+          "position": [
+            0,
+            0,
+            -60
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1,
+          "instances": 8,
+          "scatter_radius": 30
+        }
+      ],
+      "default_lighting": {
+        "preset": "overcast",
+        "intensity": 0.75,
+        "color": "#e8e0d0"
+      },
+      "ambient_audio": {
+        "bed": "silence",
+        "volume": 0.3
+      },
+      "chapters": [],
+      "paths_to": [
+        "karna_battlefield",
+        "bhishma_battlefield",
+        "ganga",
+        "dwaraka",
+        "himalaya"
+      ]
+    },
+    {
+      "id": "himalaya",
+      "name": "The Himalaya",
+      "sanskrit_name": "Himālaya / Himavat",
+      "kind": "mountain",
+      "description": "The northern mountains which, as described in the epic, frame the story's beginnings and its end: Pandu's retreat and the Pandavas' birth on Shatashringa, Arjuna's austerities and his encounter with Shiva as a hunter, and the final ascent on which Draupadi and four brothers fall and Yudhishthira walks on with a dog.",
+      "traditional_identification": "traditionally identified, for the final journey, with the Badrinath–Mana–Satopanth route in Uttarakhand; the epic's Himalaya is a broad sacred mountain realm rather than a single site",
+      "map": {
+        "x": 520,
+        "y": 70,
+        "region": "himalaya",
+        "icon": "mountain"
+      },
+      "palette": {
+        "sky": "#bcd4ec",
+        "fog": "#dfe9f4",
+        "ground": "#e9eef4",
+        "accent": "#6a8fc0",
+        "light": "#f4f8ff"
+      },
+      "theme": "divine",
+      "base_layout": [
+        {
+          "asset": "env.road",
+          "position": [
+            0,
+            0,
+            -50
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1.2
+          ]
+        },
+        {
+          "asset": "arch.hermitage",
+          "position": [
+            -38,
+            0,
+            -28
+          ],
+          "rotation": [
+            0,
+            25,
+            0
+          ],
+          "scale": 0.9
+        },
+        {
+          "asset": "env.snow",
+          "position": [
+            0,
+            0,
+            -45
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        {
+          "asset": "env.himalaya_peaks",
+          "position": [
+            0,
+            0,
+            -180
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 2.0
+        },
+        {
+          "asset": "env.mountains",
+          "position": [
+            -120,
+            0,
+            -80
+          ],
+          "rotation": [
+            0,
+            15,
+            0
+          ],
+          "scale": 1.2
+        },
+        {
+          "asset": "env.mountains",
+          "position": [
+            120,
+            0,
+            -80
+          ],
+          "rotation": [
+            0,
+            -15,
+            0
+          ],
+          "scale": 1.2
+        },
+        {
+          "asset": "env.clouds",
+          "position": [
+            0,
+            50,
+            -120
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1,
+          "instances": 10,
+          "scatter_radius": 70
+        },
+        {
+          "asset": "env.mist",
+          "position": [
+            0,
+            0,
+            -60
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": 1,
+          "instances": 10,
+          "scatter_radius": 30
+        }
+      ],
+      "default_lighting": {
+        "preset": "celestial",
+        "intensity": 1.1,
+        "color": "#f4f8ff"
+      },
+      "ambient_audio": {
+        "bed": "mountain_wind",
+        "volume": 0.55
+      },
+      "chapters": [],
+      "paths_to": [
+        "hastinapura_postwar",
+        "kamyaka_forest",
+        "ganga",
+        "dwaraka"
+      ]
+    }
+  ],
+  "characters": [
+    {
+      "id": "krishna",
+      "name": "Krishna",
+      "epithets": [
+        "Vasudeva",
+        "Keshava",
+        "Govinda",
+        "Madhava",
+        "Janardana",
+        "Partha-sarathi"
+      ],
+      "role": "Yadava prince of Dwaraka; cousin, friend and charioteer of Arjuna",
+      "faction": "divine",
+      "summary": "Prince of the Yadavas and cousin of the Pandavas through Kunti, who refuses to bear arms at Kurukshetra but drives Arjuna's chariot. The epic portrays him both as a shrewd statesman whose advice bends the rules of war and, above all in the Bhagavad Gita, as a manifestation of the divine; how these portraits fit together is a long-running question for readers.",
+      "first_chapter": "ch06",
+      "visual_identity": {
+        "primary": "#e9b824",
+        "secondary": "#2e6f5e",
+        "silhouette": "slender, poised figure in flowing yellow silk with a peacock feather rising from a jewelled crown, flute tucked at the sash, a spinning discus hovering by the right hand",
+        "attributes": [
+          "obj.sudarshana",
+          "obj.panchajanya",
+          "obj.krishna_chariot"
+        ],
+        "height": 1.85
+      },
+      "asset": "char.krishna"
+    },
+    {
+      "id": "arjuna",
+      "name": "Arjuna",
+      "epithets": [
+        "Partha",
+        "Dhananjaya",
+        "Savyasachi",
+        "Gudakesha",
+        "Kiriti",
+        "Bibhatsu",
+        "Shvetavahana"
+      ],
+      "role": "Third Pandava, peerless archer",
+      "faction": "pandava",
+      "summary": "Son of Kunti by Indra and the epic's great archer, Drona's favourite pupil and winner of Draupadi at her swayamvara. His despair before the battle prompts the Bhagavad Gita; he brings down Bhishma and kills Jayadratha and Karna, more than once by means the epic itself questions.",
+      "first_chapter": "ch04",
+      "visual_identity": {
+        "primary": "#f1ece0",
+        "secondary": "#1f4e8c",
+        "silhouette": "lean, long-armed archer in white with a deep-blue sash, diadem on the brow, the great Gandiva bow drawn or slung across the back",
+        "attributes": [
+          "obj.gandiva",
+          "obj.arrows",
+          "obj.kapidhvaja_banner"
+        ],
+        "height": 1.85
+      },
+      "asset": "char.arjuna"
+    },
+    {
+      "id": "bhima",
+      "name": "Bhima",
+      "epithets": [
+        "Bhimasena",
+        "Vrikodara"
+      ],
+      "role": "Second Pandava, warrior of immense strength",
+      "faction": "pandava",
+      "summary": "Son of Kunti by the wind god Vayu, famed for strength, appetite and fierce loyalty to Draupadi. He kills Hidimba, Baka, Kichaka, Jarasandha and Dushasana, and in the final mace duel breaks Duryodhana's thigh with a blow below the navel that the epic itself presents as controversial.",
+      "first_chapter": "ch04",
+      "visual_identity": {
+        "primary": "#7a2e1c",
+        "secondary": "#c48a2c",
+        "silhouette": "massive, broad-shouldered warrior in rust-red with an ochre waistband, heavy mace resting on one shoulder",
+        "attributes": [
+          "obj.mace"
+        ],
+        "height": 2.05
+      },
+      "asset": "char.bhima"
+    },
+    {
+      "id": "yudhishthira",
+      "name": "Yudhishthira",
+      "epithets": [
+        "Dharmaraja",
+        "Ajatashatru",
+        "Kaunteya"
+      ],
+      "role": "Eldest Pandava, king devoted to dharma",
+      "faction": "pandava",
+      "summary": "Son of Kunti by Dharma, known for truthfulness and patience, whose weakness for dice costs the Pandavas everything. His half-truth about Ashwatthama's death and his grief after the war make him one of the epic's most searching portraits of a just ruler in an unjust world.",
+      "first_chapter": "ch04",
+      "visual_identity": {
+        "primary": "#efe4c8",
+        "secondary": "#b8892f",
+        "silhouette": "upright, calm king in ivory robes with a gold sash and simple crown, carrying a plain spear rather than a bow",
+        "attributes": [
+          "obj.crown",
+          "obj.banner"
+        ],
+        "height": 1.8
+      },
+      "asset": "char.yudhishthira"
+    },
+    {
+      "id": "nakula",
+      "name": "Nakula",
+      "epithets": [
+        "Madreya",
+        "Pandava"
+      ],
+      "role": "Fourth Pandava, swordsman and master of horses",
+      "faction": "pandava",
+      "summary": "Son of Madri by the Ashvin twins, praised in the epic for his beauty and skill with swords and horses. In the year at Virata he serves as a horse-keeper, and it is Nakula whom Yudhishthira chooses to revive at the yaksha's lake, so that both mothers keep a living son.",
+      "first_chapter": "ch04",
+      "visual_identity": {
+        "primary": "#2f7f6f",
+        "secondary": "#d8c08a",
+        "silhouette": "graceful swordsman in teal with a sand-gold sash, sword and round shield, often shown beside a horse",
+        "attributes": [
+          "obj.shield",
+          "obj.horse"
+        ],
+        "height": 1.8
+      },
+      "asset": "char.nakula"
+    },
+    {
+      "id": "sahadeva",
+      "name": "Sahadeva",
+      "epithets": [
+        "Madreya"
+      ],
+      "role": "Youngest Pandava, wise counsellor and swordsman",
+      "faction": "pandava",
+      "summary": "Twin of Nakula, son of Madri by the Ashvins, described as learned and wise; later tradition makes him an astrologer. He kills Shakuni on the last day of the war, fulfilling his vow from the dice hall.",
+      "first_chapter": "ch04",
+      "visual_identity": {
+        "primary": "#3d5a8a",
+        "secondary": "#cfb27a",
+        "silhouette": "compact, thoughtful figure in indigo with a pale-gold sash, palm-leaf book in one hand and sword at the hip",
+        "attributes": [
+          "obj.palm_leaf",
+          "obj.shield"
+        ],
+        "height": 1.76
+      },
+      "asset": "char.sahadeva"
+    },
+    {
+      "id": "draupadi",
+      "name": "Draupadi",
+      "epithets": [
+        "Krishnaa",
+        "Panchali",
+        "Yajnaseni",
+        "Sairandhri"
+      ],
+      "role": "Princess of Panchala, wife of the five Pandavas",
+      "faction": "pandava",
+      "summary": "Born from Drupada's sacrificial fire and described as dark and radiant, she becomes the shared wife of the five Pandavas. Her question in the dice hall — whether a man who had lost himself could still stake her — and her demand for justice drive the story toward war.",
+      "first_chapter": "ch06",
+      "visual_identity": {
+        "primary": "#a3142e",
+        "secondary": "#d9a441",
+        "silhouette": "tall, dark-complexioned woman in a deep crimson sari with a gold border and a long dark braid, carrying a burnished vessel",
+        "attributes": [
+          "obj.water_vessel",
+          "obj.lamp"
+        ],
+        "height": 1.7
+      },
+      "asset": "char.draupadi"
+    },
+    {
+      "id": "bhishma",
+      "name": "Bhishma",
+      "epithets": [
+        "Devavrata",
+        "Gangeya",
+        "Pitamaha",
+        "Shantanava"
+      ],
+      "role": "Kuru elder, grand-uncle of the princes, first Kaurava commander",
+      "faction": "kaurava",
+      "summary": "Son of Shantanu and the goddess Ganga, who renounces the throne and marriage so his father can marry Satyavati, and can choose the hour of his death. Bound by his vow to the throne of Hastinapura, he commands the Kaurava army for ten days although he loves the Pandavas, and teaches Yudhishthira from his bed of arrows.",
+      "first_chapter": "ch02",
+      "visual_identity": {
+        "primary": "#f4f1ea",
+        "secondary": "#9a8f7a",
+        "silhouette": "very tall, white-haired and white-bearded warrior in white and silver-grey, bow and quiver, palm-tree banner behind him",
+        "attributes": [
+          "obj.arrows",
+          "obj.banner",
+          "obj.bed_of_arrows"
+        ],
+        "height": 1.95
+      },
+      "asset": "char.bhishma"
+    },
+    {
+      "id": "drona",
+      "name": "Drona",
+      "epithets": [
+        "Dronacharya",
+        "Bharadvaja's son",
+        "Acharya"
+      ],
+      "role": "Brahmin master of arms, teacher of the princes, second Kaurava commander",
+      "faction": "kaurava",
+      "summary": "A brahmin who masters weaponry and, humiliated by his old friend Drupada, becomes the teacher of the Kuru princes and demands Drupada's defeat as his fee. He commands the Kauravas after Bhishma and lays down his arms when told, through Yudhishthira's half-truth, that his son Ashwatthama is dead.",
+      "first_chapter": "ch04",
+      "visual_identity": {
+        "primary": "#d98a3d",
+        "secondary": "#5a3d2a",
+        "silhouette": "lean, grey-bearded brahmin warrior in ochre with a brown sash and sacred thread, bow in hand and a quiver of arrows",
+        "attributes": [
+          "obj.arrows",
+          "obj.palm_leaf"
+        ],
+        "height": 1.82
+      },
+      "asset": "char.drona"
+    },
+    {
+      "id": "karna",
+      "name": "Karna",
+      "epithets": [
+        "Radheya",
+        "Vasusena",
+        "Vaikartana",
+        "Angaraja",
+        "Suta-putra"
+      ],
+      "role": "King of Anga, Duryodhana's friend, Kunti's first-born son",
+      "faction": "kaurava",
+      "summary": "Son of Kunti by the sun god Surya, abandoned at birth and raised by a charioteer's family, he is scorned for his birth and raised to kingship by Duryodhana. Generous to a fault, he gives away his natural armour, keeps faith with Duryodhana even after learning his true parentage, and is killed by Arjuna while freeing his sunken chariot wheel.",
+      "first_chapter": "ch04",
+      "visual_identity": {
+        "primary": "#b8461f",
+        "secondary": "#e8b830",
+        "silhouette": "tall, gold-armoured archer in sunset red, gleaming earrings and a sun-disc emblem, a long spear held in reserve",
+        "attributes": [
+          "obj.divine_weapon",
+          "obj.arrows"
+        ],
+        "height": 1.9
+      },
+      "asset": "char.karna"
+    },
+    {
+      "id": "duryodhana",
+      "name": "Duryodhana",
+      "epithets": [
+        "Suyodhana",
+        "Kurupati",
+        "Gandhareya"
+      ],
+      "role": "Eldest Kaurava prince, rival of the Pandavas",
+      "faction": "kaurava",
+      "summary": "Eldest son of Dhritarashtra and Gandhari, who sees the Pandavas as usurpers of a throne he believes is his. The epic shows his envy, plotting and cruelty in the dice hall, but also his loyalty to Karna and his courage at the end; some regional traditions even honour him.",
+      "first_chapter": "ch04",
+      "visual_identity": {
+        "primary": "#5c1f3a",
+        "secondary": "#c9a14a",
+        "silhouette": "powerful, crowned prince in deep aubergine and gold with a heavy mace, serpent banner",
+        "attributes": [
+          "obj.mace",
+          "obj.crown"
+        ],
+        "height": 1.9
+      },
+      "asset": "char.duryodhana"
+    },
+    {
+      "id": "shakuni",
+      "name": "Shakuni",
+      "epithets": [
+        "Saubala",
+        "Gandhararaja"
+      ],
+      "role": "Prince of Gandhara, Gandhari's brother, master of dice",
+      "faction": "kaurava",
+      "summary": "Gandhari's brother and Duryodhana's maternal uncle, who plays dice on Duryodhana's behalf and wins everything from Yudhishthira. Popular retellings give him a revenge motive and magic dice made from his father's bones; these are not part of the Sanskrit epic. Sahadeva kills him on the eighteenth day.",
+      "first_chapter": "ch08",
+      "visual_identity": {
+        "primary": "#4a5a2a",
+        "secondary": "#8c6a3a",
+        "silhouette": "lean, sharp-featured man in olive and brown Gandhara-style wrap and cap, dice cupped in a closed hand",
+        "attributes": [
+          "obj.dice"
+        ],
+        "height": 1.72
+      },
+      "asset": "char.shakuni"
+    },
+    {
+      "id": "kunti",
+      "name": "Kunti",
+      "epithets": [
+        "Pritha",
+        "Kuntibhoja's daughter"
+      ],
+      "role": "Queen of Pandu, mother of Karna, Yudhishthira, Bhima and Arjuna",
+      "faction": "pandava",
+      "summary": "Sister of Krishna's father Vasudeva, adopted by King Kuntibhoja, who receives a mantra to summon gods and bears Karna before marriage. She raises the Pandavas, keeps Karna's secret until the eve of war, and finally follows Dhritarashtra and Gandhari into the forest.",
+      "first_chapter": "ch04",
+      "visual_identity": {
+        "primary": "#f0e6d2",
+        "secondary": "#8a6a3a",
+        "silhouette": "dignified matriarch in cream (later white) robes with a brown border, holding a small oil lamp",
+        "attributes": [
+          "obj.lamp"
+        ],
+        "height": 1.66
+      },
+      "asset": "char.kunti"
+    },
+    {
+      "id": "gandhari",
+      "name": "Gandhari",
+      "epithets": [
+        "Saubaleyi",
+        "Gandhara princess"
+      ],
+      "role": "Queen of Dhritarashtra, mother of the hundred Kauravas",
+      "faction": "kaurava",
+      "summary": "Princess of Gandhara who blindfolds herself for life on marrying the blind Dhritarashtra. She urges restraint on her son, mourns all the dead in the Stri Parva, and curses Krishna and his clan for not preventing the war.",
+      "first_chapter": "ch04",
+      "visual_identity": {
+        "primary": "#6d4a7a",
+        "secondary": "#d4b483",
+        "silhouette": "tall queen in plum and pale-gold with a cloth band over her eyes, hands folded",
+        "attributes": [],
+        "height": 1.68
+      },
+      "asset": "char.gandhari"
+    },
+    {
+      "id": "abhimanyu",
+      "name": "Abhimanyu",
+      "epithets": [
+        "Saubhadra",
+        "Arjuni"
+      ],
+      "role": "Son of Arjuna and Subhadra, young hero of the chakravyuha",
+      "faction": "pandava",
+      "summary": "Son of Arjuna and Krishna's sister Subhadra, married to Princess Uttara of Matsya and father of Parikshit. On the thirteenth day he breaks into Drona's circular formation, cannot get out, and is killed by several warriors together — a breach of the war's rules that the epic laments.",
+      "first_chapter": "ch07",
+      "visual_identity": {
+        "primary": "#e0a020",
+        "secondary": "#1f4e8c",
+        "silhouette": "youthful archer in bright saffron-gold with his father's deep-blue sash, small shield and quiver, often pictured with a chariot wheel in his last stand",
+        "attributes": [
+          "obj.arrows",
+          "obj.shield",
+          "obj.chariot_generic"
+        ],
+        "height": 1.72
+      },
+      "asset": "char.abhimanyu"
+    },
+    {
+      "id": "vidura",
+      "name": "Vidura",
+      "epithets": [
+        "Kshatta",
+        "Dharma's incarnation"
+      ],
+      "role": "Counsellor of Hastinapura, half-brother of Dhritarashtra and Pandu",
+      "faction": "neutral",
+      "summary": "Son of Vyasa by a servant woman, barred from kingship by birth but renowned for wisdom and plain speaking. He warns the Pandavas of the lac house, protests the dice game, and in the Ashramavasika Parva passes his life-breath into Yudhishthira; both are linked with Dharma.",
+      "first_chapter": "ch02",
+      "visual_identity": {
+        "primary": "#e9e2cf",
+        "secondary": "#6a7a5a",
+        "silhouette": "spare, upright counsellor in undyed robes with a sage-green sash, palm-leaf in hand",
+        "attributes": [
+          "obj.palm_leaf"
+        ],
+        "height": 1.75
+      },
+      "asset": "char.vidura"
+    },
+    {
+      "id": "dhritarashtra",
+      "name": "Dhritarashtra",
+      "epithets": [
+        "Kurupati",
+        "Ambikeya",
+        "Prajnachakshu"
+      ],
+      "role": "Blind king of Hastinapura, father of the Kauravas",
+      "faction": "kaurava",
+      "summary": "Elder son of Vyasa by Ambika, born blind and therefore first passed over for the throne in favour of Pandu. Torn between love for his son Duryodhana and his duty to his nephews, he repeatedly fails to restrain the drift to war, hearing it all described by Sanjaya.",
+      "first_chapter": "ch02",
+      "visual_identity": {
+        "primary": "#7a2b2b",
+        "secondary": "#c9a14a",
+        "silhouette": "large, heavy-set king in deep red and gold, eyes closed, seated upon a throne",
+        "attributes": [
+          "obj.throne",
+          "obj.crown"
+        ],
+        "height": 1.92
+      },
+      "asset": "char.dhritarashtra"
+    },
+    {
+      "id": "pandu",
+      "name": "Pandu",
+      "epithets": [
+        "Pandu the Pale",
+        "Ambalikeya"
+      ],
+      "role": "King of Hastinapura, legal father of the Pandavas",
+      "faction": "pandava",
+      "summary": "Younger son of Vyasa by Ambalika, born pale, who rules ably until a dying sage's curse forbids him to approach his wives. He renounces the throne for the mountains, where his sons are born by divine fathers, and dies when he embraces Madri.",
+      "first_chapter": "ch02",
+      "visual_identity": {
+        "primary": "#f2ead8",
+        "secondary": "#8aa0b8",
+        "silhouette": "tall, pale-complexioned king in cream with a grey-blue sash, bow and hunter's quiver",
+        "attributes": [
+          "obj.arrows"
+        ],
+        "height": 1.84
+      },
+      "asset": "char.pandu"
+    },
+    {
+      "id": "madri",
+      "name": "Madri",
+      "epithets": [
+        "Madri of Madra",
+        "Madreyi"
+      ],
+      "role": "Second queen of Pandu, mother of Nakula and Sahadeva",
+      "faction": "pandava",
+      "summary": "Princess of Madra and sister of Shalya, who bears the twins through Kunti's mantra. Blaming herself for Pandu's death, she follows him in death on the funeral pyre, leaving her sons to Kunti.",
+      "first_chapter": "ch04",
+      "visual_identity": {
+        "primary": "#2f6a8a",
+        "secondary": "#d8b47a",
+        "silhouette": "slender queen in lake-blue with a sand-gold sash, flower garland in her hair",
+        "attributes": [],
+        "height": 1.66
+      },
+      "asset": "char.madri"
+    },
+    {
+      "id": "shantanu",
+      "name": "Shantanu",
+      "epithets": [
+        "Kuru king",
+        "Pratipa's son"
+      ],
+      "role": "King of Hastinapura, father of Bhishma",
+      "faction": "neutral",
+      "summary": "Kuru king who marries the goddess Ganga, loses her when he questions her, and later longs to marry the fisher chief's daughter Satyavati. His desire sets in motion Bhishma's vow, and through it the succession crisis behind the whole epic.",
+      "first_chapter": "ch02",
+      "visual_identity": {
+        "primary": "#8a1f2a",
+        "secondary": "#d4af37",
+        "silhouette": "regal, bearded king in crimson and gold with a tall crown",
+        "attributes": [
+          "obj.crown"
+        ],
+        "height": 1.86
+      },
+      "asset": "char.shantanu"
+    },
+    {
+      "id": "ganga_devi",
+      "name": "Ganga",
+      "epithets": [
+        "Jahnavi",
+        "Bhagirathi",
+        "the river goddess"
+      ],
+      "role": "River goddess, mother of Bhishma",
+      "faction": "divine",
+      "summary": "The goddess of the river, who marries Shantanu on condition that he never question her and drowns seven newborn sons — the cursed Vasus — to release them. She leaves when Shantanu stops her at the eighth, later returning the grown Devavrata.",
+      "first_chapter": "ch03",
+      "visual_identity": {
+        "primary": "#e8f2f4",
+        "secondary": "#3f8fa8",
+        "silhouette": "luminous, tall goddess in silver-white with flowing river-blue sash and hair like moving water, holding a water vessel",
+        "attributes": [
+          "obj.water_vessel"
+        ],
+        "height": 1.85
+      },
+      "asset": "char.ganga_devi"
+    },
+    {
+      "id": "satyavati",
+      "name": "Satyavati",
+      "epithets": [
+        "Matsyagandha",
+        "Yojanagandha",
+        "Kali",
+        "Dasheyi"
+      ],
+      "role": "Queen of Shantanu, mother of Vyasa, matriarch of the Kurus",
+      "faction": "neutral",
+      "summary": "A fisher chief's daughter who ferried travellers on the Yamuna and bore the sage Vyasa to Parashara before her marriage. As Shantanu's queen she secures the throne for her sons, and when they die without heirs she calls on Vyasa to father the next generation.",
+      "first_chapter": "ch02",
+      "visual_identity": {
+        "primary": "#2a6f74",
+        "secondary": "#e0c27a",
+        "silhouette": "dark-complexioned, composed woman in deep teal with a gold sash, a ferrywoman's oar-staff turned queen's sceptre",
+        "attributes": [],
+        "height": 1.66
+      },
+      "asset": "char.satyavati"
+    },
+    {
+      "id": "vyasa",
+      "name": "Vyasa",
+      "epithets": [
+        "Krishna Dvaipayana",
+        "Veda Vyasa",
+        "Badarayana"
+      ],
+      "role": "Sage, traditional composer of the epic and grandfather of the Kuru princes",
+      "faction": "narrator",
+      "summary": "Son of Satyavati and the sage Parashara, born on an island and dark-complexioned, credited by tradition with composing the Mahabharata and arranging the Vedas. He also acts within the story, fathering Dhritarashtra, Pandu and Vidura and appearing at key moments; the popular account of Ganesha writing the epic at his dictation is absent from the Critical Edition.",
+      "first_chapter": "ch01",
+      "visual_identity": {
+        "primary": "#c9a06a",
+        "secondary": "#7a5a3a",
+        "silhouette": "dark-complexioned sage with matted hair and a long white beard, in bark-ochre robes, seated with a bound palm-leaf manuscript",
+        "attributes": [
+          "obj.manuscript",
+          "obj.palm_leaf"
+        ],
+        "height": 1.8
+      },
+      "asset": "char.vyasa"
+    },
+    {
+      "id": "vaishampayana",
+      "name": "Vaishampayana",
+      "epithets": [
+        "Vyasa's disciple"
+      ],
+      "role": "Sage, pupil of Vyasa, who recites the epic to Janamejaya",
+      "faction": "narrator",
+      "summary": "A disciple of Vyasa who, at Vyasa's bidding, recites the story of the Bharatas to King Janamejaya during his snake sacrifice. Most of the epic is framed as his narration, overheard and later retold by Ugrashravas.",
+      "first_chapter": "ch01",
+      "visual_identity": {
+        "primary": "#e2c08a",
+        "secondary": "#a0522d",
+        "silhouette": "slight, attentive sage in saffron-tan with a russet sash, a single palm leaf in hand, seated as if mid-recitation",
+        "attributes": [
+          "obj.palm_leaf"
+        ],
+        "height": 1.74
+      },
+      "asset": "char.vaishampayana"
+    },
+    {
+      "id": "ugrashravas",
+      "name": "Ugrashravas",
+      "epithets": [
+        "Sauti",
+        "Lomaharshana's son"
+      ],
+      "role": "Bard (suta) who retells the epic to the sages of the Naimisha forest",
+      "faction": "narrator",
+      "summary": "Son of the bard Lomaharshana, who heard Vaishampayana's recitation at Janamejaya's sacrifice. Arriving at Shaunaka's long sacrifice in the Naimisha forest, he retells it, forming the epic's outermost frame.",
+      "first_chapter": "ch01",
+      "visual_identity": {
+        "primary": "#d9b98a",
+        "secondary": "#5a6e8a",
+        "silhouette": "travelling bard in sand-coloured robes with a slate-blue shawl, one hand raised as he tells the story",
+        "attributes": [],
+        "height": 1.74
+      },
+      "asset": "char.ugrashravas"
+    },
+    {
+      "id": "janamejaya",
+      "name": "Janamejaya",
+      "epithets": [
+        "Parikshit's son",
+        "Bharata king"
+      ],
+      "role": "King of the Kurus, great-grandson of Arjuna, listener of the epic",
+      "faction": "narrator",
+      "summary": "Son of Parikshit, who holds a great snake sacrifice to avenge his father's death by the serpent Takshaka. At its pauses he asks Vaishampayana to tell the story of his ancestors, and his questions shape the telling.",
+      "first_chapter": "ch01",
+      "visual_identity": {
+        "primary": "#3a2f6a",
+        "secondary": "#d4af37",
+        "silhouette": "young crowned king in indigo-violet and gold, seated on a low throne, leaning forward to listen",
+        "attributes": [
+          "obj.crown"
+        ],
+        "height": 1.82
+      },
+      "asset": "char.janamejaya"
+    },
+    {
+      "id": "ashwatthama",
+      "name": "Ashwatthama",
+      "epithets": [
+        "Drauni",
+        "Droni"
+      ],
+      "role": "Son of Drona, Kaurava warrior, leader of the night raid",
+      "faction": "kaurava",
+      "summary": "Drona's only son, born with a gem on his forehead, who fights for the Kauravas and is made their last commander by the dying Duryodhana. His night massacre of the sleeping Pandava camp and his weapon aimed at the unborn Parikshit lead to Krishna's curse that he wander for three thousand years.",
+      "first_chapter": "ch04",
+      "visual_identity": {
+        "primary": "#7a6a3a",
+        "secondary": "#d4762b",
+        "silhouette": "tall, intense warrior in khaki-bronze with a saffron sash, a glowing gem on the forehead, a radiant weapon in hand",
+        "attributes": [
+          "obj.divine_weapon",
+          "obj.arrows"
+        ],
+        "height": 1.86
+      },
+      "asset": "char.ashwatthama"
+    },
+    {
+      "id": "kripa",
+      "name": "Kripa",
+      "epithets": [
+        "Kripacharya",
+        "Gautama",
+        "Sharadvata"
+      ],
+      "role": "First teacher of the Kuru princes, Kaurava warrior",
+      "faction": "kaurava",
+      "summary": "Born with his sister Kripi (later Drona's wife) and raised by Shantanu, he is the princes' first teacher of arms. He fights for the Kauravas, joins Ashwatthama on the night raid, survives the war, and later teaches Parikshit.",
+      "first_chapter": "ch04",
+      "visual_identity": {
+        "primary": "#b07a3a",
+        "secondary": "#e9e2cf",
+        "silhouette": "grey-bearded teacher-warrior in tawny brown with an off-white sash, bow and quiver",
+        "attributes": [
+          "obj.arrows"
+        ],
+        "height": 1.8
+      },
+      "asset": "char.kripa"
+    },
+    {
+      "id": "drupada",
+      "name": "Drupada",
+      "epithets": [
+        "Yajnasena",
+        "Panchalaraja"
+      ],
+      "role": "King of Panchala, father of Draupadi, Dhrishtadyumna and Shikhandi",
+      "faction": "pandava",
+      "summary": "Drona's boyhood friend who later spurns him and is captured by Drona's pupils as their teacher's fee. He performs a sacrifice for a son to kill Drona and receives Dhrishtadyumna and Draupadi from the fire, and dies at Drona's hands on the fifteenth day.",
+      "first_chapter": "ch03b",
+      "visual_identity": {
+        "primary": "#b8325a",
+        "secondary": "#d4af37",
+        "silhouette": "proud, crowned king in Panchala rose-crimson and gold",
+        "attributes": [
+          "obj.crown"
+        ],
+        "height": 1.84
+      },
+      "asset": "char.drupada"
+    },
+    {
+      "id": "dhrishtadyumna",
+      "name": "Dhrishtadyumna",
+      "epithets": [
+        "Parshata",
+        "Draupada"
+      ],
+      "role": "Prince of Panchala, born from fire, commander of the Pandava army",
+      "faction": "pandava",
+      "summary": "Born armoured from Drupada's sacrificial fire, destined to kill Drona; Draupadi rises from the same sacrifice as his sister. He commands the Pandava forces throughout the war, kills the disarmed Drona, and is killed in his sleep by Ashwatthama.",
+      "first_chapter": "ch06",
+      "visual_identity": {
+        "primary": "#c0392b",
+        "secondary": "#f0a030",
+        "silhouette": "tall, fiery commander in flame-red and orange with sword and shield, armour glinting",
+        "attributes": [
+          "obj.shield"
+        ],
+        "height": 1.88
+      },
+      "asset": "char.dhrishtadyumna"
+    },
+    {
+      "id": "shikhandi",
+      "name": "Shikhandi",
+      "epithets": [
+        "Shikhandin",
+        "Drupada's child"
+      ],
+      "role": "Warrior of Panchala, Amba reborn, cause of Bhishma's fall",
+      "faction": "pandava",
+      "summary": "Born to Drupada as a daughter and later living as a man after an exchange of sex with a yaksha, according to the Udyoga Parva; identified as Amba reborn. Bhishma refuses to fight Shikhandi, and Arjuna shoots from behind him; how the epic frames Shikhandi's gender is much discussed today.",
+      "first_chapter": "ch03b",
+      "visual_identity": {
+        "primary": "#8a3a6a",
+        "secondary": "#e0c27a",
+        "silhouette": "lithe archer in plum-magenta with a soft-gold sash, bow drawn",
+        "attributes": [
+          "obj.arrows"
+        ],
+        "height": 1.8
+      },
+      "asset": "char.shikhandi"
+    },
+    {
+      "id": "amba",
+      "name": "Amba",
+      "epithets": [
+        "Kashi princess"
+      ],
+      "role": "Princess of Kashi abducted by Bhishma, reborn to destroy him",
+      "faction": "neutral",
+      "summary": "Eldest of the three Kashi princesses taken by Bhishma for Vichitravirya; released to go to King Shalva, she is rejected by him and cannot return. Blaming Bhishma, she performs austerities, enters fire, and is reborn as Shikhandi, as told in the Udyoga Parva.",
+      "first_chapter": "ch03b",
+      "visual_identity": {
+        "primary": "#e4d6b8",
+        "secondary": "#8a2a2a",
+        "silhouette": "slender ascetic princess in pale undyed cloth with a dark-red border, carrying a garland of unfading lotuses",
+        "attributes": [],
+        "height": 1.68
+      },
+      "asset": "char.amba"
+    },
+    {
+      "id": "virata_king",
+      "name": "Virata",
+      "epithets": [
+        "Matsyaraja"
+      ],
+      "role": "King of Matsya, host of the Pandavas in their year of disguise",
+      "faction": "pandava",
+      "summary": "Ruler of the Matsya kingdom, at whose court the Pandavas and Draupadi live unrecognised for the thirteenth year. After the disguise ends he becomes a firm ally, gives his daughter Uttara to Abhimanyu, and dies fighting Drona on the fifteenth day.",
+      "first_chapter": "ch11",
+      "visual_identity": {
+        "primary": "#2a5a7a",
+        "secondary": "#c9a14a",
+        "silhouette": "genial, stout king in river-blue and gold, crown with a small fish emblem, seated",
+        "attributes": [
+          "obj.crown"
+        ],
+        "height": 1.8
+      },
+      "asset": "char.virata_king"
+    },
+    {
+      "id": "uttara",
+      "name": "Uttara (Prince)",
+      "epithets": [
+        "Bhuminjaya"
+      ],
+      "role": "Prince of Matsya, son of Virata",
+      "faction": "pandava",
+      "summary": "Virata's son, who boasts he will beat the Kaurava raiders but panics at the sight of their army. With the disguised Arjuna he swaps roles and becomes Arjuna's charioteer; he is killed by Shalya on the first day of the war.",
+      "first_chapter": "ch11",
+      "visual_identity": {
+        "primary": "#e6c35a",
+        "secondary": "#2a5a7a",
+        "silhouette": "youthful prince in honey-yellow with a river-blue sash, reins in hand",
+        "attributes": [],
+        "height": 1.74
+      },
+      "asset": "char.uttara"
+    },
+    {
+      "id": "uttara_kumari",
+      "name": "Uttara (Princess)",
+      "epithets": [
+        "Vairati"
+      ],
+      "role": "Princess of Matsya, wife of Abhimanyu, mother of Parikshit",
+      "faction": "pandava",
+      "summary": "Virata's daughter, taught dance by Arjuna in his disguise as Brihannala, and married to Abhimanyu after the Pandavas reveal themselves. Widowed at Kurukshetra while pregnant, she bears Parikshit, whom Krishna revives after Ashwatthama's weapon strikes the womb.",
+      "first_chapter": "ch11",
+      "visual_identity": {
+        "primary": "#e08aa8",
+        "secondary": "#2a5a7a",
+        "silhouette": "graceful young woman in rose-pink with a river-blue sash and dancer's ankle bells",
+        "attributes": [],
+        "height": 1.62
+      },
+      "asset": "char.uttara_kumari"
+    },
+    {
+      "id": "shalya",
+      "name": "Shalya",
+      "epithets": [
+        "Madraraja",
+        "Artayani"
+      ],
+      "role": "King of Madra, maternal uncle of Nakula and Sahadeva, Karna's charioteer",
+      "faction": "kaurava",
+      "summary": "Madri's brother, who sets out to join the Pandavas but is won over by Duryodhana's hospitality and fights for the Kauravas. He promises Yudhishthira to undermine Karna's morale as his charioteer, commands on the eighteenth day, and is killed by Yudhishthira.",
+      "first_chapter": "ch13",
+      "visual_identity": {
+        "primary": "#3a6a4a",
+        "secondary": "#c9a14a",
+        "silhouette": "broad, crowned elder king in forest green and gold, reins and spear, a round shield on the arm",
+        "attributes": [
+          "obj.shield",
+          "obj.divine_weapon"
+        ],
+        "height": 1.86
+      },
+      "asset": "char.shalya"
+    },
+    {
+      "id": "sanjaya",
+      "name": "Sanjaya",
+      "epithets": [
+        "Gavalgani"
+      ],
+      "role": "Charioteer and minister of Dhritarashtra, narrator of the war",
+      "faction": "narrator",
+      "summary": "Dhritarashtra's charioteer and counsellor, granted divine sight by Vyasa so he can describe the war to the blind king, including the Bhagavad Gita. He also serves as an envoy to the Pandavas and later accompanies the elders into the forest.",
+      "first_chapter": "ch12",
+      "visual_identity": {
+        "primary": "#d8cdb0",
+        "secondary": "#4a6a8a",
+        "silhouette": "composed courtier in pale linen with a slate-blue sash, a faint luminous mark of divine sight at the brow",
+        "attributes": [],
+        "height": 1.74
+      },
+      "asset": "char.sanjaya"
+    },
+    {
+      "id": "ekalavya",
+      "name": "Ekalavya",
+      "epithets": [
+        "Nishada prince",
+        "Hiranyadhanus's son"
+      ],
+      "role": "Nishada prince and self-taught archer",
+      "faction": "neutral",
+      "summary": "Son of a Nishada chief, turned away by Drona, who trains himself in front of a clay image of the teacher until he outshines Arjuna. Drona demands his right thumb as fee and he gives it; the episode is read variously as devotion, exclusion or both.",
+      "first_chapter": "ch04",
+      "visual_identity": {
+        "primary": "#5a4a2a",
+        "secondary": "#3f6b2f",
+        "silhouette": "lean forest archer in earth-brown with a leaf-green sash, a simple bow and quiver, kneeling before a clay image",
+        "attributes": [
+          "obj.arrows"
+        ],
+        "height": 1.74
+      },
+      "asset": "char.ekalavya"
+    },
+    {
+      "id": "jayadratha",
+      "name": "Jayadratha",
+      "epithets": [
+        "Saindhava",
+        "King of Sindhu"
+      ],
+      "role": "King of Sindhu, husband of the Kaurava princess Duhshala",
+      "faction": "kaurava",
+      "summary": "Married to Duryodhana's sister Duhshala, he tries to abduct Draupadi during the exile and is humiliated but spared. With a boon from Shiva he holds back the Pandavas while Abhimanyu is trapped, and Arjuna kills him the next day before sunset.",
+      "first_chapter": "ch10",
+      "visual_identity": {
+        "primary": "#5a2a5a",
+        "secondary": "#b8892f",
+        "silhouette": "haughty, crowned king in dark violet and gold with a round shield",
+        "attributes": [
+          "obj.shield"
+        ],
+        "height": 1.82
+      },
+      "asset": "char.jayadratha"
+    },
+    {
+      "id": "dushasana",
+      "name": "Dushasana",
+      "epithets": [
+        "Duhshasana"
+      ],
+      "role": "Second Kaurava prince, Duryodhana's brother",
+      "faction": "kaurava",
+      "summary": "Duryodhana's devoted younger brother, who drags Draupadi into the dice hall by her hair and tries to strip her. Bhima vows revenge and kills him in the war, fulfilling the vow made in the hall.",
+      "first_chapter": "ch04",
+      "visual_identity": {
+        "primary": "#4a1e2a",
+        "secondary": "#a07a3a",
+        "silhouette": "burly prince in dark maroon with a bronze sash, round shield",
+        "attributes": [
+          "obj.shield"
+        ],
+        "height": 1.88
+      },
+      "asset": "char.dushasana"
+    },
+    {
+      "id": "ghatotkacha",
+      "name": "Ghatotkacha",
+      "epithets": [
+        "Haidimba",
+        "Bhaimaseni"
+      ],
+      "role": "Rakshasa son of Bhima and Hidimbi",
+      "faction": "pandava",
+      "summary": "Son of Bhima and the rakshasi Hidimbi, a master of illusion and flight who comes when his father needs him. In the night battle of the fourteenth day he devastates the Kaurava army until Karna spends his single-use divine spear to kill him.",
+      "first_chapter": "ch05b",
+      "visual_identity": {
+        "primary": "#3a3a5a",
+        "secondary": "#b8461f",
+        "silhouette": "towering, bald-headed warrior in slate and burnt-orange, larger than the human figures, with a great mace",
+        "attributes": [
+          "obj.mace"
+        ],
+        "height": 2.1
+      },
+      "asset": "char.ghatotkacha"
+    },
+    {
+      "id": "balarama",
+      "name": "Balarama",
+      "epithets": [
+        "Baladeva",
+        "Halayudha",
+        "Sankarshana",
+        "Rohineya"
+      ],
+      "role": "Elder brother of Krishna, master of the mace",
+      "faction": "neutral",
+      "summary": "Krishna's elder brother, teacher of both Bhima and Duryodhana in mace-fighting, who refuses to take sides and goes on pilgrimage during the war. He returns for the final duel and is enraged by Bhima's foul blow; he leaves the world in yoga after the Yadava destruction.",
+      "first_chapter": "ch06",
+      "visual_identity": {
+        "primary": "#2a3f7a",
+        "secondary": "#e9e2cf",
+        "silhouette": "fair-complexioned, powerful elder in deep blue with a white sash, plough-share over one shoulder and a mace",
+        "attributes": [
+          "obj.mace"
+        ],
+        "height": 1.95
+      },
+      "asset": "char.balarama"
+    },
+    {
+      "id": "subhadra",
+      "name": "Subhadra",
+      "epithets": [
+        "Bhadra",
+        "Yadavi"
+      ],
+      "role": "Sister of Krishna and Balarama, wife of Arjuna, mother of Abhimanyu",
+      "faction": "pandava",
+      "summary": "Krishna's sister, who marries Arjuna after he carries her off with Krishna's encouragement during his years of wandering. Mother of Abhimanyu; she outlives the war and grieves her son.",
+      "first_chapter": "ch07",
+      "visual_identity": {
+        "primary": "#e6a23c",
+        "secondary": "#2e6f5e",
+        "silhouette": "gentle young woman in saffron-gold with a peacock-teal sash, holding a lamp",
+        "attributes": [
+          "obj.lamp"
+        ],
+        "height": 1.64
+      },
+      "asset": "char.subhadra"
+    },
+    {
+      "id": "vikarna",
+      "name": "Vikarna",
+      "epithets": [
+        "Kaurava prince"
+      ],
+      "role": "Kaurava prince who defends Draupadi in the dice hall",
+      "faction": "kaurava",
+      "summary": "One of Dhritarashtra's hundred sons and the only one to say openly that Draupadi was not lawfully won. He still fights for his brothers and is killed by Bhima, who mourns him.",
+      "first_chapter": "ch09",
+      "visual_identity": {
+        "primary": "#6a4a2a",
+        "secondary": "#d8c08a",
+        "silhouette": "earnest young prince in walnut brown with a pale-gold sash and round shield",
+        "attributes": [
+          "obj.shield"
+        ],
+        "height": 1.8
+      },
+      "asset": "char.vikarna"
+    },
+    {
+      "id": "yuyutsu",
+      "name": "Yuyutsu",
+      "epithets": [
+        "Vaishyaputra",
+        "Dhritarashtri"
+      ],
+      "role": "Son of Dhritarashtra by a maidservant, who changes sides",
+      "faction": "pandava",
+      "summary": "Born to Dhritarashtra and a vaishya maidservant, he crosses to the Pandava side when Yudhishthira invites defectors before the battle. He survives the war and is entrusted with responsibility in the kingdom when the Pandavas depart.",
+      "first_chapter": "ch13",
+      "visual_identity": {
+        "primary": "#4a6a6a",
+        "secondary": "#d0b070",
+        "silhouette": "measured, quiet warrior in grey-teal with a muted gold sash and round shield",
+        "attributes": [
+          "obj.shield"
+        ],
+        "height": 1.82
+      },
+      "asset": "char.yuyutsu"
+    },
+    {
+      "id": "kichaka",
+      "name": "Kichaka",
+      "epithets": [
+        "Senapati of Matsya"
+      ],
+      "role": "Commander of Virata's army, brother of Queen Sudeshna",
+      "faction": "neutral",
+      "summary": "The powerful commander of Matsya and brother of Virata's queen, who harasses the disguised Draupadi. Bhima, lying in wait in the dance hall at night, kills him.",
+      "first_chapter": "ch11",
+      "visual_identity": {
+        "primary": "#8a3a1a",
+        "secondary": "#d4af37",
+        "silhouette": "hulking, swaggering commander in rust and gold with heavy jewellery",
+        "attributes": [],
+        "height": 1.98
+      },
+      "asset": "char.kichaka"
+    },
+    {
+      "id": "parikshit",
+      "name": "Parikshit",
+      "epithets": [
+        "Vishnurata",
+        "Abhimanyu's son"
+      ],
+      "role": "Son of Abhimanyu and Uttara, heir of the Pandavas, father of Janamejaya",
+      "faction": "pandava",
+      "summary": "Born stillborn after Ashwatthama's weapon strikes his mother's womb and revived by Krishna, he is crowned when the Pandavas leave on their last journey. His death by the serpent Takshaka later prompts Janamejaya's snake sacrifice, the occasion of the epic's telling.",
+      "first_chapter": "ch01",
+      "visual_identity": {
+        "primary": "#e9d8a6",
+        "secondary": "#3a2f6a",
+        "silhouette": "young crowned king in pale gold with an indigo sash",
+        "attributes": [
+          "obj.crown"
+        ],
+        "height": 1.8
+      },
+      "asset": "char.parikshit"
+    },
+    {
+      "id": "hidimbi",
+      "name": "Hidimbi",
+      "epithets": [
+        "Hidimba"
+      ],
+      "role": "Rakshasi, wife of Bhima, mother of Ghatotkacha",
+      "faction": "pandava",
+      "summary": "Sister of the rakshasa Hidimba, she falls in love with Bhima, takes a beautiful human form, and marries him with Kunti's consent after Bhima kills her brother. She raises their son Ghatotkacha in the forest.",
+      "first_chapter": "ch05b",
+      "visual_identity": {
+        "primary": "#3f6b2f",
+        "secondary": "#b8461f",
+        "silhouette": "tall forest woman in leaf-green with a burnt-orange sash, wild dark hair, poised between human and rakshasa forms",
+        "attributes": [],
+        "height": 1.85
+      },
+      "asset": "char.hidimbi"
+    },
+    {
+      "id": "ulupi",
+      "name": "Ulupi",
+      "epithets": [
+        "Naga princess",
+        "Kauravya's daughter"
+      ],
+      "role": "Naga princess, wife of Arjuna",
+      "faction": "pandava",
+      "summary": "A naga princess who draws Arjuna into the waters during his years of wandering and becomes his wife. In the Ashvamedhika Parva she restores Arjuna to life with a naga gem after his son Babhruvahana strikes him down.",
+      "first_chapter": "ch07",
+      "visual_identity": {
+        "primary": "#1f6f8a",
+        "secondary": "#7fd1d9",
+        "silhouette": "water-princess in deep aqua with a pale turquoise sash, a softly glowing gem at the throat",
+        "attributes": [],
+        "height": 1.68
+      },
+      "asset": "char.ulupi"
+    },
+    {
+      "id": "chitrangada",
+      "name": "Chitrangada",
+      "epithets": [
+        "Princess of Manipura"
+      ],
+      "role": "Princess of Manipura, wife of Arjuna, mother of Babhruvahana",
+      "faction": "pandava",
+      "summary": "Heir of the king of Manipura, whom Arjuna marries on condition that their son will continue her father's line. Her son Babhruvahana later fights Arjuna during the horse sacrifice. (She is distinct from Chitrangada, Satyavati's elder son.)",
+      "first_chapter": "ch07",
+      "visual_identity": {
+        "primary": "#8a2a5a",
+        "secondary": "#d4af37",
+        "silhouette": "poised princess in magenta and gold with a small crown",
+        "attributes": [
+          "obj.crown"
+        ],
+        "height": 1.7
+      },
+      "asset": "char.chitrangada"
+    }
+  ],
+  "relationships": [
+    {
+      "from": "shantanu",
+      "to": "bhishma",
+      "type": "parent",
+      "label": "father of"
+    },
+    {
+      "from": "ganga_devi",
+      "to": "bhishma",
+      "type": "parent",
+      "label": "mother of",
+      "note": "Bhishma is the eighth child, one of the Vasus born under a curse."
+    },
+    {
+      "from": "shantanu",
+      "to": "ganga_devi",
+      "type": "spouse",
+      "label": "husband of",
+      "note": "The marriage ends when Shantanu breaks his promise not to question her."
+    },
+    {
+      "from": "shantanu",
+      "to": "satyavati",
+      "type": "spouse",
+      "label": "husband of"
+    },
+    {
+      "from": "satyavati",
+      "to": "vyasa",
+      "type": "parent",
+      "label": "mother of",
+      "note": "Born to Satyavati and the sage Parashara before her marriage to Shantanu."
+    },
+    {
+      "from": "bhishma",
+      "to": "satyavati",
+      "type": "ally",
+      "label": "renounces the throne for",
+      "note": "Satyavati is Bhishma's stepmother; his vow secures her sons' succession."
+    },
+    {
+      "from": "vyasa",
+      "to": "dhritarashtra",
+      "type": "parent",
+      "label": "father of (by niyoga)",
+      "note": "Begotten on Ambika at Satyavati's request after Vichitravirya's death."
+    },
+    {
+      "from": "vyasa",
+      "to": "pandu",
+      "type": "parent",
+      "label": "father of (by niyoga)",
+      "note": "Begotten on Ambalika."
+    },
+    {
+      "from": "vyasa",
+      "to": "vidura",
+      "type": "parent",
+      "label": "father of (by niyoga)",
+      "note": "Begotten on a servant woman of the palace."
+    },
+    {
+      "from": "bhishma",
+      "to": "dhritarashtra",
+      "type": "guardian",
+      "label": "regent and guardian of",
+      "note": "Legally Bhishma is their uncle (half-brother of Vichitravirya)."
+    },
+    {
+      "from": "bhishma",
+      "to": "pandu",
+      "type": "guardian",
+      "label": "regent and guardian of"
+    },
+    {
+      "from": "bhishma",
+      "to": "vidura",
+      "type": "guardian",
+      "label": "guardian of"
+    },
+    {
+      "from": "dhritarashtra",
+      "to": "pandu",
+      "type": "half_sibling",
+      "label": "half-brother of",
+      "note": "Same father (Vyasa), different mothers (Ambika and Ambalika); legally both sons of Vichitravirya."
+    },
+    {
+      "from": "dhritarashtra",
+      "to": "vidura",
+      "type": "half_sibling",
+      "label": "half-brother of"
+    },
+    {
+      "from": "pandu",
+      "to": "vidura",
+      "type": "half_sibling",
+      "label": "half-brother of"
+    },
+    {
+      "from": "bhishma",
+      "to": "amba",
+      "type": "rival",
+      "label": "abductor and destined foe of",
+      "note": "Amba's grievance is told mainly in the Udyoga Parva (Ambopakhyana)."
+    },
+    {
+      "from": "bhishma",
+      "to": "shikhandi",
+      "type": "rival",
+      "label": "will not fight",
+      "note": "Bhishma regards Shikhandi as Amba reborn and as born female, and refuses to strike him."
+    },
+    {
+      "from": "kripa",
+      "to": "bhishma",
+      "type": "ally",
+      "label": "raised at the court of",
+      "note": "Kripa and his sister Kripi were found and raised by Shantanu."
+    },
+    {
+      "from": "dhritarashtra",
+      "to": "gandhari",
+      "type": "spouse",
+      "label": "husband of"
+    },
+    {
+      "from": "dhritarashtra",
+      "to": "duryodhana",
+      "type": "parent",
+      "label": "father of"
+    },
+    {
+      "from": "gandhari",
+      "to": "duryodhana",
+      "type": "parent",
+      "label": "mother of"
+    },
+    {
+      "from": "dhritarashtra",
+      "to": "dushasana",
+      "type": "parent",
+      "label": "father of"
+    },
+    {
+      "from": "gandhari",
+      "to": "dushasana",
+      "type": "parent",
+      "label": "mother of"
+    },
+    {
+      "from": "dhritarashtra",
+      "to": "vikarna",
+      "type": "parent",
+      "label": "father of"
+    },
+    {
+      "from": "gandhari",
+      "to": "vikarna",
+      "type": "parent",
+      "label": "mother of"
+    },
+    {
+      "from": "dhritarashtra",
+      "to": "yuyutsu",
+      "type": "parent",
+      "label": "father of",
+      "note": "Yuyutsu's mother is a vaishya maidservant, not Gandhari."
+    },
+    {
+      "from": "duryodhana",
+      "to": "dushasana",
+      "type": "sibling",
+      "label": "brother of"
+    },
+    {
+      "from": "duryodhana",
+      "to": "vikarna",
+      "type": "sibling",
+      "label": "brother of"
+    },
+    {
+      "from": "dushasana",
+      "to": "vikarna",
+      "type": "sibling",
+      "label": "brother of"
+    },
+    {
+      "from": "duryodhana",
+      "to": "yuyutsu",
+      "type": "half_sibling",
+      "label": "half-brother of"
+    },
+    {
+      "from": "gandhari",
+      "to": "shakuni",
+      "type": "sibling",
+      "label": "sister of"
+    },
+    {
+      "from": "shakuni",
+      "to": "duryodhana",
+      "type": "ally",
+      "label": "maternal uncle and adviser of",
+      "note": "Popular retellings give Shakuni a hidden revenge motive against the Kurus; the Sanskrit epic does not."
+    },
+    {
+      "from": "duryodhana",
+      "to": "jayadratha",
+      "type": "ally",
+      "label": "brother-in-law of",
+      "note": "Jayadratha is married to Duhshala, the Kauravas' only sister."
+    },
+    {
+      "from": "sanjaya",
+      "to": "dhritarashtra",
+      "type": "charioteer",
+      "label": "charioteer and counsellor of"
+    },
+    {
+      "from": "vidura",
+      "to": "dhritarashtra",
+      "type": "ally",
+      "label": "counsellor of",
+      "note": "Vidura repeatedly advises Dhritarashtra against Duryodhana's schemes."
+    },
+    {
+      "from": "pandu",
+      "to": "kunti",
+      "type": "spouse",
+      "label": "husband of"
+    },
+    {
+      "from": "pandu",
+      "to": "madri",
+      "type": "spouse",
+      "label": "husband of"
+    },
+    {
+      "from": "pandu",
+      "to": "yudhishthira",
+      "type": "parent",
+      "label": "legal father of",
+      "note": "Pandu is the legal father; the epic names a god as the begetter through Kunti's or Madri's mantra. Yudhishthira: Dharma."
+    },
+    {
+      "from": "pandu",
+      "to": "bhima",
+      "type": "parent",
+      "label": "legal father of",
+      "note": "Pandu is the legal father; the epic names a god as the begetter through Kunti's or Madri's mantra. Bhima: Vayu."
+    },
+    {
+      "from": "pandu",
+      "to": "arjuna",
+      "type": "parent",
+      "label": "legal father of",
+      "note": "Pandu is the legal father; the epic names a god as the begetter through Kunti's or Madri's mantra. Arjuna: Indra."
+    },
+    {
+      "from": "pandu",
+      "to": "nakula",
+      "type": "parent",
+      "label": "legal father of",
+      "note": "Pandu is the legal father; the epic names a god as the begetter through Kunti's or Madri's mantra. Nakula: the Ashvins."
+    },
+    {
+      "from": "pandu",
+      "to": "sahadeva",
+      "type": "parent",
+      "label": "legal father of",
+      "note": "Pandu is the legal father; the epic names a god as the begetter through Kunti's or Madri's mantra. Sahadeva: the Ashvins."
+    },
+    {
+      "from": "kunti",
+      "to": "karna",
+      "type": "parent",
+      "label": "mother of",
+      "note": "Born before Kunti's marriage, fathered by the sun god Surya; raised by the charioteer Adhiratha and Radha."
+    },
+    {
+      "from": "kunti",
+      "to": "yudhishthira",
+      "type": "parent",
+      "label": "mother of"
+    },
+    {
+      "from": "kunti",
+      "to": "bhima",
+      "type": "parent",
+      "label": "mother of"
+    },
+    {
+      "from": "kunti",
+      "to": "arjuna",
+      "type": "parent",
+      "label": "mother of"
+    },
+    {
+      "from": "madri",
+      "to": "nakula",
+      "type": "parent",
+      "label": "mother of"
+    },
+    {
+      "from": "madri",
+      "to": "sahadeva",
+      "type": "parent",
+      "label": "mother of"
+    },
+    {
+      "from": "kunti",
+      "to": "nakula",
+      "type": "guardian",
+      "label": "raises",
+      "note": "Kunti raises the twins after Madri follows Pandu in death."
+    },
+    {
+      "from": "kunti",
+      "to": "sahadeva",
+      "type": "guardian",
+      "label": "raises"
+    },
+    {
+      "from": "yudhishthira",
+      "to": "bhima",
+      "type": "sibling",
+      "label": "brother of"
+    },
+    {
+      "from": "yudhishthira",
+      "to": "arjuna",
+      "type": "sibling",
+      "label": "brother of"
+    },
+    {
+      "from": "bhima",
+      "to": "arjuna",
+      "type": "sibling",
+      "label": "brother of"
+    },
+    {
+      "from": "nakula",
+      "to": "sahadeva",
+      "type": "sibling",
+      "label": "twin brother of"
+    },
+    {
+      "from": "yudhishthira",
+      "to": "nakula",
+      "type": "half_sibling",
+      "label": "half-brother of",
+      "note": "Same legal father (Pandu), different mothers."
+    },
+    {
+      "from": "yudhishthira",
+      "to": "sahadeva",
+      "type": "half_sibling",
+      "label": "half-brother of"
+    },
+    {
+      "from": "arjuna",
+      "to": "nakula",
+      "type": "half_sibling",
+      "label": "half-brother of"
+    },
+    {
+      "from": "bhima",
+      "to": "sahadeva",
+      "type": "half_sibling",
+      "label": "half-brother of"
+    },
+    {
+      "from": "bhima",
+      "to": "nakula",
+      "type": "half_sibling",
+      "label": "half-brother of"
+    },
+    {
+      "from": "arjuna",
+      "to": "sahadeva",
+      "type": "half_sibling",
+      "label": "half-brother of"
+    },
+    {
+      "from": "karna",
+      "to": "yudhishthira",
+      "type": "half_sibling",
+      "label": "elder half-brother of",
+      "note": "Same mother (Kunti); Karna learns this only on the eve of war, the others after his death."
+    },
+    {
+      "from": "karna",
+      "to": "arjuna",
+      "type": "half_sibling",
+      "label": "elder half-brother of"
+    },
+    {
+      "from": "karna",
+      "to": "bhima",
+      "type": "half_sibling",
+      "label": "elder half-brother of"
+    },
+    {
+      "from": "madri",
+      "to": "shalya",
+      "type": "sibling",
+      "label": "sister of"
+    },
+    {
+      "from": "vidura",
+      "to": "yudhishthira",
+      "type": "ally",
+      "label": "protector and counsellor of",
+      "note": "Both are linked with Dharma; in the Ashramavasika Parva Vidura's life passes into Yudhishthira."
+    },
+    {
+      "from": "draupadi",
+      "to": "yudhishthira",
+      "type": "spouse",
+      "label": "wife of",
+      "note": "The shared marriage is justified in several ways within the epic (Kunti's word, a past-life boon, Vyasa's account)."
+    },
+    {
+      "from": "draupadi",
+      "to": "bhima",
+      "type": "spouse",
+      "label": "wife of"
+    },
+    {
+      "from": "draupadi",
+      "to": "arjuna",
+      "type": "spouse",
+      "label": "wife of",
+      "note": "Arjuna wins her at the swayamvara."
+    },
+    {
+      "from": "draupadi",
+      "to": "nakula",
+      "type": "spouse",
+      "label": "wife of"
+    },
+    {
+      "from": "draupadi",
+      "to": "sahadeva",
+      "type": "spouse",
+      "label": "wife of"
+    },
+    {
+      "from": "arjuna",
+      "to": "subhadra",
+      "type": "spouse",
+      "label": "husband of"
+    },
+    {
+      "from": "arjuna",
+      "to": "ulupi",
+      "type": "spouse",
+      "label": "husband of"
+    },
+    {
+      "from": "arjuna",
+      "to": "chitrangada",
+      "type": "spouse",
+      "label": "husband of",
+      "note": "Their son Babhruvahana is raised in Manipura as heir to her father."
+    },
+    {
+      "from": "bhima",
+      "to": "hidimbi",
+      "type": "spouse",
+      "label": "husband of"
+    },
+    {
+      "from": "bhima",
+      "to": "ghatotkacha",
+      "type": "parent",
+      "label": "father of"
+    },
+    {
+      "from": "hidimbi",
+      "to": "ghatotkacha",
+      "type": "parent",
+      "label": "mother of"
+    },
+    {
+      "from": "arjuna",
+      "to": "abhimanyu",
+      "type": "parent",
+      "label": "father of"
+    },
+    {
+      "from": "subhadra",
+      "to": "abhimanyu",
+      "type": "parent",
+      "label": "mother of"
+    },
+    {
+      "from": "abhimanyu",
+      "to": "uttara_kumari",
+      "type": "spouse",
+      "label": "husband of",
+      "note": "Virata first offers Uttara to Arjuna, who asks that she marry his son instead."
+    },
+    {
+      "from": "abhimanyu",
+      "to": "parikshit",
+      "type": "parent",
+      "label": "father of"
+    },
+    {
+      "from": "uttara_kumari",
+      "to": "parikshit",
+      "type": "parent",
+      "label": "mother of"
+    },
+    {
+      "from": "parikshit",
+      "to": "janamejaya",
+      "type": "parent",
+      "label": "father of"
+    },
+    {
+      "from": "ulupi",
+      "to": "arjuna",
+      "type": "ally",
+      "label": "restores to life",
+      "note": "In the Ashvamedhika Parva Ulupi revives Arjuna with a naga gem."
+    },
+    {
+      "from": "drupada",
+      "to": "draupadi",
+      "type": "parent",
+      "label": "father of",
+      "note": "Draupadi rises from Drupada's sacrificial fire."
+    },
+    {
+      "from": "drupada",
+      "to": "dhrishtadyumna",
+      "type": "parent",
+      "label": "father of",
+      "note": "Born from the same sacrifice, destined to kill Drona."
+    },
+    {
+      "from": "drupada",
+      "to": "shikhandi",
+      "type": "parent",
+      "label": "father of",
+      "note": "Born to Drupada as a daughter (after Shiva promises a child who will become a man) and raised as a son; later exchanges sex with the yaksha Sthunakarna (Udyoga Parva). The epic identifies Shikhandi as Amba reborn."
+    },
+    {
+      "from": "draupadi",
+      "to": "dhrishtadyumna",
+      "type": "sibling",
+      "label": "sister of"
+    },
+    {
+      "from": "dhrishtadyumna",
+      "to": "shikhandi",
+      "type": "sibling",
+      "label": "brother of"
+    },
+    {
+      "from": "draupadi",
+      "to": "shikhandi",
+      "type": "sibling",
+      "label": "sister of"
+    },
+    {
+      "from": "drona",
+      "to": "drupada",
+      "type": "rival",
+      "label": "estranged friend and foe of",
+      "note": "Boyhood friends; Drupada's snub leads Drona to demand his defeat as teaching fee."
+    },
+    {
+      "from": "dhrishtadyumna",
+      "to": "drona",
+      "type": "rival",
+      "label": "destined slayer of"
+    },
+    {
+      "from": "arjuna",
+      "to": "drupada",
+      "type": "rival",
+      "label": "captures, later son-in-law of",
+      "note": "Arjuna captures Drupada for Drona, later marries his daughter."
+    },
+    {
+      "from": "virata_king",
+      "to": "uttara",
+      "type": "parent",
+      "label": "father of"
+    },
+    {
+      "from": "virata_king",
+      "to": "uttara_kumari",
+      "type": "parent",
+      "label": "father of"
+    },
+    {
+      "from": "uttara",
+      "to": "uttara_kumari",
+      "type": "sibling",
+      "label": "brother of"
+    },
+    {
+      "from": "kichaka",
+      "to": "virata_king",
+      "type": "ally",
+      "label": "army commander and brother-in-law of",
+      "note": "Kichaka is the brother of Virata's queen Sudeshna."
+    },
+    {
+      "from": "arjuna",
+      "to": "uttara_kumari",
+      "type": "teacher",
+      "label": "dance teacher (as Brihannala) of"
+    },
+    {
+      "from": "uttara",
+      "to": "arjuna",
+      "type": "charioteer",
+      "label": "charioteer of",
+      "note": "In the cattle raid Brihannala first drives for Uttara; when Arjuna reveals himself they swap places."
+    },
+    {
+      "from": "virata_king",
+      "to": "yudhishthira",
+      "type": "ally",
+      "label": "host and ally of"
+    },
+    {
+      "from": "krishna",
+      "to": "balarama",
+      "type": "half_sibling",
+      "label": "younger half-brother of",
+      "note": "Both sons of Vasudeva; Balarama is born of Rohini (with the embryo-transfer story told in the Puranas)."
+    },
+    {
+      "from": "krishna",
+      "to": "subhadra",
+      "type": "sibling",
+      "label": "brother of",
+      "note": "Traditions differ on Subhadra's mother (often Rohini, making her Krishna's half-sister)."
+    },
+    {
+      "from": "balarama",
+      "to": "subhadra",
+      "type": "sibling",
+      "label": "brother of"
+    },
+    {
+      "from": "kunti",
+      "to": "krishna",
+      "type": "ally",
+      "label": "paternal aunt of",
+      "note": "Kunti is the sister of Krishna's father Vasudeva."
+    },
+    {
+      "from": "krishna",
+      "to": "arjuna",
+      "type": "friend",
+      "label": "closest friend of",
+      "note": "Arjuna and Krishna are often identified in the epic with the ancient sages Nara and Narayana."
+    },
+    {
+      "from": "krishna",
+      "to": "arjuna",
+      "type": "charioteer",
+      "label": "charioteer of",
+      "note": "Krishna vows not to bear arms and drives Arjuna's chariot instead."
+    },
+    {
+      "from": "krishna",
+      "to": "arjuna",
+      "type": "teacher",
+      "label": "teacher (Bhagavad Gita) of"
+    },
+    {
+      "from": "krishna",
+      "to": "draupadi",
+      "type": "friend",
+      "label": "friend (sakha) of",
+      "note": "In the Critical Edition her garment keeps being replaced without a named cause; Draupadi's appeal to Krishna and his intervention come from passages the edition leaves out of its main text, while many manuscripts and popular retellings make Krishna the source."
+    },
+    {
+      "from": "krishna",
+      "to": "yudhishthira",
+      "type": "ally",
+      "label": "counsellor of"
+    },
+    {
+      "from": "krishna",
+      "to": "duryodhana",
+      "type": "rival",
+      "label": "gives his army to",
+      "note": "Duryodhana chooses Krishna's Narayani army; Arjuna chooses the unarmed Krishna."
+    },
+    {
+      "from": "krishna",
+      "to": "karna",
+      "type": "ally",
+      "label": "reveals Karna's birth to",
+      "note": "Krishna offers Karna the throne if he joins the Pandavas; Karna refuses."
+    },
+    {
+      "from": "krishna",
+      "to": "parikshit",
+      "type": "guardian",
+      "label": "revives",
+      "note": "Krishna revives the stillborn Parikshit (Ashvamedhika Parva)."
+    },
+    {
+      "from": "gandhari",
+      "to": "krishna",
+      "type": "rival",
+      "label": "curses",
+      "note": "Gandhari curses Krishna's clan to self-destruction for not preventing the war."
+    },
+    {
+      "from": "ashwatthama",
+      "to": "krishna",
+      "type": "rival",
+      "label": "cursed by",
+      "note": "Krishna curses Ashwatthama to wander for three thousand years."
+    },
+    {
+      "from": "drona",
+      "to": "arjuna",
+      "type": "teacher",
+      "label": "teacher of",
+      "note": "Drona promises to make Arjuna the greatest archer."
+    },
+    {
+      "from": "drona",
+      "to": "bhima",
+      "type": "teacher",
+      "label": "teacher of"
+    },
+    {
+      "from": "drona",
+      "to": "yudhishthira",
+      "type": "teacher",
+      "label": "teacher of"
+    },
+    {
+      "from": "drona",
+      "to": "nakula",
+      "type": "teacher",
+      "label": "teacher of"
+    },
+    {
+      "from": "drona",
+      "to": "sahadeva",
+      "type": "teacher",
+      "label": "teacher of"
+    },
+    {
+      "from": "drona",
+      "to": "duryodhana",
+      "type": "teacher",
+      "label": "teacher of"
+    },
+    {
+      "from": "drona",
+      "to": "dushasana",
+      "type": "teacher",
+      "label": "teacher of"
+    },
+    {
+      "from": "drona",
+      "to": "karna",
+      "type": "teacher",
+      "label": "teacher of",
+      "note": "Some passages list Karna among Drona's pupils; he later seeks Parashurama, posing as a brahmin."
+    },
+    {
+      "from": "drona",
+      "to": "ashwatthama",
+      "type": "parent",
+      "label": "father of",
+      "note": "Ashwatthama's mother is Kripi, Kripa's sister."
+    },
+    {
+      "from": "drona",
+      "to": "ashwatthama",
+      "type": "teacher",
+      "label": "teacher of"
+    },
+    {
+      "from": "drona",
+      "to": "ekalavya",
+      "type": "teacher",
+      "label": "refuses, then demands the thumb of",
+      "note": "Drona turns Ekalavya away; Ekalavya trains before a clay image of him. Interpretations of the episode vary widely."
+    },
+    {
+      "from": "kripa",
+      "to": "arjuna",
+      "type": "teacher",
+      "label": "first teacher of"
+    },
+    {
+      "from": "kripa",
+      "to": "duryodhana",
+      "type": "teacher",
+      "label": "first teacher of"
+    },
+    {
+      "from": "kripa",
+      "to": "ashwatthama",
+      "type": "ally",
+      "label": "maternal uncle and ally of",
+      "note": "Kripa joins Ashwatthama's night raid, though he first argues against it."
+    },
+    {
+      "from": "kripa",
+      "to": "parikshit",
+      "type": "teacher",
+      "label": "teacher of"
+    },
+    {
+      "from": "balarama",
+      "to": "bhima",
+      "type": "teacher",
+      "label": "mace teacher of"
+    },
+    {
+      "from": "balarama",
+      "to": "duryodhana",
+      "type": "teacher",
+      "label": "mace teacher of",
+      "note": "Balarama is said to favour Duryodhana as a pupil."
+    },
+    {
+      "from": "bhishma",
+      "to": "yudhishthira",
+      "type": "teacher",
+      "label": "teaches from the bed of arrows",
+      "note": "The Shanti and Anushasana Parvas; widely regarded as having grown over a long period."
+    },
+    {
+      "from": "vyasa",
+      "to": "vaishampayana",
+      "type": "teacher",
+      "label": "teacher of"
+    },
+    {
+      "from": "vaishampayana",
+      "to": "janamejaya",
+      "type": "teacher",
+      "label": "recites the epic to"
+    },
+    {
+      "from": "vaishampayana",
+      "to": "ugrashravas",
+      "type": "teacher",
+      "label": "is overheard by",
+      "note": "Ugrashravas heard Vaishampayana's recitation at Janamejaya's sacrifice and retells it in the Naimisha forest."
+    },
+    {
+      "from": "vyasa",
+      "to": "sanjaya",
+      "type": "ally",
+      "label": "grants divine sight to"
+    },
+    {
+      "from": "karna",
+      "to": "duryodhana",
+      "type": "friend",
+      "label": "closest friend of",
+      "note": "Duryodhana crowns Karna king of Anga at the tournament."
+    },
+    {
+      "from": "shalya",
+      "to": "karna",
+      "type": "charioteer",
+      "label": "charioteer of",
+      "note": "Shalya drives for Karna but, as he had promised Yudhishthira, undermines his confidence."
+    },
+    {
+      "from": "shalya",
+      "to": "duryodhana",
+      "type": "ally",
+      "label": "won over by",
+      "note": "Shalya intends to join the Pandavas but is bound by Duryodhana's hospitality."
+    },
+    {
+      "from": "ashwatthama",
+      "to": "duryodhana",
+      "type": "ally",
+      "label": "last commander for"
+    },
+    {
+      "from": "ashwatthama",
+      "to": "dhrishtadyumna",
+      "type": "rival",
+      "label": "kills in his sleep"
+    },
+    {
+      "from": "ashwatthama",
+      "to": "parikshit",
+      "type": "rival",
+      "label": "aims a weapon at the unborn"
+    },
+    {
+      "from": "yuyutsu",
+      "to": "yudhishthira",
+      "type": "ally",
+      "label": "crosses over to"
+    },
+    {
+      "from": "vikarna",
+      "to": "draupadi",
+      "type": "ally",
+      "label": "speaks for",
+      "note": "The only Kaurava to argue in the dice hall that she was not lawfully won."
+    },
+    {
+      "from": "karna",
+      "to": "arjuna",
+      "type": "rival",
+      "label": "rival of"
+    },
+    {
+      "from": "bhima",
+      "to": "duryodhana",
+      "type": "rival",
+      "label": "rival of",
+      "note": "Bhima vows to break Duryodhana's thigh; the blow below the navel is condemned by Balarama."
+    },
+    {
+      "from": "bhima",
+      "to": "dushasana",
+      "type": "rival",
+      "label": "vows vengeance on"
+    },
+    {
+      "from": "bhima",
+      "to": "kichaka",
+      "type": "rival",
+      "label": "kills"
+    },
+    {
+      "from": "kichaka",
+      "to": "draupadi",
+      "type": "rival",
+      "label": "harasses"
+    },
+    {
+      "from": "shakuni",
+      "to": "yudhishthira",
+      "type": "rival",
+      "label": "defeats at dice",
+      "note": "The loaded or bone-made dice of popular retellings are not in the Sanskrit epic."
+    },
+    {
+      "from": "sahadeva",
+      "to": "shakuni",
+      "type": "rival",
+      "label": "vows to kill"
+    },
+    {
+      "from": "dushasana",
+      "to": "draupadi",
+      "type": "rival",
+      "label": "drags into the hall"
+    },
+    {
+      "from": "arjuna",
+      "to": "jayadratha",
+      "type": "rival",
+      "label": "vows to kill"
+    },
+    {
+      "from": "abhimanyu",
+      "to": "jayadratha",
+      "type": "rival",
+      "label": "is cut off from help by"
+    },
+    {
+      "from": "ghatotkacha",
+      "to": "karna",
+      "type": "rival",
+      "label": "forces the spear from"
+    },
+    {
+      "from": "yudhishthira",
+      "to": "shalya",
+      "type": "rival",
+      "label": "kills"
+    },
+    {
+      "from": "ekalavya",
+      "to": "arjuna",
+      "type": "rival",
+      "label": "outshines"
+    },
+    {
+      "from": "duryodhana",
+      "to": "yudhishthira",
+      "type": "rival",
+      "label": "rival claimant to the throne"
+    },
+    {
+      "from": "amba",
+      "to": "shikhandi",
+      "type": "ally",
+      "label": "is reborn as",
+      "note": "Identity across rebirth, told in the Udyoga Parva; the contract has no 'rebirth' type, so this is recorded as an alliance of purpose."
+    }
+  ],
+  "events": [
+    {
+      "id": "ev_narration_naimisharanya",
+      "title": "The Bard Arrives in the Naimisha Forest",
+      "summary": "The bard Ugrashravas comes to the long sacrificial session of the sage Shaunaka and his companions in the Naimisha forest and agrees to recite the Bharata story as he heard it.",
+      "chapter": "ch01",
+      "location_id": "naimisharanya",
+      "characters": [
+        "ugrashravas",
+        "vyasa"
+      ],
+      "order": 1,
+      "parva": "Adi",
+      "uncertainty": "The epic is built of nested frames (Vyasa composes; Vaishampayana recites to Janamejaya; Ugrashravas retells to Shaunaka's sages). Many scholars read these layers as signs that the text grew over centuries. The story of Ganesha writing at Vyasa's dictation is not in the Critical Edition."
+    },
+    {
+      "id": "ev_janamejaya_sacrifice",
+      "title": "Janamejaya's Snake Sacrifice",
+      "summary": "King Janamejaya, great-grandson of Arjuna, performs a snake sacrifice to avenge his father Parikshit's death by the serpent Takshaka; during its pauses Vaishampayana, Vyasa's pupil, recites the story of his ancestors.",
+      "chapter": "ch01",
+      "location_id": "hastinapura",
+      "characters": [
+        "janamejaya",
+        "vaishampayana",
+        "vyasa",
+        "parikshit",
+        "ugrashravas"
+      ],
+      "order": 2,
+      "parva": "Adi",
+      "uncertainty": "The epic does not fix the sacrifice's site consistently (Takshashila is mentioned in connection with Janamejaya's deeds); the map anchors it to the Kuru capital."
+    },
+    {
+      "id": "ev_shantanu_ganga",
+      "title": "Shantanu and the River Goddess",
+      "summary": "King Shantanu of Hastinapura marries the goddess Ganga, who drowns seven newborn sons; when he protests at the eighth she leaves with the child, later returning him grown and trained as Devavrata.",
+      "chapter": "ch03",
+      "location_id": "ganga",
+      "characters": [
+        "shantanu",
+        "ganga_devi",
+        "bhishma"
+      ],
+      "order": 4,
+      "parva": "Adi",
+      "uncertainty": "The epic explains the drownings as the release of the eight Vasus, cursed to be born as mortals; only the eighth, Devavrata, must live a long human life."
+    },
+    {
+      "id": "ev_bhishma_vow",
+      "title": "Devavrata's Terrible Vow",
+      "summary": "To let his father marry Satyavati, Devavrata renounces the throne and vows lifelong celibacy so no child of his can contest her sons' claim; for this 'terrible' (bhishma) vow he is named Bhishma and granted the power to choose the time of his death.",
+      "chapter": "ch03",
+      "location_id": "ganga",
+      "characters": [
+        "bhishma",
+        "shantanu",
+        "satyavati"
+      ],
+      "order": 5,
+      "parva": "Adi",
+      "uncertainty": "The vow is made before Satyavati's father, the fisher chief, by the Yamuna in the epic's account; the voyage's riverbank scene stands in for that setting."
+    },
+    {
+      "id": "ev_amba_abduction",
+      "title": "The Princesses of Kashi",
+      "summary": "Bhishma carries off Amba, Ambika and Ambalika from their swayamvara at Kashi as brides for his half-brother Vichitravirya; Amba, who had chosen King Shalva, is released, rejected by Shalva, and turns her grievance against Bhishma.",
+      "chapter": "ch03b",
+      "location_id": "hastinapura",
+      "characters": [
+        "bhishma",
+        "amba",
+        "satyavati"
+      ],
+      "order": 6,
+      "parva": "Adi",
+      "uncertainty": "The abduction is told in the Adi Parva; Amba's austerities, death by fire and rebirth as Shikhandi are told in the Udyoga Parva (Ambopakhyana). King Shalva of Saubha is not Shalya of Madra."
+    },
+    {
+      "id": "ev_niyoga_births",
+      "title": "Heirs by Niyoga",
+      "summary": "When Vichitravirya dies childless, Satyavati asks her son Vyasa to father heirs by niyoga: Dhritarashtra, born blind, to Ambika; Pandu, born pale, to Ambalika; and Vidura to a servant woman.",
+      "chapter": "ch03",
+      "location_id": "hastinapura",
+      "characters": [
+        "vyasa",
+        "satyavati",
+        "bhishma",
+        "dhritarashtra",
+        "pandu",
+        "vidura"
+      ],
+      "order": 7,
+      "parva": "Adi",
+      "uncertainty": "The epic links the children's conditions to their mothers' reactions to Vyasa's appearance. Niyoga was a recognised but debated practice in ancient Indian law texts."
+    },
+    {
+      "id": "ev_karna_birth",
+      "title": "Karna's Secret Birth",
+      "summary": "As a young woman Kunti tests a mantra from the sage Durvasas, summons the sun god Surya and bears a son with natural armour and earrings; fearing disgrace, she sets him adrift, and he is raised by the charioteer Adhiratha and his wife Radha.",
+      "chapter": "ch12b",
+      "location_id": "ganga",
+      "characters": [
+        "karna",
+        "kunti"
+      ],
+      "order": 8,
+      "parva": "Adi",
+      "uncertainty": "In the Vana Parva telling, the basket travels from the Ashva river to the Charmanvati, Yamuna and Ganga before reaching Champa; retellings often simplify this to the Ganga. Details of the armour vary between versions. The voyage tells the birth in flashback at Kunti's meeting with Karna by the Ganga; the epic also gives it briefly in the Adi Parva."
+    },
+    {
+      "id": "ev_pandu_curse",
+      "title": "Pandu's Curse",
+      "summary": "Hunting in the forest, Pandu shoots the sage Kindama, who was mating with his wife in the form of a deer; dying, the sage curses Pandu to die if he approaches a woman in love. Pandu renounces the throne and withdraws to the mountains with Kunti and Madri.",
+      "chapter": "ch04",
+      "location_id": "himalaya",
+      "characters": [
+        "pandu",
+        "kunti",
+        "madri"
+      ],
+      "order": 9,
+      "parva": "Adi"
+    },
+    {
+      "id": "ev_pandavas_birth",
+      "title": "Birth of the Pandavas",
+      "summary": "In the mountains near Shatashringa, Kunti uses her mantra to bear Yudhishthira by Dharma, Bhima by Vayu and Arjuna by Indra, and shares it with Madri, who bears the twins Nakula and Sahadeva by the Ashvins.",
+      "chapter": "ch04",
+      "location_id": "himalaya",
+      "characters": [
+        "kunti",
+        "madri",
+        "pandu",
+        "yudhishthira",
+        "bhima",
+        "arjuna",
+        "nakula",
+        "sahadeva"
+      ],
+      "order": 10,
+      "parva": "Adi",
+      "uncertainty": "The divine fatherhood is the epic's own account; Pandu remains the legal father, hence the name Pandavas. Pandu's death and Madri's following him on the pyre come soon after."
+    },
+    {
+      "id": "ev_kauravas_birth",
+      "title": "Birth of the Hundred Kauravas",
+      "summary": "After a long pregnancy Gandhari delivers a hard mass of flesh, which Vyasa divides into a hundred and one portions nurtured in pots, yielding a hundred sons led by Duryodhana and a daughter, Duhshala; Dhritarashtra also fathers Yuyutsu by a maidservant.",
+      "chapter": "ch04",
+      "location_id": "hastinapura",
+      "characters": [
+        "gandhari",
+        "dhritarashtra",
+        "vyasa",
+        "vidura",
+        "duryodhana",
+        "dushasana",
+        "vikarna",
+        "yuyutsu"
+      ],
+      "order": 11,
+      "parva": "Adi",
+      "uncertainty": "Omens at Duryodhana's birth and Vidura's advice to abandon him are in the Adi Parva. Lists of the hundred names differ between manuscripts. Yudhishthira is born before Duryodhana, a point that later matters to the succession dispute."
+    },
+    {
+      "id": "ev_drona_gurukul",
+      "title": "Drona's School",
+      "summary": "Kripa and then Drona train the Kuru and Pandava princes in arms; Drona favours Arjuna, and as his fee asks the princes to capture his estranged friend Drupada of Panchala, whose kingdom he then divides.",
+      "chapter": "ch04",
+      "location_id": "gurukul",
+      "characters": [
+        "drona",
+        "kripa",
+        "bhishma",
+        "arjuna",
+        "bhima",
+        "yudhishthira",
+        "nakula",
+        "sahadeva",
+        "duryodhana",
+        "dushasana",
+        "ashwatthama",
+        "karna",
+        "drupada"
+      ],
+      "order": 13,
+      "parva": "Adi",
+      "uncertainty": "The famous test in which only Arjuna sees nothing but the bird's eye is in the Adi Parva. Karna appears among Drona's pupils in some passages and later learns from Parashurama. In the Adi Parva the capture of Drupada as Drona's fee comes after the tournament; the voyage treats it as a separate event in the following chapter."
+    },
+    {
+      "id": "ev_ekalavya_thumb",
+      "title": "Ekalavya's Thumb",
+      "summary": "Ekalavya, a Nishada prince turned away by Drona, trains himself before a clay image of the teacher; when his skill surpasses Arjuna's, Drona asks for his right thumb as teaching fee, and Ekalavya gives it.",
+      "chapter": "ch04b",
+      "location_id": "gurukul",
+      "characters": [
+        "ekalavya",
+        "drona",
+        "arjuna"
+      ],
+      "order": 14,
+      "parva": "Adi",
+      "uncertainty": "Readers have long debated the episode as devotion, as caste exclusion, or both. Some later regional retellings extend Ekalavya's story in different directions."
+    },
+    {
+      "id": "ev_tournament_karna",
+      "title": "The Tournament and Karna's Challenge",
+      "summary": "At a public display of the princes' skills, Karna matches Arjuna's feats and challenges him to a duel; mocked for his charioteer upbringing, he is crowned king of Anga on the spot by Duryodhana, sealing their friendship.",
+      "chapter": "ch05",
+      "location_id": "hastinapura",
+      "characters": [
+        "karna",
+        "arjuna",
+        "duryodhana",
+        "drona",
+        "kripa",
+        "bhima",
+        "kunti"
+      ],
+      "order": 15,
+      "parva": "Adi",
+      "uncertainty": "Kunti recognises her son and faints in the epic's account; how much the crowd understands is left unstated, and retellings dramatise the moment differently."
+    },
+    {
+      "id": "ev_lac_house",
+      "title": "The House of Lac",
+      "summary": "Duryodhana, with Shakuni's encouragement, has a house of lac built at Varanavata to burn the Pandavas; warned by Vidura in a coded message, they dig an escape tunnel and flee as it burns, leaving the world believing them dead.",
+      "chapter": "ch05b",
+      "location_id": "varanavata",
+      "characters": [
+        "duryodhana",
+        "shakuni",
+        "vidura",
+        "dhritarashtra",
+        "kunti",
+        "yudhishthira",
+        "bhima",
+        "arjuna",
+        "nakula",
+        "sahadeva"
+      ],
+      "order": 17,
+      "parva": "Adi",
+      "uncertainty": "The builder Purochana dies in the fire, and so do a Nishada woman and her five sons who were sleeping there, a troubling detail many retellings omit."
+    },
+    {
+      "id": "ev_hidimba_bakasura",
+      "title": "Hidimba and Baka",
+      "summary": "In the forest Bhima kills the rakshasa Hidimba and marries his sister Hidimbi, who bears Ghatotkacha; later, while the family hides at Ekachakra disguised as brahmins, Bhima kills the rakshasa Baka to free the town.",
+      "chapter": "ch05b",
+      "location_id": "varanavata",
+      "characters": [
+        "bhima",
+        "hidimbi",
+        "ghatotkacha",
+        "kunti",
+        "yudhishthira"
+      ],
+      "order": 18,
+      "parva": "Adi",
+      "uncertainty": "Hidimba's forest and the town of Ekachakra are separate places not shown on the schematic map; the event is anchored near Varanavata, where the flight began."
+    },
+    {
+      "id": "ev_draupadi_swayamvara",
+      "title": "Draupadi's Swayamvara",
+      "summary": "At Drupada's swayamvara in Panchala, suitors must string a huge bow and hit a target through a revolving device; Arjuna, disguised as a brahmin, succeeds and wins Draupadi, while Krishna and Balarama recognise the Pandavas.",
+      "chapter": "ch06",
+      "location_id": "panchala",
+      "characters": [
+        "draupadi",
+        "arjuna",
+        "drupada",
+        "dhrishtadyumna",
+        "karna",
+        "duryodhana",
+        "krishna",
+        "balarama",
+        "bhima"
+      ],
+      "order": 19,
+      "parva": "Adi",
+      "uncertainty": "Whether Karna attempts the bow, and whether Draupadi publicly refuses him as a charioteer's son, differs between manuscripts; the Critical Edition does not keep the refusal in its main text, while popular retellings make it central. The fish-shaped target is a popular depiction."
+    },
+    {
+      "id": "ev_shared_marriage",
+      "title": "The Shared Marriage",
+      "summary": "Kunti's unseeing instruction to 'share what you have brought' leads the five brothers to marry Draupadi together; Drupada objects, and Vyasa justifies the union with accounts of Draupadi's earlier lives.",
+      "chapter": "ch06",
+      "location_id": "panchala",
+      "characters": [
+        "draupadi",
+        "kunti",
+        "drupada",
+        "vyasa",
+        "krishna",
+        "yudhishthira",
+        "bhima",
+        "arjuna",
+        "nakula",
+        "sahadeva"
+      ],
+      "order": 20,
+      "parva": "Adi",
+      "uncertainty": "The epic offers several justifications (Kunti's word, a boon from Shiva in a past life, the Pandavas as forms of Indra). Polyandry is presented as unusual even within the epic's world and is openly debated by its characters."
+    },
+    {
+      "id": "ev_indraprastha_founded",
+      "title": "Indraprastha Is Founded",
+      "summary": "Given the wild Khandavaprastha as their half of the kingdom, the Pandavas build the city of Indraprastha. In the years that follow, Arjuna's twelve-year exile for breaking a pact about Draupadi brings marriages to Ulupi, Chitrangada and Subhadra.",
+      "chapter": "ch07",
+      "location_id": "indraprastha",
+      "characters": [
+        "dhritarashtra",
+        "draupadi",
+        "krishna",
+        "ulupi",
+        "chitrangada",
+        "subhadra",
+        "yudhishthira",
+        "bhima",
+        "arjuna",
+        "nakula",
+        "sahadeva"
+      ],
+      "order": 21,
+      "parva": "Adi",
+      "uncertainty": "The epic's Manipura is not securely identified with modern Manipur. 'Chitrangada' is also the name of Satyavati's elder son, a different person."
+    },
+    {
+      "id": "ev_khandava_burning",
+      "title": "The Burning of Khandava",
+      "summary": "Krishna and Arjuna help the fire god Agni consume the Khandava forest, holding off Indra and cutting down creatures that try to flee; before the burning Agni has Varuna equip Arjuna with the Gandiva bow and a chariot, and Krishna with a discus.",
+      "chapter": "ch07",
+      "location_id": "indraprastha",
+      "characters": [
+        "arjuna",
+        "krishna"
+      ],
+      "order": 22,
+      "parva": "Adi",
+      "uncertainty": "The episode's violence toward the forest's inhabitants is often read as seeding later enmity: the serpent Takshaka's son escapes, and Takshaka later kills Parikshit. Later tradition identifies the discus with the Sudarshana."
+    },
+    {
+      "id": "ev_maya_sabha",
+      "title": "Maya's Hall of Illusions",
+      "summary": "Maya, an asura architect spared from the fire, builds the Pandavas an assembly hall of illusions, with crystal floors that look like water and pools that look like floors — where Duryodhana later stumbles and is laughed at.",
+      "chapter": "ch08",
+      "location_id": "rajasuya_sabha",
+      "characters": [
+        "arjuna",
+        "krishna",
+        "yudhishthira",
+        "bhima",
+        "duryodhana"
+      ],
+      "order": 23,
+      "parva": "Sabha",
+      "uncertainty": "The line in which Draupadi mocks Duryodhana as 'a blind man's son' belongs to later and popular retellings; in the Sanskrit text the laughter described is chiefly that of Bhima and the attendants."
+    },
+    {
+      "id": "ev_jarasandha_slain",
+      "title": "The Death of Jarasandha",
+      "summary": "Before the Rajasuya can proceed, Krishna, Bhima and Arjuna go to Girivraja disguised as brahmins and challenge King Jarasandha of Magadha, who holds many kings captive; Bhima kills him after a wrestling bout lasting many days.",
+      "chapter": "ch08",
+      "location_id": "indraprastha",
+      "characters": [
+        "krishna",
+        "bhima",
+        "arjuna",
+        "yudhishthira"
+      ],
+      "order": 24,
+      "parva": "Sabha",
+      "uncertainty": "Girivraja (traditionally identified with Rajgir, Bihar) is off the schematic map; the event is anchored to Indraprastha, where the expedition set out. Jarasandha's birth from two half-bodies joined by the demoness Jara shapes how the fight is told."
+    },
+    {
+      "id": "ev_rajasuya",
+      "title": "Yudhishthira's Rajasuya",
+      "summary": "After his brothers' campaigns in the four directions, Yudhishthira performs the Rajasuya, the royal consecration sacrifice; kings bring tribute, and on Bhishma's advice the first honour (agrapuja) goes to Krishna.",
+      "chapter": "ch08",
+      "location_id": "rajasuya_sabha",
+      "characters": [
+        "yudhishthira",
+        "krishna",
+        "bhishma",
+        "draupadi",
+        "duryodhana",
+        "dhritarashtra",
+        "bhima",
+        "arjuna",
+        "nakula",
+        "sahadeva"
+      ],
+      "order": 25,
+      "parva": "Sabha"
+    },
+    {
+      "id": "ev_shishupala_slain",
+      "title": "The Death of Shishupala",
+      "summary": "Shishupala, king of Chedi, objects to Krishna's first honour and insults him before the assembly; having forgiven the hundred offences he had promised to pardon, Krishna kills him with his discus.",
+      "chapter": "ch08",
+      "location_id": "rajasuya_sabha",
+      "characters": [
+        "krishna",
+        "yudhishthira",
+        "bhishma"
+      ],
+      "order": 26,
+      "parva": "Sabha",
+      "uncertainty": "The promise of a hundred pardons, made to Shishupala's mother, is the epic's explanation; later devotional traditions add that Shishupala was a cursed attendant of Vishnu."
+    },
+    {
+      "id": "ev_dice_game",
+      "title": "The Game of Dice",
+      "summary": "Invited to Hastinapura, Yudhishthira plays dice against Shakuni, who throws on Duryodhana's behalf, and loses his wealth, kingdom, brothers, himself and finally Draupadi.",
+      "chapter": "ch09",
+      "location_id": "dyuta_sabha",
+      "characters": [
+        "yudhishthira",
+        "shakuni",
+        "duryodhana",
+        "dhritarashtra",
+        "vidura",
+        "bhishma",
+        "drona",
+        "karna",
+        "dushasana"
+      ],
+      "order": 27,
+      "parva": "Sabha",
+      "uncertainty": "Popular retellings give Shakuni loaded or magical dice, sometimes made from his father's bones; the Sanskrit text presents him as a master player whose play is called deceitful, without that backstory."
+    },
+    {
+      "id": "ev_draupadi_humiliation",
+      "title": "Draupadi in the Assembly",
+      "summary": "Dushasana drags Draupadi into the hall, where she asks whether Yudhishthira, having already lost himself, could stake her; of the Kauravas only Vikarna speaks for her (Vidura also presses the assembly), Karna urges her disrobing, and her garment does not run out. Alarmed by omens, Dhritarashtra grants her boons and she frees her husbands.",
+      "chapter": "ch09",
+      "location_id": "dyuta_sabha",
+      "characters": [
+        "draupadi",
+        "dushasana",
+        "duryodhana",
+        "karna",
+        "vikarna",
+        "yudhishthira",
+        "bhima",
+        "bhishma",
+        "vidura",
+        "dhritarashtra",
+        "gandhari"
+      ],
+      "order": 28,
+      "parva": "Sabha",
+      "uncertainty": "In many manuscripts and popular retellings Krishna miraculously supplies the endless garment; the Critical Edition's text does not name Krishna here and leaves the cause unstated. Bhima's vows against Duryodhana and Dushasana are made in this scene."
+    },
+    {
+      "id": "ev_exile_begins",
+      "title": "Into Exile",
+      "summary": "After a second game of dice the Pandavas lose again and must spend twelve years in the forest and a thirteenth year undiscovered; they leave Hastinapura with Draupadi, while Kunti stays behind with Vidura.",
+      "chapter": "ch10",
+      "location_id": "kamyaka_forest",
+      "characters": [
+        "draupadi",
+        "kunti",
+        "vidura",
+        "shakuni",
+        "yudhishthira",
+        "bhima",
+        "arjuna",
+        "nakula",
+        "sahadeva"
+      ],
+      "order": 29,
+      "parva": "Vana",
+      "uncertainty": "The departure closes the Sabha Parva and the Vana Parva opens with the exiles in the forest. Their bases shift over the years between Kamyaka, Dvaitavana and long pilgrimages."
+    },
+    {
+      "id": "ev_kirmira_jatasura",
+      "title": "Kirmira and Jatasura",
+      "summary": "On the way into the Kamyaka forest Bhima kills the rakshasa Kirmira, Baka's brother, who bars the path; years later he kills Jatasura, a rakshasa who posed as a brahmin and carried off Yudhishthira, the twins and Draupadi.",
+      "chapter": "ch10",
+      "location_id": "kamyaka_forest",
+      "characters": [
+        "bhima",
+        "draupadi",
+        "yudhishthira",
+        "nakula",
+        "sahadeva"
+      ],
+      "order": 30,
+      "parva": "Vana",
+      "uncertainty": "The two episodes are years apart in the Vana Parva (the Jatasura story is set during the northern pilgrimage); they are paired here as one milestone."
+    },
+    {
+      "id": "ev_kirata_pashupata",
+      "title": "Arjuna and the Hunter",
+      "summary": "Seeking divine weapons, Arjuna performs austerities in the Himalaya and fights a mysterious hunter (kirata) over a boar they both shot; the hunter is Shiva, who grants him the Pashupata weapon before Arjuna goes on to Indra's heaven.",
+      "chapter": "ch10",
+      "location_id": "himalaya",
+      "characters": [
+        "arjuna"
+      ],
+      "order": 31,
+      "parva": "Vana",
+      "uncertainty": "The episode later inspired Bharavi's classical Sanskrit poem Kiratarjuniya. During his stay in Indra's heaven Arjuna is cursed by the apsara Urvashi, which shapes his disguise in Virata."
+    },
+    {
+      "id": "ev_karna_armour_gift",
+      "title": "Karna Gives Away His Armour",
+      "summary": "Indra, disguised as a brahmin, asks Karna for his natural armour and earrings to protect his son Arjuna; warned in a dream by Surya, Karna gives them anyway, cutting them from his body, and receives a single-use divine spear in return.",
+      "chapter": "ch10",
+      "location_id": "ganga",
+      "characters": [
+        "karna"
+      ],
+      "order": 32,
+      "parva": "Vana",
+      "uncertainty": "The epic sets the gift during Karna's noon worship of the sun, often pictured at a riverbank. How the armour was fused to his body is elaborated differently in later retellings."
+    },
+    {
+      "id": "ev_yaksha_prashna",
+      "title": "The Yaksha's Questions",
+      "summary": "At a lake near Dvaitavana a yaksha strikes down four Pandavas who drink without answering him; Yudhishthira answers his riddles on dharma and life, and when allowed to revive one brother chooses Nakula, son of Madri. The yaksha reveals himself as Dharma.",
+      "chapter": "ch10b",
+      "location_id": "dwaita_forest",
+      "characters": [
+        "yudhishthira",
+        "bhima",
+        "arjuna",
+        "nakula",
+        "sahadeva"
+      ],
+      "order": 33,
+      "parva": "Vana",
+      "uncertainty": "The question-and-answer sequence varies in length and wording between manuscripts."
+    },
+    {
+      "id": "ev_virata_incognito",
+      "title": "A Year in Disguise",
+      "summary": "For the thirteenth year the Pandavas live disguised at King Virata's court: Yudhishthira as the dice-master Kanka, Bhima as the cook Ballava, Arjuna as the dance-teacher Brihannala, Nakula as a horse-keeper, Sahadeva as a cowherd and Draupadi as the maid Sairandhri.",
+      "chapter": "ch11",
+      "location_id": "virata",
+      "characters": [
+        "virata_king",
+        "draupadi",
+        "uttara_kumari",
+        "yudhishthira",
+        "bhima",
+        "arjuna",
+        "nakula",
+        "sahadeva"
+      ],
+      "order": 34,
+      "parva": "Virata",
+      "uncertainty": "Arjuna lives as a eunuch because of Urvashi's curse; how Brihannala's gender is read has been widely discussed by modern scholars and artists."
+    },
+    {
+      "id": "ev_kichaka_slain",
+      "title": "The Death of Kichaka",
+      "summary": "Kichaka, Virata's army commander and the queen's brother, harasses Sairandhri; Draupadi turns to Bhima, who waits for Kichaka in the dark dance hall and kills him, and then fights off Kichaka's kinsmen.",
+      "chapter": "ch11",
+      "location_id": "virata",
+      "characters": [
+        "kichaka",
+        "draupadi",
+        "bhima",
+        "virata_king"
+      ],
+      "order": 35,
+      "parva": "Virata"
+    },
+    {
+      "id": "ev_cattle_raid",
+      "title": "The Cattle Raid",
+      "summary": "Hoping to expose the hidden Pandavas, the Kauravas and the Trigartas raid Virata's cattle; Prince Uttara rides out with Brihannala as charioteer, Arjuna reveals himself, retrieves the Gandiva from a shami tree and routs the Kuru champions. Soon after, Princess Uttara is married to Abhimanyu at Upaplavya.",
+      "chapter": "ch11",
+      "location_id": "virata",
+      "characters": [
+        "arjuna",
+        "uttara",
+        "uttara_kumari",
+        "abhimanyu",
+        "virata_king",
+        "bhishma",
+        "drona",
+        "karna",
+        "kripa",
+        "ashwatthama",
+        "duryodhana"
+      ],
+      "order": 36,
+      "parva": "Virata",
+      "uncertainty": "Whether the thirteenth year had fully ended when Arjuna was recognised is argued within the epic itself; Bhishma rules, by his calculation, that it had."
+    },
+    {
+      "id": "ev_peace_embassy",
+      "title": "Krishna's Peace Mission",
+      "summary": "With war looming, Krishna travels from Upaplavya to Hastinapura as the Pandavas' envoy; Duryodhana refuses any settlement and plots to seize him, and Krishna reveals a cosmic form to the assembled court.",
+      "chapter": "ch12",
+      "location_id": "hastinapura",
+      "characters": [
+        "krishna",
+        "duryodhana",
+        "dhritarashtra",
+        "gandhari",
+        "bhishma",
+        "drona",
+        "vidura",
+        "karna",
+        "kunti",
+        "sanjaya"
+      ],
+      "order": 39,
+      "parva": "Udyoga",
+      "uncertainty": "The famous request for only five villages appears in the Udyoga Parva in Yudhishthira's message; retellings often place it in Krishna's mouth. The extent of the cosmic-form scene varies between manuscripts."
+    },
+    {
+      "id": "ev_krishna_karna_meeting",
+      "title": "Krishna Tells Karna the Truth",
+      "summary": "After the failed embassy Krishna takes Karna aside in his chariot, reveals that he is Kunti's eldest son and offers him the throne if he joins the Pandavas; Karna refuses out of loyalty to Duryodhana and to the parents who raised him.",
+      "chapter": "ch12",
+      "location_id": "hastinapura",
+      "characters": [
+        "krishna",
+        "karna"
+      ],
+      "order": 40,
+      "parva": "Udyoga"
+    },
+    {
+      "id": "ev_kunti_karna_meeting",
+      "title": "Kunti Meets Her First Son",
+      "summary": "Kunti finds Karna at his worship by the Ganga and asks him to join his brothers; he refuses, but promises that she will still have five sons, for he will spare all the Pandavas except Arjuna.",
+      "chapter": "ch12b",
+      "location_id": "ganga",
+      "characters": [
+        "kunti",
+        "karna"
+      ],
+      "order": 41,
+      "parva": "Udyoga"
+    },
+    {
+      "id": "ev_armies_assemble",
+      "title": "The Armies Assemble",
+      "summary": "Eleven akshauhinis gather for the Kauravas and seven for the Pandavas at Kurukshetra; Shalya, won over by Duryodhana's hospitality, fights for the Kauravas, Krishna's army goes to Duryodhana while Krishna himself, unarmed, goes to Arjuna, and Balarama withdraws on pilgrimage.",
+      "chapter": "ch13",
+      "location_id": "kurukshetra",
+      "characters": [
+        "duryodhana",
+        "arjuna",
+        "krishna",
+        "balarama",
+        "shalya",
+        "bhishma",
+        "dhrishtadyumna",
+        "yudhishthira",
+        "shikhandi",
+        "drupada",
+        "virata_king",
+        "vyasa",
+        "sanjaya"
+      ],
+      "order": 42,
+      "parva": "Udyoga",
+      "uncertainty": "An akshauhini is a stylised army unit; the epic's troop numbers are literary, not historical counts. The choice between Krishna and his army is made at Dwaraka earlier in the Udyoga Parva."
+    },
+    {
+      "id": "ev_bhagavad_gita",
+      "title": "The Bhagavad Gita",
+      "summary": "As the armies face each other, Arjuna sees kin and teachers on both sides and lays down his bow; Krishna's reply on duty, action without attachment, knowledge and devotion becomes the Bhagavad Gita, culminating in the vision of his universal form.",
+      "chapter": "ch14",
+      "location_id": "kurukshetra",
+      "characters": [
+        "krishna",
+        "arjuna",
+        "sanjaya",
+        "dhritarashtra",
+        "vyasa"
+      ],
+      "order": 44,
+      "parva": "Bhishma",
+      "uncertainty": "Sanjaya narrates the Gita to Dhritarashtra after Bhishma's fall, in the text's own order, though the dialogue is set before the first day's fighting. Its date, unity and meaning — philosophical, devotional, ethical, political — are among the most debated questions in Indian thought."
+    },
+    {
+      "id": "ev_war_day_1",
+      "title": "The First Day of War",
+      "summary": "Before the fighting Yudhishthira walks unarmed to the Kaurava lines to seek his elders' blessings, and Yuyutsu crosses over to the Pandavas; the first day goes badly for the Pandavas, and young Uttara of Matsya is killed by Shalya.",
+      "chapter": "ch13",
+      "location_id": "kurukshetra",
+      "characters": [
+        "yudhishthira",
+        "bhishma",
+        "drona",
+        "kripa",
+        "shalya",
+        "yuyutsu",
+        "uttara",
+        "abhimanyu",
+        "arjuna",
+        "krishna"
+      ],
+      "order": 46,
+      "parva": "Bhishma",
+      "uncertainty": "The voyage visits the opening of the war in the Kurukshetra chapter and returns to the Gita moment, which comes just before the first clash, in the next chapter."
+    },
+    {
+      "id": "ev_bhishma_falls",
+      "title": "The Fall of Bhishma",
+      "summary": "On the tenth day, with Shikhandi in front of him — whom Bhishma will not fight — Arjuna's arrows bring the grandsire down; he lies on a bed of arrows, waiting for the sun's northward turn to die.",
+      "chapter": "ch15",
+      "location_id": "bhishma_battlefield",
+      "characters": [
+        "bhishma",
+        "arjuna",
+        "shikhandi",
+        "krishna",
+        "duryodhana",
+        "yudhishthira",
+        "karna"
+      ],
+      "order": 47,
+      "parva": "Bhishma",
+      "uncertainty": "Bhishma himself tells the Pandavas how he can be defeated. How far the fall rests on Shikhandi, on Arjuna or on Bhishma's own choice is read differently; Karna, who had refused to fight under Bhishma, now visits him."
+    },
+    {
+      "id": "ev_chakravyuha_abhimanyu",
+      "title": "Abhimanyu in the Chakravyuha",
+      "summary": "On the thirteenth day Drona forms the circular chakravyuha; Abhimanyu, who knows how to break in but not how to get out, enters it, Jayadratha holds back the other Pandavas, and he is surrounded and killed by several warriors at once.",
+      "chapter": "ch16",
+      "location_id": "drona_battlefield",
+      "characters": [
+        "abhimanyu",
+        "drona",
+        "jayadratha",
+        "karna",
+        "duryodhana",
+        "dushasana",
+        "kripa",
+        "ashwatthama",
+        "yudhishthira",
+        "bhima"
+      ],
+      "order": 48,
+      "parva": "Drona",
+      "uncertainty": "The story that Abhimanyu learned the formation in his mother's womb is a popular addition largely absent from the Critical Edition, though the epic does say he knew how to enter but not leave. Accounts of the final blows vary."
+    },
+    {
+      "id": "ev_jayadratha_slain",
+      "title": "Jayadratha Before Sunset",
+      "summary": "Vowing to kill Jayadratha before sunset or enter fire himself, Arjuna fights through the Kaurava ranks on the fourteenth day; as the light seems to fail, he strikes Jayadratha down.",
+      "chapter": "ch16",
+      "location_id": "drona_battlefield",
+      "characters": [
+        "arjuna",
+        "jayadratha",
+        "krishna",
+        "drona",
+        "duryodhana",
+        "karna"
+      ],
+      "order": 49,
+      "parva": "Drona",
+      "uncertainty": "Popular retellings have Krishna hide the sun with his discus to lure Jayadratha into the open; whether and how Krishna darkens the sky differs between versions."
+    },
+    {
+      "id": "ev_ghatotkacha_slain",
+      "title": "The Night Battle and Ghatotkacha's Fall",
+      "summary": "The fighting continues into the night of the fourteenth day, when Ghatotkacha wreaks havoc on the Kaurava army; Karna is forced to spend Indra's single-use spear, which he had saved for Arjuna, to kill him.",
+      "chapter": "ch16",
+      "location_id": "drona_battlefield",
+      "characters": [
+        "ghatotkacha",
+        "karna",
+        "bhima",
+        "krishna",
+        "duryodhana",
+        "arjuna"
+      ],
+      "order": 50,
+      "parva": "Drona",
+      "uncertainty": "The epic has Krishna rejoice at Ghatotkacha's death because Arjuna is now safe from the spear; readers have long weighed the cost of that strategy."
+    },
+    {
+      "id": "ev_drona_slain",
+      "title": "The Death of Drona",
+      "summary": "On the fifteenth day, on Krishna's advice, Bhima kills an elephant named Ashvatthama and tells Drona his son is dead; Yudhishthira, trusted for his truthfulness, confirms it, adding 'the elephant' under his breath. Drona lays down his arms and Dhrishtadyumna kills him.",
+      "chapter": "ch16",
+      "location_id": "drona_battlefield",
+      "characters": [
+        "drona",
+        "yudhishthira",
+        "bhima",
+        "krishna",
+        "dhrishtadyumna",
+        "arjuna",
+        "ashwatthama",
+        "drupada",
+        "virata_king"
+      ],
+      "order": 52,
+      "parva": "Drona",
+      "uncertainty": "Versions differ on whether 'the elephant' is drowned out by conches and on whether Drona was already withdrawn in meditation when killed. Earlier that day Drona kills Drupada and Virata. Yudhishthira's chariot, which had floated above the ground, touches the earth after the lie."
+    },
+    {
+      "id": "ev_karna_slain",
+      "title": "The Fall of Karna",
+      "summary": "On the seventeenth day, after Bhima kills Dushasana in fulfilment of his vow, Karna duels Arjuna with Shalya as his reluctant charioteer; his chariot wheel sinks into the earth and a vital weapon-spell fails him under old curses, and Arjuna, urged on by Krishna, kills him as he struggles to free the wheel.",
+      "chapter": "ch17",
+      "location_id": "karna_battlefield",
+      "characters": [
+        "karna",
+        "arjuna",
+        "krishna",
+        "shalya",
+        "bhima",
+        "dushasana",
+        "duryodhana"
+      ],
+      "order": 53,
+      "parva": "Karna",
+      "uncertainty": "The curses (from Parashurama, and from a brahmin whose cow Karna killed) are the epic's explanation. Whether the killing was justified is argued within the epic itself, with Krishna recalling Karna's part in the dice hall and Abhimanyu's death."
+    },
+    {
+      "id": "ev_shalya_slain",
+      "title": "Shalya's Last Command",
+      "summary": "On the eighteenth day Shalya leads the remnants of the Kaurava army and is killed by Yudhishthira with a spear; Sahadeva kills Shakuni, fulfilling his vow.",
+      "chapter": "ch18",
+      "location_id": "kurukshetra",
+      "characters": [
+        "shalya",
+        "yudhishthira",
+        "sahadeva",
+        "shakuni",
+        "duryodhana"
+      ],
+      "order": 54,
+      "parva": "Shalya"
+    },
+    {
+      "id": "ev_duryodhana_mace_duel",
+      "title": "The Mace Duel",
+      "summary": "Found hiding in a lake, Duryodhana fights Bhima with maces; at a signal from Arjuna, prompted by Krishna, Bhima strikes below the navel and breaks his thigh as he had vowed, and Balarama, teacher of both, is outraged at the breach of the rules.",
+      "chapter": "ch18",
+      "location_id": "kurukshetra",
+      "characters": [
+        "duryodhana",
+        "bhima",
+        "krishna",
+        "balarama",
+        "arjuna",
+        "yudhishthira"
+      ],
+      "order": 55,
+      "parva": "Shalya",
+      "uncertainty": "The story of Gandhari's gaze making Duryodhana's body invulnerable except where it was covered is a popular addition not found in the Critical Edition. The duel forms the Gada Parva section of the Shalya Parva."
+    },
+    {
+      "id": "ev_night_massacre",
+      "title": "The Night Raid",
+      "summary": "That night Ashwatthama, with Kripa and Kritavarma, enters the sleeping Pandava camp and kills Dhrishtadyumna, Shikhandi, Draupadi's five sons and many others; the five Pandavas, away with Krishna, survive. Pursued, Ashwatthama turns a brahmashira weapon toward the unborn heir in Uttara's womb.",
+      "chapter": "ch18",
+      "location_id": "kurukshetra",
+      "characters": [
+        "ashwatthama",
+        "kripa",
+        "dhrishtadyumna",
+        "shikhandi",
+        "duryodhana",
+        "draupadi",
+        "krishna",
+        "arjuna",
+        "uttara_kumari"
+      ],
+      "order": 56,
+      "parva": "Sauptika",
+      "uncertainty": "The epic says Shiva entered Ashwatthama before the attack. Krishna's curse that he wander for three thousand years later fed folk beliefs that Ashwatthama still roams the earth."
+    },
+    {
+      "id": "ev_stri_parva_lament",
+      "title": "The Lament of the Women",
+      "summary": "The women of both sides come to the battlefield to mourn; Gandhari, granted a vision of the whole field, blames Krishna for not preventing the war and curses his clan to destroy itself in thirty-six years, and Kunti reveals that Karna was her son.",
+      "chapter": "ch18",
+      "location_id": "kurukshetra",
+      "characters": [
+        "gandhari",
+        "kunti",
+        "draupadi",
+        "dhritarashtra",
+        "krishna",
+        "yudhishthira",
+        "vyasa",
+        "subhadra",
+        "uttara_kumari"
+      ],
+      "order": 58,
+      "parva": "Stri",
+      "uncertainty": "Dhritarashtra's crushing of an iron statue of Bhima, substituted on Krishna's advice, is told in this book."
+    },
+    {
+      "id": "ev_yudhishthira_coronation",
+      "title": "The Reluctant Coronation",
+      "summary": "Grief-stricken and longing to renounce the world, Yudhishthira is persuaded by his brothers, Draupadi, Krishna and Vyasa to rule, and is crowned in Hastinapura with Dhritarashtra still honoured as elder.",
+      "chapter": "ch19",
+      "location_id": "hastinapura_postwar",
+      "characters": [
+        "yudhishthira",
+        "krishna",
+        "draupadi",
+        "bhima",
+        "arjuna",
+        "nakula",
+        "sahadeva",
+        "dhritarashtra",
+        "yuyutsu",
+        "vyasa"
+      ],
+      "order": 60,
+      "parva": "Shanti"
+    },
+    {
+      "id": "ev_bhishma_teachings",
+      "title": "Teachings from the Bed of Arrows",
+      "summary": "Brought by Krishna to Bhishma on his bed of arrows, Yudhishthira receives long teachings on kingship, ethics in times of crisis, and liberation; Bhishma dies when the sun turns north.",
+      "chapter": "ch19",
+      "location_id": "bhishma_battlefield",
+      "characters": [
+        "bhishma",
+        "yudhishthira",
+        "krishna",
+        "vyasa",
+        "bhima",
+        "arjuna",
+        "nakula",
+        "sahadeva"
+      ],
+      "order": 61,
+      "parva": "Shanti",
+      "uncertainty": "The teachings span the Shanti and Anushasana Parvas, the epic's longest books, which are widely regarded as having grown over a long period."
+    },
+    {
+      "id": "ev_ashvamedha",
+      "title": "The Horse Sacrifice",
+      "summary": "Yudhishthira performs the horse sacrifice; Arjuna follows the horse, is struck down by his own son Babhruvahana, Chitrangada's son, and is revived by Ulupi. Meanwhile Krishna revives Uttara's stillborn son Parikshit.",
+      "chapter": "ch19",
+      "location_id": "hastinapura_postwar",
+      "characters": [
+        "yudhishthira",
+        "arjuna",
+        "krishna",
+        "ulupi",
+        "chitrangada",
+        "uttara_kumari",
+        "parikshit",
+        "bhima"
+      ],
+      "order": 62,
+      "parva": "Ashvamedhika",
+      "uncertainty": "The Jaiminiya Ashvamedha, a separate and later work, greatly expands the horse's journey; the Mahabharata's own account is shorter."
+    },
+    {
+      "id": "ev_elders_forest_death",
+      "title": "The Elders Leave for the Forest",
+      "summary": "Some fifteen years after the war Dhritarashtra, Gandhari and Kunti retire to the forest with Vidura and Sanjaya; Vidura's life passes into Yudhishthira, and the three elders later die in a forest fire while Sanjaya departs for the Himalaya.",
+      "chapter": "ch19",
+      "location_id": "ganga",
+      "characters": [
+        "dhritarashtra",
+        "gandhari",
+        "kunti",
+        "vidura",
+        "sanjaya",
+        "yudhishthira",
+        "vyasa"
+      ],
+      "order": 63,
+      "parva": "Ashramavasika",
+      "uncertainty": "The fire is set near the Ganga, traditionally around Gangadvara. This book also contains Vyasa's summoning of the dead warriors from the river for one night, among the epic's most visionary scenes."
+    },
+    {
+      "id": "ev_yadava_destruction",
+      "title": "The Destruction of the Yadavas",
+      "summary": "Thirty-six years after the war, as Gandhari foretold and under a curse provoked by a prank on visiting sages, the Yadavas, drunk at Prabhasa, kill one another with reeds that become iron clubs; Balarama leaves the world in yoga.",
+      "chapter": "ch19b",
+      "location_id": "dwaraka",
+      "characters": [
+        "krishna",
+        "balarama"
+      ],
+      "order": 64,
+      "parva": "Mausala",
+      "uncertainty": "Prabhasa lies near Dwaraka on the western coast. The book takes its name from the iron pestle (musala) the cursed Samba gives birth to, which is ground down and grows into the deadly reeds."
+    },
+    {
+      "id": "ev_krishna_departs",
+      "title": "Krishna Leaves the World",
+      "summary": "Resting in the forest, Krishna is struck in the foot by the hunter Jara, who mistakes him for a deer, and leaves his body; Arjuna arrives to lead the survivors away, Dwaraka is swallowed by the sea, and Arjuna's own strength begins to fail.",
+      "chapter": "ch19b",
+      "location_id": "dwaraka",
+      "characters": [
+        "krishna",
+        "arjuna"
+      ],
+      "order": 65,
+      "parva": "Mausala",
+      "uncertainty": "The Mahabharata's account of Krishna's death is brief; later Puranic and devotional traditions elaborate it considerably."
+    },
+    {
+      "id": "ev_mahaprasthana",
+      "title": "The Great Departure",
+      "summary": "Learning of Krishna's death, the Pandavas crown Parikshit, leaving Yuyutsu in charge of the realm and Kripa as the young king's teacher, and set out with Draupadi on a final pilgrimage, followed by a dog; on the Himalayan path Draupadi, Sahadeva, Nakula, Arjuna and Bhima fall one by one, each, Yudhishthira says, for a single failing.",
+      "chapter": "ch20",
+      "location_id": "himalaya",
+      "characters": [
+        "draupadi",
+        "parikshit",
+        "yuyutsu",
+        "kripa",
+        "yudhishthira",
+        "bhima",
+        "arjuna",
+        "nakula",
+        "sahadeva"
+      ],
+      "order": 67,
+      "parva": "Mahaprasthanika",
+      "uncertainty": "Yudhishthira's verdicts on why each falls (Draupadi's partiality for Arjuna, pride in wisdom, beauty, prowess, appetite) are themselves questioned by many readers."
+    },
+    {
+      "id": "ev_svargarohana",
+      "title": "The Ascent to Heaven",
+      "summary": "Yudhishthira refuses to enter heaven without the dog, which is revealed as Dharma; in heaven he finds Duryodhana enthroned and is shown his brothers and Draupadi suffering in hell — an illusion and final test — before all are seen in their divine forms.",
+      "chapter": "ch20",
+      "location_id": "himalaya",
+      "characters": [
+        "yudhishthira",
+        "draupadi",
+        "bhima",
+        "arjuna",
+        "nakula",
+        "sahadeva",
+        "karna",
+        "duryodhana",
+        "krishna"
+      ],
+      "order": 68,
+      "parva": "Svargarohana",
+      "uncertainty": "The Svargarohana Parva is short and its theology is read in many ways; its heaven and hell are not places on any earthly map. The test of the dog, strictly, closes the Mahaprasthanika Parva; the Svargarohana Parva begins with Yudhishthira in heaven."
+    }
+  ]
+}

@@ -1,0 +1,6677 @@
+{
+  "version": "1.0.0",
+  "assets": {
+    "arch.hastinapura_palace": {
+      "display_name": "Hastinapura royal palace",
+      "family": "architecture",
+      "glb": null,
+      "bounds": {
+        "size": [
+          56,
+          26,
+          36
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#d9b98a",
+        "accent": "#c9a14a",
+        "emissive": null,
+        "roughness": 0.75,
+        "metalness": 0.15
+      },
+      "animations": [],
+      "fallback": {
+        "factory": "palace",
+        "params": {
+          "width": 48,
+          "depth": 30,
+          "tiers": 3,
+          "pillar_count": 24,
+          "dome": true,
+          "domes": 3,
+          "stone": "#d9b98a",
+          "gold": "#c9a14a",
+          "roof": "#a8573a",
+          "plinth_height": 2.5,
+          "stair_width": 10,
+          "finials": 7,
+          "windows": "jali",
+          "banner_color": "#7a2e1c",
+          "open_front": true,
+          "style": "stylised early-Indian timber-and-stone palace, not tied to any one historical period"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "arch.throne_room": {
+      "display_name": "Throne room",
+      "family": "architecture",
+      "glb": null,
+      "bounds": {
+        "size": [
+          30,
+          13,
+          40
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#e2c9a0",
+        "accent": "#c9a14a",
+        "emissive": null,
+        "roughness": 0.6,
+        "metalness": 0.2
+      },
+      "animations": [],
+      "fallback": {
+        "factory": "hall",
+        "params": {
+          "width": 30,
+          "depth": 40,
+          "height": 12,
+          "pillar_count": 16,
+          "pillar_style": "lotus_capital",
+          "stone": "#e2c9a0",
+          "floor": "#c8b48a",
+          "gold": "#c9a14a",
+          "canopy": "#8a1f2a",
+          "open_front": true,
+          "dais": {
+            "height": 1.2,
+            "width": 8,
+            "depth": 6,
+            "scene_position": [
+              0,
+              1.2,
+              -24
+            ]
+          },
+          "side_galleries": 2
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "arch.pillared_corridor": {
+      "display_name": "Pillared corridor",
+      "family": "architecture",
+      "glb": null,
+      "bounds": {
+        "size": [
+          30,
+          8,
+          6
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#d6b887",
+        "accent": "#a8573a",
+        "emissive": null,
+        "roughness": 0.75,
+        "metalness": 0.05
+      },
+      "animations": [],
+      "fallback": {
+        "factory": "corridor",
+        "params": {
+          "length": 30,
+          "width": 6,
+          "height": 7,
+          "pillar_count": 12,
+          "stone": "#d6b887",
+          "capital": "bracket",
+          "roof": "flat",
+          "carving": "lotus_frieze",
+          "accent": "#a8573a"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": true
+    },
+    "arch.sabha_hall": {
+      "display_name": "Royal assembly hall",
+      "family": "architecture",
+      "glb": null,
+      "bounds": {
+        "size": [
+          36,
+          12,
+          28
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#d9c39a",
+        "accent": "#8a5a2b",
+        "emissive": null,
+        "roughness": 0.7,
+        "metalness": 0.1
+      },
+      "animations": [],
+      "fallback": {
+        "factory": "hall",
+        "params": {
+          "width": 36,
+          "depth": 28,
+          "height": 11,
+          "pillar_count": 20,
+          "open_sides": true,
+          "seating_tiers": 3,
+          "stone": "#d9c39a",
+          "accent": "#8a5a2b",
+          "throne_seat": true,
+          "canopy": "#b5562e"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "arch.indraprastha_palace": {
+      "display_name": "Indraprastha palace",
+      "family": "architecture",
+      "glb": null,
+      "bounds": {
+        "size": [
+          62,
+          30,
+          40
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#efe6d6",
+        "accent": "#d4af37",
+        "emissive": null,
+        "roughness": 0.5,
+        "metalness": 0.2
+      },
+      "animations": [],
+      "fallback": {
+        "factory": "palace",
+        "params": {
+          "width": 56,
+          "depth": 34,
+          "tiers": 4,
+          "pillar_count": 32,
+          "dome": true,
+          "domes": 5,
+          "stone": "#efe6d6",
+          "gold": "#d4af37",
+          "roof": "#e8dcc0",
+          "crystal_inlays": "#bfe3f0",
+          "plinth_height": 3,
+          "stair_width": 14,
+          "finials": 9,
+          "windows": "jali",
+          "banner_color": "#1f4e8c"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "arch.maya_sabha": {
+      "display_name": "Maya Sabha, hall of illusions",
+      "family": "architecture",
+      "glb": null,
+      "bounds": {
+        "size": [
+          40,
+          15,
+          40
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#e6eef2",
+        "accent": "#d4af37",
+        "emissive": "#bfe3ea",
+        "roughness": 0.15,
+        "metalness": 0.3
+      },
+      "animations": [
+        {
+          "name": "shimmer",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "hall",
+        "params": {
+          "width": 40,
+          "depth": 40,
+          "height": 14,
+          "pillar_count": 24,
+          "floor": "crystal",
+          "floor_color": "#bfe3ea",
+          "water_illusion": true,
+          "illusory_pools": 4,
+          "reflectivity": 0.8,
+          "stone": "#e6eef2",
+          "gold": "#d4af37",
+          "gem_accents": [
+            "#7fd1d9",
+            "#e05a8a",
+            "#6ad18a"
+          ],
+          "open_front": true
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "arch.dice_hall": {
+      "display_name": "Dice hall of Hastinapura",
+      "family": "architecture",
+      "glb": null,
+      "bounds": {
+        "size": [
+          26,
+          11,
+          30
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#a07850",
+        "accent": "#b3261e",
+        "emissive": null,
+        "roughness": 0.7,
+        "metalness": 0.1
+      },
+      "animations": [],
+      "fallback": {
+        "factory": "hall",
+        "params": {
+          "width": 26,
+          "depth": 30,
+          "height": 10,
+          "pillar_count": 12,
+          "stone": "#a07850",
+          "accent": "#b3261e",
+          "floor": "#6a4a32",
+          "dice_board": true,
+          "board_offset": [
+            0,
+            0.6,
+            8
+          ],
+          "lamp_brackets": 16,
+          "gallery": true,
+          "elder_seats": 6,
+          "open_front": true
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "arch.gurukul": {
+      "display_name": "Drona's training school",
+      "family": "architecture",
+      "glb": null,
+      "bounds": {
+        "size": [
+          40,
+          7,
+          30
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#b89a6a",
+        "accent": "#a88a4a",
+        "emissive": null,
+        "roughness": 0.9,
+        "metalness": 0.0
+      },
+      "animations": [],
+      "fallback": {
+        "factory": "hermitage",
+        "params": {
+          "huts": 4,
+          "hut_radius": 3,
+          "thatch": "#a88a4a",
+          "walls": "#b89a6a",
+          "fence": "bamboo",
+          "training_ground": true,
+          "target_posts": 3,
+          "weapon_racks": 2,
+          "fire_altar": true,
+          "ground": "#8a7a4a"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "arch.hermitage": {
+      "display_name": "Forest hermitage (ashrama)",
+      "family": "architecture",
+      "glb": null,
+      "bounds": {
+        "size": [
+          20,
+          6,
+          16
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#a98a5e",
+        "accent": "#9a7f45",
+        "emissive": null,
+        "roughness": 0.9,
+        "metalness": 0.0
+      },
+      "animations": [],
+      "fallback": {
+        "factory": "hermitage",
+        "params": {
+          "huts": 2,
+          "hut_radius": 2.5,
+          "thatch": "#9a7f45",
+          "walls": "#a98a5e",
+          "fence": "reed",
+          "fire_altar": true,
+          "deer_skin_mats": 2,
+          "water_pots": 3
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": true
+    },
+    "arch.city_gate": {
+      "display_name": "City gate (torana)",
+      "family": "architecture",
+      "glb": null,
+      "bounds": {
+        "size": [
+          16,
+          14,
+          6
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#cfae7a",
+        "accent": "#c9a14a",
+        "emissive": null,
+        "roughness": 0.75,
+        "metalness": 0.15
+      },
+      "animations": [],
+      "fallback": {
+        "factory": "gate",
+        "params": {
+          "width": 16,
+          "height": 14,
+          "depth": 6,
+          "towers": 2,
+          "arch": "torana",
+          "stone": "#cfae7a",
+          "gold": "#c9a14a",
+          "doors": "timber",
+          "door_color": "#5a3a22",
+          "banners": 2
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "arch.royal_courtyard": {
+      "display_name": "Royal courtyard",
+      "family": "architecture",
+      "glb": null,
+      "bounds": {
+        "size": [
+          24,
+          1,
+          16
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#d8c39a",
+        "accent": "#a8573a",
+        "emissive": null,
+        "roughness": 0.8,
+        "metalness": 0.0
+      },
+      "animations": [],
+      "fallback": {
+        "factory": "courtyard",
+        "params": {
+          "width": 24,
+          "depth": 16,
+          "paving": "#d8c39a",
+          "pattern": "lotus_mandala",
+          "pattern_color": "#a8573a",
+          "lamp_posts": 6,
+          "edge_steps": true,
+          "fountain": false
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "arch.temple": {
+      "display_name": "Shrine",
+      "family": "architecture",
+      "glb": null,
+      "bounds": {
+        "size": [
+          10,
+          12,
+          10
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#c9a878",
+        "accent": "#a8573a",
+        "emissive": null,
+        "roughness": 0.8,
+        "metalness": 0.05
+      },
+      "animations": [],
+      "fallback": {
+        "factory": "temple",
+        "params": {
+          "style": "early_open_shrine",
+          "height": 12,
+          "plinth": 2,
+          "pillars": 4,
+          "stone": "#c9a878",
+          "shikhara": false,
+          "note": "stylised; monumental stone temples postdate the epic's imagined setting"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "arch.battle_camp": {
+      "display_name": "War camp",
+      "family": "architecture",
+      "glb": null,
+      "bounds": {
+        "size": [
+          40,
+          6,
+          30
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#d8c8a8",
+        "accent": "#c0392b",
+        "emissive": null,
+        "roughness": 0.9,
+        "metalness": 0.0
+      },
+      "animations": [
+        {
+          "name": "flutter",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "camp",
+        "params": {
+          "tents": 12,
+          "tent_color": "#d8c8a8",
+          "pennant": "#c0392b",
+          "palisade": true,
+          "fire_pits": 4,
+          "layout": "grid",
+          "weapon_racks": 4,
+          "command_tent": true
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": true
+    },
+    "arch.chariot_shelter": {
+      "display_name": "Chariot shelter",
+      "family": "architecture",
+      "glb": null,
+      "bounds": {
+        "size": [
+          18,
+          5,
+          8
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#7a5a3a",
+        "accent": "#a88a4a",
+        "emissive": null,
+        "roughness": 0.85,
+        "metalness": 0.0
+      },
+      "animations": [],
+      "fallback": {
+        "factory": "shelter",
+        "params": {
+          "bays": 4,
+          "width": 18,
+          "depth": 8,
+          "height": 5,
+          "timber": "#7a5a3a",
+          "thatch": "#a88a4a",
+          "parked_chariots": 2
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": true
+    },
+    "arch.royal_balcony": {
+      "display_name": "Royal viewing balcony",
+      "family": "architecture",
+      "glb": null,
+      "bounds": {
+        "size": [
+          12,
+          8,
+          4
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#d9b98a",
+        "accent": "#c9a14a",
+        "emissive": null,
+        "roughness": 0.7,
+        "metalness": 0.15
+      },
+      "animations": [],
+      "fallback": {
+        "factory": "balcony",
+        "params": {
+          "width": 12,
+          "height": 7,
+          "depth": 4,
+          "jali": true,
+          "canopy": "#8a1f2a",
+          "stone": "#d9b98a",
+          "gold": "#c9a14a",
+          "seats": 8
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": true
+    },
+    "arch.lac_house": {
+      "display_name": "House of lac at Varanavata",
+      "family": "architecture",
+      "glb": null,
+      "bounds": {
+        "size": [
+          20,
+          9,
+          16
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#c4955c",
+        "accent": "#8a2a1a",
+        "emissive": null,
+        "roughness": 0.35,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "flicker",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "hall",
+        "params": {
+          "width": 20,
+          "depth": 16,
+          "height": 8,
+          "pillar_count": 8,
+          "stone": "#c4955c",
+          "lacquer": "#8a2a1a",
+          "sheen": 0.6,
+          "flammable": true,
+          "hidden_tunnel": true,
+          "tunnel_entrance": [
+            -6,
+            0,
+            4
+          ],
+          "open_front": false
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "arch.swayamvara_arena": {
+      "display_name": "Swayamvara arena of Panchala",
+      "family": "architecture",
+      "glb": null,
+      "bounds": {
+        "size": [
+          54,
+          10,
+          54
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#d6b48a",
+        "accent": "#b8325a",
+        "emissive": null,
+        "roughness": 0.75,
+        "metalness": 0.1
+      },
+      "animations": [
+        {
+          "name": "flutter",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "arena",
+        "params": {
+          "radius": 26,
+          "tiers": 4,
+          "stage_height": 1.5,
+          "canopy_poles": 16,
+          "canopy": "#b8325a",
+          "stone": "#d6b48a",
+          "gold": "#d4af37",
+          "central_pole": true,
+          "water_basin": true,
+          "pavilions": 6
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "arch.dwaraka_city": {
+      "display_name": "Dwaraka, city by the sea",
+      "family": "architecture",
+      "glb": null,
+      "bounds": {
+        "size": [
+          140,
+          40,
+          140
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#efe2c4",
+        "accent": "#2f6fb0",
+        "emissive": null,
+        "roughness": 0.6,
+        "metalness": 0.15
+      },
+      "animations": [],
+      "fallback": {
+        "factory": "city",
+        "params": {
+          "buildings": 60,
+          "radius": 70,
+          "wall_ring": true,
+          "palace_count": 3,
+          "stone": "#efe2c4",
+          "gold": "#d4af37",
+          "roof": "#2f6fb0",
+          "sea_side": "west",
+          "harbour": true,
+          "towers": 8
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "arch.yajna_altar": {
+      "display_name": "Sacrificial fire altar",
+      "family": "architecture",
+      "glb": null,
+      "bounds": {
+        "size": [
+          5,
+          1.5,
+          5
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#b0603a",
+        "accent": "#d98c3a",
+        "emissive": "#ff9a3c",
+        "roughness": 0.9,
+        "metalness": 0.0
+      },
+      "animations": [
+        {
+          "name": "flicker",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "altar",
+        "params": {
+          "shape": "square",
+          "layers": 3,
+          "size": 4,
+          "brick": "#b0603a",
+          "fire": true,
+          "flame": "#ff9a3c",
+          "ladle": true,
+          "enclosure_posts": 4,
+          "kusha_grass": true
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": true
+    },
+    "arch.city_walls": {
+      "display_name": "City walls",
+      "family": "architecture",
+      "glb": null,
+      "bounds": {
+        "size": [
+          120,
+          11,
+          5
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#c8a676",
+        "accent": "#8a6a48",
+        "emissive": null,
+        "roughness": 0.85,
+        "metalness": 0.0
+      },
+      "animations": [],
+      "fallback": {
+        "factory": "walls",
+        "params": {
+          "length": 120,
+          "height": 10,
+          "thickness": 4,
+          "towers": 8,
+          "crenellation": true,
+          "moat": true,
+          "stone": "#c8a676",
+          "moat_color": "#5f8f8a"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": true
+    },
+    "char.krishna": {
+      "display_name": "Krishna",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.85,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#e9b824",
+        "accent": "#2e6f5e",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "walk",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.85,
+          "robe": "#e9b824",
+          "sash": "#2e6f5e",
+          "skin": "#3b5b8c",
+          "crown": true,
+          "attribute": "obj.sudarshana",
+          "pose": "standing",
+          "peacock_feather": true,
+          "flute": true,
+          "garland": "#f2f0e6",
+          "jewellery": "#d4af37",
+          "hair": "#1a1410",
+          "iconography_note": "dark blue-black skin follows the traditional iconographic convention for Krishna"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.arjuna": {
+      "display_name": "Arjuna",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.85,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#f1ece0",
+        "accent": "#1f4e8c",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.25
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "draw_bow",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.85,
+          "robe": "#f1ece0",
+          "sash": "#1f4e8c",
+          "skin": "#8a5a3c",
+          "crown": true,
+          "attribute": "obj.gandiva",
+          "pose": "archer",
+          "diadem": "#d4af37",
+          "armour": "#c9a14a",
+          "quiver": true,
+          "hair": "#1a1410"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.bhima": {
+      "display_name": "Bhima",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.9,
+          2.05,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#7a2e1c",
+        "accent": "#c48a2c",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "swing_mace",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 2.05,
+          "robe": "#7a2e1c",
+          "sash": "#c48a2c",
+          "skin": "#a8714a",
+          "crown": false,
+          "attribute": "obj.mace",
+          "pose": "mace",
+          "build": "massive",
+          "armbands": "#c9a14a",
+          "hair": "#1a1410"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.yudhishthira": {
+      "display_name": "Yudhishthira",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.8,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#efe4c8",
+        "accent": "#b8892f",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "walk",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.8,
+          "robe": "#efe4c8",
+          "sash": "#b8892f",
+          "skin": "#b98055",
+          "crown": true,
+          "attribute": null,
+          "pose": "standing",
+          "spear": true,
+          "demeanour": "serene",
+          "hair": "#1a1410"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.nakula": {
+      "display_name": "Nakula",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.8,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#2f7f6f",
+        "accent": "#d8c08a",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "walk",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.8,
+          "robe": "#2f7f6f",
+          "sash": "#d8c08a",
+          "skin": "#c99a6b",
+          "crown": false,
+          "attribute": "obj.shield",
+          "pose": "standing",
+          "sword": true,
+          "hair": "#1a1410"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.sahadeva": {
+      "display_name": "Sahadeva",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.76,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#3d5a8a",
+        "accent": "#cfb27a",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "walk",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.76,
+          "robe": "#3d5a8a",
+          "sash": "#cfb27a",
+          "skin": "#c08a5e",
+          "crown": false,
+          "attribute": "obj.palm_leaf",
+          "pose": "standing",
+          "sword": true,
+          "hair": "#1a1410"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.draupadi": {
+      "display_name": "Draupadi",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.7,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#a3142e",
+        "accent": "#d9a441",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "walk",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.7,
+          "robe": "#a3142e",
+          "sash": "#d9a441",
+          "skin": "#7a4e33",
+          "crown": false,
+          "attribute": "obj.water_vessel",
+          "pose": "standing",
+          "hair": "#120c0a",
+          "hair_style": "long braid (unbound in some later scenes in popular retellings)",
+          "jewellery": "#d4af37",
+          "vessel_note": "the inexhaustible vessel (akshaya patra) the Sun gives to Yudhishthira during the exile"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.bhishma": {
+      "display_name": "Bhishma",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.95,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#f4f1ea",
+        "accent": "#9a8f7a",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.25
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "walk",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.95,
+          "robe": "#f4f1ea",
+          "sash": "#9a8f7a",
+          "skin": "#c99a6b",
+          "crown": false,
+          "attribute": "obj.arrows",
+          "pose": "standing",
+          "hair": "#eeeae2",
+          "beard": "#eeeae2",
+          "armour": "#b8b2a4",
+          "banner_emblem": "palm tree (tala)"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.drona": {
+      "display_name": "Drona",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.82,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#d98a3d",
+        "accent": "#5a3d2a",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "draw_bow",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.82,
+          "robe": "#d98a3d",
+          "sash": "#5a3d2a",
+          "skin": "#a8714a",
+          "crown": false,
+          "attribute": "obj.arrows",
+          "pose": "archer",
+          "beard": "#bdb6aa",
+          "hair": "#bdb6aa",
+          "sacred_thread": true,
+          "bow": true,
+          "banner_emblem": "altar and water-pot"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.karna": {
+      "display_name": "Karna",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.9,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#b8461f",
+        "accent": "#e8b830",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.45
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "draw_bow",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.9,
+          "robe": "#b8461f",
+          "sash": "#e8b830",
+          "skin": "#c08550",
+          "crown": true,
+          "attribute": "obj.divine_weapon",
+          "pose": "archer",
+          "golden_armour": true,
+          "earrings": true,
+          "sun_emblem": true,
+          "armour": "#e0b040",
+          "hair": "#1a1410",
+          "armour_note": "natural armour and earrings until he gives them to Indra (Vana Parva); later scenes show ordinary armour"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.duryodhana": {
+      "display_name": "Duryodhana",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.9,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#5c1f3a",
+        "accent": "#c9a14a",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.25
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "swing_mace",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.9,
+          "robe": "#5c1f3a",
+          "sash": "#c9a14a",
+          "skin": "#b07a4f",
+          "crown": true,
+          "attribute": "obj.mace",
+          "pose": "mace",
+          "armour": "#8a6a3a",
+          "banner_emblem": "serpent (naga)",
+          "hair": "#1a1410"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.shakuni": {
+      "display_name": "Shakuni",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.72,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#4a5a2a",
+        "accent": "#8c6a3a",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "walk",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.72,
+          "robe": "#4a5a2a",
+          "sash": "#8c6a3a",
+          "skin": "#c49a70",
+          "crown": false,
+          "attribute": "obj.dice",
+          "pose": "standing",
+          "headwear": "cap",
+          "beard": "#3a2a1a"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.kunti": {
+      "display_name": "Kunti",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.66,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#f0e6d2",
+        "accent": "#8a6a3a",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "walk",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.66,
+          "robe": "#f0e6d2",
+          "sash": "#8a6a3a",
+          "skin": "#b98055",
+          "crown": false,
+          "attribute": "obj.lamp",
+          "pose": "standing",
+          "hair": "#5a4a3a",
+          "veil": true
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.gandhari": {
+      "display_name": "Gandhari",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.68,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#6d4a7a",
+        "accent": "#d4b483",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "walk",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.68,
+          "robe": "#6d4a7a",
+          "sash": "#d4b483",
+          "skin": "#d1a77f",
+          "crown": false,
+          "attribute": null,
+          "pose": "standing",
+          "blindfold": "#e8dcc0",
+          "hair": "#2a1e16"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.abhimanyu": {
+      "display_name": "Abhimanyu",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.72,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#e0a020",
+        "accent": "#1f4e8c",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.25
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "draw_bow",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.72,
+          "robe": "#e0a020",
+          "sash": "#1f4e8c",
+          "skin": "#9a6644",
+          "crown": false,
+          "attribute": "obj.arrows",
+          "pose": "archer",
+          "youthful": true,
+          "armour": "#c9a14a",
+          "hair": "#1a1410"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.vidura": {
+      "display_name": "Vidura",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.75,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#e9e2cf",
+        "accent": "#6a7a5a",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "walk",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.75,
+          "robe": "#e9e2cf",
+          "sash": "#6a7a5a",
+          "skin": "#a8714a",
+          "crown": false,
+          "attribute": "obj.palm_leaf",
+          "pose": "standing",
+          "beard": "#5a4a3a"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.dhritarashtra": {
+      "display_name": "Dhritarashtra",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.92,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#7a2b2b",
+        "accent": "#c9a14a",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.92,
+          "robe": "#7a2b2b",
+          "sash": "#c9a14a",
+          "skin": "#c99a6b",
+          "crown": true,
+          "attribute": null,
+          "pose": "seated",
+          "eyes_closed": true,
+          "beard": "#8a7a6a",
+          "build": "heavy"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.pandu": {
+      "display_name": "Pandu",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.84,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#f2ead8",
+        "accent": "#8aa0b8",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "draw_bow",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.84,
+          "robe": "#f2ead8",
+          "sash": "#8aa0b8",
+          "skin": "#e2c4a4",
+          "crown": true,
+          "attribute": "obj.arrows",
+          "pose": "archer",
+          "bow": true,
+          "hair": "#2a1e16"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.madri": {
+      "display_name": "Madri",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.66,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#2f6a8a",
+        "accent": "#d8b47a",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "walk",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.66,
+          "robe": "#2f6a8a",
+          "sash": "#d8b47a",
+          "skin": "#d6ab80",
+          "crown": false,
+          "attribute": null,
+          "pose": "standing",
+          "hair": "#1a1410",
+          "garland": "#f4e0e8"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.shantanu": {
+      "display_name": "Shantanu",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.86,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#8a1f2a",
+        "accent": "#d4af37",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "walk",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.86,
+          "robe": "#8a1f2a",
+          "sash": "#d4af37",
+          "skin": "#c99a6b",
+          "crown": true,
+          "attribute": null,
+          "pose": "standing",
+          "beard": "#3a2a1a"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.ganga_devi": {
+      "display_name": "Ganga",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.85,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#e8f2f4",
+        "accent": "#3f8fa8",
+        "emissive": "#bfe6f2",
+        "roughness": 0.65,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "walk",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.85,
+          "robe": "#e8f2f4",
+          "sash": "#3f8fa8",
+          "skin": "#e0bf9c",
+          "crown": true,
+          "attribute": "obj.water_vessel",
+          "pose": "standing",
+          "glow": "#bfe6f2",
+          "flowing_hair": true,
+          "mount": "makara (traditional iconography)"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.satyavati": {
+      "display_name": "Satyavati",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.66,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#2a6f74",
+        "accent": "#e0c27a",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "walk",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.66,
+          "robe": "#2a6f74",
+          "sash": "#e0c27a",
+          "skin": "#7e5236",
+          "crown": true,
+          "attribute": null,
+          "pose": "standing",
+          "hair": "#120c0a",
+          "staff": true
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.vyasa": {
+      "display_name": "Vyasa",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.8,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#c9a06a",
+        "accent": "#7a5a3a",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.8,
+          "robe": "#c9a06a",
+          "sash": "#7a5a3a",
+          "skin": "#5e3e2a",
+          "crown": false,
+          "attribute": "obj.manuscript",
+          "pose": "seated",
+          "matted_hair": true,
+          "beard": "#e8e4dc",
+          "rudraksha": true
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.vaishampayana": {
+      "display_name": "Vaishampayana",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.74,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#e2c08a",
+        "accent": "#a0522d",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.74,
+          "robe": "#e2c08a",
+          "sash": "#a0522d",
+          "skin": "#a8714a",
+          "crown": false,
+          "attribute": "obj.palm_leaf",
+          "pose": "seated",
+          "beard": "#5a4a3a"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.ugrashravas": {
+      "display_name": "Ugrashravas",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.74,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#d9b98a",
+        "accent": "#5a6e8a",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "walk",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.74,
+          "robe": "#d9b98a",
+          "sash": "#5a6e8a",
+          "skin": "#b07a4f",
+          "crown": false,
+          "attribute": null,
+          "pose": "walking",
+          "shawl": true,
+          "beard": "#3a2a1a",
+          "gesture": "recitation"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.janamejaya": {
+      "display_name": "Janamejaya",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.82,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#3a2f6a",
+        "accent": "#d4af37",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.82,
+          "robe": "#3a2f6a",
+          "sash": "#d4af37",
+          "skin": "#c08a5e",
+          "crown": true,
+          "attribute": null,
+          "pose": "seated",
+          "hair": "#1a1410"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.ashwatthama": {
+      "display_name": "Ashwatthama",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.86,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#7a6a3a",
+        "accent": "#d4762b",
+        "emissive": "#9fe8ff",
+        "roughness": 0.65,
+        "metalness": 0.25
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "draw_bow",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.86,
+          "robe": "#7a6a3a",
+          "sash": "#d4762b",
+          "skin": "#a8714a",
+          "crown": false,
+          "attribute": "obj.divine_weapon",
+          "pose": "archer",
+          "forehead_gem": "#9fe8ff",
+          "armour": "#8a7a5a",
+          "banner_emblem": "lion's tail"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.kripa": {
+      "display_name": "Kripa",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.8,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#b07a3a",
+        "accent": "#e9e2cf",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "walk",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.8,
+          "robe": "#b07a3a",
+          "sash": "#e9e2cf",
+          "skin": "#b98055",
+          "crown": false,
+          "attribute": "obj.arrows",
+          "pose": "standing",
+          "beard": "#bdb6aa",
+          "bow": true
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.drupada": {
+      "display_name": "Drupada",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.84,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#b8325a",
+        "accent": "#d4af37",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "walk",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.84,
+          "robe": "#b8325a",
+          "sash": "#d4af37",
+          "skin": "#b07a4f",
+          "crown": true,
+          "attribute": null,
+          "pose": "standing",
+          "beard": "#6a5a4a"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.dhrishtadyumna": {
+      "display_name": "Dhrishtadyumna",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.88,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#c0392b",
+        "accent": "#f0a030",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.25
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "walk",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.88,
+          "robe": "#c0392b",
+          "sash": "#f0a030",
+          "skin": "#8a5a3c",
+          "crown": false,
+          "attribute": "obj.shield",
+          "pose": "standing",
+          "sword": true,
+          "armour": "#a8742a"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.shikhandi": {
+      "display_name": "Shikhandi",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.8,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#8a3a6a",
+        "accent": "#e0c27a",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "draw_bow",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.8,
+          "robe": "#8a3a6a",
+          "sash": "#e0c27a",
+          "skin": "#a8714a",
+          "crown": false,
+          "attribute": "obj.arrows",
+          "pose": "archer",
+          "bow": true
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.amba": {
+      "display_name": "Amba",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.68,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#e4d6b8",
+        "accent": "#8a2a2a",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "walk",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.68,
+          "robe": "#e4d6b8",
+          "sash": "#8a2a2a",
+          "skin": "#c99a6b",
+          "crown": false,
+          "attribute": null,
+          "pose": "standing",
+          "lotus_garland": "#f2a0b8",
+          "hair": "#1a1410",
+          "hair_style": "matted, ascetic"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.virata_king": {
+      "display_name": "Virata",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.8,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#2a5a7a",
+        "accent": "#c9a14a",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.8,
+          "robe": "#2a5a7a",
+          "sash": "#c9a14a",
+          "skin": "#b98055",
+          "crown": true,
+          "attribute": null,
+          "pose": "seated",
+          "emblem": "fish (matsya)",
+          "beard": "#6a5a4a"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.uttara": {
+      "display_name": "Uttara (Prince)",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.74,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#e6c35a",
+        "accent": "#2a5a7a",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "drive_reins",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.74,
+          "robe": "#e6c35a",
+          "sash": "#2a5a7a",
+          "skin": "#c08a5e",
+          "crown": false,
+          "attribute": null,
+          "pose": "charioteer",
+          "youthful": true
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.uttara_kumari": {
+      "display_name": "Uttara (Princess)",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.62,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#e08aa8",
+        "accent": "#2a5a7a",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "walk",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.62,
+          "robe": "#e08aa8",
+          "sash": "#2a5a7a",
+          "skin": "#c99a6b",
+          "crown": false,
+          "attribute": null,
+          "pose": "standing",
+          "ankle_bells": true,
+          "hair": "#1a1410"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.shalya": {
+      "display_name": "Shalya",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.86,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#3a6a4a",
+        "accent": "#c9a14a",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "drive_reins",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.86,
+          "robe": "#3a6a4a",
+          "sash": "#c9a14a",
+          "skin": "#c99a6b",
+          "crown": true,
+          "attribute": "obj.shield",
+          "pose": "charioteer",
+          "spear": true,
+          "beard": "#8a7a6a"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.sanjaya": {
+      "display_name": "Sanjaya",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.74,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#d8cdb0",
+        "accent": "#4a6a8a",
+        "emissive": "#cfe8ff",
+        "roughness": 0.65,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "walk",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.74,
+          "robe": "#d8cdb0",
+          "sash": "#4a6a8a",
+          "skin": "#b07a4f",
+          "crown": false,
+          "attribute": null,
+          "pose": "standing",
+          "brow_glow": "#cfe8ff",
+          "gesture": "narrating"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.ekalavya": {
+      "display_name": "Ekalavya",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.74,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#5a4a2a",
+        "accent": "#3f6b2f",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "kneel",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.74,
+          "robe": "#5a4a2a",
+          "sash": "#3f6b2f",
+          "skin": "#7a4e33",
+          "crown": false,
+          "attribute": "obj.arrows",
+          "pose": "kneeling",
+          "bow": true,
+          "hair": "#1a1410"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.jayadratha": {
+      "display_name": "Jayadratha",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.82,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#5a2a5a",
+        "accent": "#b8892f",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "walk",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.82,
+          "robe": "#5a2a5a",
+          "sash": "#b8892f",
+          "skin": "#c99a6b",
+          "crown": true,
+          "attribute": "obj.shield",
+          "pose": "standing",
+          "beard": "#2a1e16"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.dushasana": {
+      "display_name": "Dushasana",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.88,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#4a1e2a",
+        "accent": "#a07a3a",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.25
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "walk",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.88,
+          "robe": "#4a1e2a",
+          "sash": "#a07a3a",
+          "skin": "#a8714a",
+          "crown": false,
+          "attribute": "obj.shield",
+          "pose": "standing",
+          "armour": "#7a5a3a",
+          "hair": "#1a1410"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.ghatotkacha": {
+      "display_name": "Ghatotkacha",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.9,
+          2.1,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#3a3a5a",
+        "accent": "#b8461f",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "swing_mace",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 2.1,
+          "robe": "#3a3a5a",
+          "sash": "#b8461f",
+          "skin": "#6b4430",
+          "crown": false,
+          "attribute": "obj.mace",
+          "pose": "mace",
+          "bald": true,
+          "earrings": true,
+          "scale_note": "rendered at the top of the figure range; the epic describes him as gigantic"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.balarama": {
+      "display_name": "Balarama",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.95,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#2a3f7a",
+        "accent": "#e9e2cf",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "walk",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.95,
+          "robe": "#2a3f7a",
+          "sash": "#e9e2cf",
+          "skin": "#e8d2b4",
+          "crown": true,
+          "attribute": "obj.mace",
+          "pose": "standing",
+          "plough": true,
+          "iconography_note": "fair skin and blue garments follow traditional iconography"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.subhadra": {
+      "display_name": "Subhadra",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.64,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#e6a23c",
+        "accent": "#2e6f5e",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "walk",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.64,
+          "robe": "#e6a23c",
+          "sash": "#2e6f5e",
+          "skin": "#c99a6b",
+          "crown": false,
+          "attribute": "obj.lamp",
+          "pose": "standing",
+          "hair": "#1a1410"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.vikarna": {
+      "display_name": "Vikarna",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.8,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#6a4a2a",
+        "accent": "#d8c08a",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "walk",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.8,
+          "robe": "#6a4a2a",
+          "sash": "#d8c08a",
+          "skin": "#b98055",
+          "crown": false,
+          "attribute": "obj.shield",
+          "pose": "standing"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.yuyutsu": {
+      "display_name": "Yuyutsu",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.82,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#4a6a6a",
+        "accent": "#d0b070",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "walk",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.82,
+          "robe": "#4a6a6a",
+          "sash": "#d0b070",
+          "skin": "#b07a4f",
+          "crown": false,
+          "attribute": "obj.shield",
+          "pose": "standing"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.kichaka": {
+      "display_name": "Kichaka",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.98,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#8a3a1a",
+        "accent": "#d4af37",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "walk",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.98,
+          "robe": "#8a3a1a",
+          "sash": "#d4af37",
+          "skin": "#c08a5e",
+          "crown": false,
+          "attribute": null,
+          "pose": "standing",
+          "jewellery": "#d4af37",
+          "build": "heavy"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.parikshit": {
+      "display_name": "Parikshit",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.8,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#e9d8a6",
+        "accent": "#3a2f6a",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "walk",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.8,
+          "robe": "#e9d8a6",
+          "sash": "#3a2f6a",
+          "skin": "#c08a5e",
+          "crown": true,
+          "attribute": null,
+          "pose": "standing"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.hidimbi": {
+      "display_name": "Hidimbi",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.85,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#3f6b2f",
+        "accent": "#b8461f",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "walk",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.85,
+          "robe": "#3f6b2f",
+          "sash": "#b8461f",
+          "skin": "#6b4430",
+          "crown": false,
+          "attribute": null,
+          "pose": "standing",
+          "hair": "#120c0a",
+          "hair_style": "loose"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.ulupi": {
+      "display_name": "Ulupi",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.68,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#1f6f8a",
+        "accent": "#7fd1d9",
+        "emissive": "#9ff0e0",
+        "roughness": 0.65,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "walk",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.68,
+          "robe": "#1f6f8a",
+          "sash": "#7fd1d9",
+          "skin": "#c99a6b",
+          "crown": true,
+          "attribute": null,
+          "pose": "standing",
+          "naga_gem": "#9ff0e0",
+          "hair": "#1a1410"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.chitrangada": {
+      "display_name": "Chitrangada",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.7,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#8a2a5a",
+        "accent": "#d4af37",
+        "emissive": null,
+        "roughness": 0.65,
+        "metalness": 0.05
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "walk",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.7,
+          "robe": "#8a2a5a",
+          "sash": "#d4af37",
+          "skin": "#b98055",
+          "crown": true,
+          "attribute": null,
+          "pose": "standing",
+          "hair": "#1a1410"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "char.sage_generic": {
+      "display_name": "Sage (generic)",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.75,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#c9a06a",
+        "accent": "#7a5a3a",
+        "emissive": null,
+        "roughness": 0.7,
+        "metalness": 0.1
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.75,
+          "robe": "#c9a06a",
+          "sash": "#7a5a3a",
+          "skin": "#a8714a",
+          "crown": false,
+          "attribute": "obj.water_vessel",
+          "pose": "seated",
+          "beard": "#d8d2c8",
+          "matted_hair": true
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": true
+    },
+    "char.soldier_generic": {
+      "display_name": "Foot soldier (generic)",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.8,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#8a6a4a",
+        "accent": "#a83a2a",
+        "emissive": null,
+        "roughness": 0.7,
+        "metalness": 0.1
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "walk",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.8,
+          "robe": "#8a6a4a",
+          "sash": "#a83a2a",
+          "skin": "#a8714a",
+          "crown": false,
+          "attribute": "obj.shield",
+          "pose": "standing",
+          "armour": "#6a5a4a",
+          "spear": true
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": true
+    },
+    "char.courtier_generic": {
+      "display_name": "Courtier (generic)",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.74,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#d8c39a",
+        "accent": "#8a1f2a",
+        "emissive": null,
+        "roughness": 0.7,
+        "metalness": 0.1
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "walk",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.74,
+          "robe": "#d8c39a",
+          "sash": "#8a1f2a",
+          "skin": "#b98055",
+          "crown": false,
+          "attribute": null,
+          "pose": "standing",
+          "headwear": "turban"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": true
+    },
+    "char.archer_generic": {
+      "display_name": "Archer (generic)",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.8,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#6a5a3a",
+        "accent": "#3f6b2f",
+        "emissive": null,
+        "roughness": 0.7,
+        "metalness": 0.1
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "draw_bow",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 1.8,
+          "robe": "#6a5a3a",
+          "sash": "#3f6b2f",
+          "skin": "#a8714a",
+          "crown": false,
+          "attribute": "obj.arrows",
+          "pose": "archer",
+          "bow": true
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": true
+    },
+    "char.yaksha": {
+      "display_name": "Yaksha of the lake",
+      "family": "character",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.9,
+          2.1,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#2a6f74",
+        "accent": "#d4af37",
+        "emissive": "#7fd1d9",
+        "roughness": 0.7,
+        "metalness": 0.1
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "breathe",
+          "procedural": true
+        },
+        {
+          "name": "walk",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "figure",
+        "params": {
+          "height": 2.1,
+          "robe": "#2a6f74",
+          "sash": "#d4af37",
+          "skin": "#4f7a8a",
+          "crown": true,
+          "attribute": null,
+          "pose": "standing",
+          "glow": "#7fd1d9",
+          "crane_form": true,
+          "note": "first appears as a crane; reveals himself as Dharma"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "obj.krishna_chariot": {
+      "display_name": "Arjuna's chariot, driven by Krishna",
+      "family": "object",
+      "glb": null,
+      "bounds": {
+        "size": [
+          3.2,
+          4.5,
+          8
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#c9a14a",
+        "accent": "#e9b824",
+        "emissive": null,
+        "roughness": 0.45,
+        "metalness": 0.5
+      },
+      "animations": [
+        {
+          "name": "roll",
+          "procedural": true
+        },
+        {
+          "name": "flutter",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "chariot",
+        "params": {
+          "length": 3.2,
+          "wheels": 2,
+          "wheel_radius": 0.9,
+          "spokes": 12,
+          "horses": 4,
+          "horse_color": "#f4f1ea",
+          "body": "#c9a14a",
+          "canopy": "#e9b824",
+          "banner": "obj.kapidhvaja_banner",
+          "driver_seat": "front",
+          "warrior_platform": true,
+          "note": "the chariot Arjuna fights from, with Krishna as charioteer; four white horses and the monkey banner"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "obj.chariot_generic": {
+      "display_name": "War chariot",
+      "family": "object",
+      "glb": null,
+      "bounds": {
+        "size": [
+          3,
+          3.5,
+          6.5
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#7a5a3a",
+        "accent": "#a83a2a",
+        "emissive": null,
+        "roughness": 0.7,
+        "metalness": 0.2
+      },
+      "animations": [
+        {
+          "name": "roll",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "chariot",
+        "params": {
+          "length": 3,
+          "wheels": 2,
+          "wheel_radius": 0.8,
+          "spokes": 8,
+          "horses": 2,
+          "horse_color": "#8a6a4a",
+          "body": "#7a5a3a",
+          "canopy": "#a83a2a",
+          "banner": "obj.banner",
+          "warrior_platform": true
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": true
+    },
+    "obj.horse": {
+      "display_name": "Horse",
+      "family": "object",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          1.7,
+          2.4
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#f4f1ea",
+        "accent": "#c9a14a",
+        "emissive": null,
+        "roughness": 0.8,
+        "metalness": 0.0
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        },
+        {
+          "name": "trot",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "horse",
+        "params": {
+          "length": 2.4,
+          "height": 1.6,
+          "coat": "#f4f1ea",
+          "mane": "#d8d0c0",
+          "harness": "#c9a14a",
+          "gait": "trot"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": true
+    },
+    "obj.gandiva": {
+      "display_name": "Gandiva, Arjuna's bow",
+      "family": "object",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.2,
+          1.9,
+          0.1
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#5a3a22",
+        "accent": "#d4af37",
+        "emissive": "#9fd8ff",
+        "roughness": 0.5,
+        "metalness": 0.3
+      },
+      "animations": [
+        {
+          "name": "draw_bow",
+          "procedural": true
+        },
+        {
+          "name": "glow_pulse",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "bow",
+        "params": {
+          "length": 1.9,
+          "curve": "recurve",
+          "wood": "#5a3a22",
+          "gold_bands": "#d4af37",
+          "string": "#f4ead0",
+          "glow": "#9fd8ff",
+          "divine": true,
+          "note": "a divine bow that passes from Varuna to Arjuna through Agni at the Khandava burning"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "obj.sudarshana": {
+      "display_name": "Krishna's discus (Sudarshana)",
+      "family": "object",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.7,
+          0.7,
+          0.05
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#f0c040",
+        "accent": "#fff2b0",
+        "emissive": "#ffd76a",
+        "roughness": 0.3,
+        "metalness": 0.8
+      },
+      "animations": [
+        {
+          "name": "rotate",
+          "procedural": true
+        },
+        {
+          "name": "glow_pulse",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "chakra",
+        "params": {
+          "radius": 0.35,
+          "spokes": 8,
+          "serrations": 32,
+          "color": "#f0c040",
+          "rim": "#fff2b0",
+          "emissive": "#ffd76a",
+          "spin_rps": 2,
+          "hover": true
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "obj.panchajanya": {
+      "display_name": "Panchajanya, Krishna's conch",
+      "family": "object",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.18,
+          0.18,
+          0.36
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#f6f1e6",
+        "accent": "#d4af37",
+        "emissive": null,
+        "roughness": 0.35,
+        "metalness": 0.2
+      },
+      "animations": [],
+      "fallback": {
+        "factory": "conch",
+        "params": {
+          "length": 0.35,
+          "shell": "#f6f1e6",
+          "inner": "#f0c0a8",
+          "gold_mount": "#d4af37",
+          "spiral": "right_turning"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "obj.crown": {
+      "display_name": "Royal crown",
+      "family": "object",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.25,
+          0.28,
+          0.25
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#d4af37",
+        "accent": "#b3261e",
+        "emissive": null,
+        "roughness": 0.3,
+        "metalness": 0.9
+      },
+      "animations": [],
+      "fallback": {
+        "factory": "crown",
+        "params": {
+          "radius": 0.12,
+          "height": 0.25,
+          "tiers": 3,
+          "gold": "#d4af37",
+          "gems": [
+            "#b3261e",
+            "#2f7f6f",
+            "#3b5b8c"
+          ],
+          "points": 5
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": true
+    },
+    "obj.manuscript": {
+      "display_name": "Bound palm-leaf manuscript",
+      "family": "object",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.5,
+          0.12,
+          0.1
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#d8c08a",
+        "accent": "#5a3a22",
+        "emissive": null,
+        "roughness": 0.8,
+        "metalness": 0.0
+      },
+      "animations": [
+        {
+          "name": "page_turn",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "scroll",
+        "params": {
+          "style": "palm_leaf_bundle",
+          "leaves": 40,
+          "length": 0.5,
+          "width": 0.08,
+          "leaf_color": "#d8c08a",
+          "boards": "#5a3a22",
+          "cord": "#8a2a1a",
+          "ink": "#2a1a10"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": true
+    },
+    "obj.palm_leaf": {
+      "display_name": "Single palm leaf",
+      "family": "object",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.45,
+          0.01,
+          0.06
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#d8c08a",
+        "accent": "#2a1a10",
+        "emissive": null,
+        "roughness": 0.8,
+        "metalness": 0.0
+      },
+      "animations": [],
+      "fallback": {
+        "factory": "scroll",
+        "params": {
+          "style": "single_leaf",
+          "length": 0.45,
+          "width": 0.06,
+          "leaf_color": "#d8c08a",
+          "ink": "#2a1a10"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": true
+    },
+    "obj.dice": {
+      "display_name": "Dice and gaming board",
+      "family": "object",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.9,
+          0.08,
+          0.9
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#efe6d2",
+        "accent": "#7a2e1c",
+        "emissive": null,
+        "roughness": 0.4,
+        "metalness": 0.0
+      },
+      "animations": [
+        {
+          "name": "roll",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "dice",
+        "params": {
+          "style": "oblong",
+          "count": 2,
+          "material": "ivory",
+          "color": "#efe6d2",
+          "pips": "#2a1a10",
+          "board": true,
+          "board_color": "#7a2e1c",
+          "board_size": 0.9,
+          "note": "ancient Indian dice were variously vibhitaka nuts or oblong pieces; this oblong form is a stylisation"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "obj.throne": {
+      "display_name": "Throne",
+      "family": "object",
+      "glb": null,
+      "bounds": {
+        "size": [
+          1.6,
+          2.2,
+          1.2
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#c9a14a",
+        "accent": "#8a1f2a",
+        "emissive": null,
+        "roughness": 0.4,
+        "metalness": 0.7
+      },
+      "animations": [],
+      "fallback": {
+        "factory": "throne",
+        "params": {
+          "width": 1.6,
+          "height": 2.2,
+          "depth": 1.2,
+          "gold": "#c9a14a",
+          "cushion": "#8a1f2a",
+          "lion_arms": true,
+          "canopy": true,
+          "dais_height": 1.2
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": true
+    },
+    "obj.divine_weapon": {
+      "display_name": "Divine weapon (astra)",
+      "family": "object",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.3,
+          1.8,
+          0.3
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#c9a14a",
+        "accent": "#e8f4ff",
+        "emissive": "#9fd8ff",
+        "roughness": 0.3,
+        "metalness": 0.8
+      },
+      "animations": [
+        {
+          "name": "glow_pulse",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "weapon",
+        "params": {
+          "kind": "spear",
+          "length": 1.8,
+          "shaft": "#c9a14a",
+          "head": "#e8f4ff",
+          "emissive": "#9fd8ff",
+          "aura_radius": 0.6,
+          "note": "generic radiant weapon used for Indra's spear, the brahmashira and similar astras"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": true
+    },
+    "obj.banner": {
+      "display_name": "Battle standard",
+      "family": "object",
+      "glb": null,
+      "bounds": {
+        "size": [
+          1.5,
+          6.5,
+          0.2
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#c0392b",
+        "accent": "#d4af37",
+        "emissive": null,
+        "roughness": 0.8,
+        "metalness": 0.0
+      },
+      "animations": [
+        {
+          "name": "flutter",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "banner",
+        "params": {
+          "pole_height": 6,
+          "cloth_width": 1.4,
+          "cloth_height": 1.0,
+          "color": "#c0392b",
+          "trim": "#d4af37",
+          "emblem": "none",
+          "pole": "#5a3a22"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": true
+    },
+    "obj.kapidhvaja_banner": {
+      "display_name": "Arjuna's monkey banner (Kapidhvaja)",
+      "family": "object",
+      "glb": null,
+      "bounds": {
+        "size": [
+          1.6,
+          7.5,
+          0.2
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#f4f1ea",
+        "accent": "#c9832a",
+        "emissive": null,
+        "roughness": 0.8,
+        "metalness": 0.0
+      },
+      "animations": [
+        {
+          "name": "flutter",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "banner",
+        "params": {
+          "pole_height": 7,
+          "cloth_width": 1.5,
+          "cloth_height": 1.1,
+          "color": "#f4f1ea",
+          "trim": "#d4af37",
+          "emblem": "monkey",
+          "emblem_color": "#c9832a",
+          "pole": "#5a3a22",
+          "note": "in the Vana Parva Hanuman promises Bhima to sit on Arjuna's banner"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "obj.shield": {
+      "display_name": "Shield and sword",
+      "family": "object",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.9,
+          0.9,
+          0.12
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#7a5a3a",
+        "accent": "#c9a14a",
+        "emissive": null,
+        "roughness": 0.6,
+        "metalness": 0.4
+      },
+      "animations": [],
+      "fallback": {
+        "factory": "shield",
+        "params": {
+          "radius": 0.45,
+          "shape": "round",
+          "face": "#7a5a3a",
+          "boss": "#c9a14a",
+          "rim": "#5a3a22",
+          "with_sword": true,
+          "sword_length": 0.9,
+          "blade": "#b8bec6"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": true
+    },
+    "obj.arrows": {
+      "display_name": "Quiver and arrows",
+      "family": "object",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.25,
+          1.0,
+          0.25
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#c8a878",
+        "accent": "#f4f1ea",
+        "emissive": null,
+        "roughness": 0.7,
+        "metalness": 0.1
+      },
+      "animations": [],
+      "fallback": {
+        "factory": "arrows",
+        "params": {
+          "count": 12,
+          "length": 0.9,
+          "shaft": "#c8a878",
+          "fletch": "#f4f1ea",
+          "tip": "#9aa0a8",
+          "quiver": true,
+          "quiver_color": "#5a3a22"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": true
+    },
+    "obj.war_drum": {
+      "display_name": "War drum (dundubhi)",
+      "family": "object",
+      "glb": null,
+      "bounds": {
+        "size": [
+          1.8,
+          1.3,
+          1.8
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#7a2e1c",
+        "accent": "#e8dcc0",
+        "emissive": null,
+        "roughness": 0.7,
+        "metalness": 0.1
+      },
+      "animations": [
+        {
+          "name": "pulse",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "drum",
+        "params": {
+          "radius": 0.9,
+          "height": 1.2,
+          "skin": "#e8dcc0",
+          "body": "#7a2e1c",
+          "bands": "#c9a14a",
+          "kind": "kettle",
+          "stand": true
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": true
+    },
+    "obj.palace_door": {
+      "display_name": "Palace door",
+      "family": "object",
+      "glb": null,
+      "bounds": {
+        "size": [
+          4,
+          7,
+          0.4
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#5a3a22",
+        "accent": "#c9a14a",
+        "emissive": null,
+        "roughness": 0.7,
+        "metalness": 0.3
+      },
+      "animations": [
+        {
+          "name": "open",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "door",
+        "params": {
+          "width": 4,
+          "height": 7,
+          "panels": 2,
+          "wood": "#5a3a22",
+          "studs": "#c9a14a",
+          "carving": "lotus",
+          "frame": "#cfae7a"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": true
+    },
+    "obj.lamp": {
+      "display_name": "Standing oil lamp",
+      "family": "object",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.5,
+          1.4,
+          0.5
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#c9a14a",
+        "accent": "#ffb35c",
+        "emissive": "#ff9a3c",
+        "roughness": 0.4,
+        "metalness": 0.8
+      },
+      "animations": [
+        {
+          "name": "flicker",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "lamp",
+        "params": {
+          "height": 1.4,
+          "wicks": 5,
+          "brass": "#c9a14a",
+          "flame": "#ffb35c",
+          "emissive": "#ff9a3c",
+          "light_radius": 6
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": true
+    },
+    "obj.sacred_tree": {
+      "display_name": "Great banyan tree",
+      "family": "object",
+      "glb": null,
+      "bounds": {
+        "size": [
+          18,
+          14,
+          18
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#3f6b2f",
+        "accent": "#6a4a32",
+        "emissive": null,
+        "roughness": 0.9,
+        "metalness": 0.0
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "tree",
+        "params": {
+          "species": "banyan",
+          "height": 14,
+          "canopy_radius": 9,
+          "aerial_roots": 16,
+          "trunk": "#6a4a32",
+          "leaves": "#3f6b2f"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": true
+    },
+    "obj.fish_target": {
+      "display_name": "Swayamvara target",
+      "family": "object",
+      "glb": null,
+      "bounds": {
+        "size": [
+          2.2,
+          9.5,
+          2.2
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#d4af37",
+        "accent": "#5a3a22",
+        "emissive": null,
+        "roughness": 0.4,
+        "metalness": 0.6
+      },
+      "animations": [
+        {
+          "name": "rotate",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "target",
+        "params": {
+          "kind": "revolving_fish",
+          "pole_height": 9,
+          "wheel_radius": 1,
+          "fish_color": "#d4af37",
+          "rotation_speed": 1.2,
+          "reflection_basin": true,
+          "basin_color": "#7fb3c0",
+          "note": "the epic describes a target behind a revolving device; the fish shape is the popular depiction"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "obj.bed_of_arrows": {
+      "display_name": "Bhishma's bed of arrows",
+      "family": "object",
+      "glb": null,
+      "bounds": {
+        "size": [
+          1.0,
+          1.2,
+          2.3
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#c8a878",
+        "accent": "#f4f1ea",
+        "emissive": null,
+        "roughness": 0.7,
+        "metalness": 0.1
+      },
+      "animations": [],
+      "fallback": {
+        "factory": "arrow_bed",
+        "params": {
+          "length": 2.2,
+          "width": 0.9,
+          "arrow_count": 140,
+          "height_above_ground": 0.9,
+          "shaft": "#c8a878",
+          "fletch": "#f4f1ea",
+          "pillow_arrows": 3,
+          "note": "Arjuna also gives Bhishma a pillow of three arrows"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "obj.mace": {
+      "display_name": "Mace (gada)",
+      "family": "object",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.45,
+          1.3,
+          0.45
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#c9a14a",
+        "accent": "#7a5a3a",
+        "emissive": null,
+        "roughness": 0.4,
+        "metalness": 0.8
+      },
+      "animations": [],
+      "fallback": {
+        "factory": "mace",
+        "params": {
+          "length": 1.3,
+          "head_radius": 0.22,
+          "head": "#c9a14a",
+          "shaft": "#7a5a3a",
+          "flanges": 8,
+          "grip": "#5a3a22"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": true
+    },
+    "obj.conch_generic": {
+      "display_name": "Conch shell",
+      "family": "object",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.16,
+          0.16,
+          0.3
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#efe6d6",
+        "accent": "#e8b8a0",
+        "emissive": null,
+        "roughness": 0.35,
+        "metalness": 0.1
+      },
+      "animations": [],
+      "fallback": {
+        "factory": "conch",
+        "params": {
+          "length": 0.3,
+          "shell": "#efe6d6",
+          "inner": "#e8b8a0",
+          "mount": null,
+          "spiral": "left_turning"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": true
+    },
+    "obj.water_vessel": {
+      "display_name": "Water vessel",
+      "family": "object",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.36,
+          0.36,
+          0.36
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#b87333",
+        "accent": "#d4af37",
+        "emissive": null,
+        "roughness": 0.4,
+        "metalness": 0.8
+      },
+      "animations": [],
+      "fallback": {
+        "factory": "vessel",
+        "params": {
+          "shape": "round_pot",
+          "height": 0.35,
+          "radius": 0.18,
+          "metal": "#b87333",
+          "rim": "#d4af37",
+          "spout": false
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": true
+    },
+    "obj.funeral_pyre": {
+      "display_name": "Funeral pyre",
+      "family": "object",
+      "glb": null,
+      "bounds": {
+        "size": [
+          2.4,
+          3,
+          2.4
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#6a4a32",
+        "accent": "#ff8a2a",
+        "emissive": "#ff8a2a",
+        "roughness": 0.9,
+        "metalness": 0.0
+      },
+      "animations": [
+        {
+          "name": "flicker",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "pyre",
+        "params": {
+          "width": 2.4,
+          "length": 2.4,
+          "height": 1.2,
+          "logs": 24,
+          "wood": "#6a4a32",
+          "flame": true,
+          "flame_color": "#ff8a2a",
+          "smoke": "#9c958c",
+          "draped": true,
+          "drape_color": "#f4f1ea"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": true
+    },
+    "obj.dog": {
+      "display_name": "Dog",
+      "family": "object",
+      "glb": null,
+      "bounds": {
+        "size": [
+          0.3,
+          0.6,
+          0.9
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#d8cdb8",
+        "accent": "#8a7a6a",
+        "emissive": null,
+        "roughness": 0.85,
+        "metalness": 0.0
+      },
+      "animations": [
+        {
+          "name": "walk",
+          "procedural": true
+        },
+        {
+          "name": "idle_sway",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "dog",
+        "params": {
+          "length": 0.9,
+          "height": 0.6,
+          "coat": "#d8cdb8",
+          "build": "lean",
+          "tail": "curled",
+          "ears": "upright",
+          "note": "the dog that follows Yudhishthira, revealed as Dharma"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "env.mountains": {
+      "display_name": "Mountain range",
+      "family": "environment",
+      "glb": null,
+      "bounds": {
+        "size": [
+          300,
+          60,
+          120
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#7a7468",
+        "accent": "#f2f5f8",
+        "emissive": null,
+        "roughness": 0.95,
+        "metalness": 0.0
+      },
+      "animations": [],
+      "fallback": {
+        "factory": "mountains",
+        "params": {
+          "count": 7,
+          "height": 60,
+          "spread": 300,
+          "rock": "#7a7468",
+          "snowline": 0.85,
+          "snow": "#f2f5f8",
+          "haze": "#c8d0d8"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": true
+    },
+    "env.himalaya_peaks": {
+      "display_name": "Himalayan peaks",
+      "family": "environment",
+      "glb": null,
+      "bounds": {
+        "size": [
+          420,
+          140,
+          160
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#6a7080",
+        "accent": "#f4f8ff",
+        "emissive": "#ffe6c8",
+        "roughness": 0.9,
+        "metalness": 0.0
+      },
+      "animations": [],
+      "fallback": {
+        "factory": "mountains",
+        "params": {
+          "count": 9,
+          "height": 140,
+          "spread": 420,
+          "rock": "#6a7080",
+          "snowline": 0.45,
+          "snow": "#f4f8ff",
+          "haze": "#bcd4ec",
+          "alpenglow": "#ffe6c8"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "env.river": {
+      "display_name": "River",
+      "family": "environment",
+      "glb": null,
+      "bounds": {
+        "size": [
+          14,
+          0.5,
+          400
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#5f8f8a",
+        "accent": "#b8a27a",
+        "emissive": null,
+        "roughness": 0.2,
+        "metalness": 0.0
+      },
+      "animations": [
+        {
+          "name": "flow",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "river",
+        "params": {
+          "width": 14,
+          "length": 400,
+          "color": "#5f8f8a",
+          "flow_speed": 0.6,
+          "banks": "#b8a27a",
+          "meander": 0.3
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "env.ganga_water": {
+      "display_name": "The Ganga's waters",
+      "family": "environment",
+      "glb": null,
+      "bounds": {
+        "size": [
+          60,
+          0.5,
+          400
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#7fb3c0",
+        "accent": "#eef4f2",
+        "emissive": "#fff6e0",
+        "roughness": 0.15,
+        "metalness": 0.0
+      },
+      "animations": [
+        {
+          "name": "flow",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "water",
+        "params": {
+          "width": 60,
+          "length": 400,
+          "color": "#7fb3c0",
+          "foam": "#eef4f2",
+          "flow_speed": 0.4,
+          "sand_bank": "#d8c9a6",
+          "sacred_glow": "#fff6e0",
+          "glow_strength": 0.15
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "env.forest": {
+      "display_name": "Forest",
+      "family": "environment",
+      "glb": null,
+      "bounds": {
+        "size": [
+          80,
+          18,
+          80
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#3f6b2f",
+        "accent": "#5a3e2a",
+        "emissive": null,
+        "roughness": 0.9,
+        "metalness": 0.0
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "forest",
+        "params": {
+          "count": 40,
+          "species": [
+            "sal",
+            "banyan",
+            "ashoka",
+            "bamboo"
+          ],
+          "canopy": "#3f6b2f",
+          "canopy_variation": [
+            "#4f7a3a",
+            "#2f5a2a",
+            "#6a8a3a"
+          ],
+          "trunk": "#5a3e2a",
+          "height_range": [
+            8,
+            18
+          ],
+          "undergrowth": true
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": true
+    },
+    "env.sacred_grove": {
+      "display_name": "Sacred grove",
+      "family": "environment",
+      "glb": null,
+      "bounds": {
+        "size": [
+          30,
+          14,
+          30
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#4f7a3a",
+        "accent": "#e8a0b8",
+        "emissive": null,
+        "roughness": 0.9,
+        "metalness": 0.0
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "grove",
+        "params": {
+          "trees": 9,
+          "species": "peepal",
+          "ring": true,
+          "canopy": "#4f7a3a",
+          "flowers": "#e8a0b8",
+          "stone_seats": 3
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": true
+    },
+    "env.road": {
+      "display_name": "Road",
+      "family": "environment",
+      "glb": null,
+      "bounds": {
+        "size": [
+          6,
+          0.1,
+          50
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#b8a07a",
+        "accent": "#8a7a5a",
+        "emissive": null,
+        "roughness": 0.95,
+        "metalness": 0.0
+      },
+      "animations": [],
+      "fallback": {
+        "factory": "road",
+        "params": {
+          "width": 6,
+          "length": 50,
+          "surface": "#b8a07a",
+          "ruts": true,
+          "edge_stones": false
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": true
+    },
+    "env.city_skyline": {
+      "display_name": "City skyline",
+      "family": "environment",
+      "glb": null,
+      "bounds": {
+        "size": [
+          200,
+          30,
+          40
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#d9b98a",
+        "accent": "#c9a14a",
+        "emissive": null,
+        "roughness": 0.8,
+        "metalness": 0.1
+      },
+      "animations": [],
+      "fallback": {
+        "factory": "skyline",
+        "params": {
+          "buildings": 40,
+          "height_range": [
+            8,
+            30
+          ],
+          "stone": "#d9b98a",
+          "gold": "#c9a14a",
+          "towers": 6,
+          "depth_layers": 3
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "env.palace_garden": {
+      "display_name": "Palace garden",
+      "family": "environment",
+      "glb": null,
+      "bounds": {
+        "size": [
+          30,
+          6,
+          24
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#4f7a3a",
+        "accent": "#e05a8a",
+        "emissive": null,
+        "roughness": 0.85,
+        "metalness": 0.0
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "garden",
+        "params": {
+          "width": 30,
+          "depth": 24,
+          "ponds": 1,
+          "lotus": true,
+          "trees": 8,
+          "flower_colors": [
+            "#e05a8a",
+            "#f0c040",
+            "#f4f1ea"
+          ],
+          "paths": true,
+          "path_color": "#d8c39a"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": true
+    },
+    "env.battlefield_terrain": {
+      "display_name": "Battlefield plain",
+      "family": "environment",
+      "glb": null,
+      "bounds": {
+        "size": [
+          400,
+          2,
+          400
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#8c6a46",
+        "accent": "#6e4c34",
+        "emissive": null,
+        "roughness": 0.95,
+        "metalness": 0.0
+      },
+      "animations": [],
+      "fallback": {
+        "factory": "terrain",
+        "params": {
+          "size": 400,
+          "color": "#8c6a46",
+          "undulation": 0.4,
+          "trampled": true,
+          "scorch": false,
+          "grass_patches": 0.15,
+          "grass": "#8a8a4a"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "env.army_formation": {
+      "display_name": "Army formation",
+      "family": "environment",
+      "glb": null,
+      "bounds": {
+        "size": [
+          120,
+          4,
+          40
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#a8574a",
+        "accent": "#c9a14a",
+        "emissive": null,
+        "roughness": 0.85,
+        "metalness": 0.2
+      },
+      "animations": [
+        {
+          "name": "idle_sway",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "army",
+        "params": {
+          "rows": 12,
+          "cols": 30,
+          "unit": "mixed",
+          "infantry_ratio": 0.5,
+          "cavalry_ratio": 0.3,
+          "chariot_ratio": 0.1,
+          "elephant_ratio": 0.1,
+          "banners": 8,
+          "color": "#a8574a",
+          "formation": "array",
+          "note": "the epic's four-limbed army (chaturanga): chariots, elephants, cavalry and infantry"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": true
+    },
+    "env.clouds": {
+      "display_name": "Clouds",
+      "family": "environment",
+      "glb": null,
+      "bounds": {
+        "size": [
+          160,
+          20,
+          160
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#f4f1ea",
+        "accent": "#d8dce4",
+        "emissive": null,
+        "roughness": 1.0,
+        "metalness": 0.0
+      },
+      "animations": [
+        {
+          "name": "drift",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "clouds",
+        "params": {
+          "count": 12,
+          "color": "#f4f1ea",
+          "shadow": "#c8ccd8",
+          "altitude": 60,
+          "drift": 0.2
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": true
+    },
+    "env.mist": {
+      "display_name": "Mist",
+      "family": "environment",
+      "glb": null,
+      "bounds": {
+        "size": [
+          60,
+          6,
+          60
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#e4e8e0",
+        "accent": "#cfd8d0",
+        "emissive": null,
+        "roughness": 1.0,
+        "metalness": 0.0
+      },
+      "animations": [
+        {
+          "name": "drift",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "mist",
+        "params": {
+          "density": 0.4,
+          "color": "#e4e8e0",
+          "height": 4,
+          "drift": 0.1
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": true
+    },
+    "env.dust": {
+      "display_name": "Dust haze",
+      "family": "environment",
+      "glb": null,
+      "bounds": {
+        "size": [
+          60,
+          8,
+          60
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#c9a27a",
+        "accent": "#a8805a",
+        "emissive": null,
+        "roughness": 1.0,
+        "metalness": 0.0
+      },
+      "animations": [
+        {
+          "name": "swirl",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "dust",
+        "params": {
+          "density": 0.5,
+          "color": "#c9a27a",
+          "height": 6,
+          "swirl": 0.3
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": true
+    },
+    "env.rain": {
+      "display_name": "Rain",
+      "family": "environment",
+      "glb": null,
+      "bounds": {
+        "size": [
+          120,
+          40,
+          120
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#a8b8c8",
+        "accent": "#8898a8",
+        "emissive": null,
+        "roughness": 1.0,
+        "metalness": 0.0
+      },
+      "animations": [
+        {
+          "name": "fall",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "rain",
+        "params": {
+          "intensity": 0.6,
+          "color": "#a8b8c8",
+          "wind": [
+            0.2,
+            0,
+            0
+          ],
+          "splash": true
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "env.fire": {
+      "display_name": "Fire",
+      "family": "environment",
+      "glb": null,
+      "bounds": {
+        "size": [
+          4,
+          4,
+          4
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#ff8a2a",
+        "accent": "#ffe08a",
+        "emissive": "#ff8a2a",
+        "roughness": 1.0,
+        "metalness": 0.0
+      },
+      "animations": [
+        {
+          "name": "flicker",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "fire",
+        "params": {
+          "height": 3,
+          "radius": 2,
+          "color": "#ff8a2a",
+          "core": "#ffe08a",
+          "smoke": "#5a5048",
+          "embers": true
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": true
+    },
+    "env.stars": {
+      "display_name": "Starfield",
+      "family": "environment",
+      "glb": null,
+      "bounds": {
+        "size": [
+          1000,
+          500,
+          1000
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#0a0f24",
+        "accent": "#f4f8ff",
+        "emissive": "#f4f8ff",
+        "roughness": 1.0,
+        "metalness": 0.0
+      },
+      "animations": [
+        {
+          "name": "twinkle",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "stars",
+        "params": {
+          "count": 3000,
+          "color": "#f4f8ff",
+          "milky_way": true,
+          "twinkle": 0.3
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "env.sky_dawn": {
+      "display_name": "Dawn sky",
+      "family": "environment",
+      "glb": null,
+      "bounds": {
+        "size": [
+          1000,
+          500,
+          1000
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#7fa3c8",
+        "accent": "#f2b880",
+        "emissive": null,
+        "roughness": 1.0,
+        "metalness": 0.0
+      },
+      "animations": [],
+      "fallback": {
+        "factory": "sky",
+        "params": {
+          "top": "#7fa3c8",
+          "horizon": "#f2b880",
+          "sun_elevation": 5,
+          "sun_color": "#ffcf90",
+          "sun_azimuth": 90
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "env.sky_day": {
+      "display_name": "Day sky",
+      "family": "environment",
+      "glb": null,
+      "bounds": {
+        "size": [
+          1000,
+          500,
+          1000
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#5f9fd8",
+        "accent": "#d8e8f0",
+        "emissive": null,
+        "roughness": 1.0,
+        "metalness": 0.0
+      },
+      "animations": [],
+      "fallback": {
+        "factory": "sky",
+        "params": {
+          "top": "#5f9fd8",
+          "horizon": "#d8e8f0",
+          "sun_elevation": 60,
+          "sun_color": "#fff6e0",
+          "sun_azimuth": 160
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "env.sky_dusk": {
+      "display_name": "Dusk sky",
+      "family": "environment",
+      "glb": null,
+      "bounds": {
+        "size": [
+          1000,
+          500,
+          1000
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#3a3f6a",
+        "accent": "#e0784a",
+        "emissive": null,
+        "roughness": 1.0,
+        "metalness": 0.0
+      },
+      "animations": [],
+      "fallback": {
+        "factory": "sky",
+        "params": {
+          "top": "#3a3f6a",
+          "horizon": "#e0784a",
+          "sun_elevation": -2,
+          "sun_color": "#ff9a5a",
+          "sun_azimuth": 270
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "env.sky_night": {
+      "display_name": "Night sky",
+      "family": "environment",
+      "glb": null,
+      "bounds": {
+        "size": [
+          1000,
+          500,
+          1000
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#0a0f24",
+        "accent": "#1f2a48",
+        "emissive": null,
+        "roughness": 1.0,
+        "metalness": 0.0
+      },
+      "animations": [],
+      "fallback": {
+        "factory": "sky",
+        "params": {
+          "top": "#0a0f24",
+          "horizon": "#1f2a48",
+          "sun_elevation": -30,
+          "moon": true,
+          "moon_color": "#e8ecf4",
+          "moon_phase": 0.8
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "env.cosmic_mandala": {
+      "display_name": "Cosmic mandala (universal form)",
+      "family": "environment",
+      "glb": null,
+      "bounds": {
+        "size": [
+          60,
+          60,
+          2
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#d4af37",
+        "accent": "#9fd8ff",
+        "emissive": "#ffd76a",
+        "roughness": 0.3,
+        "metalness": 0.6
+      },
+      "animations": [
+        {
+          "name": "rotate",
+          "procedural": true
+        },
+        {
+          "name": "glow_pulse",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "mandala",
+        "params": {
+          "radius": 30,
+          "rings": 7,
+          "petals": 16,
+          "color": "#d4af37",
+          "glow": "#9fd8ff",
+          "rotation_speed": 0.05,
+          "motifs": [
+            "lotus",
+            "wheel",
+            "stars",
+            "suns"
+          ],
+          "note": "abstract visual for the vision of the universal form; not a literal depiction"
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "env.snow": {
+      "display_name": "Snowfield",
+      "family": "environment",
+      "glb": null,
+      "bounds": {
+        "size": [
+          120,
+          1,
+          120
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#f4f8ff",
+        "accent": "#cfe0f0",
+        "emissive": null,
+        "roughness": 0.9,
+        "metalness": 0.0
+      },
+      "animations": [
+        {
+          "name": "fall",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "snow",
+        "params": {
+          "area": [
+            120,
+            0.5,
+            120
+          ],
+          "color": "#f4f8ff",
+          "falling": true,
+          "ground_cover": true,
+          "flake_density": 0.4
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": false
+    },
+    "env.lake": {
+      "display_name": "Lake",
+      "family": "environment",
+      "glb": null,
+      "bounds": {
+        "size": [
+          28,
+          0.5,
+          28
+        ]
+      },
+      "scale": 1.0,
+      "orientation": {
+        "forward": "-z",
+        "up": "+y"
+      },
+      "materials": {
+        "base": "#4f8f9a",
+        "accent": "#e8a0b8",
+        "emissive": null,
+        "roughness": 0.1,
+        "metalness": 0.0
+      },
+      "animations": [
+        {
+          "name": "ripple",
+          "procedural": true
+        }
+      ],
+      "fallback": {
+        "factory": "lake",
+        "params": {
+          "radius": 14,
+          "color": "#4f8f9a",
+          "lotus": true,
+          "lotus_color": "#e8a0b8",
+          "reeds": true,
+          "reflectivity": 0.7
+        }
+      },
+      "provenance": {
+        "source": "procedural",
+        "author": "JARVIS voyage",
+        "license": "original"
+      },
+      "load_status": "procedural",
+      "instancing": true
+    }
+  }
+}

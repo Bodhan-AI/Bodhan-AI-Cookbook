@@ -1,0 +1,57 @@
+JARVIS CHARTS - TOOL REFERENCE
+==============================
+Setup:   pip install plotly            (add kaleido only if you want to save PNG/SVG/PDF)
+Use:     from charts import plot, list_charts
+         plot("bar", x=["A","B","C"], y=[3,5,2], title="Sales")      # generic entry point
+         # or call directly:  from charts import bar_chart ; bar_chart(x, y)
+Every tool returns the plotly Figure and ALSO accepts these optional args:
+    title="..."        chart title
+    show=True          open in browser/notebook (False = don't open)
+    save=None          "file.html" (interactive) or "file.png/.svg/.pdf" (needs kaleido)
+    width=, height=    pixel size
+    theme_dark=False   True = dark theme
+    x_label=, y_label= axis titles (on charts that have axes)
+Notation: list = [1,2,3]   series = list OR {"name": list, ...} (many lines/bars at once)
+          * = required, others optional.  Run `python charts/test_all.py` for a working demo of each.
+
+-------------------------------------------------------------------------------
+LINE / AREA
+ line         x*, y*(series)                     smooth=False, markers=True
+ area         x*, y*(series)                     stacked=False
+ band         x*, y*, lower*, upper*             line with shaded range (all lists)
+
+BAR
+ bar          x*(categories), y*(series)         mode="group"|"stack"|"relative", horizontal=False, show_values=True
+ lollipop     x*(categories), y*(numbers)
+ waterfall    labels*, values*(signed changes)   show_total=True
+ pareto       categories*, values*               sorted bars + cumulative % line
+
+DISTRIBUTION
+ histogram    values*(list or series)            bins=None
+ box          data*  {"group": list}             show_points=True
+ violin       data*  {"group": list}
+
+RELATIONSHIP
+ scatter      x*, y*                             color=list, labels=list(hover text), trendline=False
+ bubble       x*, y*, size*                      labels=list, color=list
+ heatmap      z*(2-D list of rows)               x=col labels, y=row labels, colorscale="Blues", show_values=True
+ correlation  data*  {"col": list} equal length  Pearson correlation matrix
+
+PART OF WHOLE
+ pie          labels*, values*                   donut=False
+ donut        labels*, values*
+ treemap      labels*, parents*, values*         parents: parent name per item, "" for the root
+ sunburst     labels*, parents*, values*         same as treemap
+ funnel       stages*(top->bottom), values*
+
+SPECIAL
+ candlestick  dates*, open*, high*, low*, close* volume=list (all lists, same length)
+ gauge        value*                             min_value=0, max_value=100, target=None
+ radar        categories*, series*               fill=True  (series: list or {"name": list})
+ sankey       sources*, targets*, values*        flows: from-name, to-name, amount (lists)
+ gantt        tasks*, starts*, ends*             groups=list; dates as "YYYY-MM-DD"
+
+-------------------------------------------------------------------------------
+Helpers:  list_charts() -> all names accepted by plot()
+Files:    line_charts.py  bar_charts.py  distribution_charts.py  relationship_charts.py
+          part_of_whole_charts.py  special_charts.py  _common.py (theme/colours)  __init__.py
