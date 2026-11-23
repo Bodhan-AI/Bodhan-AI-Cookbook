@@ -1,0 +1,73 @@
+{
+  "status": "completed",
+  "llm_status": "completed",
+  "stop_reason": "finished",
+  "task": "Translate this worksheet into Marathi and keep the table",
+  "steps": 2,
+  "max_steps": 30,
+  "cost_inr": {
+    "total": 0.202,
+    "by_model": {
+      "indic-ocr": 0.2,
+      "indic-translate": 0.002
+    },
+    "budget": 20.0,
+    "within_budget": true
+  },
+  "model_calls": {
+    "made": 2,
+    "cache_hits": 0
+  },
+  "elapsed_sec": 66.4,
+  "plan": [
+    "1. Perform OCR on the worksheet image to extract its content as markdown, preserving any tables.",
+    "2. Translate the extracted markdown text from English to Marathi, ensuring the table structure remains intact.",
+    "3. Save the translated markdown to a file.",
+    "4. Return the translated markdown file as the final artifact."
+  ],
+  "assumptions": [
+    "The worksheet image contains English text with a table that needs translation to Marathi while preserving the markdown table format.",
+    "No specific voice or audio output is required.",
+    "No audio output or voice synthesis was required."
+  ],
+  "verification": {
+    "status": "completed",
+    "checks": [
+      {
+        "artifact": "demo/runs/worksheet_marathi/artifacts/worksheet_mr.md",
+        "check": "translation coverage",
+        "passed": true,
+        "detail": {
+          "length_ratio": 0.94,
+          "numbers_checked": 4
+        }
+      }
+    ],
+    "artifacts": [
+      "demo/runs/worksheet_marathi/artifacts/worksheet_mr.md"
+    ],
+    "missing_artifacts": [],
+    "not_produced_by_tools": [],
+    "notes": [],
+    "all_passed": true
+  },
+  "artifacts": [
+    "demo/runs/worksheet_marathi/artifacts/worksheet_mr.md"
+  ],
+  "inputs": {
+    "files": [
+      {
+        "path": "demo/inputs/worksheet.jpg",
+        "name": "worksheet.jpg",
+        "kind": "image",
+        "bytes": 93046,
+        "size_px": [
+          1400,
+          1000
+        ]
+      }
+    ],
+    "missing": []
+  },
+  "llm_model": "openai/gpt-oss-120b"
+}
