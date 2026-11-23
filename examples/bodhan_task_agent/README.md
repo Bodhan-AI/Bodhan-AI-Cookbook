@@ -265,7 +265,6 @@ Several of these failed on their first runs. The failures, and the fixes that ma
 - **Transcription:** non-speech (music, tones) can come back as a short invented phrase that isn't flagged. Segment times are processing windows, not exact subtitle timings.
 - **Translation terms** can drift between pieces of a long document.
 - **Cost** is estimated from published rates; Bodhan's spend can't be read with an API key.
-- **Testing:** the end-to-end test runs the whole command line with fakes on a single-step task. A multi-step end-to-end test is still to be added.
 - **Long scans** take most of the 5-minute budget: the 17-page scan used 212–256 s.
 
 The complete lists are in the [server limitations](src/bodhan_mcp/README.md#known-limitations) and [agent limitations](src/bodhan_agent/README.md#known-limitations).
@@ -301,7 +300,7 @@ Bodhan is mocked with `respx` and the LLM with a scripted client. The tests cove
 - error mapping and retries;
 - the MCP surface, including structured errors for bad input;
 - planning and the gate, every guard, budgets, verification and reporting;
-- full command-line runs.
+- full command-line runs, including an end-to-end multi-step task (`tests/test_agent_e2e.py`): OCR of a photo, translation to English, an English summary, translation to Hindi and speech, all verified and reported.
 
 ## AI assistance
 

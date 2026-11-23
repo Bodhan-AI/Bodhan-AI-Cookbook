@@ -233,6 +233,13 @@ The Bodhan keys and the other server settings are described in the [server READM
 
 The tests use a scripted LLM and a fake MCP server, so they make no paid calls. They cover planning and the gate, every guard, budgets and reservations, verification checks, the finish rules, preflight, the trace and report, and full runs through the command line (completed, gate refusal, planner error, server failure, unexpected error).
 
+`tests/test_agent_e2e.py` runs one multi-step task end to end through the real pipeline, with only the LLM and Bodhan faked. The task goes from a photo of a notice to OCR, translation to English, `read`, an English summary with `write`, translation to Hindi and speech. The test then checks that:
+
+- both deliverables are verified and copied to `artifacts/`;
+- the Bodhan calls and the trace are in the right order;
+- the cost adds up;
+- the LLM never saw any Hindi text.
+
 ## Found in live testing
 
 These came from real runs with the Bodhan API and Gemma 4 26B between 19 and 23 November 2026. Each was fixed in code, not in the prompt, unless it says otherwise.
@@ -301,7 +308,6 @@ Each of these is caught by code:
 ## Known limitations
 
 - **Summary length** is controlled only by the prompt (about 1,200 English characters for two minutes), so audio length can miss the target by about 20%.
-- **The end-to-end test** runs the whole command line with fakes on a translate-and-answer task; a multi-step end-to-end test (for example OCR, summary, translation and speech) is still to be added.
 - **`detect_language`** has no word lists for Bhili, Bhojpuri, Bodo, Dogri, Kashmiri and Sindhi in Devanagari, and Manipuri in Bengali script, so it reports "no evidence" for them.
 - **Quoted text:** text in ASCII single quotes in the task is not extracted as a literal.
 - **Result wording:**
