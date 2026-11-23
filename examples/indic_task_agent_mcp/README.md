@@ -68,7 +68,8 @@ The MCP server on its own (stdio):
 python -m bodhan_mcp
 ```
 
-Tested with the MCP Inspector (`npx @modelcontextprotocol/inspector python -m bodhan_mcp`) and with Claude Desktop:
+Tested with the MCP Inspector v2.13 (`npx @modelcontextprotocol/inspector python -m bodhan_mcp`): it lists the nine
+tools, runs them, and shows structured errors for bad input. A Claude Desktop entry looks like this:
 
 ```json
 { "mcpServers": { "bodhan": { "command": "/abs/path/.venv/bin/python", "args": ["-m", "bodhan_mcp"],

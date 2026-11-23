@@ -81,4 +81,4 @@ clips, so a task with many more files needs a larger `--max-steps`.
 | Same input never sent to the same model twice | Enforced by the content-hash cache |
 | Never exceeds `--max-cost-inr` | Task 9 stopped inside its ₹0.02 budget; every call and every whole job is checked against the budget first |
 | Single-step under 30 s, multi-step under 5 minutes | Missed on the free LLM tier: rate-limit waits dominate (tasks 5 and 7 take 60 to 120 s, task 4 four minutes, task 1 five and a half minutes). Bodhan calls take seconds; a paid LLM tier removes the waits |
-| Third-party MCP client works from descriptions alone | Server tested over stdio with the MCP SDK client; contract tests cover every tool's schema and bad inputs |
+| Third-party MCP client works from descriptions alone | Tested with the MCP Inspector v2.13 (tools listed and run, structured errors on bad input) and with an MCP SDK stdio client started from another folder with no keys, sending bad input to every tool (structured errors, no crash); contract tests cover every tool's schema and bad inputs |
