@@ -16,6 +16,7 @@ from langchain_core.documents import Document
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import AIMessage, BaseMessage
 from langchain_core.outputs import ChatGeneration, ChatResult
+from langchain_core.vectorstores import InMemoryVectorStore
 
 # Ensure imports work
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -59,6 +60,10 @@ from examples.rag.retrieval import get_retriever, retrieve_passages  # noqa: E40
 from examples.rag.vector_store import (  # noqa: E402
     count_prefixed_tokens,
     create_vector_store,
+    generate_chunk_id,
+    get_vector_store,
+    index_documents,
+    normalize_metadata_for_chroma,
     split_documents_tokenizer_aware,
 )
 
@@ -586,6 +591,310 @@ def test_get_embedding_model_provider_selection() -> None:
 
     with pytest.raises(ValueError, match="Unsupported embedding provider"):
         get_embedding_model("unsupported_vector_provider")
+
+
+def test_chroma_initialization_and_collection_creation(tmp_path: Path, fake_embeddings: DeterministicFakeEmbeddings) -> None:
+    """Verify Chroma vector store initializes cleanly and creates the named collection."""
+    db_dir = tmp_path / "chroma_init"
+    vs = get_vector_store(
+        provider="chroma",
+        embeddings=fake_embeddings,
+        persist_directory=str(db_dir),
+        collection_name="test_bodhan_col",
+    )
+    assert hasattr(vs, "_collection")
+    assert vs._collection.name == "test_bodhan_col"
+    assert db_dir.exists()
+
+
+def test_chroma_cosine_distance_configuration(tmp_path: Path, fake_embeddings: DeterministicFakeEmbeddings) -> None:
+    """Verify Chroma collection explicitly configures cosine distance (hnsw:space: cosine)."""
+    db_dir = tmp_path / "chroma_cosine"
+    vs = get_vector_store(
+        provider="chroma",
+        embeddings=fake_embeddings,
+        persist_directory=str(db_dir),
+        collection_name="test_cosine_col",
+    )
+    metadata = vs._collection.metadata
+    assert metadata is not None
+    assert metadata.get("hnsw:space") == "cosine"
+
+
+def test_chroma_e5_adapter_integration_and_dimensions(tmp_path: Path, fake_embeddings: DeterministicFakeEmbeddings) -> None:
+    """Verify Chroma correctly receives E5EmbeddingsAdapter without losing asymmetric prefixes."""
+    db_dir = tmp_path / "chroma_e5"
+    adapter = E5EmbeddingsAdapter(base_embeddings=fake_embeddings)
+    vs = get_vector_store(
+        provider="chroma",
+        embeddings=adapter,
+        persist_directory=str(db_dir),
+        collection_name="test_e5_col",
+    )
+    doc = Document(page_content="Valid scholarship document", metadata={"source": "doc1.pdf", "page_number": 1})
+    index_documents(vs, [doc])
+
+    # In E5EmbeddingsAdapter, passages get "passage: " prefix and queries get "query: " prefix
+    # Verify retrieval works using 384-dimensional embeddings
+    results = vs.similarity_search("scholarship", k=1)
+    assert len(results) == 1
+    assert "scholarship" in results[0].page_content.lower()
+
+
+def test_chroma_document_insertion_and_similarity_retrieval(tmp_path: Path, fake_embeddings: DeterministicFakeEmbeddings) -> None:
+    """Verify Chroma indexes multiple documents and retrieves the relevant match via cosine similarity."""
+    db_dir = tmp_path / "chroma_retrieval"
+    adapter = E5EmbeddingsAdapter(base_embeddings=fake_embeddings)
+    vs = get_vector_store(
+        provider="chroma",
+        embeddings=adapter,
+        persist_directory=str(db_dir),
+        collection_name="test_retrieval_col",
+    )
+    docs = [
+        Document(
+            page_content="Students scoring 55% marks with family income under 150000 are eligible for financial aid.",
+            metadata={"source": "aid.pdf", "page": 0, "page_number": 1},
+        ),
+        Document(
+            page_content="Farmers receive 80% subsidy on micro-irrigation installations.",
+            metadata={"source": "irrigation.pdf", "page": 0, "page_number": 1},
+        ),
+    ]
+    index_documents(vs, docs, max_chunk_tokens=200, chunk_token_overlap=20)
+    retriever = get_retriever(vs, top_k=1)
+    results = retrieve_passages(retriever, "financial aid eligibility")
+
+    assert len(results) == 1
+    assert "aid" in results[0].page_content.lower()
+    assert results[0].metadata["source"] == "aid.pdf"
+
+
+def test_chroma_metadata_normalization_and_roundtrip(tmp_path: Path, fake_embeddings: DeterministicFakeEmbeddings) -> None:
+    """Verify complex/nested metadata is normalized for Chroma and survives round-trip retrieval."""
+    db_dir = tmp_path / "chroma_meta"
+    raw_meta = {
+        "source": "complex_doc.pdf",
+        "page": 0,
+        "page_number": 1,
+        "chunk_id": 1,
+        "is_verified": True,
+        "score": 0.95,
+        "nested_dict": {"field": "value"},
+        "tag_list": ["tag1", "tag2"],
+        "null_val": None,
+    }
+    normalized = normalize_metadata_for_chroma(raw_meta)
+    assert normalized["source"] == "complex_doc.pdf"
+    assert normalized["page"] == 0
+    assert normalized["page_number"] == 1
+    assert normalized["chunk_id"] == 1
+    assert normalized["is_verified"] is True
+    assert normalized["score"] == 0.95
+    assert normalized["nested_dict"] == '{"field": "value"}'
+    assert normalized["tag_list"] == '["tag1", "tag2"]'
+    assert "null_val" not in normalized
+
+    vs = get_vector_store(
+        provider="chroma",
+        embeddings=fake_embeddings,
+        persist_directory=str(db_dir),
+    )
+    doc = Document(page_content="Test metadata normalization", metadata=raw_meta)
+    index_documents(vs, [doc])
+
+    retrieved = vs.similarity_search("normalization", k=1)
+    assert len(retrieved) == 1
+    meta = retrieved[0].metadata
+    assert meta["source"] == "complex_doc.pdf"
+    assert meta["page_number"] == 1
+    assert meta["nested_dict"] == '{"field": "value"}'
+
+
+def test_chroma_citation_preservation(tmp_path: Path, fake_embeddings: DeterministicFakeEmbeddings) -> None:
+    """Verify retrieved Chroma documents feed seamlessly into format_context_with_citations."""
+    db_dir = tmp_path / "chroma_citations"
+    vs = get_vector_store(
+        provider="chroma",
+        embeddings=fake_embeddings,
+        persist_directory=str(db_dir),
+    )
+    doc = Document(
+        page_content="Scholarship assistance of 12000 rupees per year is granted.",
+        metadata={"source": "scholarship_notice.pdf", "page": 0, "page_number": 1, "chunk_id": 1},
+    )
+    index_documents(vs, [doc])
+
+    results = vs.similarity_search("scholarship assistance", k=1)
+    context, citation_map = format_context_with_citations(results)
+
+    assert "[S1]" not in context
+    assert 'source="scholarship_notice.pdf"' in context
+    assert 'page="1"' in context
+    assert "S1" in citation_map
+    assert citation_map["S1"].source_file == "scholarship_notice.pdf"
+    assert citation_map["S1"].page_number == 1
+    assert citation_map["S1"].format_label() == "scholarship_notice.pdf — Page 1"
+
+
+def test_chroma_persistence_across_reopen(tmp_path: Path, fake_embeddings: DeterministicFakeEmbeddings) -> None:
+    """Verify documents and metadata persist across vector store restarts using local directory."""
+    db_dir = tmp_path / "chroma_persist"
+    col_name = "persist_test_col"
+
+    # Step 1: Create and populate
+    vs1 = get_vector_store(
+        provider="chroma",
+        embeddings=fake_embeddings,
+        persist_directory=str(db_dir),
+        collection_name=col_name,
+    )
+    doc = Document(
+        page_content="Persistent content that survives restart.",
+        metadata={"source": "persistent.pdf", "page_number": 2},
+    )
+    index_documents(vs1, [doc])
+    del vs1
+
+    # Step 2: Reopen store from same directory
+    vs2 = get_vector_store(
+        provider="chroma",
+        embeddings=fake_embeddings,
+        persist_directory=str(db_dir),
+        collection_name=col_name,
+    )
+    assert vs2._collection.count() == 1
+    res = vs2.similarity_search("survives", k=1)
+    assert len(res) == 1
+    assert res[0].page_content == "Persistent content that survives restart."
+    assert res[0].metadata["source"] == "persistent.pdf"
+    assert res[0].metadata["page_number"] == 2
+    assert vs2._collection.metadata.get("hnsw:space") == "cosine"
+
+
+def test_chroma_deterministic_document_ids() -> None:
+    """Verify chunk ID generation is stable, deterministic, and handles missing source fallback."""
+    id1 = generate_chunk_id("notices/scholarship.pdf", 1, 1, "Sample text")
+    id2 = generate_chunk_id("notices/scholarship.pdf", 1, 1, "Sample text")
+    assert id1 == id2
+    assert id1.startswith("scholarship.pdf:p1:c1:")
+
+    # Different content -> different hash
+    id3 = generate_chunk_id("notices/scholarship.pdf", 1, 1, "Different text")
+    assert id1 != id3
+
+    # Fallback when source is None
+    id_fallback = generate_chunk_id(None, None, 1, "Sample text")
+    assert id_fallback.startswith("unknown_source:p0:c1:")
+
+
+def test_chroma_duplicate_ingestion_prevention(tmp_path: Path, fake_embeddings: DeterministicFakeEmbeddings) -> None:
+    """Verify ingesting the exact same documents twice does not create duplicate chunks."""
+    db_dir = tmp_path / "chroma_dedup"
+    vs = get_vector_store(
+        provider="chroma",
+        embeddings=fake_embeddings,
+        persist_directory=str(db_dir),
+    )
+    docs = [
+        Document(page_content="Chunk 1 content", metadata={"source": "doc1.pdf", "page_number": 1}),
+        Document(page_content="Chunk 2 content", metadata={"source": "doc1.pdf", "page_number": 1}),
+    ]
+
+    # Ingest first time
+    index_documents(vs, docs)
+    count1 = vs._collection.count()
+    assert count1 == 2
+
+    # Ingest identical documents second time
+    index_documents(vs, docs)
+    count2 = vs._collection.count()
+    assert count2 == 2
+
+
+def test_chroma_stale_chunk_handling_on_document_update(tmp_path: Path, fake_embeddings: DeterministicFakeEmbeddings) -> None:
+    """Verify updating a document with fewer chunks removes stale chunks from previous version."""
+    db_dir = tmp_path / "chroma_update"
+    vs = get_vector_store(
+        provider="chroma",
+        embeddings=fake_embeddings,
+        persist_directory=str(db_dir),
+    )
+
+    # Initial version: 3 chunks
+    v1_docs = [
+        Document(page_content=f"Paragraph {i} content text", metadata={"source": "docA.pdf", "page_number": 1})
+        for i in range(1, 4)
+    ]
+    index_documents(vs, v1_docs)
+    assert vs._collection.count() == 3
+
+    # Updated version of docA with only 1 chunk
+    v2_docs = [
+        Document(page_content="Updated unified paragraph content text", metadata={"source": "docA.pdf", "page_number": 1})
+    ]
+    index_documents(vs, v2_docs)
+    assert vs._collection.count() == 1
+
+    res = vs.similarity_search("unified paragraph", k=5)
+    assert len(res) == 1
+    assert "Updated unified" in res[0].page_content
+
+
+def test_chroma_empty_collection_behaviour(tmp_path: Path, fake_embeddings: DeterministicFakeEmbeddings) -> None:
+    """Verify empty collection returns empty list without crashing and rejects indexing empty lists."""
+    db_dir = tmp_path / "chroma_empty"
+    vs = get_vector_store(
+        provider="chroma",
+        embeddings=fake_embeddings,
+        persist_directory=str(db_dir),
+    )
+    assert vs.similarity_search("query on empty store", k=4) == []
+
+    with pytest.raises(ValueError, match="Cannot index empty document list"):
+        index_documents(vs, [])
+
+
+def test_chroma_missing_dependency_raises(tmp_path: Path) -> None:
+    """Verify clear, actionable ImportError is raised when langchain_chroma is missing."""
+    with patch.dict(sys.modules, {"langchain_chroma": None}):
+        with pytest.raises(ImportError, match="pip install -r requirements-rag-chroma.txt"):
+            get_vector_store(provider="chroma", persist_directory=str(tmp_path / "err"))
+
+
+def test_chroma_invalid_configuration(tmp_path: Path) -> None:
+    """Verify ValueError is raised on empty collection name, empty persist directory, or unknown provider."""
+    with pytest.raises(ValueError, match="CHROMA_COLLECTION_NAME cannot be empty"):
+        get_vector_store(provider="chroma", collection_name="", persist_directory=str(tmp_path / "bad"))
+
+    with pytest.raises(ValueError, match="CHROMA_PERSIST_DIRECTORY cannot be empty"):
+        get_vector_store(provider="chroma", collection_name="col", persist_directory="  ")
+
+    with pytest.raises(ValueError, match="Unsupported VECTOR_STORE_PROVIDER"):
+        get_vector_store(provider="pgvector")
+
+
+def test_vector_store_switching_chroma_and_inmemory(tmp_path: Path, fake_embeddings: DeterministicFakeEmbeddings) -> None:
+    """Verify seamless switching between Chroma and InMemory backends using configuration."""
+    chroma_cfg = RAGConfig(
+        vector_store_provider="chroma",
+        chroma_persist_directory=str(tmp_path / "switch_chroma"),
+        chroma_collection_name="switch_test",
+    )
+    chroma_store = get_vector_store(config=chroma_cfg, embeddings=fake_embeddings)
+    assert hasattr(chroma_store, "_collection")
+
+    inmem_cfg = RAGConfig(vector_store_provider="inmemory")
+    inmem_store = get_vector_store(config=inmem_cfg, embeddings=fake_embeddings)
+    assert isinstance(inmem_store, InMemoryVectorStore)
+
+    doc = Document(page_content="Switchable backend test content", metadata={"source": "test.txt"})
+    index_documents(chroma_store, [doc])
+    index_documents(inmem_store, [doc])
+
+    assert len(chroma_store.similarity_search("Switchable", k=1)) == 1
+    assert len(inmem_store.similarity_search("Switchable", k=1)) == 1
+
 
 
 # ==============================================================================
