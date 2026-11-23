@@ -1,0 +1,133 @@
+{
+  "status": "budget_exhausted",
+  "agent_claimed_status": "partial",
+  "stop_reason": "finished",
+  "task": "Read this paragraph aloud in Tamil",
+  "input_files": [
+    "sample_data/demo/library_paragraph.txt"
+  ],
+  "answer": "The English paragraph was successfully translated to Tamil, but speech synthesis could not be completed due to insufficient budget. The translation file is available, but the audio file could not be generated. The estimated cost for Tamil speech synthesis (₹0.18) exceeds the remaining budget (₹0.0089).",
+  "artifacts": [
+    {
+      "file": "artifacts/library_paragraph.ta.txt",
+      "description": "Tamil translation of the library paragraph",
+      "produced_by": "translate_text",
+      "bytes": 651,
+      "ai_generated_audio": false
+    }
+  ],
+  "assumptions": [
+    "The input file contains the exact text to be spoken.",
+    "A default female Tamil voice will be used for synthesis.",
+    "A default female Tamil voice would have been used for synthesis."
+  ],
+  "plan": {
+    "understanding": "The user wants the English paragraph from the input text file to be read aloud in Tamil. This requires translating the English text to Tamil and then synthesizing Tamil speech.",
+    "feasible": true,
+    "source_languages": [
+      "en"
+    ],
+    "target_languages": [
+      "ta"
+    ],
+    "assumptions": [
+      "The input file contains the exact text to be spoken.",
+      "A default female Tamil voice will be used for synthesis."
+    ],
+    "deliverables": [
+      "Tamil audio file (MP3) of the translated paragraph"
+    ],
+    "steps": [
+      "Read the English text from the input file",
+      "Translate the English text to Tamil using translate_text",
+      "Synthesize Tamil speech from the translated text using synthesize_speech"
+    ]
+  },
+  "steps": {
+    "used": 5,
+    "max": 30,
+    "tool_calls": 3,
+    "llm_calls": 5
+  },
+  "cost_inr": {
+    "total": 0.0011,
+    "max": 0.01,
+    "by_tool": {
+      "read_text_file": 0.0,
+      "translate_text": 0.00112,
+      "synthesize_speech": 0.0
+    },
+    "by_model": {
+      "indic-translate": 0.00112
+    }
+  },
+  "time_s": 20.57,
+  "llm_tokens": {
+    "prompt_tokens": 30124,
+    "completion_tokens": 986
+  },
+  "verification": {
+    "passed": true,
+    "checks": [
+      {
+        "name": "translation_checks",
+        "passed": true,
+        "severity": "error",
+        "detail": "length, script, numbers and structure checks passed",
+        "file": "library_paragraph.ta.txt"
+      },
+      {
+        "name": "artifact_non_empty",
+        "passed": true,
+        "severity": "error",
+        "detail": "651 bytes",
+        "file": "library_paragraph.ta.txt"
+      },
+      {
+        "name": "text_non_blank",
+        "passed": true,
+        "severity": "error",
+        "detail": "239 chars",
+        "file": "library_paragraph.ta.txt"
+      }
+    ],
+    "failed": 0,
+    "warnings": 0
+  },
+  "quality_targets": {
+    "honest_failure": {
+      "met": true,
+      "detail": "status decided from verification and budgets, not from the LLM's claim"
+    },
+    "verification": {
+      "met": true,
+      "detail": "every generated audio file and translation checked"
+    },
+    "no_waste": {
+      "met": true,
+      "detail": "1 model requests, 0 served from cache; identical tool calls are memoised and model calls are content-cached"
+    },
+    "budget": {
+      "met": true,
+      "detail": "₹0.0011 of ₹0.01"
+    },
+    "latency": {
+      "met": true,
+      "detail": "20.6s (multi-step target 300s)"
+    }
+  },
+  "missed_targets": {},
+  "model_requests": 1,
+  "cache_hits": 0,
+  "errors": [
+    {
+      "step": 4,
+      "tool": "synthesize_speech",
+      "code": "budget_exceeded",
+      "message": "Speaking 238 characters is estimated at ₹0.1825, more than the ₹0.0089 budget left."
+    }
+  ],
+  "prompt_injection": [],
+  "finished_at": "2026-11-16T11:54:28+00:00",
+  "agent_version": "1.0.0"
+}
