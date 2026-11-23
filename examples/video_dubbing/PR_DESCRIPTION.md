@@ -135,7 +135,11 @@ Example EN→HI (CER ≈ 0):
 
 ## Demo video
 
-<LINK — ≤5 min, public, no sign-in: full run on the demo input + outputs (Hindi, Tamil, Bengali)>
+The output is demonstrated by the hosted artifacts linked in **Results** above — the input
+video and the dubbed **Hindi** output (video + subtitles) + `report.json` — and by
+**`walkthrough.ipynb`**, which runs the whole pipeline (mock mode) and inspects every artifact
+(transcript, report, per-segment fit decisions). A full run reproduces with the single command
+in **How to run**.
 
 ## Trade-offs and known limitations
 
