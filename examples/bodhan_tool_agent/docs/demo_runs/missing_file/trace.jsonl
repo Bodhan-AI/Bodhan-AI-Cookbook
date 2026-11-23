@@ -1,0 +1,2 @@
+{"step": 1, "type": "task", "t_ms": 295, "task": "Summarise the attached report in Hindi", "inputs": {"files": [], "missing": ["demo/inputs/report_that_does_not_exist.pdf"]}}
+{"step": 2, "type": "verify", "t_ms": 295, "status": "not_possible", "checks": [], "missing_artifacts": [], "notes": []}
