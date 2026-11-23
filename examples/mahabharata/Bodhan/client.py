@@ -1,9 +1,6 @@
 
-"""Minimal Bodhan API client (standard library only)."""
-
 import json
 import os
-import re
 import urllib.request
 import uuid
 from pathlib import Path
@@ -14,14 +11,15 @@ LANGUAGES = {"en": "English", "te": "తెలుగు (Telugu)", "hi": "हि
 
 SPEAK_VOICE = os.getenv("BODHAN_VOICE", "Amit")
 TIMEOUT = 60
-CHUNK_CHARS = 1200
 
+class BodhanError(RuntimeError):
+    pass
 
 def _load_env():
     f = HERE / ".env"
-    if f.is_file():
+    if f.exists():
         for line in f.read_text().splitlines():
-            if "=" in line and not line.lstrip().startswith("#"):
+            if "=" in line and not line.startswith("#"):
                 k, v = line.split("=", 1)
                 os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
 
@@ -30,7 +28,7 @@ _load_env()
 
 
 def _key(name):
-    return os.getenv(name, "").strip().strip('"')
+    return os.getenv(name, "")
 
 
 def _base():
@@ -47,7 +45,7 @@ def _check_lang(code):
         raise ValueError(f"Unsupported language: {code}")
 
 
-# -------------------- Translate
+# Translation
 
 def _translate_once(text, target):
     payload = {
@@ -60,7 +58,6 @@ def _translate_once(text, target):
     req = urllib.request.Request(
         _base() + "/chat/completions",
         data=json.dumps(payload).encode(),
-        method="POST",
         headers={
             "Authorization": f"Bearer {_key('BODHAN_TRANSLATE_KEY')}",
             "Content-Type": "application/json"
@@ -70,31 +67,8 @@ def _translate_once(text, target):
     return json.loads(_call(req))["choices"][0]["message"]["content"]
 
 
-def _chunks(text):
-    out, cur = [], ""
-
-    for para in re.split(r"\n\s*\n", text):
-        if cur and len(cur) + len(para) > CHUNK_CHARS:
-            out.append(cur)
-            cur = ""
-
-        cur = f"{cur}\n\n{para}" if cur else para
-
-    if cur:
-        out.append(cur)
-
-    return out
-
-
 def to_language(text, target):
-    _check_lang(target)
-
-    if not text or not text.strip():
-        return text
-
-    return "\n\n".join(
-        _translate_once(chunk, target) for chunk in _chunks(text)
-    )
+    return _translate_once(text, target)
 
 
 def to_english(text, source_lang=None):
@@ -109,68 +83,37 @@ def answer_to_language(answer, lang):
     return answer if lang == "en" else to_language(answer, lang)
 
 
-# -------------------- Transcribe
+# Transcription
 
 def transcribe(audio_bytes, lang, filename="speech.wav"):
-    _check_lang(lang)
-
     boundary = uuid.uuid4().hex
 
-    parts = []
-
-    for name, value in (
-        ("model", "indic-transcribe"),
-        ("language", lang),
-        ("vad", "true")
-    ):
-        parts.append(
-            f'--{boundary}\r\nContent-Disposition: form-data; '
-            f'name="{name}"\r\n\r\n{value}\r\n'.encode()
-        )
-
-    parts.append(
-        f'--{boundary}\r\nContent-Disposition: form-data; '
-        f'name="file"; filename="{filename}"\r\n'
-        f'Content-Type: audio/wav\r\n\r\n'.encode()
-        + audio_bytes + b"\r\n"
-    )
-
-    parts.append(f"--{boundary}--\r\n".encode())
+    body = (
+        f'--{boundary}\r\nContent-Disposition: form-data; name="model"\r\n\r\nindic-transcribe\r\n'
+        f'--{boundary}\r\nContent-Disposition: form-data; name="language"\r\n\r\n{lang}\r\n'
+        f'--{boundary}\r\nContent-Disposition: form-data; name="vad"\r\n\r\ntrue\r\n'
+        f'--{boundary}\r\nContent-Disposition: form-data; name="file"; filename="{filename}"\r\n'
+        f'Content-Type: audio/wav\r\n\r\n'
+    ).encode() + audio_bytes + f'\r\n--{boundary}--\r\n'.encode()
 
     req = urllib.request.Request(
         _base() + "/audio/transcriptions",
-        data=b"".join(parts),
-        method="POST",
+        data=body,
         headers={
             "Authorization": f"Bearer {_key('BODHAN_TRANSCRIBE_KEY')}",
             "Content-Type": f"multipart/form-data; boundary={boundary}"
         }
     )
 
-    return json.loads(_call(req)).get("text", "").strip()
+    return json.loads(_call(req)).get("text", "")
 
 
-# -------------------- Speak
-
-def _plain(text):
-    text = re.sub(
-        r"`+|\*+|_{2,}|^#{1,6}\s*|^\s*[-•+]\s+|\|",
-        " ",
-        text,
-        flags=re.M
-    )
-
-    return re.sub(r"[ \t]+", " ", text).strip()
-
+# Speech
 
 def speak(text, lang, voice=None, max_chars=2500):
-    _check_lang(lang)
-
-    text = _plain(text)[:max_chars]
-
     payload = {
         "model": "indic-speak",
-        "input": text,
+        "input": text[:max_chars],
         "voice": voice or SPEAK_VOICE,
         "instructions": json.dumps({"lang": lang})
     }
@@ -178,7 +121,6 @@ def speak(text, lang, voice=None, max_chars=2500):
     req = urllib.request.Request(
         _base() + "/audio/speech",
         data=json.dumps(payload).encode(),
-        method="POST",
         headers={
             "Authorization": f"Bearer {_key('BODHAN_SPEAK_KEY')}",
             "Content-Type": "application/json"
