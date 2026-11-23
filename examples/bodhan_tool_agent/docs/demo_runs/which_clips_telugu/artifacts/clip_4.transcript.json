@@ -1,0 +1,13 @@
+{
+ "source": "demo/inputs/clips/clip_4.wav",
+ "language": "ta",
+ "duration_sec": 2.39,
+ "text": "இன்று மாலை மழை பெய்யும்",
+ "segments": [
+  {
+   "start": 0.0,
+   "end": 2.39,
+   "text": "இன்று மாலை மழை பெய்யும்"
+  }
+ ]
+}

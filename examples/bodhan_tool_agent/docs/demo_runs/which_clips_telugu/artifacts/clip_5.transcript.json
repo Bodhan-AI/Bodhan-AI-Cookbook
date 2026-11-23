@@ -1,0 +1,13 @@
+{
+ "source": "demo/inputs/clips/clip_5.wav",
+ "language": "bn",
+ "duration_sec": 1.54,
+ "text": "লাইব্রেরি দশটায় খোলে",
+ "segments": [
+  {
+   "start": 0.0,
+   "end": 1.54,
+   "text": "লাইব্রেরি দশটায় খোলে"
+  }
+ ]
+}
