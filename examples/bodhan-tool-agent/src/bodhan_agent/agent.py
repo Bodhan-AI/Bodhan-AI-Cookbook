@@ -68,6 +68,92 @@ PLACEHOLDER_REGEX = re.compile(
     re.IGNORECASE,
 )
 
+PROPER_NOUN_LIMITATION = (
+    "Proper names and named entities in Indian languages do not use capitalization and cannot be "
+    "reliably identified or verified by plain-code checks; translation models may mistranslate "
+    "or substitute personal names (e.g., 'john' for 'अशफाक') without detection. Personal names are not verified."
+)
+
+INDIC_DIGIT_MAP: dict[str, str] = {}
+for _start_char in (
+    0x0966,  # Devanagari ०-९
+    0x09E6,  # Bengali ০-৯
+    0x0A66,  # Gurmukhi ੦-੯
+    0x0AE6,  # Gujarati ૦-૯
+    0x0B66,  # Odia ୦-୯
+    0x0BE6,  # Tamil ௦-௯
+    0x0C66,  # Telugu ౦-౯
+    0x0CE6,  # Kannada ೦-೯
+    0x0D66,  # Malayalam ൦-൯
+):
+    for _i in range(10):
+        INDIC_DIGIT_MAP[chr(_start_char + _i)] = str(_i)
+
+NUM_WORDS_EN = {
+    "0": "zero", "1": "one", "2": "two", "3": "three", "4": "four",
+    "5": "five", "6": "six", "7": "seven", "8": "eight", "9": "nine", "10": "ten",
+}
+
+def normalize_digits(text: str) -> str:
+    """Replaces Indic numerals with ASCII 0-9."""
+    return "".join(INDIC_DIGIT_MAP.get(c, c) for c in text)
+
+def check_translation_token_drops(source_text: str, translated_text: str) -> list[str]:
+    """Plain-code check for tokens in source_text that the translation dropped.
+
+    Checks digits (ASCII & Indic) and capitalized Latin tokens / acronyms.
+    Returns a list of warning strings (not failures).
+    """
+    warnings: list[str] = []
+    if not source_text or not translated_text:
+        return warnings
+
+    # 1. Digits check (ASCII and Indic numerals)
+    src_norm = normalize_digits(source_text)
+    trans_norm = normalize_digits(translated_text).lower()
+
+    src_digits = set(re.findall(r"\b\d+\b", src_norm))
+    dropped_digits = []
+    for d in sorted(src_digits):
+        word_equiv = NUM_WORDS_EN.get(d)
+        if d not in trans_norm and (not word_equiv or not re.search(r"\b" + re.escape(word_equiv) + r"\b", trans_norm)):
+            dropped_digits.append(d)
+    if dropped_digits:
+        warnings.append(
+            f"Translation may have dropped digit token(s): {dropped_digits} from source text."
+        )
+
+    # 2. Capitalized Latin tokens / acronyms check
+    raw_latin_tokens = re.findall(r"\b[A-Z][a-zA-Z0-9_-]*\b", source_text)
+    common_starters = {
+        "The", "This", "That", "These", "Those", "There", "Here", "It", "They", "We", "You", "He",
+        "She", "I", "A", "An", "In", "On", "At", "By", "For", "With", "About", "Against", "Between",
+        "Into", "Through", "During", "Before", "After", "Above", "Below", "To", "From", "Up", "Down",
+        "And", "Or", "But", "If", "Because", "As", "Until", "While", "Of", "Although", "All", "Each",
+        "Every", "Both", "Some", "Any", "No", "Not", "Only", "Own", "Same", "So", "Than", "Too",
+        "Very", "Can", "Will", "Just", "Should", "Now", "Please", "My", "Your", "His", "Her", "Our",
+    }
+    candidate_tokens = set()
+    for tok in raw_latin_tokens:
+        if len(tok) < 2:
+            continue
+        if tok in common_starters and not tok.isupper():
+            continue
+        candidate_tokens.add(tok)
+
+    dropped_latin = []
+    trans_lower = translated_text.lower()
+    for tok in sorted(candidate_tokens):
+        tok_clean = re.escape(tok.lower())
+        if not re.search(r"\b" + tok_clean + r"\b", trans_lower):
+            dropped_latin.append(tok)
+    if dropped_latin:
+        warnings.append(
+            f"Translation may have dropped capitalized Latin token(s): {dropped_latin} from source text."
+        )
+
+    return warnings
+
 
 class TaskAgent:
     """Autonomous agent executing complex multi-step language tasks using Bodhan models."""
@@ -128,6 +214,9 @@ class TaskAgent:
         self.audio_durations: dict[str, float] = {}
         self.last_transcription_result: dict[str, Any] = {}
         self.step_records: list[dict[str, Any]] = []
+        self.step_counter: int = 0
+        self.warnings: list[str] = []
+        self.known_limitations: list[str] = []
 
     def run(self) -> AgentReport:
         """Executes the full agent loop and writes all required outputs."""
@@ -135,6 +224,9 @@ class TaskAgent:
         # Reset trace, artifacts directory, and all in-memory state so every run starts completely fresh
         self.tracer.reset()
         self.step_records.clear()
+        self.step_counter = 0
+        self.warnings.clear()
+        self.known_limitations.clear()
         self.artifacts.clear()
         self.step_outputs.clear()
         self.upstream_sources.clear()
@@ -206,10 +298,13 @@ class TaskAgent:
                     total_time_s=time.perf_counter() - start_time,
                     assumptions=["Verified that requested target language is unsupported by Bodhan Indic models."],
                     failures=[f"Requested unsupported language: {unsupported_name}"],
+                    warnings=self.warnings,
+                    known_limitations=self.known_limitations,
                 )
                 self.tracer.write_report(report)
                 self.tracer.write_result_markdown(
-                    self.task, report.status, final_answer, report.assumptions, [], report.failures
+                    self.task, report.status, final_answer, report.assumptions, [], report.failures,
+                    warnings=report.warnings, known_limitations=report.known_limitations,
                 )
                 return report
 
@@ -227,10 +322,13 @@ class TaskAgent:
                     total_cost_inr=0.0,
                     total_time_s=time.perf_counter() - start_time,
                     failures=[f"File not found: {f_path}"],
+                    warnings=self.warnings,
+                    known_limitations=self.known_limitations,
                 )
                 self.tracer.write_report(report)
                 self.tracer.write_result_markdown(
-                    self.task, report.status, final_answer, [], [], report.failures
+                    self.task, report.status, final_answer, [], [], report.failures,
+                    warnings=report.warnings, known_limitations=report.known_limitations,
                 )
                 return report
 
@@ -285,19 +383,25 @@ class TaskAgent:
                 total_cost_inr=0.0,
                 total_time_s=time.perf_counter() - start_time,
                 failures=["Initial budget was 0 INR."],
+                warnings=self.warnings,
+                known_limitations=self.known_limitations,
             )
             self.tracer.write_report(report)
-            self.tracer.write_result_markdown(self.task, report.status, final_answer, [], [], report.failures)
+            self.tracer.write_result_markdown(
+                self.task, report.status, final_answer, [], [], report.failures,
+                warnings=report.warnings, known_limitations=report.known_limitations,
+            )
             return report
 
         # --------------------------------------------------------------------
         # 2. One-Shot Planning (Fast Single LLM Call with Timeout)
         # --------------------------------------------------------------------
-        step = 0
+        self.step_counter = 0
         final_answer = ""
         agent_status = "success"
 
-        step += 1
+        self.step_counter += 1
+        step = self.step_counter
         try:
             plan_dict, plan_llm_latency_ms = self.llm.generate_plan(self.task, file_summaries)
         except LLMTimeoutError as te:
@@ -327,11 +431,14 @@ class TaskAgent:
                 verification_results=self.verification_results,
                 artifacts=self.artifacts,
                 failures=self.failures,
+                warnings=self.warnings,
+                known_limitations=self.known_limitations,
                 language_ambiguity=self.language_ambiguity,
             )
             self.tracer.write_report(report)
             self.tracer.write_result_markdown(
-                self.task, report.status, final_answer, report.assumptions, report.artifacts, report.failures
+                self.task, report.status, final_answer, report.assumptions, report.artifacts, report.failures,
+                warnings=report.warnings, known_limitations=report.known_limitations,
             )
             return report
 
@@ -363,11 +470,14 @@ class TaskAgent:
                 verification_results=self.verification_results,
                 artifacts=self.artifacts,
                 failures=self.failures,
+                warnings=self.warnings,
+                known_limitations=self.known_limitations,
                 language_ambiguity=self.language_ambiguity,
             )
             self.tracer.write_report(report)
             self.tracer.write_result_markdown(
-                self.task, report.status, final_answer, report.assumptions, report.artifacts, report.failures
+                self.task, report.status, final_answer, report.assumptions, report.artifacts, report.failures,
+                warnings=report.warnings, known_limitations=report.known_limitations,
             )
             return report
 
@@ -427,7 +537,7 @@ class TaskAgent:
         # If the LLM returned a valid list of steps, execute them directly in plain code
         if planned_steps:
             for item in planned_steps:
-                if step >= self.max_steps:
+                if self.step_counter >= self.max_steps:
                     agent_status = "max_steps_reached"
                     self.failures.append(f"Reached step limit ({self.max_steps}).")
                     break
@@ -441,7 +551,8 @@ class TaskAgent:
                 # Path resolution in plain code: resolve bare filenames or relative paths (Requirement 2)
                 resolved_file_ok, file_err = self._resolve_file_arguments(tool_name, args, valid_files)
                 if not resolved_file_ok:
-                    step += 1
+                    self.step_counter += 1
+                    step = self.step_counter
                     rej_trace = StepTrace(
                         step=step,
                         timestamp=datetime.now(timezone.utc).isoformat(),
@@ -463,7 +574,8 @@ class TaskAgent:
                 # Resolve step references and check for unresolved placeholders in plain code
                 resolved_ok, err_msg = self._resolve_step_references(tool_name, args, valid_files)
                 if not resolved_ok:
-                    step += 1
+                    self.step_counter += 1
+                    step = self.step_counter
                     rej_trace = StepTrace(
                         step=step,
                         timestamp=datetime.now(timezone.utc).isoformat(),
@@ -483,7 +595,8 @@ class TaskAgent:
                 # Repeated-call guard: reject identical calls
                 call_sig = f"{tool_name}:{json.dumps(args, sort_keys=True)}"
                 if raw_call_sig in self.executed_calls or call_sig in self.executed_calls:
-                    step += 1
+                    self.step_counter += 1
+                    step = self.step_counter
                     rej_trace = StepTrace(
                         step=step,
                         timestamp=datetime.now(timezone.utc).isoformat(),
@@ -503,7 +616,8 @@ class TaskAgent:
                 if tool_name == "translate_text":
                     should_skip, skip_reason = self._should_skip_translation(args)
                     if should_skip:
-                        step += 1
+                        self.step_counter += 1
+                        step = self.step_counter
                         skip_msg = f"Skipped redundant translate_text step: {skip_reason}."
                         if skip_msg not in self.assumptions:
                             self.assumptions.append(skip_msg)
@@ -536,7 +650,8 @@ class TaskAgent:
                 is_step_cached = self._is_step_cached(tool_name, args)
 
                 if not is_step_cached and est_cost > self.budget.remaining_inr:
-                    step += 1
+                    self.step_counter += 1
+                    step = self.step_counter
                     agent_status = "budget_exceeded"
                     fail_msg = (
                         f"Estimated cost of {tool_name} for {est_desc} (₹{est_cost:.4f}) exceeds "
@@ -571,7 +686,8 @@ class TaskAgent:
                     self.tracer.record_step(rej_trace)
                     break
 
-                step += 1
+                self.step_counter += 1
+                step = self.step_counter
                 t_tool_start = time.perf_counter()
                 cost_before = self.budget.spent_inr
                 tool_res = self._execute_and_save_tool(tool_name, args)
@@ -650,6 +766,33 @@ class TaskAgent:
                 if not tool_res.get("success", False):
                     self.failures.append(f"Step {step} ({tool_name}) failed: {tool_res.get('error')}")
 
+                # Auto-translate SRT if target language differs from audio language
+                if tool_name == "transcribe_audio" and tool_res.get("success"):
+                    stem = self._get_base_stem(args.get("source_artifact_stem") or args.get("file_path"))
+                    srt_file = self.tracer.artifacts_dir / f"subtitles_{stem}.srt"
+                    if srt_file.exists() and self.target_language and self.target_language != self.audio_language:
+                        target_srt = self.tracer.artifacts_dir / f"subtitles_{stem}_{self.target_language}.srt"
+                        if not target_srt.exists():
+                            self._translate_srt_file(srt_file, self.target_language)
+                            step = self.step_counter
+                elif tool_name == "translate_text" and tool_res.get("success"):
+                    stem = self._get_base_stem(args.get("source_artifact_stem") or args.get("file_path"))
+                    orig_srt = self.tracer.artifacts_dir / f"subtitles_{stem}.srt"
+                    t_lang = args.get("target_language_code") or args.get("target_language") or self.target_language
+                    if t_lang and orig_srt.exists() and t_lang != self.audio_language:
+                        target_srt = self.tracer.artifacts_dir / f"subtitles_{stem}_{t_lang}.srt"
+                        if not target_srt.exists():
+                            self._translate_srt_file(orig_srt, t_lang)
+                            step = self.step_counter
+                elif tool_name == "build_srt" and tool_res.get("success"):
+                    srt_p = Path(tool_res.get("srt_path", ""))
+                    if srt_p.exists() and self.target_language and self.target_language != self.audio_language:
+                        stem = self._get_base_stem(srt_p)
+                        target_srt = srt_p.parent / f"subtitles_{stem}_{self.target_language}.srt"
+                        if not target_srt.exists():
+                            self._translate_srt_file(srt_p, self.target_language)
+                            step = self.step_counter
+
         else:
             # Fallback to interactive tool loop if plan was empty
             agent_status, final_answer = self._run_interactive_fallback(valid_files, file_summaries, step, final_answer)
@@ -663,6 +806,7 @@ class TaskAgent:
                     target_srt = p.parent / f"subtitles_{stem}_{self.target_language}.srt"
                     if not target_srt.exists():
                         self._translate_srt_file(p, self.target_language)
+                        step = self.step_counter
 
         # --------------------------------------------------------------------
         # 4. Final Verification & Status Determination
@@ -790,19 +934,22 @@ class TaskAgent:
 
         # Final Report Generation
         total_time = time.perf_counter() - start_time
-        total_would_be = sum(s.get("would_be_cost_inr", 0.0) for s in self.step_records)
+        total_cost = round(sum(s.get("cost_charged_inr", 0.0) for s in self.step_records), 4)
+        total_would_be = round(sum(s.get("would_be_cost_inr", 0.0) for s in self.step_records), 4)
         report = AgentReport(
             status=agent_status,
             task=self.task,
-            steps_taken=step,
-            total_cost_inr=self.budget.spent_inr,
-            total_would_be_cost_inr=round(total_would_be, 4),
+            steps_taken=len(self.step_records),
+            total_cost_inr=total_cost,
+            total_would_be_cost_inr=total_would_be,
             total_time_s=total_time,
             steps=self.step_records,
             assumptions=list(dict.fromkeys(self.assumptions)),
             verification_results=self.verification_results,
             artifacts=list(dict.fromkeys(self.artifacts)),
             failures=self.failures,
+            warnings=list(dict.fromkeys(self.warnings)),
+            known_limitations=list(dict.fromkeys(self.known_limitations)),
             audio_language=self.audio_language,
             target_language=self.target_language,
             language_requested=self.language_requested,
@@ -813,7 +960,14 @@ class TaskAgent:
 
         self.tracer.write_report(report)
         self.tracer.write_result_markdown(
-            self.task, report.status, final_answer, report.assumptions, report.artifacts, report.failures
+            self.task,
+            report.status,
+            final_answer,
+            report.assumptions,
+            report.artifacts,
+            report.failures,
+            warnings=report.warnings,
+            known_limitations=report.known_limitations,
         )
 
         return report
@@ -1107,13 +1261,19 @@ class TaskAgent:
         return blocks
 
     def _translate_srt_file(self, srt_path: Path, target_lang: str) -> Path | None:
-        """Translates each SRT segment separately in plain code, preserving timestamps."""
+        """Translates each SRT segment separately in plain code, preserving timestamps.
+
+        Records every per-segment subtitle translation call in self.step_records and self.tracer.
+        """
         if not srt_path.exists():
             return None
         content = srt_path.read_text(encoding="utf-8")
         segments = self._parse_srt(content)
         if not segments:
             return None
+
+        if PROPER_NOUN_LIMITATION not in self.known_limitations:
+            self.known_limitations.append(PROPER_NOUN_LIMITATION)
 
         stem = self._get_base_stem(srt_path)
         out_name = f"subtitles_{stem}_{target_lang}.srt"
@@ -1123,8 +1283,59 @@ class TaskAgent:
         for seg in segments:
             seg_text = seg["text"].strip()
             if seg_text:
-                res = self.tools.translate_text(text=seg_text, target_language_code=target_lang)
+                t0 = time.perf_counter()
+                try:
+                    res = self.tools.translate_text(text=seg_text, target_language_code=target_lang)
+                except BudgetExceededError as be:
+                    self.failures.append(f"Subtitle segment {seg.get('index')} translation exceeded budget: {be}")
+                    res = {"success": False, "error": str(be), "cost_inr": 0.0, "would_be_cost_inr": 0.0, "cached": False}
+
+                lat_ms = int((time.perf_counter() - t0) * 1000)
                 trans_text = res.get("translated_text", "").strip() or seg_text
+                cached = res.get("cached", False)
+                cost_inr = res.get("cost_inr", 0.0)
+                would_be = res.get("would_be_cost_inr", cost_inr)
+
+                self.step_counter += 1
+                seg_args = {
+                    "segment_index": seg.get("index"),
+                    "timeline": seg.get("timeline"),
+                    "text": seg_text,
+                    "target_language_code": target_lang,
+                }
+                summary = f"Translated subtitle segment {seg.get('index')}: '{seg_text[:30]}...' -> '{trans_text[:30]}...', cost=₹{cost_inr:.4f}"
+                self.step_records.append({
+                    "step": self.step_counter,
+                    "tool": "translate_text",
+                    "cached": cached,
+                    "would_be_cost_inr": round(would_be, 4),
+                    "cost_charged_inr": round(cost_inr, 4),
+                    "arguments": seg_args,
+                    "result_summary": summary,
+                })
+                seg_trace = StepTrace(
+                    step=self.step_counter,
+                    timestamp=datetime.now(timezone.utc).isoformat(),
+                    plan=f"Translate subtitle segment {seg.get('index')}",
+                    tool="translate_text",
+                    arguments=seg_args,
+                    result_summary=summary,
+                    latency_ms=lat_ms,
+                    llm_latency_ms=0,
+                    tool_latency_ms=lat_ms,
+                    cost_inr=cost_inr,
+                    cached=cached,
+                    would_be_cost_inr=round(would_be, 4),
+                    cost_charged_inr=round(cost_inr, 4),
+                )
+                self.tracer.record_step(seg_trace)
+
+                # Check for dropped tokens in segment translation
+                drop_warns = check_translation_token_drops(seg_text, trans_text)
+                for w in drop_warns:
+                    seg_w = f"Subtitle segment {seg.get('index')}: {w}"
+                    if seg_w not in self.warnings:
+                        self.warnings.append(seg_w)
             else:
                 trans_text = ""
             translated_blocks.append(f"{seg['index']}\n{seg['timeline']}\n{trans_text}\n")
@@ -1429,12 +1640,8 @@ class TaskAgent:
                         "source_stem": stem,
                         "target_lang": target_lang,
                     }
-
-                    # Translate SRT if original exists and translated SRT not created yet
-                    orig_srt = self.tracer.artifacts_dir / f"subtitles_{stem}.srt"
-                    target_srt = self.tracer.artifacts_dir / f"subtitles_{stem}_{target_lang}.srt"
-                    if orig_srt.exists() and not target_srt.exists() and target_lang != self.audio_language:
-                        self._translate_srt_file(orig_srt, target_lang)
+                    if PROPER_NOUN_LIMITATION not in self.known_limitations:
+                        self.known_limitations.append(PROPER_NOUN_LIMITATION)
                 return res
 
             elif name == "transcribe_audio":
@@ -1484,8 +1691,6 @@ class TaskAgent:
                         srt_file = self.tracer.artifacts_dir / f"subtitles_{stem}.srt"
                         self.tools.build_srt(res["windows"], output_path=str(srt_file))
                         self.artifacts.append(str(srt_file.resolve()))
-                        if self.target_language and self.target_language != self.audio_language:
-                            self._translate_srt_file(srt_file, self.target_language)
                 return res
 
             elif name == "synthesize_speech":
@@ -1594,8 +1799,6 @@ class TaskAgent:
                 res = self.tools.build_srt(segs, output_path=out_p)
                 if res.get("success") and res.get("srt_path"):
                     self.artifacts.append(res["srt_path"])
-                    if self.target_language and self.target_language != self.audio_language:
-                        self._translate_srt_file(Path(res["srt_path"]), self.target_language)
                 return res
 
             elif name == "finish_task":
@@ -1730,6 +1933,14 @@ class TaskAgent:
                         notes=notes,
                     )
                 )
+
+                # Plain-code check for dropped tokens (digits, capitalized Latin tokens)
+                drop_warns = check_translation_token_drops(upstream_text, content)
+                for w in drop_warns:
+                    if w not in self.warnings:
+                        self.warnings.append(w)
+                if PROPER_NOUN_LIMITATION not in self.known_limitations:
+                    self.known_limitations.append(PROPER_NOUN_LIMITATION)
 
             # Verify Synthesized Speech
             elif art_path.suffix.lower() == ".wav" and "speech" in art_path.name:
@@ -1975,6 +2186,19 @@ class TaskAgent:
                     notes=f"Verified translated subtitles: {len(segments)} segment(s) matching source count, in {expected_script_name} script.",
                 )
             )
+
+            # Plain-code check for dropped tokens between source SRT and translated SRT
+            if source_srt_path and source_srt_path.exists():
+                src_content = source_srt_path.read_text(encoding="utf-8").strip()
+                src_segs = self._parse_srt(src_content)
+                src_full = " ".join(s["text"] for s in src_segs)
+                tgt_full = " ".join(s["text"] for s in segments)
+                drop_warns = check_translation_token_drops(src_full, tgt_full)
+                for w in drop_warns:
+                    if w not in self.warnings:
+                        self.warnings.append(w)
+            if PROPER_NOUN_LIMITATION not in self.known_limitations:
+                self.known_limitations.append(PROPER_NOUN_LIMITATION)
         else:
             # Original SRT verification
             if self.audio_language:
@@ -2235,8 +2459,9 @@ class TaskAgent:
             },
         ]
 
-        while step < self.max_steps:
-            step += 1
+        while self.step_counter < self.max_steps:
+            self.step_counter += 1
+            step = self.step_counter
             if self.budget.remaining_inr <= 0.0:
                 return "budget_exceeded", "Budget exhausted in fallback loop."
 

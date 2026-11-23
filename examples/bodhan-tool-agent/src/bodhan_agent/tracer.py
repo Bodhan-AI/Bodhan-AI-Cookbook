@@ -85,6 +85,8 @@ class AgentTracer:
         assumptions: list[str],
         artifacts: list[str],
         failures: list[str],
+        warnings: list[str] = None,
+        known_limitations: list[str] = None,
     ) -> None:
         """Generates result.md documenting the run, answers, assumptions, and links to artifacts."""
         lines = [
@@ -103,6 +105,14 @@ class AgentTracer:
                 "",
             ])
 
+        if warnings:
+            lines.extend([
+                "## Warnings",
+                "",
+                "\n".join(f"- {w}" for w in warnings),
+                "",
+            ])
+
         lines.extend([
             "## Summary of Actions & Answer",
             "",
@@ -115,6 +125,14 @@ class AgentTracer:
                 "## Assumptions Made",
                 "",
                 "\n".join(f"- {a}" for a in assumptions),
+                "",
+            ])
+
+        if known_limitations:
+            lines.extend([
+                "## Known Limitations",
+                "",
+                "\n".join(f"- {kl}" for kl in known_limitations),
                 "",
             ])
 

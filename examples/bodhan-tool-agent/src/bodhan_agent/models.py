@@ -78,6 +78,8 @@ class AgentReport:
     detected_script: str | None = None
     windows_count: int | None = None
     language_ambiguity: str | None = None
+    warnings: list[str] = field(default_factory=list)
+    known_limitations: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         d = {
@@ -92,11 +94,14 @@ class AgentReport:
             "verification_results": [v.to_dict() for v in self.verification_results],
             "artifacts": self.artifacts,
             "failures": self.failures,
+            "warnings": self.warnings,
             "audio_language": self.audio_language,
             "target_language": self.target_language,
             "language_requested": self.language_requested,
             "detected_script": self.detected_script,
             "windows_count": self.windows_count,
+            "known_limitations": self.known_limitations,
+            "known limitations": self.known_limitations,
         }
         if self.language_ambiguity:
             d["language_ambiguity"] = self.language_ambiguity

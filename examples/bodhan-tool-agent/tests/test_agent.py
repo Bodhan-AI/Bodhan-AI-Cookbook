@@ -1816,6 +1816,155 @@ class TestAgent(unittest.TestCase):
         self.assertIn("language_ambiguity", rep_dict)
         self.assertIn("Disjunctive language choices", rep_dict["language_ambiguity"])
 
+    def test_step_costs_sum_to_total_cost_inr_including_subtitles(self):
+        """Tests that subtitle segment translations are recorded in steps[] and sum to total_cost_inr."""
+        video_file = self.samples_dir / "test_video.mp4"
+        video_file.write_bytes(b"dummy mp4 video bytes")
+
+        extracted_wav = self.out_dir / "work" / "extracted_test_video.wav"
+        extracted_wav.parent.mkdir(parents=True, exist_ok=True)
+        extracted_wav.write_bytes(b"dummy extracted wav bytes")
+
+        self.mock_tools.extract_audio_from_video.return_value = {
+            "success": True,
+            "audio_path": str(extracted_wav),
+            "cost_inr": 0.0,
+            "would_be_cost_inr": 0.0,
+            "cached": True,
+        }
+
+        def mock_build_srt(windows, output_path=None):
+            p = Path(output_path) if output_path else self.out_dir / "artifacts" / "subtitles_test_video.srt"
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_text("1\n00:00:00,000 --> 00:00:05,000\nमेरा नाम अशफाक है\n", encoding="utf-8")
+            return {"success": True, "srt_path": str(p)}
+
+        self.mock_tools.build_srt.side_effect = mock_build_srt
+
+        self.mock_tools.transcribe_audio.return_value = {
+            "success": True,
+            "transcript": "मेरा नाम अशफाक है",
+            "duration_s": 5.0,
+            "windows_count": 1,
+            "windows": [{"window_index": 1, "start_s": 0.0, "end_s": 5.0, "text": "मेरा नाम अशफाक है"}],
+            "cost_inr": 0.0,
+            "would_be_cost_inr": 0.02,
+            "cached": True,
+            "detected_script": "Devanagari",
+        }
+
+        def mock_translate(text="", file_path="", target_language_code="en", target_script="native"):
+            return {
+                "success": True,
+                "translated_text": "my name is john",
+                "cost_inr": 0.0004,
+                "would_be_cost_inr": 0.0004,
+                "cached": False,
+                "target_language": target_language_code,
+            }
+
+        self.mock_tools.translate_text.side_effect = mock_translate
+
+        plan = {
+            "steps": [
+                {"tool": "transcribe_audio", "args": {"file_path": "test_video.mp4"}},
+            ]
+        }
+
+        agent = TaskAgent(
+            task="Create English subtitles for this Hindi video",
+            files=[video_file],
+            out_dir=self.out_dir,
+            settings=self.mock_settings,
+            llm_client=MockLLM(plan_dict=plan),
+            tools=self.mock_tools,
+        )
+        report = agent.run()
+
+        # Step costs must sum exactly to total_cost_inr
+        step_cost_sum = round(sum(s.get("cost_charged_inr", 0.0) for s in report.steps), 4)
+        self.assertEqual(step_cost_sum, report.total_cost_inr)
+        self.assertGreater(report.total_cost_inr, 0.0)
+
+        # Check in report.json on disk
+        rep_path = self.out_dir / "report.json"
+        rep_json = json.loads(rep_path.read_text(encoding="utf-8"))
+        json_step_sum = round(sum(s.get("cost_charged_inr", 0.0) for s in rep_json["steps"]), 4)
+        self.assertEqual(json_step_sum, rep_json["total_cost_inr"])
+
+        # Per-segment subtitle translation step must be in steps[]
+        sub_steps = [
+            s for s in report.steps
+            if s.get("tool") == "translate_text" and "segment_index" in s.get("arguments", {})
+        ]
+        self.assertTrue(len(sub_steps) >= 1)
+        self.assertEqual(sub_steps[0]["arguments"]["segment_index"], 1)
+        self.assertEqual(sub_steps[0]["cost_charged_inr"], 0.0004)
+
+    def test_translation_token_drops_warning_and_known_limitations(self):
+        """Tests that token drops produce warnings and known limitations are documented without failure."""
+        text_file = self.samples_dir / "sample_doc.txt"
+        source_text = "मेरा रोल नंबर 100 है और मैं NASA में काम करता हूँ"
+        text_file.write_text(source_text, encoding="utf-8")
+
+        # Mock translation that drops digit '100' and capitalized token 'NASA'
+        self.mock_tools.translate_text.return_value = {
+            "success": True,
+            "translated_text": "my roll number is hundred and i work at the organization",
+            "cost_inr": 0.0002,
+            "would_be_cost_inr": 0.0002,
+            "cached": False,
+            "target_language": "en",
+        }
+
+        plan = {
+            "steps": [
+                {"tool": "translate_text", "args": {"file_path": "sample_doc.txt", "target_language": "en"}},
+            ]
+        }
+
+        agent = TaskAgent(
+            task="Translate this Hindi text to English",
+            files=[text_file],
+            out_dir=self.out_dir,
+            settings=self.mock_settings,
+            llm_client=MockLLM(plan_dict=plan),
+            tools=self.mock_tools,
+        )
+        report = agent.run()
+
+        # Warning does NOT fail the task
+        self.assertEqual(report.status, "success")
+
+        # Warnings recorded in report
+        self.assertTrue(len(report.warnings) > 0)
+        self.assertTrue(any("100" in w for w in report.warnings))
+        self.assertTrue(any("NASA" in w for w in report.warnings))
+
+        # Known limitations recorded in report and serialized JSON
+        self.assertTrue(len(report.known_limitations) > 0)
+        limit_text = report.known_limitations[0]
+        self.assertIn("Proper names", limit_text)
+        self.assertIn("not verified", limit_text)
+
+        rep_path = self.out_dir / "report.json"
+        rep_json = json.loads(rep_path.read_text(encoding="utf-8"))
+        self.assertIn("warnings", rep_json)
+        self.assertIn("known limitations", rep_json)
+        self.assertIn("known_limitations", rep_json)
+        self.assertTrue(any("100" in w for w in rep_json["warnings"]))
+        self.assertTrue(any("NASA" in w for w in rep_json["warnings"]))
+
+        # Check result.md sections
+        result_md = (self.out_dir / "result.md").read_text(encoding="utf-8")
+        self.assertIn("## Warnings", result_md)
+        self.assertIn("## Known Limitations", result_md)
+
+        # Confirm no claim of name verification
+        for v in report.verification_results:
+            self.assertNotIn("name verified", v.notes.lower())
+            self.assertNotIn("names verified", v.notes.lower())
+
 
 if __name__ == "__main__":
     unittest.main()
