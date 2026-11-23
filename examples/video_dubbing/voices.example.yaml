@@ -1,0 +1,29 @@
+# Custom Voice Configuration for bodhan_dub
+# Override default voice mapping per target language.
+# Indic-Speak features 45 cross-language voices.
+
+voices:
+  hi:
+    default: "Kavya"
+    female: "Kavya"
+    male: "Amit"
+
+  bn:
+    default: "Ishita"
+    female: "Ishita"
+    male: "Sourav"
+
+  ta:
+    default: "Kavya"
+    female: "Kavya"
+    male: "Amit"
+
+  te:
+    default: "Kavya"
+    female: "Kavya"
+    male: "Amit"
+
+  as:
+    default: "Prastuti"
+    female: "Prastuti"
+    male: "Ankur"

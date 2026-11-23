@@ -1,0 +1,66 @@
+{
+  "Kavya_hi": {
+    "status": 200,
+    "content_type": "audio/mpeg",
+    "audio_bytes": 139308,
+    "sample_rate": 24000,
+    "channels": 1,
+    "duration_s": 2.901,
+    "char_count": 33,
+    "chars_per_second": 11.37,
+    "rate_headers": {}
+  },
+  "Amit_hi": {
+    "status": 200,
+    "content_type": "audio/mpeg",
+    "audio_bytes": 110636,
+    "sample_rate": 24000,
+    "channels": 1,
+    "duration_s": 2.304,
+    "char_count": 31,
+    "chars_per_second": 13.45,
+    "rate_headers": {}
+  },
+  "Ishita_bn": {
+    "status": 200,
+    "content_type": "audio/mpeg",
+    "audio_bytes": 90156,
+    "sample_rate": 24000,
+    "channels": 1,
+    "duration_s": 1.877,
+    "char_count": 21,
+    "chars_per_second": 11.19,
+    "rate_headers": {}
+  },
+  "Sourav_bn": {
+    "status": 200,
+    "content_type": "audio/mpeg",
+    "audio_bytes": 90156,
+    "sample_rate": 24000,
+    "channels": 1,
+    "duration_s": 1.877,
+    "char_count": 26,
+    "chars_per_second": 13.85,
+    "rate_headers": {}
+  },
+  "length_120": {
+    "chars": 120,
+    "status": 200,
+    "duration_s": 11.093
+  },
+  "length_240": {
+    "chars": 240,
+    "status": 200,
+    "duration_s": 30.549
+  },
+  "length_480": {
+    "chars": 480,
+    "status": 200,
+    "duration_s": 30.549
+  },
+  "length_960": {
+    "chars": 960,
+    "status": 200,
+    "duration_s": 30.549
+  }
+}

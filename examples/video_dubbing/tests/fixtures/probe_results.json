@@ -1,0 +1,171 @@
+{
+  "probe_time": "2026-11-18T13:13:09+0530",
+  "facts": {
+    "transcribe": {
+      "default_response": {
+        "status_code": 200,
+        "body": {
+          "text": "No No No No No No No No No No No No No No No No No No No No No No No No No No No No No No No No No No No No No No No No No No No No No No No No No No No No No No No No No No No No No No",
+          "usage": null
+        }
+      },
+      "verbose_json": {
+        "status_code": 200,
+        "headers": {
+          "alt-svc": "h3=\":8443\"; ma=2592000",
+          "cache-control": "no-store",
+          "content-length": "270",
+          "content-security-policy": "frame-ancestors 'none'",
+          "content-type": "application/json",
+          "date": "Wed, 18 Nov 2026 07:43:06 GMT",
+          "referrer-policy": "no-referrer",
+          "strict-transport-security": "max-age=31536000; includeSubDomains",
+          "via": "1.1 Caddy",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "DENY"
+        },
+        "body_keys": [
+          "text",
+          "usage",
+          "language",
+          "duration",
+          "words",
+          "segments"
+        ],
+        "has_segments": true,
+        "has_words": true
+      },
+      "flex_model": {
+        "status_code": 403,
+        "accepted": false,
+        "error": "{\"error\":{\"message\":\"key not allowed to access model. This key can only access models=['indic-transcribe']. Tried to access indic-transcribe-flex\",\"type\":\"key_model_access_denied\",\"param\":\"model\",\"cod"
+      },
+      "rate_limit_headers": {}
+    },
+    "translate": {
+      "simple_hi": {
+        "status": 200,
+        "translation_preview": "कक्षा सुबह नौ बजे शुरू होती है।",
+        "usage": {
+          "completion_tokens": 10,
+          "prompt_tokens": 29,
+          "total_tokens": 39
+        },
+        "response_keys": [
+          "id",
+          "created",
+          "model",
+          "object",
+          "system_fingerprint",
+          "choices",
+          "usage"
+        ],
+        "choice_keys": [
+          "finish_reason",
+          "index",
+          "message",
+          "provider_specific_fields"
+        ]
+      },
+      "technical_ta": {
+        "status": 200,
+        "translation_preview": "ஒளியின் வேகம் தோராயமாக வினாடிக்கு 3 x 10^8 மீட்டர் ஆகும்.",
+        "usage": {
+          "completion_tokens": 24,
+          "prompt_tokens": 38,
+          "total_tokens": 62
+        },
+        "response_keys": [
+          "id",
+          "created",
+          "model",
+          "object",
+          "system_fingerprint",
+          "choices",
+          "usage"
+        ],
+        "choice_keys": [
+          "finish_reason",
+          "index",
+          "message",
+          "provider_specific_fields"
+        ]
+      },
+      "code_mixed_hi": {
+        "status": 400,
+        "error": "{\"error\":{\"message\":\"unsupported language 'Hindi (code-mixed)'; supported: as, bn, brx, doi, en, gu, hi, kn, kok, ks, ks-Deva, mai, ml, mni, mni-Beng, mr, ne, or, pa, sa, sat, sd, sd-Arab, ta, te, ur\",\"type\":\"invalid_request_error\",\"param\":null,\"code\":\"400\"}}"
+      },
+      "back_translate": {
+        "status": 200,
+        "text_preview": "The class starts at nine in the morning.",
+        "source_omitted": true
+      }
+    },
+    "speak": {
+      "Kavya_hi": {
+        "status": 200,
+        "content_type": "audio/mpeg",
+        "audio_bytes": 139308,
+        "sample_rate": 24000,
+        "channels": 1,
+        "duration_s": 2.901,
+        "char_count": 33,
+        "chars_per_second": 11.37,
+        "rate_headers": {}
+      },
+      "Amit_hi": {
+        "status": 200,
+        "content_type": "audio/mpeg",
+        "audio_bytes": 110636,
+        "sample_rate": 24000,
+        "channels": 1,
+        "duration_s": 2.304,
+        "char_count": 31,
+        "chars_per_second": 13.45,
+        "rate_headers": {}
+      },
+      "Ishita_bn": {
+        "status": 200,
+        "content_type": "audio/mpeg",
+        "audio_bytes": 90156,
+        "sample_rate": 24000,
+        "channels": 1,
+        "duration_s": 1.877,
+        "char_count": 21,
+        "chars_per_second": 11.19,
+        "rate_headers": {}
+      },
+      "Sourav_bn": {
+        "status": 200,
+        "content_type": "audio/mpeg",
+        "audio_bytes": 90156,
+        "sample_rate": 24000,
+        "channels": 1,
+        "duration_s": 1.877,
+        "char_count": 26,
+        "chars_per_second": 13.85,
+        "rate_headers": {}
+      },
+      "length_120": {
+        "chars": 120,
+        "status": 200,
+        "duration_s": 11.093
+      },
+      "length_240": {
+        "chars": 240,
+        "status": 200,
+        "duration_s": 30.549
+      },
+      "length_480": {
+        "chars": 480,
+        "status": 200,
+        "duration_s": 30.549
+      },
+      "length_960": {
+        "chars": 960,
+        "status": 200,
+        "duration_s": 30.549
+      }
+    }
+  }
+}

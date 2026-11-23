@@ -1,0 +1,59 @@
+{
+  "simple_hi": {
+    "status": 200,
+    "translation_preview": "कक्षा सुबह नौ बजे शुरू होती है।",
+    "usage": {
+      "completion_tokens": 10,
+      "prompt_tokens": 29,
+      "total_tokens": 39
+    },
+    "response_keys": [
+      "id",
+      "created",
+      "model",
+      "object",
+      "system_fingerprint",
+      "choices",
+      "usage"
+    ],
+    "choice_keys": [
+      "finish_reason",
+      "index",
+      "message",
+      "provider_specific_fields"
+    ]
+  },
+  "technical_ta": {
+    "status": 200,
+    "translation_preview": "ஒளியின் வேகம் தோராயமாக வினாடிக்கு 3 x 10^8 மீட்டர் ஆகும்.",
+    "usage": {
+      "completion_tokens": 24,
+      "prompt_tokens": 38,
+      "total_tokens": 62
+    },
+    "response_keys": [
+      "id",
+      "created",
+      "model",
+      "object",
+      "system_fingerprint",
+      "choices",
+      "usage"
+    ],
+    "choice_keys": [
+      "finish_reason",
+      "index",
+      "message",
+      "provider_specific_fields"
+    ]
+  },
+  "code_mixed_hi": {
+    "status": 400,
+    "error": "{\"error\":{\"message\":\"unsupported language 'Hindi (code-mixed)'; supported: as, bn, brx, doi, en, gu, hi, kn, kok, ks, ks-Deva, mai, ml, mni, mni-Beng, mr, ne, or, pa, sa, sat, sd, sd-Arab, ta, te, ur\",\"type\":\"invalid_request_error\",\"param\":null,\"code\":\"400\"}}"
+  },
+  "back_translate": {
+    "status": 200,
+    "text_preview": "The class starts at nine in the morning.",
+    "source_omitted": true
+  }
+}
