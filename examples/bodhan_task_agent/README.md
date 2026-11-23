@@ -6,7 +6,7 @@
 
 An agentic language-workflow recipe for the [Bodhan AI Cookbook](https://github.com/Bodhan-AI/Bodhan-AI-Cookbook). A general-purpose LLM plans tasks and calls **Bodhan-only** OCR, transcription, translation and speech tools, without generating Indian-language text itself. The agent works with files by reference; produces text/audio/subtitle artifacts, an auditable trace, a quality report and honest error statuses; and enforces model-cost reservations and step limits.
 
-> **Verified to date (22 Nov 2026):** 37 offline tests passed in the Windows development project, Cookbook recipe validation had zero blocking findings, and live Bengali translation/speech, Hindi-to-English subtitles, and independent MCP Inspector discovery/calls succeeded. Marathi worksheet OCR and direct translation generated files; a separate offline audit passed table, numbers, and LaTeX preservation, but the *complete autonomous Marathi run was not successful* and an older QA report disagreed on number preservation. Unsupported French was refused without a fabricated file. Six full task scenarios, the public demo video and final PR are not complete. See [live results](docs/LIVE_VALIDATION_RESULTS.md) and [engineering log](docs/ISSUES_AND_FIXES.md).
+> **Verified to date (23 Nov 2026):** All six example scenarios have now been exercised. Bengali narration, Hindi subtitles, Telugu identification and the French MP4 negative test produced the expected class of results; the autonomous Marathi worksheet produced a translated document with formatting/QA warnings; the Tamil audio summary was generated, but OCR obtained only 5 of 8 pages. Independent MCP Inspector calls succeeded. The submitted project had 37 offline tests before the latest unsupported-language preflight regressions; re-run the expanded suite in the final submission clone before citing an updated count. The public demo video and evidence URLs are still **pending**. See [live validation results](docs/LIVE_VALIDATION_RESULTS.md).
 
 ## Setup
 
@@ -99,11 +99,11 @@ See [Issues, failed attempts and verified fixes](docs/ISSUES_AND_FIXES.md) for a
 
 ### Six required demo tasks
 
-See [Live demonstration runbook](docs/LIVE_DEMO_RUNBOOK.md). The take-home requires **at least six real successful/appropriately refused demos**, including a documented impossible task; never substitute the mocked tests for these. Bengali speech and Hindi subtitles were completed as autonomous runs; a text-based unsupported-French refusal passed. The autonomous Marathi run failed, and Tamil chapter narration and Telugu clip selection remain untested. The demo must be captured in a public, sign-in-free video of **at most five minutes** before the PR is considered complete.
+See [Live demonstration runbook](docs/LIVE_DEMO_RUNBOOK.md). The take-home requires **at least six executed demos with clear success, partial, or appropriate refusal outcomes**, including a documented impossible task; never substitute the mocked tests for these. Bengali speech and Hindi subtitles were completed as autonomous runs; a text-based unsupported-French refusal passed. The autonomous Marathi run failed, and Tamil chapter narration and Telugu clip selection remain untested. The demo must be captured in a public, sign-in-free video of **at most five minutes** before the PR is considered complete.
 
 ### Local tests and external MCP verification
 
-The Windows development copy passed **37 offline tests** (mocked/model-protocol tests). Re-run the tests and Cookbook checks in the actual PR clone before final submission:
+The Windows submission clone passed **37 offline tests** before the generic unsupported-language preflight patch; re-run the expanded suite and Cookbook checks in the actual final PR clone before final submission:
 
 ```bash
 # From examples/bodhan_task_agent after pip install -e .
@@ -133,7 +133,7 @@ npx.cmd -y @modelcontextprotocol/inspector --cli .\.venv\Scripts\python.exe -m b
 
 ## Trade-offs and known limitations
 
-- **Partial live coverage:** Real Bengali text→speech, Hindi audio→English SRT, and worksheet OCR were completed. A direct OCR-derived Marathi translation exists, but the autonomous Marathi task failed upstream; Tamil scanned-chapter narration and Telugu clip selection have not been demonstrated in the provided run records.
+- **Six real task runs now recorded:** Bengali and Hindi workflows succeeded; the autonomous Marathi worksheet produced all required file types but has time-token formatting/QA warnings; Telugu correctly selected two Telugu clips; the unsupported French MP4 was refused generically. The Tamil pipeline produced narration from only 5/8 OCR pages (three HTTP 502s), and is **partial** rather than an all-pages success.
 - **Marathi QA:** The first translation QA sidecar had `numbers_preserved: false`; a later independent audit of the saved documents found number order, table cells and LaTeX preserved. We report both and do not equate the audit with native-speaker review.
 - **Time and speech alignment:** ASR chunk boundaries are coarse. The Hindi sample generated one subtitle cue for a 6.485-second clip, not word-level timings.
 - **Model/API reliability:** `/translate` returned HTTP 404 in the tested environment; translation succeeded through the Bodhan `indic-translate` chat-completions fallback. Rate limiting caused a failure during a longer Marathi task. Transient retries are bounded.
@@ -143,27 +143,35 @@ npx.cmd -y @modelcontextprotocol/inspector --cli .\.venv\Scripts\python.exe -m b
 
 ## Live results (not the hidden benchmark)
 
-| Demonstration | Observed result | Time | Est. Bodhan charge |
-| --- | --- | ---: | ---: |
-| English paragraph → Bengali text and female speech | `completed`; 12.032 s WAV; back-ASR character similarity 0.975 | 19.39 s | ₹0.1071 |
-| Hindi sample WAV → English transcript/SRT | `completed`; one SRT cue covering 0–6.485 s | 121.67 s | ₹0.0266 |
-| Independent MCP Inspector worksheet OCR | `ok: true`, 1/1 page, zero failed; two low-confidence empty layout blocks | — | Not independently reported |
-| Worksheet → Marathi | Autonomous run **did not** translate; direct tool produced Marathi output; offline structural audit passed 4/4 checks; semantic review pending | — | Not reliably comparable |
-| Unsupported French translation | `not_completed`, no artifacts or tool calls | 1.14 s | ₹0.00 |
+These outcomes are based on actual local reports and traces, not hidden-test performance. Tamil is a **partial** result, and the Marathi run still has QA warnings. All prices below are estimated Bodhan charges, not invoices; general LLM costs are excluded.
 
-See [Live validation results](docs/LIVE_VALIDATION_RESULTS.md) for evidence and caveats. Raw model output and media are intentionally omitted from git; public, rights-cleared demo artifact links should be supplied in the PR.
+| Demonstration | Outcome and caveats | Runtime | Est. Bodhan cost |
+| --- | --- | ---: | ---: |
+| English paragraph → Bengali female speech | Completed, 12.032-second WAV; back-ASR similarity 0.975 | 19.39 s | ₹0.1071 |
+| Hindi WAV → English SRT | Completed on a 6.485-second sample, one coarse-timed cue; not a three-minute validation | 121.67 s | ₹0.0266 |
+| Worksheet image → Marathi Markdown | **Autonomous `completed`**, OCR and translation outputs saved; table/math retained, but strict number QA fails due to formatting such as `9:00ए. एम.` | 74.40 s | ₹0.2953 |
+| Eight-page scanned PDF → Tamil narration | **Partial quality:** only 5/8 pages OCR'd (HTTP 502 on pages 1, 2 and 8); Tamil MP3 2m42s rather than ~2m, back-ASR similarity 0.714; over five-minute multi-step target | 442.02 s | ₹3.6402 |
+| Five audio clips → identify and translate Telugu | Completed, selected clip_01/clip_04 and translated only these; clip_03 correctly left unclassified when provider language was unknown | 88.34 s | ₹0.0411 |
+| MP4 → French output video | **Appropriate refusal:** `UNSUPPORTED_LANGUAGE`, zero model/tool calls, no media artifacts; corrected generic preflight | 0.00 s reported | ₹0.00 |
+| Independent MCP Inspector OCR | Tool-level success on worksheet, one page, preserved table and expression | — | Not separately reported |
+
+The reports and JSONL traces must be made accessible to reviewers separately: **public evidence links are not yet supplied**. Raw private `.env`, cache files and generated media are intentionally not tracked in git. See [live validation details](docs/LIVE_VALIDATION_RESULTS.md), [evidence upload checklist](docs/DEMO_EVIDENCE_CHECKLIST.md), and [engineering log](docs/ISSUES_AND_FIXES.md).
+
+### Demo recording
+
+**PENDING:** Replace this paragraph with an actual public ≤5-minute recording URL (reviewable without signing in). Do not claim a video was recorded or linked until this is done.
 
 ## Submission checklist
 
 - [x] Runnable agent command and independent stdio server
 - [x] Bodhan-only model capabilities, typed schemas, budgets and retries
-- [x] Offline tests in working Windows development project (37 passed)
+- [x] Original 37 offline tests passed; expanded preflight suite must be rerun in submission clone
 - [x] Successful live Bengali speech and Hindi subtitles tasks
 - [x] Independent MCP Inspector discovery and selected tool execution
 - [x] Negative unsupported-French test with no fabricated output
 - [x] Cookbook single-recipe validator reported zero blocking errors locally
-- [ ] Re-run `make check` and all tests in the final submission checkout
-- [ ] Finish/clearly disclose remaining two task scenarios and autonomous Marathi limitation
+- [ ] Re-run expanded pytest suite and Cookbook checks in final submission checkout (`make check` has two documented upstream/native-Windows issues)
+- [x] Execute all six example task scenarios and disclose Tamil/Marathi limitations
 - [ ] Provide publicly accessible, rights-cleared example outputs/traces
 - [ ] Record a public demo video of at most five minutes and link it here and in the PR
 - [ ] Open PR to upstream, then email PR URL **and final commit SHA** by 23 Nov 2026

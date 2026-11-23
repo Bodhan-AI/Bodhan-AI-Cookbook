@@ -13,6 +13,8 @@ import requests
 
 from bodhan_shared.errors import TaskError
 from bodhan_shared.tools import TOOL_SCHEMAS, ToolHub
+from bodhan_shared.languages import LANGUAGES
+from .language_preflight import unsupported_target_language
 
 SYSTEM_INSTRUCTIONS = """You are a cautious AI language-task agent using ONLY the listed Bodhan MCP tools.
 Complete the user's request with real artifacts, not promises. First inspect_files(folder='inputs'). Then plan,
@@ -37,6 +39,17 @@ If any tool reports error or budget exhaustion, recover only when safe; otherwis
 partial work, and never claim success without an actual file. When finished, describe the
 artifacts you really created and note accuracy limitations where applicable.
 """
+
+
+# Show the planner the exact supported languages. Tool descriptions only
+# include examples and are not a reliable source of an exhaustive list.
+SYSTEM_INSTRUCTIONS += (
+    "\nSupported Bodhan translation and speech target languages are ONLY: "
+    + ", ".join(sorted(LANGUAGES.values()))
+    + ". Never claim the tools support any other target language or "
+    "promise to deliver hypothetical artifacts. If unsupported, explain "
+    "the language restriction and generate no fake output."
+)
 
 
 def describe_args(args: dict) -> dict:
@@ -224,6 +237,11 @@ class AgentRunner:
                     verification[p.name] = json.loads(p.read_text(encoding="utf-8"))
                 except (ValueError, OSError):
                     verification[p.name] = {"error": "cannot read"}
+        unmet = (
+            [error["message"]]
+            if error and error.get("code") == "UNSUPPORTED_LANGUAGE"
+            else self.missing_requested_outputs()
+        )
         report = {"status": status, "error": error, "steps": self.steps,
                   "estimated_bodhan_cost_inr": round(self.hub.budget.spent, 4),
                   "max_cost_inr": self.hub.budget.maximum, "cost_note": "LLM costs excluded; vendor charges may differ",
@@ -231,7 +249,7 @@ class AgentRunner:
                   "tool_events": self.hub.history, "budget_events": self.hub.budget.events,
                   "verification": verification,
                   "tool_failures": self.tool_failures,
-                  "unmet_requirements": self.missing_requested_outputs(),
+                  "unmet_requirements": unmet,
                   "artifacts": [p.relative_to(self.out).as_posix() for p in artifacts]}
         (self.out / "report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
         return report
@@ -242,6 +260,20 @@ class AgentRunner:
             self.log({"type": "inputs", "files": files})
         except TaskError as exc:
             return self.write_result("failed", str(exc), exc.as_dict())
+        # Fail closed for clearly requested unsupported output languages.
+        # This checks the registry, not a hardcoded demo-language list.
+        unsupported = unsupported_target_language(self.task)
+        if unsupported is not None:
+            reason = (
+                f"Unsupported target language: {unsupported}. "
+                "The configured Bodhan Indic-Translate and Indic-Speak "
+                "models cannot produce that target language. "
+                "No translated output or media was generated."
+            )
+            return self.write_result(
+                "not_completed", reason,
+                {"code": "UNSUPPORTED_LANGUAGE", "message": reason, "retryable": False},
+            )
         try:
             brain = self.brain or OpenAICompatibleBrain()
         except TaskError as exc:
