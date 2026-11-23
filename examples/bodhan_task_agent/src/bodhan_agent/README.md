@@ -273,6 +273,13 @@ These came from real runs with the Bodhan API and Gemma 4 26B between 19 and 23 
 | A 31 s voice note in an unstated language, "English subtitles" (empty cache) | `completed`, 7 cues covering the whole clip, Rs 0.06, 28 s |
 | An English market list with a table, "Marathi, keep the table, read it aloud with a female voice" (empty cache) | `completed`, table shape kept, 22 s of audio back-transcribed, Rs 0.18, 39 s |
 
+### Demo runs (23 November)
+
+| What happened | Cause | Status |
+|---|---|---|
+| "Read this aloud in Bengali" with a Rs 0.05 cap ended in `planner_error` before doing anything. | The first plan had `depends_on: [""]`, an empty step reference, and was rejected; the retry left out the speech step. The rejected replies were not in the trace, so the second problem couldn't be inspected. | Fixed: blank step references are dropped, and every rejected plan reply is now in the trace (redacted). The rerun ended as `budget_exhausted`, with the translation refused before any spend. |
+| A one-minute Kannada summary came out at 46 s. | The length of the LLM's summary varies. | Reported as a `duration_target` warning, as above. |
+
 ### Small-model behaviour handled in code
 
 Gemma 4 26B often:
