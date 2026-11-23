@@ -1,7 +1,55 @@
-# Bodhan Indic-Speak voice override (lang → speaker name).
-# Official voice table: https://console.bodhan.ai/api-docs/
-#   kok (Konkani): female Anjali | male Sandeep
-# Also listed in repo scripts/bodhan_api_rules.json → indic-speak.voices
-# Only langs listed here override defaults; others keep built-in defaults.
+# Bodhan Indic-Speak voices (lang → one speaker name used by --voices).
+# Official table: https://console.bodhan.ai/api-docs/
+# Also: scripts/bodhan_api_rules.json → indic-speak.voices
+#
+# Format: only `lang: VoiceName` lines are loaded (one voice per lang).
+# Comments below list female | male from the docs; the active line is what Speak uses.
+# Swap the name on a line to pick the other gender (e.g. hi: Amit).
+#
+# as   Assamese     female Prastuti | male Ankur
+# bn   Bengali      female Ishita   | male Sourav
+# brx  Bodo         female Gwrbw    | male Sansuma
+# doi  Dogri        female Preeti   | male Sham
+# en   English      (use any Speak voice; default Amit)
+# gu   Gujarati     female Dhara    | male Parth
+# hi   Hindi        female Kavya, Suhani | male Amit
+# kn   Kannada      female Deepika  | male Adarsh
+# kok  Konkani      female Anjali   | male Sandeep
+# ks   Kashmiri     female Zoon     | male Ishfaq
+# mai  Maithili     female Vaidehi  | male Madhukar
+# ml   Malayalam    female Lakshmi  | male Kiran
+# mni  Manipuri     female Thoibi   | male Chaoba
+# mr   Marathi      female Anagha   | male Chinmay
+# ne   Nepali       female Srijana  | male Sagar
+# or   Odia         female Itishree | male Akash
+# pa   Punjabi      female Kaur     | male Manpreet
+# sa   Sanskrit     female Bharati  | male Aryaman
+# sat  Santali      female Phulmani | male Sibu
+# sd   Sindhi       female Moomal   | male Rano
+# ta   Tamil        female Anitha   | male Arun
+# te   Telugu       female Sravani  | male Vamsi
+# ur   Urdu         female Saba     | male Zaid
 
+as: Prastuti
+bn: Ishita
+brx: Gwrbw
+doi: Preeti
+en: Amit
+gu: Dhara
+hi: Kavya
+kn: Deepika
 kok: Sandeep
+ks: Zoon
+mai: Vaidehi
+ml: Lakshmi
+mni: Thoibi
+mr: Anagha
+ne: Srijana
+or: Itishree
+pa: Kaur
+sa: Bharati
+sat: Phulmani
+sd: Moomal
+ta: Anitha
+te: Sravani
+ur: Saba

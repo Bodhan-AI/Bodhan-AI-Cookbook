@@ -7,11 +7,9 @@ RUN apt-get update \
 
 WORKDIR /app
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
+COPY pyproject.toml README.md ./
 COPY src/ ./src/
-ENV PYTHONPATH=/app/src
+RUN pip install --no-cache-dir -e .
 
 # Pass keys via --env-file or -e; mount input/output volumes at runtime.
 ENTRYPOINT ["python", "-m", "bodhan_lesson"]
