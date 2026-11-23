@@ -1,0 +1,16 @@
+{
+  "status": "impossible",
+  "steps": 1,
+  "tool_errors": 0,
+  "total_cost_inr": 0.0,
+  "max_cost_inr": 2.0,
+  "elapsed_seconds": 2.4,
+  "artifacts": [],
+  "missing_artifacts": [],
+  "assumptions": [],
+  "speech_checks": [],
+  "model_notes": [],
+  "guardrail_events": [],
+  "stop_reason": null,
+  "llm_model": "gemini-3.1-flash-lite"
+}

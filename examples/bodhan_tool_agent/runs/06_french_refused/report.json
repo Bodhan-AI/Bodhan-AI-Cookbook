@@ -1,0 +1,23 @@
+{
+  "status": "impossible",
+  "steps": 0,
+  "tool_errors": 0,
+  "total_cost_inr": 0.0,
+  "max_cost_inr": 20.0,
+  "elapsed_seconds": 0.0,
+  "artifacts": [],
+  "missing_artifacts": [],
+  "assumptions": [],
+  "speech_checks": [],
+  "model_notes": [],
+  "guardrail_events": [
+    {
+      "guardrail": "language_gate",
+      "languages": [
+        "french"
+      ]
+    }
+  ],
+  "stop_reason": null,
+  "llm_model": "(not called)"
+}

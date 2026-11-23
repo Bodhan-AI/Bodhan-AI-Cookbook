@@ -1,0 +1,9 @@
+{"t": 0.0, "event": "start", "task": "Transcribe this Hindi voice note and give me English subtitles.", "files": [{"path": "C:\\Users\\Samit\\Desktop\\test_audio\\speech_hi_ec2f8d1bdec1.wav", "size_kb": 156.0}], "max_steps": 30, "max_cost_inr": 2.0}
+{"t": 0.63, "event": "model", "model": "gemini-3.1-flash-lite"}
+{"t": 1.97, "step": 1, "event": "plan", "said": "", "tool_calls": ["make_subtitles"]}
+{"t": 6.76, "step": 1, "event": "tool", "tool": "make_subtitles", "args": {"audio_path": "C:/Users/Samit/Desktop/test_audio/speech_hi_ec2f8d1bdec1.wav", "subtitle_language": "en", "source_language": "hi"}, "ok": true, "error": null, "cost_inr": 0.0004, "seconds": 1.13, "result": {"ok": true, "srt_path": "C:/Users/Samit/Desktop/Bodhan-AI-Cookbook/examples/bodhan_tool_agent/outputs/subtitles_en_09294aabbf2a.srt", "cues": 1, "preview": "1\n00:00:00,000 --> 00:00:03,330\nwater boils at one hundred degrees celsius\n", "cost_inr": 0.00042, "timing_is_approximate": true, "untrusted_content": true}}
+{"t": 8.32, "step": 2, "event": "plan", "said": "", "tool_calls": ["transcribe_audio"]}
+{"t": 8.54, "step": 2, "event": "tool", "tool": "transcribe_audio", "args": {"language": "hi", "audio_path": "C:/Users/Samit/Desktop/test_audio/speech_hi_ec2f8d1bdec1.wav"}, "ok": true, "error": null, "cost_inr": 0.0, "seconds": 0.16, "result": {"ok": true, "text": "पानी वन हंड्रेड डिग्री सेल्सियस पर उबलता है", "segments": [{"start": 0.0, "end": 3.33, "text": "पानी वन हंड्रेड डिग्री सेल्सियस पर उबलता है"}], "language": "hi", "duration_seconds": 3.33, "chunks": 1, "cost_inr": 0.0, "untrusted_content": true}}
+{"t": 13.28, "step": 3, "event": "plan", "said": "", "tool_calls": ["finish"]}
+{"t": 13.28, "step": 3, "event": "finish", "status": "completed"}
+{"t": 13.29, "event": "end", "status": "completed", "cost_inr": 0.0004, "seconds": 13.3}

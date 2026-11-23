@@ -1,0 +1,31 @@
+{
+  "status": "completed, summary: The Hindi text from the image was read, translated into Tamil, and converted into AI-generated speech using a female voice. The verification check confirmed the audio matches the translated text.",
+  "steps": 4,
+  "tool_errors": 0,
+  "total_cost_inr": 0.0,
+  "max_cost_inr": 2.0,
+  "elapsed_seconds": 6.9,
+  "artifacts": [
+    "speech_ta_7be640c778a2.wav"
+  ],
+  "missing_artifacts": [],
+  "assumptions": [],
+  "speech_checks": [
+    {
+      "audio": "speech_ta_7be640c778a2.wav",
+      "language": "ta",
+      "checked": true,
+      "cer": 0.0,
+      "passed": true,
+      "threshold": 0.3,
+      "reference_chars": 24,
+      "heard_chars": 24
+    }
+  ],
+  "model_notes": [
+    "Audio verification passed with a CER of 0.0."
+  ],
+  "guardrail_events": [],
+  "stop_reason": null,
+  "llm_model": "gemini-3.1-flash-lite"
+}
