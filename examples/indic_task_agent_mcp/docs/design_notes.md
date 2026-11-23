@@ -98,7 +98,7 @@ languages work but produce a quality warning.
 
 ## What the live runs changed
 
-Offline tests passed from the start; the hosted API and a real LLM still found thirteen problems. Each one became a fix
+Offline tests passed from the start; the hosted API and a real LLM still found fourteen problems. Each one became a fix
 and, where possible, a regression test built from the real output.
 
 | Found in a live run | Fix |
@@ -116,6 +116,7 @@ and, where possible, a regression test built from the real output.
 | Reading a translation with read_text replaced the record of who produced it, so its checks were skipped | Read-only tools never overwrite file provenance |
 | The Tamil summary was synthesized three times (₹4.70) while the model corrected its length after hearing it, and a later run kept retrying because the prompt and the check disagreed on the tolerance (20% vs 25%) | translate_text reports `estimated_speech_s` so length is fixed before paying for speech; one 25% tolerance everywhere; a warning when few tool calls remain; outputs are salvaged on a budget or step stop |
 | Indic-Speak silently skipped a bracketed Tamil phrase on both takes; back-transcription caught it and the run ended partial | Brackets become pauses before synthesis; the real chunk is a regression test |
+| Per-page OCR files lost their page number (`.page01` was read as a file extension), so the model mistook `chapter_2.md` and the rest for drafts and spent ten tool calls on them | Pages are saved as `chapter_page01.md` and so on; the OCR test checks the names |
 
 ## What I would do next
 
