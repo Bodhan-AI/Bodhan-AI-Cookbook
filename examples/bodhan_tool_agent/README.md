@@ -20,7 +20,7 @@ The same tools run on their own as an MCP server (`python -m bodhan_mcp`), so Cl
 
 ## Setup
 
-Requirements: Python 3.10+, `ffmpeg` (audio decode/encode). PDF rendering uses `pypdfium2` (no poppler needed).
+Requirements: Python 3.11+, `ffmpeg` (audio decode/encode). PDF rendering uses `pypdfium2` (no poppler needed).
 
 ```bash
 cd examples/bodhan_tool_agent

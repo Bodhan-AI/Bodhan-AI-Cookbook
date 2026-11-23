@@ -6,22 +6,22 @@ build-backend = "setuptools.build_meta"
 name = "bodhan-tool-agent"
 version = "0.1.0"
 description = "MCP server exposing Bodhan's Indic models as tools, plus a budgeted, traced task agent."
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 readme = "README.md"
 license = { text = "MIT" }
 dependencies = [
-  "mcp==1.27.0",
+  "mcp==1.30.0",
   "openai==1.109.1",
   "httpx==0.28.1",
   "pydantic==2.11.9",
   "numpy==2.2.6",
-  "pillow==11.3.0",
+  "pillow==13.0.0",
   "pypdfium2==4.30.0",
-  "python-dotenv==1.1.1",
+  "python-dotenv==1.2.4",
 ]
 
 [project.optional-dependencies]
-dev = ["pytest==8.4.2", "ruff==0.13.2"]
+dev = ["pytest==9.1.1", "ruff==0.13.2"]
 
 [project.scripts]
 bodhan-agent = "bodhan_agent.cli:main"
@@ -38,7 +38,7 @@ testpaths = ["tests"]
 
 [tool.ruff]
 line-length = 160
-target-version = "py310"
+target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]
