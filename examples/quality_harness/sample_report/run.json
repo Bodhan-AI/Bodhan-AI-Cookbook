@@ -1,0 +1,149 @@
+{
+  "harness_version": "0.1.0",
+  "python": "3.11.8",
+  "platform": "macOS-27.0-arm64-arm-64bit",
+  "argv": [
+    "--dataset",
+    "data/demo.jsonl",
+    "--langs",
+    "hi,ta,bn",
+    "--out",
+    "./sample_report",
+    "--skip-speech",
+    "--max-cost-inr",
+    "0"
+  ],
+  "args": {
+    "dataset": "data/demo.jsonl",
+    "dataset_sha256": "fce80ee590c0143b2fbfabe9437b8ca677a5aaf7bd577e7bd8ab7c3c26c8de78",
+    "langs": [
+      "hi",
+      "ta",
+      "bn"
+    ],
+    "out": "sample_report",
+    "generate": false,
+    "baseline": null,
+    "calibration": [],
+    "thresholds": null,
+    "max_cost_inr": 0.0,
+    "skip_speech": true,
+    "max_speech_items": 30
+  },
+  "endpoints": {
+    "bodhan_base_url": "https://api.bodhan.ai/v1",
+    "llm_base_url": "https://integrate.api.nvidia.com/v1",
+    "llm_model": "nvidia/nemotron-3-ultra-550b-a55b"
+  },
+  "credentials_present": {
+    "translate": true,
+    "speak": true,
+    "transcribe": true,
+    "llm": true
+  },
+  "warnings": [],
+  "started_at": "2026-11-23T17:47:42+00:00",
+  "dataset": {
+    "items": 380,
+    "skipped": 0,
+    "other_langs": 0,
+    "items_with_warnings": 0
+  },
+  "calibration": {
+    "usable": 229,
+    "not_in_report": 0,
+    "human": 29,
+    "injected": 200,
+    "clean": 71,
+    "labels": 178,
+    "flag": 0.65,
+    "uncertain": 0.45
+  },
+  "results": {
+    "bn": {
+      "items": 128,
+      "scored": 128,
+      "with_candidates": 84,
+      "flagged": 69,
+      "uncertain": 0,
+      "clean": 59,
+      "mqm": 458,
+      "flags_by_category": {
+        "addition": 4,
+        "format": 8,
+        "mistranslation": 31,
+        "number": 6,
+        "omission": 18,
+        "term": 9,
+        "wrong_language": 7
+      },
+      "check_errors": 2
+    },
+    "hi": {
+      "items": 128,
+      "scored": 128,
+      "with_candidates": 74,
+      "flagged": 68,
+      "uncertain": 0,
+      "clean": 60,
+      "mqm": 342,
+      "flags_by_category": {
+        "addition": 7,
+        "format": 12,
+        "mistranslation": 17,
+        "number": 9,
+        "omission": 14,
+        "term": 7,
+        "wrong_language": 6
+      },
+      "check_errors": 0
+    },
+    "ta": {
+      "items": 124,
+      "scored": 124,
+      "with_candidates": 79,
+      "flagged": 69,
+      "uncertain": 0,
+      "clean": 55,
+      "mqm": 403,
+      "flags_by_category": {
+        "addition": 6,
+        "format": 11,
+        "mistranslation": 25,
+        "number": 13,
+        "omission": 8,
+        "term": 12,
+        "wrong_language": 6
+      },
+      "check_errors": 0
+    }
+  },
+  "cost": {
+    "budget_inr": 0.0,
+    "spent_inr": 0.0,
+    "by_model": {
+      "llm": {
+        "calls": 0,
+        "cache_hits": 425,
+        "failures": 0,
+        "skipped_budget": 0,
+        "cost_inr": 0.0,
+        "cached_cost_inr": 0.0,
+        "tokens": 0
+      },
+      "translate": {
+        "calls": 0,
+        "cache_hits": 1236,
+        "failures": 0,
+        "skipped_budget": 0,
+        "cost_inr": 0.0,
+        "cached_cost_inr": 0.9925,
+        "tokens": 0
+      }
+    },
+    "note": "LLM cost is not priced; its tokens are reported instead"
+  },
+  "finished_at": "2026-11-23T17:48:54+00:00",
+  "duration_s": 72.958,
+  "status": "ok"
+}

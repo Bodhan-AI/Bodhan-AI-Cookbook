@@ -1,0 +1,30 @@
+{
+  "_about": "weights[signal][category or *] = prior chance the signal points at a real error (design values, not fitted). A flag is reported at confidence >= flag; between uncertain and flag it goes to the adjudicator (if adjudicate) or stays uncertain. flag/uncertain were chosen by calibration on 229 labelled items (2026-11-23; design values were 0.5/0.3). --calibration retunes them (plan §13-14).",
+  "flag": 0.65,
+  "uncertain": 0.45,
+  "adjudicate": true,
+  "default_weight": 0.3,
+  "shrinkage": 8,
+  "max_false_alarm_rate": 0.1,
+  "weights": {
+    "format:strong": {"*": 0.9},
+    "script:strong": {"*": 0.9},
+    "numbers:strong": {"*": 0.9},
+    "numbers": {"*": 0.5},
+    "script": {"*": 0.5},
+    "judge:high": {"*": 0.6},
+    "judge:medium": {"*": 0.45},
+    "judge:low": {"*": 0.3},
+    "back_translation": {"*": 0.35},
+    "back_translation_negation": {"*": 0.4},
+    "back_translation_phrase": {"*": 0.2},
+    "entities": {"*": 0.2},
+    "length": {"*": 0.2},
+    "speech_signal:strong": {"*": 0.9},
+    "speech_signal": {"*": 0.4},
+    "speech_asr:strong": {"*": 0.9},
+    "speech_asr": {"*": 0.5},
+    "speech_rate": {"*": 0.35}
+  },
+  "severity_points": {"minor": 1, "major": 5, "critical": 10}
+}
