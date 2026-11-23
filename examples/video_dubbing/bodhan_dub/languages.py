@@ -190,3 +190,18 @@ _DEVANAGARI_TERMINATOR = {"hi", "mr", "ne", "sa", "doi", "mai", "brx", "kok"}
 
 def terminator(code: str) -> str:
     return "।" if code in _DEVANAGARI_TERMINATOR else "."
+
+
+# ISO 639-2/B codes for MP4 subtitle track metadata. Players use this to pick a
+# track and to label it in the subtitle menu.
+_ISO3: dict[str, str] = {
+    "as": "asm", "bn": "ben", "brx": "brx", "doi": "doi", "en": "eng",
+    "gu": "guj", "hi": "hin", "kn": "kan", "kok": "kok", "ks": "kas",
+    "mai": "mai", "ml": "mal", "mni": "mni", "mr": "mar", "ne": "nep",
+    "or": "ori", "pa": "pan", "sa": "san", "sat": "sat", "sd": "snd",
+    "ta": "tam", "te": "tel", "ur": "urd",
+}
+
+
+def iso3(code: str) -> str:
+    return _ISO3.get(code, code[:3])

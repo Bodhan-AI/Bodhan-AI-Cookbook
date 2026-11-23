@@ -69,7 +69,7 @@ flowchart LR
 | `qa.py` | CER, repetition, truncation | Catches the model misbehaviour Bodhan documents |
 | `bed.py` | Mute speech spans, keep the rest | Music and effects must survive |
 | `mix.py` | Mix, two-pass loudness | −16 LUFS ±1 is a stated target |
-| `mux.py` | Mux with `-c:v copy`, verify duration | Video must not be re-encoded, duration must not drift |
+| `mux.py` | Mux with `-c:v copy`, embed subtitles, verify duration | Video must not be re-encoded, duration must not drift, captions must travel with the file |
 | `subtitles.py` | SRT with readable cues | A deliverable in its own right |
 | `ratelimit.py` | Per-model pacer + adaptive concurrency | The account's real limits are lower than advertised |
 | `cache.py` | Content-addressed response cache | A rerun costs nothing |

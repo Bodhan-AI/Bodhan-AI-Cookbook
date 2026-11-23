@@ -32,6 +32,7 @@ TTS_SAMPLE_RATE = 24_000
 
 _FALLBACK_DIRS = ("/opt/homebrew/bin", "/usr/local/bin", "/usr/bin", "/bin")
 _BIN_NAMES = {"ffmpeg": "FFMPEG_BIN", "ffprobe": "FFPROBE_BIN"}
+_filter_cache: set[str] | None = None
 
 
 @dataclass(frozen=True)
@@ -355,6 +356,29 @@ def trim_edges(
 
 def trimmed_seconds(original: int, trimmed: int, sample_rate: int) -> float:
     return max(0, original - trimmed) / float(sample_rate)
+
+
+def has_filter(name: str) -> bool:
+    """True when this ffmpeg build provides a named filter.
+
+    Used to detect libass: the ``subtitles`` filter is absent from builds
+    compiled without it, which includes the Homebrew build used in development.
+    """
+    global _filter_cache
+    if _filter_cache is None:
+        result = _run(
+            [find_binary("ffmpeg"), "-hide_banner", "-filters"],
+            what="listing ffmpeg filters",
+        )
+        names: set[str] = set()
+        for line in result.stdout.decode("utf-8", "replace").splitlines():
+            parts = line.split()
+            # Lines look like: " .. subtitles  V->V  Render text subtitles..."
+            for part in parts[:3]:
+                if part.isalpha() or part.replace("_", "").isalpha():
+                    names.add(part)
+        _filter_cache = names
+    return name in _filter_cache
 
 
 def _as_int(value: object) -> int | None:

@@ -164,7 +164,12 @@ out/
    mixed in 6 dB below it, and the mix is measured again.
 3. The audio is muxed into the video with **`-c:v copy`** and `-t` set to the
    input duration, so the picture is untouched and the length cannot drift.
-4. Subtitles are written as SRT at the same timings the dub was placed at.
+4. Subtitles are written as SRT at the same timings the dub was placed at, and
+   muxed **into the MP4** as a real subtitle track tagged with the language code
+   (`hin`, `tam`, `ben`), so players list it in their subtitle menu. `-c:v copy`
+   still applies, so this costs nothing in quality. `--burn-subtitles` renders
+   them into the picture instead, which needs an ffmpeg built with libass — the
+   Dockerfile has one.
 5. The finished MP4 is re-probed and its duration compared with the input.
 
 ## Design decisions worth knowing
@@ -230,6 +235,11 @@ out/
 - Runtime depends on the account's request quota. At the rate this deployment
   enforced during development, a three-language run is closer to the 30-minute
   target than the cost figures suggest.
+- **Subtitles are an embedded track, not burned in.** VLC, IINA and mpv show
+  them; QuickTime Player and browsers generally do not, because they do not
+  render MP4 `mov_text`. Use `--burn-subtitles` (needs libass — the Dockerfile
+  has it) if the captions must be visible in any player, and the sidecar `.srt`
+  always works if your player prefers files.
 
 ## Tests
 

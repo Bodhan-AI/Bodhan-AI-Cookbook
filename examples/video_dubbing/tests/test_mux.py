@@ -20,6 +20,13 @@ def _ffmpeg_available() -> bool:
 pytestmark = pytest.mark.skipif(not _ffmpeg_available(), reason="ffmpeg not installed")
 
 
+def _libass() -> bool:
+    try:
+        return media.has_filter("subtitles")
+    except MediaError:
+        return False
+
+
 def _clip(tmp_path, seconds: float = 3.0):
     audio = tmp_path / "a.wav"
     media.write_wav(audio, np.zeros(int(media.TTS_SAMPLE_RATE * seconds), dtype=np.float32), media.TTS_SAMPLE_RATE)
@@ -89,3 +96,46 @@ def test_verify_duration_flags_a_mismatch(tmp_path) -> None:
     result = mux.verify_duration(out, 10.0)
 
     assert result["within_tolerance"] is False
+
+
+def test_mux_embeds_a_selectable_subtitle_track(tmp_path) -> None:
+    video, audio = _clip(tmp_path)
+    srt = tmp_path / "a.srt"
+    srt.write_text("1\n00:00:00,000 --> 00:00:02,000\nनमस्ते\n", encoding="utf-8")
+    out = tmp_path / "out.mp4"
+
+    info = mux.mux(
+        video, audio, out, duration_s=3.0, subtitle_path=srt, subtitle_language="hin"
+    )
+
+    assert info["subtitles"] == "embedded"
+    assert info["video"] == "copy"
+    assert mux.has_subtitle_track(out) is True
+
+
+def test_no_subtitle_track_when_not_requested(tmp_path) -> None:
+    video, audio = _clip(tmp_path)
+    out = tmp_path / "out.mp4"
+
+    info = mux.mux(video, audio, out, duration_s=3.0)
+
+    assert info["subtitles"] == "none"
+    assert mux.has_subtitle_track(out) is False
+
+
+def test_burn_subtitles_without_libass_fails_with_an_explanation(tmp_path) -> None:
+    if _libass():
+        pytest.skip("this ffmpeg build has libass; the failure path cannot be exercised")
+    video, audio = _clip(tmp_path)
+    srt = tmp_path / "a.srt"
+    srt.write_text("1\n00:00:00,000 --> 00:00:02,000\nhi\n", encoding="utf-8")
+
+    with pytest.raises(MediaError, match="libass"):
+        mux.mux(video, audio, tmp_path / "out.mp4", duration_s=3.0, subtitle_path=srt, burn_subtitles=True)
+
+
+def test_burn_subtitles_requires_a_subtitle_file(tmp_path) -> None:
+    video, audio = _clip(tmp_path)
+
+    with pytest.raises(MediaError, match="needs a subtitle file"):
+        mux.mux(video, audio, tmp_path / "out.mp4", duration_s=3.0, burn_subtitles=True)

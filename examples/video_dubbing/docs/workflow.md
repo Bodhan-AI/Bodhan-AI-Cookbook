@@ -51,7 +51,7 @@ flowchart TD
   D5[place at source start] --> E1[bed: gate out speech]
   E1 --> E2[mix, bed −6 dB]
   E2 --> E3[loudnorm −16 LUFS,<br/>two-pass]
-  E3 --> E4[mux, -c:v copy,<br/>-t input duration]
+  E3 --> E4[mux, -c:v copy,<br/>-t input duration,<br/>embed subtitle track]
   E4 --> E5[write SRT]
   E5 --> E6[verify duration<br/>and loudness]
   E6 --> F1{any language failed?}

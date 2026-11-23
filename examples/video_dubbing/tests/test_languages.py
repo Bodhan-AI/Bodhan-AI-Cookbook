@@ -85,6 +85,13 @@ def test_terminator_matches_the_script() -> None:
     assert languages.terminator("bn") == "."
 
 
+def test_iso3_codes_for_subtitle_tracks() -> None:
+    assert languages.iso3("hi") == "hin"
+    assert languages.iso3("ta") == "tam"
+    assert languages.iso3("bn") == "ben"
+    assert languages.iso3("zz") == "zz"
+
+
 def test_name_lookup() -> None:
     assert languages.name("hi") == "Hindi"
     assert languages.name("zz") == "zz"

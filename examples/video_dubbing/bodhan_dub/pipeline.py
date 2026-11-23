@@ -51,6 +51,7 @@ class RunArgs:
     voices: Path | None = None
     code_mixed: bool = False
     force: bool = False
+    burn_subtitles: bool = False
 
 
 def _active_stages(stage: str) -> list[str]:
@@ -480,11 +481,20 @@ def _run_assemble(
             final_loudness = mix.measure_loudness(mixed_path)
 
             video_path = out_dir / f"video.{lang}.mp4"
-            mux_info = mux.mux(args.input, mixed_path, video_path, duration_s=total_s)
-            length = mux.verify_duration(video_path, total_s)
-
             subtitles_path = out_dir / f"subtitles.{lang}.srt"
             cues = subtitles.write_srt(subtitles_path, existing["segments"])
+
+            mux_info = mux.mux(
+                args.input,
+                mixed_path,
+                video_path,
+                duration_s=total_s,
+                subtitle_path=subtitles_path,
+                subtitle_language=languages.iso3(lang),
+                burn_subtitles=args.burn_subtitles,
+            )
+            length = mux.verify_duration(video_path, total_s)
+            subtitle_track = mux.has_subtitle_track(video_path)
 
             ok = bool(length["within_tolerance"] and loudness.get("within_target", False))
             report.set_language(
@@ -492,6 +502,8 @@ def _run_assemble(
                 "ok" if ok else "partial",
                 video=str(video_path.relative_to(args.out)),
                 subtitles=str(subtitles_path.relative_to(args.out)),
+                subtitles_mode=mux_info["subtitles"],
+                subtitle_track=subtitle_track,
                 duration_check=length,
                 loudness=loudness,
                 mix_loudness=round(final_loudness.get("lufs") or 0.0, 2),

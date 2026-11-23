@@ -35,6 +35,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--voices", type=Path, help="YAML file mapping speakers or languages to voices")
     parser.add_argument("--code-mixed", action="store_true", help="keep English terms inside the dub")
     parser.add_argument(
+        "--burn-subtitles",
+        action="store_true",
+        help="render subtitles into the picture instead of embedding a subtitle track "
+        "(requires an ffmpeg built with libass)",
+    )
+    parser.add_argument(
         "--stage",
         choices=("all", *STAGES),
         default="all",
@@ -97,6 +103,7 @@ def main(argv: list[str] | None = None) -> int:
         voices=args.voices,
         code_mixed=args.code_mixed,
         force=args.force,
+        burn_subtitles=args.burn_subtitles,
     )
     return run(run_args, settings, logger)
 
