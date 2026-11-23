@@ -16,18 +16,28 @@ E5_HARD_SEQUENCE_LIMIT = 512
 E5_DOCUMENT_PREFIX = "passage: "
 
 
-def get_token_length_fn(tokenizer: Any = None):
+def get_token_length_fn(tokenizer: Any = None, strict: bool = False):
     """Build a token-counting length function for text splitters."""
     if tokenizer is not None:
         if hasattr(tokenizer, "tokenize"):
             return lambda text: len(tokenizer.tokenize(text))
         if hasattr(tokenizer, "encode"):
             return lambda text: len(tokenizer.encode(text, add_special_tokens=False))
+    if strict:
+        raise RuntimeError(
+            "Tokenizer is required for token counting in strict mode. "
+            "Character-based approximation is disabled to prevent silent truncation."
+        )
     # Fallback character-based approximation (1 token ~ 4 characters)
     return lambda text: max(1, math.ceil(len(text) / 4))
 
 
-def count_prefixed_tokens(text: str, tokenizer: Any = None, prefix: str = E5_DOCUMENT_PREFIX) -> int:
+def count_prefixed_tokens(
+    text: str,
+    tokenizer: Any = None,
+    prefix: str = E5_DOCUMENT_PREFIX,
+    strict: bool = False,
+) -> int:
     """Count total tokens of a document when prefixed and encoded with special tokens."""
     prefixed = f"{prefix}{text}" if not text.startswith(prefix) else text
     if tokenizer is not None:
@@ -36,6 +46,11 @@ def count_prefixed_tokens(text: str, tokenizer: Any = None, prefix: str = E5_DOC
         if hasattr(tokenizer, "tokenize"):
             # XLM-RoBERTa special tokens (<s> and </s>) add 2 tokens
             return len(tokenizer.tokenize(prefixed)) + 2
+    if strict:
+        raise RuntimeError(
+            "Tokenizer is required for counting prefixed tokens in strict mode. "
+            "Character-based approximation is disabled to prevent silent truncation."
+        )
     return max(1, math.ceil(len(prefixed) / 4))
 
 
@@ -44,6 +59,7 @@ def split_documents_tokenizer_aware(
     max_chunk_tokens: int = DEFAULT_MAX_CHUNK_TOKENS,
     chunk_token_overlap: int = DEFAULT_CHUNK_TOKEN_OVERLAP,
     tokenizer: Any = None,
+    strict: bool = False,
 ) -> list[Document]:
     """Split documents using tokenizer-aware boundaries while guaranteeing max sequence safety.
 
@@ -57,7 +73,12 @@ def split_documents_tokenizer_aware(
     A secondary safety validation ensures that every final chunk, when combined with
     the E5 passage prefix and special tokens, fits strictly within 512 tokens.
     """
-    len_fn = get_token_length_fn(tokenizer)
+    if strict and tokenizer is None:
+        raise RuntimeError(
+            "split_documents_tokenizer_aware requires an exact tokenizer when strict=True to prevent silent truncation."
+        )
+
+    len_fn = get_token_length_fn(tokenizer, strict=strict)
     separators = ["\n\n", "\n", ". ", "। ", " ", ""]
 
     primary_splitter = RecursiveCharacterTextSplitter(
@@ -72,7 +93,7 @@ def split_documents_tokenizer_aware(
     # Secondary validation: verify every single chunk fits within the 512-token hard limit
     validated_chunks: list[Document] = []
     for chunk in initial_chunks:
-        total_tokens = count_prefixed_tokens(chunk.page_content, tokenizer=tokenizer)
+        total_tokens = count_prefixed_tokens(chunk.page_content, tokenizer=tokenizer, strict=strict)
         if total_tokens <= E5_HARD_SEQUENCE_LIMIT:
             validated_chunks.append(chunk)
         else:
@@ -85,19 +106,26 @@ def split_documents_tokenizer_aware(
             )
             sub_chunks = sub_splitter.split_documents([chunk])
             for sc in sub_chunks:
-                if count_prefixed_tokens(sc.page_content, tokenizer=tokenizer) <= E5_HARD_SEQUENCE_LIMIT:
+                sc_tokens = count_prefixed_tokens(sc.page_content, tokenizer=tokenizer, strict=strict)
+                if sc_tokens <= E5_HARD_SEQUENCE_LIMIT:
                     validated_chunks.append(sc)
                 else:
-                    # Final character-level safety split without silent truncation
-                    char_budget = max(1, (E5_HARD_SEQUENCE_LIMIT - 10) * 3)
-                    for part_idx in range(0, len(sc.page_content), char_budget):
-                        part_text = sc.page_content[part_idx : part_idx + char_budget]
-                        if part_text.strip():
-                            validated_chunks.append(
-                                Document(
-                                    page_content=part_text,
-                                    metadata=dict(sc.metadata),
-                                )
+                    # Recursive split with character fallback for unbroken sequences
+                    sub_sub_splitter = RecursiveCharacterTextSplitter(
+                        chunk_size=max(1, max_chunk_tokens // 4),
+                        chunk_overlap=0,
+                        length_function=len_fn,
+                        separators=[" ", ""],
+                    )
+                    sub_sub_chunks = sub_sub_splitter.split_documents([sc])
+                    for ssc in sub_sub_chunks:
+                        ssc_tokens = count_prefixed_tokens(ssc.page_content, tokenizer=tokenizer, strict=strict)
+                        if ssc_tokens <= E5_HARD_SEQUENCE_LIMIT:
+                            validated_chunks.append(ssc)
+                        else:
+                            raise ValueError(
+                                f"Document passage exceeds E5 limit of {E5_HARD_SEQUENCE_LIMIT} tokens "
+                                f"({ssc_tokens} tokens) and cannot be split safely without silent truncation."
                             )
 
     # Assign 1-indexed chunk identifiers preserving strict reading order
@@ -115,6 +143,7 @@ def create_vector_store(
     tokenizer: Any = None,
     chunk_size: int | None = None,
     chunk_overlap: int | None = None,
+    strict: bool = False,
 ) -> InMemoryVectorStore:
     """Chunk documents with tokenizer awareness and index them into LangChain InMemoryVectorStore.
 
@@ -126,6 +155,7 @@ def create_vector_store(
         tokenizer: Optional tokenizer instance. If omitted, attempts to extract from embeddings.
         chunk_size: Backward-compatibility alias for max_chunk_tokens.
         chunk_overlap: Backward-compatibility alias for chunk_token_overlap.
+        strict: Whether to enforce strict tokenizer requirement without fallback.
 
     Returns:
         Populated InMemoryVectorStore instance ready for similarity retrieval.
@@ -137,12 +167,20 @@ def create_vector_store(
     effective_overlap = chunk_overlap if chunk_overlap is not None else chunk_token_overlap
 
     effective_tokenizer = tokenizer or getattr(embeddings, "tokenizer", None)
+    is_strict = strict or getattr(embeddings, "strict_tokenizer", False)
+
+    if is_strict and effective_tokenizer is None:
+        raise RuntimeError(
+            "Vector store indexing requires a tokenizer in strict mode. "
+            "Character-based approximation is disabled to prevent silent token truncation."
+        )
 
     chunks = split_documents_tokenizer_aware(
         documents=documents,
         max_chunk_tokens=effective_tokens,
         chunk_token_overlap=effective_overlap,
         tokenizer=effective_tokenizer,
+        strict=is_strict,
     )
 
     vector_store = InMemoryVectorStore(embeddings)

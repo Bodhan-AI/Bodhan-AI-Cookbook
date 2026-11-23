@@ -328,8 +328,71 @@ def test_query_token_limit_validation() -> None:
     )
 
     long_query = "word " * 600
-    with pytest.raises(ValueError, match="Query exceeds E5 maximum sequence length of 512 tokens"):
+    with pytest.raises(ValueError, match=r"Query exceeds .* sequence length of 512 tokens"):
         adapter.embed_query(long_query)
+
+
+def test_max_query_tokens_custom_enforcement() -> None:
+    """Verify custom max_query_tokens limit is enforced strictly by E5EmbeddingsAdapter."""
+    tokenizer = MockE5Tokenizer()
+    adapter = E5EmbeddingsAdapter(
+        base_embeddings=MagicMock(),
+        tokenizer=tokenizer,
+        max_sequence_length=512,
+        max_query_tokens=30,
+    )
+
+    query_exceeding_30 = "word " * 40
+    with pytest.raises(ValueError, match=r"Query exceeds maximum allowed sequence length of 30 tokens"):
+        adapter.embed_query(query_exceeding_30)
+
+
+def test_strict_tokenizer_unavailable_raises() -> None:
+    """Verify that strict tokenizer mode raises RuntimeError instead of falling back to character approximation."""
+    # 1. Adapter initialization in strict mode without tokenizer
+    with pytest.raises(RuntimeError, match="strict mode without a tokenizer"):
+        E5EmbeddingsAdapter(base_embeddings=MagicMock(), tokenizer=None, strict_tokenizer=True)
+
+    # 2. get_model_tokenizer in strict mode with simulated load failure
+    from examples.rag.embeddings import get_model_tokenizer
+    with patch("transformers.AutoTokenizer.from_pretrained", side_effect=OSError("Network down / Model unavailable")):
+        with pytest.raises(RuntimeError, match="Failed to load tokenizer"):
+            get_model_tokenizer("intfloat/multilingual-e5-small", strict=True)
+
+    # 3. Vector store indexing in strict mode without tokenizer
+    from examples.rag.vector_store import create_vector_store, split_documents_tokenizer_aware
+    doc = Document(page_content="Test content", metadata={"source": "test.txt"})
+    with pytest.raises(RuntimeError, match="requires an exact tokenizer when strict=True"):
+        split_documents_tokenizer_aware([doc], tokenizer=None, strict=True)
+
+    fake_adapter = E5EmbeddingsAdapter(base_embeddings=MagicMock(), tokenizer=None, strict_tokenizer=False)
+    with pytest.raises(RuntimeError, match="Vector store indexing requires a tokenizer in strict mode"):
+        create_vector_store([doc], embeddings=fake_adapter, tokenizer=None, strict=True)
+
+
+def test_pathological_tokenization_splitting_or_rejection() -> None:
+    """Verify pathological token sequences are safely sub-split or rejected without silent truncation."""
+    class PathologicalTokenizer:
+        def encode(self, text: str, add_special_tokens: bool = False) -> list[int]:
+            # Every character yields 5 tokens
+            count = len(text) * 5 + (2 if add_special_tokens else 0)
+            return [1] * count
+
+        def tokenize(self, text: str) -> list[str]:
+            return ["tok"] * (len(text) * 5)
+
+    doc = Document(page_content="A" * 150, metadata={"source": "pathological.txt", "page_number": 1})
+    chunks = split_documents_tokenizer_aware(
+        documents=[doc],
+        max_chunk_tokens=50,
+        tokenizer=PathologicalTokenizer(),
+        strict=True,
+    )
+    assert len(chunks) > 1
+    # Verify every resulting chunk strictly respects 512 tokens
+    for c in chunks:
+        tok_len = len(PathologicalTokenizer().encode("passage: " + c.page_content, add_special_tokens=True))
+        assert tok_len <= 512
 
 
 # ==============================================================================

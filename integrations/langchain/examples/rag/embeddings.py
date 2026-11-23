@@ -78,14 +78,23 @@ class E5EmbeddingsAdapter(Embeddings):
         base_embeddings: Embeddings,
         tokenizer: Any = None,
         max_sequence_length: int = E5_MAX_SEQUENCE_LENGTH,
+        max_query_tokens: int | None = None,
         document_prefix: str = E5_DOCUMENT_PREFIX,
         query_prefix: str = E5_QUERY_PREFIX,
+        strict_tokenizer: bool = False,
     ) -> None:
         self.base_embeddings = base_embeddings
         self.tokenizer = tokenizer
         self.max_sequence_length = max_sequence_length
+        self.max_query_tokens = max_query_tokens if max_query_tokens is not None else max_sequence_length
         self.document_prefix = document_prefix
         self.query_prefix = query_prefix
+        self.strict_tokenizer = strict_tokenizer
+        if self.strict_tokenizer and self.tokenizer is None:
+            raise RuntimeError(
+                "E5EmbeddingsAdapter initialized in strict mode without a tokenizer. "
+                "An exact tokenizer is required to prevent silent token truncation."
+            )
 
     def format_document(self, text: str) -> str:
         """Format document text with E5 passage prefix idempotently."""
@@ -100,22 +109,28 @@ class E5EmbeddingsAdapter(Embeddings):
         return f"{self.query_prefix}{text}"
 
     def count_tokens(self, text: str) -> int:
-        """Count tokens in text using the configured tokenizer, or fallback estimator."""
+        """Count tokens in text using the configured tokenizer, or fallback estimator when not strict."""
         if self.tokenizer is not None:
             if hasattr(self.tokenizer, "encode"):
                 return len(self.tokenizer.encode(text, add_special_tokens=True))
             if hasattr(self.tokenizer, "tokenize"):
                 # XLM-RoBERTa uses <s> and </s> as boundary special tokens (+2)
                 return len(self.tokenizer.tokenize(text)) + 2
-        # Fallback approximation: 1 token ~ 4 characters
+        if self.strict_tokenizer:
+            raise RuntimeError(
+                "Cannot count tokens: strict_tokenizer is True, but no tokenizer was provided. "
+                "An exact tokenizer is required to prevent silent token truncation."
+            )
+        # Fallback approximation: 1 token ~ 4 characters (only when strict_tokenizer=False)
         return max(1, math.ceil(len(text) / 4))
 
     def validate_query(self, formatted_query: str) -> None:
-        """Validate that the formatted query does not exceed the model token limit."""
+        """Validate that the formatted query does not exceed the model token limit or max_query_tokens."""
         token_count = self.count_tokens(formatted_query)
-        if token_count > self.max_sequence_length:
+        effective_limit = min(self.max_sequence_length, self.max_query_tokens)
+        if token_count > effective_limit:
             raise ValueError(
-                f"Query exceeds E5 maximum sequence length of {self.max_sequence_length} tokens "
+                f"Query exceeds maximum allowed sequence length of {effective_limit} tokens "
                 f"(received {token_count} tokens). Oversized queries cannot be retrieved "
                 f"reliably and silent truncation is prohibited."
             )
@@ -132,13 +147,24 @@ class E5EmbeddingsAdapter(Embeddings):
         return self.base_embeddings.embed_query(prefixed_query)
 
 
-def get_model_tokenizer(model_name: str) -> Any | None:
-    """Attempt to load the tokenizer for the given model if transformers is available."""
+def get_model_tokenizer(model_name: str, strict: bool = False) -> Any | None:
+    """Attempt to load the tokenizer for the given model if transformers is available.
+
+    If strict is True, raises a RuntimeError if the tokenizer cannot be loaded.
+    """
     try:
         from transformers import AutoTokenizer
 
         return AutoTokenizer.from_pretrained(model_name)
-    except Exception:
+    except Exception as exc:
+        if strict:
+            raise RuntimeError(
+                f"Failed to load tokenizer for model '{model_name}'. "
+                f"Production E5 embedding operations require an exact tokenizer to guarantee sequences "
+                f"do not exceed the 512-token limit and prevent silent truncation. "
+                f"Ensure 'transformers' is installed and model weights/cache are accessible. "
+                f"Underlying error: {exc}"
+            ) from exc
         return None
 
 
@@ -200,11 +226,14 @@ def get_embedding_model(
                 ) from exc
 
         if is_e5_model(chosen_model):
-            tok = tokenizer if tokenizer is not None else get_model_tokenizer(chosen_model)
+            tok = tokenizer
+            if tok is None:
+                tok = get_model_tokenizer(chosen_model, strict=True)
             return E5EmbeddingsAdapter(
                 base_embeddings=base,
                 tokenizer=tok,
                 max_sequence_length=E5_MAX_SEQUENCE_LENGTH,
+                strict_tokenizer=True,
             )
         return base
 
