@@ -108,7 +108,7 @@ Run the [116 supplied translations](data/demo_translations.jsonl) without API cr
 python -m bodhan_eval --dataset data/demo_translations.jsonl --langs hi,ta,bn --out outputs/demo-text --offline
 ```
 
-The demo recording and public audio link are pending. Next, complete human review of a small representative subset, improve speech time localization, measure judge coverage on injected examples and run the full Cookbook and container gates.
+The [4:38 captioned walkthrough](https://drive.google.com/file/d/1vW_w1wZhsWNULyqV7Zbl13k1oqTPtNjG/view?usp=sharing) shows the cached replay of all 120 demo inputs, the report, and the separate paired-ASR comparison. A public link to the generated audio is pending. Next, complete human review of a small representative subset, improve speech time localization, measure judge coverage on injected examples and run the full Cookbook and container gates.
 
 [120 demo sources](data/demo.jsonl) cover Hindi, Tamil and Bengali; [provenance/preparation](data/README.md) explains generation and injection. Generate Bodhan outputs, review clean parents, then run `python -m bodhan_eval.inject`. No generated audio belongs in git. [Sample report](sample_report/summary.md) and [offline benchmark](docs/offline_benchmark.json) demonstrate local plumbing, not semantic quality.
 

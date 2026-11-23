@@ -28,7 +28,7 @@ The [demo report](../sample_report/live_demo/summary.md) includes per-language c
 Phase 3 adds blind content-bound annotation, generation receipts, strict assessed-population benchmarks and a read-only [evidence audit](phase3_readiness.md). Error-level detection is reported separately from item-level detection, and human versus injected evaluation groups remain distinguishable. The [workflow](phase3_workflow.md) gives reproducible preparation and validation commands. A readiness audit is not evidence of live model quality by itself.
 
 ## Demo video
-**Pending recording and public hosting.** See [recording plan](demo_recording.md).
+[Watch the 4:38 captioned demo](https://drive.google.com/file/d/1vW_w1wZhsWNULyqV7Zbl13k1oqTPtNjG/view?usp=sharing). It shows the full 120-input cached replay, with 116 completed items, and recomputes the separate held-out paired-ASR score from saved reports.
 
 ## Trade-offs and known limitations
 Systematic ASR and judge errors remain possible. Shared scripts cannot establish language identity. Literal numeric checks can misread number words, unit conversions and grouping conventions. Calibration only tunes judge-confidence thresholds; structural checks remain transparent fixed rules. General mistranslation injection requires reviewed term correspondences and is not fabricated.
