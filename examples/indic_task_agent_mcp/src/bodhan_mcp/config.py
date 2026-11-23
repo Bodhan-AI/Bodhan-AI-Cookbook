@@ -41,10 +41,16 @@ class Settings:
         default_factory=lambda: float(os.environ["BODHAN_MAX_COST_INR"]) if os.environ.get("BODHAN_MAX_COST_INR") else None
     )
 
+    restrict_reads: bool = True
+
     def __post_init__(self) -> None:
+        # Explicit allowed_dirs (the agent: input folder and run folder) or BODHAN_MCP_ALLOWED_DIRS sandbox reads.
+        # The standalone server with neither reads any path its client names: that client already owns the machine,
+        # and refusing its test files would make the server unusable out of the box.
         if not self.allowed_dirs:
             extra = [Path(p) for p in os.environ.get("BODHAN_MCP_ALLOWED_DIRS", "").split(os.pathsep) if p]
             self.allowed_dirs = [Path.cwd(), *extra]
+            self.restrict_reads = bool(extra)
 
     def key_for(self, model: str) -> str | None:
         for name in (MODEL_KEY_ENV[model], "BODHAN_API_KEY"):

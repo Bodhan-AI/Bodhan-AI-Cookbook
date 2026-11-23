@@ -75,6 +75,11 @@ Tested with the MCP Inspector (`npx @modelcontextprotocol/inspector python -m bo
   "env": { "BODHAN_MCP_ALLOWED_DIRS": "/abs/path/to/your/files", "BODHAN_MCP_OUTPUT_DIR": "/abs/path/to/outputs" } } } }
 ```
 
+File access: the server always writes only into `BODHAN_MCP_OUTPUT_DIR` (default `outputs/mcp`). It reads any path its
+client names unless `BODHAN_MCP_ALLOWED_DIRS` is set, in which case reads are limited to those folders (separated by
+`:`, or `;` on Windows) and the current folder. The task agent always limits reads to the task's input folder and its own
+run folder, because it reads untrusted files.
+
 Demo suite (needs keys): `python scripts/make_demo_inputs.py` builds the inputs, then `python scripts/self_eval.py`
 runs all nine tasks and writes a pass-rate table to `outputs/eval/summary.md`.
 

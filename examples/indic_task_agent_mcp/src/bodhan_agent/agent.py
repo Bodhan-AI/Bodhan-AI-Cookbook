@@ -148,6 +148,7 @@ class Agent:
         self.ctx.settings.output_dir = self.work
         self.ctx.workspace.output_dir = self.work.resolve()
         self.ctx.settings.allowed_dirs = [pf.input_root or Path.cwd(), self.out]
+        self.ctx.settings.restrict_reads = True  # the agent reads untrusted task files: always sandboxed
         self.ctx.ledger.max_cost_inr = cfg.max_cost_inr
         mcp_server.set_context(self.ctx)
         if pf.impossible_reason:

@@ -31,9 +31,10 @@ class Workspace:
             candidates = [Path.cwd() / p, self.output_dir / p] + [r / p for r in self.roots]
             p = next((c for c in candidates if c.exists()), Path.cwd() / p)
         p = p.resolve()
-        if not any(p == r or r in p.parents for r in self.roots):
+        if self.settings.restrict_reads and not any(p == r or r in p.parents for r in self.roots):
             raise ToolError("path_not_allowed", f"{path} is outside the folders this server may read.",
-                            hint="Use a file inside the task's input folder or a file produced by an earlier tool call.",
+                            hint="Use a file inside one of the allowed folders or a file produced by an earlier tool call. "
+                                 "The server's operator can add folders with BODHAN_MCP_ALLOWED_DIRS.",
                             details={"allowed": [str(r) for r in self.roots]})
         if not p.exists():
             raise ToolError("file_not_found", f"{path} does not exist.", hint="Check the path; use inspect_file on the input folder to list files.")

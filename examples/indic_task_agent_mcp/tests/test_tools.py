@@ -111,6 +111,27 @@ async def test_paths_outside_allowed_folders_are_refused(ctx):
     assert exc.value.code == "path_not_allowed"
 
 
+def test_read_sandbox_defaults(tmp_path, monkeypatch):
+    from bodhan_mcp.config import Settings
+    from bodhan_mcp.workspace import Workspace
+
+    outside = tmp_path / "client_files" / "note.txt"
+    outside.parent.mkdir()
+    outside.write_text("hello", encoding="utf-8")
+    server_cwd = tmp_path / "server_cwd"
+    server_cwd.mkdir()
+    monkeypatch.chdir(server_cwd)
+    monkeypatch.delenv("BODHAN_MCP_ALLOWED_DIRS", raising=False)
+    # Standalone server, nothing configured: a client's own files anywhere are readable.
+    assert Workspace(Settings(output_dir=tmp_path / "o1")).resolve_input(str(outside)) == outside.resolve()
+    # The operator restricts reads with the env var; explicit folders (the agent) always restrict.
+    monkeypatch.setenv("BODHAN_MCP_ALLOWED_DIRS", str(tmp_path / "somewhere_else"))
+    for settings in (Settings(output_dir=tmp_path / "o2"), Settings(output_dir=tmp_path / "o3", allowed_dirs=[server_cwd])):
+        with pytest.raises(ToolError) as exc:
+            Workspace(settings).resolve_input(str(outside))
+        assert exc.value.code == "path_not_allowed" and "BODHAN_MCP_ALLOWED_DIRS" in exc.value.hint
+
+
 async def test_inspect_folder_lists_files(ctx, workdir):
     (workdir / "a.txt").write_text("নমস্কার, এটা বাংলা।", encoding="utf-8")
     res = await tools.inspect_file(ctx, str(workdir))

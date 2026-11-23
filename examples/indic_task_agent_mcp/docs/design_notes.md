@@ -87,8 +87,8 @@ checks, SRT timing, final status.
 - File contents, transcripts and OCR text reach the LLM only inside `<untrusted_content>` tags. A pattern check flags
   instruction-like text ("ignore previous instructions", requests for keys or email), adds a warning inside the tag and
   records it in `report.json`.
-- The agent has no shell, network, delete or email tool, and writes only into the run's output folder; the server
-  reads only from allowed folders. An injected instruction has nothing dangerous to call.
+- The agent has no shell, network, delete or email tool, and writes only into the run's output folder; its reads are limited to the input and run folders (the standalone server
+  limits reads the same way when `BODHAN_MCP_ALLOWED_DIRS` is set). An injected instruction has nothing dangerous to call.
 
 ## Language support
 
