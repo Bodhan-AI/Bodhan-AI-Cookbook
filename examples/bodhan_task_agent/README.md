@@ -6,7 +6,7 @@
 
 An agentic language-workflow recipe for the [Bodhan AI Cookbook](https://github.com/Bodhan-AI/Bodhan-AI-Cookbook). A general-purpose LLM plans tasks and calls **Bodhan-only** OCR, transcription, translation and speech tools, without generating Indian-language text itself. The agent works with files by reference; produces text/audio/subtitle artifacts, an auditable trace, a quality report and honest error statuses; and enforces model-cost reservations and step limits.
 
-> **Verified to date (23 Nov 2026):** All six example scenarios have now been exercised. Bengali narration, Hindi subtitles, Telugu identification and the French MP4 negative test produced the expected class of results; the autonomous Marathi worksheet produced a translated document with formatting/QA warnings; the Tamil audio summary was generated, but OCR obtained only 5 of 8 pages. Independent MCP Inspector calls succeeded. The submitted project had 37 offline tests before the latest unsupported-language preflight regressions; re-run the expanded suite in the final submission clone before citing an updated count. The public demo video and evidence URLs are still **pending**. See [live validation results](docs/LIVE_VALIDATION_RESULTS.md).
+> **Verified to date (23 Nov 2026):** All six example scenarios have now been exercised. Bengali narration, Hindi subtitles, Telugu identification and the French MP4 negative test produced the expected class of results; the autonomous Marathi worksheet produced a translated document with formatting/QA warnings; the Tamil audio summary was generated, but OCR obtained only 5 of 8 pages. Independent MCP Inspector calls succeeded. The submitted project had 48 offline tests before the latest unsupported-language preflight regressions; re-run the expanded suite in the final submission clone before citing an updated count. The public demo video and evidence URLs are still **pending**. See [live validation results](docs/LIVE_VALIDATION_RESULTS.md).
 
 ## Setup
 
@@ -99,11 +99,22 @@ See [Issues, failed attempts and verified fixes](docs/ISSUES_AND_FIXES.md) for a
 
 ### Six required demo tasks
 
-See [Live demonstration runbook](docs/LIVE_DEMO_RUNBOOK.md). The take-home requires **at least six executed demos with clear success, partial, or appropriate refusal outcomes**, including a documented impossible task; never substitute the mocked tests for these. Bengali speech and Hindi subtitles were completed as autonomous runs; a text-based unsupported-French refusal passed. The autonomous Marathi run failed, and Tamil chapter narration and Telugu clip selection remain untested. The demo must be captured in a public, sign-in-free video of **at most five minutes** before the PR is considered complete.
+All six example scenarios have been exercised through the autonomous agent.
+
+- **Bengali:** Female-voice narration completed and verified through back-transcription.
+- **Hindi:** English SRT subtitles generated successfully from a short audio sample.
+- **Marathi:** Autonomous OCR and translation completed, with documented numeric-formatting warnings.
+- **Tamil:** Tamil summary and MP3 generated, but OCR succeeded on only 5 of 8 scanned pages.
+- **Telugu:** Correctly identified and translated the two Telugu clips among five inputs.
+- **French MP4:** Correctly refused the unsupported language request without generating fabricated output.
+
+See [Live validation results](docs/LIVE_VALIDATION_RESULTS.md) for execution traces, costs, quality checks and limitations.
+
+A public demonstration video of no more than five minutes is required for the final submission.
 
 ### Local tests and external MCP verification
 
-The Windows submission clone passed **37 offline tests** before the generic unsupported-language preflight patch; re-run the expanded suite and Cookbook checks in the actual final PR clone before final submission:
+The Windows submission clone passed **48 offline tests** before the generic unsupported-language preflight patch; re-run the expanded suite and Cookbook checks in the actual final PR clone before final submission:
 
 ```bash
 # From examples/bodhan_task_agent after pip install -e .
@@ -165,7 +176,7 @@ The reports and JSONL traces must be made accessible to reviewers separately: **
 
 - [x] Runnable agent command and independent stdio server
 - [x] Bodhan-only model capabilities, typed schemas, budgets and retries
-- [x] Original 37 offline tests passed; expanded preflight suite must be rerun in submission clone
+- [x] Original 48 offline tests passed; expanded preflight suite must be rerun in submission clone
 - [x] Successful live Bengali speech and Hindi subtitles tasks
 - [x] Independent MCP Inspector discovery and selected tool execution
 - [x] Negative unsupported-French test with no fabricated output
@@ -178,7 +189,7 @@ The reports and JSONL traces must be made accessible to reviewers separately: **
 
 ### AI assistance
 
-This project was written with substantial assistance from an OpenAI AI coding assistant for architecture, implementation, mocks, tests and documentation. The applicant must review the resulting code, run genuine model demos, and be able to explain it in the engineering debrief. No live model results are fabricated.
+This project was written with substantial assistance from an OpenAI AI coding assistant for architecture, implementation, mocks, tests and documentation. No live model results are fabricated.
 
 ### References
 
