@@ -1,0 +1,9 @@
+[
+ {
+  "page": 1,
+  "markdown": "Worksheet: Measuring Rainfall\n\nFill in the table using the weather report.\n\n| Day | Rainfall (mm) | Weather |\n| :--- | :--- | :--- |\n| Monday | 12 | Cloudy |\n| Tuesday | 0 | Sunny |\n| Wednesday | 35 | Heavy rain |\n| Thursday | 8 | Drizzle |\n\nQuestion: Which day had the most rain?",
+  "mean_conf": 0.802,
+  "blocks": 5,
+  "low_confidence_blocks": []
+ }
+]
