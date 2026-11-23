@@ -60,12 +60,16 @@ Optional Groq RAG dependencies:
 - `sentence-transformers>=3.0.0`
 - `langchain==1.3.14`
 - `langchain-text-splitters==1.1.3`
+- `python-dotenv>=1.0.0`
 
 ### Environment Configuration
 
-Configure your Bodhan API keys in your shell environment or create a `.env` file from `.env.example` (automatically loaded by `RAGConfig.from_env()` when `python-dotenv` is installed):
+Configure your Bodhan API keys in your shell environment or create a `.env` file from `.env.example` (automatically loaded by `RAGConfig.from_env()` when `python-dotenv` is installed; `python-dotenv` is included in `requirements-rag-groq.txt` or can be installed via `pip install python-dotenv`):
 
 ```bash
+# If not already installed via requirements-rag-groq.txt:
+pip install python-dotenv
+
 cp .env.example .env
 ```
 
