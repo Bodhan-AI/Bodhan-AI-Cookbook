@@ -206,3 +206,11 @@ async def test_judge_timeout_is_explicitly_unavailable():
 
     assert result.unavailable
     assert result.findings == []
+
+
+def test_judge_prompt_contains_written_rubric_and_no_rewrite_rule():
+    from bodhan_eval.judge import build_judge_prompt
+
+    prompt = build_judge_prompt("Water boils at 100 C.", "x", "hi")
+    for needle in ("Rubric.", "omission =", "mistranslation =", "critical =", "verbatim", "Never translate"):
+        assert needle in prompt

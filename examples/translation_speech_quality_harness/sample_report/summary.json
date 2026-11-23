@@ -1,1 +1,951 @@
-{"checker_noise":{},"cost_inr":0.0,"flags":0,"items":3,"ledger":[],"quarantined":0,"skipped":0,"targets":{}}
+{
+  "accounting": {
+    "failed_checks": 6,
+    "input_lines": 80,
+    "quarantined": 0,
+    "scored": 74,
+    "skipped": 6
+  },
+  "checker_noise": {},
+  "cost_inr": 0.0,
+  "coverage": {
+    "overall": 0.925,
+    "per_language": {
+      "bn": {
+        "coverage": 1.0,
+        "scored": 20,
+        "total": 20
+      },
+      "hi": {
+        "coverage": 0.925,
+        "scored": 37,
+        "total": 40
+      },
+      "ta": {
+        "coverage": 0.85,
+        "scored": 17,
+        "total": 20
+      }
+    }
+  },
+  "flags": 7,
+  "items": 80,
+  "judge": {
+    "complete": 0,
+    "consensus_findings": 0,
+    "disabled": 6,
+    "items": 6,
+    "status": "integrated",
+    "unavailable": 0
+  },
+  "judge_consistency": {
+    "reason": "cache-bypassed consistency sampling has not been run",
+    "status": "not_measured"
+  },
+  "ledger": [],
+  "quarantined": 0,
+  "reference_scores": {},
+  "skipped": 6,
+  "skips": [],
+  "targets": {
+    "generalization": {
+      "leave_one_language_out": {
+        "held_out_languages": [
+          "bn",
+          "hi",
+          "ta"
+        ],
+        "languages": {
+          "bn": {
+            "self": {
+              "gold_labels": 7,
+              "items": 20,
+              "metrics": {
+                "category_accuracy": {
+                  "accuracy": 0.0,
+                  "ci95": [
+                    0.0,
+                    0.0
+                  ],
+                  "correct": 0,
+                  "support": 0
+                },
+                "clean_items": 13,
+                "false_alarm_ci95": [
+                  0.013710066379696323,
+                  0.3331453392824736
+                ],
+                "false_alarm_items": 1,
+                "false_alarm_rate": 0.076923,
+                "items": 20,
+                "per_category": {
+                  "mistranslation": {
+                    "false_negatives": 3,
+                    "false_positives": 0,
+                    "insufficient_support": false,
+                    "precision": 0.0,
+                    "precision_ci95": [
+                      0.0,
+                      0.0
+                    ],
+                    "predicted": 0,
+                    "recall": 0.0,
+                    "recall_ci95": [
+                      0.0,
+                      0.5615060804490177
+                    ],
+                    "span_overlap_mean": 0.0,
+                    "span_support": 0,
+                    "support_negatives": 17,
+                    "support_positives": 3,
+                    "true_positives": 0
+                  },
+                  "number": {
+                    "false_negatives": 0,
+                    "false_positives": 1,
+                    "insufficient_support": true,
+                    "precision": 0.0,
+                    "precision_ci95": [
+                      0.0,
+                      0.7934567085261071
+                    ],
+                    "predicted": 1,
+                    "recall": 0.0,
+                    "recall_ci95": [
+                      0.0,
+                      0.0
+                    ],
+                    "span_overlap_mean": 0.0,
+                    "span_support": 0,
+                    "support_negatives": 20,
+                    "support_positives": 0,
+                    "true_positives": 0
+                  },
+                  "omission": {
+                    "false_negatives": 1,
+                    "false_positives": 0,
+                    "insufficient_support": false,
+                    "precision": 0.0,
+                    "precision_ci95": [
+                      0.0,
+                      0.0
+                    ],
+                    "predicted": 0,
+                    "recall": 0.0,
+                    "recall_ci95": [
+                      0.0,
+                      0.7934567085261071
+                    ],
+                    "span_overlap_mean": 0.0,
+                    "span_support": 0,
+                    "support_negatives": 19,
+                    "support_positives": 1,
+                    "true_positives": 0
+                  },
+                  "term": {
+                    "false_negatives": 2,
+                    "false_positives": 0,
+                    "insufficient_support": false,
+                    "precision": 0.0,
+                    "precision_ci95": [
+                      0.0,
+                      0.0
+                    ],
+                    "predicted": 0,
+                    "recall": 0.0,
+                    "recall_ci95": [
+                      0.0,
+                      0.6576280471103807
+                    ],
+                    "span_overlap_mean": 0.0,
+                    "span_support": 0,
+                    "support_negatives": 18,
+                    "support_positives": 2,
+                    "true_positives": 0
+                  },
+                  "unmapped": {
+                    "false_negatives": 1,
+                    "false_positives": 0,
+                    "insufficient_support": false,
+                    "precision": 0.0,
+                    "precision_ci95": [
+                      0.0,
+                      0.0
+                    ],
+                    "predicted": 0,
+                    "recall": 0.0,
+                    "recall_ci95": [
+                      0.0,
+                      0.7934567085261071
+                    ],
+                    "span_overlap_mean": 0.0,
+                    "span_support": 0,
+                    "support_negatives": 19,
+                    "support_positives": 1,
+                    "true_positives": 0
+                  }
+                }
+              },
+              "predictions": 1,
+              "threshold_origin": "swept",
+              "thresholds": {
+                "addition": {
+                  "status": "insufficient_support",
+                  "support_negatives": 59,
+                  "support_positives": 1,
+                  "threshold": 0.5,
+                  "threshold_origin": "defaults_not_tuned"
+                },
+                "format": {
+                  "status": "insufficient_support",
+                  "support_negatives": 60,
+                  "support_positives": 0,
+                  "threshold": 0.5,
+                  "threshold_origin": "defaults_not_tuned"
+                },
+                "garbled": {
+                  "status": "insufficient_support",
+                  "support_negatives": 60,
+                  "support_positives": 0,
+                  "threshold": 0.5,
+                  "threshold_origin": "defaults_not_tuned"
+                },
+                "language": {
+                  "status": "insufficient_support",
+                  "support_negatives": 60,
+                  "support_positives": 0,
+                  "threshold": 0.5,
+                  "threshold_origin": "defaults_not_tuned"
+                },
+                "mistranslation": {
+                  "f0_5": 0.0,
+                  "status": "swept",
+                  "support_negatives": 53,
+                  "support_positives": 7,
+                  "threshold": 1.0,
+                  "threshold_origin": "swept"
+                },
+                "number": {
+                  "status": "insufficient_support",
+                  "support_negatives": 60,
+                  "support_positives": 0,
+                  "threshold": 0.5,
+                  "threshold_origin": "defaults_not_tuned"
+                },
+                "omission": {
+                  "status": "insufficient_support",
+                  "support_negatives": 57,
+                  "support_positives": 3,
+                  "threshold": 0.5,
+                  "threshold_origin": "defaults_not_tuned"
+                },
+                "repetition": {
+                  "status": "insufficient_support",
+                  "support_negatives": 60,
+                  "support_positives": 0,
+                  "threshold": 0.5,
+                  "threshold_origin": "defaults_not_tuned"
+                },
+                "speech_omission": {
+                  "status": "insufficient_support",
+                  "support_negatives": 60,
+                  "support_positives": 0,
+                  "threshold": 0.5,
+                  "threshold_origin": "defaults_not_tuned"
+                },
+                "term": {
+                  "f0_5": 0.0,
+                  "status": "swept",
+                  "support_negatives": 54,
+                  "support_positives": 6,
+                  "threshold": 1.0,
+                  "threshold_origin": "swept"
+                }
+              }
+            }
+          },
+          "hi": {
+            "self": {
+              "gold_labels": 15,
+              "items": 40,
+              "metrics": {
+                "category_accuracy": {
+                  "accuracy": 0.0,
+                  "ci95": [
+                    0.0,
+                    0.0
+                  ],
+                  "correct": 0,
+                  "support": 0
+                },
+                "clean_items": 25,
+                "false_alarm_ci95": [
+                  0.0,
+                  0.13319649395317873
+                ],
+                "false_alarm_items": 0,
+                "false_alarm_rate": 0.0,
+                "items": 40,
+                "per_category": {
+                  "addition": {
+                    "false_negatives": 1,
+                    "false_positives": 0,
+                    "insufficient_support": false,
+                    "precision": 0.0,
+                    "precision_ci95": [
+                      0.0,
+                      0.0
+                    ],
+                    "predicted": 0,
+                    "recall": 0.0,
+                    "recall_ci95": [
+                      0.0,
+                      0.7934567085261071
+                    ],
+                    "span_overlap_mean": 0.0,
+                    "span_support": 0,
+                    "support_negatives": 39,
+                    "support_positives": 1,
+                    "true_positives": 0
+                  },
+                  "mistranslation": {
+                    "false_negatives": 5,
+                    "false_positives": 0,
+                    "insufficient_support": false,
+                    "precision": 0.0,
+                    "precision_ci95": [
+                      0.0,
+                      0.0
+                    ],
+                    "predicted": 0,
+                    "recall": 0.0,
+                    "recall_ci95": [
+                      0.0,
+                      0.43449149475208104
+                    ],
+                    "span_overlap_mean": 0.0,
+                    "span_support": 0,
+                    "support_negatives": 35,
+                    "support_positives": 5,
+                    "true_positives": 0
+                  },
+                  "omission": {
+                    "false_negatives": 3,
+                    "false_positives": 0,
+                    "insufficient_support": false,
+                    "precision": 0.0,
+                    "precision_ci95": [
+                      0.0,
+                      0.0
+                    ],
+                    "predicted": 0,
+                    "recall": 0.0,
+                    "recall_ci95": [
+                      0.0,
+                      0.5615060804490177
+                    ],
+                    "span_overlap_mean": 0.0,
+                    "span_support": 0,
+                    "support_negatives": 37,
+                    "support_positives": 3,
+                    "true_positives": 0
+                  },
+                  "term": {
+                    "false_negatives": 6,
+                    "false_positives": 0,
+                    "insufficient_support": false,
+                    "precision": 0.0,
+                    "precision_ci95": [
+                      0.0,
+                      0.0
+                    ],
+                    "predicted": 0,
+                    "recall": 0.0,
+                    "recall_ci95": [
+                      0.0,
+                      0.3903430336530645
+                    ],
+                    "span_overlap_mean": 0.0,
+                    "span_support": 0,
+                    "support_negatives": 34,
+                    "support_positives": 6,
+                    "true_positives": 0
+                  }
+                }
+              },
+              "predictions": 0,
+              "threshold_origin": "swept",
+              "thresholds": {
+                "addition": {
+                  "status": "insufficient_support",
+                  "support_negatives": 40,
+                  "support_positives": 0,
+                  "threshold": 0.5,
+                  "threshold_origin": "defaults_not_tuned"
+                },
+                "format": {
+                  "status": "insufficient_support",
+                  "support_negatives": 40,
+                  "support_positives": 0,
+                  "threshold": 0.5,
+                  "threshold_origin": "defaults_not_tuned"
+                },
+                "garbled": {
+                  "status": "insufficient_support",
+                  "support_negatives": 40,
+                  "support_positives": 0,
+                  "threshold": 0.5,
+                  "threshold_origin": "defaults_not_tuned"
+                },
+                "language": {
+                  "status": "insufficient_support",
+                  "support_negatives": 40,
+                  "support_positives": 0,
+                  "threshold": 0.5,
+                  "threshold_origin": "defaults_not_tuned"
+                },
+                "mistranslation": {
+                  "f0_5": 0.0,
+                  "status": "swept",
+                  "support_negatives": 35,
+                  "support_positives": 5,
+                  "threshold": 1.0,
+                  "threshold_origin": "swept"
+                },
+                "number": {
+                  "status": "insufficient_support",
+                  "support_negatives": 40,
+                  "support_positives": 0,
+                  "threshold": 0.5,
+                  "threshold_origin": "defaults_not_tuned"
+                },
+                "omission": {
+                  "status": "insufficient_support",
+                  "support_negatives": 39,
+                  "support_positives": 1,
+                  "threshold": 0.5,
+                  "threshold_origin": "defaults_not_tuned"
+                },
+                "repetition": {
+                  "status": "insufficient_support",
+                  "support_negatives": 40,
+                  "support_positives": 0,
+                  "threshold": 0.5,
+                  "threshold_origin": "defaults_not_tuned"
+                },
+                "speech_omission": {
+                  "status": "insufficient_support",
+                  "support_negatives": 40,
+                  "support_positives": 0,
+                  "threshold": 0.5,
+                  "threshold_origin": "defaults_not_tuned"
+                },
+                "term": {
+                  "status": "insufficient_support",
+                  "support_negatives": 38,
+                  "support_positives": 2,
+                  "threshold": 0.5,
+                  "threshold_origin": "defaults_not_tuned"
+                },
+                "unmapped": {
+                  "status": "insufficient_support",
+                  "support_negatives": 39,
+                  "support_positives": 1,
+                  "threshold": 0.5,
+                  "threshold_origin": "defaults_not_tuned"
+                }
+              }
+            }
+          },
+          "ta": {
+            "self": {
+              "gold_labels": 2,
+              "items": 20,
+              "metrics": {
+                "category_accuracy": {
+                  "accuracy": 0.0,
+                  "ci95": [
+                    0.0,
+                    0.0
+                  ],
+                  "correct": 0,
+                  "support": 0
+                },
+                "clean_items": 18,
+                "false_alarm_ci95": [
+                  0.0,
+                  0.1758845505823749
+                ],
+                "false_alarm_items": 0,
+                "false_alarm_rate": 0.0,
+                "items": 20,
+                "per_category": {
+                  "mistranslation": {
+                    "false_negatives": 2,
+                    "false_positives": 0,
+                    "insufficient_support": false,
+                    "precision": 0.0,
+                    "precision_ci95": [
+                      0.0,
+                      0.0
+                    ],
+                    "predicted": 0,
+                    "recall": 0.0,
+                    "recall_ci95": [
+                      0.0,
+                      0.6576280471103807
+                    ],
+                    "span_overlap_mean": 0.0,
+                    "span_support": 0,
+                    "support_negatives": 18,
+                    "support_positives": 2,
+                    "true_positives": 0
+                  }
+                }
+              },
+              "predictions": 0,
+              "threshold_origin": "swept",
+              "thresholds": {
+                "addition": {
+                  "status": "insufficient_support",
+                  "support_negatives": 59,
+                  "support_positives": 1,
+                  "threshold": 0.5,
+                  "threshold_origin": "defaults_not_tuned"
+                },
+                "format": {
+                  "status": "insufficient_support",
+                  "support_negatives": 60,
+                  "support_positives": 0,
+                  "threshold": 0.5,
+                  "threshold_origin": "defaults_not_tuned"
+                },
+                "garbled": {
+                  "status": "insufficient_support",
+                  "support_negatives": 60,
+                  "support_positives": 0,
+                  "threshold": 0.5,
+                  "threshold_origin": "defaults_not_tuned"
+                },
+                "language": {
+                  "status": "insufficient_support",
+                  "support_negatives": 60,
+                  "support_positives": 0,
+                  "threshold": 0.5,
+                  "threshold_origin": "defaults_not_tuned"
+                },
+                "mistranslation": {
+                  "f0_5": 0.0,
+                  "status": "swept",
+                  "support_negatives": 52,
+                  "support_positives": 8,
+                  "threshold": 1.0,
+                  "threshold_origin": "swept"
+                },
+                "number": {
+                  "status": "insufficient_support",
+                  "support_negatives": 60,
+                  "support_positives": 0,
+                  "threshold": 0.5,
+                  "threshold_origin": "defaults_not_tuned"
+                },
+                "omission": {
+                  "status": "insufficient_support",
+                  "support_negatives": 56,
+                  "support_positives": 4,
+                  "threshold": 0.5,
+                  "threshold_origin": "defaults_not_tuned"
+                },
+                "repetition": {
+                  "status": "insufficient_support",
+                  "support_negatives": 60,
+                  "support_positives": 0,
+                  "threshold": 0.5,
+                  "threshold_origin": "defaults_not_tuned"
+                },
+                "speech_omission": {
+                  "status": "insufficient_support",
+                  "support_negatives": 60,
+                  "support_positives": 0,
+                  "threshold": 0.5,
+                  "threshold_origin": "defaults_not_tuned"
+                },
+                "term": {
+                  "f0_5": 0.0,
+                  "status": "swept",
+                  "support_negatives": 52,
+                  "support_positives": 8,
+                  "threshold": 1.0,
+                  "threshold_origin": "swept"
+                },
+                "unmapped": {
+                  "status": "insufficient_support",
+                  "support_negatives": 59,
+                  "support_positives": 1,
+                  "threshold": 0.5,
+                  "threshold_origin": "defaults_not_tuned"
+                }
+              }
+            }
+          }
+        },
+        "seed": 20261119
+      },
+      "unseen_languages": {}
+    },
+    "metrics": {
+      "self": {
+        "bn": {
+          "category_accuracy": {
+            "accuracy": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ],
+            "correct": 0,
+            "support": 0
+          },
+          "clean_items": 4,
+          "false_alarm_ci95": [
+            0.045586062644636216,
+            0.6993639475573634
+          ],
+          "false_alarm_items": 1,
+          "false_alarm_rate": 0.25,
+          "items": 8,
+          "per_category": {
+            "mistranslation": {
+              "false_negatives": 3,
+              "false_positives": 0,
+              "insufficient_support": false,
+              "precision": 0.0,
+              "precision_ci95": [
+                0.0,
+                0.0
+              ],
+              "predicted": 0,
+              "recall": 0.0,
+              "recall_ci95": [
+                0.0,
+                0.5615060804490177
+              ],
+              "span_overlap_mean": 0.0,
+              "span_support": 0,
+              "support_negatives": 5,
+              "support_positives": 3,
+              "true_positives": 0
+            },
+            "number": {
+              "false_negatives": 0,
+              "false_positives": 1,
+              "insufficient_support": true,
+              "precision": 0.0,
+              "precision_ci95": [
+                0.0,
+                0.7934567085261071
+              ],
+              "predicted": 1,
+              "recall": 0.0,
+              "recall_ci95": [
+                0.0,
+                0.0
+              ],
+              "span_overlap_mean": 0.0,
+              "span_support": 0,
+              "support_negatives": 8,
+              "support_positives": 0,
+              "true_positives": 0
+            },
+            "term": {
+              "false_negatives": 1,
+              "false_positives": 0,
+              "insufficient_support": false,
+              "precision": 0.0,
+              "precision_ci95": [
+                0.0,
+                0.0
+              ],
+              "predicted": 0,
+              "recall": 0.0,
+              "recall_ci95": [
+                0.0,
+                0.7934567085261071
+              ],
+              "span_overlap_mean": 0.0,
+              "span_support": 0,
+              "support_negatives": 7,
+              "support_positives": 1,
+              "true_positives": 0
+            }
+          }
+        },
+        "hi": {
+          "category_accuracy": {
+            "accuracy": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ],
+            "correct": 0,
+            "support": 0
+          },
+          "clean_items": 15,
+          "false_alarm_ci95": [
+            0.0,
+            0.20388926630434784
+          ],
+          "false_alarm_items": 0,
+          "false_alarm_rate": 0.0,
+          "items": 21,
+          "per_category": {
+            "addition": {
+              "false_negatives": 1,
+              "false_positives": 0,
+              "insufficient_support": false,
+              "precision": 0.0,
+              "precision_ci95": [
+                0.0,
+                0.0
+              ],
+              "predicted": 0,
+              "recall": 0.0,
+              "recall_ci95": [
+                0.0,
+                0.7934567085261071
+              ],
+              "span_overlap_mean": 0.0,
+              "span_support": 0,
+              "support_negatives": 20,
+              "support_positives": 1,
+              "true_positives": 0
+            },
+            "mistranslation": {
+              "false_negatives": 1,
+              "false_positives": 0,
+              "insufficient_support": false,
+              "precision": 0.0,
+              "precision_ci95": [
+                0.0,
+                0.0
+              ],
+              "predicted": 0,
+              "recall": 0.0,
+              "recall_ci95": [
+                0.0,
+                0.7934567085261071
+              ],
+              "span_overlap_mean": 0.0,
+              "span_support": 0,
+              "support_negatives": 20,
+              "support_positives": 1,
+              "true_positives": 0
+            },
+            "omission": {
+              "false_negatives": 1,
+              "false_positives": 0,
+              "insufficient_support": false,
+              "precision": 0.0,
+              "precision_ci95": [
+                0.0,
+                0.0
+              ],
+              "predicted": 0,
+              "recall": 0.0,
+              "recall_ci95": [
+                0.0,
+                0.7934567085261071
+              ],
+              "span_overlap_mean": 0.0,
+              "span_support": 0,
+              "support_negatives": 20,
+              "support_positives": 1,
+              "true_positives": 0
+            },
+            "term": {
+              "false_negatives": 3,
+              "false_positives": 0,
+              "insufficient_support": false,
+              "precision": 0.0,
+              "precision_ci95": [
+                0.0,
+                0.0
+              ],
+              "predicted": 0,
+              "recall": 0.0,
+              "recall_ci95": [
+                0.0,
+                0.5615060804490177
+              ],
+              "span_overlap_mean": 0.0,
+              "span_support": 0,
+              "support_negatives": 18,
+              "support_positives": 3,
+              "true_positives": 0
+            }
+          }
+        },
+        "ta": {
+          "category_accuracy": {
+            "accuracy": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ],
+            "correct": 0,
+            "support": 0
+          },
+          "clean_items": 11,
+          "false_alarm_ci95": [
+            2.7755575615628914e-17,
+            0.2588400172488141
+          ],
+          "false_alarm_items": 0,
+          "false_alarm_rate": 0.0,
+          "items": 11,
+          "per_category": {}
+        }
+      }
+    },
+    "reason": null,
+    "seed": 20261119,
+    "status": "ok",
+    "support": {
+      "dev_sources": 33,
+      "test_items": 40,
+      "test_labels": 10,
+      "test_sources": 33
+    },
+    "threshold_origin": "swept",
+    "threshold_status": "swept",
+    "thresholds": {
+      "addition": {
+        "status": "insufficient_support",
+        "support_negatives": 40,
+        "support_positives": 0,
+        "threshold": 0.5,
+        "threshold_origin": "defaults_not_tuned"
+      },
+      "format": {
+        "status": "insufficient_support",
+        "support_negatives": 40,
+        "support_positives": 0,
+        "threshold": 0.5,
+        "threshold_origin": "defaults_not_tuned"
+      },
+      "garbled": {
+        "status": "insufficient_support",
+        "support_negatives": 40,
+        "support_positives": 0,
+        "threshold": 0.5,
+        "threshold_origin": "defaults_not_tuned"
+      },
+      "language": {
+        "status": "insufficient_support",
+        "support_negatives": 40,
+        "support_positives": 0,
+        "threshold": 0.5,
+        "threshold_origin": "defaults_not_tuned"
+      },
+      "mistranslation": {
+        "f0_5": 0.0,
+        "status": "swept",
+        "support_negatives": 34,
+        "support_positives": 6,
+        "threshold": 1.0,
+        "threshold_origin": "swept"
+      },
+      "number": {
+        "status": "insufficient_support",
+        "support_negatives": 40,
+        "support_positives": 0,
+        "threshold": 0.5,
+        "threshold_origin": "defaults_not_tuned"
+      },
+      "omission": {
+        "status": "insufficient_support",
+        "support_negatives": 37,
+        "support_positives": 3,
+        "threshold": 0.5,
+        "threshold_origin": "defaults_not_tuned"
+      },
+      "repetition": {
+        "status": "insufficient_support",
+        "support_negatives": 40,
+        "support_positives": 0,
+        "threshold": 0.5,
+        "threshold_origin": "defaults_not_tuned"
+      },
+      "speech_omission": {
+        "status": "insufficient_support",
+        "support_negatives": 40,
+        "support_positives": 0,
+        "threshold": 0.5,
+        "threshold_origin": "defaults_not_tuned"
+      },
+      "term": {
+        "status": "insufficient_support",
+        "support_negatives": 36,
+        "support_positives": 4,
+        "threshold": 0.5,
+        "threshold_origin": "defaults_not_tuned"
+      },
+      "unmapped": {
+        "status": "insufficient_support",
+        "support_negatives": 39,
+        "support_positives": 1,
+        "threshold": 0.5,
+        "threshold_origin": "defaults_not_tuned"
+      }
+    }
+  },
+  "unchecked": [
+    {
+      "id": "in22-gen-31-ta",
+      "lang": "ta",
+      "reason": [
+        "judge_disabled_for_candidates"
+      ],
+      "terminal_state": "failed_checks"
+    },
+    {
+      "id": "in22-gen-45-hi",
+      "lang": "hi",
+      "reason": [
+        "judge_disabled_for_candidates"
+      ],
+      "terminal_state": "failed_checks"
+    },
+    {
+      "id": "in22-gen-46-ta",
+      "lang": "ta",
+      "reason": [
+        "judge_disabled_for_candidates"
+      ],
+      "terminal_state": "failed_checks"
+    },
+    {
+      "id": "in22-gen-68-hi",
+      "lang": "hi",
+      "reason": [
+        "judge_disabled_for_candidates"
+      ],
+      "terminal_state": "failed_checks"
+    },
+    {
+      "id": "in22-gen-73-hi",
+      "lang": "hi",
+      "reason": [
+        "judge_disabled_for_candidates"
+      ],
+      "terminal_state": "failed_checks"
+    },
+    {
+      "id": "in22-gen-96-ta",
+      "lang": "ta",
+      "reason": [
+        "judge_disabled_for_candidates"
+      ],
+      "terminal_state": "failed_checks"
+    }
+  ]
+}

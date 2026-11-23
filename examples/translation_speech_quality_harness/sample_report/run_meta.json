@@ -1,0 +1,12 @@
+{
+  "budget_limit_inr": 0.0,
+  "budget_skips": [],
+  "cost_ledger": [],
+  "generate": false,
+  "langs": [
+    "bn",
+    "hi",
+    "ta"
+  ],
+  "seed": 20261119
+}

@@ -26,10 +26,9 @@ by a candidate-confirmation pass; if it is unavailable or not configured, items
 requiring judge confirmation are reported as unchecked. Validated judge findings
 are cached; unvalidated raw replies are not written to the cache. Use `--no-judge`
 to explicitly disable the judge.
-The verified development judge is `gemini-3-flash-preview` through the
-Google Gemini OpenAI-compatible chat-completions endpoint. Set
-`LLM_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai/`,
-`LLM_MODEL=gemini-3-flash-preview`, and `LLM_API_KEY` locally.
+Any OpenAI-compatible chat-completions provider works. During development the judge was configured
+with `gemini-3-flash-preview` through Google's OpenAI-compatible endpoint; set `LLM_BASE_URL`,
+`LLM_MODEL` and `LLM_API_KEY` for your own provider.
 
 ## Run
 
@@ -105,3 +104,20 @@ Ffmpeg is required for non-WAV inputs and speech conversion. If it is absent, sp
 4. Add a focused test, then run Ruff and the complete test suite.
 
 The pipeline discovers registered checks, sorts them by cost tier, and logs each scheduled check in the per-item `decisions` field.
+
+## Design, status and known limitations
+
+`sample_report/` holds a real offline report (80 self-labelled IN22 rows, `--no-judge --no-speech`, zero cost).
+
+See [DESIGN.md](DESIGN.md) for the architecture diagram, the dataset-to-report flow chart, one line per
+check, the judge rubric, calibration and how results combine.
+
+Honest status: the deterministic checks (numbers, script/language, Markdown/LaTeX skeleton, per-language
+length outliers), the budgeted cache, the deterministic reports and the baseline diff are implemented
+and tested. Not yet implemented or not yet measured:
+
+- No Indic-Translate back-translation check; semantic recall (mistranslation, term, omission) is low.
+- No WER/CER speech omission check and no clipping check.
+- No injector-based recall/false-alarm results; the held-out numbers come from 80 self-annotated IN22
+  reference rows and show recall 0 without the judge.
+- Calls are sequential (no concurrency).
