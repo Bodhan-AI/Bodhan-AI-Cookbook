@@ -1,0 +1,1 @@
+{"name":"heritage-lens","private":true,"version":"1.0.0","description":"HeritageLens helper scripts that run the React frontend in ./frontend","scripts":{"install:frontend":"npm --prefix frontend install","dev":"npm --prefix frontend run dev","build":"npm --prefix frontend run build"}}

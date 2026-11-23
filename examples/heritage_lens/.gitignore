@@ -1,0 +1,31 @@
+# secrets and local config
+.env
+.env.*
+!.env.example
+backend/.env
+frontend/.env.local
+
+# data
+*.db
+*.sqlite3
+backend/storage/
+storage/
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# node
+node_modules/
+frontend/dist/
+frontend/*.tsbuildinfo
+coverage/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
