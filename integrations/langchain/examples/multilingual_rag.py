@@ -56,7 +56,7 @@ from examples.rag.embeddings import get_embedding_model  # noqa: E402
 from examples.rag.generation import RAGGenerationError, generate_grounded_answer, get_chat_model  # noqa: E402
 from examples.rag.ingestion import ingest_documents  # noqa: E402
 from examples.rag.retrieval import get_retriever, retrieve_passages  # noqa: E402
-from examples.rag.vector_store import create_vector_store  # noqa: E402
+from examples.rag.vector_store import get_vector_store, index_documents  # noqa: E402
 from langchain_core.language_models.chat_models import BaseChatModel  # noqa: E402
 from langchain_core.messages import AIMessage, BaseMessage  # noqa: E402
 from langchain_core.outputs import ChatGeneration, ChatResult  # noqa: E402
@@ -252,10 +252,12 @@ def run_rag_pipeline(
     )
 
     # 5. Vector Store & Indexing
-    print(f"\n[Step 3] Splitting (token budget: {cfg.max_chunk_tokens}) and Indexing into InMemoryVectorStore...")
-    vector_store = create_vector_store(
+    backend_display = "ChromaDB" if cfg.vector_store_provider == "chroma" else "InMemoryVectorStore"
+    print(f"\n[Step 3] Splitting (token budget: {cfg.max_chunk_tokens}) and Indexing into {backend_display}...")
+    vector_store = get_vector_store(config=cfg, embeddings=embeddings)
+    index_documents(
+        vector_store=vector_store,
         documents=translated_documents,
-        embeddings=embeddings,
         max_chunk_tokens=cfg.max_chunk_tokens,
         chunk_token_overlap=cfg.chunk_token_overlap,
     )
