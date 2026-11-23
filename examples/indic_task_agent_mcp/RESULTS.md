@@ -6,7 +6,7 @@ task 1 rerun the same day at commit 17ee912, see below). LLM:
 Groq's free tier; its 8K tokens-per-minute and 200K tokens-per-day caps drove the context compaction and rate-limit
 handling described in [docs/design_notes.md](docs/design_notes.md#what-the-live-runs-changed).
 
-Outputs for every task (result.md, artifacts, trace.jsonl, report.json): **[link to the uploaded outputs folder]**.
+Outputs for every task (result.md, artifacts, trace.jsonl, report.json): **[bodhan_outputs_eval.zip on Google Drive](https://drive.google.com/file/d/1Wk_lQqT2eVBbxSHNC93USgbLbI6WY-HT/view?usp=sharing)** (`eval/` for the demo suite, `unseen/` for the unseen tasks).
 Media and run outputs are not committed (Cookbook rule).
 
 | # | Task | Status | Checks passed | Tool calls | LLM calls | LLM tokens | Wall time | Bodhan cost, cold cache* |
