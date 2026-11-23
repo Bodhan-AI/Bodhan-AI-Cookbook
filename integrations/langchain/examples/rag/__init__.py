@@ -17,7 +17,13 @@ from .generation import (
 )
 from .ingestion import ingest_documents
 from .retrieval import get_retriever, retrieve_passages
-from .vector_store import create_vector_store
+from .vector_store import (
+    create_vector_store,
+    generate_chunk_id,
+    get_vector_store,
+    index_documents,
+    normalize_metadata_for_chroma,
+)
 
 __all__ = [
     "RAGConfig",
@@ -25,6 +31,10 @@ __all__ = [
     "get_embedding_model",
     "DeterministicFakeEmbeddings",
     "create_vector_store",
+    "get_vector_store",
+    "index_documents",
+    "generate_chunk_id",
+    "normalize_metadata_for_chroma",
     "get_retriever",
     "retrieve_passages",
     "CitationInfo",
