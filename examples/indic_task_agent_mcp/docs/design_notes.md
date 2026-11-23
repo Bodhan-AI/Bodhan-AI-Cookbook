@@ -57,7 +57,7 @@ problems are listed in `result.md` and `report.json`.
 
 | Failure | Response |
 | --- | --- |
-| 429, 5xx, timeouts | Exponential backoff with jitter, honouring `Retry-After`; at most 4 retries per request |
+| 429, 5xx, timeouts | Exponential backoff with jitter, honouring `Retry-After`; at most 6 retries per request |
 | Bad arguments | Structured error with a hint; the LLM fixes and retries |
 | Translation truncated | Re-sent in halves, up to 3 levels |
 | OCR 502 (block too long) | The page is retried as two overlapping halves; a page that still fails is flagged, the rest continue |
