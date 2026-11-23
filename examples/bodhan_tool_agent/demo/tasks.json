@@ -1,0 +1,18 @@
+[
+  {"id": "tamil_audio_summary", "task": "Make a two-minute Tamil audio summary of this chapter",
+   "files": ["chapter.pdf"], "expect_status": ["completed"], "expect_artifacts": [".mp3", ".md"]},
+  {"id": "hindi_note_english_srt", "task": "Transcribe this Hindi voice note and give me English subtitles",
+   "files": ["voice_note.wav"], "expect_status": ["completed"], "expect_artifacts": [".srt"]},
+  {"id": "worksheet_marathi", "task": "Translate this worksheet into Marathi and keep the table",
+   "files": ["worksheet.jpg"], "expect_status": ["completed"], "expect_artifacts": [".md"]},
+  {"id": "which_clips_telugu", "task": "Which of these clips are in Telugu? Translate those into English",
+   "files": ["clips"], "expect_status": ["completed"], "expect_answer_contains": ["clip_1", "clip_3"]},
+  {"id": "bengali_female_voice", "task": "Read this paragraph aloud in Bengali with a female voice",
+   "files": ["paragraph.txt"], "expect_status": ["completed"], "expect_artifacts": [".mp3"]},
+  {"id": "french_impossible", "task": "Translate this video into French",
+   "files": ["voice_note.wav"], "expect_status": ["not_possible"], "expect_no_artifacts": true},
+  {"id": "missing_file", "task": "Summarise the attached report in Hindi", "files": ["report_that_does_not_exist.pdf"],
+   "expect_status": ["not_possible"], "expect_no_artifacts": true},
+  {"id": "budget_too_small", "task": "Read this whole chapter aloud in Hindi", "files": ["chapter.pdf"],
+   "extra_args": ["--max-cost-inr", "0.5"], "expect_status": ["not_possible", "partial"]}
+]
