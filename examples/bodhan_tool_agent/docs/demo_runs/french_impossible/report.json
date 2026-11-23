@@ -1,0 +1,54 @@
+{
+  "status": "not_possible",
+  "llm_status": "not_possible",
+  "stop_reason": "finished",
+  "task": "Translate this video into French",
+  "steps": 0,
+  "max_steps": 30,
+  "cost_inr": {
+    "total": 0,
+    "by_model": {},
+    "budget": 20.0,
+    "within_budget": true
+  },
+  "model_calls": {
+    "made": 0,
+    "cache_hits": 0
+  },
+  "elapsed_sec": 16.4,
+  "plan": [
+    "Inspect the audio file to identify its language.",
+    "Transcribe the audio using transcribe_audio.",
+    "Attempt to translate the transcript to French (unsupported).",
+    "Conclude that translation to French is not possible with available tools."
+  ],
+  "assumptions": [
+    "The audio language is unknown but likely an Indian language.",
+    "The user wants translation into French, which is not among supported target languages."
+  ],
+  "verification": {
+    "status": "not_possible",
+    "checks": [],
+    "artifacts": [],
+    "missing_artifacts": [],
+    "not_produced_by_tools": [],
+    "notes": [],
+    "all_passed": true
+  },
+  "artifacts": [],
+  "inputs": {
+    "files": [
+      {
+        "path": "demo/inputs/voice_note.wav",
+        "name": "voice_note.wav",
+        "kind": "audio",
+        "bytes": 5621176,
+        "duration_sec": 175.66,
+        "has_audio": true,
+        "has_video": false
+      }
+    ],
+    "missing": []
+  },
+  "llm_model": "openai/gpt-oss-120b"
+}
