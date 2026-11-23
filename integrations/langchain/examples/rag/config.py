@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass, field
-from typing import Optional
 
 
 @dataclass
@@ -43,6 +42,29 @@ class RAGConfig:
     answer_language: str | None = None
     translate_query: bool = True
     translate_answer_back: bool = True
+
+    # Vector store configuration (default: chroma, optional: inmemory)
+    vector_store_provider: str = "chroma"
+    chroma_persist_directory: str = "./.chroma"
+    chroma_collection_name: str = "bodhan_multilingual_rag"
+
+    def __post_init__(self) -> None:
+        """Validate vector store configuration."""
+        provider = (self.vector_store_provider or "").strip().lower()
+        if provider not in ("chroma", "inmemory"):
+            raise ValueError(
+                f"Unsupported VECTOR_STORE_PROVIDER: {self.vector_store_provider!r}. "
+                "Supported providers are 'chroma' and 'inmemory'."
+            )
+        self.vector_store_provider = provider
+
+        if self.vector_store_provider == "chroma":
+            if not self.chroma_collection_name or not self.chroma_collection_name.strip():
+                raise ValueError("CHROMA_COLLECTION_NAME cannot be empty when using Chroma vector store.")
+            if not self.chroma_persist_directory or not self.chroma_persist_directory.strip():
+                raise ValueError("CHROMA_PERSIST_DIRECTORY cannot be empty when using Chroma vector store.")
+            self.chroma_collection_name = self.chroma_collection_name.strip()
+            self.chroma_persist_directory = self.chroma_persist_directory.strip()
 
     @property
     def effective_ocr_key(self) -> str | None:
@@ -110,6 +132,9 @@ class RAGConfig:
             answer_language=os.environ.get("ANSWER_LANGUAGE"),
             translate_query=os.environ.get("TRANSLATE_QUERY", "1").strip().lower() in ("1", "true", "yes"),
             translate_answer_back=os.environ.get("TRANSLATE_ANSWER_BACK", "1").strip().lower() in ("1", "true", "yes"),
+            vector_store_provider=os.environ.get("VECTOR_STORE_PROVIDER", "chroma").strip().lower(),
+            chroma_persist_directory=os.environ.get("CHROMA_PERSIST_DIRECTORY", "./.chroma").strip(),
+            chroma_collection_name=os.environ.get("CHROMA_COLLECTION_NAME", "bodhan_multilingual_rag").strip(),
         )
 
     def validate_for_live(self) -> list[str]:
