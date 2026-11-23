@@ -1,12 +1,14 @@
 # Indic Multimodal Task Agent & MCP Tool Server
 
+**Demo video (under 5 min):** https://youtu.be/31qwb1IMsY0
+
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![MCP Compliant](https://img.shields.io/badge/MCP-1.0-green.svg)](https://modelcontextprotocol.io/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](../../LICENSE)
 
 An autonomous task agent and Model Context Protocol (MCP) server built specifically for **Bodhan AI Indic Models** (`Indic-Transcribe`, `Indic-Translate`, `Indic-Speak`, `Indic-OCR`). It plans, executes, verifies, and audits complex multimodal Indian language tasks unattended.
 
-- **Demo Video**: [Demo Video Placeholder](https://youtu.be/placeholder_bodhan_agent_demo)
+- **Demo Video**: [Watch the demo (4:40)](https://youtu.be/31qwb1IMsY0)
 - **Detailed Design Notes**: [docs/DESIGN_NOTES.md](docs/DESIGN_NOTES.md)
 - **Architecture Diagram**: [docs/architecture_diagram.md](docs/architecture_diagram.md)
 - **Agent Flow Chart**: [docs/agent_flow_chart.md](docs/agent_flow_chart.md)

@@ -208,7 +208,7 @@ The tools are designed at a medium-high level of granularity. Low-level primitiv
 ---
 
 ## Demo video
-TODO: [Add YouTube / Loom demo video link here before submission - 5 min maximum recording showing CLI execution of multi-step workflows, standalone MCP tool usage, and an impossible task]
+https://youtu.be/31qwb1IMsY0
 
 ---
 
