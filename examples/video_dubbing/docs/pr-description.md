@@ -1,159 +1,126 @@
 ## Summary
 
 An agentic pipeline that dubs an English video into Indian languages with
-Bodhan's Indic models. One command produces, per language, a dubbed MP4 and an
-SRT, plus a machine-readable report covering sync, quality, retries, runtime and
-cost. Timestamps are derived from voice-activity chunk boundaries rather than the
-model, translation is line-aligned to segments so context and timing both
-survive, and every generated clip is back-transcribed and checked before it is
-accepted.
+Bodhan's Indic models. One command produces, per language, a dubbed MP4 with an
+embedded subtitle track, an SRT file, and a machine-readable report covering
+sync, quality, retries, runtime and cost. The interesting part is not the model
+calls — it is keeping translated speech inside the original timing while the
+source audio's non-speech content survives.
 
-## How to run
+**Type:** new recipe
+**Path:** `examples/video_dubbing/`
+**Bodhan models used:** `indic-transcribe`, `indic-translate`, `indic-speak`
 
-```bash
-cd examples/video_dubbing
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-pip install -e .
-cp .env.example .env      # BODHAN_API_KEY, or per-model keys
+## Checklist
 
-python -m bodhan_dub --input video.mp4 --langs hi,ta,bn --out ./out
-```
+- [x] I started from `examples/TEMPLATE/` (new recipes) and the folder matches the required layout
+- [x] `README.md` explains what the recipe does, how to set it up, and how to run it
+- [x] Dependencies are pinned (`name==version`) in `requirements.txt`
+- [x] `.env.example` lists every variable; **no real key anywhere in the diff**
+- [x] Notebook outputs are cleared (`make clean-outputs`) — this recipe has no notebook
+- [x] Only current model ids from `scripts/bodhan_api_rules.json` are used
+- [ ] `make check` passes locally — **not yet**; it fails on a pre-existing failure in
+      `examples/AndroidSpeak` that reproduces on a clean `origin/main`. See
+      [Local gate](#local-gate) below for the evidence and for the checks that do pass.
+- [x] I ran the recipe end to end against `https://api.bodhan.ai` with my own key
 
-Requires Python 3.10+ and ffmpeg on `PATH`. A Dockerfile is included.
+## Screenshots / sample output
 
-## Architecture
+Demo lesson: *Class 9 Mathematics, Chapter 6, Period 1* — 5 min 29 s, English,
+72 speech segments.
 
-```mermaid
-flowchart LR
-  IN[input video] --> PCM[ffmpeg 16k mono] --> VAD[energy VAD] --> CH[chunk ≤28s]
-  CH --> ASR[indic-transcribe] --> TR[transcript.en.json]
-  TR --> BLK[block, one segment per line] --> MT[indic-translate]
-  MT --> AL{aligns?} -->|yes| TTS[indic-speak]
-  AL -->|no| SPL[proportional split] --> TTS
-  TTS --> QA[back-transcribe QA] --> FIT[trim + atempo ≤1.2] --> PL[place]
-  IN --> BED[gate out speech] 
-  PL --> MIX{{mix}} --> LUF[loudnorm −16] --> MUX[-c:v copy] --> OUT[video.mp4]
-  BED --> MIX
-  TTS --> SRT[subtitles.srt]
-```
-
-- **`asr`** — VAD finds speech, chunks are capped at 28 s and cut at the quietest
-  frame; each chunk's boundaries become the segment timestamps.
-- **`translate`** — segments are grouped into ~250-character blocks and sent with
-  one segment per newline, so the reply is one translated line per segment.
-- **`speak`** — one TTS call per segment, back-transcribed and checked, leading
-  silence trimmed, fitted with `atempo`, placed at the source start.
-- **`assemble`** — the original audio is gated to remove speech, mixed under the
-  dub, normalised to −16 LUFS, muxed with the video stream copied, and paired
-  with an SRT.
-
-Full diagrams: `docs/architecture.md`, `docs/workflow.md`.
-
-## Workflow
-
-```mermaid
-flowchart TD
-  A[transcribe] --> B{chunks failed?}
-  B -->|yes| C[log gaps, continue, exit 3 at end]
-  B -->|no| D[translate]
-  C --> D
-  D --> E{one line per segment?}
-  E -->|no| F[proportional split + warn]
-  E -->|yes| G[speak]
-  F --> G
-  G --> H[back-transcribe]
-  H --> I{QA pass?}
-  I -->|no, retries left| G
-  I -->|no, exhausted| J[split, rejoin, keep best]
-  I -->|yes| K{over budget?}
-  J --> K
-  K -->|yes| L[atempo ≤1.2 → spill ≤800ms → log miss]
-  K -->|no| M[place]
-  L --> M
-  M --> N[bed, mix, loudnorm, mux, srt]
-  N --> O{any language failed?}
-  O -->|yes| P[[exit 3]]
-  O -->|no| Q[[exit 0]]
-```
-
-## Where the LLM is used, and why
-
-One decision: **shortening English** when a translated segment cannot fit its
-slot even at 1.20×. The shortened English is re-translated by Indic-Translate, so
-the Indian-language text never comes from the LLM.
-
-Guards: the answer is rejected if it contains any non-Latin character, drops a
-number from the source, drops a glossary term, or is not actually shorter.
-Fallback: without `LLM_*` credentials the step is skipped and the duration ladder
-ends at a logged `miss` with the overrun in milliseconds.
-
-## Bodhan models used
-
-| Model | Endpoint | Settings |
-|---|---|---|
-| `indic-transcribe` | `POST /v1/audio/transcriptions` | 16 kHz mono, ≤28 s chunks, `language=en` (source) / target language (QA) |
-| `indic-translate` | `POST /translate`, with `POST /v1/chat/completions` fallback | Blocked input, one segment per line; `script=codemix` for `--code-mixed` |
-| `indic-speak` | `POST /v1/audio/speech` | Language voice from the library, `style="educational lecture"`, 24 kHz out |
-
-All hosted. The translate fallback exists because `POST /translate` returns 404 on
-the deployment I tested against; the client detects that once per run and switches
-to the chat transport with the documented prompt.
-
-## Results
-
-Demo: *Class 9 Mathematics, Chapter 6, Period 1*, 5 min 29 s.
-
-| Metric | Hindi | Tamil | Bengali |
+| | Hindi | Tamil | Bengali |
 |---|---|---|---|
 | Segments dubbed | 72 / 72 | 72 / 72 | 72 / 72 |
-| Mean CER | 0.071 | 0.140 | 0.078 |
-| QA failures | 2 | 3 | 6 |
+| Mean back-transcription CER | 0.071 | 0.140 | 0.078 |
 | Loudness | −16.07 LUFS | −16.05 LUFS | −16.26 LUFS |
 | Duration drift | +0 ms | +0 ms | +0 ms |
-| Max time-stretch | 1.20× | 1.20× | 1.20× |
 | Cost | ₹1.97 | ₹2.65 | ₹2.37 |
 
-Outputs:
-[Hindi](https://drive.google.com/drive/folders/1sucwTCWTJDFbhbQqlrCEPOMs8YebcqHN?usp=drive_link) ·
-[Tamil](https://drive.google.com/drive/folders/1JXYUltfA66PJpch0VXN5lMpGwXnfx4is?usp=drive_link) ·
-[Bengali](https://drive.google.com/drive/folders/1zAUiLU39sESAJeR8g01E5Sc3Q3q4BwNY?usp=drive_link)
+Outputs — each folder holds the dubbed MP4, the SRT, and that run's `report.json`:
 
-Each folder holds the dubbed MP4, the SRT, and that run's `report.json`.
+- [Hindi](https://drive.google.com/drive/folders/1sucwTCWTJDFbhbQqlrCEPOMs8YebcqHN?usp=drive_link)
+- [Tamil](https://drive.google.com/drive/folders/1JXYUltfA66PJpch0VXN5lMpGwXnfx4is?usp=drive_link)
+- [Bengali](https://drive.google.com/drive/folders/1zAUiLU39sESAJeR8g01E5Sc3Q3q4BwNY?usp=drive_link)
 
-## Demo video
+Two segments from `segments.hi.json`, showing the per-segment record:
 
-[Walkthrough, under five minutes](https://drive.google.com/file/d/14OU2wHgdFJ0-tl7k50DfzSCboop537Tl/view?usp=drive_link)
-— a live run on a fresh clip, then the outputs and the report.
+```
+id=2  7.32-11.24  tempo=1.00  fit=ok  cer=0.0
+EN: From class seven you already know four kinds of angle
+HI: कक्षा सात से ही आप चार प्रकार के कोणों को जानते हैं।
 
-## Trade-offs and known limitations
+id=3  11.34-17.44  tempo=1.00  fit=ok  cer=0.0
+EN: An acute angle is less than ninety degrees A right angle is exactly ninety degrees
+HI: एक न्यून कोण नब्बे डिग्री से कम होता है। एक समकोण ठीक नब्बे डिग्री होता है।
+```
 
-- One consistent voice per language; no diarization.
-- Music under speech is lost with the speech; source separation is not enabled.
-- Runtime is bounded by the account's request quota, which behaved like a parallel
-  cap far below the advertised RPM.
-- Two blocks fell back to proportional splitting; the fallback is labelled.
-- CER is not trusted below twelve characters.
+Demo walkthrough (under five minutes — a live run, then the outputs and report):
+https://drive.google.com/file/d/14OU2wHgdFJ0-tl7k50DfzSCboop537Tl/view?usp=drive_link
 
-## Cost and runtime
+## Additional detail
 
-| | Per minute of input | Notes |
-|---|---|---|
-| Hindi (one language) | ~₹0.36 | ASR ₹0.07, TTS ₹0.31, QA ₹0.07, MT negligible |
-| Three languages | ~₹1.1 | ASR is shared |
+The assignment asked for architecture, workflow, LLM usage, results, demo,
+trade-offs and cost in the PR as well. All of it is written up inside the recipe:
 
-Measured cold runs of the 5 min 29 s demo: Hindi ₹1.97, Tamil ₹2.65, Bengali
-₹2.37. `indic-speak` is roughly 80% of the cost, as expected at ₹6 per 10k
-characters.
+| Document | Contents |
+|---|---|
+| `docs/architecture.md` | Component diagram, one line per module, data flow |
+| `docs/workflow.md` | Flow chart with retries, checks and stop conditions |
+| `docs/design.md` | Where the LLM decides, how sync and quality are checked, trade-offs |
+| `docs/plan.md` | Build plan, and what each live run proved |
 
-Runtime is dominated by the account's request quota — the deployed limit
-rejected requests at roughly 26 per minute against an advertised 120, so a cold
-language takes 10–15 minutes even though the pipeline is fully concurrent.
+**Pipeline in one line:** VAD finds speech → chunks capped at 28 s and cut at the
+quietest frame → `indic-transcribe` per chunk, whose boundaries *become* the
+segment timestamps (the hosted ASR returns text only) → consecutive segments are
+translated as a block with one segment per line, so the reply comes back aligned
+→ `indic-speak` per segment → every clip is back-transcribed and scored →
+`atempo` ≤1.20 and a silence trim fit it to its slot → the original audio is
+gated and mixed under the dub → `loudnorm` to −16 LUFS → muxed with `-c:v copy`
+and an embedded `mov_text` subtitle track.
+
+**Where the LLM is used:** exactly one decision — shortening *English* when a
+segment cannot fit its slot at 1.20×, after which `indic-translate` produces the
+Indic text. Its answer is rejected if it contains any non-Latin character, drops
+a number, or drops a glossary term. Without `LLM_*` variables the step is skipped
+and the ladder ends at a logged miss.
+
+**Known limitations:** one consistent voice per language (no diarization); music
+under speech is removed with the speech (source separation is the upgrade path);
+subtitles are an embedded track, so QuickTime will not show them — VLC does, and
+`--burn-subtitles` exists for players that ignore tracks.
+
+### Local gate
+
+`make check` fails on this repository at `examples/AndroidSpeak`, a recipe this
+PR does not touch. It reproduces on a clean checkout of `origin/main`:
+
+```
+[ERROR] examples/AndroidSpeak: no notebook or source file found (.ipynb/.py/.js/.ts)
+[ERROR] examples/AndroidSpeak: .env.example is missing
+[ERROR] examples/AndroidSpeak/.gitignore: .gitignore does not ignore .env
+```
+
+AndroidSpeak is a Kotlin/Android app; the checker only recognises
+`.py/.ipynb/.js/.ts/.tsx` as source files, so it cannot pass. I left it alone
+because fixing it means editing shared tooling or another author's recipe.
+
+Everything that applies to this PR passes:
+
+```
+python scripts/validate_recipe.py examples/video_dubbing   -> OK — no findings
+python scripts/bodhan_rules.py --check                     -> OK
+ruff check scripts/ tests/                                 -> All checks passed
+pytest tests/ -k "not all_shipped_recipes_pass"            -> 31 passed
+pytest examples/video_dubbing/tests -q                     -> 259 passed, 1 skipped
+```
 
 ## AI assistance
 
-Built with an AI coding assistant used for scaffolding, test generation and
-review. Every design decision in `docs/design.md` was made against measured
-behaviour: the transcription timestamps, the line-aligned translation, the
-concurrency cap and the loudness step were each changed after a real run showed
-the previous approach was wrong.
+Built with an AI coding assistant, used for scaffolding, test generation and
+review. Every design decision was made against measured behaviour rather than
+generated: the VAD-derived timestamps, the line-aligned translation, the adaptive
+concurrency cap and the two-pass loudness step were each changed after a real run
+showed the previous approach was wrong. Those reversals are recorded in
+`docs/plan.md` under "What the live run proved", including the mistaken 450 ms VAD
+bridge and the 60-second cooldown that turned a three-minute job into fourteen.
