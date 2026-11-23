@@ -8,6 +8,7 @@ outputs/*
 sample_data/*
 !sample_data/.gitkeep
 .bodhan_cache/
+PR_DESCRIPTION.md
 *.egg-info/
 dist/
 build/
