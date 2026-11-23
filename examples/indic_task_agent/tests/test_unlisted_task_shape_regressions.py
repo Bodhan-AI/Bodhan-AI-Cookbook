@@ -110,6 +110,23 @@ def test_export_scrubs_account_ids_and_other_providers_keys(tmp_path):
     assert mod.leaks("key gsk_" + "a" * 40) and mod.leaks("key AIza" + "b" * 35)
 
 
+# A proxy's rate-limit message named the key by its hash ("for api_key: <64 hex>"): redacted on export, and caught if left
+def test_export_redacts_key_labelled_values(tmp_path):
+    import importlib.util
+    from pathlib import Path
+
+    spec = importlib.util.spec_from_file_location("export_runs", Path(__file__).resolve().parents[1] / "scripts" / "export_runs.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    digest = "0123456789abcdef" * 4
+    msg = '{"message": "litellm.RateLimitError: Rate limit exceeded for api_key: ' + digest + '. Try again"}'
+    out = mod.scrub(msg, tmp_path, [])
+    assert digest not in out and "api_key: <redacted>" in out and "Try again" in out
+    assert mod.leaks("api_key: " + digest) and not mod.leaks(out)
+    plain = "the planner used 4,700 tokens a call; max_tokens: 4096; secret word"
+    assert mod.scrub(plain, tmp_path, []) == plain and not mod.leaks(plain)
+
+
 # Some endpoints cap a whole request at ~8k tokens: compaction keeps shortening until it fits
 async def test_compaction_keeps_shrinking_until_the_request_fits(tmp_path):
     from fakes import _Obj  # noqa: F401  (fakes provides the scripted planner)

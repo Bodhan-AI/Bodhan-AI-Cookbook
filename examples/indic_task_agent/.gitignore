@@ -10,6 +10,8 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .ipynb_checkpoints/
+cache/
+.cache/
 
 # Generated media and run outputs (media stays out of git; see README "Test media")
 sample_data/*

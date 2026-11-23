@@ -189,6 +189,12 @@ def main() -> None:
     if not tasks:
         print(f"no tasks match --ids {a.ids}", file=sys.stderr)
         sys.exit(2)
+    # a reused run keeps the cache mode it was run with (from the folder's summary); today's flags say nothing about it
+    recorded_cache: dict = {}
+    try:
+        recorded_cache = {r["id"]: r.get("cache_mode") for r in json.loads((base / "summary.json").read_text(encoding="utf-8"))["tasks"]}
+    except (OSError, ValueError, KeyError, TypeError):
+        pass
     rows = []
     for t in tasks:
         out = base / t["id"]
@@ -196,7 +202,8 @@ def main() -> None:
         row: dict = {"id": t["id"], "demo": t.get("demo", False), "impossible": t.get("impossible", False), "task": t["task"],
                      "evidence": "reused" if reuse else "fresh",
                      # cold = no shared result cache, so every model result in the run was paid for in that run
-                     "cache_mode": "cold" if "--no-cache" in extra else "shared cache"}
+                     "cache_mode": (recorded_cache.get(t["id"]) or "unknown") if reuse
+                     else ("cold" if "--no-cache" in extra else "shared cache")}
         if not reuse:
             cmd = [sys.executable, "-m", "bodhan_agent", "--task", t["task"], "--files", *[str(ROOT / f) for f in t["files"]], "--out", str(out),
                    "--max-steps", str(t.get("max_steps", 30)), "--max-cost-inr", str(t.get("max_cost_inr", 20))]

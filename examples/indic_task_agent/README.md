@@ -5,7 +5,7 @@
 **Bodhan models:** indic-transcribe, indic-translate, indic-speak, indic-ocr
 **Languages shown:** Tamil, Hindi, Marathi, Telugu, Bengali, Kannada, Odia, Gujarati (and English)
 **Format:** CLI agent + MCP server (stdio, or Streamable HTTP with a token)
-**Demo video:** TODO (link added before the PR is opened) · **Results:** [docs/evaluation.md](docs/evaluation.md)
+**Demo video:** https://youtu.be/a710wLpPRCk · **Results:** [docs/evaluation.md](docs/evaluation.md)
 
 ## What it does
 
@@ -30,6 +30,8 @@ The brief's six demo tasks, run cold (no cache) with `gpt-6.1-sol` as the planne
 | d6: Translate this video into French (impossible: no French model) | unsupported | 0.00 | 9 | [result](evaluation/runs/sol_demos_cold/d6_video_french/result.md) · [trace](evaluation/runs/sol_demos_cold/d6_video_french/trace.jsonl) |
 
 The demos ran on `e648654`; every main task passed again on `92a3518` ([14/14](evaluation/runs/portability_gpt-6.1-sol/summary.md)). The product changes since `92a3518` are wording-only (field descriptions and messages; the final source `9622a0d` was spot-checked); `c0afd6a` separately tightens scoring ([details](docs/evaluation.md#planner-portability)).
+
+A real human recording, a 60 s Hindi WhatsApp voice note in my own voice, was also run cold: the Hindi transcript has every fact, but the English subtitles lost one negation ("electricity will not be affected") and added a digit to a phone number, and the automated back-check passed both; the summary left those two lines out rather than guess ([hand check](docs/evaluation.md#runs-recorded-for-the-demo-video-and-a-real-human-recording)).
 
 Eight test tasks of my own (prompt injection, unstated language, missing file, budget too small and others), six more written by a separate AI agent (Claude Opus) that had not seen our prompts or code (first attempts: 4/6 with each of two planners, failures and fixes reported), and runs with other planners are in [docs/evaluation.md](docs/evaluation.md).
 
@@ -70,7 +72,7 @@ docker run --rm --env-file .env -v "$PWD/../../sample_data:/data:ro" -v "$PWD/ou
   python -m bodhan_agent --task "Transcribe this clip and give me English subtitles" --files /data/sample_hindi.wav --out ./out/smoke
 ```
 
-The image runs as a non-root user (uid 1000) in `/work`. On Linux, that user must be able to write to the `out` folder. In PowerShell, write `${PWD}` for `$PWD`.
+The image runs as a non-root user (uid 1000) in `/work`. On Linux, that user must be able to write to the `out` folder. In PowerShell, write `${PWD}` for `$PWD` and end continued lines with a backtick (`` ` ``) instead of `\`, or put the command on one line.
 
 ## Run
 
@@ -187,7 +189,7 @@ The flow chart and the reasons behind it are in [docs/design.md](docs/design.md#
 ## Tests
 
 ```bash
-pytest -q                                  # 296 offline tests, no network or keys needed
+pytest -q                                  # 298 offline tests, no network or keys needed
 python scripts/run_suite.py                # live self-evaluation of evaluation/tasks.json (exit 1 if any task fails)
 python scripts/run_suite.py --score-only --out evaluation/runs/sol_demos_cold --summary-dir /tmp/rescore   # re-score committed evidence offline
 ```
@@ -198,13 +200,15 @@ The offline tests run against `tests/fakes.py`, a mock of the four endpoints tha
 
 Media stays out of git. `scripts/make_fixtures.py` generates every demo input into `sample_data/` (it needs the Bodhan keys, ffmpeg and Chrome or Edge, and costs about ₹1.6). The content is original English text written for this recipe, which Bodhan translates and speaks. A headless browser renders the pages, which are then degraded to look like scans or phone photos. Every demo audio input is therefore synthetic speech.
 
+Downloads (release `media-v1`): the generated demo inputs as [demo_inputs.zip](https://github.com/burntcookiedough/Bodhan-AI-Cookbook/releases/download/media-v1/demo_inputs.zip), every generated audio file linked from its run's `MEDIA.md`, the real human recording ([hindi_notice_anshul.mp4](https://github.com/burntcookiedough/Bodhan-AI-Cookbook/releases/download/media-v1/hindi_notice_anshul.mp4), my own voice, a WhatsApp voice note) and [SHA256SUMS](https://github.com/burntcookiedough/Bodhan-AI-Cookbook/releases/download/media-v1/SHA256SUMS).
+
 ## Limitations
 
 Each item says what falls short, what is delivered, and why a further fix was not made.
 
 - **Romanized Indian-language text is checked by the prompt only.** Code refuses Indic-script text the planner writes, but a romanized line would pass. Catching it would need language ID on short Latin-script text, which is unreliable.
 - **Selecting inputs by a condition can miss or add a file** (Gemini on h14). The run delivers the files it chose and names them. Letting the finish-time check read every input could catch it, but would put untrusted document text into that check.
-- **No fluent speaker has reviewed the outputs yet.** Back-translation and back-transcription catch omissions, truncation, wrong scripts and garbled audio; they cannot judge fluency or terminology.
+- **The back-translation check misses changes of meaning.** In native review, the d2 English subtitles scored 3/5 for meaning (the name Ravi became "John", a reminder went to the wrong person, a sentence is missing) and every cue had passed the check; on my own recording a lost negation and an extra digit also passed. It catches omissions, truncation, lost numbers, wrong scripts and garbled audio, not substituted names or meanings. Other reviewed outputs scored 4–5, Tamil by an independent native reader ([native review](docs/evaluation.md#native-speaker-review); Bengali, Kannada and Gujarati not reviewed).
 - **The completion re-read is the same planner model checking itself.** It catches dropped outputs, but it is not independent; a second model would need configuration beyond the three `LLM_*` variables.
 - **Speech and subtitle timing are approximate.** A requested length sets the English text length; missing it by more than ±25 % is a warning, not a new synthesis with the most expensive model. Cue times come from pause cuts, because `indic-transcribe` returns no timestamps.
 - **d2 missed its latency target when run cold: 323 s against 300 s.** Subtitles take three requests per cue (transcribe, translate, back-translate): its 30 cues needed 90 requests plus 41 rate-limited attempts. All 30 cues were delivered and verified; dropping the back-translation to save time was rejected.
@@ -219,7 +223,7 @@ Each item says what falls short, what is delivered, and why a further fix was no
 
 ## AI assistance
 
-Claude Code (Claude Opus 5.5) was the coding assistant for design, implementation, tests and docs. I read every `result.md`, `report.json` and English text artifact of the demo and test runs, listened to the generated audio, and checked each audio file's duration and back-transcription in its report. I did not judge the fluency of the Indian-language outputs, and no fluent speaker has reviewed them yet. GPT-6.1 Sol (through Codex) and CodeRabbit reviewed the code in several rounds, including a full audit against the brief, and a separate Claude Opus session did a read-only security review. Each finding was reproduced, then fixed with a regression test or listed as a limitation. The agent's planner LLM is a separate, configurable model.
+I ran the work as a small multi-agent loop in T3 Code. One Claude Opus 5.5 session (high effort) wrote the design, code, tests and docs. A second Opus 5.5 session acted as a gatekeeper: it checked each change against the brief, cut scope creep and sent fixes back. Independent reviewers attacked each milestone: GPT-6.1 Sol (through Codex), CodeRabbit, an Astra audit, and a read-only Opus security review. No finding was fixed until it had been reproduced. Each one then got a fix with a regression test, or a line in the limitations, and was logged against the commit that resolved it. I read every result and report, listened to the generated audio, and nothing was published without my sign-off. Native speakers reviewed the Tamil (Madhav) and Marathi (Yuvraj) outputs; I reviewed the Hindi, Telugu and Odia ones myself, which is weaker evidence ([native review](docs/evaluation.md#native-speaker-review)). The agent's planner LLM is a separate, configurable model.
 
 ## Optional extras
 

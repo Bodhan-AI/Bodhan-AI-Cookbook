@@ -11,11 +11,11 @@ Every run below is a real execution of `python -m bodhan_agent` against the host
 | **cold** | Run with `--no-cache`: every Bodhan result in the run was requested and paid for in that run. Its cost is the full cost of the task. |
 | **cache-backed** | The agent and planner ran for real, but Bodhan results already in the shared cache (from an earlier run with the same input bytes and settings) were reused at no cost. Its cost is the extra spend of that run only. |
 | **automatic checks** | What the tools and `scripts/run_suite.py` verify in code: back-translation, back-transcription, script, numbers, tables, duration, deliverable kinds and languages, status, budget. They screen for errors. They are not a quality score. |
-| **inspected** | The output was opened and read in full (texts, tables, subtitles), and for audio the duration and per-segment back-transcription were checked. No fluent reader of the Indian languages has reviewed these outputs, so their language quality beyond what back-translation shows is **not assessed**. |
+| **inspected** | The output was opened and read in full (texts, tables, subtitles), and for audio the duration and per-segment back-transcription were checked. Native or fluent readers reviewed 17 items in five languages ([Native-speaker review](#native-speaker-review)); everything else is **not assessed** beyond what back-translation shows. |
 
 **Commit SHAs.** Each run summary identifies the corresponding source in this branch.
 
-**Re-scoring offline.** `python scripts/run_suite.py --score-only --out evaluation/runs/<suite> --summary-dir <folder>` re-scores a committed suite with no network and no media: a deliverable whose audio is not in git counts as present when its run's `MEDIA.md` lists the same SHA-256 the run recorded. The committed summaries are not overwritten.
+**Re-scoring offline.** `python scripts/run_suite.py --score-only --out evaluation/runs/<suite> --summary-dir <folder>` re-scores a committed suite with no network and no media: a deliverable whose audio is not in git counts as present when its run's `MEDIA.md` lists the same SHA-256 the run recorded. The committed summaries are not overwritten. The SHA-256 values recorded in each `report.json` are of the original bytes; the export normalises line endings in text artifacts, so a text file's hash can differ from the recorded one while its text is the same (noted where it happens, e.g. `final_check_gemini/h1_notice_injection/EXPORT_NOTE.md`). In score-only mode the cache column comes from the suite's own summary, or reads `unknown`.
 
 **Missed-target notes.** Since this change, each `report.json` says why a quality target was missed, from the run's own trace (where the time went, the slowest step, the Bodhan requests and the attempts refused by rate limits). The exported runs predate it, so `scripts/explain_missed_targets.py` recomputed those notes from each run's `trace.jsonl` with the same code; each recomputed note carries `note_source`. Nothing was rerun and no other field changed. The notes use wall-clock intervals, so parallel calls are counted once (`bab8583`).
 
@@ -25,12 +25,12 @@ The `h1`–`h8` tasks are my own test tasks, written to resemble the kinds of hi
 
 ### Clean Linux setup (containers)
 
-Checked on 21 November 2026 on `9622a0d`, the final source (exported with `git archive`): **296 passed** in both images. These are **Linux containers on WSL2 (linux/amd64)**, not a native Linux machine.
+Checked on 23 November 2026 on the final submitted tree (product source unchanged since `9622a0d` apart from comments; it adds the export-redaction and score-only cache-label tests): **298 passed** in both images. On 21 November, `9622a0d` itself passed 296 in both. These are **Linux containers on WSL2 (linux/amd64)**, not a native Linux machine.
 
 | Check | Image | Result |
 |---|---|---|
-| `apt-get install ffmpeg`, then `pip install -r requirements.txt`, `pytest tests`, `ruff check .` | `python:3.11-slim` (Debian 13, Python 3.11.18, `sha256:07d48240…`) | install OK; **296 passed** (including the hard-kill and Ctrl-C resume tests, so under real Linux signals); ruff clean |
-| same | `python:3.12-slim` (Debian 13, Python 3.12.16, `sha256:5e2bdb1b…`) | install OK; **296 passed**; ruff clean. A first attempt at `cec4add` stopped during install and passed when rerun with the same pins |
+| `apt-get install ffmpeg`, then `pip install -r requirements.txt`, `pytest tests`, `ruff check .` | `python:3.11-slim` (Debian 13, Python 3.11.18, `sha256:07d48240…`) | install OK; **298 passed** (including the hard-kill and Ctrl-C resume tests, so under real Linux signals); ruff clean |
+| same | `python:3.12-slim` (Debian 13, Python 3.12.16, `sha256:5e2bdb1b…`) | install OK; **298 passed**; ruff clean. A first attempt at `cec4add` stopped during install and passed when rerun with the same pins |
 | root `make check` (`test`, `lint`, `rules`, `validate`) | both images | `lint`, `rules` and `validate` pass. `test` has **one failure that is not this recipe's**: `test_all_shipped_recipes_pass` fails on `examples/AndroidSpeak`, which is already on `main`: a clean `git archive` of `main` (`ae51852`) fails the same test in `python:3.12-slim` (no `.env.example`, and its `.gitignore` does not ignore `.env`). This branch does not touch it. The same failure appears on Windows. |
 | `docker build` of the recipe image | `python:3.12-slim` base | builds (`sha256:955469a5…` at `94b4891`); runs as the non-root user `agent` (uid 1000) in `/work`; no keys or planner settings in the image |
 | The brief's agent command, as the non-root user, with only the seven required variables passed by `--env-file`: `python -m bodhan_agent --task "Translate this worksheet into Marathi and keep the table" --files /data/worksheet --out ./out` | recipe image | `completed` in 19 s; outputs written to `./out`. **Cache-backed**: the host's result cache was mounted, so Bodhan cost ₹0. |
@@ -61,9 +61,37 @@ Suite `sol_demos_cold`: 6/6 passed the structural checks. Code `e648654`, scored
 | `d5_bengali_female_audio`: Read this paragraph aloud in Bengali with a female voice | completed_with_warnings | pass | translation (bn): pass; audio (bn): warn | 50.67 | 4 | 0.2392 | 6 | [result](../evaluation/runs/sol_demos_cold/d5_bengali_female_audio/result.md) · [report](../evaluation/runs/sol_demos_cold/d5_bengali_female_audio/report.json) · [trace](../evaluation/runs/sol_demos_cold/d5_bengali_female_audio/trace.jsonl) |
 | `d6_video_french`: Translate this video into French | unsupported | pass | none | 9.14 | 2 | 0.0 | 0 | [result](../evaluation/runs/sol_demos_cold/d6_video_french/result.md) · [report](../evaluation/runs/sol_demos_cold/d6_video_french/report.json) · [trace](../evaluation/runs/sol_demos_cold/d6_video_french/trace.jsonl) |
 
+**Native review of d2:** the English subtitles scored 3/5 for meaning (reviewed by the author, fluent in Hindi): the name Ravi became "John", a reminder went to the wrong person and one sentence is missing, while the back-translation check passed every cue ([details](#native-speaker-review)). "Passed" in this table means the structural checks, not translation quality.
+
 The demos ran on `e648654`; every main task passed again on `92a3518` ([`gpt-6.1-sol`, 14/14](../evaluation/runs/portability_gpt-6.1-sol/summary.md)). The product changes since `92a3518` are wording-only, in field descriptions and messages ([spot check](#planner-portability)); `c0afd6a` separately tightens scoring (details under [Planner portability](#planner-portability)).
 
 **Code the cold run exercised.** Later source commits (`git log e648654..9622a0d -- src`) fix planner portability, the completion check, path security and edge cases, each with a regression test. Every main task was rerun on `92a3518` with both main planners ([Planner portability](#planner-portability)); the final source `9622a0d` changes only field-description and message wording, spot-checked on d4, d6 and h1 with both.
+
+## Runs recorded for the demo video, and a real human recording
+
+On 23 November, on the final branch (`702adde`; its code differs from `9622a0d` only in comments), four runs were made cold (`--no-cache`) with `gpt-6.1-sol` while the live viewer was screen-recorded for the demo video. d1, d2 and the real recording ran at the same time, so they shared indic-translate's rate limit: many attempts were refused and retried, and their times are longer than in the cold demo suite above. These are single first attempts, not a scored suite.
+
+| Run | Status | Time (s) | Bodhan ₹ | Bodhan requests (retried after rate limits) | Files |
+|---|---|---|---|---|---|
+| d1: Make a two-minute Tamil audio summary of this chapter | completed_with_warnings | 331.16 | 2.8233 | 70 (19) | [result](../evaluation/runs/video_runs_702adde/d1_chapter_tamil_audio/result.md) · [trace](../evaluation/runs/video_runs_702adde/d1_chapter_tamil_audio/trace.jsonl) · [audio](../evaluation/runs/video_runs_702adde/d1_chapter_tamil_audio/MEDIA.md) |
+| d2: Transcribe this Hindi voice note and give me English subtitles | completed | 554.27 | 0.3144 | 90 (63) | [result](../evaluation/runs/video_runs_702adde/d2_voice_note_srt/result.md) · [trace](../evaluation/runs/video_runs_702adde/d2_voice_note_srt/trace.jsonl) |
+| d6: Translate this video into French | unsupported | 12.3 | 0.00 | 0 (0) | [result](../evaluation/runs/video_runs_702adde/d6_video_french/result.md) · [trace](../evaluation/runs/video_runs_702adde/d6_video_french/trace.jsonl) |
+| Real human recording: Transcribe this Hindi voice note and give me English subtitles and a two-line English summary | completed | 500.73 | 0.1096 | 33 (32) | [result](../evaluation/runs/video_runs_702adde/real_speech_hindi/result.md) · [trace](../evaluation/runs/video_runs_702adde/real_speech_hindi/trace.jsonl) |
+
+**Real human recording (the candidate's own voice), WhatsApp voice note.** A 60.6 s Hindi notice recorded on a phone (AAC in MP4, 44.1 kHz), not a synthetic fixture; the recording is published with the media. I checked the outputs by hand against what I said:
+
+| What I said | Hindi transcript | English subtitles | Two-line summary |
+|---|---|---|---|
+| Anshul, Shanti Nagar residents' committee | right | right ("Residence Committee") | names Shanti Nagar residents |
+| Water off Saturday 23 November, 10 am to 4 pm, main-pipeline repair | right, with one inserted word ("मैं") | time right; the inserted word becomes "because i am having a pipeline repaired" | right |
+| Store water tonight | right, one garbled word | garbled ("fill up the water weight of need for tonight") | right ("store water beforehand") |
+| Electricity will **not** be affected | right | **wrong**: the negation is lost and the line becomes a question ("Will there be any impact on power supply") | left out |
+| Meeting Sunday 6 pm, community hall near the temple | right | right, phrased as a question | right |
+| Contact Ramesh Verma, 98765 00000 | right (digits spoken one by one) | **wrong**: one extra zero, and the name line is garbled | left out |
+| ₹200 per family | right | right | right |
+| Please share with neighbours | right | right | left out |
+
+The subtitles passed the automated back-translation check (chrF 0.708) even with the two errors above, which is the limit of a same-pipeline back-check: a lost negation and an extra digit survive a round trip. The run's own result says the electricity line and the phone number were unclear and leaves both out of the summary instead of guessing; the summary has no wrong fact.
 
 ## My own test tasks (h1–h8)
 
@@ -139,8 +167,6 @@ Every row below is scored on the same seven main tasks, run on `92a3518`, cache-
 
 On all 14 main tasks on `92a3518`, `gpt-6.1-sol` passed 14/14 ([summary](../evaluation/runs/portability_gpt-6.1-sol/summary.md); d1's first run was started with a ₹1.60 budget by mistake and ended `unsupported`, the h7 behaviour, and passed at the normal ₹20 budget) and `gemini-3.5-flash-lite` 13/14: h8 ended `partial`, because the planner added its own "English summary" containing the Telugu text and the completion check refused `completed` ([summary](../evaluation/runs/gemini_final_code_92a3518/summary.md)).
 
-Small local models and free tiers with per-request token caps were also tried; their limits made long multi-step tasks impractical.
-
 **Final source.** `9622a0d` changes only field-description and message wording (neutral examples in two planner-visible descriptions, and the injection warning and tool descriptions now say what the code does). d4, d6 and h1 were rerun on it with both main planners, cache-backed: `gpt-6.1-sol` 3/3 and `gemini-3.5-flash-lite` 3/3, ₹0 ([Sol](../evaluation/runs/spot_sol_9622a0d/summary.md), [Gemini](../evaluation/runs/spot_gemini_9622a0d/summary.md)). The one later source commit, `48fe280`, changes only two code comments, one class docstring and two test names; the syntax trees match apart from that docstring.
 
 The scorer used for these rows (`c0afd6a`) fails a run that a time or step limit ended before the planner decided; before that fix, such a run could pass an impossible task. This changes the evaluation, not the agent, and rescoring every earlier suite with it changed no result.
@@ -167,7 +193,7 @@ The graders bring their own planner, so the same tasks (d1–d6 and h1–h4) wer
 The outputs of the final GPT-6.1 Sol runs were opened and read; generated audio was checked by its duration and per-segment back-transcription. Notes:
 
 - **d1:** all 8 OCR pages are present in the English translation, including the middle pages; the planner's English summary is faithful to the chapter; the Tamil audio is 125.8 s for a two-minute target (+5 %, within the ±25 % rule), mean back-transcription similarity 0.998. The warning is about the intermediate English translation (two passages with fewer sentences than the source).
-- **d2:** 30 English cues cover the whole 2 min 50 s and read coherently. Cue times are approximate (the model returns no timestamps), and ASR output keeps names and "i" in lower case.
+- **d2:** 30 English cues cover the whole 2 min 50 s, but native review scored their meaning 3/5 (Ravi became "John", the wrong person is reminded, one sentence is missing; see [Native-speaker review](#native-speaker-review)). Cue times are approximate (the model returns no timestamps), and ASR output keeps names and "i" in lower case.
 - **d3:** the Marathi table keeps all five rows, its columns and every number (written in Devanagari digits). One translation slip: the section letter "B." became "बी." (a transliteration) instead of "ब.".
 - **d4:** the two Telugu clips are found and translated; the other three are named with their languages.
 - **d5:** a 30 s Bengali reading with a female voice; the warning says the number "350" could not be confirmed from the back-transcription.
@@ -175,7 +201,45 @@ The outputs of the final GPT-6.1 Sol runs were opened and read; generated audio 
 - **h1:** the English translation is delivered; the instruction-like text in the image is reported and was not followed.
 - **h6, h7:** honest refusals (missing file; ₹0.50 too small, with the reason in rupees) and no outputs.
 
-No fluent reader has reviewed the Tamil, Marathi, Bengali, Telugu or Odia outputs.
+Native and fluent review of 17 items from these runs is in the next section.
+
+## Native-speaker review
+
+Native or fluent readers scored 17 items (22 outputs; one is an Indian-language test input made by Bodhan) in five languages from the exported cold runs (`sol_demos_cold`, `sol_heldout`), from 1 (poor) to 5 (excellent), with notes. **Tamil and Marathi were reviewed by independent native speakers (first names given). Hindi, Telugu and Odia were reviewed by the author, which is weaker evidence; the author's fluency is stated per language.** Bengali, Kannada and Gujarati were not reviewed. Reviews came back 20–23 November 2026. Outputs were not edited after review, and nothing was tuned in response.
+
+Scores, in order: for a reading or transcript, accuracy / omissions / numbers and names / spelling; for a translation, meaning / omissions / numbers and names / naturalness; for audio, meaning / omissions / numbers / naturalness / pronunciation. N/A where a criterion does not apply.
+
+| Item | Output (run) | Model | Reviewer | Scores | Main note |
+|---|---|---|---|---|---|
+| TA-1 | Reading of the 8-page Tamil scan (d1) | Indic-OCR | Madhav, native | 5/5/5/5 | Reproduces the scan accurately. |
+| TA-2 | Tamil chapter summary (d1) | Indic-Translate | Madhav, native | 5/5/5/4 | Faithful; a few phrases grammatically awkward or less natural. |
+| TA-3 | Tamil audio summary (d1) | Indic-Speak | Madhav, native | 5/5/5/4/4 | Matches the text; minor pronunciation issues, opening words slightly merged. |
+| TA-4 | Transcript of a Tamil clip (d4) | Indic-Transcribe | Madhav, native | 5/5/N/A/5 | Accurate. |
+| MR-1 | Marathi worksheet with its table (d3) | Indic-Translate | Yuvraj, native | 4/5/5/5 | "Gas giant" too literal; the "No. of moons" header should be "चंद्रांची संख्या". |
+| MR-2 | Marathi announcement: transcript, English translation (h4) | Indic-Transcribe, Indic-Translate | Yuvraj, native | 5/5/5/5; 5/5/5/5 | No problems noted. |
+| HI-1 | Transcript of the Hindi voice note (d2) | Indic-Transcribe | the author, fluent | 5/4/5/5 | No note. |
+| **HI-2** | **English subtitles of the Hindi voice note (d2)** | **Indic-Translate** | **the author, fluent** | **3/3/3/2** | **Several sentences change meaning; see below.** |
+| HI-3 | Transcript of a Hindi clip (d4) | Indic-Transcribe | the author, fluent | 5/5/N/A/4 | Closing punctuation (।) missing. |
+| HI-4 | Hindi school notice: reading, English translation (h1) | Indic-OCR, Indic-Translate | the author, fluent | 5/5/5/5; 4/5/5/4 | The planted prompt-injection line is reproduced as source content, not followed. Wording: "School information" should be "School Notice". |
+| HI-5 | Hindi health-camp PDF: reading, English translation (h4) | Indic-OCR, Indic-Translate | the author, fluent | 5/5/5/5; 4/5/5/4 | All timings, ages and requirements kept; "eye tests" should be "eyesight". |
+| TE-1 | Telugu clip 1: transcript, English translation (d4) | Indic-Transcribe, Indic-Translate | the author, good (not native) | 5/5/5/5; 4/5/5/4 | "is open" less precise than "will stay open". |
+| TE-2 | Telugu clip 3: transcript, English translation (d4) | Indic-Transcribe, Indic-Translate | the author, good (not native) | 5/5/5/4; 5/5/5/4 | Missing final punctuation; "the bus to school picnic" slightly unnatural. |
+| TE-3 | Telugu paragraph (h8) | Indic-Translate | the author, good (not native) | 5/5/5/4 | One phrase slightly unnatural. |
+| TE-4 | Telugu audio of that paragraph (h8) | Indic-Speak | the author, good (not native) | 5/5/5/4/4 | "350" is spoken in English inside the Telugu audio; pacing slightly mechanical. |
+| OR-1 | Odia test input, made by Indic-Translate (h3 input) | Indic-Translate | the author, native | 4/4/5/5 | The word "carved" is missing. |
+| OR-2 | Odia reading of that text (h3) | Indic-Speak | the author, native | 5/5/5/5/4 | Voice slightly synthetic. |
+
+**HI-2, the d2 subtitles, is the weak result: 3/3/3/2.** The Hindi transcript under it scored 5/4/5/5, so the errors come from the translation step, not speech recognition. The reviewer's notes, by time in the audio:
+
+- 0:00 "tell me about plans" should be "I want to tell you about Sunday's plans".
+- 0:35 "The second shelf is on it" should be "It is on the second shelf".
+- 0:43 "Order a lunch" turns a completed order into an instruction.
+- 1:06 the name Ravi is translated as "John", and later as "Rabi".
+- 1:26–1:39 "Remind grandma" should be "Remind your brother to bring the wedding pictures".
+- 2:03 a sentence about grandmother scolding everyone for spending too much is missing.
+- 2:15 "on Monday morning" is attached to the wrong sentence.
+
+The automated check passed all of this. In d2's `report.json` the subtitles' back-translation check passed all 30 cues (mean chrF 0.756, lowest 0.454) with no problem or warning, so none of these lines was flagged ([report](../evaluation/runs/sol_demos_cold/d2_voice_note_srt/report.json)). Today's real recording shows the same limit: a lost negation and an extra digit passed with chrF 0.708 ([above](#runs-recorded-for-the-demo-video-and-a-real-human-recording)). **Back-translation catches gross drift, missing passages and lost numbers; it does not catch a substituted name, a swapped person or a changed meaning that survives the round trip.** This is listed as a known limitation; nothing was changed in response.
 
 ## Independent MCP client
 
@@ -219,7 +283,7 @@ Bodhan spend is counted from the published unit prices and the metered quantity 
 - **A cache-backed rerun** costs nothing for exact repeats; new requests add spend. A planner that writes a different summary needs a new translation, new audio and its back-transcription, which is why d1 cost ₹0.69 to ₹0.88 again in the Gemini reruns (mostly speech).
 - **Planner tokens** are mostly the system prompt and tool list (about 4,700 tokens per call) repeated on each step.
 
-Totals for the other runs on this page: my own test suite cost ₹0.00 (cache-backed), and the other planners' runs ₹0.00–₹0.90 each.
+Totals for the other runs on this page (Bodhan spend from each suite's reports): my own test suite cost ₹0.00 (cache-backed). The other planners' suites cost `gemini-3.5-flash-lite` ₹0.8761 (first suite) and ₹1.0305 (on `92a3518`), `gpt-oss-120b` ₹0.9685, `gpt-5.6-luna` ₹1.7033 counted, of which ₹1.0083 billed and ₹0.6950 uncertain (timed-out requests counted as possibly billed), and `claude-sonnet-4-6` ₹0.00; in each paid suite all of it was d1, whose different summary needed new translation and speech.
 
 ## Run history and incidents
 
@@ -235,7 +299,7 @@ Earlier evaluation runs are kept, not overwritten. Times are UTC, on 19 November
 
 ## Limits of this evaluation
 
-- Indian-language quality was screened automatically (back-translation chrF, back-transcription similarity, script and number checks), not by fluent reviewers. Those checks catch omissions, wrong languages, lost numbers and garbled speech. They do not prove fluency or naturalness.
+- Indian-language quality was screened automatically (back-translation chrF, back-transcription similarity, script and number checks). Native or fluent readers reviewed only 17 items in five languages, three of them by the author; Bengali, Kannada and Gujarati were not reviewed. Those checks catch omissions, wrong languages, lost numbers and garbled speech. They do not prove fluency or naturalness.
 - Six demo tasks, eight test tasks of my own and six written by a separate AI agent are a small sample of what the agent may be asked. h1–h8 were also used as regression tasks during development.
 - The completion check before "completed" is the planner model re-reading the task with fresh context. It is not independent verification and can miss a gap or invent one.
 - The live suites ran on Windows 11. Linux was checked in containers (tests, image build, the agent and server commands) and in a private GitHub Actions run on the fork (`ubuntu-latest`: tests, root checks, image build and an MCP smoke test; see Environment), but no live suite ran on Linux.

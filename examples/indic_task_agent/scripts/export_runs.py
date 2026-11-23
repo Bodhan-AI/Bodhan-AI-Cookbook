@@ -33,6 +33,9 @@ BS = chr(92)  # backslash
 ABS_PATH = re.compile(r"(?:(?<![A-Za-z0-9])[A-Za-z]:(?:\\\\|\\|/)|(?<![\w.])/(?:home|Users|tmp|var|mnt|private|root)/)[^\s\"'<>|]*")
 SECRET = re.compile(r"\bsk-[A-Za-z0-9_-]{16,}|\bAKIA[0-9A-Z]{16}\b|\bgh[pousr]_[A-Za-z0-9]{30,}|\bgsk_[A-Za-z0-9]{20,}|\bAIza[0-9A-Za-z_-]{30,}")
 ACCOUNT_ID = re.compile(r"\borg[_-][A-Za-z0-9]{12,}\b")  # provider organization ids in error messages: not secret, but private
+# A value labelled as a key or token in a provider message (a proxy's "Rate limit exceeded for api_key: <hash>"):
+# a hash is not usable, but it identifies the key, so the value is redacted. Anything still matching is a leak.
+KEY_LABELLED = re.compile(r"(?i)\b(api[_-]?key|access[_-]?token|auth[_-]?token|secret)(\s*[:=]\s*)(?=[A-Za-z0-9_\-.+/=]*\d)([A-Za-z0-9_\-.+/=]{12,})")
 
 
 class ExportError(Exception):
@@ -58,11 +61,13 @@ def scrub(text: str, run_dir: Path, inputs: list[Path]) -> str:
         b = str(base)
         for variant in (b.replace(BS, BS + BS), b, b.replace(BS, "/")):
             text = text.replace(variant, repl)
+    text = KEY_LABELLED.sub(lambda m: m.group(1) + m.group(2) + "<redacted>", text)
     return ACCOUNT_ID.sub("<account-id>", ABS_PATH.sub("<local-path>", text))
 
 
 def leaks(text: str) -> list[str]:
-    return [m.group(0)[:40] for m in ABS_PATH.finditer(text)] + [m.group(0)[:8] + "…" for m in SECRET.finditer(text)]
+    return ([m.group(0)[:40] for m in ABS_PATH.finditer(text)] + [m.group(0)[:8] + "…" for m in SECRET.finditer(text)]
+            + [m.group(1) + "…" for m in KEY_LABELLED.finditer(text)])
 
 
 def export(src: Path, dest: Path, media_out: Path, media_base_url: str | None = None) -> list[str]:

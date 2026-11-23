@@ -26,6 +26,15 @@ def test_exported_runs_rescore_from_media_checksums(tmp_path):
     assert not (runs / "summary.json").exists()  # the scored folder is left as it was
 
 
+def test_score_only_keeps_the_recorded_cache_mode(tmp_path):
+    # re-scoring the cold demo evidence printed "shared cache", taken from the re-scoring command's own flags
+    runs = tmp_path / "runs"
+    shutil.copytree(D5, runs / D5.name)
+    assert rescore(runs, tmp_path / "s1")["tasks"][0]["cache_mode"] == "unknown"  # no summary recorded it
+    shutil.copy(D5.parent / "summary.json", runs / "summary.json")
+    assert rescore(runs, tmp_path / "s2")["tasks"][0]["cache_mode"] == "cold"
+
+
 def test_a_checksum_that_does_not_match_the_report_fails(tmp_path):
     runs = tmp_path / "runs"
     shutil.copytree(D5, runs / D5.name)
