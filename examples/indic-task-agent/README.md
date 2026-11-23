@@ -8,9 +8,8 @@ A production-ready **Model Context Protocol (MCP) Tool Server** and **Autonomous
 
 ---
 
-## ⚡ Quickstart (Under 5 Minutes)
+## Setup
 
-### 1. Environment & Dependencies
 Python 3.10+ and `ffmpeg` required.
 
 ```bash
@@ -23,13 +22,14 @@ cp .env.example .env
 
 Ensure `.env` points to your gateway and LLM endpoints:
 ```env
+BODHAN_API_KEY=your_bodhan_api_key_here
 BODHAN_BASE_URL=http://localhost:8000/v1
 LLM_BASE_URL=http://localhost:8005/v1
 LLM_MODEL=Qwen/Qwen2.5-7B-Instruct
 LLM_API_KEY=dummy
 ```
 
-### 2. Start Model Services (Docker Compose)
+Start model services (Docker Compose):
 ```bash
 docker compose up -d
 
@@ -37,7 +37,11 @@ docker compose up -d
 curl -s http://localhost:8000/v1/models | jq .
 ```
 
-### 3. Run the MCP Tool Server (Component 1)
+---
+
+## Run
+
+### 1. Run the MCP Tool Server (Component 1)
 The server runs over `stdio` and implements the official Model Context Protocol (MCP):
 ```bash
 python -m bodhan_mcp
@@ -45,7 +49,7 @@ python -m bodhan_mcp
 bodhan-mcp
 ```
 
-### 4. Run the Autonomous Task Agent (Component 2)
+### 2. Run the Autonomous Task Agent (Component 2)
 ```bash
 python -m bodhan_agent \
   --task "Make a two-minute Tamil audio summary of this chapter" \
