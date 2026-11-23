@@ -210,6 +210,11 @@ class Agent:
                         break
                     time.sleep(1 + attempt)
             if reply is None:
+                produced = self._produced_artifacts()
+                if produced:  # keep verified work instead of discarding it; status stays honest (partial)
+                    return Outcome("partial", f"The planner LLM stopped responding ({err}). The outputs listed below "
+                                   "were produced and checked by the tools before that; the task may be incomplete.",
+                                   produced, assumptions=self.assumptions, stop_reason="llm_error")
                 return Outcome("failed", f"The planner LLM could not be reached: {err}", stop_reason="llm_error")
             self.trace.log("llm", turn=turn, latency_ms=int((time.monotonic() - t0) * 1000),
                            content=(reply["content"] or "")[:1500], tool_calls=[c["name"] for c in reply["tool_calls"]])
