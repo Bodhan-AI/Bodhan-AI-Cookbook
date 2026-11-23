@@ -104,21 +104,27 @@ to the chat transport with the documented prompt.
 
 Demo: *Class 9 Mathematics, Chapter 6, Period 1*, 5 min 29 s.
 
-| Metric | Result |
-|---|---|
-| Segments dubbed | 72 / 72 |
-| Mean CER | 0.071 |
-| Loudness | −16.07 LUFS |
-| Duration drift | +0 ms |
-| Max time-stretch | 1.20× (0 violations) |
-| Alignment | 11 blocks line-aligned, 2 proportional |
-| Cost, Hindi | ₹1.97 / 5.5 min |
+| Metric | Hindi | Tamil | Bengali |
+|---|---|---|---|
+| Segments dubbed | 72 / 72 | 72 / 72 | 72 / 72 |
+| Mean CER | 0.071 | 0.140 | 0.078 |
+| QA failures | 2 | 3 | 6 |
+| Loudness | −16.07 LUFS | −16.05 LUFS | −16.26 LUFS |
+| Duration drift | +0 ms | +0 ms | +0 ms |
+| Max time-stretch | 1.20× | 1.20× | 1.20× |
+| Cost | ₹1.97 | ₹2.65 | ₹2.37 |
 
-Outputs: `<link to demo outputs>`.
+Outputs:
+[Hindi](https://drive.google.com/drive/folders/1sucwTCWTJDFbhbQqlrCEPOMs8YebcqHN?usp=drive_link) ·
+[Tamil](https://drive.google.com/drive/folders/1JXYUltfA66PJpch0VXN5lMpGwXnfx4is?usp=drive_link) ·
+[Bengali](https://drive.google.com/drive/folders/1zAUiLU39sESAJeR8g01E5Sc3Q3q4BwNY?usp=drive_link)
+
+Each folder holds the dubbed MP4, the SRT, and that run's `report.json`.
 
 ## Demo video
 
-`<link — 5 minutes: a full run and its outputs>`
+[Walkthrough, under five minutes](https://drive.google.com/file/d/14OU2wHgdFJ0-tl7k50DfzSCboop537Tl/view?usp=drive_link)
+— a live run on a fresh clip, then the outputs and the report.
 
 ## Trade-offs and known limitations
 
@@ -136,7 +142,13 @@ Outputs: `<link to demo outputs>`.
 | Hindi (one language) | ~₹0.36 | ASR ₹0.07, TTS ₹0.31, QA ₹0.07, MT negligible |
 | Three languages | ~₹1.1 | ASR is shared |
 
-`indic-speak` is roughly 80% of the cost, as expected at ₹6 per 10k characters.
+Measured cold runs of the 5 min 29 s demo: Hindi ₹1.97, Tamil ₹2.65, Bengali
+₹2.37. `indic-speak` is roughly 80% of the cost, as expected at ₹6 per 10k
+characters.
+
+Runtime is dominated by the account's request quota — the deployed limit
+rejected requests at roughly 26 per minute against an advertised 120, so a cold
+language takes 10–15 minutes even though the pipeline is fully concurrent.
 
 ## AI assistance
 

@@ -262,28 +262,30 @@ to also run the live contract test.
 Demo lesson: *Class 9 Mathematics, Chapter 6, Period 1* — 5 min 29 s, one
 speaker, English, 72 speech segments covering 68.9% of the file.
 
-| Metric | Result | Target |
-|---|---|---|
-| Segments dubbed (Hindi) | 72 / 72 (100%) | every segment or a logged skip |
-| Mean back-transcription CER | 0.071 | reported |
-| Max time-stretch | 1.20× | 0.85–1.20× |
-| Speed violations | 0 | 0 |
-| Loudness | −16.07 LUFS | −16 ±1 |
-| Duration drift | +0 ms | ±100 ms |
-| Alignment | 11 blocks line-aligned, 2 proportional | — |
-| Runtime, Hindi | ~14 min at 2 requests/segment (see note) | — |
-| Cost, Hindi | ₹1.97 for 5.5 min | — |
+| Metric | Hindi | Tamil | Bengali | Target |
+|---|---|---|---|---|
+| Segments dubbed | 72 / 72 | 72 / 72 | 72 / 72 | every segment or a logged skip |
+| Mean back-transcription CER | 0.071 | 0.140 | 0.078 | reported, not gated |
+| Segments with a QA failure | 2 | 3 | 6 | reported, not gated |
+| Max time-stretch | 1.20× | 1.20× | 1.20× | 0.85–1.20× |
+| Speed violations | 0 | 0 | 0 | 0 |
+| Loudness | −16.07 | −16.05 | −16.26 LUFS | −16 ±1 |
+| Duration drift | +0 ms | +0 ms | +0 ms | ±100 ms |
+| Cost | ₹1.97 | ₹2.65 | ₹2.37 | — |
+| Runtime (cold) | ~14 min | 10 min 35 s | 12 min 4 s | — |
 
 Two notes on those numbers, because they are not all good news:
 
-* **Runtime is dominated by the account's rate limit.** A full Hindi run makes
-  ~144 model calls, and the deployed quota rejected runs at about 26 calls a
-  minute — well under the advertised 120. The adaptive concurrency cap and 12 s
-  cooldown cap in `ratelimit.py` exist because of that; the numbers above were
-  measured before both landed.
-* **Two blocks fell back to proportional splitting** rather than line alignment.
-  The fallback is labelled per block and logged with expected vs received line
-  counts.
+* **Runtime is dominated by the account's request quota.** A full run makes
+  ~144 model calls, and the deployed limit rejected requests at roughly 26 per
+  minute — far under the advertised 120 — so wall-clock time is a property of the
+  account, not the pipeline. The adaptive concurrency cap and 12 s cooldown cap
+  in `ratelimit.py` were added after the Hindi number was measured; Tamil and
+  Bengali were run with them in place.
+* **Two Hindi blocks fell back to proportional splitting** rather than line
+  alignment, and Bengali had six QA failures on short or over-long segments. The
+  fallbacks are labelled per block, and every failure is recorded with its reason
+  in `segments.<lang>.json` rather than being hidden.
 
 ## Media
 
@@ -291,15 +293,17 @@ Media files stay out of git. Everything below is linked, not committed.
 
 **Input** — *NCERT Class 9 Mathematics, Chapter 6, Period 1* (English, 5 min 29 s).
 
-**Outputs** — fill these in before submitting:
+**Dubbed outputs** — each folder holds the dubbed video, the subtitle file and
+that run's `report.json`:
 
-| Language | Dubbed video | Subtitles | Report |
-|---|---|---|---|
-| Hindi | `<link>` | `<link>` | `<link>` |
-| Tamil | `<link>` | `<link>` | `<link>` |
-| Bengali | `<link>` | `<link>` | `<link>` |
+| Language | Outputs | Result |
+|---|---|---|
+| Hindi | [Google Drive folder](https://drive.google.com/drive/folders/1sucwTCWTJDFbhbQqlrCEPOMs8YebcqHN?usp=drive_link) | 72/72 · CER 0.071 · −16.07 LUFS · +0 ms |
+| Tamil | [Google Drive folder](https://drive.google.com/drive/folders/1JXYUltfA66PJpch0VXN5lMpGwXnfx4is?usp=drive_link) | 72/72 · CER 0.140 · −16.05 LUFS · +0 ms |
+| Bengali | [Google Drive folder](https://drive.google.com/drive/folders/1zAUiLU39sESAJeR8g01E5Sc3Q3q4BwNY?usp=drive_link) | 72/72 · CER 0.078 · −16.26 LUFS · +0 ms |
 
-**Demo recording** — a walkthrough of five minutes or less: `<link>`
+**Demo recording** — [walkthrough, under five minutes](https://drive.google.com/file/d/14OU2wHgdFJ0-tl7k50DfzSCboop537Tl/view?usp=drive_link):
+a live run on a fresh clip, the outputs, and the report.
 
 To reproduce locally, put any clip at `demo/input.mp4` (git-ignored) and run the
 command from [Run](#run).
