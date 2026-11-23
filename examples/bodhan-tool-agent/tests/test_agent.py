@@ -2550,6 +2550,73 @@ class TestAgent(unittest.TestCase):
         self.assertTrue(any("test_audio.wav" in a for a in report2.assumptions))
         self.assertTrue(any("test_long.wav" in a for a in report2.assumptions))
 
+    def test_three_window_file_candidate_languages_deduplicated(self):
+        """Tests that a 3-window file deduplicates candidate_languages while keeping order
+        in report.files[] and language_answers without repeats.
+        """
+        f = self.samples_dir / "test_3win.wav"
+        f.write_bytes(b"RIFFmock3win")
+
+        self.mock_tools.inspect_media.return_value = {
+            "success": True,
+            "media_type": "audio",
+            "duration_s": 39.1,
+        }
+
+        self.mock_tools.transcribe_audio.return_value = {
+            "success": True,
+            "transcript": "یہ پہلی ونڈو ہے یہ دوسری ونڈو ہے یہ تیسری ونڈو ہے",
+            "duration_s": 39.1,
+            "windows_count": 3,
+            "windows": [
+                {"window_index": 0, "start_s": 0.0, "end_s": 15.0, "text": "یہ پہلی ونڈو ہے"},
+                {"window_index": 1, "start_s": 15.0, "end_s": 30.0, "text": "یہ دوسری ونڈو ہے"},
+                {"window_index": 2, "start_s": 30.0, "end_s": 39.1, "text": "یہ تیسری ونڈو ہے"},
+            ],
+            "cost_inr": 0.06,
+            "detected_script": "ur",
+        }
+
+        plan = {
+            "steps": [
+                {"tool": "transcribe_audio", "args": {"file_path": "test_3win.wav"}},
+            ]
+        }
+
+        agent = TaskAgent(
+            task="Transcribe this audio file and tell me which language it is in",
+            files=[f],
+            out_dir=self.out_dir,
+            settings=self.mock_settings,
+            llm_client=MockLLM(plan_dict=plan),
+            tools=self.mock_tools,
+        )
+        report = agent.run()
+        self.assertEqual(report.status, "success")
+
+        # 1. files[] candidate_languages has no duplicates and preserves order
+        self.assertEqual(len(report.files), 1)
+        entry = report.files[0]
+        self.assertEqual(entry["windows"], 3)
+        self.assertEqual(entry["candidate_languages"], ["Urdu", "Kashmiri", "Sindhi"])
+        self.assertEqual(len(entry["candidate_languages"]), len(set(entry["candidate_languages"])))
+
+        # 2. language_answers has no duplicate candidate languages
+        lang_ans = entry.get("language_answer", "")
+        self.assertIn("Urdu", lang_ans)
+        # Verify candidate languages clause has no repeats
+        cand_clause = lang_ans.split("uncertainty note:")[0]
+        self.assertEqual(cand_clause.count("Urdu"), 1)
+
+        # 3. Disk report.json matches
+        rep_json = json.loads((self.out_dir / "report.json").read_text(encoding="utf-8"))
+        rep_file_entry = rep_json["files"][0]
+        self.assertEqual(rep_file_entry["candidate_languages"], ["Urdu", "Kashmiri", "Sindhi"])
+        self.assertEqual(
+            len(rep_file_entry["candidate_languages"]),
+            len(set(rep_file_entry["candidate_languages"])),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

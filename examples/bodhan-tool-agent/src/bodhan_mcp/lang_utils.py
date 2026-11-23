@@ -103,11 +103,15 @@ def get_candidate_languages_for_script(script_name: str | None) -> list[str]:
     return SCRIPT_CANDIDATE_LANGUAGES.get(name, [])
 
 
-def format_language_answer(script_name: str | None) -> str:
+def format_language_answer(script_name: str | None, candidate_languages: list[str] | None = None) -> str:
     """Formats an honest language identification answer with candidates and uncertainty note."""
     if not script_name:
         return "Could not determine language or script."
     name = SCRIPT_NAMES.get(script_name, script_name)
+
+    deduped_candidates = list(dict.fromkeys(candidate_languages)) if candidate_languages else get_candidate_languages_for_script(name)
+    deduped_candidates = list(dict.fromkeys(deduped_candidates))
+
     if name == "Arabic":
         return (
             f"Arabic script (candidate languages: Urdu among the supported languages; "
@@ -119,7 +123,7 @@ def format_language_answer(script_name: str | None) -> str:
             f"uncertainty note: {UNCERTAINTY_NOTE})"
         )
     else:
-        cands = ", ".join(get_candidate_languages_for_script(name))
+        cands = ", ".join(deduped_candidates)
         return (
             f"{name} script (candidate languages: {cands}; "
             f"uncertainty note: {UNCERTAINTY_NOTE})"

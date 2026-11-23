@@ -71,7 +71,7 @@ def load_settings(env_file: Path | str | None = None) -> Settings:
 
 
 def validate_settings(settings: Settings) -> list[str]:
-    """Validates presence of required keys, returning human-friendly missing key names."""
+    """Validates presence of required Bodhan model keys for the MCP server and tools."""
     missing = []
     if not settings.bodhan_transcribe_key:
         missing.append("BODHAN_TRANSCRIBE_KEY")
@@ -81,6 +81,12 @@ def validate_settings(settings: Settings) -> list[str]:
         missing.append("BODHAN_SPEAK_KEY")
     if not settings.bodhan_ocr_key:
         missing.append("BODHAN_OCR_KEY")
+    return missing
+
+
+def validate_agent_settings(settings: Settings) -> list[str]:
+    """Validates presence of required keys for the task agent (Bodhan keys + LLM keys)."""
+    missing = validate_settings(settings)
     if not settings.llm_base_url:
         missing.append("LLM_BASE_URL")
     if not settings.llm_model:

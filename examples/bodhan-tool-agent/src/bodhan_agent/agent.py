@@ -1005,7 +1005,25 @@ class TaskAgent:
                         sc_code = detect_script_language(txt)
                         detected_scr = SCRIPT_NAMES.get(sc_code, sc_code or "Unknown")
 
-            cand_langs = get_candidate_languages_for_script(detected_scr) if detected_scr else []
+            # Derive candidate languages from detected script and any per-window transcripts
+            raw_cand_langs: list[str] = []
+            if detected_scr:
+                raw_cand_langs.extend(get_candidate_languages_for_script(detected_scr))
+
+            windows_data = meta.get("windows_data") or []
+            for w in windows_data:
+                w_text = w.get("text", "").strip()
+                if w_text:
+                    w_sc = detect_script_language(w_text)
+                    w_name = SCRIPT_NAMES.get(w_sc, w_sc)
+                    if w_name:
+                        raw_cand_langs.extend(get_candidate_languages_for_script(w_name))
+
+            if meta.get("candidate_languages"):
+                raw_cand_langs.extend(meta["candidate_languages"])
+
+            # Deduplicate while preserving order for files[] and language_answers
+            cand_langs = list(dict.fromkeys(raw_cand_langs))
 
             f_entry: dict[str, Any] = {
                 "name": fname,
@@ -1018,7 +1036,7 @@ class TaskAgent:
 
             if is_lang_id:
                 if detected_scr:
-                    ans_str = format_language_answer(detected_scr)
+                    ans_str = format_language_answer(detected_scr, candidate_languages=cand_langs)
                     f_entry["language_answer"] = ans_str
                     f_entry["uncertainty_note"] = UNCERTAINTY_NOTE
                     self.language_answers[fname] = ans_str

@@ -2,7 +2,7 @@
 
 import os
 import unittest
-from bodhan_mcp.config import Settings, load_settings, validate_settings
+from bodhan_mcp.config import Settings, load_settings, validate_settings, validate_agent_settings
 
 
 class TestConfig(unittest.TestCase):
@@ -26,17 +26,28 @@ class TestConfig(unittest.TestCase):
 
     def test_validate_settings_missing_keys(self):
         empty_s = Settings("", "", "", "", "", "", "")
+        # MCP server / tools validation: only the four Bodhan keys are required
         missing = validate_settings(empty_s)
         self.assertIn("BODHAN_TRANSCRIBE_KEY", missing)
         self.assertIn("BODHAN_TRANSLATE_KEY", missing)
         self.assertIn("BODHAN_SPEAK_KEY", missing)
         self.assertIn("BODHAN_OCR_KEY", missing)
-        self.assertIn("LLM_BASE_URL", missing)
-        self.assertIn("LLM_MODEL", missing)
-        self.assertIn("LLM_API_KEY", missing)
+        self.assertNotIn("LLM_BASE_URL", missing)
+        self.assertNotIn("LLM_MODEL", missing)
+        self.assertNotIn("LLM_API_KEY", missing)
+
+        # Agent validation: Bodhan keys + LLM keys required
+        agent_missing = validate_agent_settings(empty_s)
+        self.assertIn("BODHAN_TRANSCRIBE_KEY", agent_missing)
+        self.assertIn("BODHAN_TRANSLATE_KEY", agent_missing)
+        self.assertIn("BODHAN_SPEAK_KEY", agent_missing)
+        self.assertIn("BODHAN_OCR_KEY", agent_missing)
+        self.assertIn("LLM_BASE_URL", agent_missing)
+        self.assertIn("LLM_MODEL", agent_missing)
+        self.assertIn("LLM_API_KEY", agent_missing)
 
     def test_llm_base_url_has_no_default_and_fails_validation_when_unset(self):
-        """Tests that LLM_BASE_URL has no default value and fails validation when unset."""
+        """Tests that LLM_BASE_URL has no default value and fails agent validation when unset."""
         orig_env = dict(os.environ)
         try:
             # Unset all LLM variables
@@ -48,8 +59,12 @@ class TestConfig(unittest.TestCase):
             with patch("dotenv.load_dotenv"):
                 s = load_settings()
             self.assertEqual(s.llm_base_url, "")
-            missing = validate_settings(s)
-            self.assertIn("LLM_BASE_URL", missing)
+            # MCP tools settings pass even without LLM_BASE_URL
+            server_missing = validate_settings(s)
+            self.assertNotIn("LLM_BASE_URL", server_missing)
+            # Agent settings fail when LLM_BASE_URL is unset
+            agent_missing = validate_agent_settings(s)
+            self.assertIn("LLM_BASE_URL", agent_missing)
         finally:
             os.environ.clear()
             os.environ.update(orig_env)
