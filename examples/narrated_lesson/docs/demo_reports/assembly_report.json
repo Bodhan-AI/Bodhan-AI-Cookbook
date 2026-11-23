@@ -1,0 +1,116 @@
+{
+  "labels_seen": {
+    "Paragraph": 109,
+    "Chapter-title": 9,
+    "Section-title": 11,
+    "Image-caption": 47,
+    "Diagram": 38,
+    "Header": 6,
+    "Equation": 51,
+    "Solved-example": 11,
+    "Question": 15,
+    "List": 3
+  },
+  "dropped": [
+    {
+      "page": 1,
+      "label": "Paragraph",
+      "reason": "catalog_code",
+      "text": "$0962\\text{CH}06$"
+    },
+    {
+      "page": 3,
+      "label": "Header",
+      "reason": "header_or_footer_label",
+      "text": ""
+    },
+    {
+      "page": 3,
+      "label": "Chapter-title",
+      "reason": "running_header_or_footer",
+      "text": "LINES AND ANGLES"
+    },
+    {
+      "page": 5,
+      "label": "Header",
+      "reason": "header_or_footer_label",
+      "text": ""
+    },
+    {
+      "page": 5,
+      "label": "Chapter-title",
+      "reason": "running_header_or_footer",
+      "text": "LINES AND ANGLES"
+    },
+    {
+      "page": 7,
+      "label": "Header",
+      "reason": "header_or_footer_label",
+      "text": ""
+    },
+    {
+      "page": 7,
+      "label": "Chapter-title",
+      "reason": "running_header_or_footer",
+      "text": "LINES AND ANGLES"
+    },
+    {
+      "page": 8,
+      "label": "Paragraph",
+      "reason": "website_banner",
+      "text": "For more FREE DOWNLOADS, visit www.aspirationsinstitute.com"
+    },
+    {
+      "page": 9,
+      "label": "Header",
+      "reason": "header_or_footer_label",
+      "text": ""
+    },
+    {
+      "page": 9,
+      "label": "Chapter-title",
+      "reason": "running_header_or_footer",
+      "text": "LINES AND ANGLES"
+    },
+    {
+      "page": 11,
+      "label": "Header",
+      "reason": "header_or_footer_label",
+      "text": ""
+    },
+    {
+      "page": 11,
+      "label": "Chapter-title",
+      "reason": "running_header_or_footer",
+      "text": "LINES AND ANGLES"
+    },
+    {
+      "page": 15,
+      "label": "Header",
+      "reason": "header_or_footer_label",
+      "text": ""
+    },
+    {
+      "page": 15,
+      "label": "Chapter-title",
+      "reason": "running_header_or_footer",
+      "text": "LINES AND ANGLES"
+    },
+    {
+      "page": 19,
+      "label": "Chapter-title",
+      "reason": "running_header_or_footer",
+      "text": "LINES AND ANGLES"
+    }
+  ],
+  "merged_across_pages": [
+    {
+      "from_page": 1,
+      "to_page": 2
+    }
+  ],
+  "alignment_fallbacks": 4,
+  "failed_pages": [],
+  "flagged": [],
+  "pages_ok": 20
+}
