@@ -62,6 +62,7 @@ from examples.rag.vector_store import (  # noqa: E402
     StaleChunkCleanupError,
     count_prefixed_tokens,
     create_vector_store,
+    delete_source_documents,
     generate_chunk_id,
     get_source_identity,
     get_vector_store,
@@ -776,7 +777,7 @@ def test_chroma_persistence_across_reopen(tmp_path: Path, fake_embeddings: Deter
 
 
 def test_chroma_deterministic_document_ids() -> None:
-    """Verify chunk ID generation is stable, deterministic, and handles missing source fallback."""
+    """Verify chunk ID generation is stable, deterministic, and rejects missing source without fallback."""
     id1 = generate_chunk_id("notices/scholarship.pdf", 1, 1, "Sample text")
     id2 = generate_chunk_id("notices/scholarship.pdf", 1, 1, "Sample text")
     assert id1 == id2
@@ -787,10 +788,9 @@ def test_chroma_deterministic_document_ids() -> None:
     id3 = generate_chunk_id("notices/scholarship.pdf", 1, 1, "Different text")
     assert id1 != id3
 
-    # Fallback when source is None -> content-derived fingerprint
-    id_fallback = generate_chunk_id(None, None, 1, "Sample text")
-    assert id_fallback.startswith("content_doc_")
-    assert ":p0:c1:" in id_fallback
+    # Missing source and source_id raises ValueError
+    with pytest.raises(ValueError, match="Cannot generate chunk ID without a valid document identifier"):
+        generate_chunk_id(None, None, 1, "Sample text")
 
 
 def test_chroma_duplicate_ingestion_prevention(tmp_path: Path, fake_embeddings: DeterministicFakeEmbeddings) -> None:
@@ -1071,7 +1071,7 @@ def test_chroma_partial_page_update_preserves_unrelated_pages(tmp_path: Path, fa
     page_2_update = [
         Document(page_content="Page 2 Revised fee structure: completely updated", metadata={"source": "circular.pdf", "page_number": 2}),
     ]
-    index_documents(vs, page_2_update)
+    index_documents(vs, page_2_update, update_mode="partial_pages")
 
     assert vs._collection.count() == 3
 
@@ -1126,22 +1126,64 @@ def test_source_identity_same_content_different_source() -> None:
     assert cid1 != cid2
 
 
-def test_source_identity_missing_source_fallback() -> None:
-    """Verify missing source metadata uses content fingerprint to avoid colliding unrelated documents."""
-    ident1 = get_source_identity(metadata={}, content="Unique notice content alpha")
-    ident2 = get_source_identity(metadata={}, content="Different notice content beta")
-    assert ident1 != ident2
-    assert ident1.startswith("content_doc_")
-    assert ident2.startswith("content_doc_")
+def test_source_identity_missing_metadata_raises_error() -> None:
+    """Verify missing source metadata and document ID raises ValueError, disallowing content-only fallback."""
+    with pytest.raises(ValueError, match="Cannot derive a stable document identity"):
+        get_source_identity(metadata={}, content="Some text content")
+
+    with pytest.raises(ValueError, match="Cannot derive a stable document identity"):
+        get_source_identity(metadata=None, content="Some text content")
+
+    with pytest.raises(ValueError, match="Cannot derive a stable document identity"):
+        get_source_identity(metadata={"author": "Govt of India"}, content="Some text content")
+
+
+def test_source_identity_same_content_no_metadata_raises(tmp_path: Path, fake_embeddings: DeterministicFakeEmbeddings) -> None:
+    """Verify two documents with identical content and no source metadata are rejected rather than colliding."""
+    vs = get_vector_store(provider="chroma", embeddings=fake_embeddings, persist_directory=str(tmp_path / "no_meta"))
+    docs = [
+        Document(page_content="Identical notice text", metadata={}),
+        Document(page_content="Identical notice text", metadata={}),
+    ]
+    with pytest.raises(ValueError, match="Cannot derive a stable document identity"):
+        index_documents(vs, docs)
 
 
 def test_source_identity_explicit_source_id_precedence() -> None:
-    """Verify explicit source_id or document_id takes precedence over path derivation."""
+    """Verify explicit source_id takes precedence over document_id and path derivation."""
     meta_src_id = {"source_id": "custom_uuid_001", "source": "/long/path/file.pdf"}
     assert get_source_identity(meta_src_id, "text") == "custom_uuid_001"
 
     meta_doc_id = {"document_id": "doc_id_999", "source": "/long/path/file.pdf"}
     assert get_source_identity(meta_doc_id, "text") == "doc_id_999"
+
+    meta_both = {"source_id": "priority_src", "document_id": "secondary_doc"}
+    assert get_source_identity(meta_both, "text") == "priority_src"
+
+
+def test_source_identity_spaces_and_underscores_remain_distinct() -> None:
+    """Verify explicit IDs with spaces and underscores do not collapse into the same identity."""
+    id_space = get_source_identity(metadata={"source_id": "notice alpha"})
+    id_under = get_source_identity(metadata={"source_id": "notice_alpha"})
+    assert id_space == "notice alpha"
+    assert id_under == "notice_alpha"
+    assert id_space != id_under
+
+    chunk_id_space = generate_chunk_id(None, 1, 1, "Notice content", source_id="notice alpha")
+    chunk_id_under = generate_chunk_id(None, 1, 1, "Notice content", source_id="notice_alpha")
+    assert chunk_id_space != chunk_id_under
+    assert chunk_id_space.startswith("notice alpha:p1:c1:")
+    assert chunk_id_under.startswith("notice_alpha:p1:c1:")
+
+
+def test_source_identity_repeated_deterministic_indexing(tmp_path: Path, fake_embeddings: DeterministicFakeEmbeddings) -> None:
+    """Verify repeated deterministic indexing preserves identical IDs without duplicates."""
+    vs = get_vector_store(provider="chroma", embeddings=fake_embeddings, persist_directory=str(tmp_path / "repeat_idx"))
+    docs = [Document(page_content="Deterministic content", metadata={"source": "rules.pdf", "page_number": 1})]
+    index_documents(vs, docs)
+    assert vs._collection.count() == 1
+    index_documents(vs, docs)
+    assert vs._collection.count() == 1
 
 
 def test_source_identity_deterministic_across_processes() -> None:
@@ -1209,6 +1251,164 @@ def test_chroma_incompatible_distance_metric_raises(tmp_path: Path, fake_embeddi
             collection_name=col_name,
             persist_directory=str(db_dir),
         )
+
+
+def test_chroma_full_document_replacement_10_pages_to_8_pages(
+    tmp_path: Path,
+    fake_embeddings: DeterministicFakeEmbeddings,
+) -> None:
+    """Verify a 10-page document revised to 8 pages has removed pages 9 and 10 purged in full_document mode."""
+    db_dir = tmp_path / "chroma_10_to_8"
+    vs = get_vector_store(provider="chroma", embeddings=fake_embeddings, persist_directory=str(db_dir))
+    v1_docs = [
+        Document(page_content=f"Page {p} rules and provisions content", metadata={"source": "ten_page_doc.pdf", "page_number": p})
+        for p in range(1, 11)
+    ]
+    index_documents(vs, v1_docs, update_mode="full_document")
+    assert vs._collection.count() == 10
+
+    # Revision with only 8 pages
+    v2_docs = [
+        Document(page_content=f"Page {p} revised updated rules content", metadata={"source": "ten_page_doc.pdf", "page_number": p})
+        for p in range(1, 9)
+    ]
+    index_documents(vs, v2_docs, update_mode="full_document")
+    assert vs._collection.count() == 8
+
+    # Verify pages 9 and 10 are completely gone
+    results = vs.similarity_search("provisions content", k=15)
+    pages = {r.metadata.get("page_number") for r in results}
+    assert 9 not in pages
+    assert 10 not in pages
+
+
+def test_chroma_full_document_replacement_3_pages_to_1_page(
+    tmp_path: Path,
+    fake_embeddings: DeterministicFakeEmbeddings,
+) -> None:
+    """Verify a 3-page document revised to 1 page has old pages 2 and 3 purged in full_document mode."""
+    db_dir = tmp_path / "chroma_3_to_1"
+    vs = get_vector_store(provider="chroma", embeddings=fake_embeddings, persist_directory=str(db_dir))
+    v1_docs = [
+        Document(page_content=f"Initial page {p} content", metadata={"source": "circular.pdf", "page_number": p})
+        for p in range(1, 4)
+    ]
+    index_documents(vs, v1_docs, update_mode="full_document")
+    assert vs._collection.count() == 3
+
+    v2_docs = [
+        Document(page_content="Consolidated single page notice", metadata={"source": "circular.pdf", "page_number": 1})
+    ]
+    index_documents(vs, v2_docs, update_mode="full_document")
+    assert vs._collection.count() == 1
+
+    res = vs.similarity_search("Consolidated", k=5)
+    assert len(res) == 1
+    assert "Consolidated single page notice" in res[0].page_content
+
+
+def test_chroma_partial_update_preserves_other_pages(
+    tmp_path: Path,
+    fake_embeddings: DeterministicFakeEmbeddings,
+) -> None:
+    """Verify partial_pages mode updates only the specified page while preserving all other pages."""
+    db_dir = tmp_path / "chroma_partial_scope"
+    vs = get_vector_store(provider="chroma", embeddings=fake_embeddings, persist_directory=str(db_dir))
+    v1_docs = [
+        Document(page_content="Page 1 initial guidelines", metadata={"source": "policy.pdf", "page_number": 1}),
+        Document(page_content="Page 2 initial fee rates", metadata={"source": "policy.pdf", "page_number": 2}),
+        Document(page_content="Page 3 initial contact list", metadata={"source": "policy.pdf", "page_number": 3}),
+    ]
+    index_documents(vs, v1_docs)
+    assert vs._collection.count() == 3
+
+    # Update only page 2 in partial_pages mode
+    v2_page_2 = [
+        Document(page_content="Page 2 revised fee rates", metadata={"source": "policy.pdf", "page_number": 2})
+    ]
+    index_documents(vs, v2_page_2, update_mode="partial_pages")
+    assert vs._collection.count() == 3
+
+    p1 = vs.similarity_search("Page 1 initial guidelines", k=2)
+    assert len(p1) >= 1
+    assert "Page 1 initial guidelines" in p1[0].page_content
+
+    p3 = vs.similarity_search("Page 3 initial contact list", k=2)
+    assert len(p3) >= 1
+    assert "Page 3 initial contact list" in p3[0].page_content
+
+
+def test_chroma_full_replacement_failed_upsert_preserves_old_data(
+    tmp_path: Path,
+    fake_embeddings: DeterministicFakeEmbeddings,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Verify failed upsert during full document replacement preserves all original pages."""
+    db_dir = tmp_path / "chroma_fail_replace"
+    vs = get_vector_store(provider="chroma", embeddings=fake_embeddings, persist_directory=str(db_dir))
+    v1_docs = [
+        Document(page_content=f"Page {p} existing data", metadata={"source": "important.pdf", "page_number": p})
+        for p in range(1, 6)
+    ]
+    index_documents(vs, v1_docs, update_mode="full_document")
+    assert vs._collection.count() == 5
+
+    def mock_fail_add(*args: Any, **kwargs: Any) -> list[str]:
+        raise RuntimeError("Upsert aborted due to internal Chroma error")
+
+    monkeypatch.setattr(vs, "add_documents", mock_fail_add)
+
+    v2_docs = [
+        Document(page_content="Replacement page 1", metadata={"source": "important.pdf", "page_number": 1})
+    ]
+    with pytest.raises(RuntimeError, match="Upsert aborted due to internal Chroma error"):
+        index_documents(vs, v2_docs, update_mode="full_document")
+
+    monkeypatch.undo()
+    assert vs._collection.count() == 5
+
+
+def test_chroma_delete_source_documents_success(
+    tmp_path: Path,
+    fake_embeddings: DeterministicFakeEmbeddings,
+) -> None:
+    """Verify delete_source_documents deletes all chunks for target document while preserving others."""
+    db_dir = tmp_path / "chroma_delete_source"
+    vs = get_vector_store(provider="chroma", embeddings=fake_embeddings, persist_directory=str(db_dir))
+    docs_a = [
+        Document(page_content="Doc A page 1", metadata={"source": "docA.pdf", "page_number": 1}),
+        Document(page_content="Doc A page 2", metadata={"source": "docA.pdf", "page_number": 2}),
+    ]
+    docs_b = [
+        Document(page_content="Doc B page 1", metadata={"source": "docB.pdf", "page_number": 1}),
+    ]
+    index_documents(vs, docs_a + docs_b)
+    assert vs._collection.count() == 3
+
+    # Delete docA
+    deleted = delete_source_documents(vs, source="docA.pdf")
+    assert deleted == 2
+    assert vs._collection.count() == 1
+
+    # Doc B is still present
+    res = vs.similarity_search("Doc B", k=2)
+    assert len(res) == 1
+    assert res[0].metadata["source"] == "docB.pdf"
+
+
+def test_chroma_delete_source_documents_missing_args_raises(tmp_path: Path, fake_embeddings: DeterministicFakeEmbeddings) -> None:
+    """Verify delete_source_documents raises ValueError if neither source nor source_id is provided."""
+    vs = get_vector_store(provider="chroma", embeddings=fake_embeddings, persist_directory=str(tmp_path / "del_err"))
+    with pytest.raises(ValueError, match="Either 'source_id' or 'source' must be provided"):
+        delete_source_documents(vs)
+
+
+def test_chroma_invalid_update_mode_raises(tmp_path: Path, fake_embeddings: DeterministicFakeEmbeddings) -> None:
+    """Verify passing an unsupported update_mode raises ValueError."""
+    vs = get_vector_store(provider="chroma", embeddings=fake_embeddings, persist_directory=str(tmp_path / "bad_mode"))
+    docs = [Document(page_content="Text", metadata={"source": "doc.pdf", "page_number": 1})]
+    with pytest.raises(ValueError, match="Unsupported update_mode: 'random_mode'"):
+        index_documents(vs, docs, update_mode="random_mode")
 
 
 def test_vector_store_switching_chroma_and_inmemory(tmp_path: Path, fake_embeddings: DeterministicFakeEmbeddings) -> None:

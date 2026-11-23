@@ -56,8 +56,8 @@ pip install -r requirements-rag-groq.txt
 ```
 
 Optional Chroma Vector Store dependencies:
-- `langchain-chroma>=0.2.0`
-- `chromadb>=0.5.0`
+- `langchain-chroma>=1.1.0`
+- `chromadb>=1.0.0`
 
 Optional Groq RAG dependencies:
 - `langchain-groq>=0.2.0`
@@ -341,7 +341,7 @@ The RAG pipeline supports two vector-store backends: **ChromaDB** (`langchain-ch
   - `inmemory`: Ephemeral in-process store (`langchain_core.vectorstores.InMemoryVectorStore`). Ideal for rapid experimentation, unit tests, and environments where disk persistence is not desired.
 - **Local Persistence Layout (SQLite + HNSW Index)**:
   - Chroma persists data locally as an embedded SQLite database (`chroma.sqlite3`) for metadata, document content, and collection catalogs, alongside binary HNSW index segment files for fast approximate nearest-neighbor vector search.
-  - *Note on Legacy Formats*: Older Chroma releases (<0.4.0) used DuckDB and Parquet files; modern Chroma (`chromadb>=0.5.0` with `langchain-chroma>=0.2.0`) uses SQLite and HNSW segment files exclusively.
+  - *Note on Legacy Formats*: Older Chroma releases (<0.4.0) used DuckDB and Parquet files; modern Chroma (`chromadb>=1.0.0` with `langchain-chroma>=1.1.0`) uses SQLite and HNSW segment files exclusively.
 - **Automatic Persistence**:
   - All chunk insertions, updates, and stale deletions are automatically synchronized and persisted to disk upon execution. No explicit `persist()` method is needed.
 - **Reopening an Existing Collection**:
@@ -367,13 +367,17 @@ The RAG pipeline supports two vector-store backends: **ChromaDB** (`langchain-ch
     {source_id}:p{page_number}:c{chunk_index}:{sha256_hash[:16]}
     ```
   - **Source Identity Derivation Hierarchy**:
-    1. *Explicit ID*: Prefers `metadata["source_id"]` or `metadata["document_id"]` if provided.
-    2. *Normalized Path + Hash*: When `metadata["source"]` is present, normalizes the full path and appends an 8-character SHA-256 digest (`{basename}_{path_hash[:8]}`). This guarantees that files with identical basenames in different directories (e.g. `/notices/2025/doc.pdf` vs `/notices/2026/doc.pdf`) have distinct identities and cleanup scopes without colliding.
-    3. *Content Fingerprint Fallback*: If source metadata is absent, generates `content_doc_{hash[:12]}` from the text content so unrelated documents never share a single `unknown_source` scope.
+    1. *Explicit Source ID*: Prefers `metadata["source_id"]` if provided.
+    2. *Explicit Document ID*: Prefers `metadata["document_id"]` if provided.
+    3. *Normalized Path + Hash*: When `metadata["source"]` is present, normalizes the full path and appends an 8-character SHA-256 digest (`{basename}_{path_hash[:8]}`). This guarantees that files with identical basenames in different directories (e.g. `/notices/2025/doc.pdf` vs `/notices/2026/doc.pdf`) have distinct identities and cleanup scopes without colliding.
+    4. *Required Identity (No Content-Hash Fallback)*: If none of the above exists, a `ValueError` is raised. Content-only hashing is disallowed as a document identifier to prevent false collisions between unrelated unsourced documents with identical text.
+    5. *Preservation of Explicit Characters*: Explicit IDs are preserved verbatim without lossy normalization (e.g. `"a b"` and `"a_b"` remain distinct).
   - *Provenance Preservation*: Original `metadata["source"]` is preserved unmodified for clean, authentic citation display.
-- **Stale Chunk Cleanup Order & Partial-Page Updates**:
+- **Update Scopes & Document Lifecycle Management**:
+  - `update_mode="full_document"` (default): Treats the incoming chunks as the complete current state of that document. Upserts new chunks first, then deletes all stale chunks from all pages of that document, successfully removing old pages that no longer exist in the revised version.
+  - `update_mode="partial_pages"`: Scopes stale chunk cleanup strictly to the pages present in the incoming batch, preserving chunks from other pages of the same document.
   - *Upsert-First Safety*: New chunks are chunked, validated, normalized, and upserted into Chroma *before* any old chunks are purged. If embedding generation or upsert fails, previously valid documents remain completely preserved in the store.
-  - *Partial-Page Updates*: Stale chunk cleanup is scoped strictly to the pages present in the current update batch. For example, updating page 2 of a notice purges only stale page 2 chunks, preserving page 1 chunks of the same document untouched.
+  - *Explicit Deletion API*: `delete_source_documents(vector_store, source_id=..., source=...)` provides safe, explicit removal of all chunks for a document that has been removed from ingestion.
   - *Failure Diagnostic*: Stale deletion errors raise `StaleChunkCleanupError` with uncleaned IDs and diagnostics while preserving newly inserted content.
 - **Metadata Normalization & Citation Survival**: Chroma requires scalar metadata values (`str`, `int`, `float`, `bool`). The indexing pipeline normalizes complex or nested metadata (e.g. OCR layout structures or bounding boxes) into JSON strings, preventing runtime validation errors while ensuring `source`, `page` (0-indexed), and `page_number` (1-indexed) survive vector retrieval intact for verified citation mapping.
 - **Selecting InMemory Backend**:

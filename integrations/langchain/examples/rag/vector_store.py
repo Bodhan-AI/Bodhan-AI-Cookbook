@@ -56,36 +56,43 @@ def get_source_identity(
     """Derive a stable, collision-free source identity string.
 
     Derivation hierarchy:
-      1. Explicit 'source_id' or 'document_id' in metadata if provided and non-empty.
-      2. Normalized full source path or URI from metadata['source']:
-         Combines cleaned basename and an 8-character SHA-256 hash of the normalized path:
+      1. Explicit 'source_id' in metadata if present and non-empty.
+      2. Explicit 'document_id' in metadata if present and non-empty.
+      3. Normalized full source path or URI from metadata['source']:
+         Combines basename and an 8-character SHA-256 hash of the normalized path:
          f"{base_name}_{path_hash[:8]}". This guarantees distinct identities for files with
          identical basenames in different directories (e.g. '/notices/2025/doc.pdf' vs
          '/notices/2026/doc.pdf') while keeping chunk IDs readable and citation provenance intact.
-      3. Content fingerprint fallback when metadata['source'] is missing:
-         'content_doc_{content_hash[:12]}', derived from a 12-character SHA-256 digest of content.
-         This prevents unrelated unsourced documents from colliding or sharing a single
-         'unknown_source' cleanup scope.
+      4. If none of the above exists, raises ValueError. Content-only hashing is strictly
+         disallowed as a substitute for document identity to prevent collisions between
+         unrelated documents with identical content.
+
+    Note:
+      Explicit IDs ('source_id' and 'document_id') are preserved verbatim without lossy
+      normalization (e.g. 'a b' and 'a_b' remain distinct).
     """
     if metadata:
-        for key in ("source_id", "document_id"):
-            val = metadata.get(key)
-            if val is not None and str(val).strip():
-                return str(val).strip().replace(" ", "_")
+        explicit_src_id = metadata.get("source_id")
+        if explicit_src_id is not None and str(explicit_src_id).strip():
+            return str(explicit_src_id).strip()
+
+        explicit_doc_id = metadata.get("document_id")
+        if explicit_doc_id is not None and str(explicit_doc_id).strip():
+            return str(explicit_doc_id).strip()
 
         raw_source = metadata.get("source")
         if raw_source is not None and str(raw_source).strip():
             raw_str = str(raw_source).strip()
             norm_path = os.path.normpath(raw_str).replace("\\", "/")
-            base_name = Path(norm_path).name.replace(" ", "_") or "doc"
+            base_name = Path(norm_path).name or "doc"
             path_hash = hashlib.sha256(norm_path.encode("utf-8")).hexdigest()[:8]
             return f"{base_name}_{path_hash}"
 
-    if content is not None and content.strip():
-        content_hash = hashlib.sha256(content.strip().encode("utf-8")).hexdigest()[:12]
-        return f"content_doc_{content_hash}"
-
-    return "unknown_source"
+    raise ValueError(
+        "Cannot derive a stable document identity: document metadata must contain "
+        "at least one of 'source_id', 'document_id', or 'source'. Content-derived "
+        "hashing is disallowed to prevent identity collisions across distinct documents."
+    )
 
 
 def get_token_length_fn(tokenizer: Any = None, strict: bool = False):
@@ -243,17 +250,19 @@ def generate_chunk_id(
 
     Components:
       - Source identity: explicit source_id if provided; otherwise derived via get_source_identity
-        from source and content.
+        from source. Preserves spaces and punctuation without lossy normalization.
       - Page identity: 'p{page}' (e.g. 'p1'). Fallback to 'p0' if page is None.
       - Chunk index: 'c{chunk_index}' (1-indexed chunk order).
       - Content hash: 16-character SHA-256 digest of page_content.
     """
     if source_id is not None and str(source_id).strip():
-        src_ident = str(source_id).strip().replace(" ", "_")
+        src_ident = str(source_id).strip()
+    elif source is not None and str(source).strip():
+        src_ident = get_source_identity(metadata={"source": source})
     else:
-        src_ident = get_source_identity(
-            metadata={"source": source} if source else None,
-            content=content,
+        raise ValueError(
+            "Cannot generate chunk ID without a valid document identifier. "
+            "Please provide 'source_id' or 'source' in document metadata."
         )
 
     page_num = page if page is not None else 0
@@ -370,19 +379,23 @@ def index_documents(
     chunk_size: int | None = None,
     chunk_overlap: int | None = None,
     strict: bool = False,
+    update_mode: str = "full_document",
 ) -> list[Document]:
     """Chunk documents with tokenizer awareness and index into vector store with stable IDs and idempotency.
 
-    Supports partial-page updates: When updating specific pages of a multi-page document,
-    only stale chunks on the pages included in the current batch are removed. Chunks from
-    unrelated pages of the same document are preserved.
+    Update Scopes:
+      - 'full_document' (default): Treats the supplied document chunks as the complete current
+        version of each document. Upserts all new chunks first, then purges all stale chunks
+        from all pages of those source documents, successfully removing old pages that no
+        longer exist in the new revision.
+      - 'partial_pages': Updates only the specific pages included in the batch. Preserves chunks
+        from other pages of the same document, purging stale chunks only from the updated pages.
 
     Cleanup Safety:
       1. New chunks are chunked, validated, and normalized.
       2. New documents are upserted FIRST into the vector store.
       3. If embedding generation or upsert fails, old documents are completely preserved.
-      4. Stale chunks from previous versions of the updated pages are queried and deleted
-         only after successful upsert.
+      4. Stale chunks are queried and deleted only after successful upsert.
       5. Any failure during stale chunk deletion raises StaleChunkCleanupError, surfacing
          the diagnostic and uncleaned stale IDs to the caller while preserving the newly
          inserted content.
@@ -396,16 +409,25 @@ def index_documents(
         chunk_size: Backward-compatibility alias for max_chunk_tokens.
         chunk_overlap: Backward-compatibility alias for chunk_token_overlap.
         strict: Whether to enforce strict tokenizer requirement without fallback.
+        update_mode: Update scope ('full_document' or 'partial_pages'). Defaults to 'full_document'.
 
     Returns:
         List of indexed Document chunks with assigned chunk_id and stable IDs.
 
     Raises:
-        ValueError: If documents list is empty.
+        ValueError: If documents list is empty, update_mode is invalid, or document identity cannot be derived.
         StaleChunkCleanupError: If stale chunk deletion fails after successful insertion.
     """
     if not documents:
         raise ValueError("Cannot index empty document list.")
+
+    valid_modes = {"full_document", "partial_pages"}
+    mode = (update_mode or "").strip().lower()
+    if mode not in valid_modes:
+        raise ValueError(
+            f"Unsupported update_mode: {update_mode!r}. "
+            f"Supported modes are: {sorted(valid_modes)!r}."
+        )
 
     effective_tokens = chunk_size if chunk_size is not None else max_chunk_tokens
     effective_overlap = chunk_overlap if chunk_overlap is not None else chunk_token_overlap
@@ -455,7 +477,7 @@ def index_documents(
         vector_store.add_documents(chunks, ids=chunk_ids)
         backend_name = "Chroma"
 
-        # 3. Steps 5-7: Query existing records, identify stale IDs for updated pages, and delete
+        # 3. Query existing records, identify stale IDs according to update_mode, and delete
         source_page_map: dict[str, set[int]] = {}
         source_new_ids: dict[str, set[str]] = {}
         for chunk, cid in zip(chunks, chunk_ids, strict=True):
@@ -479,13 +501,17 @@ def index_documents(
                 for eid, emeta in zip(existing_ids, existing_metas, strict=False):
                     if eid in new_ids:
                         continue
-                    # Check if this existing chunk belongs to a page that was updated
-                    if emeta and isinstance(emeta, dict):
-                        epg = _extract_page_number(emeta)
-                        if epg in updated_pages:
-                            all_stale_ids.append(eid)
-                    else:
+                    if mode == "full_document":
+                        # In full_document mode, any old chunk for this source is stale
                         all_stale_ids.append(eid)
+                    else:
+                        # In partial_pages mode, only stale chunks on updated pages are purged
+                        if emeta and isinstance(emeta, dict):
+                            epg = _extract_page_number(emeta)
+                            if epg in updated_pages:
+                                all_stale_ids.append(eid)
+                        else:
+                            all_stale_ids.append(eid)
             except Exception as exc:
                 raise StaleChunkCleanupError(
                     f"Failed to query existing records for source_id {sid!r} during stale chunk cleanup: {exc}",
@@ -506,15 +532,66 @@ def index_documents(
 
     print(
         f"  -> Successfully indexed {len(chunks)} passage chunk(s) across "
-        f"{len(documents)} document(s) in {backend_name}."
+        f"{len(documents)} document(s) in {backend_name} (mode: {mode})."
     )
     return chunks
 
-    print(
-        f"  -> Successfully indexed {len(chunks)} passage chunk(s) across "
-        f"{len(documents)} document(s) in {backend_name}."
-    )
-    return chunks
+
+def delete_source_documents(
+    vector_store: VectorStore,
+    source_id: str | None = None,
+    source: str | None = None,
+) -> int:
+    """Safely delete all indexed chunks belonging to a specific source document.
+
+    Args:
+        vector_store: Target LangChain VectorStore (Chroma or InMemoryVectorStore).
+        source_id: Explicit source identifier.
+        source: Source file path or URI (used to derive source_id if source_id is not provided).
+
+    Returns:
+        int: Number of deleted chunk records.
+
+    Raises:
+        ValueError: If neither source_id nor source is provided.
+    """
+    if source_id is not None and str(source_id).strip():
+        target_sid = str(source_id).strip()
+    elif source is not None and str(source).strip():
+        target_sid = get_source_identity(metadata={"source": source})
+    else:
+        raise ValueError("Either 'source_id' or 'source' must be provided to delete document chunks.")
+
+    is_chroma = hasattr(vector_store, "_collection")
+    if is_chroma:
+        existing = vector_store._collection.get(
+            where={"source_id": target_sid},
+            include=["metadatas"],
+        )
+        ids_to_delete = existing.get("ids") or []
+        # Fallback check by raw source if legacy metadata lacks source_id
+        if not ids_to_delete and source:
+            legacy = vector_store._collection.get(
+                where={"source": str(source).strip()},
+                include=["metadatas"],
+            )
+            ids_to_delete = legacy.get("ids") or []
+
+        if ids_to_delete:
+            vector_store._collection.delete(ids=ids_to_delete)
+        return len(ids_to_delete)
+
+    # InMemoryVectorStore support
+    if hasattr(vector_store, "store") and isinstance(vector_store.store, dict):
+        matched_ids = [
+            cid for cid, doc in vector_store.store.items()
+            if doc.metadata.get("source_id") == target_sid or (source and doc.metadata.get("source") == source)
+        ]
+        for cid in matched_ids:
+            del vector_store.store[cid]
+        return len(matched_ids)
+
+    return 0
 
 
 def create_vector_store(
@@ -529,6 +606,7 @@ def create_vector_store(
     chunk_size: int | None = None,
     chunk_overlap: int | None = None,
     strict: bool = False,
+    update_mode: str = "full_document",
     config: RAGConfig | None = None,
 ) -> VectorStore:
     """Create a vector store and index documents with tokenizer awareness.
@@ -556,5 +634,6 @@ def create_vector_store(
         chunk_size=chunk_size,
         chunk_overlap=chunk_overlap,
         strict=strict,
+        update_mode=update_mode,
     )
     return store

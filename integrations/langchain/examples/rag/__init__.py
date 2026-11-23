@@ -20,6 +20,7 @@ from .retrieval import get_retriever, retrieve_passages
 from .vector_store import (
     StaleChunkCleanupError,
     create_vector_store,
+    delete_source_documents,
     generate_chunk_id,
     get_source_identity,
     get_vector_store,
@@ -35,6 +36,7 @@ __all__ = [
     "create_vector_store",
     "get_vector_store",
     "index_documents",
+    "delete_source_documents",
     "generate_chunk_id",
     "get_source_identity",
     "StaleChunkCleanupError",
