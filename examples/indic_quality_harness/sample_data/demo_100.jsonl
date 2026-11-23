@@ -1,0 +1,100 @@
+{"id": "hi-001", "language": "hi", "source_text": "The temperature is 25 degrees today.", "translation": "आज तापमान 25 डिग्री है।", "reference_translation": null}
+{"id": "hi-002", "language": "hi", "source_text": "The price of this product is 500 rupees.", "translation": "इस उत्पाद की कीमत 500 रुपये है।", "reference_translation": null}
+{"id": "hi-003", "language": "hi", "source_text": "The meeting starts at 10 AM tomorrow.", "translation": "कल सुबह दस बजे मीटिंग शुरू होगी।", "reference_translation": null}
+{"id": "hi-004", "language": "hi", "source_text": "We received 100 applications this week.", "translation": "हमें इस सप्ताह 100 आवेदन प्राप्त हुए।", "reference_translation": null}
+{"id": "hi-005", "language": "hi", "source_text": "Please submit the report before Friday.", "translation": "कृपया शुक्रवार से पहले रिपोर्ट जमा करें।", "reference_translation": null}
+{"id": "hi-006", "language": "hi", "source_text": "The train will arrive at platform number 4.", "translation": "ट्रेन प्लेटफॉर्म नंबर 4 पर आएगी।", "reference_translation": null}
+{"id": "hi-007", "language": "hi", "source_text": "My phone battery is at 15 percent.", "translation": "मेरे फ़ोन की बैटरी 15 प्रतिशत पर है।", "reference_translation": null}
+{"id": "hi-008", "language": "hi", "source_text": "The hospital is located 2 kilometers away.", "translation": "अस्पताल 2 किलोमीटर दूर स्थित है।", "reference_translation": null}
+{"id": "hi-009", "language": "hi", "source_text": "The total payment is 1250 rupees.", "translation": "कुल भुगतान 1250 रुपये है।", "reference_translation": null}
+{"id": "hi-010", "language": "hi", "source_text": "The deadline is December 15, 2026.", "translation": "अंतिम तिथि 15 दिसंबर, 2026 है।", "reference_translation": null}
+{"id": "hi-011", "language": "hi", "source_text": "The server processes 500 requests per second.", "translation": "सर्वर प्रति सेकंड 500 अनुरोधों को संसाधित करता है।", "reference_translation": null}
+{"id": "hi-012", "language": "hi", "source_text": "Please save the document as a PDF file.", "translation": "कृपया दस्तावेज़ को पीडीएफ़ फ़ाइल के रूप में सहेजें।", "reference_translation": null}
+{"id": "hi-013", "language": "hi", "source_text": "The package contains 12 different items.", "translation": "इस पैकेज में 12 अलग-अलग वस्तुएँ हैं।", "reference_translation": null}
+{"id": "hi-014", "language": "hi", "source_text": "Our office opens at 9:30 AM.", "translation": "हमारा कार्यालय सुबह 9:30 बजे खुलता है।", "reference_translation": null}
+{"id": "hi-015", "language": "hi", "source_text": "The customer ordered 3 laptops.", "translation": "ग्राहक ने 3 लैपटॉप का ऑर्डर दिया।", "reference_translation": null}
+{"id": "hi-016", "language": "hi", "source_text": "The internet speed is 100 Mbps.", "translation": "इंटरनेट की गति 100 एमबीपीएस है।", "reference_translation": null}
+{"id": "hi-017", "language": "hi", "source_text": "The medicine should be stored below 25 degrees.", "translation": "दवा को 25 डिग्री से नीचे रखना चाहिए।", "reference_translation": null}
+{"id": "hi-018", "language": "hi", "source_text": "The distance between the cities is 250 kilometers.", "translation": "शहरों के बीच की दूरी 250 किलोमीटर है।", "reference_translation": null}
+{"id": "hi-019", "language": "hi", "source_text": "The meeting was postponed by two days.", "translation": "बैठक दो दिन के लिए स्थगित कर दी गई।", "reference_translation": null}
+{"id": "hi-020", "language": "hi", "source_text": "The company hired 45 new employees.", "translation": "कंपनी ने 45 नए कर्मचारियों को काम पर रखा।", "reference_translation": null}
+{"id": "hi-021", "language": "hi", "source_text": "Please turn off the lights before leaving.", "translation": "कृपया जाने से पहले बत्तियाँ बंद कर दें।", "reference_translation": null}
+{"id": "hi-022", "language": "hi", "source_text": "The application supports Android and iOS.", "translation": "यह एप्लीकेशन Android और iOS को सपोर्ट करता है।", "reference_translation": null}
+{"id": "hi-023", "language": "hi", "source_text": "The password must contain at least 8 characters.", "translation": "पासवर्ड में कम से कम 8 अक्षर होने चाहिए।", "reference_translation": null}
+{"id": "hi-024", "language": "hi", "source_text": "The project has five major milestones.", "translation": "इस परियोजना में पाँच प्रमुख मील के पत्थर हैं।", "reference_translation": null}
+{"id": "hi-025", "language": "hi", "source_text": "The next payment is due on January 5.", "translation": "अगला भुगतान 5 जनवरी को देय है।", "reference_translation": null}
+{"id": "hi-026", "language": "hi", "source_text": "The library closes at 6 PM.", "translation": "पुस्तकालय शाम को 6 बजे बंद हो जाता है।", "reference_translation": null}
+{"id": "hi-027", "language": "hi", "source_text": "The temperature dropped by 7 degrees overnight.", "translation": "रात भर में तापमान 7 डिग्री गिर गया।", "reference_translation": null}
+{"id": "hi-028", "language": "hi", "source_text": "The product warranty lasts for 2 years.", "translation": "उत्पाद की वारंटी 2 साल तक चलती है।", "reference_translation": null}
+{"id": "hi-029", "language": "hi", "source_text": "Please contact support at help@example.com.", "translation": "कृपया सहायता के लिए help@example.com पर संपर्क करें।", "reference_translation": null}
+{"id": "hi-030", "language": "hi", "source_text": "The total duration of the video is 18 minutes.", "translation": "वीडियो की कुल अवधि 18 मिनट है।", "reference_translation": null}
+{"id": "hi-031", "language": "hi", "source_text": "The database contains more than 1 million records.", "translation": "डेटाबेस में 10 लाख से अधिक रिकॉर्ड हैं।", "reference_translation": null}
+{"id": "hi-032", "language": "hi", "source_text": "The workshop will begin on Monday at 11 AM.", "translation": "कार्यशाला सोमवार को सुबह 11 बजे शुरू होगी।", "reference_translation": null}
+{"id": "hi-033", "language": "hi", "source_text": "The discount is valid until March 31.", "translation": "यह छूट 31 मार्च तक मान्य है।", "reference_translation": null}
+{"id": "hi-034", "language": "hi", "source_text": "The file size must not exceed 20 MB.", "translation": "फ़ाइल का आकार 20 MB से अधिक नहीं होना चाहिए।", "reference_translation": null}
+{"id": "ta-001", "language": "ta", "source_text": "Please bring your identification card.", "translation": "தயவுசெய்து உங்கள் அடையாள அட்டையை கொண்டு வாருங்கள்.", "reference_translation": null}
+{"id": "ta-002", "language": "ta", "source_text": "The bus leaves every 30 minutes.", "translation": "பேருந்து ஒவ்வொரு 30 நிமிடங்களுக்கும் புறப்படும்.", "reference_translation": null}
+{"id": "ta-003", "language": "ta", "source_text": "The restaurant serves breakfast from 8 AM.", "translation": "உணவகத்தில் காலை உணவு 8 மணி முதல் கிடைக்கும்.", "reference_translation": null}
+{"id": "ta-004", "language": "ta", "source_text": "The team completed 8 out of 10 tasks.", "translation": "அந்த குழு 10 பணிகளில் 8 பணிகளை முடித்தது.", "reference_translation": null}
+{"id": "ta-005", "language": "ta", "source_text": "The new update fixes 12 security issues.", "translation": "புதிய புதுப்பிப்பு 12 பாதுகாப்பு சிக்கல்களை சரிசெய்கிறது.", "reference_translation": null}
+{"id": "ta-006", "language": "ta", "source_text": "The user can reset their password using email.", "translation": "பயனர் மின்னஞ்சலைப் பயன்படுத்தி தங்கள் கடவுச்சொல்லை மீட்டமைக்கலாம்.", "reference_translation": null}
+{"id": "ta-007", "language": "ta", "source_text": "The annual subscription costs 999 rupees.", "translation": "வருடாந்திர சந்தா கட்டணம் 999 ரூபாய் ஆகும்.", "reference_translation": null}
+{"id": "ta-008", "language": "ta", "source_text": "The city received 120 millimeters of rainfall.", "translation": "நகரத்தில் 120 மில்லிமீட்டர் மழை பெய்தது.", "reference_translation": null}
+{"id": "ta-009", "language": "ta", "source_text": "The machine operates at 1500 rotations per minute.", "translation": "இந்த இயந்திரம் நிமிடத்திற்கு 1500 சுழற்சிகள் என்ற வேகத்தில் இயங்குகிறது.", "reference_translation": null}
+{"id": "ta-010", "language": "ta", "source_text": "The school has 24 classrooms.", "translation": "பள்ளியில் 24 வகுப்பறைகள் உள்ளன.", "reference_translation": null}
+{"id": "ta-011", "language": "ta", "source_text": "The event will take place in New Delhi.", "translation": "இந்த நிகழ்வு புது தில்லியில் நடைபெறும்.", "reference_translation": null}
+{"id": "ta-012", "language": "ta", "source_text": "The flight was delayed by 45 minutes.", "translation": "விமானம் 45 நிமிடங்கள் தாமதமானது.", "reference_translation": null}
+{"id": "ta-013", "language": "ta", "source_text": "The document contains confidential information.", "translation": "இந்த ஆவணத்தில் ரகசியத் தகவல்கள் உள்ளன.", "reference_translation": null}
+{"id": "ta-014", "language": "ta", "source_text": "The maximum upload limit is 50 MB.", "translation": "அதிகபட்ச பதிவேற்ற வரம்பு 50 MB ஆகும்.", "reference_translation": null}
+{"id": "ta-015", "language": "ta", "source_text": "The employee joined the company in 2022.", "translation": "அந்த ஊழியர் 2022 ஆம் ஆண்டில் நிறுவனத்தில் சேர்ந்தார்.", "reference_translation": null}
+{"id": "ta-016", "language": "ta", "source_text": "Please check the spelling of the customer's name.", "translation": "தயவுசெய்து வாடிக்கையாளரின் பெயரைச் சரிபார்க்கவும்.", "reference_translation": null}
+{"id": "ta-017", "language": "ta", "source_text": "The electricity bill increased by 12 percent.", "translation": "மின்சாரக் கட்டணம் 12 சதவீதம் அதிகரித்துள்ளது.", "reference_translation": null}
+{"id": "ta-018", "language": "ta", "source_text": "The software requires Python version 3.12.", "translation": "இந்த மென்பொருளுக்கு பைதான் பதிப்பு 3.12 தேவைப்படுகிறது.", "reference_translation": null}
+{"id": "ta-019", "language": "ta", "source_text": "The package was delivered on November 20.", "translation": "அந்தப் பொட்டலம் நவம்பர் 20 அன்று விநியோகிக்கப்பட்டது.", "reference_translation": null}
+{"id": "ta-020", "language": "ta", "source_text": "The recipe requires 250 grams of flour.", "translation": "இந்த செய்முறைக்கு 250 கிராம் மாவு தேவைப்படுகிறது.", "reference_translation": null}
+{"id": "ta-021", "language": "ta", "source_text": "The conference has participants from 15 countries.", "translation": "இந்த மாநாட்டில் 15 நாடுகளைச் சேர்ந்த பங்கேற்பாளர்கள் உள்ளனர்.", "reference_translation": null}
+{"id": "ta-022", "language": "ta", "source_text": "The train ticket costs 750 rupees.", "translation": "ரயில் டிக்கெட் விலை 750 ரூபாய்.", "reference_translation": null}
+{"id": "ta-023", "language": "ta", "source_text": "The system automatically backs up data every day.", "translation": "இந்த சிஸ்டம் ஒவ்வொரு நாளும் தானாகவே டேட்டாவை பேக்அப் செய்கிறது.", "reference_translation": null}
+{"id": "ta-024", "language": "ta", "source_text": "The office is closed on public holidays.", "translation": "அலுவலகம் பொது விடுமுறை நாட்களில் மூடப்பட்டிருக்கும்.", "reference_translation": null}
+{"id": "ta-025", "language": "ta", "source_text": "The meeting link will be shared through email.", "translation": "கூட்டத்திற்கான இணைப்பு மின்னஞ்சல் மூலம் பகிரப்படும்.", "reference_translation": null}
+{"id": "ta-026", "language": "ta", "source_text": "The product weighs approximately 2.5 kilograms.", "translation": "இந்த பொருளின் எடை தோராயமாக 2.5 கிலோகிராம் இருக்கும்.", "reference_translation": null}
+{"id": "ta-027", "language": "ta", "source_text": "The candidate scored 82 out of 100 marks.", "translation": "அந்த வேட்பாளர் 100 மதிப்பெண்களுக்கு 82 மதிப்பெண்கள் பெற்றார்.", "reference_translation": null}
+{"id": "ta-028", "language": "ta", "source_text": "The application was updated successfully.", "translation": "விண்ணப்பம் வெற்றிகரமாக புதுப்பிக்கப்பட்டது.", "reference_translation": null}
+{"id": "ta-029", "language": "ta", "source_text": "Please do not share your OTP with anyone.", "translation": "தயவுசெய்து உங்கள் OTP-ஐ யாருடனும் பகிர வேண்டாம்.", "reference_translation": null}
+{"id": "ta-030", "language": "ta", "source_text": "The store offers a 10 percent discount.", "translation": "கடையில் 10 சதவீதம் தள்ளுபடி வழங்கப்படுகிறது.", "reference_translation": null}
+{"id": "ta-031", "language": "ta", "source_text": "The delivery address is 24 Park Street.", "translation": "டெலிவரி முகவரி 24 பார்க் தெரு.", "reference_translation": null}
+{"id": "ta-032", "language": "ta", "source_text": "The customer reported an issue with payment.", "translation": "பணம் செலுத்துவதில் சிக்கல் இருப்பதாக வாடிக்கையாளர் புகார் அளித்தார்.", "reference_translation": null}
+{"id": "ta-033", "language": "ta", "source_text": "The project budget is 5 lakh rupees.", "translation": "திட்டத்தின் பட்ஜெட் 5 லட்சம் ரூபாய் ஆகும்.", "reference_translation": null}
+{"id": "bn-001", "language": "bn", "source_text": "The train journey takes approximately 6 hours.", "translation": "ট্রেনে যেতে প্রায় ৬ ঘণ্টা সময় লাগে।", "reference_translation": null}
+{"id": "bn-002", "language": "bn", "source_text": "The device supports Bluetooth version 5.3.", "translation": "ডিভাইসটি ব্লুটুথ সংস্করণ ৫.৩ সমর্থন করে।", "reference_translation": null}
+{"id": "bn-003", "language": "bn", "source_text": "The report was generated automatically.", "translation": "রিপোর্টটি স্বয়ংক্রিয়ভাবে তৈরি করা হয়েছিল।", "reference_translation": null}
+{"id": "bn-004", "language": "bn", "source_text": "The meeting room can accommodate 20 people.", "translation": "মিটিং রুমে ২০ জন লোক বসতে পারে।", "reference_translation": null}
+{"id": "bn-005", "language": "bn", "source_text": "The website received 10,000 visitors yesterday.", "translation": "গতকাল ওয়েবসাইটটি ১০,০০০ জন দর্শক পেয়েছে।", "reference_translation": null}
+{"id": "bn-006", "language": "bn", "source_text": "Please review the changes before merging.", "translation": "দয়া করে মার্জ করার আগে পরিবর্তনগুলি পর্যালোচনা করুন।", "reference_translation": null}
+{"id": "bn-007", "language": "bn", "source_text": "The minimum age requirement is 18 years.", "translation": "ন্যূনতম বয়স ১৮ বছর হতে হবে।", "reference_translation": null}
+{"id": "bn-008", "language": "bn", "source_text": "The company was founded in 2015.", "translation": "কোম্পানিটি ২০১৫ সালে প্রতিষ্ঠিত হয়েছিল।", "reference_translation": null}
+{"id": "bn-009", "language": "bn", "source_text": "The sensor measures humidity and temperature.", "translation": "সেন্সরটি আর্দ্রতা এবং তাপমাত্রা পরিমাপ করে।", "reference_translation": null}
+{"id": "bn-010", "language": "bn", "source_text": "The order contains 4 books and 2 notebooks.", "translation": "অর্ডারটিতে ৪টি বই এবং ২টি নোটবুক রয়েছে।", "reference_translation": null}
+{"id": "bn-011", "language": "bn", "source_text": "The customer paid using UPI.", "translation": "গ্রাহক ইউপিআই ব্যবহার করে অর্থ প্রদান করেছেন।", "reference_translation": null}
+{"id": "bn-012", "language": "bn", "source_text": "The application uses PostgreSQL as its database.", "translation": "অ্যাপ্লিকেশনটি তার ডেটাবেস হিসাবে পোস্টগ্রেসকল ব্যবহার করে।", "reference_translation": null}
+{"id": "bn-013", "language": "bn", "source_text": "The exam will have 50 multiple-choice questions.", "translation": "পরীক্ষায় ৫০টি বহু বিকল্প প্রশ্ন থাকবে।", "reference_translation": null}
+{"id": "bn-014", "language": "bn", "source_text": "The electricity supply was restored at 7 PM.", "translation": "সন্ধ্যা ৭টায় বিদ্যুৎ সরবরাহ পুনরুদ্ধার করা হয়েছিল।", "reference_translation": null}
+{"id": "bn-015", "language": "bn", "source_text": "The package weighs less than 500 grams.", "translation": "প্যাকেজটির ওজন ৫০০ গ্রামের কম।", "reference_translation": null}
+{"id": "bn-016", "language": "bn", "source_text": "The course includes 12 practical assignments.", "translation": "এই কোর্সে ১২টি ব্যবহারিক অ্যাসাইনমেন্ট অন্তর্ভুক্ত রয়েছে।", "reference_translation": null}
+{"id": "bn-017", "language": "bn", "source_text": "The doctor recommended drinking 2 liters of water.", "translation": "ডাক্তার ২ লিটার জল পান করার পরামর্শ দিয়েছেন।", "reference_translation": null}
+{"id": "bn-018", "language": "bn", "source_text": "The building has 16 floors.", "translation": "ভবনটিতে ১৬টি তলা রয়েছে।", "reference_translation": null}
+{"id": "bn-019", "language": "bn", "source_text": "The payment failed because the card expired.", "translation": "কার্ডের মেয়াদ শেষ হয়ে যাওয়ায় পেমেন্ট ব্যর্থ হয়েছে।", "reference_translation": null}
+{"id": "bn-020", "language": "bn", "source_text": "The user can download the invoice in PDF format.", "translation": "ব্যবহারকারী পিডিএফ ফরম্যাটে চালানটি ডাউনলোড করতে পারেন।", "reference_translation": null}
+{"id": "bn-021", "language": "bn", "source_text": "The conference starts at 9 AM on Tuesday.", "translation": "সম্মেলনটি মঙ্গলবার সকাল ৯টায় শুরু হবে।", "reference_translation": null}
+{"id": "bn-022", "language": "bn", "source_text": "The new policy will take effect next month.", "translation": "নতুন নীতিটি আগামী মাস থেকে কার্যকর হবে।", "reference_translation": null}
+{"id": "bn-023", "language": "bn", "source_text": "The customer requested a refund of 1200 rupees.", "translation": "গ্রাহক ১২০০ টাকা ফেরত চেয়েছেন।", "reference_translation": null}
+{"id": "bn-024", "language": "bn", "source_text": "The camera records video at 60 frames per second.", "translation": "ক্যামেরাটি প্রতি সেকেন্ডে ৬০ ফ্রেমের ভিডিও রেকর্ড করে।", "reference_translation": null}
+{"id": "bn-025", "language": "bn", "source_text": "The application supports English and 13 Indian languages.", "translation": "অ্যাপ্লিকেশনটি ইংরেজি এবং ১৩টি ভারতীয় ভাষা সমর্থন করে।", "reference_translation": null}
+{"id": "bn-026", "language": "bn", "source_text": "The report must include charts and tables.", "translation": "রিপোর্টে অবশ্যই চার্ট এবং টেবিল থাকতে হবে।", "reference_translation": null}
+{"id": "bn-027", "language": "bn", "source_text": "The employee worked for 8 hours yesterday.", "translation": "কর্মচারী গতকাল ৮ ঘণ্টা কাজ করেছে।", "reference_translation": null}
+{"id": "bn-028", "language": "bn", "source_text": "The total population is approximately 2 million.", "translation": "মোট জনসংখ্যা প্রায় ২০ লক্ষ।", "reference_translation": null}
+{"id": "bn-029", "language": "bn", "source_text": "The train has 18 coaches.", "translation": "ট্রেনটিতে ১৮টি কামরা আছে।", "reference_translation": null}
+{"id": "bn-030", "language": "bn", "source_text": "The backup process takes around 15 minutes.", "translation": "ব্যাকআপ প্রক্রিয়ায় প্রায় ১৫ মিনিট সময় লাগে।", "reference_translation": null}
+{"id": "bn-031", "language": "bn", "source_text": "The customer received a confirmation message.", "translation": "গ্রাহক একটি নিশ্চিতকরণ বার্তা পেয়েছেন।", "reference_translation": null}
+{"id": "bn-032", "language": "bn", "source_text": "The server will restart at midnight.", "translation": "সার্ভারটি মধ্যরাতে পুনরায় চালু হবে।", "reference_translation": null}
+{"id": "bn-033", "language": "bn", "source_text": "The registration fee is 300 rupees.", "translation": "নিবন্ধন ফি ৩০০ টাকা।", "reference_translation": null}

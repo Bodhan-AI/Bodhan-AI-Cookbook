@@ -1,0 +1,14 @@
+.env
+.venv/
+__pycache__/
+.pytest_cache/
+*.egg-info/
+*.py[cod]
+.ipynb_checkpoints/
+node_modules/
+
+sample_data/*
+!sample_data/.gitkeep
+
+outputs/*
+!outputs/.gitkeep

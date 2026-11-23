@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=75.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bodhan-eval"
+version = "0.2.0"
+description = "Indic language translation and speech quality evaluation harness"
+requires-python = ">=3.10"
+dependencies = [
+    "requests==2.32.3",
+    "python-dotenv==1.0.1",
+    "pydantic==2.14.4",
+]
+
+[project.scripts]
+bodhan-eval = "bodhan_eval.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+markers = [
+    "integration: needs a live local service (Ollama); skipped when unavailable",
+]
