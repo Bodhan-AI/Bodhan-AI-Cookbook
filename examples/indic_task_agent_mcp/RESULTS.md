@@ -51,6 +51,26 @@ Task 1 has a history worth showing, because each run found a real problem:
 | 8 Missing file | Refused in preflight; no model called |
 | 9 Tiny budget | The narration was refused up front by the budget check, which said about ₹0.30 would be needed; the run stopped cleanly inside the ₹0.02 budget |
 
+## Unseen tasks
+
+To check that the agent generalises, eight tasks it had never seen were run on 23 Nov 2026 with the same inputs but new
+wording, new language pairs and new pipelines, each with a ₹2 budget. No code was changed for them. Outputs are in
+`unseen/` in the same outputs folder.
+
+| # | Task | Inputs | Status | Checks | Cost | Time |
+| --- | --- | --- | --- | --- | --- | --- |
+| u1 | What language is this recording in? Give me a three line English summary. | Hindi voice note | completed: "Hindi", accurate three line summary | n/a (text answer) | ₹0.00 | 62 s |
+| u2 | Read this worksheet aloud in Hindi. | Worksheet photo | completed: OCR, Hindi translation, Hindi speech | 7/7 | ₹0.27 | 254 s |
+| u3 | Translate this into Japanese. | Text file | impossible: refused before any call | n/a | ₹0.00 | 0 s |
+| u4 | Make Telugu subtitles for this recording. | Hindi voice note | completed: Telugu SRT | 2/2 | ₹0.01 | 117 s |
+| u5 | What is said in this video? Write it down in Bengali. | MP4 whose audio is a 440 Hz tone | impossible: transcription returned a one word hallucination; the agent retried, then said there is no speech instead of translating it | n/a | ₹0.02 | 120 s |
+| u6 | Help me understand these recordings. | Five clips, three languages | completed: each clip transcribed and translated to English, plus a summary | 26/26 | ₹0.00 | 485 s |
+| u7 | Transcribe this. | A folder that does not exist | impossible: refused in preflight | n/a | ₹0.00 | 0 s |
+| u8 | Translate this paragraph into Korean. | Text file | impossible: refused, with the supported languages and what is possible instead | n/a | ₹0.00 | 0 s |
+
+Costs are low because earlier runs had cached the OCR and transcriptions. u6 used 25 of its 30 tool calls on five
+clips, so a task with many more files needs a larger `--max-steps`.
+
 ## Quality targets
 
 | Target | Result |
