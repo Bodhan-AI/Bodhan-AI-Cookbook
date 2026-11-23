@@ -1,0 +1,7 @@
+Chapter 1: The Foundations of Mathematics and Computing in India
+
+Mathematics in ancient and modern India has a rich and profound history, spanning from the early Vedic geometric altars to the groundbreaking development of the decimal place-value system and zero. Scholars like Aryabhata, Brahmagupta, and Bhaskara introduced fundamental concepts in trigonometry, algebra, and astronomical calculations centuries ahead of European developments.
+
+In the twentieth century, Srinivasa Ramanujan revolutionized number theory, infinite series, and continued fractions with intuitive insights that continue to inspire modern quantum computing and theoretical physics. Following independence, pioneers like Prasanta Chandra Mahalanobis founded the Indian Statistical Institute and introduced large-scale sample survey methodologies that transformed socioeconomic planning.
+
+Today, Indian advancements in artificial intelligence, digital public infrastructure such as UPI, and computational linguistics for Scheduled Indian languages represent the next frontier. By developing specialized foundation models that honor the grammatical nuances and phonetic structures of Indic languages, researchers are ensuring that digital technology empowers every linguistic community.

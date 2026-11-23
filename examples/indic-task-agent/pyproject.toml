@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bodhan"
+version = "0.1.0"
+description = "Bodhan Indic Tool Server (MCP) and Autonomous Multimodal Task Agent"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp>=1.0.0",
+    "pydantic>=2.0.0",
+    "httpx>=0.25.0",
+    "requests>=2.31.0",
+    "openai>=1.12.0",
+    "pillow>=9.0.0",
+    "pypdf>=3.0.0",
+    "rich>=13.0.0",
+]
+
+[project.scripts]
+bodhan-agent = "bodhan_agent.__main__:main"
+bodhan-mcp = "bodhan_mcp.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

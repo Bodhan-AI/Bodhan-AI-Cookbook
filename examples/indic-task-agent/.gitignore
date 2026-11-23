@@ -1,0 +1,50 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Caches and runtime scratch
+.cache/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Packaging and build outputs
+build/
+dist/
+*.egg-info/
+*.egg
+.eggs/
+
+# Environment files and credentials 
+.env
+.env.local
+.venv/
+env/
+venv/
+
+# Large model weights and cache directories
+models/**/weights/
+models/**/.cache/
+*.bin
+*.safetensors
+*.pt
+*.pth
+
+# Generated agent outputs and multimedia deliverables
+out/
+out_test/
+*.wav
+*.mp3
+*.mp4
+*.srt
+
+# Editor & OS settings
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
