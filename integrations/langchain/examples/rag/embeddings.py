@@ -86,7 +86,10 @@ class E5EmbeddingsAdapter(Embeddings):
         self.base_embeddings = base_embeddings
         self.tokenizer = tokenizer
         self.max_sequence_length = max_sequence_length
-        self.max_query_tokens = max_query_tokens if max_query_tokens is not None else max_sequence_length
+        if max_query_tokens is not None:
+            self.max_query_tokens = min(max_query_tokens, max_sequence_length)
+        else:
+            self.max_query_tokens = max_sequence_length
         self.document_prefix = document_prefix
         self.query_prefix = query_prefix
         self.strict_tokenizer = strict_tokenizer
@@ -179,6 +182,7 @@ def get_embedding_model(
     model_name: str | None = None,
     tokenizer: Any = None,
     api_key: str | None = None,
+    max_query_tokens: int | None = None,
 ) -> Embeddings:
     """Instantiate a LangChain-compatible Embeddings model.
 
@@ -189,6 +193,7 @@ def get_embedding_model(
             512 token max sequence length, requires 'passage: ' and 'query: ' prefixes).
         tokenizer: Optional tokenizer instance for token validation.
         api_key: Optional API key for external providers (e.g. OpenAI).
+        max_query_tokens: Optional maximum tokens allowed for query embedding validation.
 
     Returns:
         Instance implementing langchain_core.embeddings.Embeddings.
@@ -233,6 +238,7 @@ def get_embedding_model(
                 base_embeddings=base,
                 tokenizer=tok,
                 max_sequence_length=E5_MAX_SEQUENCE_LENGTH,
+                max_query_tokens=max_query_tokens,
                 strict_tokenizer=True,
             )
         return base

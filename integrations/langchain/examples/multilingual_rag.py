@@ -235,7 +235,11 @@ def run_rag_pipeline(
 
     # 3. Embedding Provider Initialization
     print(f"\n[Step 1] Initializing multilingual embedding model ({cfg.embedding_provider})...")
-    embeddings = get_embedding_model(cfg.embedding_provider, cfg.embedding_model)
+    embeddings = get_embedding_model(
+        provider=cfg.embedding_provider,
+        model_name=cfg.embedding_model,
+        max_query_tokens=cfg.max_query_tokens,
+    )
 
     # 4. Ingestion & Translation
     data_dir = sample_dir or (PKG_DIR / "sample_data")

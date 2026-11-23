@@ -381,6 +381,57 @@ def test_max_query_tokens_custom_enforcement() -> None:
         adapter.embed_query(query_exceeding_30)
 
 
+def test_max_query_tokens_wired_from_config_to_e5_adapter() -> None:
+    """Verify RAGConfig.max_query_tokens flows through get_embedding_model to E5EmbeddingsAdapter."""
+    mock_base = MagicMock(spec=DeterministicFakeEmbeddings)
+    mock_base.embed_query.return_value = [0.1] * 384
+    mock_hf_mod = MagicMock()
+    mock_hf_mod.HuggingFaceEmbeddings.return_value = mock_base
+
+    tokenizer = MockE5Tokenizer()
+
+    # 1. Configured limit (e.g. 45 tokens) is passed and enforced
+    cfg = RAGConfig(max_query_tokens=45)
+    with patch.dict("sys.modules", {"langchain_huggingface": mock_hf_mod}):
+        model = get_embedding_model(
+            provider="huggingface",
+            model_name="intfloat/multilingual-e5-small",
+            tokenizer=tokenizer,
+            max_query_tokens=cfg.max_query_tokens,
+        )
+        assert isinstance(model, E5EmbeddingsAdapter)
+        assert model.max_query_tokens == 45
+
+        # Query with 60 words (exceeding 45 tokens) raises ValueError
+        oversized_query = "token " * 60
+        with pytest.raises(ValueError, match=r"Query exceeds maximum allowed sequence length of 45 tokens"):
+            model.embed_query(oversized_query)
+
+    # 2. Configured limit exceeding 512 remains strictly bounded by 512 model ceiling
+    cfg_oversized = RAGConfig(max_query_tokens=900)
+    with patch.dict("sys.modules", {"langchain_huggingface": mock_hf_mod}):
+        model_bounded = get_embedding_model(
+            provider="huggingface",
+            model_name="intfloat/multilingual-e5-small",
+            tokenizer=tokenizer,
+            max_query_tokens=cfg_oversized.max_query_tokens,
+        )
+        assert isinstance(model_bounded, E5EmbeddingsAdapter)
+        assert model_bounded.max_query_tokens == 512  # Capped at E5_MAX_SEQUENCE_LENGTH
+
+    # 3. OpenAI embeddings are unaffected
+    mock_openai_cls = MagicMock(return_value=MagicMock())
+    mock_openai_mod = MagicMock(OpenAIEmbeddings=mock_openai_cls)
+    with patch.dict("sys.modules", {"langchain_openai": mock_openai_mod}):
+        openai_model = get_embedding_model(
+            provider="openai",
+            model_name="text-embedding-3-small",
+            api_key="sk-test",
+            max_query_tokens=45,
+        )
+        assert not isinstance(openai_model, E5EmbeddingsAdapter)
+
+
 def test_strict_tokenizer_unavailable_raises() -> None:
     """Verify that strict tokenizer mode raises RuntimeError instead of falling back to character approximation."""
     # 1. Adapter initialization in strict mode without tokenizer
