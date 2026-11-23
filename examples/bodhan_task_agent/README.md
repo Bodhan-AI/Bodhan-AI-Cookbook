@@ -154,6 +154,13 @@ npx.cmd -y @modelcontextprotocol/inspector --cli .\.venv\Scripts\python.exe -m b
 
 ## Live results (not the hidden benchmark)
 
+### Demonstration evidence
+
+[View execution reports, traces and generated artifacts](https://drive.google.com/file/d/1Gic-Uy80-4bDijzAQhJsO2miunY6BP2v/view?usp=sharing)
+
+Includes evidence from six demonstration scenarios,
+with documented partial results and known limitations.
+
 These outcomes are based on actual local reports and traces, not hidden-test performance. Tamil is a **partial** result, and the Marathi run still has QA warnings. All prices below are estimated Bodhan charges, not invoices; general LLM costs are excluded.
 
 | Demonstration | Outcome and caveats | Runtime | Est. Bodhan cost |
@@ -170,7 +177,20 @@ The reports and JSONL traces must be made accessible to reviewers separately: **
 
 ### Demo recording
 
-**PENDING:** Replace this paragraph with an actual public ≤5-minute recording URL (reviewable without signing in). Do not claim a video was recorded or linked until this is done.
+[Watch the 5-minute project demonstration](https://drive.google.com/file/d/1gPx73aZyV-6eOShBAY60Ebix0tvE3c6M/view?usp=sharing)
+
+The recording covers:
+- Project architecture and the autonomous agent workflow
+- Independent MCP server and tool discovery
+- Agent implementation and shared tool design
+- Results from the six demonstration scenarios
+- Output verification, failure handling and limitations
+
+The demonstrated runs use actual Bodhan model outputs.
+The Tamil chapter demo is reported as partial because OCR
+succeeded on only 5 of 8 pages.
+
+
 
 ## Submission checklist
 

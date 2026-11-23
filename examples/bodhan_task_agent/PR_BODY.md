@@ -31,6 +31,13 @@ Hosted `indic-ocr`, `indic-transcribe`, `indic-translate`, `indic-speak`. Transl
 
 ## Results
 
+### Demonstration evidence
+
+[View execution reports, traces and generated artifacts](https://drive.google.com/file/d/1Gic-Uy80-4bDijzAQhJsO2miunY6BP2v/view?usp=sharing)
+
+Includes evidence from six demonstration scenarios,
+with documented partial results and known limitations.
+
 Six examples have been executed through live APIs or, for the impossible MP4 task, rejected before any API calls. **No hidden-set pass rate claimed.** The original 37 offline tests and Cookbook PR validation passed; the expanded unsupported-language regressions must be rechecked in the final submission clone. Repo-wide pytest on native Windows had 30 passes and two failures outside this recipe (the existing AndroidSpeak validation and the Unix `cp` dependency).
 
 | Demo | Outcome | Runtime | Est. Bodhan cost |
@@ -50,7 +57,11 @@ External MCP Inspector discovered nine tools and executed file-inspection, text-
 
 ## Demo video
 
-**PENDING — public video URL required before final submission.** The video must be ≤5 minutes and watchable without sign-in. Do not treat this PR draft as complete until replaced with a real URL.
+[Watch the recorded project demonstration](https://drive.google.com/file/d/1gPx73aZyV-6eOShBAY60Ebix0tvE3c6M/view?usp=sharing)
+
+The video demonstrates the MCP architecture, agent
+orchestration, tool implementations, live execution
+artifacts, verification and graceful failure handling.
 
 ## Trade-offs and known limitations
 
