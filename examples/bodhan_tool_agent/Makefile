@@ -1,0 +1,30 @@
+.PHONY: setup test live eval lint server inspect clean
+
+setup:
+	python -m venv .venv
+	.venv/bin/pip install -q -r requirements-dev.txt
+	@command -v ffmpeg >/dev/null || echo "WARNING: ffmpeg not found on PATH (brew install ffmpeg / apt-get install ffmpeg)"
+
+test:
+	.venv/bin/pytest -q
+
+# Real API round trip through the tools (≈₹0.05). Needs keys in .env.
+live:
+	.venv/bin/pytest -m live tests/live -s -q
+
+# Self-evaluation: the agent on the suite in evals/suite.json, graded by code. Suite budget ₹1 by default.
+eval:
+	.venv/bin/python -m bodhan_eval
+
+lint:
+	.venv/bin/ruff check src tests scripts
+
+server:
+	.venv/bin/python -m bodhan_mcp
+
+# Opens the MCP Inspector against the stdio server (needs Node.js).
+inspect:
+	npx @modelcontextprotocol/inspector .venv/bin/python -m bodhan_mcp
+
+clean:
+	rm -rf .cache out outputs/* && touch outputs/.gitkeep

@@ -1,0 +1,97 @@
+{
+  "status": "completed",
+  "task": "Translate this worksheet into Marathi and keep the table",
+  "reason": null,
+  "steps": 5,
+  "trace_entries": 13,
+  "tool_calls": [
+    {
+      "tool": "ocr_document",
+      "ok": true,
+      "cost_inr": 0.2
+    },
+    {
+      "tool": "translate_text",
+      "ok": true,
+      "cost_inr": 0.0019
+    }
+  ],
+  "plan": {
+    "understanding": "Translate the worksheet image into Marathi while preserving its table",
+    "deliverables": [
+      {
+        "kind": "text",
+        "language": "mr",
+        "description": "Marathi translation of the worksheet with the original table retained",
+        "target_duration_s": null,
+        "voice_gender": null
+      }
+    ],
+    "inputs_used": [
+      "f1"
+    ],
+    "steps": [
+      "Run ocr_document on worksheet.png to obtain English markdown text",
+      "Translate the extracted markdown text to Marathi using translate_text, preserving the table structure",
+      "Save the Marathi markdown to a text file"
+    ],
+    "assumptions": [
+      "The worksheet contains English text and a markdown-style table after OCR",
+      "Target language code for Marathi is \"mr\""
+    ],
+    "feasible": true,
+    "infeasible_reason": null
+  },
+  "inputs": [
+    {
+      "id": "f1",
+      "kind": "image",
+      "name": "worksheet.png",
+      "path": "sample_data/demo/worksheet.png",
+      "pages": 1,
+      "estimated_cost_inr": {
+        "ocr_document": 0.2
+      },
+      "suggested_tool": "ocr_document"
+    }
+  ],
+  "artifacts": [
+    "artifacts/worksheet.mr.md"
+  ],
+  "verification": [
+    {
+      "check": "translation_coverage",
+      "artifact": "worksheet.6102c663.mr.md",
+      "passed": true,
+      "detail": "15 units, 0 empty, tables preserved=True, 0 warnings"
+    },
+    {
+      "check": "deliverable_present",
+      "artifact": null,
+      "passed": true,
+      "detail": "text in mr: worksheet.6102c663.mr.md"
+    }
+  ],
+  "verification_passed": true,
+  "repair_round_used": false,
+  "missed_targets": [],
+  "assumptions": [
+    "The worksheet contains English text and a markdown-style table after OCR",
+    "Target language code for Marathi is \"mr\"",
+    "OCR correctly identified the source language as English (Latin script).",
+    "Target language code for Marathi is 'mr'."
+  ],
+  "total_cost_inr": 0.2019,
+  "budget": {
+    "max_steps": 30,
+    "max_cost_inr": 1.0,
+    "max_minutes": 15.0
+  },
+  "total_time_s": 66.47,
+  "llm": {
+    "prompt_tokens": 12127,
+    "completion_tokens": 1257,
+    "calls": 5,
+    "waited_s": 52.0
+  }
+}

@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools==80.9.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bodhan-tool-agent"
+version = "0.1.0"
+description = "MCP server exposing Bodhan's Indic models as tools, plus a task agent that uses them."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+# Exact pins live in requirements.txt (the cookbook's reproducible install path).
+dependencies = [
+    "mcp",
+    "openai",
+    "httpx",
+    "pydantic",
+    "pypdfium2",
+    "pillow",
+    "python-dotenv",
+    "srt",
+    "rapidfuzz",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "pytest-asyncio", "respx", "ruff"]
+
+[project.scripts]
+bodhan-mcp = "bodhan_mcp.__main__:main"
+bodhan-agent = "bodhan_agent.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+bodhan_core = ["data/*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+markers = ["live: calls the real Bodhan API and LLM (needs keys; skipped by default)"]
+addopts = "-m 'not live'"
+
+[tool.ruff]
+line-length = 130
+target-version = "py310"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]

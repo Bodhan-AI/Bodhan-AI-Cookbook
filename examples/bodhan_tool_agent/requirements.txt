@@ -1,0 +1,12 @@
+# Pinned runtime dependencies. Install with: pip install -r requirements.txt
+mcp==2.3.0
+openai==3.55.0
+httpx==0.28.1
+pydantic==2.14.3
+pypdfium2==5.15.2
+pillow==13.0.0
+python-dotenv==1.2.4
+srt==3.5.3
+rapidfuzz==3.14.6
+# Installs this recipe's packages (bodhan_core, bodhan_mcp, bodhan_agent) from src/
+-e .
