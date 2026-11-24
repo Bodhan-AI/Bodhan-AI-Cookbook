@@ -4,17 +4,11 @@ A complete, end-to-end multimodal Streamlit application demonstrating how to pip
 
 ## Overview
 
-Bodhan Reader solves a fundamental humanitarian accessibility challenge: enabling everyone to read, comprehend, and listen to physical books, documents, and signs in their mother tongue.
-
-### Who this is built for:
-- **Communities Lacking Native Books:** Millions of educational, scientific, and legal books exist only in English or Hindi. Bodhan Reader instantly bridges this gap for speakers of Kannada, Telugu, Tamil, Bengali, Marathi, and other regional languages.
-- **Visually Impaired & Specially Abled:** Users who cannot see printed text can snap a photo or upload a document and listen to human-quality, natural-sounding audio narration in their native language.
-- **Non-Literate Individuals:** Those who comprehend spoken language fluently but cannot read the written script can listen effortlessly.
-- **Elderly Citizens:** Seniors with declining vision or eye strain can turn any physical book, prescription, or newspaper into a relaxing audiobook.
+Bodhan Reader solves a fundamental accessibility challenge: enabling users to read, comprehend, and listen to physical books, PDFs, and signs in their mother tongue. 
 
 The application pipelines four core Bodhan AI models:
 - `indic-ocr`: Document layout block parsing (`Chapter-title`, `Section-title`, `Paragraph`, `Table`) with bounding box extraction.
-- `indic-translate`: Context-aware neural translation into 10 Indian languages.
+- `indic-translate`: neural translation across 22+ Indian languages.
 - `indic-transliterate`: Phonetic Roman script generation for non-native readers.
 - `indic-speak`: Continuous multi-chunk WAV synthesis that stitches sentence frames to bypass the 30-second server limit for full audiobook generation.
 
@@ -99,6 +93,8 @@ Heavy document translation and multi-page audiobook synthesis run on a non-block
 
 ## Supported Languages
 
+Bodhan Reader supports 22+ official Indian languages with complete native localization and voice synthesis:
+
 | Code | Language | Native Name | Default Voice |
 | :--- | :--- | :--- | :--- |
 | `hi` | Hindi | हिन्दी | Kavya |
@@ -111,3 +107,37 @@ Heavy document translation and multi-page audiobook synthesis run on a non-block
 | `ml` | Malayalam | മലയാളം | Midhun |
 | `pa` | Punjabi | ਪੰਜਾਬੀ | Gurpreet |
 | `or` | Odia | ଓଡ଼ିଆ | Subhashree |
+| `as` | Assamese | অসমীয়া | Ananya |
+| `ur` | Urdu | اُردُو | Kavya |
+| `ne` | Nepali | नेपाली | Kavya |
+| `sa` | Sanskrit | संस्कृतम् | Kavya |
+| `kok` | Konkani | कोंकणी | Ananya |
+| `mai` | Maithili | मैथिली | Kavya |
+| `doi` | Dogri | डोगरी | Kavya |
+| `sd` | Sindhi | सिन्धी | Kavya |
+| `ks` | Kashmiri | كٲشُر | Kavya |
+| `brx` | Bodo | बड़ो | Kavya |
+| `mni` | Manipuri | ꯃꯤꯇꯩꯂꯣꯟ | Tanusree |
+| `sat` | Santali | ᱥᱟᱱᱛᱟᱲᱤ | Kavya |
+| `en` | English | English | Kavya |
+
+---
+
+## Accessibility & Social Impact
+
+Bodhan Reader is engineered as an assistive tool built for:
+
+1. **Specially Abled & Visually Impaired Individuals:**
+   - People who cannot see or read printed text can listen to any physical book, document, or sign through high-fidelity, continuous audio synthesis without hitting time limits.
+2. **Elderly & Low-Vision Readers:**
+   - Older adults and individuals who suffer from eye strain or weak eyesight no longer need to struggle with tiny text—they can simply turn any page into an easy-to-listen audiobook.
+3. **People Who Cannot Read (Non-Literate):**
+   - Users who cannot read written script can simply take a photo of any document, medicine prescription, government notice, or textbook and immediately hear it spoken aloud in their native tongue.
+4. **Readers Lacking Books in Their Native Language:**
+   - Millions of Indian readers love literature and learning, but thousands of textbooks and classic books are never published in their mother tongue. Bodhan Reader automatically bridges this gap by translating any book or PDF into 22+ Indian languages with authentic speech and script.
+
+---
+
+## AI Assistance
+
+Used Gemini for code scaffolding, design UI, and i18n dictionary structuring.

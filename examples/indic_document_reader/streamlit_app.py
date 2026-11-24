@@ -11,7 +11,7 @@ from constants import (
     language_display_options, load_env_file,
 )
 from task_manager import render_background_tasks_banner
-from ui_theme import apply_custom_css, render_page_header
+from ui_theme import apply_custom_css, render_page_header, render_sidebar
 from i18n import t
 
 # Load .env into os.environ
@@ -67,66 +67,30 @@ def init_session_state():
 init_session_state()
 
 
-# ── Sidebar Navigation & System Meta ─────────────────────────
-
-def render_sidebar():
-    with st.sidebar:
-        st.markdown(f"""
-        <div style="padding: 16px 0 20px 0; border-bottom: 1px solid #E4E4E7; margin-bottom: 20px;">
-            <div style="font-size: 0.72rem; font-family: 'JetBrains Mono', monospace; color: #B38B6D; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;">
-                {t('sys_core', 'SYSTEM 01 / CORE')}
-            </div>
-            <div style="font-size: 1.25rem; font-weight: 700; color: #111113; letter-spacing: -0.02em; margin-top: 4px;">
-                {t('app_title', 'BODHAN READER')}
-            </div>
-            <div style="font-size: 0.8rem; color: #71717A; margin-top: 2px;">
-                {t('app_subtitle', 'Indic Multimodal Interface')}
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        if st.session_state.onboarding_complete:
-            lang = st.session_state.preferred_language
-            st.markdown(f"""
-            <div class="ui-card" style="padding: 16px; margin-bottom: 20px;">
-                <div style="font-size: 0.7rem; font-family: 'JetBrains Mono', monospace; color: #71717A; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600;">
-                    {t('active_target', 'ACTIVE TARGET')}
-                </div>
-                <div style="font-size: 1.35rem; font-weight: 700; color: #111113; margin: 6px 0 2px 0;">
-                    {get_native_name(lang)}
-                </div>
-                <div style="font-size: 0.82rem; color: #52525B;">
-                    {get_language_name(lang)}
-                </div>
-                <div style="display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap;">
-                    <span class="badge badge-primary">{t('voice', 'VOICE')}: {st.session_state.voice_name}</span>
-                    <span class="badge badge-neutral">{t('script', 'SCRIPT')}: {st.session_state.script_mode.upper()}</span>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-        else:
-            st.markdown(f"""
-            <div style="padding: 12px; background: #FFFFFF; border: 1px solid #E4E4E7; font-size: 0.82rem; color: #52525B;">
-                {t('pending_config', 'Configuration pending. Select target language to initialize.')}
-            </div>
-            """, unsafe_allow_html=True)
-
-        st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
-        st.markdown("""
-        <div style="font-size: 0.72rem; font-family: 'JetBrains Mono', monospace; color: #A1A1AA; letter-spacing: 0.05em; text-transform: uppercase;">
-            ENGINE: BODHAN.AI API<br>
-            GRID: SWISS LIGHT 1280
-        </div>
-        """, unsafe_allow_html=True)
-
-
-render_sidebar()
-
-
 # ── Onboarding View (Swiss Split-Screen Layout) ──────────────
 
 def render_onboarding():
+    render_sidebar()
     st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
+
+    lang_options = language_display_options(get_translation_languages())
+
+    def _on_onboarding_lang_select():
+        chosen_display = st.session_state.get("onboarding_lang_select")
+        chosen_code = lang_options.get(chosen_display, "")
+        if chosen_code:
+            st.session_state.preferred_language = chosen_code
+            st.session_state.voice_name = get_default_voice(chosen_code)
+
+    current_pref = st.session_state.get("preferred_language", "")
+    current_display = None
+    if current_pref:
+        for display, code in lang_options.items():
+            if code == current_pref:
+                current_display = display
+                break
+
+    current_index = list(lang_options.keys()).index(current_display) if current_display else None
 
     col_hero_text, col_hero_form = st.columns([1, 1], gap="large")
 
@@ -141,7 +105,7 @@ def render_onboarding():
                 {t('init_sub', 'Direct OCR document parsing, contextual neural translation, and high-fidelity speech generation across Indian languages.')}
             </p>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                <span class="badge badge-neutral">{t('badge_10_langs', '10 TARGET LANGUAGES')}</span>
+                <span class="badge badge-neutral">{t('badge_10_langs', '22+ TARGET LANGUAGES')}</span>
                 <span class="badge badge-neutral">{t('badge_45_voices', '45 NEURAL VOICES')}</span>
                 <span class="badge badge-neutral">{t('badge_wav', 'CONTINUOUS WAV SYNTHESIS')}</span>
             </div>
@@ -149,53 +113,59 @@ def render_onboarding():
         """, unsafe_allow_html=True)
 
     with col_hero_form:
-        st.markdown(f"""
-        <div class="ui-card">
-            <div class="ui-card-header">
+        with st.container(border=True):
+            st.markdown(f"""
+            <div class="ui-card-header" style="margin-top: -4px;">
                 <span>{t('lang_selection', 'LANGUAGE SELECTION')}</span>
                 <span class="badge badge-primary">{t('step_01', 'STEP 01')}</span>
             </div>
             <p style="font-size: 0.88rem; color: #52525B; margin-bottom: 18px; line-height: 1.5;">
                 {t('lang_desc', 'Select your primary target language. All documents, camera inputs, and text will translate into this language.')}
             </p>
-        """, unsafe_allow_html=True)
-
-        lang_options = language_display_options(get_translation_languages())
-        selected_display = st.selectbox(
-            "Target Language",
-            options=list(lang_options.keys()),
-            index=None,
-            placeholder=t('select_lang_placeholder', 'Select language...'),
-            label_visibility="collapsed",
-        )
-
-        selected_lang = lang_options.get(selected_display, "") if selected_display else ""
-
-        if selected_lang:
-            st.markdown(f"""
-            <div style="margin: 14px 0; padding: 12px 14px; background: #F4F4F5; border: 1px solid #D4D4D8; display: flex; align-items: center; justify-content: space-between;">
-                <div>
-                    <div style="font-size: 0.72rem; font-family: 'JetBrains Mono', monospace; color: #B38B6D; text-transform: uppercase;">{t('selected_target', 'SELECTED TARGET')}</div>
-                    <div style="font-size: 1.1rem; font-weight: 700; color: #111113;">{get_native_name(selected_lang)} ({get_language_name(selected_lang)})</div>
-                </div>
-                <span class="badge badge-primary">{t('ready', 'READY')}</span>
-            </div>
             """, unsafe_allow_html=True)
 
-        st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
+            selected_display = st.selectbox(
+                "Target Language",
+                options=list(lang_options.keys()),
+                index=current_index,
+                placeholder=t('select_lang_placeholder', 'Select language...'),
+                label_visibility="collapsed",
+                key="onboarding_lang_select",
+                on_change=_on_onboarding_lang_select,
+            )
 
-        if st.button(
-            t('init_btn', "INITIALIZE WORKSPACE →"),
-            type="primary",
-            use_container_width=True,
-            disabled=not selected_lang,
-        ):
-            st.session_state.preferred_language = selected_lang
-            st.session_state.voice_name = get_default_voice(selected_lang)
-            st.session_state.onboarding_complete = True
-            st.rerun()
+            # Determine selected language code
+            selected_lang = st.session_state.get("preferred_language", "")
+            if not selected_lang and selected_display:
+                selected_lang = lang_options.get(selected_display, "")
+                if selected_lang:
+                    st.session_state.preferred_language = selected_lang
+                    st.session_state.voice_name = get_default_voice(selected_lang)
 
-        st.markdown("</div>", unsafe_allow_html=True)
+            if selected_lang:
+                st.markdown(f"""
+                <div style="margin: 14px 0; padding: 12px 14px; background: #F4F4F5; border: 1px solid #D4D4D8; display: flex; align-items: center; justify-content: space-between;">
+                    <div>
+                        <div style="font-size: 0.72rem; font-family: 'JetBrains Mono', monospace; color: #B38B6D; text-transform: uppercase;">{t('selected_target', 'SELECTED TARGET')}</div>
+                        <div style="font-size: 1.1rem; font-weight: 700; color: #111113;">{get_native_name(selected_lang)} ({get_language_name(selected_lang)})</div>
+                    </div>
+                    <span class="badge badge-primary">{t('ready', 'READY')}</span>
+                </div>
+                """, unsafe_allow_html=True)
+
+            st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
+
+            if st.button(
+                t('init_btn', "INITIALIZE WORKSPACE →"),
+                type="primary",
+                use_container_width=True,
+                disabled=not selected_lang,
+                key="btn_init_workspace",
+            ):
+                st.session_state.preferred_language = selected_lang
+                st.session_state.voice_name = get_default_voice(selected_lang)
+                st.session_state.onboarding_complete = True
+                st.rerun()
 
 
 # ── Home Dashboard (Swiss Asymmetric Grid & Zig-Zag Layout) ──

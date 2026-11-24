@@ -72,6 +72,7 @@ with col_lang1:
         t('pref_lang_label', "Target Language"),
         options=list(lang_options.keys()),
         index=current_index,
+        key="settings_target_lang_select",
     )
     new_lang = lang_options[new_lang_display]
 

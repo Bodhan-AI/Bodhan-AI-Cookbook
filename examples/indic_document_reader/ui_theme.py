@@ -268,12 +268,122 @@ def apply_custom_css():
     """, unsafe_allow_html=True)
 
 
+
+def render_sidebar():
+    """
+    Renders universal Swiss-style sidebar with persistent, instant language selector,
+    active configuration details, and system metadata across all pages.
+    """
+    from constants import get_translation_languages, language_display_options, get_default_voice
+
+    with st.sidebar:
+        st.markdown(f"""
+        <div style="padding: 12px 0 16px 0; border-bottom: 1px solid #E4E4E7; margin-bottom: 16px;">
+            <div style="font-size: 0.72rem; font-family: 'JetBrains Mono', monospace; color: #B38B6D; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;">
+                {t('sys_core', 'SYSTEM 01 / CORE')}
+            </div>
+            <div style="font-size: 1.25rem; font-weight: 700; color: #111113; letter-spacing: -0.02em; margin-top: 4px;">
+                {t('app_title', 'BODHAN READER')}
+            </div>
+            <div style="font-size: 0.8rem; color: #71717A; margin-top: 2px;">
+                {t('app_subtitle', 'Indic Multimodal Interface')}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # If onboarding is not complete, show pending configuration card
+        if not st.session_state.get("onboarding_complete", False):
+            st.markdown(f"""
+            <div class="ui-card" style="padding: 14px; margin-bottom: 16px;">
+                <div style="font-size: 0.68rem; font-family: 'JetBrains Mono', monospace; color: #B38B6D; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600;">
+                    {t('init_badge', 'SYSTEM INITIALIZATION')}
+                </div>
+                <div style="font-size: 0.82rem; color: #52525B; margin-top: 8px; line-height: 1.5;">
+                    {t('pending_config', 'Configuration pending. Select target language to initialize.')}
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            st.markdown("""
+            <div style="font-size: 0.7rem; font-family: 'JetBrains Mono', monospace; color: #A1A1AA; letter-spacing: 0.05em; text-transform: uppercase; margin-top: 16px;">
+                ENGINE: BODHAN.AI API<br>
+                GRID: SWISS LIGHT 1280
+            </div>
+            """, unsafe_allow_html=True)
+            return
+
+        # Global Language Switcher (Active after onboarding)
+        st.markdown(f"""
+        <div style="font-size: 0.72rem; font-family: 'JetBrains Mono', monospace; color: #71717A; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; margin-bottom: 6px;">
+            {t('pref_lang_label', 'TARGET LANGUAGE')}
+        </div>
+        """, unsafe_allow_html=True)
+
+        lang_options = language_display_options(get_translation_languages())
+        current_lang = st.session_state.get("preferred_language", "en") or "en"
+
+        def _on_sidebar_lang_change():
+            sel_disp = st.session_state.get("global_sidebar_lang_selector")
+            code = lang_options.get(sel_disp, "en")
+            if code:
+                st.session_state.preferred_language = code
+                st.session_state.voice_name = get_default_voice(code)
+
+        current_display = None
+        for display, code in lang_options.items():
+            if code == current_lang:
+                current_display = display
+                break
+
+        current_index = list(lang_options.keys()).index(current_display) if current_display else 0
+
+        # Keep widget key in sync with current_display if it was changed elsewhere
+        if "global_sidebar_lang_selector" in st.session_state and current_display:
+            if st.session_state["global_sidebar_lang_selector"] != current_display:
+                st.session_state["global_sidebar_lang_selector"] = current_display
+
+        st.selectbox(
+            "Global Target Language",
+            options=list(lang_options.keys()),
+            index=current_index,
+            label_visibility="collapsed",
+            key="global_sidebar_lang_selector",
+            on_change=_on_sidebar_lang_change,
+        )
+
+        # Active target metadata card
+        st.markdown(f"""
+        <div class="ui-card" style="padding: 12px; margin-top: 14px; margin-bottom: 16px;">
+            <div style="font-size: 0.68rem; font-family: 'JetBrains Mono', monospace; color: #71717A; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600;">
+                {t('active_target', 'ACTIVE TARGET')}
+            </div>
+            <div style="font-size: 1.15rem; font-weight: 700; color: #111113; margin: 4px 0 2px 0;">
+                {get_native_name(current_lang)}
+            </div>
+            <div style="font-size: 0.78rem; color: #52525B;">
+                {get_language_name(current_lang)}
+            </div>
+            <div style="display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap;">
+                <span class="badge badge-primary">{t('voice', 'VOICE')}: {st.session_state.get('voice_name', 'Default')}</span>
+                <span class="badge badge-neutral">{t('script', 'SCRIPT')}: {st.session_state.get('script_mode', 'native').upper()}</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown("""
+        <div style="font-size: 0.7rem; font-family: 'JetBrains Mono', monospace; color: #A1A1AA; letter-spacing: 0.05em; text-transform: uppercase; margin-top: 16px;">
+            ENGINE: BODHAN.AI API<br>
+            GRID: SWISS LIGHT 1280
+        </div>
+        """, unsafe_allow_html=True)
+
+
 def render_page_header(title: str, subtitle: str, section_code: str = "SYSTEM"):
     """
     Renders an objective Swiss top navigation bar with category breadcrumb
     and language/voice metadata. Strict zero-emoji policy.
     """
     apply_custom_css()
+    render_sidebar()
     target_lang = st.session_state.get("preferred_language", "en")
     voice_name = st.session_state.get("voice_name", "Kavya")
 
