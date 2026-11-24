@@ -1,0 +1,642 @@
+"""Language detection and validation utilities for Bodhan Indic models."""
+
+from __future__ import annotations
+
+import re
+import unicodedata
+from typing import Tuple
+
+# ISO 639-1 / 639-2 codes mapped to official English names
+# Based on Bodhan AI API specifications (22 official Indic languages + English)
+SUPPORTED_INDIC_LANGUAGES: dict[str, str] = {
+    "as": "Assamese",
+    "bhb": "Bhili",
+    "bho": "Bhojpuri",
+    "bn": "Bengali",
+    "brx": "Bodo",
+    "doi": "Dogri",
+    "en": "English",
+    "gu": "Gujarati",
+    "hi": "Hindi",
+    "kn": "Kannada",
+    "kok": "Konkani",
+    "ks": "Kashmiri",
+    "mai": "Maithili",
+    "ml": "Malayalam",
+    "mni": "Manipuri",
+    "mr": "Marathi",
+    "ne": "Nepali",
+    "or": "Odia",
+    "pa": "Punjabi",
+    "sa": "Sanskrit",
+    "sat": "Santali",
+    "sd": "Sindhi",
+    "ta": "Tamil",
+    "te": "Telugu",
+    "ur": "Urdu",
+}
+
+# Reverse mapping from lower-case name to code
+_NAME_TO_CODE: dict[str, str] = {
+    name.lower(): code for code, name in SUPPORTED_INDIC_LANGUAGES.items()
+}
+_NAME_TO_CODE.update({
+    "bangla": "bn",
+    "oriya": "or",
+})
+
+# Script code to readable script family name
+SCRIPT_NAMES: dict[str, str] = {
+    "hi": "Devanagari",
+    "bn": "Bengali",
+    "pa": "Gurmukhi",
+    "gu": "Gujarati",
+    "or": "Odia",
+    "ta": "Tamil",
+    "te": "Telugu",
+    "kn": "Kannada",
+    "ml": "Malayalam",
+    "ur": "Arabic",
+    "en": "Latin",
+}
+
+# Mapping from language code to its expected standard script code
+EXPECTED_SCRIPT_FOR_LANG: dict[str, str] = {
+    "hi": "hi", "mr": "hi", "sa": "hi", "ne": "hi", "mai": "hi", "bho": "hi", "doi": "hi", "kok": "hi", "brx": "hi",
+    "bn": "bn", "as": "bn", "mni": "bn",
+    "pa": "pa",
+    "gu": "gu",
+    "or": "or",
+    "ta": "ta",
+    "te": "te",
+    "kn": "kn",
+    "ml": "ml",
+    "ur": "ur", "ks": "ur", "sd": "ur",
+    "en": "en",
+}
+
+# Candidate languages for each detected script family among Bodhan's 22 supported languages
+SCRIPT_CANDIDATE_LANGUAGES: dict[str, list[str]] = {
+    "Arabic": ["Urdu", "Kashmiri", "Sindhi"],
+    "Devanagari": ["Hindi", "Marathi", "Sanskrit", "Konkani", "Maithili", "Bodo", "Dogri", "Nepali"],
+    "Bengali": ["Bengali", "Assamese", "Manipuri"],
+    "Gurmukhi": ["Punjabi"],
+    "Gujarati": ["Gujarati"],
+    "Odia": ["Odia"],
+    "Tamil": ["Tamil"],
+    "Telugu": ["Telugu"],
+    "Kannada": ["Kannada"],
+    "Malayalam": ["Malayalam"],
+    "Latin": ["English"],
+}
+
+UNCERTAINTY_NOTE = (
+    "The API returns no language, the script depends on the model, and Hindi and Urdu speech can produce either script."
+)
+
+
+def get_candidate_languages_for_script(script_name: str | None) -> list[str]:
+    """Returns candidate supported languages for a given script family name."""
+    if not script_name:
+        return []
+    name = SCRIPT_NAMES.get(script_name, script_name)
+    return SCRIPT_CANDIDATE_LANGUAGES.get(name, [])
+
+
+def format_language_answer(script_name: str | None, candidate_languages: list[str] | None = None) -> str:
+    """Formats an honest language identification answer with candidates and uncertainty note."""
+    if not script_name:
+        return "Could not determine language or script."
+    name = SCRIPT_NAMES.get(script_name, script_name)
+
+    deduped_candidates = list(dict.fromkeys(candidate_languages)) if candidate_languages else get_candidate_languages_for_script(name)
+    deduped_candidates = list(dict.fromkeys(deduped_candidates))
+
+    if name == "Arabic":
+        return (
+            f"Arabic script (candidate languages: Urdu among the supported languages; "
+            f"uncertainty note: {UNCERTAINTY_NOTE})"
+        )
+    elif name == "Devanagari":
+        return (
+            f"Devanagari script (candidate languages: Hindi, Marathi and the other languages that use it; "
+            f"uncertainty note: {UNCERTAINTY_NOTE})"
+        )
+    else:
+        cands = ", ".join(deduped_candidates)
+        return (
+            f"{name} script (candidate languages: {cands}; "
+            f"uncertainty note: {UNCERTAINTY_NOTE})"
+        )
+
+
+def is_language_identification_task(task: str) -> bool:
+    """Returns True if the task asks to identify or determine spoken/written language."""
+    if not task:
+        return False
+    t = task.lower()
+    patterns = [
+        r"\bwhich\s+language\b",
+        r"\bwhat\s+language\b",
+        r"\bidentify\s+(?:the\s+)?language\b",
+        r"\bidentifying\s+(?:the\s+)?language\b",
+        r"\bdetect\s+(?:the\s+)?language\b",
+        r"\bdetecting\s+(?:the\s+)?language\b",
+        r"\btell\s+me\s+(?:which|what|the)?\s*language\b",
+        r"\blanguage\s+(?:of\s+each|each\s+one\s+is\s+in)\b",
+    ]
+    return any(re.search(p, t) for p in patterns)
+
+
+def is_question_task(task: str) -> bool:
+    """Returns True if the task asks a question about input files."""
+    if not task:
+        return False
+    if is_language_identification_task(task):
+        return True
+    t = task.lower().strip()
+    if "?" in t:
+        return True
+    question_triggers = [
+        r"\bwhich\b",
+        r"\bwhat\b",
+        r"\btell\s+me\b",
+        r"\bidentify\b",
+        r"\bfind\s+out\b",
+        r"\bhow\s+many\b",
+        r"\bis\s+it\b",
+        r"\bdoes\s+it\b",
+    ]
+    return any(re.search(trig, t) for trig in question_triggers)
+
+
+def find_language_mentions(text: str) -> list[tuple[int, int, str, str, str]]:
+    """Finds all explicit language mentions in text.
+
+    Only matches full language names (e.g. Hindi, Tamil, Bangla) and explicit code
+    forms such as 'language=hi', 'lang=ta', 'in hi', 'into bn', 'to hi', 'from hi'.
+    Common English words that happen to be codes ('hi', 'or', 'as') are never matched
+    as standalone words.
+
+    Returns:
+        List of (start_idx, end_idx, lang_code, lang_name, match_type) sorted by start_idx.
+    """
+    if not text:
+        return []
+
+    mentions: list[tuple[int, int, str, str, str]] = []
+
+    # 1. Full language names and aliases (case-insensitive whole words)
+    for name, code in sorted(_NAME_TO_CODE.items(), key=lambda x: len(x[0]), reverse=True):
+        pattern = r"\b" + re.escape(name) + r"\b"
+        for m in re.finditer(pattern, text, re.IGNORECASE):
+            mentions.append((m.start(), m.end(), code, SUPPORTED_INDIC_LANGUAGES[code], "name"))
+
+    # 2. Explicit code forms: language=xx, lang=xx
+    for m in re.finditer(r"\b(?:language|lang)\s*[:=]\s*([a-zA-Z]{2,3})\b", text, re.IGNORECASE):
+        c = m.group(1).lower()
+        if c in SUPPORTED_INDIC_LANGUAGES:
+            mentions.append((m.start(), m.end(), c, SUPPORTED_INDIC_LANGUAGES[c], "explicit_code"))
+
+    # 3. Explicit preposition forms: in xx, into xx, to xx, from xx
+    # Common English words like 'as' and 'or' are excluded here to prevent matching phrases like
+    # 'in as much as' or 'refer to as'.
+    for m in re.finditer(r"\b(?:in|into|to|from)\s+([a-zA-Z]{2,3})\b", text, re.IGNORECASE):
+        c = m.group(1).lower()
+        if c in SUPPORTED_INDIC_LANGUAGES and c not in ("as", "or"):
+            mentions.append((m.start(), m.end(), c, SUPPORTED_INDIC_LANGUAGES[c], "explicit_code"))
+
+    # Deduplicate overlapping spans (keep earliest / longest)
+    mentions.sort(key=lambda x: x[0])
+    filtered: list[tuple[int, int, str, str, str]] = []
+    for m in mentions:
+        if not any(f[0] <= m[0] and m[1] <= f[1] for f in filtered):
+            filtered.append(m)
+    return filtered
+
+
+def _get_clause_for_pos(text: str, pos: int) -> str:
+    """Finds the grammatical clause containing the character index pos."""
+    clause_delims = [0] + [m.end() for m in re.finditer(r"\b(?:and\s+then|and|then|after|while|but|,|;|\.)\b", text, re.IGNORECASE)] + [len(text)]
+    clause_delims = sorted(list(set(clause_delims)))
+    for i in range(len(clause_delims) - 1):
+        c_start = clause_delims[i]
+        c_end = clause_delims[i + 1]
+        if c_start <= pos <= c_end:
+            return text[c_start:c_end]
+    return text
+
+
+def _score_mention_role(text: str, mention: tuple[int, int, str, str, str]) -> tuple[int, int]:
+    """Scores a language mention for audio vs target role in the task."""
+    start, end, code, name, _ = mention
+    clause = _get_clause_for_pos(text, start).lower()
+    pre_word = text[max(0, start - 35):start].lower()
+    post_word = text[end:min(len(text), end + 35)].lower()
+
+    audio_score = 0
+    target_score = 0
+
+    # Audio cues (input media)
+    if re.search(r"\b(?:transcrib\w*|audio|recording|speech|voice|wav|listen|clip|video)\b", clause):
+        audio_score += 2
+    if re.search(r"^\s*(?:audio|clip|recording|voice|speech|wav|video)\b", post_word):
+        audio_score += 6
+    if re.search(r"\bfrom\s*$", pre_word.strip()):
+        audio_score += 5
+    if re.search(r"\b(?:transcrib\w*|listen\s+to|watch)\s*$", pre_word.strip()):
+        audio_score += 4
+
+    # Target cues (output deliverable)
+    if re.search(r"^\s*(?:subtitles?|captions?|srt)\b", post_word):
+        target_score += 6
+    if re.search(r"\b(?:subtitles?|captions?|srt)\s+(?:in|into|to)\s*$", pre_word.strip()):
+        target_score += 6
+    if re.search(r"\b(?:translat\w*|synthesiz\w*|speak|tts)\b", clause):
+        target_score += 2
+    if re.search(r"\b(?:to|into)\s*$", pre_word.strip()):
+        target_score += 5
+    if re.search(r"\b(?:in)\s*$", pre_word.strip()):
+        target_score += 4
+    if re.search(r"\b(?:target|destination)\b", clause):
+        target_score += 3
+
+    return audio_score, target_score
+
+
+def extract_task_languages(text: str) -> dict[str, Any]:
+    """Extracts and separates audio_language and target_language from a task description.
+
+    Handles single-language tasks, multi-clause tasks (e.g. 'Transcribe Hindi audio
+    and translate to Tamil'), and flags ambiguous language requests.
+
+    Returns:
+        dict with keys:
+            - 'audio_language': ISO code (or None)
+            - 'target_language': ISO code (or None)
+            - 'audio_language_name': English name (or None)
+            - 'target_language_name': English name (or None)
+            - 'is_ambiguous': bool
+            - 'ambiguity_reason': str | None
+    """
+    mentions = find_language_mentions(text)
+    if not mentions:
+        return {
+            "audio_language": None,
+            "target_language": None,
+            "audio_language_name": None,
+            "target_language_name": None,
+            "is_ambiguous": False,
+            "ambiguity_reason": None,
+        }
+
+    distinct_codes = list(dict.fromkeys(m[2] for m in mentions))
+
+    # --------------------------------------------------------------------
+    # Explicit Syntactic Role Rules (Requirement 2)
+    # --------------------------------------------------------------------
+    # Rule A: "<Lang A> subtitles/captions/srt for ... <Lang B> video/audio"
+    m_sub_for = re.search(
+        r"\b([a-zA-Z]+)\s+(?:subtitles?|captions?|srt)\s+(?:for|of|from)\s+(?:this\s+|the\s+|a\s+|an\s+)?([a-zA-Z]+)\s+(?:video|audio|recording|clip|media|speech|file)\b",
+        text,
+        re.IGNORECASE,
+    )
+    if m_sub_for:
+        w1, w2 = m_sub_for.group(1).lower(), m_sub_for.group(2).lower()
+        supp1, c1, _ = is_language_supported(w1)
+        supp2, c2, _ = is_language_supported(w2)
+        if supp1 and supp2 and c1 and c2:
+            return {
+                "audio_language": c2,
+                "target_language": c1,
+                "audio_language_name": SUPPORTED_INDIC_LANGUAGES[c2],
+                "target_language_name": SUPPORTED_INDIC_LANGUAGES[c1],
+                "is_ambiguous": False,
+                "ambiguity_reason": None,
+            }
+
+    # Rule B: "translate/subtitle X from <Lang B> to <Lang A>"
+    m_from_to = re.search(
+        r"\b(?:translate|subtitle|subtitles?|transcrib\w*)\b.*?\bfrom\s+([a-zA-Z]+)\s+(?:to|into)\s+([a-zA-Z]+)\b",
+        text,
+        re.IGNORECASE,
+    )
+    if m_from_to:
+        w_from, w_to = m_from_to.group(1).lower(), m_from_to.group(2).lower()
+        supp_from, c_from, _ = is_language_supported(w_from)
+        supp_to, c_to, _ = is_language_supported(w_to)
+        if supp_from and supp_to and c_from and c_to:
+            return {
+                "audio_language": c_from,
+                "target_language": c_to,
+                "audio_language_name": SUPPORTED_INDIC_LANGUAGES[c_from],
+                "target_language_name": SUPPORTED_INDIC_LANGUAGES[c_to],
+                "is_ambiguous": False,
+                "ambiguity_reason": None,
+            }
+
+    # Rule C: "<Lang B> audio/video into/to <Lang A>"
+    m_audio_into = re.search(
+        r"\b([a-zA-Z]+)\s+(?:audio|video|clip|recording|speech|file)\s+(?:into|to)\s+([a-zA-Z]+)\b",
+        text,
+        re.IGNORECASE,
+    )
+    if m_audio_into:
+        w_b, w_a = m_audio_into.group(1).lower(), m_audio_into.group(2).lower()
+        supp_b, cb, _ = is_language_supported(w_b)
+        supp_a, ca, _ = is_language_supported(w_a)
+        if supp_b and supp_a and cb and ca:
+            return {
+                "audio_language": cb,
+                "target_language": ca,
+                "audio_language_name": SUPPORTED_INDIC_LANGUAGES[cb],
+                "target_language_name": SUPPORTED_INDIC_LANGUAGES[ca],
+                "is_ambiguous": False,
+                "ambiguity_reason": None,
+            }
+
+    # Rule D: "(subtitles?|captions?|srt) ... for ... <Lang B> video/audio ... in <Lang A>"
+    m_sub_in = re.search(
+        r"\b(?:subtitles?|captions?|srt)\s+(?:for|of|from)\s+(?:this\s+|the\s+|a\s+|an\s+)?([a-zA-Z]+)\s+(?:video|audio|recording|clip|media)\s+in\s+([a-zA-Z]+)\b",
+        text,
+        re.IGNORECASE,
+    )
+    if m_sub_in:
+        w_b, w_a = m_sub_in.group(1).lower(), m_sub_in.group(2).lower()
+        supp_b, cb, _ = is_language_supported(w_b)
+        supp_a, ca, _ = is_language_supported(w_a)
+        if supp_b and supp_a and cb and ca:
+            return {
+                "audio_language": cb,
+                "target_language": ca,
+                "audio_language_name": SUPPORTED_INDIC_LANGUAGES[cb],
+                "target_language_name": SUPPORTED_INDIC_LANGUAGES[ca],
+                "is_ambiguous": False,
+                "ambiguity_reason": None,
+            }
+
+    # Disjunction check: "Hindi or Tamil", "Hindi / Tamil"
+    m_or = re.search(r"\b([a-zA-Z]+)\s*(?:or|/|\|)\s*([a-zA-Z]+)\b", text, re.IGNORECASE)
+    if m_or:
+        w1, w2 = m_or.group(1).lower(), m_or.group(2).lower()
+        supp1, c1, _ = is_language_supported(w1)
+        supp2, c2, _ = is_language_supported(w2)
+        if supp1 and supp2 and c1 and c2:
+            return {
+                "audio_language": None,
+                "target_language": None,
+                "audio_language_name": None,
+                "target_language_name": None,
+                "is_ambiguous": True,
+                "ambiguity_reason": f"Disjunctive language choices in task: {SUPPORTED_INDIC_LANGUAGES[c1]} or {SUPPORTED_INDIC_LANGUAGES[c2]}",
+            }
+
+    # Rule E: "<Lang B> (video|audio|clip|recording|speech) ... in <Lang A>"
+    m_b_in_a = re.search(
+        r"\b([a-zA-Z]+)\s+(?:video|audio|recording|clip|media|speech)\b.*?\bin\s+([a-zA-Z]+)\b",
+        text,
+        re.IGNORECASE,
+    )
+    if m_b_in_a:
+        w_b, w_a = m_b_in_a.group(1).lower(), m_b_in_a.group(2).lower()
+        supp_b, cb, _ = is_language_supported(w_b)
+        supp_a, ca, _ = is_language_supported(w_a)
+        if supp_b and supp_a and cb and ca:
+            return {
+                "audio_language": cb,
+                "target_language": ca,
+                "audio_language_name": SUPPORTED_INDIC_LANGUAGES[cb],
+                "target_language_name": SUPPORTED_INDIC_LANGUAGES[ca],
+                "is_ambiguous": False,
+                "ambiguity_reason": None,
+            }
+
+    # Single distinct language
+    if len(distinct_codes) == 1:
+        code = distinct_codes[0]
+        name = SUPPORTED_INDIC_LANGUAGES[code]
+        has_transcribe_or_subtitles = bool(
+            re.search(r"\b(?:transcrib\w*|subtitles?|captions?|srt)\b", text, re.IGNORECASE)
+        )
+        has_translate = bool(re.search(r"\b(?:translat\w*)\b", text, re.IGNORECASE))
+
+        # When task names exactly one language and asks for transcription/subtitles/captions
+        # without the word translate, treat it as audio language and plan no translation.
+        if has_transcribe_or_subtitles and not has_translate:
+            return {
+                "audio_language": code,
+                "target_language": None,
+                "audio_language_name": name,
+                "target_language_name": None,
+                "is_ambiguous": False,
+                "ambiguity_reason": None,
+            }
+
+        a_score, t_score = _score_mention_role(text, mentions[0])
+        if a_score > t_score:
+            return {
+                "audio_language": code,
+                "target_language": None,
+                "audio_language_name": name,
+                "target_language_name": None,
+                "is_ambiguous": False,
+                "ambiguity_reason": None,
+            }
+        elif t_score > a_score:
+            return {
+                "audio_language": None,
+                "target_language": code,
+                "audio_language_name": None,
+                "target_language_name": name,
+                "is_ambiguous": False,
+                "ambiguity_reason": None,
+            }
+        else:
+            if not has_translate:
+                return {
+                    "audio_language": code,
+                    "target_language": None,
+                    "audio_language_name": name,
+                    "target_language_name": None,
+                    "is_ambiguous": False,
+                    "ambiguity_reason": None,
+                }
+            return {
+                "audio_language": code,
+                "target_language": code,
+                "audio_language_name": name,
+                "target_language_name": name,
+                "is_ambiguous": False,
+                "ambiguity_reason": None,
+            }
+
+    # More than 2 distinct languages is ambiguous
+    if len(distinct_codes) > 2:
+        names = [SUPPORTED_INDIC_LANGUAGES[c] for c in distinct_codes]
+        return {
+            "audio_language": None,
+            "target_language": None,
+            "audio_language_name": None,
+            "target_language_name": None,
+            "is_ambiguous": True,
+            "ambiguity_reason": f"More than two languages specified in task: {', '.join(names)}",
+        }
+
+    # Exactly 2 distinct languages (e.g. Hindi audio and translate to Tamil)
+    c1, c2 = distinct_codes
+    m1 = next(m for m in mentions if m[2] == c1)
+    m2 = next(m for m in mentions if m[2] == c2)
+
+    a1, t1 = _score_mention_role(text, m1)
+    a2, t2 = _score_mention_role(text, m2)
+
+    if a1 > t1 and t2 > a2:
+        return {
+            "audio_language": c1,
+            "target_language": c2,
+            "audio_language_name": SUPPORTED_INDIC_LANGUAGES[c1],
+            "target_language_name": SUPPORTED_INDIC_LANGUAGES[c2],
+            "is_ambiguous": False,
+            "ambiguity_reason": None,
+        }
+    elif a2 > t2 and t1 > a1:
+        return {
+            "audio_language": c2,
+            "target_language": c1,
+            "audio_language_name": SUPPORTED_INDIC_LANGUAGES[c2],
+            "target_language_name": SUPPORTED_INDIC_LANGUAGES[c1],
+            "is_ambiguous": False,
+            "ambiguity_reason": None,
+        }
+    else:
+        # Preposition check: e.g. "translate from Tamil to Hindi" (text translation)
+        pre1 = text[max(0, m1[0] - 15):m1[0]].lower().strip()
+        pre2 = text[max(0, m2[0] - 15):m2[0]].lower().strip()
+        if pre1.endswith("to") or pre1.endswith("into"):
+            return {
+                "audio_language": None,
+                "target_language": c1,
+                "audio_language_name": None,
+                "target_language_name": SUPPORTED_INDIC_LANGUAGES[c1],
+                "is_ambiguous": False,
+                "ambiguity_reason": None,
+            }
+        if pre2.endswith("to") or pre2.endswith("into"):
+            return {
+                "audio_language": None,
+                "target_language": c2,
+                "audio_language_name": None,
+                "target_language_name": SUPPORTED_INDIC_LANGUAGES[c2],
+                "is_ambiguous": False,
+                "ambiguity_reason": None,
+            }
+
+        return {
+            "audio_language": None,
+            "target_language": None,
+            "audio_language_name": None,
+            "target_language_name": None,
+            "is_ambiguous": True,
+            "ambiguity_reason": f"Ambiguous language roles between {SUPPORTED_INDIC_LANGUAGES[c1]} and {SUPPORTED_INDIC_LANGUAGES[c2]}",
+        }
+
+
+def extract_language_from_text(text: str) -> tuple[str | None, str | None]:
+    """Extracts spoken/written Indic language from a natural language task description.
+
+    Returns:
+        (iso_code, language_name) or (None, None) if no language was explicitly named or ambiguous.
+    """
+    info = extract_task_languages(text)
+    if info["is_ambiguous"]:
+        return None, None
+    code = info["audio_language"] or info["target_language"]
+    if code:
+        return code, SUPPORTED_INDIC_LANGUAGES[code]
+    return None, None
+
+
+def is_language_supported(lang_query: str) -> Tuple[bool, str | None, str]:
+    """Checks whether a language (code or English name) is supported by Bodhan models.
+
+    Returns:
+        (is_supported, iso_code_or_none, message)
+    """
+    clean = lang_query.strip().lower()
+    if not clean:
+        return False, None, "No language provided."
+
+    # Direct match on code
+    if clean in SUPPORTED_INDIC_LANGUAGES:
+        return True, clean, f"Supported: {SUPPORTED_INDIC_LANGUAGES[clean]} ({clean})"
+
+    # Match on language name
+    if clean in _NAME_TO_CODE:
+        code = _NAME_TO_CODE[clean]
+        return True, code, f"Supported: {SUPPORTED_INDIC_LANGUAGES[code]} ({code})"
+
+    # Unsupported language
+    return (
+        False,
+        None,
+        f"Language {lang_query!r} is not supported. Bodhan models only support 22 official Indian languages and English.",
+    )
+
+
+def detect_script_language(text: str) -> str | None:
+    """Detects primary language/script from Unicode character distribution.
+
+    Returns ISO code (e.g. 'hi', 'ta', 'te', 'bn', 'en') or None if undetermined.
+    """
+    if not text:
+        return None
+
+    counts: dict[str, int] = {
+        "hi": 0,  # Devanagari (Hindi, Marathi, Sanskrit, Nepali)
+        "bn": 0,  # Bengali / Assamese
+        "pa": 0,  # Gurmukhi (Punjabi)
+        "gu": 0,  # Gujarati
+        "or": 0,  # Odia
+        "ta": 0,  # Tamil
+        "te": 0,  # Telugu
+        "kn": 0,  # Kannada
+        "ml": 0,  # Malayalam
+        "ur": 0,  # Arabic / Perso-Arabic (Urdu, Kashmiri, Sindhi)
+        "en": 0,  # Basic Latin
+    }
+
+    for char in text:
+        cp = ord(char)
+        if 0x0900 <= cp <= 0x097F:
+            counts["hi"] += 1
+        elif 0x0980 <= cp <= 0x09FF:
+            counts["bn"] += 1
+        elif 0x0A00 <= cp <= 0x0A7F:
+            counts["pa"] += 1
+        elif 0x0A80 <= cp <= 0x0AFF:
+            counts["gu"] += 1
+        elif 0x0B00 <= cp <= 0x0B7F:
+            counts["or"] += 1
+        elif 0x0B80 <= cp <= 0x0BFF:
+            counts["ta"] += 1
+        elif 0x0C00 <= cp <= 0x0C7F:
+            counts["te"] += 1
+        elif 0x0C80 <= cp <= 0x0CFF:
+            counts["kn"] += 1
+        elif 0x0D00 <= cp <= 0x0D7F:
+            counts["ml"] += 1
+        elif 0x0600 <= cp <= 0x06FF:
+            counts["ur"] += 1
+        elif (0x0041 <= cp <= 0x005A) or (0x0061 <= cp <= 0x007A):
+            counts["en"] += 1
+
+    total_indic_or_latin = sum(counts.values())
+    if total_indic_or_latin == 0:
+        return None
+
+    # Get dominant script
+    top_lang, top_count = max(counts.items(), key=lambda item: item[1])
+    if top_count / float(total_indic_or_latin) >= 0.3:
+        return top_lang
+
+    return None

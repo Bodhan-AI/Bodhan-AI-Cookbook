@@ -1,0 +1,10 @@
+.env
+samples/
+out/
+outputs/
+.cache/
+.venv/
+__pycache__/
+*.egg-info/
+docs/TASK.md
+docs/CONTRIBUTING.md
