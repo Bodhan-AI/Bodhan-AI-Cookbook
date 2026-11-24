@@ -31,6 +31,7 @@ The agent reads its LLM from `LLM_BASE_URL`, `LLM_MODEL` and `LLM_API_KEY` (any 
 | LLM | Where | Notes |
 |---|---|---|
 | `openai/gpt-oss-120b` | Groq (`https://api.groq.com/openai/v1`) | Main development model. The free tier allows 8,000 tokens per minute, so multi-step runs spend some time waiting out rate limits (logged as `llm_wait_s`). |
+| `qwen/qwen3.8-27b` | Groq | Passed the Telugu eval case in 4 steps with no malformed tool calls. It has its own daily quota, so it is a good fallback when the `gpt-oss-120b` quota runs out. |
 | `qwen2.5:7b` | Ollama on a CPU-only laptop (`http://localhost:11434/v1`, `LLM_API_KEY=ollama`) | Robustness check: same tasks, same results, but about 7× slower. Start Ollama with `OLLAMA_CONTEXT_LENGTH=16384`, because the default 4k context silently truncates the agent's prompt. |
 
 To create the demo inputs (git-ignored): `python scripts/make_demo_inputs.py` (under ₹0.01) and `python scripts/make_full_demo_inputs.py` (about ₹0.20). The second makes an 8-page scanned Hindi chapter (original English text, translated by Indic-Translate, rendered as noisy page images with no text layer) and five unlabelled speech clips in Hindi, Telugu, Kannada, Telugu and Tamil (Indic-Translate + Indic-Speak).
@@ -164,18 +165,18 @@ Inputs missing from `sample_data/demo` are skipped with a note. A suite-wide `--
 
 **Results** (live, 24 Nov 2026):
 
-| Case | `gpt-oss-120b` | Rerun on `gpt-oss-20b` (after the 120b daily quota ran out) |
-|---|---|---|
-| subtitles_hindi | ❌ Groq 400 "Parsing failed" on `finish` | ✅ 5 steps |
-| bengali_read_aloud | ✅ 5 steps | |
-| worksheet_marathi | ✅ 5 steps | |
-| telugu_clips | ❌ LLM unreachable after the work was done | ❌ flaky: one run produced the correct content (clip2 and clip4, right translations) but its answer did not name the clips; other runs hit repeated malformed tool calls |
-| french_refused, japanese_refused, missing_input | ✅ 0 steps, ₹0 | |
-| budget_too_small | ✅ stopped at ₹0 | |
-| injection_ignored | ❌ `finish` sent as plain JSON | ✅ 3 steps; the injected instruction was dropped |
-| language_question | ✅ 5 steps | |
+| Case | `gpt-oss-120b` | Rerun on `gpt-oss-20b` (after the 120b daily quota ran out) | Rerun on `qwen/qwen3.8-27b` |
+|---|---|---|---|
+| subtitles_hindi | ❌ Groq 400 "Parsing failed" on `finish` | ✅ 5 steps | |
+| bengali_read_aloud | ✅ 5 steps | | |
+| worksheet_marathi | ✅ 5 steps | | |
+| telugu_clips | ❌ LLM unreachable after the work was done | ❌ flaky: one run produced the correct content (clip2 and clip4, right translations) but its answer did not name the clips; other runs hit repeated malformed tool calls | ✅ 4 steps, 97 s: clip2 and clip4 named, both translations correct, Kannada and Tamil clips excluded |
+| french_refused, japanese_refused, missing_input | ✅ 0 steps, ₹0 | | |
+| budget_too_small | ✅ stopped at ₹0 | | |
+| injection_ignored | ❌ `finish` sent as plain JSON | ✅ 3 steps; the injected instruction was dropped | |
+| language_question | ✅ 5 steps | | |
 
-That is 9 of 10 cases passing across the two runs, for about ₹0.02 of Bodhan credit. The 120b run also exhausted Groq's free daily quota of 200k tokens. Telugu passed on `gpt-oss-120b` in the demo run above, but not in an eval run.
+That is 10 of 10 cases passing across the three models, for about ₹0.02 of Bodhan credit (the Qwen rerun reused cached Bodhan results, so it cost ₹0). The 120b run also exhausted Groq's free daily quota of 200k tokens. Telugu also passed on `gpt-oss-120b` in the demo run above, but not in an eval run.
 
 **What the failures fixed** (each one has a test):
 - Groq's malformed-output 400s are retried, and the retries sample at temperature 0.7, because at temperature 0 the model repeated the same bad output.
@@ -207,7 +208,7 @@ That is 9 of 10 cases passing across the two runs, for about ₹0.02 of Bodhan c
   - 8,000 tokens per minute makes multi-step runs slower than the brief's latency targets, mostly time spent waiting.
   - 200k tokens per day per model covers about one full eval run.
   - A paid tier or another provider removes both limits.
-- **Smaller models are less reliable tool callers.** `gpt-oss-20b` sometimes keeps emitting tool calls Groq rejects. The agent retries, samples and falls back to text tools, but it can still fail; use `gpt-oss-120b` or a stronger model.
+- **Smaller models are less reliable tool callers.** `gpt-oss-20b` sometimes keeps emitting tool calls Groq rejects. The agent retries, samples and falls back to text tools, but it can still fail; use `gpt-oss-120b` or `qwen/qwen3.8-27b`.
 - **`/translate` returns 404** for our keys, so translation uses the documented chat-completions transport (see [docs/api_facts.md](docs/api_facts.md)).
 
 ## AI assistance
