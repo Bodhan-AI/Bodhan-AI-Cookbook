@@ -6,7 +6,8 @@ the route does.
 
 Route choice (``BODHAN_TRANSLIT_ROUTE`` in .env):
 
-* ``plain``: the documented ``POST /transliterate`` with ``{text, language, script}``.
+* ``plain``: the documented ``POST /transliterate`` with ``{text, language, script}``,
+  answer in the ``transliteration`` field.
 * ``chat``:  ``POST /v1/chat/completions`` with ``model="indic-transliterate"``. On this
   route the ``language`` field is ignored (see README, "Why the chat route needs an
   instruction"), so the target script is named in the message itself.
@@ -19,13 +20,18 @@ The default is ``chat``. Switch to ``auto`` or ``plain`` once ``/transliterate``
 from __future__ import annotations
 
 import os
+import queue
 import threading
 import time
+from contextlib import contextmanager
 from dataclasses import dataclass
+from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
 
 import requests
 
 MODEL = "indic-transliterate"
+POOL_SIZE = 8   # the key allows 10 requests in flight
 
 # Language codes indic-transliterate supports (scripts/bodhan_api_rules.json), with the
 # name used in the chat-route instruction. Tested end to end: hi, gu, bn, ta.
@@ -60,7 +66,7 @@ SCRIPTS = ("native", "roman")
 
 
 class BodhanError(Exception):
-    """An API error with the HTTP status and the error code from the body, if any."""
+    """An API error: HTTP status, error code/type from the body, and Retry-After if sent."""
 
     def __init__(self, status: int, code: str, message: str, retry_after: float | None = None):
         super().__init__(f"{status} {code}: {message}")
@@ -68,6 +74,11 @@ class BodhanError(Exception):
         self.code = code
         self.message = message
         self.retry_after = retry_after
+
+    @property
+    def is_budget(self) -> bool:
+        """A spent budget is final; a busy 429 is worth one short wait."""
+        return "budget" in self.code
 
 
 @dataclass
@@ -86,25 +97,46 @@ def chat_instruction(text: str, language: str, script: str = "native") -> str:
 
 def parse_chat(body: dict) -> tuple[str, bool]:
     """Pull the answer and a truncation flag out of a chat-completions response."""
-    choice = body["choices"][0]
+    try:
+        choice = body["choices"][0]
+    except (KeyError, IndexError, TypeError) as exc:
+        raise BodhanError(502, "bad_response", "no choices in the response") from exc
     content = (choice.get("message") or {}).get("content") or ""
     return content.strip(), choice.get("finish_reason") == "length"
 
 
+def parse_retry_after(value: str | None) -> float | None:
+    """Retry-After is either seconds or an HTTP date (RFC 9110). Bad values become None."""
+    if not value:
+        return None
+    try:
+        return max(float(value), 0.0)
+    except ValueError:
+        pass
+    try:
+        return max((parsedate_to_datetime(value) - datetime.now(timezone.utc)).total_seconds(), 0.0)
+    except (TypeError, ValueError):
+        return None
+
+
 def parse_error(resp: requests.Response) -> BodhanError:
-    """Turn a non-2xx response into a BodhanError without ever echoing request headers."""
+    """Turn a non-2xx response into a BodhanError. Reads only the response, never our headers.
+
+    Documented envelope: {"error": {"message", "code", "request_id"}}. The live throttle
+    sends {"error": {"type": "throttling_error", "code": "429"}}, so a descriptive type
+    wins over a bare numeric code. A 404 from the gateway is {"detail": "Not Found"}.
+    """
     code, message = "http_error", resp.text[:300]
     try:
         body = resp.json()
         err = body.get("error", body) if isinstance(body, dict) else {}
         if isinstance(err, dict):
-            # Prefer the descriptive type ("throttling_error") over a bare "429" code.
-            code = str(err.get("type") or err.get("code") or code)
+            raw_code, raw_type = str(err.get("code") or ""), str(err.get("type") or "")
+            code = raw_type if raw_code.isdigit() and raw_type else (raw_code or raw_type or code)
             message = str(err.get("message") or err.get("detail") or message)
     except ValueError:
         pass
-    retry_after = resp.headers.get("Retry-After")
-    return BodhanError(resp.status_code, code, message, float(retry_after) if retry_after else None)
+    return BodhanError(resp.status_code, code, message, parse_retry_after(resp.headers.get("Retry-After")))
 
 
 class Client:
@@ -112,8 +144,8 @@ class Client:
                  timeout: float = 30, max_wait: float = 3):
         """``max_wait``: the longest a busy 429 may make us wait before the single retry.
         If Retry-After asks for more, raise at once so an interactive caller can say so."""
-        self.api_key = api_key or os.environ.get("BODHAN_API_KEY", "")
-        if not self.api_key:
+        self.api_key = (api_key or os.environ.get("BODHAN_API_KEY", "")).strip()
+        if not self.api_key or self.api_key.startswith("<"):
             raise RuntimeError("BODHAN_API_KEY is not set. Copy .env.example to .env and paste your key.")
         self.base_url = (base_url or os.environ.get("BODHAN_BASE_URL") or "https://api.bodhan.ai").rstrip("/")
         self.route = route or os.environ.get("BODHAN_TRANSLIT_ROUTE") or "chat"
@@ -121,32 +153,49 @@ class Client:
             raise ValueError("BODHAN_TRANSLIT_ROUTE must be auto, plain or chat")
         self.timeout = timeout
         self.max_wait = max_wait
-        # One session per thread: keeps the TLS connection open (the first call on a new
-        # connection is ~0.6 s slower) without sharing a Session across threads.
-        self._local = threading.local()
         self._route_lock = threading.Lock()
-
-    @property
-    def _session(self) -> requests.Session:
-        if not hasattr(self._local, "session"):
+        # A small pool of Sessions, borrowed one per request. Each keeps its TLS connection
+        # open between calls (a new connection costs ~0.6 s), and no Session is used by two
+        # threads at once. The web server starts a new thread per request, so a
+        # thread-local Session would never be reused there.
+        self._sessions: queue.LifoQueue[requests.Session] = queue.LifoQueue()
+        for _ in range(POOL_SIZE):
             s = requests.Session()
             s.headers.update({"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"})
-            self._local.session = s
-        return self._local.session
+            self._sessions.put(s)
+
+    @contextmanager
+    def _session(self):
+        s = self._sessions.get()
+        try:
+            yield s
+        finally:
+            self._sessions.put(s)
 
     def _post(self, path: str, body: dict) -> requests.Response:
         """POST with at most one retry on a busy 429. A budget 429 stops at once."""
         for attempt in (1, 2):
-            resp = self._session.post(f"{self.base_url}{path}", json=body, timeout=self.timeout)
+            with self._session() as s:
+                resp = s.post(f"{self.base_url}{path}", json=body, timeout=self.timeout)
             if resp.status_code != 429:
                 return resp
             err = parse_error(resp)
             wait = err.retry_after if err.retry_after is not None else 2
-            if "budget" in err.code or attempt == 2 or wait > self.max_wait:
+            if err.is_budget or attempt == 2 or wait > self.max_wait:
                 raise err
             # Retries count against the request limit, so wait once and give up after that.
             time.sleep(wait)
         raise AssertionError("unreachable")
+
+    def raw_chat(self, content: str, **extra) -> Result:
+        """One chat-route call with the user turn sent as-is, plus any extra body fields.
+        Used by the eval to reproduce how earlier recipes called the route."""
+        started = time.perf_counter()
+        resp = self._post("/v1/chat/completions", {"model": MODEL, "messages": [{"role": "user", "content": content}], **extra})
+        if not resp.ok:
+            raise parse_error(resp)
+        out, truncated = parse_chat(resp.json())
+        return Result(out, _ms(started), "chat", truncated)
 
     def transliterate(self, text: str, language: str, script: str = "native") -> Result:
         if language not in LANGUAGES:
@@ -164,19 +213,12 @@ class Client:
                     self.route = "chat"
             elif resp.ok:
                 body = resp.json()
-                out = body.get("text") or body.get("output") or body.get("transliteration") or ""
-                return Result(out.strip(), _ms(started), "plain", bool(body.get("truncated")))
+                return Result(str(body.get("transliteration") or "").strip(), _ms(started), "plain", bool(body.get("truncated")))
             else:
                 raise parse_error(resp)
 
-        resp = self._post("/v1/chat/completions", {
-            "model": MODEL,
-            "messages": [{"role": "user", "content": chat_instruction(text, language, script)}],
-        })
-        if not resp.ok:
-            raise parse_error(resp)
-        out, truncated = parse_chat(resp.json())
-        return Result(out, _ms(started), "chat", truncated)
+        r = self.raw_chat(chat_instruction(text, language, script))
+        return Result(r.text, _ms(started), "chat", r.truncated)
 
 
 def _ms(started: float) -> float:

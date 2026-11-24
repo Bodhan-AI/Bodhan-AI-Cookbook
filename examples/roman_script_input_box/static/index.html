@@ -106,30 +106,32 @@
   const tested = ["hi", "gu", "bn", "ta"];
 
   let pauseTimer = null;
-  let lastSentence = { key: "", text: "" };   // the latest whole-sentence result
-  let shownKey = "";                          // which (lang, text) the preview shows now
-  let shownRank = 0;                          // 1 = word draft, 2 = sentence pass
+  let shown = { key: "", rank: 0 };   // what the preview shows: (language, text) and 1 = draft, 2 = sentence
+  // Sentence answers by (language, text), as promises: a pause and an Enter for the same
+  // text share one API call, even while it is still in flight.
+  const sentences = new Map();
 
-  const key = (text) => langSel.value + "\u0000" + text;
+  const key = (lang, text) => lang + "\u0000" + text;
+  // Every answer is tagged with the language and text it was asked for; it is only shown
+  // if the box still holds that text in that language.
+  const isCurrent = (lang, text) => lang === langSel.value && text === box.value.trim();
 
-  async function api(text, mode) {
+  async function api(text, lang, mode) {
     const res = await fetch("/api/transliterate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text, language: langSel.value, mode }),
+      body: JSON.stringify({ text, language: lang, mode }),
     });
     const body = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(body.error || `HTTP ${res.status}`);
     return body;
   }
 
-  function show(text, rank, result) {
-    // Ignore answers for text the user has since changed, and never let a slower
-    // word draft overwrite a sentence pass for the same text.
-    const k = key(text);
-    if (text !== box.value.trim()) return;
-    if (k === shownKey && rank < shownRank) return;
-    shownKey = k; shownRank = rank;
+  function show(text, lang, rank, result) {
+    // Never let a slower draft overwrite a sentence pass for the same text.
+    const k = key(lang, text);
+    if (!isCurrent(lang, text) || (k === shown.key && rank < shown.rank)) return;
+    shown = { key: k, rank };
     preview.className = rank === 2 ? "checked" : "draft";
     preview.textContent = result.text;
     const what = rank === 2 ? "sentence pass" : "word draft";
@@ -138,58 +140,77 @@
       (result.truncated ? " · cut off, shorten the message" : "");
   }
 
-  function fail(err) {
+  function fail(text, lang, err) {
+    if (text !== null && !isCurrent(lang, text)) return;   // an old request failed: ignore it
     preview.className = "error";
     preview.textContent = err.message;
     status.textContent = "";
+    shown = { key: "", rank: 0 };
+  }
+
+  function clearPreview() {
+    preview.textContent = ""; preview.className = ""; status.textContent = "";
+    shown = { key: "", rank: 0 };
+  }
+
+  function sentence(text, lang) {
+    const k = key(lang, text);
+    if (!sentences.has(k)) {
+      const p = api(text, lang, "sentence");
+      p.catch(() => sentences.delete(k));   // don't remember failures
+      sentences.set(k, p);
+      if (sentences.size > 50) sentences.delete(sentences.keys().next().value);
+    }
+    return sentences.get(k);
   }
 
   async function wordPass() {
     // Hybrid asks for a cache-only draft (free); word mode really calls the API per word.
-    const text = box.value.trim();
+    const text = box.value.trim(), lang = langSel.value;
     if (!text) return;
-    try { show(text, 1, await api(text, modeSel.value === "word" ? "word" : "draft")); } catch (e) { fail(e); }
+    try { show(text, lang, 1, await api(text, lang, modeSel.value === "word" ? "word" : "draft")); }
+    catch (e) { fail(text, lang, e); }
   }
 
   async function sentencePass() {
-    const text = box.value.trim();
-    if (!text) return null;
-    if (lastSentence.key === key(text)) { show(text, 2, lastSentence.result); return lastSentence.result.text; }
-    try {
-      const result = await api(text, "sentence");
-      lastSentence = { key: key(text), result };
-      show(text, 2, result);
-      return result.text;
-    } catch (e) { fail(e); return null; }
+    const text = box.value.trim(), lang = langSel.value;
+    if (!text) return;
+    try { show(text, lang, 2, await sentence(text, lang)); } catch (e) { fail(text, lang, e); }
   }
 
   box.addEventListener("input", () => {
-    const text = box.value.trim();
     clearTimeout(pauseTimer);
-    if (!text) { preview.textContent = ""; preview.className = ""; status.textContent = ""; shownKey = ""; return; }
+    if (!box.value.trim()) return clearPreview();
     const mode = modeSel.value;
-    // A word just ended (space or punctuation typed): refresh the cheap word draft.
+    // A word just ended (space or punctuation typed): refresh the draft.
     if (mode !== "sentence" && /[\s,.!?;:]$/.test(box.value)) wordPass();
-    // A pause: run the slower, context-aware pass (or a final word pass in word mode).
+    // A pause: run the context-aware sentence pass (or a final word pass in word mode).
     pauseTimer = setTimeout(mode === "word" ? wordPass : sentencePass, PAUSE_MS);
   });
 
   $("form").addEventListener("submit", async (ev) => {
     ev.preventDefault();
-    const roman = box.value.trim();
-    if (!roman) return;
+    const roman = box.value.trim(), lang = langSel.value;
+    if (!roman || sendBtn.disabled) return;
     clearTimeout(pauseTimer);
     sendBtn.disabled = true;
-    let native;
-    if (modeSel.value === "word") {
-      try { native = (await api(roman, "word")).text; } catch (e) { fail(e); }
-    } else {
-      native = await sentencePass();
+    let native = null;
+    try {
+      const result = modeSel.value === "word" ? await api(roman, lang, "word") : await sentence(roman, lang);
+      native = result.text;
+    } catch (e) {
+      fail(null, lang, e);   // keep the text in the box so nothing is lost
     }
     sendBtn.disabled = false;
-    if (!native) return;   // keep the text in the box so nothing is lost
+    if (!native) return;
     addBubble(native, roman);
-    box.value = ""; preview.textContent = ""; preview.className = ""; status.textContent = ""; shownKey = "";
+    // Remove what was sent, but keep anything typed while the message was being sent.
+    const now = box.value.trimStart();
+    if (now.trim() === roman) { box.value = ""; clearPreview(); }
+    else {
+      if (now.startsWith(roman)) box.value = now.slice(roman.length).trimStart();
+      box.dispatchEvent(new Event("input"));
+    }
     box.focus();
   });
 
@@ -205,19 +226,20 @@
     chat.scrollTop = chat.scrollHeight;
   }
 
-  langSel.addEventListener("change", () => { shownKey = ""; box.dispatchEvent(new Event("input")); box.focus(); });
-  modeSel.addEventListener("change", () => { shownKey = ""; box.dispatchEvent(new Event("input")); box.focus(); });
+  for (const sel of [langSel, modeSel]) {
+    sel.addEventListener("change", () => { clearPreview(); box.dispatchEvent(new Event("input")); box.focus(); });
+  }
 
   fetch("/api/languages").then((r) => r.json()).then(({ languages }) => {
     const codes = Object.keys(languages).sort((a, b) =>
-      (tested.indexOf(b) >= 0) - (tested.indexOf(a) >= 0) || languages[a].localeCompare(languages[b]));
+      tested.includes(b) - tested.includes(a) || languages[a].localeCompare(languages[b]));
     for (const code of codes) {
       const o = document.createElement("option");
       o.value = code; o.textContent = languages[code] + (tested.includes(code) ? "" : " (untested)");
       langSel.append(o);
     }
     langSel.value = "hi";
-  }).catch(() => fail(new Error("Could not reach the local server.")));
+  }).catch(() => fail(null, "", new Error("Could not reach the local server.")));
   box.focus();
 })();
 </script>

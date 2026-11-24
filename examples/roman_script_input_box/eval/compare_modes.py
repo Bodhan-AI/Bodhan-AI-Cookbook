@@ -1,7 +1,7 @@
 """Compare word-by-word, whole-sentence and "bare" conversion on a small test set.
 
-    python eval/compare_modes.py            # runs, caches, prints a table
-    python eval/compare_modes.py --offline  # re-score from the cache only, no API calls
+    python eval/compare_modes.py --offline  # re-score the committed answers, no key needed
+    python eval/compare_modes.py            # call the API for anything not yet cached
 
 Three ways to turn a roman line into native script:
 
@@ -13,9 +13,15 @@ Three ways to turn a roman line into native script:
 Scores: character error rate (CER, edit distance / reference length, lower is better)
 against the closest of the accepted references, exact-match rate, and latency.
 
-Every API answer is cached in outputs/eval_cache.json, keyed by request. The key's
-request quota is small (120, window not documented), so a rerun only pays for requests it
-hasn't made before, and a 429 halfway through loses nothing.
+The test set has two splits. ``dev`` sentences were used while designing the instruction;
+``heldout`` sentences were written afterwards (with punctuation, digits and English words)
+and never used to tune anything. Sentence mode is also asked ``--repeats`` extra times to
+measure how often the model changes its answer.
+
+Every API answer is stored in eval/results/api_answers.json, keyed by request, and is
+committed, so the numbers in the README can be checked without a key. The key's quota is
+small (120 requests; the model also throttles at ~15 calls a minute), so a run only pays
+for requests it hasn't made before and a 429 halfway through loses nothing.
 """
 
 from __future__ import annotations
@@ -36,12 +42,13 @@ from dotenv import load_dotenv  # noqa: E402
 
 load_dotenv(RECIPE / ".env")
 
-from bodhan_client import LANGUAGES, MODEL, BodhanError, Client, parse_chat, parse_error  # noqa: E402
+from bodhan_client import LANGUAGES, BodhanError, Client  # noqa: E402
 from converter import tokenize  # noqa: E402
 
 TEST_SET = Path(__file__).with_name("test_set.json")
-CACHE = RECIPE / "outputs" / "eval_cache.json"
-REPORT = RECIPE / "outputs" / "compare_modes.json"
+RESULTS = Path(__file__).with_name("results")
+CACHE = RESULTS / "api_answers.json"
+REPORT = RESULTS / "compare_modes.json"
 MODES = ("word", "sentence", "bare")
 
 
@@ -78,10 +85,10 @@ class CachedCaller:
 
     def _save(self) -> None:
         CACHE.parent.mkdir(exist_ok=True)
-        CACHE.write_text(json.dumps(self.data, ensure_ascii=False, indent=1), encoding="utf-8")
+        CACHE.write_text(json.dumps(self.data, ensure_ascii=False, indent=1, sort_keys=True) + "\n", encoding="utf-8")
 
-    def get(self, kind: str, text: str, language: str) -> dict:
-        key = f"{kind}|{language}|{text}"
+    def get(self, kind: str, text: str, language: str, sample: int = 0) -> dict:
+        key = f"{kind}|{language}|{text}" + (f"#{sample}" if sample else "")
         if key in self.data:
             return self.data[key]
         if self.offline:
@@ -96,7 +103,7 @@ class CachedCaller:
                 break
             except BodhanError as exc:
                 # The model throttle answers 429 with Retry-After (~36 s). A batch job can wait.
-                if exc.status != 429 or "budget" in exc.code:
+                if exc.status != 429 or exc.is_budget:
                     raise
                 wait = (exc.retry_after or 30) + 1
                 print(f"  throttled after {self.new_calls} new calls; waiting {wait:.0f} s")
@@ -113,31 +120,30 @@ class CachedCaller:
 
     def _bare(self, text: str, language: str) -> dict:
         """The undocumented body used by earlier recipes: raw text plus a `language` field."""
-        started = time.perf_counter()
-        resp = self.client._post("/v1/chat/completions", {
-            "model": MODEL, "messages": [{"role": "user", "content": text}], "language": language, "script": "native",
-        })
-        if not resp.ok:
-            raise parse_error(resp)
-        out, _ = parse_chat(resp.json())
-        return {"text": out, "latency_ms": round((time.perf_counter() - started) * 1000, 1), "route": "chat-bare"}
+        r = self.client.raw_chat(text, language=language, script="native")
+        return {"text": r.text, "latency_ms": r.latency_ms, "route": "chat-bare"}
 
 
-def run_item(caller: CachedCaller, item: dict) -> dict:
+def run_item(caller: CachedCaller, item: dict, repeats: int) -> dict:
     lang, roman, refs = item["language"], item["roman"], item["native"]
-    row = {"language": lang, "roman": roman, "references": refs}
+    row = {"split": item.get("split", "dev"), "language": lang, "roman": roman, "references": refs}
 
-    # word: one call per word; in the app these run in parallel, so latency = slowest word.
-    words = [p for p, is_word in tokenize(roman) if is_word]
-    answers = [caller.get("instructed", w.lower(), lang) for w in words]
+    # word: one call per distinct word, rebuilt around the original spaces, digits and
+    # punctuation exactly as converter.py does. The calls were made one after another; the
+    # app makes them in parallel, so the latency reported is the slowest single word.
+    pieces = tokenize(roman)
+    answers = {p.lower(): caller.get("instructed", p.lower(), lang) for p, is_word in pieces if is_word}
     row["word"] = {
-        "text": " ".join(a["text"] for a in answers),
-        "calls": len(set(w.lower() for w in words)),
-        "latency_ms": max(a["latency_ms"] for a in answers),
-        "per_word": [{"roman": w, "native": a["text"]} for w, a in zip(words, answers, strict=True)],
+        "text": "".join(answers[p.lower()]["text"] if is_word else p for p, is_word in pieces),
+        "calls": len(answers),
+        "latency_ms": max(a["latency_ms"] for a in answers.values()),
+        "per_word": {w: a["text"] for w, a in answers.items()},
     }
     s = caller.get("instructed", roman, lang)
-    row["sentence"] = {"text": s["text"], "calls": 1, "latency_ms": s["latency_ms"]}
+    samples = [s["text"]] + [caller.get("instructed", roman, lang, sample=i)["text"] for i in range(1, repeats + 1)]
+    row["sentence"] = {"text": s["text"], "calls": 1, "latency_ms": s["latency_ms"],
+                       "samples": samples, "stable": len(set(samples)) == 1,
+                       "worst_sample_cer": round(max(cer(x, refs) for x in samples), 3)}
     b = caller.get("bare", roman, lang)
     row["bare"] = {"text": b["text"], "calls": 1, "latency_ms": b["latency_ms"]}
     for m in MODES:
@@ -148,21 +154,31 @@ def run_item(caller: CachedCaller, item: dict) -> dict:
 
 def summarize(rows: list[dict]) -> dict:
     out = {}
-    for m in MODES:
-        cers = [r[m]["cer"] for r in rows]
-        lats = [r[m]["latency_ms"] for r in rows]
-        out[m] = {
-            "mean_cer": round(statistics.mean(cers), 3),
-            "exact_match": f"{sum(r[m]['exact'] for r in rows)}/{len(rows)}",
-            "median_latency_ms": round(statistics.median(lats)),
-            "calls": sum(r[m]["calls"] for r in rows),
+    for split in ("dev", "heldout", "all"):
+        subset = [r for r in rows if split in ("all", r["split"])]
+        if not subset:
+            continue
+        out[split] = {}
+        for m in MODES:
+            out[split][m] = {
+                "mean_cer": round(statistics.mean(r[m]["cer"] for r in subset), 3),
+                "exact_match": f"{sum(r[m]['exact'] for r in subset)}/{len(subset)}",
+                "median_latency_ms": round(statistics.median(r[m]["latency_ms"] for r in subset)),
+                "calls": sum(r[m]["calls"] for r in subset),
+            }
+        sent = [r["sentence"] for r in subset]
+        out[split]["sentence_stability"] = {
+            "same_answer_every_time": f"{sum(s['stable'] for s in sent)}/{len(sent)}",
+            "samples_per_sentence": len(sent[0]["samples"]),
+            "mean_worst_sample_cer": round(statistics.mean(s["worst_sample_cer"] for s in sent), 3),
         }
     return out
 
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--offline", action="store_true", help="score from outputs/eval_cache.json only")
+    ap.add_argument("--offline", action="store_true", help="score from eval/results/api_answers.json only")
+    ap.add_argument("--repeats", type=int, default=2, help="extra samples of sentence mode per sentence (default 2)")
     args = ap.parse_args()
 
     client = None if args.offline else Client(route="chat", max_wait=0, timeout=60)
@@ -172,7 +188,7 @@ def main() -> int:
     rows = []
     for item in items:
         try:
-            rows.append(run_item(caller, item))
+            rows.append(run_item(caller, item, args.repeats))
         except BodhanError as exc:
             print(f"Stopped at {item['roman']!r}: {exc}. Finished rows are cached; rerun later to continue.")
             break
@@ -185,14 +201,19 @@ def main() -> int:
     REPORT.parent.mkdir(exist_ok=True)
     REPORT.write_text(json.dumps({"summary": summary, "rows": rows}, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    print(f"\n{'lang':<5}{'roman':<38}{'word':<34}{'sentence':<34}bare")
+    print(f"\n{'split':<8}{'lang':<5}{'roman':<32}{'word':<34}{'sentence':<34}bare")
     for r in rows:
         word, sent, bare = (f"{r[m]['text']} ({r[m]['cer']:.2f})" for m in MODES)
-        print(f"{r['language']:<5}{r['roman']:<38}{word:<34}{sent:<34}{bare}")
-    print("\n| Mode | Mean CER | Exact match | Median latency | API calls |\n|---|---|---|---|---|")
-    for m in MODES:
-        s = summary[m]
-        print(f"| {m} | {s['mean_cer']:.3f} | {s['exact_match']} | {s['median_latency_ms']} ms | {s['calls']} |")
+        flag = "" if r["sentence"]["stable"] else "  [sentence answer varied]"
+        print(f"{r['split']:<8}{r['language']:<5}{r['roman']:<32}{word:<34}{sent:<34}{bare}{flag}")
+    for split, table in summary.items():
+        print(f"\n{split}:\n| Mode | Mean CER | Exact match | Median latency | API calls |\n|---|---|---|---|---|")
+        for m in MODES:
+            s = table[m]
+            print(f"| {m} | {s['mean_cer']:.3f} | {s['exact_match']} | {s['median_latency_ms']} ms | {s['calls']} |")
+        st = table["sentence_stability"]
+        print(f"sentence mode gave the same answer in all {st['samples_per_sentence']} samples for "
+              f"{st['same_answer_every_time']} sentences; mean worst-sample CER {st['mean_worst_sample_cer']:.3f}")
     print(f"\n{len(rows)} sentences in {', '.join(sorted({LANGUAGES[r['language']] for r in rows}))}. "
           f"New API calls this run: {caller.new_calls}. Saved {REPORT.relative_to(RECIPE)}")
     return 0
