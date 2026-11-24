@@ -1,0 +1,17 @@
+.venv
+.env
+.env.*
+!.env.example
+.git
+**/__pycache__
+*.egg-info
+.pytest_cache
+.ruff_cache
+.bodhan_cache*
+.bodhan_work*
+demo_inputs
+demo_runs
+eval_runs
+out
+tests
+docs
