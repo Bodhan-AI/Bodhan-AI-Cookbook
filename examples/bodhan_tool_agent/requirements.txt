@@ -1,0 +1,11 @@
+# Pinned runtime dependencies (mirrors pyproject.toml). `-e .` installs the two packages from src/.
+mcp==2.3.0
+openai==3.51.0
+httpx==0.28.1
+pydantic==2.14.3
+pypdfium2==5.15.2
+pillow==13.0.0
+numpy==2.5.5
+imageio-ffmpeg==0.8.1
+python-dotenv==1.2.4
+-e .
