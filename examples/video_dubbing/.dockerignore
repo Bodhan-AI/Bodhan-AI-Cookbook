@@ -1,0 +1,16 @@
+# Keys and local state never go into the image.
+.env
+.venv/
+out/
+outputs/
+work/
+**/__pycache__/
+.pytest_cache/
+*.egg-info/
+# Media is mounted at run time (docker run -v ...), not baked in.
+sample_data/
+*.mp4
+*.mov
+*.mkv
+*.webm
+*.wav
