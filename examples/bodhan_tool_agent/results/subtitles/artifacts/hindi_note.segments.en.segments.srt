@@ -1,0 +1,6 @@
+1
+00:00:00,000 --> 00:00:06,500
+Hello, today we will start our math class.
+Please open your books and read the first
+lesson.
+

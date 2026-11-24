@@ -149,17 +149,19 @@ The tests never read `.env`. The end-to-end agent tests run the real CLI and the
 
 | Task | Input | Status | Steps | Bodhan cost | Time | Output |
 |---|---|---|---|---|---|---|
-| Transcribe this Hindi voice note and give me English subtitles | 6 s WAV | ✅ completed | 6 | ₹0.00 (cached) / ₹0.01 | 78 s (64 s rate-limit waits) | English SRT |
-| Read this paragraph aloud in Bengali with a female voice | Bengali .txt | ✅ completed | 7 | ₹0.11 | 91 s (61 s waits) | 13 s MP3 (voice Ishita), back-transcription passed |
-| Translate this worksheet into Marathi and keep the table | worksheet PNG | ✅ completed | 5 | ₹0.20 | 66 s (52 s waits) | Marathi Markdown, 3×4 table intact |
-| Make a two-minute Tamil audio summary of this chapter | 8-page scanned Hindi PDF | ✅ completed | 10 | ₹2.94 | 230 s (83 s waits) | 150 s Tamil MP3 (voice Anitha); all 10 pieces passed back-transcription (min similarity 98.4%) |
-| Which of these clips are in Telugu? Translate those into English | 5 unlabelled WAV clips | ✅ completed: clip2 and clip4, correct | 10 | ₹0.04 | 270 s (249 s waits) | Two English translations; Hindi, Kannada and Tamil clips correctly excluded |
-| Translate this video into French | MP4 | ⛔ impossible (correct) | 0 | ₹0.00 | 5 s | Clear explanation, no artifacts |
+| Transcribe this Hindi voice note and give me English subtitles | 6 s WAV | ✅ completed | 6 | ₹0.00 (cached) / ₹0.01 | 78 s (64 s rate-limit waits) | English SRT · [result](results/subtitles/result.md) · [trace](results/subtitles/trace.jsonl) |
+| Read this paragraph aloud in Bengali with a female voice | Bengali .txt | ✅ completed | 7 | ₹0.11 | 91 s (61 s waits) | 13 s MP3 (voice Ishita), back-transcription passed · [MP3](results/bengali/artifacts/bengali_paragraph.bn.mp3) · [result](results/bengali/result.md) · [trace](results/bengali/trace.jsonl) |
+| Translate this worksheet into Marathi and keep the table | worksheet PNG | ✅ completed | 5 | ₹0.20 | 66 s (52 s waits) | Marathi Markdown, 3×4 table intact · [output](results/worksheet/artifacts/worksheet.mr.md) · [result](results/worksheet/result.md) · [trace](results/worksheet/trace.jsonl) |
+| Make a two-minute Tamil audio summary of this chapter | 8-page scanned Hindi PDF | ✅ completed | 10 | ₹2.94 | 230 s (83 s waits) | 150 s Tamil MP3 (voice Anitha); all 10 pieces passed back-transcription (min similarity 98.4%) · [result](results/tamil_summary/result.md) · [trace](results/tamil_summary/trace.jsonl) (MP3 not committed: 1 MB) |
+| Which of these clips are in Telugu? Translate those into English | 5 unlabelled WAV clips | ✅ completed: clip2 and clip4, correct | 10 | ₹0.04 | 270 s (249 s waits) | Two English translations; Hindi, Kannada and Tamil clips correctly excluded · [result](results/telugu_clips/result.md) · [trace](results/telugu_clips/trace.jsonl) |
+| Translate this video into French | MP4 | ⛔ impossible (correct) | 0 | ₹0.00 | 5 s | Clear explanation, no artifacts · [result](results/french/result.md) · [trace](results/french/trace.jsonl) |
 | Same worksheet task on `qwen2.5:7b` (local Ollama, CPU) | worksheet PNG | ✅ completed | 4 | ₹0.00 (cached) | 410 s | Same Marathi Markdown |
 
 Recovery seen in live runs:
 - In the chapter run, Indic-Translate returned 429 ("Maximum rate limit reached for the model"). The agent retried, and cached pieces made the retry cheap; the client now waits out 429s for up to about 70 s.
-- In the chapter and Bengali runs, the LLM tried to pass Indian-language text it had copied into `translate_text`. Both times the guard blocked it (`POLICY_VIOLATION`) and the agent switched to passing the file path. Outputs and traces stay out of git; regenerate them with the commands above.
+- In the chapter and Bengali runs, the LLM tried to pass Indian-language text it had copied into `translate_text`. Both times the guard blocked it (`POLICY_VIOLATION`) and the agent switched to passing the file path.
+
+The six runs above are committed under [`results/`](results/): each folder has `result.md`, `report.json`, `trace.jsonl` and the small artifacts, with paths made relative. New runs go to `outputs/`, which stays out of git.
 
 ## Self-evaluation
 
