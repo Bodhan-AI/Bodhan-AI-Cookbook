@@ -1,0 +1,96 @@
+{
+  "task": "convert the text in two languages in english and gujarati.",
+  "goal": "Extract text from the provided image and translate it into English and Gujarati.",
+  "status": "completed",
+  "stop_reason": "",
+  "total_cost_inr": 0.2158,
+  "spent_inr": 0.2158,
+  "total_time_seconds": 25.39,
+  "steps_used": 3,
+  "replan_count": 0,
+  "assumptions": [
+    "The input image contains Hindi text as suggested by the filename.",
+    "The translation will be provided as text output."
+  ],
+  "artifacts": [
+    {
+      "name": "ocr_full_455247afcdcd9a01.txt",
+      "path": "/Users/amogharora/bodhan_assignment/out/artifacts/ocr_full_455247afcdcd9a01.txt",
+      "kind": "text",
+      "produced_by": "step_1"
+    },
+    {
+      "name": "translated_step_2.md",
+      "path": "outputs/image_testing_v5/artifacts/translated_step_2.md",
+      "kind": "markdown",
+      "produced_by": "step_2"
+    },
+    {
+      "name": "translated_step_3.md",
+      "path": "outputs/image_testing_v5/artifacts/translated_step_3.md",
+      "kind": "markdown",
+      "produced_by": "step_3"
+    }
+  ],
+  "steps": [
+    {
+      "id": "step_1",
+      "tool": "ocr_document",
+      "status": "done",
+      "purpose": "Extract the Hindi text from the provided image.",
+      "cost_inr": 0.2,
+      "latency_ms": 1324.8,
+      "error": null
+    },
+    {
+      "id": "step_2",
+      "tool": "translate_text",
+      "status": "done",
+      "purpose": "Translate the extracted Hindi text to English.",
+      "cost_inr": 0.0072,
+      "latency_ms": 1935.03,
+      "error": null
+    },
+    {
+      "id": "step_3",
+      "tool": "translate_text",
+      "status": "done",
+      "purpose": "Translate the extracted Hindi text to Gujarati.",
+      "cost_inr": 0.0086,
+      "latency_ms": 2148.42,
+      "error": null
+    }
+  ],
+  "verifications": [
+    {
+      "check": "ocr_verification",
+      "status": "passed",
+      "char_count": 721,
+      "has_table_structure": false,
+      "artifact": "/Users/amogharora/bodhan_assignment/out/artifacts/ocr_full_455247afcdcd9a01.txt"
+    },
+    {
+      "check": "translation_verification",
+      "status": "passed",
+      "source_chars": 721,
+      "translated_chars": 753,
+      "length_ratio": 1.04,
+      "tables_preserved": true,
+      "detected_script": "Latin",
+      "details": "Length ratio 1.04, tables: 0/0",
+      "artifact": "outputs/image_testing_v5/artifacts/translated_step_2.md"
+    },
+    {
+      "check": "translation_verification",
+      "status": "passed",
+      "source_chars": 721,
+      "translated_chars": 722,
+      "length_ratio": 1.0,
+      "tables_preserved": true,
+      "detected_script": "Gujarati",
+      "details": "Length ratio 1.00, tables: 0/0",
+      "artifact": "outputs/image_testing_v5/artifacts/translated_step_3.md"
+    }
+  ],
+  "missed_targets": []
+}

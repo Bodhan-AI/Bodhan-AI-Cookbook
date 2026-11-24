@@ -1,0 +1,96 @@
+{
+  "task": "convert to punjabi and gujarati language",
+  "goal": "Extract text from the provided Hindi image and translate it into Punjabi and Gujarati text.",
+  "status": "completed",
+  "stop_reason": "",
+  "total_cost_inr": 0.0096,
+  "spent_inr": 0.0096,
+  "total_time_seconds": 8.15,
+  "steps_used": 3,
+  "replan_count": 0,
+  "assumptions": [
+    "The input image contains Hindi text.",
+    "The user wants the translated text as output, not synthesized audio."
+  ],
+  "artifacts": [
+    {
+      "name": "ocr_full_455247afcdcd9a01.txt",
+      "path": "/Users/amogharora/bodhan_assignment/Bodhan-AI-Cookbook/examples/indic_tool_server_and_agent/out/artifacts/ocr_full_455247afcdcd9a01.txt",
+      "kind": "text",
+      "produced_by": "step_1"
+    },
+    {
+      "name": "translated_step_3.md",
+      "path": "demo_outputs/image_testing_v1/artifacts/translated_step_3.md",
+      "kind": "markdown",
+      "produced_by": "step_3"
+    },
+    {
+      "name": "translated_step_2.md",
+      "path": "demo_outputs/image_testing_v1/artifacts/translated_step_2.md",
+      "kind": "markdown",
+      "produced_by": "step_2"
+    }
+  ],
+  "steps": [
+    {
+      "id": "step_1",
+      "tool": "ocr_document",
+      "status": "done",
+      "purpose": "Extract the Hindi text from the provided image.",
+      "cost_inr": 0.0,
+      "latency_ms": 72.26,
+      "error": null
+    },
+    {
+      "id": "step_2",
+      "tool": "translate_text",
+      "status": "done",
+      "purpose": "Translate the extracted Hindi text into Punjabi.",
+      "cost_inr": 0.0096,
+      "latency_ms": 2694.22,
+      "error": null
+    },
+    {
+      "id": "step_3",
+      "tool": "translate_text",
+      "status": "done",
+      "purpose": "Translate the extracted Hindi text into Gujarati.",
+      "cost_inr": 0.0,
+      "latency_ms": 98.32,
+      "error": null
+    }
+  ],
+  "verifications": [
+    {
+      "check": "ocr_verification",
+      "status": "passed",
+      "char_count": 721,
+      "has_table_structure": false,
+      "artifact": "/Users/amogharora/bodhan_assignment/Bodhan-AI-Cookbook/examples/indic_tool_server_and_agent/out/artifacts/ocr_full_455247afcdcd9a01.txt"
+    },
+    {
+      "check": "translation_verification",
+      "status": "passed",
+      "source_chars": 721,
+      "translated_chars": 722,
+      "length_ratio": 1.0,
+      "tables_preserved": true,
+      "detected_script": "Gujarati",
+      "details": "Length ratio 1.00, tables: 0/0",
+      "artifact": "demo_outputs/image_testing_v1/artifacts/translated_step_3.md"
+    },
+    {
+      "check": "translation_verification",
+      "status": "passed",
+      "source_chars": 721,
+      "translated_chars": 694,
+      "length_ratio": 0.96,
+      "tables_preserved": true,
+      "detected_script": "Gurmukhi",
+      "details": "Length ratio 0.96, tables: 0/0",
+      "artifact": "demo_outputs/image_testing_v1/artifacts/translated_step_2.md"
+    }
+  ],
+  "missed_targets": []
+}

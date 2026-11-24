@@ -1,0 +1,16 @@
+mcp==2.3.0
+fastmcp==4.2.1
+pydantic==2.14.3
+pydantic-settings==2.16.3
+httpx==0.28.1
+python-dotenv==1.2.4
+tenacity==9.2.1
+pydub==0.25.1
+pdf2image==1.17.0
+Pillow==13.0.0
+tiktoken==0.14.0
+openai==3.53.0
+asyncio-throttle==1.0.2
+pytest==9.2.0
+pytest-asyncio==1.5.0
+respx==0.23.1

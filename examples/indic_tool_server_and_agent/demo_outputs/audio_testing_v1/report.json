@@ -1,0 +1,109 @@
+{
+  "task": "convert the text in three languages in english and gujarati and punjabi.",
+  "goal": "Transcribe the input Hindi audio and translate the resulting text into English, Gujarati, and Punjabi.",
+  "status": "completed",
+  "stop_reason": "",
+  "total_cost_inr": 0.1022,
+  "spent_inr": 0.1022,
+  "total_time_seconds": 18.75,
+  "steps_used": 4,
+  "replan_count": 0,
+  "assumptions": [
+    "The input audio file 'sample_hindi.wav' is in Hindi.",
+    "The user wants text outputs for the three requested languages based on the transcription of the input audio."
+  ],
+  "artifacts": [
+    {
+      "name": "translated_step_2.md",
+      "path": "outputs/audio_testing_v1/artifacts/translated_step_2.md",
+      "kind": "markdown",
+      "produced_by": "step_2"
+    },
+    {
+      "name": "translated_step_3.md",
+      "path": "outputs/audio_testing_v1/artifacts/translated_step_3.md",
+      "kind": "markdown",
+      "produced_by": "step_3"
+    },
+    {
+      "name": "translated_step_4.md",
+      "path": "outputs/audio_testing_v1/artifacts/translated_step_4.md",
+      "kind": "markdown",
+      "produced_by": "step_4"
+    }
+  ],
+  "steps": [
+    {
+      "id": "step_1",
+      "tool": "transcribe_audio",
+      "status": "done",
+      "purpose": "Transcribe the Hindi audio file into text.",
+      "cost_inr": 0.1,
+      "latency_ms": 7968.1,
+      "error": null
+    },
+    {
+      "id": "step_2",
+      "tool": "translate_text",
+      "status": "done",
+      "purpose": "Translate the Hindi transcript to English.",
+      "cost_inr": 0.0004,
+      "latency_ms": 485.48,
+      "error": null
+    },
+    {
+      "id": "step_3",
+      "tool": "translate_text",
+      "status": "done",
+      "purpose": "Translate the Hindi transcript to Gujarati.",
+      "cost_inr": 0.0007,
+      "latency_ms": 537.49,
+      "error": null
+    },
+    {
+      "id": "step_4",
+      "tool": "translate_text",
+      "status": "done",
+      "purpose": "Translate the Hindi transcript to Punjabi.",
+      "cost_inr": 0.0011,
+      "latency_ms": 708.72,
+      "error": null
+    }
+  ],
+  "verifications": [
+    {
+      "check": "translation_verification",
+      "status": "passed",
+      "source_chars": 82,
+      "translated_chars": 90,
+      "length_ratio": 1.1,
+      "tables_preserved": true,
+      "detected_script": "Latin",
+      "details": "Length ratio 1.10, tables: 0/0",
+      "artifact": "outputs/audio_testing_v1/artifacts/translated_step_2.md"
+    },
+    {
+      "check": "translation_verification",
+      "status": "passed",
+      "source_chars": 82,
+      "translated_chars": 90,
+      "length_ratio": 1.1,
+      "tables_preserved": true,
+      "detected_script": "Gujarati",
+      "details": "Length ratio 1.10, tables: 0/0",
+      "artifact": "outputs/audio_testing_v1/artifacts/translated_step_3.md"
+    },
+    {
+      "check": "translation_verification",
+      "status": "passed",
+      "source_chars": 82,
+      "translated_chars": 101,
+      "length_ratio": 1.23,
+      "tables_preserved": true,
+      "detected_script": "Gurmukhi",
+      "details": "Length ratio 1.23, tables: 0/0",
+      "artifact": "outputs/audio_testing_v1/artifacts/translated_step_4.md"
+    }
+  ],
+  "missed_targets": []
+}
