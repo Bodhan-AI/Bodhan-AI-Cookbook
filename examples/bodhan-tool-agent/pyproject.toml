@@ -1,0 +1,47 @@
+[build-system]
+requires = ["hatchling==1.27.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "bodhan-tool-agent"
+version = "0.1.0"
+description = "MCP tool server for Bodhan's Indic models, plus a budgeted task agent that uses it."
+readme = "README.md" 
+requires-python = ">=3.11"
+dependencies = [
+    "mcp==1.10.1",           # supports structured MCP tool results
+    "httpx==0.28.1",         # async HTTP client for the Bodhan API
+    "pydantic>=2.11.4,<2.14", # MCP SDK internals are incompatible with Pydantic 2.14+
+    "python-dotenv==1.1.1",  # load .env for local runs
+    "openai==1.97.1",        # OpenAI-compatible client for the agent's LLM (LLM_BASE_URL etc.)
+    "pypdfium2==4.30.0",     # PDF -> page images for OCR (no OCR in this library)
+    "imageio-ffmpeg==0.6.0", # bundled FFmpeg binary for automatic audio segmentation
+    "Pillow==11.3.0",        # image handling
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==8.4.1",
+    "pytest-asyncio==1.1.0",
+    "ruff==0.12.4",
+]
+
+[project.scripts]
+bodhan-mcp = "bodhan_mcp.__main__:main"
+bodhan-agent = "bodhan_agent.__main__:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/bodhan_mcp", "src/bodhan_agent"]
+
+[tool.pytest.ini_options]
+testpaths = ["src/tests"]
+pythonpath = ["src"]
+asyncio_mode = "auto"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "ASYNC"]
