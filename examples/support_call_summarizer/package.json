@@ -1,0 +1,16 @@
+{
+  "name": "support-call-summarizer",
+  "private": true,
+  "workspaces": [
+    "web"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w web",
+    "build": "npm run build -w web",
+    "test": "npm run test -w web",
+    "lint": "npm run lint -w web"
+  },
+  "overrides": {
+    "vite": "7.3.7"
+  }
+}

@@ -1,0 +1,73 @@
+/* Shared styles for the popup and the settings page. */
+:root {
+  --bg: #ffffff;
+  --fg: #1d1d1f;
+  --muted: #6b6b73;
+  --line: #e3e3e8;
+  --soft: #f5f5f7;
+  --accent: #c2410c;
+  --accent-fg: #ffffff;
+  --danger: #b42318;
+  --ok: #067647;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1a1a1d;
+    --fg: #f2f2f5;
+    --muted: #a1a1aa;
+    --line: #34343b;
+    --soft: #26262b;
+    --accent: #fb923c;
+    --accent-fg: #1a1a1a;
+    --danger: #f97066;
+    --ok: #47cd89;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 14px/1.5 system-ui, -apple-system, "Segoe UI", "Noto Sans", sans-serif;
+}
+h1 { font-size: 16px; margin: 0; }
+label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; }
+input, select, textarea {
+  font: inherit;
+  color: var(--fg);
+  background: var(--soft);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px 8px;
+  width: 100%;
+}
+input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+textarea { resize: vertical; }
+input[type="checkbox"] { width: auto; accent-color: var(--accent); }
+button {
+  font: inherit;
+  font-size: 13px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--soft);
+  color: var(--fg);
+  cursor: pointer;
+}
+button:hover { border-color: var(--muted); }
+button.primary { background: var(--accent); color: var(--accent-fg); border-color: transparent; font-weight: 600; }
+button:disabled { opacity: 0.5; cursor: default; }
+.badge {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--soft);
+  color: var(--muted);
+}
+.muted { color: var(--muted); font-size: 12px; }
+.error { color: var(--danger); }
+.ok { color: var(--ok); }
+[hidden] { display: none !important; }
