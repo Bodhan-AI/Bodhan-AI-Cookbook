@@ -10,8 +10,10 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
+import re
 import sys
 import time
 from datetime import date
@@ -22,6 +24,7 @@ from dotenv import load_dotenv
 HERE = Path(__file__).resolve().parent
 load_dotenv(HERE / ".env")
 
+import exercise  # noqa: E402
 import tutor  # noqa: E402
 import verify  # noqa: E402
 
@@ -120,23 +123,66 @@ def verifier_eval(page: str, card: dict) -> dict:
             "held_out": _scores([r for r in rows if r["group"] == "held_out"]), "rows": rows}
 
 
+def _correct(answer: str, any_of: list[str]) -> bool:
+    tokens = re.findall(r"[a-z0-9.']+", answer.lower().replace(" ", " "))
+    words = {t.strip(".'") for t in tokens}  # "leaves." -> "leaves"; decimals like "2.5" keep their point
+    return any(w.lower() in words for w in any_of)
+
+
+def homework_eval(page: str) -> dict:
+    """Homework mode's answer key: one solve vs self-consistency (3 solves, majority vote, abstain otherwise)."""
+    items = json.loads((EVAL / "exercise_labels.json").read_text(encoding="utf-8"))["items"]
+    rows = []
+    for item in items:
+        ref = exercise.solve(item["question"], page, "middle")
+        single = bool(ref["answers"]) and _correct(ref["answers"][0], item["any_of"])
+        voted = ref["trusted"] and _correct(ref["final_answer"], item["any_of"])
+        rows.append({"question": item["question"], "agreement": ref["agreement"], "trusted": ref["trusted"],
+                     "answer": ref["final_answer"], "all_answers": ref["answers"],
+                     "single_correct": single, "voted_correct": voted,
+                     "wrong_but_trusted": ref["trusted"] and not voted})
+        print(f"  homework {ref['agreement']} {'ok ' if voted else 'DIFF'} single={single!s:5} {item['question'][:60]}")
+    trusted = [r for r in rows if r["trusted"]]
+    return {
+        "items": len(rows),
+        "single_solve_accuracy": round(sum(r["single_correct"] for r in rows) / len(rows), 3),
+        "answered": len(trusted),
+        "accuracy_when_answered": round(sum(r["voted_correct"] for r in trusted) / len(trusted), 3) if trusted else None,
+        "abstained": len(rows) - len(trusted),
+        "wrong_but_trusted": sum(r["wrong_but_trusted"] for r in rows),
+        "rows": rows,
+    }
+
+
 if __name__ == "__main__":
     sys.stdout.reconfigure(encoding="utf-8")
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--only", choices=["judge", "verifier", "homework"], help="run one part; keep the others' results")
+    args = ap.parse_args()
     page, card = load_card()
-    t = time.perf_counter()
-    print("Grader (LLM-as-a-judge) vs hand labels:")
-    judge = judge_eval(page, card)
-    print("\nFact-checker (Chain-of-Verification) vs hand labels:")
-    verifier = verifier_eval(page, card)
-    out = {"date": date.today().isoformat(), "model": os.environ.get("LLM_MODEL", ""),
-           "seconds": round(time.perf_counter() - t), "judge": judge, "verifier": verifier}
     path = EVAL / "results.json"
-    previous = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
-    out["simulation"] = previous.get("simulation")  # written by simulate.py --all
+    out = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+    model = os.environ.get("LLM_MODEL", "")
+    t = time.perf_counter()
+    if args.only in (None, "judge"):
+        print("Grader (LLM-as-a-judge) vs hand labels:")
+        out["judge"] = judge = judge_eval(page, card)
+        print(f"Grader: concepts {judge['concept_accuracy']:.0%} of {judge['concept_labels']}, "
+              f"over-credit {judge['over_credit']}, planted mistakes {judge['plant_accuracy']:.0%}, "
+              f"quality in range {judge['quality_in_range']:.0%}, errors {judge['error_detection']}")
+    if args.only in (None, "verifier"):
+        print("\nFact-checker (Chain-of-Verification) vs hand labels:")
+        out["verifier"] = verifier = verifier_eval(page, card)
+        print(f"Fact-checker: precision {verifier['precision']:.0%}, recall {verifier['recall']:.0%}, "
+              f"F1 {verifier['f1']:.2f}, accuracy {verifier['accuracy']:.0%}")
+    if args.only in (None, "homework"):
+        print("\nHomework answer key (self-consistency) vs known answers:")
+        out["homework"] = hw = {**homework_eval(page), "model": model, "date": date.today().isoformat()}
+        print(f"Homework: single solve {hw['single_solve_accuracy']:.0%}; self-consistency answered "
+              f"{hw['answered']}/{hw['items']} with {hw['accuracy_when_answered']:.0%} correct, "
+              f"abstained {hw['abstained']}, wrong but trusted {hw['wrong_but_trusted']}")
+    if args.only in (None, "judge", "verifier"):
+        out.update({"date": date.today().isoformat(), "model": model})
+    out["seconds"] = round(time.perf_counter() - t)
     path.write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"\nGrader: concepts {judge['concept_accuracy']:.0%} of {judge['concept_labels']}, "
-          f"over-credit {judge['over_credit']}, planted mistakes {judge['plant_accuracy']:.0%}, "
-          f"quality in range {judge['quality_in_range']:.0%}, errors {judge['error_detection']}")
-    print(f"Fact-checker: precision {verifier['precision']:.0%}, recall {verifier['recall']:.0%}, "
-          f"F1 {verifier['f1']:.2f}, accuracy {verifier['accuracy']:.0%}")
     print(f"saved {path}")

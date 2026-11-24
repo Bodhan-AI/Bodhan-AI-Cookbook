@@ -1,4 +1,5 @@
-"""Render the synthetic textbook page in sample_data/ (original text, not from any real textbook).
+"""Render the synthetic textbook pages in sample_data/ (original text, not from any real textbook):
+a lesson page for Teach mode and an exercise page (questions, no answers) for Homework mode.
 
     python make_sample_page.py
 """
@@ -38,14 +39,27 @@ def _font(size: int, bold: bool = False) -> ImageFont.ImageFont:
     return ImageFont.load_default()
 
 
-def render(out: Path) -> Path:
+EXERCISE_TITLE = "Exercises: How Plants Make Their Food"
+EXERCISES = [
+    "1. A leaf makes 12 grams of glucose in one day. It uses one third of it for energy and stores the "
+    "rest as starch. How many grams of starch does it store in 5 days?",
+    "2. Riya keeps one potted plant in a dark cupboard and one on a sunny window for two weeks, and waters "
+    "both. Which plant will be healthier, and why?",
+    "3. A student says, \"Plants get their food from the soil.\" Use what you have learnt to explain "
+    "whether the student is right.",
+    "4. A plant is covered with a glass jar so that no fresh air can reach it. Which ingredient for "
+    "making food will run out first, and what will happen to the plant?",
+]
+
+
+def render(out: Path, title: str = TITLE, paragraphs: list[str] = PARAGRAPHS) -> Path:
     img = Image.new("RGB", (1240, 1020), "white")
     draw = ImageDraw.Draw(img)
     y = 70
-    draw.text((70, y), TITLE, font=_font(44, bold=True), fill="black")
+    draw.text((70, y), title, font=_font(44, bold=True), fill="black")
     y += 100
     body = _font(30)
-    for para in PARAGRAPHS:
+    for para in paragraphs:
         for line in textwrap.wrap(para, width=68):
             draw.text((70, y), line, font=body, fill="black")
             y += 44
@@ -57,3 +71,4 @@ def render(out: Path) -> Path:
 
 if __name__ == "__main__":
     print(render(HERE / "sample_data" / "photosynthesis_page.png"))
+    print(render(HERE / "sample_data" / "exercise_page.png", EXERCISE_TITLE, EXERCISES))

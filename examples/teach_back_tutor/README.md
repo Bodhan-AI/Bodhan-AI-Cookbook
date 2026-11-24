@@ -18,7 +18,8 @@ Explaining an idea to someone else is one of the best tests of understanding (th
 6. **Memory.** The tutor remembers each student. Next session it starts at the level they reached, asks about their weak spots first, and re-plants the mistakes they missed to check the correction stuck.
 7. **Parent note.** A short, honest summary in the parent's language, written and spoken.
 8. **Progress dashboard** (switch to **My progress** in the sidebar). Ideas mastered per topic, three thinking skills (explaining in your own words, spotting mistakes, thinking deeper) with the change since earlier sessions, learning gain per session, understanding over time, and what to practise next. It is computed from the saved sessions in plain Python, so it is instant and works offline.
-9. **Evaluation view** (sidebar). The measured accuracy of both LLM judges against hand labels and the simulated-student results, from `eval/results.json`.
+9. **Homework mode** (choose **Solve homework together** on the start screen). For exercise pages whose answers are not printed. The classmate is stuck on a question from the page and the student helps solve it, step by step. If the student is stuck too, the classmate nudges in three rungs: a question about what to find next, then a half-finished guess, and only then does it work the step out itself. It never blurts out the answer (a Python guard checks every line). The answer is not on the page, so the reference solution is worked out **3 times independently** and used only if a majority agree (self-consistency); otherwise the classmate says it is not sure either and nothing is graded. Same Bodhan path: `indic-ocr` reads the exercise page, and the student types (transliterate) or speaks (transcribe) in their language; replies are translated and spoken.
+10. **Evaluation view** (sidebar). The measured accuracy of both LLM judges against hand labels and the simulated-student results, from `eval/results.json`.
 
 | Teaching Riya in Hinglish (she plants a mistake) | The report | Progress dashboard |
 |---|---|---|
@@ -91,6 +92,7 @@ Design choices worth knowing:
 | `tutor.py` | The teach-back engine: evaluate, update, choose_move, respond (from the notebook), report |
 | `verify.py` | Chain-of-Verification fact-check of every classmate line, plus the leaked-word check |
 | `quiz.py` | Before/after quick check; each question verified by an independent solver |
+| `exercise.py` | Homework mode: find exercise questions, self-consistent answer key, nudge ladder, answer guard |
 | `evaluate_judges.py` | Grader and fact-checker vs hand labels (`eval/`), results in `eval/results.json` |
 | `memory.py` | Cross-session student memory (one JSON file per student in `profiles/`) and the numbers behind the dashboard |
 | `parent.py` | Parent note: facts → LLM wording → translate → speak |
@@ -118,6 +120,14 @@ v3 came from a simulated conversation where the grader, deep into a long chat, c
 | v2 (quantity words kept in the check questions) | 100% | 100% | 100% (7 statements written after the fix) |
 
 v1 missed "plants need *only* water": the planning step asked "do plants need water?", which the page answers yes. v2 tells the planner to keep words like *only / all / none* in the check question; the held-out statements were written afterwards to test that the fix generalises rather than fits the 20. Reviewing v1 also found one wrong label (turn 14 does state an idea the label left out; corrected and noted in `eval/judge_labels.json`) and one metric bug (agreeing with a planted mistake is recorded as a missed plant by design, not as a student error).
+
+**Homework mode's answer key (self-consistency)** vs 10 exercise questions with known answers (`eval/exercise_labels.json`: 4 arithmetic word problems, 6 reasoning questions), run on `qwen/qwen3.8-27b`:
+
+| One solve correct | Answered (majority agreed) | Correct when answered | Wrong but trusted |
+|---|---|---|---|
+| 100% | 10/10 (all 3/3) | 100% | 0 |
+
+These questions were easy enough that one solve was already always right, so this run shows the answer key is reliable on page-level exercises, not that voting improved it. Self-consistency is the safety net for harder questions: when solutions disagree, the question is not graded. The first run of this check scored 9/10 because the scorer compared "leaves." with its full stop; the scorer was fixed (now unit-checked) and the run repeated.
 
 **3. Simulated students.** `simulate.py` has an LLM role-play three students talking to the tutor, and checks the scores match what each one knows. The first run with fact-checking on (tutor `gpt-oss-120b`, students `gpt-oss-20b`) blocked 2 wrong claims and 2 leaked words and rewrote 4 replies before the students saw them. It also exposed three tutor bugs, now fixed and tested: a hint that stated the answer as a yes/no question (hints that contain the correction are now blocked by the fact-checker), a loop asking about the same vague idea five times (now at most twice), and the lenient grading above. In that run every simulated student scored 3/3 on the quick check *before* teaching: the models know basic photosynthesis themselves, so learning gain can only be measured with real students. The partial and confused students never see the page, only a short memory of it, so they cannot give perfect answers by accident.
 
@@ -148,6 +158,13 @@ The simulated student does not actually study between sessions, so the gain come
 - **AlgoBo / TeachYou** (Jin et al., CHI 2024, [arXiv 2309.14534](https://arxiv.org/abs/2309.14534)). An LLM teachable agent for programming; found that LLM tutees "know too much", and proposed Reflect-Respond: keep an explicit knowledge state and answer only from it. Our notebook and leaked-word check implement that idea, and our simulated-student results show the same "knows too much" drift (see above), also reported in reviews of LLM-simulated students ([arXiv 2511.06078](https://arxiv.org/abs/2511.06078)).
 - **Chain-of-Verification** (Dhuliawala et al., Findings of ACL 2024, [arXiv 2309.11495](https://arxiv.org/abs/2309.11495)). Draft, plan verification questions, answer them independently, revise. We use the factored variant on every classmate line and on every quiz question, with the page as the only source and Python making the final decision.
 - **LLM-as-a-judge** (Zheng et al., NeurIPS 2023, [arXiv 2306.05685](https://arxiv.org/abs/2306.05685)). Using an LLM as a grader is only credible once checked against human labels, which `evaluate_judges.py` does for both of our judges.
+- **Self-consistency** (Wang et al., ICLR 2023, [arXiv 2203.11171](https://arxiv.org/abs/2203.11171)). Sample several reasoning paths and take the majority answer. Homework mode uses it for the answer key, and abstains (does not grade) when there is no majority.
+
+## Future work
+
+- **Chapter knowledge base.** Today one lesson is up to 4 pages, all of which fit in the prompt, and everything a student taught is kept by Python (session state, notebook, memory), so nothing is "forgotten". For a whole chapter or book, the next step is a small JSON index of lesson cards across pages (concept, page, the student's mastery) so a later page can build on an earlier one. Retrieval over embeddings (RAG) should not be needed at that size.
+- **Real students.** Every result here is from hand labels and simulated students; a small classroom study with separate before/after question sets is the proper test.
+- **Maths beyond arithmetic.** Homework mode checks numeric answers by comparing the numbers; equations, diagrams and units need a stronger checker (for example, running the calculation in Python).
 
 ## Bodhan API notes
 
@@ -160,7 +177,8 @@ Things we ran into, and what the recipe does about them:
 
 ## Limitations
 
-- Up to 4 pages per lesson, so one lesson fits one session; there is no whole-chapter or book-level view yet.
+- Up to 4 pages per lesson, so one lesson fits one session; there is no whole-chapter or book-level view yet (see Future work).
+- Homework mode's answer key comes from the LLM, not the book. Majority agreement makes a wrong key much less likely but not impossible, and questions without a majority are not graded. It has no memory-based adaptation or parent note yet; its sessions appear in the dashboard's homework history.
 - The lesson card is cached per image file. A new photo of the same page builds a new card, so memory carries over by topic and concept name only.
 - A turn in the app takes several seconds (transcribe → translate → grade → reply → translate → speak). Free LLM tiers add rate-limit waits; Groq's free tier allows about 1,000 output tokens per minute for this model, enough for one student at a time.
 - "Ideas mastered" is per lesson page: an idea stays mastered once explained (unless the student later states a wrong idea about it). There is no shared skill taxonomy across subjects, and no question bank or past papers; practice comes from re-teaching the weak ideas on the same page.

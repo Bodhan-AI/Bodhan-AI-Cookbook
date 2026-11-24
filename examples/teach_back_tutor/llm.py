@@ -27,11 +27,13 @@ def _model() -> str:
 
 
 def _wait_seconds(err: Exception, attempt: int) -> float:
-    """Wait as long as the server asks (retry-after), else back off linearly."""
+    """Wait as long as the server asks (retry-after), but at least a growing floor: parallel calls that all
+    retry after the same short delay just collide again."""
+    floor = min(30.0, 2.0 ** (attempt + 1))  # 2, 4, 8, 16, 30 s: about a minute, the window free tiers count in
     try:
-        return min(60.0, float(err.response.headers["retry-after"])) + 0.5
+        return max(floor, min(60.0, float(err.response.headers["retry-after"])) + 0.5)
     except (AttributeError, KeyError, TypeError, ValueError):
-        return 5.0 * (attempt + 1)
+        return max(floor, 5.0 * (attempt + 1))
 
 
 def _create(model: str | None = None, **kwargs):
@@ -40,11 +42,11 @@ def _create(model: str | None = None, **kwargs):
     if effort:
         kwargs["reasoning_effort"] = effort
     STATS["calls"] += 1
-    for attempt in range(5):
+    for attempt in range(6):
         try:
             return _client().chat.completions.create(model=model or _model(), **kwargs)
         except (RateLimitError, InternalServerError, APIConnectionError) as err:
-            if attempt == 4:
+            if attempt == 5:
                 raise
             wait = _wait_seconds(err, attempt)
             STATS["throttled_seconds"] += wait

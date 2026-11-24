@@ -7,5 +7,6 @@ profiles/
 sample_data/*
 !sample_data/.gitkeep
 !sample_data/photosynthesis_page.png
+!sample_data/exercise_page.png
 outputs/*
 !outputs/.gitkeep

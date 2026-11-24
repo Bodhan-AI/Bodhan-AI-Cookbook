@@ -88,6 +88,15 @@ def record(profile: dict, session, rep: dict) -> dict:
     return profile
 
 
+def record_homework(profile: dict, rep: dict) -> dict:
+    """Keep a short record of each homework question solved together (Homework mode)."""
+    profile.setdefault("homework", []).append({
+        "date": date.today().isoformat(), "question": rep["question"], "solved": rep["solved"],
+        "steps_on_own": rep["steps_on_own"], "nudges": rep["nudges"], "graded": rep["answer_trusted"],
+    })
+    return profile
+
+
 def add_quiz(profile: dict, pre: int | None, post: int, total: int) -> dict:
     """Attach the before/after quick-check scores to the latest session (learning gain = post - pre)."""
     profile["sessions"][-1].update({"quiz_pre": pre, "quiz_post": post, "quiz_total": total})

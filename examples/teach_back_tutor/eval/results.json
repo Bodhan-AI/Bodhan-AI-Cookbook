@@ -1,7 +1,7 @@
 {
   "date": "2026-11-24",
   "model": "openai/gpt-oss-120b",
-  "seconds": 198,
+  "seconds": 491,
   "judge": {
     "items": 16,
     "concept_accuracy": 0.95,
@@ -639,5 +639,157 @@
         "avg_quality": 1.17
       }
     ]
+  },
+  "homework": {
+    "items": 10,
+    "single_solve_accuracy": 1.0,
+    "answered": 10,
+    "accuracy_when_answered": 1.0,
+    "abstained": 0,
+    "wrong_but_trusted": 0,
+    "rows": [
+      {
+        "question": "A leaf makes 12 grams of glucose a day. It uses one third for energy and stores the rest as starch. How many grams of starch does it store in 5 days?",
+        "agreement": "3/3",
+        "trusted": true,
+        "answer": "40 grams of starch",
+        "all_answers": [
+          "40 grams of starch",
+          "40 grams",
+          "40 grams of starch"
+        ],
+        "single_correct": true,
+        "voted_correct": true,
+        "wrong_but_trusted": false
+      },
+      {
+        "question": "A plant makes 18 grams of glucose a day and stores two thirds of it as starch. How many grams of starch does it store in 7 days?",
+        "agreement": "3/3",
+        "trusted": true,
+        "answer": "84 grams",
+        "all_answers": [
+          "84 grams",
+          "84 grams of starch",
+          "84 grams"
+        ],
+        "single_correct": true,
+        "voted_correct": true,
+        "wrong_but_trusted": false
+      },
+      {
+        "question": "A leaf makes 10 grams of glucose each day and uses half of it for energy. How many grams of starch has it stored after 4 days?",
+        "agreement": "3/3",
+        "trusted": true,
+        "answer": "20 grams",
+        "all_answers": [
+          "20 grams",
+          "20 grams",
+          "20 grams"
+        ],
+        "single_correct": true,
+        "voted_correct": true,
+        "wrong_but_trusted": false
+      },
+      {
+        "question": "A leaf makes 9 grams of glucose a day and stores the rest as starch after using one third for energy. After how many days will it have stored 30 grams of starch?",
+        "agreement": "3/3",
+        "trusted": true,
+        "answer": "5 days",
+        "all_answers": [
+          "5 days",
+          "5 days",
+          "5 days"
+        ],
+        "single_correct": true,
+        "voted_correct": true,
+        "wrong_but_trusted": false
+      },
+      {
+        "question": "A plant gets sunlight and water but no carbon dioxide at all. Can it make food? Answer yes or no, then explain.",
+        "agreement": "3/3",
+        "trusted": true,
+        "answer": "No, it cannot make food. Carbon dioxide is one of the three essential ingredients for photosynthesis, and without it, the plant cannot produce glucose.",
+        "all_answers": [
+          "No, it cannot make food. Carbon dioxide is one of the three essential ingredients for photosynthesis, and without it, the plant cannot produce glucose.",
+          "No. The plant cannot make food because photosynthesis requires all three — sunlight, water, and carbon dioxide. Without carbon dioxide, the process cannot take place.",
+          "No, a plant cannot make food without carbon dioxide because all three ingredients (sunlight, water, and carbon dioxide) are essential for photosynthesis."
+        ],
+        "single_correct": true,
+        "voted_correct": true,
+        "wrong_but_trusted": false
+      },
+      {
+        "question": "Which gas does a plant release into the air when it makes its food?",
+        "agreement": "3/3",
+        "trusted": true,
+        "answer": "Oxygen",
+        "all_answers": [
+          "Oxygen",
+          "Oxygen",
+          "Oxygen"
+        ],
+        "single_correct": true,
+        "voted_correct": true,
+        "wrong_but_trusted": false
+      },
+      {
+        "question": "A plant is kept in a dark cupboard and watered every day. Which of the three things it needs to make food is missing?",
+        "agreement": "3/3",
+        "trusted": true,
+        "answer": "Sunlight is missing.",
+        "all_answers": [
+          "Sunlight is missing.",
+          "Sunlight",
+          "Sunlight is missing."
+        ],
+        "single_correct": true,
+        "voted_correct": true,
+        "wrong_but_trusted": false
+      },
+      {
+        "question": "Through which tiny pores does carbon dioxide get into a leaf?",
+        "agreement": "3/3",
+        "trusted": true,
+        "answer": "Stomata",
+        "all_answers": [
+          "Stomata",
+          "Stomata",
+          "Stomata"
+        ],
+        "single_correct": true,
+        "voted_correct": true,
+        "wrong_but_trusted": false
+      },
+      {
+        "question": "A gardener says that adding more soil gives a plant more food. Is the gardener right? Answer yes or no, then explain.",
+        "agreement": "3/3",
+        "trusted": true,
+        "answer": "No, the gardener is not right. Soil gives the plant water and minerals, not food. Food is made in the leaves by photosynthesis.",
+        "all_answers": [
+          "No, the gardener is not right. Soil gives the plant water and minerals, not food. Food is made in the leaves by photosynthesis.",
+          "No, the gardener is not right. Soil gives water and minerals, but food is made in the leaves by photosynthesis.",
+          "No, the gardener is not right. The soil provides water and minerals, but food is made in the leaves through photosynthesis."
+        ],
+        "single_correct": true,
+        "voted_correct": true,
+        "wrong_but_trusted": false
+      },
+      {
+        "question": "In which part of the plant does photosynthesis mainly happen?",
+        "agreement": "3/3",
+        "trusted": true,
+        "answer": "The leaves",
+        "all_answers": [
+          "The leaves",
+          "Photosynthesis mainly happens in the leaves.",
+          "In the leaves."
+        ],
+        "single_correct": true,
+        "voted_correct": true,
+        "wrong_but_trusted": false
+      }
+    ],
+    "model": "qwen/qwen3.8-27b",
+    "date": "2026-11-24"
   }
 }

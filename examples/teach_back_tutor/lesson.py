@@ -96,14 +96,20 @@ def card_from_images(pages: list[tuple[bytes, str]]) -> tuple[str, dict]:
     if cached.exists():
         data = json.loads(cached.read_text(encoding="utf-8"))
         return data["page_text"], data["card"]
-    with ThreadPoolExecutor(max_workers=MAX_PAGES) as pool:  # pages are independent; keep their order
-        texts = list(pool.map(lambda page: bodhan.ocr_page(*page), pages))
-    page_text = "\n\n".join(texts) if len(texts) == 1 else "\n\n".join(
-        f"--- Page {i} ---\n{t}" for i, t in enumerate(texts, 1))
+    page_text = read_pages(pages)
     card = build_card(page_text)
     CARDS_DIR.mkdir(parents=True, exist_ok=True)
     cached.write_text(json.dumps({"page_text": page_text, "card": card}, ensure_ascii=False, indent=2), encoding="utf-8")
     return page_text, card
+
+
+def read_pages(pages: list[tuple[bytes, str]]) -> str:
+    """indic-ocr on each page photo, in parallel, joined in reading order."""
+    with ThreadPoolExecutor(max_workers=MAX_PAGES) as pool:
+        texts = list(pool.map(lambda page: bodhan.ocr_page(*page), pages[:MAX_PAGES]))
+    if len(texts) == 1:
+        return texts[0]
+    return "\n\n".join(f"--- Page {i} ---\n{t}" for i, t in enumerate(texts, 1))
 
 
 def card_from_image(image_bytes: bytes, filename: str = "page.png") -> tuple[str, dict]:

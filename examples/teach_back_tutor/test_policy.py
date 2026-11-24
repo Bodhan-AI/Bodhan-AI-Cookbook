@@ -3,6 +3,7 @@
     pip install pytest && pytest test_policy.py
 """
 
+import exercise
 import lesson
 import memory
 import parent
@@ -246,6 +247,66 @@ def test_learning_gain_is_post_minus_pre():
     memory.add_quiz(profile, pre=1, post=3, total=3)
     d = memory.skills(profile)
     assert d["learning_gain"] == 2 and d["quizzes"][0]["post"] == 3
+
+
+REF = {"trusted": True, "agreement": "3/3", "final_answer": "40 grams",
+       "steps": ["Starch per day is two thirds of 12 g, which is 8 g", "Over 5 days: 8 g times 5 is 40 g"]}
+
+
+def _fake_solver(monkeypatch, finals, groups):
+    answers = iter(finals)
+
+    def fake(messages, temperature=0.2, model=None):
+        if "Group the answers" in messages[0]["content"]:
+            return {"groups": groups}
+        return {"steps": ["a step"], "final_answer": next(answers)}
+    monkeypatch.setattr(exercise.llm, "chat_json", fake)
+
+
+def test_answer_key_is_trusted_only_when_a_majority_agree(monkeypatch):
+    _fake_solver(monkeypatch, ["40 g", "40 grams", "60 g"], [[1, 2], [3]])
+    ref = exercise.solve("How much starch?", "page", "middle")
+    assert ref["trusted"] and ref["agreement"] == "2/3"
+    _fake_solver(monkeypatch, ["40 g", "60 g", "8 g"], [[1], [2], [3]])
+    assert not exercise.solve("How much starch?", "page", "middle")["trusted"]
+
+
+def test_numeric_answers_are_grouped_by_value_without_an_llm(monkeypatch):
+    _fake_solver(monkeypatch, ["The leaf stores 40 grams of starch.", "40 g", "40 grams of starch"],
+                 groups=[[1], [2], [3]])  # a wrong LLM grouping that must not be used
+    ref = exercise.solve("How much starch?", "page", "middle")
+    assert ref["trusted"] and ref["agreement"] == "3/3"
+
+
+def test_stuck_student_gets_a_question_then_a_guess_then_the_step():
+    hw = exercise.Homework(question="How much starch?", ref=REF)
+    moves = []
+    for _ in range(3):
+        hw.turn += 1
+        moves.append(exercise.choose_move(hw, exercise.update(hw, {"steps": [], "quality": 0})))
+    assert [m["move"] for m in moves] == ["nudge_goal", "nudge_guess", "reveal_step"]
+    assert hw.steps[0] == "revealed"
+
+
+def test_untrusted_answer_key_is_never_graded():
+    hw = exercise.Homework(question="Q", ref={**REF, "trusted": False, "agreement": "1/3"})
+    changes = exercise.update(hw, {"steps": [], "final_answer": "40 grams", "final_correct": True, "wrong": "x"})
+    assert not hw.final_correct and not hw.errors
+    assert exercise.choose_move(hw, changes)["move"] == "check_with_teacher"
+
+
+def test_right_answer_with_a_skipped_step_asks_why_once_then_wraps_up():
+    hw = exercise.Homework(question="Q", ref=REF)
+    changes = exercise.update(hw, {"steps": [2], "final_answer": "40 g", "final_correct": True})
+    assert exercise.choose_move(hw, changes) == {"move": "ask_why", "step": 0}
+    changes = exercise.update(hw, {"steps": [], "quality": 1})
+    assert exercise.choose_move(hw, changes)["move"] == "wrap_up" and hw.steps[0] == "skipped"
+
+
+def test_classmate_may_not_blurt_out_the_answer():
+    hw = exercise.Homework(question="Q", ref=REF)
+    assert exercise.check_line(hw, {"move": "ask_next"}, "Is it 40 grams then?") == ["it gives away the final answer"]
+    assert exercise.check_line(hw, {"move": "ask_next"}, "So what do we work out first?") == []
 
 
 def test_grounding_rejects_quotes_not_on_the_page():

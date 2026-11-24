@@ -19,6 +19,7 @@ HERE = Path(__file__).resolve().parent
 load_dotenv(HERE / ".env")
 
 import bodhan  # noqa: E402
+import exercise  # noqa: E402
 import lesson  # noqa: E402
 import memory  # noqa: E402
 import parent  # noqa: E402
@@ -29,6 +30,10 @@ LANGS = {"en": "English", "hi": "Hindi", "bn": "Bengali", "ta": "Tamil", "te": "
          "gu": "Gujarati", "kn": "Kannada", "ml": "Malayalam", "or": "Odia", "pa": "Punjabi", "as": "Assamese",
          "ur": "Urdu"}
 SAMPLE = HERE / "sample_data" / "photosynthesis_page.png"
+EXERCISE_SAMPLE = HERE / "sample_data" / "exercise_page.png"
+STEP = {"explained": ("you explained it", "green", "on"), "after_nudge": ("after a nudge", "amber", "half"),
+        "revealed": ("Riya worked it out", "gray", "rev"), "skipped": ("skipped", "gray", ""),
+        "not_yet": ("not reached", "gray", "")}
 STATUS = {"explained": ("explained", "green"), "partial": ("partly", "amber"), "not_covered": ("not yet", "gray")}
 PLANT = {"caught": ("caught it", "green"), "caught_after_hint": ("caught after a hint", "amber"),
          "revealed": ("missed it", "red"), "planted": ("no answer yet", "gray")}
@@ -75,7 +80,7 @@ section[data-testid="stSidebar"] { background: #FFFFFF; border-right: 1px solid 
 .head .topic { font-size: 1.45rem; font-weight: 800; margin: 2px 0 6px; color: #1E2235; }
 .dots { display: flex; gap: 6px; margin: 6px 0 4px; }
 .dot { width: 28px; height: 10px; border-radius: 999px; background: #E6E8F2; }
-.dot.on { background: #22C55E; } .dot.half { background: #FBBF24; }
+.dot.on { background: #22C55E; } .dot.half { background: #FBBF24; } .dot.rev { background: #A5B4FC; }
 .banner { border-left: 4px solid #8B5CF6; background: #F5F3FF; border-radius: 12px; padding: 12px 16px;
   margin-bottom: 14px; color: #3B2F6B; }
 
@@ -195,8 +200,65 @@ def add_buddy(english: str, check: dict | None = None) -> None:
 
 
 def finish() -> None:
-    ss.report = tutor.report(ss.session)
-    memory.save(memory.record(ss.profile, ss.session, ss.report))
+    if ss.get("mode") == "homework":
+        ss.report = exercise.report(ss.session)
+        memory.save(memory.record_homework(ss.profile, ss.report))
+    else:
+        ss.report = tutor.report(ss.session)
+        memory.save(memory.record(ss.profile, ss.session, ss.report))
+
+
+def render_chat(name: str, buddy_face: bytes, student_face: bytes) -> None:
+    for i, m in enumerate(ss.chat):
+        mine = m["role"] == "user"
+        with st.chat_message("user" if mine else "assistant", avatar=student_face if mine else buddy_face):
+            who = escape(student or "You") if mine else escape(name)
+            body = (f'<div class="{"from-student" if mine else "from-buddy"}"><div class="who">{who}</div>'
+                    f'<div class="said">{escape(m["text"])}</div>')
+            if m["english"] != m["text"]:
+                body += f'<div class="translation">{escape(m["english"])}</div>'
+            if teacher_view and m.get("info"):
+                ev, info = m["info"]["eval"], m["info"]
+                body += ('<div style="margin-top:8px">' + chip(f"quality {ev.get('quality')}/3")
+                         + chip(f"next: {info['move'].replace('_', ' ')}", "gray") + chip(f"level {info['level']}", "gray")
+                         + (f'<div class="muted">{escape(ev.get("short_feedback", ""))}</div>'
+                            if ev.get("short_feedback") else "") + "</div>")
+            if teacher_view and not mine:
+                body += check_html(m.get("check"))
+            ui(body + "</div>")
+            if m.get("audio"):
+                st.audio(m["audio"], format="audio/wav", autoplay=i == len(ss.chat) - 1)
+
+
+def read_message(placeholder: str) -> tuple[str, str] | None:
+    """The student's turn, typed (with transliteration) or spoken: (what they said, English for grading)."""
+    heard = st.audio_input("Or answer out loud", help="Speak in the language chosen in the sidebar.")
+    typed = st.chat_input(placeholder)
+    try:
+        if heard is not None and ss.get("last_audio") != hashlib.sha1(heard.getvalue()).hexdigest():
+            ss.last_audio = hashlib.sha1(heard.getvalue()).hexdigest()
+            with st.spinner("Listening with indic-transcribe..."):
+                said = bodhan.transcribe(heard.getvalue(), language=None if lang == "en" else lang,
+                                         filename="speech.wav")
+                return said, said if lang == "en" else bodhan.translate(said, target_language="en")
+        if typed:
+            said = bodhan.transliterate(typed, language=lang) if roman else typed
+            return said, said if lang == "en" else bodhan.translate(said, target_language="en")
+    except bodhan.BodhanError as err:
+        st.error(f"Bodhan API error: {err}")
+    return None
+
+
+def take_turn(name: str, message: tuple[str, str], engine) -> None:
+    said, english = message
+    ss.chat.append({"role": "user", "text": said, "english": english})
+    with st.spinner(f"{name} is thinking..."):
+        reply, info = engine.step(ss.session, english)
+        ss.chat[-1]["info"] = info
+        add_buddy(reply, info["check"])
+    if ss.session.done:
+        finish()
+    st.rerun()
 
 
 VERDICT_TONE = {"true": "green", "false": "red", "unverified": "gray"}
@@ -206,6 +268,12 @@ def check_html(c: dict | None) -> str:
     """Teacher view of one fact-check: the verdict per claim with the page's own words, and what was fixed."""
     if not c:
         return ""
+    if "verdicts" not in c:  # Homework mode: the answer guard
+        head = (chip("answer guard: rewritten", "amber") if c["regenerated"] else
+                chip("answer guard: passed", "green") if c["ok"] else chip("answer guard: issues remain", "red"))
+        fixed = (f'<div class="muted">First draft blocked: {escape("; ".join(c["first_problems"]))}</div>'
+                 if c["regenerated"] else "")
+        return f'<div style="margin-top:8px">{head}{fixed}</div>'
     head = (chip("fact-check: rewritten", "amber") if c["regenerated"] else
             chip("fact-check: passed", "green") if c["ok"] else chip("fact-check: issues remain", "red"))
     if c.get("plant_present"):
@@ -248,9 +316,21 @@ def quiz_form(stage: str) -> None:
 # ------------------------------------------------------------------ progress dashboard
 
 def show_progress(name: str) -> None:
-    data = memory.skills(memory.load(name))
+    profile = memory.load(name)
+    data, homework = memory.skills(profile), profile.get("homework", [])
     ui(f'<div class="hero"><div class="tag">My progress</div><h1>{escape(name)}\'s learning journey</h1>'
        '<p>Every session you teach is remembered. Here is what you have mastered and what to practise next.</p></div>')
+    if homework:
+        rows = []
+        for h in homework:
+            chips = chip("steps on own " + h["steps_on_own"], "gray") + chip("nudges {}".format(h["nudges"]), "gray")
+            chips += (chip("solved", "green") if h["solved"] else chip("not graded", "gray") if not h["graded"]
+                      else chip("not solved yet", "amber"))
+            rows.append(f'<div class="row"><div><div class="name">{escape(h["question"])}</div>'
+                        f'<div class="quote">{h["date"]}</div></div><div>{chips}</div></div>')
+        ui('<div class="card"><h3>Homework solved together</h3>' + "".join(rows) + "</div>")
+    if not data["sessions"] and homework:
+        return
     if not data["sessions"]:
         ui('<div class="card"><h3>No sessions yet</h3><p class="muted">Teach a page to your classmate and your '
            'progress will show up here.</p></div>')
@@ -367,9 +447,24 @@ def show_evaluation() -> None:
            f'know different amounts ({escape(sim["model"])}, {sim["date"]}). The scores should rank them strong &gt; '
            'partial &gt; confused.</p>' + "".join(rows) + "</div>")
 
-    if "session" in ss and ss.session.checks:
+    hw = r.get("homework")
+    if hw:
+        ui('<div class="card"><h3>4. Homework mode: is the answer key right?</h3>'
+           f'<p class="muted">{hw["items"]} exercise questions with known answers ({escape(hw["model"])}). One solve '
+           'vs self-consistency: 3 independent solves, use the answer only if a majority agree, otherwise do not '
+           'grade.</p><div class="kpis">'
+           f'<div class="kpi"><span class="label">One solve correct</span><b>{pct(hw["single_solve_accuracy"])}</b></div>'
+           f'<div class="kpi"><span class="label">Answered (majority agreed)</span><b>{hw["answered"]}/{hw["items"]}</b></div>'
+           f'<div class="kpi"><span class="label">Correct when answered</span><b>{pct(hw["accuracy_when_answered"])}</b></div>'
+           f'<div class="kpi"><span class="label">Wrong but trusted</span><b>{hw["wrong_but_trusted"]}</b></div>'
+           '</div></div>')
+        with st.expander("Homework: every labelled exercise"):
+            st.dataframe([{"question": x["question"], "agreement": x["agreement"], "answer": x["answer"],
+                           "correct": x["voted_correct"]} for x in hw["rows"]], hide_index=True, width="stretch")
+
+    if "session" in ss and getattr(ss.session, "card", None) and ss.session.checks:
         fc = tutor.fact_check_summary(ss.session)
-        ui('<div class="card"><h3>4. This session, live</h3><div class="kpis">'
+        ui('<div class="card"><h3>5. This session, live</h3><div class="kpis">'
            f'<div class="kpi"><span class="label">Lines checked</span><b>{fc["lines"]}</b></div>'
            f'<div class="kpi"><span class="label">Claims verified true</span><b>{fc["claims_true"]}/{fc["claims"]}</b></div>'
            f'<div class="kpi"><span class="label">Wrong claims blocked</span><b>{fc["false_caught"]}</b></div>'
@@ -383,7 +478,9 @@ def show_evaluation() -> None:
        '<div class="next"><span class="n">3</span><span><b>Chain-of-Verification</b> (Dhuliawala et al., Findings of '
        'ACL 2024, arXiv 2309.11495): plan checks, answer them independently, then revise.</span></div>'
        '<div class="next"><span class="n">4</span><span><b>LLM-as-a-judge</b> (Zheng et al., NeurIPS 2023, '
-       'arXiv 2306.05685): validate an LLM grader against human labels.</span></div></div>')
+       'arXiv 2306.05685): validate an LLM grader against human labels.</span></div>'
+       '<div class="next"><span class="n">5</span><span><b>Self-consistency</b> (Wang et al., ICLR 2023, '
+       'arXiv 2203.11171): sample several solutions and keep the majority answer.</span></div></div>')
 
 
 if view == "My progress":
@@ -395,7 +492,7 @@ if view == "Evaluation":
 
 # ------------------------------------------------------------------ 1. the page
 
-if "session" not in ss:
+if "session" not in ss and "hw_questions" not in ss:
     ui('<div class="hero"><div class="tag">Feynman technique · 13 languages</div>'
        '<h1>Teach it to learn it.</h1>'
        '<p>Photograph a page from your textbook and teach it to a classmate who missed the class. '
@@ -409,6 +506,11 @@ if "session" not in ss:
        '<span class="d">Your friend will slip in a mistake. Spot it!</span></div>'
        '<div class="step"><span class="n">4</span><span class="t">See your progress</span>'
        '<span class="d">Skills, weak spots, and a note for your parents.</span></div></div>')
+    mode = st.radio("What would you like to do?", ["Teach a lesson page", "Solve homework together"],
+                    horizontal=True, help="Homework mode: for exercise pages whose answers are not printed. "
+                                          "Your classmate is stuck on a question and you help solve it.")
+    homework = mode.startswith("Solve")
+    sample = EXERCISE_SAMPLE if homework else SAMPLE
     with st.container(border=True):
         left, right = st.columns([3, 2], gap="large")
         with left:
@@ -416,14 +518,30 @@ if "session" not in ss:
                                        type=["png", "jpg", "jpeg"], accept_multiple_files=True)
             ui('<div class="muted"><b>Tips for good photos</b><br>Hold the phone flat above the page, in good '
                'light. Pages from one lesson work best; add them in reading order.</div>')
-            start = st.button("Start teaching", icon=":material/play_arrow:", type="primary", width="stretch",
+            start = st.button("Start", icon=":material/play_arrow:", type="primary", width="stretch",
                               disabled=not uploads)
         with right:
-            st.image(str(SAMPLE), width="stretch")
-            use_sample = st.button("Try the sample page", icon=":material/auto_stories:", width="stretch")
+            st.image(str(sample), width="stretch")
+            use_sample = st.button("Try the sample exercise page" if homework else "Try the sample page",
+                                   icon=":material/auto_stories:", width="stretch")
     if uploads and len(uploads) > lesson.MAX_PAGES:
         st.warning(f"Only the first {lesson.MAX_PAGES} pages will be used, to keep one lesson to one session.")
-    if (uploads and start) or use_sample:
+    if homework and ((uploads and start) or use_sample):
+        pages = ([(u.getvalue(), u.name) for u in uploads[:lesson.MAX_PAGES]] if uploads and start
+                 else [(sample.read_bytes(), sample.name)])
+        with st.spinner("Reading the page with indic-ocr and finding the exercise questions..."):
+            try:
+                ss.page_text = lesson.read_pages(pages)
+                questions = exercise.find_questions(ss.page_text)
+            except (bodhan.BodhanError, ValueError) as err:
+                st.error(str(err))
+                st.stop()
+        if not questions:
+            st.error("No exercise questions found on this page. For a lesson page, choose 'Teach a lesson page'.")
+            st.stop()
+        ss.mode, ss.hw_questions, ss.profile = "homework", questions, memory.load(student)
+        st.rerun()
+    if not homework and ((uploads and start) or use_sample):
         pages = ([(u.getvalue(), u.name) for u in uploads[:lesson.MAX_PAGES]] if uploads and start
                  else [(SAMPLE.read_bytes(), SAMPLE.name)])
         label = "the page" if len(pages) == 1 else f"{len(pages)} pages"
@@ -444,6 +562,85 @@ if "session" not in ss:
             if not ss.quiz["questions"]:
                 ss.quiz = None
         st.rerun()
+    st.stop()
+
+# ------------------------------------------------------------------ homework mode
+
+if ss.get("mode") == "homework":
+    if "session" not in ss:
+        ui('<div class="hero"><div class="tag">Homework mode</div><h1>Solve it together.</h1>'
+           f'<p>{escape(tutor.BANDS[band]["name"])} is stuck on a question from this page. Pick one and help solve it, '
+           'step by step. If you get stuck too, they will nudge you, but they will not just tell you.</p></div>')
+        with st.container(border=True):
+            q = st.radio("Exercise questions found on the page", ss.hw_questions)
+            if st.button("Solve this one", icon=":material/play_arrow:", type="primary"):
+                with st.spinner("Working out the answer 3 times independently, to check it before we start..."):
+                    ref = exercise.solve(q, ss.page_text, band)
+                ss.session = exercise.Homework(question=q, ref=ref, band=band, page_text=ss.page_text)
+                ss.chat = []
+                add_buddy(*exercise.start(ss.session))
+                st.rerun()
+        st.stop()
+
+    hw: exercise.Homework = ss.session
+    name = hw.cfg["name"]
+    buddy_face, student_face = avatar(name[0], PERSONA_COLOR[hw.band]), avatar((student or "?")[0], STUDENT_COLOR)
+    dots = "".join(f'<span class="dot {STEP[st_][2]}"></span>' for st_ in hw.steps)
+    own = sum(st_ == "explained" for st_ in hw.steps)
+    trust = chip(f'answer checked: {hw.ref["agreement"]} solutions agree', "green" if hw.ref["trusted"] else "amber")
+    ui('<div class="card"><div class="head">'
+       f'<div style="max-width:560px"><span class="label">Homework question</span>'
+       f'<div class="topic" style="font-size:1.1rem">{escape(hw.question)}</div>'
+       f'{chip(f"Helping {name}")}{chip(hw.cfg["label"], "gray")}{chip(LANGS[lang], "gray")}{trust}</div>'
+       f'<div><span class="label">Steps solved</span><div class="dots">{dots}</div>'
+       f'<div class="muted">{own} on your own · nudges: {sum(hw.nudges)}</div></div></div></div>')
+    if not hw.ref["trusted"]:
+        ui('<div class="banner"><b>Not graded.</b> The answer was worked out 3 times and the answers did not agree, '
+           f'so {escape(name)} is not sure either. Solve it together, then check with your teacher.</div>')
+    if teacher_view:
+        with st.expander("Answer key (self-consistency: solved 3 times independently)", icon=":material/visibility:"):
+            st.write("Steps: " + " → ".join(hw.ref["steps"]))
+            st.write(f"Final answer: **{hw.ref['final_answer']}** · the three solutions said: "
+                     + " | ".join(hw.ref["answers"]))
+    with st.expander(f"{name}'s notebook: what {name} has learned from you ({len(hw.learned)})",
+                     icon=":material/menu_book:"):
+        if hw.learned:
+            ui("".join(f'<div class="row"><div class="said">{escape(n["text"])}</div>{chip(n["how"], "gray")}</div>'
+                       for n in hw.learned))
+        else:
+            st.write("Nothing yet. Start explaining!")
+
+    render_chat(name, buddy_face, student_face)
+    if ss.pop("finish_now", False):
+        finish()
+        st.rerun()
+    if "report" not in ss:
+        message = read_message(f"Help {name} solve it...")
+        if message:
+            take_turn(name, message, exercise)
+        st.stop()
+
+    rep = ss.report
+    total = len(rep["steps"])
+    share = round(100 * own / total) if total else 0
+    verdict = ("not graded" if not rep["answer_trusted"] else "solved" if rep["solved"] else "not solved yet")
+    ui('<div class="card"><h3>How it went</h3><div class="score">'
+       f'<div class="ring" style="--p:{share}"><div>{own}/{total}<small>steps on your own</small></div></div>'
+       '<div class="stats">'
+       f'<div class="stat"><span class="label">Answer</span><b>{escape(verdict)}</b></div>'
+       f'<div class="stat"><span class="label">Nudges</span><b>{rep["nudges"]}</b></div>'
+       f'<div class="stat"><span class="label">Turns</span><b>{rep["turns"]}</b></div></div></div></div>')
+    steps = "".join(f'<div class="row"><div class="name">{escape(x["step"])}</div>{chip(*STEP[x["status"]][:2])}</div>'
+                    for x in rep["steps"])
+    errors = "".join(f'<div class="row"><div class="name">You said "{escape(e)}"</div>{chip("check this", "red")}</div>'
+                     for e in rep["errors"])
+    answer = (f'<div class="quote">Answer: {escape(rep["reference_answer"])} ({rep["agreement"]} independent '
+              'solutions agree)</div>' if rep["answer_trusted"] else
+              '<div class="quote">The answer key was uncertain, so this question was not graded.</div>')
+    ui(f'<div class="card"><h3>The solution, step by step</h3>{steps}{errors}{answer}</div>')
+    ui(f'<div class="muted">Saved to {escape(student)}\'s homework history (see <b>My progress</b>). '
+       f'The answer guard checked every line {escape(name)} said; {rep["rewritten"]} were rewritten so they would '
+       'not give the answer away.</div>')
     st.stop()
 
 s: tutor.Session = ss.session
@@ -488,57 +685,16 @@ with st.expander(f"{name}'s notebook: what {name} has learned from you ({len(s.l
 
 # ------------------------------------------------------------------ 2. the conversation
 
-for i, m in enumerate(ss.chat):
-    mine = m["role"] == "user"
-    with st.chat_message("user" if mine else "assistant", avatar=student_face if mine else buddy_face):
-        who = escape(student or "You") if mine else escape(name)
-        body = (f'<div class="{"from-student" if mine else "from-buddy"}"><div class="who">{who}</div>'
-                f'<div class="said">{escape(m["text"])}</div>')
-        if m["english"] != m["text"]:
-            body += f'<div class="translation">{escape(m["english"])}</div>'
-        if teacher_view and m.get("info"):
-            ev, info = m["info"]["eval"], m["info"]
-            body += ('<div style="margin-top:8px">' + chip(f"quality {ev.get('quality')}/3")
-                     + chip(f"next: {info['move'].replace('_', ' ')}", "gray") + chip(f"level {info['level']}", "gray")
-                     + (f'<div class="muted">{escape(ev.get("short_feedback", ""))}</div>'
-                        if ev.get("short_feedback") else "") + "</div>")
-        if teacher_view and not mine:
-            body += check_html(m.get("check"))
-        ui(body + "</div>")
-        if m.get("audio"):
-            st.audio(m["audio"], format="audio/wav", autoplay=i == len(ss.chat) - 1)
+render_chat(name, buddy_face, student_face)
 
 if ss.pop("finish_now", False):
     finish()
     st.rerun()  # redraw the sidebar without the finish button
 
 if "report" not in ss:
-    heard = st.audio_input("Or answer out loud", help="Speak in the language chosen in the sidebar.")
-    typed = st.chat_input(f"Explain it to {name}...")
-    message = None  # (what the student said, in English for grading)
-    try:
-        if heard is not None and ss.get("last_audio") != hashlib.sha1(heard.getvalue()).hexdigest():
-            ss.last_audio = hashlib.sha1(heard.getvalue()).hexdigest()
-            with st.spinner("Listening with indic-transcribe..."):
-                said = bodhan.transcribe(heard.getvalue(), language=None if lang == "en" else lang,
-                                         filename="speech.wav")
-                message = (said, said if lang == "en" else bodhan.translate(said, target_language="en"))
-        elif typed:
-            said = bodhan.transliterate(typed, language=lang) if roman else typed
-            message = (said, said if lang == "en" else bodhan.translate(said, target_language="en"))
-    except bodhan.BodhanError as err:
-        st.error(f"Bodhan API error: {err}")
-
+    message = read_message(f"Explain it to {name}...")
     if message:
-        said, english = message
-        ss.chat.append({"role": "user", "text": said, "english": english})
-        with st.spinner(f"{name} is thinking..."):
-            reply, info = tutor.step(s, english)
-            ss.chat[-1]["info"] = info
-            add_buddy(reply, info["check"])
-        if s.done:
-            finish()
-        st.rerun()
+        take_turn(name, message, tutor)
 
 # ------------------------------------------------------------------ 3. the report
 
