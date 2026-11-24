@@ -1530,3 +1530,7 @@ against the synthesis report. Short synthesis pieces therefore share one
 recognition request when the assembled audio fits the verification window.
 Long units still use bounded overlapping windows. On the saved Tamil replay
 this changed the verification request count from 62 to 28.
+
+A source transcription transport failure can now receive one replacement in
+the same run within the original three-attempt budget. Both attempts count
+toward estimated spend. A later process still respects an uncertain journal.

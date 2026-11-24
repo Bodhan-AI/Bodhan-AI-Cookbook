@@ -113,7 +113,7 @@ def run_pipeline(args):
             prepare_boundaries(stages,BoundarySettings(context_ms=1000,target_core_ms=13000,max_window_ms=15000))
             save('media_and_boundaries')
             _,estimate=asr.inspect_windows(stages)
-            client=asr.TranscriptionClient(keys[0],cache/'asr',asr.RetrySettings(attempts=3,concurrency=1))
+            client=asr.TranscriptionClient(keys[0],cache/'asr',asr.RetrySettings(attempts=3,concurrency=1,retry_ambiguous_once=True))
             raw=stage_call(budget,'source_asr',Decimal(estimate['estimated_first_pass_cost_inr'])*3,
                 lambda:asr.transcribe_run(stages,client),lambda r:r['estimated_new_cost_inr'])
             # Empty recognition is acceptable only where VAD also found no speech.

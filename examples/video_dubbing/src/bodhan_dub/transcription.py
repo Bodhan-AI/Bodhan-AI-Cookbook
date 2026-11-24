@@ -35,6 +35,7 @@ class RetrySettings:
     attempts: int = 3
     timeout_seconds: float = 60
     concurrency: int = 1
+    retry_ambiguous_once: bool = False
 
     def __post_init__(self):
         if type(self.attempts) is not int or not 1 <= self.attempts <= 5:
@@ -201,6 +202,11 @@ class TranscriptionClient:
                 # an exception message that could expose a credential/body.
                 attempts.append({'attempt':number,'status':'unknown','latency_seconds':round(time.monotonic()-started,3),'billing':'unknown'})
                 atomic_json(state_path,{'identity':identity,'state':'unknown','attempts':attempts})
+                if (self.settings.retry_ambiguous_once and isinstance(exc, AmbiguousCall)
+                        and number < self.settings.attempts
+                        and sum(event.get('status') == 'unknown' for event in attempts) == 1):
+                    self.sleep(1)
+                    continue
                 raise failure('ambiguous_asr_call','No trustworthy response was received. The call may be billed; automatic retries are blocked.') from exc
             event={'attempt':number,'http_status':response.status,'latency_seconds':round(time.monotonic()-started,3),
                    'estimated_cost_if_billed_inr':info['estimated_cost_inr'],'billing':'estimated' if response.status==200 else 'unknown'}

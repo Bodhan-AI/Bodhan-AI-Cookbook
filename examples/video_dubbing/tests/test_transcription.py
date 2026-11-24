@@ -268,3 +268,12 @@ def test_http_transport_discards_errors_and_blocks_redirects(monkeypatch):
     result=http_transport(Request(ENDPOINT,{},b'body',1))
     assert result.status==401 and result.body==b''
     assert captured[0].redirect_request(None,None,None,None,None,'https://other.invalid') is None
+
+
+def test_source_pipeline_can_retry_one_uncertain_call(tmp_path):
+    settings = RetrySettings(retry_ambiguous_once=True)
+    transport = ScriptedTransport(AmbiguousCall('timeout'), response())
+    client = TranscriptionClient(KEY, tmp_path/'cache', settings=settings, transport=transport, sleep=lambda _: None)
+    result = client.transcribe(make_wav(tmp_path/'audio.wav'))
+    assert len(result['attempts']) == 2
+    assert result['attempts'][0]['billing'] == 'unknown'
