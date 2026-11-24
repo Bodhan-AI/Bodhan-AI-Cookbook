@@ -1,0 +1,13 @@
+{
+ "source": "demo/inputs/clips/clip_1.wav",
+ "language": "te",
+ "duration_sec": 2.73,
+ "text": "రైలు ఉదయం ఏడు గంటలకు బయలుదేరుతుంది",
+ "segments": [
+  {
+   "start": 0.0,
+   "end": 2.73,
+   "text": "రైలు ఉదయం ఏడు గంటలకు బయలుదేరుతుంది"
+  }
+ ]
+}

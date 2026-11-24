@@ -1,0 +1,51 @@
+{
+  "status": "not_possible",
+  "llm_status": "not_possible",
+  "stop_reason": "finished",
+  "task": "Read this whole chapter aloud in Hindi",
+  "steps": 0,
+  "max_steps": 30,
+  "cost_inr": {
+    "total": 0,
+    "by_model": {},
+    "budget": 0.5,
+    "within_budget": true
+  },
+  "model_calls": {
+    "made": 0,
+    "cache_hits": 0
+  },
+  "elapsed_sec": 49.7,
+  "plan": [
+    "1. OCR the PDF to extract text.",
+    "2. Translate extracted English text to Hindi.",
+    "3. Synthesize Hindi speech from the translated text."
+  ],
+  "assumptions": [
+    "The PDF contains scanned images requiring OCR.",
+    "The chapter length will result in >10,000 characters after translation, making speech synthesis exceed the Rs0.5 budget."
+  ],
+  "verification": {
+    "status": "not_possible",
+    "checks": [],
+    "artifacts": [],
+    "missing_artifacts": [],
+    "not_produced_by_tools": [],
+    "notes": [],
+    "all_passed": true
+  },
+  "artifacts": [],
+  "inputs": {
+    "files": [
+      {
+        "path": "demo/inputs/chapter.pdf",
+        "name": "chapter.pdf",
+        "kind": "pdf",
+        "bytes": 512923,
+        "pages": 8
+      }
+    ],
+    "missing": []
+  },
+  "llm_model": "openai/gpt-oss-120b"
+}

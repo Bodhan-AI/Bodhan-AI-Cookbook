@@ -1,0 +1,124 @@
+{
+  "status": "completed",
+  "llm_status": "completed",
+  "stop_reason": "finished",
+  "task": "Which of these clips are in Telugu? Translate those into English",
+  "steps": 9,
+  "max_steps": 30,
+  "cost_inr": {
+    "total": 0.0176,
+    "by_model": {
+      "indic-transcribe": 0.0176,
+      "indic-translate": 0.0001
+    },
+    "budget": 20.0,
+    "within_budget": true
+  },
+  "model_calls": {
+    "made": 5,
+    "cache_hits": 1
+  },
+  "elapsed_sec": 182.0,
+  "plan": [
+    "Transcribe each of the five audio clips using transcribe_audio",
+    "Detect the language of each transcript using detect_language",
+    "Select clips whose detected language is Telugu (te)",
+    "Translate the Telugu transcripts to English using translate_text",
+    "Write a markdown summary file with clip identifiers and English translations using write_text",
+    "Finish with the summary file as artifact"
+  ],
+  "assumptions": [
+    "All audio clips are speech in a single language per clip",
+    "We need to identify which clips are in Telugu (language code 'te')",
+    "We will translate only those clips into English",
+    "We will produce a markdown file listing clip names and English translations",
+    "Each audio clip contains speech in a single language.",
+    "Telugu corresponds to language code 'te'.",
+    "Only clips detected as Telugu need translation.",
+    "Translations passed verification checks."
+  ],
+  "verification": {
+    "status": "completed",
+    "checks": [
+      {
+        "artifact": "demo/runs/which_clips_telugu/artifacts/clip_1_en_1.txt",
+        "check": "translation coverage",
+        "passed": true,
+        "detail": {
+          "length_ratio": 0.82,
+          "numbers_checked": 0
+        }
+      },
+      {
+        "artifact": "demo/runs/which_clips_telugu/artifacts/clip_3_en.txt",
+        "check": "translation coverage",
+        "passed": true,
+        "detail": {
+          "length_ratio": 0.81,
+          "numbers_checked": 0
+        }
+      }
+    ],
+    "artifacts": [
+      "demo/runs/which_clips_telugu/artifacts/telugu_clips_summary.en.md"
+    ],
+    "missing_artifacts": [],
+    "not_produced_by_tools": [],
+    "notes": [],
+    "all_passed": true
+  },
+  "artifacts": [
+    "demo/runs/which_clips_telugu/artifacts/telugu_clips_summary.en.md"
+  ],
+  "inputs": {
+    "files": [
+      {
+        "path": "demo/inputs/clips/clip_1.wav",
+        "name": "clip_1.wav",
+        "kind": "audio",
+        "bytes": 131116,
+        "duration_sec": 2.73,
+        "has_audio": true,
+        "has_video": false
+      },
+      {
+        "path": "demo/inputs/clips/clip_2.wav",
+        "name": "clip_2.wav",
+        "kind": "audio",
+        "bytes": 114732,
+        "duration_sec": 2.39,
+        "has_audio": true,
+        "has_video": false
+      },
+      {
+        "path": "demo/inputs/clips/clip_3.wav",
+        "name": "clip_3.wav",
+        "kind": "audio",
+        "bytes": 143404,
+        "duration_sec": 2.99,
+        "has_audio": true,
+        "has_video": false
+      },
+      {
+        "path": "demo/inputs/clips/clip_4.wav",
+        "name": "clip_4.wav",
+        "kind": "audio",
+        "bytes": 114732,
+        "duration_sec": 2.39,
+        "has_audio": true,
+        "has_video": false
+      },
+      {
+        "path": "demo/inputs/clips/clip_5.wav",
+        "name": "clip_5.wav",
+        "kind": "audio",
+        "bytes": 73772,
+        "duration_sec": 1.54,
+        "has_audio": true,
+        "has_video": false
+      }
+    ],
+    "missing": []
+  },
+  "llm_model": "openai/gpt-oss-120b"
+}

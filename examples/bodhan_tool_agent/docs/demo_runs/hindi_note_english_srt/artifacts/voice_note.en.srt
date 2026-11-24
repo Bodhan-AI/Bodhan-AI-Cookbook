@@ -1,0 +1,175 @@
+1
+00:00:00,000 --> 00:00:03,701
+Hello, today we will start the mathematics class.
+
+2
+00:00:03,701 --> 00:00:07,250
+Please open your books and read the first page.
+
+3
+00:00:07,250 --> 00:00:10,951
+Hello, today we will start the mathematics class.
+
+4
+00:00:10,951 --> 00:00:14,500
+Please open your books and read the first page.
+
+5
+00:00:14,500 --> 00:00:18,192
+Hello, today we will start our math class.
+
+6
+00:00:18,192 --> 00:00:22,500
+Please open your books and read the first lesson.
+
+7
+00:00:22,500 --> 00:00:26,192
+Hello, today we will start our math class.
+
+8
+00:00:26,192 --> 00:00:30,500
+Please open your books and read the first lesson.
+
+9
+00:00:30,500 --> 00:00:34,192
+Hello, today we will start our math class.
+
+10
+00:00:34,192 --> 00:00:38,500
+Please open your books and read the first lesson.
+
+11
+00:00:38,500 --> 00:00:42,192
+Hello, today we will start our math class.
+
+12
+00:00:42,192 --> 00:00:46,500
+Please open your books and read the first lesson.
+
+13
+00:00:46,500 --> 00:00:50,192
+Hello, today we will start our math class.
+
+14
+00:00:50,192 --> 00:00:54,500
+Please open your books and read the first lesson.
+
+15
+00:00:54,500 --> 00:00:58,192
+Hello, today we will start our math class.
+
+16
+00:00:58,192 --> 00:01:02,500
+Please open your books and read the first lesson.
+
+17
+00:01:02,500 --> 00:01:06,192
+Hello, today we will start our math class.
+
+18
+00:01:06,192 --> 00:01:10,500
+Please open your books and read the first lesson.
+
+19
+00:01:10,500 --> 00:01:14,192
+Hello, today we will start our math class.
+
+20
+00:01:14,192 --> 00:01:18,500
+Please open your books and read the first lesson.
+
+21
+00:01:18,500 --> 00:01:22,192
+Hello, today we will start our math class.
+
+22
+00:01:22,192 --> 00:01:26,500
+Please open your books and read the first lesson.
+
+23
+00:01:26,500 --> 00:01:30,192
+Hello, today we will start our math class.
+
+24
+00:01:30,192 --> 00:01:34,500
+Please open your books and read the first lesson.
+
+25
+00:01:34,500 --> 00:01:38,192
+Hello, today we will start our math class.
+
+26
+00:01:38,192 --> 00:01:42,500
+Please open your books and read the first lesson.
+
+27
+00:01:42,500 --> 00:01:46,192
+Hello, today we will start our math class.
+
+28
+00:01:46,192 --> 00:01:50,500
+Please open your books and read the first lesson.
+
+29
+00:01:50,500 --> 00:01:54,192
+Hello, today we will start our math class.
+
+30
+00:01:54,192 --> 00:01:58,500
+Please open your books and read the first lesson.
+
+31
+00:01:58,500 --> 00:02:02,192
+Hello, today we will start our math class.
+
+32
+00:02:02,192 --> 00:02:06,500
+Please open your books and read the first lesson.
+
+33
+00:02:06,500 --> 00:02:10,192
+Hello, today we will start our math class.
+
+34
+00:02:10,192 --> 00:02:14,500
+Please open your books and read the first lesson.
+
+35
+00:02:14,500 --> 00:02:18,192
+Hello, today we will start our math class.
+
+36
+00:02:18,192 --> 00:02:22,500
+Please open your books and read the first lesson.
+
+37
+00:02:22,500 --> 00:02:26,192
+Hello, today we will start our math class.
+
+38
+00:02:26,192 --> 00:02:30,500
+Please open your books and read the first lesson.
+
+39
+00:02:30,500 --> 00:02:34,781
+Hello, today we will start the mathematics class.
+
+40
+00:02:34,781 --> 00:02:38,887
+Please open your books and read the first page.
+
+41
+00:02:38,887 --> 00:02:43,167
+Hello, today we will start the mathematics class.
+
+42
+00:02:43,167 --> 00:02:47,273
+Please open your books and read the first page.
+
+43
+00:02:47,273 --> 00:02:51,554
+Hello, today we will start the mathematics class.
+
+44
+00:02:51,554 --> 00:02:55,660
+Please open your books and read the first page.

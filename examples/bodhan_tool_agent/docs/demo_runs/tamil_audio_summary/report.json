@@ -1,0 +1,89 @@
+{
+  "status": "completed",
+  "llm_status": "completed",
+  "stop_reason": "finished",
+  "task": "Make a two-minute Tamil audio summary of this chapter",
+  "steps": 6,
+  "max_steps": 30,
+  "cost_inr": {
+    "total": 2.9175,
+    "by_model": {
+      "indic-ocr": 1.6,
+      "indic-translate": 0.0099,
+      "indic-speak": 1.0704,
+      "indic-transcribe": 0.2371
+    },
+    "budget": 20.0,
+    "within_budget": true
+  },
+  "model_calls": {
+    "made": 49,
+    "cache_hits": 0
+  },
+  "elapsed_sec": 327.4,
+  "plan": [
+    "OCR the PDF to extract text as markdown.",
+    "Read the OCR output to understand content.",
+    "Write an English summary (~250 words) of the chapter.",
+    "Translate the English summary to Tamil.",
+    "Synthesize Tamil audio of the summary."
+  ],
+  "assumptions": [
+    "The PDF is in a language that OCR can detect (likely English).",
+    "We will produce a ~250-word Tamil summary suitable for ~2 minutes audio.",
+    "The PDF content is English and can be safely summarized.",
+    "A ~250‑word Tamil summary yields about 2 minutes of speech."
+  ],
+  "verification": {
+    "status": "completed",
+    "checks": [
+      {
+        "artifact": "demo/runs/tamil_audio_summary/artifacts/summary.ta.md",
+        "check": "translation coverage",
+        "passed": true,
+        "detail": {
+          "length_ratio": 1.23,
+          "numbers_checked": 4
+        }
+      },
+      {
+        "artifact": "demo/runs/tamil_audio_summary/artifacts/summary.ta.mp3",
+        "check": "audio back-transcription",
+        "passed": true,
+        "detail": {
+          "mean_cer": 0.0674,
+          "max_cer": 0.3333,
+          "regenerated": 0,
+          "failed_sentences": []
+        }
+      }
+    ],
+    "artifacts": [
+      "demo/runs/tamil_audio_summary/artifacts/summary.en.md",
+      "demo/runs/tamil_audio_summary/artifacts/summary.ta.md",
+      "demo/runs/tamil_audio_summary/artifacts/summary.ta.mp3"
+    ],
+    "missing_artifacts": [],
+    "not_produced_by_tools": [],
+    "notes": [],
+    "all_passed": true
+  },
+  "artifacts": [
+    "demo/runs/tamil_audio_summary/artifacts/summary.en.md",
+    "demo/runs/tamil_audio_summary/artifacts/summary.ta.md",
+    "demo/runs/tamil_audio_summary/artifacts/summary.ta.mp3"
+  ],
+  "inputs": {
+    "files": [
+      {
+        "path": "demo/inputs/chapter.pdf",
+        "name": "chapter.pdf",
+        "kind": "pdf",
+        "bytes": 512923,
+        "pages": 8
+      }
+    ],
+    "missing": []
+  },
+  "llm_model": "openai/gpt-oss-120b"
+}

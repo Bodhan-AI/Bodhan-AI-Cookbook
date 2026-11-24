@@ -1,0 +1,72 @@
+{
+  "status": "completed",
+  "llm_status": "completed",
+  "stop_reason": "finished",
+  "task": "Transcribe this Hindi voice note and give me English subtitles",
+  "steps": 3,
+  "max_steps": 30,
+  "cost_inr": {
+    "total": 0.0711,
+    "by_model": {
+      "indic-transcribe": 0.0685,
+      "indic-translate": 0.0024
+    },
+    "budget": 20.0,
+    "within_budget": true
+  },
+  "model_calls": {
+    "made": 6,
+    "cache_hits": 32
+  },
+  "elapsed_sec": 26.3,
+  "plan": [
+    "1. Transcribe the Hindi audio file to obtain transcript JSON and text.",
+    "2. Generate English subtitles (SRT) from the transcript JSON, using automatic translation.",
+    "3. Verify the subtitles file was created successfully.",
+    "4. Return the subtitles file as the artifact."
+  ],
+  "assumptions": [
+    "The audio is in Hindi language.",
+    "User wants English subtitles in SRT format.",
+    "The audio is in Hindi."
+  ],
+  "verification": {
+    "status": "completed",
+    "checks": [
+      {
+        "artifact": "demo/runs/hindi_note_english_srt/artifacts/voice_note.en.srt",
+        "check": "translation coverage",
+        "passed": true,
+        "detail": {
+          "length_ratio": 1.13,
+          "numbers_checked": 0
+        }
+      }
+    ],
+    "artifacts": [
+      "demo/runs/hindi_note_english_srt/artifacts/voice_note.en.srt"
+    ],
+    "missing_artifacts": [],
+    "not_produced_by_tools": [],
+    "notes": [],
+    "all_passed": true
+  },
+  "artifacts": [
+    "demo/runs/hindi_note_english_srt/artifacts/voice_note.en.srt"
+  ],
+  "inputs": {
+    "files": [
+      {
+        "path": "demo/inputs/voice_note.wav",
+        "name": "voice_note.wav",
+        "kind": "audio",
+        "bytes": 5621176,
+        "duration_sec": 175.66,
+        "has_audio": true,
+        "has_video": false
+      }
+    ],
+    "missing": []
+  },
+  "llm_model": "openai/gpt-oss-120b"
+}

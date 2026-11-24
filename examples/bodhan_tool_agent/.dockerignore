@@ -1,0 +1,8 @@
+.env
+.venv
+.bodhan_cache
+out
+outputs
+demo/inputs
+demo/runs
+**/__pycache__

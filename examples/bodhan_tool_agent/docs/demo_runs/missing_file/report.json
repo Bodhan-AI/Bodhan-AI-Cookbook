@@ -1,0 +1,38 @@
+{
+  "status": "not_possible",
+  "llm_status": "not_possible",
+  "stop_reason": "missing_inputs",
+  "task": "Summarise the attached report in Hindi",
+  "steps": 0,
+  "max_steps": 30,
+  "cost_inr": {
+    "total": 0,
+    "by_model": {},
+    "budget": 20.0,
+    "within_budget": true
+  },
+  "model_calls": {
+    "made": 0,
+    "cache_hits": 0
+  },
+  "elapsed_sec": 0.3,
+  "plan": [],
+  "assumptions": [],
+  "verification": {
+    "status": "not_possible",
+    "checks": [],
+    "artifacts": [],
+    "missing_artifacts": [],
+    "not_produced_by_tools": [],
+    "notes": [],
+    "all_passed": true
+  },
+  "artifacts": [],
+  "inputs": {
+    "files": [],
+    "missing": [
+      "demo/inputs/report_that_does_not_exist.pdf"
+    ]
+  },
+  "llm_model": "openai/gpt-oss-120b"
+}
