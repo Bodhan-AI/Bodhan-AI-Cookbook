@@ -1,0 +1,135 @@
+{
+  "status": "success",
+  "task": "Transcribe this Hindi voice note and give me English subtitles in SRT format",
+  "steps_used": 7,
+  "max_steps": 30,
+  "total_cost_inr": 0.0,
+  "max_cost_inr": 10.0,
+  "cost_by_model": {},
+  "cache_hits": 2,
+  "total_time_s": 14.008,
+  "file_facts_count": 1,
+  "assumptions": [
+    "The audio is Hindi, as stated in the task and the filename, so no language detection probe is needed.",
+    "The transcript is an intermediate deliverable the user asked for; it is included as d1 in Devanagari script.",
+    "English subtitles are produced by translating the Hindi transcript with indic-translate and aligning them to indic-transcribe segment timestamps.",
+    "Subtitle text uses English script (roman), as is standard for English SRT files.",
+    "The full clip (about 187 seconds) is processed; no trimming or filtering is requested.",
+    "The audio is Hindi as stated in the task, so language is set to hi and no language probe is run.",
+    "Subtitles use English (Latin) script, as is standard for English SRT files.",
+    "The full clip (about 187 seconds) is processed with no trimming.",
+    "Subtitle timing comes from the transcribe_audio segment timestamps, and the English text comes from translate_text output aligned by write_subtitles.",
+    "Estimated cost is well under the 10 INR budget (about 0.31 INR for transcription)."
+  ],
+  "artifacts": [
+    {
+      "deliverable_id": "d1",
+      "kind": "text",
+      "path": "./outputs/demo_02_hindi_srt/artifacts/hindi_voice_note_3min_hi.txt",
+      "relative_path": "artifacts/hindi_voice_note_3min_hi.txt",
+      "size_bytes": 5917
+    },
+    {
+      "deliverable_id": "d2",
+      "kind": "subtitles",
+      "path": "./outputs/demo_02_hindi_srt/artifacts/hindi_voice_note_3min_en.srt",
+      "relative_path": "artifacts/hindi_voice_note_3min_en.srt",
+      "size_bytes": 3915
+    }
+  ],
+  "verification": [
+    {
+      "deliverable_id": "d1",
+      "kind": "text",
+      "artifact_path": "./outputs/demo_02_hindi_srt/artifacts/hindi_voice_note_3min_hi.txt",
+      "passed": true,
+      "checks": [
+        {
+          "name": "file_non_empty",
+          "passed": true,
+          "detail": "hindi_voice_note_3min_hi.txt (5917 bytes)"
+        },
+        {
+          "name": "indic_provenance",
+          "passed": true,
+          "detail": "All Indic text verified from Bodhan/input"
+        },
+        {
+          "name": "target_script_ratio",
+          "passed": true,
+          "detail": "script_ratio=1.00 for 'hi' (min 0.80)"
+        }
+      ]
+    },
+    {
+      "deliverable_id": "d2",
+      "kind": "subtitles",
+      "artifact_path": "./outputs/demo_02_hindi_srt/artifacts/hindi_voice_note_3min_en.srt",
+      "passed": true,
+      "checks": [
+        {
+          "name": "file_non_empty",
+          "passed": true,
+          "detail": "hindi_voice_note_3min_en.srt (3915 bytes)"
+        },
+        {
+          "name": "indic_provenance",
+          "passed": true,
+          "detail": "All Indic text verified from Bodhan/input"
+        },
+        {
+          "name": "subtitles_valid_monotonic",
+          "passed": true,
+          "detail": "cues=42, monotonic=True, errors=[]"
+        }
+      ]
+    }
+  ],
+  "quality_targets": {
+    "honest_failure": {
+      "met": true,
+      "detail": "Provably impossible tasks exit at ₹0 with an explicit reason and zero fabricated artifacts."
+    },
+    "verification": {
+      "met": true,
+      "detail": "All deliverables verified."
+    },
+    "no_waste_cache": {
+      "met": true,
+      "detail": "Content-addressed SHA-256 disk cache active (2 cache hits in run)."
+    },
+    "budget": {
+      "met": true,
+      "detail": "Spent ₹0.0000 vs cap ₹10.00."
+    },
+    "latency": {
+      "met": true,
+      "detail": "Elapsed 14.01s vs target 300s."
+    }
+  },
+  "reason": null,
+  "camel_boundary_enforced": true,
+  "input_facts": [
+    {
+      "path": "./sample_data/hindi_voice_note_3min.wav",
+      "exists": true,
+      "kind": "audio",
+      "mime_type": "audio/wav",
+      "size_bytes": 8978594,
+      "duration_s": 187.051,
+      "sample_rate": 24000,
+      "channels": 1,
+      "page_count": null,
+      "image_width": null,
+      "image_height": null,
+      "char_count": null,
+      "script_histogram": {},
+      "detected_language_hint": null,
+      "estimated_cost_inr": {
+        "indic-transcribe": 0.311752,
+        "detect_language_probe": 0.016667
+      },
+      "error": null
+    }
+  ]
+}

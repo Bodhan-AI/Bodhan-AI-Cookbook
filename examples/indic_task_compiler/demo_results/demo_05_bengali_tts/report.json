@@ -1,0 +1,113 @@
+{
+  "status": "success",
+  "task": "Read this paragraph aloud in Bengali with a female voice",
+  "steps_used": 5,
+  "max_steps": 15,
+  "total_cost_inr": 0.0,
+  "max_cost_inr": 5.0,
+  "cost_by_model": {},
+  "cache_hits": 2,
+  "total_time_s": 13.029,
+  "file_facts_count": 1,
+  "assumptions": [
+    "The input text is already in Bengali (script histogram is 100% Bengali and detected language hint is bn), so no translation is needed.",
+    "The entire paragraph should be read aloud verbatim without summarization.",
+    "Read-aloud style is a plain, natural narration; no specific speaking rate or duration target was requested.",
+    "Output is a single mp3 file containing the full paragraph; no subtitles or text deliverables were requested.",
+    "The female voice is provided by indic-speak using a Bengali-capable female voice.",
+    "Requested style 'read-aloud' is not in Indic-Speak's style list; using default narration.",
+    "The input file is already Bengali, so no translation step is included.",
+    "The full paragraph is read verbatim, with no summarization.",
+    "The 'read-aloud' style is not in the Indic-Speak style list, so default narration is used.",
+    "No speaking rate or duration target was requested.",
+    "The output is a single mp3 with no subtitles or text deliverables."
+  ],
+  "artifacts": [
+    {
+      "deliverable_id": "d1",
+      "kind": "audio",
+      "path": "./outputs/demo_05_bengali_tts/artifacts/bengali_paragraph_bn.mp3",
+      "relative_path": "artifacts/bengali_paragraph_bn.mp3",
+      "size_bytes": 513550
+    }
+  ],
+  "verification": [
+    {
+      "deliverable_id": "d1",
+      "kind": "audio",
+      "artifact_path": "./outputs/demo_05_bengali_tts/artifacts/bengali_paragraph_bn.mp3",
+      "passed": true,
+      "checks": [
+        {
+          "name": "file_non_empty",
+          "passed": true,
+          "detail": "bengali_paragraph_bn.mp3 (513550 bytes)"
+        },
+        {
+          "name": "indic_provenance",
+          "passed": true,
+          "detail": "All Indic text verified from Bodhan/input"
+        },
+        {
+          "name": "audio_playable",
+          "passed": true,
+          "detail": "duration=32.00s"
+        },
+        {
+          "name": "back_transcription_verify",
+          "passed": true,
+          "detail": "mean_cer=0.0, chunks=2, failed=[]"
+        }
+      ]
+    }
+  ],
+  "quality_targets": {
+    "honest_failure": {
+      "met": true,
+      "detail": "Provably impossible tasks exit at ₹0 with an explicit reason and zero fabricated artifacts."
+    },
+    "verification": {
+      "met": true,
+      "detail": "All deliverables verified."
+    },
+    "no_waste_cache": {
+      "met": true,
+      "detail": "Content-addressed SHA-256 disk cache active (2 cache hits in run)."
+    },
+    "budget": {
+      "met": true,
+      "detail": "Spent ₹0.0000 vs cap ₹5.00."
+    },
+    "latency": {
+      "met": true,
+      "detail": "Elapsed 13.03s vs target 300s."
+    }
+  },
+  "reason": null,
+  "camel_boundary_enforced": true,
+  "input_facts": [
+    {
+      "path": "./sample_data/bengali_paragraph.txt",
+      "exists": true,
+      "kind": "text",
+      "mime_type": "text/plain",
+      "size_bytes": 1031,
+      "duration_s": null,
+      "sample_rate": null,
+      "channels": null,
+      "page_count": null,
+      "image_width": null,
+      "image_height": null,
+      "char_count": 383,
+      "script_histogram": {
+        "Bengali": 1.0
+      },
+      "detected_language_hint": "bn",
+      "estimated_cost_inr": {
+        "indic-translate": 0.00382,
+        "indic-speak": 0.2298
+      },
+      "error": null
+    }
+  ]
+}

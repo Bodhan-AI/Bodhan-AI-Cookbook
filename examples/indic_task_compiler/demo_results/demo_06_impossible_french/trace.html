@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bodhan Agent Trace — INFEASIBLE</title>
+<style>
+  body { font-family: system-ui, -apple-system, sans-serif; background: #0f172a; color: #e2e8f0; margin: 0; padding: 24px; }
+  .wrap { max-width: 1120px; margin: 0 auto; }
+  h1 { margin: 0 0 8px; font-size: 22px; }
+  .task { color: #94a3b8; margin-bottom: 18px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .card { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 14px; }
+  .card .k { font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: .04em; }
+  .card .v { font-size: 20px; font-weight: 700; margin-top: 4px; }
+  .badge-status { display: inline-block; padding: 3px 10px; border-radius: 999px; background: #2563eb; color: #fff; font-size: 12px; font-weight: 700; vertical-align: middle; margin-left: 8px; }
+  .camel { background: #064e3b; color: #a7f3d0; border: 1px solid #10b981; border-radius: 8px; padding: 10px 14px; margin-bottom: 18px; font-size: 13px; }
+  table { width: 100%; border-collapse: collapse; background: #1e293b; border-radius: 10px; overflow: hidden; }
+  th, td { padding: 10px 12px; border-bottom: 1px solid #334155; text-align: left; vertical-align: top; font-size: 13px; }
+  th { background: #0b1220; color: #94a3b8; font-weight: 600; }
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+  .pill.epoch { background: #334155; color: #e2e8f0; }
+  .pill.ok { background: #14532d; color: #86efac; }
+  .pill.err { background: #7f1d1d; color: #fecaca; }
+  .pill.cache { background: #1e3a8a; color: #bfdbfe; margin-left: 4px; }
+  .sub { color: #94a3b8; font-size: 12px; margin-top: 3px; }
+  pre { background: #0b1220; padding: 8px; border-radius: 6px; overflow-x: auto; font-size: 11px; max-height: 220px; }
+  .label { color: #94a3b8; font-size: 11px; margin-top: 6px; }
+  ul { margin: 6px 0 0 18px; padding: 0; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Indic Task Compiler Trace <span class="badge-status">INFEASIBLE</span></h1>
+  <div class="task">Translate this video into French</div>
+  <div class="camel">
+    <strong>CaMeL Isolation Active:</strong> The Privileged Planner (P-LLM) saw only FileFacts metadata, typed probe enums, and <code>$step.field</code> artifact handles. Untrusted file/OCR/transcript/translation content was stripped before entering planner context.
+  </div>
+  <div class="cards">
+    <div class="card"><div class="k">Total Spend</div><div class="v">₹0.0000 / ₹5.00</div></div>
+    <div class="card"><div class="k">Steps</div><div class="v">0 / 10</div></div>
+    <div class="card"><div class="k">Runtime</div><div class="v">1.67 s</div></div>
+    <div class="card"><div class="k">Cache Hits</div><div class="v">0</div></div>
+    <div class="card"><div class="k">Cost by Model</div><ul><li>₹0.0000 (no paid Bodhan calls)</li></ul></div>
+  </div>
+  <table>
+    <thead>
+      <tr><th>#</th><th>Epoch</th><th>Tool / Step</th><th>Status</th><th>Latency</th><th>Cost</th><th>Payload (Handles &amp; Meta)</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+              <td>1</td>
+              <td><span class="pill epoch">intake</span></td>
+              <td><code>inspect_files</code> <div class="sub">Inspect input file metadata (free)</div></td>
+              <td><span class="pill ok">OK</span></td>
+              <td>209 ms</td>
+              <td>₹0.0000</td>
+              <td>
+                <details><summary>args / meta</summary>
+                  <div class="label">Args (handles only)</div>
+                  <pre>{
+  &quot;file_count&quot;: 1
+}</pre>
+                  <div class="label">Result Meta (CaMeL-sanitized)</div>
+                  <pre>{
+  &quot;files&quot;: [
+    {
+      &quot;path&quot;: &quot;./sample_data/sample_video.mp4&quot;,
+      &quot;kind&quot;: &quot;video&quot;,
+      &quot;exists&quot;: true
+    }
+  ]
+}</pre>
+                </details>
+              </td>
+            </tr><tr>
+              <td>2</td>
+              <td><span class="pill epoch">gate</span></td>
+              <td><code>pre_llm_feasibility_gate</code> <div class="sub">Rejected provably impossible task at ₹0</div></td>
+              <td><span class="pill err">ERR</span></td>
+              <td>0 ms</td>
+              <td>₹0.0000</td>
+              <td>
+                <details><summary>args / meta</summary>
+                  <div class="label">Args (handles only)</div>
+                  <pre>{}</pre>
+                  <div class="label">Result Meta (CaMeL-sanitized)</div>
+                  <pre>{
+  &quot;feasible&quot;: false,
+  &quot;reason&quot;: &quot;Requested language &#x27;French&#x27; (fr) is not supported by Bodhan models. Bodhan supports English and 22+ Indian languages (as, bn, brx, doi, en, gu, hi, kn, kok, ks, ks-Deva, mai, ml, mni, mni-Beng, mr, ne, or, pa, sa, sat, sd, sd-Arab, ta, te, ur).&quot;,
+  &quot;cost_floor_inr&quot;: 0.0,
+  &quot;checks&quot;: [
+    &quot;unsupported_language:fr&quot;
+  ]
+}</pre>
+                </details>
+              </td>
+            </tr>
+    </tbody>
+  </table>
+</div>
+</body>
+</html>

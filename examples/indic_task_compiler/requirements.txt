@@ -1,0 +1,11 @@
+# Pin every dependency: name==version (compatible with Python 3.10-3.14)
+mcp==2.3.0
+openai==3.57.0
+httpx==0.28.1
+pydantic==2.14.4
+pypdfium2==5.15.2
+Pillow==12.3.0
+python-dotenv==1.2.4
+uvicorn==0.54.0
+pytest==9.2.0
+pytest-asyncio==1.5.0

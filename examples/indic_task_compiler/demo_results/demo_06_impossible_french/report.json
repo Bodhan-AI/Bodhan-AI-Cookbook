@@ -1,0 +1,62 @@
+{
+  "status": "infeasible",
+  "task": "Translate this video into French",
+  "steps_used": 0,
+  "max_steps": 10,
+  "total_cost_inr": 0.0,
+  "max_cost_inr": 5.0,
+  "cost_by_model": {},
+  "cache_hits": 0,
+  "total_time_s": 1.669,
+  "file_facts_count": 1,
+  "assumptions": [],
+  "artifacts": [],
+  "verification": [],
+  "quality_targets": {
+    "honest_failure": {
+      "met": true,
+      "detail": "Provably impossible tasks exit at ₹0 with an explicit reason and zero fabricated artifacts."
+    },
+    "verification": {
+      "met": true,
+      "detail": "All deliverables verified."
+    },
+    "no_waste_cache": {
+      "met": true,
+      "detail": "Content-addressed SHA-256 disk cache active (0 cache hits in run)."
+    },
+    "budget": {
+      "met": true,
+      "detail": "Spent ₹0.0000 vs cap ₹5.00."
+    },
+    "latency": {
+      "met": true,
+      "detail": "Elapsed 1.67s vs target 30s."
+    }
+  },
+  "reason": "Requested language 'French' (fr) is not supported by Bodhan models. Bodhan supports English and 22+ Indian languages (as, bn, brx, doi, en, gu, hi, kn, kok, ks, ks-Deva, mai, ml, mni, mni-Beng, mr, ne, or, pa, sa, sat, sd, sd-Arab, ta, te, ur).",
+  "camel_boundary_enforced": true,
+  "input_facts": [
+    {
+      "path": "./sample_data/sample_video.mp4",
+      "exists": true,
+      "kind": "video",
+      "mime_type": "video/mp4",
+      "size_bytes": 121407,
+      "duration_s": 10.923,
+      "sample_rate": 24000,
+      "channels": 1,
+      "page_count": null,
+      "image_width": null,
+      "image_height": null,
+      "char_count": null,
+      "script_histogram": {},
+      "detected_language_hint": null,
+      "estimated_cost_inr": {
+        "indic-transcribe": 0.018205,
+        "detect_language_probe": 0.016667
+      },
+      "error": null
+    }
+  ]
+}

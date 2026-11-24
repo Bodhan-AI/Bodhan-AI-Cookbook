@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bodhan Agent Trace — SUCCESS</title>
+<style>
+  body { font-family: system-ui, -apple-system, sans-serif; background: #0f172a; color: #e2e8f0; margin: 0; padding: 24px; }
+  .wrap { max-width: 1120px; margin: 0 auto; }
+  h1 { margin: 0 0 8px; font-size: 22px; }
+  .task { color: #94a3b8; margin-bottom: 18px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .card { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 14px; }
+  .card .k { font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: .04em; }
+  .card .v { font-size: 20px; font-weight: 700; margin-top: 4px; }
+  .badge-status { display: inline-block; padding: 3px 10px; border-radius: 999px; background: #16a34a; color: #fff; font-size: 12px; font-weight: 700; vertical-align: middle; margin-left: 8px; }
+  .camel { background: #064e3b; color: #a7f3d0; border: 1px solid #10b981; border-radius: 8px; padding: 10px 14px; margin-bottom: 18px; font-size: 13px; }
+  table { width: 100%; border-collapse: collapse; background: #1e293b; border-radius: 10px; overflow: hidden; }
+  th, td { padding: 10px 12px; border-bottom: 1px solid #334155; text-align: left; vertical-align: top; font-size: 13px; }
+  th { background: #0b1220; color: #94a3b8; font-weight: 600; }
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+  .pill.epoch { background: #334155; color: #e2e8f0; }
+  .pill.ok { background: #14532d; color: #86efac; }
+  .pill.err { background: #7f1d1d; color: #fecaca; }
+  .pill.cache { background: #1e3a8a; color: #bfdbfe; margin-left: 4px; }
+  .sub { color: #94a3b8; font-size: 12px; margin-top: 3px; }
+  pre { background: #0b1220; padding: 8px; border-radius: 6px; overflow-x: auto; font-size: 11px; max-height: 220px; }
+  .label { color: #94a3b8; font-size: 11px; margin-top: 6px; }
+  ul { margin: 6px 0 0 18px; padding: 0; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Indic Task Compiler Trace <span class="badge-status">SUCCESS</span></h1>
+  <div class="task">Read this paragraph aloud in Bengali with a female voice</div>
+  <div class="camel">
+    <strong>CaMeL Isolation Active:</strong> The Privileged Planner (P-LLM) saw only FileFacts metadata, typed probe enums, and <code>$step.field</code> artifact handles. Untrusted file/OCR/transcript/translation content was stripped before entering planner context.
+  </div>
+  <div class="cards">
+    <div class="card"><div class="k">Total Spend</div><div class="v">₹0.0000 / ₹5.00</div></div>
+    <div class="card"><div class="k">Steps</div><div class="v">5 / 15</div></div>
+    <div class="card"><div class="k">Runtime</div><div class="v">13.03 s</div></div>
+    <div class="card"><div class="k">Cache Hits</div><div class="v">2</div></div>
+    <div class="card"><div class="k">Cost by Model</div><ul><li>₹0.0000 (no paid Bodhan calls)</li></ul></div>
+  </div>
+  <table>
+    <thead>
+      <tr><th>#</th><th>Epoch</th><th>Tool / Step</th><th>Status</th><th>Latency</th><th>Cost</th><th>Payload (Handles &amp; Meta)</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+              <td>1</td>
+              <td><span class="pill epoch">intake</span></td>
+              <td><code>inspect_files</code> <div class="sub">Inspect input file metadata (free)</div></td>
+              <td><span class="pill ok">OK</span></td>
+              <td>96 ms</td>
+              <td>₹0.0000</td>
+              <td>
+                <details><summary>args / meta</summary>
+                  <div class="label">Args (handles only)</div>
+                  <pre>{
+  &quot;file_count&quot;: 1
+}</pre>
+                  <div class="label">Result Meta (CaMeL-sanitized)</div>
+                  <pre>{
+  &quot;files&quot;: [
+    {
+      &quot;path&quot;: &quot;./sample_data/bengali_paragraph.txt&quot;,
+      &quot;kind&quot;: &quot;text&quot;,
+      &quot;exists&quot;: true
+    }
+  ]
+}</pre>
+                </details>
+              </td>
+            </tr><tr>
+              <td>2</td>
+              <td><span class="pill epoch">epoch_a</span></td>
+              <td><code>p_llm_epoch_a</code> <div class="sub">Convert the Bengali paragraph text file into a female-voiced Bengali audio narration (read-aloud).</div></td>
+              <td><span class="pill ok">OK</span></td>
+              <td>4836 ms</td>
+              <td>₹0.0000</td>
+              <td>
+                <details><summary>args / meta</summary>
+                  <div class="label">Args (handles only)</div>
+                  <pre>{
+  &quot;file_facts_count&quot;: 1
+}</pre>
+                  <div class="label">Result Meta (CaMeL-sanitized)</div>
+                  <pre>{
+  &quot;deliverables&quot;: [
+    {
+      &quot;id&quot;: &quot;d1&quot;,
+      &quot;kind&quot;: &quot;audio&quot;,
+      &quot;language_raw&quot;: &quot;Bengali&quot;,
+      &quot;language&quot;: &quot;bn&quot;,
+      &quot;language_supported&quot;: true,
+      &quot;output_filename&quot;: &quot;bengali_paragraph_bn.mp3&quot;,
+      &quot;description&quot;: &quot;Female-voice Bengali text-to-speech reading of the full paragraph from bengali_paragraph.txt, delivered as mp3.&quot;,
+      &quot;constraints&quot;: {
+        &quot;voice_gender&quot;: &quot;female&quot;,
+        &quot;keep_tables&quot;: false,
+        &quot;format&quot;: &quot;mp3&quot;,
+        &quot;script&quot;: &quot;native&quot;
+      }
+    }
+  ],
+  &quot;needs_probe&quot;: [],
+  &quot;infeasible_reason&quot;: null
+}</pre>
+                </details>
+              </td>
+            </tr><tr>
+              <td>3</td>
+              <td><span class="pill epoch">gate</span></td>
+              <td><code>feasibility_gate</code> <div class="sub">Static language, file, and cost-floor check</div></td>
+              <td><span class="pill ok">OK</span></td>
+              <td>0 ms</td>
+              <td>₹0.0000</td>
+              <td>
+                <details><summary>args / meta</summary>
+                  <div class="label">Args (handles only)</div>
+                  <pre>{}</pre>
+                  <div class="label">Result Meta (CaMeL-sanitized)</div>
+                  <pre>{
+  &quot;feasible&quot;: true,
+  &quot;reason&quot;: null,
+  &quot;cost_floor_inr&quot;: 0.2298,
+  &quot;checks&quot;: [
+    &quot;languages_supported&quot;,
+    &quot;cost_floor_inr=0.2298&quot;,
+    &quot;budget_floor_ok&quot;
+  ]
+}</pre>
+                </details>
+              </td>
+            </tr><tr>
+              <td>4</td>
+              <td><span class="pill epoch">epoch_b</span></td>
+              <td><code>p_llm_epoch_b</code> <div class="sub">Proposed 3 steps</div></td>
+              <td><span class="pill ok">OK</span></td>
+              <td>4355 ms</td>
+              <td>₹0.0000</td>
+              <td>
+                <details><summary>args / meta</summary>
+                  <div class="label">Args (handles only)</div>
+                  <pre>{}</pre>
+                  <div class="label">Result Meta (CaMeL-sanitized)</div>
+                  <pre>{
+  &quot;step_ids&quot;: [
+    &quot;s1&quot;,
+    &quot;v1&quot;,
+    &quot;pub1&quot;
+  ]
+}</pre>
+                </details>
+              </td>
+            </tr><tr>
+              <td>5</td>
+              <td><span class="pill epoch">compile</span></td>
+              <td><code>plan_compiler</code> <div class="sub">Compiled into 2 parallel wave(s)</div></td>
+              <td><span class="pill ok">OK</span></td>
+              <td>0 ms</td>
+              <td>₹0.0000</td>
+              <td>
+                <details><summary>args / meta</summary>
+                  <div class="label">Args (handles only)</div>
+                  <pre>{}</pre>
+                  <div class="label">Result Meta (CaMeL-sanitized)</div>
+                  <pre>{
+  &quot;waves&quot;: [
+    [
+      &quot;s1&quot;
+    ],
+    [
+      &quot;v1&quot;,
+      &quot;pub1&quot;
+    ]
+  ],
+  &quot;estimated_cost_ceiling_inr&quot;: 0.3298
+}</pre>
+                </details>
+              </td>
+            </tr><tr>
+              <td>6</td>
+              <td><span class="pill epoch">execute</span></td>
+              <td><code>synthesize_speech</code> <span class="pill cache">CACHE</span><div class="sub">s1: The source is already Bengali text, so it goes straight to Bengali TTS with a female voice, reading the full paragraph verbatim as mp3. No translation or summarization is needed.</div></td>
+              <td><span class="pill ok">OK</span></td>
+              <td>1129 ms</td>
+              <td>₹0.0000</td>
+              <td>
+                <details><summary>args / meta</summary>
+                  <div class="label">Args (handles only)</div>
+                  <pre>{
+  &quot;language&quot;: &quot;bn&quot;,
+  &quot;path&quot;: &quot;./sample_data/bengali_paragraph.txt&quot;,
+  &quot;gender&quot;: &quot;female&quot;,
+  &quot;format&quot;: &quot;mp3&quot;
+}</pre>
+                  <div class="label">Result Meta (CaMeL-sanitized)</div>
+                  <pre>{
+  &quot;ok&quot;: true,
+  &quot;cost_inr&quot;: 0.0,
+  &quot;cache_hit&quot;: true,
+  &quot;model&quot;: &quot;indic-speak&quot;,
+  &quot;audio_path&quot;: &quot;./outputs/demo_05_bengali_tts/.work/tts_bn_9d511ea7.mp3&quot;,
+  &quot;chunk_manifest_path&quot;: &quot;./outputs/demo_05_bengali_tts/.work/tts_bn_9d511ea7_chunks.json&quot;,
+  &quot;language&quot;: &quot;bn&quot;,
+  &quot;voice&quot;: &quot;Ishita&quot;,
+  &quot;style&quot;: null,
+  &quot;format&quot;: &quot;mp3&quot;,
+  &quot;duration_s&quot;: 32.0,
+  &quot;chunk_count&quot;: 2,
+  &quot;input_char_count&quot;: 383,
+  &quot;attempt&quot;: 0,
+  &quot;resynthesized_chunks&quot;: [
+    0,
+    1
+  ],
+  &quot;ai_generated_label&quot;: &quot;AI-generated (Bodhan Indic-Speak)&quot;,
+  &quot;chunks&quot;: [
+    {
+      &quot;index&quot;: 0,
+      &quot;audio_path&quot;: &quot;./outputs/demo_05_bengali_tts/.work/tts_bn_9d511ea7_chunks/chunk_0000.wav&quot;,
+      &quot;text_path&quot;: &quot;./outputs/demo_05_bengali_tts/.work/tts_bn_9d511ea7_chunks/chunk_0000.txt&quot;,
+      &quot;char_count&quot;: 219,
+      &quot;duration_s&quot;: 18.859
+    },
+    {
+      &quot;index&quot;: 1,
+      &quot;audio_path&quot;: &quot;./outputs/demo_05_bengali_tts/.work/tts_bn_9d511ea7_chunks/chunk_0001.wav&quot;,
+      &quot;text_path&quot;: &quot;./outputs/demo_05_bengali_tts/.work/tts_bn_9d511ea7_chunks/chunk_0001.txt&quot;,
+      &quot;char_count&quot;: 163,
+      &quot;duration_s&quot;: 13.141
+    }
+  ]
+}</pre>
+                </details>
+              </td>
+            </tr><tr>
+              <td>7</td>
+              <td><span class="pill epoch">execute</span></td>
+              <td><code>publish_artifact</code> <div class="sub">pub1: Delivers the final mp3 artifact under the requested filename.</div></td>
+              <td><span class="pill ok">OK</span></td>
+              <td>1 ms</td>
+              <td>₹0.0000</td>
+              <td>
+                <details><summary>args / meta</summary>
+                  <div class="label">Args (handles only)</div>
+                  <pre>{
+  &quot;deliverable_id&quot;: &quot;d1&quot;,
+  &quot;source_ref&quot;: &quot;$s1.audio_path&quot;,
+  &quot;filename&quot;: &quot;bengali_paragraph_bn.mp3&quot;
+}</pre>
+                  <div class="label">Result Meta (CaMeL-sanitized)</div>
+                  <pre>{
+  &quot;ok&quot;: true,
+  &quot;cost_inr&quot;: 0.0,
+  &quot;cache_hit&quot;: false,
+  &quot;model&quot;: null,
+  &quot;artifact_path&quot;: &quot;./outputs/demo_05_bengali_tts/artifacts/bengali_paragraph_bn.mp3&quot;,
+  &quot;deliverable_id&quot;: &quot;d1&quot;,
+  &quot;filename&quot;: &quot;bengali_paragraph_bn.mp3&quot;
+}</pre>
+                </details>
+              </td>
+            </tr><tr>
+              <td>8</td>
+              <td><span class="pill epoch">execute</span></td>
+              <td><code>verify_speech</code> <span class="pill cache">CACHE</span><div class="sub">v1: Required after every synthesize_speech call. Back-transcribes each chunk and compares it against the source paragraph to confirm the narration matches the text.</div></td>
+              <td><span class="pill ok">OK</span></td>
+              <td>200 ms</td>
+              <td>₹0.0000</td>
+              <td>
+                <details><summary>args / meta</summary>
+                  <div class="label">Args (handles only)</div>
+                  <pre>{
+  &quot;audio_path&quot;: &quot;$s1.audio_path&quot;,
+  &quot;language&quot;: &quot;bn&quot;,
+  &quot;chunk_manifest_path&quot;: &quot;$s1.chunk_manifest_path&quot;,
+  &quot;expected_path&quot;: &quot;./sample_data/bengali_paragraph.txt&quot;
+}</pre>
+                  <div class="label">Result Meta (CaMeL-sanitized)</div>
+                  <pre>{
+  &quot;ok&quot;: true,
+  &quot;cost_inr&quot;: 0.0,
+  &quot;cache_hit&quot;: true,
+  &quot;model&quot;: &quot;indic-transcribe&quot;,
+  &quot;passed&quot;: true,
+  &quot;mean_cer&quot;: 0.0,
+  &quot;cer_threshold&quot;: 0.45,
+  &quot;chunks_checked&quot;: 2,
+  &quot;failed_chunk_indices&quot;: [],
+  &quot;verdicts&quot;: [
+    {
+      &quot;index&quot;: 0,
+      &quot;audio_path&quot;: &quot;./outputs/demo_05_bengali_tts/.work/tts_bn_9d511ea7_chunks/chunk_0000.wav&quot;,
+      &quot;expected_chars&quot;: 219,
+      &quot;transcribed_chars&quot;: 215,
+      &quot;cer&quot;: 0.0,
+      &quot;repetition_detected&quot;: false,
+      &quot;repeated_ngram&quot;: null,
+      &quot;duration_s&quot;: 18.859,
+      &quot;chars_per_second&quot;: 11.61,
+      &quot;duration_anomaly&quot;: false,
+      &quot;passed&quot;: true,
+      &quot;reasons&quot;: []
+    },
+    {
+      &quot;index&quot;: 1,
+      &quot;audio_path&quot;: &quot;./outputs/demo_05_bengali_tts/.work/tts_bn_9d511ea7_chunks/chunk_0001.wav&quot;,
+      &quot;expected_chars&quot;: 163,
+      &quot;transcribed_chars&quot;: 162,
+      &quot;cer&quot;: 0.0,
+      &quot;repetition_detected&quot;: false,
+      &quot;repeated_ngram&quot;: null,
+      &quot;duration_s&quot;: 13.141,
+      &quot;chars_per_second&quot;: 12.4,
+      &quot;duration_anomaly&quot;: false,
+      &quot;passed&quot;: true,
+      &quot;reasons&quot;: []
+    }
+  ]
+}</pre>
+                </details>
+              </td>
+            </tr><tr>
+              <td>9</td>
+              <td><span class="pill epoch">verify</span></td>
+              <td><code>contracts_verifier</code> <div class="sub">Checked per-deliverable post-conditions</div></td>
+              <td><span class="pill ok">OK</span></td>
+              <td>0 ms</td>
+              <td>₹0.0000</td>
+              <td>
+                <details><summary>args / meta</summary>
+                  <div class="label">Args (handles only)</div>
+                  <pre>{}</pre>
+                  <div class="label">Result Meta (CaMeL-sanitized)</div>
+                  <pre>{
+  &quot;verifications&quot;: [
+    {
+      &quot;deliverable_id&quot;: &quot;d1&quot;,
+      &quot;kind&quot;: &quot;audio&quot;,
+      &quot;artifact_path&quot;: &quot;./outputs/demo_05_bengali_tts/artifacts/bengali_paragraph_bn.mp3&quot;,
+      &quot;passed&quot;: true,
+      &quot;checks&quot;: [
+        {
+          &quot;name&quot;: &quot;file_non_empty&quot;,
+          &quot;passed&quot;: true,
+          &quot;detail&quot;: &quot;bengali_paragraph_bn.mp3 (513550 bytes)&quot;
+        },
+        {
+          &quot;name&quot;: &quot;indic_provenance&quot;,
+          &quot;passed&quot;: true,
+          &quot;detail&quot;: &quot;All Indic text verified from Bodhan/input&quot;
+        },
+        {
+          &quot;name&quot;: &quot;audio_playable&quot;,
+          &quot;passed&quot;: true,
+          &quot;detail&quot;: &quot;duration=32.00s&quot;
+        },
+        {
+          &quot;name&quot;: &quot;back_transcription_verify&quot;,
+          &quot;passed&quot;: true,
+          &quot;detail&quot;: &quot;mean_cer=0.0, chunks=2, failed=[]&quot;
+        }
+      ]
+    }
+  ]
+}</pre>
+                </details>
+              </td>
+            </tr>
+    </tbody>
+  </table>
+</div>
+</body>
+</html>
