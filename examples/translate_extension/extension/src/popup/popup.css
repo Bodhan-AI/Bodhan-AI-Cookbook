@@ -1,0 +1,11 @@
+body { width: 380px; padding: 12px; }
+header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+header h1 { margin-right: auto; }
+button.link { border: none; background: none; color: var(--accent); padding: 2px 4px; }
+.langs { margin-bottom: 8px; }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; }
+#result { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 10px; }
+#output { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 15px; max-height: 220px; overflow: auto; }
+#output.loading { color: var(--muted); font-style: italic; }
+.tip { margin: 12px 0 0; }
+.actions { display: flex; gap: 6px; flex-shrink: 0; }
