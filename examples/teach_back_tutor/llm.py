@@ -34,7 +34,7 @@ def _wait_seconds(err: Exception, attempt: int) -> float:
         return 5.0 * (attempt + 1)
 
 
-def _create(**kwargs):
+def _create(model: str | None = None, **kwargs):
     """Free-tier endpoints rate-limit and get overloaded; back off a few times, then give up."""
     effort = os.environ.get("LLM_REASONING_EFFORT")
     if effort:
@@ -42,7 +42,7 @@ def _create(**kwargs):
     STATS["calls"] += 1
     for attempt in range(5):
         try:
-            return _client().chat.completions.create(model=_model(), **kwargs)
+            return _client().chat.completions.create(model=model or _model(), **kwargs)
         except (RateLimitError, InternalServerError, APIConnectionError) as err:
             if attempt == 4:
                 raise
@@ -51,14 +51,14 @@ def _create(**kwargs):
             time.sleep(wait)
 
 
-def chat(messages: list[dict], temperature: float = 0.7) -> str:
-    return _create(messages=messages, temperature=temperature).choices[0].message.content.strip()
+def chat(messages: list[dict], temperature: float = 0.7, model: str | None = None) -> str:
+    return _create(model, messages=messages, temperature=temperature).choices[0].message.content.strip()
 
 
-def chat_json(messages: list[dict], temperature: float = 0.2) -> dict:
+def chat_json(messages: list[dict], temperature: float = 0.2, model: str | None = None) -> dict:
     """Ask for a JSON object and parse it. Small models occasionally wrap it in a list or break it; retry once."""
     for attempt in range(2):
-        resp = _create(messages=messages, temperature=temperature, response_format={"type": "json_object"})
+        resp = _create(model, messages=messages, temperature=temperature, response_format={"type": "json_object"})
         text = resp.choices[0].message.content.strip()
         if text.startswith("```"):
             text = text.strip("`").removeprefix("json").strip()

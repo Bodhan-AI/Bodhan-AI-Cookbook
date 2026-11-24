@@ -1,0 +1,66 @@
+{
+  "page_text": "Chapter 1: How Plants Make Their Food\n\nAll living things need food for energy. Animals eat plants or other\nanimals, but green plants make their own food. This process is\ncalled photosynthesis.\n\nPhotosynthesis happens mainly in the leaves. Leaves contain a green\npigment called chlorophyll, which traps energy from sunlight.\n\nTo make food, a plant needs three things: sunlight, water and carbon\ndioxide. The roots absorb water from the soil, and it travels up the\nstem to the leaves. Carbon dioxide from the air enters the leaf\nthrough tiny pores called stomata.\n\nUsing the energy of sunlight, the leaf combines water and carbon\ndioxide to make glucose, a kind of sugar. Oxygen is released into\nthe air as a by-product. Some glucose is used for energy, and the\nrest is stored as starch.\n\nPlants do not take food from the soil. The soil gives them water and\nminerals, but the food itself is made in the leaves.",
+  "card": {
+    "topic": "How Plants Make Their Food",
+    "summary": "Plants use sunlight, water, and carbon dioxide to make sugar in their leaves, releasing oxygen.",
+    "concepts": [
+      {
+        "id": "c1",
+        "name": "Photosynthesis",
+        "explanation": "Plants make their own food using sunlight.",
+        "evidence": "green plants make their own food. This process is called photosynthesis"
+      },
+      {
+        "id": "c2",
+        "name": "Chlorophyll",
+        "explanation": "A green pigment in leaves captures sunlight.",
+        "evidence": "Leaves contain a green pigment called chlorophyll, which traps energy from sunlight"
+      },
+      {
+        "id": "c3",
+        "name": "Ingredients",
+        "explanation": "Plants need sunlight, water, and carbon dioxide to make food.",
+        "evidence": "To make food, a plant needs three things: sunlight, water and carbon dioxide"
+      },
+      {
+        "id": "c4",
+        "name": "Glucose Production",
+        "explanation": "Leaves turn water and carbon dioxide into sugar and release oxygen.",
+        "evidence": "the leaf combines water and carbon dioxide to make glucose... Oxygen is released into the air"
+      },
+      {
+        "id": "c5",
+        "name": "Soil Role",
+        "explanation": "Soil gives water and minerals, not food.",
+        "evidence": "Plants do not take food from the soil. The soil gives them water and minerals"
+      }
+    ],
+    "misconceptions": [
+      {
+        "id": "m1",
+        "concept_id": "c3",
+        "wrong_statement": "Plants get most of their food from the soil.",
+        "correction": "Plants make their food in the leaves, not from the soil.",
+        "evidence": "Plants do not take food from the soil. The food itself is made in the leaves",
+        "difficulty": "easy"
+      },
+      {
+        "id": "m2",
+        "concept_id": "c4",
+        "wrong_statement": "Oxygen is a waste product that plants need to get rid of.",
+        "correction": "Oxygen is released as a by‑product of making glucose.",
+        "evidence": "Oxygen is released into the air as a by‑product",
+        "difficulty": "medium"
+      },
+      {
+        "id": "m3",
+        "concept_id": "c2",
+        "wrong_statement": "Chlorophyll is a type of water stored in leaves.",
+        "correction": "Chlorophyll is a green pigment that captures sunlight.",
+        "evidence": "Leaves contain a green pigment called chlorophyll, which traps energy from sunlight",
+        "difficulty": "hard"
+      }
+    ],
+    "dropped": []
+  }
+}

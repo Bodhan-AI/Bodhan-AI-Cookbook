@@ -18,6 +18,7 @@ import json
 from dataclasses import dataclass, field
 
 import llm
+import verify
 
 BANDS = {
     "primary": {
@@ -63,6 +64,7 @@ LEVEL_QUESTIONS = {
 DIFFICULTY_FOR_LEVEL = {1: "easy", 2: "medium", 3: "hard"}
 MAX_TURNS = 12
 UNTESTED_PLANT_TURN = 4  # by this turn, plant a mistake even if nothing is fully explained yet
+MAX_CLARIFY = 2  # asking about the same vague idea more often than this just loops
 STATUS_RANK = {"not_covered": 0, "partial": 1, "explained": 2}
 
 
@@ -86,9 +88,17 @@ class Session:
     memory: dict = field(default_factory=dict)  # from memory.for_session(); empty for a new student
     focus: set = field(default_factory=set)  # concept ids the student was weak on last time
     retest: set = field(default_factory=set)  # misconception ids they missed last time
+    page_text: str = ""  # the OCR'd page(s); the fact-checker answers from this alone
+    fact_check: bool = True
+    learned: list = field(default_factory=list)  # the classmate's notebook: only what the student taught it
+    checks: list = field(default_factory=list)  # one fact-check summary per classmate line
+    key_terms: set = field(default_factory=set)
+    opening_check: dict | None = None
+    clarified: dict = field(default_factory=dict)  # concept id -> times the classmate asked to clarify it
 
     def __post_init__(self):
         cfg = BANDS[self.band]
+        self.key_terms = verify.key_terms(self.card)
         lo, hi = cfg["levels"]
         remembered = self.memory.get("level")
         self.level = self.level or (min(hi, max(lo, remembered)) if remembered else lo)
@@ -137,6 +147,8 @@ Credit rules (be strict; this is the whole point of the exercise):
 - If the student merely agrees ("yes", "you're right") or repeats words/ideas the buddy just put in \
 its question, that is at most "partial".
 - A vague gesture at the idea ("the sun does something") is "partial".
+- "explained" needs EVERY part of the reference answer. If a part is missing (one of several ingredients, \
+or what is produced), it is "partial". An analogy alone ("it's like an oven") does not supply missing parts.
 
 Return JSON with exactly these keys:
 - "concepts": list of {{"id", "status", "quote"}} for every concept the latest message touches. \
@@ -210,6 +222,8 @@ def update(session: Session, ev: dict) -> dict:
         if STATUS_RANK[status] > STATUS_RANK[cur["status"]]:  # mastery only goes up within a session
             cur["status"] = status
             cur["said"] = item.get("quote", "")
+            if cur["said"]:
+                session.learned.append({"turn": session.turn, "text": cur["said"], "how": "you explained"})
             if status == "explained":
                 changes["newly_explained"].append(cid)
 
@@ -218,6 +232,8 @@ def update(session: Session, ev: dict) -> dict:
         if ev.get("plant_response") == "caught":
             p["status"] = "caught" if p["hints"] == 0 else "caught_after_hint"
             changes["caught"] = session.pending_plant
+            session.learned.append({"turn": session.turn, "how": "you corrected my mistake",
+                                    "text": session.misconception(session.pending_plant)["correction"]})
             session.pending_plant = None
         else:
             p["hints"] += 1
@@ -296,6 +312,8 @@ def choose_move(session: Session) -> dict:
             return {"move": "hint_plant", "mid": session.pending_plant}
         session.plants[session.pending_plant]["status"] = "revealed"
         mid, session.pending_plant = session.pending_plant, None
+        session.learned.append({"turn": session.turn, "how": "I revealed my trick",
+                                "text": session.misconception(mid)["correction"]})
         return {"move": "reveal_plant", "mid": mid}
 
     unprobed = [e for e in session.student_errors if not e["probed"] and not e["resolved"]]
@@ -324,9 +342,11 @@ def choose_move(session: Session) -> dict:
             session.pending_plant = mid
             return {"move": "plant", "mid": mid}
 
-    # concepts the student was weak on last session come first
-    partial = sorted((cid for cid, s in statuses.items() if s == "partial"), key=lambda c: c not in session.focus)
+    # concepts the student was weak on last session come first; clarify one idea at most twice, then move on
+    partial = sorted((cid for cid, s in statuses.items() if s == "partial" and session.clarified.get(cid, 0) < MAX_CLARIFY),
+                     key=lambda c: c not in session.focus)
     if partial:
+        session.clarified[partial[0]] = session.clarified.get(partial[0], 0) + 1
         return {"move": "clarify", "cid": partial[0]}
     uncovered = sorted((cid for cid, s in statuses.items() if s == "not_covered"), key=lambda c: c not in session.focus)
     if uncovered:
@@ -347,7 +367,12 @@ Rules:
 - First react briefly to what the student just said, then follow the instruction.
 - Ask at most ONE question. Keep it to 1-3 short sentences, spoken style, no lists, no emojis.
 - Pitch questions as: {level_style}.
-- Reply in simple English."""
+- Reply in simple English.
+
+Everything you know about this topic is what your friend has taught you so far:
+{notebook}
+You know NOTHING else about it. Do not use facts or lesson words that are not in this list or in the \
+director's instruction; ask about them in everyday words instead."""
 
 
 def _instruction(session: Session, move: dict, changes: dict) -> str:
@@ -357,8 +382,8 @@ def _instruction(session: Session, move: dict, changes: dict) -> str:
         notes.append(f'The student just caught your deliberate mistake ("{m["wrong_statement"]}"). '
                      "Thank them warmly for correcting you, like a friend would.")
     if changes.get("newly_explained"):
-        names = ", ".join(session.concept(c)["name"] for c in changes["newly_explained"])
-        notes.append(f"They explained this well: {names}. Show you get it now.")
+        said = "; ".join(f'"{session.concepts[c]["said"]}"' for c in changes["newly_explained"])
+        notes.append(f"They explained this well: {said}. Show you get it now.")
 
     mv = move["move"]
     if mv == "opening":
@@ -391,8 +416,9 @@ def _instruction(session: Session, move: dict, changes: dict) -> str:
                 "It is a deliberate mistake to see if they catch it. Do not hint that it is wrong.")
     elif mv == "hint_plant":
         m = session.misconception(move["mid"])
-        task = (f'They did not catch your mistake ("{m["wrong_statement"]}"). Do not reveal it. Sound a bit unsure '
-                f'and ask them to double-check that part, nudging toward: "{m["evidence"]}".')
+        task = (f'They did not catch your mistake ("{m["wrong_statement"]}"). Do not reveal it and do NOT state the '
+                "right idea. Sound a bit unsure about what you said and ask one OPEN question (not yes/no) that makes "
+                "them check that part again, for example where or how it happens.")
     elif mv == "reveal_plant":
         m = session.misconception(move["mid"])
         task = (f'REVEAL: kindly admit your earlier statement was a trick to test both of you, and say the right '
@@ -416,24 +442,46 @@ def _instruction(session: Session, move: dict, changes: dict) -> str:
     return " ".join(notes + [f"Instruction: {task}"])
 
 
-def respond(session: Session, move: dict, changes: dict) -> str:
+def respond(session: Session, move: dict, changes: dict, feedback: str = "") -> str:
+    """Reflect-Respond (Jin et al., CHI 2024): the classmate answers from its notebook, not from the lesson card."""
     cfg = session.cfg
+    notebook = "\n".join(f"- {n['text']}" for n in session.learned) or "- (nothing yet)"
     system = PERSONA_PROMPT.format(
         name=cfg["name"], persona=cfg["persona"], topic=session.card["topic"],
-        level_style=LEVEL_QUESTIONS[session.level],
+        level_style=LEVEL_QUESTIONS[session.level], notebook=notebook,
     )
-    messages = [{"role": "system", "content": system}, *session.history[-8:],
-                {"role": "user", "content": f"[director note, not from the student] {_instruction(session, move, changes)}"}]
+    note = f"[director note, not from the student] {_instruction(session, move, changes)}"
+    if feedback:
+        note += f"\n{feedback}"
+    messages = [{"role": "system", "content": system}, *session.history[-8:], {"role": "user", "content": note}]
     return llm.chat(messages)
+
+
+def _speak(session: Session, move: dict, changes: dict) -> tuple[str, dict | None]:
+    """Write the classmate's line, then fact-check it (verify.py) before the student sees it."""
+    reply = respond(session, move, changes)
+    if not session.fact_check:
+        return reply, None
+    reply, check = verify.checked(session, move, reply, lambda fb: respond(session, move, changes, fb),
+                                  use_llm=move["move"] != "opening")
+    true = sum(v["verdict"] == "true" for v in check["verdicts"])
+    session.checks.append({
+        "turn": session.turn, "move": move["move"], "claims": len(check["verdicts"]), "true": true,
+        "unverified": sum(v["verdict"] == "unverified" for v in check["verdicts"]),
+        "false_caught": check["first_false"], "leaks_caught": len(check["first_leaks"]),
+        "regenerated": check["regenerated"], "plant_present": check["plant_present"], "ok": check["ok"],
+    })
+    return reply, check
 
 
 # ---------------------------------------------------------------- session API
 
 
 def start(session: Session) -> str:
-    reply = respond(session, {"move": "opening"}, {})
+    reply, check = _speak(session, {"move": "opening"}, {})
     session.history.append({"role": "assistant", "content": reply})
     session.last_move = "opening"
+    session.opening_check = check
     return reply
 
 
@@ -444,12 +492,24 @@ def step(session: Session, message: str) -> tuple[str, dict]:
     session.history.append({"role": "user", "content": message})
     changes = update(session, ev)
     move = choose_move(session)
-    reply = respond(session, move, changes)
+    reply, check = _speak(session, move, changes)
     session.history.append({"role": "assistant", "content": reply})
     session.last_move = move["move"]
     if move["move"] == "wrap_up":
         session.done = True
-    return reply, {"eval": ev, "move": move["move"], "level": session.level}
+    return reply, {"eval": ev, "move": move["move"], "level": session.level, "check": check}
+
+
+def fact_check_summary(session: Session) -> dict:
+    c = session.checks
+    plants = [x for x in c if x["move"] == "plant"]
+    return {
+        "lines": len(c), "claims": sum(x["claims"] for x in c), "claims_true": sum(x["true"] for x in c),
+        "claims_unverified": sum(x["unverified"] for x in c), "false_caught": sum(x["false_caught"] for x in c),
+        "leaks_caught": sum(x["leaks_caught"] for x in c), "regenerated": sum(x["regenerated"] for x in c),
+        "shown_clean": sum(x["ok"] for x in c),
+        "plants_verified": f'{sum(bool(x["plant_present"]) for x in plants)}/{len(plants)}',
+    }
 
 
 def report(session: Session) -> dict:
@@ -493,6 +553,8 @@ def report(session: Session) -> dict:
         "avg_quality": round(sum(session.quality) / len(session.quality), 2) if session.quality else 0,
         "deeper_questions": f"{session.deep_good}/{session.deep_asked} answered well",
         "level_trace": session.level_trace,
+        "fact_check": fact_check_summary(session),
+        "notebook": session.learned,
         **({"progress": progress} if progress else {}),
     }
 
@@ -508,15 +570,17 @@ if __name__ == "__main__":
     sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser()
     ap.add_argument("--band", choices=BANDS, default="middle")
-    ap.add_argument("--card", default=str(here / "outputs" / "lesson_card.json"))
+    ap.add_argument("--card", default=str(here / "eval" / "photosynthesis_card.json"))
     ap.add_argument("--student", help="name for cross-session memory (profiles/<name>.json)")
     args = ap.parse_args()
 
     import memory
 
-    card = json.loads(Path(args.card).read_text(encoding="utf-8"))["card"]
+    data = json.loads(Path(args.card).read_text(encoding="utf-8"))
+    card = data["card"]
     profile = memory.load(args.student) if args.student else None
-    s = Session(card=card, band=args.band, memory=memory.for_session(profile, card["topic"]) if profile else {})
+    s = Session(card=card, band=args.band, memory=memory.for_session(profile, card["topic"]) if profile else {},
+                page_text=data["page_text"])
     print(f"{s.cfg['name']}: {start(s)}")
     while not s.done:
         msg = input("\nYou: ").strip()

@@ -88,6 +88,12 @@ def record(profile: dict, session, rep: dict) -> dict:
     return profile
 
 
+def add_quiz(profile: dict, pre: int | None, post: int, total: int) -> dict:
+    """Attach the before/after quick-check scores to the latest session (learning gain = post - pre)."""
+    profile["sessions"][-1].update({"quiz_pre": pre, "quiz_post": post, "quiz_total": total})
+    return profile
+
+
 def _pct(num: float, den: float) -> int | None:
     return round(100 * num / den) if den else None
 
@@ -120,8 +126,13 @@ def skills(profile: dict) -> dict:
         if t["to_practice"]:
             steps.append(f'{t["topic"]}: teach these again: {", ".join(t["to_practice"])}.')
         steps += [f'{t["topic"]}: watch for this trick: "{m}"' for m in t["retry"]]
+    quizzed = [s for s in sessions if s.get("quiz_pre") is not None and s.get("quiz_post") is not None]
     return {
         "sessions": len(sessions),
+        "learning_gain": (round(sum(s["quiz_post"] - s["quiz_pre"] for s in quizzed) / len(quizzed), 2)
+                          if quizzed else None),
+        "quizzes": [{"date": s["date"], "topic": s["topic"], "pre": s["quiz_pre"], "post": s["quiz_post"],
+                     "total": s["quiz_total"]} for s in quizzed],
         "level": profile["level"],
         "skills": rows,
         "topics": topics,

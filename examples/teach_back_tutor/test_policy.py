@@ -6,7 +6,9 @@
 import lesson
 import memory
 import parent
+import quiz
 import tutor
+import verify
 
 CARD = {
     "topic": "Photosynthesis",
@@ -163,6 +165,87 @@ def test_unanswered_trick_does_not_lower_spotting_skill():
 def test_dashboard_for_a_new_student_is_empty():
     d = memory.skills({"student": "x", "level": None, "topics": {}, "sessions": []})
     assert d["sessions"] == 0 and d["mastered_total"] == 0
+
+
+def _talked(said):
+    s = tutor.Session(card=CARD, band="middle")
+    s.history = [{"role": "assistant", "content": "Hi! I missed the class."}, {"role": "user", "content": said}]
+    return s
+
+
+def test_classmate_may_not_use_lesson_words_the_student_never_said():
+    s = _talked("plants make food in their leaves")
+    assert verify.leaked_terms(s, {"move": "probe_gap"}, "Does the chlorophyll help with that?") == ["chlorophyll"]
+    assert verify.leaked_terms(s, {"move": "probe_gap"}, "Ooh, what do the leaves need for it?") == []
+    assert verify.leaked_terms(s, {"move": "wrap_up"}, "You taught me about chlorophyll!") == []
+
+
+def test_planted_mistake_is_allowed_but_must_be_present():
+    s = _talked("plants make food in their leaves")
+    plant = {"move": "plant", "mid": "m1"}
+    said_it = verify.decide(s, plant, "So plants eat soil, right?",
+                            [{"claim": "Plants eat soil", "verdict": "false", "evidence": "make their own food"}])
+    assert said_it["ok"] and said_it["plant_present"]
+    forgot = verify.decide(s, plant, "Wow, that is so cool!", [])
+    assert not forgot["ok"] and forgot["plant_present"] is False
+
+
+def test_any_other_false_claim_blocks_the_line():
+    s = _talked("plants make food in their leaves")
+    result = verify.decide(s, {"move": "clarify", "cid": "c1"}, "So roots make the food?",
+                           [{"claim": "Roots make the food", "verdict": "false", "evidence": "in their leaves"}])
+    assert not result["ok"] and "Roots make the food" in result["problems"][0]
+
+
+def test_a_failed_line_is_regenerated_once_with_the_problems_as_feedback(monkeypatch):
+    s = _talked("plants make food in their leaves")
+    move = {"move": "probe_gap", "cid": "c3"}
+    feedback = []
+    monkeypatch.setattr(verify, "fact_check", lambda sess, m, line: verify.decide(sess, m, line, []))
+    line, check = verify.checked(s, move, "Is it the chlorophyll?",
+                                 lambda fb: feedback.append(fb) or "What makes leaves green?")
+    assert line == "What makes leaves green?" and check["regenerated"] and check["ok"]
+    assert check["first_leaks"] == ["chlorophyll"] and "chlorophyll" in feedback[0]
+
+
+def test_a_hint_may_not_give_the_answer_away():
+    s = _talked("yes plants eat soil")
+    hint = {"move": "hint_plant", "mid": "m1"}  # correction: "They make food."
+    told = verify.decide(s, hint, "Hmm, or do they make food themselves?", [])
+    assert not told["ok"] and "gives away" in told["problems"][-1]
+    assert verify.decide(s, hint, "Hmm, I'm not sure. Where does the plant's dinner come from?", [])["ok"]
+
+
+def test_the_same_vague_idea_is_clarified_at_most_twice():
+    s = tutor.Session(card=CARD, band="middle")
+    s.concepts["c1"]["status"] = "partial"
+    s.turn, s.last_move = 1, "clarify"
+    moves = [tutor.choose_move(s) for _ in range(3)]
+    assert [m["move"] for m in moves[:2]] == ["clarify", "clarify"] and moves[2] != {"move": "clarify", "cid": "c1"}
+
+
+def test_notebook_holds_only_what_the_student_taught():
+    s = tutor.Session(card=CARD, band="middle")
+    tutor.update(s, {"concepts": [{"id": "c1", "status": "explained", "quote": "leaves make the food"}], "quality": 2})
+    s.plants["m1"]["status"], s.pending_plant = "planted", "m1"
+    tutor.update(s, ev(2, plant="caught"))
+    assert [n["text"] for n in s.learned] == ["leaves make the food", "They make food."]
+
+
+def test_quiz_options_are_shuffled_without_losing_the_answer():
+    q = {"q": "Where do plants make food?", "options": ["leaves", "roots", "soil", "stem"], "answer": 0}
+    s = quiz._shuffled(q)
+    assert sorted(s["options"]) == sorted(q["options"]) and s["options"][s["answer"]] == "leaves"
+    assert quiz.score({"questions": [s]}, [s["answer"]]) == 1 and quiz.score({"questions": [s]}, [None]) == 0
+
+
+def test_learning_gain_is_post_minus_pre():
+    profile = {"student": "x", "level": None, "topics": {}, "sessions": []}
+    s = tutor.Session(card=CARD, band="middle")
+    memory.record(profile, s, tutor.report(s))
+    memory.add_quiz(profile, pre=1, post=3, total=3)
+    d = memory.skills(profile)
+    assert d["learning_gain"] == 2 and d["quizzes"][0]["post"] == 3
 
 
 def test_grounding_rejects_quotes_not_on_the_page():

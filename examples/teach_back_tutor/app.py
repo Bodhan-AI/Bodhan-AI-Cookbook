@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import hashlib
 import io
+import json
 from html import escape
 from pathlib import Path
 
@@ -21,6 +22,7 @@ import bodhan  # noqa: E402
 import lesson  # noqa: E402
 import memory  # noqa: E402
 import parent  # noqa: E402
+import quiz  # noqa: E402
 import tutor  # noqa: E402
 
 LANGS = {"en": "English", "hi": "Hindi", "bn": "Bengali", "ta": "Tamil", "te": "Telugu", "mr": "Marathi",
@@ -104,7 +106,7 @@ section[data-testid="stSidebar"] { background: #FFFFFF; border-right: 1px solid 
 .skill .top { display: flex; justify-content: space-between; font-weight: 700; margin-bottom: 6px; color: #1E2235; }
 .bar { height: 10px; background: #E6E8F2; border-radius: 999px; overflow: hidden; }
 .bar > span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #4F46E5, #8B5CF6); }
-.kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 14px; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 14px; }
 .kpi { background: #fff; border: 1px solid #E6E8F2; border-radius: 16px; padding: 14px 16px; }
 .kpi b { display: block; font-size: 1.6rem; font-weight: 800; color: #1E2235; }
 .next { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; }
@@ -151,14 +153,20 @@ def avatar(letter: str, color: str) -> bytes:
 with st.sidebar:
     ui('<div class="brand">Teach-Back Tutor</div><div class="muted">Learn it by teaching it</div>')
     st.write("")
-    view = st.radio("View", ["Teach", "My progress"], horizontal=True, label_visibility="collapsed")
+    view = st.radio("View", ["Teach", "My progress", "Evaluation"], horizontal=True, label_visibility="collapsed")
     st.divider()
     student = st.text_input("Student name", "Aarav", help="The tutor remembers each student between sessions.")
     band = st.selectbox("Class", list(tutor.BANDS), index=1, format_func=lambda b: tutor.BANDS[b]["label"])
     lang = st.selectbox("Language for talking", list(LANGS), index=1, format_func=LANGS.get)
     roman = lang != "en" and st.checkbox("I type my language in English letters (e.g. Hinglish)", value=True)
     voice_on = lang in bodhan.VOICES and st.checkbox("Classmate speaks out loud", value=True)
-    teacher_view = st.toggle("Teacher view", help="Show the score, the next move and the level on every turn.")
+    teacher_view = st.toggle("Teacher view", help="Show the score, the next move, the level and the fact-check "
+                                                  "of every turn.")
+    fact_check_on = st.toggle("Fact-check the classmate", value=True,
+                              help="Chain-of-Verification: every classmate line is checked against the page before "
+                                   "you see it, and rewritten if it is wrong or uses words you have not taught yet.")
+    quick_check = st.toggle("Quick check before and after", value=True,
+                            help="Three questions before and after teaching, to measure your learning gain.")
     st.divider()
     if "session" in ss and "report" not in ss and ss.session.turn and st.button(
             "Finish session now", icon=":material/flag:", width="stretch"):
@@ -175,7 +183,7 @@ def localize(text: str) -> str:
     return text if lang == "en" else bodhan.translate(text, target_language=lang)
 
 
-def add_buddy(english: str) -> None:
+def add_buddy(english: str, check: dict | None = None) -> None:
     shown = localize(english)
     audio = None
     if voice_on:
@@ -183,12 +191,58 @@ def add_buddy(english: str) -> None:
             audio = bodhan.speak_long(shown, lang, style=tutor.BANDS[ss.session.band]["voice_style"])
         except bodhan.BodhanError as err:
             st.toast(f"Could not speak the reply: {err}")
-    ss.chat.append({"role": "assistant", "text": shown, "english": english, "audio": audio})
+    ss.chat.append({"role": "assistant", "text": shown, "english": english, "audio": audio, "check": check})
 
 
 def finish() -> None:
     ss.report = tutor.report(ss.session)
     memory.save(memory.record(ss.profile, ss.session, ss.report))
+
+
+VERDICT_TONE = {"true": "green", "false": "red", "unverified": "gray"}
+
+
+def check_html(c: dict | None) -> str:
+    """Teacher view of one fact-check: the verdict per claim with the page's own words, and what was fixed."""
+    if not c:
+        return ""
+    head = (chip("fact-check: rewritten", "amber") if c["regenerated"] else
+            chip("fact-check: passed", "green") if c["ok"] else chip("fact-check: issues remain", "red"))
+    if c.get("plant_present"):
+        head += chip("planted mistake confirmed", "gray")
+    if not c["verdicts"]:
+        head += chip("no factual claims", "gray")
+    rows = "".join(
+        f'<div class="quote">{chip(v["verdict"], VERDICT_TONE[v["verdict"]])}{escape(v["claim"])}'
+        + (f' <span class="muted">· page: "{escape(v["evidence"])}"</span>' if v["evidence"] else "") + "</div>"
+        for v in c["verdicts"])
+    fixed = (f'<div class="muted">First draft blocked: {escape("; ".join(c["first_problems"]))}</div>'
+             if c["regenerated"] else "")
+    return f'<div style="margin-top:8px">{head}{rows}{fixed}</div>'
+
+
+def quiz_form(stage: str) -> None:
+    """The quick check (Feynman Bot style learning gain). stage is "pre" or "post"."""
+    qz = ss.quiz
+    title = "Quick check before you teach" if stage == "pre" else "Quick check again, after teaching"
+    with st.form(f"quiz_{stage}"):
+        st.markdown(f"**{title}**")
+        st.caption(f"{len(qz['questions'])} questions. Each one was double-checked against your page by a separate "
+                   f"solver; {len(qz['dropped'])} draft questions were thrown out.")
+        picks = [st.radio(f"{i}. {q['q']}", q["options"], index=None, key=f"{stage}_{i}")
+                 for i, q in enumerate(qz["questions"], 1)]
+        col1, col2 = st.columns(2)
+        submitted = col1.form_submit_button("Submit answers", type="primary", width="stretch")
+        skipped = stage == "pre" and col2.form_submit_button("Skip for now", width="stretch")
+    if submitted:
+        idx = [q["options"].index(p) if p is not None else None for p, q in zip(picks, qz["questions"], strict=True)]
+        ss[stage], ss[f"{stage}_picks"] = quiz.score(qz, idx), idx
+        if stage == "post":
+            memory.save(memory.add_quiz(ss.profile, ss.get("pre"), ss.post, len(qz["questions"])))
+        st.rerun()
+    if skipped:
+        ss[stage] = None
+        st.rerun()
 
 
 # ------------------------------------------------------------------ progress dashboard
@@ -201,11 +255,22 @@ def show_progress(name: str) -> None:
         ui('<div class="card"><h3>No sessions yet</h3><p class="muted">Teach a page to your classmate and your '
            'progress will show up here.</p></div>')
         return
+    gain = "-" if data["learning_gain"] is None else f'{data["learning_gain"]:+g}'
     ui('<div class="kpis">'
        f'<div class="kpi"><span class="label">Sessions</span><b>{data["sessions"]}</b></div>'
        f'<div class="kpi"><span class="label">Level</span><b>{data["level"]} / 3</b></div>'
        f'<div class="kpi"><span class="label">Ideas mastered</span><b>{data["mastered_total"]} / '
-       f'{data["concepts_total"]}</b></div></div>')
+       f'{data["concepts_total"]}</b></div>'
+       f'<div class="kpi"><span class="label">Avg learning gain</span><b>{gain}</b></div></div>')
+    if data["quizzes"]:
+        rows = []
+        for q in data["quizzes"]:
+            pre, post, total = q["pre"], q["post"], q["total"]
+            chips = (chip(f"before {pre}/{total}", "gray") + chip(f"after {post}/{total}")
+                     + chip(f"gain {post - pre:+d}", "green" if post > pre else "gray"))
+            rows.append(f'<div class="row"><div><div class="name">{escape(q["topic"])}</div>'
+                        f'<div class="quote">{q["date"]}</div></div><div>{chips}</div></div>')
+        ui('<div class="card"><h3>Quick checks: before and after teaching</h3>' + "".join(rows) + "</div>")
 
     rows = []
     for skill in data["skills"]:
@@ -238,8 +303,94 @@ def show_progress(name: str) -> None:
     ui(f'<div class="card"><h3>Practise next</h3>{steps}</div>')
 
 
+def pct(x: float | None) -> str:
+    return "-" if x is None else f"{x:.0%}"
+
+
+def show_evaluation() -> None:
+    """How we know it works: the two LLM judges checked against hand labels, and the simulated students."""
+    ui('<div class="hero"><div class="tag">Evaluation</div><h1>How we know it works</h1>'
+       '<p>Every LLM decision in this app is checked: the grader against hand-labelled turns, the fact-checker '
+       'against hand-labelled statements, and the whole tutor against simulated students.</p></div>')
+    path = HERE / "eval" / "results.json"
+    if not path.exists():
+        ui('<div class="card"><h3>No results yet</h3><p class="muted">Run <code>python evaluate_judges.py</code> '
+           'and <code>python simulate.py --all</code>.</p></div>')
+        return
+    r = json.loads(path.read_text(encoding="utf-8"))
+    j, v = r["judge"], r["verifier"]
+    ui(f'<div class="muted" style="margin-bottom:10px">Last run {r["date"]} with <code>{escape(r["model"])}</code>. '
+       'Labels are in <code>eval/</code>; re-run with <code>python evaluate_judges.py</code>.</div>')
+
+    ui('<div class="card"><h3>1. The grader (LLM-as-a-judge) vs a teacher\'s labels</h3>'
+       f'<p class="muted">{j["items"]} student turns, {j["concept_labels"]} concept labels. Does it give the same '
+       'credit a careful teacher would, including no credit for just agreeing or echoing?</p><div class="kpis">'
+       f'<div class="kpi"><span class="label">Concept credit</span><b>{pct(j["concept_accuracy"])}</b></div>'
+       f'<div class="kpi"><span class="label">Planted mistake caught/missed</span><b>{pct(j["plant_accuracy"])}</b></div>'
+       f'<div class="kpi"><span class="label">Quality score in range</span><b>{pct(j["quality_in_range"])}</b></div>'
+       f'<div class="kpi"><span class="label">Over-credits</span><b>{j["over_credit"]}</b></div></div></div>')
+    with st.expander("Grader: every labelled turn"):
+        st.dataframe([{"#": x["id"], "student said": x["message"], "agrees": x["ok"], "differences": "; ".join(x["issues"])}
+                      for x in j["rows"]], hide_index=True, width="stretch")
+
+    main, held = v.get("main", v), v.get("held_out")
+    ui('<div class="card"><h3>2. The fact-checker (Chain-of-Verification) vs labelled statements</h3>'
+       '<p class="muted">Each statement is said by the classmate. False ones must be blocked, true ones must pass. '
+       'Held-out statements were written after the last fix, to check it generalises.</p><div class="kpis">'
+       f'<div class="kpi"><span class="label">Precision</span><b>{pct(main["precision"])}</b></div>'
+       f'<div class="kpi"><span class="label">Recall</span><b>{pct(main["recall"])}</b></div>'
+       f'<div class="kpi"><span class="label">F1</span><b>{main["f1"]:.2f}</b></div>'
+       + (f'<div class="kpi"><span class="label">Held-out accuracy</span><b>{pct(held["accuracy"])}</b>'
+          f'<span class="muted">{held["statements"]} statements</span></div>' if held else "") + "</div>")
+    v1_path = HERE / "eval" / "results_v1.json"
+    if v1_path.exists():
+        v1 = json.loads(v1_path.read_text(encoding="utf-8"))["verifier"]
+        ui('<p class="muted">Before the quantity-word fix (v1): recall '
+           f'{pct(v1["recall"])}. "Plants need <i>only</i> water" was checked as "do plants need water?" and passed. '
+           'The planning prompt now keeps words like only / all / none in the check question.</p>')
+    ui("</div>")
+    with st.expander("Fact-checker: every labelled statement"):
+        st.dataframe([{"set": x.get("group", "main"), "statement": x["statement"], "label": x["label"],
+                       "blocked": x["flagged"], "correct": x["ok"]} for x in v["rows"]], hide_index=True, width="stretch")
+
+    sim = r.get("simulation")
+    if sim:
+        rows = []
+        for x in sim["rows"]:
+            chips = chip("{}% understanding".format(x["mastery"])) + chip("tricks " + x["tricks"], "gray")
+            if x.get("quiz_post") is not None:
+                chips += chip("quick check {} → {}".format(x["quiz_pre"], x["quiz_post"]), "green")
+            chips += chip("{} fact-checked lines".format(x["checked_lines"]), "gray")
+            rows.append(f'<div class="row"><div><div class="name">{escape(x["profile"])} student</div>'
+                        f'<div class="quote">{escape(x["detail"])}</div></div><div>{chips}</div></div>')
+        ui(f'<div class="card"><h3>3. Simulated students</h3><p class="muted">An LLM role-plays three students who '
+           f'know different amounts ({escape(sim["model"])}, {sim["date"]}). The scores should rank them strong &gt; '
+           'partial &gt; confused.</p>' + "".join(rows) + "</div>")
+
+    if "session" in ss and ss.session.checks:
+        fc = tutor.fact_check_summary(ss.session)
+        ui('<div class="card"><h3>4. This session, live</h3><div class="kpis">'
+           f'<div class="kpi"><span class="label">Lines checked</span><b>{fc["lines"]}</b></div>'
+           f'<div class="kpi"><span class="label">Claims verified true</span><b>{fc["claims_true"]}/{fc["claims"]}</b></div>'
+           f'<div class="kpi"><span class="label">Wrong claims blocked</span><b>{fc["false_caught"]}</b></div>'
+           f'<div class="kpi"><span class="label">Leaks blocked</span><b>{fc["leaks_caught"]}</b></div></div></div>')
+
+    ui('<div class="card"><h3>Methods this builds on</h3>'
+       '<div class="next"><span class="n">1</span><span><b>Feynman Bot</b> (Rajesh &amp; Khan, IEEE TALE 2024, '
+       'arXiv 2506.09055): learning by explaining; learning gain = after score - before score.</span></div>'
+       '<div class="next"><span class="n">2</span><span><b>AlgoBo / Reflect-Respond</b> (Jin et al., CHI 2024, '
+       'arXiv 2309.14534): a teachable agent that only knows what it has been taught.</span></div>'
+       '<div class="next"><span class="n">3</span><span><b>Chain-of-Verification</b> (Dhuliawala et al., Findings of '
+       'ACL 2024, arXiv 2309.11495): plan checks, answer them independently, then revise.</span></div>'
+       '<div class="next"><span class="n">4</span><span><b>LLM-as-a-judge</b> (Zheng et al., NeurIPS 2023, '
+       'arXiv 2306.05685): validate an LLM grader against human labels.</span></div></div>')
+
+
 if view == "My progress":
     show_progress(student)
+    st.stop()
+if view == "Evaluation":
+    show_evaluation()
     st.stop()
 
 # ------------------------------------------------------------------ 1. the page
@@ -283,9 +434,15 @@ if "session" not in ss:
                 st.error(str(err))
                 st.stop()
             ss.profile = memory.load(student)
-            ss.session = tutor.Session(card=card, band=band, memory=memory.for_session(ss.profile, card["topic"]))
+            ss.session = tutor.Session(card=card, band=band, memory=memory.for_session(ss.profile, card["topic"]),
+                                       page_text=ss.page_text, fact_check=fact_check_on)
             ss.chat = []
-            add_buddy(tutor.start(ss.session))
+            add_buddy(tutor.start(ss.session), ss.session.opening_check)
+        if quick_check:
+            with st.spinner("Preparing a 3-question quick check (each question double-checked against the page)..."):
+                ss.quiz = quiz.build(card, ss.page_text)
+            if not ss.quiz["questions"]:
+                ss.quiz = None
         st.rerun()
     st.stop()
 
@@ -315,6 +472,20 @@ if teacher_view:
     with st.expander("Lesson card (what the classmate secretly knows)", icon=":material/visibility:"):
         st.json(s.card, expanded=False)
 
+if ss.get("quiz") and "pre" not in ss:
+    quiz_form("pre")
+    st.stop()
+
+with st.expander(f"{name}'s notebook: what {name} has learned from you ({len(s.learned)})",
+                 icon=":material/menu_book:"):
+    st.caption(f"{name} missed the class, so {name} only knows what you teach. Every reply is written from this "
+               "notebook alone (the Reflect-Respond idea from the AlgoBo study).")
+    if s.learned:
+        ui("".join(f'<div class="row"><div class="said">{escape(n["text"])}</div>{chip(n["how"], "gray")}</div>'
+                   for n in s.learned))
+    else:
+        st.write("Nothing yet. Start teaching!")
+
 # ------------------------------------------------------------------ 2. the conversation
 
 for i, m in enumerate(ss.chat):
@@ -331,6 +502,8 @@ for i, m in enumerate(ss.chat):
                      + chip(f"next: {info['move'].replace('_', ' ')}", "gray") + chip(f"level {info['level']}", "gray")
                      + (f'<div class="muted">{escape(ev.get("short_feedback", ""))}</div>'
                         if ev.get("short_feedback") else "") + "</div>")
+        if teacher_view and not mine:
+            body += check_html(m.get("check"))
         ui(body + "</div>")
         if m.get("audio"):
             st.audio(m["audio"], format="audio/wav", autoplay=i == len(ss.chat) - 1)
@@ -362,7 +535,7 @@ if "report" not in ss:
         with st.spinner(f"{name} is thinking..."):
             reply, info = tutor.step(s, english)
             ss.chat[-1]["info"] = info
-            add_buddy(reply)
+            add_buddy(reply, info["check"])
         if s.done:
             finish()
         st.rerun()
@@ -404,6 +577,36 @@ if "report" in ss:
     ]
     if checks:
         ui('<div class="card"><h3>Tricks and mix-ups</h3>' + "".join(checks) + "</div>")
+    if ss.get("quiz"):
+        if "post" not in ss:
+            quiz_form("post")
+        else:
+            qz, pre, post = ss.quiz, ss.get("pre"), ss.post
+            total = len(qz["questions"])
+            gain = "" if pre is None else chip(f"learning gain {post - pre:+d}", "green" if post > pre else "gray")
+            review = "".join(
+                f'<div class="row"><div><div class="name">{escape(q["q"])}</div>'
+                f'<div class="quote">Answer: {escape(q["options"][q["answer"]])} · page: "{escape(q["evidence"])}"</div>'
+                f'</div>{chip("right", "green") if pick == q["answer"] else chip("not yet", "amber")}</div>'
+                for q, pick in zip(qz["questions"], ss.post_picks, strict=True))
+            ui('<div class="card"><h3>Quick check: before and after</h3><div class="stats" style="margin-bottom:10px">'
+               f'<div class="stat"><span class="label">Before teaching</span><b>{"-" if pre is None else pre}/{total}</b></div>'
+               f'<div class="stat"><span class="label">After teaching</span><b>{post}/{total}</b></div>'
+               f'<div class="stat"><span class="label">Gain</span><b>{"-" if pre is None else f"{post - pre:+d}"}</b></div>'
+               f'</div>{gain}{review}</div>')
+
+    fc = rep["fact_check"]
+    if fc["lines"]:
+        ui('<div class="card"><h3>Behind the scenes: was the classmate always right?</h3>'
+           f'<p class="muted">Every line {escape(name)} said was fact-checked against your page before you saw it '
+           '(Chain-of-Verification), and checked for words you had not taught yet.</p><div class="kpis">'
+           f'<div class="kpi"><span class="label">Lines checked</span><b>{fc["lines"]}</b></div>'
+           f'<div class="kpi"><span class="label">Claims verified true</span><b>{fc["claims_true"]}/{fc["claims"]}</b></div>'
+           f'<div class="kpi"><span class="label">Wrong claims blocked</span><b>{fc["false_caught"]}</b></div>'
+           f'<div class="kpi"><span class="label">Leaked words blocked</span><b>{fc["leaks_caught"]}</b></div>'
+           f'<div class="kpi"><span class="label">Replies rewritten</span><b>{fc["regenerated"]}</b></div>'
+           f'<div class="kpi"><span class="label">Tricks confirmed planted</span><b>{fc["plants_verified"]}</b></div>'
+           '</div></div>')
     ui(f'<div class="muted" style="margin-bottom:14px">Saved to {escape(student)}\'s memory: next time {escape(name)} '
        'will start from here. Open <b>My progress</b> in the sidebar to see the whole journey.</div>')
 
