@@ -1,0 +1,57 @@
+{
+  "by_language": {
+    "mr": {
+      "clean": 0,
+      "flagged": 2,
+      "flags_by_category": {
+        "speech_omission": 1,
+        "speech_repetition": 1
+      },
+      "mqm_penalty": 10.0,
+      "skipped": 0,
+      "total": 3,
+      "uncertain": 1
+    }
+  },
+  "calibration_summary": {
+    "category_accuracy": 1.0,
+    "f1": 0.8,
+    "false_alarm_rate": null,
+    "localization": null,
+    "precision": 1.0,
+    "recall": 0.6667
+  },
+  "checker_disagreements": 0,
+  "cost": {
+    "logical_total_inr": 0.039
+  },
+  "evaluation_scope": {
+    "judge_enabled": false,
+    "speech_enabled": true
+  },
+  "flags_by_category": {
+    "speech_omission": 1,
+    "speech_repetition": 1
+  },
+  "flags_by_severity": {
+    "major": 2
+  },
+  "judge_consistency": {
+    "measured": false
+  },
+  "judge_tokens": {},
+  "load": {
+    "duplicate_ids": 0,
+    "loaded": 3,
+    "skipped": 0
+  },
+  "skipped_for_budget": [],
+  "skipped_reasons": {},
+  "totals": {
+    "clean": 0,
+    "flagged": 2,
+    "items": 3,
+    "skipped": 0,
+    "uncertain": 1
+  }
+}

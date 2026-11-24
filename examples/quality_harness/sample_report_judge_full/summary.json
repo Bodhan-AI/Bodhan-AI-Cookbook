@@ -1,0 +1,103 @@
+{
+  "by_language": {
+    "bn": {
+      "clean": 12,
+      "flagged": 19,
+      "flags_by_category": {
+        "addition": 4,
+        "format": 3,
+        "mistranslation": 1,
+        "number_unit": 10,
+        "wrong_language_script": 6
+      },
+      "mqm_penalty": 142.0,
+      "skipped": 0,
+      "total": 36,
+      "uncertain": 5
+    },
+    "hi": {
+      "clean": 15,
+      "flagged": 18,
+      "flags_by_category": {
+        "addition": 7,
+        "format": 3,
+        "number_unit": 6,
+        "wrong_language_script": 7
+      },
+      "mqm_penalty": 138.0,
+      "skipped": 0,
+      "total": 36,
+      "uncertain": 3
+    },
+    "ta": {
+      "clean": 14,
+      "flagged": 20,
+      "flags_by_category": {
+        "addition": 8,
+        "format": 3,
+        "mistranslation": 2,
+        "number_unit": 10,
+        "omission": 3,
+        "term_entity": 1,
+        "wrong_language_script": 6
+      },
+      "mqm_penalty": 175.0,
+      "skipped": 0,
+      "total": 36,
+      "uncertain": 2
+    }
+  },
+  "calibration_summary": {
+    "category_accuracy": 0.9811,
+    "f1": 0.8001,
+    "false_alarm_rate": null,
+    "localization": 0.9811,
+    "precision": 0.6753,
+    "recall": 0.9815
+  },
+  "checker_disagreements": 1,
+  "cost": {
+    "logical_total_inr": 0.038
+  },
+  "evaluation_scope": {
+    "judge_enabled": true,
+    "speech_enabled": false
+  },
+  "flags_by_category": {
+    "addition": 19,
+    "format": 9,
+    "mistranslation": 3,
+    "number_unit": 26,
+    "omission": 3,
+    "term_entity": 1,
+    "wrong_language_script": 19
+  },
+  "flags_by_severity": {
+    "critical": 19,
+    "major": 51,
+    "minor": 10
+  },
+  "judge_consistency": {
+    "measured": false
+  },
+  "judge_tokens": {
+    "calls": 108,
+    "completion_tokens": 38504,
+    "prompt_tokens": 81390,
+    "usage_missing": 0
+  },
+  "load": {
+    "duplicate_ids": 0,
+    "loaded": 108,
+    "skipped": 0
+  },
+  "skipped_for_budget": [],
+  "skipped_reasons": {},
+  "totals": {
+    "clean": 41,
+    "flagged": 57,
+    "items": 108,
+    "skipped": 0,
+    "uncertain": 10
+  }
+}

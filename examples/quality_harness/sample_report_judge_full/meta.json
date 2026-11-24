@@ -1,0 +1,37 @@
+{
+  "actual_spend_inr": {
+    "by_model": {},
+    "estimated": {},
+    "max_inr": 0.1,
+    "total_inr": 0
+  },
+  "config": {
+    "concurrency": 2,
+    "generate": false,
+    "judge_repeats": 1,
+    "langs": [
+      "hi",
+      "ta",
+      "bn"
+    ],
+    "max_cost_inr": 0.1,
+    "no_judge": false,
+    "no_speech": true,
+    "seed": 0,
+    "speech_sample_rate": 0.25
+  },
+  "ended_at": 1795460243.944804,
+  "judge_token_usage": {
+    "calls": 108,
+    "completion_tokens": 38504,
+    "prompt_tokens": 81390,
+    "uncached_calls": 0,
+    "uncached_completion_tokens": 0,
+    "uncached_prompt_tokens": 0,
+    "usage_missing": 0
+  },
+  "rubric_hash": "9c226b085c5c",
+  "runtime_seconds": 1.32,
+  "started_at": 1795460242.6287708,
+  "version": "0.1.0"
+}

@@ -1,0 +1,3 @@
+id,lang,uncertain_categories,evidence_checks,note
+src-001,ta,speech_repetition,s5_repetition,needs human label
+src-003,hi,speech_omission,s6_omission,needs human label

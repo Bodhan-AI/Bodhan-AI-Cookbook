@@ -1,0 +1,358 @@
+{
+  "fit": {
+    "false_alarm_constraint": 0.1,
+    "final_f1": 0.8001,
+    "final_false_alarm": 1.0,
+    "fitted_thresholds_path": "thresholds.fitted.json",
+    "searched": {
+      "judge_confidence_cut": {
+        "chosen": 0.5,
+        "trials": [
+          {
+            "f1": 0.8001,
+            "false_alarm": 1.0,
+            "value": 0.3
+          },
+          {
+            "f1": 0.8001,
+            "false_alarm": 1.0,
+            "value": 0.4
+          },
+          {
+            "f1": 0.8001,
+            "false_alarm": 1.0,
+            "value": 0.5
+          },
+          {
+            "f1": 0.8001,
+            "false_alarm": 1.0,
+            "value": 0.6
+          },
+          {
+            "f1": 0.8001,
+            "false_alarm": 1.0,
+            "value": 0.7
+          }
+        ]
+      }
+    }
+  },
+  "metrics": {
+    "cells": {
+      "_all|_all": {
+        "category": "_all",
+        "category_accuracy": 0.9811,
+        "f1": 0.8001,
+        "labels": 54,
+        "lang": "_all",
+        "localization": 0.9811,
+        "low_support": false,
+        "precision": 0.6753,
+        "predictions": 77,
+        "recall": 0.9815
+      },
+      "_all|addition": {
+        "category": "addition",
+        "category_accuracy": 1.0,
+        "f1": 1.0,
+        "labels": 19,
+        "lang": "_all",
+        "localization": 1.0,
+        "low_support": false,
+        "precision": 1.0,
+        "predictions": 19,
+        "recall": 1.0
+      },
+      "_all|format": {
+        "category": "format",
+        "category_accuracy": 1.0,
+        "f1": 0.2222,
+        "labels": 1,
+        "lang": "_all",
+        "localization": 1.0,
+        "low_support": true,
+        "precision": 0.125,
+        "predictions": 8,
+        "recall": 1.0
+      },
+      "_all|mistranslation": {
+        "category": "mistranslation",
+        "category_accuracy": null,
+        "f1": null,
+        "labels": 0,
+        "lang": "_all",
+        "localization": null,
+        "low_support": true,
+        "precision": 0.0,
+        "predictions": 1,
+        "recall": null
+      },
+      "_all|number_unit": {
+        "category": "number_unit",
+        "category_accuracy": 1.0,
+        "f1": 0.6316,
+        "labels": 12,
+        "lang": "_all",
+        "localization": 1.0,
+        "low_support": false,
+        "precision": 0.4615,
+        "predictions": 26,
+        "recall": 1.0
+      },
+      "_all|omission": {
+        "category": "omission",
+        "category_accuracy": 0.5,
+        "f1": 0.3333,
+        "labels": 3,
+        "lang": "_all",
+        "localization": 0.5,
+        "low_support": true,
+        "precision": 0.3333,
+        "predictions": 3,
+        "recall": 0.3333
+      },
+      "_all|term_entity": {
+        "category": "term_entity",
+        "category_accuracy": null,
+        "f1": null,
+        "labels": 0,
+        "lang": "_all",
+        "localization": null,
+        "low_support": true,
+        "precision": 0.0,
+        "predictions": 1,
+        "recall": null
+      },
+      "_all|wrong_language_script": {
+        "category": "wrong_language_script",
+        "category_accuracy": 1.0,
+        "f1": 1.0,
+        "labels": 19,
+        "lang": "_all",
+        "localization": 1.0,
+        "low_support": false,
+        "precision": 1.0,
+        "predictions": 19,
+        "recall": 1.0
+      },
+      "bn|_all": {
+        "category": "_all",
+        "category_accuracy": 1.0,
+        "f1": 0.878,
+        "labels": 18,
+        "lang": "bn",
+        "localization": 1.0,
+        "low_support": false,
+        "precision": 0.7826,
+        "predictions": 23,
+        "recall": 1.0
+      },
+      "bn|addition": {
+        "category": "addition",
+        "category_accuracy": 1.0,
+        "f1": 1.0,
+        "labels": 4,
+        "lang": "bn",
+        "localization": 1.0,
+        "low_support": true,
+        "precision": 1.0,
+        "predictions": 4,
+        "recall": 1.0
+      },
+      "bn|format": {
+        "category": "format",
+        "category_accuracy": 1.0,
+        "f1": 0.5,
+        "labels": 1,
+        "lang": "bn",
+        "localization": 1.0,
+        "low_support": true,
+        "precision": 0.3333,
+        "predictions": 3,
+        "recall": 1.0
+      },
+      "bn|number_unit": {
+        "category": "number_unit",
+        "category_accuracy": 1.0,
+        "f1": 0.8235,
+        "labels": 7,
+        "lang": "bn",
+        "localization": 1.0,
+        "low_support": false,
+        "precision": 0.7,
+        "predictions": 10,
+        "recall": 1.0
+      },
+      "bn|wrong_language_script": {
+        "category": "wrong_language_script",
+        "category_accuracy": 1.0,
+        "f1": 1.0,
+        "labels": 6,
+        "lang": "bn",
+        "localization": 1.0,
+        "low_support": false,
+        "precision": 1.0,
+        "predictions": 6,
+        "recall": 1.0
+      },
+      "hi|_all": {
+        "category": "_all",
+        "category_accuracy": 1.0,
+        "f1": 0.8718,
+        "labels": 17,
+        "lang": "hi",
+        "localization": 1.0,
+        "low_support": false,
+        "precision": 0.7727,
+        "predictions": 22,
+        "recall": 1.0
+      },
+      "hi|addition": {
+        "category": "addition",
+        "category_accuracy": 1.0,
+        "f1": 1.0,
+        "labels": 7,
+        "lang": "hi",
+        "localization": 1.0,
+        "low_support": false,
+        "precision": 1.0,
+        "predictions": 7,
+        "recall": 1.0
+      },
+      "hi|format": {
+        "category": "format",
+        "category_accuracy": null,
+        "f1": null,
+        "labels": 0,
+        "lang": "hi",
+        "localization": null,
+        "low_support": true,
+        "precision": 0.0,
+        "predictions": 2,
+        "recall": null
+      },
+      "hi|number_unit": {
+        "category": "number_unit",
+        "category_accuracy": 1.0,
+        "f1": 0.6667,
+        "labels": 3,
+        "lang": "hi",
+        "localization": 1.0,
+        "low_support": true,
+        "precision": 0.5,
+        "predictions": 6,
+        "recall": 1.0
+      },
+      "hi|wrong_language_script": {
+        "category": "wrong_language_script",
+        "category_accuracy": 1.0,
+        "f1": 1.0,
+        "labels": 7,
+        "lang": "hi",
+        "localization": 1.0,
+        "low_support": false,
+        "precision": 1.0,
+        "predictions": 7,
+        "recall": 1.0
+      },
+      "ta|_all": {
+        "category": "_all",
+        "category_accuracy": 0.9444,
+        "f1": 0.6808,
+        "labels": 19,
+        "lang": "ta",
+        "localization": 0.9444,
+        "low_support": false,
+        "precision": 0.5312,
+        "predictions": 32,
+        "recall": 0.9474
+      },
+      "ta|addition": {
+        "category": "addition",
+        "category_accuracy": 1.0,
+        "f1": 1.0,
+        "labels": 8,
+        "lang": "ta",
+        "localization": 1.0,
+        "low_support": false,
+        "precision": 1.0,
+        "predictions": 8,
+        "recall": 1.0
+      },
+      "ta|format": {
+        "category": "format",
+        "category_accuracy": null,
+        "f1": null,
+        "labels": 0,
+        "lang": "ta",
+        "localization": null,
+        "low_support": true,
+        "precision": 0.0,
+        "predictions": 3,
+        "recall": null
+      },
+      "ta|mistranslation": {
+        "category": "mistranslation",
+        "category_accuracy": null,
+        "f1": null,
+        "labels": 0,
+        "lang": "ta",
+        "localization": null,
+        "low_support": true,
+        "precision": 0.0,
+        "predictions": 1,
+        "recall": null
+      },
+      "ta|number_unit": {
+        "category": "number_unit",
+        "category_accuracy": 1.0,
+        "f1": 0.3333,
+        "labels": 2,
+        "lang": "ta",
+        "localization": 1.0,
+        "low_support": true,
+        "precision": 0.2,
+        "predictions": 10,
+        "recall": 1.0
+      },
+      "ta|omission": {
+        "category": "omission",
+        "category_accuracy": 0.5,
+        "f1": 0.3333,
+        "labels": 3,
+        "lang": "ta",
+        "localization": 0.5,
+        "low_support": true,
+        "precision": 0.3333,
+        "predictions": 3,
+        "recall": 0.3333
+      },
+      "ta|term_entity": {
+        "category": "term_entity",
+        "category_accuracy": null,
+        "f1": null,
+        "labels": 0,
+        "lang": "ta",
+        "localization": null,
+        "low_support": true,
+        "precision": 0.0,
+        "predictions": 1,
+        "recall": null
+      },
+      "ta|wrong_language_script": {
+        "category": "wrong_language_script",
+        "category_accuracy": 1.0,
+        "f1": 1.0,
+        "labels": 6,
+        "lang": "ta",
+        "localization": 1.0,
+        "low_support": false,
+        "precision": 1.0,
+        "predictions": 6,
+        "recall": 1.0
+      }
+    },
+    "false_alarms": {}
+  },
+  "note": "Only explicitly labelled items are scored; spans use the declared space."
+}

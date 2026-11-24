@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="paper">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quality Harness — Proof Sheet</title>
+<style>/*__CSS__*/</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="strip" role="banner">
+  <div class="strip-title">
+    <span class="monogram" aria-hidden="true">¶</span>
+    <div>
+      <h1>Translation &amp; Speech Quality</h1>
+      <p class="sub" id="run-sub">The proofreader's desk</p>
+    </div>
+  </div>
+  <div class="strip-meta" id="strip-meta"></div>
+  <div class="strip-actions">
+    <button id="theme-toggle" class="btn" aria-label="Toggle colour theme" title="Toggle theme (paper / midnight)">◐</button>
+    <button id="help-toggle" class="btn" aria-label="Keyboard shortcuts" title="Shortcuts (?)">?</button>
+  </div>
+</header>
+
+<section class="kpis" id="kpis" aria-label="Headline metrics"></section>
+
+<nav class="tabs" role="tablist" aria-label="Views">
+  <button class="tab" role="tab" data-tab="items" aria-selected="true">Proof sheet</button>
+  <button class="tab" role="tab" data-tab="calibration" aria-selected="false">Calibration</button>
+  <button class="tab" role="tab" data-tab="cost" aria-selected="false">Cost</button>
+  <button class="tab" role="tab" data-tab="review" aria-selected="false">Review queue</button>
+  <button class="tab" role="tab" data-tab="diff" aria-selected="false">Diff</button>
+</nav>
+
+<main id="main">
+  <section id="tab-items" class="panel" role="tabpanel">
+    <div class="heatmap-wrap">
+      <h2>Recall by language × category</h2>
+      <div id="heatmap" class="heatmap" role="img" aria-label="Recall heatmap by language and category"></div>
+      <p class="hint" id="heatmap-hint"></p>
+    </div>
+    <div class="filterbar" role="region" aria-label="Filters">
+      <input type="search" id="f-search" placeholder="Search id or text…" aria-label="Search">
+      <select id="f-lang" aria-label="Language"></select>
+      <select id="f-category" aria-label="Category"></select>
+      <select id="f-severity" aria-label="Severity">
+        <option value="">All severities</option><option>critical</option><option>major</option><option>minor</option>
+      </select>
+      <select id="f-status" aria-label="Status">
+        <option value="">All statuses</option><option>flagged</option><option>uncertain</option><option>clean</option><option>skipped</option>
+      </select>
+      <label class="chk"><input type="checkbox" id="f-disagree"> judge≠checks</label>
+      <span class="count" id="result-count"></span>
+      <button class="btn ghost" id="f-reset">reset</button>
+    </div>
+    <ol class="items" id="item-list" aria-label="Scored items"></ol>
+  </section>
+
+  <section id="tab-calibration" class="panel" role="tabpanel" hidden></section>
+  <section id="tab-cost" class="panel" role="tabpanel" hidden></section>
+  <section id="tab-review" class="panel" role="tabpanel" hidden></section>
+  <section id="tab-diff" class="panel" role="tabpanel" hidden></section>
+</main>
+
+<aside id="proof" class="drawer" role="dialog" aria-modal="true" aria-label="Item proof sheet" hidden>
+  <div class="drawer-head">
+    <div><span id="proof-id" class="proof-id"></span> <span id="proof-lang" class="chip"></span> <span id="proof-status" class="chip"></span></div>
+    <div class="drawer-nav">
+      <button class="btn ghost" id="proof-prev" title="Previous (k)">↑</button>
+      <button class="btn ghost" id="proof-next" title="Next (j)">↓</button>
+      <button class="btn" id="proof-close" title="Close (Esc)">✕</button>
+    </div>
+  </div>
+  <div class="drawer-body" id="proof-body"></div>
+</aside>
+<div id="scrim" class="scrim" hidden></div>
+
+<div id="help" class="help" hidden role="dialog" aria-label="Keyboard shortcuts">
+  <h3>Shortcuts</h3>
+  <ul>
+    <li><kbd>j</kbd> / <kbd>k</kbd> — next / previous item</li>
+    <li><kbd>Esc</kbd> — close</li>
+    <li><kbd>/</kbd> — focus search</li>
+    <li><kbd>t</kbd> — toggle theme</li>
+  </ul>
+  <button class="btn" id="help-close">close</button>
+</div>
+
+<footer class="foot">
+  <span>AI-generated audio is never committed. Markdown/LaTeX shown as plain text.</span>
+  <span id="foot-meta"></span>
+</footer>
+
+<script type="application/json" id="data">__DATA__</script>
+<script>/*__JS__*/</script>
+</body>
+</html>

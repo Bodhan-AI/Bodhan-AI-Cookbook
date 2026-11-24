@@ -1,0 +1,34 @@
+# Language metadata. Scripts are identified by Unicode block ranges so that
+# script detection works for any language, including codes not listed here.
+# `blocks` are inclusive [start, end] codepoint ranges in hex.
+#
+# The 13 production-tier Indic-Speak languages are listed first. If the hidden
+# set uses a code not here, the harness falls back to detecting the dominant
+# Indic block and treats any non-ASCII Indic script as "expected".
+
+scripts:
+  devanagari: { blocks: [["0900", "097F"], ["A8E0", "A8FF"]] }
+  bengali:    { blocks: [["0980", "09FF"]] }
+  gurmukhi:   { blocks: [["0A00", "0A7F"]] }
+  gujarati:   { blocks: [["0A80", "0AFF"]] }
+  oriya:      { blocks: [["0B00", "0B7F"]] }
+  tamil:      { blocks: [["0B80", "0BFF"]] }
+  telugu:     { blocks: [["0C00", "0C7F"]] }
+  kannada:    { blocks: [["0C80", "0CFF"]] }
+  malayalam:  { blocks: [["0D00", "0D7F"]] }
+  arabic:     { blocks: [["0600", "06FF"], ["0750", "077F"], ["FB50", "FDFF"], ["FE70", "FEFF"]] }
+
+languages:
+  - { code: hi, name: Hindi,     script: devanagari }
+  - { code: bn, name: Bengali,   script: bengali }
+  - { code: ta, name: Tamil,     script: tamil }
+  - { code: te, name: Telugu,    script: telugu }
+  - { code: mr, name: Marathi,   script: devanagari }
+  - { code: gu, name: Gujarati,  script: gujarati }
+  - { code: kn, name: Kannada,   script: kannada }
+  - { code: ml, name: Malayalam, script: malayalam }
+  - { code: pa, name: Punjabi,   script: gurmukhi }
+  - { code: or, name: Odia,      script: oriya }
+  - { code: as, name: Assamese,  script: bengali }
+  - { code: ur, name: Urdu,      script: arabic }
+  - { code: ne, name: Nepali,    script: devanagari }

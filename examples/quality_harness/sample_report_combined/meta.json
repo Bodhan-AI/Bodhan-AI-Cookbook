@@ -1,0 +1,40 @@
+{
+  "actual_spend_inr": {
+    "by_model": {
+      "indic-speak": 2.7288,
+      "indic-transcribe": 0.711538
+    },
+    "estimated": {},
+    "max_inr": 4.5,
+    "total_inr": 3.440338
+  },
+  "config": {
+    "concurrency": 2,
+    "generate": true,
+    "judge_repeats": 1,
+    "langs": [
+      "hi",
+      "ta",
+      "bn"
+    ],
+    "max_cost_inr": 4.5,
+    "no_judge": false,
+    "no_speech": false,
+    "seed": 0,
+    "speech_sample_rate": 0.25
+  },
+  "ended_at": 1795460809.089479,
+  "judge_token_usage": {
+    "calls": 108,
+    "completion_tokens": 38504,
+    "prompt_tokens": 81390,
+    "uncached_calls": 0,
+    "uncached_completion_tokens": 0,
+    "uncached_prompt_tokens": 0,
+    "usage_missing": 0
+  },
+  "rubric_hash": "9c226b085c5c",
+  "runtime_seconds": 507.16,
+  "started_at": 1795460301.9277265,
+  "version": "0.1.0"
+}

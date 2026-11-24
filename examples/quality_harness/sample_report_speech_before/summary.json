@@ -1,0 +1,66 @@
+{
+  "by_language": {
+    "bn": {
+      "clean": 0,
+      "flagged": 0,
+      "flags_by_category": {},
+      "mqm_penalty": 0.0,
+      "skipped": 0,
+      "total": 1,
+      "uncertain": 1
+    },
+    "hi": {
+      "clean": 0,
+      "flagged": 0,
+      "flags_by_category": {},
+      "mqm_penalty": 0.0,
+      "skipped": 0,
+      "total": 1,
+      "uncertain": 1
+    },
+    "ta": {
+      "clean": 0,
+      "flagged": 0,
+      "flags_by_category": {},
+      "mqm_penalty": 0.0,
+      "skipped": 0,
+      "total": 1,
+      "uncertain": 1
+    }
+  },
+  "calibration_summary": {
+    "category_accuracy": null,
+    "f1": null,
+    "false_alarm_rate": null,
+    "localization": null,
+    "precision": null,
+    "recall": 0.0
+  },
+  "checker_disagreements": 0,
+  "cost": {
+    "logical_total_inr": 0.0333
+  },
+  "evaluation_scope": {
+    "judge_enabled": false,
+    "speech_enabled": true
+  },
+  "flags_by_category": {},
+  "flags_by_severity": {},
+  "judge_consistency": {
+    "measured": false
+  },
+  "load": {
+    "duplicate_ids": 0,
+    "loaded": 3,
+    "skipped": 0
+  },
+  "skipped_for_budget": [],
+  "skipped_reasons": {},
+  "totals": {
+    "clean": 0,
+    "flagged": 0,
+    "items": 3,
+    "skipped": 0,
+    "uncertain": 3
+  }
+}

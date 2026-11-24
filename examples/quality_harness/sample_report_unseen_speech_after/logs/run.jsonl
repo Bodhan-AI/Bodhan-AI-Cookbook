@@ -1,0 +1,7 @@
+{"duplicate_ids": 0, "event": "dataset_loaded", "level": "info", "loaded": 3, "skipped": 0, "ts": 1795461226.392}
+{"event": "triage", "level": "info", "selected": 3, "speech_candidates": 3, "ts": 1795461226.556}
+{"error": null, "event": "speech_check_completed", "item": "unseen-mr-0", "level": "info", "ts": 1795461226.725}
+{"error": null, "event": "speech_check_completed", "item": "unseen-mr-1", "level": "info", "ts": 1795461226.731}
+{"error": null, "event": "speech_check_completed", "item": "unseen-mr-2", "level": "info", "ts": 1795461226.739}
+{"event": "calibration_done", "f1": 0.8, "labelled": 3, "level": "info", "ts": 1795461226.741}
+{"event": "run_complete", "exit_code": 0, "items": 3, "level": "info", "ts": 1795461226.744}

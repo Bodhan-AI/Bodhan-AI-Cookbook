@@ -1,0 +1,90 @@
+{
+  "by_language": {
+    "bn": {
+      "clean": 13,
+      "flagged": 17,
+      "flags_by_category": {
+        "format": 3,
+        "number_unit": 10,
+        "wrong_language_script": 6
+      },
+      "mqm_penalty": 125.0,
+      "skipped": 0,
+      "total": 36,
+      "uncertain": 6
+    },
+    "hi": {
+      "clean": 16,
+      "flagged": 14,
+      "flags_by_category": {
+        "format": 3,
+        "number_unit": 6,
+        "wrong_language_script": 7
+      },
+      "mqm_penalty": 115.0,
+      "skipped": 0,
+      "total": 36,
+      "uncertain": 6
+    },
+    "ta": {
+      "clean": 14,
+      "flagged": 16,
+      "flags_by_category": {
+        "addition": 2,
+        "format": 3,
+        "number_unit": 10,
+        "term_entity": 1,
+        "wrong_language_script": 6
+      },
+      "mqm_penalty": 132.0,
+      "skipped": 0,
+      "total": 36,
+      "uncertain": 6
+    }
+  },
+  "calibration_summary": {
+    "category_accuracy": 0.7111,
+    "f1": 0.678,
+    "false_alarm_rate": null,
+    "localization": 0.7111,
+    "precision": 0.5714,
+    "recall": 0.8333
+  },
+  "checker_disagreements": 0,
+  "cost": {
+    "logical_total_inr": 0.038
+  },
+  "evaluation_scope": {
+    "judge_enabled": false,
+    "speech_enabled": false
+  },
+  "flags_by_category": {
+    "addition": 2,
+    "format": 9,
+    "number_unit": 26,
+    "term_entity": 1,
+    "wrong_language_script": 19
+  },
+  "flags_by_severity": {
+    "critical": 19,
+    "major": 36,
+    "minor": 2
+  },
+  "judge_consistency": {
+    "measured": false
+  },
+  "load": {
+    "duplicate_ids": 0,
+    "loaded": 108,
+    "skipped": 0
+  },
+  "skipped_for_budget": [],
+  "skipped_reasons": {},
+  "totals": {
+    "clean": 43,
+    "flagged": 47,
+    "items": 108,
+    "skipped": 0,
+    "uncertain": 18
+  }
+}
