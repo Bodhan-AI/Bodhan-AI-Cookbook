@@ -1,0 +1,5 @@
+# Development / test dependencies (includes runtime requirements).
+-r requirements.txt
+pytest==8.3.4
+pytest-asyncio==0.25.3
+ipykernel==6.29.5
