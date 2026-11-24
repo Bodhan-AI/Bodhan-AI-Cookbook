@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bodhan-tool-agent"
+version = "0.1.0"
+description = "Bodhan Indic AI Models - MCP Tool Server and Autonomous Task Agent"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "requests==2.32.3",
+    "pydantic==2.8.2",
+    "pillow==10.4.0",
+    "python-dotenv==1.0.0",
+    "pypdfium2==4.30.0",
+]
+
+[project.scripts]
+bodhan-mcp = "bodhan_mcp.__main__:main"
+bodhan-agent = "bodhan_agent.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

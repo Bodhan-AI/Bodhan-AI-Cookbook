@@ -1,0 +1,5 @@
+requests==2.32.3
+pydantic==2.8.2
+pillow==10.4.0
+python-dotenv==1.0.0
+pypdfium2==4.30.0
