@@ -1,0 +1,5 @@
+openai==3.57.0
+pydantic==2.14.4
+python-dotenv==1.2.4
+requests==2.34.2
+pdf2image==1.17.0
