@@ -1,0 +1,25 @@
+{
+  "_comment": "Stub-server response tables for tests/e2e (see bodhan_eval/testing/stub_server.py). Back-translations are keyed by the exact segment the harness sends.",
+  "translate": {
+    "en": {
+      "समुद्र तल पर पानी 100 °C पर उबलता है।": "Water boils at 100 °C at sea level.",
+      "ट्रेन शाम 8 बजे निकलती है और यात्रा में 3 घंटे लगते हैं।": "The train leaves at 8 pm and the journey takes 3 hours.",
+      "சூரியன் கிழக்கில் உதிக்கிறது.": "The sun rises in the east.",
+      "| পরিমাণ | সূত্র |": "| Quantity | Formula |",
+      "| গতি | $v = d/t$ |": "| Speed | $v = d/t$ |",
+      "উদ্ভিদের বেড়ে ওঠার জন্য সূর্যালোক প্রয়োজন।": "Plants need sunlight to grow.",
+      "Hallo Welt, dies ist ein Test.": "Hello world, this is a test.",
+      "পৃথিবী বছরে একবার সূর্যকে প্রদক্ষিণ করে।": "The Earth orbits the Sun once a year.",
+      "बर्फ 0 °C पर पिघलती है।": "Ice melts at 0 °C."
+    }
+  },
+  "transcribe": {
+    "ta": "சூரியன் கிழக்கில் உதிக்கிறது"
+  },
+  "chat": [
+    {
+      "contains": "[2]8 [3]बजे",
+      "content": "{\"errors\": [{\"category\": \"number\", \"severity\": \"major\", \"target_tokens\": [2, 2], \"source_tokens\": [4, 5], \"explanation\": \"Departure time changed from 7 pm to 8 (शाम)\", \"confidence\": 0.9}]}"
+    }
+  ]
+}

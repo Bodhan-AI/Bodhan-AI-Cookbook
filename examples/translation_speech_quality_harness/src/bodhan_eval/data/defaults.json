@@ -1,0 +1,64 @@
+{
+  "_comment": "Default thresholds, used when no calibration labels are available or a category has too few labels to tune. Every value here is generic (not tied to any dataset); calibration overrides the per-category flag thresholds and records what it chose in calibration.json.",
+  "flag_threshold": {
+    "omission": 0.5, "addition": 0.5, "mistranslation": 0.5, "number": 0.5, "term": 0.5,
+    "format": 0.5, "wrong_language": 0.5, "speech_omission": 0.5, "speech_repetition": 0.5, "speech_garbled": 0.5
+  },
+  "uncertain_margin": 0.2,
+  "threshold_grid": [0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9],
+  "min_labels_to_tune": 5,
+  "check_params": {
+    "_comment": "asr_min_deleted_words: 2 (was 3; D48): two long words cut from speech were missed, and on 180 real outputs the lower minimum added only real errors (bracketed text Indic-Speak skipped). entity_missing_score: a source name or acronym found neither in the translation (Latin or transliterated) nor in the back-translation; single words score 0.1 less. Below every default flag threshold on purpose: alone it is a hint (names are often translated or written as exonyms, e.g. BCE -> கி.மு, Satluj -> শতদ্রু), and it flags only together with the judge or the back-translation (D46).",
+    "script_min_expected_share": 0.6,
+    "untranslated_min_words": 4,
+    "length_ratio_z": 3.0,
+    "length_min_items_per_lang": 8,
+    "bt_clause_min_content_words": 3,
+    "bt_clause_max_coverage": 0.34,
+    "bt_extra_min_content_words": 3,
+    "bt_extra_min_share": 0.5,
+    "entity_match_similarity": 85,
+    "entity_max_transliterations": 8,
+    "entity_missing_score": 0.45,
+    "asr_min_deleted_words": 2,
+    "asr_min_deleted_chars": 10,
+    "asr_tail_min_words": 2,
+    "asr_min_repeated_words": 2,
+    "asr_repeat_similarity": 0.75,
+    "asr_garbled_cer": 0.55,
+    "asr_second_opinion_recovery": 0.6,
+    "asr_chunk_target_s": 10,
+    "asr_chunk_max_s": 29,
+    "speech_chars_per_digit": 5,
+    "audio_long_silence_s": 1.2,
+    "audio_edge_silence_s": 2.0,
+    "audio_clip_ratio": 0.002,
+    "audio_noise_floor_dbfs": -38.0,
+    "duration_short_ratio": 0.65,
+    "duration_long_ratio": 1.5,
+    "rate_min_items_per_lang": 5
+  },
+  "judge": {
+    "_comment": "replicas: re-ordered prompts per item; a disagreement adds replicas up to max_replicas (tie-break). repeat_sample: share of items (chosen by hash) whose first prompt is re-sent unchanged to measure repeat-consistency. Translations longer than window_tokens whitespace tokens are judged in overlapping windows; items needing more than max_windows are skipped (cost guard). models: optional jury, empty = LLM_MODEL.",
+    "replicas": 2,
+    "max_replicas": 3,
+    "replica_weight": 0.45,
+    "max_tokens": 1500,
+    "repeat_sample": 0.1,
+    "window_tokens": 1200,
+    "max_windows": 8,
+    "models": []
+  },
+  "clients": {
+    "_comment": "Retry and concurrency policy shared by the Bodhan and LLM clients (K11, D43). Back-off is retry_base_s * 2^attempt with jitter; a Retry-After header is honoured up to retry_max_wait_s and pauses the whole service; after aimd_increase_after consecutive successes a service's concurrency grows by one (it halves on HTTP 429). A call keeps waiting out HTTP 429 for up to rate_limit_patience_s after its first one (15 min: the 23 Nov clean run saw Retry-After of 8-58 s for minutes at a time); errors (5xx, timeouts) still stop after max_retries attempts.",
+    "retry_base_s": 1.5,
+    "retry_max_wait_s": 60,
+    "rate_limit_patience_s": 900,
+    "aimd_increase_after": 20
+  },
+  "costs_inr": {
+    "translate_per_output_token": 0.00002,
+    "speak_per_char": 0.0006,
+    "transcribe_per_second": 0.0016667
+  }
+}

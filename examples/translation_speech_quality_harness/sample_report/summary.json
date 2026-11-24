@@ -1,0 +1,437 @@
+{
+  "checks": {
+    "asr": {
+      "error": 0,
+      "not_applicable": 0,
+      "ok": 180,
+      "reasons": {},
+      "skipped": 0
+    },
+    "audio_stats": {
+      "error": 0,
+      "not_applicable": 0,
+      "ok": 180,
+      "reasons": {},
+      "skipped": 0
+    },
+    "back_translation": {
+      "error": 0,
+      "not_applicable": 0,
+      "ok": 180,
+      "reasons": {},
+      "skipped": 0
+    },
+    "entities": {
+      "error": 0,
+      "not_applicable": 0,
+      "ok": 144,
+      "reasons": {
+        "no names or terms in source": 36
+      },
+      "skipped": 36
+    },
+    "format": {
+      "error": 0,
+      "not_applicable": 108,
+      "ok": 72,
+      "reasons": {},
+      "skipped": 0
+    },
+    "judge": {
+      "error": 0,
+      "not_applicable": 0,
+      "ok": 180,
+      "reasons": {},
+      "skipped": 0
+    },
+    "length": {
+      "error": 0,
+      "not_applicable": 0,
+      "ok": 180,
+      "reasons": {},
+      "skipped": 0
+    },
+    "numbers": {
+      "error": 0,
+      "not_applicable": 0,
+      "ok": 180,
+      "reasons": {},
+      "skipped": 0
+    },
+    "reference": {
+      "error": 0,
+      "not_applicable": 180,
+      "ok": 0,
+      "reasons": {},
+      "skipped": 0
+    },
+    "script": {
+      "error": 0,
+      "not_applicable": 0,
+      "ok": 180,
+      "reasons": {},
+      "skipped": 0
+    }
+  },
+  "cost_inr_of_outputs_used": {
+    "llm": 0.0,
+    "total": 13.967,
+    "transcribe": 13.5974,
+    "translate": 0.3695
+  },
+  "dataset": {
+    "bad_lines": 0,
+    "calibration_only_items": 0,
+    "file": "demo.jsonl",
+    "filtered_out": 0,
+    "items": 180,
+    "language_codes_normalised": {},
+    "languages_requested": [
+      "bn",
+      "hi",
+      "ta"
+    ],
+    "notes": 0,
+    "scored": 180,
+    "skipped_items": 0,
+    "unknown_label_types": {}
+  },
+  "generated": {
+    "audio": 0,
+    "translations": 0
+  },
+  "labelled_metrics": {
+    "category_accuracy": 1.0,
+    "false_alarm_rate": 0.0,
+    "labelled_items": 40,
+    "labels": 27,
+    "localization": 0.9524,
+    "precision": 0.875,
+    "recall": 0.7778
+  },
+  "llm_tokens": {
+    "completion": 57508,
+    "prompt": 785539
+  },
+  "mqm": 92.98,
+  "per_category": {
+    "addition": {
+      "by_language": {
+        "bn": 1,
+        "hi": 3,
+        "ta": 2
+      },
+      "by_severity": {
+        "major": 6
+      },
+      "flags": 6,
+      "group": "addition",
+      "items": 6
+    },
+    "format": {
+      "by_language": {
+        "bn": 4,
+        "hi": 4,
+        "ta": 4
+      },
+      "by_severity": {
+        "major": 11,
+        "minor": 1
+      },
+      "flags": 12,
+      "group": "format",
+      "items": 11
+    },
+    "mistranslation": {
+      "by_language": {
+        "bn": 7,
+        "hi": 5,
+        "ta": 9
+      },
+      "by_severity": {
+        "critical": 2,
+        "major": 17,
+        "minor": 2
+      },
+      "flags": 21,
+      "group": "meaning",
+      "items": 20
+    },
+    "number": {
+      "by_language": {
+        "bn": 5,
+        "hi": 1,
+        "ta": 7
+      },
+      "by_severity": {
+        "critical": 9,
+        "major": 4
+      },
+      "flags": 13,
+      "group": "number",
+      "items": 10
+    },
+    "omission": {
+      "by_language": {
+        "bn": 6,
+        "hi": 4,
+        "ta": 13
+      },
+      "by_severity": {
+        "critical": 1,
+        "major": 13,
+        "minor": 9
+      },
+      "flags": 23,
+      "group": "omission",
+      "items": 20
+    },
+    "speech_garbled": {
+      "by_language": {
+        "bn": 5,
+        "hi": 6,
+        "ta": 6
+      },
+      "by_severity": {
+        "major": 17
+      },
+      "flags": 17,
+      "group": "garbled",
+      "items": 17
+    },
+    "speech_omission": {
+      "by_language": {
+        "bn": 8,
+        "hi": 11,
+        "ta": 15
+      },
+      "by_severity": {
+        "major": 34
+      },
+      "flags": 34,
+      "group": "omission",
+      "items": 30
+    },
+    "speech_repetition": {
+      "by_language": {
+        "bn": 6,
+        "hi": 7,
+        "ta": 4
+      },
+      "by_severity": {
+        "major": 17
+      },
+      "flags": 17,
+      "group": "repetition",
+      "items": 17
+    },
+    "term": {
+      "by_language": {
+        "bn": 1,
+        "hi": 3,
+        "ta": 7
+      },
+      "by_severity": {
+        "major": 10,
+        "minor": 1
+      },
+      "flags": 11,
+      "group": "meaning",
+      "items": 9
+    },
+    "wrong_language": {
+      "by_language": {
+        "bn": 4,
+        "hi": 2,
+        "ta": 2
+      },
+      "by_severity": {
+        "critical": 7,
+        "minor": 1
+      },
+      "flags": 8,
+      "group": "language",
+      "items": 8
+    }
+  },
+  "per_language": {
+    "bn": {
+      "checks": {
+        "asr": {
+          "ok": 60
+        },
+        "audio_stats": {
+          "ok": 60
+        },
+        "back_translation": {
+          "ok": 60
+        },
+        "entities": {
+          "ok": 48,
+          "skipped": 12
+        },
+        "format": {
+          "not_applicable": 36,
+          "ok": 24
+        },
+        "judge": {
+          "ok": 60
+        },
+        "length": {
+          "ok": 60
+        },
+        "numbers": {
+          "ok": 60
+        },
+        "reference": {
+          "not_applicable": 60
+        },
+        "script": {
+          "ok": 60
+        }
+      },
+      "flagged_items": 36,
+      "flags": 47,
+      "flags_by_category": {
+        "addition": 1,
+        "format": 4,
+        "mistranslation": 7,
+        "number": 5,
+        "omission": 6,
+        "speech_garbled": 5,
+        "speech_omission": 8,
+        "speech_repetition": 6,
+        "term": 1,
+        "wrong_language": 4
+      },
+      "items": 60,
+      "mqm": 93.86,
+      "scored": 60,
+      "skipped": 0,
+      "uncertain_items": 19
+    },
+    "hi": {
+      "checks": {
+        "asr": {
+          "ok": 60
+        },
+        "audio_stats": {
+          "ok": 60
+        },
+        "back_translation": {
+          "ok": 60
+        },
+        "entities": {
+          "ok": 48,
+          "skipped": 12
+        },
+        "format": {
+          "not_applicable": 36,
+          "ok": 24
+        },
+        "judge": {
+          "ok": 60
+        },
+        "length": {
+          "ok": 60
+        },
+        "numbers": {
+          "ok": 60
+        },
+        "reference": {
+          "not_applicable": 60
+        },
+        "script": {
+          "ok": 60
+        }
+      },
+      "flagged_items": 32,
+      "flags": 46,
+      "flags_by_category": {
+        "addition": 3,
+        "format": 4,
+        "mistranslation": 5,
+        "number": 1,
+        "omission": 4,
+        "speech_garbled": 6,
+        "speech_omission": 11,
+        "speech_repetition": 7,
+        "term": 3,
+        "wrong_language": 2
+      },
+      "items": 60,
+      "mqm": 93.87,
+      "scored": 60,
+      "skipped": 0,
+      "uncertain_items": 10
+    },
+    "ta": {
+      "checks": {
+        "asr": {
+          "ok": 60
+        },
+        "audio_stats": {
+          "ok": 60
+        },
+        "back_translation": {
+          "ok": 60
+        },
+        "entities": {
+          "ok": 48,
+          "skipped": 12
+        },
+        "format": {
+          "not_applicable": 36,
+          "ok": 24
+        },
+        "judge": {
+          "ok": 60
+        },
+        "length": {
+          "ok": 60
+        },
+        "numbers": {
+          "ok": 60
+        },
+        "reference": {
+          "not_applicable": 60
+        },
+        "script": {
+          "ok": 60
+        }
+      },
+      "flagged_items": 41,
+      "flags": 69,
+      "flags_by_category": {
+        "addition": 2,
+        "format": 4,
+        "mistranslation": 9,
+        "number": 7,
+        "omission": 13,
+        "speech_garbled": 6,
+        "speech_omission": 15,
+        "speech_repetition": 4,
+        "term": 7,
+        "wrong_language": 2
+      },
+      "items": 60,
+      "mqm": 91.23,
+      "scored": 60,
+      "skipped": 0,
+      "uncertain_items": 23
+    }
+  },
+  "thresholds": {
+    "addition": 0.5,
+    "format": 0.5,
+    "mistranslation": 0.5,
+    "number": 0.5,
+    "omission": 0.5,
+    "speech_garbled": 0.5,
+    "speech_omission": 0.7,
+    "speech_repetition": 0.5,
+    "term": 0.5,
+    "wrong_language": 0.5
+  },
+  "version": "0.1.0"
+}

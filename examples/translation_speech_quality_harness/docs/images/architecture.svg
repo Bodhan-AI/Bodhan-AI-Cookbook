@@ -1,0 +1,207 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="790" viewBox="0 0 1200 790" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" fill="#1f2937">
+  <title>bodhan_eval system design</title>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#475569"/></marker>
+  </defs>
+  <rect width="1200" height="790" fill="#ffffff"/>
+  <text x="20" y="32" font-size="19" font-weight="700">bodhan_eval: system design</text>
+  <text x="20" y="52" fill="#475569">Checks emit signals; only fusion makes flags. Every model call goes through one cached, budgeted, rate-limited client.</text>
+
+  <!-- column panels -->
+  <g stroke="#94a3b8" stroke-width="1" fill="#f8fafc">
+    <rect x="15" y="70" width="200" height="440" rx="10"/>
+    <rect x="235" y="70" width="210" height="440" rx="10"/>
+    <rect x="465" y="70" width="300" height="440" rx="10"/>
+    <rect x="785" y="70" width="190" height="440" rx="10"/>
+    <rect x="995" y="70" width="190" height="440" rx="10"/>
+  </g>
+  <g font-weight="700" font-size="14">
+    <text x="30" y="94">Inputs</text>
+    <text x="250" y="94">Load and prepare</text>
+    <text x="480" y="94">Checks, cheap to costly</text>
+    <text x="800" y="94">Decide</text>
+    <text x="1010" y="94">Outputs (report folder)</text>
+  </g>
+
+  <!-- inputs -->
+  <g stroke="#64748b" fill="#ffffff">
+    <rect x="28" y="108" width="174" height="92" rx="7"/>
+    <rect x="28" y="212" width="174" height="62" rx="7"/>
+    <rect x="28" y="286" width="174" height="62" rx="7"/>
+    <rect x="28" y="360" width="174" height="134" rx="7"/>
+  </g>
+  <text x="38" y="128" font-weight="700">dataset.jsonl</text>
+  <text x="38" y="147">id · lang · source</text>
+  <text x="38" y="164">translation (optional)</text>
+  <text x="38" y="181">audio (optional) · labels</text>
+  <text x="38" y="232" font-weight="700">--calibration labels</text>
+  <text x="38" y="251">full items or id+lang+labels</text>
+  <text x="38" y="306" font-weight="700">--baseline report</text>
+  <text x="38" y="325">a previous run's folder</text>
+  <text x="38" y="380" font-weight="700">Configuration (data/)</text>
+  <text x="38" y="399">langs.json: scripts, digits,</text>
+  <text x="38" y="416">voices, priors per language</text>
+  <text x="38" y="435">taxonomy.json: 10 categories</text>
+  <text x="38" y="454">defaults.json: thresholds</text>
+  <text x="38" y="473">judge_rubric.md</text>
+
+  <!-- load and prepare -->
+  <g stroke="#64748b" fill="#ffffff">
+    <rect x="248" y="108" width="184" height="96" rx="7"/>
+    <rect x="248" y="216" width="184" height="150" rx="7"/>
+    <rect x="248" y="378" width="184" height="116" rx="7"/>
+  </g>
+  <text x="258" y="128" font-weight="700">Loader</text>
+  <text x="258" y="147">validates every line; a bad</text>
+  <text x="258" y="164">line is logged and counted,</text>
+  <text x="258" y="181">never stops the run</text>
+  <text x="258" y="236" font-weight="700">Generator (--generate)</text>
+  <text x="258" y="255">missing translation:</text>
+  <text x="258" y="272">Indic-Translate</text>
+  <text x="258" y="291">missing audio: planner picks</text>
+  <text x="258" y="308">items by risk per rupee,</text>
+  <text x="258" y="325">Indic-Speak in ≤220-char</text>
+  <text x="258" y="342">chunks (≈30 s requests)</text>
+  <text x="258" y="398" font-weight="700">Pre-pass statistics</text>
+  <text x="258" y="417">per language, from this data:</text>
+  <text x="258" y="434">length ratio, speaking rate</text>
+  <text x="258" y="451">(median, MAD); priors from</text>
+  <text x="258" y="468">langs.json for small samples</text>
+
+  <!-- checks -->
+  <rect x="478" y="108" width="274" height="112" rx="7" fill="#ecfdf5" stroke="#10b981"/>
+  <text x="488" y="128" font-weight="700">Tier 0: free, every item</text>
+  <text x="488" y="147">script / language · Markdown, table,</text>
+  <text x="488" y="164">LaTeX format · numbers · length hint</text>
+  <text x="488" y="181">reference chrF++ (if given)</text>
+  <text x="488" y="198">waveform stats: silence, clipping, noise</text>
+
+  <rect x="478" y="230" width="274" height="140" rx="7" fill="#fff7ed" stroke="#f59e0b"/>
+  <text x="488" y="250" font-weight="700">Tier 1: Bodhan round trips (paise)</text>
+  <text x="488" y="269">back-translation per segment,</text>
+  <text x="488" y="286">DP sentence alignment, clause coverage</text>
+  <text x="488" y="303">names via Indic-Transliterate</text>
+  <text x="488" y="320">speech: Indic-Transcribe in ≤29 s chunks,</text>
+  <text x="488" y="337">word alignment; second transcription</text>
+  <text x="488" y="354">only for omission/repeat candidates</text>
+
+  <rect x="478" y="380" width="274" height="80" rx="7" fill="#f5f3ff" stroke="#8b5cf6"/>
+  <text x="488" y="400" font-weight="700">Tier 2: LLM judge (tokens)</text>
+  <text x="488" y="419">numbered tokens in, token indices out;</text>
+  <text x="488" y="436">2 re-ordered replicas, 3rd on disagreement;</text>
+  <text x="488" y="453">never writes Indian-language text</text>
+
+  <rect x="478" y="470" width="274" height="30" rx="7" fill="#ffffff" stroke="#64748b"/>
+  <text x="488" y="490">Dataset level: term consistency</text>
+
+  <!-- decide -->
+  <rect x="798" y="108" width="164" height="50" rx="7" fill="#ffffff" stroke="#64748b"/>
+  <text x="808" y="128" font-weight="700">Signals</text>
+  <text x="808" y="146">category · score · span</text>
+  <rect x="798" y="178" width="164" height="150" rx="7" fill="#fef2f2" stroke="#ef4444"/>
+  <text x="808" y="198" font-weight="700">Fusion</text>
+  <text x="808" y="217">cluster by span</text>
+  <text x="808" y="234">noisy-OR per category</text>
+  <text x="808" y="251">threshold per category</text>
+  <text x="808" y="270">→ flag</text>
+  <text x="808" y="287">→ review queue</text>
+  <text x="808" y="304">→ dismissed (explained)</text>
+  <text x="808" y="321" fill="#475569">weak hints: never alone</text>
+  <rect x="798" y="348" width="164" height="146" rx="7" fill="#ffffff" stroke="#64748b"/>
+  <text x="808" y="368" font-weight="700">Calibration</text>
+  <text x="808" y="387">match labels by span and</text>
+  <text x="808" y="404">category group; precision,</text>
+  <text x="808" y="421">recall, false alarms,</text>
+  <text x="808" y="438">localisation; tune a</text>
+  <text x="808" y="455">threshold with ≥5 labels;</text>
+  <text x="808" y="472">2-fold cross-validation</text>
+
+  <!-- outputs -->
+  <g stroke="#3b82f6" fill="#eff6ff">
+    <rect x="1008" y="108" width="164" height="62" rx="7"/>
+    <rect x="1008" y="180" width="164" height="45" rx="7"/>
+    <rect x="1008" y="235" width="164" height="45" rx="7"/>
+    <rect x="1008" y="290" width="164" height="62" rx="7"/>
+    <rect x="1008" y="362" width="164" height="45" rx="7"/>
+    <rect x="1008" y="417" width="164" height="77" rx="7"/>
+  </g>
+  <text x="1018" y="128" font-weight="700">summary.md / .json</text>
+  <text x="1018" y="147">per language, category,</text>
+  <text x="1018" y="164">MQM, checks not run</text>
+  <text x="1018" y="200" font-weight="700">items.jsonl</text>
+  <text x="1018" y="217">flags, spans, evidence</text>
+  <text x="1018" y="255" font-weight="700">calibration.json</text>
+  <text x="1018" y="272">metrics, thresholds, CV</text>
+  <text x="1018" y="310" font-weight="700">diff.md (--baseline)</text>
+  <text x="1018" y="329">regressions, improvements;</text>
+  <text x="1018" y="346">exit 3 as a CI gate</text>
+  <text x="1018" y="382" font-weight="700">dashboard.html</text>
+  <text x="1018" y="399">filters, highlighted spans</text>
+  <text x="1018" y="437" font-weight="700">run_meta.json</text>
+  <text x="1018" y="456">spend, calls, cache hits</text>
+  <text x="1018" y="475" font-weight="700">logs/events.jsonl</text>
+  <text x="1018" y="492" font-size="11.5">one line per check per item</text>
+
+  <!-- main flow arrows -->
+  <g stroke="#475569" stroke-width="1.6" fill="none" marker-end="url(#a)">
+    <path d="M215 290 L233 290"/>
+    <path d="M445 290 L463 290"/>
+    <path d="M765 290 L783 290"/>
+    <path d="M975 290 L993 290"/>
+    <path d="M880 158 L880 176"/>
+    <path d="M870 330 L870 346"/>
+    <path d="M890 346 L890 330"/>
+  </g>
+
+  <!-- shared services -->
+  <rect x="15" y="530" width="1170" height="130" rx="10" fill="#f8fafc" stroke="#94a3b8"/>
+  <text x="30" y="554" font-weight="700" font-size="14">Shared services (every model call)</text>
+  <g stroke="#64748b" fill="#ffffff">
+    <rect x="30" y="566" width="250" height="80" rx="7"/>
+    <rect x="295" y="566" width="250" height="80" rx="7"/>
+    <rect x="560" y="566" width="190" height="80" rx="7"/>
+  </g>
+  <text x="40" y="586" font-weight="700">clients.py</text>
+  <text x="40" y="605">retries with back-off; adaptive</text>
+  <text x="40" y="622">concurrency per service; a 429</text>
+  <text x="40" y="639">pauses the service, never drops a check</text>
+  <text x="305" y="586" font-weight="700">cache.py (SQLite)</text>
+  <text x="305" y="605">key = sha256(kind, model, params,</text>
+  <text x="305" y="622">input): reruns are free and</text>
+  <text x="305" y="639">byte-identical</text>
+  <text x="570" y="586" font-weight="700">budget.py</text>
+  <text x="570" y="605">reserve before spend;</text>
+  <text x="570" y="622">--max-cost-inr is a hard</text>
+  <text x="570" y="639">stop; spend per service</text>
+
+  <rect x="770" y="566" width="200" height="80" rx="7" fill="#fff7ed" stroke="#f59e0b"/>
+  <text x="780" y="586" font-weight="700">Bodhan API</text>
+  <text x="780" y="603" font-size="11.5">api.bodhan.ai</text>
+  <text x="780" y="620" font-size="11.5">indic-translate · indic-transliterate</text>
+  <text x="780" y="637" font-size="11.5">indic-speak · indic-transcribe</text>
+  <rect x="985" y="566" width="188" height="80" rx="7" fill="#f5f3ff" stroke="#8b5cf6"/>
+  <text x="995" y="586" font-weight="700">Judge LLM</text>
+  <text x="995" y="605">any OpenAI-compatible</text>
+  <text x="995" y="622">endpoint; tested with</text>
+  <text x="995" y="639">Kimi K3.1 Pro (bake-off)</text>
+  <g stroke="#475569" stroke-width="1.4" fill="none" stroke-dasharray="5 4" marker-end="url(#a)">
+    <path d="M340 504 L340 564"/>
+    <path d="M615 510 L615 564"/>
+    <path d="M750 606 L768 606"/>
+  </g>
+  <path d="M750 626 C 870 680, 960 680, 1079 648" stroke="#475569" stroke-width="1.4" fill="none" stroke-dasharray="5 4" marker-end="url(#a)"/>
+
+  <!-- tools -->
+  <rect x="15" y="676" width="1170" height="100" rx="10" fill="#f8fafc" stroke="#94a3b8"/>
+  <text x="30" y="700" font-weight="700" font-size="14">Around the harness (same library, same cache)</text>
+  <g font-size="12">
+    <text x="30" y="724"><tspan font-weight="700">inject</tspan>: plant labelled errors (33 methods, no LLM)</text>
+    <text x="330" y="724"><tspan font-weight="700">splits</tspan>: demo, calibration and bake-off sets</text>
+    <text x="620" y="724"><tspan font-weight="700">score</tspan>: score a blind run like a hidden test</text>
+    <text x="900" y="724"><tspan font-weight="700">review</tspan>: human review sheet in and out</text>
+    <text x="30" y="752"><tspan font-weight="700">bakeoff</tspan>: compare judge models, spend cap</text>
+    <text x="330" y="752"><tspan font-weight="700">voices</tspan>: compare Indic-Speak voices</text>
+    <text x="620" y="752"><tspan font-weight="700">api.Harness</tspan>: library calls for a QA gate</text>
+    <text x="900" y="752"><tspan font-weight="700">Docker</tspan>: same command, ffmpeg included</text>
+  </g>
+</svg>

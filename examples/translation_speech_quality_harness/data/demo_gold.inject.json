@@ -1,0 +1,74 @@
+{
+  "audio_dropped": 0,
+  "audio_edited": 33,
+  "audio_resynthesised": 42,
+  "categories": "all",
+  "clean": 75,
+  "injected": 75,
+  "items": 180,
+  "not_injectable": 0,
+  "passed_through": 0,
+  "per_category": {
+    "addition": 5,
+    "format": 5,
+    "mistranslation": 12,
+    "number": 6,
+    "omission": 4,
+    "speech_garbled": 11,
+    "speech_omission": 6,
+    "speech_repetition": 16,
+    "term": 3,
+    "wrong_language": 7
+  },
+  "per_language": {
+    "bn": {
+      "injected": 24,
+      "items": 60
+    },
+    "hi": {
+      "injected": 27,
+      "items": 60
+    },
+    "ta": {
+      "injected": 24,
+      "items": 60
+    }
+  },
+  "per_method": {
+    "clip_region": 3,
+    "cut_middle": 5,
+    "drop_clause": 1,
+    "drop_phrase": 2,
+    "drop_sentence": 1,
+    "english_sentence": 1,
+    "entity_swap": 1,
+    "extra_clause": 2,
+    "first_digit": 4,
+    "foreign_sentence": 2,
+    "garble_entity": 2,
+    "heading_marker": 2,
+    "insert_silence": 4,
+    "last_digit": 1,
+    "month_swap": 1,
+    "negation": 2,
+    "noise_burst": 4,
+    "other_language": 5,
+    "quantifier_swap": 2,
+    "repeat_sentence": 1,
+    "repeat_stretch": 16,
+    "source_english": 1,
+    "table_pipe": 2,
+    "table_separator": 1,
+    "truncate_tail": 1,
+    "word_swap": 8
+  },
+  "per_severity": {
+    "critical": 13,
+    "major": 47,
+    "minor": 15
+  },
+  "rate": 0.5,
+  "seed": 13,
+  "skipped": 30,
+  "with_models": true
+}

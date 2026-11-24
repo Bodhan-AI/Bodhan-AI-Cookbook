@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1010" viewBox="0 0 1000 1010" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" fill="#1f2937">
+  <title>bodhan_eval flow: dataset to report</title>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#475569"/></marker>
+  </defs>
+  <rect width="1000" height="1010" fill="#ffffff"/>
+  <text x="20" y="32" font-size="19" font-weight="700">Flow: dataset to report, and when costly checks run</text>
+  <text x="20" y="52" fill="#475569">Each item goes down the ladder; the right column says when a step runs or is skipped. Nothing here stops the run.</text>
+
+  <!-- cost ladder -->
+  <rect x="20" y="300" width="26" height="160" rx="5" fill="#d1fae5"/>
+  <rect x="20" y="460" width="26" height="160" rx="5" fill="#fed7aa"/>
+  <rect x="20" y="620" width="26" height="90" rx="5" fill="#ddd6fe"/>
+  <text transform="translate(38 390) rotate(-90)" font-size="12" text-anchor="middle">free</text>
+  <text transform="translate(38 545) rotate(-90)" font-size="12" text-anchor="middle">paise</text>
+  <text transform="translate(38 668) rotate(-90)" font-size="12" text-anchor="middle">tokens</text>
+
+  <g stroke="#64748b" fill="#f8fafc">
+    <rect x="70" y="70" width="520" height="48" rx="8"/>
+    <rect x="70" y="138" width="520" height="48" rx="8"/>
+    <rect x="70" y="206" width="520" height="66" rx="8"/>
+    <rect x="70" y="292" width="520" height="48" rx="8"/>
+    <rect x="70" y="360" width="520" height="66" rx="8" fill="#ecfdf5" stroke="#10b981"/>
+    <rect x="70" y="446" width="520" height="84" rx="8" fill="#fff7ed" stroke="#f59e0b"/>
+    <rect x="70" y="550" width="520" height="48" rx="8" fill="#fff7ed" stroke="#f59e0b"/>
+    <rect x="70" y="618" width="520" height="66" rx="8" fill="#f5f3ff" stroke="#8b5cf6"/>
+    <rect x="70" y="704" width="520" height="40" rx="8"/>
+    <rect x="70" y="764" width="520" height="66" rx="8" fill="#fef2f2" stroke="#ef4444"/>
+    <rect x="70" y="850" width="520" height="48" rx="8"/>
+    <rect x="70" y="918" width="520" height="66" rx="8" fill="#eff6ff" stroke="#3b82f6"/>
+  </g>
+
+  <text x="84" y="91" font-weight="700">1. Read the JSONL</text>
+  <text x="84" y="109">validate each line; normalise language codes (hi-IN → hi)</text>
+  <text x="84" y="159" font-weight="700">2. Filter --langs; attach --calibration labels</text>
+  <text x="84" y="177">labels never reach the checks; they are used only after fusion</text>
+  <text x="84" y="227" font-weight="700">3. --generate: fill what is missing</text>
+  <text x="84" y="245">Indic-Translate for translations; a planner picks items for audio by risk per rupee</text>
+  <text x="84" y="263">under the budget, per language; Indic-Speak in ≤220-character chunks</text>
+  <text x="84" y="313" font-weight="700">4. Pre-pass per language</text>
+  <text x="84" y="331">length ratio and speaking rate from this dataset (median, MAD)</text>
+  <text x="84" y="381" font-weight="700">5. Tier 0: deterministic checks</text>
+  <text x="84" y="399">script / language · format (Markdown, tables, LaTeX) · numbers · length hint</text>
+  <text x="84" y="417">reference chrF++ · waveform stats (silence, clipping, noise, duration)</text>
+  <text x="84" y="467" font-weight="700">6. Tier 1: Bodhan round trips</text>
+  <text x="84" y="485">back-translation per segment → DP alignment → omission, addition, drift;</text>
+  <text x="84" y="503">numbers and units via the back-translation; names via Indic-Transliterate;</text>
+  <text x="84" y="521">Indic-Transcribe in ~10 s chunks cut at pauses (≤29 s) → word alignment</text>
+  <text x="84" y="571" font-weight="700">7. Second-opinion transcription</text>
+  <text x="84" y="589">different chunk cuts; dismisses words the transcriber lost at a cut</text>
+  <text x="84" y="639" font-weight="700">8. Tier 2: LLM judge</text>
+  <text x="84" y="657">sees source, numbered target tokens, back-translation and findings;</text>
+  <text x="84" y="675">2 replicas with re-ordered prompts; a 3rd only when they disagree</text>
+  <text x="84" y="729" font-weight="700">9. Dataset level: the same term rendered consistently across items</text>
+  <text x="84" y="785" font-weight="700">10. Fusion</text>
+  <text x="84" y="803">cluster signals by span → noisy-OR per category → threshold</text>
+  <text x="84" y="821">→ flag / review queue / dismissed with a reason</text>
+  <text x="84" y="871" font-weight="700">11. Calibration (only with labels)</text>
+  <text x="84" y="889">precision, recall, false alarms, localisation; thresholds tuned with ≥5 labels; 2-fold CV</text>
+  <text x="84" y="939" font-weight="700">12. Reports</text>
+  <text x="84" y="957">summary.md/.json · items.jsonl · calibration.json · dashboard.html · run_meta.json</text>
+  <text x="84" y="975">with --baseline: diff.md, and exit code 3 under --fail-on-regression</text>
+
+  <g stroke="#475569" stroke-width="1.6" fill="none" marker-end="url(#a)">
+    <path d="M330 118 L330 136"/>
+    <path d="M330 186 L330 204"/>
+    <path d="M330 272 L330 290"/>
+    <path d="M330 340 L330 358"/>
+    <path d="M330 426 L330 444"/>
+    <path d="M330 530 L330 548"/>
+    <path d="M330 598 L330 616"/>
+    <path d="M330 684 L330 702"/>
+    <path d="M330 744 L330 762"/>
+    <path d="M330 830 L330 848"/>
+    <path d="M330 898 L330 916"/>
+  </g>
+
+  <!-- when column -->
+  <g font-size="12" fill="#334155">
+    <text x="610" y="91">a bad line: logged, counted, skipped</text>
+    <text x="610" y="109">an empty dataset: exit 1</text>
+    <text x="610" y="159">other languages: counted as filtered</text>
+    <text x="610" y="227">only with --generate</text>
+    <text x="610" y="245">without it: missing translation or audio means</text>
+    <text x="610" y="263">those checks are skipped and counted</text>
+    <text x="610" y="313">small samples fall back to langs.json priors</text>
+    <text x="610" y="381">every item; format only if the source has markup;</text>
+    <text x="610" y="399">waveform only with audio; chrF++ only with a</text>
+    <text x="610" y="417">reference; length never flags alone</text>
+    <text x="610" y="467">every item with a translation; names only when</text>
+    <text x="610" y="485">the source has them (a missing name is a hint);</text>
+    <text x="610" y="503">transcription only with audio; every request</text>
+    <text x="610" y="521">stays under 30 s of audio</text>
+    <text x="610" y="571">only for omission or repetition candidates</text>
+    <text x="610" y="639">only when an LLM is configured (--no-judge skips);</text>
+    <text x="610" y="657">one replica alone never makes a flag;</text>
+    <text x="610" y="675">long texts judged in overlapping windows</text>
+    <text x="610" y="785">checks emit signals; only fusion creates flags</text>
+    <text x="610" y="803">weak hints add weight but never flag alone</text>
+    <text x="610" y="871">thresholds stay at defaults with fewer labels</text>
+    <text x="610" y="939">deterministic: no timestamps or absolute paths;</text>
+    <text x="610" y="957">a rerun from the cache is byte-identical and free</text>
+  </g>
+</svg>

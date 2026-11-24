@@ -1,0 +1,55 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bodhan-eval"
+version = "0.1.0"
+description = "Agentic quality harness for Bodhan Indic-Translate and Indic-Speak outputs"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+authors = [{ name = "Saksham Mishra" }]
+# Pins are duplicated in requirements.txt because the Bodhan Cookbook validator reads that file.
+dependencies = [
+  "openai==3.57.0",
+  "requests==2.34.2",
+  "numpy==2.2.6",
+  "rapidfuzz==3.13.0",
+  "sacrebleu==2.6.0",
+  "python-dotenv==1.2.4",
+]
+
+[project.optional-dependencies]
+dev = ["pytest==9.2.0", "ruff==0.17.6", "mypy==2.4.1"]
+
+[project.scripts]
+bodhan-eval = "bodhan_eval.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+bodhan_eval = ["data/*.json", "data/*.md"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "RUF100"]
+ignore = ["E501", "B905", "E731", "SIM102", "SIM108", "SIM905"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["live: calls real Bodhan / LLM APIs (needs keys, costs money)"]
+addopts = "-m 'not live'"
+
+[tool.mypy]
+python_version = "3.10"
+mypy_path = "src"
+packages = ["bodhan_eval"]
+ignore_missing_imports = true
+check_untyped_defs = true
+warn_unused_ignores = true

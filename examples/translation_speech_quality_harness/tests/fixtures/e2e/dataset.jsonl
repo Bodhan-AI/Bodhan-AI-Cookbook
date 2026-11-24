@@ -1,0 +1,10 @@
+{"id": "hi-01", "lang": "hi", "source": "Water boils at 100 °C at sea level.", "translation": "समुद्र तल पर पानी 100 °C पर उबलता है।", "reference": "समुद्र तल पर पानी 100 °C पर उबलता है।", "labels": []}
+{"id": "hi-02", "lang": "hi", "source": "The train leaves at 7 pm and the journey takes 3 hours.", "translation": "ट्रेन शाम 8 बजे निकलती है और यात्रा में 3 घंटे लगते हैं।", "labels": [{"type": "number", "severity": "major", "span": [10, 11], "annotator": "fixture"}]}
+{"id": "ta-01", "lang": "ta", "source": "The sun rises in the east.", "translation": "சூரியன் கிழக்கில் உதிக்கிறது.", "audio": "audio/ta-01.wav"}
+{"id": "ta-02", "lang": "ta", "source": "Rivers flow into the sea."}
+{"id": "bn-01", "lang": "bn", "source": "| Quantity | Formula |\n|---|---|\n| Speed | $v = d/t$ |", "translation": "| পরিমাণ | সূত্র |\n|---|---|\n| গতি | $v = d/t$ |"}
+{"id": "bn-02", "lang": "bn", "source": "Plants need sunlight to grow.", "translation": "উদ্ভিদের বেড়ে ওঠার জন্য সূর্যালোক প্রয়োজন।", "audio": "audio/missing.wav"}
+{"id": "xx-01", "lang": "xx", "source": "Hello world, this is a test.", "translation": "Hallo Welt, dies ist ein Test."}
+{"id": "broken-01", "source": "This line is cut
+{"id": "hi-03", "lang": "hi", "source": "Plants make their food using sunlight and water.", "translation": "Plants make their food using sunlight and water."}
+{"id": "bn-03", "lang": "bn", "source": "The Earth orbits the Sun once a year.", "translation": "পৃথিবী বছরে একবার সূর্যকে প্রদক্ষিণ করে।", "labels": []}

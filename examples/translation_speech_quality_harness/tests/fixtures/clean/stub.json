@@ -1,0 +1,40 @@
+{
+  "_comment": "Back-translations and transliterations for the clean-item false-alarm suite (generated; see tests/e2e/test_false_alarms.py).",
+  "translate": {
+    "en": {
+      "आटे के तीन कप को दो कप पानी के साथ मिलाएँ।": "Mix three cups of flour with two cups of water.",
+      "उसने 2 दिनों में 3 किताबें पढ़ीं।": "She read 3 books in 2 days.",
+      "गाँव में १,२५,००० पेड़ और २५० घर हैं।": "The village has 1,25,000 trees and 250 houses.",
+      "गति के नियम आइज़क न्यूटन ने दिए थे।": "The laws of motion were given by Isaac Newton.",
+      "गर्मियों में नदियों में बाढ़ आती है।": "Rivers flood in summer.",
+      "वसंत में बर्फ पिघलती है।": "Ice melts in spring.",
+      "| राशि | सूत्र |": "| Quantity | Formula |",
+      "| गति | $v = \\text{दूरी}/\\text{समय}$ |": "| Speed | $v = \\text{distance}/\\text{time}$ |",
+      "DNA आनुवंशिक जानकारी ले जाता है और पानी H2O है।": "DNA carries genetic information and water is H2O.",
+      "पानी 100 डिग्री पर उबलता है और फिर भाप में बदल जाता है।": "Water boils at 100 degrees and then turns into steam.",
+      "सड़क 5 किलोमीटर लंबी है।": "The road is 5 kilometres long.",
+      "## चरण": "## Steps",
+      "1. `make check` चलाएँ।": "1. Run `make check`.",
+      "2. [मार्गदर्शिका](https://example.org/g) पढ़ें।": "2. Read [the guide](https://example.org/g).",
+      "परीक्षा 5 मार्च 2025 को है।": "The exam is on March 5, 2025.",
+      "मैच के बाद बच्चे बहुत खुश थे।": "After the game, the children were very happy.",
+      "জল ১০০ ডিগ্রি সেলসিয়াসে ফোটে।": "Water boils at 100 degrees Celsius.",
+      "কবিতাটি রবীন্দ্রনাথ ঠাকুর লিখেছিলেন।": "The poem was written by Rabindranath Tagore.",
+      "এক সপ্তাহে ৭ দিন আছে।": "There are 7 days in a week.",
+      "সূর্য পূর্ব দিকে ওঠে।": "The sun rises in the east.",
+      "এটি পশ্চিমে অস্ত যায়।": "It sets in the west.",
+      "சூரியன் கிழக்கில் உதிக்கிறது.": "The sun rises in the east.",
+      "ஒரு வருடத்திற்கு 365 நாட்கள் உள்ளன.": "A year has 365 days.",
+      "இந்தக் கோட்பாட்டை Albert Einstein முன்மொழிந்தார்.": "This theory was proposed by Albert Einstein.",
+      "அவள் இரண்டு கிலோகிராம் அரிசி வாங்கினாள்.": "She bought two kilograms of rice."
+    }
+  },
+  "transliterate": {
+    "hi": {
+      "Isaac Newton": "आइज़क न्यूटन"
+    },
+    "bn": {
+      "Rabindranath Tagore": "রবীন্দ্রনাথ ঠাকুর"
+    }
+  }
+}

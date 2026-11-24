@@ -1,0 +1,20 @@
+{"id": "c-hi-01", "lang": "hi", "source": "Mix 3 cups of flour with 2 cups of water.", "translation": "आटे के तीन कप को दो कप पानी के साथ मिलाएँ।", "labels": []}
+{"id": "c-hi-02", "lang": "hi", "source": "She read three books in two days.", "translation": "उसने 2 दिनों में 3 किताबें पढ़ीं।", "labels": []}
+{"id": "c-hi-03", "lang": "hi", "source": "The village has 1,25,000 trees and 250 houses.", "translation": "गाँव में १,२५,००० पेड़ और २५० घर हैं।", "labels": []}
+{"id": "c-hi-04", "lang": "hi", "source": "The laws of motion were given by Isaac Newton.", "translation": "गति के नियम आइज़क न्यूटन ने दिए थे।", "labels": []}
+{"id": "c-hi-05", "lang": "hi", "source": "Ice melts in spring. Rivers flood in summer.", "translation": "गर्मियों में नदियों में बाढ़ आती है। वसंत में बर्फ पिघलती है।", "labels": []}
+{"id": "c-hi-06", "lang": "hi", "source": "| Quantity | Formula |\n|---|---|\n| Speed | $v = \\text{distance}/\\text{time}$ |", "translation": "| राशि | सूत्र |\n|---|---|\n| गति | $v = \\text{दूरी}/\\text{समय}$ |", "labels": []}
+{"id": "c-hi-07", "lang": "hi", "source": "DNA carries genetic information and water is H2O.", "translation": "DNA आनुवंशिक जानकारी ले जाता है और पानी H2O है।", "labels": []}
+{"id": "c-hi-08", "lang": "hi", "source": "Water boils at 100 degrees. It then turns into steam.", "translation": "पानी 100 डिग्री पर उबलता है और फिर भाप में बदल जाता है।", "labels": []}
+{"id": "c-hi-09", "lang": "hi", "source": "The road is 5 km long.", "translation": "सड़क 5 किलोमीटर लंबी है।", "labels": []}
+{"id": "c-hi-10", "lang": "hi", "source": "## Steps\n\n1. Run `make check`.\n2. Read [the guide](https://example.org/g).", "translation": "## चरण\n\n1. `make check` चलाएँ।\n2. [मार्गदर्शिका](https://example.org/g) पढ़ें।", "labels": []}
+{"id": "c-hi-11", "lang": "hi", "source": "The exam is on 5 March 2025.", "translation": "परीक्षा 5 मार्च 2025 को है।", "labels": []}
+{"id": "c-hi-12", "lang": "hi", "source": "The children were very happy after the match.", "translation": "मैच के बाद बच्चे बहुत खुश थे।", "labels": []}
+{"id": "c-bn-01", "lang": "bn", "source": "Water boils at 100 degrees Celsius.", "translation": "জল ১০০ ডিগ্রি সেলসিয়াসে ফোটে।", "labels": []}
+{"id": "c-bn-02", "lang": "bn", "source": "The poem was written by Rabindranath Tagore.", "translation": "কবিতাটি রবীন্দ্রনাথ ঠাকুর লিখেছিলেন।", "labels": []}
+{"id": "c-bn-03", "lang": "bn", "source": "There are seven days in a week.", "translation": "এক সপ্তাহে ৭ দিন আছে।", "labels": []}
+{"id": "c-bn-04", "lang": "bn", "source": "The sun rises in the east. It sets in the west.", "translation": "সূর্য পূর্ব দিকে ওঠে। এটি পশ্চিমে অস্ত যায়।", "labels": []}
+{"id": "c-ta-01", "lang": "ta", "source": "The sun rises in the east.", "translation": "சூரியன் கிழக்கில் உதிக்கிறது.", "labels": []}
+{"id": "c-ta-02", "lang": "ta", "source": "A year has 365 days.", "translation": "ஒரு வருடத்திற்கு 365 நாட்கள் உள்ளன.", "labels": []}
+{"id": "c-ta-03", "lang": "ta", "source": "The theory was proposed by Albert Einstein.", "translation": "இந்தக் கோட்பாட்டை Albert Einstein முன்மொழிந்தார்.", "labels": []}
+{"id": "c-ta-04", "lang": "ta", "source": "She bought 2 kilograms of rice.", "translation": "அவள் இரண்டு கிலோகிராம் அரிசி வாங்கினாள்.", "labels": []}
