@@ -1,0 +1,16 @@
+# Run the whole app with one command: `docker compose up --build`, then open http://localhost:8000
+# Settings and the Bodhan keys come from .env at run time; they are never copied into the image.
+services:
+  app:
+    build: .
+    env_file: .env
+    ports:
+      # This computer only: the app has no sign-in, so don't expose it to the network
+      - "127.0.0.1:8000:8000"
+    volumes:
+      # Keeps the job history between restarts
+      - subtitle-data:/app/backend/data
+    restart: unless-stopped
+
+volumes:
+  subtitle-data:
