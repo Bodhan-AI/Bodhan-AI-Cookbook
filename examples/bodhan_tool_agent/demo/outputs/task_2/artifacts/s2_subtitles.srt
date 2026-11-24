@@ -1,0 +1,7 @@
+1
+00:00:00,000 --> 00:00:02,000
+Hello India. This is an important news bulletin.
+
+2
+00:00:02,100 --> 00:00:04,000
+Here are today's top headlines.

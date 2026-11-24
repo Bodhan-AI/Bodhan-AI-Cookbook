@@ -1,0 +1,21 @@
+{
+  "status": "impossible",
+  "inputs": [
+    {
+      "path": "D:\\bodhi_ai\\demo\\inputs\\task_6\\sample_video.mp4",
+      "id": "A",
+      "selected": true,
+      "reason": "Selected 'sample_video.mp4' (ID: A) via exact filename match in task text."
+    }
+  ],
+  "steps": [],
+  "verifications": [],
+  "total_cost_inr": 0.0,
+  "total_time_s": 0.0,
+  "assumptions": [
+    "Rejected unsupported foreign language request honestly."
+  ],
+  "missed_targets": [
+    "unsupported_language"
+  ]
+}

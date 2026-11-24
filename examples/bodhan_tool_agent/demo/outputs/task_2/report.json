@@ -1,0 +1,74 @@
+{
+  "status": "success",
+  "inputs": [
+    {
+      "path": "D:\\bodhi_ai\\demo\\inputs\\task_2\\hindi_speech.wav",
+      "id": "A",
+      "selected": true,
+      "reason": "Selected 'hindi_speech.wav' (ID: A) via exact filename match in task text."
+    }
+  ],
+  "steps": [
+    {
+      "step_id": "s1",
+      "tool": "transcribe_audio",
+      "cost_inr": 0.0067,
+      "latency_ms": 1.96,
+      "summary": "hi transcript (4.0s, 2 segments): 'नमस्ते भारत। यह एक महत्वपूर्ण समाचार बुल...'",
+      "error": null
+    },
+    {
+      "step_id": "s2",
+      "tool": "translate_text",
+      "cost_inr": 0.0005,
+      "latency_ms": 0.78,
+      "summary": "Translated 80 chars: 'Hello India. This is an important news b...'",
+      "error": null
+    }
+  ],
+  "verifications": [
+    {
+      "check": "srt_structure",
+      "passed": true,
+      "metric": {
+        "cues": 2,
+        "monotonic": true,
+        "duration_ok": true
+      },
+      "details": {
+        "cues_valid": true
+      }
+    },
+    {
+      "check": "translation_coverage",
+      "passed": true,
+      "metric": {
+        "ratio": 0.975,
+        "source_segments": 2,
+        "target_segments": 2
+      },
+      "details": {
+        "no_empties": true,
+        "count_parity": true
+      }
+    },
+    {
+      "check": "srt_structure",
+      "passed": true,
+      "metric": {
+        "cues": 2,
+        "monotonic": true,
+        "duration_ok": true
+      },
+      "details": {
+        "cues_valid": true
+      }
+    }
+  ],
+  "total_cost_inr": 0.0072,
+  "total_time_s": 0.01,
+  "assumptions": [
+    "Used deterministic fallback planner for canonical workflow."
+  ],
+  "missed_targets": []
+}

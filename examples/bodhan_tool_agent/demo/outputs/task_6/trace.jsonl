@@ -1,0 +1,2 @@
+{"step": 1, "type": "resolve", "ts": "2026-11-20T10:10:21.020526+00:00", "inventory": [{"id": "A", "path": "D:\\bodhi_ai\\demo\\inputs\\task_6\\sample_video.mp4", "filename": "sample_video.mp4", "kind": "video", "duration_s": null, "pages": null, "size_mb": 0.0}], "selected": ["A"], "rationale": "Selected 'sample_video.mp4' (ID: A) via exact filename match in task text."}
+{"step": 2, "type": "final", "ts": "2026-11-20T10:10:21.022082+00:00", "status": "impossible", "total_cost_inr": 0.0, "total_time_s": 0.0}

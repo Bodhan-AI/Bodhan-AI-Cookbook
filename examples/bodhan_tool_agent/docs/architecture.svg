@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 620" width="100%" height="100%" style="background:#0f172a; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <defs>
+    <linearGradient id="agentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <linearGradient id="mcpGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e1e38"/>
+      <stop offset="100%" stop-color="#0d1117"/>
+    </linearGradient>
+    <linearGradient id="bodhanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#312e81"/>
+      <stop offset="100%" stop-color="#1e1b4b"/>
+    </linearGradient>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+
+  <!-- Title -->
+  <text x="480" y="45" text-anchor="middle" fill="#f8fafc" font-size="22" font-weight="700" letter-spacing="0.5">Bodhan Indic MCP Server &amp; Agent Architecture</text>
+  <text x="480" y="70" text-anchor="middle" fill="#94a3b8" font-size="13">Two Autonomous Packages Linked Strictly via Model Context Protocol (stdio / JSON-RPC)</text>
+
+  <!-- BODHAN AGENT CONTAINER -->
+  <rect x="40" y="100" width="880" height="210" rx="12" fill="url(#agentGrad)" stroke="#38bdf8" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="55" y="112" width="160" height="26" rx="6" fill="#0284c7" opacity="0.9"/>
+  <text x="135" y="130" text-anchor="middle" fill="#ffffff" font-size="12" font-weight="bold">PACKAGE: bodhan_agent</text>
+
+  <!-- Agent Components -->
+  <!-- CLI & Loop -->
+  <rect x="65" y="150" width="120" height="75" rx="8" fill="#1e293b" stroke="#64748b" stroke-width="1.5"/>
+  <text x="125" y="178" text-anchor="middle" fill="#38bdf8" font-size="13" font-weight="bold">CLI &amp; Loop</text>
+  <text x="125" y="198" text-anchor="middle" fill="#94a3b8" font-size="10">Orchestrator</text>
+  <text x="125" y="212" text-anchor="middle" fill="#94a3b8" font-size="10">SPEC §8.1 / §10</text>
+
+  <!-- Resolver -->
+  <rect x="205" y="150" width="115" height="75" rx="8" fill="#1e293b" stroke="#64748b" stroke-width="1.5"/>
+  <text x="262" y="178" text-anchor="middle" fill="#38bdf8" font-size="13" font-weight="bold">Resolver</text>
+  <text x="262" y="198" text-anchor="middle" fill="#94a3b8" font-size="10">Deterministic Match</text>
+  <text x="262" y="212" text-anchor="middle" fill="#94a3b8" font-size="10">ID Assignment</text>
+
+  <!-- Budget -->
+  <rect x="340" y="150" width="115" height="75" rx="8" fill="#1e293b" stroke="#64748b" stroke-width="1.5"/>
+  <text x="397" y="178" text-anchor="middle" fill="#38bdf8" font-size="13" font-weight="bold">Budget</text>
+  <text x="397" y="198" text-anchor="middle" fill="#94a3b8" font-size="10">Pre-flight + Ledger</text>
+  <text x="397" y="212" text-anchor="middle" fill="#94a3b8" font-size="10">Hard Ceilings (C9)</text>
+
+  <!-- Planner -->
+  <rect x="475" y="150" width="125" height="75" rx="8" fill="#1e293b" stroke="#64748b" stroke-width="1.5"/>
+  <text x="537" y="178" text-anchor="middle" fill="#38bdf8" font-size="13" font-weight="bold">Planner</text>
+  <text x="537" y="198" text-anchor="middle" fill="#94a3b8" font-size="10">LLM Plan Validation</text>
+  <text x="537" y="212" text-anchor="middle" fill="#94a3b8" font-size="10">No Indic / Paths (C2/C4)</text>
+
+  <!-- Executor -->
+  <rect x="620" y="150" width="125" height="75" rx="8" fill="#1e293b" stroke="#64748b" stroke-width="1.5"/>
+  <text x="682" y="178" text-anchor="middle" fill="#38bdf8" font-size="13" font-weight="bold">Executor</text>
+  <text x="682" y="198" text-anchor="middle" fill="#94a3b8" font-size="10">ID → Path Mapping</text>
+  <text x="682" y="212" text-anchor="middle" fill="#94a3b8" font-size="10">MCP Client Dispatch</text>
+
+  <!-- Verifier & Security -->
+  <rect x="765" y="150" width="135" height="75" rx="8" fill="#1e293b" stroke="#64748b" stroke-width="1.5"/>
+  <text x="832" y="178" text-anchor="middle" fill="#38bdf8" font-size="13" font-weight="bold">Verifier &amp; Security</text>
+  <text x="832" y="198" text-anchor="middle" fill="#94a3b8" font-size="10">Back-transcribe / SRT</text>
+  <text x="832" y="212" text-anchor="middle" fill="#94a3b8" font-size="10">Untrusted Scan (C8)</text>
+
+  <!-- Agent Output Arrow & Bar -->
+  <rect x="180" y="248" width="600" height="42" rx="6" fill="#0f172a" stroke="#475569" stroke-dasharray="4 3"/>
+  <text x="480" y="274" text-anchor="middle" fill="#cbd5e1" font-size="11">Standard Outputs: <tspan fill="#38bdf8">out/result.md</tspan> · <tspan fill="#38bdf8">out/report.json</tspan> · <tspan fill="#38bdf8">out/trace.jsonl</tspan> · <tspan fill="#38bdf8">out/artifacts/*</tspan></text>
+
+  <!-- PROTOCOL BRIDGE -->
+  <path d="M 480 310 L 480 355" stroke="#f59e0b" stroke-width="3" stroke-dasharray="6 4" marker-end="url(#arrow)"/>
+  <rect x="360" y="322" width="240" height="24" rx="12" fill="#d97706" opacity="0.95"/>
+  <text x="480" y="338" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="bold">MCP stdio transport (JSON-RPC 2.0)</text>
+
+  <!-- BODHAN MCP CONTAINER -->
+  <rect x="40" y="360" width="880" height="150" rx="12" fill="url(#mcpGrad)" stroke="#a855f7" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="55" y="372" width="150" height="26" rx="6" fill="#9333ea" opacity="0.9"/>
+  <text x="130" y="390" text-anchor="middle" fill="#ffffff" font-size="12" font-weight="bold">PACKAGE: bodhan_mcp</text>
+
+  <!-- FastMCP Server -->
+  <rect x="65" y="410" width="150" height="80" rx="8" fill="#18182b" stroke="#7e22ce" stroke-width="1.5"/>
+  <text x="140" y="438" text-anchor="middle" fill="#c084fc" font-size="13" font-weight="bold">FastMCP Server</text>
+  <text x="140" y="458" text-anchor="middle" fill="#a1a1aa" font-size="10">mcp.server.fastmcp</text>
+  <text x="140" y="474" text-anchor="middle" fill="#a1a1aa" font-size="10">Purity: Stderr Logging (C7)</text>
+
+  <!-- Tools Catalogue -->
+  <rect x="235" y="410" width="370" height="80" rx="8" fill="#18182b" stroke="#7e22ce" stroke-width="1.5"/>
+  <text x="420" y="434" text-anchor="middle" fill="#c084fc" font-size="13" font-weight="bold">Registered FastMCP Tools (Limit Absorbers)</text>
+  <text x="420" y="454" text-anchor="middle" fill="#e2e8f0" font-size="11">transcribe_audio · translate_text · synthesize_speech · ocr_document</text>
+  <text x="420" y="472" text-anchor="middle" fill="#cbd5e1" font-size="10">ocr_page · inspect_media · chunk_audio · get_voice_library</text>
+
+  <!-- Clients, Cache & Retry -->
+  <rect x="625" y="410" width="275" height="80" rx="8" fill="#18182b" stroke="#7e22ce" stroke-width="1.5"/>
+  <text x="762" y="438" text-anchor="middle" fill="#c084fc" font-size="13" font-weight="bold">Clients &amp; Caching</text>
+  <text x="762" y="458" text-anchor="middle" fill="#a1a1aa" font-size="10">Semaphore (concurrency=4) · Backoff Retry</text>
+  <text x="762" y="474" text-anchor="middle" fill="#a1a1aa" font-size="10">Payload SHA256 In-run Cache (C10)</text>
+
+  <!-- UPSTREAM MODELS (REST API) -->
+  <path d="M 480 510 L 480 540" stroke="#6366f1" stroke-width="2"/>
+  <rect x="180" y="540" width="600" height="60" rx="10" fill="url(#bodhanGrad)" stroke="#4f46e5" stroke-width="1.5"/>
+  <text x="480" y="565" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="bold">Bodhan Indic Upstream REST API (api.bodhan.ai/v1)</text>
+  <text x="480" y="585" text-anchor="middle" fill="#c7d2fe" font-size="11">Indic-Transcribe (STT) · Indic-Translate (MT) · Indic-Speak (TTS) · Indic-OCR</text>
+</svg>

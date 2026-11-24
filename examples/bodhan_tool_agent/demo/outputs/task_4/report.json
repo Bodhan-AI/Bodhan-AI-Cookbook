@@ -1,0 +1,74 @@
+{
+  "status": "success",
+  "inputs": [
+    {
+      "path": "D:\\bodhi_ai\\demo\\inputs\\task_4\\clip1.wav",
+      "id": "A",
+      "selected": false,
+      "reason": "Not selected"
+    },
+    {
+      "path": "D:\\bodhi_ai\\demo\\inputs\\task_4\\clip2.wav",
+      "id": "B",
+      "selected": true,
+      "reason": "Selected 'clip2.wav' (ID: B) via exact filename match in task text."
+    },
+    {
+      "path": "D:\\bodhi_ai\\demo\\inputs\\task_4\\clip3.wav",
+      "id": "C",
+      "selected": false,
+      "reason": "Not selected"
+    },
+    {
+      "path": "D:\\bodhi_ai\\demo\\inputs\\task_4\\clip4.wav",
+      "id": "D",
+      "selected": false,
+      "reason": "Not selected"
+    },
+    {
+      "path": "D:\\bodhi_ai\\demo\\inputs\\task_4\\clip5.wav",
+      "id": "E",
+      "selected": false,
+      "reason": "Not selected"
+    }
+  ],
+  "steps": [
+    {
+      "step_id": "s1",
+      "tool": "transcribe_audio",
+      "cost_inr": 0.0042,
+      "latency_ms": 1.33,
+      "summary": "te transcript (2.5s, 1 segments): 'నమస్కారం, ఇది తెలుగు ఆడియో క్లిప్....'",
+      "error": null
+    },
+    {
+      "step_id": "s2",
+      "tool": "translate_text",
+      "cost_inr": 0.0002,
+      "latency_ms": 0.39,
+      "summary": "Translated 71 chars: 'Hello, this is a Telugu audio clip.\nToda...'",
+      "error": null
+    }
+  ],
+  "verifications": [
+    {
+      "check": "translation_coverage",
+      "passed": false,
+      "metric": {
+        "ratio": 2.059,
+        "source_segments": 1,
+        "target_segments": 2
+      },
+      "details": {
+        "no_empties": true,
+        "count_parity": false
+      }
+    }
+  ],
+  "total_cost_inr": 0.0044,
+  "total_time_s": 0.01,
+  "assumptions": [
+    "Used deterministic fallback planner for canonical workflow."
+  ],
+  "missed_targets": []
+}

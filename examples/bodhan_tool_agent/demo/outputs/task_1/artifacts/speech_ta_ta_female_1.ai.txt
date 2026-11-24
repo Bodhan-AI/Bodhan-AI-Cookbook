@@ -1,0 +1,4 @@
+ai_generated=True
+model=bodhan-speak
+language=ta
+voice=ta_female_1

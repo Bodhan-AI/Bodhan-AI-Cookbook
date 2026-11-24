@@ -1,0 +1,9 @@
+# Pinned dependencies for bodhan_tool_agent
+mcp==1.30.0
+openai==1.109.1
+httpx==0.28.1
+pydantic==2.14.4
+pymupdf==1.28.2
+soundfile==0.14.0
+python-dotenv==1.2.4
+tenacity==8.5.0

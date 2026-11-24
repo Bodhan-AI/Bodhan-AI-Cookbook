@@ -1,0 +1,63 @@
+{
+  "status": "success",
+  "inputs": [
+    {
+      "path": "D:\\bodhi_ai\\demo\\inputs\\task_3\\worksheet_table.png",
+      "id": "A",
+      "selected": true,
+      "reason": "Selected 'worksheet_table.png' (ID: A) via exact filename match in task text."
+    }
+  ],
+  "steps": [
+    {
+      "step_id": "s1",
+      "tool": "ocr_page",
+      "cost_inr": 0.2,
+      "latency_ms": 1.0,
+      "summary": "OCR page 1 -> 193 chars markdown",
+      "error": null
+    },
+    {
+      "step_id": "s2",
+      "tool": "translate_text",
+      "cost_inr": 0.0013,
+      "latency_ms": 0.38,
+      "summary": "Translated 184 chars: '# विज्ञान कार्यपत्रिका: ग्रहांची वैशिष्ट...'",
+      "error": null
+    }
+  ],
+  "verifications": [
+    {
+      "check": "translation_coverage",
+      "passed": true,
+      "metric": {
+        "ratio": 0.952,
+        "source_segments": 7,
+        "target_segments": 7
+      },
+      "details": {
+        "no_empties": true,
+        "count_parity": true
+      }
+    },
+    {
+      "check": "table_parity",
+      "passed": true,
+      "metric": {
+        "src_rows": 6,
+        "tgt_rows": 6,
+        "col_match": true
+      },
+      "details": {
+        "row_match": true,
+        "col_match": true
+      }
+    }
+  ],
+  "total_cost_inr": 0.2013,
+  "total_time_s": 0.01,
+  "assumptions": [
+    "Used deterministic fallback planner for canonical workflow."
+  ],
+  "missed_targets": []
+}

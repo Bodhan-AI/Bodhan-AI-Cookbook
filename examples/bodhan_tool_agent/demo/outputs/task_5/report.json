@@ -1,0 +1,28 @@
+{
+  "status": "success",
+  "inputs": [
+    {
+      "path": "D:\\bodhi_ai\\demo\\inputs\\task_5\\bengali_passage.txt",
+      "id": "A",
+      "selected": true,
+      "reason": "Selected 'bengali_passage.txt' (ID: A) via exact filename match in task text."
+    }
+  ],
+  "steps": [
+    {
+      "step_id": "s1",
+      "tool": "synthesize_speech",
+      "cost_inr": 0.1236,
+      "latency_ms": 2.08,
+      "summary": "Synthesized 206 chars -> D:\\bodhi_ai\\demo\\outputs\\task_5\\artifacts\\speech_bn_bn_female_1.wav (13.73s)",
+      "error": null
+    }
+  ],
+  "verifications": [],
+  "total_cost_inr": 0.1236,
+  "total_time_s": 0.01,
+  "assumptions": [
+    "Used deterministic fallback planner for canonical workflow."
+  ],
+  "missed_targets": []
+}

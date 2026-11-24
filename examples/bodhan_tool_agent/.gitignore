@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
+build/
+dist/
+
+# Secrets
+.env
+
+# Run outputs (link demo artifacts from the README instead)
+out/
+out-*/
+.cache/
+
+# Smoke test outputs (Standing Rule F2)
+scripts/smoke/out/
+
+# Media — never commit; link from README
+*.wav
+*.mp3
+*.m4a
+*.mp4
+*.mov
+*.pdf
+*.png
+*.jpg
+*.jpeg
+*.flac
+*.ogg
+*.aac
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+p.md
+
+# Traces over a size threshold should not be committed; use samples only
+trace-*.jsonl
+!demo/samples/*.jsonl

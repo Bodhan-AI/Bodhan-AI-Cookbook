@@ -1,0 +1,438 @@
+{
+  "timestamp": 1795181361.1074786,
+  "total_tests": 10,
+  "passed": 10,
+  "total_spend_inr": 0.4492,
+  "results": [
+    {
+      "id": "TEST-01",
+      "category": "Live Audio STT",
+      "name": "Live Audio Speech Transcription",
+      "task": "Transcribe speech_hindi.wav to Hindi text with timestamps.",
+      "live_models": [
+        "indic-transcribe"
+      ],
+      "input_file": "demo\\inputs\\test_suite_10\\case_01_audio_transcribe\\speech_hindi.wav",
+      "generated_files": [],
+      "status": "success",
+      "passed": true,
+      "cost_inr": 0.0174,
+      "latency_ms": 0.0,
+      "groq_log": {
+        "model": "openai/gpt-oss-120b",
+        "key_used": "PRIMARY",
+        "latency_ms": 2599.48,
+        "rationale": "The user wants a Hindi transcription with timestamps for the audio file identified as A. The transcribe_audio tool directly provides this functionality, and specifying the language hint as 'hi' ensures the output is in Hindi.",
+        "steps": [
+          {
+            "id": "s1",
+            "tool": "transcribe_audio",
+            "args": {
+              "input_path": "A",
+              "language_hint": "hi"
+            },
+            "depends_on": [],
+            "verify": null
+          }
+        ]
+      },
+      "steps": [
+        {
+          "step_id": "s1",
+          "tool": "transcribe_audio",
+          "latency_ms": 972.14,
+          "cost_inr": 0.0174,
+          "summary": "hi transcript (10.435s, 0 segments): '\u0939\u0940 \u0939\u094b\u092a\u094d\u0921 \u0926\u0947\u0930 \u0935\u0941\u0921 \u092c\u0940 \u0938\u094d\u091f\u0947\u0935 \u092b\u0949\u0930 \u0921\u093f\u0928\u0930 \u091f\u0930\u094d\u0928\u093f...'",
+          "error": null
+        }
+      ],
+      "summary": "hi transcript (10.435s, 0 segments): '\u0939\u0940 \u0939\u094b\u092a\u094d\u0921 \u0926\u0947\u0930 \u0935\u0941\u0921 \u092c\u0940 \u0938\u094d\u091f\u0947\u0935 \u092b\u0949\u0930 \u0921\u093f\u0928\u0930 \u091f\u0930\u094d\u0928\u093f...'"
+    },
+    {
+      "id": "TEST-02",
+      "category": "Live Audio STT + MT",
+      "name": "Live Audio Transcription + English Subtitles",
+      "task": "Transcribe speech_hindi.wav and translate it to English.",
+      "live_models": [
+        "indic-transcribe",
+        "indic-translate"
+      ],
+      "input_file": "demo\\inputs\\test_suite_10\\case_01_audio_transcribe\\speech_hindi.wav",
+      "generated_files": [],
+      "status": "success",
+      "passed": true,
+      "cost_inr": 0.001,
+      "latency_ms": 0.0,
+      "groq_log": {
+        "model": "openai/gpt-oss-120b",
+        "key_used": "PRIMARY",
+        "latency_ms": 3061.21,
+        "rationale": "First, transcribe the Hindi audio file (ID A) to obtain the spoken text. Then, translate that Hindi transcription into English, using the output of the transcription step as input for the translation.",
+        "steps": [
+          {
+            "id": "s1",
+            "tool": "transcribe_audio",
+            "args": {
+              "input_path": "A",
+              "language_hint": "hi"
+            },
+            "depends_on": [],
+            "verify": null
+          },
+          {
+            "id": "s2",
+            "tool": "translate_text",
+            "args": {
+              "text": {
+                "from_step": "s1"
+              },
+              "source_lang": "hi",
+              "target_lang": "en"
+            },
+            "depends_on": [
+              "s1"
+            ],
+            "verify": null
+          }
+        ]
+      },
+      "steps": [
+        {
+          "step_id": "s1",
+          "tool": "transcribe_audio",
+          "latency_ms": 2.91,
+          "cost_inr": 0.0,
+          "summary": "hi transcript (10.435s, 0 segments): '\u0939\u0940 \u0939\u094b\u092a\u094d\u0921 \u0926\u0947\u0930 \u0935\u0941\u0921 \u092c\u0940 \u0938\u094d\u091f\u0947\u0935 \u092b\u0949\u0930 \u0921\u093f\u0928\u0930 \u091f\u0930\u094d\u0928\u093f...'",
+          "error": null
+        },
+        {
+          "step_id": "s2",
+          "tool": "translate_text",
+          "latency_ms": 320.14,
+          "cost_inr": 0.001,
+          "summary": "Translated 161 chars: 'This hoped-for would be stewed for dinne...'",
+          "error": null
+        }
+      ],
+      "summary": "Translated 161 chars: 'This hoped-for would be stewed for dinne...'"
+    },
+    {
+      "id": "TEST-03",
+      "category": "Live Text MT",
+      "name": "Live Indic-to-Indic Text Translation",
+      "task": "Translate the public health notice in press_release_hindi.txt from Hindi to Tamil.",
+      "live_models": [
+        "indic-translate"
+      ],
+      "input_file": "demo\\inputs\\test_suite_10\\case_03_text_translate\\press_release_hindi.txt",
+      "generated_files": [],
+      "status": "success",
+      "passed": true,
+      "cost_inr": 0.0006,
+      "latency_ms": 0.0,
+      "groq_log": {
+        "model": "openai/gpt-oss-120b",
+        "key_used": "PRIMARY",
+        "latency_ms": 2530.21,
+        "rationale": "The task is to translate the Hindi press release (text file A) into Tamil. Using the translate_text tool with the file identifier ensures the original Hindi content is read directly and converted to Tamil while preserving any Markdown structure.",
+        "steps": [
+          {
+            "id": "s1",
+            "tool": "translate_text",
+            "args": {
+              "file_id": "A",
+              "source_lang": "hi",
+              "target_lang": "ta"
+            },
+            "depends_on": [],
+            "verify": null
+          }
+        ]
+      },
+      "steps": [
+        {
+          "step_id": "s1",
+          "tool": "translate_text",
+          "latency_ms": 660.67,
+          "cost_inr": 0.0006,
+          "summary": "Translated 118 chars: '\u0b87\u0ba8\u0bcd\u0ba4\u0bbf\u0baf \u0b85\u0bb0\u0b9a\u0bc1 \u0b87\u0ba9\u0bcd\u0bb1\u0bc1 \u0baa\u0bc1\u0ba4\u0bbf\u0baf \u0b9f\u0bbf\u0b9c\u0bbf\u0b9f\u0bcd\u0b9f\u0bb2\u0bcd \u0b95\u0bb2\u0bcd\u0bb5\u0bbf ...'",
+          "error": null
+        }
+      ],
+      "summary": "Translated 118 chars: '\u0b87\u0ba8\u0bcd\u0ba4\u0bbf\u0baf \u0b85\u0bb0\u0b9a\u0bc1 \u0b87\u0ba9\u0bcd\u0bb1\u0bc1 \u0baa\u0bc1\u0ba4\u0bbf\u0baf \u0b9f\u0bbf\u0b9c\u0bbf\u0b9f\u0bcd\u0b9f\u0bb2\u0bcd \u0b95\u0bb2\u0bcd\u0bb5\u0bbf ...'"
+    },
+    {
+      "id": "TEST-04",
+      "category": "Live Text TTS",
+      "name": "Live Text-to-Speech Synthesis (Kavya Voice)",
+      "task": "Synthesize speech for announcement_tamil.txt in Tamil using Kavya female voice.",
+      "live_models": [
+        "indic-speak"
+      ],
+      "input_file": "demo\\inputs\\test_suite_10\\case_04_text_tts\\announcement_tamil.txt",
+      "generated_files": [
+        "D:\\bodhi_ai\\out\\live_evaluation_artifacts\\TEST-04\\speech_ta_Kavya.wav"
+      ],
+      "status": "success",
+      "passed": true,
+      "cost_inr": 0.033,
+      "latency_ms": 0.0,
+      "groq_log": {
+        "model": "openai/gpt-oss-120b",
+        "key_used": "PRIMARY",
+        "latency_ms": 2812.69,
+        "rationale": "The only required operation is to generate spoken audio from the Tamil text file (ID A) using the female voice 'Kavya' for the Tamil language. No prior processing steps are needed.",
+        "steps": [
+          {
+            "id": "s1",
+            "tool": "synthesize_speech",
+            "args": {
+              "file_id": "A",
+              "language": "ta",
+              "voice_id": "Kavya"
+            },
+            "depends_on": [],
+            "verify": null
+          }
+        ]
+      },
+      "steps": [
+        {
+          "step_id": "s1",
+          "tool": "synthesize_speech",
+          "latency_ms": 3801.79,
+          "cost_inr": 0.033,
+          "summary": "Synthesized 55 chars -> D:\\bodhi_ai\\out\\live_evaluation_artifacts\\TEST-04\\speech_ta_Kavya.wav (3.67s)",
+          "error": null
+        }
+      ],
+      "summary": "Synthesized 55 chars -> D:\\bodhi_ai\\out\\live_evaluation_artifacts\\TEST-04\\speech_ta_Kavya.wav (3.67s)"
+    },
+    {
+      "id": "TEST-05",
+      "category": "Live Image OCR",
+      "name": "Live Vision OCR on Worksheet Table",
+      "task": "Extract the worksheet table from receipt_table.png into clean Markdown.",
+      "live_models": [
+        "indic-ocr"
+      ],
+      "input_file": "demo\\inputs\\test_suite_10\\case_06_image_ocr\\receipt_table.png",
+      "generated_files": [],
+      "status": "success",
+      "passed": true,
+      "cost_inr": 0.2,
+      "latency_ms": 0.0,
+      "groq_log": {
+        "model": "openai/gpt-oss-120b",
+        "key_used": "PRIMARY",
+        "latency_ms": 2334.52,
+        "rationale": "Use the OCR tool to extract the table from the provided image (ID A) and output it as Markdown. This single step directly fulfills the request to obtain a clean Markdown representation of the worksheet table.",
+        "steps": [
+          {
+            "id": "s1",
+            "tool": "ocr_page",
+            "args": {
+              "image_path": "A"
+            },
+            "depends_on": [],
+            "verify": null
+          }
+        ]
+      },
+      "steps": [
+        {
+          "step_id": "s1",
+          "tool": "ocr_page",
+          "latency_ms": 921.68,
+          "cost_inr": 0.2,
+          "summary": "OCR page 1 -> 337 chars markdown",
+          "error": null
+        }
+      ],
+      "summary": "OCR page 1 -> 337 chars markdown"
+    },
+    {
+      "id": "TEST-06",
+      "category": "Live Pipeline",
+      "name": "Full Multi-Step Pipeline (OCR -> Translate -> Speak)",
+      "task": "Extract text from worksheet_table.png, translate it into Hindi, and synthesize audio.",
+      "live_models": [
+        "indic-ocr",
+        "indic-translate",
+        "indic-speak"
+      ],
+      "input_file": "demo\\inputs\\task_3\\worksheet_table.png",
+      "generated_files": [
+        "D:\\bodhi_ai\\out\\live_evaluation_artifacts\\TEST-06\\speech_hi_Kavya.wav"
+      ],
+      "status": "success",
+      "passed": true,
+      "cost_inr": 0.1972,
+      "latency_ms": 0.0,
+      "groq_log": {
+        "model": "openai/gpt-oss-120b",
+        "key_used": "PRIMARY",
+        "latency_ms": 2663.17,
+        "rationale": "First, OCR the provided image (A) to obtain the worksheet text. Next, translate the extracted English text to Hindi using the translation tool. Finally, synthesize speech from the Hindi translation using a default Hindi voice.",
+        "steps": [
+          {
+            "id": "s1",
+            "tool": "ocr_page",
+            "args": {
+              "image_path": "A"
+            },
+            "depends_on": [],
+            "verify": null
+          },
+          {
+            "id": "s2",
+            "tool": "translate_text",
+            "args": {
+              "text": {
+                "from_step": "s1"
+              },
+              "source_lang": "en",
+              "target_lang": "hi"
+            },
+            "depends_on": [
+              "s1"
+            ],
+            "verify": null
+          },
+          {
+            "id": "s3",
+            "tool": "synthesize_speech",
+            "args": {
+              "text": {
+                "from_step": "s2"
+              },
+              "language": "hi",
+              "voice_id": "default"
+            },
+            "depends_on": [
+              "s2"
+            ],
+            "verify": null
+          }
+        ]
+      },
+      "steps": [
+        {
+          "step_id": "s1",
+          "tool": "ocr_page",
+          "latency_ms": 1.95,
+          "cost_inr": 0.0,
+          "summary": "OCR page 1 -> 337 chars markdown",
+          "error": null
+        },
+        {
+          "step_id": "s2",
+          "tool": "translate_text",
+          "latency_ms": 1016.41,
+          "cost_inr": 0.0022,
+          "summary": "Translated 325 chars: '\u0935\u093f\u091c\u094d\u091e\u093e\u0928 \u0935\u0930\u094d\u0915\u0936\u0940\u091f: \u0917\u094d\u0930\u0939\u094b\u0902 \u0915\u0940 \u0935\u093f\u0936\u0947\u0937\u0924\u093e\u090f\u0902\n\n<t...'",
+          "error": null
+        },
+        {
+          "step_id": "s3",
+          "tool": "synthesize_speech",
+          "latency_ms": 31517.11,
+          "cost_inr": 0.195,
+          "summary": "Synthesized 325 chars -> D:\\bodhi_ai\\out\\live_evaluation_artifacts\\TEST-06\\speech_hi_Kavya.wav (21.67s)",
+          "error": null
+        }
+      ],
+      "summary": "Synthesized 325 chars -> D:\\bodhi_ai\\out\\live_evaluation_artifacts\\TEST-06\\speech_hi_Kavya.wav (21.67s)"
+    },
+    {
+      "id": "TEST-07",
+      "category": "Pre-flight Safety",
+      "name": "Budget Ceiling Exhaustion Guard",
+      "task": "Transcribe speech_hindi.wav to Hindi text.",
+      "live_models": [],
+      "input_file": "demo\\inputs\\test_suite_10\\case_01_audio_transcribe\\speech_hindi.wav",
+      "generated_files": [],
+      "status": "budget_exhausted",
+      "passed": true,
+      "cost_inr": 0.0,
+      "latency_ms": 0.0,
+      "groq_log": {},
+      "steps": [],
+      "summary": "Refused pre-flight spend (Limit: \u20b90.0001)"
+    },
+    {
+      "id": "TEST-08",
+      "category": "Pre-flight Safety",
+      "name": "Missing File Refusal (Constraint C8)",
+      "task": "Transcribe missing_recording_2026.wav to Hindi text.",
+      "live_models": [],
+      "input_file": "demo\\inputs\\test_suite_10\\case_09_missing_file\\missing_recording_2026.wav",
+      "generated_files": [],
+      "status": "impossible",
+      "passed": true,
+      "cost_inr": 0.0,
+      "latency_ms": 0.0,
+      "groq_log": {},
+      "steps": [],
+      "summary": "Refused missing file: missing_recording_2026.wav"
+    },
+    {
+      "id": "TEST-09",
+      "category": "Error Handling",
+      "name": "Corrupt Media Format Rejection",
+      "task": "Transcribe corrupt_sample.wav to Hindi text.",
+      "live_models": [],
+      "input_file": "demo\\inputs\\test_suite_10\\case_01_audio_transcribe\\corrupt_sample.wav",
+      "generated_files": [],
+      "status": "success",
+      "passed": true,
+      "cost_inr": 0.0,
+      "latency_ms": 0.0,
+      "groq_log": {
+        "model": "openai/gpt-oss-120b",
+        "key_used": "PRIMARY",
+        "latency_ms": 2066.45,
+        "rationale": "The user wants a Hindi transcription of the provided audio file. Using the 'transcribe_audio' tool with a language hint of 'hi' will generate the Hindi text directly from the audio, satisfying the requirement while adhering to constraints that prohibit manually writing Hindi script.",
+        "steps": [
+          {
+            "id": "s1",
+            "tool": "transcribe_audio",
+            "args": {
+              "input_path": "A",
+              "language_hint": "hi"
+            },
+            "depends_on": [],
+            "verify": null
+          }
+        ]
+      },
+      "steps": [
+        {
+          "step_id": "s1",
+          "tool": "transcribe_audio",
+          "latency_ms": 0.81,
+          "cost_inr": 0.0,
+          "summary": "Error: UNREADABLE_MEDIA - Failed to read audio file: Unreadable audio media at D:\\bodhi_ai\\demo\\inputs\\test_suite_10\\case_01_audio_transcribe\\corrupt_sample.wav: Error opening 'D:\\\\bodhi_ai\\\\demo\\\\inputs\\\\test_suite_10\\\\case_01_audio_transcribe\\\\corrupt_sample.wav': Format not recognised.",
+          "error": "Failed to read audio file: Unreadable audio media at D:\\bodhi_ai\\demo\\inputs\\test_suite_10\\case_01_audio_transcribe\\corrupt_sample.wav: Error opening 'D:\\\\bodhi_ai\\\\demo\\\\inputs\\\\test_suite_10\\\\case_01_audio_transcribe\\\\corrupt_sample.wav': Format not recognised."
+        }
+      ],
+      "summary": "Gracefully caught corrupt file (UNREADABLE_MEDIA)"
+    },
+    {
+      "id": "TEST-10",
+      "category": "Pre-flight Safety",
+      "name": "Unsupported Non-Indic Language Refusal (Constraint C8)",
+      "task": "Translate press_release_hindi.txt into German.",
+      "live_models": [],
+      "input_file": "demo\\inputs\\test_suite_10\\case_03_text_translate\\press_release_hindi.txt",
+      "generated_files": [],
+      "status": "impossible",
+      "passed": true,
+      "cost_inr": 0.0,
+      "latency_ms": 0.0,
+      "groq_log": {},
+      "steps": [],
+      "summary": "Refused unsupported non-Indic language (German)"
+    }
+  ]
+}
