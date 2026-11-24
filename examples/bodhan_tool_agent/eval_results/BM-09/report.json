@@ -1,0 +1,15 @@
+{
+  "task": "Make a two-minute Tamil audio summary of this chapter",
+  "status": "BUDGET_EXCEEDED",
+  "total_steps": 1,
+  "total_cost_inr": 0.2,
+  "total_duration_seconds": 0.08,
+  "cache_hits": 0,
+  "cache_misses": 1,
+  "verifications": [],
+  "artifacts": [
+    "C:\\Users\\Hksona\\Downloads\\Bodhan Ai\\eval_results\\BM-09\\artifacts\\input_extracted.md"
+  ],
+  "explanation": "Exceeded maximum steps allowed (1).",
+  "final_answer": "Agent stopped after reaching maximum allowed steps (1)."
+}

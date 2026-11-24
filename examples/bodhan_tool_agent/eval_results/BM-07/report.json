@@ -1,0 +1,13 @@
+{
+  "task": "Transcribe this non_existent_audio_file_99.wav",
+  "status": "IMPOSSIBLE_TASK",
+  "total_steps": 1,
+  "total_cost_inr": 0.0,
+  "total_duration_seconds": 0.0,
+  "cache_hits": 0,
+  "cache_misses": 0,
+  "verifications": [],
+  "artifacts": [],
+  "explanation": "Specified input file was not found on disk. Cannot complete task on non-existent input.",
+  "final_answer": "Task aborted honestly: Specified input file was not found on disk. Cannot complete task on non-existent input."
+}

@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bodhan Task Agent - Live Trace & Plan Viewer</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --border: #334155;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --primary: #3b82f6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --accent: #8b5cf6;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 24px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+        }
+        h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .badge {
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            background: var(--primary);
+            color: white;
+            font-weight: 600;
+        }
+        .status-badge {
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 0.85rem;
+        }
+        .status-COMPLETED { background: #064e3b; color: #6ee7b7; border: 1px solid #059669; }
+        .status-IMPOSSIBLE_TASK { background: #451a03; color: #fcd34d; border: 1px solid #d97706; }
+        .status-BUDGET_EXCEEDED { background: #4c0519; color: #fda4af; border: 1px solid #e11d48; }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 24px;
+        }
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+        .card h2 {
+            margin-top: 0;
+            font-size: 1.15rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 12px;
+            color: var(--text);
+        }
+        .metrics-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .metric-box {
+            background: #0f172a;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 14px;
+            text-align: center;
+        }
+        .metric-val {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin-top: 4px;
+        }
+        .metric-label {
+            font-size: 0.75rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 28px;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 10px;
+            bottom: 10px;
+            width: 2px;
+            background: var(--border);
+        }
+        .step-item {
+            position: relative;
+            background: #0f172a;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .step-item::before {
+            content: '';
+            position: absolute;
+            left: -24px;
+            top: 20px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--primary);
+            border: 2px solid var(--bg);
+        }
+        .step-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .tool-pill {
+            background: #1e3a8a;
+            color: #93c5fd;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .step-plan {
+            font-size: 0.95rem;
+            color: #e2e8f0;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        .step-details {
+            background: #1e293b;
+            border-radius: 6px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: #cbd5e1;
+            white-space: pre-wrap;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+
+        .file-selector {
+            background: #0f172a;
+            color: white;
+            border: 1px solid var(--border);
+            padding: 8px 12px;
+            border-radius: 6px;
+            width: 100%;
+            margin-bottom: 16px;
+        }
+        .artifact-link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #0f172a;
+            padding: 10px 14px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            border: 1px solid var(--border);
+            text-decoration: none;
+            color: #93c5fd;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>Bodhan Task Agent <span class="badge">Live Trace Explorer</span></h1>
+                <p style="margin: 4px 0 0 0; color: var(--muted); font-size: 0.9rem;">Model Context Protocol & Autonomous Indic Task Orchestrator</p>
+            </div>
+            <div>
+                <select id="taskSelector" class="file-selector" onchange="loadDemoTask(this.value)">
+                    <option value="task_1_tamil_summary">Task 1: Scanned Chapter Tamil Summary</option>
+                    <option value="task_2_hindi_subtitles">Task 2: Hindi Voice Note Subtitles</option>
+                    <option value="task_3_marathi_worksheet">Task 3: Marathi Worksheet Table OCR</option>
+                    <option value="task_4_telugu_clips">Task 4: Telugu Clip Filtering</option>
+                    <option value="task_5_bengali_speech">Task 5: Bengali Female Speech Synthesis</option>
+                    <option value="task_6_french_video_impossible">Task 6: French Translation (Honest Failure)</option>
+                </select>
+            </div>
+        </header>
+
+        <div class="metrics-row">
+            <div class="metric-box">
+                <div class="metric-label">Execution Status</div>
+                <div id="statStatus" class="metric-val" style="font-size: 1.1rem; margin-top: 8px;">COMPLETED</div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-label">Total Steps</div>
+                <div id="statSteps" class="metric-val">5</div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-label">Total Cost</div>
+                <div id="statCost" class="metric-val">₹0.2272</div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-label">Execution Time</div>
+                <div id="statTime" class="metric-val">0.51s</div>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <div>
+                <div class="card">
+                    <h2>Live Execution Trace Timeline</h2>
+                    <div id="timelineContainer" class="timeline">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="card">
+                    <h2>Verifications & QA</h2>
+                    <div id="verificationsList" style="font-size: 0.85rem; color: var(--muted);">
+                        No verifications.
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>Generated Artifacts</h2>
+                    <div id="artifactsList">
+                        <!-- Artifact links -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const DEMO_DATA = {
+            task_1_tamil_summary: {
+                status: "COMPLETED",
+                steps: 5,
+                cost: "₹0.2272",
+                time: "0.51s",
+                verifications: [
+                    { name: "speech_ta_0.wav", type: "back_transcription", passed: true, details: "Back-transcribed text matches summary content." }
+                ],
+                artifacts: ["speech_ta_0.wav", "chapter_extracted.md", "result.md"],
+                traces: [
+                    { step: 1, tool: "extract_text_ocr", plan: "Extract document text and structure using Indic-OCR.", cost: "₹0.2000", latency: "52ms", result: "Extracted 2 pages of geometry diagrams, tables, and LaTeX equations." },
+                    { step: 2, tool: "translate_text", plan: "Synthesize English summary from OCR content, then translate into Tamil with Indic-Translate.", cost: "₹0.0012", latency: "48ms", result: "Tamil translation generated: 'கோடுகள் மற்றும் கோணங்களின் அடிப்படை வடிவவியல் கொள்கைகள்...'" },
+                    { step: 3, tool: "synthesize_speech", plan: "Synthesizing Tamil speech using Indic-Speak with chunking.", cost: "₹0.0260", latency: "75ms", result: "WAV audio file written to artifacts/speech_ta_0.wav (duration: 3.2s)." },
+                    { step: 4, tool: "transcribe_audio", plan: "Verifying synthesized Tamil audio summary by back-transcribing with Indic-Transcribe.", cost: "₹0.0000", latency: "38ms", result: "Verification back-transcription passed with high confidence." },
+                    { step: 5, tool: "finish_task", plan: "Conclude task execution and format final report.", cost: "₹0.0000", latency: "1ms", result: "Artifacts registered: Tamil MP3 summary and Markdown lesson." }
+                ]
+            },
+            task_6_french_video_impossible: {
+                status: "IMPOSSIBLE_TASK",
+                steps: 1,
+                cost: "₹0.0000",
+                time: "0.00s",
+                verifications: [],
+                artifacts: ["report.json", "result.md"],
+                traces: [
+                    { step: 1, tool: "fail_task_honestly", plan: "Recognized impossible task condition: translation to unsupported language 'French'.", cost: "₹0.0000", latency: "1ms", result: "Task aborted honestly: Translation to 'French' is not supported. Bodhan Indic models exclusively support Indian languages." }
+                ]
+            }
+        };
+
+        function loadDemoTask(key) {
+            const data = DEMO_DATA[key] || DEMO_DATA.task_1_tamil_summary;
+            document.getElementById("statStatus").textContent = data.status;
+            document.getElementById("statSteps").textContent = data.steps;
+            document.getElementById("statCost").textContent = data.cost;
+            document.getElementById("statTime").textContent = data.time;
+
+            const timeline = document.getElementById("timelineContainer");
+            timeline.innerHTML = data.traces.map(t => `
+                <div class="step-item">
+                    <div class="step-header">
+                        <span class="tool-pill">${t.tool}</span>
+                        <span style="font-size: 0.8rem; color: var(--muted);">Step ${t.step} • ${t.cost} • ${t.latency}</span>
+                    </div>
+                    <div class="step-plan">${t.plan}</div>
+                    <div class="step-details">${t.result}</div>
+                </div>
+            `).join("");
+
+            const verifEl = document.getElementById("verificationsList");
+            if (data.verifications.length) {
+                verifEl.innerHTML = data.verifications.map(v => `
+                    <div style="background: #0f172a; padding: 10px; border-radius: 6px; margin-bottom: 8px; border: 1px solid var(--border);">
+                        <div style="display: flex; justify-content: space-between; font-weight: 600; color: #10b981;">
+                            <span>${v.name}</span>
+                            <span>✅ Passed</span>
+                        </div>
+                        <div style="font-size: 0.75rem; margin-top: 4px; color: var(--muted);">${v.details}</div>
+                    </div>
+                `).join("");
+            } else {
+                verifEl.innerHTML = `<span style="color: var(--muted);">No verifications needed for this task.</span>`;
+            }
+
+            const artEl = document.getElementById("artifactsList");
+            artEl.innerHTML = data.artifacts.map(a => `
+                <div class="artifact-link">
+                    <span>📄 ${a}</span>
+                    <span style="font-size: 0.75rem; color: var(--muted);">view</span>
+                </div>
+            `).join("");
+        }
+
+        loadDemoTask("task_1_tamil_summary");
+    </script>
+</body>
+</html>
