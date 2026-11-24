@@ -4,7 +4,7 @@ An MCP stdio server for Bodhan's Indic models and an OpenAI-compatible CLI agent
 
 **Models:** Indic-Transcribe, Indic-Translate, Indic-Speak, Indic-OCR
 **Runtime:** Python 3.10+; hosted Bodhan API
-**Current status:** Core implementation and offline tests are in place. Six end-to-end tasks have been run, including an explicit unsupported-task case. Sanitized reports and traces are linked below; binary media and user-provided OCR content are kept out of Git. The demo video is hosted on YouTube; the submission pull request is still pending.
+**Current status:** Core implementation and offline tests are in place. Six end-to-end tasks have been run, including an explicit unsupported-task case. Sanitized reports and traces are linked below; binary media and user-provided OCR content are kept out of Git. The demo video is hosted on YouTube; the submission pull request Done.
 
 ## What it does
 
