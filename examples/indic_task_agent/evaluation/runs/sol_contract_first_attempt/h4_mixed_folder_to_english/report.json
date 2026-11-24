@@ -1,0 +1,623 @@
+{
+  "status": "partial",
+  "stop_reason": "finished",
+  "planner_status": "partial",
+  "task": "Give me an English version of everything in this folder",
+  "inputs": {
+    "files": [
+      "<recipe>\\sample_data\\mixed_folder\\health_camp.pdf",
+      "<recipe>\\sample_data\\mixed_folder\\market_note.txt",
+      "<recipe>\\sample_data\\mixed_folder\\water_announcement.mp3"
+    ],
+    "missing": []
+  },
+  "started_at": "2026-11-20T17:44:01+00:00",
+  "finished_at": "2026-11-20T17:45:11+00:00",
+  "elapsed_s": 70.33,
+  "steps": {
+    "used": 9,
+    "max": 30,
+    "tool_calls": [
+      {
+        "step": 4,
+        "tool": "translate_text",
+        "ok": true,
+        "latency_s": 0.016,
+        "cost_inr": 0,
+        "verification": "pass",
+        "error": null
+      },
+      {
+        "step": 3,
+        "tool": "transcribe_audio",
+        "ok": true,
+        "latency_s": 0.188,
+        "cost_inr": 0,
+        "verification": null,
+        "error": null
+      },
+      {
+        "step": 2,
+        "tool": "ocr_document",
+        "ok": true,
+        "latency_s": 4.204,
+        "cost_inr": 0,
+        "verification": null,
+        "error": null
+      },
+      {
+        "step": 5,
+        "tool": "translate_text",
+        "ok": true,
+        "latency_s": 0.015,
+        "cost_inr": 0,
+        "verification": "pass",
+        "error": null
+      },
+      {
+        "step": 6,
+        "tool": "translate_text",
+        "ok": true,
+        "latency_s": 0.031,
+        "cost_inr": 0,
+        "verification": "pass",
+        "error": null
+      }
+    ]
+  },
+  "plan": {
+    "steps": [
+      "1. Use ocr_document on both pages of health_camp.pdf, transcribe_audio on water_announcement.mp3, and translate_text on market_note.txt.",
+      "2. Use translate_text to produce verified full English translations of the extracted PDF text and audio transcript.",
+      "3. Use finish to deliver the three English versions and report any verification caveats."
+    ],
+    "deliverables": [
+      {
+        "kind": "translation",
+        "language": "en",
+        "source": "health_camp.pdf",
+        "optional": false,
+        "description": "Full English text version of both PDF pages."
+      },
+      {
+        "kind": "translation",
+        "language": "en",
+        "source": "market_note.txt",
+        "optional": false,
+        "description": "Full English translation of the market note."
+      },
+      {
+        "kind": "translation",
+        "language": "en",
+        "source": "water_announcement.mp3",
+        "optional": false,
+        "description": "English translation of the full audio transcript."
+      }
+    ],
+    "assumptions": [
+      "English version means English text for each input; translated audio and recreation of PDF layout are not requested.",
+      "All pages and all spoken content will be included."
+    ],
+    "dropped": []
+  },
+  "final_answer": "Created English versions of all three input files, with all translations passing verification:\n\n- health_camp_english.md: both pages of health_camp.pdf.\n- market_note_english.md: the full market_note.txt.\n- water_announcement_english.md: the full spoken content of water_announcement.mp3, translated into English text.\n\nThe files are available as the attached artifacts. The run is marked partial because the automated completion check did not recognize the delivered files as matching the requested inputs, despite all three translations being produced.",
+  "assumptions": [
+    "English versions are delivered as text, without recreating the PDF layout or synthesizing an English audio recording."
+  ],
+  "limitations": [
+    "The automated completion check rejected the input-to-deliverable matching twice; the three English translation artifacts themselves were successfully generated and passed verification."
+  ],
+  "deliverables": [
+    {
+      "path": "artifacts/market_note_english.md",
+      "kind": "translation",
+      "producer": "translate_text",
+      "language": "en",
+      "provenance": "indic-translate",
+      "verification": {
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 0,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.0
+          },
+          "back_translation": {
+            "language": "gu",
+            "mean_chrf": 1.0,
+            "min_chrf": 1.0,
+            "min_length_ratio": 1.0,
+            "passages": 1
+          }
+        }
+      },
+      "notes": [],
+      "embeds": [],
+      "sha256": "96c5ec8ff023b67723d46aa87b4a3ee4a216c2da8267fbfada1d7f717a7acfa0",
+      "source_language": "gu",
+      "verification_checks": 1,
+      "origin": [
+        "market_note.txt"
+      ]
+    },
+    {
+      "path": "artifacts/health_camp_english.md",
+      "kind": "translation",
+      "producer": "translate_text",
+      "language": "en",
+      "provenance": "indic-translate",
+      "verification": {
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 2,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.0
+          },
+          "back_translation": {
+            "language": "hi",
+            "mean_chrf": 0.901,
+            "min_chrf": 0.766,
+            "min_length_ratio": 0.96,
+            "passages": 4
+          }
+        }
+      },
+      "notes": [],
+      "embeds": [
+        "health_camp_extracted.md"
+      ],
+      "sha256": "07f0c5a509a7242a16bd392093c77dbf0e65307fce03867a5559ad667f962430",
+      "source_language": "hi",
+      "verification_checks": 1,
+      "origin": [
+        "health_camp.pdf"
+      ]
+    },
+    {
+      "path": "artifacts/water_announcement_english.md",
+      "kind": "translation",
+      "producer": "translate_text",
+      "language": "en",
+      "provenance": "indic-translate",
+      "verification": {
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 0,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.0
+          },
+          "back_translation": {
+            "language": "mr",
+            "mean_chrf": 0.973,
+            "min_chrf": 0.973,
+            "min_length_ratio": 1.0,
+            "passages": 1
+          }
+        }
+      },
+      "notes": [],
+      "embeds": [
+        "water_announcement_transcript.txt"
+      ],
+      "sha256": "38c8e312575649b0c3b6fddf72b2703e883884c5a1046d7d619964867c25b762",
+      "source_language": "mr",
+      "verification_checks": 1,
+      "origin": [
+        "water_announcement.mp3"
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "artifacts/market_note_english.md",
+      "kind": "translation",
+      "producer": "translate_text",
+      "language": "en",
+      "provenance": "indic-translate",
+      "verification": {
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 0,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.0
+          },
+          "back_translation": {
+            "language": "gu",
+            "mean_chrf": 1.0,
+            "min_chrf": 1.0,
+            "min_length_ratio": 1.0,
+            "passages": 1
+          }
+        }
+      },
+      "notes": [],
+      "embeds": [],
+      "sha256": "96c5ec8ff023b67723d46aa87b4a3ee4a216c2da8267fbfada1d7f717a7acfa0",
+      "source_language": "gu",
+      "verification_checks": 1,
+      "origin": [
+        "market_note.txt"
+      ]
+    },
+    {
+      "path": "artifacts/water_announcement_transcript.txt",
+      "kind": "transcript",
+      "producer": "transcribe_audio",
+      "language": "mr",
+      "provenance": "indic-transcribe",
+      "verification": null,
+      "notes": [
+        "language auto-detected from first segment: Marathi (Devanagari script; function words suggest Marathi ({'hi': 0, 'mr': 5, 'ne': 0}))"
+      ],
+      "embeds": [],
+      "sha256": "e7a0f28f91d570b02b8ee345d00d86eed4738c5d3fc865de864e76c9ead2a323",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "water_announcement.mp3"
+      ]
+    },
+    {
+      "path": "artifacts/water_announcement_transcript.json",
+      "kind": "json",
+      "producer": "transcribe_audio",
+      "language": "mr",
+      "provenance": "indic-transcribe",
+      "verification": null,
+      "notes": [],
+      "embeds": [],
+      "sha256": "7b792a4554f3b93aaa6d459f706b16f6da57ae623e0661f7cbaf3238bc3c35b2",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "water_announcement.mp3"
+      ]
+    },
+    {
+      "path": "artifacts/health_camp_extracted.md",
+      "kind": "ocr",
+      "producer": "ocr_document",
+      "language": "hi",
+      "provenance": "indic-ocr",
+      "verification": null,
+      "notes": [],
+      "embeds": [],
+      "sha256": "1516975d23d2af47f8b6f3f9bf42f6248a902ecc6841523dd63a7bd0821de20c",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "health_camp.pdf"
+      ]
+    },
+    {
+      "path": "artifacts/health_camp_english.md",
+      "kind": "translation",
+      "producer": "translate_text",
+      "language": "en",
+      "provenance": "indic-translate",
+      "verification": {
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 2,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.0
+          },
+          "back_translation": {
+            "language": "hi",
+            "mean_chrf": 0.901,
+            "min_chrf": 0.766,
+            "min_length_ratio": 0.96,
+            "passages": 4
+          }
+        }
+      },
+      "notes": [],
+      "embeds": [
+        "health_camp_extracted.md"
+      ],
+      "sha256": "07f0c5a509a7242a16bd392093c77dbf0e65307fce03867a5559ad667f962430",
+      "source_language": "hi",
+      "verification_checks": 1,
+      "origin": [
+        "health_camp.pdf"
+      ]
+    },
+    {
+      "path": "artifacts/water_announcement_english.md",
+      "kind": "translation",
+      "producer": "translate_text",
+      "language": "en",
+      "provenance": "indic-translate",
+      "verification": {
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 0,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.0
+          },
+          "back_translation": {
+            "language": "mr",
+            "mean_chrf": 0.973,
+            "min_chrf": 0.973,
+            "min_length_ratio": 1.0,
+            "passages": 1
+          }
+        }
+      },
+      "notes": [],
+      "embeds": [
+        "water_announcement_transcript.txt"
+      ],
+      "sha256": "38c8e312575649b0c3b6fddf72b2703e883884c5a1046d7d619964867c25b762",
+      "source_language": "mr",
+      "verification_checks": 1,
+      "origin": [
+        "water_announcement.mp3"
+      ]
+    }
+  ],
+  "verification": {
+    "results": [
+      {
+        "artifact": "artifacts/market_note_english.md",
+        "kind": "translation",
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 0,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.0
+          },
+          "back_translation": {
+            "language": "gu",
+            "mean_chrf": 1.0,
+            "min_chrf": 1.0,
+            "min_length_ratio": 1.0,
+            "passages": 1
+          }
+        }
+      },
+      {
+        "artifact": "artifacts/health_camp_english.md",
+        "kind": "translation",
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 2,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.0
+          },
+          "back_translation": {
+            "language": "hi",
+            "mean_chrf": 0.901,
+            "min_chrf": 0.766,
+            "min_length_ratio": 0.96,
+            "passages": 4
+          }
+        }
+      },
+      {
+        "artifact": "artifacts/water_announcement_english.md",
+        "kind": "translation",
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 0,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.0
+          },
+          "back_translation": {
+            "language": "mr",
+            "mean_chrf": 0.973,
+            "min_chrf": 0.973,
+            "min_length_ratio": 1.0,
+            "passages": 1
+          }
+        }
+      }
+    ],
+    "unverified_translations_or_audio": [],
+    "all_checked": true
+  },
+  "cost": {
+    "max_inr": 20.0,
+    "bodhan_billed_inr": 0.0,
+    "bodhan_uncertain_inr": 0.0,
+    "llm_inr": null,
+    "total_counted_inr": 0.0,
+    "by_model_inr": {},
+    "bodhan_calls": 0,
+    "cache_hits": 15,
+    "bodhan_cost_basis": "published unit prices x metered quantity (audio seconds rounded up per request, output tokens from usage, input characters, images); provider dashboard is authoritative",
+    "llm": {
+      "calls": 8,
+      "prompt_tokens": 42723,
+      "completion_tokens": 2049,
+      "pricing": "not priced (no rate supplied); tokens reported only"
+    }
+  },
+  "llm": {
+    "model": "gpt-6.1-sol",
+    "endpoint_host": "127.0.0.1",
+    "adaptations": []
+  },
+  "quality_targets": {
+    "latency": {
+      "kind": "multi-step",
+      "target_s": 300,
+      "actual_s": 70.3,
+      "met": true,
+      "note": null
+    },
+    "budget": {
+      "max_inr": 20.0,
+      "counted_inr": 0.0,
+      "within_budget": true,
+      "note": null,
+      "scope": "Bodhan calls (billed + uncertain retries); LLM only if priced via --llm-*-inr-per-1m"
+    },
+    "no_waste": {
+      "cache_hits": 15,
+      "bodhan_requests": 0,
+      "retried_attempts": 0,
+      "note": "identical (model, input, settings) requests are served from the cache or shared while in flight; the only repeats are retries of a failed or timed-out attempt (rate limit, 5xx, timeout), counted here and traced as api_call events with attempt > 1"
+    },
+    "verification": {
+      "all_generated_audio_and_translations_checked": true,
+      "note": null
+    },
+    "honest_failure": "unassessed: code cannot judge whether the answer is truthful; see verification results and review the outputs"
+  },
+  "injection_warnings": [],
+  "paid_tool_calls": 0,
+  "version": "0.1.0"
+}

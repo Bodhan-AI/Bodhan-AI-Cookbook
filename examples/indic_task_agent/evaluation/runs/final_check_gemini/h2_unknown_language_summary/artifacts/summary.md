@@ -1,0 +1,3 @@
+- Bees live in colonies consisting of a queen bee, male bees, and thousands of worker bees that collect nectar and pollen.
+- Worker bees facilitate pollination while gathering food, which is essential for plant reproduction and accounts for about one-third of the human food supply.
+- Farmers use beehives to improve crop yields but are increasingly adopting natural methods instead of chemical pesticides to protect bees.

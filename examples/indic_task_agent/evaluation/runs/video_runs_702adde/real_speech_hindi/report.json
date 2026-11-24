@@ -1,0 +1,355 @@
+{
+  "status": "completed",
+  "stop_reason": "finished",
+  "planner_status": "completed",
+  "task": "Transcribe this Hindi voice note and give me English subtitles and a two-line English summary",
+  "inputs": {
+    "files": [
+      "<recipe>\\outputs\\real_speech_input\\hindi_notice_anshul.mp4"
+    ],
+    "missing": []
+  },
+  "started_at": "2026-11-23T07:26:16+00:00",
+  "finished_at": "2026-11-23T07:34:37+00:00",
+  "elapsed_s": 500.73,
+  "steps": {
+    "used": 5,
+    "max": 30,
+    "tool_calls": [
+      {
+        "step": 2,
+        "tool": "create_subtitles",
+        "ok": true,
+        "latency_s": 463.844,
+        "cost_inr": 0.10963,
+        "verification": "pass",
+        "error": null
+      },
+      {
+        "step": 3,
+        "tool": "read_text",
+        "ok": true,
+        "latency_s": 0.0,
+        "cost_inr": 0,
+        "verification": null,
+        "error": null
+      },
+      {
+        "step": 4,
+        "tool": "write_text",
+        "ok": true,
+        "latency_s": 0.0,
+        "cost_inr": 0,
+        "verification": null,
+        "error": null
+      }
+    ]
+  },
+  "plan": {
+    "steps": [
+      "1. Use create_subtitles on the Hindi recording to produce Hindi transcription cues and verified English subtitles.",
+      "2. Use read_text to read the English subtitles in full, then write_text to save a two-line English summary.",
+      "3. Use finish to deliver the Hindi transcript, English subtitles, and summary."
+    ],
+    "deliverables": [
+      {
+        "kind": "transcript",
+        "language": "hi",
+        "source": "hindi_notice_anshul.mp4",
+        "optional": false,
+        "description": "Hindi transcript in timestamped SRT format."
+      },
+      {
+        "kind": "subtitles",
+        "language": "en",
+        "source": "hindi_notice_anshul.mp4",
+        "optional": false,
+        "description": "English SRT subtitles."
+      },
+      {
+        "kind": "text",
+        "language": "en",
+        "source": "hindi_notice_anshul.mp4",
+        "optional": false,
+        "description": "Two-line English summary."
+      }
+    ],
+    "assumptions": [
+      "The source speech is Hindi as stated by the user.",
+      "A timestamped Hindi SRT provides the requested transcription."
+    ],
+    "dropped": []
+  },
+  "final_answer": "Created the Hindi transcript (timestamped SRT), English subtitles (SRT), and a two-line English summary.\n\nShanti Nagar residents are notified of a water shutdown on Saturday, November 23, from 10 a.m. to 4 p.m. for pipeline repairs and asked to store water beforehand.\nThe notice also announces a Sunday meeting at 6 p.m. in the community hall near the temple and requests a contribution of Rs. 200 per family for repairs.\n\nThe subtitle translation passed automated verification, but some wording is awkward or unclear, particularly the electricity statement and phone number; those details are not included in the summary.",
+  "assumptions": [
+    "The requested Hindi transcription is provided as a timestamped SRT file."
+  ],
+  "limitations": [
+    "Subtitle timing uses pause-based boundaries rather than word-level alignment.",
+    "Despite passing automated verification, the English subtitles contain awkward or unclear wording, especially for the electricity statement and phone number. These details were omitted from the summary."
+  ],
+  "deliverables": [
+    {
+      "path": "artifacts/hindi_notice_anshul_hi.srt",
+      "kind": "transcript",
+      "producer": "create_subtitles",
+      "language": "hi",
+      "provenance": "indic-transcribe",
+      "verification": null,
+      "notes": [],
+      "embeds": [],
+      "sha256": "4cc65cf591bbc0cfd9bc8693a9f84c4641481959251ccffefb0b7777268ee188",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "hindi_notice_anshul.mp4"
+      ]
+    },
+    {
+      "path": "artifacts/hindi_notice_anshul_en.srt",
+      "kind": "subtitles",
+      "producer": "create_subtitles",
+      "language": "en",
+      "provenance": "indic-transcribe + indic-translate",
+      "verification": {
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 0,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.016,
+            "output": 0.024
+          },
+          "back_translation": {
+            "language": "hi",
+            "mean_chrf": 0.708,
+            "min_chrf": 0.298,
+            "min_length_ratio": 0.7,
+            "passages": 11
+          }
+        }
+      },
+      "notes": [],
+      "embeds": [],
+      "sha256": "a0bef6d6d8debbd0f3465208b7d6efb2612b750b188fcd14feed5b0d876817e6",
+      "source_language": null,
+      "verification_checks": 1,
+      "origin": [
+        "hindi_notice_anshul.mp4"
+      ]
+    },
+    {
+      "path": "artifacts/summary_en.txt",
+      "kind": "text",
+      "producer": "write_text",
+      "language": "en",
+      "provenance": "planner (English)",
+      "verification": null,
+      "notes": [],
+      "embeds": [
+        "hindi_notice_anshul_en.srt"
+      ],
+      "sha256": "961ee8529f41b1d6f53f458a2660d293de4a196d4867d63aca0c2bd0908a94d4",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "hindi_notice_anshul.mp4"
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "artifacts/hindi_notice_anshul_hi.srt",
+      "kind": "transcript",
+      "producer": "create_subtitles",
+      "language": "hi",
+      "provenance": "indic-transcribe",
+      "verification": null,
+      "notes": [],
+      "embeds": [],
+      "sha256": "4cc65cf591bbc0cfd9bc8693a9f84c4641481959251ccffefb0b7777268ee188",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "hindi_notice_anshul.mp4"
+      ]
+    },
+    {
+      "path": "artifacts/hindi_notice_anshul_en.srt",
+      "kind": "subtitles",
+      "producer": "create_subtitles",
+      "language": "en",
+      "provenance": "indic-transcribe + indic-translate",
+      "verification": {
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 0,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.016,
+            "output": 0.024
+          },
+          "back_translation": {
+            "language": "hi",
+            "mean_chrf": 0.708,
+            "min_chrf": 0.298,
+            "min_length_ratio": 0.7,
+            "passages": 11
+          }
+        }
+      },
+      "notes": [],
+      "embeds": [],
+      "sha256": "a0bef6d6d8debbd0f3465208b7d6efb2612b750b188fcd14feed5b0d876817e6",
+      "source_language": null,
+      "verification_checks": 1,
+      "origin": [
+        "hindi_notice_anshul.mp4"
+      ]
+    },
+    {
+      "path": "artifacts/summary_en.txt",
+      "kind": "text",
+      "producer": "write_text",
+      "language": "en",
+      "provenance": "planner (English)",
+      "verification": null,
+      "notes": [],
+      "embeds": [
+        "hindi_notice_anshul_en.srt"
+      ],
+      "sha256": "961ee8529f41b1d6f53f458a2660d293de4a196d4867d63aca0c2bd0908a94d4",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "hindi_notice_anshul.mp4"
+      ]
+    }
+  ],
+  "verification": {
+    "results": [
+      {
+        "artifact": "artifacts/hindi_notice_anshul_en.srt",
+        "kind": "subtitles",
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 0,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.016,
+            "output": 0.024
+          },
+          "back_translation": {
+            "language": "hi",
+            "mean_chrf": 0.708,
+            "min_chrf": 0.298,
+            "min_length_ratio": 0.7,
+            "passages": 11
+          }
+        }
+      }
+    ],
+    "unverified_translations_or_audio": [],
+    "all_checked": true
+  },
+  "cost": {
+    "max_inr": 1.0,
+    "bodhan_billed_inr": 0.1096,
+    "bodhan_uncertain_inr": 0.0,
+    "llm_inr": null,
+    "total_counted_inr": 0.1096,
+    "by_model_inr": {
+      "indic-transcribe": 0.1033,
+      "indic-translate": 0.0063
+    },
+    "bodhan_calls": 33,
+    "cache_hits": 0,
+    "bodhan_cost_basis": "published unit prices x metered quantity (audio seconds rounded up per request, output tokens from usage, input characters, images); provider dashboard is authoritative",
+    "llm": {
+      "calls": 6,
+      "prompt_tokens": 28695,
+      "completion_tokens": 1048,
+      "pricing": "not priced (no rate supplied); tokens reported only"
+    }
+  },
+  "llm": {
+    "model": "gpt-6.1-sol",
+    "endpoint_host": "127.0.0.1",
+    "adaptations": []
+  },
+  "quality_targets": {
+    "latency": {
+      "kind": "single-step",
+      "target_s": 30,
+      "actual_s": 500.7,
+      "met": false,
+      "note": "missed by 471 s (501 s against 30 s); tool calls 93% of the time (464 s), mostly step 2 (create_subtitles, 464 s); planner replies 7% of the time (34 s) (6 calls); 33 Bodhan requests (indic-translate 22, indic-transcribe 11); 32 attempts refused by rate limits and retried"
+    },
+    "budget": {
+      "max_inr": 1.0,
+      "counted_inr": 0.1096,
+      "within_budget": true,
+      "note": null,
+      "scope": "Bodhan calls (billed + uncertain retries); LLM only if priced via --llm-*-inr-per-1m"
+    },
+    "no_waste": {
+      "cache_hits": 0,
+      "bodhan_requests": 33,
+      "retried_attempts": 32,
+      "note": "identical (model, input, settings) requests are served from the cache or shared while in flight; the only repeats are retries of a failed or timed-out attempt (rate limit, 5xx, timeout), counted here and traced as api_call events with attempt > 1"
+    },
+    "verification": {
+      "all_generated_audio_and_translations_checked": true,
+      "note": null
+    },
+    "honest_failure": "unassessed: code cannot judge whether the answer is truthful; see verification results and review the outputs"
+  },
+  "injection_warnings": [],
+  "paid_tool_calls": 1,
+  "version": "0.1.0"
+}

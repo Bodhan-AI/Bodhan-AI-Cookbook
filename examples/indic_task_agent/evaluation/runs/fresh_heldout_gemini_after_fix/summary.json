@@ -1,0 +1,59 @@
+{
+  "passed": 1,
+  "total": 2,
+  "pass_rate": 0.5,
+  "scored_at": "2026-11-20T18:28:35+00:00",
+  "code": {
+    "commit": "338516065dca81eabc789a13a78a383a3d7f5795",
+    "src_modified": false
+  },
+  "checks": "structural only (status, files, kinds, languages, verification, answer text, budget); not a quality score",
+  "tasks": [
+    {
+      "id": "h12_gujarati_voiceover_conflict",
+      "demo": false,
+      "impossible": false,
+      "task": "Make a Gujarati voice-over of this page for a 20-second slot, male voice please, and don't cut anything out.",
+      "evidence": "fresh",
+      "cache_mode": "shared cache",
+      "pass": false,
+      "fails": [
+        "status partial not in ['completed', 'completed_with_warnings']"
+      ],
+      "status": "partial",
+      "elapsed_s": 210.22,
+      "steps": 6,
+      "bodhan_inr": 0.0,
+      "cache_hits": 11,
+      "paid_calls": 0,
+      "llm_model": "gemini-3.5-flash-lite",
+      "llm_tokens": 44058,
+      "latency_target_met": true,
+      "latency_kind": "multi-step",
+      "result": "outputs/fresh_gemini_after_fix/h12_gujarati_voiceover_conflict/result.md",
+      "trace": "outputs/fresh_gemini_after_fix/h12_gujarati_voiceover_conflict/trace.jsonl"
+    },
+    {
+      "id": "h13_bhojpuri_partly_unsupported",
+      "demo": false,
+      "impossible": false,
+      "task": "Our tour group has people from Kerala and from Bihar. Can you make audio of this in Malayalam and in Bhojpuri?",
+      "evidence": "fresh",
+      "cache_mode": "shared cache",
+      "pass": true,
+      "fails": [],
+      "status": "partial",
+      "elapsed_s": 74.36,
+      "steps": 5,
+      "bodhan_inr": 0.0,
+      "cache_hits": 4,
+      "paid_calls": 0,
+      "llm_model": "gemini-3.5-flash-lite",
+      "llm_tokens": 32756,
+      "latency_target_met": true,
+      "latency_kind": "multi-step",
+      "result": "outputs/fresh_gemini_after_fix/h13_bhojpuri_partly_unsupported/result.md",
+      "trace": "outputs/fresh_gemini_after_fix/h13_bhojpuri_partly_unsupported/trace.jsonl"
+    }
+  ]
+}

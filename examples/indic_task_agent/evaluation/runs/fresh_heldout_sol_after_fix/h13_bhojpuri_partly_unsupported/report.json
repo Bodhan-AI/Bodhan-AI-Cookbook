@@ -1,0 +1,352 @@
+{
+  "status": "partial",
+  "stop_reason": "finished",
+  "planner_status": "partial",
+  "task": "Our tour group has people from Kerala and from Bihar. Can you make audio of this in Malayalam and in Bhojpuri?",
+  "inputs": {
+    "files": [
+      "<recipe>\\sample_data\\odia_text\\konark.txt"
+    ],
+    "missing": []
+  },
+  "started_at": "2026-11-20T18:12:26+00:00",
+  "finished_at": "2026-11-20T18:15:04+00:00",
+  "elapsed_s": 158.23,
+  "steps": {
+    "used": 5,
+    "max": 30,
+    "tool_calls": [
+      {
+        "step": 3,
+        "tool": "translate_text",
+        "ok": true,
+        "latency_s": 3.969,
+        "cost_inr": 0.00378,
+        "verification": "pass",
+        "error": null
+      },
+      {
+        "step": 4,
+        "tool": "synthesize_speech",
+        "ok": true,
+        "latency_s": 43.125,
+        "cost_inr": 0.14187,
+        "verification": "pass",
+        "error": null
+      }
+    ]
+  },
+  "plan": {
+    "steps": [
+      "1. Use translate_text to translate the complete Odia source into Malayalam with verification.",
+      "2. Use synthesize_speech to generate verified Malayalam narration.",
+      "3. Use finish to deliver Malayalam audio and text and report the unavailable Bhojpuri output."
+    ],
+    "deliverables": [
+      {
+        "kind": "translation",
+        "language": "ml",
+        "source": "konark.txt",
+        "optional": false,
+        "description": "Malayalam text read by the narration"
+      },
+      {
+        "kind": "audio",
+        "language": "ml",
+        "source": "konark.txt",
+        "optional": false,
+        "description": "Malayalam narration"
+      }
+    ],
+    "assumptions": [
+      "Use the default Malayalam voice with neutral delivery.",
+      "Translate the entire source without summarizing."
+    ],
+    "dropped": [
+      {
+        "kind": "translation",
+        "language": "bho",
+        "reason": "Bodhan reports that Bhojpuri translation is unavailable."
+      },
+      {
+        "kind": "audio",
+        "language": "bho",
+        "reason": "Cannot generate the requested Bhojpuri narration because Bhojpuri translation is unavailable; no other language will be substituted."
+      }
+    ]
+  },
+  "final_answer": "Created the Malayalam narration (15 seconds, AI-generated, voice: Lakshmi) and its accompanying Malayalam text. Both passed verification.\n\nBhojpuri could not be produced because Bodhan does not support Bhojpuri translation. No other language was substituted.",
+  "assumptions": [
+    "Translated the full supplied text without summarizing.",
+    "Used the default Malayalam female voice with neutral delivery."
+  ],
+  "limitations": [
+    "The requested Bhojpuri audio and accompanying translation are unavailable because Bhojpuri translation is unsupported."
+  ],
+  "deliverables": [
+    {
+      "path": "artifacts/konark_malayalam.md",
+      "kind": "translation",
+      "producer": "translate_text",
+      "language": "ml",
+      "provenance": "indic-translate",
+      "verification": {
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 0.982,
+          "numbers": {
+            "source_numbers": 0,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.0
+          },
+          "back_translation": {
+            "language": "or",
+            "mean_chrf": 0.853,
+            "min_chrf": 0.853,
+            "min_length_ratio": 1.02,
+            "passages": 1
+          }
+        }
+      },
+      "notes": [],
+      "embeds": [],
+      "sha256": "7f4d1c36516a0fd5cb09b8d343bc5b51c87b214ea0668495df48c6d643108b89",
+      "source_language": "or",
+      "verification_checks": 1,
+      "origin": [
+        "konark.txt"
+      ]
+    },
+    {
+      "path": "artifacts/konark_malayalam_audio.mp3",
+      "kind": "audio",
+      "producer": "synthesize_speech",
+      "language": "ml",
+      "provenance": "indic-speak (Lakshmi)",
+      "verification": {
+        "status": "pass",
+        "method": "back-transcription of every segment with Indic-Transcribe; letter-level similarity; speaking-rate outliers",
+        "mean_similarity": 0.949,
+        "min_similarity": 0.949,
+        "segments_repaired": 0,
+        "problems": [],
+        "warnings": []
+      },
+      "notes": [
+        "no voice or gender requested; defaulted to a female voice",
+        "AI-generated speech (Bodhan Indic-Speak, voice Lakshmi, Malayalam)"
+      ],
+      "embeds": [
+        "konark_malayalam.md"
+      ],
+      "sha256": "d5160c1e914f4cdbbcf78f4ba15688deeb8203aeb554afc870a0aac6504f317a",
+      "source_language": null,
+      "verification_checks": 1,
+      "origin": [
+        "konark.txt"
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "artifacts/konark_malayalam.md",
+      "kind": "translation",
+      "producer": "translate_text",
+      "language": "ml",
+      "provenance": "indic-translate",
+      "verification": {
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 0.982,
+          "numbers": {
+            "source_numbers": 0,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.0
+          },
+          "back_translation": {
+            "language": "or",
+            "mean_chrf": 0.853,
+            "min_chrf": 0.853,
+            "min_length_ratio": 1.02,
+            "passages": 1
+          }
+        }
+      },
+      "notes": [],
+      "embeds": [],
+      "sha256": "7f4d1c36516a0fd5cb09b8d343bc5b51c87b214ea0668495df48c6d643108b89",
+      "source_language": "or",
+      "verification_checks": 1,
+      "origin": [
+        "konark.txt"
+      ]
+    },
+    {
+      "path": "artifacts/konark_malayalam_audio.mp3",
+      "kind": "audio",
+      "producer": "synthesize_speech",
+      "language": "ml",
+      "provenance": "indic-speak (Lakshmi)",
+      "verification": {
+        "status": "pass",
+        "method": "back-transcription of every segment with Indic-Transcribe; letter-level similarity; speaking-rate outliers",
+        "mean_similarity": 0.949,
+        "min_similarity": 0.949,
+        "segments_repaired": 0,
+        "problems": [],
+        "warnings": []
+      },
+      "notes": [
+        "no voice or gender requested; defaulted to a female voice",
+        "AI-generated speech (Bodhan Indic-Speak, voice Lakshmi, Malayalam)"
+      ],
+      "embeds": [
+        "konark_malayalam.md"
+      ],
+      "sha256": "d5160c1e914f4cdbbcf78f4ba15688deeb8203aeb554afc870a0aac6504f317a",
+      "source_language": null,
+      "verification_checks": 1,
+      "origin": [
+        "konark.txt"
+      ]
+    }
+  ],
+  "verification": {
+    "results": [
+      {
+        "artifact": "artifacts/konark_malayalam.md",
+        "kind": "translation",
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 0.982,
+          "numbers": {
+            "source_numbers": 0,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.0
+          },
+          "back_translation": {
+            "language": "or",
+            "mean_chrf": 0.853,
+            "min_chrf": 0.853,
+            "min_length_ratio": 1.02,
+            "passages": 1
+          }
+        }
+      },
+      {
+        "artifact": "artifacts/konark_malayalam_audio.mp3",
+        "kind": "audio",
+        "status": "pass",
+        "method": "back-transcription of every segment with Indic-Transcribe; letter-level similarity; speaking-rate outliers",
+        "mean_similarity": 0.949,
+        "min_similarity": 0.949,
+        "segments_repaired": 0,
+        "problems": [],
+        "warnings": []
+      }
+    ],
+    "unverified_translations_or_audio": [],
+    "all_checked": true
+  },
+  "cost": {
+    "max_inr": 20.0,
+    "bodhan_billed_inr": 0.1456,
+    "bodhan_uncertain_inr": 0.0,
+    "llm_inr": null,
+    "total_counted_inr": 0.1456,
+    "by_model_inr": {
+      "indic-speak": 0.1152,
+      "indic-transcribe": 0.0267,
+      "indic-translate": 0.0038
+    },
+    "bodhan_calls": 4,
+    "cache_hits": 0,
+    "bodhan_cost_basis": "published unit prices x metered quantity (audio seconds rounded up per request, output tokens from usage, input characters, images); provider dashboard is authoritative",
+    "llm": {
+      "calls": 5,
+      "prompt_tokens": 27542,
+      "completion_tokens": 925,
+      "pricing": "not priced (no rate supplied); tokens reported only"
+    }
+  },
+  "llm": {
+    "model": "gpt-6.1-sol",
+    "endpoint_host": "127.0.0.1",
+    "adaptations": []
+  },
+  "quality_targets": {
+    "latency": {
+      "kind": "multi-step",
+      "target_s": 300,
+      "actual_s": 158.2,
+      "met": true,
+      "note": null
+    },
+    "budget": {
+      "max_inr": 20.0,
+      "counted_inr": 0.1456,
+      "within_budget": true,
+      "note": null,
+      "scope": "Bodhan calls (billed + uncertain retries); LLM only if priced via --llm-*-inr-per-1m"
+    },
+    "no_waste": {
+      "cache_hits": 0,
+      "bodhan_requests": 4,
+      "retried_attempts": 0,
+      "note": "identical (model, input, settings) requests are served from the cache or shared while in flight; the only repeats are retries of a failed or timed-out attempt (rate limit, 5xx, timeout), counted here and traced as api_call events with attempt > 1"
+    },
+    "verification": {
+      "all_generated_audio_and_translations_checked": true,
+      "note": null
+    },
+    "honest_failure": "unassessed: code cannot judge whether the answer is truthful; see verification results and review the outputs"
+  },
+  "injection_warnings": [],
+  "paid_tool_calls": 2,
+  "version": "0.1.0"
+}

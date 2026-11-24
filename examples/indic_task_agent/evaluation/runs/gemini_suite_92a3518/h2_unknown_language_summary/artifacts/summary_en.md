@@ -1,0 +1,3 @@
+- **Colony Structure and Roles:** Bees live in colonies consisting of a queen bee, several hundred male bees, and thousands of worker bees that collect nectar and pollen.
+- **Role in Pollination and Agriculture:** Worker bees facilitate pollination while gathering nectar, which is vital for plant reproduction and accounts for about one-third of the food we consume, leading farmers to place beehives near fields.
+- **Conservation and Farming Practices:** Excessive chemical pesticide use harms bees, prompting many farmers to adopt natural pest control methods to protect crops and pollinators.

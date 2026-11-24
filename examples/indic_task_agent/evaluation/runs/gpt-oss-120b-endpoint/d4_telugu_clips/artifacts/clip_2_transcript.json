@@ -1,0 +1,27 @@
+{
+ "source": "clip_2.wav",
+ "text": "நாளைக்கு உங்க சயின்ஸ் நோட்டு புத்தகத்தையும் ஒரு பென்சிலையும் கிளாஸுக்கு கொண்டு வாங்க",
+ "segments": [
+  {
+   "index": 0,
+   "start": 0.0,
+   "end": 4.86,
+   "text": "நாளைக்கு உங்க சயின்ஸ் நோட்டு புத்தகத்தையும் ஒரு பென்சிலையும் கிளாஸுக்கு கொண்டு வாங்க"
+  }
+ ],
+ "duration_s": 4.86,
+ "language_used": "ta",
+ "detection": {
+  "language": "ta",
+  "language_name": "Tamil",
+  "script": "Tamil",
+  "confidence": 1.0,
+  "candidates": [
+   "ta"
+  ],
+  "note": "identified by Tamil script"
+ },
+ "notes": [
+  "language auto-detected from first segment: Tamil (identified by Tamil script)"
+ ]
+}

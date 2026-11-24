@@ -1,0 +1,349 @@
+{
+  "status": "completed_with_warnings",
+  "stop_reason": "finished",
+  "planner_status": "completed",
+  "task": "My grandmother only understands Telugu. Make this useful for her.",
+  "inputs": {
+    "files": [
+      "<input>\\paragraph.txt"
+    ],
+    "missing": []
+  },
+  "started_at": "2026-11-19T22:34:48+00:00",
+  "finished_at": "2026-11-19T22:35:12+00:00",
+  "elapsed_s": 24.62,
+  "steps": {
+    "used": 5,
+    "max": 30,
+    "tool_calls": [
+      {
+        "step": 2,
+        "tool": "read_text",
+        "ok": true,
+        "latency_s": 0.0,
+        "cost_inr": 0,
+        "verification": null,
+        "error": null
+      },
+      {
+        "step": 3,
+        "tool": "translate_text",
+        "ok": true,
+        "latency_s": 0.0,
+        "cost_inr": 0,
+        "verification": "pass",
+        "error": null
+      },
+      {
+        "step": 4,
+        "tool": "synthesize_speech",
+        "ok": true,
+        "latency_s": 0.188,
+        "cost_inr": 0,
+        "verification": "warn",
+        "error": null
+      }
+    ]
+  },
+  "plan": {
+    "steps": [
+      "1. Read the English source with read_text to check its content.",
+      "2. Translate the complete paragraph into Telugu using translate_text with verification.",
+      "3. Read the Telugu translation aloud using synthesize_speech with verification, then deliver the text and audio."
+    ],
+    "deliverables": [
+      {
+        "kind": "translation",
+        "language": "te",
+        "source": "paragraph.txt",
+        "optional": false,
+        "description": "Complete Telugu translation in native script."
+      },
+      {
+        "kind": "audio",
+        "language": "te",
+        "source": "paragraph.txt",
+        "optional": false,
+        "description": "AI-generated Telugu reading of the complete translation."
+      }
+    ],
+    "assumptions": [
+      "Since the grandmother only understands Telugu, provide a complete Telugu translation plus audio for accessibility.",
+      "Use the default Telugu female voice and neutral delivery; no specific duration is required."
+    ]
+  },
+  "final_answer": "Created two versions for your grandmother:\n- A complete Telugu translation of the paragraph.\n- A Telugu audio reading (about 29 seconds), using an AI-generated female voice.\n\nThe translation passed verification. The audio check found a close match overall, but could not confirm the spoken number “350”; it is preserved correctly in the written translation.",
+  "assumptions": [
+    "Provided both Telugu text and audio for accessibility.",
+    "Used the default Telugu female voice with neutral delivery."
+  ],
+  "limitations": [
+    "Audio verification could not confirm the number 350, which may have been transcribed as words; overall back-transcription similarity was 96.5%."
+  ],
+  "deliverables": [
+    {
+      "path": "artifacts/grandmother_telugu.md",
+      "kind": "translation",
+      "producer": "translate_text",
+      "language": "te",
+      "provenance": "indic-translate",
+      "verification": {
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 1,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.0
+          },
+          "back_translation": {
+            "language": "en",
+            "mean_chrf": 0.903,
+            "min_chrf": 0.903,
+            "min_length_ratio": 0.95,
+            "passages": 1
+          }
+        }
+      },
+      "notes": [],
+      "embeds": [],
+      "sha256": "e756d5adb34f38558e6c8b984e8f0a076ba50cec55437308a36da4d86425f69f",
+      "source_language": "en",
+      "verification_checks": 1,
+      "origin": [
+        "paragraph.txt"
+      ]
+    },
+    {
+      "path": "artifacts/grandmother_telugu_audio.mp3",
+      "kind": "audio",
+      "producer": "synthesize_speech",
+      "language": "te",
+      "provenance": "indic-speak (Sravani)",
+      "verification": {
+        "status": "warn",
+        "method": "back-transcription of every segment with Indic-Transcribe; letter-level similarity; speaking-rate outliers",
+        "mean_similarity": 0.965,
+        "min_similarity": 0.93,
+        "segments_repaired": 0,
+        "problems": [],
+        "warnings": [
+          "segments [1]: numbers ['350'] in the text are not confirmed by back-transcription (missing, or transcribed as words)"
+        ]
+      },
+      "notes": [
+        "AI-generated speech (Bodhan Indic-Speak, voice Sravani, Telugu)"
+      ],
+      "embeds": [
+        "grandmother_telugu.md"
+      ],
+      "sha256": "de102eb51779b6bba8b0e6d8be1a4a35b750716ac2ffcebc5b8cfaf75947a2c4",
+      "source_language": null,
+      "verification_checks": 1,
+      "origin": [
+        "paragraph.txt"
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "artifacts/grandmother_telugu.md",
+      "kind": "translation",
+      "producer": "translate_text",
+      "language": "te",
+      "provenance": "indic-translate",
+      "verification": {
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 1,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.0
+          },
+          "back_translation": {
+            "language": "en",
+            "mean_chrf": 0.903,
+            "min_chrf": 0.903,
+            "min_length_ratio": 0.95,
+            "passages": 1
+          }
+        }
+      },
+      "notes": [],
+      "embeds": [],
+      "sha256": "e756d5adb34f38558e6c8b984e8f0a076ba50cec55437308a36da4d86425f69f",
+      "source_language": "en",
+      "verification_checks": 1,
+      "origin": [
+        "paragraph.txt"
+      ]
+    },
+    {
+      "path": "artifacts/grandmother_telugu_audio.mp3",
+      "kind": "audio",
+      "producer": "synthesize_speech",
+      "language": "te",
+      "provenance": "indic-speak (Sravani)",
+      "verification": {
+        "status": "warn",
+        "method": "back-transcription of every segment with Indic-Transcribe; letter-level similarity; speaking-rate outliers",
+        "mean_similarity": 0.965,
+        "min_similarity": 0.93,
+        "segments_repaired": 0,
+        "problems": [],
+        "warnings": [
+          "segments [1]: numbers ['350'] in the text are not confirmed by back-transcription (missing, or transcribed as words)"
+        ]
+      },
+      "notes": [
+        "AI-generated speech (Bodhan Indic-Speak, voice Sravani, Telugu)"
+      ],
+      "embeds": [
+        "grandmother_telugu.md"
+      ],
+      "sha256": "de102eb51779b6bba8b0e6d8be1a4a35b750716ac2ffcebc5b8cfaf75947a2c4",
+      "source_language": null,
+      "verification_checks": 1,
+      "origin": [
+        "paragraph.txt"
+      ]
+    }
+  ],
+  "verification": {
+    "results": [
+      {
+        "artifact": "artifacts/grandmother_telugu.md",
+        "kind": "translation",
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 1,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.0
+          },
+          "back_translation": {
+            "language": "en",
+            "mean_chrf": 0.903,
+            "min_chrf": 0.903,
+            "min_length_ratio": 0.95,
+            "passages": 1
+          }
+        }
+      },
+      {
+        "artifact": "artifacts/grandmother_telugu_audio.mp3",
+        "kind": "audio",
+        "status": "warn",
+        "method": "back-transcription of every segment with Indic-Transcribe; letter-level similarity; speaking-rate outliers",
+        "mean_similarity": 0.965,
+        "min_similarity": 0.93,
+        "segments_repaired": 0,
+        "problems": [],
+        "warnings": [
+          "segments [1]: numbers ['350'] in the text are not confirmed by back-transcription (missing, or transcribed as words)"
+        ]
+      }
+    ],
+    "unverified_translations_or_audio": [],
+    "all_checked": true
+  },
+  "cost": {
+    "max_inr": 20.0,
+    "bodhan_billed_inr": 0.0,
+    "bodhan_uncertain_inr": 0.0,
+    "llm_inr": null,
+    "total_counted_inr": 0.0,
+    "by_model_inr": {},
+    "bodhan_calls": 0,
+    "cache_hits": 6,
+    "bodhan_cost_basis": "published unit prices x metered quantity (audio seconds rounded up per request, output tokens from usage, input characters, images); provider dashboard is authoritative",
+    "llm": {
+      "calls": 5,
+      "prompt_tokens": 25753,
+      "completion_tokens": 712,
+      "pricing": "not priced (no rate supplied); tokens reported only"
+    }
+  },
+  "llm": {
+    "model": "gpt-6.1-sol",
+    "endpoint_host": "127.0.0.1",
+    "adaptations": []
+  },
+  "quality_targets": {
+    "latency": {
+      "kind": "multi-step",
+      "target_s": 300,
+      "actual_s": 24.6,
+      "met": true,
+      "note": null
+    },
+    "budget": {
+      "max_inr": 20.0,
+      "counted_inr": 0.0,
+      "within_budget": true,
+      "scope": "Bodhan calls (billed + uncertain retries); LLM only if priced via --llm-*-inr-per-1m",
+      "note": null
+    },
+    "no_waste": {
+      "cache_hits": 6,
+      "bodhan_requests": 0,
+      "retried_attempts": 0,
+      "note": "identical (model, input, settings) requests are served from the cache or shared while in flight; the only repeats are retries of a failed or timed-out attempt (rate limit, 5xx, timeout), counted here and traced as api_call events with attempt > 1"
+    },
+    "verification": {
+      "all_generated_audio_and_translations_checked": true,
+      "note": null
+    },
+    "honest_failure": "unassessed: code cannot judge whether the answer is truthful; see verification results and review the outputs"
+  },
+  "injection_warnings": [],
+  "paid_tool_calls": 0,
+  "version": "0.1.0"
+}

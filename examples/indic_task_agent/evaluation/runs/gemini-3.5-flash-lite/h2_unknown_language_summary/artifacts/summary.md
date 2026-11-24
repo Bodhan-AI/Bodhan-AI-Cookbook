@@ -1,0 +1,3 @@
+- Bees live in organized colonies consisting of a queen, male bees, and thousands of worker bees that collect nectar and pollen.
+- Bee pollination is crucial, as about one-third of our food depends on it and farmers use beehives to improve crop yields.
+- Excessive chemical pesticides harm bees, leading many farmers to adopt natural pest control methods.

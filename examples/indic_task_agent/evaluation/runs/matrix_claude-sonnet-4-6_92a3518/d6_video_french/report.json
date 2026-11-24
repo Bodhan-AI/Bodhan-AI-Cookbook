@@ -1,0 +1,125 @@
+{
+  "status": "unsupported",
+  "stop_reason": "finished",
+  "planner_status": "unsupported",
+  "task": "Translate this video into French",
+  "inputs": {
+    "files": [
+      "<recipe>\\sample_data\\video\\fractions_lesson.mp4"
+    ],
+    "missing": []
+  },
+  "started_at": "2026-11-21T09:33:23+00:00",
+  "finished_at": "2026-11-21T09:33:52+00:00",
+  "elapsed_s": 29.5,
+  "steps": {
+    "used": 5,
+    "max": 30,
+    "tool_calls": [
+      {
+        "step": 2,
+        "tool": "list_voices",
+        "ok": false,
+        "latency_s": 0.0,
+        "cost_inr": 0,
+        "verification": null,
+        "error": "invalid_argument"
+      },
+      {
+        "step": 3,
+        "tool": "translate_text",
+        "ok": false,
+        "latency_s": 0.0,
+        "cost_inr": 0,
+        "verification": null,
+        "error": "plan_required"
+      }
+    ]
+  },
+  "plan": {
+    "steps": [
+      "1. Report to the user that French is not a supported output language for the Bodhan Indic tools, and finish with status 'unsupported'."
+    ],
+    "deliverables": [
+      {
+        "kind": "answer",
+        "language": null,
+        "source": null,
+        "optional": false,
+        "description": "Answer explaining that French translation is not supported by the available Bodhan tools"
+      }
+    ],
+    "assumptions": [
+      "French ('fr') is not one of the 22 Indian languages supported by Bodhan Indic-Translate or Indic-Speak.",
+      "The task cannot be completed as requested since the target language (French) is unsupported."
+    ],
+    "dropped": []
+  },
+  "final_answer": "The task cannot be completed as requested. **French is not a supported language** in the Bodhan toolset available here. The Bodhan Indic-Translate and Indic-Speak models cover English and the 22 scheduled Indian languages (Hindi, Bengali, Tamil, Telugu, Marathi, Kannada, Malayalam, Gujarati, Punjabi, Odia, Assamese, Urdu, etc.), but do **not** support European languages such as French.\n\nTo translate this video into French, you would need a different translation service (e.g. DeepL, Google Translate, or a French-capable TTS/subtitle tool).\n\nIf you would like the video translated into any supported Indian language (e.g. Hindi, Tamil, Telugu, Bengali, etc.), I can do that immediately — just let me know!",
+  "assumptions": [
+    "French is not among the 22 Indian languages supported by the Bodhan tools.",
+    "No substitute (e.g. Hindi instead of French) was provided, per the hard rules against replacing an unsupported output with something else."
+  ],
+  "limitations": [
+    "French translation and subtitles are unsupported by the Bodhan Indic toolset. The task cannot be fulfilled."
+  ],
+  "deliverables": [],
+  "artifacts": [],
+  "verification": {
+    "results": [],
+    "unverified_translations_or_audio": [],
+    "all_checked": true
+  },
+  "cost": {
+    "max_inr": 5.0,
+    "bodhan_billed_inr": 0.0,
+    "bodhan_uncertain_inr": 0.0,
+    "llm_inr": null,
+    "total_counted_inr": 0.0,
+    "by_model_inr": {},
+    "bodhan_calls": 0,
+    "cache_hits": 0,
+    "bodhan_cost_basis": "published unit prices x metered quantity (audio seconds rounded up per request, output tokens from usage, input characters, images); provider dashboard is authoritative",
+    "llm": {
+      "calls": 5,
+      "prompt_tokens": 36915,
+      "completion_tokens": 1151,
+      "pricing": "not priced (no rate supplied); tokens reported only"
+    }
+  },
+  "llm": {
+    "model": "claude-sonnet-4-6",
+    "endpoint_host": "127.0.0.1",
+    "adaptations": []
+  },
+  "quality_targets": {
+    "latency": {
+      "kind": "single-step",
+      "target_s": 30,
+      "actual_s": 29.5,
+      "met": true,
+      "note": null
+    },
+    "budget": {
+      "max_inr": 5.0,
+      "counted_inr": 0.0,
+      "within_budget": true,
+      "note": null,
+      "scope": "Bodhan calls (billed + uncertain retries); LLM only if priced via --llm-*-inr-per-1m"
+    },
+    "no_waste": {
+      "cache_hits": 0,
+      "bodhan_requests": 0,
+      "retried_attempts": 0,
+      "note": "identical (model, input, settings) requests are served from the cache or shared while in flight; the only repeats are retries of a failed or timed-out attempt (rate limit, 5xx, timeout), counted here and traced as api_call events with attempt > 1"
+    },
+    "verification": {
+      "all_generated_audio_and_translations_checked": true,
+      "note": null
+    },
+    "honest_failure": "unassessed: code cannot judge whether the answer is truthful; see verification results and review the outputs"
+  },
+  "injection_warnings": [],
+  "paid_tool_calls": 0,
+  "version": "0.1.0"
+}

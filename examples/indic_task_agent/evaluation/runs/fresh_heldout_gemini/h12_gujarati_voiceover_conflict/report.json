@@ -1,0 +1,321 @@
+{
+  "status": "failed",
+  "stop_reason": "finished",
+  "planner_status": "completed",
+  "task": "Make a Gujarati voice-over of this page for a 20-second slot, male voice please, and don't cut anything out.",
+  "inputs": {
+    "files": [
+      "<recipe>\\sample_data\\kannada_page\\textbook_page.jpg"
+    ],
+    "missing": []
+  },
+  "started_at": "2026-11-20T18:16:55+00:00",
+  "finished_at": "2026-11-20T18:17:16+00:00",
+  "elapsed_s": 20.58,
+  "steps": {
+    "used": 10,
+    "max": 30,
+    "tool_calls": [
+      {
+        "step": 2,
+        "tool": "ocr_document",
+        "ok": true,
+        "latency_s": 0.031,
+        "cost_inr": 0,
+        "verification": null,
+        "error": null
+      },
+      {
+        "step": 3,
+        "tool": "translate_text",
+        "ok": true,
+        "latency_s": 0.204,
+        "cost_inr": 0,
+        "verification": "pass",
+        "error": null
+      },
+      {
+        "step": 4,
+        "tool": "synthesize_speech",
+        "ok": true,
+        "latency_s": 0.375,
+        "cost_inr": 0,
+        "verification": "warn",
+        "error": null
+      }
+    ]
+  },
+  "plan": {
+    "steps": [
+      "OCR, translation, and synthesis are already completed."
+    ],
+    "deliverables": [
+      {
+        "kind": "text",
+        "language": "kn",
+        "source": "textbook_page.jpg",
+        "optional": false,
+        "description": "Kannada OCR markdown extracted from the textbook page"
+      },
+      {
+        "kind": "translation",
+        "language": "gu",
+        "source": "textbook_page.jpg",
+        "optional": false,
+        "description": "Gujarati translation of the textbook page text"
+      },
+      {
+        "kind": "audio",
+        "language": "gu",
+        "source": "textbook_page.jpg",
+        "optional": false,
+        "description": "Gujarati male voice-over audio for the page"
+      }
+    ],
+    "assumptions": [],
+    "dropped": [
+      {
+        "kind": "text",
+        "language": "kn",
+        "reason": "Replaced with specific per-source output format"
+      },
+      {
+        "kind": "translation",
+        "language": "gu",
+        "reason": "Replaced with specific per-source output format"
+      },
+      {
+        "kind": "audio",
+        "language": "gu",
+        "reason": "Replaced with specific per-source output format"
+      }
+    ]
+  },
+  "final_answer": "Successfully extracted the Kannada text from the textbook page via OCR, translated it accurately into Gujarati, and generated the Gujarati male voice-over audio. Regarding the conflict between the 20-second slot limit and the instruction 'don't cut anything out', we prioritized keeping all content intact per the instructions, which resulted in a 58-second audio.",
+  "assumptions": [],
+  "limitations": [
+    "The synthesized audio duration is ~58 seconds, which exceeds the requested 20-second slot because the entire text was preserved without cutting anything out.",
+    "verification gate: deliverables not produced by a tool in this run: ['<local-path>', '<local-path>', '<local-path>']",
+    "verification gate: declared deliverable 'text (kn) from textbook_page.jpg: Kannada OCR markdown extracted from the textbook page' has no matching verified artifact among the finish deliverables (each declared deliverable needs its own artifact)",
+    "verification gate: declared deliverable 'translation (gu) from textbook_page.jpg: Gujarati translation of the textbook page text' has no matching verified artifact among the finish deliverables (each declared deliverable needs its own artifact)",
+    "verification gate: declared deliverable 'audio (gu) from textbook_page.jpg: Gujarati male voice-over audio for the page' has no matching verified artifact among the finish deliverables (each declared deliverable needs its own artifact)",
+    "plan change: text (kn) from an earlier plan was dropped: Replaced with specific per-source output format",
+    "plan change: translation (gu) from an earlier plan was dropped: Replaced with specific per-source output format",
+    "plan change: audio (gu) from an earlier plan was dropped: Replaced with specific per-source output format"
+  ],
+  "deliverables": [],
+  "artifacts": [
+    {
+      "path": "artifacts/ocr_kannada.md",
+      "kind": "ocr",
+      "producer": "ocr_document",
+      "language": "kn",
+      "provenance": "indic-ocr",
+      "verification": null,
+      "notes": [],
+      "embeds": [],
+      "sha256": "dd0a1d9dae519e8042f2362ef95c8e7afb3265d60a12e8b31a59650e5f816638",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "textbook_page.jpg"
+      ]
+    },
+    {
+      "path": "artifacts/translation_gujarati.md",
+      "kind": "translation",
+      "producer": "translate_text",
+      "language": "gu",
+      "provenance": "indic-translate",
+      "verification": {
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 0,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.0
+          },
+          "back_translation": {
+            "language": "kn",
+            "mean_chrf": 0.962,
+            "min_chrf": 0.962,
+            "min_length_ratio": 0.99,
+            "passages": 1
+          }
+        }
+      },
+      "notes": [],
+      "embeds": [
+        "ocr_kannada.md"
+      ],
+      "sha256": "9af762b24d9f6ae1c942e7c38ae7323a982cdc42d26a382d0faec6d3f7ebf78a",
+      "source_language": "kn",
+      "verification_checks": 1,
+      "origin": [
+        "textbook_page.jpg"
+      ]
+    },
+    {
+      "path": "artifacts/gujarati_voiceover.mp3",
+      "kind": "audio",
+      "producer": "synthesize_speech",
+      "language": "gu",
+      "provenance": "indic-speak (Parth)",
+      "verification": {
+        "status": "warn",
+        "method": "back-transcription of every segment with Indic-Transcribe; letter-level similarity; speaking-rate outliers",
+        "mean_similarity": 0.998,
+        "min_similarity": 0.994,
+        "segments_repaired": 0,
+        "problems": [],
+        "warnings": [
+          "duration 58s is +192% from the requested 20s"
+        ],
+        "duration": {
+          "target_s": 20.0,
+          "actual_s": 58.3,
+          "deviation": "+192%"
+        }
+      },
+      "notes": [
+        "AI-generated speech (Bodhan Indic-Speak, voice Parth, Gujarati)"
+      ],
+      "embeds": [
+        "translation_gujarati.md"
+      ],
+      "sha256": "6783748edf973a02381bd446d6e4694304c2dc7dd9c1d66819943e68ff171f63",
+      "source_language": null,
+      "verification_checks": 1,
+      "origin": [
+        "textbook_page.jpg"
+      ]
+    }
+  ],
+  "verification": {
+    "results": [
+      {
+        "artifact": "artifacts/translation_gujarati.md",
+        "kind": "translation",
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 0,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.0
+          },
+          "back_translation": {
+            "language": "kn",
+            "mean_chrf": 0.962,
+            "min_chrf": 0.962,
+            "min_length_ratio": 0.99,
+            "passages": 1
+          }
+        }
+      },
+      {
+        "artifact": "artifacts/gujarati_voiceover.mp3",
+        "kind": "audio",
+        "status": "warn",
+        "method": "back-transcription of every segment with Indic-Transcribe; letter-level similarity; speaking-rate outliers",
+        "mean_similarity": 0.998,
+        "min_similarity": 0.994,
+        "segments_repaired": 0,
+        "problems": [],
+        "warnings": [
+          "duration 58s is +192% from the requested 20s"
+        ],
+        "duration": {
+          "target_s": 20.0,
+          "actual_s": 58.3,
+          "deviation": "+192%"
+        }
+      }
+    ],
+    "unverified_translations_or_audio": [],
+    "all_checked": true
+  },
+  "cost": {
+    "max_inr": 20.0,
+    "bodhan_billed_inr": 0.0,
+    "bodhan_uncertain_inr": 0.0,
+    "llm_inr": null,
+    "total_counted_inr": 0.0,
+    "by_model_inr": {},
+    "bodhan_calls": 0,
+    "cache_hits": 9,
+    "bodhan_cost_basis": "published unit prices x metered quantity (audio seconds rounded up per request, output tokens from usage, input characters, images); provider dashboard is authoritative",
+    "llm": {
+      "calls": 10,
+      "prompt_tokens": 81571,
+      "completion_tokens": 2065,
+      "pricing": "not priced (no rate supplied); tokens reported only"
+    }
+  },
+  "llm": {
+    "model": "gemini-3.5-flash-lite",
+    "endpoint_host": "generativelanguage.googleapis.com",
+    "adaptations": []
+  },
+  "quality_targets": {
+    "latency": {
+      "kind": "multi-step",
+      "target_s": 300,
+      "actual_s": 20.6,
+      "met": true,
+      "note": null
+    },
+    "budget": {
+      "max_inr": 20.0,
+      "counted_inr": 0.0,
+      "within_budget": true,
+      "note": null,
+      "scope": "Bodhan calls (billed + uncertain retries); LLM only if priced via --llm-*-inr-per-1m"
+    },
+    "no_waste": {
+      "cache_hits": 9,
+      "bodhan_requests": 0,
+      "retried_attempts": 0,
+      "note": "identical (model, input, settings) requests are served from the cache or shared while in flight; the only repeats are retries of a failed or timed-out attempt (rate limit, 5xx, timeout), counted here and traced as api_call events with attempt > 1"
+    },
+    "verification": {
+      "all_generated_audio_and_translations_checked": true,
+      "note": null
+    },
+    "honest_failure": "unassessed: code cannot judge whether the answer is truthful; see verification results and review the outputs"
+  },
+  "injection_warnings": [],
+  "paid_tool_calls": 0,
+  "version": "0.1.0"
+}

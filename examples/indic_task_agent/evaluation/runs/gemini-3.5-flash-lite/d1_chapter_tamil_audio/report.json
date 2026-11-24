@@ -1,0 +1,512 @@
+{
+  "status": "completed_with_warnings",
+  "stop_reason": "finished",
+  "planner_status": "completed",
+  "task": "Make a two-minute Tamil audio summary of this chapter",
+  "inputs": {
+    "files": [
+      "<input>\\chapter5_tamil_scan.pdf"
+    ],
+    "missing": []
+  },
+  "started_at": "2026-11-19T22:32:03+00:00",
+  "finished_at": "2026-11-19T22:32:55+00:00",
+  "elapsed_s": 51.05,
+  "steps": {
+    "used": 8,
+    "max": 30,
+    "tool_calls": [
+      {
+        "step": 2,
+        "tool": "ocr_document",
+        "ok": true,
+        "latency_s": 14.859,
+        "cost_inr": 0,
+        "verification": null,
+        "error": null
+      },
+      {
+        "step": 3,
+        "tool": "translate_text",
+        "ok": true,
+        "latency_s": 0.093,
+        "cost_inr": 0,
+        "verification": "warn",
+        "error": null
+      },
+      {
+        "step": 4,
+        "tool": "read_text",
+        "ok": true,
+        "latency_s": 0.015,
+        "cost_inr": 0,
+        "verification": null,
+        "error": null
+      },
+      {
+        "step": 5,
+        "tool": "write_text",
+        "ok": true,
+        "latency_s": 0.0,
+        "cost_inr": 0,
+        "verification": null,
+        "error": null
+      },
+      {
+        "step": 6,
+        "tool": "translate_text",
+        "ok": true,
+        "latency_s": 2.0,
+        "cost_inr": 0.0102,
+        "verification": "pass",
+        "error": null
+      },
+      {
+        "step": 7,
+        "tool": "synthesize_speech",
+        "ok": true,
+        "latency_s": 21.047,
+        "cost_inr": 0.86593,
+        "verification": "warn",
+        "error": null
+      }
+    ]
+  },
+  "plan": {
+    "steps": [
+      "OCR the Tamil chapter PDF to extract text",
+      "Read and translate the OCR markdown to English to write a summary",
+      "Translate the English summary back to Tamil",
+      "Synthesise the Tamil summary into a two-minute audio file"
+    ],
+    "deliverables": [
+      {
+        "kind": "audio",
+        "language": "ta",
+        "source": null,
+        "optional": false,
+        "description": "Two-minute Tamil audio summary of the chapter"
+      }
+    ],
+    "assumptions": []
+  },
+  "final_answer": "Successfully generated a Tamil audio summary of Chapter 5 from the scanned PDF. The PDF was OCRed, translated to English to generate a concise summary, translated back to Tamil, and synthesised into a Tamil audio file using Bodhan Indic-Speak.",
+  "assumptions": [],
+  "limitations": [
+    "The synthesized audio duration is 94.7 seconds, which is slightly below the 120-second target (within acceptable variance for speech length estimation)."
+  ],
+  "deliverables": [
+    {
+      "path": "artifacts/chapter5_summary_ta.md",
+      "kind": "translation",
+      "producer": "translate_text",
+      "language": "ta",
+      "provenance": "indic-translate",
+      "verification": {
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 2,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.0
+          },
+          "back_translation": {
+            "language": "en",
+            "mean_chrf": 0.909,
+            "min_chrf": 0.892,
+            "min_length_ratio": 0.95,
+            "passages": 3
+          }
+        }
+      },
+      "notes": [],
+      "embeds": [
+        "chapter5_summary_en.md"
+      ],
+      "sha256": "a004cb6a4f4cf9ce80b5539fd8e5d8707a3a11243f88c123e9245e531ad9580c",
+      "source_language": "en",
+      "verification_checks": 1,
+      "origin": [
+        "chapter5_tamil_scan.pdf"
+      ]
+    },
+    {
+      "path": "artifacts/chapter5_summary_ta.mp3",
+      "kind": "audio",
+      "producer": "synthesize_speech",
+      "language": "ta",
+      "provenance": "indic-speak (Anitha)",
+      "verification": {
+        "status": "warn",
+        "method": "back-transcription of every segment with Indic-Transcribe; letter-level similarity; speaking-rate outliers",
+        "mean_similarity": 0.995,
+        "min_similarity": 0.971,
+        "segments_repaired": 0,
+        "problems": [],
+        "warnings": [
+          "segments [0]: numbers ['5', '5'] in the text are not confirmed by back-transcription (missing, or transcribed as words)"
+        ],
+        "duration": {
+          "target_s": 120.0,
+          "actual_s": 94.7,
+          "deviation": "-21%"
+        }
+      },
+      "notes": [
+        "no voice or gender requested; defaulted to a female voice",
+        "AI-generated speech (Bodhan Indic-Speak, voice Anitha, Tamil)"
+      ],
+      "embeds": [
+        "chapter5_summary_ta.md"
+      ],
+      "sha256": "f22d9349a706d9d40ba8aa1d08f7973fc1a98da0b697e08d8e0ed9f138428f46",
+      "source_language": null,
+      "verification_checks": 1,
+      "origin": [
+        "chapter5_tamil_scan.pdf"
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "artifacts/chapter5_tamil_ocr.md",
+      "kind": "ocr",
+      "producer": "ocr_document",
+      "language": "ta",
+      "provenance": "indic-ocr",
+      "verification": null,
+      "notes": [],
+      "embeds": [],
+      "sha256": "5c93771d5d99a4de15c005e616af6b47b6e18ae470627cb3118e3d1afb49ebcc",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "chapter5_tamil_scan.pdf"
+      ]
+    },
+    {
+      "path": "artifacts/chapter5_en.md",
+      "kind": "translation",
+      "producer": "translate_text",
+      "language": "en",
+      "provenance": "indic-translate",
+      "verification": {
+        "status": "warn",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [
+          "2 passage(s) came back with noticeably fewer sentences than the source (merged or omitted?): ['மழைநீர் நிலத்தின் மீது ஓடிக் கொண்டு வந்து\\nநீரோடைகளிலும் நதிக', 'நாம் அனைவரும் தண்ணீரை பாதுகாக்க\\nஉதவலாம். பல் துலக்கும்போது க']"
+        ],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 17,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 2
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.007
+          },
+          "back_translation": {
+            "language": "ta",
+            "mean_chrf": 0.903,
+            "min_chrf": 0.262,
+            "min_length_ratio": 0.78,
+            "passages": 16
+          }
+        }
+      },
+      "notes": [],
+      "embeds": [
+        "chapter5_tamil_ocr.md"
+      ],
+      "sha256": "63d6e3b70489a4ec17fab3366e4c7b5fd7c784d710073ec8788206c7626a1b28",
+      "source_language": "ta",
+      "verification_checks": 1,
+      "origin": [
+        "chapter5_tamil_scan.pdf"
+      ]
+    },
+    {
+      "path": "artifacts/chapter5_summary_en.md",
+      "kind": "text",
+      "producer": "write_text",
+      "language": "en",
+      "provenance": "planner (English)",
+      "verification": null,
+      "notes": [],
+      "embeds": [
+        "chapter5_en.md"
+      ],
+      "sha256": "118ef0574849bd6f70707324e3570cae60247debdc1f8e982e176528ea63c03e",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "chapter5_tamil_scan.pdf"
+      ]
+    },
+    {
+      "path": "artifacts/chapter5_summary_ta.md",
+      "kind": "translation",
+      "producer": "translate_text",
+      "language": "ta",
+      "provenance": "indic-translate",
+      "verification": {
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 2,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.0
+          },
+          "back_translation": {
+            "language": "en",
+            "mean_chrf": 0.909,
+            "min_chrf": 0.892,
+            "min_length_ratio": 0.95,
+            "passages": 3
+          }
+        }
+      },
+      "notes": [],
+      "embeds": [
+        "chapter5_summary_en.md"
+      ],
+      "sha256": "a004cb6a4f4cf9ce80b5539fd8e5d8707a3a11243f88c123e9245e531ad9580c",
+      "source_language": "en",
+      "verification_checks": 1,
+      "origin": [
+        "chapter5_tamil_scan.pdf"
+      ]
+    },
+    {
+      "path": "artifacts/chapter5_summary_ta.mp3",
+      "kind": "audio",
+      "producer": "synthesize_speech",
+      "language": "ta",
+      "provenance": "indic-speak (Anitha)",
+      "verification": {
+        "status": "warn",
+        "method": "back-transcription of every segment with Indic-Transcribe; letter-level similarity; speaking-rate outliers",
+        "mean_similarity": 0.995,
+        "min_similarity": 0.971,
+        "segments_repaired": 0,
+        "problems": [],
+        "warnings": [
+          "segments [0]: numbers ['5', '5'] in the text are not confirmed by back-transcription (missing, or transcribed as words)"
+        ],
+        "duration": {
+          "target_s": 120.0,
+          "actual_s": 94.7,
+          "deviation": "-21%"
+        }
+      },
+      "notes": [
+        "no voice or gender requested; defaulted to a female voice",
+        "AI-generated speech (Bodhan Indic-Speak, voice Anitha, Tamil)"
+      ],
+      "embeds": [
+        "chapter5_summary_ta.md"
+      ],
+      "sha256": "f22d9349a706d9d40ba8aa1d08f7973fc1a98da0b697e08d8e0ed9f138428f46",
+      "source_language": null,
+      "verification_checks": 1,
+      "origin": [
+        "chapter5_tamil_scan.pdf"
+      ]
+    }
+  ],
+  "verification": {
+    "results": [
+      {
+        "artifact": "artifacts/chapter5_en.md",
+        "kind": "translation",
+        "status": "warn",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [
+          "2 passage(s) came back with noticeably fewer sentences than the source (merged or omitted?): ['மழைநீர் நிலத்தின் மீது ஓடிக் கொண்டு வந்து\\nநீரோடைகளிலும் நதிக', 'நாம் அனைவரும் தண்ணீரை பாதுகாக்க\\nஉதவலாம். பல் துலக்கும்போது க']"
+        ],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 17,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 2
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.007
+          },
+          "back_translation": {
+            "language": "ta",
+            "mean_chrf": 0.903,
+            "min_chrf": 0.262,
+            "min_length_ratio": 0.78,
+            "passages": 16
+          }
+        }
+      },
+      {
+        "artifact": "artifacts/chapter5_summary_ta.md",
+        "kind": "translation",
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 2,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.0
+          },
+          "back_translation": {
+            "language": "en",
+            "mean_chrf": 0.909,
+            "min_chrf": 0.892,
+            "min_length_ratio": 0.95,
+            "passages": 3
+          }
+        }
+      },
+      {
+        "artifact": "artifacts/chapter5_summary_ta.mp3",
+        "kind": "audio",
+        "status": "warn",
+        "method": "back-transcription of every segment with Indic-Transcribe; letter-level similarity; speaking-rate outliers",
+        "mean_similarity": 0.995,
+        "min_similarity": 0.971,
+        "segments_repaired": 0,
+        "problems": [],
+        "warnings": [
+          "segments [0]: numbers ['5', '5'] in the text are not confirmed by back-transcription (missing, or transcribed as words)"
+        ],
+        "duration": {
+          "target_s": 120.0,
+          "actual_s": 94.7,
+          "deviation": "-21%"
+        }
+      }
+    ],
+    "unverified_translations_or_audio": [],
+    "all_checked": true
+  },
+  "cost": {
+    "max_inr": 20.0,
+    "bodhan_billed_inr": 0.8761,
+    "bodhan_uncertain_inr": 0.0,
+    "llm_inr": null,
+    "total_counted_inr": 0.8761,
+    "by_model_inr": {
+      "indic-speak": 0.7026,
+      "indic-transcribe": 0.1633,
+      "indic-translate": 0.0102
+    },
+    "bodhan_calls": 20,
+    "cache_hits": 40,
+    "bodhan_cost_basis": "published unit prices x metered quantity (audio seconds rounded up per request, output tokens from usage, input characters, images); provider dashboard is authoritative",
+    "llm": {
+      "calls": 8,
+      "prompt_tokens": 64694,
+      "completion_tokens": 985,
+      "pricing": "not priced (no rate supplied); tokens reported only"
+    }
+  },
+  "llm": {
+    "model": "gemini-3.5-flash-lite",
+    "endpoint_host": "generativelanguage.googleapis.com",
+    "adaptations": []
+  },
+  "quality_targets": {
+    "latency": {
+      "kind": "multi-step",
+      "target_s": 300,
+      "actual_s": 51.0,
+      "met": true,
+      "note": null
+    },
+    "budget": {
+      "max_inr": 20.0,
+      "counted_inr": 0.8761,
+      "within_budget": true,
+      "scope": "Bodhan calls (billed + uncertain retries); LLM only if priced via --llm-*-inr-per-1m",
+      "note": null
+    },
+    "no_waste": {
+      "cache_hits": 40,
+      "bodhan_requests": 20,
+      "retried_attempts": 0,
+      "note": "identical (model, input, settings) requests are served from the cache or shared while in flight; the only repeats are retries of a failed or timed-out attempt (rate limit, 5xx, timeout), counted here and traced as api_call events with attempt > 1"
+    },
+    "verification": {
+      "all_generated_audio_and_translations_checked": true,
+      "note": null
+    },
+    "honest_failure": "unassessed: code cannot judge whether the answer is truthful; see verification results and review the outputs"
+  },
+  "injection_warnings": [],
+  "paid_tool_calls": 2,
+  "version": "0.1.0"
+}

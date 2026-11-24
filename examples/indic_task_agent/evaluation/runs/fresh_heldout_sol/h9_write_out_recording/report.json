@@ -1,0 +1,167 @@
+{
+  "status": "completed",
+  "stop_reason": "finished",
+  "planner_status": "completed",
+  "task": "Can you write out what this recording says?",
+  "inputs": {
+    "files": [
+      "<recipe>\\sample_data\\clips\\clip_5.flac"
+    ],
+    "missing": []
+  },
+  "started_at": "2026-11-20T18:01:10+00:00",
+  "finished_at": "2026-11-20T18:01:33+00:00",
+  "elapsed_s": 23.08,
+  "steps": {
+    "used": 3,
+    "max": 10,
+    "tool_calls": [
+      {
+        "step": 2,
+        "tool": "transcribe_audio",
+        "ok": true,
+        "latency_s": 0.125,
+        "cost_inr": 0,
+        "verification": null,
+        "error": null
+      }
+    ]
+  },
+  "plan": {
+    "steps": [
+      "1. Use transcribe_audio to detect the language and write a transcript of clip_5.flac.",
+      "2. Deliver the transcript artifact with finish."
+    ],
+    "deliverables": [
+      {
+        "kind": "transcript",
+        "language": null,
+        "source": "clip_5.flac",
+        "optional": false,
+        "description": "Verbatim transcript in the recording's original language."
+      }
+    ],
+    "assumptions": [
+      "The user wants a transcript in the original language, not a translation."
+    ],
+    "dropped": []
+  },
+  "final_answer": "Transcribed the recording in Kannada. The full transcript is available in the attached text file.",
+  "assumptions": [
+    "The transcript preserves the original language; no translation was requested."
+  ],
+  "limitations": [],
+  "deliverables": [
+    {
+      "path": "artifacts/clip_5_transcript.txt",
+      "kind": "transcript",
+      "producer": "transcribe_audio",
+      "language": "kn",
+      "provenance": "indic-transcribe",
+      "verification": null,
+      "notes": [
+        "language auto-detected from first segment: Kannada (identified by Kannada script)"
+      ],
+      "embeds": [],
+      "sha256": "be76b493adcefa0215bc0810dac4960426fb9604e2c160b80e542e8de0c3c38a",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "clip_5.flac"
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "artifacts/clip_5_transcript.txt",
+      "kind": "transcript",
+      "producer": "transcribe_audio",
+      "language": "kn",
+      "provenance": "indic-transcribe",
+      "verification": null,
+      "notes": [
+        "language auto-detected from first segment: Kannada (identified by Kannada script)"
+      ],
+      "embeds": [],
+      "sha256": "be76b493adcefa0215bc0810dac4960426fb9604e2c160b80e542e8de0c3c38a",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "clip_5.flac"
+      ]
+    },
+    {
+      "path": "artifacts/clip_5_transcript.json",
+      "kind": "json",
+      "producer": "transcribe_audio",
+      "language": "kn",
+      "provenance": "indic-transcribe",
+      "verification": null,
+      "notes": [],
+      "embeds": [],
+      "sha256": "26e2aea5141f5e6a0d2f85e68247bbf3a4e2eaaa20f5bdb755adf05be926250e",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "clip_5.flac"
+      ]
+    }
+  ],
+  "verification": {
+    "results": [],
+    "unverified_translations_or_audio": [],
+    "all_checked": true
+  },
+  "cost": {
+    "max_inr": 20.0,
+    "bodhan_billed_inr": 0.0,
+    "bodhan_uncertain_inr": 0.0,
+    "llm_inr": null,
+    "total_counted_inr": 0.0,
+    "by_model_inr": {},
+    "bodhan_calls": 0,
+    "cache_hits": 1,
+    "bodhan_cost_basis": "published unit prices x metered quantity (audio seconds rounded up per request, output tokens from usage, input characters, images); provider dashboard is authoritative",
+    "llm": {
+      "calls": 4,
+      "prompt_tokens": 14534,
+      "completion_tokens": 344,
+      "pricing": "not priced (no rate supplied); tokens reported only"
+    }
+  },
+  "llm": {
+    "model": "gpt-6.1-sol",
+    "endpoint_host": "127.0.0.1",
+    "adaptations": []
+  },
+  "quality_targets": {
+    "latency": {
+      "kind": "single-step",
+      "target_s": 30,
+      "actual_s": 23.1,
+      "met": true,
+      "note": null
+    },
+    "budget": {
+      "max_inr": 20.0,
+      "counted_inr": 0.0,
+      "within_budget": true,
+      "note": null,
+      "scope": "Bodhan calls (billed + uncertain retries); LLM only if priced via --llm-*-inr-per-1m"
+    },
+    "no_waste": {
+      "cache_hits": 1,
+      "bodhan_requests": 0,
+      "retried_attempts": 0,
+      "note": "identical (model, input, settings) requests are served from the cache or shared while in flight; the only repeats are retries of a failed or timed-out attempt (rate limit, 5xx, timeout), counted here and traced as api_call events with attempt > 1"
+    },
+    "verification": {
+      "all_generated_audio_and_translations_checked": true,
+      "note": null
+    },
+    "honest_failure": "unassessed: code cannot judge whether the answer is truthful; see verification results and review the outputs"
+  },
+  "injection_warnings": [],
+  "paid_tool_calls": 0,
+  "version": "0.1.0"
+}

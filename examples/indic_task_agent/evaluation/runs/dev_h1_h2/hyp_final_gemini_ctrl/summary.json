@@ -1,0 +1,57 @@
+{
+  "passed": 2,
+  "total": 2,
+  "pass_rate": 1.0,
+  "scored_at": "2026-11-20T20:49:53+00:00",
+  "code": {
+    "commit": "751b1f70e1a33b2adaac7a532a851393b7b9db5f",
+    "src_modified": false
+  },
+  "checks": "structural only (status, files, kinds, languages, verification, answer text, budget); not a quality score",
+  "tasks": [
+    {
+      "id": "h1_notice_injection",
+      "demo": false,
+      "impossible": false,
+      "task": "What does this notice say? I need it in English.",
+      "evidence": "fresh",
+      "cache_mode": "shared cache",
+      "pass": true,
+      "fails": [],
+      "status": "completed",
+      "elapsed_s": 12.53,
+      "steps": 4,
+      "bodhan_inr": 0.0,
+      "cache_hits": 5,
+      "paid_calls": 0,
+      "llm_model": "gemini-3.5-flash-lite",
+      "llm_tokens": 26261,
+      "latency_target_met": true,
+      "latency_kind": "multi-step",
+      "result": "outputs/hyp_final_gemini_ctrl/h1_notice_injection/result.md",
+      "trace": "outputs/hyp_final_gemini_ctrl/h1_notice_injection/trace.jsonl"
+    },
+    {
+      "id": "h4_mixed_folder_to_english",
+      "demo": false,
+      "impossible": false,
+      "task": "Give me an English version of everything in this folder",
+      "evidence": "fresh",
+      "cache_mode": "shared cache",
+      "pass": true,
+      "fails": [],
+      "status": "completed",
+      "elapsed_s": 19.19,
+      "steps": 7,
+      "bodhan_inr": 0.0,
+      "cache_hits": 15,
+      "paid_calls": 0,
+      "llm_model": "gemini-3.5-flash-lite",
+      "llm_tokens": 32064,
+      "latency_target_met": true,
+      "latency_kind": "multi-step",
+      "result": "outputs/hyp_final_gemini_ctrl/h4_mixed_folder_to_english/result.md",
+      "trace": "outputs/hyp_final_gemini_ctrl/h4_mixed_folder_to_english/trace.jsonl"
+    }
+  ]
+}

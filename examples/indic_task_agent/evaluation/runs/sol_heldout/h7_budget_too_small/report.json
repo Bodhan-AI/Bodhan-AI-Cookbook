@@ -1,0 +1,115 @@
+{
+  "status": "unsupported",
+  "stop_reason": "finished",
+  "planner_status": "unsupported",
+  "task": "Make a Hindi audio version of this whole chapter",
+  "inputs": {
+    "files": [
+      "<input>\\chapter5_tamil_scan.pdf"
+    ],
+    "missing": []
+  },
+  "started_at": "2026-11-19T22:34:32+00:00",
+  "finished_at": "2026-11-19T22:34:47+00:00",
+  "elapsed_s": 15.02,
+  "steps": {
+    "used": 2,
+    "max": 30,
+    "tool_calls": []
+  },
+  "plan": {
+    "steps": [
+      "1. Assess the supplied eight-page scanned PDF and budget against OCR, translation, and speech costs before running paid tools.",
+      "2. If affordable, use ocr_document for all pages, translate_text for the complete Hindi translation, and synthesize_speech for the Hindi audio; otherwise use finish to report the budget limitation without producing a substitute."
+    ],
+    "deliverables": [
+      {
+        "kind": "translation",
+        "language": "hi",
+        "source": "chapter5_tamil_scan.pdf",
+        "optional": false,
+        "description": "Complete Hindi chapter text accompanying the audio."
+      },
+      {
+        "kind": "audio",
+        "language": "hi",
+        "source": "chapter5_tamil_scan.pdf",
+        "optional": false,
+        "description": "Hindi audio narration of the whole chapter."
+      }
+    ],
+    "assumptions": [
+      "The whole chapter means all eight pages, with no summarization or omissions.",
+      "The PDF is treated as a scanned chapter based on its filename and supplied metadata.",
+      "Use the default Hindi voice if production is affordable."
+    ]
+  },
+  "final_answer": "I couldn’t create the complete Hindi audiobook within the ₹0.50 budget. OCR alone would cost ₹1.60 if all eight pages require scanning, before Hindi translation and audio generation. Speech generation costs an additional ₹6 per 10,000 Hindi characters.\n\nNo paid processing was started, and no partial or substitute chapter was produced. Please rerun with a larger budget; the full cost will depend on the chapter’s extracted text length.",
+  "assumptions": [
+    "The request requires the entire eight-page chapter, not a summary.",
+    "The scanned PDF may require OCR on all eight pages; the supplied metadata confirms that page 1 has no text layer."
+  ],
+  "limitations": [
+    "The available ₹0.50 budget is insufficient for the requested full-chapter workflow.",
+    "The chapter was not extracted, translated, or narrated."
+  ],
+  "deliverables": [],
+  "artifacts": [],
+  "verification": {
+    "results": [],
+    "unverified_translations_or_audio": [],
+    "all_checked": true
+  },
+  "cost": {
+    "max_inr": 0.5,
+    "bodhan_billed_inr": 0.0,
+    "bodhan_uncertain_inr": 0.0,
+    "llm_inr": null,
+    "total_counted_inr": 0.0,
+    "by_model_inr": {},
+    "bodhan_calls": 0,
+    "cache_hits": 0,
+    "bodhan_cost_basis": "published unit prices x metered quantity (audio seconds rounded up per request, output tokens from usage, input characters, images); provider dashboard is authoritative",
+    "llm": {
+      "calls": 2,
+      "prompt_tokens": 8853,
+      "completion_tokens": 522,
+      "pricing": "not priced (no rate supplied); tokens reported only"
+    }
+  },
+  "llm": {
+    "model": "gpt-6.1-sol",
+    "endpoint_host": "127.0.0.1",
+    "adaptations": []
+  },
+  "quality_targets": {
+    "latency": {
+      "kind": "single-step",
+      "target_s": 30,
+      "actual_s": 15.0,
+      "met": true,
+      "note": null
+    },
+    "budget": {
+      "max_inr": 0.5,
+      "counted_inr": 0.0,
+      "within_budget": true,
+      "scope": "Bodhan calls (billed + uncertain retries); LLM only if priced via --llm-*-inr-per-1m",
+      "note": null
+    },
+    "no_waste": {
+      "cache_hits": 0,
+      "bodhan_requests": 0,
+      "retried_attempts": 0,
+      "note": "identical (model, input, settings) requests are served from the cache or shared while in flight; the only repeats are retries of a failed or timed-out attempt (rate limit, 5xx, timeout), counted here and traced as api_call events with attempt > 1"
+    },
+    "verification": {
+      "all_generated_audio_and_translations_checked": true,
+      "note": null
+    },
+    "honest_failure": "unassessed: code cannot judge whether the answer is truthful; see verification results and review the outputs"
+  },
+  "injection_warnings": [],
+  "paid_tool_calls": 0,
+  "version": "0.1.0"
+}

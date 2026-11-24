@@ -1,0 +1,35 @@
+{
+  "passed": 1,
+  "total": 1,
+  "pass_rate": 1.0,
+  "scored_at": "2026-11-20T20:38:38+00:00",
+  "code": {
+    "commit": "b4b697f36e5447b3271fd43b3c3926a1ca8cef5d",
+    "src_modified": false
+  },
+  "checks": "structural only (status, files, kinds, languages, verification, answer text, budget); not a quality score",
+  "tasks": [
+    {
+      "id": "d4_telugu_clips",
+      "demo": true,
+      "impossible": false,
+      "task": "Which of these clips are in Telugu? Translate those into English",
+      "evidence": "fresh",
+      "cache_mode": "shared cache",
+      "pass": true,
+      "fails": [],
+      "status": "completed",
+      "elapsed_s": 21.72,
+      "steps": 13,
+      "bodhan_inr": 0.0,
+      "cache_hits": 9,
+      "paid_calls": 0,
+      "llm_model": "gemini-3.5-flash-lite",
+      "llm_tokens": 71655,
+      "latency_target_met": true,
+      "latency_kind": "multi-step",
+      "result": "outputs/hyp_b2_gemini_d4/d4_telugu_clips/result.md",
+      "trace": "outputs/hyp_b2_gemini_d4/d4_telugu_clips/trace.jsonl"
+    }
+  ]
+}

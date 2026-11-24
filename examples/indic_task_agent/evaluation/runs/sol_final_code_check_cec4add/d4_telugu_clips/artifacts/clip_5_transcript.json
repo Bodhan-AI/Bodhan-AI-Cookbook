@@ -1,0 +1,27 @@
+{
+ "source": "clip_5.flac",
+ "text": "ಕ್ರೀಡಾ ದಿನದ ಮೊದಲು ಸಾಕಷ್ಟು ನೀರು ಕುಡೀರಿ ಮತ್ತು ಚೆನ್ನಾಗಿ ವಿಶ್ರಾಂತಿ ಪಡೆಯಿರಿ",
+ "segments": [
+  {
+   "index": 0,
+   "start": 0.0,
+   "end": 6.3,
+   "text": "ಕ್ರೀಡಾ ದಿನದ ಮೊದಲು ಸಾಕಷ್ಟು ನೀರು ಕುಡೀರಿ ಮತ್ತು ಚೆನ್ನಾಗಿ ವಿಶ್ರಾಂತಿ ಪಡೆಯಿರಿ"
+  }
+ ],
+ "duration_s": 6.31,
+ "language_used": "kn",
+ "detection": {
+  "language": "kn",
+  "language_name": "Kannada",
+  "script": "Kannada",
+  "confidence": 1.0,
+  "candidates": [
+   "kn"
+  ],
+  "note": "identified by Kannada script"
+ },
+ "notes": [
+  "language auto-detected from first segment: Kannada (identified by Kannada script)"
+ ]
+}

@@ -1,0 +1,116 @@
+{
+  "status": "failed",
+  "stop_reason": "llm_error",
+  "planner_status": null,
+  "task": "Translate this notice into Hindi",
+  "inputs": {
+    "files": [
+      "<recipe>\\sample_data\\foreign_text\\notice_ja.txt"
+    ],
+    "missing": []
+  },
+  "started_at": "2026-11-21T07:16:14+00:00",
+  "finished_at": "2026-11-21T07:17:34+00:00",
+  "elapsed_s": 79.92,
+  "steps": {
+    "used": 5,
+    "max": 30,
+    "tool_calls": [
+      {
+        "step": 2,
+        "tool": "translate_text",
+        "ok": false,
+        "latency_s": 0.0,
+        "cost_inr": 0,
+        "verification": null,
+        "error": "unsupported_language"
+      }
+    ]
+  },
+  "plan": {
+    "steps": [
+      "Finish with unsupported status"
+    ],
+    "deliverables": [
+      {
+        "kind": "translation",
+        "language": "hi",
+        "source": "notice_ja.txt",
+        "optional": true,
+        "description": "Unsupported translation notice"
+      }
+    ],
+    "assumptions": [],
+    "dropped": [
+      {
+        "kind": "translation",
+        "language": "hi",
+        "reason": "The input file is in Japanese (Kana script), which is not supported by Bodhan-supported languages."
+      }
+    ]
+  },
+  "final_answer": "The run stopped before the planner finished: The planner LLM failed: LLM call failed after retries: RateLimitError: Error code: 429 No usable output was produced.",
+  "assumptions": [],
+  "limitations": [
+    "Stopped early (llm_error); outputs were not confirmed complete by the planner."
+  ],
+  "deliverables": [],
+  "artifacts": [],
+  "verification": {
+    "results": [],
+    "unverified_translations_or_audio": [],
+    "all_checked": true
+  },
+  "cost": {
+    "max_inr": 20.0,
+    "bodhan_billed_inr": 0.0,
+    "bodhan_uncertain_inr": 0.0,
+    "llm_inr": null,
+    "total_counted_inr": 0.0,
+    "by_model_inr": {},
+    "bodhan_calls": 0,
+    "cache_hits": 0,
+    "bodhan_cost_basis": "published unit prices x metered quantity (audio seconds rounded up per request, output tokens from usage, input characters, images); provider dashboard is authoritative",
+    "llm": {
+      "calls": 5,
+      "prompt_tokens": 30558,
+      "completion_tokens": 381,
+      "pricing": "not priced (no rate supplied); tokens reported only"
+    }
+  },
+  "llm": {
+    "model": "gemini-3.5-flash-lite",
+    "endpoint_host": "generativelanguage.googleapis.com",
+    "adaptations": []
+  },
+  "quality_targets": {
+    "latency": {
+      "kind": "single-step",
+      "target_s": 30,
+      "actual_s": 79.9,
+      "met": false,
+      "note": "missed by 50 s (80 s against 30 s); tool calls 0% of the time (0 s), mostly step 2 (translate_text, 0 s); planner replies 9% of the time (7 s) (5 calls); 91% of the time (72 s) outside tool calls and planner replies (planner retries and their waits, preflight, bookkeeping)"
+    },
+    "budget": {
+      "max_inr": 20.0,
+      "counted_inr": 0.0,
+      "within_budget": true,
+      "note": null,
+      "scope": "Bodhan calls (billed + uncertain retries); LLM only if priced via --llm-*-inr-per-1m"
+    },
+    "no_waste": {
+      "cache_hits": 0,
+      "bodhan_requests": 0,
+      "retried_attempts": 0,
+      "note": "identical (model, input, settings) requests are served from the cache or shared while in flight; the only repeats are retries of a failed or timed-out attempt (rate limit, 5xx, timeout), counted here and traced as api_call events with attempt > 1"
+    },
+    "verification": {
+      "all_generated_audio_and_translations_checked": true,
+      "note": null
+    },
+    "honest_failure": "unassessed: code cannot judge whether the answer is truthful; see verification results and review the outputs"
+  },
+  "injection_warnings": [],
+  "paid_tool_calls": 0,
+  "version": "0.1.0"
+}

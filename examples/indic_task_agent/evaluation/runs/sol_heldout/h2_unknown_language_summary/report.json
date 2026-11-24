@@ -1,0 +1,278 @@
+{
+  "status": "completed",
+  "stop_reason": "finished",
+  "planner_status": "completed",
+  "task": "Summarise this page in three bullet points in English",
+  "inputs": {
+    "files": [
+      "<input>\\textbook_page.jpg"
+    ],
+    "missing": []
+  },
+  "started_at": "2026-11-19T22:32:28+00:00",
+  "finished_at": "2026-11-19T22:33:12+00:00",
+  "elapsed_s": 43.86,
+  "steps": {
+    "used": 6,
+    "max": 30,
+    "tool_calls": [
+      {
+        "step": 2,
+        "tool": "ocr_document",
+        "ok": true,
+        "latency_s": 0.032,
+        "cost_inr": 0,
+        "verification": null,
+        "error": null
+      },
+      {
+        "step": 3,
+        "tool": "translate_text",
+        "ok": true,
+        "latency_s": 0.016,
+        "cost_inr": 0,
+        "verification": "pass",
+        "error": null
+      },
+      {
+        "step": 4,
+        "tool": "read_text",
+        "ok": true,
+        "latency_s": 0.0,
+        "cost_inr": 0,
+        "verification": null,
+        "error": null
+      },
+      {
+        "step": 5,
+        "tool": "write_text",
+        "ok": true,
+        "latency_s": 0.015,
+        "cost_inr": 0,
+        "verification": null,
+        "error": null
+      }
+    ]
+  },
+  "plan": {
+    "steps": [
+      "1. Use ocr_document to extract the page text.",
+      "2. Use translate_text to translate the extracted text into English, then read_text to read it in full.",
+      "3. Use write_text to save an English summary in exactly three bullet points, then finish."
+    ],
+    "deliverables": [
+      {
+        "kind": "text",
+        "language": "en",
+        "source": "textbook_page.jpg",
+        "optional": false,
+        "description": "English summary of the page in exactly three bullet points."
+      }
+    ],
+    "assumptions": [
+      "Summarise the main content of the supplied page, using OCR to identify its source language."
+    ]
+  },
+  "final_answer": "- Bees live in colonies containing one queen, several hundred males, and thousands of workers that collect nectar and pollen.\n- By carrying pollen between flowers, bees help plants produce seeds and fruits; about one-third of our food depends on pollination by bees and other insects.\n- Farmers place beehives near fields to improve harvests, and many choose natural crop-protection methods because excessive chemical pesticide use can kill bees.",
+  "assumptions": [],
+  "limitations": [],
+  "deliverables": [
+    {
+      "path": "artifacts/summary_en.md",
+      "kind": "text",
+      "producer": "write_text",
+      "language": "en",
+      "provenance": "planner (English)",
+      "verification": null,
+      "notes": [],
+      "embeds": [
+        "page_english.md"
+      ],
+      "sha256": "67cb32d171f16430ccc09fd104aaafe6a290879414d1c334c5ce63d2a5ed535b",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "textbook_page.jpg"
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "artifacts/page_text.md",
+      "kind": "ocr",
+      "producer": "ocr_document",
+      "language": "kn",
+      "provenance": "indic-ocr",
+      "verification": null,
+      "notes": [],
+      "embeds": [],
+      "sha256": "dd0a1d9dae519e8042f2362ef95c8e7afb3265d60a12e8b31a59650e5f816638",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "textbook_page.jpg"
+      ]
+    },
+    {
+      "path": "artifacts/page_english.md",
+      "kind": "translation",
+      "producer": "translate_text",
+      "language": "en",
+      "provenance": "indic-translate",
+      "verification": {
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 0,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.0
+          },
+          "back_translation": {
+            "language": "kn",
+            "mean_chrf": 0.911,
+            "min_chrf": 0.911,
+            "min_length_ratio": 0.95,
+            "passages": 1
+          }
+        }
+      },
+      "notes": [],
+      "embeds": [
+        "page_text.md"
+      ],
+      "sha256": "bbef84e3ef770b2fb56fcd61bb00a9bdbc42459d5de93010c9ca80f218dcb4c6",
+      "source_language": "kn",
+      "verification_checks": 1,
+      "origin": [
+        "textbook_page.jpg"
+      ]
+    },
+    {
+      "path": "artifacts/summary_en.md",
+      "kind": "text",
+      "producer": "write_text",
+      "language": "en",
+      "provenance": "planner (English)",
+      "verification": null,
+      "notes": [],
+      "embeds": [
+        "page_english.md"
+      ],
+      "sha256": "67cb32d171f16430ccc09fd104aaafe6a290879414d1c334c5ce63d2a5ed535b",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "textbook_page.jpg"
+      ]
+    }
+  ],
+  "verification": {
+    "results": [
+      {
+        "artifact": "artifacts/page_english.md",
+        "kind": "translation",
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 0,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.0
+          },
+          "back_translation": {
+            "language": "kn",
+            "mean_chrf": 0.911,
+            "min_chrf": 0.911,
+            "min_length_ratio": 0.95,
+            "passages": 1
+          }
+        }
+      }
+    ],
+    "unverified_translations_or_audio": [],
+    "all_checked": true
+  },
+  "cost": {
+    "max_inr": 20.0,
+    "bodhan_billed_inr": 0.0,
+    "bodhan_uncertain_inr": 0.0,
+    "llm_inr": null,
+    "total_counted_inr": 0.0,
+    "by_model_inr": {},
+    "bodhan_calls": 0,
+    "cache_hits": 3,
+    "bodhan_cost_basis": "published unit prices x metered quantity (audio seconds rounded up per request, output tokens from usage, input characters, images); provider dashboard is authoritative",
+    "llm": {
+      "calls": 6,
+      "prompt_tokens": 32741,
+      "completion_tokens": 755,
+      "pricing": "not priced (no rate supplied); tokens reported only"
+    }
+  },
+  "llm": {
+    "model": "gpt-6.1-sol",
+    "endpoint_host": "127.0.0.1",
+    "adaptations": []
+  },
+  "quality_targets": {
+    "latency": {
+      "kind": "multi-step",
+      "target_s": 300,
+      "actual_s": 43.9,
+      "met": true,
+      "note": null
+    },
+    "budget": {
+      "max_inr": 20.0,
+      "counted_inr": 0.0,
+      "within_budget": true,
+      "scope": "Bodhan calls (billed + uncertain retries); LLM only if priced via --llm-*-inr-per-1m",
+      "note": null
+    },
+    "no_waste": {
+      "cache_hits": 3,
+      "bodhan_requests": 0,
+      "retried_attempts": 0,
+      "note": "identical (model, input, settings) requests are served from the cache or shared while in flight; the only repeats are retries of a failed or timed-out attempt (rate limit, 5xx, timeout), counted here and traced as api_call events with attempt > 1"
+    },
+    "verification": {
+      "all_generated_audio_and_translations_checked": true,
+      "note": null
+    },
+    "honest_failure": "unassessed: code cannot judge whether the answer is truthful; see verification results and review the outputs"
+  },
+  "injection_warnings": [],
+  "paid_tool_calls": 0,
+  "version": "0.1.0"
+}

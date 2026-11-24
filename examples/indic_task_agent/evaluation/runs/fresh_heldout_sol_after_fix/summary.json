@@ -1,0 +1,57 @@
+{
+  "passed": 2,
+  "total": 2,
+  "pass_rate": 1.0,
+  "scored_at": "2026-11-20T18:15:04+00:00",
+  "code": {
+    "commit": "e2c1302d6c1d26aa1b5633fcaed950489f09feb1",
+    "src_modified": false
+  },
+  "checks": "structural only (status, files, kinds, languages, verification, answer text, budget); not a quality score",
+  "tasks": [
+    {
+      "id": "h12_gujarati_voiceover_conflict",
+      "demo": false,
+      "impossible": false,
+      "task": "Make a Gujarati voice-over of this page for a 20-second slot, male voice please, and don't cut anything out.",
+      "evidence": "fresh",
+      "cache_mode": "shared cache",
+      "pass": true,
+      "fails": [],
+      "status": "completed_with_warnings",
+      "elapsed_s": 113.62,
+      "steps": 5,
+      "bodhan_inr": 0.4873,
+      "cache_hits": 1,
+      "paid_calls": 8,
+      "llm_model": "gpt-6.1-sol",
+      "llm_tokens": 29207,
+      "latency_target_met": true,
+      "latency_kind": "multi-step",
+      "result": "outputs/fresh_sol_after_fix/h12_gujarati_voiceover_conflict/result.md",
+      "trace": "outputs/fresh_sol_after_fix/h12_gujarati_voiceover_conflict/trace.jsonl"
+    },
+    {
+      "id": "h13_bhojpuri_partly_unsupported",
+      "demo": false,
+      "impossible": false,
+      "task": "Our tour group has people from Kerala and from Bihar. Can you make audio of this in Malayalam and in Bhojpuri?",
+      "evidence": "fresh",
+      "cache_mode": "shared cache",
+      "pass": true,
+      "fails": [],
+      "status": "partial",
+      "elapsed_s": 158.23,
+      "steps": 5,
+      "bodhan_inr": 0.1456,
+      "cache_hits": 0,
+      "paid_calls": 4,
+      "llm_model": "gpt-6.1-sol",
+      "llm_tokens": 28467,
+      "latency_target_met": true,
+      "latency_kind": "multi-step",
+      "result": "outputs/fresh_sol_after_fix/h13_bhojpuri_partly_unsupported/result.md",
+      "trace": "outputs/fresh_sol_after_fix/h13_bhojpuri_partly_unsupported/trace.jsonl"
+    }
+  ]
+}

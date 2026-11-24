@@ -1,0 +1,3 @@
+- **Colony Structure:** Bees live in colonies consisting of a queen bee, several hundred male bees, and thousands of worker bees that collect nectar and pollen.
+- **Agricultural Importance:** Through pollination, bees help plants produce seeds and fruits, contributing to about one-third of the food we consume.
+- **Conservation:** Farmers place beehives near fields for better harvests, and many are shifting from chemical pesticides to natural methods to protect bees.

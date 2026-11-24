@@ -1,0 +1,433 @@
+{
+  "status": "partial",
+  "stop_reason": "finished",
+  "planner_status": "partial",
+  "task": "Make a Hindi audio version of this whole chapter",
+  "inputs": {
+    "files": [
+      "<recipe>\\sample_data\\chapter_scan\\chapter5_tamil_scan.pdf"
+    ],
+    "missing": []
+  },
+  "started_at": "2026-11-20T20:54:24+00:00",
+  "finished_at": "2026-11-20T20:54:55+00:00",
+  "elapsed_s": 31.09,
+  "steps": {
+    "used": 9,
+    "max": 30,
+    "tool_calls": [
+      {
+        "step": 2,
+        "tool": "ocr_document",
+        "ok": true,
+        "latency_s": 15.156,
+        "cost_inr": 0,
+        "verification": null,
+        "error": null
+      },
+      {
+        "step": 3,
+        "tool": "translate_text",
+        "ok": true,
+        "latency_s": 0.312,
+        "cost_inr": 0,
+        "verification": "warn",
+        "error": null
+      },
+      {
+        "step": 4,
+        "tool": "synthesize_speech",
+        "ok": false,
+        "latency_s": 0.016,
+        "cost_inr": 0,
+        "verification": null,
+        "error": "budget_exceeded"
+      },
+      {
+        "step": 5,
+        "tool": "write_text",
+        "ok": false,
+        "latency_s": 0.0,
+        "cost_inr": 0,
+        "verification": null,
+        "error": "invalid_argument"
+      },
+      {
+        "step": 6,
+        "tool": "read_text",
+        "ok": true,
+        "latency_s": 0.0,
+        "cost_inr": 0,
+        "verification": null,
+        "error": null
+      },
+      {
+        "step": 7,
+        "tool": "read_text",
+        "ok": true,
+        "latency_s": 0.0,
+        "cost_inr": 0,
+        "verification": null,
+        "error": null
+      },
+      {
+        "step": 8,
+        "tool": "write_text",
+        "ok": true,
+        "latency_s": 0.015,
+        "cost_inr": 0,
+        "verification": null,
+        "error": null
+      }
+    ]
+  },
+  "plan": {
+    "steps": [
+      "OCR the input PDF document to extract Tamil text using ocr_document.",
+      "Translate the extracted Tamil text to Hindi using translate_text.",
+      "Synthesize the Hindi translation into speech using synthesize_speech."
+    ],
+    "deliverables": [
+      {
+        "kind": "text",
+        "language": "ta",
+        "source": "chapter5_tamil_scan.pdf",
+        "optional": false,
+        "description": "OCR markdown of the Tamil chapter"
+      },
+      {
+        "kind": "translation",
+        "language": "hi",
+        "source": "chapter5_tamil_scan.pdf",
+        "optional": false,
+        "description": "Hindi translation of the chapter"
+      },
+      {
+        "kind": "audio",
+        "language": "hi",
+        "source": "chapter5_tamil_scan.pdf",
+        "optional": false,
+        "description": "Hindi audio version of the chapter"
+      }
+    ],
+    "assumptions": [
+      "The Tamil chapter scan should be OCRed, translated to Hindi, and then synthesized into Hindi speech.",
+      "The output will be a Hindi audio version of the chapter."
+    ],
+    "dropped": []
+  },
+  "final_answer": "The Tamil chapter PDF was successfully OCRed and translated into Hindi. However, due to the strict budget limit (maximum cost of ₹0.50 INR), generating speech for the entire 3,300+ character text exceeded the available budget. Consequently, the OCR text and the Hindi translation have been delivered as artifacts, but the audio output could not be generated.",
+  "assumptions": [],
+  "limitations": [
+    "Synthesizing speech for the entire chapter exceeded the budget of ₹0.50 INR."
+  ],
+  "deliverables": [
+    {
+      "path": "artifacts/tamil_chapter_ocr.md",
+      "kind": "ocr",
+      "producer": "ocr_document",
+      "language": "ta",
+      "provenance": "indic-ocr",
+      "verification": null,
+      "notes": [],
+      "embeds": [],
+      "sha256": "5c93771d5d99a4de15c005e616af6b47b6e18ae470627cb3118e3d1afb49ebcc",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "chapter5_tamil_scan.pdf"
+      ]
+    },
+    {
+      "path": "artifacts/hindi_chapter.md",
+      "kind": "translation",
+      "producer": "translate_text",
+      "language": "hi",
+      "provenance": "indic-translate",
+      "verification": {
+        "status": "warn",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [
+          "numbers not found in the translation: ['5.2', '5.3', '5.5'] (may be spelled out as words)",
+          "numbers in the translation that are not in the source: ['2', '3', '5', '5', '5', '5']"
+        ],
+        "checks": {
+          "target_script_share": 0.842,
+          "numbers": {
+            "source_numbers": 17,
+            "missing": [
+              "5.2",
+              "5.3",
+              "5.5"
+            ],
+            "unexpected": [
+              "2",
+              "3",
+              "5",
+              "5",
+              "5",
+              "5"
+            ],
+            "preserved_ratio": 0.824
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.009
+          },
+          "back_translation": {
+            "language": "ta",
+            "mean_chrf": 0.856,
+            "min_chrf": 0.238,
+            "min_length_ratio": 0.55,
+            "passages": 16
+          }
+        }
+      },
+      "notes": [],
+      "embeds": [
+        "tamil_chapter_ocr.md"
+      ],
+      "sha256": "e10ecf2894f77681f041907e5ffabe1132cf452b71be64fd1bba729b4ce91b2b",
+      "source_language": "ta",
+      "verification_checks": 1,
+      "origin": [
+        "chapter5_tamil_scan.pdf"
+      ]
+    },
+    {
+      "path": "artifacts/summary.md",
+      "kind": "text",
+      "producer": "write_text",
+      "language": "en",
+      "provenance": "planner (English)",
+      "verification": null,
+      "notes": [],
+      "embeds": [
+        "hindi_chapter.md",
+        "tamil_chapter_ocr.md"
+      ],
+      "sha256": "952e466133905de146406d89484a8a6b97b15978f505162e359f2e4e63f6bcfd",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "chapter5_tamil_scan.pdf"
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "artifacts/tamil_chapter_ocr.md",
+      "kind": "ocr",
+      "producer": "ocr_document",
+      "language": "ta",
+      "provenance": "indic-ocr",
+      "verification": null,
+      "notes": [],
+      "embeds": [],
+      "sha256": "5c93771d5d99a4de15c005e616af6b47b6e18ae470627cb3118e3d1afb49ebcc",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "chapter5_tamil_scan.pdf"
+      ]
+    },
+    {
+      "path": "artifacts/hindi_chapter.md",
+      "kind": "translation",
+      "producer": "translate_text",
+      "language": "hi",
+      "provenance": "indic-translate",
+      "verification": {
+        "status": "warn",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [
+          "numbers not found in the translation: ['5.2', '5.3', '5.5'] (may be spelled out as words)",
+          "numbers in the translation that are not in the source: ['2', '3', '5', '5', '5', '5']"
+        ],
+        "checks": {
+          "target_script_share": 0.842,
+          "numbers": {
+            "source_numbers": 17,
+            "missing": [
+              "5.2",
+              "5.3",
+              "5.5"
+            ],
+            "unexpected": [
+              "2",
+              "3",
+              "5",
+              "5",
+              "5",
+              "5"
+            ],
+            "preserved_ratio": 0.824
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.009
+          },
+          "back_translation": {
+            "language": "ta",
+            "mean_chrf": 0.856,
+            "min_chrf": 0.238,
+            "min_length_ratio": 0.55,
+            "passages": 16
+          }
+        }
+      },
+      "notes": [],
+      "embeds": [
+        "tamil_chapter_ocr.md"
+      ],
+      "sha256": "e10ecf2894f77681f041907e5ffabe1132cf452b71be64fd1bba729b4ce91b2b",
+      "source_language": "ta",
+      "verification_checks": 1,
+      "origin": [
+        "chapter5_tamil_scan.pdf"
+      ]
+    },
+    {
+      "path": "artifacts/summary.md",
+      "kind": "text",
+      "producer": "write_text",
+      "language": "en",
+      "provenance": "planner (English)",
+      "verification": null,
+      "notes": [],
+      "embeds": [
+        "hindi_chapter.md",
+        "tamil_chapter_ocr.md"
+      ],
+      "sha256": "952e466133905de146406d89484a8a6b97b15978f505162e359f2e4e63f6bcfd",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "chapter5_tamil_scan.pdf"
+      ]
+    }
+  ],
+  "verification": {
+    "results": [
+      {
+        "artifact": "artifacts/hindi_chapter.md",
+        "kind": "translation",
+        "status": "warn",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [
+          "numbers not found in the translation: ['5.2', '5.3', '5.5'] (may be spelled out as words)",
+          "numbers in the translation that are not in the source: ['2', '3', '5', '5', '5', '5']"
+        ],
+        "checks": {
+          "target_script_share": 0.842,
+          "numbers": {
+            "source_numbers": 17,
+            "missing": [
+              "5.2",
+              "5.3",
+              "5.5"
+            ],
+            "unexpected": [
+              "2",
+              "3",
+              "5",
+              "5",
+              "5",
+              "5"
+            ],
+            "preserved_ratio": 0.824
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.009
+          },
+          "back_translation": {
+            "language": "ta",
+            "mean_chrf": 0.856,
+            "min_chrf": 0.238,
+            "min_length_ratio": 0.55,
+            "passages": 16
+          }
+        }
+      }
+    ],
+    "unverified_translations_or_audio": [],
+    "all_checked": true
+  },
+  "cost": {
+    "max_inr": 0.5,
+    "bodhan_billed_inr": 0.0,
+    "bodhan_uncertain_inr": 0.0,
+    "llm_inr": null,
+    "total_counted_inr": 0.0,
+    "by_model_inr": {},
+    "bodhan_calls": 0,
+    "cache_hits": 40,
+    "bodhan_cost_basis": "published unit prices x metered quantity (audio seconds rounded up per request, output tokens from usage, input characters, images); provider dashboard is authoritative",
+    "llm": {
+      "calls": 9,
+      "prompt_tokens": 77670,
+      "completion_tokens": 1458,
+      "pricing": "not priced (no rate supplied); tokens reported only"
+    }
+  },
+  "llm": {
+    "model": "gemini-3.5-flash-lite",
+    "endpoint_host": "generativelanguage.googleapis.com",
+    "adaptations": []
+  },
+  "quality_targets": {
+    "latency": {
+      "kind": "multi-step",
+      "target_s": 300,
+      "actual_s": 31.1,
+      "met": true,
+      "note": null
+    },
+    "budget": {
+      "max_inr": 0.5,
+      "counted_inr": 0.0,
+      "within_budget": true,
+      "note": null,
+      "scope": "Bodhan calls (billed + uncertain retries); LLM only if priced via --llm-*-inr-per-1m"
+    },
+    "no_waste": {
+      "cache_hits": 40,
+      "bodhan_requests": 0,
+      "retried_attempts": 0,
+      "note": "identical (model, input, settings) requests are served from the cache or shared while in flight; the only repeats are retries of a failed or timed-out attempt (rate limit, 5xx, timeout), counted here and traced as api_call events with attempt > 1"
+    },
+    "verification": {
+      "all_generated_audio_and_translations_checked": true,
+      "note": null
+    },
+    "honest_failure": "unassessed: code cannot judge whether the answer is truthful; see verification results and review the outputs"
+  },
+  "injection_warnings": [],
+  "paid_tool_calls": 0,
+  "version": "0.1.0"
+}

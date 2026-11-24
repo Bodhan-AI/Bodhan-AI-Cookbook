@@ -1,0 +1,336 @@
+{
+  "status": "completed",
+  "stop_reason": "finished",
+  "planner_status": "completed",
+  "task": "Transcribe this Hindi voice note and give me English subtitles",
+  "inputs": {
+    "files": [
+      "<input>\\voice_note_hindi.wav"
+    ],
+    "missing": []
+  },
+  "started_at": "2026-11-19T22:16:41+00:00",
+  "finished_at": "2026-11-19T22:22:04+00:00",
+  "elapsed_s": 323.0,
+  "steps": {
+    "used": 4,
+    "max": 30,
+    "tool_calls": [
+      {
+        "step": 2,
+        "tool": "transcribe_audio",
+        "ok": true,
+        "latency_s": 118.047,
+        "cost_inr": 0.295,
+        "verification": null,
+        "error": null
+      },
+      {
+        "step": 3,
+        "tool": "create_subtitles",
+        "ok": true,
+        "latency_s": 184.656,
+        "cost_inr": 0.01946,
+        "verification": "pass",
+        "error": null
+      }
+    ]
+  },
+  "plan": {
+    "steps": [
+      "1. Use transcribe_audio with short pause-aligned segments to produce a Hindi transcript.",
+      "2. Use create_subtitles on the transcript segments to produce verified English subtitles without re-transcribing.",
+      "3. Use finish to deliver the Hindi transcript and English SRT."
+    ],
+    "deliverables": [
+      {
+        "kind": "transcript",
+        "language": "hi",
+        "source": "voice_note_hindi.wav",
+        "optional": false,
+        "description": "Hindi transcript of the voice note."
+      },
+      {
+        "kind": "subtitles",
+        "language": "en",
+        "source": "voice_note_hindi.wav",
+        "optional": false,
+        "description": "English subtitles in SRT format."
+      }
+    ],
+    "assumptions": [
+      "The source speech is Hindi, as stated by the user.",
+      "English subtitles should be supplied as a separate SRT file."
+    ]
+  },
+  "final_answer": "Created the Hindi transcript and English subtitles for your voice note.\n\n- Hindi transcript: voice_note_hindi_transcript.txt\n- English subtitles: voice_note_english_en.srt\n\nThe English translation passed automated verification. Subtitle timing is based on speech segments rather than word-level alignment.",
+  "assumptions": [],
+  "limitations": [
+    "Subtitle timestamps are pause-based and approximate, not word-level aligned."
+  ],
+  "deliverables": [
+    {
+      "path": "artifacts/voice_note_hindi_transcript.txt",
+      "kind": "transcript",
+      "producer": "transcribe_audio",
+      "language": "hi",
+      "provenance": "indic-transcribe",
+      "verification": null,
+      "notes": [],
+      "embeds": [],
+      "sha256": "33a221d81a83acee36f739a38c18e138ad5fa3cd0e0580bf179385b46d0bfb20",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "voice_note_hindi.wav"
+      ]
+    },
+    {
+      "path": "artifacts/voice_note_english_en.srt",
+      "kind": "subtitles",
+      "producer": "create_subtitles",
+      "language": "en",
+      "provenance": "indic-transcribe + indic-translate",
+      "verification": {
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 0,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.0
+          },
+          "back_translation": {
+            "language": "hi",
+            "mean_chrf": 0.756,
+            "min_chrf": 0.454,
+            "min_length_ratio": 0.74,
+            "passages": 30
+          }
+        }
+      },
+      "notes": [
+        "reused this run's transcript instead of transcribing the audio again; long segments were split into cues with times proportional to text length (approximate)"
+      ],
+      "embeds": [],
+      "sha256": "c3da4e1b04f79fc5ef8fd900fb25926c58e964a8e8a88b1d9c169ac815927d75",
+      "source_language": null,
+      "verification_checks": 1,
+      "origin": [
+        "voice_note_hindi.wav"
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "artifacts/voice_note_hindi_transcript.txt",
+      "kind": "transcript",
+      "producer": "transcribe_audio",
+      "language": "hi",
+      "provenance": "indic-transcribe",
+      "verification": null,
+      "notes": [],
+      "embeds": [],
+      "sha256": "33a221d81a83acee36f739a38c18e138ad5fa3cd0e0580bf179385b46d0bfb20",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "voice_note_hindi.wav"
+      ]
+    },
+    {
+      "path": "artifacts/voice_note_hindi_transcript.json",
+      "kind": "json",
+      "producer": "transcribe_audio",
+      "language": "hi",
+      "provenance": "indic-transcribe",
+      "verification": null,
+      "notes": [],
+      "embeds": [],
+      "sha256": "54828723fce17b7ae99e4be6e79fe284dbfeec471378099e01acc9819642bd3e",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "voice_note_hindi.wav"
+      ]
+    },
+    {
+      "path": "artifacts/voice_note_english_hi.srt",
+      "kind": "transcript",
+      "producer": "create_subtitles",
+      "language": "hi",
+      "provenance": "indic-transcribe",
+      "verification": null,
+      "notes": [],
+      "embeds": [],
+      "sha256": "eab8febe6087e6c5c28fc98066ec333817bf8f74e4468c889291e89f3b3bc059",
+      "source_language": null,
+      "verification_checks": 0,
+      "origin": [
+        "voice_note_hindi.wav"
+      ]
+    },
+    {
+      "path": "artifacts/voice_note_english_en.srt",
+      "kind": "subtitles",
+      "producer": "create_subtitles",
+      "language": "en",
+      "provenance": "indic-transcribe + indic-translate",
+      "verification": {
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 0,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.0
+          },
+          "back_translation": {
+            "language": "hi",
+            "mean_chrf": 0.756,
+            "min_chrf": 0.454,
+            "min_length_ratio": 0.74,
+            "passages": 30
+          }
+        }
+      },
+      "notes": [
+        "reused this run's transcript instead of transcribing the audio again; long segments were split into cues with times proportional to text length (approximate)"
+      ],
+      "embeds": [],
+      "sha256": "c3da4e1b04f79fc5ef8fd900fb25926c58e964a8e8a88b1d9c169ac815927d75",
+      "source_language": null,
+      "verification_checks": 1,
+      "origin": [
+        "voice_note_hindi.wav"
+      ]
+    }
+  ],
+  "verification": {
+    "results": [
+      {
+        "artifact": "artifacts/voice_note_english_en.srt",
+        "kind": "subtitles",
+        "status": "pass",
+        "method": "script share, number and table preservation, repetition, back-translation (Indic-Translate) chrF",
+        "problems": [],
+        "warnings": [],
+        "checks": {
+          "target_script_share": 1.0,
+          "numbers": {
+            "source_numbers": 0,
+            "missing": [],
+            "unexpected": [],
+            "preserved_ratio": 1.0
+          },
+          "tables": {
+            "source": [],
+            "output": []
+          },
+          "sentence_coverage": {
+            "passages_with_fewer_sentences": 0
+          },
+          "repetition": {
+            "source": 0.0,
+            "output": 0.0
+          },
+          "back_translation": {
+            "language": "hi",
+            "mean_chrf": 0.756,
+            "min_chrf": 0.454,
+            "min_length_ratio": 0.74,
+            "passages": 30
+          }
+        }
+      }
+    ],
+    "unverified_translations_or_audio": [],
+    "all_checked": true
+  },
+  "cost": {
+    "max_inr": 20.0,
+    "bodhan_billed_inr": 0.3145,
+    "bodhan_uncertain_inr": 0.0,
+    "llm_inr": null,
+    "total_counted_inr": 0.3145,
+    "by_model_inr": {
+      "indic-transcribe": 0.295,
+      "indic-translate": 0.0195
+    },
+    "bodhan_calls": 90,
+    "cache_hits": 0,
+    "bodhan_cost_basis": "published unit prices x metered quantity (audio seconds rounded up per request, output tokens from usage, input characters, images); provider dashboard is authoritative",
+    "llm": {
+      "calls": 4,
+      "prompt_tokens": 20745,
+      "completion_tokens": 605,
+      "pricing": "not priced (no rate supplied); tokens reported only"
+    }
+  },
+  "llm": {
+    "model": "gpt-6.1-sol",
+    "endpoint_host": "127.0.0.1",
+    "adaptations": []
+  },
+  "quality_targets": {
+    "latency": {
+      "kind": "multi-step",
+      "target_s": 300,
+      "actual_s": 323.0,
+      "met": false,
+      "note": "missed by 23 s (323 s against 300 s); tool calls 94% of the time (303 s), mostly step 3 (create_subtitles, 185 s); planner replies 6% of the time (19 s) (4 calls); 90 Bodhan requests (indic-translate 60, indic-transcribe 30); 41 attempts refused by rate limits and retried",
+      "note_source": "recomputed from trace.jsonl by scripts/explain_missed_targets.py"
+    },
+    "budget": {
+      "max_inr": 20.0,
+      "counted_inr": 0.3145,
+      "within_budget": true,
+      "scope": "Bodhan calls (billed + uncertain retries); LLM only if priced via --llm-*-inr-per-1m",
+      "note": null
+    },
+    "no_waste": {
+      "cache_hits": 0,
+      "bodhan_requests": 90,
+      "retried_attempts": 41,
+      "note": "identical (model, input, settings) requests are served from the cache or shared while in flight; the only repeats are retries of a failed or timed-out attempt (rate limit, 5xx, timeout), counted here and traced as api_call events with attempt > 1"
+    },
+    "verification": {
+      "all_generated_audio_and_translations_checked": true,
+      "note": null
+    },
+    "honest_failure": "unassessed: code cannot judge whether the answer is truthful; see verification results and review the outputs"
+  },
+  "injection_warnings": [],
+  "paid_tool_calls": 2,
+  "version": "0.1.0"
+}

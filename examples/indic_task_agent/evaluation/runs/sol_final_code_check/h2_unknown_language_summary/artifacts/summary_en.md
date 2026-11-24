@@ -1,0 +1,3 @@
+- Bees live in colonies containing a queen, hundreds of male bees, and thousands of worker bees that collect nectar and pollen.
+- By carrying pollen between flowers, bees help plants produce seeds and fruits; about one-third of our food depends on pollination by bees and other insects.
+- Farmers place beehives near fields to improve harvests. Because excessive chemical pesticide use can kill bees, many farmers are choosing natural crop-protection methods.
