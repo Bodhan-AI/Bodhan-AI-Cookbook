@@ -1,0 +1,388 @@
+{
+  "roman_to_native": [
+    {
+      "language": "as",
+      "name": "Assamese",
+      "expected_script": "BENGALI",
+      "answers": [
+        "ৰবি কল ঘৰ আয়েগা",
+        "নমস্কাৰ"
+      ],
+      "scripts_seen": [
+        "BENGALI",
+        "BENGALI"
+      ],
+      "ok": true
+    },
+    {
+      "language": "bn",
+      "name": "Bengali",
+      "expected_script": "BENGALI",
+      "answers": [
+        "রবি কাল ঘর আয়েগা",
+        "নমস্কার"
+      ],
+      "scripts_seen": [
+        "BENGALI",
+        "BENGALI"
+      ],
+      "ok": true
+    },
+    {
+      "language": "brx",
+      "name": "Bodo",
+      "expected_script": "DEVANAGARI",
+      "answers": [
+        "रवि कल घर आयगा",
+        "नमस्कार"
+      ],
+      "scripts_seen": [
+        "DEVANAGARI",
+        "DEVANAGARI"
+      ],
+      "ok": true
+    },
+    {
+      "language": "doi",
+      "name": "Dogri",
+      "expected_script": "DEVANAGARI",
+      "answers": [
+        "रवि कल घर आऐगा",
+        "नमस्कार"
+      ],
+      "scripts_seen": [
+        "DEVANAGARI",
+        "DEVANAGARI"
+      ],
+      "ok": true
+    },
+    {
+      "language": "gu",
+      "name": "Gujarati",
+      "expected_script": "GUJARATI",
+      "answers": [
+        "રવિ કલ ઘર આવશે",
+        "નમસ્કાર"
+      ],
+      "scripts_seen": [
+        "GUJARATI",
+        "GUJARATI"
+      ],
+      "ok": true
+    },
+    {
+      "language": "hi",
+      "name": "Hindi",
+      "expected_script": "DEVANAGARI",
+      "answers": [
+        "रवि कल घर आएगा",
+        "नमस्कार"
+      ],
+      "scripts_seen": [
+        "DEVANAGARI",
+        "DEVANAGARI"
+      ],
+      "ok": true
+    },
+    {
+      "language": "kn",
+      "name": "Kannada",
+      "expected_script": "KANNADA",
+      "answers": [
+        "ರವಿ ಕಲ್ ಘರ್ ಆಯೇಗಾ",
+        "ನಮಸ್ಕಾರ"
+      ],
+      "scripts_seen": [
+        "KANNADA",
+        "KANNADA"
+      ],
+      "ok": true
+    },
+    {
+      "language": "kok",
+      "name": "Konkani",
+      "expected_script": "DEVANAGARI",
+      "answers": [
+        "रवि कल घर आयगे",
+        "नमस्कार"
+      ],
+      "scripts_seen": [
+        "DEVANAGARI",
+        "DEVANAGARI"
+      ],
+      "ok": true
+    },
+    {
+      "language": "ks",
+      "name": "Kashmiri (Perso-Arabic)",
+      "expected_script": "ARABIC",
+      "answers": [
+        "رَوی کَل گھر آیہِ گا",
+        "نمسکار"
+      ],
+      "scripts_seen": [
+        "ARABIC",
+        "ARABIC"
+      ],
+      "ok": true
+    },
+    {
+      "language": "ks-Deva",
+      "name": "Kashmiri (Devanagari)",
+      "expected_script": "DEVANAGARI",
+      "answers": [
+        "ravi kal ghar ayega",
+        "नमस्कार"
+      ],
+      "scripts_seen": [
+        "LATIN",
+        "DEVANAGARI"
+      ],
+      "ok": false
+    },
+    {
+      "language": "mai",
+      "name": "Maithili",
+      "expected_script": "DEVANAGARI",
+      "answers": [
+        "रवि कल घर आएग",
+        "नमस्कार"
+      ],
+      "scripts_seen": [
+        "DEVANAGARI",
+        "DEVANAGARI"
+      ],
+      "ok": true
+    },
+    {
+      "language": "ml",
+      "name": "Malayalam",
+      "expected_script": "MALAYALAM",
+      "answers": [
+        "രവി കൽ ഘർ ആയെഗാ",
+        "നമസ്കാരം"
+      ],
+      "scripts_seen": [
+        "MALAYALAM",
+        "MALAYALAM"
+      ],
+      "ok": true
+    },
+    {
+      "language": "mni",
+      "name": "Manipuri (Meitei Mayek)",
+      "expected_script": "MEETEI",
+      "answers": [
+        "ꯔꯥꯕꯤ ꯀꯜ ꯘꯔ ꯑꯥꯌꯦꯒꯥ",
+        "ꯅꯃꯁꯥꯀꯔ"
+      ],
+      "scripts_seen": [
+        "MEETEI",
+        "MEETEI"
+      ],
+      "ok": true
+    },
+    {
+      "language": "mni-Beng",
+      "name": "Manipuri (Bengali)",
+      "expected_script": "BENGALI",
+      "answers": [
+        "রবি কল ঘর আয়েগা",
+        "নমস্কার"
+      ],
+      "scripts_seen": [
+        "BENGALI",
+        "BENGALI"
+      ],
+      "ok": true
+    },
+    {
+      "language": "mr",
+      "name": "Marathi",
+      "expected_script": "DEVANAGARI",
+      "answers": [
+        "रवी कल घर आयेगा",
+        "नमस्कार"
+      ],
+      "scripts_seen": [
+        "DEVANAGARI",
+        "DEVANAGARI"
+      ],
+      "ok": true
+    },
+    {
+      "language": "ne",
+      "name": "Nepali",
+      "expected_script": "DEVANAGARI",
+      "answers": [
+        "रवि कल घर आउनेछ",
+        "नमस्कार"
+      ],
+      "scripts_seen": [
+        "DEVANAGARI",
+        "DEVANAGARI"
+      ],
+      "ok": true
+    },
+    {
+      "language": "or",
+      "name": "Odia",
+      "expected_script": "ORIYA",
+      "answers": [
+        "ରବି କଲ୍ ଘର ଆୟେଗା",
+        "ନମସ୍କାର"
+      ],
+      "scripts_seen": [
+        "ORIYA",
+        "ORIYA"
+      ],
+      "ok": true
+    },
+    {
+      "language": "pa",
+      "name": "Punjabi (Gurmukhi)",
+      "expected_script": "GURMUKHI",
+      "answers": [
+        "ਰਵੀ ਕੱਲ੍ਹ ਘਰ ਆਏਗਾ",
+        "ਨਮਸਕਾਰ"
+      ],
+      "scripts_seen": [
+        "GURMUKHI",
+        "GURMUKHI"
+      ],
+      "ok": true
+    },
+    {
+      "language": "sa",
+      "name": "Sanskrit",
+      "expected_script": "DEVANAGARI",
+      "answers": [
+        "रवि कल घर आयेगा",
+        "नमस्कार"
+      ],
+      "scripts_seen": [
+        "DEVANAGARI",
+        "DEVANAGARI"
+      ],
+      "ok": true
+    },
+    {
+      "language": "sat",
+      "name": "Santali",
+      "expected_script": "OL",
+      "answers": [
+        "ᱨᱟᱵᱤ ᱠᱟᱞ ᱜᱷᱟᱨ ᱟᱭᱮᱜᱼᱟ",
+        "ᱱᱚᱢᱚᱥᱠᱟᱨ"
+      ],
+      "scripts_seen": [
+        "OL",
+        "OL"
+      ],
+      "ok": true
+    },
+    {
+      "language": "sd",
+      "name": "Sindhi (Devanagari)",
+      "expected_script": "DEVANAGARI",
+      "answers": [
+        "रवी कल घर ईंदो आहे",
+        "नमस्कार"
+      ],
+      "scripts_seen": [
+        "DEVANAGARI",
+        "DEVANAGARI"
+      ],
+      "ok": true
+    },
+    {
+      "language": "sd-Arab",
+      "name": "Sindhi (Perso-Arabic)",
+      "expected_script": "ARABIC",
+      "answers": [
+        "رَوِ ڪل گهر آئيگا",
+        "نمستڪار"
+      ],
+      "scripts_seen": [
+        "ARABIC",
+        "ARABIC"
+      ],
+      "ok": true
+    },
+    {
+      "language": "ta",
+      "name": "Tamil",
+      "expected_script": "TAMIL",
+      "answers": [
+        "ரவி கல் கர் ஆயேகா",
+        "நமஸ்கார்"
+      ],
+      "scripts_seen": [
+        "TAMIL",
+        "TAMIL"
+      ],
+      "ok": true
+    },
+    {
+      "language": "te",
+      "name": "Telugu",
+      "expected_script": "TELUGU",
+      "answers": [
+        "రవి కల్ ఘర్ ఆయేగా",
+        "నమస్కార్"
+      ],
+      "scripts_seen": [
+        "TELUGU",
+        "TELUGU"
+      ],
+      "ok": true
+    },
+    {
+      "language": "ur",
+      "name": "Urdu",
+      "expected_script": "ARABIC",
+      "answers": [
+        "رَوی کل گھر آئے گا",
+        "نمستے"
+      ],
+      "scripts_seen": [
+        "ARABIC",
+        "ARABIC"
+      ],
+      "ok": true
+    }
+  ],
+  "native_to_roman": [
+    {
+      "language": "hi",
+      "native": "आप कैसे हैं",
+      "instructed": "Aap kaise hain",
+      "instructed_latin": true,
+      "bare": "आप कैसे हैं",
+      "bare_unchanged": true
+    },
+    {
+      "language": "gu",
+      "native": "તમે કેમ છો",
+      "instructed": "Tame kem chho",
+      "instructed_latin": true,
+      "bare": "आप कैसे हैं",
+      "bare_unchanged": false
+    },
+    {
+      "language": "bn",
+      "native": "আমি ভালো আছি",
+      "instructed": "Ami bhalo achi.",
+      "instructed_latin": true,
+      "bare": "I am fine",
+      "bare_unchanged": false
+    },
+    {
+      "language": "ta",
+      "native": "நான் நாளை வருவேன்",
+      "instructed": "Naan naalai varuven",
+      "instructed_latin": true,
+      "bare": "నేను రేపు వస్తాను",
+      "bare_unchanged": false
+    }
+  ]
+}

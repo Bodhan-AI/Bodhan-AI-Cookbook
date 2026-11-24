@@ -99,6 +99,16 @@
   "route": "chat-bare",
   "text": "வணக்கம் எப்படி இருக்கீங்க"
  },
+ "instructed|as|namaskar": {
+  "latency_ms": 395.7,
+  "route": "instructed",
+  "text": "নমস্কাৰ"
+ },
+ "instructed|as|ravi kal ghar aayega": {
+  "latency_ms": 586.3,
+  "route": "instructed",
+  "text": "ৰবি কল ঘৰ আয়েগা"
+ },
  "instructed|bn|aaj": {
   "latency_ms": 212.3,
   "route": "chat",
@@ -214,6 +224,16 @@
   "route": "chat",
   "text": "নাম"
  },
+ "instructed|bn|namaskar": {
+  "latency_ms": 323.5,
+  "route": "instructed",
+  "text": "নমস্কার"
+ },
+ "instructed|bn|ravi kal ghar aayega": {
+  "latency_ms": 614.1,
+  "route": "instructed",
+  "text": "রবি কাল ঘর আয়েগা"
+ },
  "instructed|bn|tomar": {
   "latency_ms": 602.6,
   "route": "chat",
@@ -253,6 +273,26 @@
   "latency_ms": 353.7,
   "route": "chat",
   "text": "তুমি কোথায় যাচ্ছো"
+ },
+ "instructed|brx|namaskar": {
+  "latency_ms": 180.5,
+  "route": "instructed",
+  "text": "नमस्कार"
+ },
+ "instructed|brx|ravi kal ghar aayega": {
+  "latency_ms": 395.2,
+  "route": "instructed",
+  "text": "रवि कल घर आयगा"
+ },
+ "instructed|doi|namaskar": {
+  "latency_ms": 213.0,
+  "route": "instructed",
+  "text": "नमस्कार"
+ },
+ "instructed|doi|ravi kal ghar aayega": {
+  "latency_ms": 196.5,
+  "route": "instructed",
+  "text": "रवि कल घर आऐगा"
  },
  "instructed|gu|aaje": {
   "latency_ms": 314.7,
@@ -354,6 +394,11 @@
   "route": "chat",
   "text": "નામ"
  },
+ "instructed|gu|namaskar": {
+  "latency_ms": 276.2,
+  "route": "instructed",
+  "text": "નમસ્કાર"
+ },
  "instructed|gu|number": {
   "latency_ms": 497.0,
   "route": "chat",
@@ -373,6 +418,11 @@
   "latency_ms": 475.4,
   "route": "chat",
   "text": "રવિ"
+ },
+ "instructed|gu|ravi kal ghar aayega": {
+  "latency_ms": 533.9,
+  "route": "instructed",
+  "text": "રવિ કલ ઘર આવશે"
  },
  "instructed|gu|shu": {
   "latency_ms": 562.8,
@@ -589,6 +639,11 @@
   "route": "chat",
   "text": "मुझे 2 दिन की छुट्टी चाहिए"
  },
+ "instructed|hi|namaskar": {
+  "latency_ms": 236.2,
+  "route": "instructed",
+  "text": "नमस्कार"
+ },
  "instructed|hi|pe": {
   "latency_ms": 282.4,
   "route": "chat",
@@ -604,6 +659,11 @@
   "route": "chat",
   "text": "रहा"
  },
+ "instructed|hi|ravi kal ghar aayega": {
+  "latency_ms": 276.2,
+  "route": "instructed",
+  "text": "रवि कल घर आएगा"
+ },
  "instructed|hi|time": {
   "latency_ms": 482.6,
   "route": "chat",
@@ -613,6 +673,166 @@
   "latency_ms": 251.4,
   "route": "chat",
   "text": "तुम"
+ },
+ "instructed|kn|namaskar": {
+  "latency_ms": 207.6,
+  "route": "instructed",
+  "text": "ನಮಸ್ಕಾರ"
+ },
+ "instructed|kn|ravi kal ghar aayega": {
+  "latency_ms": 239.7,
+  "route": "instructed",
+  "text": "ರವಿ ಕಲ್ ಘರ್ ಆಯೇಗಾ"
+ },
+ "instructed|kok|namaskar": {
+  "latency_ms": 314.2,
+  "route": "instructed",
+  "text": "नमस्कार"
+ },
+ "instructed|kok|ravi kal ghar aayega": {
+  "latency_ms": 215.2,
+  "route": "instructed",
+  "text": "रवि कल घर आयगे"
+ },
+ "instructed|ks-Deva|namaskar": {
+  "latency_ms": 308.6,
+  "route": "instructed",
+  "text": "नमस्कार"
+ },
+ "instructed|ks-Deva|ravi kal ghar aayega": {
+  "latency_ms": 201.3,
+  "route": "instructed",
+  "text": "ravi kal ghar ayega"
+ },
+ "instructed|ks|namaskar": {
+  "latency_ms": 270.6,
+  "route": "instructed",
+  "text": "نمسکار"
+ },
+ "instructed|ks|ravi kal ghar aayega": {
+  "latency_ms": 491.1,
+  "route": "instructed",
+  "text": "رَوی کَل گھر آیہِ گا"
+ },
+ "instructed|mai|namaskar": {
+  "latency_ms": 661.2,
+  "route": "instructed",
+  "text": "नमस्कार"
+ },
+ "instructed|mai|ravi kal ghar aayega": {
+  "latency_ms": 287.2,
+  "route": "instructed",
+  "text": "रवि कल घर आएग"
+ },
+ "instructed|ml|namaskar": {
+  "latency_ms": 323.3,
+  "route": "instructed",
+  "text": "നമസ്കാരം"
+ },
+ "instructed|ml|ravi kal ghar aayega": {
+  "latency_ms": 427.8,
+  "route": "instructed",
+  "text": "രവി കൽ ഘർ ആയെഗാ"
+ },
+ "instructed|mni-Beng|namaskar": {
+  "latency_ms": 223.3,
+  "route": "instructed",
+  "text": "নমস্কার"
+ },
+ "instructed|mni-Beng|ravi kal ghar aayega": {
+  "latency_ms": 205.5,
+  "route": "instructed",
+  "text": "রবি কল ঘর আয়েগা"
+ },
+ "instructed|mni|namaskar": {
+  "latency_ms": 245.7,
+  "route": "instructed",
+  "text": "ꯅꯃꯁꯥꯀꯔ"
+ },
+ "instructed|mni|ravi kal ghar aayega": {
+  "latency_ms": 329.9,
+  "route": "instructed",
+  "text": "ꯔꯥꯕꯤ ꯀꯜ ꯘꯔ ꯑꯥꯌꯦꯒꯥ"
+ },
+ "instructed|mr|namaskar": {
+  "latency_ms": 172.4,
+  "route": "instructed",
+  "text": "नमस्कार"
+ },
+ "instructed|mr|ravi kal ghar aayega": {
+  "latency_ms": 311.1,
+  "route": "instructed",
+  "text": "रवी कल घर आयेगा"
+ },
+ "instructed|ne|namaskar": {
+  "latency_ms": 495.7,
+  "route": "instructed",
+  "text": "नमस्कार"
+ },
+ "instructed|ne|ravi kal ghar aayega": {
+  "latency_ms": 621.1,
+  "route": "instructed",
+  "text": "रवि कल घर आउनेछ"
+ },
+ "instructed|or|namaskar": {
+  "latency_ms": 201.0,
+  "route": "instructed",
+  "text": "ନମସ୍କାର"
+ },
+ "instructed|or|ravi kal ghar aayega": {
+  "latency_ms": 264.2,
+  "route": "instructed",
+  "text": "ରବି କଲ୍ ଘର ଆୟେଗା"
+ },
+ "instructed|pa|namaskar": {
+  "latency_ms": 1357.0,
+  "route": "instructed",
+  "text": "ਨਮਸਕਾਰ"
+ },
+ "instructed|pa|ravi kal ghar aayega": {
+  "latency_ms": 274.9,
+  "route": "instructed",
+  "text": "ਰਵੀ ਕੱਲ੍ਹ ਘਰ ਆਏਗਾ"
+ },
+ "instructed|sat|namaskar": {
+  "latency_ms": 192.7,
+  "route": "instructed",
+  "text": "ᱱᱚᱢᱚᱥᱠᱟᱨ"
+ },
+ "instructed|sat|ravi kal ghar aayega": {
+  "latency_ms": 512.7,
+  "route": "instructed",
+  "text": "ᱨᱟᱵᱤ ᱠᱟᱞ ᱜᱷᱟᱨ ᱟᱭᱮᱜᱼᱟ"
+ },
+ "instructed|sa|namaskar": {
+  "latency_ms": 269.3,
+  "route": "instructed",
+  "text": "नमस्कार"
+ },
+ "instructed|sa|ravi kal ghar aayega": {
+  "latency_ms": 227.8,
+  "route": "instructed",
+  "text": "रवि कल घर आयेगा"
+ },
+ "instructed|sd-Arab|namaskar": {
+  "latency_ms": 201.6,
+  "route": "instructed",
+  "text": "نمستڪار"
+ },
+ "instructed|sd-Arab|ravi kal ghar aayega": {
+  "latency_ms": 353.7,
+  "route": "instructed",
+  "text": "رَوِ ڪل گهر آئيگا"
+ },
+ "instructed|sd|namaskar": {
+  "latency_ms": 250.3,
+  "route": "instructed",
+  "text": "नमस्कार"
+ },
+ "instructed|sd|ravi kal ghar aayega": {
+  "latency_ms": 328.5,
+  "route": "instructed",
+  "text": "रवी कल घर ईंदो आहे"
  },
  "instructed|ta|amma": {
   "latency_ms": 259.1,
@@ -709,10 +929,20 @@
   "route": "chat",
   "text": "நான் வீட்ல இருக்கேன்"
  },
+ "instructed|ta|namaskar": {
+  "latency_ms": 429.9,
+  "route": "instructed",
+  "text": "நமஸ்கார்"
+ },
  "instructed|ta|pasikkuthu": {
   "latency_ms": 14261.7,
   "route": "chat",
   "text": "பசிக்கிறது"
+ },
+ "instructed|ta|ravi kal ghar aayega": {
+  "latency_ms": 182.6,
+  "route": "instructed",
+  "text": "ரவி கல் கர் ஆயேகா"
  },
  "instructed|ta|romba": {
   "latency_ms": 718.6,
@@ -753,5 +983,65 @@
   "latency_ms": 873.6,
   "route": "chat",
   "text": "வீட்டில்"
+ },
+ "instructed|te|namaskar": {
+  "latency_ms": 218.3,
+  "route": "instructed",
+  "text": "నమస్కార్"
+ },
+ "instructed|te|ravi kal ghar aayega": {
+  "latency_ms": 274.8,
+  "route": "instructed",
+  "text": "రవి కల్ ఘర్ ఆయేగా"
+ },
+ "instructed|ur|namaskar": {
+  "latency_ms": 312.9,
+  "route": "instructed",
+  "text": "نمستے"
+ },
+ "instructed|ur|ravi kal ghar aayega": {
+  "latency_ms": 656.8,
+  "route": "instructed",
+  "text": "رَوی کل گھر آئے گا"
+ },
+ "roman-bare|bn|আমি ভালো আছি": {
+  "latency_ms": 306.1,
+  "route": "roman-bare",
+  "text": "I am fine"
+ },
+ "roman-bare|gu|તમે કેમ છો": {
+  "latency_ms": 323.5,
+  "route": "roman-bare",
+  "text": "आप कैसे हैं"
+ },
+ "roman-bare|hi|आप कैसे हैं": {
+  "latency_ms": 329.2,
+  "route": "roman-bare",
+  "text": "आप कैसे हैं"
+ },
+ "roman-bare|ta|நான் நாளை வருவேன்": {
+  "latency_ms": 395.4,
+  "route": "roman-bare",
+  "text": "నేను రేపు వస్తాను"
+ },
+ "roman-instructed|bn|আমি ভালো আছি": {
+  "latency_ms": 794.2,
+  "route": "roman-instructed",
+  "text": "Ami bhalo achi."
+ },
+ "roman-instructed|gu|તમે કેમ છો": {
+  "latency_ms": 318.8,
+  "route": "roman-instructed",
+  "text": "Tame kem chho"
+ },
+ "roman-instructed|hi|आप कैसे हैं": {
+  "latency_ms": 307.9,
+  "route": "roman-instructed",
+  "text": "Aap kaise hain"
+ },
+ "roman-instructed|ta|நான் நாளை வருவேன்": {
+  "latency_ms": 401.5,
+  "route": "roman-instructed",
+  "text": "Naan naalai varuven"
  }
 }

@@ -10,7 +10,7 @@ so the Bodhan key stays on the server and never reaches the browser.
 
 The server spends your API quota, so it only answers its own page: requests must carry a
 local Host header (blocks DNS rebinding), JSON content type (forces a CORS preflight,
-which is never granted) and no cross-site Origin.
+which is never granted) and no cross-site Origin. It only ever binds to 127.0.0.1.
 """
 
 from __future__ import annotations
@@ -35,7 +35,7 @@ from converter import Converter, TooManyWords  # noqa: E402
 MAX_CHARS = 500          # one chat message, not a document
 MAX_BODY = 8 * 1024
 MODES = {"word", "draft", "sentence"}
-LOCAL_HOSTS = {"127.0.0.1", "localhost", "[::1]"}
+LOCAL_HOSTS = {"127.0.0.1", "localhost"}
 INDEX = (HERE / "static" / "index.html").read_bytes()
 
 log = logging.getLogger("roman_input_box")
@@ -161,10 +161,12 @@ def main() -> int:
         return 1
     host = os.environ.get("HOST", "127.0.0.1")
     port = int(os.environ.get("PORT", "8000"))
-    if host not in {"127.0.0.1", "localhost", "::1"}:
-        print(f"Warning: HOST={host} would expose your Bodhan key to the network; local requests only are answered.",
-              file=sys.stderr)
-    print(f"Roman-script input box on http://127.0.0.1:{port}  (Ctrl+C to stop)")
+    if host not in {"127.0.0.1", "localhost"}:
+        # The Host/Origin checks stop browsers, not scripts: on a network address anyone
+        # could spend this key with curl. Serving others needs your own authenticated backend.
+        print(f"Setup problem: HOST={host} is not supported; this demo serves 127.0.0.1 only.", file=sys.stderr)
+        return 1
+    print(f"Roman-script input box on http://{host}:{port}  (Ctrl+C to stop)")
     try:
         ThreadingHTTPServer((host, port), Handler).serve_forever()
     except KeyboardInterrupt:

@@ -57,6 +57,32 @@ def tokenize(text: str) -> list[tuple[str, bool]]:
     return out
 
 
+def tokenize_native(text: str) -> list[tuple[str, bool]]:
+    """For native → roman: words are runs of non-space characters, with punctuation at
+    either end split off so it is kept (``नमस्ते,`` → ``नमस्ते`` + ``,``)."""
+    out: list[tuple[str, bool]] = []
+    for chunk in re.split(r"(\s+)", text):
+        if not chunk:
+            continue
+        if chunk.isspace():
+            out.append((chunk, False))
+            continue
+        start, end = 0, len(chunk)
+        while start < end and unicodedata.category(chunk[start]).startswith("P"):
+            start += 1
+        while end > start and unicodedata.category(chunk[end - 1]).startswith("P"):
+            end -= 1
+        for piece, is_word in ((chunk[:start], False), (chunk[start:end], True), (chunk[end:], False)):
+            if piece:
+                out.append((piece, is_word))
+    return out
+
+
+def word_key(word: str) -> str:
+    """Cache/API form of a typed word: lower case, except acronyms ("US" is not "us")."""
+    return word if len(word) > 1 and word.isupper() else word.lower()
+
+
 def strip_punct(word: str) -> str:
     """Drop punctuation the model adds around a word (e.g. a final danda: है।)."""
     return "".join(ch for ch in word if not unicodedata.category(ch).startswith("P"))
@@ -115,9 +141,11 @@ class Converter:
         answer = strip_punct(answer).strip()
         if not answer:
             return
-        if script == "native" and (len(answer.split()) != 1 or not in_script(answer, language)):
-            return
-        self.cache.put((language, script, roman.lower()), answer)
+        if script == "native":
+            # Letters and vowel signs only: no digits ("5पीएम"), no spaces, right script.
+            if any(unicodedata.category(ch)[0] not in "LM" for ch in answer) or not in_script(answer, language):
+                return
+        self.cache.put((language, script, word_key(roman)), answer)
 
     def sentence(self, text: str, language: str, script: str = "native") -> Conversion:
         r = self.client.transliterate(text, language, script)
@@ -127,12 +155,15 @@ class Converter:
         return Conversion(r.text, "sentence", r.latency_ms, calls=calls, truncated=r.truncated)
 
     def _seed_cache(self, roman: str, native: str, language: str) -> None:
-        """Pair input words with answer words when the counts line up. Punctuation in the
-        input is ignored, and each pair still has to pass ``_remember``'s checks. Words
-        learnt in context beat words asked one at a time (see the eval)."""
-        words = [p for p, is_word in tokenize(roman) if is_word]
+        """Pair input words with answer words when the counts line up. Only when every
+        space-separated input token is a plain word (punctuation at its edges allowed), so
+        "5pm" or "e-mail" never misalign the pairs; each pair still has to pass
+        ``_remember``'s checks. Words learnt in context beat words asked one at a time."""
+        words = [strip_punct(t) for t in roman.split()]
+        if not words or not all(WORD.fullmatch(w) for w in words):
+            return
         out = [w for w in (strip_punct(t) for t in native.split()) if w]
-        if words and len(words) == len(out):
+        if len(words) == len(out):
             for w, n in zip(words, out, strict=True):
                 self._remember(language, "native", w, n)
 
@@ -140,8 +171,8 @@ class Converter:
         """Convert word by word. With ``cache_only``, unknown words stay in roman and no
         API call is made (the app's typing draft)."""
         started = time.perf_counter()
-        pieces = tokenize(text) if script == "native" else [(p, bool(p.strip())) for p in re.split(r"(\s+)", text) if p]
-        missing = sorted({p.lower() for p, is_word in pieces if is_word and self.cache.get((language, script, p.lower())) is None})
+        pieces = tokenize(text) if script == "native" else tokenize_native(text)
+        missing = sorted({word_key(p) for p, is_word in pieces if is_word and self.cache.get((language, script, word_key(p))) is None})
         todo = [] if cache_only else missing
         if len(todo) > MAX_NEW_WORDS:
             raise TooManyWords(f"{len(todo)} new words; word mode converts at most {MAX_NEW_WORDS} per message")
@@ -166,7 +197,7 @@ class Converter:
             if not is_word:
                 out.append(piece)
                 continue
-            key = piece.lower()
+            key = word_key(piece)
             # Prefer the cache (validated); fall back to this call's raw answer, then roman.
             native = self.cache.get((language, script, key)) or strip_punct(answers.get(key, "")).strip() or piece
             if key not in missing:

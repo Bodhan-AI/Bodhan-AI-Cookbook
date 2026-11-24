@@ -3,20 +3,26 @@
     "dev": {
       "word": {
         "mean_cer": 0.056,
+        "word_accuracy": 0.858,
         "exact_match": "6/12",
-        "median_latency_ms": 566,
+        "p50_latency_ms": 566,
+        "p95_latency_ms": 11269,
         "calls": 45
       },
       "sentence": {
         "mean_cer": 0.0,
+        "word_accuracy": 1.0,
         "exact_match": "12/12",
-        "median_latency_ms": 285,
+        "p50_latency_ms": 285,
+        "p95_latency_ms": 1350,
         "calls": 12
       },
       "bare": {
         "mean_cer": 0.352,
+        "word_accuracy": 0.61,
         "exact_match": "6/12",
-        "median_latency_ms": 368,
+        "p50_latency_ms": 368,
+        "p95_latency_ms": 2044,
         "calls": 12
       },
       "sentence_stability": {
@@ -28,20 +34,26 @@
     "heldout": {
       "word": {
         "mean_cer": 0.046,
+        "word_accuracy": 0.86,
         "exact_match": "5/8",
-        "median_latency_ms": 800,
+        "p50_latency_ms": 800,
+        "p95_latency_ms": 19929,
         "calls": 31
       },
       "sentence": {
         "mean_cer": 0.007,
+        "word_accuracy": 0.938,
         "exact_match": "7/8",
-        "median_latency_ms": 489,
+        "p50_latency_ms": 489,
+        "p95_latency_ms": 1977,
         "calls": 8
       },
       "bare": {
         "mean_cer": 0.289,
+        "word_accuracy": 0.583,
         "exact_match": "3/8",
-        "median_latency_ms": 357,
+        "p50_latency_ms": 357,
+        "p95_latency_ms": 653,
         "calls": 8
       },
       "sentence_stability": {
@@ -53,20 +65,26 @@
     "all": {
       "word": {
         "mean_cer": 0.052,
+        "word_accuracy": 0.859,
         "exact_match": "11/20",
-        "median_latency_ms": 680,
+        "p50_latency_ms": 680,
+        "p95_latency_ms": 14990,
         "calls": 76
       },
       "sentence": {
         "mean_cer": 0.003,
+        "word_accuracy": 0.975,
         "exact_match": "19/20",
-        "median_latency_ms": 327,
+        "p50_latency_ms": 327,
+        "p95_latency_ms": 2018,
         "calls": 20
       },
       "bare": {
         "mean_cer": 0.327,
+        "word_accuracy": 0.599,
         "exact_match": "9/20",
-        "median_latency_ms": 357,
+        "p50_latency_ms": 357,
+        "p95_latency_ms": 1636,
         "calls": 20
       },
       "sentence_stability": {
@@ -74,6 +92,18 @@
         "samples_per_sentence": 3,
         "mean_worst_sample_cer": 0.003
       }
+    },
+    "hybrid": {
+      "draft_words_shown_in_script": "5/76",
+      "draft_words_correct": "5/5",
+      "per_language": {
+        "bn": "1/17",
+        "gu": "2/20",
+        "hi": "1/25",
+        "ta": "1/14"
+      },
+      "sent_text": "identical to sentence mode",
+      "calls_per_message": 1
     }
   },
   "rows": [
@@ -90,15 +120,16 @@
         "calls": 7,
         "latency_ms": 3412.8,
         "per_word": {
+          "aana": "आना",
+          "hai": "है",
           "kal": "कल",
           "meeting": "मीटिंग",
-          "hai": "है",
-          "please": "कृपया",
-          "time": "समय",
           "pe": "पे",
-          "aana": "आना"
+          "please": "कृपया",
+          "time": "समय"
         },
         "cer": 0.3,
+        "word_accuracy": 0.714,
         "exact": false
       },
       "sentence": {
@@ -113,6 +144,7 @@
         "stable": true,
         "worst_sample_cer": 0.0,
         "cer": 0.0,
+        "word_accuracy": 1.0,
         "exact": true
       },
       "bare": {
@@ -120,8 +152,10 @@
         "calls": 1,
         "latency_ms": 234.4,
         "cer": 0.333,
+        "word_accuracy": 0.571,
         "exact": false
-      }
+      },
+      "hybrid_draft": "kal meeting hai please time pe aana"
     },
     {
       "split": "dev",
@@ -136,13 +170,14 @@
         "calls": 5,
         "latency_ms": 256.4,
         "per_word": {
-          "main": "मैं",
           "ghar": "घर",
+          "hoon": "हूँ",
           "ja": "जा",
-          "raha": "रहा",
-          "hoon": "हूँ"
+          "main": "मैं",
+          "raha": "रहा"
         },
         "cer": 0.0,
+        "word_accuracy": 1.0,
         "exact": true
       },
       "sentence": {
@@ -157,6 +192,7 @@
         "stable": true,
         "worst_sample_cer": 0.0,
         "cer": 0.0,
+        "word_accuracy": 1.0,
         "exact": true
       },
       "bare": {
@@ -164,8 +200,10 @@
         "calls": 1,
         "latency_ms": 389.5,
         "cer": 0.0,
+        "word_accuracy": 1.0,
         "exact": true
-      }
+      },
+      "hybrid_draft": "main ghar ja raha hoon"
     },
     {
       "split": "dev",
@@ -180,10 +218,11 @@
         "latency_ms": 401.4,
         "per_word": {
           "aap": "आप",
-          "kaise": "कैसे",
-          "hain": "हैं"
+          "hain": "हैं",
+          "kaise": "कैसे"
         },
         "cer": 0.0,
+        "word_accuracy": 1.0,
         "exact": true
       },
       "sentence": {
@@ -198,6 +237,7 @@
         "stable": true,
         "worst_sample_cer": 0.0,
         "cer": 0.0,
+        "word_accuracy": 1.0,
         "exact": true
       },
       "bare": {
@@ -205,8 +245,10 @@
         "calls": 1,
         "latency_ms": 394.6,
         "cer": 0.0,
+        "word_accuracy": 1.0,
         "exact": true
-      }
+      },
+      "hybrid_draft": "aap kaise hain"
     },
     {
       "split": "dev",
@@ -220,11 +262,12 @@
         "calls": 3,
         "latency_ms": 246.8,
         "per_word": {
-          "tame": "તમે",
+          "cho": "ચો",
           "kem": "કેમ",
-          "cho": "ચો"
+          "tame": "તમે"
         },
         "cer": 0.1,
+        "word_accuracy": 0.667,
         "exact": false
       },
       "sentence": {
@@ -239,6 +282,7 @@
         "stable": true,
         "worst_sample_cer": 0.0,
         "cer": 0.0,
+        "word_accuracy": 1.0,
         "exact": true
       },
       "bare": {
@@ -246,8 +290,10 @@
         "calls": 1,
         "latency_ms": 307.3,
         "cer": 1.2,
+        "word_accuracy": 0.0,
         "exact": false
-      }
+      },
+      "hybrid_draft": "tame kem cho"
     },
     {
       "split": "dev",
@@ -262,12 +308,13 @@
         "calls": 4,
         "latency_ms": 536.6,
         "per_word": {
+          "aavish": "આવિશ",
           "hu": "હું",
           "kale": "કાલે",
-          "office": "ઓફિસ",
-          "aavish": "આવિશ"
+          "office": "ઓફિસ"
         },
         "cer": 0.056,
+        "word_accuracy": 0.75,
         "exact": false
       },
       "sentence": {
@@ -282,6 +329,7 @@
         "stable": true,
         "worst_sample_cer": 0.0,
         "cer": 0.0,
+        "word_accuracy": 1.0,
         "exact": true
       },
       "bare": {
@@ -289,8 +337,10 @@
         "calls": 1,
         "latency_ms": 289.0,
         "cer": 0.889,
+        "word_accuracy": 0.0,
         "exact": false
-      }
+      },
+      "hybrid_draft": "hu kale office aavish"
     },
     {
       "split": "dev",
@@ -305,12 +355,13 @@
         "calls": 4,
         "latency_ms": 595.5,
         "per_word": {
+          "che": "ચે",
           "maru": "મારું",
           "naam": "નામ",
-          "ravi": "રવિ",
-          "che": "ચે"
+          "ravi": "રવિ"
         },
         "cer": 0.062,
+        "word_accuracy": 0.75,
         "exact": false
       },
       "sentence": {
@@ -325,6 +376,7 @@
         "stable": true,
         "worst_sample_cer": 0.0,
         "cer": 0.0,
+        "word_accuracy": 1.0,
         "exact": true
       },
       "bare": {
@@ -332,8 +384,10 @@
         "calls": 1,
         "latency_ms": 272.1,
         "cer": 1.188,
+        "word_accuracy": 0.0,
         "exact": false
-      }
+      },
+      "hybrid_draft": "maru naam ravi che"
     },
     {
       "split": "dev",
@@ -348,11 +402,12 @@
         "calls": 3,
         "latency_ms": 8821.1,
         "per_word": {
+          "achi": "আছি",
           "ami": "আমি",
-          "bhalo": "ভালো",
-          "achi": "আছি"
+          "bhalo": "ভালো"
         },
         "cer": 0.0,
+        "word_accuracy": 1.0,
         "exact": true
       },
       "sentence": {
@@ -367,6 +422,7 @@
         "stable": true,
         "worst_sample_cer": 0.0,
         "cer": 0.0,
+        "word_accuracy": 1.0,
         "exact": true
       },
       "bare": {
@@ -374,8 +430,10 @@
         "calls": 1,
         "latency_ms": 1585.5,
         "cer": 0.0,
+        "word_accuracy": 1.0,
         "exact": true
-      }
+      },
+      "hybrid_draft": "ami bhalo achi"
     },
     {
       "split": "dev",
@@ -390,11 +448,12 @@
         "calls": 3,
         "latency_ms": 498.3,
         "per_word": {
-          "tumi": "তুমি",
+          "jaccho": "যাচ্ছো",
           "kothay": "কোথায়",
-          "jaccho": "যাচ্ছো"
+          "tumi": "তুমি"
         },
         "cer": 0.0,
+        "word_accuracy": 1.0,
         "exact": true
       },
       "sentence": {
@@ -409,6 +468,7 @@
         "stable": true,
         "worst_sample_cer": 0.0,
         "cer": 0.0,
+        "word_accuracy": 1.0,
         "exact": true
       },
       "bare": {
@@ -416,8 +476,10 @@
         "calls": 1,
         "latency_ms": 407.4,
         "cer": 0.5,
+        "word_accuracy": 0.0,
         "exact": false
-      }
+      },
+      "hybrid_draft": "tumi kothay jaccho"
     },
     {
       "split": "dev",
@@ -432,11 +494,12 @@
         "latency_ms": 708.5,
         "per_word": {
           "aaj": "আজ",
+          "ache": "আচে",
           "amar": "আমার",
-          "meeting": "মিটিং",
-          "ache": "আচে"
+          "meeting": "মিটিং"
         },
         "cer": 0.059,
+        "word_accuracy": 0.75,
         "exact": false
       },
       "sentence": {
@@ -451,6 +514,7 @@
         "stable": true,
         "worst_sample_cer": 0.0,
         "cer": 0.0,
+        "word_accuracy": 1.0,
         "exact": true
       },
       "bare": {
@@ -458,8 +522,10 @@
         "calls": 1,
         "latency_ms": 248.1,
         "cer": 0.118,
+        "word_accuracy": 0.75,
         "exact": false
-      }
+      },
+      "hybrid_draft": "aaj amar meeting ache"
     },
     {
       "split": "dev",
@@ -473,11 +539,12 @@
         "calls": 3,
         "latency_ms": 650.6,
         "per_word": {
-          "vanakkam": "வணக்கம்",
           "eppadi": "எப்படி",
-          "irukkeenga": "இருக்கீங்க"
+          "irukkeenga": "இருக்கீங்க",
+          "vanakkam": "வணக்கம்"
         },
         "cer": 0.0,
+        "word_accuracy": 1.0,
         "exact": true
       },
       "sentence": {
@@ -492,6 +559,7 @@
         "stable": true,
         "worst_sample_cer": 0.0,
         "cer": 0.0,
+        "word_accuracy": 1.0,
         "exact": true
       },
       "bare": {
@@ -499,8 +567,10 @@
         "calls": 1,
         "latency_ms": 1088.6,
         "cer": 0.0,
+        "word_accuracy": 1.0,
         "exact": true
-      }
+      },
+      "hybrid_draft": "vanakkam eppadi irukkeenga"
     },
     {
       "split": "dev",
@@ -514,11 +584,12 @@
         "calls": 3,
         "latency_ms": 418.1,
         "per_word": {
-          "naan": "நான்",
           "naalai": "நாளை",
+          "naan": "நான்",
           "varuven": "வருவேன்"
         },
         "cer": 0.0,
+        "word_accuracy": 1.0,
         "exact": true
       },
       "sentence": {
@@ -533,6 +604,7 @@
         "stable": true,
         "worst_sample_cer": 0.0,
         "cer": 0.0,
+        "word_accuracy": 1.0,
         "exact": true
       },
       "bare": {
@@ -540,8 +612,10 @@
         "calls": 1,
         "latency_ms": 2603.7,
         "cer": 0.0,
+        "word_accuracy": 1.0,
         "exact": true
-      }
+      },
+      "hybrid_draft": "naan naalai varuven"
     },
     {
       "split": "dev",
@@ -556,10 +630,11 @@
         "latency_ms": 14261.7,
         "per_word": {
           "enakku": "எனக்கு",
-          "romba": "ரொம்ப",
-          "pasikkuthu": "பசிக்கிறது"
+          "pasikkuthu": "பசிக்கிறது",
+          "romba": "ரொம்ப"
         },
         "cer": 0.091,
+        "word_accuracy": 0.667,
         "exact": false
       },
       "sentence": {
@@ -574,6 +649,7 @@
         "stable": true,
         "worst_sample_cer": 0.0,
         "cer": 0.0,
+        "word_accuracy": 1.0,
         "exact": true
       },
       "bare": {
@@ -581,8 +657,10 @@
         "calls": 1,
         "latency_ms": 346.9,
         "cer": 0.0,
+        "word_accuracy": 1.0,
         "exact": true
-      }
+      },
+      "hybrid_draft": "enakku romba pasikkuthu"
     },
     {
       "split": "heldout",
@@ -597,13 +675,14 @@
         "calls": 5,
         "latency_ms": 3412.8,
         "per_word": {
-          "kya": "क्या",
-          "tum": "तुम",
-          "kal": "कल",
           "free": "फ्री",
-          "ho": "हो"
+          "ho": "हो",
+          "kal": "कल",
+          "kya": "क्या",
+          "tum": "तुम"
         },
         "cer": 0.0,
+        "word_accuracy": 1.0,
         "exact": true
       },
       "sentence": {
@@ -618,6 +697,7 @@
         "stable": true,
         "worst_sample_cer": 0.0,
         "cer": 0.0,
+        "word_accuracy": 1.0,
         "exact": true
       },
       "bare": {
@@ -625,8 +705,10 @@
         "calls": 1,
         "latency_ms": 547.9,
         "cer": 1.0,
+        "word_accuracy": 0.0,
         "exact": false
-      }
+      },
+      "hybrid_draft": "kya tum कल free ho?"
     },
     {
       "split": "heldout",
@@ -640,13 +722,14 @@
         "calls": 5,
         "latency_ms": 28822.8,
         "per_word": {
-          "mujhe": "मुझे",
+          "chahiye": "चाहिए",
+          "chutti": "छुट्टी",
           "din": "दिन",
           "ki": "की",
-          "chutti": "छुट्टी",
-          "chahiye": "चाहिए"
+          "mujhe": "मुझे"
         },
         "cer": 0.0,
+        "word_accuracy": 1.0,
         "exact": true
       },
       "sentence": {
@@ -661,6 +744,7 @@
         "stable": true,
         "worst_sample_cer": 0.0,
         "cer": 0.0,
+        "word_accuracy": 1.0,
         "exact": true
       },
       "bare": {
@@ -668,8 +752,10 @@
         "calls": 1,
         "latency_ms": 709.7,
         "cer": 0.077,
+        "word_accuracy": 0.833,
         "exact": false
-      }
+      },
+      "hybrid_draft": "mujhe 2 din ki chutti chahiye"
     },
     {
       "split": "heldout",
@@ -685,10 +771,11 @@
         "per_word": {
           "aaje": "આજે",
           "bahu": "બહુ",
-          "garmi": "ગરમી",
-          "che": "ચે"
+          "che": "ચે",
+          "garmi": "ગરમી"
         },
         "cer": 0.067,
+        "word_accuracy": 0.75,
         "exact": false
       },
       "sentence": {
@@ -703,6 +790,7 @@
         "stable": true,
         "worst_sample_cer": 0.0,
         "cer": 0.0,
+        "word_accuracy": 1.0,
         "exact": true
       },
       "bare": {
@@ -710,8 +798,10 @@
         "calls": 1,
         "latency_ms": 231.7,
         "cer": 0.933,
+        "word_accuracy": 0.0,
         "exact": false
-      }
+      },
+      "hybrid_draft": "aaje bahu garmi છે"
     },
     {
       "split": "heldout",
@@ -726,13 +816,14 @@
         "calls": 5,
         "latency_ms": 723.2,
         "per_word": {
-          "tamaro": "તમારો",
-          "phone": "ફોન",
+          "che": "ચે",
           "number": "નંબર",
+          "phone": "ફોન",
           "shu": "શું",
-          "che": "ચે"
+          "tamaro": "તમારો"
         },
         "cer": 0.048,
+        "word_accuracy": 0.8,
         "exact": false
       },
       "sentence": {
@@ -747,6 +838,7 @@
         "stable": true,
         "worst_sample_cer": 0.0,
         "cer": 0.0,
+        "word_accuracy": 1.0,
         "exact": true
       },
       "bare": {
@@ -754,8 +846,10 @@
         "calls": 1,
         "latency_ms": 362.0,
         "cer": 0.0,
+        "word_accuracy": 1.0,
         "exact": true
-      }
+      },
+      "hybrid_draft": "tamaro phone number shu છે?"
     },
     {
       "split": "heldout",
@@ -773,11 +867,12 @@
         "latency_ms": 1694.1,
         "per_word": {
           "ami": "আমি",
-          "kal": "কাল",
           "dilli": "দিল্লি",
-          "jabo": "যাবো"
+          "jabo": "যাবো",
+          "kal": "কাল"
         },
         "cer": 0.0,
+        "word_accuracy": 1.0,
         "exact": true
       },
       "sentence": {
@@ -792,6 +887,7 @@
         "stable": true,
         "worst_sample_cer": 0.0,
         "cer": 0.0,
+        "word_accuracy": 1.0,
         "exact": true
       },
       "bare": {
@@ -799,8 +895,10 @@
         "calls": 1,
         "latency_ms": 402.3,
         "cer": 0.0,
+        "word_accuracy": 1.0,
         "exact": true
-      }
+      },
+      "hybrid_draft": "আমি kal dilli jabo"
     },
     {
       "split": "heldout",
@@ -815,11 +913,12 @@
         "calls": 3,
         "latency_ms": 727.0,
         "per_word": {
-          "tomar": "তোমার",
+          "ki": "কি",
           "naam": "নাম",
-          "ki": "কি"
+          "tomar": "তোমার"
         },
         "cer": 0.0,
+        "word_accuracy": 1.0,
         "exact": true
       },
       "sentence": {
@@ -834,6 +933,7 @@
         "stable": true,
         "worst_sample_cer": 0.0,
         "cer": 0.0,
+        "word_accuracy": 1.0,
         "exact": true
       },
       "bare": {
@@ -841,8 +941,10 @@
         "calls": 1,
         "latency_ms": 225.9,
         "cer": 0.0,
+        "word_accuracy": 1.0,
         "exact": true
-      }
+      },
+      "hybrid_draft": "tomar naam ki?"
     },
     {
       "split": "heldout",
@@ -860,6 +962,7 @@
           "saapittiya": "சாப்பிட்டியா"
         },
         "cer": 0.0,
+        "word_accuracy": 1.0,
         "exact": true
       },
       "sentence": {
@@ -874,6 +977,7 @@
         "stable": true,
         "worst_sample_cer": 0.056,
         "cer": 0.056,
+        "word_accuracy": 0.5,
         "exact": false
       },
       "bare": {
@@ -881,8 +985,10 @@
         "calls": 1,
         "latency_ms": 345.0,
         "cer": 0.056,
+        "word_accuracy": 0.5,
         "exact": false
-      }
+      },
+      "hybrid_draft": "amma saapittiya?"
     },
     {
       "split": "heldout",
@@ -896,11 +1002,12 @@
         "calls": 3,
         "latency_ms": 873.6,
         "per_word": {
+          "irukken": "இருக்கும்",
           "naan": "நான்",
-          "veetla": "வீட்டில்",
-          "irukken": "இருக்கும்"
+          "veetla": "வீட்டில்"
         },
         "cer": 0.25,
+        "word_accuracy": 0.333,
         "exact": false
       },
       "sentence": {
@@ -915,6 +1022,7 @@
         "stable": true,
         "worst_sample_cer": 0.0,
         "cer": 0.0,
+        "word_accuracy": 1.0,
         "exact": true
       },
       "bare": {
@@ -922,8 +1030,10 @@
         "calls": 1,
         "latency_ms": 352.3,
         "cer": 0.25,
+        "word_accuracy": 0.333,
         "exact": false
-      }
+      },
+      "hybrid_draft": "நான் veetla irukken"
     }
   ]
 }

@@ -6,7 +6,7 @@ Makes a few small, real calls and saves what came back (status, response headers
 raw body, latency) to outputs/probe.json. It answers three questions:
 
   a/b. Which route serves indic-transliterate on this key: the documented
-       POST /transliterate, or POST /v1/chat/completions (the fallback PR #39 uses)?
+       POST /transliterate, or POST /v1/chat/completions (the fallback first used in PR #39, government scheme summariser)?
   c.   Is the key itself fine? A known-good route (indic-speak) separates
        "bad key" (401/403) from "missing route" (404).
   d.   Does the working route handle a few more Hindi, Gujarati and Bengali sentences?
@@ -72,7 +72,7 @@ def call(label: str, path: str, body: dict) -> dict:
 
 
 def transliterate_body(route: str, text: str, language: str) -> tuple[str, dict]:
-    """The same request on either route. The chat layout copies PR #39's fallback."""
+    """The same request on either route. The chat-route body is the one PR #39 uses for its fallback."""
     if route == "plain":
         return "/transliterate", {"text": text, "language": language, "script": "native"}
     return "/v1/chat/completions", {

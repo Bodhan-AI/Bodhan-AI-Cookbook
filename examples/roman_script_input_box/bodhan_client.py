@@ -19,6 +19,7 @@ The default is ``chat``. Switch to ``auto`` or ``plain`` once ``/transliterate``
 
 from __future__ import annotations
 
+import math
 import os
 import queue
 import threading
@@ -110,7 +111,8 @@ def parse_retry_after(value: str | None) -> float | None:
     if not value:
         return None
     try:
-        return max(float(value), 0.0)
+        seconds = float(value)
+        return max(seconds, 0.0) if math.isfinite(seconds) else None
     except ValueError:
         pass
     try:
@@ -189,7 +191,8 @@ class Client:
 
     def raw_chat(self, content: str, **extra) -> Result:
         """One chat-route call with the user turn sent as-is, plus any extra body fields.
-        Used by the eval to reproduce how earlier recipes called the route."""
+        The eval uses it to send the request without an instruction (the shape PR #39 first
+        showed ignores `language`), to measure what the instruction adds."""
         started = time.perf_counter()
         resp = self._post("/v1/chat/completions", {"model": MODEL, "messages": [{"role": "user", "content": content}], **extra})
         if not resp.ok:
@@ -213,11 +216,16 @@ class Client:
                     self.route = "chat"
             elif resp.ok:
                 body = resp.json()
-                return Result(str(body.get("transliteration") or "").strip(), _ms(started), "plain", bool(body.get("truncated")))
+                out = str(body.get("transliteration") or "").strip()
+                if not out:
+                    raise BodhanError(502, "empty_answer", "the API returned an empty answer")
+                return Result(out, _ms(started), "plain", bool(body.get("truncated")))
             else:
                 raise parse_error(resp)
 
         r = self.raw_chat(chat_instruction(text, language, script))
+        if not r.text:
+            raise BodhanError(502, "empty_answer", "the API returned an empty answer")
         return Result(r.text, _ms(started), "chat", r.truncated)
 
 

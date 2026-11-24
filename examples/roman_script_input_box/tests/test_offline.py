@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import http.client
 import json
+import os
+import subprocess
 import sys
 import threading
 import unittest
@@ -22,7 +24,7 @@ from compare_modes import cer, normalize  # noqa: E402
 import app  # noqa: E402
 import bodhan_client  # noqa: E402
 from bodhan_client import BodhanError, Client, Result, chat_instruction, parse_chat, parse_error, parse_retry_after  # noqa: E402
-from converter import MAX_NEW_WORDS, Converter, TooManyWords, in_script, strip_punct, tokenize  # noqa: E402
+from converter import MAX_NEW_WORDS, Converter, TooManyWords, in_script, strip_punct, tokenize, tokenize_native, word_key  # noqa: E402
 
 
 class FakeClient(Client):
@@ -208,6 +210,49 @@ class SentenceSeeding(unittest.TestCase):
         conv.sentence("a b", "hi")               # 2 words in, 1 out
         self.assertEqual(conv.convert("tame kem", "gu", "draft").text, "tame kem")
         self.assertEqual(conv.convert("a", "hi", "draft").text, "a")
+
+
+class ReviewRegressions(unittest.TestCase):
+    """Bugs found in review; each test fails on the code before its fix."""
+
+    def test_digits_never_enter_the_cache(self):
+        fake = FakeClient({"meeting at 5pm": "मीटिंग एट 5पीएम"})
+        conv = Converter(fake)
+        conv.sentence("meeting at 5pm", "hi")                 # "5pm" is not a plain word: no seeding
+        self.assertEqual(conv.convert("5pm", "hi", "draft").text, "5pm")
+        conv._remember("hi", "native", "pm", "5पीएम")          # and a digit answer is refused anyway
+        self.assertEqual(conv.convert("pm", "hi", "draft").text, "pm")
+
+    def test_native_to_roman_word_mode_keeps_punctuation(self):
+        self.assertEqual("".join(p for p, _ in tokenize_native("नमस्ते, दोस्त!")), "नमस्ते, दोस्त!")
+        fake = FakeClient({"नमस्ते": "namaste", "दोस्त": "dost"})
+        self.assertEqual(Converter(fake).word("नमस्ते, दोस्त!", "hi", "roman").text, "namaste, dost!")
+
+    def test_acronyms_keep_their_case(self):
+        self.assertEqual((word_key("US"), word_key("us"), word_key("Kal"), word_key("I")), ("US", "us", "kal", "i"))
+        fake = FakeClient({"us": "उस", "US": "यूएस"})
+        conv = Converter(fake)
+        self.assertEqual(conv.word("us US", "hi").text, "उस यूएस")
+
+    def test_nan_retry_after_is_ignored(self):
+        self.assertIsNone(parse_retry_after("nan"))
+        self.assertIsNone(parse_retry_after("inf"))
+
+    def test_empty_answer_is_an_error(self):
+        client = Client(api_key="test-key", route="chat")
+        session = mock.Mock()
+        session.post.return_value = FakeResponse(200, {"choices": [{"finish_reason": "stop", "message": {"content": None}}]})
+        client._sessions = bodhan_client.queue.LifoQueue()
+        client._sessions.put(session)
+        with self.assertRaises(BodhanError) as ctx:
+            client.transliterate("kal", "hi")
+        self.assertEqual(ctx.exception.code, "empty_answer")
+
+    def test_server_refuses_a_network_host(self):
+        env = {**os.environ, "BODHAN_API_KEY": "test-key", "HOST": "0.0.0.0", "PORT": "0"}
+        run = subprocess.run([sys.executable, str(RECIPE / "app.py")], env=env, capture_output=True, text=True, timeout=20)
+        self.assertEqual(run.returncode, 1)
+        self.assertIn("127.0.0.1 only", run.stderr)
 
 
 # ---- app.py HTTP server ------------------------------------------------------------

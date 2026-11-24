@@ -8,14 +8,14 @@
 <style>
   :root {
     --bg: #efeae2; --panel: #f0f2f5; --header: #075e54; --header-text: #fff;
-    --mine: #d9fdd3; --text: #111b21; --muted: #667781; --input: #fff;
-    --accent: #00a884; --border: #d1d7db; --warn: #b3261e;
+    --mine: #d9fdd3; --text: #111b21; --muted: #54656f; --input: #fff;   /* muted: ≥ 5:1 on every light background */
+    --accent: #00a884; --border: #d1d7db; --warn: #b3261e; --accent-text: #00664f;
   }
   @media (prefers-color-scheme: dark) {
     :root {
       --bg: #0b141a; --panel: #202c33; --header: #202c33; --header-text: #e9edef;
       --mine: #005c4b; --text: #e9edef; --muted: #8696a0; --input: #2a3942;
-      --accent: #00a884; --border: #2a3942; --warn: #f2b8b5;
+      --accent: #00a884; --border: #2a3942; --warn: #f2b8b5; --accent-text: #b8f0e0;
     }
   }
   * { box-sizing: border-box; }
@@ -31,11 +31,12 @@
     padding: 10px 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
   }
   header h1 { font-size: 16px; margin: 0; flex: 1; min-width: 160px; }
-  header label { font-size: 13px; display: flex; gap: 6px; align-items: center; }
+  .field { font-size: 13px; display: flex; gap: 6px; align-items: center; flex: 1 1 150px; min-width: 0; }
   select {
-    font: inherit; font-size: 13px; padding: 4px 6px; border-radius: 6px;
+    font: inherit; font-size: 13px; padding: 4px 6px; border-radius: 6px; min-width: 0; max-width: 100%; flex: 1;
     border: 1px solid var(--border); background: var(--input); color: var(--text);
   }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   #chat { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 6px; }
   .empty { color: var(--muted); text-align: center; margin: auto; max-width: 420px; }
   .empty code { background: var(--panel); padding: 1px 4px; border-radius: 4px; }
@@ -58,26 +59,30 @@
   .row { display: flex; gap: 8px; }
   #box {
     flex: 1; font: inherit; font-size: 16px; padding: 10px 14px; border-radius: 22px;
-    border: none; outline: none; background: var(--input); color: var(--text); min-width: 0;
+    border: none; background: var(--input); color: var(--text); min-width: 0;
   }
   #send {
     width: 44px; height: 44px; border-radius: 50%; border: none; background: var(--accent);
     color: #fff; font-size: 18px; cursor: pointer; flex: none;
   }
   #send:disabled { opacity: .5; cursor: default; }
+  .copy {
+    font: inherit; font-size: 12px; padding: 0; border: none; background: none;
+    color: var(--accent-text); cursor: pointer; text-decoration: underline;
+  }
 </style>
 </head>
 <body>
 <header>
   <h1>Roman-script input box</h1>
-  <label>Language <select id="lang"></select></label>
-  <label>Mode
+  <div class="field"><label for="lang">Language</label> <select id="lang"></select></div>
+  <div class="field"><label for="mode">Mode</label>
     <select id="mode">
       <option value="hybrid" selected>Hybrid (1 call per pause)</option>
       <option value="word">Word by word (1 call per new word)</option>
       <option value="sentence">Whole sentence (1 call per pause)</option>
     </select>
-  </label>
+  </div>
 </header>
 
 <main id="chat">
@@ -88,7 +93,7 @@
 </main>
 
 <footer>
-  <div id="preview" aria-live="polite"></div>
+  <div id="preview" aria-live="polite" aria-label="Preview in native script"></div>
   <div id="status"></div>
   <form class="row" id="form">
     <input id="box" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="500"
@@ -103,7 +108,8 @@
   const box = $("box"), preview = $("preview"), status = $("status"), chat = $("chat");
   const langSel = $("lang"), modeSel = $("mode"), sendBtn = $("send");
   const PAUSE_MS = 700;           // how long a pause triggers the whole-sentence pass
-  const tested = ["hi", "gu", "bn", "ta"];
+  const tested = ["hi", "gu", "bn", "ta"];       // full eval: eval/compare_modes.py
+  const failed = ["ks-Deva"];                     // failed the script check: eval/language_matrix.py
 
   let pauseTimer = null;
   let shown = { key: "", rank: 0 };   // what the preview shows: (language, text) and 1 = draft, 2 = sentence
@@ -197,9 +203,13 @@
     let native = null;
     try {
       const result = modeSel.value === "word" ? await api(roman, lang, "word") : await sentence(roman, lang);
+      // Never send a half message: an empty or cut-off answer is an error, not a result.
+      if (!result.text) throw new Error("Bodhan returned an empty answer. Try again.");
+      if (result.truncated) throw new Error("The answer was cut off. Shorten the message and try again.");
       native = result.text;
     } catch (e) {
-      fail(null, lang, e);   // keep the text in the box so nothing is lost
+      sentences.delete(key(lang, roman));   // don't reuse a bad answer on the next try
+      fail(null, lang, e);                  // keep the text in the box so nothing is lost
     }
     sendBtn.disabled = false;
     if (!native) return;
@@ -220,7 +230,17 @@
     b.className = "bubble";
     const n = document.createElement("div"); n.className = "native"; n.textContent = native;
     const m = document.createElement("div"); m.className = "meta";
-    m.textContent = `${roman} · ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+    m.textContent = `${roman} · ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · `;
+    // Copy the native text, e.g. to paste into WhatsApp.
+    const copy = document.createElement("button");
+    copy.type = "button"; copy.className = "copy"; copy.textContent = "Copy";
+    copy.setAttribute("aria-label", `Copy: ${native}`);
+    copy.addEventListener("click", async () => {
+      try { await navigator.clipboard.writeText(native); copy.textContent = "Copied"; }
+      catch { copy.textContent = "Copy failed"; }
+      setTimeout(() => { copy.textContent = "Copy"; }, 1500);
+    });
+    m.append(copy);
     b.append(n, m);
     chat.append(b);
     chat.scrollTop = chat.scrollHeight;
@@ -235,7 +255,8 @@
       tested.includes(b) - tested.includes(a) || languages[a].localeCompare(languages[b]));
     for (const code of codes) {
       const o = document.createElement("option");
-      o.value = code; o.textContent = languages[code] + (tested.includes(code) ? "" : " (untested)");
+      o.value = code;
+      o.textContent = languages[code] + (tested.includes(code) ? "" : failed.includes(code) ? " (script check failed)" : " (script check only)");
       langSel.append(o);
     }
     langSel.value = "hi";
