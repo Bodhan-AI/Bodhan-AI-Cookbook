@@ -134,6 +134,11 @@ No run missed a quality target (`quality_targets_missed` is empty in every repor
 The self-evaluation suite (`scripts/eval_suite.py`, 8 demo + 9 edge-case tasks with explicit pass/fail checks) is described in the PR description.
 
 
+## Demo video
+
+<!-- TODO(author): replace with the public link (5 minutes or less; several tasks end to end, including the impossible one) -->
+VIDEO_LINK_PLACEHOLDER
+
 ## Tests
 
 ```bash
