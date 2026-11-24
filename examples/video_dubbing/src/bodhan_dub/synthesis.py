@@ -271,7 +271,7 @@ def inspect_translations(path,codes,voices):
         raise MediaError('invalid_speech_input','Expected complete labelled translation results.') from exc
 
 
-def synthesize_run(jobs,out,client):
+def synthesize_run(jobs,out,client,on_piece=None):
     out=Path(out)
     report={'status':'synthesizing','languages':{},'content_verified':False,'fit_to_timeline':False,'dubbing_complete':False,
             'limitations':['Generated audio and durations only; back-transcription QA, final source alignment, fitting and loudness normalization remain separate stages.']}
@@ -306,6 +306,8 @@ def synthesize_run(jobs,out,client):
                     row.update(status='synthesized',result={**result,'audio_path':str(target)})
             entry=report['languages'][job['language']];entry['units'].append(row)
             atomic_json(out/'synthesis_report.json',report)
+            if on_piece is not None:
+                on_piece(job['language'], row)
     order={(j['language'],j['id']):i for i,j in enumerate(jobs)}
     for lang,entry in report['languages'].items():
         entry['units'].sort(key=lambda u:order[(lang,u['id'])])

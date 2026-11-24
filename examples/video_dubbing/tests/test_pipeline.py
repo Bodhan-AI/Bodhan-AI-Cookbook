@@ -22,6 +22,23 @@ from bodhan_dub.synthesis import SpeechClient
 
 @pytest.mark.parametrize('failed_language,garbled_source,source_conflict',[(None,False,False),('bn',False,False),(None,True,False),(None,False,True)])
 def test_required_command_runs_all_stages_without_live_network(tmp_path,monkeypatch,failed_language,garbled_source,source_conflict):
+    from threading import Event
+    verification_started = Event()
+    original_verify = p.qa.verify
+    original_synthesize = p.tts.synthesize_run
+
+    def observe_verification(*args, **kwargs):
+        verification_started.set()
+        return original_verify(*args, **kwargs)
+
+    def observe_synthesis(*args, **kwargs):
+        result = original_synthesize(*args, **kwargs)
+        if kwargs.get('on_piece') and result['status'] == 'synthesized':
+            assert verification_started.wait(10), 'Ready groups should enter verification during synthesis'
+        return result
+
+    monkeypatch.setattr(p.qa, 'verify', observe_verification)
+    monkeypatch.setattr(p.tts, 'synthesize_run', observe_synthesis)
     ffmpeg=shutil.which('ffmpeg')
     if not ffmpeg:pytest.skip('ffmpeg required')
     monkeypatch.setattr('urllib.request.OpenerDirector.open',lambda *_a,**_k:pytest.fail('No real network'))
@@ -107,3 +124,10 @@ def test_budget_reserves_before_operation_and_keeps_uncertain_charge(tmp_path):
     assert not calls
     with pytest.raises(OSError):p.stage_call(budget,'uncertain','.4',lambda:(_ for _ in ()).throw(OSError()),lambda _:0)
     assert str(budget.spent)=='0.4'
+
+
+def test_short_phrases_share_requests_and_long_phrases_stay_whole():
+    text = 'एक। दो। तीन चार पाँच छह सात। अंत।'
+    pieces = list(p.speech_pieces(text, target_characters=10))
+    assert pieces == ['एक। दो। ', 'तीन चार पाँच छह सात। ', 'अंत।']
+    assert ''.join(pieces) == text

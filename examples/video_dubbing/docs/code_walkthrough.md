@@ -1534,3 +1534,18 @@ this changed the verification request count from 62 to 28.
 A source transcription transport failure can now receive one replacement in
 the same run within the original three-attempt budget. Both attempts count
 toward estimated spend. A later process still respects an uncertain journal.
+
+### Overlapping synthesis with verification and local fitting
+
+The initial speech planner combines neighboring complete phrases from one
+translated unit up to a target of 180 characters. A longer phrase stays whole.
+For the saved three-language input this plans 76 speech requests across the
+three languages, down from 162. This measures request count only.
+
+As each speech piece is saved, a callback records its parent unit. Once all
+pieces succeed, a background worker assembles the unit, tries fitting it in
+its original slot and verifies the audio. Synthesis can continue into the next
+unit or language. Group verification uses one shared recognition client and
+the same budget as synthesis. After synthesis finishes, the final fitter
+reuses successful local placements after checking the audio hash and timing.
+Any borrowing or paid shortening still runs in the bounded recovery stage.

@@ -253,7 +253,7 @@ def saved_fit_candidate(item, previous, resume_path, rounds):
             'reused_fit_candidate':str(report_path)}
 
 
-def run_fit(run,out,env_file,budget_limit=Decimal('10'),max_rounds=3,repair=None,ffmpeg=None,*,resume_manifest=None,provider_cache=None):
+def run_fit(run,out,env_file,budget_limit=Decimal('10'),max_rounds=3,repair=None,ffmpeg=None,*,resume_manifest=None,provider_cache=None,early_fits=None):
     if type(max_rounds) is not int or not 1<=max_rounds<=3:
         raise MediaError('invalid_fit_rounds','Use at most three bounded content-recovery rounds.')
     run=Path(run).resolve();out=Path(out).resolve();out.mkdir(parents=True,exist_ok=True);ffmpeg=ffmpeg or tool_path('ffmpeg')
@@ -315,7 +315,11 @@ def run_fit(run,out,env_file,budget_limit=Decimal('10'),max_rounds=3,repair=None
                 continue
             if prior and prior.get('proposal_error'):
                 item['proposal_error']=prior['proposal_error']
-            solution,reason=local_attempt(item,timing,out/'local'/lang/ident/'base',ffmpeg)
+            early = (early_fits or {}).get((lang, ident))
+            if early and pcm_read(early['audio_path'])[1]['sha256'] == info['sha256'] and early['timing'] == timing:
+                solution, reason = {**early, **item}, None
+            else:
+                solution,reason=local_attempt(item,timing,out/'local'/lang/ident/'base',ffmpeg)
             relaxed=borrowed_timing(timing,index,timeline['units'],timeline['protected_gaps'],timeline['duration_seconds'])
             if solution is None:solution,reason=local_attempt(item,relaxed,out/'local'/lang/ident/'borrowed',ffmpeg)
             if solution:manifest['languages'][lang]['units'].append(solution)

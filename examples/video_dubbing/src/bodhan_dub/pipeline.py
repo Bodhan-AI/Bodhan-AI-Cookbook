@@ -1,4 +1,5 @@
 """One-command orchestration; all native language generation stays with Bodhan."""
+from concurrent.futures import ThreadPoolExecutor
 from decimal import Decimal
 import json
 from pathlib import Path
@@ -11,7 +12,7 @@ from .boundaries import BoundarySettings, prepare_boundaries
 from .configuration import voice_configuration, glossary_configuration
 from .corrections import correct
 from .fit_grouping import connected_groups
-from .fit_recovery import Budget, run_fit
+from .fit_recovery import Budget, local_attempt, run_fit
 from .fit_validation import validate_fit_manifest
 from .media import MediaError, describe, extract_audio, inspect_video, tool_path
 from .render import render_saved, validate_languages
@@ -58,6 +59,18 @@ def deterministic_draft(windows):
     return result
 
 
+def speech_pieces(text, target_characters=180):
+    """Pack neighboring complete phrases up to a short synthesis target."""
+    pending = ''
+    for phrase in complete_phrases(text):
+        if pending and len(pending) + len(phrase) > target_characters:
+            yield pending
+            pending = ''
+        pending += phrase
+    if pending:
+        yield pending
+
+
 def speech_jobs(report, voices):
     jobs=[];parents=[]
     for lang,data in report['languages'].items():
@@ -65,7 +78,7 @@ def speech_jobs(report, voices):
         for unit in data.get('units',[]):
             if unit['status']!='translated':continue
             children=[];voice=voices.get(lang,tts.DEFAULT_VOICES[lang])
-            for index,text in enumerate(complete_phrases(unit['translation']),1):
+            for index,text in enumerate(speech_pieces(unit['translation']),1):
                 child=unit['id']+f'-part-{index:02d}';children.append(child)
                 jobs.append({'id':child,'text':text,'voice':voice,'language':lang,'source_window_envelope':unit['source_window_envelope']})
             parents.append({'id':unit['id'],'text':unit['translation'],'children':children,'voice':voice,
@@ -174,8 +187,47 @@ def run_pipeline(args):
             jobs,parents=speech_jobs({**translated, 'languages': eligible},voices)
             if not jobs:raise MediaError('no_usable_translation','No language produced usable translated text.')
             speech=tts.SpeechClient(keys[2],cache/'speech',ffmpeg,tts.SpeechSettings(attempts=3,workers=2),budget=budget)
-            generated=tts.synthesize_run(jobs,run/'parts',speech)
-            assembled=assemble(parents,generated,run/'synthesis');save('speech_generation')
+            timeline = source_timeline(grouped['units'], corrected['source_windows'], detector)
+            timings = {unit['id']: unit for unit in timeline['units']}
+            recognizer = asr.TranscriptionClient(keys[0], cache/'asr',
+                asr.RetrySettings(attempts=1, concurrency=2), allowed_languages=set(eligible))
+            ready = {}
+            children = {}
+            futures = []
+            for parent in parents['parents']:
+                key = (parent['language'], parent['id'])
+                ready[key] = []
+                for child in parent['children']:
+                    children[parent['language'], child] = parent
+
+            def check_group(parent, pieces):
+                lang, ident = parent['language'], parent['id']
+                folder = run/'groups'/lang/ident
+                assembled_group = assemble({'parents': [parent]},
+                    {'languages': {lang: {'units': pieces}}}, folder)
+                unit = assembled_group['languages'][lang]['units'][0]
+                audio = unit['result']['audio_path']
+                fitted, _ = local_attempt({'audio_path': audio}, timings[ident],
+                    out/'_fit/local'/lang/ident/'base', ffmpeg)
+                rows = qa.inspect_synthesis(folder/'synthesis_report.json')
+                requests = qa.prepare(rows, folder/'verification', ffmpeg)
+                amount = Decimal(qa.estimate(rows)['one_attempt_cost_inr']) + Decimal('.00001')
+                checked = stage_call(budget, 'speech_verification', amount,
+                    lambda: qa.verify(rows, requests, folder/'verification', recognizer, amount, workers=2),
+                    lambda result: result['estimated_new_cost_inr'])
+                return lang, ident, checked, fitted
+
+            with ThreadPoolExecutor(max_workers=1) as verification_pool:
+                def piece_finished(lang, row):
+                    parent = children[lang, row['id']]
+                    pieces = ready[lang, parent['id']]
+                    pieces.append(row)
+                    if len(pieces) == len(parent['children']) and all(piece['status'] == 'synthesized' for piece in pieces):
+                        futures.append(verification_pool.submit(check_group, parent, pieces))
+
+                generated = tts.synthesize_run(jobs, run/'parts', speech, on_piece=piece_finished)
+                assembled=assemble(parents,generated,run/'synthesis')
+                save('speech_generation')
             usable=[]
             for lang in langs:
                 data=assembled['languages'].get(lang,{})
@@ -183,21 +235,30 @@ def run_pipeline(args):
                 elif lang in eligible:report['languages'][lang]={'status':'failed','reason':'Synthesis incomplete; see stage journals.'}
             if not usable:raise MediaError('no_complete_language','No language has complete source coverage; no incomplete video was finalized.')
             assembled['languages']={l:assembled['languages'][l] for l in usable};atomic_json(run/'synthesis/synthesis_report.json',assembled)
-            # Verify the assembled narration once per unit. The verifier still
-            # splits long audio into bounded overlapping recognition windows.
-            qa_rows = qa.inspect_synthesis(run/'synthesis/synthesis_report.json')
-            verification_dir = run/'verification'
-            requests = qa.prepare(qa_rows, verification_dir, ffmpeg)
-            amount = Decimal(qa.estimate(qa_rows)['one_attempt_cost_inr']) + Decimal('.00001')
-            recognizer = asr.TranscriptionClient(keys[0], cache/'asr',
-                asr.RetrySettings(attempts=1, concurrency=2), allowed_languages=set(usable))
-            stage_call(budget, 'speech_verification', amount,
-                lambda: qa.verify(qa_rows, requests, verification_dir, recognizer, amount, workers=2),
-                lambda result: result['estimated_new_cost_inr'])
+            early_fits = {}
+            checks = {'languages': {}, 'requests': []}
+            planned_cost = Decimal(0)
+            for future in futures:
+                lang, ident, checked, fitted = future.result()
+                if lang in usable:
+                    planned_cost += Decimal(checked['planned_cost_inr'])
+                    checks['languages'].setdefault(lang, {'units': []})['units'].extend(checked['languages'][lang]['units'])
+                    checks['requests'].extend(checked['requests'])
+                    if fitted:
+                        early_fits[lang, ident] = fitted
+            order = {unit['id']: i for i, unit in enumerate(grouped['units'])}
+            for data in checks['languages'].values():
+                data['units'].sort(key=lambda unit: order[unit['id']])
+            checks['content_check_complete'] = all(r['status'] == 'transcribed' for r in checks['requests'])
+            checks['completed_requests'] = len(checks['requests'])
+            checks['estimated_new_cost_inr'] = str(sum((Decimal(r['new_estimated_cost_inr']) for r in checks['requests']), Decimal(0)))
+            checks['planned_cost_inr'] = str(planned_cost)
+            checks['status'] = 'pass' if all(unit['status'] == 'pass' for data in checks['languages'].values() for unit in data['units']) else 'needs_recovery'
+            atomic_json(run/'verification/verification_report.json', checks)
             save('content_verification')
             remaining=budget.limit-budget.spent
             if remaining<=0:raise MediaError('fit_budget_exceeded','No allowance remains for fitting recovery.')
-            fitted=run_fit(run,out/'_fit',args.env_file,remaining,ffmpeg=ffmpeg,provider_cache=cache)
+            fitted=run_fit(run,out/'_fit',args.env_file,remaining,ffmpeg=ffmpeg,provider_cache=cache,early_fits=early_fits)
             # Separate fitting ledger is included once in the total budget.
             index=budget.reserve('fit_recovery',fitted['new_estimated_cost_inr']);budget.settle(index,fitted['new_estimated_cost_inr'])
             complete=[l for l,x in fitted['languages'].items() if all(u['status']=='fitted' for u in x['units'])]
