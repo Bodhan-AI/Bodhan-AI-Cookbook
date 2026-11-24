@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "indic-task-agent-mcp"
+version = "0.1.0"
+description = "An MCP server over Bodhan's Indic models plus a task agent that plans, calls the tools, verifies and reports."
+requires-python = ">=3.11"
+readme = "README.md"
+# Exact pins live in requirements.txt (Cookbook rule); these ranges only make `pip install -e .` resolvable.
+dependencies = [
+  "mcp>=1.30,<2",
+  "httpx>=0.28",
+  "openai>=1.50",
+  "python-dotenv>=1.0",
+  "numpy>=1.26",
+  "pypdfium2>=4.30",
+  "pillow>=10.0",
+  "pyyaml>=6.0",
+  "rapidfuzz>=3.0",
+]
+
+[project.scripts]
+bodhan-mcp = "bodhan_mcp.server:main"
+bodhan-agent = "bodhan_agent.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 140
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+markers = ["live: calls the real Bodhan API and LLM; needs keys (skipped otherwise)"]
