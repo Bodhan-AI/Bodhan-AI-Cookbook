@@ -1,0 +1,17 @@
+.env
+outputs/
+outputs/*
+!outputs/.gitkeep
+out/
+out/*
+.bodhan_cache/
+__pycache__/
+*.pyc
+.pytest_cache/
+venv/
+.venv/
+*.egg-info/
+samples/
+samples/*
+
+

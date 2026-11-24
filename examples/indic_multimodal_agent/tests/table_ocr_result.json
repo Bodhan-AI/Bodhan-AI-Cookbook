@@ -1,0 +1,66 @@
+{
+  "id": "indic-ocr-2b7d1dbe6860417a86761b6094f95755",
+  "created": 1794843803,
+  "model": "indic-ocr",
+  "object": "chat.completion",
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "Student Scorecard / \n$$\n\n<table>\n<thead>\n<tr>\n<th>Roll No</th>\n<th>Student Name</th>\n<th>Subject</th>\n<th>Marks</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>101</td>\n<td>Aarav Sharma</td>\n<td>Mathematics</td>\n<td>95</td>\n</tr>\n<tr>\n<td>102</td>\n<td>Priya Patel</td>\n<td>Science</td>\n<td>88</td>\n</tr>\n<tr>\n<td>103</td>\n<td>Rohan Verma</td>\n<td>English</td>\n<td>92</td>\n</tr>\n<tr>\n<td>104</td>\n<td>Ananya Rao</td>\n<td>Social Studies</td>\n<td>85</td>\n</tr>\n</tbody>\n</table>",
+        "role": "assistant",
+        "provider_specific_fields": {
+          "refusal": null
+        }
+      },
+      "provider_specific_fields": {}
+    }
+  ],
+  "usage": {
+    "completion_tokens": 144,
+    "prompt_tokens": 334,
+    "total_tokens": 478
+  },
+  "blocks": [
+    {
+      "order": 0,
+      "label": "Header",
+      "type": "PageHeader",
+      "bbox_xyxy": [
+        246.6,
+        31.0,
+        687.7,
+        56.3
+      ],
+      "conf": 0.69,
+      "text": ""
+    },
+    {
+      "order": 1,
+      "label": "Title",
+      "type": "Title",
+      "bbox_xyxy": [
+        248.2,
+        32.8,
+        685.5,
+        55.2
+      ],
+      "conf": 0.685,
+      "text": "Student Scorecard / \n$$"
+    },
+    {
+      "order": 2,
+      "label": "Table",
+      "type": "Table",
+      "bbox_xyxy": [
+        48.7,
+        79.2,
+        732.4,
+        332.1
+      ],
+      "conf": 0.98,
+      "text": "<table>\n<thead>\n<tr>\n<th>Roll No</th>\n<th>Student Name</th>\n<th>Subject</th>\n<th>Marks</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>101</td>\n<td>Aarav Sharma</td>\n<td>Mathematics</td>\n<td>95</td>\n</tr>\n<tr>\n<td>102</td>\n<td>Priya Patel</td>\n<td>Science</td>\n<td>88</td>\n</tr>\n<tr>\n<td>103</td>\n<td>Rohan Verma</td>\n<td>English</td>\n<td>92</td>\n</tr>\n<tr>\n<td>104</td>\n<td>Ananya Rao</td>\n<td>Social Studies</td>\n<td>85</td>\n</tr>\n</tbody>\n</table>"
+    }
+  ]
+}
