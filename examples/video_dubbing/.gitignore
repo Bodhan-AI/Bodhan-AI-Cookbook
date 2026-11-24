@@ -1,0 +1,22 @@
+# Secrets & env
+.env
+# Media stays out of git — link it from the README instead
+*.mp4
+*.mov
+*.mkv
+*.webm
+*.wav
+# Pipeline outputs
+out/
+demo_out/
+outputs/*
+!outputs/.gitkeep
+.ipynb_checkpoints/
+# Python
+__pycache__/
+*.egg-info/
+.venv/
+.pytest_cache/
+build/
+dist/
+ARCHITECTURE.md

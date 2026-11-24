@@ -1,0 +1,11 @@
+# Pinned runtime dependencies (compile-free; all audio work is delegated to ffmpeg).
+# Install the recipe as a package so `python -m bodhan_dub` resolves:  pip install -e .
+# (that reads these same pins from pyproject.toml). This file mirrors them for the
+# Cookbook validator. Dev/optional extras: pip install -e ".[dev]"
+httpx==0.28.1
+tenacity==9.2.1
+python-dotenv==1.2.4
+numpy==2.5.5
+soundfile==0.14.0
+PyYAML==6.0.4
+imageio-ffmpeg==0.8.1

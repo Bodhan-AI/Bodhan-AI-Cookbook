@@ -1,0 +1,13 @@
+# Optional voice override (--voices voices.example.yaml).
+# Maps each language to its Indic-Speak male/female voice names. Entries here win
+# over the built-in defaults, so you can correct/extend the registry without code
+# changes. Pitch-based speaker labelling (M/F) then picks the matching voice.
+hi:
+  female: Kavya
+  male: Amit
+ta:
+  female: Anitha
+  male: Arun
+# bn:
+#   female: <name>
+#   male: <name>
