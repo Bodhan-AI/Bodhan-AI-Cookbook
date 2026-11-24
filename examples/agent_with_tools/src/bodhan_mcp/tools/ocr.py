@@ -19,7 +19,9 @@ from bodhan_core.cache import ResultCache
 from bodhan_core.client import post
 from bodhan_core.config import section
 from bodhan_core.errors import ToolError, check_input_file
+from bodhan_core.langid import describe
 from bodhan_core.runtime import BACKOFF_S, make_client
+from bodhan_core.textio import inline, save_to
 
 _CFG = section("ocr")
 INR_PER_PAGE = _CFG["inr_per_page"]
@@ -34,20 +36,25 @@ _CACHE: ResultCache[str] = ResultCache()  # page image hash -> markdown, so the 
 
 class OcrPage(BaseModel):
     page: int
-    markdown: str
+    chars: int  # length of that page's Markdown (the text itself is in `markdown` / `markdown_path`)
 
 
 class OcrResult(BaseModel):
     ok: bool
-    markdown: str | None = None  # all pages joined, with a "<!-- page N -->" marker before each when there are several
+    markdown: str | None = None  # all pages joined, with a "<!-- page N -->" marker before each when there are several; only a preview (empty for Indian-language text) when `markdown_is_preview`
+    markdown_is_preview: bool = False  # true: read the whole text from `markdown_path`
+    markdown_path: str | None = None  # file holding the full Markdown (set for long documents or when output_path is given)
     pages: list[OcrPage] = []
     page_count: int = 0  # pages in the document (may exceed len(pages) when a page range was requested)
     cost_inr: float = 0.0
+    detected_language: str | None = None  # from the extracted text's script; null when it has no letters
+    script: str | None = None
+    language_candidates: list[str] = []  # languages sharing that script (Devanagari: hi, mr, ne, ...)
     error: ToolError | None = None
 
 
-def _fail(code: str, message: str, retryable: bool = False) -> OcrResult:
-    return OcrResult(ok=False, error=ToolError(code=code, message=message, retryable=retryable))
+def _fail(code: str, message: str, retryable: bool = False, cost_inr: float = 0.0) -> OcrResult:
+    return OcrResult(ok=False, cost_inr=cost_inr, error=ToolError(code=code, message=message, retryable=retryable))  # cost_inr: pages already billed
 
 
 def _render_pdf(data: bytes, first: int, last: int | None) -> tuple[list[tuple[int, bytes]], int] | ToolError:
@@ -98,6 +105,7 @@ async def ocr_document(
     file_path: str,
     first_page: int = 1,
     last_page: int | None = None,
+    output_path: str | None = None,
     *,
     transport: httpx.AsyncBaseTransport | None = None,
     backoff_s: float = BACKOFF_S,
@@ -127,17 +135,24 @@ async def ocr_document(
         images, total, mime = [(1, data)], 1, _MIME[suffix]
 
     pages: list[OcrPage] = []
+    texts: list[tuple[int, str]] = []
     billed = 0
     async with make_client(transport=transport) as client:
         for number, image in images:
             res = await _ocr_page(client, key, image, mime, backoff_s)
             if isinstance(res, ToolError):
-                return _fail(res.code, f"Page {number} failed ({len(pages)} pages read before it): {res.message}", res.retryable)
-            pages.append(OcrPage(page=number, markdown=res[0]))
+                return _fail(res.code, f"Page {number} failed ({len(pages)} pages read before it): {res.message}", res.retryable, round(billed * INR_PER_PAGE, 6))
+            texts.append((number, res[0]))
+            pages.append(OcrPage(page=number, chars=len(res[0])))
             billed += res[1]
 
-    if len(pages) == 1 and suffix != ".pdf":
-        joined = pages[0].markdown
+    if len(texts) == 1 and suffix != ".pdf":
+        joined = texts[0][1]
     else:
-        joined = "\n\n".join(f"<!-- page {p.page} -->\n{p.markdown}" for p in pages)
-    return OcrResult(ok=True, markdown=joined, pages=pages, page_count=total, cost_inr=round(billed * INR_PER_PAGE, 6))
+        joined = "\n\n".join(f"<!-- page {n} -->\n{t}" for n, t in texts)
+    cost = round(billed * INR_PER_PAGE, 6)
+    saved, werr = save_to(joined, output_path, "ocr", ".md")
+    if werr:
+        return OcrResult(ok=False, error=werr, cost_inr=cost)
+    shown, is_preview = inline(joined)
+    return OcrResult(ok=True, markdown=shown, markdown_is_preview=is_preview, markdown_path=saved, pages=pages, page_count=total, cost_inr=cost, **describe(joined))

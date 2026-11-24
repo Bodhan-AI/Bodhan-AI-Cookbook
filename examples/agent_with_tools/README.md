@@ -1,7 +1,23 @@
 # Bodhan tool server and task agent 
 
-A minimal end-to-end slice: a LangGraph agent calls one Bodhan tool, `translate_text` (the cheapest model),
-over an MCP stdio server, and every run is traced in Langfuse. See `docs/` for the full assignment.
+An MCP server that exposes Bodhan's four Indic models as tools, and a LangGraph task agent that plans, calls them,
+verifies its work and writes a trace. See `docs/` for the assignment, `docs/limits.md` for how model limits are
+handled and `docs/hard-part-review.md` for the design review of the hard parts (granularity, plumbing, recovery, cost, untrusted text).
+
+## Tools
+
+| Tool | Does | Notes |
+|---|---|---|
+| `transcribe_audio` | Indic-Transcribe, any length (audio or video track) | Windows cut at pauses; timed `segments`, `detected_language`, long text by `text_path` |
+| `translate_text` | Indic-Translate, up to 200k chars | `text` or `text_path`; long output by `translation_path`; Markdown tables kept |
+| `speak_text` | Indic-Speak to WAV (AI-generated notice) | `text` or `text_path`; `regenerate=true` retries a bad take |
+| `ocr_document` | Indic-OCR for PNG/JPEG/PDF | Page by page; Markdown by `markdown_path`; `detected_language` |
+| `make_subtitles` | Timed SRT from a transcript, optionally translated | No text through the LLM; timings from the audio |
+| `inspect_media` | Kind, duration, pages, estimated cost (free) | Unsupported types explained |
+| `detect_language`, `read_text_file`, `write_text_file` | Free helpers | Writes confined to the output folder |
+
+Long text moves between tools by file path, never through the LLM's context. The agent ends a run with a local `finish_task`
+(`completed` / `partial` / `impossible` + summary + assumptions), recorded in `report.json` and `result.md`.
 
 ## Setup
 
@@ -12,7 +28,7 @@ pip install -e ".[dev]"
 cp .env.example .env          # then fill in the keys (a .env at the repo root also works)
 ```
 
-`LLM_BASE_URL`, `LLM_API_KEY` and `LLM_MODEL` (e.g. `openai/gpt-oss-20b`) are all read from the environment.
+`LLM_BASE_URL`, `LLM_API_KEY` and `LLM_MODEL` (e.g. `openai/gpt-oss-120b`) are all read from the environment.
 Langfuse tracing turns on automatically when `LANGFUSE_PUBLIC_KEY` and `LANGFUSE_SECRET_KEY` are set.
 
 ## Run
@@ -21,6 +37,7 @@ Langfuse tracing turns on automatically when `LANGFUSE_PUBLIC_KEY` and `LANGFUSE
 python -m bodhan_agent --task "Translate 'Good morning, how are you?' into Hindi" --out ./outputs/run1
 python -m bodhan_agent --task "Read this paragraph aloud in Bengali" --files path/to/inputs/ --out ./out --max-steps 30 --max-cost-inr 20
 python -m bodhan_mcp          # the MCP server on its own (stdio)
+python -m bodhan_mcp --transport http   # optional: streamable HTTP at /mcp, needs BODHAN_MCP_TOKEN (agent: --mcp-url)
 pytest                        # unit tests (no network)
 ```
 
@@ -28,14 +45,18 @@ pytest                        # unit tests (no network)
 
 ```
 CLI -> LangGraph: plan-step (LLM) -> call-tools --MCP stdio--> bodhan_mcp (translate / transcribe / speak / ocr / detect_language / read+write text)
-                      ^                  |
-                      +---- verify <-----+   (no more tool calls)  -> finish
+                    ^  |   ^             |
+                    |  |   +-------------+
+                    |  +--finish_task (alone)--> finish-task -> verify -> finish-completed
+                    +------- repair (once) ---------------------+
+plain-text reply -> nudge "call finish_task" (once) -> plan-step; still none -> verify -> status "partial"
+step budget spent (checked before every LLM call) or cost budget hit -> finish-budget-exhausted
 ```
 
 - **CLI.** `--task` and `--files` (files and/or folders). Files are inventoried (kind, size, WAV duration, PDF pages) and
-  handed to the planner by path; media never enters the LLM context. `read_text_file` / `write_text_file` let the agent
+  handed to the planner by path; media and long text never enter the LLM context (tools pass files by path). `read_text_file` / `write_text_file` let the agent
   read text inputs and write Markdown/SRT outputs; writes are confined to `<out>/artifacts`.
-- **Verification** (`verify.py`, runs when the planner has no more tool calls). Every `speak_text` WAV is back-transcribed
+- **Verification** (`verify.py`, runs after `finish_task`, or after the planner stops calling tools). Every `speak_text` WAV is back-transcribed
   with Indic-Transcribe and compared with the spoken text (catches repeated or omitted content). Every `translate_text`
   result is checked for truncation, line/table-row structure, plausible length and target script. A failure gives the
   planner one repair round; after that the failure is reported honestly. Results go to `report.json` and `result.md`.
@@ -63,4 +84,4 @@ The API documents no numeric input limit, so the tool handles size itself (`src/
 ## Limitations (this iteration)
 
 Verification is heuristic (text similarity, structure) and cannot judge translation quality or voice naturalness. Only the final `plan` text is stored in full; tool results are truncated to 300 characters in the trace.
-The cache is per server process (not on disk). Chunks are translated independently, so cross-sentence context is lost at chunk edges.
+The cache is per server process (not on disk). Subtitle timing is shared out by text length (the API gives no word timestamps). Chunks are translated independently, so cross-sentence context is lost at chunk edges.

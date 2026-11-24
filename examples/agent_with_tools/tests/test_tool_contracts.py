@@ -9,7 +9,7 @@ from bodhan_mcp.tools import ocr as ocr_mod, speak as speak_mod, transcribe as t
 @pytest.mark.asyncio
 async def test_every_tool_is_typed_and_described():
     tools = await server.mcp.list_tools()
-    assert {t.name for t in tools} == {"translate_text", "transcribe_audio", "speak_text", "ocr_document", "detect_language", "read_text_file", "write_text_file"}
+    assert {t.name for t in tools} == {"translate_text", "transcribe_audio", "speak_text", "ocr_document", "make_subtitles", "inspect_media", "detect_language", "read_text_file", "write_text_file"}
     for t in tools:
         assert len(t.description or "") > 80, t.name
         assert t.outputSchema, f"{t.name} has no output schema"

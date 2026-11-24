@@ -16,9 +16,12 @@ from pydantic import BaseModel
 
 from bodhan_core.cache import ResultCache
 from bodhan_core.chunking import split_text
+from bodhan_core.client import retry_delay
 from bodhan_core.config import section
 from bodhan_core.errors import ToolError
+from bodhan_core.langid import describe
 from bodhan_core.runtime import API_SLOTS, BACKOFF_S, base_url, make_client
+from bodhan_core.textio import inline, resolve_text, save_to
 
 _CFG = section("translate")
 _HTTP = section("http")
@@ -46,7 +49,10 @@ _CACHE: ResultCache[tuple[str, int]] = ResultCache()
 
 class TranslateResult(BaseModel):
     ok: bool
-    translation: str | None = None
+    translation: str | None = None  # the full translation, or (English only) its first characters, or empty, when `translation_is_preview`
+    translation_is_preview: bool = False  # true: read the whole translation from `translation_path`
+    translation_path: str | None = None  # file holding the full translation (set for long output or when output_path is given)
+    source_language: str | None = None  # guessed from the input's script (Devanagari may be hi or mr); null if no letters
     target_language: str | None = None
     truncated: bool = False
     chunks: int = 0
@@ -67,8 +73,8 @@ class _Chunk(BaseModel):
     error: ToolError | None = None
 
 
-def _fail(code: str, message: str, retryable: bool = False) -> TranslateResult:
-    return TranslateResult(ok=False, error=ToolError(code=code, message=message, retryable=retryable))
+def _fail(code: str, message: str, retryable: bool = False, cost_inr: float = 0.0) -> TranslateResult:
+    return TranslateResult(ok=False, cost_inr=cost_inr, error=ToolError(code=code, message=message, retryable=retryable))  # cost_inr: chunks already billed
 
 
 async def _post(client: httpx.AsyncClient, url: str, key: str, body: dict, backoff_s: float) -> _Chunk:
@@ -88,7 +94,7 @@ async def _post(client: httpx.AsyncClient, url: str, key: str, body: dict, backo
             if attempt == MAX_ATTEMPTS:
                 return _Chunk(ok=False, error=ToolError(code="upstream_unavailable", retryable=True,
                               message=f"Bodhan returned HTTP {resp.status_code} after {attempt} attempts."))  # fmt: skip
-            await asyncio.sleep(backoff_s * 2 ** (attempt - 1))
+            await asyncio.sleep(retry_delay(resp, attempt, backoff_s))
             continue
 
         data = resp.json() if resp.content else {}
@@ -155,16 +161,20 @@ async def _translate_piece(client, url, key, text, target, script, backoff_s) ->
 
 
 async def translate(
-    text: str,
+    text: str | None,
     target_language: str,
     script: Literal["native", "roman", "codemix"] | None = None,
+    text_path: str | None = None,
+    output_path: str | None = None,
     *,
     transport: httpx.AsyncBaseTransport | None = None,
     backoff_s: float = BACKOFF_S,
     max_chars: int | None = None,
 ) -> TranslateResult:
-    if not text or not text.strip():
-        return _fail("empty_text", "`text` is empty. Provide the text to translate.")
+    resolved = resolve_text(text, text_path)
+    if isinstance(resolved, ToolError):
+        return TranslateResult(ok=False, error=resolved)
+    text = resolved
     if target_language not in TRANSLATE_LANGUAGES:
         return _fail(
             "unsupported_language",
@@ -187,15 +197,23 @@ async def translate(
             res = await _translate_piece(client, f"{base_url()}{ENDPOINT}", key, piece, target_language, script, backoff_s)
             if not res.ok:
                 e = res.error
-                return _fail(e.code, f"Chunk {i} of {len(pieces)} failed ({len(translated)} translated before it): {e.message}", e.retryable)
+                return _fail(e.code, f"Chunk {i} of {len(pieces)} failed ({len(translated)} translated before it): {e.message}", e.retryable, round(tokens * INR_PER_OUTPUT_TOKEN, 6))
             translated.append(res.translation)
             tokens += res.output_tokens
             chunks += res.chunks
             truncated = truncated or res.truncated
 
+    full = "".join(translated)
+    saved, werr = save_to(full, output_path, "translation")
+    if werr:
+        return TranslateResult(ok=False, error=werr, cost_inr=round(tokens * INR_PER_OUTPUT_TOKEN, 6))
+    shown, is_preview = inline(full)
     return TranslateResult(
         ok=True,
-        translation="".join(translated),
+        translation=shown,
+        translation_is_preview=is_preview,
+        translation_path=saved,
+        source_language=describe(text)["detected_language"],
         target_language=target_language,
         truncated=truncated,
         chunks=chunks,

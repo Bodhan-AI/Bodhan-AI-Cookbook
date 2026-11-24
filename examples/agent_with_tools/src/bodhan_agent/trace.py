@@ -33,7 +33,8 @@ class RunRecorder:
         return sorted(p.relative_to(self.out_dir).as_posix() for p in self.artifacts_dir.rglob("*") if p.is_file())
 
     def finish(self, *, status: str, task: str, answer: str, trace_url: str | None, max_steps: int, max_cost_inr: float,
-               verifications: list[dict] | None = None, stop_reason: str = "", llm_turns: int = 0, call_timeout_s: float = 0.0) -> None:
+               verifications: list[dict] | None = None, stop_reason: str = "", llm_turns: int = 0, call_timeout_s: float = 0.0,
+               assumptions: list[str] | None = None, security_flags: list[dict] | None = None) -> None:
         checks = [{k: v for k, v in v.items() if k != "fingerprint"} for v in (verifications or [])]
         failed = [c for c in checks if c["status"] == "failed"]
         unverified = [c for c in checks if c["status"] == "skipped"]
@@ -49,6 +50,8 @@ class RunRecorder:
             "budgets": {"max_steps": max_steps, "max_cost_inr": max_cost_inr, "call_timeout_s": call_timeout_s},
             "verification": checks,
             "verification_summary": {"passed": sum(c["status"] == "passed" for c in checks), "failed": len(failed), "skipped": len(unverified)},
+            "assumptions": assumptions or [],
+            "security_flags": security_flags or [],
             "artifacts": artifacts,
             "langfuse_trace_url": trace_url,
             "notes": ["Cost counts Bodhan tool calls only; LLM token cost is not included."],
@@ -60,6 +63,11 @@ class RunRecorder:
         md = [f"# Result\n\n**Status:** {status}\n\n**Task:** {task}\n\n## Answer\n\n{answer}\n"]
         if artifacts:
             md.append("## Artifacts\n\n" + "\n".join(f"- [{a}]({a})" for a in artifacts) + "\n")
+        if assumptions:
+            md.append("## Assumptions\n\n" + "\n".join(f"- {a}" for a in assumptions) + "\n")
+        if security_flags:
+            md.append("## Security notes\n\nInstruction-like text was found inside input content and treated as data, not followed:\n\n"
+                      + "\n".join(f"- `{f['tool']}`: {'; '.join(f['snippets'])}" for f in security_flags) + "\n")
         if checks:
             lines = [f"- **{c['status']}** · {c['kind']} · {c['subject']}" + (f" — {'; '.join(c['problems'])}" if c["problems"] else "") for c in checks]
             md.append("## Verification\n\n" + "\n".join(lines) + "\n")

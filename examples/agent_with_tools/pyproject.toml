@@ -19,6 +19,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest==9.2.0", "pytest-asyncio==1.5.0"]
+eval = ["deepeval==4.3.4"]
 
 [build-system]
 requires = ["setuptools>=68"]
@@ -30,3 +31,7 @@ where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+markers = [
+  "stub: eval with stubbed Bodhan tools (Rs 0, needs the LLM key)",
+  "live: eval that spends Bodhan credit (needs EVAL_LIVE=1)",
+]

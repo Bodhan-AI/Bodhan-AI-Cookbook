@@ -2,40 +2,11 @@
 
 from __future__ import annotations
 
-import wave
 from pathlib import Path
 
+from bodhan_core.media import details, kind_of
+
 MAX_FILES = 200
-_KINDS = {
-    "audio": {".wav", ".mp3", ".m4a", ".flac", ".ogg", ".opus", ".aac", ".wma"},
-    "video": {".mp4", ".mkv", ".mov", ".avi", ".webm"},
-    "image": {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tif", ".tiff"},
-    "pdf": {".pdf"},
-    "text": {".txt", ".md", ".srt", ".csv", ".json"},
-}
-
-
-def _kind(path: Path) -> str:
-    ext = path.suffix.lower()
-    return next((k for k, exts in _KINDS.items() if ext in exts), "other")
-
-
-def _detail(path: Path, kind: str) -> dict:
-    try:
-        if kind == "audio" and path.suffix.lower() == ".wav":
-            with wave.open(str(path)) as w:
-                return {"duration_s": round(w.getnframes() / w.getframerate(), 1)}
-        if kind == "pdf":
-            import pypdfium2
-
-            pdf = pypdfium2.PdfDocument(str(path))
-            try:
-                return {"pages": len(pdf)}
-            finally:
-                pdf.close()
-    except Exception:  # an unreadable file is reported by the tool that opens it, not here
-        pass
-    return {}
 
 
 def build_inventory(files: list[str] | None) -> list[dict]:
@@ -58,8 +29,8 @@ def build_inventory(files: list[str] | None) -> list[dict]:
 
 
 def _entry(p: Path) -> dict:
-    kind = _kind(p)
-    return {"path": str(p.absolute()), "kind": kind, "size_bytes": p.stat().st_size, **_detail(p, kind)}
+    kind = kind_of(p)
+    return {"path": str(p.absolute()), "kind": kind, "size_bytes": p.stat().st_size, **details(p, kind)}
 
 
 def task_message(task: str, inventory: list[dict], artifacts_dir: Path, max_steps: int, max_cost_inr: float) -> str:

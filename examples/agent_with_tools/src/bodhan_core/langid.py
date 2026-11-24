@@ -65,3 +65,15 @@ def detect_language(text: str) -> LangResult | None:
             language = lang
             break
     return LangResult(language=language, script=best, confidence=round(counts[best] / total, 3), candidates=langs)
+
+
+def describe(text: str) -> dict:
+    """Language fields for a tool response: detected_language / script / language_candidates (None when no letters).
+
+    Script-based, so it is exact for scripts used by one language (Telugu, Tamil, ...) and a best guess for shared
+    ones (Devanagari: Hindi vs Marathi vs Nepali). Latin letters are reported as English (romanized Indic is not told apart).
+    """
+    found = detect_language(text)
+    if found is None:
+        return {"detected_language": None, "script": None, "language_candidates": []}
+    return {"detected_language": found.language, "script": found.script, "language_candidates": found.candidates}

@@ -30,6 +30,7 @@ def _args() -> argparse.Namespace:
     p.add_argument("--max-steps", type=int, default=30, help="Maximum planning (LLM) steps.")
     p.add_argument("--max-cost-inr", type=float, default=5.0, help="Maximum Bodhan tool cost in rupees.")
     p.add_argument("--call-timeout-s", type=float, default=180.0, help="Hard timeout for each tool call.")
+    p.add_argument("--mcp-url", default=os.environ.get("BODHAN_MCP_URL"), help="Use an already running HTTP server, e.g. http://127.0.0.1:8000/mcp (token from BODHAN_MCP_TOKEN). Default: start the stdio server.")
     return p.parse_args()
 
 
@@ -37,6 +38,7 @@ async def run(args: argparse.Namespace) -> int:
     settings = load_llm_settings()
     out_dir = Path(args.out).absolute()
     rec = RunRecorder(out_dir)
+    os.environ["BODHAN_WORK_DIR"] = str(out_dir / "work")  # intermediate text/segment files; inherited by the MCP server child
     message = task_message(args.task, build_inventory(args.files), rec.artifacts_dir, args.max_steps, args.max_cost_inr)
     llm = ChatOpenAI(base_url=settings.base_url, api_key=settings.api_key, model=settings.model, temperature=0)
 
@@ -53,7 +55,7 @@ async def run(args: argparse.Namespace) -> int:
     trace_url = None
 
     # One MCP server process for the whole run; the tools are only valid inside this block.
-    async with mcp_tools(output_root=rec.artifacts_dir) as tools:
+    async with mcp_tools(output_root=rec.artifacts_dir, url=args.mcp_url) as tools:
         graph = build_graph(llm, tools, rec, max_steps=args.max_steps, max_cost_inr=args.max_cost_inr, call_timeout_s=args.call_timeout_s)
 
         if lf is None:
@@ -84,12 +86,13 @@ async def run(args: argparse.Namespace) -> int:
 
     answer = final["messages"][-1].content
     rec.finish(status=final["status"], task=args.task, answer=answer, trace_url=trace_url, max_steps=args.max_steps, max_cost_inr=args.max_cost_inr,
-               verifications=final["verifications"], stop_reason=final["stop_reason"], llm_turns=final["llm_turns"], call_timeout_s=args.call_timeout_s)
+               verifications=final["verifications"], stop_reason=final["stop_reason"], llm_turns=final["llm_turns"], call_timeout_s=args.call_timeout_s,
+               assumptions=final["final"].get("assumptions"), security_flags=final["security_flags"])
     print(answer)
     print(f"\n[status={final['status']} steps={rec.steps} cost=Rs {rec.cost_inr:.4f}]" + (f"\n[langfuse] {trace_url}" if trace_url else ""))
     if lf is not None:
         lf.shutdown()  # short-lived process: flush queued events before exit
-    return 0 if final["status"] == "completed" else 1
+    return 0 if final["status"] in ("completed", "impossible") else 1  # an honest "impossible" is the correct outcome, not a failure
 
 
 def main() -> None:

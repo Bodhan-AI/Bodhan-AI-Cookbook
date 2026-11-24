@@ -70,3 +70,48 @@ def check_translation(source: str, translation: str, target_language: str, *, tr
         if found is not None and target_language.split("-")[0] not in {found.language, *(c.split("-")[0] for c in found.candidates)}:
             problems.append(f"translation is written in the {found.script} script, which is not used for '{target_language}'")
     return {"passed": not problems, "problems": problems}
+
+
+_CUE_TIME = re.compile(r"(\d+):(\d\d):(\d\d)[,.](\d{3})\s*-->\s*(\d+):(\d\d):(\d\d)[,.](\d{3})")
+
+
+def _secs(h: str, m: str, s: str, ms: str) -> float:
+    return int(h) * 3600 + int(m) * 60 + int(s) + int(ms) / 1000
+
+
+def check_srt(srt: str, target_language: str | None, segments_in: int) -> dict:
+    """Structural checks on a generated SRT file: it has cues, every cue has text, times are valid and in order,
+    it covers every spoken segment, and (when translated) the text is in the target language's script."""
+    problems: list[str] = []
+    blocks = [b for b in re.split(r"\n\s*\n", srt.strip()) if b.strip()]
+    texts: list[str] = []
+    prev_start = -1.0
+    bad_time = out_of_order = empty = 0
+    for block in blocks:
+        lines = block.splitlines()
+        m = _CUE_TIME.search(lines[1]) if len(lines) > 1 else None
+        if not m:
+            bad_time += 1
+            continue
+        start, end = _secs(*m.groups()[:4]), _secs(*m.groups()[4:])
+        bad_time += end <= start
+        out_of_order += start < prev_start
+        prev_start = start
+        body = " ".join(lines[2:]).strip()
+        empty += not body
+        texts.append(body)
+    if not blocks:
+        return {"passed": False, "problems": ["the SRT file has no cues"]}
+    if bad_time:
+        problems.append(f"{bad_time} cue(s) have an invalid time range")
+    if out_of_order:
+        problems.append(f"{out_of_order} cue(s) start before the previous one")
+    if empty:
+        problems.append(f"{empty} cue(s) have no text")
+    if len(blocks) < segments_in:
+        problems.append(f"{len(blocks)} cues for {segments_in} spoken segments: some speech is not covered")
+    if target_language and texts:
+        found = detect_language(" ".join(texts))
+        if found is not None and target_language.split("-")[0] not in {found.language, *(c.split("-")[0] for c in found.candidates)}:
+            problems.append(f"subtitles are written in the {found.script} script, which is not used for '{target_language}'")
+    return {"passed": not problems, "problems": problems}

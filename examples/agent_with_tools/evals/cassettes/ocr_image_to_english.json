@@ -1,0 +1,16 @@
+{
+  "ocr_document": [
+    {
+      "file": "page.png",
+      "markdown": "हिन्दी संवैधानिक रूपसँ भारतक भाषा आ भारतमे सबसँ बेसी\nबाजल जाइवला आ सम्झल जाइवला भाषा छी । चीनीक बाद ई\nविश्वमे सबसे अधिक बाजल जाइवाला भाषा छी ।\n\nहिन्दी आ एकर बोली उत्तर आ मध्य भारतक विविध राज्य सभमे\nबाजल जाइत अछि। भारत आ अन्य देशमे ६० करोड़सँ बेसी लोक\nहिन्दी बाजैत अछि, फिजी, मरिसस, गुयाना, सुरिनेमक अधिकतर\nजनता हिन्दी बाजैत अछि तहिना नेपालक तराई क्षेत्रमे किछ\nजनतासभ हिन्दी बाजैत अछि ।",
+      "page_count": 1
+    }
+  ],
+  "translate_text": [
+    {
+      "source": "हिन्दी संवैधानिक रूपसँ भारतक भाषा आ भारतमे सबसँ बेसी\nबाजल जाइवला आ सम्झल जाइवला भाषा छी । चीनीक बाद ई\nविश्वमे सबसे अधिक बाजल जाइवाला भाषा छी ।\n\nहिन्दी आ एकर बोली उत्तर आ मध्य भारतक विविध राज्य सभमे\nबाजल जाइत अछि। भारत आ अन्य देशमे ६० करोड़सँ बेसी लोक\nहिन्दी बाजैत अछि, फिजी, मरिसस, गुयाना, सुरिनेमक अधिकतर\nजनता हिन्दी बाजैत अछि तहिना नेपालक तराई क्षेत्रमे किछ\nजनतासभ हिन्दी बाजैत अछि ।",
+      "target": "en",
+      "translation": "Hindi is constitutionally a language of India and is the most widely spoken and understood language in India. After Chinese, it is the most widely spoken language in the world. \n\nHindi and its dialects are spoken in various states of North and Central India. More than 600 million people speak Hindi in India and other countries, with most of the population in Fiji, Mauritius, Guyana, Suriname speaking Hindi, as well as some people in the Terai region of Nepal."
+    }
+  ]
+}

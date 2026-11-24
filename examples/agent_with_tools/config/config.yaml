@@ -7,6 +7,9 @@ http:
   timeout_s: 60            # per-call timeout
   concurrency: 1           # parallel Bodhan requests (the API reports a parallel-request limit)
 
+output:                    # how much text a tool may put in the LLM's context
+  inline_chars: 3000       # longer text is saved to a file; the response carries a preview + the file path
+
 translate:                 # Indic-Translate
   max_chars: 1500          # characters per request; halved and retried when the API says too large / truncated
   max_total_chars: 200000  # hard ceiling per tool call
