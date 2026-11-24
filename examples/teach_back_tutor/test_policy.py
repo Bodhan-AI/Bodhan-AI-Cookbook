@@ -151,6 +151,15 @@ def test_dashboard_mastery_is_sticky_and_skills_are_cumulative(tmp_path, monkeyp
     assert any("Chlorophyll" in step for step in d["next_steps"])
 
 
+def test_unanswered_trick_does_not_lower_spotting_skill():
+    profile = {"student": "x", "level": None, "topics": {}, "sessions": []}
+    s = tutor.Session(card=CARD, band="middle")
+    s.plants["m1"]["status"] = "planted"  # session ended before the student answered
+    memory.record(profile, s, tutor.report(s))
+    spot = next(k for k in memory.skills(profile)["skills"] if k["name"] == "Spotting mistakes")
+    assert spot["value"] is None
+
+
 def test_dashboard_for_a_new_student_is_empty():
     d = memory.skills({"student": "x", "level": None, "topics": {}, "sessions": []})
     assert d["sessions"] == 0 and d["mastered_total"] == 0

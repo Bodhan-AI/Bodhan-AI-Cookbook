@@ -17,6 +17,12 @@ Explaining an idea to someone else is one of the best tests of understanding (th
 5. **Parent note.** A short, honest summary in the parent's language, written and spoken.
 6. **Progress dashboard** (switch to **My progress** in the sidebar). Ideas mastered per topic, three thinking skills (explaining in your own words, spotting mistakes, thinking deeper) with the change since earlier sessions, understanding over time, and what to practise next. It is computed from the saved sessions in plain Python, so it is instant and works offline.
 
+| Teaching Riya in Hinglish (she plants a mistake) | The report | Progress dashboard |
+|---|---|---|
+| ![Chat](screenshots/chat.png) | ![Report](screenshots/report.png) | ![Dashboard](screenshots/dashboard.png) |
+
+In the chat above, the student typed romanized Hindi; Riya replied in Hindi (with audio) and then claimed "chlorophyll is just a colour". The student corrected her, and the report shows the trick as caught.
+
 ![Architecture](architecture.png)
 
 ## Setup

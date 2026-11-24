@@ -80,7 +80,7 @@ def record(profile: dict, session, rep: dict) -> dict:
         "mastery": rep["mastery"],
         "level_end": session.level,
         "plants_caught": sum(p["outcome"] == "caught" for p in plants),
-        "plants_total": len(plants),
+        "plants_total": sum(p["outcome"] != "planted" for p in plants),  # unanswered tricks do not count
         "avg_quality": rep["avg_quality"],
         "deep_good": session.deep_good,
         "deep_asked": session.deep_asked,
