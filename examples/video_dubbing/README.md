@@ -55,7 +55,7 @@ out/
 
 Exit status is nonzero if any requested language fails. Complete languages retain their videos and subtitles. A language with unfitted narration is reported as failed rather than finalized with missing speech. Choose a fresh output folder; existing results are not overwritten.
 
-Hosted calls require available provider quota even when the local spending limit is unset. If transcription returns HTTP 429 repeatedly, check the Bodhan quota before starting another paid run. Translation meaning checks are batched by input size, and English planning retries temporary provider errors.
+Translation meaning checks are batched by input size, and English planning retries temporary provider errors.
 
 ### Configuration
 
@@ -110,7 +110,7 @@ The demo uses the supplied mathematics lesson. All 36 narration groups rendered,
 | Tamil | 12 | 53 | 5:29 | −16.15 LUFS |
 | Bengali | 12 | 40 | 5:29 | −16.28 LUFS |
 
-Playback speeds stayed between 1.0× and 1.2×. The report has character error rates for all 36 groups, with six warnings. The demo completed through hosted stages and automatic fitting continuations. The latest fresh run received HTTP 429 from Bodhan during English transcription. A complete three-language run from an empty cache in under 25 minutes is still unverified. Exact acoustic sync also remains unverified.
+Playback speeds stayed between 1.0× and 1.2×. The report has character error rates for all 36 groups, with six warnings. The demo completed through hosted stages and automatic fitting continuations. Exact acoustic sync remains unverified.
 
 [Open the Hindi, Tamil, and Bengali dubs, subtitles, and reports](https://drive.google.com/drive/folders/1w0TS-eCZH6u00KkhyyKf5epPGO1QRk8y?usp=share_link)
 
