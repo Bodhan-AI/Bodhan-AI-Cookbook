@@ -1,0 +1,143 @@
+{
+  "bad_item_reasons": [],
+  "bad_items": 0,
+  "calibration": {
+    "category_accuracy": 1.0,
+    "detection_recall": 0.972,
+    "false_alarm_rate": 0.034,
+    "localization": 0.971,
+    "targets": [
+      {
+        "met": true,
+        "metric": "detection_recall",
+        "target": ">= 0.8",
+        "value": 1.0
+      },
+      {
+        "met": true,
+        "metric": "false_alarm_rate",
+        "target": "<= 0.1",
+        "value": 0.056
+      },
+      {
+        "met": true,
+        "metric": "localization",
+        "target": ">= 0.7",
+        "value": 1.0
+      },
+      {
+        "met": true,
+        "metric": "category_accuracy",
+        "target": ">= 0.7",
+        "value": 0.933
+      },
+      {
+        "met": true,
+        "metric": "judge_consistency",
+        "target": ">= 0.9",
+        "value": 1.0
+      }
+    ]
+  },
+  "filtered_by_lang": 0,
+  "flagged_items": 69,
+  "flags_by_category": {
+    "addition": 8,
+    "format": 9,
+    "mistranslation": 5,
+    "number": 20,
+    "omission": 5,
+    "speech_garbled": 8,
+    "speech_omission": 8,
+    "speech_repetition": 7,
+    "term": 8,
+    "wrong_language": 8
+  },
+  "item_errors": 0,
+  "items_evaluated": 126,
+  "items_in_dataset": 126,
+  "model_cost_inr": 0.7228,
+  "per_language": {
+    "bn": {
+      "flagged_items": 20,
+      "flags_by_category": {
+        "addition": 3,
+        "format": 3,
+        "mistranslation": 2,
+        "number": 5,
+        "speech_garbled": 2,
+        "speech_omission": 2,
+        "speech_repetition": 1,
+        "term": 2,
+        "wrong_language": 3
+      },
+      "flags_by_severity": {
+        "critical": 5,
+        "major": 18
+      },
+      "items": 42,
+      "items_with_reference": 0,
+      "mean_backtranslation_chrf": 75.22,
+      "mean_reference_chrf": null,
+      "mean_speech_cer": 0.1903,
+      "model_cost_inr": 0.1727,
+      "mqm_score": 83.05,
+      "speech_checked": 10
+    },
+    "hi": {
+      "flagged_items": 25,
+      "flags_by_category": {
+        "addition": 1,
+        "format": 1,
+        "mistranslation": 2,
+        "number": 9,
+        "omission": 3,
+        "speech_garbled": 2,
+        "speech_omission": 3,
+        "speech_repetition": 4,
+        "term": 2,
+        "wrong_language": 3
+      },
+      "flags_by_severity": {
+        "critical": 5,
+        "major": 25
+      },
+      "items": 42,
+      "items_with_reference": 0,
+      "mean_backtranslation_chrf": 76.13,
+      "mean_reference_chrf": null,
+      "mean_speech_cer": 0.4869,
+      "model_cost_inr": 0.2618,
+      "mqm_score": 78.81,
+      "speech_checked": 13
+    },
+    "ta": {
+      "flagged_items": 24,
+      "flags_by_category": {
+        "addition": 4,
+        "format": 5,
+        "mistranslation": 1,
+        "number": 6,
+        "omission": 2,
+        "speech_garbled": 4,
+        "speech_omission": 3,
+        "speech_repetition": 2,
+        "term": 4,
+        "wrong_language": 2
+      },
+      "flags_by_severity": {
+        "critical": 3,
+        "major": 30
+      },
+      "items": 42,
+      "items_with_reference": 0,
+      "mean_backtranslation_chrf": 73.43,
+      "mean_reference_chrf": null,
+      "mean_speech_cer": 0.4777,
+      "model_cost_inr": 0.2883,
+      "mqm_score": 78.21,
+      "speech_checked": 15
+    }
+  },
+  "skipped_checks": {}
+}
