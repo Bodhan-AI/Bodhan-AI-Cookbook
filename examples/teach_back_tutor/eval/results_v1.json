@@ -1,0 +1,431 @@
+{
+  "date": "2026-11-24",
+  "model": "openai/gpt-oss-120b",
+  "seconds": 171,
+  "judge": {
+    "items": 16,
+    "concept_accuracy": 1.0,
+    "concept_labels": 19,
+    "over_credit": 1,
+    "plant_accuracy": 1.0,
+    "plant_labels": 4,
+    "error_detection": {
+      "found": 2,
+      "missed": 1,
+      "false_alarms": 0
+    },
+    "quality_in_range": 1.0,
+    "rows": [
+      {
+        "id": 1,
+        "message": "Plants make their own food, it's called photosynthesis, and they use sunlight for it.",
+        "ok": true,
+        "issues": []
+      },
+      {
+        "id": 2,
+        "message": "Yes, you're right!",
+        "ok": true,
+        "issues": []
+      },
+      {
+        "id": 3,
+        "message": "There's a green thing in leaves called chlorophyll that catches the sun's energy, like a solar panel.",
+        "ok": true,
+        "issues": []
+      },
+      {
+        "id": 4,
+        "message": "They need water and sunlight.",
+        "ok": true,
+        "issues": []
+      },
+      {
+        "id": 5,
+        "message": "They need sunlight, water that comes up from the roots, and carbon dioxide from the air.",
+        "ok": true,
+        "issues": []
+      },
+      {
+        "id": 6,
+        "message": "Plants eat food from the soil through their roots.",
+        "ok": true,
+        "issues": []
+      },
+      {
+        "id": 7,
+        "message": "The leaf mixes water and carbon dioxide to make glucose, which is a sugar, and it gives out oxygen.",
+        "ok": true,
+        "issues": []
+      },
+      {
+        "id": 8,
+        "message": "No! The soil only gives water and minerals, the food is made in the leaves.",
+        "ok": true,
+        "issues": []
+      },
+      {
+        "id": 9,
+        "message": "Yes that's right, the roots take the food up.",
+        "ok": true,
+        "issues": []
+      },
+      {
+        "id": 10,
+        "message": "Hmm, I'm not sure, maybe.",
+        "ok": true,
+        "issues": []
+      },
+      {
+        "id": 11,
+        "message": "That's not right, chlorophyll is the green pigment that traps energy from sunlight.",
+        "ok": true,
+        "issues": []
+      },
+      {
+        "id": 12,
+        "message": "I like cricket. Can we play after school?",
+        "ok": true,
+        "issues": []
+      },
+      {
+        "id": 13,
+        "message": "Yes, a green pigment traps sunlight.",
+        "ok": true,
+        "issues": []
+      },
+      {
+        "id": 14,
+        "message": "Plants make food in the leafs using sun lite, water and carbon die oxide.",
+        "ok": false,
+        "issues": [
+          "c1: explained but not in the message"
+        ]
+      },
+      {
+        "id": 15,
+        "message": "Some glucose is used for energy straight away and the rest is stored as starch, like keeping leftovers in the fridge.",
+        "ok": true,
+        "issues": []
+      },
+      {
+        "id": 16,
+        "message": "The sun does something to the leaves, I think.",
+        "ok": true,
+        "issues": []
+      }
+    ]
+  },
+  "verifier": {
+    "statements": 20,
+    "precision": 1.0,
+    "recall": 0.8,
+    "f1": 0.889,
+    "accuracy": 0.9,
+    "confusion": {
+      "false_flagged": 8,
+      "false_missed": 2,
+      "true_flagged": 0,
+      "true_passed": 10
+    },
+    "true_left_unverified": 1,
+    "rows": [
+      {
+        "statement": "plants make their own food in their leaves.",
+        "label": "true",
+        "flagged": false,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "Plants make their own food in their leaves.",
+            "verdict": "true",
+            "evidence": "green plants make their own food... the food itself is made in the leaves"
+          }
+        ]
+      },
+      {
+        "statement": "chlorophyll is a green pigment that traps energy from sunlight.",
+        "label": "true",
+        "flagged": false,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "Chlorophyll is a green pigment",
+            "verdict": "true",
+            "evidence": "Leaves contain a green pigment called chlorophyll"
+          },
+          {
+            "claim": "Chlorophyll traps energy from sunlight",
+            "verdict": "true",
+            "evidence": "chlorophyll, which traps energy from sunlight"
+          }
+        ]
+      },
+      {
+        "statement": "a plant needs sunlight, water and carbon dioxide to make food.",
+        "label": "true",
+        "flagged": false,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "A plant needs sunlight to make food.",
+            "verdict": "true",
+            "evidence": "To make food, a plant needs three things: sunlight, water and carbon dioxide."
+          },
+          {
+            "claim": "A plant needs water to make food.",
+            "verdict": "true",
+            "evidence": "To make food, a plant needs three things: sunlight, water and carbon dioxide."
+          },
+          {
+            "claim": "A plant needs carbon dioxide to make food.",
+            "verdict": "true",
+            "evidence": "To make food, a plant needs three things: sunlight, water and carbon dioxide."
+          }
+        ]
+      },
+      {
+        "statement": "carbon dioxide gets into the leaf through tiny pores called stomata.",
+        "label": "true",
+        "flagged": false,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "Carbon dioxide gets into the leaf through tiny pores called stomata.",
+            "verdict": "true",
+            "evidence": "Carbon dioxide from the air enters the leaf through tiny pores called stomata."
+          }
+        ]
+      },
+      {
+        "statement": "the roots absorb water from the soil.",
+        "label": "true",
+        "flagged": false,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "Roots absorb water from the soil.",
+            "verdict": "true",
+            "evidence": "The roots absorb water from the soil"
+          }
+        ]
+      },
+      {
+        "statement": "oxygen is released into the air when the leaf makes food.",
+        "label": "true",
+        "flagged": false,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "Leaves make food (perform photosynthesis)",
+            "verdict": "true",
+            "evidence": "Using the energy of sunlight, the leaf combines water and carbon dioxide to make glucose"
+          },
+          {
+            "claim": "Oxygen is released into the air when the leaf makes food",
+            "verdict": "true",
+            "evidence": "Oxygen is released into the air as a by-product"
+          }
+        ]
+      },
+      {
+        "statement": "some of the glucose is stored as starch.",
+        "label": "true",
+        "flagged": false,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "Some of the glucose is stored as starch.",
+            "verdict": "true",
+            "evidence": "Some glucose is used for energy, and the rest is stored as starch."
+          }
+        ]
+      },
+      {
+        "statement": "glucose is a kind of sugar.",
+        "label": "true",
+        "flagged": false,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "Glucose is a kind of sugar.",
+            "verdict": "true",
+            "evidence": "glucose, a kind of sugar"
+          }
+        ]
+      },
+      {
+        "statement": "water travels up the stem to the leaves.",
+        "label": "true",
+        "flagged": false,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "Water travels up the stem to the leaves.",
+            "verdict": "true",
+            "evidence": "the roots absorb water from the soil, and it travels up the stem to the leaves"
+          }
+        ]
+      },
+      {
+        "statement": "the soil gives the plant water and minerals.",
+        "label": "true",
+        "flagged": false,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "The soil gives the plant water.",
+            "verdict": "true",
+            "evidence": "The soil gives them water and minerals"
+          },
+          {
+            "claim": "The soil gives the plant minerals.",
+            "verdict": "true",
+            "evidence": "The soil gives them water and minerals"
+          }
+        ]
+      },
+      {
+        "statement": "plants take their food from the soil.",
+        "label": "false",
+        "flagged": true,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "Plants take their food from the soil.",
+            "verdict": "false",
+            "evidence": "Plants do not take food from the soil."
+          }
+        ]
+      },
+      {
+        "statement": "chlorophyll is a red pigment.",
+        "label": "false",
+        "flagged": true,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "chlorophyll is a red pigment",
+            "verdict": "false",
+            "evidence": "green pigment called chlorophyll"
+          }
+        ]
+      },
+      {
+        "statement": "carbon dioxide enters the plant through the roots.",
+        "label": "false",
+        "flagged": true,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "Carbon dioxide enters the plant through the roots.",
+            "verdict": "false",
+            "evidence": "Carbon dioxide from the air enters the leaf through tiny pores called stomata."
+          }
+        ]
+      },
+      {
+        "statement": "photosynthesis happens mainly in the roots.",
+        "label": "false",
+        "flagged": true,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "Photosynthesis happens mainly in the roots.",
+            "verdict": "false",
+            "evidence": "Photosynthesis happens mainly in the leaves."
+          }
+        ]
+      },
+      {
+        "statement": "plants release carbon dioxide into the air as a by-product.",
+        "label": "false",
+        "flagged": true,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "Plants release carbon dioxide into the air as a by‑product.",
+            "verdict": "false",
+            "evidence": "Oxygen is released into the air as a by‑product."
+          }
+        ]
+      },
+      {
+        "statement": "the leaf uses oxygen and water to make glucose.",
+        "label": "false",
+        "flagged": true,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "The leaf uses oxygen and water to make glucose.",
+            "verdict": "false",
+            "evidence": "Using the energy of sunlight, the leaf combines water and carbon dioxide to make glucose, a kind of sugar. Oxygen is released into the air as a by-product."
+          }
+        ]
+      },
+      {
+        "statement": "plants need only water to make their food.",
+        "label": "false",
+        "flagged": false,
+        "ok": false,
+        "verdicts": [
+          {
+            "claim": "Plants need only water to make their food.",
+            "verdict": "true",
+            "evidence": "To make food, a plant needs three things: sunlight, water and carbon dioxide."
+          }
+        ]
+      },
+      {
+        "statement": "all the glucose is used straight away and none is stored.",
+        "label": "false",
+        "flagged": false,
+        "ok": false,
+        "verdicts": [
+          {
+            "claim": "All the glucose is used straight away",
+            "verdict": "unverified",
+            "evidence": ""
+          },
+          {
+            "claim": "None of the glucose is stored",
+            "verdict": "unverified",
+            "evidence": ""
+          }
+        ]
+      },
+      {
+        "statement": "animals make their own food the way plants do.",
+        "label": "false",
+        "flagged": true,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "Animals make their own food the way plants do.",
+            "verdict": "false",
+            "evidence": "Animals eat plants or other animals"
+          }
+        ]
+      },
+      {
+        "statement": "the food is made in the soil and then sent to the leaves.",
+        "label": "false",
+        "flagged": true,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "Food is made in the soil.",
+            "verdict": "false",
+            "evidence": "Plants do not take food from the soil."
+          },
+          {
+            "claim": "Food is then sent to the leaves.",
+            "verdict": "unverified",
+            "evidence": ""
+          }
+        ]
+      }
+    ]
+  },
+  "simulation": null
+}

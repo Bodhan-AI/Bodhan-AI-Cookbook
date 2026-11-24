@@ -1,0 +1,162 @@
+{
+  "date": "2026-11-24",
+  "turns": 15,
+  "of": 16,
+  "paths": {
+    "English (baseline)": {
+      "concept_accuracy": 0.944,
+      "over_credit": 0,
+      "plant_accuracy": 1.0,
+      "quality_in_range": 0.867,
+      "error_detection": {
+        "found": 1,
+        "missed": 0,
+        "false_alarms": 0
+      }
+    },
+    "Typed Hinglish": {
+      "concept_accuracy": 0.944,
+      "over_credit": 0,
+      "plant_accuracy": 1.0,
+      "quality_in_range": 1.0,
+      "error_detection": {
+        "found": 1,
+        "missed": 0,
+        "false_alarms": 1
+      }
+    },
+    "Spoken Hindi": {
+      "concept_accuracy": 0.944,
+      "over_credit": 0,
+      "plant_accuracy": 1.0,
+      "quality_in_range": 0.867,
+      "error_detection": {
+        "found": 1,
+        "missed": 0,
+        "false_alarms": 0
+      }
+    }
+  },
+  "trips": [
+    {
+      "english": "Plants make their own food, it's called photosynthesis, and they use sunlight for it.",
+      "hindi": "पौधे अपना भोजन स्वयं बनाते हैं, इसे प्रकाश संश्लेषण कहा जाता है और वे इसके लिए सूर्य के प्रकाश का उपयोग करते हैं।",
+      "typed": "Paudhe apna bhojan swayam banate hain, ise prakash sanshleshan kaha jata hai aur ve iske liye suraj ke prakash ka upyog karte hain.",
+      "typed_en": "Plants make their own food, this is called photosynthesis and they use sunlight for it.",
+      "heard": "पौधे अपना भोजन स्वयं बनाते हैं इसे प्रकाश संश्लेषण कहा जाता है और वे इसके लिए सूर्य के प्रकाश का उपयोग करते हैं",
+      "spoken_en": "Plants make their own food, a process called photosynthesis, and they use sunlight to do it."
+    },
+    {
+      "english": "Yes, you're right!",
+      "hindi": "हाँ, तुम सही हो!",
+      "typed": "haan, tum sahi ho!",
+      "typed_en": "Yes, you are right!",
+      "heard": "हाँ तुम सही हो",
+      "spoken_en": "yes you are right"
+    },
+    {
+      "english": "There's a green thing in leaves called chlorophyll that catches the sun's energy, like a solar panel.",
+      "hindi": "पत्तियों में एक हरी चीज होती है जिसे क्लोरोफिल कहा जाता है जो सूर्य की ऊर्जा को पकड़ती है, जैसे कि सौर पैनल।",
+      "typed": "Pattion mein ek hari cheez hoti hai jise chlorophyll kaha jaata hai jo suraj ki urja ko pakadti hai, jaise ki solar panel.",
+      "typed_en": "The leaves have a green thing called chlorophyll that captures the energy of the sun, like solar panels.",
+      "heard": "पत्तियों में एक हरी चीज़ होती है जिसे क्लोरोफिल कहा जाता है जो सूर्य की ऊर्जा को पकड़ती है जैसे कि सौर पैनल",
+      "spoken_en": "The leaves have a green substance called chlorophyll which captures the energy of the sun like solar panels."
+    },
+    {
+      "english": "They need water and sunlight.",
+      "hindi": "उन्हें पानी और धूप की आवश्यकता होती है।",
+      "typed": "Unhe paani aur dhoop ki avashyakta hoti hai.",
+      "typed_en": "They need water and sunlight.",
+      "heard": "उन्हें पानी और धूप की आवश्यकता होती है",
+      "spoken_en": "they need water and sun"
+    },
+    {
+      "english": "They need sunlight, water that comes up from the roots, and carbon dioxide from the air.",
+      "hindi": "उन्हें सूर्य के प्रकाश की आवश्यकता होती है, पानी जो जड़ों से ऊपर आता है और हवा से कार्बन डाइऑक्साइड।",
+      "typed": "Unhe suraj ke prakash ki zaroorat hoti hai, paani jo jadon se upar aata hai aur hawa se carbon dioxide.",
+      "typed_en": "They need sunlight , water which comes from roots and carbon dioxide from air .",
+      "heard": "उन्हें सूर्य के प्रकाश की आवश्यकता होती है पानी जो जड़ों से ऊपर आता है और हवा से कार्बन डाइऑक्साइड",
+      "spoken_en": "They need sunlight, water that comes from the roots and carbon dioxide from the air."
+    },
+    {
+      "english": "Plants eat food from the soil through their roots.",
+      "hindi": "पौधे अपनी जड़ों के द्वारा मिट्टी से भोजन ग्रहण करते हैं।",
+      "typed": "Paudhe apni jadon ke dwara mitti se food grahan karte hain.",
+      "typed_en": "Plants take food from soil through their roots .",
+      "heard": "पौधे अपनी जड़ों के द्वारा मिट्टी से भोजन ग्रहण करते हैं",
+      "spoken_en": "Plants take food from soil through their roots ."
+    },
+    {
+      "english": "The leaf mixes water and carbon dioxide to make glucose, which is a sugar, and it gives out oxygen.",
+      "hindi": "पत्ती पानी और कार्बन डाइऑक्साइड को मिलाकर ग्लूकोज बनाती है, जो एक शर्करा है, और यह ऑक्सीजन देती है।",
+      "typed": "Patti paani aur carbon dioxide ko milaakar glucose banati hai, jo ek sharkara hai, aur yeh oxygen deti hai.",
+      "typed_en": "The leaf makes glucose, a sugar, by combining water and carbon dioxide, and it gives off oxygen.",
+      "heard": "पत्ती पानी और कार्बन डाइऑक्साइड को मिलाकर ग्लूकोज़ बनाती है जो एक शर्करा है और यह ऑक्सीजन देती है",
+      "spoken_en": "The leaf makes glucose by combining water and carbon dioxide which is a sugar and it gives oxygen ."
+    },
+    {
+      "english": "No! The soil only gives water and minerals, the food is made in the leaves.",
+      "hindi": "नहीं ! मिट्टी केवल पानी और खनिज देती है , भोजन पत्तियों में बनता है ।",
+      "typed": "Nahi! mitti sirf paani aur khanij deti hai, bhojan pattion mein banta hai.",
+      "typed_en": "No! Soil only provides water and minerals, food is made in leaves.",
+      "heard": "नहीं मिट्टी केवल पानी और खनिज देती है भोजन पत्तियों में बनता है",
+      "spoken_en": "No, soil only provides water and minerals, food is made in leaves."
+    },
+    {
+      "english": "Yes that's right, the roots take the food up.",
+      "hindi": "हाँ यह सही है कि जड़ें भोजन को ऊपर ले जाती हैं।",
+      "typed": "haan yeh sahi hai ki jaden bhojan ko upar le jaati hain.",
+      "typed_en": "Yes, it is true that roots transport food upwards.",
+      "heard": "हाँ यह सही है कि जड़ें भोजन को ऊपर ले जाती हैं",
+      "spoken_en": "Yes, it is true that roots transport food upwards."
+    },
+    {
+      "english": "Hmm, I'm not sure, maybe.",
+      "hindi": "हम्म, मुझे पक्का नहीं पता, शायद।",
+      "typed": "Humm, mujhe pakka nahi pata, shayad.",
+      "typed_en": "Hmm, I don't know for sure, maybe.",
+      "heard": "मुझे पक्का नहीं पता शायद",
+      "spoken_en": "I'm not sure, maybe."
+    },
+    {
+      "english": "That's not right, chlorophyll is the green pigment that traps energy from sunlight.",
+      "hindi": "यह सही नहीं है, क्लोरोफिल वह हरा रंगद्रव्य है जो सूर्य के प्रकाश से ऊर्जा को रोकता है।",
+      "typed": "yeh sahi nahi hai, chlorophyll wo hara rangdravya hai jo suraj ke prakash se urja ko rokta hai.",
+      "typed_en": "This is not correct, chlorophyll is the green pigment that absorbs energy from sunlight.",
+      "heard": "यह सही नहीं है क्लोरोफिल वह हरा रंगद्रव्य है जो सूर्य के प्रकाश से ऊर्जा को रोकता है",
+      "spoken_en": "This is not correct, chlorophyll is the green pigment that absorbs energy from sunlight."
+    },
+    {
+      "english": "I like cricket. Can we play after school?",
+      "hindi": "मुझे क्रिकेट पसंद है। क्या हम स्कूल के बाद खेल सकते हैं?",
+      "typed": "Mujhe cricket pasand hai. Kya hum school ke baad khel sakte hain?",
+      "typed_en": "I like cricket. Can we play after school?",
+      "heard": "मुझे क्रिकेट पसंद है क्या हम स्कूल के बाद खेल सकते हैं",
+      "spoken_en": "i like cricket can we play after school"
+    },
+    {
+      "english": "Yes, a green pigment traps sunlight.",
+      "hindi": "हाँ, एक हरा रंगद्रव्य सूर्य के प्रकाश को रोक लेता है।",
+      "typed": "haan, ek hara rangdravya suraj ke prakash ko rok leta hai.",
+      "typed_en": "Yes, a green pigment blocks sunlight.",
+      "heard": "हाँ एक हरा रंग द्रव्य सूर्य के प्रकाश को रोक लेता है",
+      "spoken_en": "Yes , green color absorbs the light of sun ."
+    },
+    {
+      "english": "Plants make food in the leafs using sun lite, water and carbon die oxide.",
+      "hindi": "पौधे सूर्य के प्रकाश , पानी और कार्बन डाइऑक्साइड का उपयोग करके पत्तियों में भोजन बनाते हैं।",
+      "typed": "Paudhe suraj ke prakash, paani aur carbon dioxide ka upyog karke patton mein bhojan banate hain.",
+      "typed_en": "Plants make food in their leaves by using sunlight , water and carbon dioxide .",
+      "heard": "पौधे सूर्य के प्रकाश पानी और कार्बन डाइऑक्साइड का उपयोग करके पत्तियों में भोजन बनाते हैं",
+      "spoken_en": "Plants make food in their leaves using sunlight, water and carbon dioxide."
+    },
+    {
+      "english": "Some glucose is used for energy straight away and the rest is stored as starch, like keeping leftovers in the fridge.",
+      "hindi": "कुछ ग्लूकोज का उपयोग सीधे ऊर्जा के लिए किया जाता है और बाकी को स्टार्च के रूप में संग्रहीत किया जाता है, जैसे कि बचे हुए भोजन को फ्रिज में रखना।",
+      "typed": "kuch glucose ka use seedhe urja ke liye kiya jata hai aur baaki ko starch ke roop mein store kiya jata hai, jaise ki bache hue khana ko fridge mein rakhna.",
+      "typed_en": "Some glucose is used directly for energy and the rest is stored as starch, like putting leftovers in the fridge.",
+      "heard": "कुछ ग्लूकोज़ का उपयोग सीधे ऊर्जा के लिए किया जाता है और बाकी को स्टार्च के रूप में संग्रहीत किया जाता है जैसे कि बचे हुए भोजन को फ्रिज में रखना",
+      "spoken_en": "Some glucose is used directly for energy and the rest is stored as starch like keeping leftover food in the fridge."
+    }
+  ]
+}

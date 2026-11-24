@@ -1,0 +1,146 @@
+{
+  "scientsbank": {
+    "items": 20,
+    "accuracy_3way": 0.7,
+    "over_credit": 2,
+    "wrong_answer_given_full_credit": 0,
+    "per_label": {
+      "correct": "4/5",
+      "irrelevant": "2/5",
+      "partially_correct_incomplete": "3/5",
+      "contradictory": "5/5"
+    },
+    "confusion": {
+      "explained -> explained": 4,
+      "explained -> partial": 1,
+      "not_explained -> not_explained": 7,
+      "not_explained -> partial": 3,
+      "partial -> explained": 2,
+      "partial -> partial": 3
+    },
+    "rows": [
+      {
+        "id": "ME.17c.121.1",
+        "label": "correct",
+        "expected": "explained",
+        "got": "explained"
+      },
+      {
+        "id": "LF.33b.855.1",
+        "label": "correct",
+        "expected": "explained",
+        "got": "explained"
+      },
+      {
+        "id": "MS.64a.315.1",
+        "label": "correct",
+        "expected": "explained",
+        "got": "explained"
+      },
+      {
+        "id": "PS.46b.603.1",
+        "label": "correct",
+        "expected": "explained",
+        "got": "explained"
+      },
+      {
+        "id": "EM.27b.638.1",
+        "label": "correct",
+        "expected": "explained",
+        "got": "partial"
+      },
+      {
+        "id": "EM.46.185.1",
+        "label": "partially_correct_incomplete",
+        "expected": "partial",
+        "got": "partial"
+      },
+      {
+        "id": "VB.42.506.1",
+        "label": "partially_correct_incomplete",
+        "expected": "partial",
+        "got": "explained"
+      },
+      {
+        "id": "MX.16a.497.1",
+        "label": "partially_correct_incomplete",
+        "expected": "partial",
+        "got": "partial"
+      },
+      {
+        "id": "EM.48b.571.1",
+        "label": "partially_correct_incomplete",
+        "expected": "partial",
+        "got": "partial"
+      },
+      {
+        "id": "ME.66a.146.1",
+        "label": "partially_correct_incomplete",
+        "expected": "partial",
+        "got": "explained"
+      },
+      {
+        "id": "MX.11c.304.1",
+        "label": "contradictory",
+        "expected": "not_explained",
+        "got": "not_explained"
+      },
+      {
+        "id": "FN.24b.433.1",
+        "label": "contradictory",
+        "expected": "not_explained",
+        "got": "not_explained"
+      },
+      {
+        "id": "MX.52b.459.1",
+        "label": "contradictory",
+        "expected": "not_explained",
+        "got": "not_explained"
+      },
+      {
+        "id": "ME.5b.311.1",
+        "label": "contradictory",
+        "expected": "not_explained",
+        "got": "not_explained"
+      },
+      {
+        "id": "FN.20b.171.1",
+        "label": "contradictory",
+        "expected": "not_explained",
+        "got": "not_explained"
+      },
+      {
+        "id": "FN.17a.210.1",
+        "label": "irrelevant",
+        "expected": "not_explained",
+        "got": "not_explained"
+      },
+      {
+        "id": "SE.45.424.1",
+        "label": "irrelevant",
+        "expected": "not_explained",
+        "got": "partial"
+      },
+      {
+        "id": "SE.22a.532.1",
+        "label": "irrelevant",
+        "expected": "not_explained",
+        "got": "partial"
+      },
+      {
+        "id": "EM.47.563.1",
+        "label": "irrelevant",
+        "expected": "not_explained",
+        "got": "not_explained"
+      },
+      {
+        "id": "ME.79.181.1",
+        "label": "irrelevant",
+        "expected": "not_explained",
+        "got": "partial"
+      }
+    ],
+    "date": "2026-11-24",
+    "model": "openai/gpt-oss-120b"
+  }
+}

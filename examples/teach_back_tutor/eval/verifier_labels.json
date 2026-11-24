@@ -1,0 +1,39 @@
+{
+  "about": "Hand-labelled statements about the photosynthesis page (eval/photosynthesis_card.json), each said by the classmate as 'Oh I see! So <statement>'. 'false' statements are contradicted by the page and must be flagged; 'true' ones are stated on the page and must pass. Labelled by the recipe author; review before relying on them.",
+  "true": [
+    "plants make their own food in their leaves.",
+    "chlorophyll is a green pigment that traps energy from sunlight.",
+    "a plant needs sunlight, water and carbon dioxide to make food.",
+    "carbon dioxide gets into the leaf through tiny pores called stomata.",
+    "the roots absorb water from the soil.",
+    "oxygen is released into the air when the leaf makes food.",
+    "some of the glucose is stored as starch.",
+    "glucose is a kind of sugar.",
+    "water travels up the stem to the leaves.",
+    "the soil gives the plant water and minerals."
+  ],
+  "false": [
+    "plants take their food from the soil.",
+    "chlorophyll is a red pigment.",
+    "carbon dioxide enters the plant through the roots.",
+    "photosynthesis happens mainly in the roots.",
+    "plants release carbon dioxide into the air as a by-product.",
+    "the leaf uses oxygen and water to make glucose.",
+    "plants need only water to make their food.",
+    "all the glucose is used straight away and none is stored.",
+    "animals make their own food the way plants do.",
+    "the food is made in the soil and then sent to the leaves."
+  ],
+  "held_out_note": "Written after the v1 run, when the quantity-word fix was made, to check that the fix generalises. Not used while fixing.",
+  "held_out_true": [
+    "a plant needs three things to make its food.",
+    "the glucose that is not used for energy is stored as starch.",
+    "photosynthesis happens mainly in the leaves."
+  ],
+  "held_out_false": [
+    "a plant needs only sunlight to make its food.",
+    "plants never use any of their glucose for energy.",
+    "the leaf keeps all the oxygen it makes inside itself.",
+    "every part of the plant makes food equally."
+  ]
+}

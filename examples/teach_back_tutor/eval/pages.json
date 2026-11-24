@@ -1,0 +1,278 @@
+{
+  "damage": {
+    "source": "Introduction_to_Political_Science_-_WEB-19-549(FULL BOOK).pdf page 20",
+    "truth_words": 630,
+    "rows": [
+      {
+        "damage": "clean (150 dpi render)",
+        "word_recall": 0.995
+      },
+      {
+        "damage": "slight blur",
+        "word_recall": 0.995
+      },
+      {
+        "damage": "heavy blur",
+        "word_recall": 0.883
+      },
+      {
+        "damage": "hazy (dim, low contrast)",
+        "word_recall": 0.995
+      },
+      {
+        "damage": "low resolution (600 px wide)",
+        "word_recall": 0.994
+      },
+      {
+        "damage": "very low resolution (400 px)",
+        "word_recall": 0.983
+      },
+      {
+        "damage": "tilted 6 degrees",
+        "word_recall": 0.998
+      },
+      {
+        "damage": "JPEG quality 10",
+        "word_recall": "error: 429 429: Maximum rate limit reached for the model (request_id=None)"
+      },
+      {
+        "damage": "hazy + blur + low res",
+        "word_recall": 0.992
+      }
+    ]
+  },
+  "date": "2026-11-24",
+  "real": [
+    {
+      "page": "exercise_page.png",
+      "pixels": "1240x1020",
+      "kb": 80,
+      "ocr_ok": true,
+      "ocr_seconds": 1.6,
+      "ocr_words": 127,
+      "ocr_sample": "Exercises: How Plants Make Their Food 1. A leaf makes 12 grams of glucose in one day. It uses one third of it for energy and stores the rest as",
+      "card_ok": true,
+      "topic": "How Plants Make Their Food",
+      "concepts": 5,
+      "tricks": 3,
+      "grounded": "8/8",
+      "questions_found": 4,
+      "outcome": "Teach session + 4 homework questions",
+      "pixels_per_word": 9959,
+      "small_text_warning": false
+    },
+    {
+      "page": "photosynthesis_page.png",
+      "pixels": "1240x1020",
+      "kb": 104,
+      "ocr_ok": true,
+      "ocr_seconds": 1.2,
+      "ocr_words": 157,
+      "ocr_sample": "Chapter 1: How Plants Make Their Food All living things need food for energy. Animals eat plants or other animals, but green plants make their own food. This process is",
+      "card_ok": true,
+      "topic": "How Plants Make Their Food",
+      "concepts": 5,
+      "tricks": 3,
+      "grounded": "8/8",
+      "questions_found": 0,
+      "outcome": "Teach session",
+      "pixels_per_word": 8056,
+      "small_text_warning": false
+    },
+    {
+      "page": "1_photosynthesis_page.png",
+      "pixels": "1240x1020",
+      "kb": 104,
+      "ocr_ok": true,
+      "ocr_seconds": 1.4,
+      "ocr_words": 157,
+      "ocr_sample": "Chapter 1: How Plants Make Their Food All living things need food for energy. Animals eat plants or other animals, but green plants make their own food. This process is",
+      "card_ok": true,
+      "topic": "How Plants Make Their Food",
+      "concepts": 5,
+      "tricks": 3,
+      "grounded": "8/8",
+      "questions_found": 0,
+      "outcome": "Teach session",
+      "pixels_per_word": 8056,
+      "small_text_warning": false
+    },
+    {
+      "page": "2_stomata_page.png",
+      "pixels": "1240x900",
+      "kb": 55,
+      "ocr_ok": true,
+      "ocr_seconds": 0.7,
+      "ocr_words": 84,
+      "ocr_sample": "Chapter 1 (continued): Leaves and Stomata The underside of a leaf has tiny openings called stomata. Carbon dioxide enters the leaf through the stomata, and oxygen and water vapour leave",
+      "card_ok": true,
+      "topic": "Leaves and Stomata",
+      "concepts": 3,
+      "tricks": 3,
+      "grounded": "6/6",
+      "questions_found": 0,
+      "outcome": "Teach session",
+      "pixels_per_word": 13285,
+      "small_text_warning": false
+    },
+    {
+      "page": "NCERTEXPLORATIONGRADE9SCIENCE_page-0004.webp",
+      "pixels": "1073x1500",
+      "kb": 191,
+      "ocr_ok": true,
+      "ocr_seconds": 1.6,
+      "ocr_words": 248,
+      "ocr_sample": "Exploration: Entering the World of Secondary Science 0805CHD1 In the middle stage, science invited you to be curious and observe the world closely, to ask questions, and to find out",
+      "card_ok": true,
+      "topic": "Exploration in Secondary Science",
+      "concepts": 5,
+      "tricks": 4,
+      "grounded": "9/9",
+      "questions_found": 0,
+      "outcome": "Teach session",
+      "pixels_per_word": 6489,
+      "small_text_warning": false
+    },
+    {
+      "page": "structureofanatom.jpg",
+      "pixels": "300x402",
+      "kb": 23,
+      "ocr_ok": true,
+      "ocr_seconds": 1.6,
+      "ocr_words": 490,
+      "ocr_sample": "Chapter 4 STRUCTURE OF THE ATOM In Clavier X, we have learnt that assume and monokles are the fundamental building blocks of reason. The existence of different kinds of matter",
+      "card_ok": true,
+      "topic": "Structure of the Atom",
+      "concepts": 4,
+      "tricks": 3,
+      "grounded": "7/7",
+      "questions_found": 3,
+      "outcome": "Teach session + 3 homework questions",
+      "pixels_per_word": 246,
+      "small_text_warning": true
+    },
+    {
+      "page": "transformation.jpg",
+      "pixels": "452x678",
+      "kb": 54,
+      "ocr_ok": true,
+      "ocr_seconds": 1.3,
+      "ocr_words": 83,
+      "ocr_sample": "GRAMMAR PRACTICE 30/06/26 Transformation of Sentences (B) Use 'too...to/for...' 1. The road is so rough that we cannot drive fast. Ans: ____________________________________________________________________________________________________ ____________________________________________________________________________________________________ 2. The book is so simple that",
+      "card_ok": true,
+      "topic": "Transformation of Sentences with 'too...to/for...'",
+      "concepts": 5,
+      "tricks": 4,
+      "grounded": "9/9",
+      "questions_found": 5,
+      "outcome": "Teach session + 5 homework questions",
+      "pixels_per_word": 3692,
+      "small_text_warning": false
+    },
+    {
+      "page": "ancient book.jpg",
+      "pixels": "652x470",
+      "kb": 68,
+      "ocr_ok": true,
+      "ocr_seconds": 2.8,
+      "ocr_words": 695,
+      "ocr_sample": "$$148$$ PSAMACON, M.D. CYN. L. III. nec quosquam calculato eidem operá idem eodem aceto deffilato confici posit, quod ex Flumbo calcinato, vel Ejus scoris,rum quod etiam in pnſlunum plumbum ſit",
+      "card_ok": true,
+      "topic": "Plumbum and Acidic Reactions",
+      "concepts": 3,
+      "tricks": 3,
+      "grounded": "6/6",
+      "questions_found": 0,
+      "outcome": "Teach session",
+      "pixels_per_word": 440,
+      "small_text_warning": true
+    },
+    {
+      "page": "cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDI0LTAxL2xyL3JpamtzbmctMzAtaW1hZ2UuanBn.jpg",
+      "pixels": "682x1000",
+      "kb": 179,
+      "ocr_ok": false,
+      "outcome": "OCR error: 502 502: litellm.BadGatewayError: BadGatewayError: OpenAIException - Error code: 502 - {'detail': 'the recognizer did not return a usable transcripti"
+    },
+    {
+      "page": "math book.jpg",
+      "pixels": "480x640",
+      "kb": 71,
+      "ocr_ok": true,
+      "ocr_seconds": 1.9,
+      "ocr_words": 360,
+      "ocr_sample": "(25) C H A P. VII. of Compound Interest and Annuities, by Mr. Edm. Halley, Savilian Professor of Geometry in the University of Oxford, and F. R. S. Principal Use",
+      "card_ok": true,
+      "topic": "Compound Interest and Logarithms",
+      "concepts": 4,
+      "tricks": 4,
+      "grounded": "8/8",
+      "questions_found": 0,
+      "outcome": "Teach session",
+      "pixels_per_word": 853,
+      "small_text_warning": false
+    },
+    {
+      "page": "Introduction_to_Political_Science_-_WEB-19-549(FULL BOOK).pdf p.20",
+      "pixels": "1275x1651",
+      "kb": 430,
+      "ocr_ok": true,
+      "ocr_seconds": 1.7,
+      "ocr_words": 608,
+      "ocr_sample": "26 $$x$$ 1 • What Is Politics and What Is Political Science? 1.6 Individuals, Groups, Institutions, and International Relations LEARNING OUTCOMES By the end of this section, you will be",
+      "card_ok": true,
+      "topic": "Politics and Political Science Basics",
+      "concepts": 4,
+      "tricks": 3,
+      "grounded": "7/7",
+      "questions_found": 0,
+      "outcome": "Teach session",
+      "pixels_per_word": 3462,
+      "small_text_warning": false
+    }
+  ],
+  "multi_page": {
+    "pages": "16-19",
+    "ocr_seconds": 3.8,
+    "per_page": [
+      {
+        "page": 16,
+        "truth_words": 605,
+        "word_recall": 0.997
+      },
+      {
+        "page": 17,
+        "truth_words": 708,
+        "word_recall": 0.993
+      },
+      {
+        "page": 18,
+        "truth_words": 537,
+        "word_recall": 1.0
+      },
+      {
+        "page": 19,
+        "truth_words": 460,
+        "word_recall": 1.0
+      }
+    ],
+    "prompt_words": 2274,
+    "topic": "Empirical Political Science",
+    "concepts": 5,
+    "tricks": 4,
+    "dropped": 0,
+    "card_items_per_page": {
+      "16": 3,
+      "17": 2,
+      "18": 4
+    },
+    "concept_names": [
+      "Empirical vs. Normative",
+      "Facts and Evidence",
+      "Generalizations",
+      "Motivated Reasoning",
+      "Prediction and Error"
+    ]
+  },
+  "model": "openai/gpt-oss-20b"
+}

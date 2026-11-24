@@ -1,0 +1,930 @@
+{
+  "date": "2026-11-24",
+  "model": "openai/gpt-oss-120b",
+  "seconds": 433,
+  "judge": {
+    "items": 16,
+    "concept_accuracy": 0.95,
+    "concept_labels": 20,
+    "over_credit": 0,
+    "plant_accuracy": 1.0,
+    "plant_labels": 4,
+    "error_detection": {
+      "found": 1,
+      "missed": 0,
+      "false_alarms": 0
+    },
+    "quality_in_range": 0.875,
+    "rows": [
+      {
+        "id": 1,
+        "message": "Plants make their own food, it's called photosynthesis, and they use sunlight for it.",
+        "ok": false,
+        "issues": [
+          "quality: 1 (expected 2-3)"
+        ]
+      },
+      {
+        "id": 2,
+        "message": "Yes, you're right!",
+        "ok": true,
+        "issues": []
+      },
+      {
+        "id": 3,
+        "message": "There's a green thing in leaves called chlorophyll that catches the sun's energy, like a solar panel.",
+        "ok": false,
+        "issues": [
+          "quality: 1 (expected 2-3)"
+        ]
+      },
+      {
+        "id": 4,
+        "message": "They need water and sunlight.",
+        "ok": true,
+        "issues": []
+      },
+      {
+        "id": 5,
+        "message": "They need sunlight, water that comes up from the roots, and carbon dioxide from the air.",
+        "ok": true,
+        "issues": []
+      },
+      {
+        "id": 6,
+        "message": "Plants eat food from the soil through their roots.",
+        "ok": true,
+        "issues": []
+      },
+      {
+        "id": 7,
+        "message": "The leaf mixes water and carbon dioxide to make glucose, which is a sugar, and it gives out oxygen.",
+        "ok": true,
+        "issues": []
+      },
+      {
+        "id": 8,
+        "message": "No! The soil only gives water and minerals, the food is made in the leaves.",
+        "ok": true,
+        "issues": []
+      },
+      {
+        "id": 9,
+        "message": "Yes that's right, the roots take the food up.",
+        "ok": true,
+        "issues": []
+      },
+      {
+        "id": 10,
+        "message": "Hmm, I'm not sure, maybe.",
+        "ok": true,
+        "issues": []
+      },
+      {
+        "id": 11,
+        "message": "That's not right, chlorophyll is the green pigment that traps energy from sunlight.",
+        "ok": true,
+        "issues": []
+      },
+      {
+        "id": 12,
+        "message": "I like cricket. Can we play after school?",
+        "ok": true,
+        "issues": []
+      },
+      {
+        "id": 13,
+        "message": "Yes, a green pigment traps sunlight.",
+        "ok": true,
+        "issues": []
+      },
+      {
+        "id": 14,
+        "message": "Plants make food in the leafs using sun lite, water and carbon die oxide.",
+        "ok": true,
+        "issues": []
+      },
+      {
+        "id": 15,
+        "message": "Some glucose is used for energy straight away and the rest is stored as starch, like keeping leftovers in the fridge.",
+        "ok": false,
+        "issues": [
+          "c4: not_covered (expected partial/explained)"
+        ]
+      },
+      {
+        "id": 16,
+        "message": "The sun does something to the leaves, I think.",
+        "ok": true,
+        "issues": []
+      }
+    ]
+  },
+  "verifier": {
+    "statements": 27,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "accuracy": 1.0,
+    "confusion": {
+      "false_flagged": 14,
+      "false_missed": 0,
+      "true_flagged": 0,
+      "true_passed": 13
+    },
+    "main": {
+      "statements": 20,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "accuracy": 1.0,
+      "confusion": {
+        "false_flagged": 10,
+        "false_missed": 0,
+        "true_flagged": 0,
+        "true_passed": 10
+      }
+    },
+    "held_out": {
+      "statements": 7,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "accuracy": 1.0,
+      "confusion": {
+        "false_flagged": 4,
+        "false_missed": 0,
+        "true_flagged": 0,
+        "true_passed": 3
+      }
+    },
+    "rows": [
+      {
+        "group": "main",
+        "statement": "plants make their own food in their leaves.",
+        "label": "true",
+        "flagged": false,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "Plants make their own food",
+            "verdict": "true",
+            "evidence": "green plants make their own food."
+          },
+          {
+            "claim": "Plants make their own food in their leaves",
+            "verdict": "true",
+            "evidence": "Photosynthesis happens mainly in the leaves."
+          }
+        ]
+      },
+      {
+        "group": "main",
+        "statement": "chlorophyll is a green pigment that traps energy from sunlight.",
+        "label": "true",
+        "flagged": false,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "chlorophyll is a green pigment",
+            "verdict": "true",
+            "evidence": "Leaves contain a green pigment called chlorophyll"
+          },
+          {
+            "claim": "chlorophyll traps energy from sunlight",
+            "verdict": "true",
+            "evidence": "chlorophyll, which traps energy from sunlight"
+          }
+        ]
+      },
+      {
+        "group": "main",
+        "statement": "a plant needs sunlight, water and carbon dioxide to make food.",
+        "label": "true",
+        "flagged": false,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "a plant needs sunlight, water and carbon dioxide to make food",
+            "verdict": "true",
+            "evidence": "To make food, a plant needs three things: sunlight, water and carbon dioxide."
+          }
+        ]
+      },
+      {
+        "group": "main",
+        "statement": "carbon dioxide gets into the leaf through tiny pores called stomata.",
+        "label": "true",
+        "flagged": false,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "Carbon dioxide gets into the leaf through tiny pores called stomata.",
+            "verdict": "true",
+            "evidence": "Carbon dioxide from the air enters the leaf through tiny pores called stomata."
+          }
+        ]
+      },
+      {
+        "group": "main",
+        "statement": "the roots absorb water from the soil.",
+        "label": "true",
+        "flagged": false,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "Roots absorb water from the soil.",
+            "verdict": "true",
+            "evidence": "The roots absorb water from the soil"
+          }
+        ]
+      },
+      {
+        "group": "main",
+        "statement": "oxygen is released into the air when the leaf makes food.",
+        "label": "true",
+        "flagged": false,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "oxygen is released into the air when the leaf makes food",
+            "verdict": "true",
+            "evidence": "Oxygen is released into the air as a by-product."
+          }
+        ]
+      },
+      {
+        "group": "main",
+        "statement": "some of the glucose is stored as starch.",
+        "label": "true",
+        "flagged": false,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "some of the glucose is stored as starch",
+            "verdict": "true",
+            "evidence": "Some glucose is used for energy, and the rest is stored as starch."
+          }
+        ]
+      },
+      {
+        "group": "main",
+        "statement": "glucose is a kind of sugar.",
+        "label": "true",
+        "flagged": false,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "glucose is a kind of sugar.",
+            "verdict": "true",
+            "evidence": "Using the energy of sunlight, the leaf combines water and carbon dioxide to make glucose, a kind of sugar."
+          }
+        ]
+      },
+      {
+        "group": "main",
+        "statement": "water travels up the stem to the leaves.",
+        "label": "true",
+        "flagged": false,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "water travels up the stem to the leaves",
+            "verdict": "true",
+            "evidence": "the roots absorb water from the soil, and it travels up the stem to the leaves"
+          }
+        ]
+      },
+      {
+        "group": "main",
+        "statement": "the soil gives the plant water and minerals.",
+        "label": "true",
+        "flagged": false,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "the soil gives the plant water",
+            "verdict": "true",
+            "evidence": "The soil gives them water and minerals"
+          },
+          {
+            "claim": "the soil gives the plant minerals",
+            "verdict": "true",
+            "evidence": "The soil gives them water and minerals"
+          }
+        ]
+      },
+      {
+        "group": "main",
+        "statement": "plants take their food from the soil.",
+        "label": "false",
+        "flagged": true,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "Plants take their food from the soil.",
+            "verdict": "false",
+            "evidence": "Plants do not take food from the soil."
+          }
+        ]
+      },
+      {
+        "group": "main",
+        "statement": "chlorophyll is a red pigment.",
+        "label": "false",
+        "flagged": true,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "chlorophyll is a red pigment.",
+            "verdict": "false",
+            "evidence": "green pigment called chlorophyll"
+          }
+        ]
+      },
+      {
+        "group": "main",
+        "statement": "carbon dioxide enters the plant through the roots.",
+        "label": "false",
+        "flagged": true,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "Carbon dioxide enters the plant through the roots.",
+            "verdict": "false",
+            "evidence": "Carbon dioxide from the air enters the leaf through tiny pores called stomata."
+          }
+        ]
+      },
+      {
+        "group": "main",
+        "statement": "photosynthesis happens mainly in the roots.",
+        "label": "false",
+        "flagged": true,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "photosynthesis happens mainly in the roots",
+            "verdict": "false",
+            "evidence": "Photosynthesis happens mainly in the leaves."
+          }
+        ]
+      },
+      {
+        "group": "main",
+        "statement": "plants release carbon dioxide into the air as a by-product.",
+        "label": "false",
+        "flagged": true,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "Plants release carbon dioxide into the air as a by-product.",
+            "verdict": "false",
+            "evidence": "Oxygen is released into the air as a by-product."
+          }
+        ]
+      },
+      {
+        "group": "main",
+        "statement": "the leaf uses oxygen and water to make glucose.",
+        "label": "false",
+        "flagged": true,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "the leaf uses oxygen and water to make glucose",
+            "verdict": "false",
+            "evidence": "Using the energy of sunlight, the leaf combines water and carbon dioxide to make glucose"
+          }
+        ]
+      },
+      {
+        "group": "main",
+        "statement": "plants need only water to make their food.",
+        "label": "false",
+        "flagged": true,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "Plants need only water to make their food.",
+            "verdict": "false",
+            "evidence": "To make food, a plant needs three things: sunlight, water and carbon dioxide."
+          }
+        ]
+      },
+      {
+        "group": "main",
+        "statement": "all the glucose is used straight away and none is stored.",
+        "label": "false",
+        "flagged": true,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "All the glucose is used straight away",
+            "verdict": "false",
+            "evidence": "Some glucose is used for energy, and the rest is stored as starch."
+          },
+          {
+            "claim": "None is stored",
+            "verdict": "false",
+            "evidence": "Some glucose is used for energy, and the rest is stored as starch."
+          }
+        ]
+      },
+      {
+        "group": "main",
+        "statement": "animals make their own food the way plants do.",
+        "label": "false",
+        "flagged": true,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "animals make their own food the way plants do",
+            "verdict": "false",
+            "evidence": "Animals eat plants or other animals, but green plants make their own food."
+          }
+        ]
+      },
+      {
+        "group": "main",
+        "statement": "the food is made in the soil and then sent to the leaves.",
+        "label": "false",
+        "flagged": true,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "Food is made in the soil",
+            "verdict": "false",
+            "evidence": "Plants do not take food from the soil."
+          },
+          {
+            "claim": "Food is then sent to the leaves",
+            "verdict": "false",
+            "evidence": "the food itself is made in the leaves."
+          }
+        ]
+      },
+      {
+        "group": "held_out",
+        "statement": "a plant needs three things to make its food.",
+        "label": "true",
+        "flagged": false,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "A plant needs three things to make its food.",
+            "verdict": "true",
+            "evidence": "To make food, a plant needs three things: sunlight, water and carbon dioxide."
+          }
+        ]
+      },
+      {
+        "group": "held_out",
+        "statement": "the glucose that is not used for energy is stored as starch.",
+        "label": "true",
+        "flagged": false,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "Glucose that is not used for energy is stored as starch.",
+            "verdict": "true",
+            "evidence": "the rest is stored as starch"
+          }
+        ]
+      },
+      {
+        "group": "held_out",
+        "statement": "photosynthesis happens mainly in the leaves.",
+        "label": "true",
+        "flagged": false,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "photosynthesis happens mainly in the leaves",
+            "verdict": "true",
+            "evidence": "Photosynthesis happens mainly in the leaves."
+          }
+        ]
+      },
+      {
+        "group": "held_out",
+        "statement": "a plant needs only sunlight to make its food.",
+        "label": "false",
+        "flagged": true,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "A plant needs only sunlight to make its food.",
+            "verdict": "false",
+            "evidence": "To make food, a plant needs three things: sunlight, water and carbon dioxide."
+          }
+        ]
+      },
+      {
+        "group": "held_out",
+        "statement": "plants never use any of their glucose for energy.",
+        "label": "false",
+        "flagged": true,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "Plants never use any of their glucose for energy.",
+            "verdict": "false",
+            "evidence": "Some glucose is used for energy"
+          }
+        ]
+      },
+      {
+        "group": "held_out",
+        "statement": "the leaf keeps all the oxygen it makes inside itself.",
+        "label": "false",
+        "flagged": true,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "Leaves make oxygen.",
+            "verdict": "true",
+            "evidence": "Oxygen is released into the air as a by-product."
+          },
+          {
+            "claim": "Leaves keep all the oxygen they make inside themselves.",
+            "verdict": "false",
+            "evidence": "Oxygen is released into the air as a by-product."
+          }
+        ]
+      },
+      {
+        "group": "held_out",
+        "statement": "every part of the plant makes food equally.",
+        "label": "false",
+        "flagged": true,
+        "ok": true,
+        "verdicts": [
+          {
+            "claim": "Every part of the plant makes food equally.",
+            "verdict": "false",
+            "evidence": "Photosynthesis happens mainly in the leaves."
+          }
+        ]
+      }
+    ]
+  },
+  "simulation": {
+    "date": "2026-11-24",
+    "band": "middle",
+    "model": "openai/gpt-oss-20b (student: openai/gpt-oss-20b)",
+    "rows": [
+      {
+        "profile": "strong",
+        "mastery": 100,
+        "tricks": "2/2 on their own, 0 after a hint",
+        "detail": "You understood the lesson well.",
+        "quiz_pre": 3,
+        "quiz_post": 3,
+        "quiz_total": 3,
+        "checked_lines": 6,
+        "fact_check": {
+          "lines": 6,
+          "claims": 8,
+          "claims_true": 2,
+          "claims_unverified": 5,
+          "false_caught": 0,
+          "leaks_caught": 1,
+          "regenerated": 1,
+          "shown_clean": 6,
+          "plants_verified": "2/2"
+        },
+        "turns": 5,
+        "avg_quality": 2.0
+      },
+      {
+        "profile": "partial",
+        "mastery": 100,
+        "tricks": "2/2 on their own, 0 after a hint",
+        "detail": "You remember only part of the lesson.",
+        "quiz_pre": 3,
+        "quiz_post": 3,
+        "quiz_total": 3,
+        "checked_lines": 9,
+        "fact_check": {
+          "lines": 9,
+          "claims": 10,
+          "claims_true": 7,
+          "claims_unverified": 2,
+          "false_caught": 1,
+          "leaks_caught": 1,
+          "regenerated": 3,
+          "shown_clean": 8,
+          "plants_verified": "1/2"
+        },
+        "turns": 8,
+        "avg_quality": 2.12
+      },
+      {
+        "profile": "confused",
+        "mastery": 60,
+        "tricks": "0/1 on their own, 0 after a hint",
+        "detail": "You did not follow the lesson.",
+        "quiz_pre": 3,
+        "quiz_post": 3,
+        "quiz_total": 3,
+        "checked_lines": 14,
+        "fact_check": {
+          "lines": 14,
+          "claims": 9,
+          "claims_true": 5,
+          "claims_unverified": 2,
+          "false_caught": 2,
+          "leaks_caught": 4,
+          "regenerated": 6,
+          "shown_clean": 12,
+          "plants_verified": "1/1"
+        },
+        "turns": 13,
+        "avg_quality": 0.85
+      }
+    ]
+  },
+  "homework": {
+    "items": 10,
+    "single_solve_accuracy": 1.0,
+    "answered": 10,
+    "accuracy_when_answered": 1.0,
+    "abstained": 0,
+    "wrong_but_trusted": 0,
+    "rows": [
+      {
+        "question": "A leaf makes 12 grams of glucose a day. It uses one third for energy and stores the rest as starch. How many grams of starch does it store in 5 days?",
+        "agreement": "2/3",
+        "trusted": true,
+        "answer": "The leaf stores 40 grams of starch in 5 days.",
+        "all_answers": [
+          "40 g",
+          "The leaf stores 40 grams of starch in 5 days.",
+          "The leaf stores 40 grams of starch in 5 days."
+        ],
+        "single_correct": true,
+        "voted_correct": true,
+        "wrong_but_trusted": false
+      },
+      {
+        "question": "A plant makes 18 grams of glucose a day and stores two thirds of it as starch. How many grams of starch does it store in 7 days?",
+        "agreement": "2/3",
+        "trusted": true,
+        "answer": "84 grams",
+        "all_answers": [
+          "The plant stores 84 grams of starch in 7 days.",
+          "84 grams",
+          "84 grams"
+        ],
+        "single_correct": true,
+        "voted_correct": true,
+        "wrong_but_trusted": false
+      },
+      {
+        "question": "A leaf makes 10 grams of glucose each day and uses half of it for energy. How many grams of starch has it stored after 4 days?",
+        "agreement": "3/3",
+        "trusted": true,
+        "answer": "20 grams of starch",
+        "all_answers": [
+          "20 grams of starch",
+          "20 grams of starch",
+          "20 grams of starch"
+        ],
+        "single_correct": true,
+        "voted_correct": true,
+        "wrong_but_trusted": false
+      },
+      {
+        "question": "A leaf makes 9 grams of glucose a day and stores the rest as starch after using one third for energy. After how many days will it have stored 30 grams of starch?",
+        "agreement": "3/3",
+        "trusted": true,
+        "answer": "5 days",
+        "all_answers": [
+          "5 days",
+          "5 days",
+          "5 days"
+        ],
+        "single_correct": true,
+        "voted_correct": true,
+        "wrong_but_trusted": false
+      },
+      {
+        "question": "A plant gets sunlight and water but no carbon dioxide at all. Can it make food? Answer yes or no, then explain.",
+        "agreement": "3/3",
+        "trusted": true,
+        "answer": "No, the plant cannot make food without carbon dioxide.",
+        "all_answers": [
+          "No, the plant cannot make food without carbon dioxide.",
+          "No, the plant cannot make food because carbon dioxide is essential for photosynthesis.",
+          "No, the plant cannot make food because it lacks carbon dioxide, which is essential for photosynthesis."
+        ],
+        "single_correct": true,
+        "voted_correct": true,
+        "wrong_but_trusted": false
+      },
+      {
+        "question": "Which gas does a plant release into the air when it makes its food?",
+        "agreement": "3/3",
+        "trusted": true,
+        "answer": "Oxygen",
+        "all_answers": [
+          "Oxygen",
+          "Oxygen",
+          "Oxygen"
+        ],
+        "single_correct": true,
+        "voted_correct": true,
+        "wrong_but_trusted": false
+      },
+      {
+        "question": "A plant is kept in a dark cupboard and watered every day. Which of the three things it needs to make food is missing?",
+        "agreement": "3/3",
+        "trusted": true,
+        "answer": "Sunlight",
+        "all_answers": [
+          "Sunlight",
+          "Sunlight",
+          "Sunlight"
+        ],
+        "single_correct": true,
+        "voted_correct": true,
+        "wrong_but_trusted": false
+      },
+      {
+        "question": "Through which tiny pores does carbon dioxide get into a leaf?",
+        "agreement": "3/3",
+        "trusted": true,
+        "answer": "stomata",
+        "all_answers": [
+          "stomata",
+          "Through the stomata (tiny pores on the leaf).",
+          "Carbon dioxide enters the leaf through tiny pores called stomata."
+        ],
+        "single_correct": true,
+        "voted_correct": true,
+        "wrong_but_trusted": false
+      },
+      {
+        "question": "A gardener says that adding more soil gives a plant more food. Is the gardener right? Answer yes or no, then explain.",
+        "agreement": "3/3",
+        "trusted": true,
+        "answer": "No, because plants make their own food in leaves, soil only supplies water and minerals.",
+        "all_answers": [
+          "No, because plants make their own food in leaves, soil only supplies water and minerals.",
+          "No, the gardener is not right. Soil supplies water and nutrients, but the plant’s food is made in the leaves through photosynthesis.",
+          "No, because plants make their own food in the leaves through photosynthesis; soil only supplies water and minerals, not food."
+        ],
+        "single_correct": true,
+        "voted_correct": true,
+        "wrong_but_trusted": false
+      },
+      {
+        "question": "In which part of the plant does photosynthesis mainly happen?",
+        "agreement": "3/3",
+        "trusted": true,
+        "answer": "In the leaves",
+        "all_answers": [
+          "In the leaves",
+          "In the leaves",
+          "In the leaves"
+        ],
+        "single_correct": true,
+        "voted_correct": true,
+        "wrong_but_trusted": false
+      }
+    ],
+    "model": "openai/gpt-oss-120b",
+    "date": "2026-11-24"
+  },
+  "homework_sim": {
+    "date": "2026-11-24",
+    "band": "middle",
+    "rows": [
+      {
+        "profile": "solver",
+        "question": "A leaf makes 12 grams of glucose a day. It uses one third for energy and stores the rest as starch. How many grams of starch does it store in 5 days?",
+        "agreement": "3/3",
+        "solved": true,
+        "steps_on_own": "4/4",
+        "nudges": 0,
+        "revealed": 0,
+        "errors": [],
+        "turns": 1,
+        "avg_quality": 2.0,
+        "drafts_blocked": 0,
+        "rewritten": 0,
+        "leaks_reaching_student": 0,
+        "moves": [
+          "opening",
+          "wrap_up"
+        ]
+      },
+      {
+        "profile": "stuck",
+        "question": "A leaf makes 12 grams of glucose a day. It uses one third for energy and stores the rest as starch. How many grams of starch does it store in 5 days?",
+        "agreement": "3/3",
+        "solved": true,
+        "steps_on_own": "3/4",
+        "nudges": 1,
+        "revealed": 0,
+        "errors": [],
+        "turns": 3,
+        "avg_quality": 1.33,
+        "drafts_blocked": 1,
+        "rewritten": 1,
+        "leaks_reaching_student": 0,
+        "moves": [
+          "opening",
+          "nudge_goal",
+          "ask_why",
+          "wrap_up"
+        ]
+      },
+      {
+        "profile": "slip",
+        "question": "A leaf makes 12 grams of glucose a day. It uses one third for energy and stores the rest as starch. How many grams of starch does it store in 5 days?",
+        "agreement": "3/3",
+        "solved": true,
+        "steps_on_own": "3/4",
+        "nudges": 0,
+        "revealed": 0,
+        "errors": [],
+        "turns": 2,
+        "avg_quality": 2.0,
+        "drafts_blocked": 0,
+        "rewritten": 0,
+        "leaks_reaching_student": 0,
+        "moves": [
+          "opening",
+          "ask_why",
+          "wrap_up"
+        ]
+      },
+      {
+        "profile": "solver",
+        "question": "A plant is kept in a dark cupboard and watered every day. Which of the three things it needs to make food is missing?",
+        "agreement": "2/3",
+        "solved": true,
+        "steps_on_own": "5/5",
+        "nudges": 0,
+        "revealed": 0,
+        "errors": [],
+        "turns": 3,
+        "avg_quality": 3.0,
+        "drafts_blocked": 0,
+        "rewritten": 0,
+        "leaks_reaching_student": 0,
+        "moves": [
+          "opening",
+          "ask_why",
+          "ask_why",
+          "wrap_up"
+        ]
+      },
+      {
+        "profile": "stuck",
+        "question": "A plant is kept in a dark cupboard and watered every day. Which of the three things it needs to make food is missing?",
+        "agreement": "2/3",
+        "solved": true,
+        "steps_on_own": "4/5",
+        "nudges": 0,
+        "revealed": 0,
+        "errors": [],
+        "turns": 5,
+        "avg_quality": 1.6,
+        "drafts_blocked": 0,
+        "rewritten": 0,
+        "leaks_reaching_student": 0,
+        "moves": [
+          "opening",
+          "ask_why",
+          "ask_why",
+          "ask_why",
+          "ask_why",
+          "wrap_up"
+        ]
+      },
+      {
+        "profile": "slip",
+        "question": "A plant is kept in a dark cupboard and watered every day. Which of the three things it needs to make food is missing?",
+        "agreement": "2/3",
+        "solved": true,
+        "steps_on_own": "5/5",
+        "nudges": 0,
+        "revealed": 0,
+        "errors": [],
+        "turns": 1,
+        "avg_quality": 3.0,
+        "drafts_blocked": 0,
+        "rewritten": 0,
+        "leaks_reaching_student": 0,
+        "moves": [
+          "opening",
+          "wrap_up"
+        ]
+      }
+    ],
+    "model": "openai/gpt-oss-20b (student: openai/gpt-oss-20b)"
+  }
+}
