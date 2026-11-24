@@ -1,0 +1,420 @@
+{
+  "after_tuning_in_sample": {
+    "category_accuracy": 1.0,
+    "detection_recall": 0.9098,
+    "false_alarm_rate": 0.0725,
+    "localization": 0.964,
+    "n_clean": 138,
+    "n_errors": 122,
+    "n_labelled_items": 260,
+    "per_category": {
+      "addition": {
+        "detection_recall": 1.0,
+        "f1": 0.96,
+        "fn": 0,
+        "fp": 1,
+        "precision": 0.9231,
+        "recall": 1.0,
+        "tp": 12
+      },
+      "format": {
+        "detection_recall": 0.9167,
+        "f1": 0.6875,
+        "fn": 1,
+        "fp": 9,
+        "precision": 0.55,
+        "recall": 0.9167,
+        "tp": 11
+      },
+      "mistranslation": {
+        "detection_recall": 0.0,
+        "f1": null,
+        "fn": 7,
+        "fp": 0,
+        "precision": null,
+        "recall": 0.0,
+        "tp": 0
+      },
+      "number": {
+        "detection_recall": 1.0,
+        "f1": 1.0,
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 12
+      },
+      "omission": {
+        "detection_recall": 1.0,
+        "f1": 1.0,
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 12
+      },
+      "speech_garbled": {
+        "detection_recall": 1.0,
+        "f1": 1.0,
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 10
+      },
+      "speech_omission": {
+        "detection_recall": 0.9583,
+        "f1": 0.9583,
+        "fn": 1,
+        "fp": 1,
+        "precision": 0.9583,
+        "recall": 0.9583,
+        "tp": 23
+      },
+      "speech_repetition": {
+        "detection_recall": 1.0,
+        "f1": 1.0,
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 12
+      },
+      "term": {
+        "detection_recall": 0.7778,
+        "f1": 0.7368,
+        "fn": 2,
+        "fp": 3,
+        "precision": 0.7,
+        "recall": 0.7778,
+        "tp": 7
+      },
+      "wrong_language": {
+        "detection_recall": 1.0,
+        "f1": 1.0,
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 12
+      }
+    },
+    "per_language": {
+      "bn": {
+        "clean": 46,
+        "detection_recall": 0.8974,
+        "errors": 39,
+        "false_alarm_rate": 0.0652
+      },
+      "hi": {
+        "clean": 46,
+        "detection_recall": 0.9268,
+        "errors": 41,
+        "false_alarm_rate": 0.0652
+      },
+      "ta": {
+        "clean": 46,
+        "detection_recall": 0.9048,
+        "errors": 42,
+        "false_alarm_rate": 0.087
+      }
+    }
+  },
+  "before_tuning": {
+    "category_accuracy": 1.0,
+    "detection_recall": 0.9836,
+    "false_alarm_rate": 0.1449,
+    "localization": 0.9667,
+    "n_clean": 138,
+    "n_errors": 122,
+    "n_labelled_items": 260,
+    "per_category": {
+      "addition": {
+        "detection_recall": 1.0,
+        "f1": 0.96,
+        "fn": 0,
+        "fp": 1,
+        "precision": 0.9231,
+        "recall": 1.0,
+        "tp": 12
+      },
+      "format": {
+        "detection_recall": 0.9167,
+        "f1": 0.6875,
+        "fn": 1,
+        "fp": 9,
+        "precision": 0.55,
+        "recall": 0.9167,
+        "tp": 11
+      },
+      "mistranslation": {
+        "detection_recall": 1.0,
+        "f1": 0.5385,
+        "fn": 0,
+        "fp": 12,
+        "precision": 0.3684,
+        "recall": 1.0,
+        "tp": 7
+      },
+      "number": {
+        "detection_recall": 1.0,
+        "f1": 1.0,
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 12
+      },
+      "omission": {
+        "detection_recall": 1.0,
+        "f1": 0.9231,
+        "fn": 0,
+        "fp": 2,
+        "precision": 0.8571,
+        "recall": 1.0,
+        "tp": 12
+      },
+      "speech_garbled": {
+        "detection_recall": 1.0,
+        "f1": 1.0,
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 10
+      },
+      "speech_omission": {
+        "detection_recall": 0.9583,
+        "f1": 0.9583,
+        "fn": 1,
+        "fp": 1,
+        "precision": 0.9583,
+        "recall": 0.9583,
+        "tp": 23
+      },
+      "speech_repetition": {
+        "detection_recall": 1.0,
+        "f1": 1.0,
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 12
+      },
+      "term": {
+        "detection_recall": 1.0,
+        "f1": 0.6923,
+        "fn": 0,
+        "fp": 8,
+        "precision": 0.5294,
+        "recall": 1.0,
+        "tp": 9
+      },
+      "wrong_language": {
+        "detection_recall": 1.0,
+        "f1": 1.0,
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 12
+      }
+    },
+    "per_language": {
+      "bn": {
+        "clean": 46,
+        "detection_recall": 0.9487,
+        "errors": 39,
+        "false_alarm_rate": 0.1522
+      },
+      "hi": {
+        "clean": 46,
+        "detection_recall": 1.0,
+        "errors": 41,
+        "false_alarm_rate": 0.1087
+      },
+      "ta": {
+        "clean": 46,
+        "detection_recall": 1.0,
+        "errors": 42,
+        "false_alarm_rate": 0.1739
+      }
+    }
+  },
+  "cross_validated": {
+    "category_accuracy": 1.0,
+    "detection_recall": 0.9262,
+    "false_alarm_rate": 0.1232,
+    "folds": 5,
+    "localization": 0.9649
+  },
+  "definitions": {
+    "category_accuracy": "share of detected errors where a flag has the labelled category",
+    "cross_validated": "grouped 5-fold CV: thresholds tuned on 4 folds, metrics measured on the held-out fold",
+    "detection_recall": "share of labelled errors whose item has at least one flag in the same area (translation/speech)",
+    "false_alarm_rate": "share of verified-clean items (labels == []) with any flag",
+    "localization": "share of detected errors (with a labelled span) where a flag's span overlaps the labelled span"
+  },
+  "judge": {
+    "model": "openai/gpt-oss-120b",
+    "rubric": "judge-v2"
+  },
+  "judge_consistency": {
+    "items": 30,
+    "note": "The same prompt is sent twice as independent requests (temperature 0); the second request is cached separately.",
+    "per_language_same_verdict": {
+      "bn": 1.0,
+      "hi": 1.0,
+      "ta": 1.0
+    },
+    "same_categories": 0.8667,
+    "same_verdict": 1.0
+  },
+  "labels_source": "inline dataset labels",
+  "per_check": {
+    "asr_alignment": {
+      "speech_garbled": {
+        "precision": 0.0,
+        "predictions": 1,
+        "recall": 0.0
+      },
+      "speech_omission": {
+        "precision": 0.92,
+        "predictions": 25,
+        "recall": 0.9583
+      },
+      "speech_repetition": {
+        "precision": 1.0,
+        "predictions": 12,
+        "recall": 1.0
+      }
+    },
+    "audio_signal": {
+      "speech_garbled": {
+        "precision": 1.0,
+        "predictions": 10,
+        "recall": 1.0
+      }
+    },
+    "backtranslation": {
+      "omission": {
+        "precision": 0.7059,
+        "predictions": 17,
+        "recall": 1.0
+      }
+    },
+    "entities": {
+      "term": {
+        "precision": 0.3043,
+        "predictions": 23,
+        "recall": 0.7778
+      }
+    },
+    "format": {
+      "format": {
+        "precision": 0.5,
+        "predictions": 24,
+        "recall": 1.0
+      }
+    },
+    "judge": {
+      "addition": {
+        "precision": 0.9231,
+        "predictions": 13,
+        "recall": 1.0
+      },
+      "format": {
+        "precision": 0.7,
+        "predictions": 10,
+        "recall": 0.5833
+      },
+      "mistranslation": {
+        "precision": 0.3043,
+        "predictions": 23,
+        "recall": 1.0
+      },
+      "number": {
+        "precision": 0.7857,
+        "predictions": 14,
+        "recall": 0.9167
+      },
+      "omission": {
+        "precision": 0.8571,
+        "predictions": 14,
+        "recall": 1.0
+      },
+      "term": {
+        "precision": 0.5385,
+        "predictions": 13,
+        "recall": 0.7778
+      },
+      "wrong_language": {
+        "precision": 1.0,
+        "predictions": 2,
+        "recall": 0.1667
+      }
+    },
+    "length": {
+      "omission": {
+        "precision": 1.0,
+        "predictions": 3,
+        "recall": 0.25
+      }
+    },
+    "numbers": {
+      "number": {
+        "precision": 0.75,
+        "predictions": 16,
+        "recall": 1.0
+      }
+    },
+    "script_lang": {
+      "wrong_language": {
+        "precision": 1.0,
+        "predictions": 12,
+        "recall": 1.0
+      }
+    },
+    "verifier": {
+      "format": {
+        "precision": 0.1429,
+        "predictions": 7,
+        "recall": 0.0833
+      },
+      "mistranslation": {
+        "precision": 0.0,
+        "predictions": 2,
+        "recall": 0.0
+      },
+      "term": {
+        "precision": 0.6,
+        "predictions": 5,
+        "recall": 0.3333
+      }
+    }
+  },
+  "thresholds_used": {
+    "addition": 0.6,
+    "format": 0.9,
+    "mistranslation": 0.9,
+    "number": 0.9,
+    "omission": 0.9,
+    "speech_garbled": 0.65,
+    "speech_omission": 0.7,
+    "speech_repetition": 0.55,
+    "term": 0.9,
+    "wrong_language": 0.6
+  },
+  "tuning_notes": {
+    "addition": "tuned to 0.6 (F1 0.96 on 12 labelled examples)",
+    "format": "tuned to 0.9 (F1 0.69 on 12 labelled examples)",
+    "mistranslation": "tuned to 0.85 (F1 0.54 on 7 labelled examples); raised to 0.9 to keep false alarms <= 10%",
+    "number": "tuned to 0.9 (F1 1.00 on 12 labelled examples)",
+    "omission": "tuned to 0.9 (F1 1.00 on 12 labelled examples)",
+    "speech_garbled": "tuned to 0.65 (F1 1.00 on 10 labelled examples)",
+    "speech_omission": "tuned to 0.7 (F1 0.96 on 24 labelled examples)",
+    "speech_repetition": "tuned to 0.55 (F1 1.00 on 12 labelled examples)",
+    "term": "tuned to 0.9 (F1 0.74 on 9 labelled examples)",
+    "wrong_language": "tuned to 0.6 (F1 1.00 on 12 labelled examples)"
+  }
+}

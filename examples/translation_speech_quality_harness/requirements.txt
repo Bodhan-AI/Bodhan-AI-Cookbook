@@ -1,0 +1,11 @@
+# Pinned runtime + test dependencies. Install with: pip install -r requirements.txt && pip install -e . --no-deps
+httpx==0.28.1
+openai==3.55.1
+pydantic==2.14.4
+numpy==2.4.6
+sacrebleu==2.6.0
+rapidfuzz==3.14.6
+regex==2026.11.19
+indic-transliteration==2.3.82
+python-dotenv==1.2.4
+pytest==9.1.1

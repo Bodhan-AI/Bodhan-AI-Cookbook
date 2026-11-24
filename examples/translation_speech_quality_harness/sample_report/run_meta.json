@@ -1,0 +1,15 @@
+{
+  "cache": {
+    "hits": {
+      "llm": 366,
+      "transcribe": 92,
+      "translate": 260
+    },
+    "misses": {}
+  },
+  "llm_uncached_calls": 0,
+  "paid_calls_stopped": null,
+  "spent_inr": {},
+  "spent_total_inr": 0,
+  "wall_time_s": 5.2
+}
