@@ -1,0 +1,4 @@
+-r requirements.txt
+pytest>=8.0
+pytest-asyncio>=0.23
+Pillow>=10.0   # only used by scripts/verify_bodhan.py to render a test image

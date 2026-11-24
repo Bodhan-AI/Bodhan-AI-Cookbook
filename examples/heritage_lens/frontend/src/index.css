@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { scroll-behavior: smooth; }
+  body { @apply bg-ivory text-clay-deep font-sans antialiased; }
+  h1, h2, h3, h4 { @apply font-serif text-clay-deep; }
+  :focus-visible { outline: 3px solid #985541; outline-offset: 2px; border-radius: 6px; }
+  ::selection { background: #E8CFC0; }
+}
+
+@layer components {
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50; }
+  .btn-primary { @apply btn bg-clay text-white hover:bg-clay-deep; }
+  .btn-secondary { @apply btn border border-clay-muted bg-white text-clay-deep hover:bg-clay-pale; }
+  .btn-ghost { @apply btn text-clay-deep hover:bg-clay-pale; }
+  .btn-danger { @apply btn border border-red-300 bg-white text-red-800 hover:bg-red-50; }
+  .input { @apply w-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-base text-clay-deep placeholder:text-mute/70 focus:border-clay; }
+  .label { @apply mb-1.5 block text-sm font-semibold text-clay-deep; }
+  .card { @apply rounded-2xl border border-line bg-white shadow-paper; }
+  .paper { @apply rounded-2xl border border-line bg-sand/60; background-image: radial-gradient(rgba(152,85,65,.06) 1px, transparent 1px); background-size: 18px 18px; }
+  .eyebrow { @apply text-xs font-semibold uppercase tracking-[0.18em] text-clay-soft; }
+  .indic { font-family: "Noto Sans Telugu", "Noto Sans Devanagari", "Nirmala UI", system-ui, sans-serif; line-height: 1.8; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+}
+
+.leaflet-container { font-family: inherit; }
