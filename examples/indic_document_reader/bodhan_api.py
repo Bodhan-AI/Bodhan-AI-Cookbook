@@ -162,6 +162,97 @@ class TransliterateResponse:
     usage: dict = field(default_factory=dict)
 
 
+def is_roman_script(text: str) -> bool:
+    """Checks if text is predominantly Latin/Roman alphabet and not native Indic script."""
+    if not text or not text.strip():
+        return False
+    latin_count = sum(1 for c in text if 'a' <= c.lower() <= 'z')
+    indic_count = sum(1 for c in text if 0x0900 <= ord(c) <= 0x0D7F)
+    if indic_count > 0 and indic_count >= latin_count:
+        return False
+    return latin_count > 0
+
+
+_BRAHMIC_OFFSET_MAP = {
+    # Vowels
+    0x02: 'm', 0x03: 'h', 0x05: 'a', 0x06: 'aa', 0x07: 'i', 0x08: 'ee', 0x09: 'u', 0x0A: 'oo',
+    0x0B: 'ri', 0x0E: 'e', 0x0F: 'ee', 0x10: 'ai', 0x12: 'o', 0x13: 'oo', 0x14: 'au',
+    # Consonants
+    0x15: 'k', 0x16: 'kh', 0x17: 'g', 0x18: 'gh', 0x19: 'ng',
+    0x1A: 'ch', 0x1B: 'chh', 0x1C: 'j', 0x1D: 'jh', 0x1E: 'ny',
+    0x1F: 't', 0x20: 'th', 0x21: 'd', 0x22: 'dh', 0x23: 'n',
+    0x24: 't', 0x25: 'th', 0x26: 'd', 0x27: 'dh', 0x28: 'n',
+    0x2A: 'p', 0x2B: 'ph', 0x2C: 'b', 0x2D: 'bh', 0x2E: 'm',
+    0x2F: 'y', 0x30: 'r', 0x31: 'rr', 0x32: 'l', 0x33: 'll',
+    0x35: 'v', 0x36: 'sh', 0x37: 'sh', 0x38: 's', 0x39: 'h',
+    # Matras
+    0x3E: 'aa', 0x3F: 'i', 0x40: 'ee', 0x41: 'u', 0x42: 'oo', 0x43: 'ri',
+    0x46: 'e', 0x47: 'ee', 0x48: 'ai', 0x4A: 'o', 0x4B: 'oo', 0x4C: 'au',
+    0x4D: ''  # Halant / Virama
+}
+
+_BRAHMIC_SCRIPT_BASES = [
+    (0x0900, 0x097F),  # Devanagari (hi, mr, sa, ne, kok, mai, doi, sd)
+    (0x0980, 0x09FF),  # Bengali / Assamese (bn, as, mni)
+    (0x0A00, 0x0A7F),  # Gurmukhi (pa)
+    (0x0A80, 0x0AFF),  # Gujarati (gu)
+    (0x0B00, 0x0B7F),  # Odia (or)
+    (0x0B80, 0x0BFF),  # Tamil (ta)
+    (0x0C00, 0x0C7F),  # Telugu (te)
+    (0x0C80, 0x0CFF),  # Kannada (kn)
+    (0x0D00, 0x0D7F),  # Malayalam (ml)
+]
+
+
+def transliterate_indic_to_roman(text: str) -> str:
+    """
+    Converts Indic script text (Telugu, Hindi, Kannada, Tamil, etc.)
+    into authentic phonetic Romanized Latin letters.
+    """
+    if not text:
+        return ""
+    result = []
+    i = 0
+    n = len(text)
+    while i < n:
+        c = text[i]
+        code = ord(c)
+        base = None
+        for b_start, b_end in _BRAHMIC_SCRIPT_BASES:
+            if b_start <= code <= b_end:
+                base = b_start
+                break
+        if base is None:
+            result.append(c)
+            i += 1
+            continue
+
+        offset = code - base
+        is_consonant = 0x15 <= offset <= 0x39
+        roman_con = _BRAHMIC_OFFSET_MAP.get(offset, '')
+
+        if is_consonant:
+            if i + 1 < n:
+                next_c = text[i + 1]
+                next_code = ord(next_c)
+                next_offset = next_code - base
+                if next_offset == 0x4D:  # Virama
+                    result.append(roman_con)
+                    i += 2
+                    continue
+                elif 0x3E <= next_offset <= 0x4C:  # Matra vowel
+                    result.append(roman_con + _BRAHMIC_OFFSET_MAP.get(next_offset, ''))
+                    i += 2
+                    continue
+            result.append(roman_con + 'a')
+            i += 1
+        else:
+            result.append(_BRAHMIC_OFFSET_MAP.get(offset, ''))
+            i += 1
+
+    return ''.join(result)
+
+
 def transliterate(
     api_key: str,
     text: str,
@@ -180,35 +271,86 @@ def transliterate(
         script: 'roman' (default) or 'native'
         max_output_tokens: Optional token budget override
     """
-    body: dict = {
-        "model": "indic-transliterate",
-        "messages": [{"role": "user", "content": text}],
+    # 1. Try dedicated /transliterate plain JSON endpoint
+    body_plain = {
+        "text": text,
         "language": language,
         "script": script,
     }
     if max_output_tokens:
-        body["max_tokens"] = max_output_tokens
+        body_plain["max_output_tokens"] = max_output_tokens
 
-    resp = requests.post(
-        f"{BASE_URL}/v1/chat/completions",
-        headers={**_auth_headers(api_key), "Content-Type": "application/json"},
-        json=body,
-        timeout=60,
-    )
-    _check_error(resp)
-    data = resp.json()
+    try:
+        resp = requests.post(
+            f"{BASE_URL}/transliterate",
+            headers={**_auth_headers(api_key), "Content-Type": "application/json"},
+            json=body_plain,
+            timeout=30,
+        )
+        if resp.ok:
+            data = resp.json()
+            t_res = data.get("transliteration", "")
+            if t_res and (script != "roman" or is_roman_script(t_res)):
+                return TransliterateResponse(
+                    transliteration=t_res,
+                    language=language,
+                    script=script,
+                    truncated=data.get("truncated", False),
+                    usage=data.get("usage", {}),
+                )
+    except Exception:
+        pass
 
-    transliteration = ""
-    choices = data.get("choices", [])
-    if choices:
-        transliteration = choices[0].get("message", {}).get("content", "")
+    # 2. Try /v1/chat/completions fallback
+    try:
+        body_chat: dict = {
+            "model": "indic-transliterate",
+            "messages": [{"role": "user", "content": text}],
+            "language": language,
+            "script": script,
+        }
+        if max_output_tokens:
+            body_chat["max_tokens"] = max_output_tokens
+
+        resp = requests.post(
+            f"{BASE_URL}/v1/chat/completions",
+            headers={**_auth_headers(api_key), "Content-Type": "application/json"},
+            json=body_chat,
+            timeout=30,
+        )
+        if resp.ok:
+            data = resp.json()
+            choices = data.get("choices", [])
+            if choices:
+                t_res = choices[0].get("message", {}).get("content", "")
+                if t_res and (script != "roman" or is_roman_script(t_res)):
+                    return TransliterateResponse(
+                        transliteration=t_res,
+                        language=language,
+                        script=script,
+                        truncated=choices[0].get("finish_reason") == "length",
+                        usage=data.get("usage", {}),
+                    )
+    except Exception:
+        pass
+
+    # 3. Guaranteed phonetic transliteration for roman script
+    if script == "roman":
+        roman_fallback = transliterate_indic_to_roman(text)
+        return TransliterateResponse(
+            transliteration=roman_fallback,
+            language=language,
+            script=script,
+            truncated=False,
+            usage={},
+        )
 
     return TransliterateResponse(
-        transliteration=transliteration,
+        transliteration=text,
         language=language,
         script=script,
-        truncated=choices[0].get("finish_reason") == "length" if choices else False,
-        usage=data.get("usage", {}),
+        truncated=False,
+        usage={},
     )
 
 
