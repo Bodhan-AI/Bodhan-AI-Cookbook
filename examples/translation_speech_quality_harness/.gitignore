@@ -1,0 +1,30 @@
+# secrets
+.env
+.env.*
+!.env.example
+
+# caches, generated audio, run output (sample_report/ is the only tracked output)
+cache/
+.cache/
+reports/
+outputs/
+report/
+report_*/
+report-*/
+*.wav
+*.mp3
+*.m4a
+*.flac
+*.ogg
+data/in22_*.jsonl
+
+# python / tooling
+.venv/
+venv/
+*.py[cod]
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+*.egg-info/

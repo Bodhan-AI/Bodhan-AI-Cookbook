@@ -11,12 +11,14 @@ FAKE_HEX = "0123456789" + "abcdef" * 3
 
 
 def _notebook(cells):
-    return json.dumps({
-        "cells": cells,
-        "metadata": {},
-        "nbformat": 4,
-        "nbformat_minor": 5,
-    })
+    return json.dumps(
+        {
+            "cells": cells,
+            "metadata": {},
+            "nbformat": 4,
+            "nbformat_minor": 5,
+        }
+    )
 
 
 def _code_cell(src, outputs=None, count=None):
@@ -48,6 +50,7 @@ def test_template_passes_structure_and_api_checks():
 
 # --- security ---------------------------------------------------------------
 
+
 def test_committed_env_file_is_an_error(recipe):
     (recipe / ".env").write_text(f"BODHAN_API_KEY={FAKE_SK}\n")
     findings = list(check_security(recipe))
@@ -74,6 +77,7 @@ def test_env_example_placeholder_is_fine(recipe):
 
 
 # --- structure --------------------------------------------------------------
+
 
 def test_missing_readme_is_an_error(recipe):
     (recipe / "README.md").unlink()
@@ -131,11 +135,15 @@ def test_js_recipe_needs_package_json(tmp_path):
 
 # --- api --------------------------------------------------------------------
 
-@pytest.mark.parametrize("src", [
-    'model = "bodhan-mt"',
-    '{"model": "bodhan-asr"}',
-    "-F model=bodhan-ocr",
-])
+
+@pytest.mark.parametrize(
+    "src",
+    [
+        'model = "bodhan-mt"',
+        '{"model": "bodhan-asr"}',
+        "-F model=bodhan-ocr",
+    ],
+)
 def test_deprecated_model_ids_are_errors(recipe, src):
     (recipe / "app.py").write_text(src + "\n")
     findings = list(check_api(recipe))

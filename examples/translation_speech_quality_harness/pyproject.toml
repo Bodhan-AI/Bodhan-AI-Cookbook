@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools==80.9.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bodhan-eval"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "httpx==0.28.1",
+    "python-dotenv==1.1.1",
+    "sacrebleu==2.5.1",
+    "markdown-it-py==3.0.0",
+    "jiwer==4.0.0",
+    "numpy==2.3.5",
+]
+
+[project.scripts]
+bodhan-eval = "bodhan_eval.cli:main"
+
+[tool.pytest.ini_options]
+asyncio_default_fixture_loop_scope = "function"

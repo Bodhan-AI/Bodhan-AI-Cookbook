@@ -87,6 +87,7 @@ def _rel(root: Path, path: Path) -> str:
 # security
 # ----------------------------------------------------------------------------
 
+
 def check_security(root: Path) -> Iterator[Finding]:
     for path in _iter_files(root):
         rel = _rel(root, path)
@@ -188,6 +189,7 @@ def check_structure(root: Path, *, require_env_example: bool = True) -> Iterator
 # api compliance
 # ----------------------------------------------------------------------------
 
+
 def _model_literals(text: str) -> Iterable[str]:
     for match in MODEL_LITERAL.finditer(text):
         value = next(g for g in match.groups() if g)
@@ -221,7 +223,9 @@ def check_api(root: Path, rules: dict | None = None) -> Iterator[Finding]:
             yield Finding("warning", "api", rel, "Bodhan uses ISO codes like 'hi', not 'hi-IN'")
         for match in NON_BODHAN_BASE.finditer(text):
             yield Finding(
-                "warning", "api", rel,
+                "warning",
+                "api",
+                rel,
                 f"non-Bodhan base URL {match.group(0)} — fine for a companion model, but Bodhan calls must go to {rules['base_url']}",
             )
 
@@ -229,6 +233,7 @@ def check_api(root: Path, rules: dict | None = None) -> Iterator[Finding]:
 # ----------------------------------------------------------------------------
 # entry point
 # ----------------------------------------------------------------------------
+
 
 def run_all(root: Path, *, require_env_example: bool = True, rules: dict | None = None) -> list[Finding]:
     findings = list(check_security(root))

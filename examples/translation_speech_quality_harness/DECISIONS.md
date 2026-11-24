@@ -1,0 +1,40 @@
+# Decisions
+
+- 2026-11-19: Added the 13-language table as data in `languages.py`; unknown codes return `None` and are handled at the caller boundary.
+- 2026-11-19: Implemented comparison normalization with NFC and an original-text offset map; numeric grouping separators are removed only between adjacent digits.
+- 2026-11-19: Dataset ingestion quarantines malformed rows and unknown languages, while language filters and duplicate IDs remain visible as warnings.
+- 2026-11-19: Cache entries are content-addressed JSON files with canonical parameter keys; budgets charge only after a call can fit within the hard cap.
+- 2026-11-19: Bodhan calls use cache and budget gates; retries are limited to 429 and 5xx, with credit exhaustion terminal.
+- 2026-11-19: Audio utilities use only numpy/wave and optional ffmpeg argument lists, with silent-region-aware chunking.
+- 2026-11-19: Injector A uses deterministic Python transformations only; LLM or other provider translation is never used to generate Indic text.
+- 2026-11-19: Free text checks run before model-backed checks, and candidate-only findings are reported with separate evidence and confidence.
+- 2026-11-19: The two-run demo is reproducible by construction: report keys are sorted, item records are sorted, floats are rounded, and run metadata is isolated.
+- 2026-11-20: Every nonblank dataset row now receives a terminal state; failed checks are detailed separately and included in the accounting's skipped/unchecked bucket so totals reconcile without presenting them as clean.
+- 2026-11-20: Reference chrF++ and BLEU are reported as evidence with deterministic language-level bootstrap intervals; reference similarity never creates a flag.
+- 2026-11-20: Text checks register through immutable metadata and are scheduled in cost-tier/name order; per-item decisions capture each scheduled check.
+- 2026-11-20: Check thresholds and default confidences are centralized in `config.py` with an origin note; checks retain per-language run-derived length statistics.
+- 2026-11-20: Comparison normalization preserves original ranges for expanded or merged Unicode characters; whitespace collapsing is validated separately from character-level offset equivalence.
+- 2026-11-20: Baseline regression requires the lower bound of a seeded 95% paired-bootstrap item flag-rate delta to exceed zero; translation changes are detected by a SHA-256 digest so Indic output is not repeated in diff text.
+- 2026-11-20: Judge replies are treated as untrusted data: findings are bounded and schema-checked, quotes must resolve to text, Indic rationale characters are removed, and invalid JSON gets one retry.
+- 2026-11-20: ASR hallucination findings require acoustic duration/rate support; malformed dataset rows and unsafe audio paths are quarantined rather than aborting ingestion.
+- 2026-11-20: Calibration metrics are computed on a source-grouped held-out split; current detector scores do not support threshold tuning, so defaults are reported as untuned.
+- 2026-11-20: Truncated WAV parsing also catches `EOFError`; generated WAV fuzz cases exposed that `wave.open` raises it outside `wave.Error` and `OSError`.
+- 2026-11-20: Public IN22 rows are imported through the caller-configured Hugging Face dataset-server URL using a local read token; aligned references seed clean rows, while downloaded data stays ignored and is not reported as Bodhan output.
+- 2026-11-20: The standalone IN22 downloader explicitly loads the repository-root `.env` before parsing CLI defaults, without overriding process variables or displaying credentials.
+- 2026-11-20: The IN22 dataset-server export is consumed from its verified `default/test` schema (language-code columns plus `row_idx`); unavailable dataset-server variants fail explicitly rather than assuming the card's paired-config schema.
+- 2026-11-20: Live API validation returned 404 for the legacy `/translate` request while Bodhan's published OpenAI-compatible `/v1/chat/completions` returned 200; the client now uses the verified transport and maps `finish_reason == "length"` to `truncated`.
+- 2026-11-20: Added a recipe-local submission-contract validator to honor the recipe-only change scope; it checks required docs/dependency pins/environment template/ignore rules and source literals without reading environment files.
+- 2026-11-20: `--generate` now translates only missing outputs through Bodhan, reserves budget from the requested token ceiling, retries truncation once, and records generation failures as unchecked rather than clean.
+- 2026-11-21: Live LLM chat is verified through Gemini's OpenAI-compatible endpoint with `gemini-3-flash-preview`; 2.5 Flash variants returned 404 for this key/project. Human label queues and reviewed-clean negatives are generated through a local CSV workflow.
+- 2026-11-20: Candidate-triggered judging now uses blind and confirmation passes; judge-only findings require agreement across both, deterministic flags are retained, and only validated/sanitized findings are cached.
+- 2026-11-20: Speech API failures identify whether Indic-Speak or Indic-Transcribe failed; live smoke tests confirmed Transcribe works, while Indic-Speak returned HTTP 401.
+
+- 2026-11-21: Live Bodhan Translate, Speak, and Transcribe probes all returned success; the configured Gemini chat-completions route returned HTTP 404 and remains NEEDS_HUMAN.
+- 2026-11-21: Calibration now rejects label IDs missing from run predictions, preventing mismatched datasets from producing misleading metrics.
+- 2026-11-22: Length statistics (median + MAD of translation/source length ratio) are now computed per language, never pooled; a language with fewer than 8 items abstains from the length check and records why in `decisions` (default documented in `config.py`).
+- 2026-11-22: Format check now compares the translation's markup skeleton with the SOURCE (headings, lists, table shape, fences, math delimiters, LaTeX commands, links, URLs, placeholders, HTML tags, bold); no reference is required. Extra emphasis/headings/lists/tables are treated as style and are not flagged; missing structure and extra must-survive tokens are.
+- 2026-11-22: Restored full `.gitignore` (venv, caches, egg-info, report output, audio) and added `.gitattributes` (LF) to stop CRLF noise in the PR.
+- 2026-11-22: Added a written judge rubric (JUDGE_RUBRIC: category definitions, three-level severity, verbatim-quote and no-rewrite rules) to the judge prompt; DESIGN.md rewritten to match the code and to list unimplemented items (no back-translation, no WER/clipping, no injector results) instead of describing them as done.
+- 2026-11-23: `--span-ref` is now honoured: `auto` matches a label against the better-overlapping of a flag's translation span and source span (the brief's example span is ambiguous), `translation`/`source` restrict it. Match rule unchanged: category equal and IoU >= 0.3; a missing span on either side matches on category alone.
+- 2026-11-23: Calibration labels now attach to the run's items by (id, lang) via `calibration_io.py` (dataset or labels-only file). Items absent from the run produce a warning in `calibration.json` instead of exiting; label spans are validated against max(source, translation) length, not source length alone; a missing `labels` key no longer warns (explicit `null` or non-list still does).
+- 2026-11-23: Fixed lint under the Cookbook's stricter ruff rules (import sorting I001, pyupgrade UP035/UP038, bugbear B905) across src, tests and scripts; gate is `ruff check --select E4,E7,E9,F,I,UP,B`. README now points to the repo-level validator.
