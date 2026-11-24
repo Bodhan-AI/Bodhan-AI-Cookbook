@@ -203,6 +203,19 @@ Every LLM decision in this recipe is checked, and so is the Bodhan path around i
 | The whole tutor | Simulated strong / partial / confused students | ranked correctly; wrong claims and leaks blocked live |
 | Homework mode | Simulated students who can solve, are stuck, or slip | 6/6 solved; 0 answers leaked; 1 give-away draft blocked |
 
+**How to reproduce each result**, and where its data comes from:
+
+| Test | Command | Data / labels (source) | Results file |
+|---|---|---|---|
+| Python logic | `pytest test_policy.py` | built into the tests, no keys needed | terminal |
+| Grader vs hand labels | `python evaluate_judges.py --only judge` | `eval/judge_labels.json`: 16 turns written by the author, on the frozen page `eval/photosynthesis_card.json` | `eval/results.json` |
+| Grader vs real students | `python evaluate_public.py --scientsbank 20` | SciEntsBank (SemEval-2013 Task 7; Dzikovska et al., 2013), downloaded from Hugging Face `nkazi/SciEntsBank` | `eval/public.json` |
+| Fact-checker | `python evaluate_judges.py --only verifier` | `eval/verifier_labels.json`: 27 true/false statements about the frozen page, 7 held out | `eval/results.json` |
+| Homework answer key | `python evaluate_judges.py --only homework` | `eval/exercise_labels.json`: 10 exercises with known answers | `eval/results.json` |
+| Hindi typed and spoken | `python evaluate_language.py` | the 16 turns of `eval/judge_labels.json`, put through all five Bodhan models | `eval/language.json` |
+| OCR, real and multi-page | `python evaluate_pages.py <photos> --pdf <book.pdf> --pdf-page 20 --pdf-lesson 16-19` | *Introduction to Political Science* (OpenStax, CC BY 4.0; its embedded text is the answer key) and the author's own photos (not committed: copyright) | `eval/pages.json` |
+| Simulated students | `python simulate.py --all` and `--homework` | an LLM role-playing students (see section 6) | `eval/results.json`, `outputs/` |
+
 The labelled sets in `eval/` were written by the recipe author, so they are small (one page, 16 turns, 27 statements, 10 exercises) and worth an independent review; that is why the grader is also checked on a public dataset of real students' answers labelled by experts.
 
 ### 1. The grader vs a teacher's labels
