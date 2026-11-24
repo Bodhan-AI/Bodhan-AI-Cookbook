@@ -1,0 +1,8 @@
+# Serve the app on this computer only. Without this, Streamlit listens on every
+# network interface, and anyone on the same network could open the app and spend
+# your API credits.
+[server]
+address = "localhost"
+
+[browser]
+gatherUsageStats = false

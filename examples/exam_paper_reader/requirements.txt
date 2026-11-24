@@ -1,0 +1,7 @@
+# Pin every dependency: name==version
+requests==2.34.2
+python-dotenv==1.2.4
+pillow==13.0.0
+streamlit==1.67.0
+# only for running test_pipeline.py
+pytest==9.2.0
