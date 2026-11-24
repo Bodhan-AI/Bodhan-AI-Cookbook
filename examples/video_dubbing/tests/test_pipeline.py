@@ -24,6 +24,7 @@ from bodhan_dub.synthesis import SpeechClient
 def test_required_command_runs_all_stages_without_live_network(tmp_path,monkeypatch,failed_language,garbled_source,source_conflict):
     from threading import Event
     verification_started = Event()
+    hindi_speech_started = Event()
     original_verify = p.qa.verify
     original_synthesize = p.tts.synthesize_run
 
@@ -32,6 +33,8 @@ def test_required_command_runs_all_stages_without_live_network(tmp_path,monkeypa
         return original_verify(*args, **kwargs)
 
     def observe_synthesis(*args, **kwargs):
+        if args[0] and args[0][0]['language'] == 'hi':
+            hindi_speech_started.set()
         result = original_synthesize(*args, **kwargs)
         if kwargs.get('on_piece') and result['status'] == 'synthesized':
             assert verification_started.wait(10), 'Ready groups should enter verification during synthesis'
@@ -51,7 +54,11 @@ def test_required_command_runs_all_stages_without_live_network(tmp_path,monkeypa
     for module in [p.asr,p.mt,p.tts]:monkeypatch.setattr(module,'load_key',lambda *_:'fake')
     monkeypatch.setattr(p.rec,'load_settings',lambda *_:LLMSettings('https://example.test/v1','test','fake'))
     # Hosted semantic model behavior has its own mocked integration coverage.
-    monkeypatch.setattr(p,'before_speech',lambda units,translated,*_,**_kw:translated)
+    def review_language(units, translated, *args, **kwargs):
+        if 'bn' in translated['languages']:
+            assert hindi_speech_started.wait(5), 'Hindi synthesis must proceed during Bengali review'
+        return translated
+    monkeypatch.setattr(p, 'before_speech', review_language)
     monkeypatch.setattr(p.rec,'reconcile',lambda windows,*_:p.deterministic_draft(windows))
     from bodhan_dub.source_punctuation import punctuate_source
     def punctuate(windows,draft,settings,cache):

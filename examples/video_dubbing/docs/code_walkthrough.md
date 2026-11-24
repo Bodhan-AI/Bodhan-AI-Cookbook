@@ -1549,3 +1549,9 @@ unit or language. Group verification uses one shared recognition client and
 the same budget as synthesis. After synthesis finishes, the final fitter
 reuses successful local placements after checking the audio hash and timing.
 Any borrowing or paid shortening still runs in the bounded recovery stage.
+
+Translation meaning review now releases one language at a time. Once all
+units in that language pass, the command queues synthesis on a background
+worker and reviews the next language. Each language has its own review and
+speech journals. The shared speech client and budget still govern every
+request. A failed language is recorded while accepted languages can continue.

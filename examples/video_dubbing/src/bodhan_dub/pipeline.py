@@ -170,36 +170,12 @@ def run_pipeline(args):
                 lambda r:r['known_new_cost_inr'] if all(x.get('known_new_cost_inr') is not None for x in r['languages'].values()) else r['conservative_new_cost_upper_bound_inr'])
             save('translation')
             translated=recover_translation_units(grouped['units'],translated,translator,budget,run/'translations')
-            translated=before_speech(grouped['units'],translated,args.env_file,budget,run/'translations',reference_glossary=glossary,cache_root=cache/'meaning')
-            eligible = {
-                lang: data for lang, data in translated['languages'].items()
-                if data['status'] == 'translated' and len(data['units']) == len(grouped['units'])
-            }
-            for lang in langs:
-                if lang not in eligible:
-                    report['languages'][lang] = {
-                        'status': 'failed',
-                        'reason': 'Translation or meaning verification incomplete; see translation stage journals.',
-                        'unresolved_units': [row['id'] for row in translated['languages'].get(lang, {}).get('units', [])
-                                             if row['status'] != 'translated'],
-                    }
-            save('translation_meaning_verification')
-            jobs,parents=speech_jobs({**translated, 'languages': eligible},voices)
-            if not jobs:raise MediaError('no_usable_translation','No language produced usable translated text.')
             speech=tts.SpeechClient(keys[2],cache/'speech',ffmpeg,tts.SpeechSettings(attempts=3,workers=2),budget=budget)
             timeline = source_timeline(grouped['units'], corrected['source_windows'], detector)
             timings = {unit['id']: unit for unit in timeline['units']}
             recognizer = asr.TranscriptionClient(keys[0], cache/'asr',
-                asr.RetrySettings(attempts=1, concurrency=2), allowed_languages=set(eligible))
-            ready = {}
-            children = {}
+                asr.RetrySettings(attempts=1, concurrency=2), allowed_languages=set(langs))
             futures = []
-            for parent in parents['parents']:
-                key = (parent['language'], parent['id'])
-                ready[key] = []
-                for child in parent['children']:
-                    children[parent['language'], child] = parent
-
             def check_group(parent, pieces):
                 lang, ident = parent['language'], parent['id']
                 folder = run/'groups'/lang/ident
@@ -217,16 +193,57 @@ def run_pipeline(args):
                     lambda result: result['estimated_new_cost_inr'])
                 return lang, ident, checked, fitted
 
-            with ThreadPoolExecutor(max_workers=1) as verification_pool:
-                def piece_finished(lang, row):
-                    parent = children[lang, row['id']]
-                    pieces = ready[lang, parent['id']]
+            def synthesize_language(lang, data, verification_pool):
+                jobs, plan = speech_jobs({'languages': {lang: data}}, voices)
+                ready = {parent['id']: [] for parent in plan['parents']}
+                children = {child: parent for parent in plan['parents'] for child in parent['children']}
+
+                def piece_finished(language, row):
+                    parent = children[row['id']]
+                    pieces = ready[parent['id']]
                     pieces.append(row)
                     if len(pieces) == len(parent['children']) and all(piece['status'] == 'synthesized' for piece in pieces):
                         futures.append(verification_pool.submit(check_group, parent, pieces))
 
-                generated = tts.synthesize_run(jobs, run/'parts', speech, on_piece=piece_finished)
-                assembled=assemble(parents,generated,run/'synthesis')
+                generated = tts.synthesize_run(jobs, run/'parts'/lang, speech, on_piece=piece_finished)
+                return plan['parents'], generated['languages'][lang]
+
+            eligible = {}
+            synthesis_tasks = {}
+            translation_dir = run/'translations'
+            with ThreadPoolExecutor(max_workers=1) as verification_pool, ThreadPoolExecutor(max_workers=1) as speech_pool:
+                for lang in langs:
+                    language_report = {**translated, 'languages': {lang: translated['languages'][lang]}}
+                    try:
+                        reviewed = before_speech(grouped['units'], language_report, args.env_file, budget,
+                            translation_dir/'reviews'/lang, reference_glossary=glossary, cache_root=cache/'meaning')
+                        data = reviewed['languages'][lang]
+                    except MediaError as exc:
+                        data = language_report['languages'][lang]
+                        data.update(status='partial_failure', verification_error=exc.code)
+                    translated['languages'][lang] = data
+                    atomic_json(translation_dir/f'translation.{lang}.json', data)
+                    if data['status'] == 'translated' and len(data['units']) == len(grouped['units']):
+                        eligible[lang] = data
+                        synthesis_tasks[lang] = speech_pool.submit(synthesize_language, lang, data, verification_pool)
+                    else:
+                        report['languages'][lang] = {'status': 'failed',
+                            'reason': data.get('verification_error', 'Translation or meaning verification incomplete.'),
+                            'unresolved_units': [row['id'] for row in data.get('units', [])
+                                                 if row['status'] != 'translated' or data.get('verification_error')]}
+                    print(json.dumps({'event': 'language_review_complete', 'language': lang,
+                                      'speech_queued': lang in eligible}), flush=True)
+                translated['status'] = 'translated' if len(eligible) == len(langs) else 'partial_failure'
+                atomic_json(translation_dir/'translation_report.json', translated)
+                save('translation_meaning_verification')
+                if not eligible:
+                    raise MediaError('no_usable_translation','No language produced usable translated text.')
+                parents = {'parents': []}
+                generated = {'languages': {}}
+                for lang, task in synthesis_tasks.items():
+                    language_parents, generated['languages'][lang] = task.result()
+                    parents['parents'].extend(language_parents)
+                assembled = assemble(parents, generated, run/'synthesis')
                 save('speech_generation')
             usable=[]
             for lang in langs:
