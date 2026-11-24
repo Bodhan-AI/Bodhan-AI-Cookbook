@@ -1,0 +1,23 @@
+{
+  "platform": "macOS arm64",
+  "python": "3.12.14",
+  "tools": {
+    "ffmpeg": {
+      "version": "ffmpeg version 7.0 Copyright (c) 2000-2024 the FFmpeg developers",
+      "sha256": "326895b16940f238d76e902fc71150f10c388c281985756f9850ff800a2f1499"
+    },
+    "ffprobe": {
+      "version": "ffprobe version 7.0 Copyright (c) 2007-2024 the FFmpeg developers",
+      "sha256": "307e09bc01bd72bde5f441a1a6df68769da3b2b6e431accfbfc9cf3893ad00c4"
+    }
+  },
+  "tests_passed": 21,
+  "note": "Actual local binaries, not installer-advertised version. Helper download URL is upstream-mutable; hashes are provenance, not enforced cross-platform locks. System ffmpeg/ffprobe may be supplied instead.",
+  "demo": {
+    "duration_seconds": 329.266667,
+    "extracted_sample_rate": 16000,
+    "channels": 1,
+    "sample_width_bytes": 2,
+    "model_calls": 0
+  }
+}
