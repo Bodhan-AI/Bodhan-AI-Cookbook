@@ -79,7 +79,18 @@ def leaked_terms(session, move: dict, line: str) -> list[str]:
 
 
 def fact_check(session, move: dict, line: str) -> dict:
-    """Steps 1-3 of CoVe for one line. Returns the verdicts and whether the line may be shown."""
+    """Steps 1-3 of CoVe for one line. Returns the verdicts and whether the line may be shown.
+
+    If the checker's own LLM output is unusable, the deterministic checks still run and the line is marked
+    as not fact-checked, rather than failing the student's turn."""
+    try:
+        verdicts = _verdicts(session, line)
+    except ValueError:
+        return {**decide(session, move, line, []), "unchecked": True}
+    return decide(session, move, line, verdicts)
+
+
+def _verdicts(session, line: str) -> list[dict]:
     planned = llm.chat_json([{"role": "user", "content": PLAN_PROMPT.format(line=line)}], temperature=0)
     claims = [c for c in planned.get("claims", []) if isinstance(c, dict) and c.get("question")]
     verdicts = []
@@ -96,7 +107,7 @@ def fact_check(session, move: dict, line: str) -> dict:
             verdict = "true" if answer == "yes" and grounded else "false" if answer == "no" and grounded else "unverified"
             verdicts.append({"claim": c.get("claim", ""), "question": c["question"], "verdict": verdict,
                              "evidence": evidence if grounded else ""})
-    return decide(session, move, line, verdicts)
+    return verdicts
 
 
 def gives_away(line: str, correction: str, threshold: float = 0.6) -> bool:

@@ -8,6 +8,7 @@ import json
 import mimetypes
 import os
 import re
+import time
 import wave
 from concurrent.futures import ThreadPoolExecutor
 
@@ -48,6 +49,17 @@ def _check(resp: requests.Response) -> requests.Response:
     raise BodhanError(msg)
 
 
+def _post(url: str, attempts: int = 6, **kwargs) -> requests.Response:
+    """POST, waiting and retrying when Bodhan says it is busy (429/503): 2, 4, 8, 16, 30 s, or its Retry-After."""
+    for i in range(attempts):
+        resp = requests.post(url, **kwargs)
+        if resp.status_code not in (429, 503) or i == attempts - 1:
+            return _check(resp)
+        wait = resp.headers.get("retry-after", "")
+        time.sleep(min(30.0, float(wait)) if wait.replace(".", "", 1).isdigit() else min(30, 2 ** (i + 1)))
+    raise AssertionError("unreachable")
+
+
 def ocr_page(image_bytes: bytes, filename: str = "page.png") -> str:
     """Return the page as Markdown."""
     mime = mimetypes.guess_type(filename)[0] or "image/png"
@@ -57,30 +69,30 @@ def ocr_page(image_bytes: bytes, filename: str = "page.png") -> str:
         "messages": [{"role": "user", "content": [{"type": "image_url", "image_url": {"url": f"data:{mime};base64,{b64}"}}]}],
         "table_format": "markdown",
     }
-    resp = requests.post(f"{BASE_URL}/v1/chat/completions", headers=_headers("ocr"), json=body, timeout=180)
-    return _check(resp).json()["choices"][0]["message"]["content"]
+    resp = _post(f"{BASE_URL}/v1/chat/completions", headers=_headers("ocr"), json=body, timeout=180)
+    return resp.json()["choices"][0]["message"]["content"]
 
 
 def transcribe(audio_bytes: bytes, language: str | None = None, filename: str = "audio.wav") -> str:
     data = {"model": "indic-transcribe"}
     if language:
         data["language"] = language
-    resp = requests.post(
+    resp = _post(
         f"{BASE_URL}/v1/audio/transcriptions",
         headers=_headers("transcribe"),
         files={"file": (filename, audio_bytes)},
         data=data,
         timeout=60,
     )
-    return _check(resp).json()["text"]
+    return resp.json()["text"]
 
 
 # The documented /translate and /transliterate routes return 404 (cookbook issue #34);
 # both models answer on the OpenAI-style chat route with their options as top-level fields.
 def _chat(api: str, model: str, text: str, **options) -> str:
     body = {"model": model, "messages": [{"role": "user", "content": text}], **options}
-    resp = requests.post(f"{BASE_URL}/v1/chat/completions", headers=_headers(api), json=body, timeout=60)
-    return _check(resp).json()["choices"][0]["message"]["content"].strip()
+    resp = _post(f"{BASE_URL}/v1/chat/completions", headers=_headers(api), json=body, timeout=60)
+    return resp.json()["choices"][0]["message"]["content"].strip()
 
 
 def translate(text: str, target_language: str, script: str = "native") -> str:
@@ -97,13 +109,13 @@ def speak(text: str, voice: str, lang: str, style: str | None = None) -> bytes:
     instructions = {"lang": lang}
     if style:
         instructions["style"] = style
-    resp = requests.post(
+    resp = _post(
         f"{BASE_URL}/v1/audio/speech",
         headers=_headers("speak"),
         json={"model": "indic-speak", "input": text, "voice": voice, "instructions": json.dumps(instructions)},
         timeout=120,
     )
-    return _check(resp).content
+    return resp.content
 
 
 # One female voice per language (indic-speak also has male voices).
@@ -113,6 +125,19 @@ VOICES = {
     "mr": "Anagha", "ne": "Srijana", "or": "Itishree", "pa": "Kaur", "sa": "Bharati", "sat": "Phulmani",
     "sd": "Moomal", "ta": "Anitha", "te": "Sravani", "ur": "Saba",
 }
+
+
+# A male voice per language too (from scripts/bodhan_api_rules.json), so each classmate can sound different.
+MALE_VOICES = {
+    "as": "Ankur", "bn": "Sourav", "brx": "Sansuma", "doi": "Sham", "gu": "Parth", "hi": "Amit", "kn": "Adarsh",
+    "kok": "Sandeep", "ks": "Ishfaq", "mai": "Madhukar", "ml": "Kiran", "mni": "Chaoba", "mr": "Chinmay",
+    "ne": "Sagar", "or": "Akash", "pa": "Manpreet", "sa": "Aryaman", "sat": "Sibu", "sd": "Rano", "ta": "Arun",
+    "te": "Vamsi", "ur": "Zaid",
+}
+
+
+def voice_for(lang: str, gender: str = "female") -> str:
+    return (MALE_VOICES if gender == "male" else VOICES)[lang]
 
 
 def speak_long(text: str, lang: str, voice: str | None = None, style: str | None = None) -> bytes:

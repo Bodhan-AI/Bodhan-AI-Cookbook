@@ -27,6 +27,7 @@ BANDS = {
         "persona": "a playful, bubbly classmate. Very short simple sentences, lots of excitement, "
         "little games like 'ooh, is it like...?'. Celebrate every small thing the student says.",
         "voice_style": "children's stories",
+        "voice": "male",
         "max_plants": 1,
         "plant_difficulty": ["easy"],
         "levels": (1, 2),
@@ -38,6 +39,7 @@ BANDS = {
         "persona": "a curious explorer of a classmate. Friendly, asks 'what if' and connects ideas "
         "to everyday life (kitchen, cricket, the school garden).",
         "voice_style": "happy",
+        "voice": "female",
         "max_plants": 2,
         "plant_difficulty": ["easy", "medium"],
         "levels": (1, 3),
@@ -49,12 +51,25 @@ BANDS = {
         "persona": "a sharp, friendly debater of a classmate. Pushes back, asks for reasons and "
         "evidence ('but how do you know?'), plays devil's advocate, always respectful.",
         "voice_style": "educational lecture",
+        "voice": "male",
         "max_plants": 3,
         "plant_difficulty": ["easy", "medium", "hard"],
         "levels": (2, 3),
         "deep_checks": 2,
     },
 }
+
+PERSONA_KEYS = ("name", "persona", "voice_style", "voice")
+
+
+def persona(band: str, buddy: str = "") -> dict:
+    """The class sets the difficulty; the student may pick any classmate (their name, character and voice)."""
+    cfg = dict(BANDS[band])
+    chosen = next((b for b in BANDS.values() if b["name"] == buddy), None)
+    if chosen:
+        cfg.update({k: chosen[k] for k in PERSONA_KEYS})
+    return cfg
+
 
 LEVEL_QUESTIONS = {
     1: "simple 'what' questions about one idea at a time",
@@ -95,6 +110,7 @@ class Session:
     key_terms: set = field(default_factory=set)
     opening_check: dict | None = None
     clarified: dict = field(default_factory=dict)  # concept id -> times the classmate asked to clarify it
+    buddy: str = ""  # a classmate the student picked ("Riya"); "" = the one that matches the class
 
     def __post_init__(self):
         cfg = BANDS[self.band]
@@ -113,7 +129,7 @@ class Session:
 
     @property
     def cfg(self) -> dict:
-        return BANDS[self.band]
+        return persona(self.band, self.buddy)
 
     def concept(self, cid: str) -> dict:
         return next(c for c in self.card["concepts"] if c["id"] == cid)
@@ -518,8 +534,8 @@ def report(session: Session) -> dict:
     concepts = []
     for c in session.card["concepts"]:
         status = session.concepts[c["id"]]["status"]
-        if c["id"] in open_errors and status == "explained":  # still holds a wrong idea about it
-            status = "partial"
+        if c["id"] in open_errors:  # still holds a wrong idea about it: one level down, so stating the
+            status = {"explained": "partial", "partial": "not_covered"}.get(status, status)  # misconception earns nothing
         concepts.append({"name": c["name"], "status": status, "said": session.concepts[c["id"]]["said"]})
     plants = [
         {"statement": m["wrong_statement"], "outcome": session.plants[m["id"]]["status"], "correction": m["correction"]}

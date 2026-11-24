@@ -1,10 +1,24 @@
+# Light and dark themes: the app follows the device setting, and the user can switch in the menu (⋮ → Settings).
+# app.py reads the active theme (st.context.theme) and matches its own cards and chips to it.
+
 [theme]
-base = "light"
-primaryColor = "#4F46E5"
-backgroundColor = "#F7F7FB"
-secondaryBackgroundColor = "#EEF0FA"
-textColor = "#1E2235"
-font = "sans serif"
+font = "sans-serif"
+baseRadius = "medium"
+showSidebarBorder = true
+
+[theme.light]
+primaryColor = "#6366F1"
+backgroundColor = "#F7F8FC"
+secondaryBackgroundColor = "#EEF0F8"
+textColor = "#0F172A"
+borderColor = "#E3E6F0"
+
+[theme.dark]
+primaryColor = "#8B93FF"
+backgroundColor = "#0B0F1A"
+secondaryBackgroundColor = "#141A2A"
+textColor = "#E6E9F2"
+borderColor = "#232B40"
 
 [browser]
 gatherUsageStats = false

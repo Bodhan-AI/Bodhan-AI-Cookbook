@@ -313,3 +313,153 @@ def test_grounding_rejects_quotes_not_on_the_page():
     page = set(lesson._words("Green plants make their own food using sunlight, water and carbon dioxide."))
     assert lesson.is_grounded("plants make their own food", page)
     assert not lesson.is_grounded("roots absorb nitrogen from fertiliser", page)
+
+
+# ---- reading pages: photos, PDFs, a busy API (no network: images are made here, requests is faked)
+
+
+def _image(fmt: str, size=(300, 200), orientation: int | None = None) -> bytes:
+    import io
+
+    from PIL import Image
+
+    img, buf = Image.new("RGB", size, "white"), io.BytesIO()
+    exif = Image.Exif()
+    if orientation:
+        exif[0x0112] = orientation
+    img.save(buf, fmt, exif=exif) if fmt == "JPEG" else img.save(buf, fmt)
+    return buf.getvalue()
+
+
+def test_plain_photo_is_passed_through_unchanged():
+    data = _image("PNG")
+    assert lesson.prepare_image(data, "p.png") == (data, "p.png")
+
+
+def test_webp_and_sideways_phone_photo_become_upright_jpeg():
+    import io
+
+    from PIL import Image
+
+    data, name = lesson.prepare_image(_image("WEBP"), "page.webp")
+    assert name == "page.jpg" and Image.open(io.BytesIO(data)).format == "JPEG"
+    data, _ = lesson.prepare_image(_image("JPEG", (300, 200), orientation=6), "phone.jpg")  # 6 = rotated 90 degrees
+    assert Image.open(io.BytesIO(data)).size == (200, 300)
+
+
+def test_huge_photo_is_shrunk():
+    import io
+
+    from PIL import Image
+
+    data, _ = lesson.prepare_image(_image("PNG", (5000, 3000)), "big.png")
+    assert max(Image.open(io.BytesIO(data)).size) == lesson.MAX_SIDE
+
+
+def test_pdf_pages_picks_the_requested_pages_and_caps_them():
+    import io
+
+    from PIL import Image
+
+    buf = io.BytesIO()
+    pages = [Image.new("RGB", (200, 300), "white") for _ in range(6)]
+    pages[0].save(buf, "PDF", save_all=True, append_images=pages[1:])
+    pdf = buf.getvalue()
+    assert lesson.pdf_page_count(pdf) == 6
+    assert [n for _, n in lesson.pdf_pages(pdf, first=2, count=2)] == ["page_2.png", "page_3.png"]
+    assert len(lesson.pdf_pages(pdf, first=1, count=10)) == lesson.MAX_PAGES  # one lesson per session
+    assert [n for _, n in lesson.pdf_pages(pdf, first=6, count=4)] == ["page_6.png"]  # stops at the last page
+
+
+def test_bodhan_retries_when_busy_then_succeeds(monkeypatch):
+    import bodhan
+
+    class Resp:
+        def __init__(self, code):
+            self.status_code, self.ok, self.headers, self.text = code, code == 200, {"retry-after": "0"}, ""
+
+        def json(self):
+            return {"choices": [{"message": {"content": "page text"}}]}
+
+    codes = iter([429, 503, 200])
+    monkeypatch.setenv("BODHAN_API_KEY", "test")
+    monkeypatch.setattr(bodhan.requests, "post", lambda *a, **k: Resp(next(codes)))
+    assert bodhan.ocr_page(b"img") == "page text"
+
+
+def test_doubts_list_what_the_app_could_not_check_or_had_to_show():
+    ref = {"trusted": True, "agreement": "3/3", "steps": ["find a third of 12", "subtract it"], "final_answer": "8",
+           "answers": ["8"] * 3}
+    hw = exercise.Homework(question="A leaf makes 12 g...", ref=ref)
+    hw.steps = ["revealed", "explained"]
+    hw.final, hw.final_correct = "8", True
+    doubts = exercise.teacher_doubts(hw)
+    assert len(doubts) == 1 and "find a third of 12" in doubts[0]
+    untrusted = exercise.Homework(question="Q?", ref={**ref, "trusted": False, "agreement": "1/3"})
+    untrusted.final = "7"
+    assert "could not check" in exercise.teacher_doubts(untrusted)[0]
+
+
+def test_holding_a_wrong_idea_costs_one_level_of_credit():
+    s = tutor.Session(card=CARD, band="middle")
+    s.concepts["c1"]["status"], s.concepts["c2"]["status"] = "explained", "partial"
+    s.student_errors = [{"concept_id": "c1", "claim": "x", "correction": "y", "resolved": False},
+                        {"concept_id": "c2", "claim": "plants get food from soil", "correction": "z", "resolved": False}]
+    got = {c["name"]: c["status"] for c in tutor.report(s)["concepts"]}
+    assert got["Leaves make food"] == "partial" and got["Ingredients"] == "not_covered"
+
+
+def test_small_text_is_measured_in_pixels_per_word():
+    import io
+
+    from PIL import Image
+
+    buf = io.BytesIO()
+    Image.new("RGB", (300, 400), "white").save(buf, "PNG")
+    tiny = [(buf.getvalue(), "p.png")]
+    assert lesson.pixels_per_word(tiny, "word " * 490) < lesson.MIN_PIXELS_PER_WORD  # a dense page shot from afar
+    assert lesson.pixels_per_word(tiny, "word " * 80) >= lesson.MIN_PIXELS_PER_WORD  # a big handwritten worksheet
+
+
+# ---- intent: Teach or Homework (the LLM is faked to fail, so the keyword rules decide)
+
+
+def test_intent_rules_follow_what_the_student_said(monkeypatch):
+    import intent
+
+    monkeypatch.setattr(intent.llm, "chat_json", lambda *a, **k: (_ for _ in ()).throw(ValueError("offline")))
+    page = "Photosynthesis. Plants make their own food in their leaves."
+    hw = intent.classify("please help me solve question 3", page)
+    assert hw["mode"] == "homework" and hw["question"] == "3" and hw["by"] == "rules"
+    assert intent.classify("I have a test on this tomorrow", page)["mode"] == "teach"
+    assert intent.classify("", page)["mode"] == "teach"  # a lesson page, nothing said
+
+
+def test_intent_rules_spot_a_page_of_numbered_questions(monkeypatch):
+    import intent
+
+    monkeypatch.setattr(intent.llm, "chat_json", lambda *a, **k: (_ for _ in ()).throw(ValueError("offline")))
+    worksheet = "Exercises\n1. What is a stoma?\n2. Why do leaves look green?\n3. Name the gas plants release?\n"
+    assert intent.classify("", worksheet)["mode"] == "homework"
+
+
+def test_pick_question_by_number_or_words():
+    import intent
+
+    qs = ["The road is so rough that we cannot drive fast.", "The book is so simple that it needs no explanation.",
+          "The bridge is so weak that heavy vehicles cannot cross it."]
+    assert intent.pick_question(qs, "2") == 1
+    assert intent.pick_question(qs, "question 3") == 2
+    assert intent.pick_question(qs, "the bridge one") == 2
+    assert intent.pick_question(qs, "") == 0
+    assert intent.pick_question(qs, "9") == 0  # out of range: first question
+
+
+def test_picked_classmate_keeps_the_class_difficulty_and_has_their_own_voice():
+    import bodhan
+
+    s = tutor.Session(card=CARD, band="secondary", buddy="Riya")  # class 9-12, but the student picked Riya
+    assert s.cfg["name"] == "Riya" and s.cfg["voice"] == "female"
+    assert s.cfg["max_plants"] == tutor.BANDS["secondary"]["max_plants"]  # difficulty still from the class
+    assert tutor.persona("middle", "Arjun")["voice"] == tutor.persona("middle", "Chintu")["voice"] == "male"
+    assert bodhan.voice_for("hi", "female") == "Kavya" and bodhan.voice_for("hi", "male") == "Amit"

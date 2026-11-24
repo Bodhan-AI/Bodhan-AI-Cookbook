@@ -36,8 +36,11 @@ def load_card() -> tuple[str, dict]:
     return data["page_text"], data["card"]
 
 
-def judge_eval(page: str, card: dict) -> dict:
+def judge_eval(page: str, card: dict, messages: dict | None = None, quiet: bool = False) -> dict:
+    """`messages` ({item id: text}) replaces the labelled English messages, e.g. after a Hindi round trip."""
     items = json.loads((EVAL / "judge_labels.json").read_text(encoding="utf-8"))["items"]
+    if messages:  # only the items given
+        items = [{**item, "message": messages[item["id"]]} for item in items if item["id"] in messages]
     concept_ok = concept_total = over_credit = plant_ok = plant_total = 0
     err_tp = err_fn = err_fp = quality_ok = 0
     rows = []
@@ -77,7 +80,8 @@ def judge_eval(page: str, card: dict) -> dict:
         if not lo <= q <= hi:
             wrong.append(f"quality: {q} (expected {lo}-{hi})")
         rows.append({"id": item["id"], "message": item["message"], "ok": not wrong, "issues": wrong})
-        print(f"  judge #{item['id']:2} {'ok ' if not wrong else 'DIFF'} {'; '.join(wrong)}")
+        if not quiet:
+            print(f"  judge #{item['id']:2} {'ok ' if not wrong else 'DIFF'} {'; '.join(wrong)}")
     return {
         "items": len(items),
         "concept_accuracy": round(concept_ok / concept_total, 3),

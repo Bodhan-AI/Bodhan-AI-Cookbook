@@ -85,8 +85,11 @@ def solve(question: str, page_text: str, band: str) -> dict:
     label = tutor.BANDS[band]["label"]
     prompt = SOLVE_PROMPT.format(band=label, page=page_text, question=question)
 
-    def one(_):
-        return llm.chat_json([{"role": "user", "content": prompt}], temperature=0.8)
+    def one(_):  # a solve with broken output just does not vote
+        try:
+            return llm.chat_json([{"role": "user", "content": prompt}], temperature=0.8)
+        except ValueError:
+            return {}
 
     with ThreadPoolExecutor(max_workers=SOLVES) as pool:
         tries = [t for t in pool.map(one, range(SOLVES)) if t.get("final_answer") and t.get("steps")]
@@ -133,6 +136,7 @@ class Homework:
     checks: list = field(default_factory=list)
     done: bool = False
     level: int = 1
+    buddy: str = ""  # see tutor.Session.buddy
 
     def __post_init__(self):
         self.steps = self.steps or ["not_yet"] * len(self.ref["steps"])
@@ -140,7 +144,7 @@ class Homework:
 
     @property
     def cfg(self) -> dict:
-        return tutor.BANDS[self.band]
+        return tutor.persona(self.band, self.buddy)
 
     def next_step(self) -> int | None:
         return next((i for i, s in enumerate(self.steps) if s == "not_yet"), None)
@@ -291,9 +295,25 @@ def step(hw: Homework, message: str) -> tuple[str, dict]:
     return line, {"eval": ev, "move": move["move"], "level": hw.level, "check": check}
 
 
+def teacher_doubts(hw: Homework) -> list[str]:
+    """What the student should ask their teacher: anything the app could not check or had to show them."""
+    doubts = []
+    if not hw.ref["trusted"]:
+        doubts.append(f'Is my answer right? "{hw.question}" (I got: {hw.final or "no answer yet"}; '
+                      "the app could not check this one)")
+    elif not hw.final_correct:
+        doubts.append(f'How do I finish this question? "{hw.question}"')
+    for step, status in zip(hw.ref["steps"], hw.steps, strict=True):
+        if status == "revealed":
+            doubts.append(f'Why does this step work? "{step}" (it had to be shown to me)')
+    doubts += [f'Is this right? I said: "{e}"' for e in hw.errors]
+    return doubts
+
+
 def report(hw: Homework) -> dict:
     own = sum(s == "explained" for s in hw.steps)
     return {
+        "doubts_for_teacher": teacher_doubts(hw),
         "question": hw.question,
         "answer_trusted": hw.ref["trusted"],
         "agreement": hw.ref["agreement"],

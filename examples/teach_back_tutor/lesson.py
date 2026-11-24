@@ -10,6 +10,7 @@ can plant, and the evidence on the page for each.
 from __future__ import annotations
 
 import hashlib
+import io
 import json
 import re
 import sys
@@ -85,28 +86,85 @@ CARDS_DIR = Path(__file__).resolve().parent / "outputs" / "cards"
 MAX_PAGES = 4  # one lesson card per session; more pages would not fit in a 12-turn conversation
 
 
-def card_from_images(pages: list[tuple[bytes, str]]) -> tuple[str, dict]:
+def card_from_images(pages: list[tuple[bytes, str]], page_text: str | None = None) -> tuple[str, dict]:
     """One lesson card for one or more page photos ([(image_bytes, filename), ...]).
 
     Cached per set of images, so the same pages always get the same card: student memory refers to
-    its concept names, and a rebuilt card could name them differently."""
+    its concept names, and a rebuilt card could name them differently. Pass `page_text` if the pages
+    were already read, to skip a second OCR."""
     pages = pages[:MAX_PAGES]
     digest = hashlib.sha256(b"".join(hashlib.sha256(img).digest() for img, _ in pages)).hexdigest()[:16]
     cached = CARDS_DIR / f"{digest}.json"
     if cached.exists():
         data = json.loads(cached.read_text(encoding="utf-8"))
         return data["page_text"], data["card"]
-    page_text = read_pages(pages)
+    page_text = page_text or read_pages(pages)
     card = build_card(page_text)
     CARDS_DIR.mkdir(parents=True, exist_ok=True)
     cached.write_text(json.dumps({"page_text": page_text, "card": card}, ensure_ascii=False, indent=2), encoding="utf-8")
     return page_text, card
 
 
+MAX_SIDE = 2400  # phone photos are often 4000+ px; more pixels only make the upload slower
+
+
+def prepare_image(image_bytes: bytes, filename: str) -> tuple[bytes, str]:
+    """Turn a phone photo the right way up (EXIF) and into a plain PNG/JPEG indic-ocr accepts.
+
+    Files that are already upright PNG/JPEG of a sensible size are passed through unchanged."""
+    from PIL import Image, ImageOps
+
+    img = Image.open(io.BytesIO(image_bytes))
+    rotated = img.getexif().get(0x0112, 1) != 1  # EXIF orientation tag
+    if img.format in ("PNG", "JPEG") and not rotated and max(img.size) <= MAX_SIDE:
+        return image_bytes, filename
+    img = ImageOps.exif_transpose(img).convert("RGB")
+    img.thumbnail((MAX_SIDE, MAX_SIDE))
+    out = io.BytesIO()
+    img.save(out, "JPEG", quality=90)
+    return out.getvalue(), Path(filename).stem + ".jpg"
+
+
+MIN_PIXELS_PER_WORD = 500  # below this the letters are only a few pixels tall and indic-ocr starts misreading
+
+
+def pixels_per_word(pages: list[tuple[bytes, str]], text: str) -> int:
+    """Image pixels per word read: a cheap sign that the text was too small to read reliably.
+
+    The lesson card is grounded in the OCR text, so a misread page still "grounds" (in the wrong words);
+    this catches that case. On the test pages, the two misread photos had ~250 and ~440, clean pages 850+."""
+    from PIL import Image
+
+    pixels = sum(Image.open(io.BytesIO(img)).size[0] * Image.open(io.BytesIO(img)).size[1] for img, _ in pages)
+    return pixels // max(1, len(text.split()))
+
+
+def pdf_page_count(pdf_bytes: bytes) -> int:
+    import pypdfium2 as pdfium
+
+    return len(pdfium.PdfDocument(pdf_bytes))
+
+
+def pdf_pages(pdf_bytes: bytes, first: int = 1, count: int = MAX_PAGES, dpi: int = 150) -> list[tuple[bytes, str]]:
+    """Render pages first..first+count-1 (1-based) of a PDF to PNG, so they go through indic-ocr like photos.
+
+    Rendering (not the PDF's text layer) keeps scanned books working, and keeps one reading path."""
+    import pypdfium2 as pdfium
+
+    pdf = pdfium.PdfDocument(pdf_bytes)
+    last = min(len(pdf), first + min(count, MAX_PAGES) - 1)
+    pages = []
+    for n in range(first, last + 1):
+        buf = io.BytesIO()
+        pdf[n - 1].render(scale=dpi / 72).to_pil().save(buf, "PNG")
+        pages.append((buf.getvalue(), f"page_{n}.png"))
+    return pages
+
+
 def read_pages(pages: list[tuple[bytes, str]]) -> str:
     """indic-ocr on each page photo, in parallel, joined in reading order."""
     with ThreadPoolExecutor(max_workers=MAX_PAGES) as pool:
-        texts = list(pool.map(lambda page: bodhan.ocr_page(*page), pages[:MAX_PAGES]))
+        texts = list(pool.map(lambda page: bodhan.ocr_page(*prepare_image(*page)), pages[:MAX_PAGES]))
     if len(texts) == 1:
         return texts[0]
     return "\n\n".join(f"--- Page {i} ---\n{t}" for i, t in enumerate(texts, 1))

@@ -1,7 +1,7 @@
 {
   "date": "2026-11-24",
   "model": "openai/gpt-oss-120b",
-  "seconds": 491,
+  "seconds": 433,
   "judge": {
     "items": 16,
     "concept_accuracy": 0.95,
@@ -167,9 +167,14 @@
         "ok": true,
         "verdicts": [
           {
-            "claim": "plants make their own food in their leaves",
+            "claim": "Plants make their own food",
             "verdict": "true",
-            "evidence": "green plants make their own food"
+            "evidence": "green plants make their own food."
+          },
+          {
+            "claim": "Plants make their own food in their leaves",
+            "verdict": "true",
+            "evidence": "Photosynthesis happens mainly in the leaves."
           }
         ]
       },
@@ -300,7 +305,7 @@
           {
             "claim": "the soil gives the plant water",
             "verdict": "true",
-            "evidence": "The roots absorb water from the soil"
+            "evidence": "The soil gives them water and minerals"
           },
           {
             "claim": "the soil gives the plant minerals",
@@ -317,7 +322,7 @@
         "ok": true,
         "verdicts": [
           {
-            "claim": "plants take their food from the soil",
+            "claim": "Plants take their food from the soil.",
             "verdict": "false",
             "evidence": "Plants do not take food from the soil."
           }
@@ -373,7 +378,7 @@
         "ok": true,
         "verdicts": [
           {
-            "claim": "Plants release carbon dioxide into the air as a by‑product.",
+            "claim": "Plants release carbon dioxide into the air as a by-product.",
             "verdict": "false",
             "evidence": "Oxygen is released into the air as a by-product."
           }
@@ -450,7 +455,7 @@
           {
             "claim": "Food is made in the soil",
             "verdict": "false",
-            "evidence": "Plants do not take food from the soil. ... the food itself is made in the leaves."
+            "evidence": "Plants do not take food from the soil."
           },
           {
             "claim": "Food is then sent to the leaves",
@@ -567,7 +572,7 @@
   "simulation": {
     "date": "2026-11-24",
     "band": "middle",
-    "model": "openai/gpt-oss-120b (student: openai/gpt-oss-20b)",
+    "model": "openai/gpt-oss-20b (student: openai/gpt-oss-20b)",
     "rows": [
       {
         "profile": "strong",
@@ -580,22 +585,22 @@
         "checked_lines": 6,
         "fact_check": {
           "lines": 6,
-          "claims": 7,
-          "claims_true": 6,
-          "claims_unverified": 0,
-          "false_caught": 1,
-          "leaks_caught": 0,
+          "claims": 8,
+          "claims_true": 2,
+          "claims_unverified": 5,
+          "false_caught": 0,
+          "leaks_caught": 1,
           "regenerated": 1,
           "shown_clean": 6,
           "plants_verified": "2/2"
         },
         "turns": 5,
-        "avg_quality": 2.6
+        "avg_quality": 2.0
       },
       {
         "profile": "partial",
         "mastery": 100,
-        "tricks": "1/2 on their own, 0 after a hint",
+        "tricks": "2/2 on their own, 0 after a hint",
         "detail": "You remember only part of the lesson.",
         "quiz_pre": 3,
         "quiz_post": 3,
@@ -603,40 +608,40 @@
         "checked_lines": 9,
         "fact_check": {
           "lines": 9,
-          "claims": 9,
+          "claims": 10,
           "claims_true": 7,
-          "claims_unverified": 1,
-          "false_caught": 0,
+          "claims_unverified": 2,
+          "false_caught": 1,
           "leaks_caught": 1,
-          "regenerated": 1,
-          "shown_clean": 9,
-          "plants_verified": "2/2"
+          "regenerated": 3,
+          "shown_clean": 8,
+          "plants_verified": "1/2"
         },
         "turns": 8,
-        "avg_quality": 1.75
+        "avg_quality": 2.12
       },
       {
         "profile": "confused",
-        "mastery": 80,
-        "tricks": "0/1 on their own, 1 after a hint",
+        "mastery": 60,
+        "tricks": "0/1 on their own, 0 after a hint",
         "detail": "You did not follow the lesson.",
         "quiz_pre": 3,
         "quiz_post": 3,
         "quiz_total": 3,
-        "checked_lines": 13,
+        "checked_lines": 14,
         "fact_check": {
-          "lines": 13,
-          "claims": 12,
-          "claims_true": 9,
+          "lines": 14,
+          "claims": 9,
+          "claims_true": 5,
           "claims_unverified": 2,
-          "false_caught": 1,
-          "leaks_caught": 1,
-          "regenerated": 2,
+          "false_caught": 2,
+          "leaks_caught": 4,
+          "regenerated": 6,
           "shown_clean": 12,
           "plants_verified": "1/1"
         },
-        "turns": 12,
-        "avg_quality": 1.17
+        "turns": 13,
+        "avg_quality": 0.85
       }
     ]
   },
@@ -650,13 +655,13 @@
     "rows": [
       {
         "question": "A leaf makes 12 grams of glucose a day. It uses one third for energy and stores the rest as starch. How many grams of starch does it store in 5 days?",
-        "agreement": "3/3",
+        "agreement": "2/3",
         "trusted": true,
-        "answer": "40 grams of starch",
+        "answer": "The leaf stores 40 grams of starch in 5 days.",
         "all_answers": [
-          "40 grams of starch",
-          "40 grams",
-          "40 grams of starch"
+          "40 g",
+          "The leaf stores 40 grams of starch in 5 days.",
+          "The leaf stores 40 grams of starch in 5 days."
         ],
         "single_correct": true,
         "voted_correct": true,
@@ -664,12 +669,12 @@
       },
       {
         "question": "A plant makes 18 grams of glucose a day and stores two thirds of it as starch. How many grams of starch does it store in 7 days?",
-        "agreement": "3/3",
+        "agreement": "2/3",
         "trusted": true,
         "answer": "84 grams",
         "all_answers": [
+          "The plant stores 84 grams of starch in 7 days.",
           "84 grams",
-          "84 grams of starch",
           "84 grams"
         ],
         "single_correct": true,
@@ -680,11 +685,11 @@
         "question": "A leaf makes 10 grams of glucose each day and uses half of it for energy. How many grams of starch has it stored after 4 days?",
         "agreement": "3/3",
         "trusted": true,
-        "answer": "20 grams",
+        "answer": "20 grams of starch",
         "all_answers": [
-          "20 grams",
-          "20 grams",
-          "20 grams"
+          "20 grams of starch",
+          "20 grams of starch",
+          "20 grams of starch"
         ],
         "single_correct": true,
         "voted_correct": true,
@@ -708,11 +713,11 @@
         "question": "A plant gets sunlight and water but no carbon dioxide at all. Can it make food? Answer yes or no, then explain.",
         "agreement": "3/3",
         "trusted": true,
-        "answer": "No, it cannot make food. Carbon dioxide is one of the three essential ingredients for photosynthesis, and without it, the plant cannot produce glucose.",
+        "answer": "No, the plant cannot make food without carbon dioxide.",
         "all_answers": [
-          "No, it cannot make food. Carbon dioxide is one of the three essential ingredients for photosynthesis, and without it, the plant cannot produce glucose.",
-          "No. The plant cannot make food because photosynthesis requires all three — sunlight, water, and carbon dioxide. Without carbon dioxide, the process cannot take place.",
-          "No, a plant cannot make food without carbon dioxide because all three ingredients (sunlight, water, and carbon dioxide) are essential for photosynthesis."
+          "No, the plant cannot make food without carbon dioxide.",
+          "No, the plant cannot make food because carbon dioxide is essential for photosynthesis.",
+          "No, the plant cannot make food because it lacks carbon dioxide, which is essential for photosynthesis."
         ],
         "single_correct": true,
         "voted_correct": true,
@@ -736,11 +741,11 @@
         "question": "A plant is kept in a dark cupboard and watered every day. Which of the three things it needs to make food is missing?",
         "agreement": "3/3",
         "trusted": true,
-        "answer": "Sunlight is missing.",
+        "answer": "Sunlight",
         "all_answers": [
-          "Sunlight is missing.",
           "Sunlight",
-          "Sunlight is missing."
+          "Sunlight",
+          "Sunlight"
         ],
         "single_correct": true,
         "voted_correct": true,
@@ -750,11 +755,11 @@
         "question": "Through which tiny pores does carbon dioxide get into a leaf?",
         "agreement": "3/3",
         "trusted": true,
-        "answer": "Stomata",
+        "answer": "stomata",
         "all_answers": [
-          "Stomata",
-          "Stomata",
-          "Stomata"
+          "stomata",
+          "Through the stomata (tiny pores on the leaf).",
+          "Carbon dioxide enters the leaf through tiny pores called stomata."
         ],
         "single_correct": true,
         "voted_correct": true,
@@ -764,11 +769,11 @@
         "question": "A gardener says that adding more soil gives a plant more food. Is the gardener right? Answer yes or no, then explain.",
         "agreement": "3/3",
         "trusted": true,
-        "answer": "No, the gardener is not right. Soil gives the plant water and minerals, not food. Food is made in the leaves by photosynthesis.",
+        "answer": "No, because plants make their own food in leaves, soil only supplies water and minerals.",
         "all_answers": [
-          "No, the gardener is not right. Soil gives the plant water and minerals, not food. Food is made in the leaves by photosynthesis.",
-          "No, the gardener is not right. Soil gives water and minerals, but food is made in the leaves by photosynthesis.",
-          "No, the gardener is not right. The soil provides water and minerals, but food is made in the leaves through photosynthesis."
+          "No, because plants make their own food in leaves, soil only supplies water and minerals.",
+          "No, the gardener is not right. Soil supplies water and nutrients, but the plant’s food is made in the leaves through photosynthesis.",
+          "No, because plants make their own food in the leaves through photosynthesis; soil only supplies water and minerals, not food."
         ],
         "single_correct": true,
         "voted_correct": true,
@@ -778,18 +783,148 @@
         "question": "In which part of the plant does photosynthesis mainly happen?",
         "agreement": "3/3",
         "trusted": true,
-        "answer": "The leaves",
+        "answer": "In the leaves",
         "all_answers": [
-          "The leaves",
-          "Photosynthesis mainly happens in the leaves.",
-          "In the leaves."
+          "In the leaves",
+          "In the leaves",
+          "In the leaves"
         ],
         "single_correct": true,
         "voted_correct": true,
         "wrong_but_trusted": false
       }
     ],
-    "model": "qwen/qwen3.8-27b",
+    "model": "openai/gpt-oss-120b",
     "date": "2026-11-24"
+  },
+  "homework_sim": {
+    "date": "2026-11-24",
+    "band": "middle",
+    "rows": [
+      {
+        "profile": "solver",
+        "question": "A leaf makes 12 grams of glucose a day. It uses one third for energy and stores the rest as starch. How many grams of starch does it store in 5 days?",
+        "agreement": "3/3",
+        "solved": true,
+        "steps_on_own": "4/4",
+        "nudges": 0,
+        "revealed": 0,
+        "errors": [],
+        "turns": 1,
+        "avg_quality": 2.0,
+        "drafts_blocked": 0,
+        "rewritten": 0,
+        "leaks_reaching_student": 0,
+        "moves": [
+          "opening",
+          "wrap_up"
+        ]
+      },
+      {
+        "profile": "stuck",
+        "question": "A leaf makes 12 grams of glucose a day. It uses one third for energy and stores the rest as starch. How many grams of starch does it store in 5 days?",
+        "agreement": "3/3",
+        "solved": true,
+        "steps_on_own": "3/4",
+        "nudges": 1,
+        "revealed": 0,
+        "errors": [],
+        "turns": 3,
+        "avg_quality": 1.33,
+        "drafts_blocked": 1,
+        "rewritten": 1,
+        "leaks_reaching_student": 0,
+        "moves": [
+          "opening",
+          "nudge_goal",
+          "ask_why",
+          "wrap_up"
+        ]
+      },
+      {
+        "profile": "slip",
+        "question": "A leaf makes 12 grams of glucose a day. It uses one third for energy and stores the rest as starch. How many grams of starch does it store in 5 days?",
+        "agreement": "3/3",
+        "solved": true,
+        "steps_on_own": "3/4",
+        "nudges": 0,
+        "revealed": 0,
+        "errors": [],
+        "turns": 2,
+        "avg_quality": 2.0,
+        "drafts_blocked": 0,
+        "rewritten": 0,
+        "leaks_reaching_student": 0,
+        "moves": [
+          "opening",
+          "ask_why",
+          "wrap_up"
+        ]
+      },
+      {
+        "profile": "solver",
+        "question": "A plant is kept in a dark cupboard and watered every day. Which of the three things it needs to make food is missing?",
+        "agreement": "2/3",
+        "solved": true,
+        "steps_on_own": "5/5",
+        "nudges": 0,
+        "revealed": 0,
+        "errors": [],
+        "turns": 3,
+        "avg_quality": 3.0,
+        "drafts_blocked": 0,
+        "rewritten": 0,
+        "leaks_reaching_student": 0,
+        "moves": [
+          "opening",
+          "ask_why",
+          "ask_why",
+          "wrap_up"
+        ]
+      },
+      {
+        "profile": "stuck",
+        "question": "A plant is kept in a dark cupboard and watered every day. Which of the three things it needs to make food is missing?",
+        "agreement": "2/3",
+        "solved": true,
+        "steps_on_own": "4/5",
+        "nudges": 0,
+        "revealed": 0,
+        "errors": [],
+        "turns": 5,
+        "avg_quality": 1.6,
+        "drafts_blocked": 0,
+        "rewritten": 0,
+        "leaks_reaching_student": 0,
+        "moves": [
+          "opening",
+          "ask_why",
+          "ask_why",
+          "ask_why",
+          "ask_why",
+          "wrap_up"
+        ]
+      },
+      {
+        "profile": "slip",
+        "question": "A plant is kept in a dark cupboard and watered every day. Which of the three things it needs to make food is missing?",
+        "agreement": "2/3",
+        "solved": true,
+        "steps_on_own": "5/5",
+        "nudges": 0,
+        "revealed": 0,
+        "errors": [],
+        "turns": 1,
+        "avg_quality": 3.0,
+        "drafts_blocked": 0,
+        "rewritten": 0,
+        "leaks_reaching_student": 0,
+        "moves": [
+          "opening",
+          "wrap_up"
+        ]
+      }
+    ],
+    "model": "openai/gpt-oss-20b (student: openai/gpt-oss-20b)"
   }
 }

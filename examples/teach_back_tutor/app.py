@@ -1,4 +1,4 @@
-"""Teach-Back Tutor app: photograph a textbook page, then teach it to a classmate who missed the class.
+"""Samjhao (Teach-Back Tutor) app: photograph a textbook page, then teach it to a classmate who missed the class.
 
     streamlit run app.py
 """
@@ -20,6 +20,7 @@ load_dotenv(HERE / ".env")
 
 import bodhan  # noqa: E402
 import exercise  # noqa: E402
+import intent  # noqa: E402
 import lesson  # noqa: E402
 import memory  # noqa: E402
 import parent  # noqa: E402
@@ -31,98 +32,180 @@ LANGS = {"en": "English", "hi": "Hindi", "bn": "Bengali", "ta": "Tamil", "te": "
          "ur": "Urdu"}
 SAMPLE = HERE / "sample_data" / "photosynthesis_page.png"
 EXERCISE_SAMPLE = HERE / "sample_data" / "exercise_page.png"
+SMALL_TEXT = ("The text in this photo is very small, so some words may have been misread. If the lesson below "
+              "looks wrong, take the photo again closer to the page.")
 STEP = {"explained": ("you explained it", "green", "on"), "after_nudge": ("after a nudge", "amber", "half"),
         "revealed": ("Riya worked it out", "gray", "rev"), "skipped": ("skipped", "gray", ""),
         "not_yet": ("not reached", "gray", "")}
 STATUS = {"explained": ("explained", "green"), "partial": ("partly", "amber"), "not_covered": ("not yet", "gray")}
 PLANT = {"caught": ("caught it", "green"), "caught_after_hint": ("caught after a hint", "amber"),
          "revealed": ("missed it", "red"), "planted": ("no answer yet", "gray")}
-PERSONA_COLOR = {"primary": "#F59E0B", "middle": "#8B5CF6", "secondary": "#0EA5E9"}
+PERSONA_COLOR = {"Chintu": "#F59E0B", "Riya": "#8B5CF6", "Arjun": "#0EA5E9"}
 STUDENT_COLOR = "#4F46E5"
+
+TOKENS = {
+    "light": {
+        "card": "#FFFFFF", "fill": "#F4F5FA", "border": "#E3E6F0", "text": "#0F172A", "muted": "#5B6478",
+        "faint": "#8A93A8", "accent": "#6366F1", "accent2": "#A855F7", "accent-soft": "#EEF0FF",
+        "accent-text": "#4338CA", "me": "#EEF0FF", "me-border": "#DCE0FB", "shadow": "0 1px 2px rgba(15,23,42,.05), 0 8px 24px -12px rgba(15,23,42,.10)",
+        "green-bg": "#DCFCE7", "green": "#166534", "amber-bg": "#FEF3C7", "amber": "#92400E",
+        "gray-bg": "#F1F3F8", "gray": "#5B6478", "red-bg": "#FEE2E2", "red": "#991B1B", "track": "#E7E9F2",
+        "blob": ".38",
+    },
+    "dark": {
+        "card": "#141A2A", "fill": "#1A2134", "border": "#252E45", "text": "#E6E9F2", "muted": "#A3ACC2",
+        "faint": "#7C869E", "accent": "#8B93FF", "accent2": "#C084FC", "accent-soft": "rgba(139,147,255,.14)",
+        "accent-text": "#C7CBFF", "me": "rgba(139,147,255,.13)", "me-border": "rgba(139,147,255,.28)",
+        "shadow": "0 1px 2px rgba(0,0,0,.4), 0 10px 30px -14px rgba(0,0,0,.6)",
+        "green-bg": "rgba(34,197,94,.16)", "green": "#86EFAC", "amber-bg": "rgba(245,158,11,.16)", "amber": "#FCD34D",
+        "gray-bg": "rgba(148,163,184,.14)", "gray": "#CBD5E1", "red-bg": "rgba(239,68,68,.16)", "red": "#FCA5A5",
+        "track": "#262F47", "blob": ".30",
+    },
+}
 
 CSS = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+:root { __TOKENS__ }
 .stApp, .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp p, .stApp li, .stApp label, .stApp button,
-.stApp input, .stApp textarea { font-family: 'Nunito', sans-serif; }
-.block-container { padding-top: 3.5rem; max-width: 860px; }
+.stApp input, .stApp textarea { font-family: 'Plus Jakarta Sans', sans-serif; }
+.block-container { padding-top: 2.6rem; max-width: 880px; }
 .stAppDeployButton { display: none; }
-section[data-testid="stSidebar"] { background: #FFFFFF; border-right: 1px solid #E6E8F2; }
-.stButton > button { border-radius: 12px; font-weight: 700; }
+.stButton > button, .stFormSubmitButton > button { border-radius: 12px; font-weight: 700; }
+[data-testid="stExpander"] details { border-radius: 14px; border-color: var(--border); background: var(--card); }
+[data-testid="stVerticalBlockBorderWrapper"] { border-radius: 18px; }
 
-.hero { background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 55%, #DB2777 100%); color: #fff;
-  border-radius: 24px; padding: 30px 32px 28px; margin-bottom: 18px;
-  box-shadow: 0 18px 40px -20px rgba(79, 70, 229, .65); }
-.hero .tag { display: inline-block; background: rgba(255,255,255,.18); padding: 4px 12px; border-radius: 999px;
-  font-size: .78rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; margin-bottom: 12px; }
-.hero h1 { color: #fff; font-weight: 800; font-size: 2.5rem; line-height: 1.1; margin: 0 0 8px; padding: 0; }
-.hero p { color: rgba(255,255,255,.93); font-size: 1.08rem; margin: 0; max-width: 620px; }
+/* page header */
+.pagehead { margin: 0 0 18px; }
+.eyebrow { display: inline-flex; gap: 8px; align-items: center; font-size: .74rem; font-weight: 800;
+  letter-spacing: .08em; text-transform: uppercase; color: var(--accent-text); background: var(--accent-soft);
+  padding: 5px 12px; border-radius: 999px; }
+.pagehead h1 { font-size: 2.35rem; font-weight: 800; letter-spacing: -.02em; line-height: 1.1; margin: 12px 0 8px;
+  padding: 0; color: var(--text); }
+.pagehead h1 .grad { background: linear-gradient(90deg, var(--accent), var(--accent2)); -webkit-background-clip: text;
+  background-clip: text; color: transparent; }
+.pagehead p { color: var(--muted); font-size: 1.04rem; margin: 0; max-width: 640px; }
+.feats { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 4px; }
+.feat { display: inline-flex; align-items: center; gap: 6px; font-size: .85rem; font-weight: 600; color: var(--muted);
+  background: var(--card); border: 1px solid var(--border); border-radius: 999px; padding: 6px 12px; }
+.feat b { color: var(--text); }
+.stepno { display: inline-flex; width: 24px; height: 24px; border-radius: 50%; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; font-weight: 800; font-size: .8rem;
+  margin-right: 8px; }
+.steptitle { font-weight: 800; font-size: 1rem; color: var(--text); margin: 4px 0 8px; display: flex; align-items: center; }
 
-.steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 18px; }
-@media (max-width: 680px) { .steps { grid-template-columns: repeat(2, 1fr); } }
-.step { background: #fff; border: 1px solid #E6E8F2; border-radius: 16px; padding: 14px 14px 12px; }
-.step .n { display: inline-flex; width: 28px; height: 28px; border-radius: 50%; background: #EEF0FF; color: #4F46E5;
-  align-items: center; justify-content: center; font-weight: 800; margin-bottom: 8px; }
-.step .t { display: block; font-weight: 800; margin-bottom: 2px; color: #1E2235; }
-.step .d { color: #5B6075; font-size: .87rem; line-height: 1.35; }
+/* cards */
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 18px 20px;
+  margin-bottom: 14px; box-shadow: var(--shadow); }
+.card h3 { margin: 0 0 10px; font-size: 1.06rem; font-weight: 800; color: var(--text); }
+.muted { color: var(--muted); font-size: .88rem; }
+.label { color: var(--faint); font-size: .72rem; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
+.chip { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: .76rem; font-weight: 700;
+  background: var(--accent-soft); color: var(--accent-text); margin: 3px 4px 3px 0; white-space: nowrap; }
+.chip.green { background: var(--green-bg); color: var(--green); } .chip.amber { background: var(--amber-bg); color: var(--amber); }
+.chip.gray { background: var(--gray-bg); color: var(--gray); } .chip.red { background: var(--red-bg); color: var(--red); }
 
-.card { background: #fff; border: 1px solid #E6E8F2; border-radius: 18px; padding: 18px 20px; margin-bottom: 14px;
-  box-shadow: 0 1px 2px rgba(16,24,40,.04); }
-.card h3 { margin: 0 0 10px; font-size: 1.1rem; font-weight: 800; }
-.muted { color: #5B6075; font-size: .88rem; }
-.label { color: #8A8FA3; font-size: .74rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
-.chip { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: .78rem; font-weight: 700;
-  background: #EEF0FF; color: #4338CA; margin: 3px 4px 3px 0; white-space: nowrap; }
-.chip.green { background: #DCFCE7; color: #166534; } .chip.amber { background: #FEF3C7; color: #92400E; }
-.chip.gray { background: #F1F2F6; color: #5B6075; } .chip.red { background: #FEE2E2; color: #991B1B; }
-
+/* session header */
 .head { display: flex; justify-content: space-between; gap: 18px; flex-wrap: wrap; align-items: flex-end; }
-.head .topic { font-size: 1.45rem; font-weight: 800; margin: 2px 0 6px; color: #1E2235; }
+.head .topic { font-size: 1.4rem; font-weight: 800; margin: 2px 0 6px; color: var(--text); letter-spacing: -.01em; }
 .dots { display: flex; gap: 6px; margin: 6px 0 4px; }
-.dot { width: 28px; height: 10px; border-radius: 999px; background: #E6E8F2; }
-.dot.on { background: #22C55E; } .dot.half { background: #FBBF24; } .dot.rev { background: #A5B4FC; }
-.banner { border-left: 4px solid #8B5CF6; background: #F5F3FF; border-radius: 12px; padding: 12px 16px;
-  margin-bottom: 14px; color: #3B2F6B; }
+.dot { width: 28px; height: 9px; border-radius: 999px; background: var(--track); }
+.dot.on { background: #22C55E; } .dot.half { background: #F59E0B; } .dot.rev { background: var(--accent); opacity: .55; }
+.banner { border: 1px solid var(--me-border); background: var(--me); border-radius: 14px; padding: 12px 16px;
+  margin-bottom: 12px; color: var(--text); font-size: .93rem; }
+.modepill { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: .92rem; color: var(--muted); }
+.modepill b { color: var(--text); }
 
-[data-testid="stChatMessage"] { background: #fff; border: 1px solid #E6E8F2; border-radius: 18px;
-  padding: 14px 16px; margin-bottom: 10px; box-shadow: 0 1px 2px rgba(16,24,40,.04); }
-[data-testid="stChatMessage"]:has(.from-student) { background: #EEF0FF; border-color: #DCDFFB; }
-.who { font-weight: 800; font-size: .82rem; color: #5B6075; margin-bottom: 2px; }
-.said { font-size: 1.04rem; line-height: 1.5; color: #1E2235; }
-.translation { color: #6B7085; font-size: .86rem; font-style: italic; border-left: 3px solid #E0E3F5;
+/* chat */
+[data-testid="stChatMessage"] { background: var(--card); border: 1px solid var(--border); border-radius: 18px;
+  padding: 14px 16px; margin-bottom: 10px; box-shadow: var(--shadow); }
+[data-testid="stChatMessage"]:has(.from-student) { background: var(--me); border-color: var(--me-border); box-shadow: none; }
+.who { font-weight: 800; font-size: .78rem; color: var(--faint); margin-bottom: 2px; letter-spacing: .02em; }
+.said { font-size: 1.03rem; line-height: 1.55; color: var(--text); }
+.translation { color: var(--muted); font-size: .85rem; font-style: italic; border-left: 3px solid var(--border);
   padding-left: 8px; margin-top: 6px; }
 
+/* scores */
 .score { display: flex; gap: 22px; align-items: center; flex-wrap: wrap; }
 .ring { width: 124px; height: 124px; border-radius: 50%; flex: none; display: flex; align-items: center;
-  justify-content: center; background: conic-gradient(#4F46E5 calc(var(--p) * 1%), #E6E8F2 0); }
-.ring > div { width: 96px; height: 96px; border-radius: 50%; background: #fff; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; font-size: 1.7rem; font-weight: 800; color: #1E2235; line-height: 1; }
-.ring small { font-size: .68rem; font-weight: 700; color: #8A8FA3; margin-top: 4px; }
+  justify-content: center; background: conic-gradient(var(--accent) calc(var(--p) * 1%), var(--track) 0); }
+.ring > div { width: 98px; height: 98px; border-radius: 50%; background: var(--card); display: flex; flex-direction: column;
+  align-items: center; justify-content: center; font-size: 1.7rem; font-weight: 800; color: var(--text); line-height: 1; }
+.ring small { font-size: .66rem; font-weight: 700; color: var(--faint); margin-top: 4px; }
 .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; flex: 1; min-width: 260px; }
-.stat { background: #F7F7FB; border-radius: 14px; padding: 12px 14px; }
-.stat b { display: block; font-size: 1.35rem; font-weight: 800; color: #1E2235; }
+.stat { background: var(--fill); border-radius: 14px; padding: 12px 14px; }
+.stat b { display: block; font-size: 1.3rem; font-weight: 800; color: var(--text); }
 .row { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 10px 0;
-  border-bottom: 1px solid #F0F1F6; }
+  border-bottom: 1px solid var(--border); }
 .row:last-child { border-bottom: none; padding-bottom: 0; }
-.row .name { font-weight: 700; color: #1E2235; }
-.quote { color: #5B6075; font-size: .87rem; font-style: italic; margin-top: 2px; }
-
+.row .name { font-weight: 700; color: var(--text); }
+.quote { color: var(--muted); font-size: .86rem; font-style: italic; margin-top: 2px; }
 .skill { margin-bottom: 14px; }
-.skill .top { display: flex; justify-content: space-between; font-weight: 700; margin-bottom: 6px; color: #1E2235; }
-.bar { height: 10px; background: #E6E8F2; border-radius: 999px; overflow: hidden; }
-.bar > span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #4F46E5, #8B5CF6); }
+.skill .top { display: flex; justify-content: space-between; font-weight: 700; margin-bottom: 6px; color: var(--text); }
+.bar { height: 9px; background: var(--track); border-radius: 999px; overflow: hidden; }
+.bar > span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
 .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 14px; }
-.kpi { background: #fff; border: 1px solid #E6E8F2; border-radius: 16px; padding: 14px 16px; }
-.kpi b { display: block; font-size: 1.6rem; font-weight: 800; color: #1E2235; }
-.next { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; }
-.next .n { flex: none; width: 24px; height: 24px; border-radius: 50%; background: #EEF0FF; color: #4F46E5;
+.kpi { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 14px 16px; box-shadow: var(--shadow); }
+.kpi b { display: block; font-size: 1.55rem; font-weight: 800; color: var(--text); letter-spacing: -.01em; }
+.next { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; color: var(--text); }
+.next .n { flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--accent-soft); color: var(--accent-text);
   display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: .8rem; }
-.brand { font-weight: 800; font-size: 1.25rem; color: #1E2235; }
+
+/* sidebar brand */
+.brand { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+.brand .logo { width: 36px; height: 36px; border-radius: 11px; background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #fff; font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: .95rem; }
+.brand .t { font-weight: 800; font-size: 1.08rem; color: var(--text); line-height: 1.1; }
+.brand .s { color: var(--muted); font-size: .8rem; }
+.powered { color: var(--faint); font-size: .76rem; margin-top: 14px; line-height: 1.5; }
+
+/* landing: centred wordmark over slowly drifting colour */
+.landing { position: relative; overflow: hidden; text-align: center; border-radius: 28px; padding: 50px 24px 36px;
+  margin-bottom: 18px; border: 1px solid var(--border); background: var(--card); box-shadow: var(--shadow); }
+.landing .blob { position: absolute; border-radius: 50%; filter: blur(64px); opacity: var(--blob); pointer-events: none;
+  animation: drift 16s ease-in-out infinite; }
+.landing .b1 { width: 340px; height: 340px; background: #6366F1; top: -140px; left: -90px; }
+.landing .b2 { width: 300px; height: 300px; background: #EC4899; bottom: -160px; right: -70px; animation-delay: -6s; }
+.landing .b3 { width: 220px; height: 220px; background: #06B6D4; top: 40px; right: 16%; animation-delay: -11s; }
+@keyframes drift { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(34px, 22px) scale(1.1); } }
+.landing .in { position: relative; z-index: 1; }
+.wordmark { font-size: clamp(3.6rem, 11vw, 6.2rem) !important; font-weight: 800 !important; letter-spacing: -.045em;
+  line-height: 1 !important; margin: 16px 0 4px !important; padding: 0 !important;
+  background: linear-gradient(90deg, #6366F1, #A855F7, #EC4899, #F59E0B, #6366F1); background-size: 300% 100%;
+  -webkit-background-clip: text; background-clip: text; color: transparent !important; animation: shine 10s linear infinite; }
+@keyframes shine { to { background-position: 300% 0; } }
+.landing .deva { font-size: 1.12rem; font-weight: 700; color: var(--text); opacity: .8; margin-bottom: 14px; }
+.landing p { color: var(--muted); font-size: 1.04rem; max-width: 560px; margin: 0 auto; }
+.landing .feats { justify-content: center; margin-top: 18px; }
+.st-key-composer { background: var(--card); border-radius: 22px; box-shadow: var(--shadow); }
+.tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 18px 0 6px; }
+@media (max-width: 680px) { .tiles { grid-template-columns: 1fr; } }
+.tile { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 16px 16px 14px;
+  box-shadow: var(--shadow); transition: transform .15s ease; }
+.tile:hover { transform: translateY(-2px); }
+.tile .ic { width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+  font-size: 1.15rem; background: var(--accent-soft); }
+.tile .t { font-weight: 800; color: var(--text); margin: 10px 0 2px; }
+.tile .d { color: var(--muted); font-size: .86rem; line-height: 1.45; }
+
+/* compact header for the other screens */
+.hero { border-radius: 22px; padding: 22px 24px; margin-bottom: 16px; border: 1px solid var(--border);
+  background: linear-gradient(135deg, var(--accent-soft), transparent 65%), var(--card); box-shadow: var(--shadow); }
+.hero .tag { display: inline-block; font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--accent-text); background: var(--accent-soft); padding: 4px 11px; border-radius: 999px; }
+.hero h1 { font-size: 1.85rem; font-weight: 800; letter-spacing: -.02em; margin: 10px 0 6px; padding: 0; color: var(--text); }
+.hero p { color: var(--muted); margin: 0; font-size: .98rem; }
 </style>
 """
 
-st.set_page_config(page_title="Teach-Back Tutor", page_icon=":material/school:", layout="centered")
-st.markdown(CSS, unsafe_allow_html=True)
+
+def css(theme: str) -> str:
+    tokens = TOKENS["dark" if theme == "dark" else "light"]
+    return CSS.replace("__TOKENS__", " ".join(f"--{k}: {v};" for k, v in tokens.items()))
+
+
+st.set_page_config(page_title="Samjhao", page_icon=":material/school:", layout="centered")
+st.markdown(css(st.context.theme.type or "light"), unsafe_allow_html=True)
 ss = st.session_state
 
 
@@ -156,32 +239,53 @@ def avatar(letter: str, color: str) -> bytes:
 
 
 with st.sidebar:
-    ui('<div class="brand">Teach-Back Tutor</div><div class="muted">Learn it by teaching it</div>')
+    ui('<div class="brand"><div class="logo">स</div><div><div class="t">Samjhao</div>'
+       '<div class="s">Learn it by teaching it</div></div></div>')
     st.write("")
-    view = st.radio("View", ["Teach", "My progress", "Evaluation"], horizontal=True, label_visibility="collapsed")
-    st.divider()
-    student = st.text_input("Student name", "Aarav", help="The tutor remembers each student between sessions.")
-    band = st.selectbox("Class", list(tutor.BANDS), index=1, format_func=lambda b: tutor.BANDS[b]["label"])
-    lang = st.selectbox("Language for talking", list(LANGS), index=1, format_func=LANGS.get)
-    roman = lang != "en" and st.checkbox("I type my language in English letters (e.g. Hinglish)", value=True)
-    voice_on = lang in bodhan.VOICES and st.checkbox("Classmate speaks out loud", value=True)
-    teacher_view = st.toggle("Teacher view", help="Show the score, the next move, the level and the fact-check "
-                                                  "of every turn.")
-    fact_check_on = st.toggle("Fact-check the classmate", value=True,
-                              help="Chain-of-Verification: every classmate line is checked against the page before "
-                                   "you see it, and rewritten if it is wrong or uses words you have not taught yet.")
-    quick_check = st.toggle("Quick check before and after", value=True,
-                            help="Three questions before and after teaching, to measure your learning gain.")
-    st.divider()
+    view = {"Learn": "Learn", "Progress": "My progress", "Results": "Evaluation"}[
+        st.segmented_control("View", ["Learn", "Progress", "Results"], default="Learn",
+                             label_visibility="collapsed", width="stretch") or "Learn"]
+    st.write("")
+    student = st.text_input("Your name", "Aarav", help="The tutor remembers each student between sessions.")
+    col_a, col_b = st.columns(2)
+    band = col_a.selectbox("Class", list(tutor.BANDS), index=1, format_func=lambda b: tutor.BANDS[b]["label"])
+    lang = col_b.selectbox("Language", list(LANGS), index=1, format_func=LANGS.get)
+    buddy = st.segmented_control(
+        "Your classmate", ["Riya", "Chintu", "Arjun"], default=tutor.BANDS[band]["name"], width="stretch",
+        help="Riya: curious explorer (her voice). Chintu: playful and bubbly. Arjun: a sharp debater "
+             "(their own voices). Your class still sets how hard the questions are.") or tutor.BANDS[band]["name"]
+    roman = lang != "en" and st.toggle("I type in English letters (Hinglish)", value=True)
+    voice_on = lang in bodhan.VOICES and st.toggle("Classmate speaks out loud", value=True)
+    with st.expander("Options", icon=":material/tune:"):
+        teacher_view = st.toggle("Teacher view", help="Show the score, the next move, the level and the fact-check "
+                                                      "of every turn.")
+        fact_check_on = st.toggle("Fact-check the classmate", value=True,
+                                  help="Chain-of-Verification: every classmate line is checked against the page "
+                                       "before you see it, and rewritten if it is wrong or uses words you have not "
+                                       "taught yet.")
+        quick_check = st.toggle("Quick check before and after", value=True,
+                                help="Three questions before and after teaching, to measure your learning gain.")
+    st.write("")
     if "session" in ss and "report" not in ss and ss.session.turn and st.button(
-            "Finish session now", icon=":material/flag:", width="stretch"):
+            "Finish session", icon=":material/flag:", width="stretch", type="primary"):
         ss.finish_now = True
-    if st.button("Start over", icon=":material/restart_alt:", width="stretch"):
+    if st.button("New page", icon=":material/add_photo_alternate:", width="stretch"):
         for key in list(ss.keys()):
             del ss[key]
         st.rerun()
-    ui('<div class="muted" style="margin-top:12px">Powered by Bodhan: indic-ocr, indic-transcribe, indic-translate, '
-       'indic-transliterate, indic-speak.</div>')
+    ui('<div class="powered">Powered by Bodhan · indic-ocr · indic-transcribe · indic-translate · '
+       'indic-transliterate · indic-speak<br>Switch light / dark in ⋮ → Settings.</div>')
+
+
+def page_error(err: Exception) -> str:
+    """A message a student can act on; the technical detail stays at the end for a teacher or developer."""
+    msg = str(err)
+    if isinstance(err, bodhan.BodhanError) and ("budget" in msg.lower() or "rate limit" in msg.lower()):
+        return f"The reading service is busy or out of credit. Try again in a minute. ({msg[:120]})"
+    if isinstance(err, bodhan.BodhanError):
+        return ("indic-ocr could not read this page. Handwriting, faded old print or a blurred photo can do this. "
+                f"Try a clearer photo of a printed page. ({msg[:120]})")
+    return msg
 
 
 def localize(text: str) -> str:
@@ -189,11 +293,13 @@ def localize(text: str) -> str:
 
 
 def add_buddy(english: str, check: dict | None = None) -> None:
+    english = english.replace("**", "").replace("__", "")  # the LLM sometimes bolds words; shown and spoken plain
     shown = localize(english)
     audio = None
     if voice_on:
         try:
-            audio = bodhan.speak_long(shown, lang, style=tutor.BANDS[ss.session.band]["voice_style"])
+            cfg = ss.session.cfg  # each classmate has their own voice and speaking style
+            audio = bodhan.speak_long(shown, lang, voice=bodhan.voice_for(lang, cfg["voice"]), style=cfg["voice_style"])
         except bodhan.BodhanError as err:
             st.toast(f"Could not speak the reply: {err}")
     ss.chat.append({"role": "assistant", "text": shown, "english": english, "audio": audio, "check": check})
@@ -462,9 +568,55 @@ def show_evaluation() -> None:
             st.dataframe([{"question": x["question"], "agreement": x["agreement"], "answer": x["answer"],
                            "correct": x["voted_correct"]} for x in hw["rows"]], hide_index=True, width="stretch")
 
+    hs = r.get("homework_sim")
+    if hs:
+        ui('<div class="card"><h3>5. Homework mode: does it nudge instead of telling?</h3>'
+           f'<p class="muted">Simulated students help the classmate solve two exercises ({escape(hs["model"])}). '
+           'A stuck student should get nudges, then a step worked out; the answer must never be given away '
+           'before the student reaches it.</p></div>')
+        st.dataframe([{"student": x["profile"], "question": x["question"][:60], "solved": x["solved"],
+                       "steps on own": x["steps_on_own"], "nudges": x["nudges"], "steps revealed": x["revealed"],
+                       "drafts blocked by guard": x["drafts_blocked"], "leaks reaching student": x["leaks_reaching_student"],
+                       "turns": x["turns"]} for x in hs["rows"]], hide_index=True, width="stretch")
+
+    pub_path = HERE / "eval" / "public.json"
+    seb = json.loads(pub_path.read_text(encoding="utf-8")).get("scientsbank") if pub_path.exists() else None
+    if seb:
+        ui('<div class="card"><h3>The grader on real students\' answers (SciEntsBank)</h3>'
+           f'<p class="muted">{seb["items"]} answers by real school students, graded by experts (SemEval-2013 Task 7), '
+           f'balanced over four labels ({escape(seb["model"])}). Not written by us.</p><div class="kpis">'
+           f'<div class="kpi"><span class="label">Agree with experts</span><b>{pct(seb["accuracy_3way"])}</b></div>'
+           f'<div class="kpi"><span class="label">Wrong answers given credit</span><b>{seb["wrong_answer_given_full_credit"]}</b></div>'
+           f'<div class="kpi"><span class="label">Wrong ideas caught</span><b>{seb["per_label"].get("contradictory", "-")}</b></div>'
+           '</div></div>')
+
+    lang_path = HERE / "eval" / "language.json"
+    if lang_path.exists():
+        lg = json.loads(lang_path.read_text(encoding="utf-8"))
+        ui('<div class="card"><h3>Does grading survive Hindi?</h3><p class="muted">The same '
+           f'{lg["turns"]} labelled turns, typed as Hinglish (transliterate → translate) and spoken in Hindi '
+           '(speak → transcribe → translate), graded by the same grader against the same labels.</p></div>')
+        st.dataframe([{"input path": k, "concept credit": pct(x["concept_accuracy"]), "over-credits": x["over_credit"],
+                       "planted mistakes": pct(x["plant_accuracy"]), "quality in range": pct(x["quality_in_range"])}
+                      for k, x in lg["paths"].items()], hide_index=True, width="stretch")
+
+    pages_path = HERE / "eval" / "pages.json"
+    if pages_path.exists():
+        pg = json.loads(pages_path.read_text(encoding="utf-8"))
+        ui('<div class="card"><h3>6. Real and damaged pages</h3><p class="muted">Real photos (textbooks, a worksheet, '
+           'hazy old books, handwriting) through indic-ocr, the lesson card and the exercise finder; and one book page '
+           'damaged on purpose, with the PDF\'s own text as the answer key for OCR word recall.</p></div>')
+        if pg.get("damage"):
+            st.dataframe([{"damage": x["damage"], "indic-ocr word recall": x["word_recall"]}
+                          for x in pg["damage"]["rows"]], hide_index=True, width="stretch")
+        if pg.get("real"):
+            st.dataframe([{"page": x["page"], "pixels": x.get("pixels"), "words read": x.get("ocr_words"),
+                           "card ideas grounded": x.get("grounded", "-"), "questions found": x.get("questions_found"),
+                           "what the app does": x["outcome"]} for x in pg["real"]], hide_index=True, width="stretch")
+
     if "session" in ss and getattr(ss.session, "card", None) and ss.session.checks:
         fc = tutor.fact_check_summary(ss.session)
-        ui('<div class="card"><h3>5. This session, live</h3><div class="kpis">'
+        ui('<div class="card"><h3>7. This session, live</h3><div class="kpis">'
            f'<div class="kpi"><span class="label">Lines checked</span><b>{fc["lines"]}</b></div>'
            f'<div class="kpi"><span class="label">Claims verified true</span><b>{fc["claims_true"]}/{fc["claims"]}</b></div>'
            f'<div class="kpi"><span class="label">Wrong claims blocked</span><b>{fc["false_caught"]}</b></div>'
@@ -490,93 +642,197 @@ if view == "Evaluation":
     show_evaluation()
     st.stop()
 
-# ------------------------------------------------------------------ 1. the page
+# ------------------------------------------------------------------ 1. the page, and what the student wants
+
+
+def request_in_english(typed: str, heard) -> str:
+    """What the student asked for, spoken (indic-transcribe) or typed (indic-transliterate), in English."""
+    if heard is not None:
+        said = bodhan.transcribe(heard.getvalue(), language=None if lang == "en" else lang, filename="request.wav")
+    elif typed.strip():
+        said = bodhan.transliterate(typed, language=lang) if roman else typed
+    else:
+        return ""
+    return said if lang == "en" else bodhan.translate(said, target_language="en")
+
+
+def reset_session() -> None:
+    for key in ("session", "chat", "report", "quiz", "pre", "post", "pre_picks", "post_picks", "hw_questions",
+                "hw_pick", "mode", "note", "finish_now"):
+        ss.pop(key, None)
+
+
+def start_teach(pages: list[tuple[bytes, str]], page_text: str | None = None) -> None:
+    label = "the page" if len(pages) == 1 else f"{len(pages)} pages"
+    with st.spinner(f"Reading {label} and preparing the lesson..."):
+        try:
+            ss.page_text, card = lesson.card_from_images(pages, page_text)
+        except (bodhan.BodhanError, ValueError) as err:
+            st.error(page_error(err))
+            st.stop()
+        ss.small_text = lesson.pixels_per_word(pages, ss.page_text) < lesson.MIN_PIXELS_PER_WORD
+        ss.profile = memory.load(student)
+        ss.session = tutor.Session(card=card, band=band, memory=memory.for_session(ss.profile, card["topic"]),
+                                   page_text=ss.page_text, fact_check=fact_check_on, buddy=buddy)
+        ss.mode, ss.chat = "teach", []
+        add_buddy(tutor.start(ss.session), ss.session.opening_check)
+    if quick_check:
+        with st.spinner("Preparing a 3-question quick check (each question double-checked against the page)..."):
+            ss.quiz = quiz.build(card, ss.page_text)
+        if not ss.quiz["questions"]:
+            ss.quiz = None
+
+
+def start_homework(page_text: str, hint: str = "") -> bool:
+    """False if the page has no exercise questions."""
+    with st.spinner("Finding the exercise questions on the page..."):
+        try:
+            questions = exercise.find_questions(page_text)
+        except ValueError:
+            questions = []
+    if not questions:
+        return False
+    ss.mode, ss.hw_questions, ss.hw_pick = "homework", questions, intent.pick_question(questions, hint)
+    ss.profile = memory.load(student)
+    return True
+
+
+def mode_bar(current: str) -> None:
+    """Which mode Samjhao picked and why, with a one-tap switch (before the conversation starts)."""
+    it = ss.get("intent")
+    if not it:
+        return
+    other = "homework" if current == "teach" else "teach"
+    left, right = st.columns([5, 2], vertical_alignment="center")
+    name_ = "Teach mode" if current == "teach" else "Homework mode"
+    left.markdown(f'<div class="modepill">{chip(name_)}<span>{escape(it.get("reason", ""))}</span></div>',
+                  unsafe_allow_html=True)
+    if right.button("Switch to " + ("Homework" if other == "homework" else "Teach"), icon=":material/swap_horiz:",
+                    width="stretch"):
+        reset_session()
+        if other == "homework" and not start_homework(ss.page_text):
+            st.toast("No exercise questions on this page, so it stays in Teach mode.")
+            start_teach(ss.pages, ss.page_text)
+            other = "teach"
+        elif other == "teach":
+            start_teach(ss.pages, ss.page_text)
+        ss.intent = {**it, "mode": other, "reason": "You switched modes."}
+        st.rerun()
+
 
 if "session" not in ss and "hw_questions" not in ss:
-    ui('<div class="hero"><div class="tag">Feynman technique · 13 languages</div>'
-       '<h1>Teach it to learn it.</h1>'
-       '<p>Photograph a page from your textbook and teach it to a classmate who missed the class. '
-       'They will ask questions, and sometimes say something wrong on purpose. Can you catch it?</p></div>')
-    ui('<div class="steps">'
-       '<div class="step"><span class="n">1</span><span class="t">Snap a page</span>'
-       '<span class="d">Bodhan reads it, in any Indian language.</span></div>'
-       '<div class="step"><span class="n">2</span><span class="t">Teach your friend</span>'
-       '<span class="d">Type or speak, in English or your own language.</span></div>'
-       '<div class="step"><span class="n">3</span><span class="t">Catch the trick</span>'
-       '<span class="d">Your friend will slip in a mistake. Spot it!</span></div>'
-       '<div class="step"><span class="n">4</span><span class="t">See your progress</span>'
-       '<span class="d">Skills, weak spots, and a note for your parents.</span></div></div>')
-    mode = st.radio("What would you like to do?", ["Teach a lesson page", "Solve homework together"],
-                    horizontal=True, help="Homework mode: for exercise pages whose answers are not printed. "
-                                          "Your classmate is stuck on a question and you help solve it.")
-    homework = mode.startswith("Solve")
-    sample = EXERCISE_SAMPLE if homework else SAMPLE
-    with st.container(border=True):
-        left, right = st.columns([3, 2], gap="large")
-        with left:
-            uploads = st.file_uploader(f"Upload photos of your textbook pages (up to {lesson.MAX_PAGES})",
-                                       type=["png", "jpg", "jpeg"], accept_multiple_files=True)
-            ui('<div class="muted"><b>Tips for good photos</b><br>Hold the phone flat above the page, in good '
-               'light. Pages from one lesson work best; add them in reading order.</div>')
-            start = st.button("Start", icon=":material/play_arrow:", type="primary", width="stretch",
-                              disabled=not uploads)
-        with right:
-            st.image(str(sample), width="stretch")
-            use_sample = st.button("Try the sample exercise page" if homework else "Try the sample page",
-                                   icon=":material/auto_stories:", width="stretch")
-    if uploads and len(uploads) > lesson.MAX_PAGES:
-        st.warning(f"Only the first {lesson.MAX_PAGES} pages will be used, to keep one lesson to one session.")
-    if homework and ((uploads and start) or use_sample):
-        pages = ([(u.getvalue(), u.name) for u in uploads[:lesson.MAX_PAGES]] if uploads and start
-                 else [(sample.read_bytes(), sample.name)])
-        with st.spinner("Reading the page with indic-ocr and finding the exercise questions..."):
+    ui('<div class="landing"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>'
+       '<div class="in"><span class="eyebrow">✦ Learn by teaching · 13 Indian languages</span>'
+       '<h1 class="wordmark">Samjhao</h1><div class="deva">समझाओ · explain it, and you have learned it</div>'
+       '<p>Snap a page from your book. Teach it to a classmate who missed the class, or solve your homework '
+       'together, in your own language.</p>'
+       '<div class="feats"><span class="feat">📷 <b>Photo or PDF</b></span><span class="feat">🎙️ <b>Type or speak</b>'
+       '</span><span class="feat">🕵️ <b>Catch the trick</b></span><span class="feat">📈 <b>See your growth</b></span>'
+       '</div></div></div>')
+
+    with st.container(border=True, key="composer"):
+        ui('<div class="steptitle"><span class="stepno">1</span>Add your page</div>')
+        uploads = st.file_uploader("Photos of your textbook pages, or a PDF of the book",
+                                   type=["png", "jpg", "jpeg", "webp", "pdf"], accept_multiple_files=True,
+                                   help=f"Up to {lesson.MAX_PAGES} pages of one lesson, in reading order.")
+        pdf = next((u for u in uploads or [] if u.name.lower().endswith(".pdf")), None)
+        if pdf:  # a whole book: pick the pages of today's lesson
             try:
-                ss.page_text = lesson.read_pages(pages)
-                questions = exercise.find_questions(ss.page_text)
-            except (bodhan.BodhanError, ValueError) as err:
-                st.error(str(err))
+                n_pages = lesson.pdf_page_count(pdf.getvalue())
+            except Exception:
+                st.error("Could not open this PDF.")
                 st.stop()
-        if not questions:
-            st.error("No exercise questions found on this page. For a lesson page, choose 'Teach a lesson page'.")
-            st.stop()
-        ss.mode, ss.hw_questions, ss.profile = "homework", questions, memory.load(student)
+            a, b = st.columns(2)
+            first = a.number_input(f"Start at page (of {n_pages})", 1, n_pages, 1)
+            count = b.number_input("How many pages", 1, lesson.MAX_PAGES, 1)
+        if uploads and not pdf and len(uploads) > lesson.MAX_PAGES:
+            st.caption(f"Only the first {lesson.MAX_PAGES} pages will be used, to keep one lesson to one session.")
+        s1, s2 = st.columns(2)
+        sample_lesson = s1.button("Try a sample lesson page", icon=":material/auto_stories:", width="stretch")
+        sample_hw = s2.button("Try a sample homework page", icon=":material/edit_note:", width="stretch")
+
+        ui('<div class="steptitle" style="margin-top:14px"><span class="stepno">2</span>What do you want to do?'
+           '&nbsp;<span class="muted">(optional)</span></div>')
+        c1, c2 = st.columns([3, 2], vertical_alignment="bottom")
+        typed = c1.text_input("Type it", placeholder="“help me solve question 2” or “I have a test on this tomorrow”",
+                              label_visibility="collapsed")
+        heard = c2.audio_input("Or say it", label_visibility="collapsed")
+        go = st.button("Let's go", type="primary", icon=":material/arrow_forward:", width="stretch", disabled=not uploads)
+        ui('<div class="muted" style="text-align:center;margin-top:6px">Samjhao picks <b>Teach</b> or '
+           '<b>Homework</b> from what you say and what is on the page. You can switch before you start.</div>')
+
+    ui('<div class="tiles">'
+       '<div class="tile"><div class="ic">📖</div><div class="t">Teach it</div><div class="d">Explain the page to a '
+       'classmate who missed the class. They ask, and sometimes slip in a mistake for you to catch.</div></div>'
+       '<div class="tile"><div class="ic">✏️</div><div class="t">Solve it</div><div class="d">Stuck on homework? Work '
+       'through it step by step. You get nudges, never just the answer.</div></div>'
+       '<div class="tile"><div class="ic">🛡️</div><div class="t">Always checked</div><div class="d">Every reply is '
+       'fact-checked against your page before you see it, and every score is measured.</div></div></div>')
+
+    def chosen_pages() -> list[tuple[bytes, str]]:
+        if pdf:
+            return lesson.pdf_pages(pdf.getvalue(), int(first), int(count))
+        return [(u.getvalue(), u.name) for u in uploads[:lesson.MAX_PAGES]]
+
+    if sample_lesson:
+        ss.pages = [(SAMPLE.read_bytes(), SAMPLE.name)]
+        ss.intent = {"mode": "teach", "reason": "A lesson page: teach it to your classmate.", "question": "", "by": "sample"}
+        start_teach(ss.pages)
         st.rerun()
-    if not homework and ((uploads and start) or use_sample):
-        pages = ([(u.getvalue(), u.name) for u in uploads[:lesson.MAX_PAGES]] if uploads and start
-                 else [(SAMPLE.read_bytes(), SAMPLE.name)])
-        label = "the page" if len(pages) == 1 else f"{len(pages)} pages"
-        with st.spinner(f"Reading {label} with indic-ocr and preparing the lesson..."):
+    if sample_hw:
+        ss.pages = [(EXERCISE_SAMPLE.read_bytes(), EXERCISE_SAMPLE.name)]
+        with st.spinner("Reading the page with indic-ocr..."):
             try:
-                ss.page_text, card = lesson.card_from_images(pages)
-            except (bodhan.BodhanError, ValueError) as err:
-                st.error(str(err))
+                ss.page_text = lesson.read_pages(ss.pages)
+            except bodhan.BodhanError as err:
+                st.error(page_error(err))
                 st.stop()
-            ss.profile = memory.load(student)
-            ss.session = tutor.Session(card=card, band=band, memory=memory.for_session(ss.profile, card["topic"]),
-                                       page_text=ss.page_text, fact_check=fact_check_on)
-            ss.chat = []
-            add_buddy(tutor.start(ss.session), ss.session.opening_check)
-        if quick_check:
-            with st.spinner("Preparing a 3-question quick check (each question double-checked against the page)..."):
-                ss.quiz = quiz.build(card, ss.page_text)
-            if not ss.quiz["questions"]:
-                ss.quiz = None
+        ss.intent = {"mode": "homework", "reason": "An exercise page: solve it together.", "question": "", "by": "sample"}
+        start_homework(ss.page_text)
+        st.rerun()
+    if go:
+        pages = chosen_pages()
+        with st.status("Getting your page ready...", expanded=True) as status:
+            try:
+                if heard is not None or typed.strip():
+                    status.write("Understanding what you asked (Bodhan " +
+                                 ("indic-transcribe" if heard is not None else "indic-transliterate") + ")...")
+                request = request_in_english(typed, heard)
+                status.write("Reading the page (indic-ocr)...")
+                page_text = lesson.read_pages(pages)
+                status.write("Choosing Teach or Homework...")
+                choice = intent.classify(request, page_text)
+            except bodhan.BodhanError as err:
+                status.update(label="Could not read that", state="error")
+                st.error(page_error(err))
+                st.stop()
+            status.update(label=("Homework mode" if choice["mode"] == "homework" else "Teach mode")
+                          + f": {choice['reason']}", state="complete", expanded=False)
+        ss.pages, ss.page_text, ss.intent = pages, page_text, {**choice, "request": request}
+        if choice["mode"] == "homework" and not start_homework(page_text, choice.get("question", "")):
+            ss.intent = {**ss.intent, "mode": "teach",
+                         "reason": "No exercise questions on this page, so let's teach it instead."}
+        if ss.intent["mode"] == "teach":
+            start_teach(pages, page_text)
         st.rerun()
     st.stop()
 
 # ------------------------------------------------------------------ homework mode
 
 if ss.get("mode") == "homework":
+    if ss.get("small_text"):
+        st.warning(SMALL_TEXT, icon=":material/photo_camera:")
     if "session" not in ss:
+        mode_bar("homework")
         ui('<div class="hero"><div class="tag">Homework mode</div><h1>Solve it together.</h1>'
-           f'<p>{escape(tutor.BANDS[band]["name"])} is stuck on a question from this page. Pick one and help solve it, '
+           f'<p>{escape(buddy)} is stuck on a question from this page. Pick one and help solve it, '
            'step by step. If you get stuck too, they will nudge you, but they will not just tell you.</p></div>')
         with st.container(border=True):
-            q = st.radio("Exercise questions found on the page", ss.hw_questions)
+            q = st.radio("Exercise questions found on the page", ss.hw_questions, index=ss.get("hw_pick", 0))
             if st.button("Solve this one", icon=":material/play_arrow:", type="primary"):
                 with st.spinner("Working out the answer 3 times independently, to check it before we start..."):
                     ref = exercise.solve(q, ss.page_text, band)
-                ss.session = exercise.Homework(question=q, ref=ref, band=band, page_text=ss.page_text)
+                ss.session = exercise.Homework(question=q, ref=ref, band=band, page_text=ss.page_text, buddy=buddy)
                 ss.chat = []
                 add_buddy(*exercise.start(ss.session))
                 st.rerun()
@@ -584,7 +840,7 @@ if ss.get("mode") == "homework":
 
     hw: exercise.Homework = ss.session
     name = hw.cfg["name"]
-    buddy_face, student_face = avatar(name[0], PERSONA_COLOR[hw.band]), avatar((student or "?")[0], STUDENT_COLOR)
+    buddy_face, student_face = avatar(name[0], PERSONA_COLOR[name]), avatar((student or "?")[0], STUDENT_COLOR)
     dots = "".join(f'<span class="dot {STEP[st_][2]}"></span>' for st_ in hw.steps)
     own = sum(st_ == "explained" for st_ in hw.steps)
     trust = chip(f'answer checked: {hw.ref["agreement"]} solutions agree', "green" if hw.ref["trusted"] else "amber")
@@ -638,14 +894,22 @@ if ss.get("mode") == "homework":
               'solutions agree)</div>' if rep["answer_trusted"] else
               '<div class="quote">The answer key was uncertain, so this question was not graded.</div>')
     ui(f'<div class="card"><h3>The solution, step by step</h3>{steps}{errors}{answer}</div>')
+    if rep.get("doubts_for_teacher"):
+        ui('<div class="card"><h3>Doubts to ask your teacher</h3><p class="muted">Write these in your doubt '
+           'notebook: things the app could not check, or steps you needed help with.</p>'
+           + "".join(f'<div class="next"><span class="n">{i}</span><span>{escape(d)}</span></div>'
+                     for i, d in enumerate(rep["doubts_for_teacher"], 1)) + "</div>")
     ui(f'<div class="muted">Saved to {escape(student)}\'s homework history (see <b>My progress</b>). '
        f'The answer guard checked every line {escape(name)} said; {rep["rewritten"]} were rewritten so they would '
        'not give the answer away.</div>')
     st.stop()
 
+if ss.get("small_text"):
+    st.warning(SMALL_TEXT, icon=":material/photo_camera:")
+
 s: tutor.Session = ss.session
 name = s.cfg["name"]
-buddy_face = avatar(name[0], PERSONA_COLOR[s.band])
+buddy_face = avatar(name[0], PERSONA_COLOR[name])
 student_face = avatar((student or "?")[0], STUDENT_COLOR)
 
 statuses = [s.concepts[c["id"]]["status"] for c in s.card["concepts"]]
@@ -661,6 +925,8 @@ ui('<div class="card"><div class="head">'
    f'<div><span class="label">Ideas taught</span><div class="dots">{dots}</div>'
    f'<div class="muted">{explained} of {len(statuses)} · tricks caught: {caught}</div></div>'
    '</div></div>')
+if s.turn == 0:  # switching is offered only before the conversation starts
+    mode_bar("teach")
 if s.memory:
     tricky = " and will check the parts that were tricky last time" if s.focus or s.retest else ""
     ui(f'<div class="banner"><b>Welcome back, {escape(student)}!</b> Last time you taught '
