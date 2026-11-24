@@ -1,4 +1,4 @@
-# 🚀 [▶ WATCH THE DEMO: VOICE → REASONING → CHARTS → VOICE](https://github.com/ninth-orbit-research/Bodhan-AI-Cookbook/blob/recipe/mahabharata/examples/mahabharata/Bodhan%20API%20Project%20%282%29.mp4)
+# 🚀 [▶ WATCH THE Video (Download): VOICE → REASONING → CHARTS → VOICE](https://github.com/ninth-orbit-research/Bodhan-AI-Cookbook/blob/recipe/mahabharata/examples/mahabharata/Bodhan%20API%20Project%20%282%29.mp4)
 
 # Bodhan AI Cookbook
 
