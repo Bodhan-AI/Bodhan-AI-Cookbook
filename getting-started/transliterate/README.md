@@ -8,6 +8,8 @@ Convert text between native and roman script while keeping pronunciation, in bot
 | Endpoint | `POST /transliterate` |
 | Notebook | [transliterate.ipynb](transliterate.ipynb) |
 
+> **Route note (November 2026):** `POST /transliterate` currently returns 404 ([#34](https://github.com/Bodhan-AI/Bodhan-AI-Cookbook/issues/34)). The notebook falls back to `POST /v1/chat/completions` automatically, and switches back once the documented route is served.
+
 ## Setup
 
 ```bash
