@@ -1,0 +1,10 @@
+.env
+.env.*
+!.env.example
+.venv
+.cache
+outputs
+__pycache__
+*.egg-info
+*.wav
+*.mp3

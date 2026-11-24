@@ -1,0 +1,64 @@
+{
+  "artifact_sha256": {
+    "calibration.json": "2ce4c26d51be5cf29daf96805ecf9c68f22aaa7bbffa95b4ad5f015c763215cc",
+    "checks.jsonl": "552e89d8246320b9f4392eab738172cfc259b60e8639e6aae7f27e4af841f2f4",
+    "items.jsonl": "3eb5a912c3c9dd1949b80427dbea9aa62b0d283cf0896a573bbe96a28e0707cd",
+    "outputs.jsonl": "80690100566c7262d336adeffa712a501631470850e39be1aad798279ff4a3aa",
+    "review.csv": "b50674b3a65a83dee5f4d7d3916888fbf9a0a17c5696edaaf0bd54bac833839b",
+    "summary.json": "015dcfa559f1641e9a428cbab9630640c3682883a1de15488c1eae5c359af3a1",
+    "summary.md": "57848020f56cc9b4276bc7a41296b17e5cd5e9bf04ef8a2cd06f36716bdfb2c4"
+  },
+  "backend": {
+    "name": "setuptools",
+    "pinned": "80.9.0",
+    "used": "80.9.0"
+  },
+  "dataset_sha256": "3e0c30db333e19aac5223b5b47e292785f14d7eb6a4134e9bbeac456fd12a11b",
+  "implementation_sha256": "818cb27a64cac5410d8a2c57992b23e52899bd60468c09200d8110bbe43b3841",
+  "inherited_site_packages": false,
+  "installed_module": "Lib/site-packages/bodhan_eval/__init__.py",
+  "isolated_imports": true,
+  "logs": {
+    "build.log": "0a722e8f7df8cfc06eea038814b46659360eaa0d737507f135d9f1b834b39f93",
+    "first.log": "2c2d5b72ac34b11d89026e382a18c6f889167aaf89c4914cce2842a9b270de42",
+    "import.log": "523979aa0e22640cdfe66a1baedd31ce4e4ddda06855f5a241fda092e22083f7",
+    "install.log": "68411c05ca2a19abec1f0768d9149856b1b7aac21deddd42bd64d7c78466ccae",
+    "replay.log": "ee6550512e36edb470a85b0e97a376e7ee0a836835e5d0febc831ee702570c35"
+  },
+  "passed": true,
+  "recipe_sha256": "19604f0b9cea14aa024f31765e64585d0c0ccfd48c296219bb659343e3412129",
+  "scope": "offline staged wheel build with installed pinned backend; fresh-venv install and deterministic CLI smoke, not Docker or hosted quality",
+  "version": 1,
+  "wheel": {
+    "distribution": "bodhan-eval",
+    "members": [
+      "bodhan_eval-0.1.0.dist-info/METADATA",
+      "bodhan_eval-0.1.0.dist-info/RECORD",
+      "bodhan_eval-0.1.0.dist-info/WHEEL",
+      "bodhan_eval-0.1.0.dist-info/top_level.txt",
+      "bodhan_eval/__init__.py",
+      "bodhan_eval/__main__.py",
+      "bodhan_eval/annotations.py",
+      "bodhan_eval/artifacts.py",
+      "bodhan_eval/audio.py",
+      "bodhan_eval/benchmark.py",
+      "bodhan_eval/calibration.py",
+      "bodhan_eval/checks.py",
+      "bodhan_eval/demo.py",
+      "bodhan_eval/inject.py",
+      "bodhan_eval/installation.py",
+      "bodhan_eval/judge.py",
+      "bodhan_eval/local_checks.py",
+      "bodhan_eval/models.py",
+      "bodhan_eval/pipeline.py",
+      "bodhan_eval/readiness.py",
+      "bodhan_eval/review.py",
+      "bodhan_eval/runner.py"
+    ],
+    "record_verified": true,
+    "sha256": "5e32d9a9271397248563e93dc80c6bfffa299de7c9684521210453b1d8e9ff09",
+    "source_files": 18,
+    "version": "0.1.0"
+  },
+  "zero_network_replay": true
+}

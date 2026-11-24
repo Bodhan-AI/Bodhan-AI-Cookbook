@@ -1,0 +1,1065 @@
+{
+  "annotation_groups": {
+    "human": {
+      "annotated_items": 0,
+      "annotation_origins": {},
+      "categories": {
+        "addition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "entity": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "format": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "garbled_audio": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "mistranslation": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "number": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "speech_omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "speech_repetition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "wrong_language": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        }
+      },
+      "category_accuracy": null,
+      "category_eligible_detections": 0,
+      "clean_items": 0,
+      "detected_errors": 0,
+      "detection_basis": "one-to-one within-item error assignment; category and localization measured separately",
+      "detection_recall": null,
+      "error_items": 0,
+      "false_alarm_rate": null,
+      "item_detection_recall": null,
+      "localization_eligible_detections": 0,
+      "localization_overlap": null,
+      "seeded_errors": 0
+    },
+    "injected": {
+      "annotated_items": 4,
+      "annotation_origins": {
+        "programmatic_injection": 4
+      },
+      "categories": {
+        "addition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "entity": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "format": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "support": 1,
+          "tp": 1
+        },
+        "garbled_audio": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "mistranslation": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "number": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "support": 3,
+          "tp": 3
+        },
+        "omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "speech_omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "speech_repetition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "wrong_language": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        }
+      },
+      "category_accuracy": 1.0,
+      "category_eligible_detections": 4,
+      "clean_items": 0,
+      "detected_errors": 4,
+      "detection_basis": "one-to-one within-item error assignment; category and localization measured separately",
+      "detection_recall": 1.0,
+      "error_items": 4,
+      "false_alarm_rate": null,
+      "item_detection_recall": 1.0,
+      "localization_eligible_detections": 4,
+      "localization_overlap": 1.0,
+      "seeded_errors": 4
+    }
+  },
+  "development_items": 0,
+  "development_parent_ids": [],
+  "evaluation": {
+    "annotated_items": 8,
+    "annotation_origins": {
+      "programmatic_injection": 4,
+      "synthetic_test": 4
+    },
+    "categories": {
+      "addition": {
+        "fn": 0,
+        "fp": 0,
+        "precision": null,
+        "recall": null,
+        "support": 0,
+        "tp": 0
+      },
+      "entity": {
+        "fn": 0,
+        "fp": 0,
+        "precision": null,
+        "recall": null,
+        "support": 0,
+        "tp": 0
+      },
+      "format": {
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 1,
+        "tp": 1
+      },
+      "garbled_audio": {
+        "fn": 0,
+        "fp": 0,
+        "precision": null,
+        "recall": null,
+        "support": 0,
+        "tp": 0
+      },
+      "mistranslation": {
+        "fn": 0,
+        "fp": 0,
+        "precision": null,
+        "recall": null,
+        "support": 0,
+        "tp": 0
+      },
+      "number": {
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "support": 3,
+        "tp": 3
+      },
+      "omission": {
+        "fn": 0,
+        "fp": 0,
+        "precision": null,
+        "recall": null,
+        "support": 0,
+        "tp": 0
+      },
+      "speech_omission": {
+        "fn": 0,
+        "fp": 0,
+        "precision": null,
+        "recall": null,
+        "support": 0,
+        "tp": 0
+      },
+      "speech_repetition": {
+        "fn": 0,
+        "fp": 0,
+        "precision": null,
+        "recall": null,
+        "support": 0,
+        "tp": 0
+      },
+      "wrong_language": {
+        "fn": 0,
+        "fp": 0,
+        "precision": null,
+        "recall": null,
+        "support": 0,
+        "tp": 0
+      }
+    },
+    "category_accuracy": 1.0,
+    "category_eligible_detections": 4,
+    "clean_items": 4,
+    "detected_errors": 4,
+    "detection_basis": "one-to-one within-item error assignment; category and localization measured separately",
+    "detection_recall": 1.0,
+    "error_items": 4,
+    "false_alarm_rate": 0.0,
+    "item_detection_recall": 1.0,
+    "localization_eligible_detections": 4,
+    "localization_overlap": 1.0,
+    "seeded_errors": 4
+  },
+  "languages": {
+    "bn": {
+      "annotated_items": 3,
+      "annotation_origins": {
+        "programmatic_injection": 2,
+        "synthetic_test": 1
+      },
+      "categories": {
+        "addition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "entity": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "format": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "support": 1,
+          "tp": 1
+        },
+        "garbled_audio": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "mistranslation": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "number": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "support": 1,
+          "tp": 1
+        },
+        "omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "speech_omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "speech_repetition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "wrong_language": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        }
+      },
+      "category_accuracy": 1.0,
+      "category_eligible_detections": 2,
+      "clean_items": 1,
+      "detected_errors": 2,
+      "detection_basis": "one-to-one within-item error assignment; category and localization measured separately",
+      "detection_recall": 1.0,
+      "error_items": 2,
+      "false_alarm_rate": 0.0,
+      "item_detection_recall": 1.0,
+      "localization_eligible_detections": 2,
+      "localization_overlap": 1.0,
+      "seeded_errors": 2
+    },
+    "hi": {
+      "annotated_items": 3,
+      "annotation_origins": {
+        "programmatic_injection": 1,
+        "synthetic_test": 2
+      },
+      "categories": {
+        "addition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "entity": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "format": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "garbled_audio": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "mistranslation": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "number": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "support": 1,
+          "tp": 1
+        },
+        "omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "speech_omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "speech_repetition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "wrong_language": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        }
+      },
+      "category_accuracy": 1.0,
+      "category_eligible_detections": 1,
+      "clean_items": 2,
+      "detected_errors": 1,
+      "detection_basis": "one-to-one within-item error assignment; category and localization measured separately",
+      "detection_recall": 1.0,
+      "error_items": 1,
+      "false_alarm_rate": 0.0,
+      "item_detection_recall": 1.0,
+      "localization_eligible_detections": 1,
+      "localization_overlap": 1.0,
+      "seeded_errors": 1
+    },
+    "ta": {
+      "annotated_items": 2,
+      "annotation_origins": {
+        "programmatic_injection": 1,
+        "synthetic_test": 1
+      },
+      "categories": {
+        "addition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "entity": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "format": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "garbled_audio": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "mistranslation": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "number": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "support": 1,
+          "tp": 1
+        },
+        "omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "speech_omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "speech_repetition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "wrong_language": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        }
+      },
+      "category_accuracy": 1.0,
+      "category_eligible_detections": 1,
+      "clean_items": 1,
+      "detected_errors": 1,
+      "detection_basis": "one-to-one within-item error assignment; category and localization measured separately",
+      "detection_recall": 1.0,
+      "error_items": 1,
+      "false_alarm_rate": 0.0,
+      "item_detection_recall": 1.0,
+      "localization_eligible_detections": 1,
+      "localization_overlap": 1.0,
+      "seeded_errors": 1
+    }
+  },
+  "nonhuman_calibration_items_ignored": 0,
+  "note": "Explicit calibration items and all siblings of their parent are excluded from held-out evaluation. Only attributable human labels or externally provided calibration labels tune thresholds. Without human calibration labels thresholds are not tuned. Missing labels are never treated as clean.",
+  "per_check": {
+    "format": {
+      "annotated_items": 8,
+      "annotation_origins": {
+        "programmatic_injection": 4,
+        "synthetic_test": 4
+      },
+      "categories": {
+        "addition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "entity": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "format": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "support": 1,
+          "tp": 1
+        },
+        "garbled_audio": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "mistranslation": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "number": {
+          "fn": 3,
+          "fp": 0,
+          "precision": null,
+          "recall": 0.0,
+          "support": 3,
+          "tp": 0
+        },
+        "omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "speech_omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "speech_repetition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "wrong_language": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        }
+      },
+      "category_accuracy": 1.0,
+      "category_eligible_detections": 1,
+      "clean_items": 4,
+      "detected_errors": 1,
+      "detection_basis": "one-to-one within-item error assignment; category and localization measured separately",
+      "detection_recall": 0.25,
+      "error_items": 4,
+      "false_alarm_rate": 0.0,
+      "item_detection_recall": 0.25,
+      "localization_eligible_detections": 1,
+      "localization_overlap": 1.0,
+      "seeded_errors": 4
+    },
+    "judge": {
+      "annotated_items": 8,
+      "annotation_origins": {
+        "programmatic_injection": 4,
+        "synthetic_test": 4
+      },
+      "categories": {
+        "addition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "entity": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "format": {
+          "fn": 1,
+          "fp": 0,
+          "precision": null,
+          "recall": 0.0,
+          "support": 1,
+          "tp": 0
+        },
+        "garbled_audio": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "mistranslation": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "number": {
+          "fn": 3,
+          "fp": 0,
+          "precision": null,
+          "recall": 0.0,
+          "support": 3,
+          "tp": 0
+        },
+        "omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "speech_omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "speech_repetition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "wrong_language": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        }
+      },
+      "category_accuracy": null,
+      "category_eligible_detections": 0,
+      "clean_items": 4,
+      "detected_errors": 0,
+      "detection_basis": "one-to-one within-item error assignment; category and localization measured separately",
+      "detection_recall": 0.0,
+      "error_items": 4,
+      "false_alarm_rate": 0.0,
+      "item_detection_recall": 0.0,
+      "localization_eligible_detections": 0,
+      "localization_overlap": null,
+      "seeded_errors": 4
+    },
+    "numbers": {
+      "annotated_items": 8,
+      "annotation_origins": {
+        "programmatic_injection": 4,
+        "synthetic_test": 4
+      },
+      "categories": {
+        "addition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "entity": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "format": {
+          "fn": 1,
+          "fp": 0,
+          "precision": null,
+          "recall": 0.0,
+          "support": 1,
+          "tp": 0
+        },
+        "garbled_audio": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "mistranslation": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "number": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "support": 3,
+          "tp": 3
+        },
+        "omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "speech_omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "speech_repetition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "wrong_language": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        }
+      },
+      "category_accuracy": 1.0,
+      "category_eligible_detections": 3,
+      "clean_items": 4,
+      "detected_errors": 3,
+      "detection_basis": "one-to-one within-item error assignment; category and localization measured separately",
+      "detection_recall": 0.75,
+      "error_items": 4,
+      "false_alarm_rate": 0.0,
+      "item_detection_recall": 0.75,
+      "localization_eligible_detections": 3,
+      "localization_overlap": 1.0,
+      "seeded_errors": 4
+    },
+    "script": {
+      "annotated_items": 8,
+      "annotation_origins": {
+        "programmatic_injection": 4,
+        "synthetic_test": 4
+      },
+      "categories": {
+        "addition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "entity": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "format": {
+          "fn": 1,
+          "fp": 0,
+          "precision": null,
+          "recall": 0.0,
+          "support": 1,
+          "tp": 0
+        },
+        "garbled_audio": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "mistranslation": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "number": {
+          "fn": 3,
+          "fp": 0,
+          "precision": null,
+          "recall": 0.0,
+          "support": 3,
+          "tp": 0
+        },
+        "omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "speech_omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "speech_repetition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        },
+        "wrong_language": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "support": 0,
+          "tp": 0
+        }
+      },
+      "category_accuracy": null,
+      "category_eligible_detections": 0,
+      "clean_items": 4,
+      "detected_errors": 0,
+      "detection_basis": "one-to-one within-item error assignment; category and localization measured separately",
+      "detection_recall": 0.0,
+      "error_items": 4,
+      "false_alarm_rate": 0.0,
+      "item_detection_recall": 0.0,
+      "localization_eligible_detections": 0,
+      "localization_overlap": null,
+      "seeded_errors": 4
+    }
+  },
+  "tuning": {
+    "method": "maximum category F1, then fewer false positives, then higher cutoff",
+    "scope": "judge confidence only; deterministic checks are unchanged",
+    "supports": {
+      "addition": {
+        "candidate_thresholds": 0,
+        "labels": 0
+      },
+      "entity": {
+        "candidate_thresholds": 0,
+        "labels": 0
+      },
+      "format": {
+        "candidate_thresholds": 0,
+        "labels": 0
+      },
+      "garbled_audio": {
+        "candidate_thresholds": 0,
+        "labels": 0
+      },
+      "mistranslation": {
+        "candidate_thresholds": 0,
+        "labels": 0
+      },
+      "number": {
+        "candidate_thresholds": 0,
+        "labels": 0
+      },
+      "omission": {
+        "candidate_thresholds": 0,
+        "labels": 0
+      },
+      "speech_omission": {
+        "candidate_thresholds": 0,
+        "labels": 0
+      },
+      "speech_repetition": {
+        "candidate_thresholds": 0,
+        "labels": 0
+      },
+      "wrong_language": {
+        "candidate_thresholds": 0,
+        "labels": 0
+      }
+    },
+    "thresholds": {}
+  }
+}

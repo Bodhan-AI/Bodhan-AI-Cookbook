@@ -1,0 +1,9 @@
+{"id": "smoke-01", "label_origin": "synthetic_test", "labels": [], "lang": "hi", "source": "25", "translation": "२५"}
+{"id": "smoke-02", "label_origin": "synthetic_test", "labels": [], "lang": "ta", "source": "25", "translation": "௨௫"}
+{"id": "smoke-03", "label_origin": "synthetic_test", "labels": [], "lang": "bn", "source": "25", "translation": "২৫"}
+{"id": "smoke-04", "label_origin": "programmatic_injection", "labels": [{"severity": "major", "span": [0, 2], "type": "number"}], "lang": "hi", "source": "25", "translation": "२६"}
+{"id": "smoke-05", "label_origin": "programmatic_injection", "labels": [{"severity": "major", "span": [0, 2], "type": "number"}], "lang": "ta", "source": "25", "translation": "௨௬"}
+{"id": "smoke-06", "label_origin": "programmatic_injection", "labels": [{"severity": "major", "span": [0, 2], "type": "number"}], "lang": "bn", "source": "25", "translation": "২৬"}
+{"id": "smoke-08", "lang": "ta", "source": "Read https://example.org", "translation": "https://example.org"}
+{"id": "smoke-09", "label_origin": "programmatic_injection", "labels": [{"severity": "major", "span": [4, 5], "span_field": "source", "type": "format"}], "lang": "bn", "source": "Use $x$", "translation": "x"}
+{"id": "smoke-10", "label_origin": "synthetic_test", "labels": [], "lang": "hi", "source": "25 25", "translation": "२५ २५"}
