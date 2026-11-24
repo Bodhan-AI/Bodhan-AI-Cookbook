@@ -14,7 +14,7 @@ from services.bodhan import (
     transcribe_audio,
     translate_text,
 )
-from src.database import (
+from database import (
     create_report,
     get_alerts,
     get_report,
