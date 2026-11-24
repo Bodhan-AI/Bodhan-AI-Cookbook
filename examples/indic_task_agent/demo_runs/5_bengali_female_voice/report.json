@@ -1,0 +1,53 @@
+{
+  "status": "completed",
+  "task": "Read this paragraph aloud in Bengali with a female voice",
+  "files": "inputs/bengali_tts",
+  "stop_reason": null,
+  "steps": 4,
+  "max_steps": 30,
+  "cost_inr": 0.0215,
+  "max_cost_inr": 2.0,
+  "cost_by_model": {
+    "indic-translate": 0,
+    "indic-speak": 0,
+    "indic-transcribe": 0.0215
+  },
+  "bodhan_calls": 3,
+  "cache_hits": 2,
+  "elapsed_s": 9.1,
+  "llm": {
+    "model": "gemini-3.5-flash-lite",
+    "total_tokens": 15581
+  },
+  "artifacts": [
+    "out/artifacts/text.bn.md",
+    "out/artifacts/text.bn.mp3"
+  ],
+  "missing_artifacts": [],
+  "errors": [],
+  "verification": [
+    {
+      "step": 2,
+      "tool": "translate_text",
+      "output": "out/artifacts/text.bn.md",
+      "check": "coverage: every chunk non-empty, sane length, numbers and table rows kept",
+      "chunks": 1,
+      "passed": 1,
+      "retried": 0,
+      "ok": true,
+      "warnings": []
+    },
+    {
+      "step": 3,
+      "tool": "synthesize_speech",
+      "output": "out/artifacts/text.bn.mp3",
+      "check": "back-transcription of every piece vs its text (character error rate)",
+      "pieces": 1,
+      "passed": 1,
+      "retried": 0,
+      "max_cer": 0.0,
+      "ok": true,
+      "warnings": []
+    }
+  ]
+}

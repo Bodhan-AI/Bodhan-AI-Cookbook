@@ -1,0 +1,22 @@
+{
+  "status": "impossible",
+  "task": "Translate this video into French",
+  "files": "inputs/french_video",
+  "stop_reason": null,
+  "steps": 1,
+  "max_steps": 30,
+  "cost_inr": 0.0,
+  "max_cost_inr": 2.0,
+  "cost_by_model": {},
+  "bodhan_calls": 0,
+  "cache_hits": 0,
+  "elapsed_s": 1.9,
+  "llm": {
+    "model": "gemini-3.5-flash-lite",
+    "total_tokens": 3596
+  },
+  "artifacts": [],
+  "missing_artifacts": [],
+  "errors": [],
+  "verification": []
+}

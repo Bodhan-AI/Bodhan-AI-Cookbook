@@ -1,0 +1,27 @@
+{
+  "status": "completed",
+  "task": "Transcribe this Hindi voice note and give me English subtitles",
+  "files": "inputs/hindi_voice_note",
+  "stop_reason": null,
+  "steps": 3,
+  "max_steps": 30,
+  "cost_inr": 0.0314,
+  "max_cost_inr": 1.0,
+  "cost_by_model": {
+    "indic-transcribe": 0.0305,
+    "indic-translate": 0.0009
+  },
+  "bodhan_calls": 2,
+  "cache_hits": 0,
+  "elapsed_s": 9.3,
+  "llm": {
+    "model": "gemini-3.5-flash-lite",
+    "total_tokens": 11525
+  },
+  "artifacts": [
+    "out/artifacts/Hindi_M_Darshan.en.srt"
+  ],
+  "missing_artifacts": [],
+  "errors": [],
+  "verification": []
+}

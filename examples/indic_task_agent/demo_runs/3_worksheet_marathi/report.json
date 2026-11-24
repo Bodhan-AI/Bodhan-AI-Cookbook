@@ -1,0 +1,39 @@
+{
+  "status": "completed",
+  "task": "Translate this worksheet into Marathi and keep the table",
+  "files": "inputs/worksheet",
+  "stop_reason": null,
+  "steps": 3,
+  "max_steps": 30,
+  "cost_inr": 0.0,
+  "max_cost_inr": 2.0,
+  "cost_by_model": {
+    "indic-ocr": 0,
+    "indic-translate": 0
+  },
+  "bodhan_calls": 2,
+  "cache_hits": 2,
+  "elapsed_s": 6.1,
+  "llm": {
+    "model": "gemini-3.5-flash-lite",
+    "total_tokens": 11342
+  },
+  "artifacts": [
+    "out/artifacts/worksheet.mr.md"
+  ],
+  "missing_artifacts": [],
+  "errors": [],
+  "verification": [
+    {
+      "step": 2,
+      "tool": "translate_text",
+      "output": "out/artifacts/worksheet.mr.md",
+      "check": "coverage: every chunk non-empty, sane length, numbers and table rows kept",
+      "chunks": 1,
+      "passed": 1,
+      "retried": 0,
+      "ok": true,
+      "warnings": []
+    }
+  ]
+}

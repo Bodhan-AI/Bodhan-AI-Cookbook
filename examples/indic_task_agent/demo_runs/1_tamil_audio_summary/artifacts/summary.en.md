@@ -1,0 +1,5 @@
+Chapter Six introduces the fundamental concepts of lines and angles. We review basic definitions: a line segment has two endpoints, a ray has one endpoint, and a line extends indefinitely. Collinear points lie on the same line, while non-collinear points do not. 
+
+An angle is formed when two rays originate from the same endpoint, called the vertex. Angles are classified into acute, right, obtuse, straight, and reflex angles. Pairs of angles can be complementary, supplementary, adjacent, or form a linear pair. When two lines intersect, they form vertically opposite angles, which are equal.
+
+The chapter distinguishes intersecting lines from parallel lines, where the perpendicular distance between them remains constant. Key axioms show that if a ray stands on a line, the sum of the adjacent angles is one hundred and eighty degrees, forming a linear pair. Conversely, if two adjacent angles sum to one hundred and eighty degrees, their non-common arms form a line. These properties enable deductive reasoning in geometry.
