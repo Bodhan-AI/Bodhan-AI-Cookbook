@@ -1,129 +1,193 @@
 # Samjhao: a teach-back tutor
 
-> *Samjhao* (समझाओ) means "explain it". A student photographs a textbook page and teaches it to an AI classmate who missed the class. The classmate asks naive questions and sometimes says something wrong on purpose; the student has to catch it.
+> *Samjhao* (समझाओ) means "explain it". A student photographs a textbook page and **teaches it** to an AI classmate who missed the class. The classmate asks questions, and sometimes says something wrong on purpose for the student to catch. For homework, it helps the student solve the questions step by step, nudging instead of giving the answer.
 
-**Bodhan models:** indic-ocr, indic-transliterate, indic-translate, indic-speak, indic-transcribe
-**Languages shown:** Hindi (the app also offers English, Bengali, Tamil, Telugu, Marathi, Gujarati, Kannada, Malayalam, Odia, Punjabi, Assamese and Urdu)
-**Format:** Streamlit app (light and dark) + walkthrough notebook + CLI
+**Bodhan models:** indic-ocr, indic-transcribe, indic-transliterate, indic-translate, indic-speak (all five)
+**Languages:** English plus 12 Indian languages (Hindi, Bengali, Tamil, Telugu, Marathi, Gujarati, Kannada, Malayalam, Odia, Punjabi, Assamese, Urdu); typed Hinglish works
+**Format:** Streamlit app (light and dark) + walkthrough notebook + command-line tools
 
-## What it does
+![Samjhao start screen](screenshots/start.png)
 
-Explaining an idea to someone else is one of the best tests of understanding (the Feynman technique). Most study apps ask the student questions; here the student does the explaining, in their own language, by typing or speaking:
+**Contents:** [In one minute](#in-one-minute) · [Using the app](#using-the-app-step-by-step) · [Setup](#setup) · [Run](#run) · [How it works](#how-it-works) · [Files](#every-file-and-what-it-does) · [Evaluation](#evaluation) · [Related work](#related-work) · [Bodhan API notes](#bodhan-api-notes) · [Limitations](#limitations)
 
-0. **One start screen.** Add a page, then (optionally) say or type what you want: "help me with question 3", "I have a test on this tomorrow". A small, fast LLM (`openai/gpt-oss-20b`, set by `INTENT_MODEL`) reads the request and the start of the page and picks **Teach** or **Homework** mode, even the question you named; if that call fails, keyword rules decide. The choice and its reason are shown, with a one-tap switch.
-1. **Photo or PDF → lesson.** `indic-ocr` reads the textbook page (or up to 4 pages of one lesson, read in parallel). A PDF of a whole book works too: pick the start page and how many pages, and they are rendered and read by `indic-ocr` like photos, so scanned books work as well. Phone photos are turned upright and resized first. An LLM drafts a *lesson card*: the key concepts the student should explain and the misconceptions the classmate can plant. Every item must quote the page, or it is dropped.
-2. **Teach the classmate.** The classmate (Riya, Chintu or Arjun; the student picks, the class sets the difficulty; Riya speaks with a female voice, Chintu and Arjun with male voices, each in their own `indic-speak` style) asks about gaps, asks for examples, pushes for "why", and plants a wrong idea to see if the student catches it. A missed mistake gets a hint, then is revealed and explained; the student never leaves with the wrong idea. The classmate really "missed the class": it keeps a **notebook** of only what the student has taught it, and writes every reply from that notebook alone (visible in the app).
-3. **Every classmate line is fact-checked before the student sees it** (Chain-of-Verification): its claims are checked against the page by a separate call that never sees the line, and it may not use lesson words the student has not said yet. A line that fails is rewritten once with the problems as feedback.
-4. **Quick check before and after.** Three multiple-choice questions before teaching and the same three after give an objective **learning gain** per session. Each question is itself verified: an independent solver must reach the same answer from the page, or the question is thrown out.
-5. **Honest report.** What the student explained, what they missed, which tricks they caught (on their own or after a hint), any wrong ideas they still hold, the learning gain, and how many classmate claims were checked, blocked or rewritten.
-6. **Memory.** The tutor remembers each student. Next session it starts at the level they reached, asks about their weak spots first, and re-plants the mistakes they missed to check the correction stuck.
-7. **Parent note.** A short, honest summary in the parent's language, written and spoken.
-8. **Progress dashboard** (switch to **My progress** in the sidebar). Ideas mastered per topic, three thinking skills (explaining in your own words, spotting mistakes, thinking deeper) with the change since earlier sessions, learning gain per session, understanding over time, and what to practise next. It is computed from the saved sessions in plain Python, so it is instant and works offline.
-9. **Homework mode** (picked from the start screen, or switch to it). For exercise pages whose answers are not printed. The classmate is stuck on a question from the page and the student helps solve it, step by step. If the student is stuck too, the classmate nudges in three rungs: a question about what to find next, then a half-finished guess, and only then does it work the step out itself. It never blurts out the answer (a Python guard checks every line). Anything the app could not check, or had to show, goes on a **"Doubts to ask your teacher"** list in the report. The answer is not on the page, so the reference solution is worked out **3 times independently** and used only if a majority agree (self-consistency); otherwise the classmate says it is not sure either and nothing is graded. Same Bodhan path: `indic-ocr` reads the exercise page, and the student types (transliterate) or speaks (transcribe) in their language; replies are translated and spoken.
-10. **Results view** (sidebar). Every measured result below, read from `eval/`: the grader and fact-checker against hand labels, the homework answer key, the simulated students, grading in Hindi, and real and damaged pages.
+## In one minute
 
-| The start screen (light) | …and dark |
+Explaining an idea to someone else is one of the best tests of whether you understand it (the Feynman technique). Most study apps ask the student questions. Samjhao turns it around: **the student does the explaining**, in their own language, by typing or speaking.
+
+- **Teach mode** (lesson pages). The student explains the page to a classmate (Riya, Chintu or Arjun). The classmate asks about gaps, asks "why", and plants a believable mistake ("plants get their food from the soil, right?"). Catching it is the real test.
+- **Homework mode** (exercise pages). The student solves a question from the page step by step. If they are stuck, the classmate nudges: first a question, then a half-finished hint, and only then does it work out one step. It never gives the final answer away.
+- **It picks the mode for you.** Add a page, optionally say what you want ("help me with question 3"), and a small, fast LLM chooses Teach or Homework (you can switch).
+- **Everything the AI says is checked.** Every classmate line is fact-checked against the page before the student sees it. Homework answers, which are not printed in the book, are worked out three times and used only if they agree.
+- **It measures learning.** A three-question quick check before and after gives a learning gain; a report, a progress dashboard and a spoken note for parents follow.
+
+The guiding rule of the design: **the LLM judges and talks; plain Python decides what happens next; and everything the LLM says is checked.** That keeps the tutor predictable, testable and honest.
+
+## Using the app, step by step
+
+**1. Set up the sidebar.** Your name (the tutor remembers you), your class (sets how hard it is), the language you will talk in, and your classmate: **Riya** (curious explorer, female voice), **Chintu** (playful, male voice) or **Arjun** (sharp debater, male voice). Turn on *I type in English letters* to type Hinglish. Light or dark mode: ⋮ → Settings.
+
+**2. Add your page.** Upload 1 to 4 photos of one lesson, or a **PDF of the whole book** and pick the start page and how many pages. No page handy? Use **Try a sample lesson page** or **Try a sample homework page**.
+
+**3. Say what you want (optional).** Type it, or record it with the mic: "explain this chapter", "I have a test tomorrow", "help me solve question 2". Press **Let's go**. Samjhao reads the page with `indic-ocr`, picks **Teach** or **Homework**, and shows why, with a **Switch** button. If the photo is too small to read reliably, it tells you to retake it closer.
+
+| The start screen in dark mode | A tiny photo: the small-text warning, and memory ("Welcome back") |
 |---|---|
-| ![Start](screenshots/start.png) | ![Start, dark](screenshots/start_dark.png) |
+| ![Start, dark](screenshots/start_dark.png) | ![Small text warning](screenshots/small_text.png) |
+
+**4a. Teach.** Optionally answer the 3-question quick check, then explain the page by typing or speaking. The classmate answers in your language, out loud. Watch for the planted mistake! Turn on **Teacher view** (sidebar → Options) to see, under every reply, the score, the next move, the level and the fact-check with the page's own words as evidence.
 
 | Teaching Riya in Hinglish, Teacher view on | The report |
 |---|---|
-| ![Chat](screenshots/chat.png) | ![Report](screenshots/report.png) |
+| ![Teach chat](screenshots/chat.png) | ![Report](screenshots/report.png) |
 
-In the chat, the student typed romanized Hindi, which `indic-transliterate` turned into Devanagari and `indic-translate` into English for grading. Riya answers in Hindi with audio. Teacher view shows the fact-check at work: her first draft used a word the student had not taught yet ("green"), so it was blocked and rewritten; then she planted "plants get most of their food from the soil", and the fact-checker confirmed it is the planned mistake, with the page's own words as evidence.
+In this chat the student typed romanized Hindi, which `indic-transliterate` turned into Devanagari and `indic-translate` into English for grading. Riya replies in Hindi with audio (`indic-translate` → `indic-speak`). Teacher view shows the fact-check at work: Riya's first draft used a word the student had not taught yet ("green"), so it was blocked and rewritten. Then she planted "plants get most of their food from the soil", and the fact-checker confirmed it is the planned mistake, quoting the page.
 
-| Homework: "I don't know" gets a nudge, not the answer | Homework report: steps, the 3-solve answer check, doubts for the teacher |
+**4b. Homework.** Pick a question (the one you named is preselected) and solve it together. Say "I don't know" and you get a nudge, not the answer.
+
+| "I don't know" gets a question, then a half-finished hint | Report: steps, the 3-solve answer check, doubts for the teacher |
 |---|---|
-| ![Homework](screenshots/homework.png) | ![Homework report](screenshots/homework_report.png) |
+| ![Homework chat](screenshots/homework.png) | ![Homework report](screenshots/homework_report.png) |
 
-| A tiny photo: the small-text warning (and memory: "Welcome back") | Progress dashboard (dark) | Results view |
-|---|---|---|
-| ![Small text](screenshots/small_text.png) | ![Dashboard](screenshots/dashboard.png) | ![Results](screenshots/results.png) |
+**5. Finish.** Press **Finish session** (or the classmate wraps up). The report shows what you explained, which tricks you caught, the quick-check gain, and, for homework, a **"Doubts to ask your teacher"** list. Teach reports also offer a **note for parents**, written in their language and spoken.
 
-![Architecture](architecture.png)
+**6. See your progress and the evidence.** **Progress** shows ideas mastered, three thinking skills and their trend, and what to practise next. **Results** shows every measured number from the [Evaluation](#evaluation) below.
+
+| Progress dashboard (dark mode) | Results view |
+|---|---|
+| ![Dashboard](screenshots/dashboard.png) | ![Results](screenshots/results.png) |
 
 ## Setup
 
+You need **Python 3.10+**, **Bodhan API keys** ([console.bodhan.ai](https://console.bodhan.ai)) and a key for **any OpenAI-compatible LLM**. Groq's free tier works well and is what every result here used.
+
 ```bash
 cd examples/teach_back_tutor
-python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
+python -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-cp .env.example .env
+cp .env.example .env               # Windows: copy .env.example .env
 ```
 
-Fill in `.env`:
+Then fill in `.env`:
 
-- `BODHAN_API_KEY` from [console.bodhan.ai](https://console.bodhan.ai). If the console gave you one key per model, set `BODHAN_OCR_KEY`, `BODHAN_TRANSCRIBE_KEY` and the others instead.
-- `LLM_API_KEY`, `LLM_BASE_URL`, `LLM_MODEL` for the companion LLM. Any OpenAI-compatible endpoint works; `.env.example` has ready-made settings for OpenAI, Gemini and Groq (both have free tiers).
+| Variable | What it is |
+|---|---|
+| `BODHAN_API_KEY` | Your Bodhan key. If the console gave you **one key per model**, set `BODHAN_OCR_KEY`, `BODHAN_TRANSCRIBE_KEY`, `BODHAN_TRANSLATE_KEY`, `BODHAN_TRANSLITERATE_KEY`, `BODHAN_SPEAK_KEY` instead (a per-model key wins) |
+| `LLM_API_KEY` | Key for the companion LLM |
+| `LLM_BASE_URL` | Its OpenAI-compatible endpoint; `.env.example` has ready-made values for Groq, OpenAI and Gemini |
+| `LLM_MODEL` | The main model, e.g. `openai/gpt-oss-120b` on Groq |
+| `LLM_REASONING_EFFORT` | Optional, for reasoning models: `low` keeps turns fast |
+| `INTENT_MODEL` | Optional: the small model that picks Teach or Homework (default `openai/gpt-oss-20b`; if it is unavailable, keyword rules decide) |
 
 ## Run
 
+Check your keys, then start the app:
+
 ```bash
-streamlit run app.py              # the full app: photo, type or speak, report, parent note
-jupyter notebook teach_back_tutor.ipynb   # step-by-step walkthrough of the pipeline
-python smoke_test.py              # one call to each Bodhan model + the LLM, to check your keys
-
-# terminal tools use the lesson card in eval/ (or pass --card; build one with python lesson.py <image>):
-python tutor.py --student Aarav   # chat in the terminal, with memory
-python simulate.py --all          # simulated students teaching a page (see Evaluation)
-python simulate.py --homework     # simulated students in Homework mode
-python evaluate_judges.py         # grader, fact-checker, homework answer key vs labels -> eval/results.json
-python evaluate_public.py --scientsbank 20   # the grader vs real students' answers -> eval/public.json
-python evaluate_language.py       # the same graded turns typed in Hinglish and spoken in Hindi -> eval/language.json
-python evaluate_pages.py photos/ --pdf book.pdf --pdf-page 20 --pdf-lesson 16-19   # real + damaged pages -> eval/pages.json
-
-pip install pytest && pytest test_policy.py   # offline tests, no keys needed
+python smoke_test.py     # one call to each Bodhan model and the LLM: all should say OK
+streamlit run app.py     # opens http://localhost:8501
 ```
 
-In the app, click **Try the sample page** to try it without a photo. Turn on **Teacher view** in the sidebar to see, on every turn, the score, the chosen move, the level and the fact-check of the classmate's line with the page's own words as evidence.
+Other ways in:
+
+```bash
+jupyter notebook teach_back_tutor.ipynb   # the pipeline step by step, with explanations
+python tutor.py --student Aarav           # teach in the terminal (uses the lesson card in eval/)
+python lesson.py my_page.jpg              # build a lesson card from your own photo
+pip install pytest && pytest test_policy.py   # 43 offline tests, no keys needed
+```
+
+**Troubleshooting**
+
+| You see | Why | What to do |
+|---|---|---|
+| "The reading service is busy or out of credit" | Bodhan returned 429: either a burst limit (retried automatically) or an account budget that has run out | Wait a minute; if it persists, check your credit in the Bodhan console |
+| A reply takes a long time | The LLM's free tier is rate-limiting; `llm.py` waits as long as the server asks | Normal on free tiers; a paid tier or a less busy model is faster |
+| "The text in this photo is very small" | The photo has too few pixels per word to read reliably | Take the photo closer, filling the frame with the page |
+| "indic-ocr could not read this page" | Handwriting or very faded print | Use a clear photo of a printed page |
+| "No exercise questions on this page" | Homework mode needs questions on the page | Use Teach mode, or a page with exercises |
 
 ## How it works
 
-**The LLM judges and talks; Python decides; and everything the LLM says is checked.** Each student turn runs five steps:
+### The system: what runs where
+
+![System architecture](system_architecture.png)
+
+Samjhao runs on one machine. Read each column top to bottom:
+
+1. **Frontend** (`app.py`, Streamlit). The screens the student sees. It keeps the live session in memory and calls the backend on every turn.
+2. **Backend** (plain Python, local). The engine: `intent.py` picks the mode, `lesson.py` turns pages into a lesson card, `tutor.py` and `verify.py` run Teach mode, `exercise.py` runs Homework mode, `quiz.py` and `parent.py` do the quick check and the parent note, `memory.py` remembers each student. All of them reach the outside world through just two small clients: **`bodhan.py`** and **`llm.py`**.
+3. **Remote AI services.** **Bodhan does everything to do with language**: reading the page, hearing the student, transliterating Hinglish, translating, and speaking. **The LLM does the reasoning**: grading, the classmate's words, fact-checking, lesson cards and quiz questions. A second, smaller LLM only picks the mode.
+4. **Storage: plain files, no database.** Each student's memory (`profiles/`), cached lesson cards and quizzes (`outputs/`), the keys (`.env`), and the evaluation labels and results (`eval/`, committed so the Results view works out of the box).
+
+### What happens on every turn
+
+![Architecture: how a session flows](architecture.png)
+
+Each time the student says something in Teach mode, five steps run:
 
 | Step | Who | What |
 |---|---|---|
-| 1. evaluate | LLM, JSON, temperature 0.2 | Credit per concept (`explained` / `partial` / `not_covered`), whether a planted mistake was caught, new or corrected wrong ideas, answer quality 0-3 |
-| 2. update | Python | Mastery only goes up within a session; plant and error tracking; adaptive level 1-3; the classmate's notebook |
-| 3. choose_move | Python | Fixed priority: hint or reveal a pending plant → probe a wrong idea → wrap up → go deeper → plant a mistake → clarify a vague part → ask about a gap |
-| 4. respond | LLM, persona | Writes the classmate's line for that move, from its notebook only (it never sees the lesson card's explanations) |
-| 5. verify | LLM ×2, then Python | Chain-of-Verification: list the line's claims and a check question for each; answer the checks from the page alone; Python blocks the line if a claim is contradicted (with page evidence), if it uses a lesson word nobody has said yet, or if a planned trick is missing. One rewrite with the problems as feedback. |
+| 1. evaluate | LLM, JSON, temperature 0.2 | Credit per idea (`explained` / `partial` / `not_covered`), whether a planted mistake was caught, new or corrected wrong ideas, answer quality 0-3 |
+| 2. update | Python | Mastery only goes up within a session; tracks tricks and wrong ideas; adapts the level 1-3; writes the classmate's notebook |
+| 3. choose_move | Python | Fixed priority: hint or reveal a pending trick → probe a wrong idea → wrap up → go deeper → plant a mistake → clarify a vague part → ask about a gap |
+| 4. respond | LLM, persona | Writes the classmate's line for that move, **from its notebook only** (it never sees the lesson card's explanations, so it really "missed the class") |
+| 5. verify | LLM ×2, then Python | Chain-of-Verification: list the line's claims with a check question each; answer the checks from the page alone; Python blocks the line if a claim is contradicted, if it uses a lesson word nobody has said yet, or if a planned trick is missing; one rewrite with the problems as feedback |
 
-Keeping the policy in Python makes it predictable and testable (`test_policy.py`), and lets a small, cheap model do the language work. The fact-check adds one or two short LLM calls per turn (about 1-3 s); it can be turned off in the sidebar.
+Homework mode runs the same loop with its own steps (`exercise.py`): which solution steps the student explained → update → the **nudge ladder** (a question about what to find next → a half-finished guess → work out the step) → the classmate's line → an **answer guard** in plain Python that blocks any line giving away the final answer or the next step.
 
-Design choices worth knowing:
+Keeping the decisions in Python makes the tutor predictable and testable (`test_policy.py`), and lets the LLM do only what it is good at: understanding and wording. The fact-check adds one or two short LLM calls per turn (about 1-3 s) and can be turned off in the sidebar.
 
-- **Strict credit.** Agreeing with the classmate or repeating its words counts as at most `partial`. Otherwise a student who says "yes, right" to everything scores full marks.
+### Where each Bodhan API is used
+
+| Bodhan model | Where | What for |
+|---|---|---|
+| `indic-ocr` | `lesson.py` | Reads each page photo or rendered PDF page into text (pages in parallel) |
+| `indic-transcribe` | `app.py` | The student's spoken answer, and the spoken "what do you want" request, into text |
+| `indic-transliterate` | `app.py` | Typed Hinglish ("paudhe khana banate hain") into Devanagari |
+| `indic-translate` | `app.py`, `parent.py` | Student's words → English for grading; the classmate's reply and the parent note → the student's or parent's language |
+| `indic-speak` | `app.py`, `parent.py` | Speaks every classmate reply (Riya female voice; Chintu and Arjun male voices, each in their own style) and the parent note |
+
+### Design choices worth knowing
+
+- **Strict credit.** Agreeing with the classmate or repeating its words counts as at most `partial`. Otherwise a student who says "yes, right" to everything would score full marks. A student who still holds a wrong idea about a concept loses one level of credit on it.
 - **Grounding.** Lesson-card items whose evidence quote is not on the page (at least 80% of the words) are dropped, so the tutor cannot test the student on something the page does not say.
-- **Adaptive level.** The level rises after two good answers in a row, or after catching a planted mistake. It falls after two weak answers or a twice-missed plant. Higher levels ask "why" and "what if" questions and plant harder mistakes.
-- **Every student gets tested.** Mistakes are planted on concepts the student has explained; if they have explained nothing by turn 4, the classmate plants one anyway. Agreeing with "plants eat soil" shows which wrong idea they hold.
-- **Age groups.** Class 1-5: one easy plant, playful persona. Class 6-8: two plants up to medium, one "why" question required. Class 9-12: three plants up to hard, two "why" questions required.
+- **Adaptive level.** The level rises after two good answers in a row, or after catching a planted mistake. It falls after two weak answers or a twice-missed trick. Higher levels ask "why" and "what if" and plant harder mistakes.
+- **Every student gets tested.** Mistakes are planted on ideas the student has explained; if they have explained nothing by turn 4, the classmate plants one anyway. Agreeing with "plants eat soil" shows which wrong idea they hold.
+- **Class sets the difficulty; the student picks the classmate.** Class 1-5: one easy trick. Class 6-8: two, up to medium, one "why" required. Class 9-12: three, up to hard, two "why" required.
 - **Honest wrap-up and parent note.** Python turns the report into plain facts first ("did NOT notice this was wrong"); the LLM only words them, so it cannot turn a miss into praise.
-- **Language round trip.** Typed romanized Hindi goes through `indic-transliterate` (to Devanagari), then `indic-translate` (to English) for grading. Speech goes through `indic-transcribe`. The classmate's reply goes back through `indic-translate` and is spoken by `indic-speak` in the persona's style (`children's stories`, `happy`, `educational lecture`). Grading tolerates mis-heard words.
+- **Fails safe.** If the intent model is unavailable, keyword rules pick the mode; if the fact-checker's own output is broken, the line still goes through the Python checks; a homework solve that fails simply does not vote.
 
-| File | Role |
-|---|---|
-| `bodhan.py` | Bodhan API client (OCR, transcribe, translate, transliterate, speak), with back-off when the API is busy |
-| `llm.py` | Companion LLM client: JSON repair and retry, back-off that honours `retry-after` |
-| `lesson.py` | Photos or PDF pages → grounded lesson card (cached per set of images) |
-| `tutor.py` | The teach-back engine: evaluate, update, choose_move, respond (from the notebook), report |
-| `verify.py` | Chain-of-Verification fact-check of every classmate line, plus the leaked-word check |
-| `quiz.py` | Before/after quick check; each question verified by an independent solver |
-| `intent.py` | Teach or Homework? A small LLM reads what the student asked and the page; keyword rules as fallback |
-| `exercise.py` | Homework mode: find exercise questions, self-consistent answer key, nudge ladder, answer guard |
-| `evaluate_judges.py` | Grader, fact-checker and homework answer key vs labels (`eval/`), results in `eval/results.json` |
-| `evaluate_language.py` | Grading through the Hindi typed and spoken paths (all five Bodhan models), results in `eval/language.json` |
-| `evaluate_public.py` | The grader on SciEntsBank (real students' answers, expert labels); GSM8K for the answer key. Data is downloaded, not committed |
-| `evaluate_pages.py` | Real photos, a multi-page PDF lesson, and deliberately damaged pages, results in `eval/pages.json` |
-| `test_policy.py` | 43 offline tests of everything Python decides |
-| `memory.py` | Cross-session student memory (one JSON file per student in `profiles/`) and the numbers behind the dashboard |
-| `parent.py` | Parent note: facts → LLM wording → translate → speak |
-| `app.py` | Streamlit app |
-| `simulate.py` | Evaluation harness with simulated students |
+## Every file and what it does
+
+| Layer | File | What it does |
+|---|---|---|
+| Frontend | `app.py` | The Streamlit app: start screen, Teach and Homework chats, reports, Progress and Results views, light and dark themes |
+| Backend | `intent.py` | Teach or Homework? A small LLM reads what the student asked and the page; keyword rules as fallback; finds "question 3" |
+| | `lesson.py` | Photos or PDF pages → text (`indic-ocr`) → a grounded lesson card, cached per set of pages; photo preparation and the small-text check |
+| | `tutor.py` | The Teach engine: evaluate, update, choose_move, respond (from the notebook), report; the classmates and class settings |
+| | `verify.py` | Chain-of-Verification fact-check of every classmate line, plus the leaked-word and give-away checks |
+| | `exercise.py` | Homework mode: find the questions, the self-consistent answer key, the nudge ladder, the answer guard, doubts for the teacher |
+| | `quiz.py` | The before/after quick check; each question verified by an independent solver |
+| | `memory.py` | Each student's memory (one JSON file in `profiles/`) and the numbers behind the dashboard |
+| | `parent.py` | The parent note: facts in Python → LLM wording → `indic-translate` → `indic-speak` |
+| Clients | `bodhan.py` | Client for the five Bodhan APIs; one key per model; back-off when busy |
+| | `llm.py` | Client for any OpenAI-compatible LLM; JSON mode with repair; retries for rate limits, broken JSON and stray tool calls |
+| Evaluation | `evaluate_judges.py` | Grader, fact-checker and homework answer key against labels → `eval/results.json` |
+| | `evaluate_public.py` | The grader against real students' answers (SciEntsBank); data is downloaded, not committed → `eval/public.json` |
+| | `evaluate_language.py` | The same graded turns typed in Hinglish and spoken in Hindi (all five Bodhan models) → `eval/language.json` |
+| | `evaluate_pages.py` | Real photos, a multi-page PDF lesson and deliberately damaged pages → `eval/pages.json` |
+| | `simulate.py` | Simulated students in Teach mode (`--all`) and Homework mode (`--homework`) |
+| | `test_policy.py` | 43 offline tests of everything Python decides (no keys needed) |
+| Tools | `smoke_test.py` | One call to each Bodhan model and the LLM, to check your keys |
+| | `make_sample_page.py` | Draws the two sample pages in `sample_data/` |
+| | `teach_back_tutor.ipynb` | The pipeline step by step, with explanations |
+| Data | `eval/` | Labels (`*_labels.json`), the frozen lesson card, and all results |
+| | `sample_data/` | A sample lesson page and a sample exercise page |
 
 ## Evaluation
 
-Every LLM decision in this recipe is checked, and so is the Bodhan path around it. All numbers come from scripts in this folder; their raw results are in `eval/` and in the app's **Evaluation** view.
+Every LLM decision in this recipe is checked, and so is the Bodhan path around it. All numbers come from scripts in this folder; their raw results are in `eval/` and in the app's **Results** view. Each result names the model that produced it.
 
 | What is tested | How | Result |
 |---|---|---|
@@ -178,7 +242,6 @@ v1 missed "plants need *only* water": the planning step asked "do plants need wa
 ### 3. Homework mode's answer key
 
 Against 10 exercises with known answers (`eval/exercise_labels.json`: 4 arithmetic word problems, 6 reasoning questions): one solve was right 100% of the time, and the 3-solve vote answered 10/10 with 0 wrong-but-trusted, on two separate runs. These questions were easy enough that voting had nothing to fix, so voting is a safety net here rather than a measured gain; harder problems (for example GSM8K, which `evaluate_public.py --gsm8k 30` can run) are where it should pay off. The first run scored 9/10 only because our scorer compared "leaves." with its full stop; the scorer was fixed and the run repeated.
-
 
 ### 4. Does grading survive Hindi? (all five Bodhan models)
 
@@ -314,7 +377,7 @@ Things we ran into, and what the recipe does about them:
 - **`POST /translate` and `POST /transliterate` return 404** (also reported in issue #34). The same models work through `POST /v1/chat/completions` with `model: indic-translate` / `indic-transliterate` and `target_language` / `language` plus `script` as top-level fields; `bodhan.py` uses that route. The transliteration route is not in the docs.
 - **One key per model.** The console issued a separate key per model. `bodhan.py` reads `BODHAN_<MODEL>_KEY` and falls back to `BODHAN_API_KEY`.
 - **indic-speak length.** About 30 seconds of speech per request, so `bodhan.speak_long()` speaks sentence by sentence (three requests in parallel) and joins the WAVs.
-- **indic-transcribe** sometimes mis-hears a word (धूप "sunlight" came back as थूक "spit"). The grader is told to judge meaning and not penalise mis-heard words; the Hindi evaluation below shows grading is unchanged through speech.
+- **indic-transcribe** sometimes mis-hears a word (धूप "sunlight" came back as थूक "spit"). The grader is told to judge meaning and not penalise mis-heard words; the Hindi evaluation above shows grading is unchanged through speech.
 - **indic-transliterate goes one way**: romanized → native script (which is what a student typing Hinglish needs). Asking for `script: roman` / `latin` returns Devanagari unchanged.
 - **Busy and budget errors are both HTTP 429.** Short bursts (for example 9 parallel OCR calls) get `Maximum rate limit reached`; `bodhan.py` backs off and retries (2 → 30 s). An account that has spent its budget gets `Max budget limit reached` / `ExceededBudget`, which no retry fixes. The evaluation scripts save progress after every item, so a stopped run resumes where it stopped. Running every evaluation here once costs roughly ₹10 of Bodhan credit.
 
@@ -323,7 +386,7 @@ Things we ran into, and what the recipe does about them:
 - Up to 4 pages per lesson, so one lesson fits one session. A whole book can be uploaded as a PDF, but the student picks the pages; there is no chapter-level view yet (see Future work).
 - Homework mode's answer key comes from the LLM, not the book. Majority agreement makes a wrong key much less likely but not impossible, and questions without a majority are not graded. It has no memory-based adaptation or parent note yet; its sessions appear in the dashboard's homework history.
 - The lesson card is cached per image file. A new photo of the same page builds a new card, so memory carries over by topic and concept name only.
-- A turn in the app takes several seconds (transcribe → translate → grade → reply → translate → speak). Free LLM tiers add rate-limit waits. On Groq's free tier, `openai/gpt-oss-120b` allows 8,000 tokens per minute and 200,000 per day: enough for one student at a time, but the full evaluation suite uses about a day's quota, so part of it was run on `qwen/qwen3.8-27b` (each result names its model).
+- A turn in the app takes several seconds (transcribe → translate → grade → reply → translate → speak). Free LLM tiers add rate-limit waits. On Groq's free tier, `openai/gpt-oss-120b` allows 8,000 tokens per minute and 200,000 per day: enough for one student at a time, but the full evaluation suite uses about a day's quota, so parts of it were run on `openai/gpt-oss-20b` (each result names its model).
 - "Ideas mastered" is per lesson page: an idea stays mastered once explained (unless the student later states a wrong idea about it). There is no shared skill taxonomy across subjects, and no question bank or past papers; practice comes from re-teaching the weak ideas on the same page.
 - Voice is push-to-record, one answer at a time, not live streaming; `indic-transcribe` takes about 30 seconds of audio per request.
 - Scores come from an LLM grader. The hand-label check and the simulation show they track understanding, but the label sets are small (16 turns, 27 statements, one page) and author-written; they are a guide for the student and parent, not an exam mark.
