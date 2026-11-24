@@ -4,11 +4,11 @@
 check: test lint rules validate
 
 test:
-	pip install -r requirements-dev.txt -q
-	pytest tests/ -v --tb=short
+	python -m pip install -r requirements-dev.txt -q
+	python -m pytest tests/ -v --tb=short
 
 lint:
-	ruff check scripts/ tests/
+	python -m ruff check scripts/ tests/
 
 # Confirms scripts/bodhan_api_rules.json is well-formed and self-consistent.
 rules:

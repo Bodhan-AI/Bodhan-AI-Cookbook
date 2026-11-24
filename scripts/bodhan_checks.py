@@ -18,13 +18,14 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from pathlib import Path
 
 from bodhan_rules import allowed_models, deprecated_models, load_rules
 
-SOURCE_SUFFIXES = {".py", ".ipynb", ".js", ".ts", ".tsx", ".jsx", ".sh", ".md", ".txt", ".toml", ".yaml", ".yml", ".json", ".env", ".example"}
+SOURCE_SUFFIXES = {".py", ".ipynb", ".js", ".ts", ".tsx", ".jsx", ".kt", ".kts", ".sh", ".md", ".txt", ".toml", ".yaml", ".yml", ".json", ".env", ".example"}
 SKIP_DIRS = {".git", "node_modules", ".venv", "venv", "__pycache__", ".ipynb_checkpoints", "outputs", "sample_data", ".next", "dist", "build"}
 MAX_SCAN_BYTES = 2_000_000
 
@@ -88,7 +89,12 @@ def _rel(root: Path, path: Path) -> str:
 # ----------------------------------------------------------------------------
 
 def check_security(root: Path) -> Iterator[Finding]:
+    # Scan tracked files (even if ignored) and nonignored new files. A developer's
+    # local .env is not a committed secret. Outside Git, scan everything as before.
+    visible = _git_visible_files(root)
     for path in _iter_files(root):
+        if visible is not None and path.resolve() not in visible:
+            continue
         rel = _rel(root, path)
         if path.name == ".env" or (path.name.startswith(".env.") and path.name != ".env.example"):
             yield Finding("error", "security", rel, "environment file committed — delete it and rotate any key inside")
@@ -105,6 +111,16 @@ def check_security(root: Path) -> Iterator[Finding]:
             value = match.group(1)
             if not any(hint in value.lower() for hint in PLACEHOLDER_HINTS):
                 yield Finding("error", "security", rel, "BODHAN_API_KEY is assigned a literal value — read it from the environment instead")
+
+
+def _git_visible_files(root: Path) -> set[Path] | None:
+    try:
+        top = subprocess.run(["git", "-C", str(root), "rev-parse", "--show-toplevel"], capture_output=True, text=True, check=True).stdout.strip()
+        files = subprocess.run(["git", "-C", top, "ls-files", "--cached", "--others", "--exclude-standard", "-z"],
+                               capture_output=True, check=True).stdout.decode("utf-8")
+    except (OSError, subprocess.CalledProcessError, UnicodeDecodeError):
+        return None
+    return {(Path(top) / name).resolve() for name in files.split("\0") if name}
 
 
 # ----------------------------------------------------------------------------
@@ -141,12 +157,14 @@ def check_structure(root: Path, *, require_env_example: bool = True) -> Iterator
         if "<one-line description" in text or "<Recipe title>" in text:
             yield Finding("error", "structure", str(readme), "README still contains template placeholders")
 
-    code_files = [p for p in _iter_files(root) if p.suffix in {".ipynb", ".py", ".js", ".ts", ".tsx"}]
+    code_files = [p for p in _iter_files(root) if p.suffix in {".ipynb", ".py", ".js", ".ts", ".tsx", ".kt"}]
     if not code_files:
-        yield Finding("error", "structure", rel_root, "no notebook or source file found (.ipynb/.py/.js/.ts)")
+        yield Finding("error", "structure", rel_root, "no notebook or source file found (.ipynb/.py/.js/.ts/.kt)")
 
     py_recipe = any(p.suffix in {".ipynb", ".py"} for p in code_files)
     js_recipe = any(p.suffix in {".js", ".ts", ".tsx"} for p in code_files)
+    # Native Android recipes configure credentials in the app, rather than a dotenv file.
+    android_recipe = (root / "app" / "src" / "main" / "AndroidManifest.xml").is_file() and any(p.suffix == ".kt" for p in code_files)
     if py_recipe:
         req = root / "requirements.txt"
         if not req.exists():
@@ -163,9 +181,9 @@ def check_structure(root: Path, *, require_env_example: bool = True) -> Iterator
 
     if require_env_example:
         env_example = root / ".env.example"
-        if not env_example.exists():
+        if not env_example.exists() and not (android_recipe and not py_recipe and not js_recipe):
             yield Finding("error", "structure", rel_root, ".env.example is missing")
-        elif "BODHAN_API_KEY" not in (_read_text(env_example) or ""):
+        elif env_example.exists() and "BODHAN_API_KEY" not in (_read_text(env_example) or ""):
             yield Finding("error", "structure", str(env_example), ".env.example must declare BODHAN_API_KEY")
 
         gitignore = root / ".gitignore"
@@ -199,7 +217,7 @@ def check_api(root: Path, rules: dict | None = None) -> Iterator[Finding]:
     allowed = allowed_models(rules)
     deprecated = deprecated_models(rules)
     for path in _iter_files(root):
-        if path.suffix not in {".py", ".ipynb", ".js", ".ts", ".tsx", ".sh", ".md"}:
+        if path.suffix not in {".py", ".ipynb", ".js", ".ts", ".tsx", ".kt", ".kts", ".sh", ".md"}:
             continue
         text = _read_text(path)
         if text is None:
