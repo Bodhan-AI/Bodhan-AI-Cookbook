@@ -1,0 +1,32 @@
+{
+  "status": "unsupported",
+  "task": "Translate this video into French",
+  "model": "claude-opus-5-5",
+  "inputs": [
+    "C:\\Users\\Nilay\\Downloads\\indic_task_agent\\indic_task_agent\\sample_data\\demo\\video\\talk.mp4"
+  ],
+  "missing_inputs": [],
+  "steps": 2,
+  "max_steps": 30,
+  "tool_calls": 1,
+  "total_cost_inr": 0.0,
+  "max_cost_inr": 20.0,
+  "cost_note": "Bodhan model calls only, at hosted prices; LLM tokens are reported separately.",
+  "llm_tokens": 13518,
+  "elapsed_s": 7.96,
+  "stop_reason": null,
+  "plan": [
+    "Check feasibility: French is not a supported target language for translation, subtitles or speech.",
+    "Finish as unsupported without spending budget."
+  ],
+  "assumptions": [
+    "'Translate into French' means French subtitles, a French transcript or French dubbed audio. None of these tools supports French."
+  ],
+  "artifacts": [],
+  "verification": [],
+  "completed_steps": [
+    "inspect_media: path=C:\\Users\\Nilay\\Downloads\\indic_task_agent\\indic_task_agent\\sample_data\\demo\\vide...[90 chars]"
+  ],
+  "errors": [],
+  "quality_target_misses": []
+}

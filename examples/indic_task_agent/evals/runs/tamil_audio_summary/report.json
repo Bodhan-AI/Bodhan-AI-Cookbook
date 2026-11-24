@@ -1,0 +1,73 @@
+{
+  "status": "success",
+  "task": "Make a two-minute Tamil audio summary of this chapter",
+  "model": "claude-opus-5-5",
+  "inputs": [
+    "C:\\Users\\Nilay\\Downloads\\indic_task_agent\\indic_task_agent\\sample_data\\demo\\chapter\\chapter.pdf"
+  ],
+  "missing_inputs": [],
+  "steps": 7,
+  "max_steps": 30,
+  "tool_calls": 6,
+  "total_cost_inr": 2.6358,
+  "max_cost_inr": 20.0,
+  "cost_note": "Bodhan model calls only, at hosted prices; LLM tokens are reported separately.",
+  "llm_tokens": 75733,
+  "elapsed_s": 149.07,
+  "stop_reason": null,
+  "plan": [
+    "OCR the 8-page PDF",
+    "Translate OCR text to English if not English",
+    "Read and write ~200-word English summary",
+    "Translate summary to Tamil",
+    "Synthesize Tamil speech (~2 min), verify duration",
+    "Finish"
+  ],
+  "assumptions": [
+    "Two minutes ≈ 200 English words of summary",
+    "Female default Tamil voice, neutral/narration style",
+    "Female default Tamil voice with educational lecture style"
+  ],
+  "artifacts": [
+    "summary_en.txt",
+    "summary_ta.mp3",
+    "summary_ta.txt"
+  ],
+  "verification": [
+    {
+      "artifact": "summary_en.txt",
+      "tool": "agent",
+      "verification": null
+    },
+    {
+      "artifact": "summary_ta.mp3",
+      "tool": "synthesize_speech",
+      "verification": {
+        "passed": true,
+        "method": "back-transcription with indic-transcribe, per chunk",
+        "score": 0.98,
+        "issues": []
+      }
+    },
+    {
+      "artifact": "summary_ta.txt",
+      "tool": "translate_text",
+      "verification": {
+        "passed": true,
+        "method": "coverage: 6 units, each non-empty, complete, in Tamil script, plausible length",
+        "score": null,
+        "issues": []
+      }
+    }
+  ],
+  "completed_steps": [
+    "inspect_media: path=C:\\Users\\Nilay\\Downloads\\indic_task_agent\\indic_task_agent\\sample_data\\demo\\chap...[95 chars]",
+    "ocr_document: path=C:\\Users\\Nilay\\Downloads\\indic_task_agent\\indic_task_agent\\sample_data\\demo\\chap...[95 chars]",
+    "translate_text: path=C:\\Users\\Nilay\\Downloads\\indic_task_agent\\indic_task_agent\\evals\\runs\\tamil_audi...[124 chars], target_language=en, output_path=C:\\Users\\Nilay\\Downloads\\indic_task_agent\\indic_task_agent\\evals\\runs\\tamil_audi...[108 chars]",
+    "read_text: path=C:\\Users\\Nilay\\Downloads\\indic_task_agent\\indic_task_agent\\evals\\runs\\tamil_audi...[108 chars], offset=1500",
+    "translate_text: path=C:\\Users\\Nilay\\Downloads\\indic_task_agent\\indic_task_agent\\evals\\runs\\tamil_audi...[114 chars], target_language=ta, output_path=C:\\Users\\Nilay\\Downloads\\indic_task_agent\\indic_task_agent\\evals\\runs\\tamil_audi...[114 chars]",
+    "synthesize_speech: language=ta, path=C:\\Users\\Nilay\\Downloads\\indic_task_agent\\indic_task_agent\\evals\\runs\\tamil_audi...[114 chars], output_path=C:\\Users\\Nilay\\Downloads\\indic_task_agent\\indic_task_agent\\evals\\runs\\tamil_audi...[114 chars], style=educational lecture"
+  ],
+  "errors": [],
+  "quality_target_misses": []
+}

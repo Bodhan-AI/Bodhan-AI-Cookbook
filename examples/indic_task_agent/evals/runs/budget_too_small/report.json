@@ -1,0 +1,50 @@
+{
+  "status": "partial",
+  "task": "Read this paragraph aloud in Bengali",
+  "model": "claude-opus-5-5",
+  "inputs": [
+    "C:\\Users\\Nilay\\Downloads\\indic_task_agent\\indic_task_agent\\sample_data\\demo\\paragraph\\paragraph.txt"
+  ],
+  "missing_inputs": [],
+  "steps": 2,
+  "max_steps": 30,
+  "tool_calls": 2,
+  "total_cost_inr": 0.0,
+  "max_cost_inr": 0.05,
+  "cost_note": "Bodhan model calls only, at hosted prices; LLM tokens are reported separately.",
+  "llm_tokens": 15377,
+  "elapsed_s": 13.31,
+  "stop_reason": null,
+  "plan": [
+    "Check cost feasibility: paragraph is 292 chars; Bengali speech at ₹6/10,000 chars ≈ ₹0.18+ (plus verification), above the ₹0.05 budget.",
+    "Translate paragraph to Bengali (≈₹0.01, affordable) into artifacts.",
+    "Skip speech synthesis because of budget; finish as partial."
+  ],
+  "assumptions": [
+    "'Read aloud in Bengali' means translate the English paragraph to Bengali and synthesize speech.",
+    "Budget ₹0.05 is a hard cap, so synthesis (~₹0.18) cannot be run.",
+    "'Read aloud in Bengali' means translating the English paragraph into Bengali and then turning it into speech.",
+    "The ₹0.05 budget is a hard limit."
+  ],
+  "artifacts": [
+    "paragraph_bn.txt"
+  ],
+  "verification": [
+    {
+      "artifact": "paragraph_bn.txt",
+      "tool": "translate_text",
+      "verification": {
+        "passed": true,
+        "method": "coverage: 1 units, each non-empty, complete, in Bengali script, plausible length",
+        "score": null,
+        "issues": []
+      }
+    }
+  ],
+  "completed_steps": [
+    "inspect_media: path=C:\\Users\\Nilay\\Downloads\\indic_task_agent\\indic_task_agent\\sample_data\\demo\\para...[99 chars]",
+    "translate_text: path=C:\\Users\\Nilay\\Downloads\\indic_task_agent\\indic_task_agent\\sample_data\\demo\\para...[99 chars], target_language=bn, output_path=C:\\Users\\Nilay\\Downloads\\indic_task_agent\\indic_task_agent\\evals\\runs\\budget_too...[113 chars]"
+  ],
+  "errors": [],
+  "quality_target_misses": []
+}

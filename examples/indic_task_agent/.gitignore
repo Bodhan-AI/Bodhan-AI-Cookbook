@@ -1,0 +1,14 @@
+.env
+.venv/
+__pycache__/
+.pytest_cache/
+bodhan_work/
+out/
+outputs/*
+!outputs/.gitkeep
+sample_data/*
+!sample_data/.gitkeep
+# Demo runs: keep result.md, report.json, trace.jsonl and text artifacts; media and work files stay out of git.
+evals/runs/*/work/
+evals/runs/**/*.mp3
+evals/runs/**/*.wav
