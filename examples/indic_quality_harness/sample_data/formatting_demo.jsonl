@@ -1,0 +1,30 @@
+{"id": "fmt-hi-01", "language": "hi", "source_text": "## Installation\n\nRun `pip install bodhan-eval` and read the [setup guide](https://docs.example.com/setup).", "translation": null, "reference_translation": null}
+{"id": "fmt-hi-02", "language": "hi", "source_text": "**Warning:** Do not share your API key with anyone.", "translation": null, "reference_translation": null}
+{"id": "fmt-hi-03", "language": "hi", "source_text": "- Open the dashboard\n- Click **Settings**\n- Save your changes", "translation": null, "reference_translation": null, "glossary": {"dashboard": ["डैशबोर्ड", "ড্যাশবোর্ড", "டாஷ்போர்ட"]}}
+{"id": "fmt-hi-04", "language": "hi", "source_text": "1. Download the PDF file\n2. Upload it to Google Drive", "translation": null, "reference_translation": null}
+{"id": "fmt-hi-05", "language": "hi", "source_text": "The area of a circle is $A = \\pi r^2$, where $r$ is the radius.", "translation": null, "reference_translation": null}
+{"id": "fmt-hi-06", "language": "hi", "source_text": "The quadratic formula is $$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$", "translation": null, "reference_translation": null}
+{"id": "fmt-hi-07", "language": "hi", "source_text": "Send the invoice to billing@example.com before March 31.", "translation": null, "reference_translation": null}
+{"id": "fmt-hi-08", "language": "hi", "source_text": "The webinar starts on Friday at 4:30 PM.", "translation": null, "reference_translation": null}
+{"id": "fmt-hi-09", "language": "hi", "source_text": "Our office in Mumbai is 12 kilometers from the airport.", "translation": null, "reference_translation": null}
+{"id": "fmt-hi-10", "language": "hi", "source_text": "The app is available on Android and iOS for 199 rupees.", "translation": null, "reference_translation": null}
+{"id": "fmt-ta-01", "language": "ta", "source_text": "## Installation\n\nRun `pip install bodhan-eval` and read the [setup guide](https://docs.example.com/setup).", "translation": null, "reference_translation": null}
+{"id": "fmt-ta-02", "language": "ta", "source_text": "**Warning:** Do not share your API key with anyone.", "translation": null, "reference_translation": null}
+{"id": "fmt-ta-03", "language": "ta", "source_text": "- Open the dashboard\n- Click **Settings**\n- Save your changes", "translation": null, "reference_translation": null, "glossary": {"dashboard": ["डैशबोर्ड", "ড্যাশবোর্ড", "டாஷ்போர்ட"]}}
+{"id": "fmt-ta-04", "language": "ta", "source_text": "1. Download the PDF file\n2. Upload it to Google Drive", "translation": null, "reference_translation": null}
+{"id": "fmt-ta-05", "language": "ta", "source_text": "The area of a circle is $A = \\pi r^2$, where $r$ is the radius.", "translation": null, "reference_translation": null}
+{"id": "fmt-ta-06", "language": "ta", "source_text": "The quadratic formula is $$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$", "translation": null, "reference_translation": null}
+{"id": "fmt-ta-07", "language": "ta", "source_text": "Send the invoice to billing@example.com before March 31.", "translation": null, "reference_translation": null}
+{"id": "fmt-ta-08", "language": "ta", "source_text": "The webinar starts on Friday at 4:30 PM.", "translation": null, "reference_translation": null}
+{"id": "fmt-ta-09", "language": "ta", "source_text": "Our office in Mumbai is 12 kilometers from the airport.", "translation": null, "reference_translation": null}
+{"id": "fmt-ta-10", "language": "ta", "source_text": "The app is available on Android and iOS for 199 rupees.", "translation": null, "reference_translation": null}
+{"id": "fmt-bn-01", "language": "bn", "source_text": "## Installation\n\nRun `pip install bodhan-eval` and read the [setup guide](https://docs.example.com/setup).", "translation": null, "reference_translation": null}
+{"id": "fmt-bn-02", "language": "bn", "source_text": "**Warning:** Do not share your API key with anyone.", "translation": null, "reference_translation": null}
+{"id": "fmt-bn-03", "language": "bn", "source_text": "- Open the dashboard\n- Click **Settings**\n- Save your changes", "translation": null, "reference_translation": null, "glossary": {"dashboard": ["डैशबोर्ड", "ড্যাশবোর্ড", "டாஷ்போர்ட"]}}
+{"id": "fmt-bn-04", "language": "bn", "source_text": "1. Download the PDF file\n2. Upload it to Google Drive", "translation": null, "reference_translation": null}
+{"id": "fmt-bn-05", "language": "bn", "source_text": "The area of a circle is $A = \\pi r^2$, where $r$ is the radius.", "translation": null, "reference_translation": null}
+{"id": "fmt-bn-06", "language": "bn", "source_text": "The quadratic formula is $$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$", "translation": null, "reference_translation": null}
+{"id": "fmt-bn-07", "language": "bn", "source_text": "Send the invoice to billing@example.com before March 31.", "translation": null, "reference_translation": null}
+{"id": "fmt-bn-08", "language": "bn", "source_text": "The webinar starts on Friday at 4:30 PM.", "translation": null, "reference_translation": null}
+{"id": "fmt-bn-09", "language": "bn", "source_text": "Our office in Mumbai is 12 kilometers from the airport.", "translation": null, "reference_translation": null}
+{"id": "fmt-bn-10", "language": "bn", "source_text": "The app is available on Android and iOS for 199 rupees.", "translation": null, "reference_translation": null}

@@ -1,0 +1,4 @@
+{"id":"hi-001","language":"hi","source_text":"The temperature is 25 degrees.","translation":"तापमान 25 डिग्री है।","reference_translation":"तापमान 25 डिग्री है।"}
+{"id":"hi-002","language":"hi","source_text":"The price is 500 rupees.","translation":"कीमत 300 रुपये है।","reference_translation":"कीमत 500 रुपये है।"}
+{"id":"ta-001","language":"ta","source_text":"The meeting starts at 10 AM.","translation":"கூட்டம் காலை 10 மணிக்கு தொடங்கும்.","reference_translation":"கூட்டம் காலை 10 மணிக்கு தொடங்கும்."}
+{"id":"bn-001","language":"bn","source_text":"The total is 100 items.","translation":"মোট ১০০টি আইটেম।","reference_translation":"মোট ১০০টি আইটেম।"}
