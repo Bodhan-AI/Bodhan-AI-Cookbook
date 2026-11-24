@@ -1,0 +1,92 @@
+{
+  "status": "success",
+  "exit_code": 0,
+  "task": "Which of these clips are in Telugu? Translate those into English",
+  "summary": "Telugu clips identified: clip_2.wav and clip_4.wav. English translations produced: (1) clip_2.wav → “the market will be closed tomorrow because of a holiday”; (2) clip_4.wav → “the train arrives at six am”. Transcription language detection was used to decide Telugu.",
+  "steps": {
+    "tool_calls": 9,
+    "budgeted_steps_used": 9,
+    "max_steps": 30,
+    "trace_entries": 13
+  },
+  "total_cost_inr": 0.0271,
+  "max_cost_inr": 20.0,
+  "total_time_s": 23.5,
+  "cache_hits": 0,
+  "verification": {
+    "all_passed": true,
+    "results": {
+      "translated_41ea3137de.md": {
+        "path": "d:\\backup\\myfiles\\github\\bodhan-ai-cookbook\\examples\\tool_server_task_agent\\demo_runs\\which_clips_are_telugu\\work\\artifacts\\translated_41ea3137de.md",
+        "kind": "translation",
+        "passed": true,
+        "detail": {
+          "failed_checks": []
+        },
+        "attempts": 1
+      },
+      "translated_69046e20fc.md": {
+        "path": "d:\\backup\\myfiles\\github\\bodhan-ai-cookbook\\examples\\tool_server_task_agent\\demo_runs\\which_clips_are_telugu\\work\\artifacts\\translated_69046e20fc.md",
+        "kind": "translation",
+        "passed": true,
+        "detail": {
+          "failed_checks": []
+        },
+        "attempts": 1
+      }
+    },
+    "unverified": [],
+    "superseded_attempts": []
+  },
+  "assumptions": [
+    "Auto language detection in transcribe_audio correctly identified Telugu for clip_2 and clip_4."
+  ],
+  "artifacts": [
+    {
+      "name": "clip_2_english_translation.md",
+      "bytes": 57,
+      "kind": "md"
+    },
+    {
+      "name": "clip_4_english_translation.md",
+      "bytes": 29,
+      "kind": "md"
+    }
+  ],
+  "plan": {
+    "feasible": true,
+    "plan": "1) For each clip (clip_1.wav..clip_5.wav), call transcribe_audio with language='auto' to detect spoken language and capture a transcript path; this lets us determine which clips are Telugu. 2) For those clips identified as Telugu (script/language code indicates Telugu), call translate_text from the transcript_path into English; then run verify_translation for each translation. 3) Return: (a) list of Telugu clips by file name, and (b) English translation outputs as deliverable files.",
+    "assumptions": [
+      "Language auto-detection in transcribe_audio is reliable enough to distinguish Telugu from other supported Indic languages for these short clips.",
+      "Each translated transcript will be short enough to keep translation cost within the budget."
+    ],
+    "estimated_cost_inr": 1.5,
+    "reason_if_infeasible": null,
+    "replan_reason": null
+  },
+  "guards": {
+    "violations": {
+      "indic_text": 0,
+      "no_plan": 0,
+      "bad_args": 0,
+      "budget_refusals": 0,
+      "no_tool_call": 0
+    },
+    "injection_flags": [],
+    "injection_notes": ""
+  },
+  "quality_targets": {
+    "honest_failure_no_fabricated_output": null,
+    "verification_every_output": true,
+    "budget_respected": true,
+    "latency_target_s": 300,
+    "latency_met": true,
+    "cache_hits_used": false
+  },
+  "quality_targets_missed": [],
+  "llm": {
+    "model": "gpt-5.4-nano",
+    "prompt_tokens": 31724,
+    "completion_tokens": 1304
+  }
+}
