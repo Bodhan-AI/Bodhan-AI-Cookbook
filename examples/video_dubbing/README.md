@@ -127,6 +127,26 @@ The optional real-speech detector fixture can be supplied with `BODHAN_TEST_SPEE
 
 The Cookbook's `make check` was attempted. Its root suite fails on the existing `examples/AndroidSpeak` recipe (missing required source/configuration files). This recipe is validated separately; unrelated examples were not modified.
 
+### CER improvements on two Tamil clips
+
+We kept the translated text identical and generated each clip in shorter pieces. We then compared the original and repaired back-transcripts against the same reference text. Character error rate (CER) counts character edits divided by the number of reference characters. Lower is better.
+
+| Clip | Original CER | Repaired CER | Drop in percentage points |
+| --- | ---: | ---: | ---: |
+| Tamil 6 · adjacent angles | 55.0% | 28.1% | 26.9 |
+| Tamil 10 · linear pair example | 52.3% | 35.2% | 17.1 |
+
+Both clips still exceeded our 20% review threshold. Clip 10 recovered the missing ending. In clip 6, some terms remained unclear in the back-transcript. These figures describe the two selected repairs. [Repair evidence](docs/code_walkthrough.md#evidence-and-result)
+
+### How retries work
+
+| What happens | What the pipeline does |
+| --- | --- |
+| A Bodhan request hits a rate limit or receives a server error | Waits before retrying. The main transcription, translation and speech clients allow up to three attempts in total, including the first. |
+| A paid request times out after it may have reached Bodhan | Records the uncertain outcome and stops automatic resubmission of that request to avoid a duplicate charge. |
+| A translation response is missing a segment | Keeps the valid segments and requests the missing or invalid IDs once more before speech generation. |
+| A later stage needs a result that already succeeded | Reuses the matching cached result. A speech cache hit records zero new attempts and zero new estimated cost. |
+
 ## Trade-offs and remaining quality work
 
 - Source word timestamps are unavailable. Placement and subtitle timing are estimates; ±300 ms sync is **not verified**. Physical fit is not a guarantee of natural phrasing or precise lip sync.
@@ -143,5 +163,17 @@ The full command now checks translation meaning before synthesis: explicit conte
 ## Cost and AI assistance
 
 The estimated validation cost was ₹20.79, including failed attempts and recovery. That is about ₹1.26 per input minute per language across this validation. The final offline render took 18.4 seconds. I used Groq’s free tier for the English planner.
+
+### Cost improvements from targeted repairs
+
+When only two Tamil clips needed another pass, we reused the other 40. The first column gives the recorded estimate for processing all 42 original clips once. The second gives the additional spend for the two repairs. The difference estimates what selective repair saved compared with repeating the original full pass at the same rates.
+
+| Operation | Full pass · 42 clips | Repair · 2 clips | Estimated spend avoided |
+| --- | ---: | ---: | ---: |
+| Generate speech | ₹5.4870 | ₹0.4002 | ₹5.0868 |
+| Transcribe generated speech for verification | ₹1.5277 | ₹0.1060 | ₹1.4218 |
+| **Total** | **₹7.0147** | **₹0.5062** | **₹6.5086** |
+
+Amounts are calculated at published rates and rounded independently to four decimals. The comparison covers speech and its verification only. [Synthesis and verification evidence](docs/code_walkthrough.md#evidence-and-result)
 
 Codex assisted with implementation, tests, API investigation and documentation. English planning was tested with Groq's OpenAI-compatible endpoint using `openai/gpt-oss-120b`; provider-specific reasoning effort is optional with a fallback. The author should use the walkthrough to explain each component at the debrief.
