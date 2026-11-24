@@ -1,0 +1,25 @@
+[project]
+name = "bodhan-dub"
+version = "0.1.0"
+description = "Dub English videos into Indian languages with Bodhan's Indic models."
+requires-python = ">=3.12"
+dependencies = [
+    "requests==2.32.3",
+    "openai==3.55.1",
+    "python-dotenv==1.0.1",
+    "numpy==2.5.5",
+    "torch==2.15.0",
+    "silero-vad==6.2.3",
+    "demucs==4.1.0",
+    "PyYAML==6.0.3",
+]
+
+[project.optional-dependencies]
+test = ["pytest==9.2.0"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
