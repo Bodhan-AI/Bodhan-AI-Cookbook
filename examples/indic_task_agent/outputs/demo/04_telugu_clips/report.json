@@ -1,0 +1,136 @@
+{
+  "status": "success",
+  "stop_reason": null,
+  "task": "Which of these clips are in Telugu? Translate those into English",
+  "answer_en": "The audio clips that were detected as Telugu are clip_1.wav and clip_4.wav. Their English translations have been generated:\n- clip_1: \"the train to new york is running forty minutes late today\"\n- clip_4: \"which of my grandma's hometown makes the best mango pickle\"\nThe translated text files are attached as artifacts.",
+  "artifacts": [
+    {
+      "path": "artifacts\\clip_1_translation.txt",
+      "description": "English translation of the Telugu transcript from clip_1.wav",
+      "produced_by": "translate_text",
+      "verified": true,
+      "verification": {
+        "check": "coverage + structure + target script",
+        "coverage_ok": true,
+        "structure_preserved": true,
+        "target_script_share": 1.0,
+        "units_translated": 1,
+        "units_total": 1
+      }
+    },
+    {
+      "path": "artifacts\\clip_4_translation.txt",
+      "description": "English translation of the Telugu transcript from clip_4.wav",
+      "produced_by": "translate_text",
+      "verified": true,
+      "verification": {
+        "check": "coverage + structure + target script",
+        "coverage_ok": true,
+        "structure_preserved": true,
+        "target_script_share": 1.0,
+        "units_translated": 1,
+        "units_total": 1
+      }
+    }
+  ],
+  "assumptions": [
+    "The transcribe_audio tool will detect the language of each clip and output a transcript file and language metadata.",
+    "The language code for Telugu is 'te' as per capabilities.",
+    "We can identify Telugu clips from the transcribe results without needing extra language detection steps.",
+    "The language detection in the transcription step is reliable; clips with detected_script 'Telugu' are treated as Telugu."
+  ],
+  "notes": [
+    "Rough cost to process every input once with its main model: Rs 0.04 (budget Rs 20.00)."
+  ],
+  "security_flags": [],
+  "steps": {
+    "tool_calls": 7,
+    "max_steps": 30,
+    "llm_calls": 10,
+    "duplicate_calls_blocked": 0
+  },
+  "cost": {
+    "total_inr": 0.0385,
+    "max_cost_inr": 20.0,
+    "by_model": {
+      "indic-transcribe": {
+        "calls": 5,
+        "cached": 0,
+        "cost_inr": 0.037972
+      },
+      "indic-translate": {
+        "calls": 2,
+        "cached": 0,
+        "cost_inr": 0.0005
+      }
+    },
+    "llm_tokens": {
+      "prompt_tokens": 49243,
+      "completion_tokens": 3112
+    },
+    "llm_model": "openai/gpt-oss-120b",
+    "note": "Bodhan costs are computed from the published hosted prices; LLM spend is reported in tokens."
+  },
+  "time": {
+    "elapsed_s": 284.89,
+    "max_wall_s": 900.0
+  },
+  "verification": [
+    {
+      "artifact": "artifacts\\clip_1_translation.txt",
+      "verified": true,
+      "check": "coverage + structure + target script",
+      "coverage_ok": true,
+      "structure_preserved": true,
+      "target_script_share": 1.0,
+      "units_translated": 1,
+      "units_total": 1
+    },
+    {
+      "artifact": "artifacts\\clip_4_translation.txt",
+      "verified": true,
+      "check": "coverage + structure + target script",
+      "coverage_ok": true,
+      "structure_preserved": true,
+      "target_script_share": 1.0,
+      "units_translated": 1,
+      "units_total": 1
+    }
+  ],
+  "plan": {
+    "assumptions": [
+      "The transcribe_audio tool will detect the language of each clip and output a transcript file and language metadata.",
+      "The language code for Telugu is 'te' as per capabilities.",
+      "We can identify Telugu clips from the transcribe results without needing extra language detection steps."
+    ],
+    "deliverables": [
+      "English translation text files for each clip identified as Telugu (e.g., clip_2_en.txt, etc.).",
+      "A short English summary listing which clips are Telugu and linking to their translation files."
+    ],
+    "estimated_cost_inr": 0.2,
+    "feasible": true,
+    "input_languages": "unknown until transcription",
+    "steps": [
+      "transcribe_audio(path='C:\\\\Users\\\\bit\\\\Desktop\\\\Bodhan-AI-Cookbook\\\\examples\\\\indic_task_agent\\\\sample_data\\\\demo\\\\clips\\\\clip_1.wav', language='auto', for_subtitles=false)",
+      "transcribe_audio(path='C:\\\\Users\\\\bit\\\\Desktop\\\\Bodhan-AI-Cookbook\\\\examples\\\\indic_task_agent\\\\sample_data\\\\demo\\\\clips\\\\clip_2.wav', language='auto', for_subtitles=false)",
+      "transcribe_audio(path='C:\\\\Users\\\\bit\\\\Desktop\\\\Bodhan-AI-Cookbook\\\\examples\\\\indic_task_agent\\\\sample_data\\\\demo\\\\clips\\\\clip_3.wav', language='auto', for_subtitles=false)",
+      "transcribe_audio(path='C:\\\\Users\\\\bit\\\\Desktop\\\\Bodhan-AI-Cookbook\\\\examples\\\\indic_task_agent\\\\sample_data\\\\demo\\\\clips\\\\clip_4.wav', language='auto', for_subtitles=false)",
+      "transcribe_audio(path='C:\\\\Users\\\\bit\\\\Desktop\\\\Bodhan-AI-Cookbook\\\\examples\\\\indic_task_agent\\\\sample_data\\\\demo\\\\clips\\\\clip_5.wav', language='auto', for_subtitles=false)",
+      "translate_text(input_path=<transcript file of each Telugu clip>, target_language='en') for each clip detected as Telugu"
+    ],
+    "understanding": "The user wants to know which of the five audio clips are in Telugu and to provide English translations for those Telugu clips."
+  },
+  "quality_targets": {
+    "budget_respected": true,
+    "all_artifacts_verified": true,
+    "honest_failure": true,
+    "latency_target_s": 300,
+    "latency_met": true,
+    "no_repeat_paid_calls": {
+      "duplicates_blocked": 0,
+      "cache_hits": 0,
+      "paid_tool_calls": 7
+    },
+    "misses": []
+  }
+}

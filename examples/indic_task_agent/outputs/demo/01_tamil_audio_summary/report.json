@@ -1,0 +1,143 @@
+{
+  "status": "success",
+  "stop_reason": null,
+  "task": "Make a two-minute Tamil audio summary of this chapter",
+  "answer_en": "I have created a Tamil audio summary of the provided chapter. The summary text (approximately 1,350 Tamil characters) is saved as a plain text file, and the AI‑generated two‑minute speech (about 108 seconds) is saved as an MP3 audio file. Both files are ready for download.",
+  "artifacts": [
+    {
+      "path": "artifacts\\chapter_summary_tamil.md",
+      "description": "Tamil text summary of the chapter (plain .txt)",
+      "produced_by": "translate_text",
+      "verified": true,
+      "verification": {
+        "check": "coverage + structure + target script",
+        "coverage_ok": true,
+        "structure_preserved": true,
+        "target_script_share": 0.995,
+        "units_translated": 1,
+        "units_total": 1
+      }
+    },
+    {
+      "path": "artifacts\\chapter_summary_tamil.mp3",
+      "description": "Two‑minute Tamil audio summary (AI‑generated MP3)",
+      "produced_by": "synthesize_speech",
+      "verified": true,
+      "verification": {
+        "check": "back-transcription",
+        "all_passed": true,
+        "mean_similarity": 0.975,
+        "failed_chunks": 0,
+        "duration_s": 108.33
+      },
+      "label": "AI-generated speech (Bodhan Indic-Speak)"
+    }
+  ],
+  "assumptions": [
+    "The PDF is in a language other than Tamil (likely English or another Indian language). We'll translate the whole OCR to English first, then write a concise English summary (~250‑300 words) that fits a ~2‑minute audio length.",
+    "The summary will be produced by the assistant (in English) and then translated to Tamil via the translation tool, ensuring no Tamil text is authored directly.",
+    "The PDF was detected as Devanagari script (likely Hindi or related language). It was OCR‑ed, translated to English for summarisation, then the English summary was translated to Tamil.",
+    "A concise Tamil summary of roughly 1,300 characters will correspond to about two minutes of spoken audio."
+  ],
+  "notes": [
+    "chapter_scan.pdf: PDF pages are rendered to images and read with Indic-OCR (also for digital PDFs).",
+    "Rough cost to process every input once with its main model: Rs 1.60 (budget Rs 20.00)."
+  ],
+  "security_flags": [],
+  "steps": {
+    "tool_calls": 7,
+    "max_steps": 30,
+    "llm_calls": 10,
+    "duplicate_calls_blocked": 0
+  },
+  "cost": {
+    "total_inr": 0.9934,
+    "max_cost_inr": 20.0,
+    "by_model": {
+      "indic-ocr": {
+        "calls": 0,
+        "cached": 8,
+        "cost_inr": 0.0
+      },
+      "indic-translate": {
+        "calls": 1,
+        "cached": 16,
+        "cost_inr": 0.00744
+      },
+      "indic-speak": {
+        "calls": 9,
+        "cached": 0,
+        "cost_inr": 0.8088
+      },
+      "indic-transcribe": {
+        "calls": 9,
+        "cached": 0,
+        "cost_inr": 0.177209
+      }
+    },
+    "llm_tokens": {
+      "prompt_tokens": 48523,
+      "completion_tokens": 3798
+    },
+    "llm_model": "openai/gpt-oss-120b",
+    "note": "Bodhan costs are computed from the published hosted prices; LLM spend is reported in tokens."
+  },
+  "time": {
+    "elapsed_s": 288.77,
+    "max_wall_s": 900.0
+  },
+  "verification": [
+    {
+      "artifact": "artifacts\\chapter_summary_tamil.md",
+      "verified": true,
+      "check": "coverage + structure + target script",
+      "coverage_ok": true,
+      "structure_preserved": true,
+      "target_script_share": 0.995,
+      "units_translated": 1,
+      "units_total": 1
+    },
+    {
+      "artifact": "artifacts\\chapter_summary_tamil.mp3",
+      "verified": true,
+      "check": "back-transcription",
+      "all_passed": true,
+      "mean_similarity": 0.975,
+      "failed_chunks": 0,
+      "duration_s": 108.33
+    }
+  ],
+  "plan": {
+    "assumptions": [
+      "The PDF is in a language other than Tamil (likely English or another Indian language). We'll translate the whole OCR to English first, then write a concise English summary (~250‑300 words) that fits a ~2‑minute audio length.",
+      "The summary will be produced by the assistant (in English) and then translated to Tamil via the translation tool, ensuring no Tamil text is authored directly."
+    ],
+    "deliverables": [
+      "Tamil text summary (plain .txt)",
+      "Tamil audio file of the summary"
+    ],
+    "estimated_cost_inr": 2.6,
+    "feasible": true,
+    "input_languages": null,
+    "steps": [
+      "ocr_document",
+      "translate_text (to English)",
+      "translate_text (English summary to Tamil)",
+      "synthesize_speech"
+    ],
+    "understanding": "User wants a two‑minute audio summary in Tamil of the chapter contained in the provided PDF."
+  },
+  "quality_targets": {
+    "budget_respected": true,
+    "all_artifacts_verified": true,
+    "honest_failure": true,
+    "latency_target_s": 300,
+    "latency_met": true,
+    "no_repeat_paid_calls": {
+      "duplicates_blocked": 0,
+      "cache_hits": 24,
+      "paid_tool_calls": 2
+    },
+    "misses": []
+  }
+}

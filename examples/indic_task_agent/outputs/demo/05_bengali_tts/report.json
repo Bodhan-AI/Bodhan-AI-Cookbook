@@ -1,0 +1,110 @@
+{
+  "status": "success",
+  "stop_reason": null,
+  "task": "Read this paragraph aloud in Bengali with a female voice",
+  "answer_en": "I have read the paragraph from the provided file in Bengali using a female voice. The AI‑generated audio is ready for you.",
+  "artifacts": [
+    {
+      "path": "artifacts\\paragraph_bn_female.mp3",
+      "description": "Bengali audio reading of the paragraph (female voice)",
+      "produced_by": "synthesize_speech",
+      "verified": true,
+      "verification": {
+        "check": "back-transcription",
+        "all_passed": true,
+        "mean_similarity": 0.996,
+        "failed_chunks": 0,
+        "duration_s": 27.9
+      },
+      "label": "AI-generated speech (Bodhan Indic-Speak)"
+    }
+  ],
+  "assumptions": [
+    "The text file is in English (detected as Latin script, likely English).",
+    "The user expects a single audio file as the output.",
+    "The input text file is in English (detected as Latin script, likely English)."
+  ],
+  "notes": [
+    "Rough cost to process every input once with its main model: Rs 0.19 (budget Rs 20.00)."
+  ],
+  "security_flags": [],
+  "steps": {
+    "tool_calls": 2,
+    "max_steps": 30,
+    "llm_calls": 5,
+    "duplicate_calls_blocked": 0
+  },
+  "cost": {
+    "total_inr": 0.2367,
+    "max_cost_inr": 20.0,
+    "by_model": {
+      "indic-translate": {
+        "calls": 1,
+        "cached": 0,
+        "cost_inr": 0.00164
+      },
+      "indic-speak": {
+        "calls": 2,
+        "cached": 0,
+        "cost_inr": 0.189
+      },
+      "indic-transcribe": {
+        "calls": 2,
+        "cached": 0,
+        "cost_inr": 0.04608
+      }
+    },
+    "llm_tokens": {
+      "prompt_tokens": 16943,
+      "completion_tokens": 1220
+    },
+    "llm_model": "openai/gpt-oss-120b",
+    "note": "Bodhan costs are computed from the published hosted prices; LLM spend is reported in tokens."
+  },
+  "time": {
+    "elapsed_s": 56.08,
+    "max_wall_s": 900.0
+  },
+  "verification": [
+    {
+      "artifact": "artifacts\\paragraph_bn_female.mp3",
+      "verified": true,
+      "check": "back-transcription",
+      "all_passed": true,
+      "mean_similarity": 0.996,
+      "failed_chunks": 0,
+      "duration_s": 27.9
+    }
+  ],
+  "plan": {
+    "assumptions": [
+      "The text file is in English (detected as Latin script, likely English).",
+      "The user expects a single audio file as the output."
+    ],
+    "deliverables": [
+      "audio file of the Bengali reading (e.g., paragraph_bn_female.wav)"
+    ],
+    "estimated_cost_inr": 0.2,
+    "feasible": true,
+    "input_languages": "en",
+    "reasoning": "First translate the English paragraph to Bengali, then synthesize speech in Bengali with a female voice. Both steps are supported and within the budget.",
+    "steps": [
+      "translate_text (input_path='C:\\\\Users\\\\bit\\\\Desktop\\\\Bodhan-AI-Cookbook\\\\examples\\\\indic_task_agent\\\\sample_data\\\\demo\\\\paragraph.txt', target_language='bn')",
+      "synthesize_speech (input_path='<translation_output_path>', gender='female')"
+    ],
+    "understanding": "The user wants the paragraph in the provided text file read aloud in Bengali using a female voice."
+  },
+  "quality_targets": {
+    "budget_respected": true,
+    "all_artifacts_verified": true,
+    "honest_failure": true,
+    "latency_target_s": 300,
+    "latency_met": true,
+    "no_repeat_paid_calls": {
+      "duplicates_blocked": 0,
+      "cache_hits": 0,
+      "paid_tool_calls": 2
+    },
+    "misses": []
+  }
+}
