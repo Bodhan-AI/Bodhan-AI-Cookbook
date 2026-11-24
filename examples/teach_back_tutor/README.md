@@ -1,6 +1,6 @@
 # Samjhao: a teach-back tutor
 
-> *Samjhao* (समझाओ) means "explain it". A student photographs a textbook page and **teaches it** to an AI classmate who missed the class. The classmate asks questions, and sometimes says something wrong on purpose for the student to catch. For homework, it helps the student solve the questions step by step, nudging instead of giving the answer.
+> *Samjhao* (समझाओ) means "explain it". A **Feynman-technique** tutor: a student photographs a textbook page and **teaches it** to an AI classmate who missed the class. The classmate asks questions, and sometimes says something wrong on purpose for the student to catch. A **Homework mode** helps solve exercise questions step by step, nudging instead of giving the answer, and an **intent matcher** picks the right mode from what the student says.
 
 **Bodhan models:** indic-ocr, indic-transcribe, indic-transliterate, indic-translate, indic-speak (all five)
 **Languages:** English plus 12 Indian languages (Hindi, Bengali, Tamil, Telugu, Marathi, Gujarati, Kannada, Malayalam, Odia, Punjabi, Assamese, Urdu); typed Hinglish works
