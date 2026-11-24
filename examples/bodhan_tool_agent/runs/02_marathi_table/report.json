@@ -1,0 +1,21 @@
+{
+  "status": "completed",
+  "steps": 3,
+  "tool_errors": 0,
+  "total_cost_inr": 0.2009,
+  "max_cost_inr": 2.0,
+  "elapsed_seconds": 25.4,
+  "artifacts": [
+    "translated_mr_70974e54bad9.md"
+  ],
+  "missing_artifacts": [],
+  "assumptions": [],
+  "speech_checks": [],
+  "model_notes": [
+    "structure_preserved is true",
+    "numbers_preserved is true"
+  ],
+  "guardrail_events": [],
+  "stop_reason": null,
+  "llm_model": "gemini-3.1-flash-lite"
+}

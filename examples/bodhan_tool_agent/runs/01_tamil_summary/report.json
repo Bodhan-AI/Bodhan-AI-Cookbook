@@ -1,0 +1,32 @@
+{
+  "status": "completed",
+  "steps": 6,
+  "tool_errors": 0,
+  "total_cost_inr": 0.5138,
+  "max_cost_inr": 5.0,
+  "elapsed_seconds": 350.9,
+  "artifacts": [
+    "speech_ta_614a07b931d3.wav"
+  ],
+  "missing_artifacts": [],
+  "assumptions": [],
+  "speech_checks": [
+    {
+      "audio": "speech_ta_614a07b931d3.wav",
+      "language": "ta",
+      "checked": true,
+      "cer": 0.061,
+      "passed": true,
+      "threshold": 0.3,
+      "reference_chars": 409,
+      "heard_chars": 429
+    }
+  ],
+  "model_notes": [
+    "Structure and numbers were preserved during translation.",
+    "Audio verification passed with a CER of 0.061."
+  ],
+  "guardrail_events": [],
+  "stop_reason": null,
+  "llm_model": "gemini-3.1-flash-lite"
+}

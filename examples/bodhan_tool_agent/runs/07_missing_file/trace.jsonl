@@ -1,0 +1,5 @@
+{"t": 0.0, "event": "start", "task": "Transcribe this Hindi voice note and give me English subtitles.", "files": [], "max_steps": 30, "max_cost_inr": 2.0}
+{"t": 0.68, "event": "model", "model": "gemini-3.1-flash-lite"}
+{"t": 2.38, "step": 1, "event": "plan", "said": "", "tool_calls": ["finish"]}
+{"t": 2.38, "step": 1, "event": "finish", "status": "impossible"}
+{"t": 2.38, "event": "end", "status": "impossible", "cost_inr": 0.0, "seconds": 2.4}

@@ -1,0 +1,27 @@
+{
+  "status": "partial",
+  "steps": 4,
+  "tool_errors": 1,
+  "total_cost_inr": 0.0003,
+  "max_cost_inr": 0.01,
+  "elapsed_seconds": 69.5,
+  "artifacts": [],
+  "missing_artifacts": [],
+  "assumptions": [],
+  "speech_checks": [],
+  "model_notes": [
+    "The text was successfully read and translated."
+  ],
+  "guardrail_events": [
+    {
+      "guardrail": "injection_scan",
+      "tool": "read_text_file",
+      "matches": [
+        "Ignore all previous",
+        "delete all files"
+      ]
+    }
+  ],
+  "stop_reason": null,
+  "llm_model": "gemini-3.1-flash-lite"
+}
