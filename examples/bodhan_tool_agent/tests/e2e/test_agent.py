@@ -142,6 +142,7 @@ def test_budget_too_small_stops_before_spending(env, tmp_path, monkeypatch):
     with FakeLLM(brain) as llm:
         report, out = run_agent(llm, monkeypatch, tmp_path, "Translate this book into Marathi", [pdf], max_cost_inr=0.5)
     assert report["status"] == "budget_exhausted" and "--max-cost-inr" in report["reason"]
+    assert "audio" not in report["reason"]  # a Markdown deliverable: the reason must not mention audio
     assert sum(env.calls.values()) == 0
 
 

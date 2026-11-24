@@ -8,7 +8,7 @@ import pytest
 from bodhan_agent import guards
 from bodhan_agent.llm import LLM, extract_json, retry_after_seconds
 from bodhan_agent.loop import Budget
-from bodhan_agent.planner import Plan, check_feasibility, cost_lower_bound
+from bodhan_agent.planner import Plan, check_feasibility, cost_lower_bound, suggest_budget
 from bodhan_core.config import Settings
 from fake_servers import FakeLLM
 
@@ -306,3 +306,8 @@ async def test_rate_limit_waits_do_not_use_up_the_malformed_retry_budget():
     with FakeLLM(brain) as f:
         reply, _ = await _chat(f.url, sleep=no_sleep)
     assert reply.tool_calls and calls["n"] == 8
+
+
+@pytest.mark.parametrize("lower,expected", [(0.2, "0.3"), (0.04, "0.06"), (1.0, "1.5"), (4.0, "6"), (12.0, "18")])
+def test_suggested_rerun_budget_never_rounds_to_zero(lower, expected):
+    assert suggest_budget(lower) == expected

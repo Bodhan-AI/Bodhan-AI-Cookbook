@@ -55,6 +55,24 @@ python -m bodhan_mcp
 make inspect
 ```
 
+**From an off-the-shelf MCP client.** Tested with Claude Code (shown in the demo video). Save this as `bodhan.mcp.json` in this folder. The same entry also works in a project `.mcp.json`, or in Claude Desktop's `claude_desktop_config.json` with absolute paths:
+
+```json
+{
+  "mcpServers": {
+    "bodhan": {"command": ".venv/bin/python", "args": ["-m", "bodhan_mcp"]}
+  }
+}
+```
+
+```bash
+claude -p --strict-mcp-config --mcp-config bodhan.mcp.json \
+  --allowedTools mcp__bodhan__supported_languages,mcp__bodhan__inspect_media -- \
+  "Use the bodhan tools: inspect sample_data/demo/clips/clip2.wav and say whether Telugu speech-to-text and speech synthesis are supported."
+```
+
+The server reads the Bodhan keys from `.env` itself, so the client needs no keys.
+
 Output layout, one folder per run:
 
 ```

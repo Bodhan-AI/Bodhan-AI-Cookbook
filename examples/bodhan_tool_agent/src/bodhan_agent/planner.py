@@ -118,11 +118,19 @@ def check_feasibility(task: str, plan: Plan, manifest: list[dict], missing: list
 
     lower = cost_lower_bound(plan, manifest)
     if lower > max_cost_inr:
-        return "budget_exhausted", (f"The task needs at least ₹{lower:.2f} of Bodhan calls (reading the inputs and "
-                                    f"generating the requested audio), above the budget of ₹{max_cost_inr:.2f}. "
-                                    f"Nothing was spent. Rerun with --max-cost-inr {lower * 1.5:.0f} or more."), notes
+        work = "reading the inputs" + (" and generating the requested audio"
+                                       if any(d.kind == "audio" for d in plan.deliverables) else "")
+        return "budget_exhausted", (f"The task needs at least ₹{lower:.2f} of Bodhan calls ({work}), above the budget "
+                                    f"of ₹{max_cost_inr:.2f}. Nothing was spent. "
+                                    f"Rerun with --max-cost-inr {suggest_budget(lower)} or more."), notes
     notes.append(f"Estimated minimum Bodhan cost: ₹{lower:.2f} (budget ₹{max_cost_inr:.2f}).")
     return None, None, notes
+
+
+def suggest_budget(lower: float) -> str:
+    """A rerun budget with 50% headroom, readable at any scale: 0.3, 2, 15."""
+    need = lower * 1.5
+    return f"{need:.0f}" if need >= 10 else f"{need:.1f}".rstrip("0").rstrip(".") if need >= 0.1 else f"{need:.2f}"
 
 
 def cost_lower_bound(plan: Plan, manifest: list[dict]) -> float:
