@@ -129,6 +129,19 @@ def test_js_recipe_needs_package_json(tmp_path):
     assert any("package.json" in f.message for f in check_structure(root))
 
 
+def test_kotlin_recipe_source_and_model_are_checked(tmp_path):
+    root = tmp_path / "android_recipe"
+    root.mkdir()
+    (root / "README.md").write_text("# Android\n\n## Setup\n\n## Run\n")
+    (root / ".env.example").write_text("# BODHAN_API_KEY is entered in app settings.\n")
+    (root / ".gitignore").write_text(".env\n")
+    (root / "Main.kt").write_text('val model: String = "indic-imaginary"\n')
+
+    findings = list(run_all(root))
+    assert not any("no notebook or source file" in f.message for f in findings)
+    assert any("indic-imaginary" in f.message for f in findings)
+
+
 # --- api --------------------------------------------------------------------
 
 @pytest.mark.parametrize("src", [

@@ -1,0 +1,1211 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Bodhan Agent | Evaluation Dashboard</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+      color: #17243b;
+      background: #f4f6fa;
+      --ink: #17243b;
+      --muted: #657187;
+      --line: #e0e5ed;
+      --blue: #2058c8;
+      --blue-soft: #edf3ff;
+      --green: #18764d;
+      --green-soft: #eaf7f0;
+      --amber: #95620a;
+      --amber-soft: #fff6df;
+      --red: #a43535;
+      --red-soft: #fff0ef;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 320px; }
+    button, input, textarea, select { font: inherit; }
+    a { color: var(--blue); }
+    .topbar {
+      position: sticky; z-index: 3; top: 0; display: flex; align-items: center;
+      justify-content: space-between; gap: 20px; padding: 12px max(20px, calc((100% - 1240px) / 2));
+      border-bottom: 1px solid var(--line); background: #ffffffed; backdrop-filter: blur(8px);
+    }
+    .brand { display: flex; align-items: center; gap: 10px; min-width: max-content; }
+    .brand-mark {
+      display: grid; width: 34px; height: 34px; place-items: center; border-radius: 9px;
+      background: var(--blue); color: #fff; font-weight: 800;
+    }
+    .brand-name { font-size: 15px; font-weight: 750; line-height: 1.15; }
+    .brand-caption { display: block; margin-top: 3px; color: var(--muted); font-size: 11px; font-weight: 500; }
+    nav { display: flex; gap: 5px; overflow-x: auto; }
+    nav a {
+      padding: 7px 10px; border-radius: 7px; color: #48566c; font-size: 13px;
+      text-decoration: none; white-space: nowrap;
+    }
+    nav a:hover, nav a:focus-visible { background: var(--blue-soft); color: var(--blue); }
+    main { width: min(1240px, calc(100% - 36px)); margin: 28px auto 70px; }
+    section { scroll-margin-top: 78px; }
+    h1 { margin: 0; font-size: clamp(24px, 3vw, 34px); letter-spacing: -.03em; }
+    h2 { margin: 0 0 12px; font-size: 18px; letter-spacing: -.01em; }
+    h3 { margin: 0 0 8px; font-size: 15px; }
+    p { margin: 7px 0; }
+    .muted, .hint { color: var(--muted); }
+    .hint { font-size: 12px; }
+    .hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 20px; }
+    .hero p { max-width: 720px; margin: 8px 0 0; color: var(--muted); }
+    .local-only { padding: 6px 10px; border: 1px solid var(--line); border-radius: 99px; background: #fff; color: #526078; font-size: 12px; white-space: nowrap; }
+    .panel {
+      margin: 18px 0; padding: 20px; border: 1px solid var(--line); border-radius: 12px;
+      background: #fff; box-shadow: 0 3px 14px #17243b08;
+    }
+    .panel-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+    .overview-grid, .metrics-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .stat {
+      min-height: 93px; padding: 14px; border: 1px solid var(--line); border-radius: 9px; background: #fbfcfe;
+    }
+    .stat-label { display: block; color: var(--muted); font-size: 12px; }
+    .stat-value { display: block; margin-top: 6px; font-size: 20px; font-weight: 750; overflow-wrap: anywhere; }
+    .stat-sub { display: block; margin-top: 2px; color: var(--muted); font-size: 11px; }
+    .grid-two { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(260px, .8fr); gap: 16px; }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 16px; }
+    label { display: block; margin: 13px 0 6px; font-weight: 650; }
+    textarea, input, select {
+      width: 100%; padding: 10px 11px; border: 1px solid #cbd3df; border-radius: 7px;
+      background: #fff; color: var(--ink);
+    }
+    textarea { min-height: 88px; resize: vertical; }
+    textarea.code, pre {
+      font: 12px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace;
+      overflow-wrap: anywhere; white-space: pre-wrap;
+    }
+    input[type="file"] { padding: 8px; }
+    button {
+      display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+      margin-top: 12px; padding: 9px 13px; border: 1px solid transparent; border-radius: 7px;
+      background: var(--blue); color: #fff; font-weight: 680; cursor: pointer;
+    }
+    button.secondary { border-color: #cbd3df; background: #fff; color: #34425a; }
+    button.danger { border-color: #efc7c4; background: #fff; color: var(--red); }
+    button:disabled { opacity: .55; cursor: not-allowed; }
+    .status-line { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; }
+    .badge { display: inline-flex; padding: 3px 9px; border-radius: 99px; background: #eef1f6; color: #49566b; font-size: 12px; font-weight: 720; }
+    .badge.running, .badge.queued { background: var(--blue-soft); color: var(--blue); }
+    .badge.completed, .badge.passed { background: var(--green-soft); color: var(--green); }
+    .badge.partial, .badge.impossible, .badge.needs_user_input, .badge.warning { background: var(--amber-soft); color: var(--amber); }
+    .badge.failed, .badge.failed-check { background: var(--red-soft); color: var(--red); }
+    .call-status { display: inline-flex; align-items: center; gap: 5px; margin: 5px 8px 0 0; font-size: 11px; font-weight: 700; }
+    .call-status.success { color: var(--green); }
+    .call-status.failure { color: var(--red); }
+    .call-status.neutral { color: var(--muted); }
+    .policy-note { padding: 11px 13px; border: 1px solid #dce7fb; border-radius: 8px; background: #f7faff; color: #405475; font-size: 12px; }
+    .error { color: var(--red); white-space: pre-wrap; }
+    .summary { white-space: pre-wrap; overflow-wrap: anywhere; }
+    .progress { height: 7px; margin-top: 9px; overflow: hidden; border-radius: 99px; background: #e9edf3; }
+    .progress > span { display: block; height: 100%; width: 0; background: var(--blue); transition: width .15s ease; }
+    .trace-list { display: grid; gap: 8px; max-height: 650px; overflow: auto; }
+    .trace-item { border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+    .trace-item summary { display: flex; align-items: flex-start; gap: 10px; padding: 11px; cursor: pointer; list-style: none; }
+    .trace-item summary::-webkit-details-marker { display: none; }
+    .trace-item summary::before { content: "+"; color: var(--muted); font-weight: 800; }
+    .trace-item[open] summary::before { content: "−"; }
+    .trace-title { min-width: 0; flex: 1; font-weight: 680; overflow-wrap: anywhere; }
+    .trace-meta { display: flex; flex-wrap: wrap; gap: 5px; }
+    .trace-detail { margin: 0 10px 10px 30px; padding: 10px; border-radius: 6px; background: #f6f8fb; color: #344158; }
+    pre { max-height: 420px; margin: 8px 0; padding: 11px; overflow: auto; border-radius: 7px; background: #f5f7fa; color: #334158; }
+    .two-column-lists { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin-top: 18px; }
+    .simple-list { margin: 0; padding-left: 20px; }
+    .simple-list li { margin: 6px 0; overflow-wrap: anywhere; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th, td { padding: 9px 8px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { color: var(--muted); font-weight: 650; }
+    .tool-description { margin: 8px 0 12px; color: #46546b; }
+    .artifact-list { display: grid; gap: 8px; margin-top: 10px; }
+    .artifact-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; }
+    .artifact-actions { display: flex; flex-wrap: wrap; gap: 12px; white-space: nowrap; }
+    .preview { margin-top: 14px; }
+    .empty { padding: 18px; border: 1px dashed #cbd3df; border-radius: 8px; color: var(--muted); text-align: center; }
+    .hidden { display: none !important; }
+    footer { margin-top: 25px; padding: 14px 0; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+    @media (max-width: 850px) {
+      .topbar { align-items: flex-start; flex-direction: column; gap: 8px; padding: 10px 16px; }
+      nav { width: 100%; }
+      .grid-two { grid-template-columns: 1fr; }
+      .overview-grid, .metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 560px) {
+      main { width: calc(100% - 20px); margin-top: 18px; }
+      .hero { align-items: flex-start; flex-direction: column; }
+      .panel { padding: 15px; }
+      .form-grid, .two-column-lists { grid-template-columns: 1fr; }
+      .overview-grid, .metrics-grid { gap: 8px; }
+      .stat { min-height: 84px; padding: 11px; }
+      .stat-value { font-size: 17px; }
+      .trace-item summary { gap: 6px; padding: 9px; }
+      .trace-detail { margin-left: 20px; }
+      .artifact-row { align-items: flex-start; flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true">B</span>
+    <span class="brand-name">Bodhan Agent<span class="brand-caption">Evaluation &amp; Observability</span></span>
+  </div>
+  <nav aria-label="Dashboard navigation">
+    <a href="#overview">Overview</a>
+    <a href="#task-runner">Task Runner</a>
+    <a href="#live-execution">Live Execution</a>
+    <a href="#mcp-inspector">MCP Inspector</a>
+    <a href="#artifacts">Artifacts</a>
+  </nav>
+</header>
+
+<main>
+  <div class="hero">
+    <div>
+      <h1>Agent evaluation dashboard</h1>
+      <p>Run a real Bodhan task, follow its decisions and verification, or independently inspect the running stdio MCP server.</p>
+    </div>
+    <span class="local-only">Local machine only</span>
+  </div>
+
+  <section id="overview" class="panel">
+    <div class="panel-heading">
+      <div>
+        <h2>Overview</h2>
+        <p class="muted">No sample or simulated results are shown. Data below appears only after a real run or MCP call.</p>
+      </div>
+      <div class="status-line">Task status <span id="overview-status" class="badge">No run</span></div>
+    </div>
+    <div class="overview-grid">
+      <div class="stat"><span class="stat-label">Tool steps</span><strong id="overview-steps" class="stat-value">—</strong><span class="stat-sub">Used / maximum</span></div>
+      <div class="stat"><span class="stat-label">Estimated Bodhan cost</span><strong id="overview-cost" class="stat-value">—</strong><span class="stat-sub">INR; model estimate only</span></div>
+      <div class="stat"><span class="stat-label">Execution time</span><strong id="overview-duration" class="stat-value">—</strong><span class="stat-sub">Elapsed run time</span></div>
+      <div class="stat"><span class="stat-label">Retries</span><strong id="overview-retries" class="stat-value">—</strong><span class="stat-sub">Planner and tool retries</span></div>
+    </div>
+    <div style="margin-top:18px">
+      <div class="panel-heading">
+        <h3>Run history</h3>
+        <div class="history-actions">
+          <button id="refresh-history" class="secondary" type="button">Refresh history</button>
+          <button id="clear-history" class="danger" type="button">Clear completed history</button>
+        </div>
+      </div>
+      <p id="history-message" class="muted" aria-live="polite"></p>
+      <div id="run-history" class="artifact-list"><div class="empty">No saved runs found.</div></div>
+    </div>
+  </section>
+
+  <section id="task-runner" class="panel">
+    <div class="panel-heading">
+      <div>
+        <h2>Task Runner</h2>
+        <p class="muted">The dashboard uses the same TaskRunner, ToolService, limits, and trace/report files as the CLI.</p>
+      </div>
+    </div>
+    <form id="run-form">
+      <label for="task">Natural-language task</label>
+      <textarea id="task" name="task" maxlength="4000" required placeholder="Describe the language task to perform"></textarea>
+      <label for="files">Input files</label>
+      <input id="files" name="files" type="file" multiple accept="audio/*,.wav,.mp3,.flac,.ogg,.pdf,.png,.jpg,.jpeg,.webp,.txt,.md,.srt,.csv">
+      <p class="hint">Up to 20 files and 100 MiB total. Files stay in this machine's run folder. Content is treated as untrusted data, not instructions.</p>
+      <div class="form-grid">
+        <div><label for="max-steps">Maximum tool steps</label><input id="max-steps" name="max_steps" type="number" min="1" max="100" value="30" required></div>
+        <div><label for="max-cost">Maximum Bodhan cost (INR)</label><input id="max-cost" name="max_cost_inr" type="number" min="0.01" step="0.01" value="20" required></div>
+      </div>
+      <div class="status-line">
+        <button id="start-button" type="submit">Run task</button>
+        <button id="stop-button" class="danger" type="button" disabled>Stop run</button>
+        <span id="form-error" class="error" role="alert"></span>
+      </div>
+    </form>
+  </section>
+
+  <section id="live-execution" class="panel" aria-live="polite">
+    <div class="panel-heading">
+      <div>
+        <h2>Live Execution</h2>
+        <p id="run-task" class="muted">No task selected.</p>
+      </div>
+      <div class="status-line">Status <span id="status" class="badge">Idle</span></div>
+    </div>
+    <p id="run-error" class="error" role="alert"></p>
+    <p id="stop-note" class="hint hidden">Stop is cooperative: an in-flight provider call may finish before the agent stops.</p>
+    <div class="metrics-grid">
+      <div class="stat"><span class="stat-label">Tool steps</span><strong id="metric-steps" class="stat-value">—</strong><span id="steps-remaining" class="stat-sub">— remaining</span></div>
+      <div class="stat"><span class="stat-label">Estimated Bodhan cost</span><strong id="metric-cost" class="stat-value">—</strong><span id="cost-remaining" class="stat-sub">— remaining</span><div class="progress"><span id="cost-progress"></span></div></div>
+      <div class="stat"><span class="stat-label">Execution time</span><strong id="metric-duration" class="stat-value">—</strong><span class="stat-sub">Provider billing and LLM charges excluded</span></div>
+      <div class="stat"><span class="stat-label">Retries</span><strong id="metric-retries" class="stat-value">—</strong><span class="stat-sub">Retry and recovery events</span></div>
+    </div>
+    <div class="grid-two" style="margin-top:18px">
+      <div>
+        <h3>Current plan</h3>
+        <p class="hint">Current step: <strong id="current-step">0 / 30</strong></p>
+        <p id="current-plan" class="summary muted">Waiting for the agent to plan.</p>
+        <div class="policy-note">Input filenames, OCR text, transcripts, and document contents are untrusted data. The agent policy instructs the planner not to follow instructions embedded in those inputs.</div>
+      </div>
+      <div>
+        <h3>Final status and summary</h3>
+        <p id="run-summary" class="summary muted">The final result will appear here.</p>
+      </div>
+    </div>
+    <div class="two-column-lists">
+      <div><h3>Verification</h3><ul id="verification" class="simple-list"><li class="muted">No verification results yet.</li></ul></div>
+      <div><h3>Errors and recovery: retries</h3><ul id="notices" class="simple-list"><li class="muted">No errors or recovery actions yet.</li></ul></div>
+    </div>
+    <div class="two-column-lists">
+      <div><h3>Assumptions and language signals</h3><ul id="assumptions" class="simple-list"><li class="muted">No assumptions recorded yet.</li></ul></div>
+      <div><h3>Input inventory</h3><ul id="input-inventory" class="simple-list"><li class="muted">No input inventory yet.</li></ul></div>
+    </div>
+    <div style="margin-top:18px">
+      <h3>Tool calls and trace</h3>
+      <p class="hint">Expand an event to inspect its sanitized inputs or result summary. Tool execution success and output verification are reported separately; hidden model reasoning is not shown.</p>
+      <div id="events" class="trace-list"><div class="empty">The execution trace will appear when a task starts.</div></div>
+    </div>
+    <div style="margin-top:18px">
+      <h3>Tool-call breakdown</h3>
+      <p id="provider-accounting" class="hint">Provider submissions and cache hits will appear here after tool calls.</p>
+      <div id="tool-breakdown" class="table-wrap"><p class="muted">No tool calls yet.</p></div>
+    </div>
+  </section>
+
+  <section id="mcp-inspector" class="panel">
+    <div class="panel-heading">
+      <div>
+        <h2>MCP Inspector</h2>
+        <p class="muted">Discovers and invokes tools through a fresh <code>python -m bodhan_mcp</code> stdio client session; no parallel or simulated tool implementation.</p>
+      </div>
+      <button id="refresh-tools" class="secondary" type="button">Connect / refresh tools</button>
+    </div>
+    <div class="grid-two">
+      <div>
+        <label for="mcp-tool">MCP tool</label>
+        <select id="mcp-tool" disabled><option value="">Connect to discover tools</option></select>
+        <p id="mcp-description" class="tool-description">Tool description will appear after discovery.</p>
+        <label for="mcp-arguments">Arguments (JSON)</label>
+        <textarea id="mcp-arguments" class="code" spellcheck="false" placeholder="Select a tool to see a schema-based starting example"></textarea>
+        <div class="status-line">
+          <button id="mcp-call" type="button" disabled>Invoke real MCP tool</button>
+          <span id="mcp-error" class="error" role="alert"></span>
+        </div>
+      </div>
+      <div>
+        <h3>Input schema</h3>
+        <pre id="mcp-schema" class="code">Not connected.</pre>
+        <h3>Inspector budget</h3>
+        <p id="mcp-budget" class="summary muted">Connect to read the inspector budget.</p>
+        <div class="progress"><span id="mcp-budget-progress"></span></div>
+      </div>
+    </div>
+    <div id="mcp-result-panel" class="hidden" style="margin-top:18px">
+      <h3>Tool output</h3>
+      <div id="mcp-call-status"></div>
+      <p id="mcp-call-summary" class="summary"></p>
+      <div id="mcp-artifacts" class="artifact-list"></div>
+      <details><summary>Full MCP response</summary><pre id="mcp-output"></pre></details>
+    </div>
+  </section>
+
+  <section id="artifacts" class="panel">
+    <div class="panel-heading">
+      <div>
+        <h2>Artifacts and reports</h2>
+        <p class="muted">Inspect or download the actual files generated for the current task or MCP Inspector calls.</p>
+      </div>
+    </div>
+    <div class="two-column-lists">
+      <div><h3>Final outputs</h3><div id="final-artifact-list" class="artifact-list"><div class="empty">No final outputs.</div></div></div>
+      <div><h3>Intermediate artifacts</h3><div id="intermediate-artifact-list" class="artifact-list"><div class="empty">No intermediate artifacts.</div></div></div>
+    </div>
+    <div style="margin-top:18px"><h3>Execution and technical files</h3><div id="technical-artifact-list" class="artifact-list"><div class="empty">No run reports yet.</div></div></div>
+    <div id="artifact-preview" class="preview hidden">
+      <div class="status-line"><h3 id="preview-title">File preview</h3><button id="close-preview" class="secondary" type="button">Close preview</button></div>
+      <div id="preview-media"></div>
+      <pre id="preview-content"></pre>
+    </div>
+  </section>
+
+  <div class="status-line">
+    <button id="close-dashboard" class="secondary" type="button">Close dashboard</button>
+    <span id="close-message" class="hint"></span>
+  </div>
+  <footer>
+    Bodhan INR amounts are estimates unless explicitly reported as actual; actual Bodhan billing and LLM costs may be unavailable. Unsupported or impossible tasks should end with an honest status, not a fabricated artifact.
+  </footer>
+</main>
+
+<script>
+  const byId = (id) => document.getElementById(id);
+  const form = byId("run-form");
+  const startButton = byId("start-button");
+  const stopButton = byId("stop-button");
+  const formError = byId("form-error");
+  const runPanel = byId("live-execution");
+  const statusBadge = byId("status");
+  const activeRunTask = byId("run-task");
+  const currentPlan = byId("current-plan");
+  const eventsContainer = byId("events");
+  const historyList = byId("run-history");
+  const historyMessage = byId("history-message");
+  const verificationList = byId("verification");
+  const noticesList = byId("notices");
+  const assumptionsList = byId("assumptions");
+  const inventoryList = byId("input-inventory");
+  const toolSelect = byId("mcp-tool");
+  let activeRun = null;
+  let cursor = 0;
+  let liveCost = 0;
+  let liveRetries = 0;
+  let liveSteps = 0;
+  let liveVerifications = [];
+  const liveVerificationKeys = new Set();
+  let liveFailures = [];
+  let liveWarnings = [];
+  let liveRecovery = [];
+  let liveEvents = [];
+  let latestPlan = "Waiting for the agent to plan.";
+  let discoveredTools = [];
+
+  function safeJson(value) {
+    try { return JSON.stringify(value, null, 2); } catch { return String(value); }
+  }
+
+  function statusLabel(status) {
+    return ({
+      completed: "Completed",
+      partial: "Partial",
+      impossible: "Impossible — correctly handled",
+      needs_user_input: "Needs input — correctly handled",
+      failed: "Failed",
+      running: "Running",
+      queued: "Queued",
+    })[status] || status || "Unknown";
+  }
+
+  function setStatus(status) {
+    const text = statusLabel(status);
+    statusBadge.textContent = text;
+    statusBadge.className = `badge ${status || ""}`;
+    byId("overview-status").textContent = text;
+    byId("overview-status").className = `badge ${status || ""}`;
+  }
+
+  function eventTitle(event) {
+    if (event.event === "plan_requested") return "Planning next action";
+    if (event.event === "plan_decision") return `Plan selected: ${(event.selected_tools || []).join(", ") || "no tools"}`;
+    if (event.event === "tool_call") return `Tool call: ${event.tool || "unknown"}`;
+    if (event.event === "tool_result") return `Tool result: ${event.tool || "unknown"}`;
+    if (event.event === "llm_rate_limit_wait") return `Planner wait: ${event.reason || "rate limit"}`;
+    if (event.event === "llm_retry") return `Planner retry: ${event.reason || "retry"}`;
+    if (event.event === "llm_error") return `Planner error: ${event.error || "request failed"}`;
+    if (event.event === "stop") return `Agent stopped: ${event.reason || "unknown reason"}`;
+    if (event.event === "run_finished") return `Run finished: ${statusLabel(event.status)}`;
+    return event.event || "Trace event";
+  }
+
+  function collectEvent(event) {
+    liveSteps = Math.max(liveSteps, Number(event.step) || 0);
+    if (event.event === "plan_requested") latestPlan = "The agent is choosing its next action.";
+    if (event.event === "plan_decision") latestPlan = `Selected tools: ${(event.selected_tools || []).join(", ") || "none"}`;
+    if (event.event === "tool_result") {
+      const summary = event.summary || {};
+      liveCost += Number(event.estimated_cost_inr ?? event.cost_inr ?? summary.estimated_cost_inr ?? 0) || 0;
+      liveRetries += Math.max(Number(summary.retries) || 0, Number(summary.error?.retry_count) || 0);
+      if (summary.verification) {
+        const key = JSON.stringify([
+          event.tool,
+          summary.input_fingerprint || event.step,
+          summary.verification.name || "",
+        ]);
+        if (!liveVerificationKeys.has(key)) {
+          liveVerificationKeys.add(key);
+          liveVerifications.push({ tool: event.tool, ...summary.verification });
+        }
+      }
+      if (!event.ok) liveFailures.push({ step: event.step, tool: event.tool, error: summary.error });
+      for (const warning of summary.warnings || []) liveWarnings.push(warning);
+    }
+    if (event.event === "llm_retry") liveRetries += 1;
+    if (["llm_retry", "llm_rate_limit_wait", "llm_error", "stop"].includes(event.event)) liveRecovery.push(event);
+    currentPlan.textContent = latestPlan;
+  }
+
+  function setList(element, values, emptyText, renderValue = (value) => String(value)) {
+    element.replaceChildren();
+    if (!Array.isArray(values) || values.length === 0) {
+      const item = document.createElement("li");
+      item.className = "muted";
+      item.textContent = emptyText;
+      element.append(item);
+      return;
+    }
+    for (const value of values) {
+      const item = document.createElement("li");
+      item.textContent = renderValue(value);
+      element.append(item);
+    }
+  }
+
+  function updateMetrics(metrics = {}) {
+    const steps = Number.isFinite(metrics.steps) ? metrics.steps : liveSteps;
+    const maxSteps = Number.isFinite(metrics.max_steps) ? metrics.max_steps : Number(form.elements.max_steps.value || 30);
+    const cost = Number.isFinite(metrics.estimated_cost_inr) ? metrics.estimated_cost_inr : liveCost;
+    const budget = Number.isFinite(metrics.cost_budget_inr) ? metrics.cost_budget_inr : Number(form.elements.max_cost_inr.value || 20);
+    const retries = Number.isFinite(metrics.retry_count) ? metrics.retry_count : liveRetries;
+    const duration = Number.isFinite(metrics.duration_seconds) ? metrics.duration_seconds : 0;
+    const remainingSteps = Math.max(0, maxSteps - steps);
+    const remainingCost = Math.max(0, budget - cost);
+    byId("metric-steps").textContent = `${steps} / ${maxSteps}`;
+    byId("current-step").textContent = `${steps} / ${maxSteps}`;
+    byId("steps-remaining").textContent = `${remainingSteps} step${remainingSteps === 1 ? "" : "s"} remaining`;
+    byId("metric-cost").textContent = `INR ${cost.toFixed(4)} / ${budget.toFixed(2)}`;
+    byId("cost-remaining").textContent = `INR ${remainingCost.toFixed(4)} remaining`;
+    byId("cost-progress").style.width = `${budget > 0 ? Math.min(100, cost / budget * 100) : 0}%`;
+    byId("metric-duration").textContent = `${duration.toFixed(1)} s`;
+    byId("metric-retries").textContent = String(retries);
+    byId("overview-steps").textContent = `${steps} / ${maxSteps}`;
+    byId("overview-cost").textContent = `₹${cost.toFixed(4)}`;
+    byId("overview-duration").textContent = `${duration.toFixed(1)} s`;
+    byId("overview-retries").textContent = String(retries);
+  }
+
+  function appendEvent(event) {
+    if (eventsContainer.querySelector(".empty")) eventsContainer.replaceChildren();
+    liveEvents.push(event);
+    collectEvent(event);
+    const item = document.createElement("details");
+    item.className = "trace-item";
+    const summary = document.createElement("summary");
+    const title = document.createElement("span");
+    title.className = "trace-title";
+    title.textContent = eventTitle(event);
+    const meta = document.createElement("span");
+    meta.className = "trace-meta";
+    if (event.event === "tool_result") {
+      const toolTag = document.createElement("span");
+      toolTag.className = `badge ${event.ok ? "completed" : "failed"}`;
+      toolTag.textContent = event.ok ? "Tool succeeded" : "Tool failed";
+      meta.append(toolTag);
+      const verifyStatus = event.summary?.verification?.status;
+      const verifyTag = document.createElement("span");
+      verifyTag.className = `badge ${verifyStatus === "passed" ? "passed" : verifyStatus === "failed" ? "failed-check" : "warning"}`;
+      verifyTag.textContent = `Verification ${verifyStatus || "not reported"}`;
+      meta.append(verifyTag);
+      const latency = Number(event.latency_ms ?? event.summary?.latency_ms);
+      if (Number.isFinite(latency)) {
+        const latencyTag = document.createElement("span");
+        latencyTag.className = "badge";
+        latencyTag.textContent = `${latency} ms`;
+        meta.append(latencyTag);
+      }
+      const cost = Number(event.estimated_cost_inr ?? event.summary?.estimated_cost_inr);
+      if (Number.isFinite(cost)) {
+        const costTag = document.createElement("span");
+        costTag.className = "badge";
+        costTag.textContent = `₹${cost.toFixed(4)}`;
+        meta.append(costTag);
+      }
+    }
+    summary.append(title, meta);
+    const detail = document.createElement("pre");
+    detail.className = "trace-detail";
+    detail.textContent = safeJson(event);
+    item.append(summary, detail);
+    eventsContainer.append(item);
+    eventsContainer.scrollTop = eventsContainer.scrollHeight;
+  }
+
+  function renderVerification(checks) {
+    verificationList.replaceChildren();
+    if (!checks.length) {
+      const item = document.createElement("li");
+      item.className = "muted";
+      item.textContent = "No verification results reported.";
+      verificationList.append(item);
+      return;
+    }
+    for (const check of checks) {
+      const item = document.createElement("li");
+      const label = document.createElement("span");
+      label.className = `badge ${check.status === "passed" ? "passed" : check.status === "failed" ? "failed-check" : "warning"}`;
+      const pageCoverageNote = check.tool === "ocr_document" && check.name === "ocr_page_coverage"
+        ? " (page coverage only; not character-accuracy verification)"
+        : "";
+      label.textContent = `${check.tool ? `${check.tool}: ` : ""}${check.name || "Verification"} — ${check.status || "unknown"}${pageCoverageNote}`;
+      item.append(label);
+      const detail = check.checks || check.failed_checks || check.warnings || check.method;
+      if (detail) {
+        const pre = document.createElement("pre");
+        pre.textContent = typeof detail === "string" ? detail : safeJson(detail);
+        item.append(pre);
+      }
+      verificationList.append(item);
+    }
+  }
+
+  function renderNotices(failures, warnings, recovery) {
+    noticesList.replaceChildren();
+    const notices = [
+      ...failures.map((entry) => ({ title: `Tool failure: ${entry.tool || "unknown tool"}`, details: entry.error })),
+      ...warnings.map((entry) => ({ title: "Warning", details: entry })),
+      ...recovery.map((entry) => ({ title: eventTitle(entry), details: entry })),
+    ];
+    if (!notices.length) {
+      const item = document.createElement("li");
+      item.className = "muted";
+      item.textContent = "No errors or recovery actions reported.";
+      noticesList.append(item);
+      return;
+    }
+    for (const notice of notices) {
+      const item = document.createElement("li");
+      const title = document.createElement("strong");
+      title.textContent = notice.title;
+      item.append(title);
+      if (notice.details) {
+        const pre = document.createElement("pre");
+        pre.textContent = typeof notice.details === "string" ? notice.details : safeJson(notice.details);
+        item.append(pre);
+      }
+      noticesList.append(item);
+    }
+  }
+
+  function renderProviderAccounting(metrics = {}, events = []) {
+    metrics = metrics && typeof metrics === "object" ? metrics : {};
+    events = Array.isArray(events) ? events : [];
+    const results = events.filter((event) => event.event === "tool_result");
+    const toolInvocations = Number.isFinite(metrics.tool_invocation_count)
+      ? metrics.tool_invocation_count
+      : results.length;
+    const bodhanSubmissions = Number.isFinite(metrics.bodhan_provider_submission_count)
+      ? metrics.bodhan_provider_submission_count
+      : results.reduce((total, event) => total + (Number(event.provider_submissions) || 0), 0);
+    const llmRequests = Number.isFinite(metrics.llm_request_count)
+      ? metrics.llm_request_count
+      : Number.isFinite(metrics.llm_provider_submission_count)
+        ? metrics.llm_provider_submission_count
+        : events.filter((event) => event.event === "llm_request" && Number.isFinite(Number(event.request_number))).length;
+    const cacheHits = Number.isFinite(metrics.cache_hit_count)
+      ? metrics.cache_hit_count
+      : results.filter((event) => event.cache_hit).length;
+    const retries = Number.isFinite(metrics.total_retry_count)
+      ? metrics.total_retry_count
+      : Number.isFinite(metrics.retry_count)
+        ? metrics.retry_count
+        : liveRetries;
+    const charges = Number.isFinite(metrics.estimated_charges_inr)
+      ? metrics.estimated_charges_inr
+      : liveCost;
+    const actualBodhanCost = Number.isFinite(metrics.actual_cost_inr)
+      ? `₹${metrics.actual_cost_inr.toFixed(4)}`
+      : "not reported";
+    const llmCost = Number.isFinite(metrics.llm_cost_inr)
+      ? `₹${metrics.llm_cost_inr.toFixed(4)}`
+      : "not reported";
+    byId("provider-accounting").textContent =
+      `Tool invocations: ${toolInvocations} · Bodhan submissions: ${bodhanSubmissions} · ` +
+      `LLM requests: ${llmRequests} · Cache hits: ${cacheHits} · Retries: ${retries} · ` +
+      `Estimated Bodhan charges: ₹${charges.toFixed(4)} · Actual Bodhan cost: ${actualBodhanCost} · ` +
+      `LLM cost: ${llmCost}`;
+  }
+
+  function renderBreakdown(operations, events) {
+    const container = byId("tool-breakdown");
+    const rows = new Map();
+    const hasOperationReport = Array.isArray(operations) && operations.length > 0;
+    if (Array.isArray(operations)) {
+      for (const operation of operations) {
+        const name = operation.tool || "unknown";
+        const row = rows.get(name) || { name, count: 0, providers: 0, cacheHits: 0, cost: 0, latency: 0 };
+        row.count += 1;
+        row.providers += Number(operation.provider_submissions) || 0;
+        row.cacheHits += operation.cache_hit ? 1 : 0;
+        row.cost += Number(operation.estimated_cost_inr) || 0;
+        rows.set(name, row);
+      }
+    }
+    for (const event of events) {
+      if (event.event !== "tool_result") continue;
+      const name = event.tool || "unknown";
+      const row = rows.get(name) || { name, count: 0, providers: 0, cacheHits: 0, cost: 0, latency: 0 };
+      if (!hasOperationReport) {
+        row.count += 1;
+        row.providers += Number(event.provider_submissions) || 0;
+        row.cacheHits += event.cache_hit ? 1 : 0;
+        row.cost += Number(event.estimated_cost_inr ?? event.cost_inr ?? 0) || 0;
+      }
+      row.latency += Number(event.latency_ms) || 0;
+      rows.set(name, row);
+    }
+    if (!rows.size) {
+      container.innerHTML = "";
+      const empty = document.createElement("p");
+      empty.className = "muted";
+      empty.textContent = "No tool calls yet.";
+      container.append(empty);
+      return;
+    }
+    const table = document.createElement("table");
+    table.innerHTML = "<thead><tr><th>Tool</th><th>Invocations</th><th>Bodhan submissions</th><th>Cache hits</th><th>Estimated cost (INR)</th><th>Latency</th></tr></thead>";
+    const body = document.createElement("tbody");
+    for (const row of rows.values()) {
+      const tr = document.createElement("tr");
+      for (const value of [
+        row.name,
+        String(row.count),
+        String(row.providers),
+        String(row.cacheHits),
+        row.cost.toFixed(4),
+        row.latency ? `${row.latency} ms` : "—",
+      ]) {
+        const td = document.createElement("td");
+        td.textContent = value;
+        tr.append(td);
+      }
+      body.append(tr);
+    }
+    table.append(body);
+    container.replaceChildren(table);
+  }
+
+  function addArtifactRow(container, path, downloadUrl, previewUrl) {
+    const row = document.createElement("div");
+    row.className = "artifact-row";
+    const name = document.createElement("strong");
+    name.textContent = path;
+    const actions = document.createElement("span");
+    actions.className = "artifact-actions";
+    const available = document.createElement("span");
+    available.className = "badge completed";
+    available.textContent = "File available";
+    const download = document.createElement("a");
+    download.href = downloadUrl;
+    download.textContent = "Download";
+    download.rel = "noopener";
+    actions.append(available, download);
+    if (previewUrl) {
+      const preview = document.createElement("a");
+      preview.href = "#artifacts";
+      preview.textContent = "Preview";
+      preview.addEventListener("click", (event) => {
+        event.preventDefault();
+        previewFile(path, previewUrl);
+      });
+      actions.append(preview);
+    }
+    row.append(name, actions);
+    if (container.querySelector(".empty")) container.replaceChildren();
+    container.append(row);
+  }
+
+  async function previewFile(path, url) {
+    const preview = byId("artifact-preview");
+    byId("preview-title").textContent = path;
+    byId("preview-content").textContent = "Loading preview…";
+    byId("preview-media").replaceChildren();
+    preview.classList.remove("hidden");
+    const extension = path.split(".").pop().toLowerCase();
+    const mediaTypes = {
+      png: ["img", "image/png"], jpg: ["img", "image/jpeg"], jpeg: ["img", "image/jpeg"],
+      webp: ["img", "image/webp"], pdf: ["iframe", "application/pdf"],
+      wav: ["audio", "audio/wav"], mp3: ["audio", "audio/mpeg"], flac: ["audio", "audio/flac"],
+      ogg: ["audio", "audio/ogg"], m4a: ["audio", "audio/mp4"], mp4: ["video", "video/mp4"],
+      webm: ["video", "video/webm"],
+    };
+    if (mediaTypes[extension]) {
+      const [tag, type] = mediaTypes[extension];
+      const media = document.createElement(tag);
+      media.src = url;
+      media.controls = tag === "audio" || tag === "video";
+      media.title = path;
+      if (tag === "img") media.alt = path;
+      if (tag === "iframe") media.setAttribute("sandbox", "");
+      byId("preview-media").append(media);
+      byId("preview-content").textContent = `${type} preview`;
+      return;
+    }
+    try {
+      const response = await fetch(url, { cache: "no-store" });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "This file cannot be previewed as text.");
+      byId("preview-content").textContent = data.content;
+    } catch (error) {
+      byId("preview-content").textContent = error.message || "Preview unavailable.";
+    }
+  }
+
+  async function previewInput(path) {
+    const media = /\.(pdf|png|jpe?g|webp|wav|mp3|flac|ogg|m4a|mp4|webm)$/i.test(path);
+    const route = media ? "input-file-preview" : "input-preview";
+    await previewFile(path, `/api/runs/${encodeURIComponent(activeRun)}/${route}?path=${encodeURIComponent(path)}`);
+  }
+
+  function renderInputInventory(files) {
+    inventoryList.replaceChildren();
+    if (!Array.isArray(files) || !files.length) {
+      const item = document.createElement("li");
+      item.className = "muted";
+      item.textContent = "No input files recorded.";
+      inventoryList.append(item);
+      return;
+    }
+    for (const file of files) {
+      const item = document.createElement("li");
+      const label = document.createElement("span");
+      label.textContent = `${file.name || "input"} (${file.extension || "unknown"}, ${file.size_bytes ?? "?"} bytes)`;
+      item.append(label);
+      if (file.available && file.path) {
+        const actions = document.createElement("span");
+        actions.className = "artifact-actions";
+        const download = document.createElement("a");
+        download.href = `/api/runs/${encodeURIComponent(activeRun)}/input-download?path=${encodeURIComponent(file.path)}`;
+        download.textContent = "Download";
+        const preview = document.createElement("a");
+        preview.href = "#artifacts";
+        preview.textContent = "Preview";
+        preview.addEventListener("click", (event) => {
+          event.preventDefault();
+          previewInput(file.path);
+        });
+        actions.append(download, preview);
+        item.append(actions);
+      } else {
+        item.append(document.createTextNode(" — original input unavailable for this historical run"));
+      }
+      inventoryList.append(item);
+    }
+  }
+
+  function clearArtifactGroups() {
+    for (const id of ["final-artifact-list", "intermediate-artifact-list", "technical-artifact-list"]) {
+      const element = byId(id);
+      element.replaceChildren();
+      const empty = document.createElement("div");
+      empty.className = "empty";
+      empty.textContent = "No files in this category.";
+      element.append(empty);
+    }
+  }
+
+  function addCategorizedArtifact(containerId, path) {
+    if (!activeRun) return;
+    const media = /\.(pdf|png|jpe?g|webp|wav|mp3|flac|ogg|m4a|mp4|webm)$/i.test(path);
+    const base = `/api/runs/${encodeURIComponent(activeRun)}`;
+    addArtifactRow(
+      byId(containerId),
+      path,
+      `${base}/download?path=${encodeURIComponent(path)}`,
+      `${base}/${media ? "file-preview" : "preview"}?path=${encodeURIComponent(path)}`,
+    );
+  }
+
+  async function refreshHistory() {
+    try {
+      const response = await fetch("/api/runs", { cache: "no-store" });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not load run history.");
+      historyList.replaceChildren();
+      if (!data.runs.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.textContent = "No saved runs found.";
+        historyList.append(empty);
+        return;
+      }
+      for (const run of data.runs) {
+        const row = document.createElement("div");
+        row.className = "artifact-row";
+        const details = document.createElement("span");
+        details.textContent = `${run.task} · ${statusLabel(run.status)} · ${Number(run.duration_seconds || 0).toFixed(1)} s · ${run.verification_status}`;
+        const select = document.createElement("button");
+        select.className = "secondary";
+        select.type = "button";
+        select.textContent = activeRun === run.run_id ? "Selected" : "Inspect";
+        select.disabled = activeRun === run.run_id;
+        select.addEventListener("click", () => selectHistoricalRun(run.run_id));
+        row.append(details, select);
+        historyList.append(row);
+      }
+    } catch (error) {
+      historyList.textContent = error.message || "Could not load run history.";
+    }
+  }
+
+  async function clearHistory() {
+    if (!window.confirm(
+      "Clear completed runs from dashboard history? Task output folders will be kept, archived dashboard input copies will be removed, and active runs will remain."
+    )) return;
+    const button = byId("clear-history");
+    button.disabled = true;
+    historyMessage.textContent = "Clearing completed history…";
+    try {
+      const response = await fetch("/api/runs/clear-history", { method: "POST" });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not clear run history.");
+      await refreshHistory();
+      const cleared = `${data.cleared_count} completed run${data.cleared_count === 1 ? "" : "s"} cleared. Task outputs were kept.`;
+      const active = data.active_count ? ` ${data.active_count} active run${data.active_count === 1 ? " was" : "s were"} kept.` : "";
+      const warning = data.cleanup_warning_count
+        ? ` ${data.cleanup_warning_count} history file cleanup${data.cleanup_warning_count === 1 ? "" : "s"} could not be completed; check the server log.`
+        : "";
+      historyMessage.textContent = cleared + active + warning;
+    } catch (error) {
+      historyMessage.textContent = error.message || "Could not clear run history.";
+    } finally {
+      button.disabled = false;
+    }
+  }
+
+  function resetRunView() {
+    cursor = 0;
+    liveCost = 0;
+    liveRetries = 0;
+    liveSteps = 0;
+    liveVerifications = [];
+    liveVerificationKeys.clear();
+    liveFailures = [];
+    liveWarnings = [];
+    liveRecovery = [];
+    liveEvents = [];
+    latestPlan = "Waiting for the agent to plan.";
+    currentPlan.textContent = latestPlan;
+    eventsContainer.replaceChildren();
+    clearArtifactGroups();
+  }
+
+  function selectHistoricalRun(runId) {
+    activeRun = runId;
+    resetRunView();
+    startButton.disabled = true;
+    startButton.textContent = "Inspecting saved run";
+    stopButton.disabled = true;
+    pollRun();
+    refreshHistory();
+  }
+
+  async function pollRun() {
+    if (!activeRun) return;
+    try {
+      const response = await fetch(`/api/runs/${encodeURIComponent(activeRun)}?cursor=${cursor}`, { cache: "no-store" });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not read run status.");
+      cursor = data.cursor;
+      activeRunTask.textContent = `Task: ${data.task}`;
+      setStatus(data.status);
+      byId("run-error").textContent = data.error || "";
+      byId("stop-note").classList.toggle("hidden", !data.stop_requested);
+      stopButton.disabled = !["queued", "running"].includes(data.status) || data.stop_requested;
+      for (const event of data.events) appendEvent(event);
+      updateMetrics(data.metrics || {});
+      const checks = data.report_available ? data.verification : liveVerifications;
+      renderVerification(checks || []);
+      renderNotices(
+        data.report_available ? data.failed_operations || [] : liveFailures,
+        data.report_available ? data.warnings || [] : liveWarnings,
+        liveRecovery,
+      );
+      setList(assumptionsList, data.assumptions, "No assumptions recorded.", (item) => String(item));
+      renderInputInventory(data.input_files);
+      byId("run-summary").textContent = data.summary || (data.status === "impossible"
+        ? "The task was correctly rejected as impossible or unsupported; no success is claimed."
+        : "The final result will appear here.");
+      renderBreakdown(data.operation_costs, liveEvents);
+      renderProviderAccounting(data.metrics || {}, liveEvents);
+      if (data.report_available) {
+        clearArtifactGroups();
+        const finalFiles = [
+          ...(data.available_files || []).filter((path) => path === "result.md"),
+          ...(data.final_artifacts || []),
+        ];
+        const intermediateFiles = data.intermediate_artifacts || [];
+        const technicalFiles = (data.available_files || []).filter((path) => path !== "result.md");
+        const runFiles = [...new Set([...finalFiles, ...intermediateFiles, ...technicalFiles])];
+        for (const path of finalFiles) addCategorizedArtifact("final-artifact-list", path);
+        for (const path of intermediateFiles) addCategorizedArtifact("intermediate-artifact-list", path);
+        for (const path of technicalFiles) addCategorizedArtifact("technical-artifact-list", path);
+        if (data.status === "completed" && !(data.artifacts || []).length) {
+          const item = document.createElement("div");
+          item.className = "muted";
+          item.textContent = "This task completed without a task output artifact.";
+          byId("final-artifact-list").append(item);
+        }
+        if (data.status === "impossible" && !(data.artifacts || []).length) {
+          const item = document.createElement("div");
+          item.className = "muted";
+          item.textContent = "No task artifact was produced for this correctly rejected task.";
+          byId("final-artifact-list").append(item);
+          byId("run-summary").textContent += "\nNo successful artifact-producing task was claimed.";
+        }
+        if (!runFiles.length && !["completed", "impossible"].includes(data.status)) {
+          const item = document.createElement("div");
+          item.className = "muted";
+          item.textContent = "No output files are available for this run.";
+          byId("technical-artifact-list").append(item);
+        }
+      }
+      if (["completed", "partial", "failed", "impossible", "needs_user_input"].includes(data.status)) {
+        startButton.disabled = false;
+        startButton.textContent = "Run another task";
+        stopButton.disabled = true;
+        activeRun = null;
+        refreshHistory();
+        return;
+      }
+    } catch (error) {
+      byId("run-error").textContent = error.message || "The live trace connection failed.";
+    }
+    window.setTimeout(pollRun, 700);
+  }
+
+  async function stopRun() {
+    if (!activeRun) return;
+    stopButton.disabled = true;
+    try {
+      const response = await fetch(`/api/runs/${encodeURIComponent(activeRun)}/stop`, { method: "POST" });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || data.message || "Could not stop the run.");
+      byId("stop-note").classList.remove("hidden");
+    } catch (error) {
+      byId("run-error").textContent = error.message || "Could not stop the run.";
+      stopButton.disabled = false;
+    }
+  }
+
+  function schemaExample(schema) {
+    const properties = schema?.properties || {};
+    const required = new Set(schema?.required || []);
+    const output = {};
+    for (const [name, property] of Object.entries(properties)) {
+      if (!required.has(name)) continue;
+      if (Object.hasOwn(property, "default")) output[name] = property.default;
+      else if (Array.isArray(property.enum) && property.enum.length) output[name] = property.enum[0];
+      else if (Array.isArray(property.type)) output[name] = null;
+      else if (property.type === "boolean") output[name] = false;
+      else if (property.type === "number" || property.type === "integer") output[name] = 0;
+      else if (property.type === "array") output[name] = [];
+      else if (property.type === "object") output[name] = {};
+      else output[name] = "";
+    }
+    return JSON.stringify(output, null, 2);
+  }
+
+  function selectedTool() {
+    return discoveredTools.find((tool) => tool.name === toolSelect.value);
+  }
+
+  function renderSelectedTool() {
+    const tool = selectedTool();
+    if (!tool) return;
+    byId("mcp-description").textContent = tool.description || "No description provided by the MCP server.";
+    byId("mcp-schema").textContent = safeJson(tool.input_schema || {});
+    byId("mcp-arguments").value = schemaExample(tool.input_schema || {});
+    byId("mcp-call").disabled = false;
+    byId("mcp-error").textContent = "";
+  }
+
+  function updateMcpBudget(budget) {
+    if (!budget) return;
+    const remaining = Number(budget.remaining_inr) || 0;
+    const limit = Number(budget.limit_inr) || 0;
+    const spent = Number(budget.spent_inr) || 0;
+    byId("mcp-budget").textContent = `Spent INR ${spent.toFixed(4)} of ${limit.toFixed(2)}; INR ${remaining.toFixed(4)} remaining. Provider-reported estimates only.`;
+    byId("mcp-budget-progress").style.width = `${limit > 0 ? Math.min(100, spent / limit * 100) : 0}%`;
+  }
+
+  async function connectMcp() {
+    const refresh = byId("refresh-tools");
+    refresh.disabled = true;
+    refresh.textContent = "Connecting…";
+    byId("mcp-error").textContent = "";
+    try {
+      const response = await fetch("/api/mcp/tools", { cache: "no-store" });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not discover MCP tools.");
+      discoveredTools = data.tools || [];
+      toolSelect.replaceChildren();
+      for (const tool of discoveredTools) {
+        const option = document.createElement("option");
+        option.value = tool.name;
+        option.textContent = `${tool.label || tool.name} (${tool.name})`;
+        toolSelect.append(option);
+      }
+      toolSelect.disabled = discoveredTools.length === 0;
+      if (discoveredTools.length) renderSelectedTool();
+      else byId("mcp-description").textContent = "The server returned no tools.";
+      updateMcpBudget(data.budget);
+    } catch (error) {
+      byId("mcp-error").textContent = error.message || "Could not connect to the MCP server.";
+      byId("mcp-schema").textContent = "Tool discovery failed. Check the local server log and MCP environment.";
+    } finally {
+      refresh.disabled = false;
+      refresh.textContent = "Connect / refresh tools";
+    }
+  }
+
+  function findArtifacts(value, output = []) {
+    if (!value || typeof value !== "object") return output;
+    for (const [key, child] of Object.entries(value)) {
+      if (typeof child === "string" && key.toLowerCase().includes("artifact") && (child.includes("/") || child.includes("\\"))) {
+        output.push(child);
+      } else if (child && typeof child === "object") findArtifacts(child, output);
+    }
+    return [...new Set(output)];
+  }
+
+  async function invokeMcp() {
+    const tool = selectedTool();
+    if (!tool) return;
+    let argumentsValue;
+    try {
+      argumentsValue = JSON.parse(byId("mcp-arguments").value || "{}");
+      if (!argumentsValue || Array.isArray(argumentsValue) || typeof argumentsValue !== "object") {
+        throw new Error("Arguments must be a JSON object.");
+      }
+    } catch (error) {
+      byId("mcp-error").textContent = error.message || "Enter valid JSON arguments.";
+      return;
+    }
+    const callButton = byId("mcp-call");
+    callButton.disabled = true;
+    callButton.textContent = "Calling MCP server…";
+    byId("mcp-error").textContent = "";
+    try {
+      const response = await fetch("/api/mcp/call", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tool: tool.name, arguments: argumentsValue }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "MCP invocation failed.");
+      byId("mcp-result-panel").classList.remove("hidden");
+      byId("mcp-output").textContent = safeJson(result);
+      const output = result.structured_content || result;
+      const toolOk = output.ok;
+      const checkStatus = output.data?.verification?.status;
+      const callStatus = byId("mcp-call-status");
+      callStatus.replaceChildren();
+      const toolTag = document.createElement("span");
+      toolTag.className = `badge ${toolOk === true ? "completed" : toolOk === false ? "failed" : "warning"}`;
+      toolTag.textContent = `Tool execution ${toolOk === true ? "succeeded" : toolOk === false ? "failed" : "returned"}`;
+      const verifyTag = document.createElement("span");
+      verifyTag.className = `badge ${checkStatus === "passed" ? "passed" : checkStatus === "failed" ? "failed-check" : "warning"}`;
+      verifyTag.textContent = `Output verification ${checkStatus || "not reported"}`;
+      const latencyTag = document.createElement("span");
+      latencyTag.className = "badge";
+      latencyTag.textContent = `${Number(result.latency_seconds || 0).toFixed(2)} s`;
+      const costTag = document.createElement("span");
+      costTag.className = "badge";
+      costTag.textContent = `Estimated INR ${Number(result.estimated_cost_inr || 0).toFixed(4)}`;
+      callStatus.append(toolTag, verifyTag, latencyTag, costTag);
+      byId("mcp-call-summary").textContent = output.error?.message || output.data?.verification?.method || "MCP call completed; inspect the structured response for details.";
+      const artifacts = findArtifacts(output);
+      const artifactContainer = byId("mcp-artifacts");
+      artifactContainer.replaceChildren();
+      for (const path of artifacts) {
+        addArtifactRow(artifactContainer, path.split(/[\\/]/).pop(), `/api/mcp/download?path=${encodeURIComponent(path)}`, null);
+      }
+      if (!artifacts.length) artifactContainer.textContent = "No artifact path returned.";
+      updateMcpBudget(result.budget);
+    } catch (error) {
+      byId("mcp-error").textContent = error.message || "MCP invocation failed; inspect local server logs.";
+    } finally {
+      callButton.disabled = false;
+      callButton.textContent = "Invoke real MCP tool";
+    }
+  }
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    formError.textContent = "";
+    byId("run-error").textContent = "";
+    eventsContainer.replaceChildren();
+    const emptyTrace = document.createElement("div");
+    emptyTrace.className = "empty";
+    emptyTrace.textContent = "Waiting for trace events…";
+    eventsContainer.append(emptyTrace);
+    clearArtifactGroups();
+    verificationList.replaceChildren();
+    noticesList.replaceChildren();
+    cursor = 0;
+    liveCost = 0;
+    liveRetries = 0;
+    liveSteps = 0;
+    liveVerifications = [];
+    liveVerificationKeys.clear();
+    liveFailures = [];
+    liveWarnings = [];
+    liveRecovery = [];
+    liveEvents = [];
+    latestPlan = "Waiting for the agent to plan.";
+    currentPlan.textContent = latestPlan;
+    byId("run-summary").textContent = "The final result will appear here.";
+    activeRunTask.textContent = `Task: ${form.elements.task.value}`;
+    startButton.disabled = true;
+    startButton.textContent = "Starting…";
+    stopButton.disabled = true;
+    setStatus("queued");
+    updateMetrics({ max_steps: Number(form.elements.max_steps.value), cost_budget_inr: Number(form.elements.max_cost_inr.value) });
+
+    try {
+      const response = await fetch("/api/runs", { method: "POST", body: new FormData(form) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not start the run.");
+      activeRun = data.run_id;
+      setStatus(data.status);
+      byId("run-error").textContent = data.error || "";
+      stopButton.disabled = data.status !== "running" && data.status !== "queued";
+      if (data.status === "failed") {
+        startButton.disabled = false;
+        startButton.textContent = "Run another task";
+        return;
+      }
+      pollRun();
+    } catch (error) {
+      formError.textContent = error.message || "Could not start the run.";
+      startButton.disabled = false;
+      startButton.textContent = "Run task";
+    }
+  });
+
+  byId("stop-button").addEventListener("click", stopRun);
+  byId("refresh-history").addEventListener("click", refreshHistory);
+  byId("clear-history").addEventListener("click", clearHistory);
+  byId("refresh-tools").addEventListener("click", connectMcp);
+  byId("mcp-tool").addEventListener("change", renderSelectedTool);
+  byId("mcp-call").addEventListener("click", invokeMcp);
+  byId("close-preview").addEventListener("click", () => byId("artifact-preview").classList.add("hidden"));
+  byId("close-dashboard").addEventListener("click", async () => {
+    byId("close-message").textContent = "Closing the dashboard server; task runs continue independently…";
+    try {
+      await fetch("/api/dashboard/close", { method: "POST" });
+      byId("close-message").textContent = "Dashboard server closed. You can close this browser tab.";
+    } catch {
+      byId("close-message").textContent = "Dashboard server is no longer reachable.";
+    }
+  });
+
+  updateMetrics({});
+  connectMcp();
+  refreshHistory();
+  const initialRun = new URLSearchParams(location.search).get("run");
+  if (/^[0-9a-f]{32}$/.test(initialRun || "")) {
+    activeRun = initialRun;
+    runPanel.scrollIntoView({ block: "start" });
+    startButton.disabled = true;
+    startButton.textContent = "Task already running";
+    stopButton.disabled = false;
+    eventsContainer.replaceChildren();
+    const emptyTrace = document.createElement("div");
+    emptyTrace.className = "empty";
+    emptyTrace.textContent = "Connecting to CLI execution trace…";
+    eventsContainer.append(emptyTrace);
+    pollRun();
+  }
+</script>
+</body>
+</html>

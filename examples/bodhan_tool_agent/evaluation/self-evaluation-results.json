@@ -1,0 +1,143 @@
+{
+  "schema_version": "1.0",
+  "evaluation_type": "deterministic_simulation",
+  "external_api_calls": 0,
+  "scenario_count": 11,
+  "passed": 11,
+  "failed": 0,
+  "pass_rate": 1.0,
+  "scenarios": [
+    {
+      "scenario_id": "ambiguous-devanagari-audio",
+      "simulated": true,
+      "status": "passed",
+      "reasons": [],
+      "expected_status": "completed",
+      "observed_status": "completed",
+      "tool_calls": [
+        "transcribe_audio"
+      ],
+      "planner_requests": 2
+    },
+    {
+      "scenario_id": "multiple-audio-files",
+      "simulated": true,
+      "status": "passed",
+      "reasons": [],
+      "expected_status": "completed",
+      "observed_status": "completed",
+      "tool_calls": [
+        "transcribe_audio",
+        "transcribe_audio"
+      ],
+      "planner_requests": 3
+    },
+    {
+      "scenario_id": "multi-page-document",
+      "simulated": true,
+      "status": "passed",
+      "reasons": [],
+      "expected_status": "completed",
+      "observed_status": "completed",
+      "tool_calls": [
+        "ocr_document"
+      ],
+      "planner_requests": 2
+    },
+    {
+      "scenario_id": "text-file-translation",
+      "simulated": true,
+      "status": "passed",
+      "reasons": [],
+      "expected_status": "completed",
+      "observed_status": "completed",
+      "tool_calls": [
+        "translate_text"
+      ],
+      "planner_requests": 2
+    },
+    {
+      "scenario_id": "ocr-then-translation",
+      "simulated": true,
+      "status": "passed",
+      "reasons": [],
+      "expected_status": "completed",
+      "observed_status": "completed",
+      "tool_calls": [
+        "ocr_document",
+        "translate_text"
+      ],
+      "planner_requests": 3
+    },
+    {
+      "scenario_id": "verified-speech-output",
+      "simulated": true,
+      "status": "passed",
+      "reasons": [],
+      "expected_status": "completed",
+      "observed_status": "completed",
+      "tool_calls": [
+        "generate_speech"
+      ],
+      "planner_requests": 2
+    },
+    {
+      "scenario_id": "untrusted-ocr-instructions",
+      "simulated": true,
+      "status": "passed",
+      "reasons": [],
+      "expected_status": "completed",
+      "observed_status": "completed",
+      "tool_calls": [
+        "ocr_document"
+      ],
+      "planner_requests": 2
+    },
+    {
+      "scenario_id": "unsupported-video-language",
+      "simulated": true,
+      "status": "passed",
+      "reasons": [],
+      "expected_status": "impossible",
+      "observed_status": "impossible",
+      "tool_calls": [],
+      "planner_requests": 1
+    },
+    {
+      "scenario_id": "missing-input",
+      "simulated": true,
+      "status": "passed",
+      "reasons": [],
+      "expected_status": "needs_user_input",
+      "observed_status": "needs_user_input",
+      "tool_calls": [
+        "transcribe_audio"
+      ],
+      "planner_requests": 2
+    },
+    {
+      "scenario_id": "insufficient-cost-budget",
+      "simulated": true,
+      "status": "passed",
+      "reasons": [],
+      "expected_status": "partial",
+      "observed_status": "partial",
+      "tool_calls": [
+        "translate_text"
+      ],
+      "planner_requests": 1
+    },
+    {
+      "scenario_id": "partial-provider-failure",
+      "simulated": true,
+      "status": "passed",
+      "reasons": [],
+      "expected_status": "partial",
+      "observed_status": "partial",
+      "tool_calls": [
+        "transcribe_audio"
+      ],
+      "planner_requests": 2
+    }
+  ]
+}

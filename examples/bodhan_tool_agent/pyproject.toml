@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools==75.8.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bodhan-tool-agent"
+version = "0.1.0"
+description = "Bodhan Indic model MCP tools and a general task agent"
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+  "httpx==0.28.1",
+  "mcp==1.30.0",
+  "openai==1.75.0",
+  "pydantic==2.11.7",
+  "Pillow==11.1.0",
+  "PyMuPDF==1.25.5",
+  "python-dotenv==1.1.0",
+  "imageio-ffmpeg==0.6.0",
+  "lameenc==1.8.1",
+  "mutagen==1.47.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest==8.3.5", "ruff==0.11.2"]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+bodhan_agent = ["web_ui.html"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

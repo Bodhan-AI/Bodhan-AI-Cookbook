@@ -1,0 +1,1 @@
+Shall we go again sometime, Sharada? I'm feeling very tired today. I'm taking proper precautions, but I'm just a little tired. My mother-in-law said that all this is normal when you're pregnant. Also, I'm eating all these things. Will this deficiency have any effect on my child?
