@@ -1,6 +1,6 @@
 # Design notes
 
-To be filled in as each part is built. Sections:
+Why the tools and the agent are shaped the way they are. The architecture is in [architecture.md](architecture.md), the agent loop in [agent_flow.md](agent_flow.md), and what the live API returns in [api_facts.md](api_facts.md).
 
 ## Tool granularity
 One tool per model capability, with that model's limits handled inside the tool, plus small free helpers (`inspect_media`, `make_srt`, `read_text`, `translate_segments`, `supported_languages`, `list_voices`). There are no task-level tools such as "make an audio summary": planning stays with the agent, where it can be seen and traced, and no caller ever has to chunk audio, text or pages.
