@@ -1,0 +1,836 @@
+{
+  "definitions": "recall (item)      error items with >= 1 counted flag / error items\n  per-label hit      a counted flag overlaps the label span (same frame); a label without\n                     a usable span is hit by a counted flag of its category\n  precision (item)   flagged items that carry a label / flagged items\n  false alarm strict items without injected/human labels (reviewed_preexisting-only\n                     items count as clean) that are flagged / those items\n  false alarm reviewed  items with no labels at all that are flagged / those items\n  localization       labels with a usable span on detected items: a counted flag overlaps\n  category accuracy  labels on detected items: a counted flag has the label's category",
+  "heldout": {
+    "by_category": {
+      "addition": {
+        "category_accuracy": {
+          "ci95": [
+            0.0945,
+            0.9055
+          ],
+          "k": 1,
+          "n": 2,
+          "value": 0.5
+        },
+        "f1": 0.6667,
+        "labels": 2,
+        "localization": {
+          "ci95": [
+            0.3424,
+            1.0
+          ],
+          "k": 2,
+          "n": 2,
+          "value": 1.0
+        },
+        "mean_iou": 0.5097,
+        "precision": {
+          "ci95": [
+            0.0945,
+            0.9055
+          ],
+          "k": 1,
+          "n": 2,
+          "value": 0.5
+        },
+        "recall": {
+          "ci95": [
+            0.3424,
+            1.0
+          ],
+          "k": 2,
+          "n": 2,
+          "value": 1.0
+        },
+        "weak_only": {
+          "ci95": [
+            0.0,
+            0.6576
+          ],
+          "k": 0,
+          "n": 2,
+          "value": 0.0
+        }
+      },
+      "format": {
+        "category_accuracy": {
+          "ci95": [
+            0.3424,
+            1.0
+          ],
+          "k": 2,
+          "n": 2,
+          "value": 1.0
+        },
+        "f1": 1.0,
+        "labels": 2,
+        "localization": {
+          "ci95": [
+            0.3424,
+            1.0
+          ],
+          "k": 2,
+          "n": 2,
+          "value": 1.0
+        },
+        "mean_iou": 1.0,
+        "precision": {
+          "ci95": [
+            0.3424,
+            1.0
+          ],
+          "k": 2,
+          "n": 2,
+          "value": 1.0
+        },
+        "recall": {
+          "ci95": [
+            0.3424,
+            1.0
+          ],
+          "k": 2,
+          "n": 2,
+          "value": 1.0
+        },
+        "weak_only": {
+          "ci95": [
+            0.0,
+            0.6576
+          ],
+          "k": 0,
+          "n": 2,
+          "value": 0.0
+        }
+      },
+      "mistranslation": {
+        "category_accuracy": {
+          "ci95": [
+            0.0,
+            1.0
+          ],
+          "k": 0,
+          "n": 0,
+          "value": null
+        },
+        "f1": 0.0,
+        "labels": 1,
+        "localization": {
+          "ci95": [
+            0.0,
+            1.0
+          ],
+          "k": 0,
+          "n": 0,
+          "value": null
+        },
+        "mean_iou": null,
+        "precision": {
+          "ci95": [
+            0.0,
+            0.5615
+          ],
+          "k": 0,
+          "n": 3,
+          "value": 0.0
+        },
+        "recall": {
+          "ci95": [
+            0.0,
+            0.7935
+          ],
+          "k": 0,
+          "n": 1,
+          "value": 0.0
+        },
+        "weak_only": {
+          "ci95": [
+            0.2065,
+            1.0
+          ],
+          "k": 1,
+          "n": 1,
+          "value": 1.0
+        }
+      },
+      "number_unit": {
+        "category_accuracy": {
+          "ci95": [
+            0.3424,
+            1.0
+          ],
+          "k": 2,
+          "n": 2,
+          "value": 1.0
+        },
+        "f1": 0.8571,
+        "labels": 2,
+        "localization": {
+          "ci95": [
+            0.3424,
+            1.0
+          ],
+          "k": 2,
+          "n": 2,
+          "value": 1.0
+        },
+        "mean_iou": 1.0,
+        "precision": {
+          "ci95": [
+            0.3006,
+            0.9544
+          ],
+          "k": 3,
+          "n": 4,
+          "value": 0.75
+        },
+        "recall": {
+          "ci95": [
+            0.3424,
+            1.0
+          ],
+          "k": 2,
+          "n": 2,
+          "value": 1.0
+        },
+        "weak_only": {
+          "ci95": [
+            0.0,
+            0.6576
+          ],
+          "k": 0,
+          "n": 2,
+          "value": 0.0
+        }
+      },
+      "omission": {
+        "category_accuracy": {
+          "ci95": [
+            0.2065,
+            1.0
+          ],
+          "k": 1,
+          "n": 1,
+          "value": 1.0
+        },
+        "f1": 0.6667,
+        "labels": 2,
+        "localization": {
+          "ci95": [
+            0.2065,
+            1.0
+          ],
+          "k": 1,
+          "n": 1,
+          "value": 1.0
+        },
+        "mean_iou": 0.0,
+        "precision": {
+          "ci95": [
+            0.2065,
+            1.0
+          ],
+          "k": 1,
+          "n": 1,
+          "value": 1.0
+        },
+        "recall": {
+          "ci95": [
+            0.0945,
+            0.9055
+          ],
+          "k": 1,
+          "n": 2,
+          "value": 0.5
+        },
+        "weak_only": {
+          "ci95": [
+            0.0945,
+            0.9055
+          ],
+          "k": 1,
+          "n": 2,
+          "value": 0.5
+        }
+      },
+      "speech_garbled": {
+        "category_accuracy": {
+          "ci95": [
+            0.5655,
+            1.0
+          ],
+          "k": 5,
+          "n": 5,
+          "value": 1.0
+        },
+        "f1": 1.0,
+        "labels": 5,
+        "localization": {
+          "ci95": [
+            0.5655,
+            1.0
+          ],
+          "k": 5,
+          "n": 5,
+          "value": 1.0
+        },
+        "mean_iou": 0.9831,
+        "precision": {
+          "ci95": [
+            0.6097,
+            1.0
+          ],
+          "k": 6,
+          "n": 6,
+          "value": 1.0
+        },
+        "recall": {
+          "ci95": [
+            0.5655,
+            1.0
+          ],
+          "k": 5,
+          "n": 5,
+          "value": 1.0
+        },
+        "weak_only": {
+          "ci95": [
+            0.0,
+            0.4345
+          ],
+          "k": 0,
+          "n": 5,
+          "value": 0.0
+        }
+      },
+      "speech_omission_truncation": {
+        "category_accuracy": {
+          "ci95": [
+            0.4385,
+            1.0
+          ],
+          "k": 3,
+          "n": 3,
+          "value": 1.0
+        },
+        "f1": 0.75,
+        "labels": 5,
+        "localization": {
+          "ci95": [
+            0.4385,
+            1.0
+          ],
+          "k": 3,
+          "n": 3,
+          "value": 1.0
+        },
+        "mean_iou": 0.0,
+        "precision": {
+          "ci95": [
+            0.4385,
+            1.0
+          ],
+          "k": 3,
+          "n": 3,
+          "value": 1.0
+        },
+        "recall": {
+          "ci95": [
+            0.2307,
+            0.8824
+          ],
+          "k": 3,
+          "n": 5,
+          "value": 0.6
+        },
+        "weak_only": {
+          "ci95": [
+            0.1176,
+            0.7693
+          ],
+          "k": 2,
+          "n": 5,
+          "value": 0.4
+        }
+      },
+      "speech_repetition": {
+        "category_accuracy": {
+          "ci95": [
+            0.2065,
+            1.0
+          ],
+          "k": 1,
+          "n": 1,
+          "value": 1.0
+        },
+        "f1": 1.0,
+        "labels": 1,
+        "localization": {
+          "ci95": [
+            0.2065,
+            1.0
+          ],
+          "k": 1,
+          "n": 1,
+          "value": 1.0
+        },
+        "mean_iou": 0.0999,
+        "precision": {
+          "ci95": [
+            0.2065,
+            1.0
+          ],
+          "k": 1,
+          "n": 1,
+          "value": 1.0
+        },
+        "recall": {
+          "ci95": [
+            0.2065,
+            1.0
+          ],
+          "k": 1,
+          "n": 1,
+          "value": 1.0
+        },
+        "weak_only": {
+          "ci95": [
+            0.0,
+            0.7935
+          ],
+          "k": 0,
+          "n": 1,
+          "value": 0.0
+        }
+      },
+      "term_entity": {
+        "category_accuracy": {
+          "ci95": [
+            0.0615,
+            0.7923
+          ],
+          "k": 1,
+          "n": 3,
+          "value": 0.3333
+        },
+        "f1": 1.0,
+        "labels": 3,
+        "localization": {
+          "ci95": [
+            0.4385,
+            1.0
+          ],
+          "k": 3,
+          "n": 3,
+          "value": 1.0
+        },
+        "mean_iou": 0.6263,
+        "precision": {
+          "ci95": [
+            0.2065,
+            1.0
+          ],
+          "k": 1,
+          "n": 1,
+          "value": 1.0
+        },
+        "recall": {
+          "ci95": [
+            0.4385,
+            1.0
+          ],
+          "k": 3,
+          "n": 3,
+          "value": 1.0
+        },
+        "weak_only": {
+          "ci95": [
+            0.0,
+            0.5615
+          ],
+          "k": 0,
+          "n": 3,
+          "value": 0.0
+        }
+      },
+      "wrong_language_script": {
+        "category_accuracy": {
+          "ci95": [
+            0.4385,
+            1.0
+          ],
+          "k": 3,
+          "n": 3,
+          "value": 1.0
+        },
+        "f1": 1.0,
+        "labels": 3,
+        "localization": {
+          "ci95": [
+            0.4385,
+            1.0
+          ],
+          "k": 3,
+          "n": 3,
+          "value": 1.0
+        },
+        "mean_iou": 1.0,
+        "precision": {
+          "ci95": [
+            0.4385,
+            1.0
+          ],
+          "k": 3,
+          "n": 3,
+          "value": 1.0
+        },
+        "recall": {
+          "ci95": [
+            0.4385,
+            1.0
+          ],
+          "k": 3,
+          "n": 3,
+          "value": 1.0
+        },
+        "weak_only": {
+          "ci95": [
+            0.0,
+            0.5615
+          ],
+          "k": 0,
+          "n": 3,
+          "value": 0.0
+        }
+      }
+    },
+    "by_lang": {
+      "bn": {
+        "category_accuracy": {
+          "ci95": [
+            0.5291,
+            0.9776
+          ],
+          "k": 7,
+          "n": 8,
+          "value": 0.875
+        },
+        "f1_items": 0.8235,
+        "false_alarm_reviewed": {
+          "ci95": [
+            0.0,
+            0.4345
+          ],
+          "k": 0,
+          "n": 5,
+          "value": 0.0
+        },
+        "false_alarm_strict": {
+          "ci95": [
+            0.0,
+            0.4345
+          ],
+          "k": 0,
+          "n": 5,
+          "value": 0.0
+        },
+        "items": 15,
+        "localization": {
+          "ci95": [
+            0.6756,
+            1.0
+          ],
+          "k": 8,
+          "n": 8,
+          "value": 1.0
+        },
+        "mean_iou": 0.535,
+        "precision_items": {
+          "ci95": [
+            0.6457,
+            1.0
+          ],
+          "k": 7,
+          "n": 7,
+          "value": 1.0
+        },
+        "recall_items": {
+          "ci95": [
+            0.3968,
+            0.8922
+          ],
+          "k": 7,
+          "n": 10,
+          "value": 0.7
+        },
+        "recall_labels": {
+          "ci95": [
+            0.4343,
+            0.9025
+          ],
+          "k": 8,
+          "n": 11,
+          "value": 0.7273
+        }
+      },
+      "hi": {
+        "category_accuracy": {
+          "ci95": [
+            0.6756,
+            1.0
+          ],
+          "k": 8,
+          "n": 8,
+          "value": 1.0
+        },
+        "f1_items": 0.9412,
+        "false_alarm_reviewed": {
+          "ci95": [
+            0.0,
+            0.2775
+          ],
+          "k": 0,
+          "n": 10,
+          "value": 0.0
+        },
+        "false_alarm_strict": {
+          "ci95": [
+            0.0,
+            0.2775
+          ],
+          "k": 0,
+          "n": 10,
+          "value": 0.0
+        },
+        "items": 19,
+        "localization": {
+          "ci95": [
+            0.6756,
+            1.0
+          ],
+          "k": 8,
+          "n": 8,
+          "value": 1.0
+        },
+        "mean_iou": 0.8739,
+        "precision_items": {
+          "ci95": [
+            0.6756,
+            1.0
+          ],
+          "k": 8,
+          "n": 8,
+          "value": 1.0
+        },
+        "recall_items": {
+          "ci95": [
+            0.565,
+            0.9801
+          ],
+          "k": 8,
+          "n": 9,
+          "value": 0.8889
+        },
+        "recall_labels": {
+          "ci95": [
+            0.565,
+            0.9801
+          ],
+          "k": 8,
+          "n": 9,
+          "value": 0.8889
+        }
+      },
+      "ta": {
+        "category_accuracy": {
+          "ci95": [
+            0.3,
+            0.9032
+          ],
+          "k": 4,
+          "n": 6,
+          "value": 0.6667
+        },
+        "f1_items": 0.9231,
+        "false_alarm_reviewed": {
+          "ci95": [
+            0.0456,
+            0.6994
+          ],
+          "k": 1,
+          "n": 4,
+          "value": 0.25
+        },
+        "false_alarm_strict": {
+          "ci95": [
+            0.0456,
+            0.6994
+          ],
+          "k": 1,
+          "n": 4,
+          "value": 0.25
+        },
+        "items": 10,
+        "localization": {
+          "ci95": [
+            0.6097,
+            1.0
+          ],
+          "k": 6,
+          "n": 6,
+          "value": 1.0
+        },
+        "mean_iou": 0.6071,
+        "precision_items": {
+          "ci95": [
+            0.4869,
+            0.9743
+          ],
+          "k": 6,
+          "n": 7,
+          "value": 0.8571
+        },
+        "recall_items": {
+          "ci95": [
+            0.6097,
+            1.0
+          ],
+          "k": 6,
+          "n": 6,
+          "value": 1.0
+        },
+        "recall_labels": {
+          "ci95": [
+            0.6097,
+            1.0
+          ],
+          "k": 6,
+          "n": 6,
+          "value": 1.0
+        }
+      }
+    },
+    "extra_flags_on_error_items_by_category": {
+      "mistranslation": 1
+    },
+    "overall": {
+      "category_accuracy": {
+        "ci95": [
+          0.6666,
+          0.9525
+        ],
+        "k": 19,
+        "n": 22,
+        "value": 0.8636
+      },
+      "f1_items": 0.8936,
+      "false_alarm_reviewed": {
+        "ci95": [
+          0.0094,
+          0.2464
+        ],
+        "k": 1,
+        "n": 19,
+        "value": 0.0526
+      },
+      "false_alarm_strict": {
+        "ci95": [
+          0.0094,
+          0.2464
+        ],
+        "k": 1,
+        "n": 19,
+        "value": 0.0526
+      },
+      "items": 44,
+      "localization": {
+        "ci95": [
+          0.8513,
+          1.0
+        ],
+        "k": 22,
+        "n": 22,
+        "value": 1.0
+      },
+      "mean_iou": 0.6779,
+      "precision_items": {
+        "ci95": [
+          0.782,
+          0.9919
+        ],
+        "k": 21,
+        "n": 22,
+        "value": 0.9545
+      },
+      "recall_items": {
+        "ci95": [
+          0.6535,
+          0.936
+        ],
+        "k": 21,
+        "n": 25,
+        "value": 0.84
+      },
+      "recall_labels": {
+        "ci95": [
+          0.6647,
+          0.9385
+        ],
+        "k": 22,
+        "n": 26,
+        "value": 0.8462
+      }
+    }
+  },
+  "judge_fluency_bias_heldout": {
+    "bn": {
+      "ci95": [
+        0.0362,
+        0.6245
+      ],
+      "k": 1,
+      "n": 5,
+      "value": 0.2
+    },
+    "hi": {
+      "ci95": [
+        0.1078,
+        0.6032
+      ],
+      "k": 3,
+      "n": 10,
+      "value": 0.3
+    },
+    "ta": {
+      "ci95": [
+        0.15,
+        0.85
+      ],
+      "k": 2,
+      "n": 4,
+      "value": 0.5
+    }
+  },
+  "labels": {
+    "bad_labels": 0,
+    "bad_rows": 0,
+    "by_source": {
+      "injector": 72,
+      "reviewed_preexisting": 5
+    },
+    "items_labelled": 138,
+    "labelled_items_not_in_run": 0,
+    "labels": 77,
+    "rows": 138,
+    "rows_without_labels_field": 0,
+    "unmapped": {}
+  },
+  "split": {
+    "heldout": 44,
+    "train": 94
+  },
+  "status": "ok",
+  "thresholds": {
+    "judge_min_confidence": 0.5,
+    "judge_min_confidence.format": 0.5
+  }
+}

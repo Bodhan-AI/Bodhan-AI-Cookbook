@@ -1,0 +1,5 @@
+{"base": "md02-hi", "type": "format", "severity": "minor", "locate": "line:0", "note": "Bodhan dropped the '##' heading marker; the heading renders as plain text."}
+{"base": "md03-hi", "type": "format", "severity": "minor", "locate": "line:0", "note": "Bodhan dropped the '###' heading marker; the heading renders as plain text."}
+{"base": "md03-bn", "type": "format", "severity": "minor", "locate": "line:0", "note": "Bodhan dropped the '###' heading marker; the heading renders as plain text."}
+{"base": "md03-ta", "type": "format", "severity": "minor", "locate": "line:0", "note": "Bodhan dropped the '###' heading marker; the heading renders as plain text."}
+{"base": "md08-hi", "type": "format", "severity": "major", "locate": "code_inline:0", "note": "Bodhan transliterated the inline code `brake`; code must be kept unchanged."}

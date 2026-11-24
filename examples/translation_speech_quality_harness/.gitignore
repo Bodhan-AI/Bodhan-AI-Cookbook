@@ -1,0 +1,28 @@
+# secrets
+.env
+
+# model-output cache and generated audio (link audio from the README instead)
+.bodhan_cache/
+*.wav
+*.flac
+*.mp3
+*.ogg
+
+# generated outputs
+outputs/*
+!outputs/.gitkeep
+report/
+smoke_out/
+
+# python
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+.ipynb_checkpoints/
+
+# override Cookbook root .gitignore (`examples/*/sample_data/*`) so text datasets are tracked
+!sample_data/*
+sample_data/audio/

@@ -1,0 +1,10 @@
+httpx==0.28.1
+openai==2.38.0
+python-dotenv==1.2.2
+regex==2026.5.9
+numpy==1.26.4
+soundfile==0.14.0
+sacrebleu==2.4.3
+pytest==8.3.3
+jiwer==4.0.0
+rapidfuzz==3.14.5
