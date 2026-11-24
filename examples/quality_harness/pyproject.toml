@@ -1,0 +1,24 @@
+[build-system]
+requires = ["hatchling==1.25.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "bodhan-eval"
+version = "0.1.0"
+description = "Agentic quality harness for Bodhan Indic-Translate and Indic-Speak outputs"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "openai==3.57.0",
+    "sacrebleu==2.6.0",
+    "numpy==2.4.6",
+]
+
+[dependency-groups]
+dev = ["pytest==8.3.3"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/bodhan_eval"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

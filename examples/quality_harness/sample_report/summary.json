@@ -1,0 +1,488 @@
+{
+  "run": {
+    "items": 380,
+    "requests": {
+      "llm": 425,
+      "translate": 1236
+    },
+    "bodhan_inr_outputs": 0.99,
+    "requests_per_minute_assumed": {
+      "translate": 12,
+      "speak": 7,
+      "transcribe": 8,
+      "llm": 8
+    },
+    "projected_fresh_minutes": 103.0,
+    "projected_minutes_per_200": 54.2
+  },
+  "languages": {
+    "bn": {
+      "items": 128,
+      "scored": 128,
+      "skipped": 0,
+      "flagged": 69,
+      "uncertain": 0,
+      "clean": 59,
+      "flagged_share": 0.539,
+      "mqm": 458,
+      "mqm_per_100_words": 12.79,
+      "flags": {
+        "addition": {
+          "major": 4
+        },
+        "format": {
+          "major": 5,
+          "minor": 3
+        },
+        "mistranslation": {
+          "critical": 5,
+          "major": 22,
+          "minor": 4
+        },
+        "number": {
+          "major": 6
+        },
+        "omission": {
+          "critical": 4,
+          "major": 13,
+          "minor": 1
+        },
+        "term": {
+          "major": 9
+        },
+        "wrong_language": {
+          "critical": 6,
+          "major": 1
+        }
+      }
+    },
+    "hi": {
+      "items": 128,
+      "scored": 128,
+      "skipped": 0,
+      "flagged": 68,
+      "uncertain": 0,
+      "clean": 60,
+      "flagged_share": 0.531,
+      "mqm": 342,
+      "mqm_per_100_words": 9.01,
+      "flags": {
+        "addition": {
+          "major": 7
+        },
+        "format": {
+          "major": 7,
+          "minor": 5
+        },
+        "mistranslation": {
+          "critical": 2,
+          "major": 12,
+          "minor": 3
+        },
+        "number": {
+          "major": 9
+        },
+        "omission": {
+          "critical": 1,
+          "major": 10,
+          "minor": 3
+        },
+        "term": {
+          "major": 6,
+          "minor": 1
+        },
+        "wrong_language": {
+          "critical": 3,
+          "major": 3
+        }
+      }
+    },
+    "ta": {
+      "items": 124,
+      "scored": 124,
+      "skipped": 0,
+      "flagged": 69,
+      "uncertain": 0,
+      "clean": 55,
+      "flagged_share": 0.556,
+      "mqm": 403,
+      "mqm_per_100_words": 11.54,
+      "flags": {
+        "addition": {
+          "major": 6
+        },
+        "format": {
+          "major": 9,
+          "minor": 2
+        },
+        "mistranslation": {
+          "critical": 1,
+          "major": 20,
+          "minor": 4
+        },
+        "number": {
+          "major": 13
+        },
+        "omission": {
+          "major": 7,
+          "minor": 1
+        },
+        "term": {
+          "critical": 1,
+          "major": 10,
+          "minor": 1
+        },
+        "wrong_language": {
+          "critical": 4,
+          "major": 2
+        }
+      }
+    }
+  },
+  "targets": [
+    {
+      "name": "Detection recall (labelled errors flagged at their place, held-out)",
+      "value": 0.944,
+      "target": 0.8,
+      "op": ">="
+    },
+    {
+      "name": "False alarms on clean labelled items (held-out)",
+      "value": 0.056,
+      "target": 0.1,
+      "op": "<="
+    },
+    {
+      "name": "Flag precision (flags pointing at a labelled error)",
+      "value": 0.911,
+      "target": null,
+      "op": null
+    },
+    {
+      "name": "Localization (found at the right place, of errors whose item is flagged)",
+      "value": 0.971,
+      "target": null,
+      "op": null
+    },
+    {
+      "name": "Category accuracy (of found errors, flagged in the right category)",
+      "value": 0.726,
+      "target": null,
+      "op": null
+    },
+    {
+      "name": "Judge consistency (same verdict on re-judging)",
+      "value": 0.911,
+      "target": 0.9,
+      "op": ">="
+    }
+  ],
+  "calibration": {
+    "chosen": "keep",
+    "thresholds": {
+      "flag": 0.65,
+      "uncertain": 0.45
+    },
+    "labelled_items": {
+      "usable": 229,
+      "not_in_report": 0,
+      "human": 29,
+      "injected": 200,
+      "clean": 71,
+      "labels": 178
+    },
+    "by_category": {
+      "addition": {
+        "labels": 20,
+        "recall": 0.95,
+        "recall_right_category": 0.85,
+        "item_recall": 0.95,
+        "flags": 18,
+        "precision": 1.0,
+        "precision_right_category": 0.944,
+        "clean_items": 0,
+        "false_alarm_rate": null
+      },
+      "fluency": {
+        "labels": 3,
+        "recall": 0.0,
+        "recall_right_category": 0.0,
+        "item_recall": 1.0,
+        "flags": 0,
+        "precision": null,
+        "precision_right_category": null,
+        "clean_items": 0,
+        "false_alarm_rate": null
+      },
+      "format": {
+        "labels": 21,
+        "recall": 1.0,
+        "recall_right_category": 0.857,
+        "item_recall": 1.0,
+        "flags": 29,
+        "precision": 0.793,
+        "precision_right_category": 0.621,
+        "clean_items": 0,
+        "false_alarm_rate": null
+      },
+      "mistranslation": {
+        "labels": 39,
+        "recall": 0.949,
+        "recall_right_category": 0.538,
+        "item_recall": 0.949,
+        "flags": 33,
+        "precision": 0.758,
+        "precision_right_category": 0.636,
+        "clean_items": 0,
+        "false_alarm_rate": null
+      },
+      "number": {
+        "labels": 22,
+        "recall": 0.955,
+        "recall_right_category": 0.909,
+        "item_recall": 1.0,
+        "flags": 27,
+        "precision": 1.0,
+        "precision_right_category": 0.741,
+        "clean_items": 0,
+        "false_alarm_rate": null
+      },
+      "omission": {
+        "labels": 26,
+        "recall": 1.0,
+        "recall_right_category": 0.615,
+        "item_recall": 1.0,
+        "flags": 28,
+        "precision": 1.0,
+        "precision_right_category": 0.536,
+        "clean_items": 0,
+        "false_alarm_rate": null
+      },
+      "term": {
+        "labels": 27,
+        "recall": 0.889,
+        "recall_right_category": 0.481,
+        "item_recall": 0.926,
+        "flags": 16,
+        "precision": 0.938,
+        "precision_right_category": 0.812,
+        "clean_items": 0,
+        "false_alarm_rate": null
+      },
+      "wrong_language": {
+        "labels": 20,
+        "recall": 1.0,
+        "recall_right_category": 0.85,
+        "item_recall": 1.0,
+        "flags": 17,
+        "precision": 1.0,
+        "precision_right_category": 1.0,
+        "clean_items": 0,
+        "false_alarm_rate": null
+      }
+    }
+  },
+  "top_failures": [
+    {
+      "id": "in22-0154-bodhan~clean-nfd",
+      "lang": "bn",
+      "mqm": 15,
+      "flags": [
+        {
+          "category": "mistranslation",
+          "severity": "major",
+          "text": "আবেদন করেনি",
+          "why": "adjudicator: আবেদন করেনি means 'did not apply/request', not 'did not attract'; wrong verb for 'appeal to' in sense of attraction."
+        },
+        {
+          "category": "mistranslation",
+          "severity": "major",
+          "text": "জনপ্রিয়",
+          "why": "adjudicator: জনপ্রিয় means 'popular' (neutral/positive), losing the negative 'populist' connotation of pandering to low taste."
+        },
+        {
+          "category": "mistranslation",
+          "severity": "major",
+          "text": "দুর্নীতিগ্রস্ত প্রভাব",
+          "why": "adjudicator: দুর্নীতিগ্রস্ত প্রভাব means 'corruption-affected influence' (passive), reversing the causal sense of 'corrupting influence' (active, causing decay)."
+        }
+      ]
+    },
+    {
+      "id": "in22-0698-bodhan~addition",
+      "lang": "bn",
+      "mqm": 15,
+      "flags": [
+        {
+          "category": "addition",
+          "severity": "major",
+          "text": "রোগ নির্ণয়, তীব্রতা এবং ব্যক্তিবিশেষের উপর নির্ভর করে, সেইসাথে কাজের ধরণের উপর নির্ভর করে, ব্যক্তিত্বের ব্যাধিগুলি কাজ বা কর্মক্ষেত্র সামলাতে অসুবিধা সহ সম্পর্কিত হতে পারে, যা আন্তঃব্যক্তিক সম্পর্কগুলিতে হস্তক্ষেপ করে অন্যদের সাথে সমস্যা সৃষ্টি করতে পারে।",
+          "why": "LLM judge (high confidence): Entire segment T2 has no corresponding source text; it adds content about personality disorders and work difficulties unrelated to the source segment S1."
+        },
+        {
+          "category": "mistranslation",
+          "severity": "major",
+          "text": "স্বতন্ত্র",
+          "why": "adjudicator: Translates 'distinctive' (unique/distinct) as 'স্বতন্ত্র' (independent/autonomous), changing the meaning of the communities' description."
+        },
+        {
+          "category": "mistranslation",
+          "severity": "major",
+          "text": "জীবনধারা",
+          "why": "adjudicator: Translates 'life forms' (biological organisms) as 'জীবনধারা' (lifestyles/ways of life), incorrectly shifting the sense from ecology to human behavior."
+        }
+      ]
+    },
+    {
+      "id": "num-un~term",
+      "lang": "ta",
+      "mqm": 15,
+      "flags": [
+        {
+          "category": "term",
+          "severity": "critical",
+          "text": "உலக சுகாதார அமைப்பு 24 அக்டோபர் 1945 அன்று நிறுவப்பட்டது.",
+          "why": "LLM judge (high confidence): Translates 'United Nations' as 'World Health Organization' (WHO), a completely different organization."
+        },
+        {
+          "category": "mistranslation",
+          "severity": "major",
+          "text": "193 பேர்",
+          "why": "adjudicator: Translates '193 members' as '193 people', changing meaning from countries to individuals."
+        }
+      ]
+    },
+    {
+      "id": "in22-0522-bodhan",
+      "lang": "bn",
+      "mqm": 12,
+      "flags": [
+        {
+          "category": "omission",
+          "severity": "minor",
+          "text": "প্রাক-পল্লবন",
+          "why": "adjudicator: Translation omits 'each with their culture' describing the pre-Pallavan people; 'প্রাক-পল্লবন' also appears non-standard."
+        },
+        {
+          "category": "mistranslation",
+          "severity": "minor",
+          "text": "বিকাশ",
+          "why": "adjudicator: 'Flowering' implies flourishing peak; 'বিকাশ' is neutral development, losing the blossoming nuance."
+        },
+        {
+          "category": "mistranslation",
+          "severity": "major",
+          "text": "রূপান্তরকারী পর্যায়",
+          "why": "adjudicator: 'Transitional stage' means a stage of transition; 'রূপান্তরকারী পর্যায়' means transformative phase (causing transformation), reversing the sense."
+        }
+      ]
+    },
+    {
+      "id": "in22-0698-bodhan",
+      "lang": "bn",
+      "mqm": 11,
+      "flags": [
+        {
+          "category": "mistranslation",
+          "severity": "major",
+          "text": "স্বতন্ত্র",
+          "why": "adjudicator: 'স্বতন্ত্র' means independent/isolated, not distinctive; changes meaning of 'seasonally distinctive communities'."
+        },
+        {
+          "category": "mistranslation",
+          "severity": "major",
+          "text": "জীবনধারা",
+          "why": "adjudicator: 'জীবনধারা' means lifestyles, not biological life forms; completely different concept."
+        },
+        {
+          "category": "mistranslation",
+          "severity": "minor",
+          "text": "জলবায়ুর ঋতু",
+          "why": "adjudicator: 'জলবায়ুর ঋতু' means 'season of climate', losing sense of seasonal pattern/cyclical nature implied by 'seasonality'."
+        }
+      ]
+    },
+    {
+      "id": "in22-0735-bodhan",
+      "lang": "bn",
+      "mqm": 11,
+      "flags": [
+        {
+          "category": "omission",
+          "severity": "major",
+          "text": "with a view to achieving enduring solidarity and unity among the countries and peoples of ASEAN",
+          "why": "adjudicator: The clause 'with a view to achieving enduring solidarity and unity among the countries and peoples of ASEAN' is completely missing from the translation."
+        },
+        {
+          "category": "mistranslation",
+          "severity": "major",
+          "text": "এটি একটি",
+          "why": "adjudicator: The translation says 'It is an ASEAN Community' instead of 'It envisions an ASEAN Community', changing the meaning from a vision to a statement of existence."
+        },
+        {
+          "category": "mistranslation",
+          "severity": "minor",
+          "text": "কল্যাণ, জীবিকা এবং কল্যাণ",
+          "why": "adjudicator: The translation omits 'inclusive and harmonious' describing the society, and uses 'কল্যাণ' for both 'well-being' and 'welfare', losing the distinction between the two concepts."
+        }
+      ]
+    },
+    {
+      "id": "ent-rbi~wrong_language",
+      "lang": "bn",
+      "mqm": 10,
+      "flags": [
+        {
+          "category": "wrong_language",
+          "severity": "critical",
+          "text": "இந்த வங்கி நாட்டின் பண விநியோகத்தைக் கட்டுப்படுத்துகிறது.",
+          "why": "script: text in TAMIL script where BENGALI was expected"
+        }
+      ]
+    },
+    {
+      "id": "ent-tiger~mistranslation",
+      "lang": "bn",
+      "mqm": 10,
+      "flags": [
+        {
+          "category": "mistranslation",
+          "severity": "critical",
+          "text": "বেঙ্গল টাইগার (প্যান্থেরা টাইগ্রিস) হল ভারতীয় উপমহাদেশের বাইরের একটি বাঘের উপপ্রজাতি।",
+          "why": "LLM judge (high confidence): The translation says 'outside the Indian subcontinent' while the source says 'native to the Indian subcontinent', reversing the meaning."
+        }
+      ]
+    },
+    {
+      "id": "in22-0086-bodhan~wrong_language",
+      "lang": "hi",
+      "mqm": 10,
+      "flags": [
+        {
+          "category": "wrong_language",
+          "severity": "critical",
+          "text": "মিয়ান মিরের ক্যাম্পে যদিও সিপাহীদের সংখ্যা ইংরেজ সৈন্যদের তুলনায় চারগুণ বেশি ছিল, তবুও মীরাট থেকে খবর না আসা পর্যন্ত ইংরেজ অফিসারদের তাদের সম্পর্কে কোনো সন্দেহ ছিল না এবং যখন খবরটি এল তখন তারা জানতে পারল যে তারা গোপনে মীরাটের সিপাহীদের সাথে যোগাযোগ করছে কিনা তা নির্ধারণ করা কঠিন।",
+          "why": "script: text in BENGALI script where DEVANAGARI was expected"
+        }
+      ]
+    },
+    {
+      "id": "in22-0119-bodhan~wrong_language",
+      "lang": "bn",
+      "mqm": 10,
+      "flags": [
+        {
+          "category": "wrong_language",
+          "severity": "critical",
+          "text": "लड़के भी यौन शोषण के प्रति समान रूप से संवेदनशील होते हैं।",
+          "why": "script: text in DEVANAGARI script where BENGALI was expected"
+        }
+      ]
+    }
+  ],
+  "coverage_gaps": {
+    "speech: skipped: --skip-speech": 380,
+    "judge: error: judge reply has no 'errors' list": 2
+  },
+  "warnings": []
+}

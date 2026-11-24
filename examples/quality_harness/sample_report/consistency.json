@@ -1,0 +1,7 @@
+{
+  "items": 30,
+  "runs": 3,
+  "verdict_agreement": 0.911,
+  "same_verdict_every_run": 26,
+  "category_agreement": 0.811
+}
