@@ -132,9 +132,9 @@ Bodhan Reader supports 22+ official Indian languages with complete native locali
 Bodhan Reader is engineered as an assistive tool built for:
 
 1. **Specially Abled & Visually Impaired Individuals:**
-   - People who cannot see or read printed text can listen to any physical book, document, or sign through high-fidelity, continuous audio synthesis without hitting time limits.
+   - People who cannot see or read printed text can listen to any physical book, document, or sign through continuous audio synthesis without hitting time limits.
 2. **Elderly & Low-Vision Readers:**
-   - Older adults and individuals who suffer from eye strain or weak eyesight no longer need to struggle with tiny text—they can simply turn any page into an easy-to-listen audiobook.
+   - Older adults and individuals who suffer from eye strain or weak eyesight no longer need to struggle with tiny text, they can simply turn any page into an easy-to-listen audiobook.
 3. **People Who Cannot Read (Non-Literate):**
    - Users who cannot read written script can simply take a photo of any document, medicine prescription, government notice, or textbook and immediately hear it spoken aloud in their native tongue.
 4. **Readers Lacking Books in Their Native Language:**
