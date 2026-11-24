@@ -1,0 +1,46 @@
+{"sid": "pro-01", "type": "prose", "speech": true, "text": "Plants make their own food through photosynthesis. They use sunlight, water and carbon dioxide, and they release oxygen into the air."}
+{"sid": "pro-02", "type": "prose", "speech": true, "text": "Washing your hands with soap removes most germs. Do it before eating and after using the toilet."}
+{"sid": "pro-03", "type": "prose", "speech": true, "text": "The heart pumps blood through the whole body. Regular exercise keeps it strong and healthy."}
+{"sid": "pro-04", "type": "prose", "speech": true, "text": "Rainwater can be collected from rooftops and stored in tanks. This simple practice helps villages during the dry season."}
+{"sid": "pro-05", "type": "prose", "speech": true, "text": "Libraries let anyone borrow books for free. Reading every day improves vocabulary and concentration."}
+{"sid": "pro-06", "type": "prose", "speech": true, "text": "Farmers rotate their crops to keep the soil fertile. Growing pulses after wheat adds nitrogen back to the field."}
+{"sid": "pro-07", "type": "prose", "speech": true, "text": "Vaccines teach the immune system to recognise a disease. They have saved millions of lives around the world."}
+{"sid": "pro-08", "type": "prose", "speech": true, "text": "Always switch off lights when you leave a room. Saving electricity also reduces pollution from power plants."}
+{"sid": "pro-09", "type": "prose", "speech": false, "text": "Honeybees communicate the location of flowers through a special dance. The angle of the dance shows the direction of the food."}
+{"sid": "pro-10", "type": "prose", "speech": false, "text": "Volcanoes form where hot molten rock rises through cracks in the crust. Some islands were created entirely by volcanic eruptions."}
+{"sid": "pro-11", "type": "prose", "speech": false, "text": "A balanced diet includes grains, vegetables, fruits and protein. Drinking enough clean water is just as important."}
+{"sid": "pro-12", "type": "prose", "speech": false, "text": "Mangrove forests protect the coast from storms and floods. Their roots also give shelter to young fish."}
+{"sid": "pro-13", "type": "prose", "speech": false, "text": "Sound travels faster in water than in air. Whales use this to call each other across great distances."}
+{"sid": "pro-14", "type": "prose", "speech": false, "text": "Earthquakes cannot be predicted precisely, but buildings can be designed to survive them. Strong foundations and flexible frames make a big difference."}
+{"sid": "num-01", "type": "numbers", "speech": true, "text": "Water boils at 100 °C at sea level. At the top of a mountain 3,000 metres high, it boils at about 90 °C."}
+{"sid": "num-02", "type": "numbers", "speech": true, "text": "The school opens at 8:30 in the morning. Classes end at 2:15 in the afternoon, five days a week."}
+{"sid": "num-03", "type": "numbers", "speech": true, "text": "India became independent on 15 August 1947. The Constitution came into force on 26 January 1950."}
+{"sid": "num-04", "type": "numbers", "speech": true, "text": "An adult needs about 7 to 9 hours of sleep every night. Children need between 9 and 12 hours."}
+{"sid": "num-05", "type": "numbers", "speech": false, "text": "The village has 1,250 families and 3 primary schools. About 65% of the land is used for farming."}
+{"sid": "num-06", "type": "numbers", "speech": false, "text": "Light travels at roughly 300,000 kilometres per second. It reaches the Earth from the Sun in about 8 minutes."}
+{"sid": "num-07", "type": "numbers", "speech": false, "text": "A litre of milk costs 56 rupees in the town market. The price rose by 4 rupees last year."}
+{"sid": "num-08", "type": "numbers", "speech": false, "text": "The bus to the district hospital leaves every 45 minutes. The journey of 32 km takes about 1 hour."}
+{"sid": "num-09", "type": "numbers", "speech": false, "text": "Mix 2 spoons of sugar and half a spoon of salt in 1 litre of clean water. This solution helps a person recover from dehydration."}
+{"sid": "num-10", "type": "numbers", "speech": false, "text": "The Earth takes 365.25 days to go around the Sun. That is why we add one extra day every 4 years."}
+{"sid": "ent-01", "type": "entities", "speech": true, "text": "Isaac Newton described the laws of motion. Albert Einstein later explained gravity as the bending of space and time."}
+{"sid": "ent-02", "type": "entities", "speech": true, "text": "The Ganga flows from the Himalayas to the Bay of Bengal. Varanasi and Patna are two important cities on its banks."}
+{"sid": "ent-03", "type": "entities", "speech": true, "text": "ISRO launched Chandrayaan-3 to study the Moon. The lander touched down near the lunar south pole."}
+{"sid": "ent-04", "type": "entities", "speech": true, "text": "Marie Curie was the first person to win two Nobel Prizes. She studied radioactivity in Paris."}
+{"sid": "ent-05", "type": "entities", "speech": false, "text": "The WHO and UNICEF work together on child health. Their programmes have reduced polio in many countries."}
+{"sid": "ent-06", "type": "entities", "speech": false, "text": "Srinivasa Ramanujan was born in Erode and later worked with G. H. Hardy at Cambridge. His notebooks are still studied by mathematicians."}
+{"sid": "ent-07", "type": "entities", "speech": false, "text": "Python and JavaScript are popular programming languages. Many students start with Python because its syntax is simple."}
+{"sid": "ent-08", "type": "entities", "speech": false, "text": "DNA carries the genetic instructions of living things. James Watson and Francis Crick described its double helix structure."}
+{"sid": "md-01", "type": "markdown", "speech": false, "text": "## Parts of a plant\n\n| Part | Function |\n|---|---|\n| Root | Absorbs water |\n| Leaf | Makes food |\n| Flower | Produces seeds |"}
+{"sid": "md-02", "type": "markdown", "speech": false, "text": "### Safety rules in the lab\n\n- Wear **safety goggles** at all times.\n- Never taste any chemical.\n- Wash your hands before leaving."}
+{"sid": "md-03", "type": "markdown", "speech": false, "text": "| Planet | Moons |\n|---|---|\n| Earth | 1 |\n| Mars | 2 |\n| Jupiter | 95 |"}
+{"sid": "md-04", "type": "markdown", "speech": false, "text": "**Note:** Submit the form before *Friday*. Read the full guidelines at [the portal](https://example.org/guidelines)."}
+{"sid": "md-05", "type": "markdown", "speech": false, "text": "## Steps to plant a sapling\n\n1. Dig a pit about 30 cm deep.\n2. Place the sapling upright.\n3. Fill the pit with soil and water it."}
+{"sid": "md-06", "type": "markdown", "speech": false, "text": "| Food | Main nutrient |\n|---|---|\n| Rice | Carbohydrate |\n| Lentils | Protein |\n| Spinach | Iron |\n\nEat a **variety** of foods every day."}
+{"sid": "md-07", "type": "markdown", "speech": false, "text": "### Saving water at home\n\n- Turn off the tap while brushing.\n- Fix leaking pipes **quickly**.\n- Reuse water from washing vegetables for plants."}
+{"sid": "md-08", "type": "markdown", "speech": false, "text": "Run the command `python main.py` to start the program. The output is saved in the **results** folder."}
+{"sid": "tex-01", "type": "latex", "speech": false, "text": "The area of a circle is $A = \\pi r^2$, where $r$ is the radius."}
+{"sid": "tex-02", "type": "latex", "speech": false, "text": "Newton's second law states that $F = ma$. Force is measured in newtons."}
+{"sid": "tex-03", "type": "latex", "speech": false, "text": "The roots of a quadratic equation are given by $$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$ when $a \\neq 0$."}
+{"sid": "tex-04", "type": "latex", "speech": false, "text": "Kinetic energy is $E_k = \\frac{1}{2}mv^2$. Doubling the speed makes the energy four times larger."}
+{"sid": "tex-05", "type": "latex", "speech": false, "text": "By the Pythagorean theorem, $a^2 + b^2 = c^2$ in every right-angled triangle."}
+{"sid": "tex-06", "type": "latex", "speech": false, "text": "The density of an object is $\\rho = \\frac{m}{V}$. Objects with a density lower than water float."}

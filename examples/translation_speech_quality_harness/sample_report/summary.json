@@ -1,0 +1,387 @@
+{
+  "cost": {
+    "attributed_inr": {
+      "transcribe": 1.4506,
+      "translate": 0.1354
+    },
+    "attributed_total_inr": 1.586,
+    "per_100_items_inr": 0.61,
+    "units": {
+      "llm.completion_tokens": 61689.0,
+      "llm.prompt_tokens": 351870.0,
+      "transcribe.audio_minutes": 14.506,
+      "translate.output_tokens": 6770.0
+    }
+  },
+  "items_scored": 260,
+  "items_total": 260,
+  "judge_consistency": {
+    "items": 30,
+    "note": "The same prompt is sent twice as independent requests (temperature 0); the second request is cached separately.",
+    "per_language_same_verdict": {
+      "bn": 1.0,
+      "hi": 1.0,
+      "ta": 1.0
+    },
+    "same_categories": 0.8667,
+    "same_verdict": 1.0
+  },
+  "llm_model": "openai/gpt-oss-120b",
+  "malformed_lines": 0,
+  "per_category": {
+    "addition": {
+      "by_language": {
+        "bn": 4,
+        "hi": 4,
+        "ta": 5
+      },
+      "by_severity": {
+        "major": 12,
+        "minor": 1
+      },
+      "flags": 13,
+      "items": 13
+    },
+    "format": {
+      "by_language": {
+        "bn": 6,
+        "hi": 7,
+        "ta": 7
+      },
+      "by_severity": {
+        "major": 18,
+        "minor": 2
+      },
+      "flags": 20,
+      "items": 20
+    },
+    "mistranslation": {
+      "by_language": {
+        "bn": 5,
+        "hi": 6,
+        "ta": 8
+      },
+      "by_severity": {
+        "critical": 1,
+        "major": 16,
+        "minor": 2
+      },
+      "flags": 19,
+      "items": 19
+    },
+    "number": {
+      "by_language": {
+        "bn": 4,
+        "hi": 4,
+        "ta": 5
+      },
+      "by_severity": {
+        "critical": 10,
+        "major": 3
+      },
+      "flags": 13,
+      "items": 12
+    },
+    "omission": {
+      "by_language": {
+        "bn": 4,
+        "hi": 4,
+        "ta": 4
+      },
+      "by_severity": {
+        "major": 12
+      },
+      "flags": 12,
+      "items": 12
+    },
+    "speech_garbled": {
+      "by_language": {
+        "bn": 3,
+        "hi": 4,
+        "ta": 3
+      },
+      "by_severity": {
+        "major": 10
+      },
+      "flags": 10,
+      "items": 10
+    },
+    "speech_omission": {
+      "by_language": {
+        "bn": 8,
+        "hi": 9,
+        "ta": 9
+      },
+      "by_severity": {
+        "critical": 20,
+        "major": 6
+      },
+      "flags": 26,
+      "items": 24
+    },
+    "speech_repetition": {
+      "by_language": {
+        "bn": 4,
+        "hi": 4,
+        "ta": 4
+      },
+      "by_severity": {
+        "major": 12
+      },
+      "flags": 12,
+      "items": 12
+    },
+    "term": {
+      "by_language": {
+        "bn": 4,
+        "hi": 3,
+        "ta": 4
+      },
+      "by_severity": {
+        "major": 11
+      },
+      "flags": 11,
+      "items": 10
+    },
+    "wrong_language": {
+      "by_language": {
+        "bn": 4,
+        "hi": 4,
+        "ta": 4
+      },
+      "by_severity": {
+        "critical": 9,
+        "major": 3
+      },
+      "flags": 12,
+      "items": 12
+    }
+  },
+  "per_language": {
+    "bn": {
+      "by_category": {
+        "addition": 4,
+        "format": 6,
+        "mistranslation": 5,
+        "number": 4,
+        "omission": 4,
+        "speech_garbled": 3,
+        "speech_omission": 8,
+        "speech_repetition": 4,
+        "term": 4,
+        "wrong_language": 4
+      },
+      "by_severity": {
+        "critical": 12,
+        "major": 34
+      },
+      "checked": 85,
+      "errors": 0,
+      "flag_rate": 0.4824,
+      "flagged": 41,
+      "items": 85,
+      "mqm_score": 82.07,
+      "skipped": 0,
+      "source_words": 1617
+    },
+    "hi": {
+      "by_category": {
+        "addition": 4,
+        "format": 7,
+        "mistranslation": 6,
+        "number": 4,
+        "omission": 4,
+        "speech_garbled": 4,
+        "speech_omission": 9,
+        "speech_repetition": 4,
+        "term": 3,
+        "wrong_language": 4
+      },
+      "by_severity": {
+        "critical": 13,
+        "major": 34,
+        "minor": 2
+      },
+      "checked": 87,
+      "errors": 0,
+      "flag_rate": 0.5172,
+      "flagged": 45,
+      "items": 87,
+      "mqm_score": 81.39,
+      "skipped": 0,
+      "source_words": 1623
+    },
+    "ta": {
+      "by_category": {
+        "addition": 5,
+        "format": 7,
+        "mistranslation": 8,
+        "number": 5,
+        "omission": 4,
+        "speech_garbled": 3,
+        "speech_omission": 9,
+        "speech_repetition": 4,
+        "term": 4,
+        "wrong_language": 4
+      },
+      "by_severity": {
+        "critical": 15,
+        "major": 35,
+        "minor": 3
+      },
+      "checked": 88,
+      "errors": 0,
+      "flag_rate": 0.5341,
+      "flagged": 47,
+      "items": 88,
+      "mqm_score": 80.05,
+      "skipped": 0,
+      "source_words": 1644
+    }
+  },
+  "quality_vs_labels": {
+    "category_accuracy": 1.0,
+    "detection_recall": 0.9697,
+    "false_alarm_rate": 0.0391,
+    "localization": 0.9213,
+    "n_clean": 128,
+    "n_errors": 132,
+    "n_labelled_items": 260,
+    "per_category": {
+      "addition": {
+        "detection_recall": 1.0,
+        "f1": 0.96,
+        "fn": 0,
+        "fp": 1,
+        "precision": 0.9231,
+        "recall": 1.0,
+        "tp": 12
+      },
+      "format": {
+        "detection_recall": 0.9524,
+        "f1": 0.9756,
+        "fn": 1,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 0.9524,
+        "tp": 20
+      },
+      "mistranslation": {
+        "detection_recall": 1.0,
+        "f1": 0.5385,
+        "fn": 0,
+        "fp": 12,
+        "precision": 0.3684,
+        "recall": 1.0,
+        "tp": 7
+      },
+      "number": {
+        "detection_recall": 1.0,
+        "f1": 1.0,
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 12
+      },
+      "omission": {
+        "detection_recall": 1.0,
+        "f1": 1.0,
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 12
+      },
+      "speech_garbled": {
+        "detection_recall": 1.0,
+        "f1": 1.0,
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 10
+      },
+      "speech_omission": {
+        "detection_recall": 0.9583,
+        "f1": 0.9583,
+        "fn": 1,
+        "fp": 1,
+        "precision": 0.9583,
+        "recall": 0.9583,
+        "tp": 23
+      },
+      "speech_repetition": {
+        "detection_recall": 1.0,
+        "f1": 1.0,
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 12
+      },
+      "term": {
+        "detection_recall": 0.8,
+        "f1": 0.8,
+        "fn": 2,
+        "fp": 2,
+        "precision": 0.8,
+        "recall": 0.8,
+        "tp": 8
+      },
+      "wrong_language": {
+        "detection_recall": 1.0,
+        "f1": 1.0,
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 12
+      }
+    },
+    "per_language": {
+      "bn": {
+        "clean": 43,
+        "detection_recall": 0.9286,
+        "errors": 42,
+        "false_alarm_rate": 0.0465
+      },
+      "hi": {
+        "clean": 43,
+        "detection_recall": 1.0,
+        "errors": 44,
+        "false_alarm_rate": 0.0233
+      },
+      "ta": {
+        "clean": 42,
+        "detection_recall": 0.9783,
+        "errors": 46,
+        "false_alarm_rate": 0.0476
+      }
+    }
+  },
+  "quality_vs_labels_cross_validated": {
+    "category_accuracy": 1.0,
+    "detection_recall": 0.9621,
+    "false_alarm_rate": 0.0781,
+    "folds": 5,
+    "localization": 0.9205
+  },
+  "speech_checked_items": 92,
+  "status_counts": {
+    "clean": 127,
+    "flagged": 133
+  },
+  "thresholds": {
+    "addition": 0.6,
+    "format": 0.9,
+    "mistranslation": 0.85,
+    "number": 0.9,
+    "omission": 0.9,
+    "speech_garbled": 0.65,
+    "speech_omission": 0.7,
+    "speech_repetition": 0.55,
+    "term": 0.9,
+    "wrong_language": 0.6
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "default_threshold": 0.55,
+  "deny_weight": 0.8,
+  "min_labels_to_retune": 6,
+  "note": "Check weights are priors on how far each checker can be trusted alone. Category thresholds come from calibrating on the demo set with the reviewed labels (data/labels_review.jsonl); see sample_report/calibration.json (grouped 5-fold CV). Supplying --calibration re-tunes every category with >= min_labels_to_retune labelled examples.",
+  "thresholds": {
+    "addition": 0.6,
+    "format": 0.9,
+    "mistranslation": 0.85,
+    "number": 0.9,
+    "omission": 0.9,
+    "speech_garbled": 0.65,
+    "speech_omission": 0.7,
+    "speech_repetition": 0.55,
+    "term": 0.9,
+    "wrong_language": 0.6
+  },
+  "verify_band": 0.25,
+  "verify_band_thresholds": {
+    "addition": 0.55,
+    "format": 0.55,
+    "mistranslation": 0.55,
+    "number": 0.55,
+    "omission": 0.55,
+    "speech_garbled": 0.55,
+    "speech_omission": 0.55,
+    "speech_repetition": 0.55,
+    "term": 0.55,
+    "wrong_language": 0.55
+  },
+  "version": 1,
+  "weights": {
+    "asr_alignment": 1.0,
+    "audio_signal": 1.0,
+    "backtranslation": 0.6,
+    "entities": 0.75,
+    "format": 1.0,
+    "judge": 0.9,
+    "length": 0.5,
+    "numbers": 1.0,
+    "reference": 0.5,
+    "script_lang": 1.0,
+    "verifier": 0.9
+  }
+}

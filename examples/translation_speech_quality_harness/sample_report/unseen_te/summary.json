@@ -1,0 +1,72 @@
+{
+  "cost": {
+    "attributed_inr": {
+      "speak": 0.3774,
+      "transcribe": 0.0966,
+      "translate": 0.0173
+    },
+    "attributed_total_inr": 0.4913,
+    "per_100_items_inr": 4.0942,
+    "units": {
+      "llm.completion_tokens": 2061.0,
+      "llm.prompt_tokens": 12284.0,
+      "speak.input_chars": 629.0,
+      "transcribe.audio_minutes": 0.966,
+      "translate.output_tokens": 866.0
+    }
+  },
+  "items_scored": 12,
+  "items_total": 12,
+  "judge_consistency": null,
+  "llm_model": "openai/gpt-oss-120b",
+  "malformed_lines": 0,
+  "per_category": {
+    "mistranslation": {
+      "by_language": {
+        "te": 1
+      },
+      "by_severity": {
+        "major": 1
+      },
+      "flags": 1,
+      "items": 1
+    }
+  },
+  "per_language": {
+    "te": {
+      "by_category": {
+        "mistranslation": 1
+      },
+      "by_severity": {
+        "major": 1
+      },
+      "checked": 12,
+      "errors": 0,
+      "flag_rate": 0.0833,
+      "flagged": 1,
+      "items": 12,
+      "mqm_score": 97.72,
+      "skipped": 0,
+      "source_words": 219
+    }
+  },
+  "quality_vs_labels": null,
+  "quality_vs_labels_cross_validated": null,
+  "speech_checked_items": 6,
+  "status_counts": {
+    "clean": 11,
+    "flagged": 1
+  },
+  "thresholds": {
+    "addition": 0.6,
+    "format": 0.9,
+    "mistranslation": 0.85,
+    "number": 0.9,
+    "omission": 0.9,
+    "speech_garbled": 0.65,
+    "speech_omission": 0.7,
+    "speech_repetition": 0.55,
+    "term": 0.9,
+    "wrong_language": 0.6
+  }
+}

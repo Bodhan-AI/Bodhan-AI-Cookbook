@@ -1,0 +1,18 @@
+.env
+.venv/
+__pycache__/
+.ipynb_checkpoints/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+# model-output cache and generated audio stay out of git (audio is linked from the README)
+.bodhan_eval_cache/
+data/audio/
+outputs/*
+!outputs/.gitkeep
+sample_data/*
+!sample_data/.gitkeep
+report*/audio/
+# local runs (e.g. while recording the demo); the committed example lives in sample_report/
+report_*/
+live_cache/

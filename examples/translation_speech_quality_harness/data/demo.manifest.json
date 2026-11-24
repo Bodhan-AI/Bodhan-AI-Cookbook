@@ -1,0 +1,35 @@
+{
+  "items": 260,
+  "by_type": {
+    "addition": 12,
+    "clean": 138,
+    "format": 12,
+    "garbled": 10,
+    "mistranslation": 7,
+    "number": 12,
+    "omission": 12,
+    "repetition": 12,
+    "speech_omission": 12,
+    "term": 9,
+    "truncation": 12,
+    "wrong_language": 12
+  },
+  "langs": [
+    "hi",
+    "ta",
+    "bn"
+  ],
+  "seed": 7,
+  "spent_inr": 3.2802,
+  "cost": {
+    "attributed_inr": {
+      "speak": 3.2418,
+      "translate": 0.1148
+    },
+    "attributed_total_inr": 3.3566,
+    "units": {
+      "speak.input_chars": 5403.0,
+      "translate.output_tokens": 5739.0
+    }
+  }
+}

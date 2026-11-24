@@ -1,0 +1,341 @@
+{
+  "baseline": "outputs/report_demo/items.jsonl",
+  "by_category": {
+    "addition": {
+      "baseline": 13,
+      "current": 10,
+      "delta": -3
+    },
+    "format": {
+      "baseline": 20,
+      "current": 22,
+      "delta": 2
+    },
+    "mistranslation": {
+      "baseline": 19,
+      "current": 15,
+      "delta": -4
+    },
+    "number": {
+      "baseline": 13,
+      "current": 14,
+      "delta": 1
+    },
+    "omission": {
+      "baseline": 12,
+      "current": 16,
+      "delta": 4
+    },
+    "speech_garbled": {
+      "baseline": 10,
+      "current": 10,
+      "delta": 0
+    },
+    "speech_omission": {
+      "baseline": 26,
+      "current": 26,
+      "delta": 0
+    },
+    "speech_repetition": {
+      "baseline": 12,
+      "current": 12,
+      "delta": 0
+    },
+    "term": {
+      "baseline": 11,
+      "current": 18,
+      "delta": 7
+    },
+    "wrong_language": {
+      "baseline": 12,
+      "current": 10,
+      "delta": -2
+    }
+  },
+  "by_language": {
+    "bn": {
+      "baseline": 46,
+      "current": 48,
+      "delta": 2
+    },
+    "hi": {
+      "baseline": 49,
+      "current": 48,
+      "delta": -1
+    },
+    "ta": {
+      "baseline": 53,
+      "current": 57,
+      "delta": 4
+    }
+  },
+  "counts": {
+    "changed_outputs": 31,
+    "common_items": 260,
+    "new_flags": 21,
+    "new_major_or_worse": 21,
+    "newly_clean_items": 14,
+    "newly_flagged_items": 11,
+    "only_in_baseline": 0,
+    "only_in_current": 0,
+    "resolved_flags": 16
+  },
+  "improvements": [
+    {
+      "category": "number",
+      "id": "num-05.bn.inj-number",
+      "lang": "bn",
+      "message": "Source number '3' appears as '৬' in the translation.",
+      "severity": "critical",
+      "source_text": "3",
+      "text": "৬"
+    },
+    {
+      "category": "wrong_language",
+      "id": "pro-03.bn.inj-wrong_language",
+      "lang": "bn",
+      "message": "The text reads as Assamese, not Bengali (function words / characters).",
+      "severity": "critical",
+      "source_text": null,
+      "text": "হৃদযন্ত্ৰই গোটেই শৰীৰত তেজ পাম্প কৰে। নিয়মীয়া ব্যায়ামে ইয়াক শক্তিশালী আৰু সুস্থ কৰি ৰাখে।"
+    },
+    {
+      "category": "wrong_language",
+      "id": "pro-10.hi.inj-wrong_language",
+      "lang": "hi",
+      "message": "The text reads as Marathi, not Hindi (function words / characters).",
+      "severity": "critical",
+      "source_text": null,
+      "text": "ज्वालामुखी तेथे तयार होतात जेथे उष्ण वितळलेले खडक पृष्ठभागातील भेगांमधून वर येतात. काही बेटे पूर्णपणे ज्वालामुखीच्या उद्रेकामुळे निर्माण झाली होती."
+    },
+    {
+      "category": "number",
+      "id": "num-08.bn.inj-number",
+      "lang": "bn",
+      "message": "Source number '32' appears as '৩৫' in the translation.",
+      "severity": "major",
+      "source_text": "32",
+      "text": "৩৫"
+    },
+    {
+      "category": "format",
+      "id": "md-04.hi.inj-format",
+      "lang": "hi",
+      "message": "Link URLs differ from the source.",
+      "severity": "major",
+      "source_text": "https://example.org/guidelines",
+      "text": "[पोर्टल](https://example.com/guidelines)"
+    },
+    {
+      "category": "omission",
+      "id": "ent-05.hi.inj-omission",
+      "lang": "hi",
+      "message": "The translation omits the second sentence of the source, which states that the programmes have reduced polio in many countries.",
+      "severity": "major",
+      "source_text": "Their programmes have reduced polio in many countries.",
+      "text": null
+    },
+    {
+      "category": "omission",
+      "id": "ent-05.ta.inj-omission",
+      "lang": "ta",
+      "message": "The translation omits the second sentence of the source, which states that their programmes have reduced polio in many countries.",
+      "severity": "major",
+      "source_text": "Their programmes have reduced polio in many countries.",
+      "text": null
+    },
+    {
+      "category": "addition",
+      "id": "pro-11.ta.inj-addition",
+      "lang": "ta",
+      "message": "The translation adds a third sentence about using sunlight, water and carbon dioxide to release oxygen, which is not present in the source text.",
+      "severity": "major",
+      "source_text": null,
+      "text": "அவை சூரிய ஒளி, நீர் மற்றும் கார்பன் டை ஆக்சைடு ஆகியவற்றை பயன்படுத்தி, ஆக்சிஜனை காற்றில் வெளியிடுகின்றன"
+    },
+    {
+      "category": "addition",
+      "id": "num-01.bn.inj-addition",
+      "lang": "bn",
+      "message": "The translation includes an extra sentence about DNA that is not present in the source text, adding unrelated information.",
+      "severity": "major",
+      "source_text": null,
+      "text": "ডিএনএ জীবন্ত বস্তুর বংশগত নির্দেশ বহন করে"
+    },
+    {
+      "category": "omission",
+      "id": "num-09.bn.inj-omission",
+      "lang": "bn",
+      "message": "The translation does not include the instruction to mix sugar, salt, and water, which is a substantive part of the source text.",
+      "severity": "major",
+      "source_text": "Mix 2 spoons of sugar and half a spoon of salt in 1 litre of clean water.",
+      "text": null
+    }
+  ],
+  "newly_clean_items": [
+    "ent-05.hi.inj-omission",
+    "ent-05.ta.inj-omission",
+    "md-04.hi.inj-format",
+    "num-01.bn.inj-addition",
+    "num-05.bn.inj-number",
+    "num-06.hi.inj-addition",
+    "num-08.bn.inj-number",
+    "num-09.bn.inj-omission",
+    "pro-03.bn.inj-wrong_language",
+    "pro-03.ta.inj-mistranslation",
+    "pro-04.bn.inj-addition",
+    "pro-10.hi.inj-wrong_language",
+    "pro-11.ta.inj-addition",
+    "pro-14.hi.inj-mistranslation"
+  ],
+  "newly_flagged_items": [
+    "ent-07.hi",
+    "md-01.ta",
+    "md-08.bn",
+    "num-01.ta",
+    "num-06.bn",
+    "num-08.bn",
+    "pro-10.bn",
+    "pro-11.bn",
+    "tex-01.bn",
+    "tex-01.ta",
+    "tex-06.hi"
+  ],
+  "regressions": [
+    {
+      "category": "number",
+      "id": "num-01.ta",
+      "lang": "ta",
+      "message": "Source number '3,000' appears as '3,700' in the translation.",
+      "severity": "critical",
+      "source_text": "3,000",
+      "text": "3,700"
+    },
+    {
+      "category": "number",
+      "id": "num-08.bn",
+      "lang": "bn",
+      "message": "Source number '45' appears as '৬৫' in the translation.",
+      "severity": "critical",
+      "source_text": "45",
+      "text": "৬৫"
+    },
+    {
+      "category": "number",
+      "id": "num-06.bn",
+      "lang": "bn",
+      "message": "Source number '300,000' appears as '০০০০০০' in the translation.",
+      "severity": "critical",
+      "source_text": "300,000",
+      "text": "০০০০০০"
+    },
+    {
+      "category": "format",
+      "id": "md-01.ta",
+      "lang": "ta",
+      "message": "The translation omitted the markdown heading \"## Parts of a plant\" present in the source.",
+      "severity": "major",
+      "source_text": null,
+      "text": null
+    },
+    {
+      "category": "omission",
+      "id": "ent-07.hi",
+      "lang": "hi",
+      "message": "The translation completely omits the first sentence of the source, which states that Python and JavaScript are popular programming languages. This loss changes the overall information conveyed.",
+      "severity": "major",
+      "source_text": "Python and JavaScript are popular programming languages.",
+      "text": null
+    },
+    {
+      "category": "term",
+      "id": "ent-07.hi",
+      "lang": "hi",
+      "message": "The translation leaves out the mention of JavaScript, which is present in the source.",
+      "severity": "major",
+      "source_text": "JavaScript",
+      "text": null
+    },
+    {
+      "category": "omission",
+      "id": "ent-07.ta",
+      "lang": "ta",
+      "message": "The translation does not include the first sentence of the source, which states that Python and JavaScript are popular programming languages. This information is completely missing.",
+      "severity": "major",
+      "source_text": "Python and JavaScript are popular programming languages.",
+      "text": null
+    },
+    {
+      "category": "term",
+      "id": "md-06.ta",
+      "lang": "ta",
+      "message": "The word \"[…]\" means Spinach, not Lentils as required by the source.",
+      "severity": "major",
+      "source_text": "Lentils",
+      "text": "கீரை"
+    },
+    {
+      "category": "term",
+      "id": "md-06.ta",
+      "lang": "ta",
+      "message": "The word \"[…]\" means Iron, not Protein as required by the source.",
+      "severity": "major",
+      "source_text": "Protein",
+      "text": "இரும்புச்சத்து"
+    },
+    {
+      "category": "omission",
+      "id": "pro-11.bn",
+      "lang": "bn",
+      "message": "The translation completely omits the first sentence about a balanced diet, providing only the part about drinking water.",
+      "severity": "major",
+      "source_text": "A balanced diet includes grains, vegetables, fruits and protein.",
+      "text": null
+    },
+    {
+      "category": "term",
+      "id": "ent-07.ta",
+      "lang": "ta",
+      "message": "The translation omits the term 'JavaScript' mentioned in the source, resulting in a missing term.",
+      "severity": "major",
+      "source_text": "JavaScript",
+      "text": null
+    },
+    {
+      "category": "term",
+      "id": "md-06.bn",
+      "lang": "bn",
+      "message": "The translation omits the source term 'Rice' (and its nutrient) from the table, so the term is missing.",
+      "severity": "major",
+      "source_text": "Rice",
+      "text": null
+    },
+    {
+      "category": "term",
+      "id": "md-06.bn",
+      "lang": "bn",
+      "message": "The translation omits the source term 'Carbohydrate' (and its associated item), so the term is not rendered.",
+      "severity": "major",
+      "source_text": "Carbohydrate",
+      "text": null
+    },
+    {
+      "category": "term",
+      "id": "md-07.hi",
+      "lang": "hi",
+      "message": "The translation omits the first bullet \"Turn off the tap while brushing.\" which is a content loss.",
+      "severity": "major",
+      "source_text": "Turn",
+      "text": null
+    },
+    {
+      "category": "omission",
+      "id": "md-07.hi",
+      "lang": "hi",
+      "message": "The first bullet point from the source is completely missing in the Hindi translation.",
+      "severity": "major",
+      "source_text": "Turn off the tap while brushing.",
+      "text": "बचाना\n\n- टपकती"
+    }
+  ]
+}
