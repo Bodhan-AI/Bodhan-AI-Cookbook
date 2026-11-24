@@ -1,0 +1,6 @@
+requests==2.34.2
+python-dotenv==1.2.4
+pymupdf==2.1
+streamlit==1.67.0
+ipython==9.18.1
+pytest==9.2.0
