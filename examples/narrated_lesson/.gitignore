@@ -1,0 +1,10 @@
+.env
+.venv/
+__pycache__/
+.ipynb_checkpoints/
+node_modules/
+sample_data/*
+!sample_data/.gitkeep
+outputs/*
+!outputs/.gitkeep
+.pytest_cache/
