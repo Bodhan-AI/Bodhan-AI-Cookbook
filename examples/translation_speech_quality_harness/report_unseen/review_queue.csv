@@ -1,0 +1,11 @@
+id,lang,category,severity,confidence,source_span,translation_span,source_quote,translation_quote,checks,human_label,human_severity
+sci-boiling,mr,number,major,0.625,"[18, 53]","[33, 42]",Water boils at 100 °C at sea level.,१०० °C ला,regen_diff,,
+sci-boiling,mr,number,major,0.625,"[54, 136]","[118, 126]","On a mountain at 3,000 m the air pressure is lower, so water boils at about 90 °C.",९० °C ला,regen_diff,,
+wmt-109,mr,mistranslation,major,0.85,"[61, 74]","[29, 50]",vegan options,शाकाहारी पर्यायांसाठी,judge,,
+wmt-109,mr,mistranslation,major,0.85,"[109, 125]","[81, 99]",vegan steak bake,शाकाहारी स्टेक बेक,judge,,
+wmt-125,mr,number,major,0.85,"[252, 269]","[139, 144]",tens of thousands,हजारो,judge,,
+wmt-130,mr,term,minor,0.85,"[104, 122]","[86, 103]",Beyond These Walls,बियॉन्ड धिस वॉल्स,judge,,
+wmt-2,mr,term,minor,0.85,"[1, 37]","[11, 31]",People Swimming in the Swimming Pool,पूलमध्ये पोहणारे लोक,judge,,
+wmt-2,mr,speech_omission,major,0.7,null,"[136, 163]",,फोटो सौजन्य: व्हिसेंते सिसो,transcript,,
+wmt-2,ur,term,minor,0.85,"[98, 112]","[85, 98]",Tierra del Sol,ٹیررا ڈیل سول,judge,,
+wmt-2,ur,speech_omission,major,0.7,null,"[140, 164]",,تصویر بشکریہ وسینٹے سیسو,transcript,,

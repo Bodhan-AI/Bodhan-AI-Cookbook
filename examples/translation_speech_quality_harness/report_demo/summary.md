@@ -1,0 +1,80 @@
+# Quality report
+
+Items scored: **120** · skipped: **0** · model cost: **₹1.30**
+
+Bengali (bn) has the highest weighted error rate at 86.0 errors per 1,000 words, making it the worst‑performing language. The “format” category has the most errors overall (10 across all languages), so it is the weakest error type. All five quality targets were achieved: detection recall = 1.0, false‑alarm rate = 0.0, localization = 0.984, category accuracy = 0.951, and judge consistency = 0.945. *(Written by the LLM from the numbers below.)*
+
+## Headline
+
+- Worst language: **bn**, 86.0 weighted errors per 1,000 source words.
+- Most frequent error: **format**, 10 flags.
+
+## Per language
+
+| Language | clean | flagged | review | unscored | flags | weighted / 1k words |
+| --- | --- | --- | --- | --- | --- | --- |
+| bn | 18 | 20 | 2 | 0 | 20 | 86.0 |
+| hi | 15 | 21 | 4 | 0 | 22 | 71.0 |
+| ta | 12 | 20 | 8 | 0 | 21 | 73.8 |
+
+Weights: minor 1, major 5, critical 10. Lower is better.
+
+## Flags per category
+
+| Category | bn | hi | ta | total |
+| --- | --- | --- | --- | --- |
+| format | 2 | 5 | 3 | 10 |
+| addition | 3 | 2 | 2 | 7 |
+| mistranslation | 3 | 2 | 2 | 7 |
+| garbled | 2 | 2 | 2 | 6 |
+| omission | 2 | 2 | 2 | 6 |
+| speech_omission | 2 | 2 | 2 | 6 |
+| speech_repetition | 2 | 2 | 2 | 6 |
+| wrong_language | 2 | 2 | 2 | 6 |
+| number | 2 | 1 | 2 | 5 |
+| term | 0 | 2 | 2 | 4 |
+
+## Top failures
+
+- **wmt-125 / bn**: wrong_language, critical, confidence 0.99, found by judge, regen_diff, script
+  - source: “state prisons”
+  - translation: “घर के करीब, वाशिंगटन ने हाल ही में राज्य की जेलों, पुलिस, स्कूलों और अन्य संस्थाओं की स्वतंत्र निगरानी स्थापित या विस्त…”
+- **wmt-28 / bn**: addition, critical, confidence 0.99, found by back_translation, judge, regen_diff
+  - source: “European brewers have warned that exempting wine and not beer from deposit return schemes and reuse targets is unfair a…”
+  - translation: “তবে ঋষি সুনাকের দৃষ্টিভঙ্গিতে সমস্যা রয়েছে।”
+- **sci-boiling / ta**: mistranslation, critical, confidence 0.94, found by judge, regen_diff
+  - source: “boils”
+  - translation: “உறைந்துவிடுகிறது”
+- **civics-election / bn**: number, major, confidence 0.99, found by judge, numbers, regen_diff
+  - source: “910”
+  - translation: “৯৩”
+- **geo-rivers / bn**: format, major, confidence 0.99, found by format, judge, regen_diff
+  - source: “| River | Length (km) | Ends in | | --- | --- | --- | | Ganga | 2,525 | Bay of Bengal | | Godavari | 1,465 | Bay of Ben…”
+  - translation: “| নদী | দৈর্ঘ্য (কিমি) | মোহনা | | --- | --- | --- | | গঙ্গা | ২,৫২৫ | বঙ্গোপসাগর | | গোদাবরী | ১,৪৬৫ | বঙ্গোপসাগর | | …”
+
+## Against labels
+
+120 labelled items, 59 of them clean. Matching rule: item detected if it has any flag; a label is located by a flag whose span overlaps it on either side (or by category when the label has no span); primary span side: source.
+
+| Metric | Value | Target | Met |
+| --- | --- | --- | --- |
+| Detection recall | 100% | >= 80% | yes |
+| False alarms on clean items | 0% | <= 10% | yes |
+| Localization | 98% | >= 70% | yes |
+| Category accuracy | 95% | >= 70% | yes |
+| Judge consistency | 94% | >= 90% | yes |
+
+| Category | Recall | Precision | Found / labelled |
+| --- | --- | --- | --- |
+| addition | 100% | 86% | 6 / 6 |
+| format | 100% | 80% | 8 / 8 |
+| garbled | 100% | 100% | 6 / 6 |
+| mistranslation | 83% | 71% | 5 / 6 |
+| number | 83% | 100% | 5 / 6 |
+| omission | 100% | 100% | 6 / 6 |
+| speech_omission | 100% | 100% | 6 / 6 |
+| speech_repetition | 100% | 100% | 6 / 6 |
+| term | 67% | 100% | 4 / 6 |
+| wrong_language | 100% | 100% | 6 / 6 |
+
+22 uncertain findings are in `review_queue.csv`. Fill `human_label` (a category, or `clean`) and pass the file back with `--calibration` to re-calibrate.
