@@ -1,0 +1,14 @@
+{
+  "name": "translate-extension",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Bodhan AI Cookbook recipe: a Chrome/Edge extension that translates selected text on any webpage with indic-translate and reads it aloud with indic-speak.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "check:live": "node scripts/live_check.js"
+  },
+  "engines": {
+    "node": ">=20.12"
+  }
+}
