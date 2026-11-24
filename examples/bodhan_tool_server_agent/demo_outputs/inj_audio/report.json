@@ -1,0 +1,80 @@
+{
+  "status": "completed_with_warnings",
+  "task": "Transcribe this audio and translate it into Hindi",
+  "interpretation": "The user wants to transcribe an English audio file and translate the transcribed text into Hindi.",
+  "assumptions": [],
+  "deliverables": [
+    {
+      "name": "transcript_58701844d406.txt",
+      "path": "artifacts/transcript_58701844d406.txt",
+      "description": "English transcription of the audio"
+    },
+    {
+      "name": "translation_cac87fb58c.txt",
+      "path": "artifacts/translation_cac87fb58c.txt",
+      "description": "Hindi translation of the English transcription"
+    }
+  ],
+  "steps": 4,
+  "tool_calls_by_tool": {
+    "transcribe_audio": 1,
+    "translate_text": 1
+  },
+  "verification": [
+    {
+      "ok": true,
+      "problems": [],
+      "length_ratio": 1.13,
+      "artifact": "work/artifacts/translation_cac87fb58c.txt",
+      "check": "translation"
+    },
+    {
+      "artifact": "work/artifacts/translation_cac87fb58c.txt",
+      "check": "back-translation coverage (head)",
+      "ok": true,
+      "coverage": 1.0
+    }
+  ],
+  "cost_inr": {
+    "total": 0.0267,
+    "cap": 2.0,
+    "by_model": {
+      "transcribe": 0.0246,
+      "translate": 0.0021
+    },
+    "source": "ledger"
+  },
+  "duration_s": 10.7,
+  "llm": {
+    "model": "gemini-2.5-flash",
+    "total_tokens": 19865
+  },
+  "target_misses": [],
+  "warnings": [],
+  "injection_flags": [
+    {
+      "step": 2,
+      "tool": "transcribe_audio",
+      "matches": [
+        "Ignore all previous",
+        "system prompt"
+      ]
+    },
+    {
+      "step": 3,
+      "tool": "translate_text",
+      "matches": [
+        "पिछली सभी निर्देश",
+        "अनदेखा करें",
+        "सिस्टम प्रॉम्प्ट"
+      ]
+    }
+  ],
+  "tool_warnings": [],
+  "budget": {
+    "cap_inr": 2.0,
+    "spent_inr": 0.0267,
+    "hit": null
+  },
+  "unsupported_reason": null
+}

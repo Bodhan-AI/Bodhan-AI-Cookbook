@@ -1,0 +1,50 @@
+{
+  "status": "completed",
+  "task": "Transcribe this Hindi voice note and give me English subtitles",
+  "interpretation": "The user wants to transcribe a Hindi audio file and get English subtitles.",
+  "assumptions": [],
+  "deliverables": [
+    {
+      "name": "english_subtitles.srt",
+      "path": "artifacts/english_subtitles.srt",
+      "description": "English subtitles for the Hindi voice note."
+    }
+  ],
+  "steps": 7,
+  "tool_calls_by_tool": {
+    "inspect_media": 1,
+    "transcribe_audio": 1,
+    "translate_segments": 1,
+    "build_srt": 2
+  },
+  "verification": [
+    {
+      "ok": true,
+      "problems": [],
+      "cues": 1,
+      "artifact": "work/artifacts/translated_segments_en.json",
+      "check": "subtitle translation"
+    }
+  ],
+  "cost_inr": {
+    "total": 0,
+    "cap": 3.0,
+    "by_model": {},
+    "source": "ledger"
+  },
+  "duration_s": 12.7,
+  "llm": {
+    "model": "gemini-2.5-flash",
+    "total_tokens": 39884
+  },
+  "target_misses": [],
+  "warnings": [],
+  "injection_flags": [],
+  "tool_warnings": [],
+  "budget": {
+    "cap_inr": 3.0,
+    "spent_inr": 0,
+    "hit": null
+  },
+  "unsupported_reason": null
+}

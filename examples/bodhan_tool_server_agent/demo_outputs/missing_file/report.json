@@ -1,0 +1,35 @@
+{
+  "status": "unsupported",
+  "task": "Transcribe the recording meeting.wav",
+  "interpretation": "The user wants to transcribe an audio file named 'meeting.wav'. However, 'meeting.wav' is not provided in the input files.",
+  "assumptions": [
+    "The audio file 'meeting.wav' is expected to be present for transcription."
+  ],
+  "deliverables": [],
+  "steps": 3,
+  "tool_calls_by_tool": {
+    "inspect_media": 1
+  },
+  "verification": [],
+  "cost_inr": {
+    "total": 0,
+    "cap": 1.0,
+    "by_model": {},
+    "source": "ledger"
+  },
+  "duration_s": 6.4,
+  "llm": {
+    "model": "gemini-2.5-flash",
+    "total_tokens": 14106
+  },
+  "target_misses": [],
+  "warnings": [],
+  "injection_flags": [],
+  "tool_warnings": [],
+  "budget": {
+    "cap_inr": 1.0,
+    "spent_inr": 0,
+    "hit": null
+  },
+  "unsupported_reason": "The audio file 'meeting.wav' was not provided in the input files, so transcription cannot be performed."
+}

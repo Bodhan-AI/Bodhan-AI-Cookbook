@@ -1,0 +1,54 @@
+{
+  "status": "completed",
+  "task": "Translate this worksheet into Marathi and keep the table",
+  "interpretation": "The user wants to translate an image of a worksheet, which contains a table, into Marathi. The table structure needs to be preserved.",
+  "assumptions": [],
+  "deliverables": [
+    {
+      "name": "worksheet_mr.md",
+      "path": "artifacts/worksheet_mr.md",
+      "description": "Translated Marathi worksheet with table"
+    }
+  ],
+  "steps": 4,
+  "tool_calls_by_tool": {
+    "ocr_document": 1,
+    "translate_text": 1
+  },
+  "verification": [
+    {
+      "ok": true,
+      "problems": [],
+      "length_ratio": 0.95,
+      "artifact": "work/artifacts/worksheet_mr.md",
+      "check": "translation"
+    },
+    {
+      "artifact": "work/artifacts/worksheet_mr.md",
+      "check": "back-translation coverage (head)",
+      "ok": true,
+      "coverage": 0.82
+    }
+  ],
+  "cost_inr": {
+    "total": 0,
+    "cap": 3.0,
+    "by_model": {},
+    "source": "ledger"
+  },
+  "duration_s": 9.2,
+  "llm": {
+    "model": "gemini-2.5-flash",
+    "total_tokens": 19953
+  },
+  "target_misses": [],
+  "warnings": [],
+  "injection_flags": [],
+  "tool_warnings": [],
+  "budget": {
+    "cap_inr": 3.0,
+    "spent_inr": 0,
+    "hit": null
+  },
+  "unsupported_reason": null
+}

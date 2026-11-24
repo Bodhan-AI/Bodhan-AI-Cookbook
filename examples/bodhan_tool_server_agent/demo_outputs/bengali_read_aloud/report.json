@@ -1,0 +1,67 @@
+{
+  "status": "completed",
+  "task": "Read this paragraph aloud in Bengali with a female voice",
+  "interpretation": "The user wants to convert an English paragraph into Bengali speech using a female voice. I will read the provided text file, translate its content to Bengali, and then synthesize the Bengali text into audio.",
+  "assumptions": [
+    "The input text file contains English text."
+  ],
+  "deliverables": [
+    {
+      "name": "bengali_audio.mp3",
+      "path": "artifacts/bengali_audio.mp3",
+      "description": "Bengali audio of the translated paragraph."
+    }
+  ],
+  "steps": 5,
+  "tool_calls_by_tool": {
+    "read_text_file": 1,
+    "translate_text": 1,
+    "synthesize_speech": 1
+  },
+  "verification": [
+    {
+      "artifact": "work/artifacts/bengali_audio.mp3",
+      "check": "back-transcription",
+      "ok": true,
+      "similarity": 0.968,
+      "omitted_fraction": 0.0,
+      "omitted_phrases": [],
+      "warnings": [],
+      "cost_inr": 0.0
+    },
+    {
+      "ok": true,
+      "problems": [],
+      "length_ratio": 0.95,
+      "artifact": "work/artifacts/translated_paragraph.txt",
+      "check": "translation"
+    },
+    {
+      "artifact": "work/artifacts/translated_paragraph.txt",
+      "check": "back-translation coverage (head)",
+      "ok": true,
+      "coverage": 0.88
+    }
+  ],
+  "cost_inr": {
+    "total": 0,
+    "cap": 2.0,
+    "by_model": {},
+    "source": "ledger"
+  },
+  "duration_s": 9.5,
+  "llm": {
+    "model": "gemini-2.5-flash",
+    "total_tokens": 24943
+  },
+  "target_misses": [],
+  "warnings": [],
+  "injection_flags": [],
+  "tool_warnings": [],
+  "budget": {
+    "cap_inr": 2.0,
+    "spent_inr": 0,
+    "hit": null
+  },
+  "unsupported_reason": null
+}

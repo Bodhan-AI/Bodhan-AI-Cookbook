@@ -1,0 +1,73 @@
+{
+  "status": "completed",
+  "task": "Which of these clips are in Telugu? Translate those into English",
+  "interpretation": "The user wants to identify Telugu audio clips from the provided list and translate the identified Telugu clips into English. I will transcribe each clip to detect its language, then translate any Telugu transcripts into English.",
+  "assumptions": [],
+  "deliverables": [
+    {
+      "name": "clip_a_en.txt",
+      "path": "artifacts/clip_a_en.txt",
+      "description": "English translation of clip_a.wav"
+    },
+    {
+      "name": "clip_b_en.txt",
+      "path": "artifacts/clip_b_en.txt",
+      "description": "English translation of clip_b.wav"
+    }
+  ],
+  "steps": 5,
+  "tool_calls_by_tool": {
+    "transcribe_audio": 3,
+    "translate_text": 2,
+    "read_text_file": 2
+  },
+  "verification": [
+    {
+      "ok": true,
+      "problems": [],
+      "length_ratio": 0.91,
+      "artifact": "work/artifacts/clip_a_en.txt",
+      "check": "translation"
+    },
+    {
+      "artifact": "work/artifacts/clip_a_en.txt",
+      "check": "back-translation coverage (head)",
+      "ok": true,
+      "coverage": 1.0
+    },
+    {
+      "ok": true,
+      "problems": [],
+      "length_ratio": 0.93,
+      "artifact": "work/artifacts/clip_b_en.txt",
+      "check": "translation"
+    },
+    {
+      "artifact": "work/artifacts/clip_b_en.txt",
+      "check": "back-translation coverage (head)",
+      "ok": true,
+      "coverage": 1.0
+    }
+  ],
+  "cost_inr": {
+    "total": 0,
+    "cap": 3.0,
+    "by_model": {},
+    "source": "ledger"
+  },
+  "duration_s": 13.6,
+  "llm": {
+    "model": "gemini-2.5-flash",
+    "total_tokens": 30130
+  },
+  "target_misses": [],
+  "warnings": [],
+  "injection_flags": [],
+  "tool_warnings": [],
+  "budget": {
+    "cap_inr": 3.0,
+    "spent_inr": 0,
+    "hit": null
+  },
+  "unsupported_reason": null
+}
