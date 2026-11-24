@@ -1,0 +1,2 @@
+# Upstream source dependency pinned by commit and archive digest.
+indic-normalizer @ https://codeload.github.com/Bodhan-AI/indic_normalizer/tar.gz/c724f30d14fe7d34b0593b5b4d1837d63a181a4c#sha256=130f1226ab202da69373dba29bd0cf410339191a24c76e731cd943fe8d12472d
