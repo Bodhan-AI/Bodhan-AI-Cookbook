@@ -243,4 +243,6 @@ That is 10 of 10 cases passing across the three models, for about ₹0.02 of Bod
 
 ## AI assistance
 
-TODO (author): which coding tools were used and for what. The assignment asks for this disclosure.
+I used the Claude Code harness environment for code generation and code review. That includes the scripts that recorded and rendered the demo video.
+
+This is separate from the LLM the agent itself runs on: `gpt-oss-120b`, `gpt-oss-20b` and `qwen/qwen3.8-27b` on Groq, or `qwen2.5:7b` on Ollama. In every case, all Indian-language text comes from Bodhan models, never from an LLM.
