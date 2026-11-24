@@ -1,0 +1,61 @@
+{
+  "status": "completed",
+  "stopped_by": "agent",
+  "task": "Translate this worksheet into Marathi and keep the table",
+  "finished_at": "2026-11-20T05:05:58+00:00",
+  "duration_s": 60.94,
+  "steps_used": 4,
+  "max_steps": 30,
+  "cost_inr": 0.203,
+  "max_cost_inr": 20.0,
+  "within_budget": true,
+  "bodhan_calls": {
+    "total": 17,
+    "paid": 17,
+    "cache_hits": 0,
+    "by_model": {
+      "indic-ocr": {
+        "calls": 1,
+        "cache_hits": 0,
+        "cost_inr": 0.2
+      },
+      "indic-translate": {
+        "calls": 16,
+        "cache_hits": 0,
+        "cost_inr": 0.0032
+      }
+    }
+  },
+  "translate_route": "/v1/chat/completions",
+  "llm": {
+    "model": "gemini-3.5-flash",
+    "calls": 4,
+    "prompt_tokens": 15293,
+    "completion_tokens": 276
+  },
+  "artifacts": [
+    "artifacts/worksheet-photo.ocr.mr.md"
+  ],
+  "verification": [
+    {
+      "artifact": "artifacts/worksheet-photo.ocr.mr.md",
+      "tool": "translate_text",
+      "passed": true,
+      "warnings": [],
+      "checks": {
+        "sentences_in": 9,
+        "sentences_out": 9,
+        "structure_preserved": true,
+        "numbers_preserved": true,
+        "truncated_fragments": 0
+      }
+    }
+  ],
+  "all_checks_passed": true,
+  "assumptions": [],
+  "targets": {
+    "verification": "met",
+    "budget": "met",
+    "no_waste": "met (each input sent to a model at most once; repeats come from the cache)"
+  }
+}

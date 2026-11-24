@@ -1,0 +1,34 @@
+{
+  "status": "impossible",
+  "stopped_by": "agent",
+  "task": "Translate this video into French",
+  "finished_at": "2026-11-20T05:07:38+00:00",
+  "duration_s": 10.28,
+  "steps_used": 4,
+  "max_steps": 30,
+  "cost_inr": 0.0,
+  "max_cost_inr": 20.0,
+  "within_budget": true,
+  "bodhan_calls": {
+    "total": 0,
+    "paid": 0,
+    "cache_hits": 0,
+    "by_model": {}
+  },
+  "translate_route": "/translate",
+  "llm": {
+    "model": "gemini-3.5-flash",
+    "calls": 4,
+    "prompt_tokens": 15416,
+    "completion_tokens": 170
+  },
+  "artifacts": [],
+  "verification": [],
+  "all_checks_passed": true,
+  "assumptions": [],
+  "targets": {
+    "verification": "met",
+    "budget": "met",
+    "no_waste": "met (each input sent to a model at most once; repeats come from the cache)"
+  }
+}

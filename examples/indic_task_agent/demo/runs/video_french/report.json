@@ -1,0 +1,42 @@
+{
+  "status": "impossible",
+  "stopped_by": "agent",
+  "task": "Translate this video into French",
+  "finished_at": "2026-11-20T05:01:49+00:00",
+  "duration_s": 6.44,
+  "steps_used": 4,
+  "max_steps": 30,
+  "cost_inr": 0.0095,
+  "max_cost_inr": 20.0,
+  "within_budget": true,
+  "bodhan_calls": {
+    "total": 1,
+    "paid": 1,
+    "cache_hits": 0,
+    "by_model": {
+      "indic-transcribe": {
+        "calls": 1,
+        "cache_hits": 0,
+        "cost_inr": 0.0095
+      }
+    }
+  },
+  "translate_route": "/translate",
+  "llm": {
+    "model": "deepseek-chat",
+    "calls": 4,
+    "prompt_tokens": 14999,
+    "completion_tokens": 472
+  },
+  "artifacts": [],
+  "verification": [],
+  "all_checks_passed": true,
+  "assumptions": [
+    "The requested output was French subtitles/translation of the video's speech; no substitute language was produced since the task specified French."
+  ],
+  "targets": {
+    "verification": "met",
+    "budget": "met",
+    "no_waste": "met (each input sent to a model at most once; repeats come from the cache)"
+  }
+}

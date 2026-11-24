@@ -1,0 +1,96 @@
+{
+  "status": "completed",
+  "stopped_by": "agent",
+  "task": "Make a two-minute Tamil audio summary of this chapter",
+  "finished_at": "2026-11-20T04:59:04+00:00",
+  "duration_s": 222.86,
+  "steps_used": 6,
+  "max_steps": 30,
+  "cost_inr": 2.8768,
+  "max_cost_inr": 20.0,
+  "within_budget": true,
+  "bodhan_calls": {
+    "total": 28,
+    "paid": 28,
+    "cache_hits": 0,
+    "by_model": {
+      "indic-ocr": {
+        "calls": 8,
+        "cache_hits": 0,
+        "cost_inr": 1.6
+      },
+      "indic-translate": {
+        "calls": 4,
+        "cache_hits": 0,
+        "cost_inr": 0.0089
+      },
+      "indic-speak": {
+        "calls": 10,
+        "cache_hits": 0,
+        "cost_inr": 1.0218
+      },
+      "indic-transcribe": {
+        "calls": 6,
+        "cache_hits": 0,
+        "cost_inr": 0.2461
+      }
+    }
+  },
+  "translate_route": "/v1/chat/completions",
+  "llm": {
+    "model": "deepseek-chat",
+    "calls": 6,
+    "prompt_tokens": 43441,
+    "completion_tokens": 1270
+  },
+  "artifacts": [
+    "artifacts/tamil_chapter6_summary.ta.anitha.mp3",
+    "artifacts/tamil_summary.ta.md",
+    "artifacts/lines-and-angles-scan.ocr.md"
+  ],
+  "verification": [
+    {
+      "artifact": "artifacts/tamil_chapter6_summary.ta.anitha.mp3",
+      "tool": "speak_text",
+      "passed": true,
+      "warnings": [],
+      "checks": {
+        "chunks": 10,
+        "similarity": 0.925,
+        "length_ratio": 1.14,
+        "back_transcript_preview": "இது அத்தியாயம் சிக்ஸ் இன் சுருக்கம் கோடுகள் மற்றும் கோணங்கள் அத்தியாயம் தொடங்கும்போது உண்மையான வாழ்க்கையில் கோடுகள் மற்றும் கோணங்கள் ஏன் முக்கியம் என்பதைக் காட்"
+      }
+    },
+    {
+      "artifact": "artifacts/tamil_summary.ta.md",
+      "tool": "translate_text",
+      "passed": true,
+      "warnings": [],
+      "checks": {
+        "sentences_in": 13,
+        "sentences_out": 13,
+        "structure_preserved": true,
+        "numbers_preserved": true,
+        "truncated_fragments": 0
+      }
+    },
+    {
+      "artifact": "artifacts/lines-and-angles-scan.ocr.md",
+      "tool": "ocr_document",
+      "passed": true,
+      "warnings": [],
+      "checks": {}
+    }
+  ],
+  "all_checks_passed": true,
+  "assumptions": [
+    "Target length treated as ~120 s; the 147.7 s result was accepted because it is within the 30% tolerance.",
+    "Summary covers the whole chapter (introduction, basic terms, Linear Pair Axiom, Theorem 6.1, examples) rather than only part of it.",
+    "Female Tamil voice (Anitha) used as the default."
+  ],
+  "targets": {
+    "verification": "met",
+    "budget": "met",
+    "no_waste": "met (each input sent to a model at most once; repeats come from the cache)"
+  }
+}

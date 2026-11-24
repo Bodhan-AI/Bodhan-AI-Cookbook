@@ -1,0 +1,81 @@
+{
+  "status": "completed",
+  "stopped_by": "agent",
+  "task": "Read this paragraph aloud in Bengali with a female voice",
+  "finished_at": "2026-11-20T05:07:24+00:00",
+  "duration_s": 58.71,
+  "steps_used": 5,
+  "max_steps": 30,
+  "cost_inr": 0.3602,
+  "max_cost_inr": 20.0,
+  "within_budget": true,
+  "bodhan_calls": {
+    "total": 6,
+    "paid": 6,
+    "cache_hits": 0,
+    "by_model": {
+      "indic-translate": {
+        "calls": 1,
+        "cache_hits": 0,
+        "cost_inr": 0.0023
+      },
+      "indic-speak": {
+        "calls": 3,
+        "cache_hits": 0,
+        "cost_inr": 0.282
+      },
+      "indic-transcribe": {
+        "calls": 2,
+        "cache_hits": 0,
+        "cost_inr": 0.0759
+      }
+    }
+  },
+  "translate_route": "/v1/chat/completions",
+  "llm": {
+    "model": "gemini-3.5-flash",
+    "calls": 5,
+    "prompt_tokens": 20514,
+    "completion_tokens": 391
+  },
+  "artifacts": [
+    "artifacts/water_bengali_female.bn.ishita.wav",
+    "artifacts/water.bn.md"
+  ],
+  "verification": [
+    {
+      "artifact": "artifacts/water_bengali_female.bn.ishita.wav",
+      "tool": "speak_text",
+      "passed": true,
+      "warnings": [],
+      "checks": {
+        "chunks": 3,
+        "similarity": 1.0,
+        "length_ratio": 1.0,
+        "back_transcript_preview": "পৃথিবীর সবচেয়ে মূল্যবান সম্পদগুলোর মধ্যে জল অন্যতম যদিও আমাদের গ্রহের বেশিরভাগ অংশই জল দ্বারা আবৃত এর খুব সামান্য অংশই মিষ্টি জল যা আমরা পান করতে পারি নদী হ্রদ"
+      }
+    },
+    {
+      "artifact": "artifacts/water.bn.md",
+      "tool": "translate_text",
+      "passed": true,
+      "warnings": [],
+      "checks": {
+        "sentences_in": 5,
+        "sentences_out": 5,
+        "structure_preserved": true,
+        "numbers_preserved": true,
+        "truncated_fragments": 0
+      }
+    }
+  ],
+  "all_checks_passed": true,
+  "assumptions": [
+    "Used female Bengali voice 'Ishita' for text-to-speech rendering."
+  ],
+  "targets": {
+    "verification": "met",
+    "budget": "met",
+    "no_waste": "met (each input sent to a model at most once; repeats come from the cache)"
+  }
+}
