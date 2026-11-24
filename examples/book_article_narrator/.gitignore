@@ -1,0 +1,17 @@
+# secrets and local data
+.env
+narrator.db
+*.db
+*.sqlite3
+
+# Python
+venv/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# generated files (keep the folder with .gitkeep)
+outputs/*
+!outputs/.gitkeep
