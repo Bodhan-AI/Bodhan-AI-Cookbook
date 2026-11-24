@@ -1,0 +1,6 @@
+# Pin every dependency: name==version
+mcp==1.30.0
+openai==1.109.1
+pydantic==2.13.5
+python-dotenv==1.0.1
+requests==2.32.3
