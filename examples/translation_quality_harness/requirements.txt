@@ -1,0 +1,11 @@
+# Pinned runtime and test dependencies. `pip install -r requirements.txt` also installs the package itself.
+httpx==0.28.1
+numpy==2.4.6
+pydantic==2.14.3
+python-dotenv==1.2.4
+regex==2026.11.15
+sacrebleu==2.6.0
+soundfile==0.14.0
+pytest==9.2.0
+ruff==0.17.5
+-e .

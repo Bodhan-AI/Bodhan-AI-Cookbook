@@ -1,0 +1,37 @@
+# Design decisions
+
+Each record states the decision, the alternatives considered and why this one was chosen.
+
+| # | Decision | Main alternative | Why |
+|---|---|---|---|
+| 1 | SQLite plus content-addressed blob files for the cache | One JSON file per call; Redis | Single file, atomic per statement, safe under concurrency, no service to run; audio stays as plain WAV files that can be inspected |
+| 2 | Cache key = SHA-256 of canonical JSON of (namespace, model, exact payload, params) and the entry stores its INR cost | Key on normalized text | The brief asks for outputs keyed by their exact input; storing cost makes a cached rerun report the same cost while spending INR 0 |
+| 3 | Deterministic reports, run facts in `run.json` | Timestamps and cache stats in `summary.md` | "A rerun from cache produces an identical report" is testable byte for byte |
+| 4 | The judge sees numbered tokens and answers with index ranges | Ask the judge to quote the wrong words | Quoting would make the LLM emit Indian-language text; indices localize exactly and keep the "never write Indian text" rule enforceable. Prose is additionally scrubbed of target-script letters |
+| 5 | Spans on the translation, plus a separate source span | One span field only | Omissions are only visible on the source; mistranslations only on the translation. Both are reported and the scorer accepts either unless the label names a field |
+| 6 | Noisy-OR over checks, then judge confirm or reject | Weighted sum; judge as the only decider | Independent witnesses add up naturally; the judge adjudicates checker noise but cannot erase hard structural evidence (broken table, changed digit) |
+| 7 | Per-category thresholds tuned on labelled items, from stored confidences | Hand-set thresholds | The brief forbids guesswork and special-casing; storing every below-threshold candidate lets tuning re-decide all items without new model calls |
+| 8 | Length and speech-rate norms fitted per language on the current run (median and MAD) | Fixed ratios per language | Works for languages never seen before and is robust to the half of the items that carry errors |
+| 9 | Script detection from Unicode ranges in `languages.json`, plus small same-script marker lists | A learned language-ID model | Learned language ID is a model outside Bodhan's set; script ranges cover all 22 scheduled languages, and markers handle the confusable pairs (hi/mr/ne, bn/as) |
+| 10 | Back-translation scored by stemmed content-word coverage with a reliability factor | COMET or BLEU against the source | Learned QE models are not allowed; plain BLEU on a paraphrased round trip is too noisy to localize anything, while clause coverage points at the missing clause |
+| 11 | ASR compared with weighted word alignment, digits and Latin words as wildcards | Plain WER threshold | Indic-Transcribe writes numbers as words and English words in native script, so raw WER punishes correct audio; only structural error shapes are flagged |
+| 12 | Speech synthesis only for missing audio, sampled and budget-guarded; transcription always when audio exists | Synthesize everything | Synthesis costs about 60x more per item than transcription; transcription is what finds speech errors |
+| 13 | Whole-text failures short-circuit round trips and the judge | Always run every check | An item already known to be in the wrong script gains nothing from a back-translation or a judge call |
+| 14 | Structured output via `response_format=json_object`, with parameter dropping and tolerant parsing | Provider-specific JSON schema or tool calling | Works on any OpenAI-compatible endpoint the evaluators choose |
+| 15 | Judge-only findings discounted by their own severity | Treat judge output like any check | Self-evaluation showed judge-only minor findings were mostly preferences; a severity prior keeps them as evidence without flagging |
+| 16 | Plain `httpx` for both Bodhan and the LLM | The `openai` SDK | One retry, timeout and mocking path for every call; `/translate` is not OpenAI-shaped anyway |
+| 17 | Real Indic-Translate outputs for the demo; FLORES human translations for calibration and held-out languages | Write demo translations by hand or with an LLM | FLORES supplies licensed English sources and independent human reference fixtures. The hosted demo exercises actual model errors; only a balanced short-sentence subset gets Indic-Speak audio, hosted as release assets outside Git, to keep Bodhan generation and evaluation within INR 5 |
+
+## Notes on the trade-offs
+
+**Span alignment.** The harness never aligns source and translation words across languages; that would need a model. Instead each check reports the span it can know for sure: number checks know both sides, format checks know the broken line, back-translation knows the source clause, and the judge points at tokens. Fusion keeps the span of the strongest signal rather than the union, because unions blur localization.
+
+**Concurrency and budget.** Each model has its own semaphore (translate 8, speak 4, transcribe 4, LLM 12) and items are processed with a separate cap of 24, so one slow model does not starve the rest. Budget reservation happens inside the client, under a lock, before the HTTP call, and is released on failure.
+
+**Reliability practices.** Applied from the supplied *Backend from First Principles* guide, especially chapters 9, 16–19, 22 and D28: validate build options and every input row before any paid work; reject duplicate identities; hash external IDs for audio filenames; preserve the previous dataset if any translation fails; write outputs atomically; close HTTP and cache resources on failure. Queued calls acquire a model semaphore before reserving their maximum permitted cost, and recheck service availability after admission. Timeouts and bounded retries with jitter live in the shared HTTP client. Build manifests retain provenance hashes, spend, and speech failures so incomplete work is visible and cached requests can be reused. Regression tests exercise these failure paths without network calls.
+
+**Temporary limits versus exhausted credit.** A provider's concurrency-limit message may mention its balance-based tier. That remains a retryable 429; it must not disable the service. A genuine payment failure (402 or exhausted-quota response) still disables further requests. The recorded self-evaluation encountered both cases. Its README results disclose the incomplete judge coverage rather than treating skipped checks or absent consistency measurements as successes.
+
+**What the LLM is not used for.** It does not decide which items get speech checks (a deterministic sample does, so runs are reproducible and cheap), it does not judge audio, and it does not write report prose. Each of these was considered and rejected for reproducibility, or because a deterministic check was more reliable.
+
+**Final submission replay.** `--offline` is enforced inside both model clients after cache lookup and before any HTTP request. The submitted sample uses `--judge off` and a Bodhan-only cache downloaded with SHA-256 verification. This makes the documented demo independent of credentials and prevents any further model spending. Judge evaluation remains available for the hidden run, but its consistency is honestly marked unmeasured locally. Localization follows the assignment's denominator (detected labels with spans); the stricter all-error metric remains visible as `localization_recall`.

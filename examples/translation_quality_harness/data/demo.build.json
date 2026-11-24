@@ -1,0 +1,24 @@
+{
+  "attributed_inr": {
+    "indic-speak": 1.2864,
+    "indic-translate": 0.1594
+  },
+  "audio_items": 18,
+  "audio_max_chars": 220,
+  "audio_max_source_chars": 180,
+  "audio_per_lang": 6,
+  "budget": {
+    "max_inr": 0.0,
+    "paid_calls": {},
+    "refused_calls": {},
+    "spent_by_model": {},
+    "spent_this_run_inr": 0.0
+  },
+  "dataset_sha256": "41ddbced40a21a1cf0de80a97f4384d43a4d5490807d7ea04ba00c389e9ef9e6",
+  "injected_items": 60,
+  "input": "data/flores_inputs.jsonl",
+  "items": 120,
+  "output": "data/demo.jsonl",
+  "seed": 31,
+  "speech_failures": []
+}

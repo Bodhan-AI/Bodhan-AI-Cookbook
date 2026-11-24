@@ -1,0 +1,29 @@
+{
+  "asr_garbled_window": 4,
+  "asr_omission_min_words": 3,
+  "backtranslation_clause_coverage": 0.25,
+  "clipped_fraction": 0.002,
+  "duration_ratio_high": 1.7,
+  "duration_ratio_low": 0.6,
+  "expected_script_min_ratio": 0.5,
+  "flag": {
+    "addition": 0.4225,
+    "format": 0.5,
+    "mistranslation": 0.5,
+    "number": 0.575,
+    "omission": 0.4345,
+    "speech_garbled": 0.5,
+    "speech_omission": 0.5,
+    "speech_repetition": 0.5,
+    "term": 0.5,
+    "wrong_language": 0.5
+  },
+  "foreign_script_ratio": 0.15,
+  "judge_confirm_bonus": 0.25,
+  "judge_reject_factor": 0.35,
+  "latin_run_words": 4,
+  "length_z": 3.0,
+  "min_internal_silence_s": 1.2,
+  "min_noise_s": 0.3,
+  "noise_flatness": 0.45
+}

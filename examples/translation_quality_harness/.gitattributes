@@ -1,0 +1,3 @@
+# Keep checksummed demo text identical on Windows and Unix checkouts.
+data/*.jsonl text eol=lf
+data/*.json text eol=lf

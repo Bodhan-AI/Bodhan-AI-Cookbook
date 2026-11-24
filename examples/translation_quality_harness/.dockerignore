@@ -1,0 +1,10 @@
+.env
+.venv
+.bodhan_cache
+.demo_cache
+outputs
+data/audio
+sample_report/audio
+**/__pycache__
+.pytest_cache
+.ruff_cache
