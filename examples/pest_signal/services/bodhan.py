@@ -1,6 +1,6 @@
-import json
-import os
 
+import os
+import json
 from dotenv import load_dotenv
 from openai import OpenAI
 
@@ -8,10 +8,11 @@ load_dotenv()
 
 BASE = os.getenv("BODHAN_BASE_URL", "https://api.bodhan.ai")
 
-
 def get_client(api_key):
-    return OpenAI(base_url=BASE + "/v1", api_key=api_key)
-
+    return OpenAI(
+        base_url=BASE + "/v1",
+        api_key=api_key
+    )
 
 def transcribe_audio(path, language="ta"):
 
@@ -23,10 +24,13 @@ def transcribe_audio(path, language="ta"):
     client = get_client(key)
 
     with open(path, "rb") as audio_file:
-        result = client.audio.transcriptions.create(model="indic-transcribe", file=audio_file, language=language)
+        result = client.audio.transcriptions.create(
+            model="indic-transcribe",
+            file=audio_file,
+            language=language
+        )
 
     return result.text
-
 
 def translate_text(text, target_language="en"):
 
@@ -38,7 +42,16 @@ def translate_text(text, target_language="en"):
     client = get_client(key)
 
     response = client.chat.completions.create(
-        model="indic-translate", messages=[{"role": "user", "content": text}], extra_body={"target_language_code": target_language}
+        model="indic-translate",
+        messages=[
+            {
+                "role": "user",
+                "content": text
+            }
+        ],
+        extra_body={
+            "target_language_code": target_language
+        }
     )
 
     result = response.choices[0].message.content
@@ -48,24 +61,39 @@ def translate_text(text, target_language="en"):
 
     return result.strip()
 
-
 def speak_text(text, language="ta", voice=None):
 
     key = os.getenv("BODHAN_SPEAK_API_KEY")
 
     if not key:
-        raise RuntimeError("Set BODHAN_SPEAK_API_KEY in .env first")
+        raise RuntimeError(
+            "Set BODHAN_SPEAK_API_KEY in .env first"
+        )
 
-    language_voices = {"ta": "Arun", "te": "Vamsi", "hi": "Kavya", "en": "Arun"}
+    language_voices = {
+        "ta": "Arun", 
+        "te": "Vamsi", 
+        "hi": "Kavya", 
+        "en": "Arun" 
+    }
 
     selected_voice = voice or language_voices.get(language, "Arun")
 
-    client = OpenAI(base_url=BASE + "/v1", api_key=key)
+    client = OpenAI(
+        base_url=BASE + "/v1",
+        api_key=key
+    )
 
-    response = client.audio.speech.create(model="indic-speak", input=text, voice=selected_voice, instructions=json.dumps({"lang": language}))
+    response = client.audio.speech.create(
+        model="indic-speak",
+        input=text,
+        voice=selected_voice,
+        instructions=json.dumps({
+            "lang": language
+        })
+    )
 
     return response.content
-
 
 def extract_report_details(text):
 
@@ -75,7 +103,10 @@ def extract_report_details(text):
     if not key:
         raise RuntimeError("Set GROQ_API_KEY in .env first")
 
-    client = OpenAI(base_url="https://api.groq.com/openai/v1", api_key=key)
+    client = OpenAI(
+        base_url="https://api.groq.com/openai/v1",
+        api_key=key
+    )
 
     prompt = f"""
 You are an information extraction assistant for an agricultural
@@ -115,11 +146,23 @@ Rules:
     response = client.chat.completions.create(
         model=model,
         messages=[
-            {"role": "system", "content": ("You extract structured agricultural information accurately. Never invent details. Return valid JSON only.")},
-            {"role": "user", "content": prompt},
+            {
+                "role": "system",
+                "content": (
+                    "You extract structured agricultural "
+                    "information accurately. Never invent "
+                    "details. Return valid JSON only."
+                )
+            },
+            {
+                "role": "user",
+                "content": prompt
+            }
         ],
         temperature=0,
-        response_format={"type": "json_object"},
+        response_format={
+            "type": "json_object"
+        }
     )
 
     raw = response.choices[0].message.content
@@ -131,12 +174,21 @@ Rules:
 
     details = json.loads(raw)
 
-    fields = ["crop", "suspected_disease", "symptoms", "region"]
+    fields = [
+        "crop",
+        "suspected_disease",
+        "symptoms",
+        "region"
+    ]
     for field in fields:
+
         value = details.get(field, "Unknown")
 
         if value is None or not str(value).strip():
             value = "Unknown"
 
         details[field] = str(value).strip()
-    return {field: details[field] for field in fields}
+    return {
+        field: details[field]
+        for field in fields
+    }

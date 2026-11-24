@@ -28,7 +28,7 @@ BASE_DIR = Path(__file__).resolve().parent
 load_dotenv(BASE_DIR / ".env")
 
 app = FastAPI(
-    title="CropShield",
+    title="PestSignal",
     description="Multilingual crop observations and regional early-warning reports",
 )
 

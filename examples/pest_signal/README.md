@@ -1,6 +1,6 @@
 # Summary
 
-CropShield is a multilingual crop-reporting app that helps farmers submit crop symptoms in their native language and enables NGOs to monitor emerging regional agricultural signals. It also helps farmers identify a pest which which they haven't encountered before.
+PestSignal is a multilingual crop-reporting app that helps farmers submit crop symptoms in their native language and enables NGOs to monitor emerging regional agricultural signals. It also helps farmers identify a pest which which they haven't encountered before.
 
 **Bodhan models:** indic-transcribe, indic-translate, indic-speak
 
@@ -10,20 +10,27 @@ CropShield is a multilingual crop-reporting app that helps farmers submit crop s
 
 ## What it does
 
-CropShield lets farmers report crop symptoms using audio or text in English, Tamil, Telugu, or Hindi. Audio is transcribed using Bodhan's `indic-transcribe` model and translated into English using `indic-translate`; an LLM then extracts structured report fields such as crop, symptoms, suspected disease, and location. Reports are saved and searchable, while a regional signal dashboard flags clusters of reports from the same region for NGO follow-up. These signals are intended for monitoring and investigation—not confirmed diagnoses.
+PestSignal lets farmers report crop symptoms using audio or text in English, Tamil, Telugu, or Hindi. Audio is transcribed using Bodhan's `indic-transcribe` model and translated into English using `indic-translate`; an LLM then extracts structured report fields such as crop, symptoms, suspected disease, and location. Reports are saved and searchable, while a regional signal dashboard flags clusters of reports from the same region for NGO follow-up. These signals are intended for monitoring and investigation—not confirmed diagnoses.
+
 ## Screenshots
 
-![CropShield](screenshots/Screenshot%202026-11-24%20130621.png)
+### Farmer Reporting Interface
+![PestSignal](screenshots/Screenshot%202026-11-24%20152320.png)
 
-![CropShield](screenshots/Screenshot%202026-11-24%20130604-1.png)
+### Crop Symptom Translation
+![PestSignal](screenshots/Screenshot%202026-11-24%20152338.png)
 
-![CropShield](screenshots/Screenshot%202026-11-24%20130641.png)
+### Data Extraction
+![PestSignal](screenshots/Screenshot%202026-11-24%20152354.png)
 
-![CropShield](screenshots/Screenshot%202026-11-24%20130659.png)
+### Pest Filtering
+![PestSignal](screenshots/Screenshot%202026-11-24%20152417.png)
 
-![CropShield](screenshots/Screenshot%202026-11-24%20130724.png)
+### Dashboard Entries
+![PestSignal](screenshots/Screenshot%202026-11-24%20152435.png)
 
-![CropShield](screenshots/Screenshot%202026-11-24%20130745.png)
+### NGO Viewing Dashboard
+![PestSignal](screenshots/Screenshot%202026-11-24%20152457.png)
 
 ## Setup
 
