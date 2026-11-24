@@ -1,0 +1,42 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "bodhan-tool-server-agent"
+version = "0.1.0"
+description = "Production-ready MCP Tool Server and Task Agent for Bodhan AI Indic models"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+    { name = "Bodhan AI Contributor" }
+]
+dependencies = [
+    "pydantic>=2.5.0",
+    "httpx>=0.25.0",
+    "python-dotenv>=1.0.0",
+    "pillow>=10.0.0",
+    "pypdf>=3.17.0",
+    "mcp>=1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-mock>=3.11.0",
+]
+
+[project.scripts]
+bodhan-mcp = "bodhan_mcp.__main__:main"
+bodhan-agent = "bodhan_agent.__main__:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/bodhan_mcp", "src/bodhan_agent"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+pythonpath = ["src", "."]
