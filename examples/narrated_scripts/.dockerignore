@@ -1,0 +1,15 @@
+.env
+.env.*
+!.env.example
+.venv
+.local
+inputs
+outputs/*
+!outputs/.gitkeep
+sample_data/*
+!sample_data/.gitkeep
+**/__pycache__
+**/.pytest_cache
+**/*.egg-info
+build
+dist

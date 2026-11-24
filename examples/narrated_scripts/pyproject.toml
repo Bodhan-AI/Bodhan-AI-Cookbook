@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools==80.10.2", "wheel==0.45.1"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bodhan-lesson"
+version = "0.1.0"
+requires-python = ">=3.10"
+dynamic = ["dependencies"]
+
+[project.optional-dependencies]
+test = [
+    "pytest==8.4.2",
+    "iniconfig==2.3.1",
+    "packaging==26.3",
+    "pluggy==1.7.0",
+    "Pygments==2.21.0",
+    "tomli==2.4.0; python_version < '3.11'",
+    "colorama==0.4.6; sys_platform == 'win32'",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src/bodhan_lesson"}
+py-modules = ["bodhan_lesson"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt", "requirements-source.txt"]}
+
+[tool.setuptools.packages.find]
+where = ["src/bodhan_lesson"]
+include = ["backend", "backend.*"]
+namespaces = false
