@@ -1,0 +1,1256 @@
+{
+ "bare|bn|aaj amar meeting ache": {
+  "kind": "bare",
+  "latency_ms": 248.1,
+  "route": "chat",
+  "text": "আজ আমাদের মিটিং আছে"
+ },
+ "bare|bn|ami bhalo achi": {
+  "kind": "bare",
+  "latency_ms": 1585.5,
+  "route": "chat",
+  "text": "আমি ভালো আছি"
+ },
+ "bare|bn|ami kal dilli jabo": {
+  "kind": "bare",
+  "latency_ms": 402.3,
+  "route": "chat",
+  "text": "আমি কাল দিল্লী যাবো"
+ },
+ "bare|bn|tomar naam ki?": {
+  "kind": "bare",
+  "latency_ms": 225.9,
+  "route": "chat",
+  "text": "তোমার নাম কি?"
+ },
+ "bare|bn|tumi kothay jaccho": {
+  "kind": "bare",
+  "latency_ms": 407.4,
+  "route": "chat",
+  "text": "তুমি কোথায় जा रहे हो"
+ },
+ "bare|gu|aaje bahu garmi che": {
+  "kind": "bare",
+  "latency_ms": 231.7,
+  "route": "chat",
+  "text": "आज बहुत गर्मी है"
+ },
+ "bare|gu|hu kale office aavish": {
+  "kind": "bare",
+  "latency_ms": 289.0,
+  "route": "chat",
+  "text": "कल ऑफिस आविश"
+ },
+ "bare|gu|maru naam ravi che": {
+  "kind": "bare",
+  "latency_ms": 272.1,
+  "route": "chat",
+  "text": "మళ్లీ నన్ను రవి చెయ్యి"
+ },
+ "bare|gu|tamaro phone number shu che?": {
+  "kind": "bare",
+  "latency_ms": 362.0,
+  "route": "chat",
+  "text": "તમારો ફોન નંબર શું છે?"
+ },
+ "bare|gu|tame kem cho": {
+  "kind": "bare",
+  "latency_ms": 307.3,
+  "route": "chat",
+  "text": "तुम लोग कौन हो"
+ },
+ "bare|hi|aap kaise hain": {
+  "kind": "bare",
+  "latency_ms": 394.6,
+  "route": "chat",
+  "text": "आप कैसे हैं"
+ },
+ "bare|hi|kal meeting hai please time pe aana": {
+  "kind": "bare",
+  "latency_ms": 234.4,
+  "route": "chat",
+  "text": "कल मीटिंग है कृपया समय पर आना"
+ },
+ "bare|hi|kya tum kal free ho?": {
+  "kind": "bare",
+  "latency_ms": 547.9,
+  "route": "chat",
+  "text": "ਕੀ ਤੁਸੀਂ ਕੱਲ੍ਹ ਫ੍ਰੀ ਹੋ?"
+ },
+ "bare|hi|main ghar ja raha hoon": {
+  "kind": "bare",
+  "latency_ms": 389.5,
+  "route": "chat",
+  "text": "मैं घर जा रहा हूँ"
+ },
+ "bare|hi|mujhe 2 din ki chutti chahiye": {
+  "kind": "bare",
+  "latency_ms": 709.7,
+  "route": "chat",
+  "text": "मुझे दो दिन की छुट्टी चाहिए"
+ },
+ "bare|ta|amma saapittiya?": {
+  "kind": "bare",
+  "latency_ms": 345.0,
+  "route": "chat",
+  "text": "அம்மா சாப்பிட்டீயா?"
+ },
+ "bare|ta|enakku romba pasikkuthu": {
+  "kind": "bare",
+  "latency_ms": 346.9,
+  "route": "chat",
+  "text": "எனக்கு ரொம்ப பசிக்குது"
+ },
+ "bare|ta|naan naalai varuven": {
+  "kind": "bare",
+  "latency_ms": 2603.7,
+  "route": "chat",
+  "text": "நான் நாளை வருவேன்"
+ },
+ "bare|ta|naan veetla irukken": {
+  "kind": "bare",
+  "latency_ms": 352.3,
+  "route": "chat",
+  "text": "நான் வீட்டில் இருக்கிறேன்"
+ },
+ "bare|ta|vanakkam eppadi irukkeenga": {
+  "kind": "bare",
+  "latency_ms": 1088.6,
+  "route": "chat",
+  "text": "வணக்கம் எப்படி இருக்கீங்க"
+ },
+ "instructed|as|namaskar": {
+  "kind": "instructed",
+  "latency_ms": 395.7,
+  "route": "chat",
+  "text": "নমস্কাৰ"
+ },
+ "instructed|as|ravi kal ghar aayega": {
+  "kind": "instructed",
+  "latency_ms": 586.3,
+  "route": "chat",
+  "text": "ৰবি কল ঘৰ আয়েগা"
+ },
+ "instructed|bn|aaj": {
+  "kind": "instructed",
+  "latency_ms": 212.3,
+  "route": "chat",
+  "text": "আজ"
+ },
+ "instructed|bn|aaj amar meeting ache": {
+  "kind": "instructed",
+  "latency_ms": 275.2,
+  "route": "chat",
+  "text": "আজ আমার মিটিং আছে"
+ },
+ "instructed|bn|aaj amar meeting ache#1": {
+  "kind": "instructed",
+  "latency_ms": 254.4,
+  "route": "chat",
+  "text": "আজ আমার মিটিং আছে"
+ },
+ "instructed|bn|aaj amar meeting ache#2": {
+  "kind": "instructed",
+  "latency_ms": 297.5,
+  "route": "chat",
+  "text": "আজ আমার মিটিং আছে"
+ },
+ "instructed|bn|ache": {
+  "kind": "instructed",
+  "latency_ms": 342.2,
+  "route": "chat",
+  "text": "আচে"
+ },
+ "instructed|bn|achi": {
+  "kind": "instructed",
+  "latency_ms": 8821.1,
+  "route": "chat",
+  "text": "আছি"
+ },
+ "instructed|bn|amar": {
+  "kind": "instructed",
+  "latency_ms": 197.0,
+  "route": "chat",
+  "text": "আমার"
+ },
+ "instructed|bn|ami": {
+  "kind": "instructed",
+  "latency_ms": 328.5,
+  "route": "chat",
+  "text": "আমি"
+ },
+ "instructed|bn|ami bhalo achi": {
+  "kind": "instructed",
+  "latency_ms": 818.2,
+  "route": "chat",
+  "text": "আমি ভালো আছি"
+ },
+ "instructed|bn|ami bhalo achi#1": {
+  "kind": "instructed",
+  "latency_ms": 226.8,
+  "route": "chat",
+  "text": "আমি ভালো আছি"
+ },
+ "instructed|bn|ami bhalo achi#2": {
+  "kind": "instructed",
+  "latency_ms": 236.6,
+  "route": "chat",
+  "text": "আমি ভালো আছি"
+ },
+ "instructed|bn|ami kal dilli jabo": {
+  "kind": "instructed",
+  "latency_ms": 2364.1,
+  "route": "chat",
+  "text": "আমি কাল দিল্লী যাব"
+ },
+ "instructed|bn|ami kal dilli jabo#1": {
+  "kind": "instructed",
+  "latency_ms": 662.7,
+  "route": "chat",
+  "text": "আমি কাল দিল্লী যাব"
+ },
+ "instructed|bn|ami kal dilli jabo#2": {
+  "kind": "instructed",
+  "latency_ms": 463.5,
+  "route": "chat",
+  "text": "আমি কাল দিল্লী যাব"
+ },
+ "instructed|bn|bhalo": {
+  "kind": "instructed",
+  "latency_ms": 775.7,
+  "route": "chat",
+  "text": "ভালো"
+ },
+ "instructed|bn|dilli": {
+  "kind": "instructed",
+  "latency_ms": 637.1,
+  "route": "chat",
+  "text": "দিল্লি"
+ },
+ "instructed|bn|jabo": {
+  "kind": "instructed",
+  "latency_ms": 1694.1,
+  "route": "chat",
+  "text": "যাবো"
+ },
+ "instructed|bn|jaccho": {
+  "kind": "instructed",
+  "latency_ms": 350.6,
+  "route": "chat",
+  "text": "যাচ্ছো"
+ },
+ "instructed|bn|kal": {
+  "kind": "instructed",
+  "latency_ms": 465.9,
+  "route": "chat",
+  "text": "কাল"
+ },
+ "instructed|bn|ki": {
+  "kind": "instructed",
+  "latency_ms": 225.7,
+  "route": "chat",
+  "text": "কি"
+ },
+ "instructed|bn|kothay": {
+  "kind": "instructed",
+  "latency_ms": 498.3,
+  "route": "chat",
+  "text": "কোথায়"
+ },
+ "instructed|bn|meeting": {
+  "kind": "instructed",
+  "latency_ms": 708.5,
+  "route": "chat",
+  "text": "মিটিং"
+ },
+ "instructed|bn|naam": {
+  "kind": "instructed",
+  "latency_ms": 727.0,
+  "route": "chat",
+  "text": "নাম"
+ },
+ "instructed|bn|namaskar": {
+  "kind": "instructed",
+  "latency_ms": 323.5,
+  "route": "chat",
+  "text": "নমস্কার"
+ },
+ "instructed|bn|ravi kal ghar aayega": {
+  "kind": "instructed",
+  "latency_ms": 614.1,
+  "route": "chat",
+  "text": "রবি কাল ঘর আয়েগা"
+ },
+ "instructed|bn|tomar": {
+  "kind": "instructed",
+  "latency_ms": 602.6,
+  "route": "chat",
+  "text": "তোমার"
+ },
+ "instructed|bn|tomar naam ki?": {
+  "kind": "instructed",
+  "latency_ms": 323.2,
+  "route": "chat",
+  "text": "তোমার নাম কি?"
+ },
+ "instructed|bn|tomar naam ki?#1": {
+  "kind": "instructed",
+  "latency_ms": 729.9,
+  "route": "chat",
+  "text": "তোমার নাম কি?"
+ },
+ "instructed|bn|tomar naam ki?#2": {
+  "kind": "instructed",
+  "latency_ms": 229.1,
+  "route": "chat",
+  "text": "তোমার নাম কি?"
+ },
+ "instructed|bn|tumi": {
+  "kind": "instructed",
+  "latency_ms": 267.7,
+  "route": "chat",
+  "text": "তুমি"
+ },
+ "instructed|bn|tumi kothay jaccho": {
+  "kind": "instructed",
+  "latency_ms": 242.0,
+  "route": "chat",
+  "text": "তুমি কোথায় যাচ্ছো"
+ },
+ "instructed|bn|tumi kothay jaccho#1": {
+  "kind": "instructed",
+  "latency_ms": 214.0,
+  "route": "chat",
+  "text": "তুমি কোথায় যাচ্ছো"
+ },
+ "instructed|bn|tumi kothay jaccho#2": {
+  "kind": "instructed",
+  "latency_ms": 353.7,
+  "route": "chat",
+  "text": "তুমি কোথায় যাচ্ছো"
+ },
+ "instructed|brx|namaskar": {
+  "kind": "instructed",
+  "latency_ms": 180.5,
+  "route": "chat",
+  "text": "नमस्कार"
+ },
+ "instructed|brx|ravi kal ghar aayega": {
+  "kind": "instructed",
+  "latency_ms": 395.2,
+  "route": "chat",
+  "text": "रवि कल घर आयगा"
+ },
+ "instructed|doi|namaskar": {
+  "kind": "instructed",
+  "latency_ms": 213.0,
+  "route": "chat",
+  "text": "नमस्कार"
+ },
+ "instructed|doi|ravi kal ghar aayega": {
+  "kind": "instructed",
+  "latency_ms": 196.5,
+  "route": "chat",
+  "text": "रवि कल घर आऐगा"
+ },
+ "instructed|gu|aaje": {
+  "kind": "instructed",
+  "latency_ms": 314.7,
+  "route": "chat",
+  "text": "આજે"
+ },
+ "instructed|gu|aaje bahu garmi che": {
+  "kind": "instructed",
+  "latency_ms": 904.8,
+  "route": "chat",
+  "text": "આજે બહુ ગરમી છે"
+ },
+ "instructed|gu|aaje bahu garmi che#1": {
+  "kind": "instructed",
+  "latency_ms": 275.5,
+  "route": "chat",
+  "text": "આજે બહુ ગરમી છે"
+ },
+ "instructed|gu|aaje bahu garmi che#2": {
+  "kind": "instructed",
+  "latency_ms": 316.7,
+  "route": "chat",
+  "text": "આજે બહુ ગરમી છે"
+ },
+ "instructed|gu|aavish": {
+  "kind": "instructed",
+  "latency_ms": 405.6,
+  "route": "chat",
+  "text": "આવિશ"
+ },
+ "instructed|gu|bahu": {
+  "kind": "instructed",
+  "latency_ms": 641.5,
+  "route": "chat",
+  "text": "બહુ"
+ },
+ "instructed|gu|che": {
+  "kind": "instructed",
+  "latency_ms": 409.2,
+  "route": "chat",
+  "text": "ચે"
+ },
+ "instructed|gu|cho": {
+  "kind": "instructed",
+  "latency_ms": 216.0,
+  "route": "chat",
+  "text": "ચો"
+ },
+ "instructed|gu|garmi": {
+  "kind": "instructed",
+  "latency_ms": 182.8,
+  "route": "chat",
+  "text": "ગરમી"
+ },
+ "instructed|gu|hu": {
+  "kind": "instructed",
+  "latency_ms": 258.0,
+  "route": "chat",
+  "text": "હું"
+ },
+ "instructed|gu|hu kale office aavish": {
+  "kind": "instructed",
+  "latency_ms": 276.8,
+  "route": "chat",
+  "text": "હું કાલે ઓફિસ આવીશ"
+ },
+ "instructed|gu|hu kale office aavish#1": {
+  "kind": "instructed",
+  "latency_ms": 248.9,
+  "route": "chat",
+  "text": "હું કાલે ઓફિસ આવીશ"
+ },
+ "instructed|gu|hu kale office aavish#2": {
+  "kind": "instructed",
+  "latency_ms": 697.8,
+  "route": "chat",
+  "text": "હું કાલે ઓફિસ આવીશ"
+ },
+ "instructed|gu|kale": {
+  "kind": "instructed",
+  "latency_ms": 292.6,
+  "route": "chat",
+  "text": "કાલે"
+ },
+ "instructed|gu|kem": {
+  "kind": "instructed",
+  "latency_ms": 246.8,
+  "route": "chat",
+  "text": "કેમ"
+ },
+ "instructed|gu|maru": {
+  "kind": "instructed",
+  "latency_ms": 595.5,
+  "route": "chat",
+  "text": "મારું"
+ },
+ "instructed|gu|maru naam ravi che": {
+  "kind": "instructed",
+  "latency_ms": 245.9,
+  "route": "chat",
+  "text": "મારું નામ રવિ છે"
+ },
+ "instructed|gu|maru naam ravi che#1": {
+  "kind": "instructed",
+  "latency_ms": 325.3,
+  "route": "chat",
+  "text": "મારું નામ રવિ છે"
+ },
+ "instructed|gu|maru naam ravi che#2": {
+  "kind": "instructed",
+  "latency_ms": 240.3,
+  "route": "chat",
+  "text": "મારું નામ રવિ છે"
+ },
+ "instructed|gu|naam": {
+  "kind": "instructed",
+  "latency_ms": 247.9,
+  "route": "chat",
+  "text": "નામ"
+ },
+ "instructed|gu|namaskar": {
+  "kind": "instructed",
+  "latency_ms": 276.2,
+  "route": "chat",
+  "text": "નમસ્કાર"
+ },
+ "instructed|gu|number": {
+  "kind": "instructed",
+  "latency_ms": 497.0,
+  "route": "chat",
+  "text": "નંબર"
+ },
+ "instructed|gu|office": {
+  "kind": "instructed",
+  "latency_ms": 536.6,
+  "route": "chat",
+  "text": "ઓફિસ"
+ },
+ "instructed|gu|phone": {
+  "kind": "instructed",
+  "latency_ms": 239.4,
+  "route": "chat",
+  "text": "ફોન"
+ },
+ "instructed|gu|ravi": {
+  "kind": "instructed",
+  "latency_ms": 475.4,
+  "route": "chat",
+  "text": "રવિ"
+ },
+ "instructed|gu|ravi kal ghar aayega": {
+  "kind": "instructed",
+  "latency_ms": 533.9,
+  "route": "chat",
+  "text": "રવિ કલ ઘર આવશે"
+ },
+ "instructed|gu|shu": {
+  "kind": "instructed",
+  "latency_ms": 562.8,
+  "route": "chat",
+  "text": "શું"
+ },
+ "instructed|gu|tamaro": {
+  "kind": "instructed",
+  "latency_ms": 723.2,
+  "route": "chat",
+  "text": "તમારો"
+ },
+ "instructed|gu|tamaro phone number shu che?": {
+  "kind": "instructed",
+  "latency_ms": 494.1,
+  "route": "chat",
+  "text": "તમારો ફોન નંબર શું છે?"
+ },
+ "instructed|gu|tamaro phone number shu che?#1": {
+  "kind": "instructed",
+  "latency_ms": 306.1,
+  "route": "chat",
+  "text": "તમારો ફોન નંબર શું છે?"
+ },
+ "instructed|gu|tamaro phone number shu che?#2": {
+  "kind": "instructed",
+  "latency_ms": 575.9,
+  "route": "chat",
+  "text": "તમારો ફોન નંબર શું છે?"
+ },
+ "instructed|gu|tame": {
+  "kind": "instructed",
+  "latency_ms": 243.0,
+  "route": "chat",
+  "text": "તમે"
+ },
+ "instructed|gu|tame kem cho": {
+  "kind": "instructed",
+  "latency_ms": 293.6,
+  "route": "chat",
+  "text": "તમે કેમ છો"
+ },
+ "instructed|gu|tame kem cho#1": {
+  "kind": "instructed",
+  "latency_ms": 273.2,
+  "route": "chat",
+  "text": "તમે કેમ છો"
+ },
+ "instructed|gu|tame kem cho#2": {
+  "kind": "instructed",
+  "latency_ms": 406.2,
+  "route": "chat",
+  "text": "તમે કેમ છો"
+ },
+ "instructed|hi|aana": {
+  "kind": "instructed",
+  "latency_ms": 231.4,
+  "route": "chat",
+  "text": "आना"
+ },
+ "instructed|hi|aap": {
+  "kind": "instructed",
+  "latency_ms": 223.8,
+  "route": "chat",
+  "text": "आप"
+ },
+ "instructed|hi|aap kaise hain": {
+  "kind": "instructed",
+  "latency_ms": 303.3,
+  "route": "chat",
+  "text": "आप कैसे हैं"
+ },
+ "instructed|hi|aap kaise hain#1": {
+  "kind": "instructed",
+  "latency_ms": 244.9,
+  "route": "chat",
+  "text": "आप कैसे हैं"
+ },
+ "instructed|hi|aap kaise hain#2": {
+  "kind": "instructed",
+  "latency_ms": 407.0,
+  "route": "chat",
+  "text": "आप कैसे हैं"
+ },
+ "instructed|hi|chahiye": {
+  "kind": "instructed",
+  "latency_ms": 762.1,
+  "route": "chat",
+  "text": "चाहिए"
+ },
+ "instructed|hi|chutti": {
+  "kind": "instructed",
+  "latency_ms": 28822.8,
+  "route": "chat",
+  "text": "छुट्टी"
+ },
+ "instructed|hi|din": {
+  "kind": "instructed",
+  "latency_ms": 1513.8,
+  "route": "chat",
+  "text": "दिन"
+ },
+ "instructed|hi|free": {
+  "kind": "instructed",
+  "latency_ms": 296.6,
+  "route": "chat",
+  "text": "फ्री"
+ },
+ "instructed|hi|ghar": {
+  "kind": "instructed",
+  "latency_ms": 212.3,
+  "route": "chat",
+  "text": "घर"
+ },
+ "instructed|hi|hai": {
+  "kind": "instructed",
+  "latency_ms": 180.5,
+  "route": "chat",
+  "text": "है"
+ },
+ "instructed|hi|hain": {
+  "kind": "instructed",
+  "latency_ms": 401.4,
+  "route": "chat",
+  "text": "हैं"
+ },
+ "instructed|hi|ho": {
+  "kind": "instructed",
+  "latency_ms": 276.0,
+  "route": "chat",
+  "text": "हो"
+ },
+ "instructed|hi|hoon": {
+  "kind": "instructed",
+  "latency_ms": 243.2,
+  "route": "chat",
+  "text": "हूँ"
+ },
+ "instructed|hi|ja": {
+  "kind": "instructed",
+  "latency_ms": 222.9,
+  "route": "chat",
+  "text": "जा"
+ },
+ "instructed|hi|kaise": {
+  "kind": "instructed",
+  "latency_ms": 273.1,
+  "route": "chat",
+  "text": "कैसे"
+ },
+ "instructed|hi|kal": {
+  "kind": "instructed",
+  "latency_ms": 3412.8,
+  "route": "chat",
+  "text": "कल"
+ },
+ "instructed|hi|kal meeting hai please time pe aana": {
+  "kind": "instructed",
+  "latency_ms": 245.4,
+  "route": "chat",
+  "text": "कल मीटिंग है प्लीज टाइम पे आना"
+ },
+ "instructed|hi|kal meeting hai please time pe aana#1": {
+  "kind": "instructed",
+  "latency_ms": 686.0,
+  "route": "chat",
+  "text": "कल मीटिंग है प्लीज टाइम पे आना"
+ },
+ "instructed|hi|kal meeting hai please time pe aana#2": {
+  "kind": "instructed",
+  "latency_ms": 343.5,
+  "route": "chat",
+  "text": "कल मीटिंग है प्लीज टाइम पे आना"
+ },
+ "instructed|hi|ki": {
+  "kind": "instructed",
+  "latency_ms": 2797.8,
+  "route": "chat",
+  "text": "की"
+ },
+ "instructed|hi|kya": {
+  "kind": "instructed",
+  "latency_ms": 282.8,
+  "route": "chat",
+  "text": "क्या"
+ },
+ "instructed|hi|kya tum kal free ho?": {
+  "kind": "instructed",
+  "latency_ms": 330.4,
+  "route": "chat",
+  "text": "क्या तुम कल फ्री हो?"
+ },
+ "instructed|hi|kya tum kal free ho?#1": {
+  "kind": "instructed",
+  "latency_ms": 323.9,
+  "route": "chat",
+  "text": "क्या तुम कल फ्री हो?"
+ },
+ "instructed|hi|kya tum kal free ho?#2": {
+  "kind": "instructed",
+  "latency_ms": 404.2,
+  "route": "chat",
+  "text": "क्या तुम कल फ्री हो?"
+ },
+ "instructed|hi|main": {
+  "kind": "instructed",
+  "latency_ms": 217.3,
+  "route": "chat",
+  "text": "मैं"
+ },
+ "instructed|hi|main ghar ja raha hoon": {
+  "kind": "instructed",
+  "latency_ms": 258.9,
+  "route": "chat",
+  "text": "मैं घर जा रहा हूँ"
+ },
+ "instructed|hi|main ghar ja raha hoon#1": {
+  "kind": "instructed",
+  "latency_ms": 1724.8,
+  "route": "chat",
+  "text": "मैं घर जा रहा हूँ"
+ },
+ "instructed|hi|main ghar ja raha hoon#2": {
+  "kind": "instructed",
+  "latency_ms": 364.7,
+  "route": "chat",
+  "text": "मैं घर जा रहा हूँ"
+ },
+ "instructed|hi|meeting": {
+  "kind": "instructed",
+  "latency_ms": 262.0,
+  "route": "chat",
+  "text": "मीटिंग"
+ },
+ "instructed|hi|mujhe": {
+  "kind": "instructed",
+  "latency_ms": 1731.8,
+  "route": "chat",
+  "text": "मुझे"
+ },
+ "instructed|hi|mujhe 2 din ki chutti chahiye": {
+  "kind": "instructed",
+  "latency_ms": 1257.9,
+  "route": "chat",
+  "text": "मुझे 2 दिन की छुट्टी चाहिए"
+ },
+ "instructed|hi|mujhe 2 din ki chutti chahiye#1": {
+  "kind": "instructed",
+  "latency_ms": 3580.9,
+  "route": "chat",
+  "text": "मुझे 2 दिन की छुट्टी चाहिए"
+ },
+ "instructed|hi|mujhe 2 din ki chutti chahiye#2": {
+  "kind": "instructed",
+  "latency_ms": 370.2,
+  "route": "chat",
+  "text": "मुझे 2 दिन की छुट्टी चाहिए"
+ },
+ "instructed|hi|namaskar": {
+  "kind": "instructed",
+  "latency_ms": 236.2,
+  "route": "chat",
+  "text": "नमस्कार"
+ },
+ "instructed|hi|pe": {
+  "kind": "instructed",
+  "latency_ms": 282.4,
+  "route": "chat",
+  "text": "पे"
+ },
+ "instructed|hi|please": {
+  "kind": "instructed",
+  "latency_ms": 928.1,
+  "route": "chat",
+  "text": "कृपया"
+ },
+ "instructed|hi|raha": {
+  "kind": "instructed",
+  "latency_ms": 256.4,
+  "route": "chat",
+  "text": "रहा"
+ },
+ "instructed|hi|ravi kal ghar aayega": {
+  "kind": "instructed",
+  "latency_ms": 276.2,
+  "route": "chat",
+  "text": "रवि कल घर आएगा"
+ },
+ "instructed|hi|time": {
+  "kind": "instructed",
+  "latency_ms": 482.6,
+  "route": "chat",
+  "text": "समय"
+ },
+ "instructed|hi|tum": {
+  "kind": "instructed",
+  "latency_ms": 251.4,
+  "route": "chat",
+  "text": "तुम"
+ },
+ "instructed|kn|namaskar": {
+  "kind": "instructed",
+  "latency_ms": 207.6,
+  "route": "chat",
+  "text": "ನಮಸ್ಕಾರ"
+ },
+ "instructed|kn|ravi kal ghar aayega": {
+  "kind": "instructed",
+  "latency_ms": 239.7,
+  "route": "chat",
+  "text": "ರವಿ ಕಲ್ ಘರ್ ಆಯೇಗಾ"
+ },
+ "instructed|kok|namaskar": {
+  "kind": "instructed",
+  "latency_ms": 314.2,
+  "route": "chat",
+  "text": "नमस्कार"
+ },
+ "instructed|kok|ravi kal ghar aayega": {
+  "kind": "instructed",
+  "latency_ms": 215.2,
+  "route": "chat",
+  "text": "रवि कल घर आयगे"
+ },
+ "instructed|ks-Deva|namaskar": {
+  "kind": "instructed",
+  "latency_ms": 308.6,
+  "route": "chat",
+  "text": "नमस्कार"
+ },
+ "instructed|ks-Deva|ravi kal ghar aayega": {
+  "kind": "instructed",
+  "latency_ms": 201.3,
+  "route": "chat",
+  "text": "ravi kal ghar ayega"
+ },
+ "instructed|ks|namaskar": {
+  "kind": "instructed",
+  "latency_ms": 270.6,
+  "route": "chat",
+  "text": "نمسکار"
+ },
+ "instructed|ks|ravi kal ghar aayega": {
+  "kind": "instructed",
+  "latency_ms": 491.1,
+  "route": "chat",
+  "text": "رَوی کَل گھر آیہِ گا"
+ },
+ "instructed|mai|namaskar": {
+  "kind": "instructed",
+  "latency_ms": 661.2,
+  "route": "chat",
+  "text": "नमस्कार"
+ },
+ "instructed|mai|ravi kal ghar aayega": {
+  "kind": "instructed",
+  "latency_ms": 287.2,
+  "route": "chat",
+  "text": "रवि कल घर आएग"
+ },
+ "instructed|ml|namaskar": {
+  "kind": "instructed",
+  "latency_ms": 323.3,
+  "route": "chat",
+  "text": "നമസ്കാരം"
+ },
+ "instructed|ml|ravi kal ghar aayega": {
+  "kind": "instructed",
+  "latency_ms": 427.8,
+  "route": "chat",
+  "text": "രവി കൽ ഘർ ആയെഗാ"
+ },
+ "instructed|mni-Beng|namaskar": {
+  "kind": "instructed",
+  "latency_ms": 223.3,
+  "route": "chat",
+  "text": "নমস্কার"
+ },
+ "instructed|mni-Beng|ravi kal ghar aayega": {
+  "kind": "instructed",
+  "latency_ms": 205.5,
+  "route": "chat",
+  "text": "রবি কল ঘর আয়েগা"
+ },
+ "instructed|mni|namaskar": {
+  "kind": "instructed",
+  "latency_ms": 245.7,
+  "route": "chat",
+  "text": "ꯅꯃꯁꯥꯀꯔ"
+ },
+ "instructed|mni|ravi kal ghar aayega": {
+  "kind": "instructed",
+  "latency_ms": 329.9,
+  "route": "chat",
+  "text": "ꯔꯥꯕꯤ ꯀꯜ ꯘꯔ ꯑꯥꯌꯦꯒꯥ"
+ },
+ "instructed|mr|namaskar": {
+  "kind": "instructed",
+  "latency_ms": 172.4,
+  "route": "chat",
+  "text": "नमस्कार"
+ },
+ "instructed|mr|ravi kal ghar aayega": {
+  "kind": "instructed",
+  "latency_ms": 311.1,
+  "route": "chat",
+  "text": "रवी कल घर आयेगा"
+ },
+ "instructed|ne|namaskar": {
+  "kind": "instructed",
+  "latency_ms": 495.7,
+  "route": "chat",
+  "text": "नमस्कार"
+ },
+ "instructed|ne|ravi kal ghar aayega": {
+  "kind": "instructed",
+  "latency_ms": 621.1,
+  "route": "chat",
+  "text": "रवि कल घर आउनेछ"
+ },
+ "instructed|or|namaskar": {
+  "kind": "instructed",
+  "latency_ms": 201.0,
+  "route": "chat",
+  "text": "ନମସ୍କାର"
+ },
+ "instructed|or|ravi kal ghar aayega": {
+  "kind": "instructed",
+  "latency_ms": 264.2,
+  "route": "chat",
+  "text": "ରବି କଲ୍ ଘର ଆୟେଗା"
+ },
+ "instructed|pa|namaskar": {
+  "kind": "instructed",
+  "latency_ms": 1357.0,
+  "route": "chat",
+  "text": "ਨਮਸਕਾਰ"
+ },
+ "instructed|pa|ravi kal ghar aayega": {
+  "kind": "instructed",
+  "latency_ms": 274.9,
+  "route": "chat",
+  "text": "ਰਵੀ ਕੱਲ੍ਹ ਘਰ ਆਏਗਾ"
+ },
+ "instructed|sat|namaskar": {
+  "kind": "instructed",
+  "latency_ms": 192.7,
+  "route": "chat",
+  "text": "ᱱᱚᱢᱚᱥᱠᱟᱨ"
+ },
+ "instructed|sat|ravi kal ghar aayega": {
+  "kind": "instructed",
+  "latency_ms": 512.7,
+  "route": "chat",
+  "text": "ᱨᱟᱵᱤ ᱠᱟᱞ ᱜᱷᱟᱨ ᱟᱭᱮᱜᱼᱟ"
+ },
+ "instructed|sa|namaskar": {
+  "kind": "instructed",
+  "latency_ms": 269.3,
+  "route": "chat",
+  "text": "नमस्कार"
+ },
+ "instructed|sa|ravi kal ghar aayega": {
+  "kind": "instructed",
+  "latency_ms": 227.8,
+  "route": "chat",
+  "text": "रवि कल घर आयेगा"
+ },
+ "instructed|sd-Arab|namaskar": {
+  "kind": "instructed",
+  "latency_ms": 201.6,
+  "route": "chat",
+  "text": "نمستڪار"
+ },
+ "instructed|sd-Arab|ravi kal ghar aayega": {
+  "kind": "instructed",
+  "latency_ms": 353.7,
+  "route": "chat",
+  "text": "رَوِ ڪل گهر آئيگا"
+ },
+ "instructed|sd|namaskar": {
+  "kind": "instructed",
+  "latency_ms": 250.3,
+  "route": "chat",
+  "text": "नमस्कार"
+ },
+ "instructed|sd|ravi kal ghar aayega": {
+  "kind": "instructed",
+  "latency_ms": 328.5,
+  "route": "chat",
+  "text": "रवी कल घर ईंदो आहे"
+ },
+ "instructed|ta|amma": {
+  "kind": "instructed",
+  "latency_ms": 259.1,
+  "route": "chat",
+  "text": "அம்மா"
+ },
+ "instructed|ta|amma saapittiya?": {
+  "kind": "instructed",
+  "latency_ms": 484.7,
+  "route": "chat",
+  "text": "அம்மா சாப்பிட்டீயா?"
+ },
+ "instructed|ta|amma saapittiya?#1": {
+  "kind": "instructed",
+  "latency_ms": 556.7,
+  "route": "chat",
+  "text": "அம்மா சாப்பிட்டீயா?"
+ },
+ "instructed|ta|amma saapittiya?#2": {
+  "kind": "instructed",
+  "latency_ms": 451.8,
+  "route": "chat",
+  "text": "அம்மா சாப்பிட்டீயா?"
+ },
+ "instructed|ta|enakku": {
+  "kind": "instructed",
+  "latency_ms": 1932.4,
+  "route": "chat",
+  "text": "எனக்கு"
+ },
+ "instructed|ta|enakku romba pasikkuthu": {
+  "kind": "instructed",
+  "latency_ms": 364.8,
+  "route": "chat",
+  "text": "எனக்கு ரொம்ப பசிக்குது"
+ },
+ "instructed|ta|enakku romba pasikkuthu#1": {
+  "kind": "instructed",
+  "latency_ms": 582.1,
+  "route": "chat",
+  "text": "எனக்கு ரொம்ப பசிக்குது"
+ },
+ "instructed|ta|enakku romba pasikkuthu#2": {
+  "kind": "instructed",
+  "latency_ms": 398.0,
+  "route": "chat",
+  "text": "எனக்கு ரொம்ப பசிக்குது"
+ },
+ "instructed|ta|eppadi": {
+  "kind": "instructed",
+  "latency_ms": 417.9,
+  "route": "chat",
+  "text": "எப்படி"
+ },
+ "instructed|ta|irukkeenga": {
+  "kind": "instructed",
+  "latency_ms": 417.1,
+  "route": "chat",
+  "text": "இருக்கீங்க"
+ },
+ "instructed|ta|irukken": {
+  "kind": "instructed",
+  "latency_ms": 610.1,
+  "route": "chat",
+  "text": "இருக்கும்"
+ },
+ "instructed|ta|naalai": {
+  "kind": "instructed",
+  "latency_ms": 354.3,
+  "route": "chat",
+  "text": "நாளை"
+ },
+ "instructed|ta|naan": {
+  "kind": "instructed",
+  "latency_ms": 418.1,
+  "route": "chat",
+  "text": "நான்"
+ },
+ "instructed|ta|naan naalai varuven": {
+  "kind": "instructed",
+  "latency_ms": 337.5,
+  "route": "chat",
+  "text": "நான் நாளை வருவேன்"
+ },
+ "instructed|ta|naan naalai varuven#1": {
+  "kind": "instructed",
+  "latency_ms": 236.8,
+  "route": "chat",
+  "text": "நான் நாளை வருவேன்"
+ },
+ "instructed|ta|naan naalai varuven#2": {
+  "kind": "instructed",
+  "latency_ms": 266.8,
+  "route": "chat",
+  "text": "நான் நாளை வருவேன்"
+ },
+ "instructed|ta|naan veetla irukken": {
+  "kind": "instructed",
+  "latency_ms": 286.1,
+  "route": "chat",
+  "text": "நான் வீட்ல இருக்கேன்"
+ },
+ "instructed|ta|naan veetla irukken#1": {
+  "kind": "instructed",
+  "latency_ms": 294.2,
+  "route": "chat",
+  "text": "நான் வீட்ல இருக்கேன்"
+ },
+ "instructed|ta|naan veetla irukken#2": {
+  "kind": "instructed",
+  "latency_ms": 446.3,
+  "route": "chat",
+  "text": "நான் வீட்ல இருக்கேன்"
+ },
+ "instructed|ta|namaskar": {
+  "kind": "instructed",
+  "latency_ms": 429.9,
+  "route": "chat",
+  "text": "நமஸ்கார்"
+ },
+ "instructed|ta|pasikkuthu": {
+  "kind": "instructed",
+  "latency_ms": 14261.7,
+  "route": "chat",
+  "text": "பசிக்கிறது"
+ },
+ "instructed|ta|ravi kal ghar aayega": {
+  "kind": "instructed",
+  "latency_ms": 182.6,
+  "route": "chat",
+  "text": "ரவி கல் கர் ஆயேகா"
+ },
+ "instructed|ta|romba": {
+  "kind": "instructed",
+  "latency_ms": 718.6,
+  "route": "chat",
+  "text": "ரொம்ப"
+ },
+ "instructed|ta|saapittiya": {
+  "kind": "instructed",
+  "latency_ms": 396.8,
+  "route": "chat",
+  "text": "சாப்பிட்டியா"
+ },
+ "instructed|ta|vanakkam": {
+  "kind": "instructed",
+  "latency_ms": 650.6,
+  "route": "chat",
+  "text": "வணக்கம்"
+ },
+ "instructed|ta|vanakkam eppadi irukkeenga": {
+  "kind": "instructed",
+  "latency_ms": 2000.1,
+  "route": "chat",
+  "text": "வணக்கம் எப்படி இருக்கீங்க"
+ },
+ "instructed|ta|vanakkam eppadi irukkeenga#1": {
+  "kind": "instructed",
+  "latency_ms": 903.1,
+  "route": "chat",
+  "text": "வணக்கம் எப்படி இருக்கீங்க"
+ },
+ "instructed|ta|vanakkam eppadi irukkeenga#2": {
+  "kind": "instructed",
+  "latency_ms": 787.9,
+  "route": "chat",
+  "text": "வணக்கம் எப்படி இருக்கீங்க"
+ },
+ "instructed|ta|varuven": {
+  "kind": "instructed",
+  "latency_ms": 320.6,
+  "route": "chat",
+  "text": "வருவேன்"
+ },
+ "instructed|ta|veetla": {
+  "kind": "instructed",
+  "latency_ms": 873.6,
+  "route": "chat",
+  "text": "வீட்டில்"
+ },
+ "instructed|te|namaskar": {
+  "kind": "instructed",
+  "latency_ms": 218.3,
+  "route": "chat",
+  "text": "నమస్కార్"
+ },
+ "instructed|te|ravi kal ghar aayega": {
+  "kind": "instructed",
+  "latency_ms": 274.8,
+  "route": "chat",
+  "text": "రవి కల్ ఘర్ ఆయేగా"
+ },
+ "instructed|ur|namaskar": {
+  "kind": "instructed",
+  "latency_ms": 312.9,
+  "route": "chat",
+  "text": "نمستے"
+ },
+ "instructed|ur|ravi kal ghar aayega": {
+  "kind": "instructed",
+  "latency_ms": 656.8,
+  "route": "chat",
+  "text": "رَوی کل گھر آئے گا"
+ },
+ "roman-bare|bn|আমি ভালো আছি": {
+  "kind": "roman-bare",
+  "latency_ms": 306.1,
+  "route": "chat",
+  "text": "I am fine"
+ },
+ "roman-bare|gu|તમે કેમ છો": {
+  "kind": "roman-bare",
+  "latency_ms": 323.5,
+  "route": "chat",
+  "text": "आप कैसे हैं"
+ },
+ "roman-bare|hi|आप कैसे हैं": {
+  "kind": "roman-bare",
+  "latency_ms": 329.2,
+  "route": "chat",
+  "text": "आप कैसे हैं"
+ },
+ "roman-bare|ta|நான் நாளை வருவேன்": {
+  "kind": "roman-bare",
+  "latency_ms": 395.4,
+  "route": "chat",
+  "text": "నేను రేపు వస్తాను"
+ },
+ "roman-instructed|bn|আমি ভালো আছি": {
+  "kind": "roman-instructed",
+  "latency_ms": 794.2,
+  "route": "chat",
+  "text": "Ami bhalo achi."
+ },
+ "roman-instructed|gu|તમે કેમ છો": {
+  "kind": "roman-instructed",
+  "latency_ms": 318.8,
+  "route": "chat",
+  "text": "Tame kem chho"
+ },
+ "roman-instructed|hi|आप कैसे हैं": {
+  "kind": "roman-instructed",
+  "latency_ms": 307.9,
+  "route": "chat",
+  "text": "Aap kaise hain"
+ },
+ "roman-instructed|ta|நான் நாளை வருவேன்": {
+  "kind": "roman-instructed",
+  "latency_ms": 401.5,
+  "route": "chat",
+  "text": "Naan naalai varuven"
+ }
+}

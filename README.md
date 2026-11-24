@@ -83,9 +83,10 @@ Base URL `https://api.bodhan.ai`, header `Authorization: Bearer $BODHAN_API_KEY`
 | Project | Description |
 |---|---|
 | [Voice Notice Translator](examples/voice_notice_translator/) | Transcribes a spoken announcement, translates it into five languages, and reads each one aloud in a native voice |
+| [Roman-script input box](examples/roman_script_input_box/) | WhatsApp-style chat box: type in English letters, send in Hindi, Gujarati, Bengali, Tamil and more. Compares word-by-word, whole-sentence and hybrid transliteration on accuracy, latency and API calls |
 | [TEMPLATE](examples/TEMPLATE/) | Starting point for new recipes: README skeleton, notebook, pinned requirements, `.env.example` |
 
-Ideas waiting for a contributor: exam paper reader (OCR → translate), multilingual customer-feedback analyser, WhatsApp-style roman-script input box, lecture subtitler, government-scheme summariser, IVR voice agent. Open a [recipe proposal](https://github.com/Bodhan-AI/Bodhan-AI-Cookbook/issues/new?template=recipe_proposal.md) to claim one.
+Ideas waiting for a contributor: exam paper reader (OCR → translate), multilingual customer-feedback analyser, lecture subtitler, government-scheme summariser, IVR voice agent. Open a [recipe proposal](https://github.com/Bodhan-AI/Bodhan-AI-Cookbook/issues/new?template=recipe_proposal.md) to claim one.
 
 ## Integrations
 
