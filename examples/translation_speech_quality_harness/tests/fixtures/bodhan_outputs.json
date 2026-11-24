@@ -1,0 +1,23 @@
+{
+  "source": "Water boils at 100 °C at sea level.",
+  "translations": {
+    "hi": {
+      "translation": "समुद्र तल पर पानी 100 डिग्री सेल्सियस पर उबलता है।",
+      "back_translation": "Water boils at 100 degrees Celsius at sea level."
+    },
+    "ta": {
+      "translation": "கடல் மட்டத்தில் நீர் 100°C வெப்பநிலையில் கொதிக்கிறது.",
+      "back_translation": "At sea level water boils at a temperature of 100 ° C."
+    },
+    "bn": {
+      "translation": "সমুদ্রপৃষ্ঠে জল ১০০ ডিগ্রি সেলসিয়াসে ফোটে।",
+      "back_translation": "Water boils at 100 degrees Celsius at sea level."
+    }
+  },
+  "asr": {
+    "lang": "hi",
+    "reference_text": "समुद्र तल पर पानी 100 डिग्री सेल्सियस पर उबलता है।",
+    "asr_text": "समुद्र तल पर पानी वन हंड्रेड डिग्री सेल्सियस पर उबलता है"
+  },
+  "_provenance": "Real Indic-Translate / Indic-Transcribe outputs captured by scripts/smoke_test.py on 2026-11-23."
+}

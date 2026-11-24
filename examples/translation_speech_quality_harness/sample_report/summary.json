@@ -1,0 +1,2005 @@
+{
+  "baseline_diff": {
+    "counts": {
+      "categories_changed": 0,
+      "errored": 0,
+      "improved": 12,
+      "newly_flagged": 0,
+      "no_longer_flagged": 0,
+      "regressed": 1
+    },
+    "flag_counts_by_category": {
+      "addition": {
+        "after": 7,
+        "before": 2,
+        "delta": 5
+      },
+      "format": {
+        "after": 13,
+        "before": 13,
+        "delta": 0
+      },
+      "mistranslation": {
+        "after": 5,
+        "before": 0,
+        "delta": 5
+      },
+      "number_unit": {
+        "after": 16,
+        "before": 16,
+        "delta": 0
+      },
+      "omission": {
+        "after": 6,
+        "before": 2,
+        "delta": 4
+      },
+      "speech_garbled": {
+        "after": 11,
+        "before": 11,
+        "delta": 0
+      },
+      "speech_omission_truncation": {
+        "after": 4,
+        "before": 4,
+        "delta": 0
+      },
+      "speech_repetition": {
+        "after": 7,
+        "before": 7,
+        "delta": 0
+      },
+      "term_entity": {
+        "after": 1,
+        "before": 0,
+        "delta": 1
+      },
+      "wrong_language_script": {
+        "after": 9,
+        "before": 9,
+        "delta": 0
+      }
+    },
+    "items": {
+      "baseline": 138,
+      "current": 138,
+      "new": 0,
+      "removed": 0,
+      "shared": 138
+    },
+    "overall": {
+      "improved": 12,
+      "label": "significant",
+      "p_value": 0.0034,
+      "regressed": 1
+    },
+    "significant_regression": false,
+    "totals": {
+      "flagged_after": 64,
+      "flagged_before": 51,
+      "labelled": 138,
+      "right_after": 126,
+      "right_before": 115
+    }
+  },
+  "calibration_heldout": {
+    "category_accuracy": {
+      "ci95": [
+        0.6666,
+        0.9525
+      ],
+      "k": 19,
+      "n": 22,
+      "value": 0.8636
+    },
+    "f1_items": 0.8936,
+    "false_alarm_reviewed": {
+      "ci95": [
+        0.0094,
+        0.2464
+      ],
+      "k": 1,
+      "n": 19,
+      "value": 0.0526
+    },
+    "false_alarm_strict": {
+      "ci95": [
+        0.0094,
+        0.2464
+      ],
+      "k": 1,
+      "n": 19,
+      "value": 0.0526
+    },
+    "items": 44,
+    "localization": {
+      "ci95": [
+        0.8513,
+        1.0
+      ],
+      "k": 22,
+      "n": 22,
+      "value": 1.0
+    },
+    "mean_iou": 0.6779,
+    "precision_items": {
+      "ci95": [
+        0.782,
+        0.9919
+      ],
+      "k": 21,
+      "n": 22,
+      "value": 0.9545
+    },
+    "recall_items": {
+      "ci95": [
+        0.6535,
+        0.936
+      ],
+      "k": 21,
+      "n": 25,
+      "value": 0.84
+    },
+    "recall_labels": {
+      "ci95": [
+        0.6647,
+        0.9385
+      ],
+      "k": 22,
+      "n": 26,
+      "value": 0.8462
+    }
+  },
+  "check_status": {
+    "asr_roundtrip: skipped": 72,
+    "audio_duration: skipped": 72,
+    "audio_sanity: skipped": 72,
+    "reference_chrf: skipped": 24
+  },
+  "cost": {
+    "per_service": {
+      "llm": {
+        "calls": 126,
+        "inr": 0.0,
+        "unit": "tokens",
+        "units": 157147.0
+      },
+      "speak": {
+        "calls": 0,
+        "inr": 0.0,
+        "unit": "input_chars",
+        "units": 0.0
+      },
+      "transcribe": {
+        "calls": 66,
+        "inr": 0.67,
+        "unit": "audio_seconds",
+        "units": 367.916
+      },
+      "translate": {
+        "calls": 138,
+        "inr": 0.0821,
+        "unit": "output_tokens",
+        "units": 4104.0
+      }
+    },
+    "total_equivalent_inr": 0.7521
+  },
+  "dataset": {
+    "bad_label_details": [],
+    "bad_labels": 0,
+    "bad_row_details": [],
+    "bad_rows": 0,
+    "calibration_ids_not_in_run": 0,
+    "calibration_ids_not_in_run_examples": [],
+    "evaluated": 138,
+    "filtered_out": 0,
+    "item_errors": 0,
+    "langs": [
+      "bn",
+      "hi",
+      "ta"
+    ],
+    "missing_audio": 0,
+    "missing_audio_ids": [],
+    "path": "demo.jsonl",
+    "total_lines": 138
+  },
+  "findings": {
+    "flag_groups": {
+      "addition / llm_judge": {
+        "count": 1,
+        "example": {
+          "category": "addition",
+          "check_id": "llm_judge",
+          "confidence": 0.9,
+          "corroborated_by": [
+            "back_translation"
+          ],
+          "excerpt": "[[விசாரணை நடத்த]] ஒரு விசாரணைக்குழு அமைக்கப்பட்டது.",
+          "id": "d100",
+          "lang": "ta",
+          "message": "Translation adds 'committee', not present in source.",
+          "severity": "major",
+          "span": [
+            0,
+            13
+          ],
+          "unit": "chars"
+        },
+        "ids": [
+          "d100"
+        ]
+      },
+      "format / format": {
+        "count": 2,
+        "example": {
+          "category": "format",
+          "check_id": "format",
+          "confidence": 0.9,
+          "excerpt": "[[गतिज ऊर्जा]]\n\nकिसी गतिमान वस्तु की गतिज ऊर्जा $E = \\frac{1}{2} m v^2$ है...",
+          "id": "d034",
+          "lang": "hi",
+          "message": "Broken structure on line 'गतिज ऊर्जा': heading: source 2 vs translation 0.",
+          "severity": "minor",
+          "span": [
+            0,
+            10
+          ],
+          "unit": "chars"
+        },
+        "ids": [
+          "d034",
+          "d126"
+        ]
+      }
+    },
+    "reviewed_preexisting": {
+      "format: Bodhan dropped the '###' heading marker; the heading renders as plain text.": [
+        "d053",
+        "d083",
+        "d126"
+      ],
+      "format: Bodhan dropped the '##' heading marker; the heading renders as plain text.": [
+        "d034"
+      ],
+      "format: Bodhan transliterated the inline code `brake`; code must be kept unchanged.": [
+        "d026"
+      ]
+    }
+  },
+  "flags": {
+    "by_category": {
+      "addition": 7,
+      "format": 13,
+      "mistranslation": 5,
+      "number_unit": 16,
+      "omission": 6,
+      "speech_garbled": 11,
+      "speech_omission_truncation": 4,
+      "speech_repetition": 7,
+      "term_entity": 1,
+      "wrong_language_script": 9
+    },
+    "by_lang": {
+      "bn": {
+        "items": 46,
+        "items_flagged": 19
+      },
+      "hi": {
+        "items": 46,
+        "items_flagged": 22
+      },
+      "ta": {
+        "items": 46,
+        "items_flagged": 23
+      }
+    }
+  },
+  "fusion_thresholds": {
+    "judge_min_confidence": 0.5,
+    "judge_min_confidence.format": 0.5
+  },
+  "generation": null,
+  "judge": {
+    "json_valid": {
+      "ci95": [
+        0.965,
+        1.0
+      ],
+      "k": 106,
+      "n": 106,
+      "value": 1.0
+    },
+    "quote_found": {
+      "ci95": [
+        0.9213,
+        1.0
+      ],
+      "k": 45,
+      "n": 45,
+      "value": 1.0
+    },
+    "quotes_not_found": 0,
+    "repaired": 0,
+    "review_queue_flags": 30,
+    "status": {
+      "ran": 106,
+      "skipped:tier1_unambiguous": 32
+    },
+    "tokens": 132010,
+    "unavailable": {
+      "by_reason": {},
+      "items_not_judged": 0
+    },
+    "verdicts": {
+      "errors": 37,
+      "ok": 69
+    }
+  },
+  "judge_consistency": {
+    "by_lang": {
+      "bn": {
+        "failed": 0,
+        "same_categories": {
+          "ci95": [
+            0.2505,
+            0.8418
+          ],
+          "k": 4,
+          "n": 7,
+          "value": 0.5714
+        },
+        "same_counted_flags": {
+          "ci95": [
+            0.6457,
+            1.0
+          ],
+          "k": 7,
+          "n": 7,
+          "value": 1.0
+        },
+        "same_verdict": {
+          "ci95": [
+            0.2505,
+            0.8418
+          ],
+          "k": 4,
+          "n": 7,
+          "value": 0.5714
+        }
+      },
+      "hi": {
+        "failed": 0,
+        "same_categories": {
+          "ci95": [
+            0.4869,
+            0.9743
+          ],
+          "k": 6,
+          "n": 7,
+          "value": 0.8571
+        },
+        "same_counted_flags": {
+          "ci95": [
+            0.6457,
+            1.0
+          ],
+          "k": 7,
+          "n": 7,
+          "value": 1.0
+        },
+        "same_verdict": {
+          "ci95": [
+            0.6457,
+            1.0
+          ],
+          "k": 7,
+          "n": 7,
+          "value": 1.0
+        }
+      },
+      "ta": {
+        "failed": 0,
+        "same_categories": {
+          "ci95": [
+            0.4365,
+            0.9699
+          ],
+          "k": 5,
+          "n": 6,
+          "value": 0.8333
+        },
+        "same_counted_flags": {
+          "ci95": [
+            0.6097,
+            1.0
+          ],
+          "k": 6,
+          "n": 6,
+          "value": 1.0
+        },
+        "same_verdict": {
+          "ci95": [
+            0.6097,
+            1.0
+          ],
+          "k": 6,
+          "n": 6,
+          "value": 1.0
+        }
+      }
+    },
+    "items_requested": 20,
+    "overall": {
+      "failed": 0,
+      "same_categories": {
+        "ci95": [
+          0.5313,
+          0.8881
+        ],
+        "k": 15,
+        "n": 20,
+        "value": 0.75
+      },
+      "same_counted_flags": {
+        "ci95": [
+          0.8389,
+          1.0
+        ],
+        "k": 20,
+        "n": 20,
+        "value": 1.0
+      },
+      "same_verdict": {
+        "ci95": [
+          0.6396,
+          0.9476
+        ],
+        "k": 17,
+        "n": 20,
+        "value": 0.85
+      }
+    },
+    "tokens": 25137
+  },
+  "missed_examples": [
+    {
+      "id": "d010",
+      "judge": "ok",
+      "labels": [
+        {
+          "category": "speech_omission_truncation",
+          "frame": "seconds",
+          "note": "The audio was cut off here; the last 0.69 s of speech are missing.",
+          "source": "injector",
+          "span": [
+            2.72,
+            2.72
+          ]
+        }
+      ],
+      "lang": "bn",
+      "weak_signals": [
+        "asr_roundtrip:speech_garbled",
+        "asr_roundtrip:speech_omission_truncation"
+      ]
+    },
+    {
+      "id": "d035",
+      "judge": "ok",
+      "labels": [
+        {
+          "category": "omission",
+          "frame": "chars",
+          "note": "A clause was deleted from the translation at this point (32 characters).",
+          "source": "injector",
+          "span": [
+            87,
+            87
+          ]
+        }
+      ],
+      "lang": "bn",
+      "weak_signals": [
+        "back_translation:omission"
+      ]
+    },
+    {
+      "id": "d036",
+      "judge": "ok",
+      "labels": [
+        {
+          "category": "speech_omission_truncation",
+          "frame": "seconds",
+          "note": "The audio was cut off here; the last 1.29 s of speech are missing.",
+          "source": "injector",
+          "span": [
+            3.66,
+            3.66
+          ]
+        }
+      ],
+      "lang": "bn",
+      "weak_signals": [
+        "asr_roundtrip:speech_garbled",
+        "asr_roundtrip:speech_omission_truncation"
+      ]
+    },
+    {
+      "id": "d067",
+      "judge": "ok",
+      "labels": [
+        {
+          "category": "speech_repetition",
+          "frame": "seconds",
+          "note": "A 1.24 s stretch of speech is repeated here.",
+          "source": "injector",
+          "span": [
+            4.12,
+            5.36
+          ]
+        }
+      ],
+      "lang": "bn",
+      "weak_signals": [
+        "asr_roundtrip:speech_garbled",
+        "asr_roundtrip:speech_repetition"
+      ]
+    },
+    {
+      "id": "d134",
+      "judge": "ok",
+      "labels": [
+        {
+          "category": "speech_omission_truncation",
+          "frame": "seconds",
+          "note": "The audio was cut off here; the last 1.84 s of speech are missing.",
+          "source": "injector",
+          "span": [
+            5.16,
+            5.16
+          ]
+        }
+      ],
+      "lang": "bn",
+      "weak_signals": [
+        "asr_roundtrip:speech_garbled",
+        "asr_roundtrip:speech_omission_truncation"
+      ]
+    },
+    {
+      "id": "d068",
+      "judge": "errors",
+      "labels": [
+        {
+          "category": "mistranslation",
+          "frame": "chars",
+          "note": "Meaning changed: the output says 'Before' where the source says 'After'.",
+          "source": "injector",
+          "span": [
+            67,
+            75
+          ]
+        }
+      ],
+      "lang": "hi",
+      "weak_signals": [
+        "llm_judge:mistranslation",
+        "llm_judge:omission"
+      ]
+    },
+    {
+      "id": "d128",
+      "judge": "errors",
+      "labels": [
+        {
+          "category": "mistranslation",
+          "frame": "chars",
+          "note": "Meaning changed: the output says 'above' where the source says 'below'.",
+          "source": "injector",
+          "span": [
+            3,
+            77
+          ]
+        }
+      ],
+      "lang": "hi",
+      "weak_signals": [
+        "llm_judge:mistranslation"
+      ]
+    },
+    {
+      "id": "d055",
+      "judge": "errors",
+      "labels": [
+        {
+          "category": "mistranslation",
+          "frame": "chars",
+          "note": "Meaning changed: the output says 'higher' where the source says 'lower'.",
+          "source": "injector",
+          "span": [
+            93,
+            97
+          ]
+        }
+      ],
+      "lang": "ta",
+      "weak_signals": [
+        "llm_judge:mistranslation"
+      ]
+    }
+  ],
+  "quality": {
+    "all_labelled": {
+      "by_category": {
+        "addition": {
+          "category_accuracy": {
+            "ci95": [
+              0.4093,
+              0.9285
+            ],
+            "k": 6,
+            "n": 8,
+            "value": 0.75
+          },
+          "f1": 0.866,
+          "labels": 8,
+          "localization": {
+            "ci95": [
+              0.5291,
+              0.9776
+            ],
+            "k": 7,
+            "n": 8,
+            "value": 0.875
+          },
+          "mean_iou": 0.6222,
+          "precision": {
+            "ci95": [
+              0.4869,
+              0.9743
+            ],
+            "k": 6,
+            "n": 7,
+            "value": 0.8571
+          },
+          "recall": {
+            "ci95": [
+              0.5291,
+              0.9776
+            ],
+            "k": 7,
+            "n": 8,
+            "value": 0.875
+          },
+          "weak_only": {
+            "ci95": [
+              0.0224,
+              0.4709
+            ],
+            "k": 1,
+            "n": 8,
+            "value": 0.125
+          }
+        },
+        "format": {
+          "category_accuracy": {
+            "ci95": [
+              0.7719,
+              1.0
+            ],
+            "k": 13,
+            "n": 13,
+            "value": 1.0
+          },
+          "f1": 1.0,
+          "labels": 13,
+          "localization": {
+            "ci95": [
+              0.7719,
+              1.0
+            ],
+            "k": 13,
+            "n": 13,
+            "value": 1.0
+          },
+          "mean_iou": 1.0,
+          "precision": {
+            "ci95": [
+              0.7719,
+              1.0
+            ],
+            "k": 13,
+            "n": 13,
+            "value": 1.0
+          },
+          "recall": {
+            "ci95": [
+              0.7719,
+              1.0
+            ],
+            "k": 13,
+            "n": 13,
+            "value": 1.0
+          },
+          "weak_only": {
+            "ci95": [
+              0.0,
+              0.2281
+            ],
+            "k": 0,
+            "n": 13,
+            "value": 0.0
+          }
+        },
+        "mistranslation": {
+          "category_accuracy": {
+            "ci95": [
+              0.0,
+              1.0
+            ],
+            "k": 0,
+            "n": 0,
+            "value": null
+          },
+          "f1": 0.0,
+          "labels": 4,
+          "localization": {
+            "ci95": [
+              0.0,
+              1.0
+            ],
+            "k": 0,
+            "n": 0,
+            "value": null
+          },
+          "mean_iou": null,
+          "precision": {
+            "ci95": [
+              0.0,
+              0.4345
+            ],
+            "k": 0,
+            "n": 5,
+            "value": 0.0
+          },
+          "recall": {
+            "ci95": [
+              0.0,
+              0.4899
+            ],
+            "k": 0,
+            "n": 4,
+            "value": 0.0
+          },
+          "weak_only": {
+            "ci95": [
+              0.5101,
+              1.0
+            ],
+            "k": 4,
+            "n": 4,
+            "value": 1.0
+          }
+        },
+        "number_unit": {
+          "category_accuracy": {
+            "ci95": [
+              0.6756,
+              1.0
+            ],
+            "k": 8,
+            "n": 8,
+            "value": 1.0
+          },
+          "f1": 0.9333,
+          "labels": 8,
+          "localization": {
+            "ci95": [
+              0.6756,
+              1.0
+            ],
+            "k": 8,
+            "n": 8,
+            "value": 1.0
+          },
+          "mean_iou": 1.0,
+          "precision": {
+            "ci95": [
+              0.6398,
+              0.965
+            ],
+            "k": 14,
+            "n": 16,
+            "value": 0.875
+          },
+          "recall": {
+            "ci95": [
+              0.6756,
+              1.0
+            ],
+            "k": 8,
+            "n": 8,
+            "value": 1.0
+          },
+          "weak_only": {
+            "ci95": [
+              0.0,
+              0.3244
+            ],
+            "k": 0,
+            "n": 8,
+            "value": 0.0
+          }
+        },
+        "omission": {
+          "category_accuracy": {
+            "ci95": [
+              0.6097,
+              1.0
+            ],
+            "k": 6,
+            "n": 6,
+            "value": 1.0
+          },
+          "f1": 0.8571,
+          "labels": 8,
+          "localization": {
+            "ci95": [
+              0.6097,
+              1.0
+            ],
+            "k": 6,
+            "n": 6,
+            "value": 1.0
+          },
+          "mean_iou": 0.0,
+          "precision": {
+            "ci95": [
+              0.6097,
+              1.0
+            ],
+            "k": 6,
+            "n": 6,
+            "value": 1.0
+          },
+          "recall": {
+            "ci95": [
+              0.4093,
+              0.9285
+            ],
+            "k": 6,
+            "n": 8,
+            "value": 0.75
+          },
+          "weak_only": {
+            "ci95": [
+              0.0715,
+              0.5907
+            ],
+            "k": 2,
+            "n": 8,
+            "value": 0.25
+          }
+        },
+        "speech_garbled": {
+          "category_accuracy": {
+            "ci95": [
+              0.6756,
+              1.0
+            ],
+            "k": 8,
+            "n": 8,
+            "value": 1.0
+          },
+          "f1": 1.0,
+          "labels": 8,
+          "localization": {
+            "ci95": [
+              0.6756,
+              1.0
+            ],
+            "k": 8,
+            "n": 8,
+            "value": 1.0
+          },
+          "mean_iou": 0.9835,
+          "precision": {
+            "ci95": [
+              0.7412,
+              1.0
+            ],
+            "k": 11,
+            "n": 11,
+            "value": 1.0
+          },
+          "recall": {
+            "ci95": [
+              0.6756,
+              1.0
+            ],
+            "k": 8,
+            "n": 8,
+            "value": 1.0
+          },
+          "weak_only": {
+            "ci95": [
+              0.0,
+              0.3244
+            ],
+            "k": 0,
+            "n": 8,
+            "value": 0.0
+          }
+        },
+        "speech_omission_truncation": {
+          "category_accuracy": {
+            "ci95": [
+              0.3755,
+              0.9638
+            ],
+            "k": 4,
+            "n": 5,
+            "value": 0.8
+          },
+          "f1": 0.6667,
+          "labels": 8,
+          "localization": {
+            "ci95": [
+              0.3755,
+              0.9638
+            ],
+            "k": 4,
+            "n": 5,
+            "value": 0.8
+          },
+          "mean_iou": 0.0,
+          "precision": {
+            "ci95": [
+              0.5101,
+              1.0
+            ],
+            "k": 4,
+            "n": 4,
+            "value": 1.0
+          },
+          "recall": {
+            "ci95": [
+              0.2152,
+              0.7848
+            ],
+            "k": 4,
+            "n": 8,
+            "value": 0.5
+          },
+          "weak_only": {
+            "ci95": [
+              0.2152,
+              0.7848
+            ],
+            "k": 4,
+            "n": 8,
+            "value": 0.5
+          }
+        },
+        "speech_repetition": {
+          "category_accuracy": {
+            "ci95": [
+              0.6097,
+              1.0
+            ],
+            "k": 6,
+            "n": 6,
+            "value": 1.0
+          },
+          "f1": 0.6316,
+          "labels": 8,
+          "localization": {
+            "ci95": [
+              0.3,
+              0.9032
+            ],
+            "k": 4,
+            "n": 6,
+            "value": 0.6667
+          },
+          "mean_iou": 0.2336,
+          "precision": {
+            "ci95": [
+              0.4869,
+              0.9743
+            ],
+            "k": 6,
+            "n": 7,
+            "value": 0.8571
+          },
+          "recall": {
+            "ci95": [
+              0.2152,
+              0.7848
+            ],
+            "k": 4,
+            "n": 8,
+            "value": 0.5
+          },
+          "weak_only": {
+            "ci95": [
+              0.0715,
+              0.5907
+            ],
+            "k": 2,
+            "n": 8,
+            "value": 0.25
+          }
+        },
+        "term_entity": {
+          "category_accuracy": {
+            "ci95": [
+              0.0456,
+              0.6994
+            ],
+            "k": 1,
+            "n": 4,
+            "value": 0.25
+          },
+          "f1": 1.0,
+          "labels": 4,
+          "localization": {
+            "ci95": [
+              0.5101,
+              1.0
+            ],
+            "k": 4,
+            "n": 4,
+            "value": 1.0
+          },
+          "mean_iou": 0.5818,
+          "precision": {
+            "ci95": [
+              0.2065,
+              1.0
+            ],
+            "k": 1,
+            "n": 1,
+            "value": 1.0
+          },
+          "recall": {
+            "ci95": [
+              0.5101,
+              1.0
+            ],
+            "k": 4,
+            "n": 4,
+            "value": 1.0
+          },
+          "weak_only": {
+            "ci95": [
+              0.0,
+              0.4899
+            ],
+            "k": 0,
+            "n": 4,
+            "value": 0.0
+          }
+        },
+        "wrong_language_script": {
+          "category_accuracy": {
+            "ci95": [
+              0.6756,
+              1.0
+            ],
+            "k": 8,
+            "n": 8,
+            "value": 1.0
+          },
+          "f1": 0.9412,
+          "labels": 8,
+          "localization": {
+            "ci95": [
+              0.6756,
+              1.0
+            ],
+            "k": 8,
+            "n": 8,
+            "value": 1.0
+          },
+          "mean_iou": 1.0,
+          "precision": {
+            "ci95": [
+              0.565,
+              0.9801
+            ],
+            "k": 8,
+            "n": 9,
+            "value": 0.8889
+          },
+          "recall": {
+            "ci95": [
+              0.6756,
+              1.0
+            ],
+            "k": 8,
+            "n": 8,
+            "value": 1.0
+          },
+          "weak_only": {
+            "ci95": [
+              0.0,
+              0.3244
+            ],
+            "k": 0,
+            "n": 8,
+            "value": 0.0
+          }
+        }
+      },
+      "by_lang": {
+        "bn": {
+          "category_accuracy": {
+            "ci95": [
+              0.7639,
+              0.9911
+            ],
+            "k": 19,
+            "n": 20,
+            "value": 0.95
+          },
+          "f1_items": 0.8837,
+          "false_alarm_reviewed": {
+            "ci95": [
+              0.0,
+              0.1487
+            ],
+            "k": 0,
+            "n": 22,
+            "value": 0.0
+          },
+          "false_alarm_strict": {
+            "ci95": [
+              0.0,
+              0.1487
+            ],
+            "k": 0,
+            "n": 22,
+            "value": 0.0
+          },
+          "items": 46,
+          "localization": {
+            "ci95": [
+              0.7639,
+              0.9911
+            ],
+            "k": 19,
+            "n": 20,
+            "value": 0.95
+          },
+          "mean_iou": 0.5976,
+          "precision_items": {
+            "ci95": [
+              0.8318,
+              1.0
+            ],
+            "k": 19,
+            "n": 19,
+            "value": 1.0
+          },
+          "recall_items": {
+            "ci95": [
+              0.5953,
+              0.9076
+            ],
+            "k": 19,
+            "n": 24,
+            "value": 0.7917
+          },
+          "recall_labels": {
+            "ci95": [
+              0.5657,
+              0.885
+            ],
+            "k": 19,
+            "n": 25,
+            "value": 0.76
+          }
+        },
+        "hi": {
+          "category_accuracy": {
+            "ci95": [
+              0.7976,
+              0.9926
+            ],
+            "k": 23,
+            "n": 24,
+            "value": 0.9583
+          },
+          "f1_items": 0.9565,
+          "false_alarm_reviewed": {
+            "ci95": [
+              0.0,
+              0.1487
+            ],
+            "k": 0,
+            "n": 22,
+            "value": 0.0
+          },
+          "false_alarm_strict": {
+            "ci95": [
+              0.0077,
+              0.2099
+            ],
+            "k": 1,
+            "n": 23,
+            "value": 0.0435
+          },
+          "items": 46,
+          "localization": {
+            "ci95": [
+              0.7415,
+              0.9768
+            ],
+            "k": 22,
+            "n": 24,
+            "value": 0.9167
+          },
+          "mean_iou": 0.7903,
+          "precision_items": {
+            "ci95": [
+              0.8513,
+              1.0
+            ],
+            "k": 22,
+            "n": 22,
+            "value": 1.0
+          },
+          "recall_items": {
+            "ci95": [
+              0.7415,
+              0.9768
+            ],
+            "k": 22,
+            "n": 24,
+            "value": 0.9167
+          },
+          "recall_labels": {
+            "ci95": [
+              0.6647,
+              0.9385
+            ],
+            "k": 22,
+            "n": 26,
+            "value": 0.8462
+          }
+        },
+        "ta": {
+          "category_accuracy": {
+            "ci95": [
+              0.6148,
+              0.9269
+            ],
+            "k": 18,
+            "n": 22,
+            "value": 0.8182
+          },
+          "f1_items": 0.898,
+          "false_alarm_reviewed": {
+            "ci95": [
+              0.0089,
+              0.2361
+            ],
+            "k": 1,
+            "n": 20,
+            "value": 0.05
+          },
+          "false_alarm_strict": {
+            "ci95": [
+              0.0265,
+              0.2891
+            ],
+            "k": 2,
+            "n": 21,
+            "value": 0.0952
+          },
+          "items": 46,
+          "localization": {
+            "ci95": [
+              0.782,
+              0.9919
+            ],
+            "k": 21,
+            "n": 22,
+            "value": 0.9545
+          },
+          "mean_iou": 0.6662,
+          "precision_items": {
+            "ci95": [
+              0.7901,
+              0.9923
+            ],
+            "k": 22,
+            "n": 23,
+            "value": 0.9565
+          },
+          "recall_items": {
+            "ci95": [
+              0.6647,
+              0.9385
+            ],
+            "k": 22,
+            "n": 26,
+            "value": 0.8462
+          },
+          "recall_labels": {
+            "ci95": [
+              0.6212,
+              0.9149
+            ],
+            "k": 21,
+            "n": 26,
+            "value": 0.8077
+          }
+        }
+      },
+      "extra_flags_on_error_items_by_category": {
+        "mistranslation": 2,
+        "speech_repetition": 1
+      },
+      "overall": {
+        "category_accuracy": {
+          "ci95": [
+            0.8155,
+            0.9577
+          ],
+          "k": 60,
+          "n": 66,
+          "value": 0.9091
+        },
+        "f1_items": 0.913,
+        "false_alarm_reviewed": {
+          "ci95": [
+            0.0028,
+            0.0833
+          ],
+          "k": 1,
+          "n": 64,
+          "value": 0.0156
+        },
+        "false_alarm_strict": {
+          "ci95": [
+            0.0156,
+            0.1253
+          ],
+          "k": 3,
+          "n": 66,
+          "value": 0.0455
+        },
+        "items": 138,
+        "localization": {
+          "ci95": [
+            0.8543,
+            0.9762
+          ],
+          "k": 62,
+          "n": 66,
+          "value": 0.9394
+        },
+        "mean_iou": 0.6905,
+        "precision_items": {
+          "ci95": [
+            0.9167,
+            0.9972
+          ],
+          "k": 63,
+          "n": 64,
+          "value": 0.9844
+        },
+        "recall_items": {
+          "ci95": [
+            0.7531,
+            0.9149
+          ],
+          "k": 63,
+          "n": 74,
+          "value": 0.8514
+        },
+        "recall_labels": {
+          "ci95": [
+            0.7031,
+            0.8782
+          ],
+          "k": 62,
+          "n": 77,
+          "value": 0.8052
+        }
+      }
+    },
+    "basis": "held-out split",
+    "label_sources": {
+      "injector": 72,
+      "reviewed_preexisting": 5
+    },
+    "miss_explanations": [
+      "Judge consistency: same verdict per language: bn 4/7, hi 7/7, ta 6/6; disagreements are judge-only flags that fusion already sends to the review queue."
+    ],
+    "targets": [
+      {
+        "basis": "held-out split",
+        "ci95": [
+          0.6535,
+          0.936
+        ],
+        "ci_spans_target": true,
+        "k": 21,
+        "kind": "min",
+        "label": "Detection recall (items)",
+        "met": true,
+        "metric": "recall_items",
+        "n": 25,
+        "target": 0.8,
+        "value": 0.84
+      },
+      {
+        "basis": "held-out split",
+        "ci95": [
+          0.0094,
+          0.2464
+        ],
+        "ci_spans_target": true,
+        "k": 1,
+        "kind": "max",
+        "label": "False alarms, strict",
+        "met": true,
+        "metric": "false_alarm_strict",
+        "n": 19,
+        "target": 0.1,
+        "value": 0.0526
+      },
+      {
+        "basis": "held-out split",
+        "ci95": [
+          0.0094,
+          0.2464
+        ],
+        "ci_spans_target": true,
+        "k": 1,
+        "kind": "max",
+        "label": "False alarms, reviewed",
+        "met": true,
+        "metric": "false_alarm_reviewed",
+        "n": 19,
+        "target": 0.1,
+        "value": 0.0526
+      },
+      {
+        "basis": "held-out split",
+        "ci95": [
+          0.8513,
+          1.0
+        ],
+        "ci_spans_target": false,
+        "k": 22,
+        "kind": "min",
+        "label": "Localization (span overlap)",
+        "met": true,
+        "metric": "localization",
+        "n": 22,
+        "target": 0.7,
+        "value": 1.0
+      },
+      {
+        "basis": "held-out split",
+        "ci95": [
+          0.6666,
+          0.9525
+        ],
+        "ci_spans_target": true,
+        "k": 19,
+        "kind": "min",
+        "label": "Category accuracy",
+        "met": true,
+        "metric": "category_accuracy",
+        "n": 22,
+        "target": 0.7,
+        "value": 0.8636
+      },
+      {
+        "basis": "consistency re-run",
+        "ci95": [
+          0.6396,
+          0.9476
+        ],
+        "ci_spans_target": true,
+        "k": 17,
+        "kind": "min",
+        "label": "Judge consistency (same verdict)",
+        "met": false,
+        "metric": "judge_consistency",
+        "n": 20,
+        "target": 0.9,
+        "value": 0.85
+      }
+    ]
+  },
+  "roundtrip": {
+    "checker_noise_reasons": {
+      "asr_residual_cer:digit_vs_word": 14,
+      "asr_residual_cer:matra_zwj": 10,
+      "asr_residual_cer:spelling_variant": 8,
+      "asr_residual_cer:within_noise_floor": 20,
+      "asr_residual_wer:digit_vs_word": 14,
+      "asr_residual_wer:matra_zwj": 10,
+      "asr_residual_wer:spelling_variant": 8,
+      "asr_residual_wer:within_noise_floor": 20,
+      "bt_entities:proper_noun": 11,
+      "bt_numbers:bt_number_rendering": 10,
+      "bt_precision:within_noise_floor": 120,
+      "bt_recall:within_noise_floor": 109
+    },
+    "routes": {
+      "asr:ran:supplied audio": 66,
+      "asr:skipped:no audio": 72,
+      "back_translation:ran:translation present": 138,
+      "tier1:ran:always (zero cost)": 138,
+      "tts:skipped:--generate not set": 138
+    },
+    "verdicts": {
+      "asr_repeat": {
+        "system_error": 7,
+        "uncertain": 2
+      },
+      "asr_residual_cer": {
+        "checker_noise": 46,
+        "system_error": 3,
+        "uncertain": 17
+      },
+      "asr_residual_wer": {
+        "checker_noise": 46,
+        "system_error": 3,
+        "uncertain": 17
+      },
+      "asr_tail_missing": {
+        "system_error": 4,
+        "uncertain": 4
+      },
+      "bt_entities": {
+        "checker_noise": 11,
+        "uncertain": 6
+      },
+      "bt_numbers": {
+        "checker_noise": 10,
+        "system_error": 6
+      },
+      "bt_precision": {
+        "checker_noise": 120,
+        "system_error": 2,
+        "uncertain": 16
+      },
+      "bt_recall": {
+        "checker_noise": 109,
+        "system_error": 2,
+        "uncertain": 27
+      }
+    }
+  },
+  "run_stats": {
+    "log_length_ratio": {
+      "bn": {
+        "median": 0.0,
+        "n": 46
+      },
+      "hi": {
+        "median": -0.0249,
+        "n": 46
+      },
+      "ta": {
+        "median": 0.2836,
+        "n": 46
+      }
+    },
+    "noise_floor_db": {
+      "bn": {
+        "median": -53.232,
+        "n": 24
+      },
+      "hi": {
+        "median": -59.0263,
+        "n": 21
+      },
+      "ta": {
+        "median": -49.464,
+        "n": 21
+      }
+    },
+    "speech_s_per_char": {
+      "bn": {
+        "median": 0.1061,
+        "n": 24
+      },
+      "hi": {
+        "median": 0.1003,
+        "n": 21
+      },
+      "ta": {
+        "median": 0.0822,
+        "n": 21
+      }
+    }
+  },
+  "top_failures": [
+    {
+      "flags": [
+        {
+          "category": "term_entity",
+          "check_id": "llm_judge",
+          "confidence": 0.99,
+          "corroborated_by": [
+            "back_translation"
+          ],
+          "excerpt": "अपने 2 घंटे के भाषण के दौरान उन्होंने कहा कि \"[[कोनामी]] फोन को फिर से बनाने जा रहा है, हम आज इतिहास रचने जा रहे हैं...",
+          "message": "Wrong entity, Apple misrepresented as Konami",
+          "severity": "critical",
+          "span": [
+            46,
+            52
+          ],
+          "unit": "chars"
+        },
+        {
+          "category": "mistranslation",
+          "check_id": "llm_judge",
+          "confidence": 0.8,
+          "corroborated_by": [
+            "back_translation"
+          ],
+          "excerpt": "अपने 2 घंटे के भाषण के दौरान उन्होंने कहा कि \"कोनामी फोन को [[फिर से बनाने]] जा रहा है, हम आज इतिहास रचने जा रहे हैं\"।",
+          "message": "Meaning differs from 'reinvent'",
+          "severity": "minor",
+          "span": [
+            60,
+            72
+          ],
+          "unit": "chars"
+        }
+      ],
+      "id": "d106",
+      "labels": [
+        {
+          "category": "term_entity",
+          "frame": "chars",
+          "note": "The name 'Today Apple' was replaced by the name 'Konami'.",
+          "source": "injector",
+          "span": [
+            46,
+            52
+          ]
+        }
+      ],
+      "lang": "hi",
+      "mqm_penalty": 26,
+      "source": "During his 2 hour speech he stated that \"Today Apple is going to reinvent the phone, We are going to make history today\"."
+    },
+    {
+      "flags": [
+        {
+          "category": "wrong_language_script",
+          "check_id": "script",
+          "confidence": 0.99,
+          "excerpt": "[[The building housed a number of pilgrims who came to visit the holy city at the eve of hajj pilgrimage. The hostel's guests were mostly citizens of the United Arab Emirates.]]",
+          "message": "Translation is identical to the English source (untranslated; expected Bengali).",
+          "severity": "critical",
+          "span": [
+            0,
+            173
+          ],
+          "unit": "chars"
+        }
+      ],
+      "id": "d077",
+      "labels": [
+        {
+          "category": "wrong_language_script",
+          "frame": "chars",
+          "note": "The translation was replaced by the untranslated English source.",
+          "source": "injector",
+          "span": [
+            0,
+            173
+          ]
+        }
+      ],
+      "lang": "bn",
+      "mqm_penalty": 25,
+      "source": "The building housed a number of pilgrims who came to visit the holy city at the eve of hajj pilgrimage. The hostel's guests were mostly citizens of the United Arab Emirates."
+    },
+    {
+      "flags": [
+        {
+          "category": "wrong_language_script",
+          "check_id": "script",
+          "confidence": 0.99,
+          "excerpt": "[[European Turkey (eastern Thrace or Rumelia in the Balkan peninsula) includes 3% of the country. The territory of Turkey is more than 1,600 kilometres (1,000 mi) long and 800 km (500 mi) wide, with a roughly rectangular shape.]]",
+          "message": "Translation is identical to the English source (untranslated; expected Bengali).",
+          "severity": "critical",
+          "span": [
+            0,
+            225
+          ],
+          "unit": "chars"
+        }
+      ],
+      "id": "d123",
+      "labels": [
+        {
+          "category": "wrong_language_script",
+          "frame": "chars",
+          "note": "The translation was replaced by the untranslated English source.",
+          "source": "injector",
+          "span": [
+            0,
+            225
+          ]
+        }
+      ],
+      "lang": "bn",
+      "mqm_penalty": 25,
+      "source": "European Turkey (eastern Thrace or Rumelia in the Balkan peninsula) includes 3% of the country. The territory of Turkey is more than 1,600 kilometres (1,000 mi) long and 800 km (500 mi) wide, with a roughly rectangular shape."
+    },
+    {
+      "flags": [
+        {
+          "category": "wrong_language_script",
+          "check_id": "script",
+          "confidence": 0.99,
+          "excerpt": "[[## Daily water intake\n\n- Children need about 1.5 litres of water each day.\n- Adults need between 2 and 3 litres.\n- People who exercise in hot weather need more.\n\nDrink water before you feel thirsty.]]",
+          "message": "Translation is identical to the English source (untranslated; expected Hindi).",
+          "severity": "critical",
+          "span": [
+            0,
+            198
+          ],
+          "unit": "chars"
+        }
+      ],
+      "id": "d023",
+      "labels": [
+        {
+          "category": "wrong_language_script",
+          "frame": "chars",
+          "note": "The translation was replaced by the untranslated English source.",
+          "source": "injector",
+          "span": [
+            0,
+            198
+          ]
+        }
+      ],
+      "lang": "hi",
+      "mqm_penalty": 25,
+      "source": "## Daily water intake\n\n- Children need about 1.5 litres of water each day.\n- Adults need between 2 and 3 litres.\n- People who exercise in hot weather need more.\n\nDrink water before you feel thirsty."
+    },
+    {
+      "flags": [
+        {
+          "category": "wrong_language_script",
+          "check_id": "script",
+          "confidence": 0.99,
+          "excerpt": "[[Singapore is generally an extremely safe place to be and very easy to navigate, and you can buy almost anything after arriving.]]",
+          "message": "Translation is identical to the English source (untranslated; expected Hindi).",
+          "severity": "critical",
+          "span": [
+            0,
+            127
+          ],
+          "unit": "chars"
+        }
+      ],
+      "id": "d059",
+      "labels": [
+        {
+          "category": "wrong_language_script",
+          "frame": "chars",
+          "note": "The translation was replaced by the untranslated English source.",
+          "source": "injector",
+          "span": [
+            0,
+            127
+          ]
+        }
+      ],
+      "lang": "hi",
+      "mqm_penalty": 25,
+      "source": "Singapore is generally an extremely safe place to be and very easy to navigate, and you can buy almost anything after arriving."
+    },
+    {
+      "flags": [
+        {
+          "category": "wrong_language_script",
+          "check_id": "script",
+          "confidence": 0.99,
+          "excerpt": "[[The building housed a number of pilgrims who came to visit the holy city at the eve of hajj pilgrimage. The hostel's guests were mostly citizens of the United Arab Emirates.]]",
+          "message": "Translation is identical to the English source (untranslated; expected Hindi).",
+          "severity": "critical",
+          "span": [
+            0,
+            173
+          ],
+          "unit": "chars"
+        }
+      ],
+      "id": "d061",
+      "labels": [
+        {
+          "category": "wrong_language_script",
+          "frame": "chars",
+          "note": "The translation was replaced by the untranslated English source.",
+          "source": "injector",
+          "span": [
+            0,
+            173
+          ]
+        }
+      ],
+      "lang": "hi",
+      "mqm_penalty": 25,
+      "source": "The building housed a number of pilgrims who came to visit the holy city at the eve of hajj pilgrimage. The hostel's guests were mostly citizens of the United Arab Emirates."
+    },
+    {
+      "flags": [
+        {
+          "category": "wrong_language_script",
+          "check_id": "script",
+          "confidence": 0.99,
+          "excerpt": "[[European Turkey (eastern Thrace or Rumelia in the Balkan peninsula) includes 3% of the country. The territory of Turkey is more than 1,600 kilometres (1,000 mi) long and 800 km (500 mi) wide, with a roughly rectangular shape.]]",
+          "message": "Translation is identical to the English source (untranslated; expected Hindi).",
+          "severity": "critical",
+          "span": [
+            0,
+            225
+          ],
+          "unit": "chars"
+        }
+      ],
+      "id": "d114",
+      "labels": [
+        {
+          "category": "wrong_language_script",
+          "frame": "chars",
+          "note": "The translation was replaced by the untranslated English source.",
+          "source": "injector",
+          "span": [
+            0,
+            225
+          ]
+        }
+      ],
+      "lang": "hi",
+      "mqm_penalty": 25,
+      "source": "European Turkey (eastern Thrace or Rumelia in the Balkan peninsula) includes 3% of the country. The territory of Turkey is more than 1,600 kilometres (1,000 mi) long and 800 km (500 mi) wide, with a roughly rectangular shape."
+    },
+    {
+      "flags": [
+        {
+          "category": "wrong_language_script",
+          "check_id": "script",
+          "confidence": 0.95,
+          "excerpt": "[[## একটি ফাইল পরীক্ষা করা\n\nএকটি ফাইলের লাইন গণনা করতে নিচের কমান্ডটি চালান। এটি একটি সংখ্যা প্রিন্ট করে।\n\n```bash\nwc -l notes.txt\n```\n\nফাইলটি খালি হলে, কমান্ডটি 0 প্রিন্ট করে।]]",
+          "message": "Output is mostly Bengali script; only 0% of letters are Tamil (expected Tamil).",
+          "severity": "critical",
+          "span": [
+            0,
+            174
+          ],
+          "unit": "chars"
+        }
+      ],
+      "id": "d031",
+      "labels": [
+        {
+          "category": "wrong_language_script",
+          "frame": "chars",
+          "note": "The translation was replaced by the 'bn' translation of the same source.",
+          "source": "injector",
+          "span": [
+            0,
+            174
+          ]
+        }
+      ],
+      "lang": "ta",
+      "mqm_penalty": 25,
+      "source": "## Checking a file\n\nRun the command below to count the lines in a file. It prints a single number.\n\n```bash\nwc -l notes.txt\n```\n\nIf the file is empty, the command prints 0."
+    },
+    {
+      "flags": [
+        {
+          "category": "wrong_language_script",
+          "check_id": "script",
+          "confidence": 0.99,
+          "excerpt": "[[U.S. President George W. Bush arrived in Singapore the morning of November 16, beginning a week-long tour of Asia. The amount of inner peace a person possesses correlates oppositely to the amount of tension in one’s body and spirit.]]",
+          "message": "Translation is identical to the English source (untranslated; expected Tamil).",
+          "severity": "critical",
+          "span": [
+            0,
+            232
+          ],
+          "unit": "chars"
+        }
+      ],
+      "id": "d119",
+      "labels": [
+        {
+          "category": "wrong_language_script",
+          "frame": "chars",
+          "note": "The translation was replaced by the untranslated English source.",
+          "source": "injector",
+          "span": [
+            0,
+            232
+          ]
+        }
+      ],
+      "lang": "ta",
+      "mqm_penalty": 25,
+      "source": "U.S. President George W. Bush arrived in Singapore the morning of November 16, beginning a week-long tour of Asia. The amount of inner peace a person possesses correlates oppositely to the amount of tension in one’s body and spirit."
+    },
+    {
+      "flags": [
+        {
+          "category": "format",
+          "check_id": "format",
+          "confidence": 0.9,
+          "excerpt": "## இயக்க ஆற்றல்\n\n[[நகரும் பொருளின் இயக்க ஆற்றல் E = \\frac{1}{2} m v^2$ ஆகும், இதில் $m$ என்பது அதன் நிறை மற்றும் $v$ என்பது அதன் வேகம். வேகத்தை இரட்டிப்பாக்கினால் ஆற்றல் நான்கு மடங்கு அதிகமாகும்.]]",
+          "message": "Broken structure on line 'நகரும் பொருளின் இயக்க ஆற்றல் E = \\frac{1}{2} m v^2$ ஆகும், இ': dollar: source 6 vs translation 5; math_braces: source (0, 0, 0) vs translation (0, 0).",
+          "severity": "major",
+          "span": [
+            17,
+            193
+          ],
+          "unit": "chars"
+        },
+        {
+          "category": "wrong_language_script",
+          "check_id": "script",
+          "confidence": 0.85,
+          "excerpt": "## இயக்க ஆற்றல்\n\nநகரும் பொருளின் இயக்க ஆற்றல் [[E = \\frac{1}{2} m v]]^2$ ஆகும், இதில் $m$ என்பது அதன் நிறை மற்றும் $v$ என்பது அதன...",
+          "message": "4 consecutive English words left untranslated: 'E = \\frac{1}{2} m v'.",
+          "severity": "major",
+          "span": [
+            46,
+            65
+          ],
+          "unit": "chars"
+        },
+        {
+          "category": "number_unit",
+          "check_id": "numbers",
+          "confidence": 0.8,
+          "excerpt": "...்க ஆற்றல்\n\nநகரும் பொருளின் இயக்க ஆற்றல் E = \\frac{1}{2} m v^[[2$]] ஆகும், இதில் $m$ என்பது அதன் நிறை மற்றும் $v$ என்பது அதன் வ...",
+          "message": "Unit '$' after 2 in the translation is not used in the source (source units: none).",
+          "severity": "major",
+          "span": [
+            66,
+            68
+          ],
+          "unit": "chars"
+        }
+      ],
+      "id": "d093",
+      "labels": [
+        {
+          "category": "format",
+          "frame": "chars",
+          "note": "A '$' math delimiter was deleted on this line.",
+          "source": "injector",
+          "span": [
+            17,
+            193
+          ]
+        }
+      ],
+      "lang": "ta",
+      "mqm_penalty": 15,
+      "source": "## Kinetic energy\n\nThe kinetic energy of a moving object is $E = \\frac{1}{2} m v^2$, where $m$ is its mass and $v$ is its speed. Doubling the speed makes the energy four times larger."
+    }
+  ]
+}

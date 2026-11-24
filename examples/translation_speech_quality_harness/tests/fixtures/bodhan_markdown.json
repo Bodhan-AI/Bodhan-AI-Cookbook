@@ -1,0 +1,8 @@
+{
+  "source": "## Newton's second law\n\nThe force on an object is $F = ma$, where $m$ is the mass in kg.\n\n| Quantity | Unit |\n|---|---|\n| Force | N |\n| Mass | kg |\n\nRun `python sim.py` to plot it. See [the notes](https://example.org/newton) for details.",
+  "translations": {
+    "hi": "## न्यूटन का दूसरा नियम\n\nकिसी वस्तु पर लगने वाला बल $F = ma$ है, जहाँ $m$ किलोग्राम में द्रव्यमान है।\n\n| राशि | इकाई |\n|---|---|\n| बल | N |\n| द्रव्यमान | kg |\n\nइसे प्लॉट करने के लिए `python sim.py` चलाएँ। विवरण के लिए [नोट्स](https://example.org/newton) देखें।",
+    "bn": "## নিউটনের দ্বিতীয় সূত্র\n\nকোনো বস্তুর উপর প্রযুক্ত বল হলো $F = ma$, যেখানে $m$ হলো কিলোগ্রামে ভর।\n\n| রাশি | একক |\n|---|---|\n| বল | N |\n| ভর | kg |\n\nএটি প্লট করতে `python sim.py` রান করুন। বিস্তারিত জানতে [নোটস](https://example.org/newton) দেখুন।"
+  },
+  "_provenance": "Real Indic-Translate outputs (hi, bn) for a Markdown/LaTeX passage, captured 2026-11-23."
+}
