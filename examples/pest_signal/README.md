@@ -9,12 +9,19 @@ CropShield is a multilingual crop-reporting app that helps farmers submit crop s
 ## What it does
 
 CropShield lets farmers report crop symptoms using audio or text in English, Tamil, Telugu, or Hindi. Audio is transcribed using Bodhan's `indic-transcribe` model and translated into English using `indic-translate`; an LLM then extracts structured report fields such as crop, symptoms, suspected disease, and location. Reports are saved and searchable, while a regional signal dashboard flags clusters of reports from the same region for NGO follow-up. These signals are intended for monitoring and investigation—not confirmed diagnoses.
-![I1](<Screenshot 2026-11-24 130621.png>)
-![I2](<Screenshot 2026-11-24 130604-1.png>)
-![I3](<Screenshot 2026-11-24 130641.png>)
-![I4](<Screenshot 2026-11-24 130659.png>)
-![I5](<Screenshot 2026-11-24 130724.png>)
-![I6](<Screenshot 2026-11-24 130745.png>)
+## Screenshots
+
+![CropShield](screenshots/Screenshot%202026-11-24%20130621.png)
+
+![CropShield](screenshots/Screenshot%202026-11-24%20130604-1.png)
+
+![CropShield](screenshots/Screenshot%202026-11-24%20130641.png)
+
+![CropShield](screenshots/Screenshot%202026-11-24%20130659.png)
+
+![CropShield](screenshots/Screenshot%202026-11-24%20130724.png)
+
+![CropShield](screenshots/Screenshot%202026-11-24%20130745.png)
 
 ## Setup
 
