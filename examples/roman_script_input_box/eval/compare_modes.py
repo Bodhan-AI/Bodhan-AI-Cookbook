@@ -49,7 +49,7 @@ from dotenv import load_dotenv  # noqa: E402
 load_dotenv(RECIPE / ".env")
 
 from bodhan_client import LANGUAGES, BodhanError, Client, Result  # noqa: E402
-from converter import Converter, tokenize, word_key  # noqa: E402
+from converter import LRU, Converter, tokenize, word_key  # noqa: E402
 
 TEST_SET = Path(__file__).with_name("test_set.json")
 RESULTS = Path(__file__).with_name("results")
@@ -131,18 +131,10 @@ class CachedCaller:
     def _fetch(self, kind: str, text: str, language: str) -> dict:
         for _ in range(5):
             try:
-                if kind == "instructed":            # roman → native, script named in the instruction
-                    r = self.client.transliterate(text, language, "native")
-                elif kind == "bare":                # roman → native, `language` field only
-                    r = self.client.raw_chat(text, language=language, script="native")
-                elif kind == "roman-instructed":    # native → roman, with the instruction
-                    r = self.client.transliterate(text, language, "roman")
-                elif kind == "roman-bare":          # native → roman, `language`/`script` fields only
-                    r = self.client.raw_chat(text, language=language, script="roman")
-                else:
-                    raise ValueError(f"unknown request kind {kind!r}")
-                return {"text": r.text, "latency_ms": r.latency_ms, "route": kind}
+                return self._call(kind, text, language)
             except BodhanError as exc:
+                if exc.code == "empty_answer":     # an empty answer is a result, not a reason to stop
+                    return {"text": "", "latency_ms": 0.0, "kind": kind, "route": self.client.route}
                 # The model throttle answers 429 with Retry-After (up to ~1 min). A batch job can wait.
                 if exc.status != 429 or exc.is_budget:
                     raise
@@ -154,6 +146,21 @@ class CachedCaller:
                 time.sleep(15)
         raise BodhanError(503, "unavailable", f"gave up on {text!r} after 5 attempts")
 
+    def _call(self, kind: str, text: str, language: str) -> dict:
+        """One API request of the given kind. ``kind`` says what was asked; ``route`` says
+        which HTTP route answered."""
+        if kind == "instructed":            # roman → native, script named in the instruction
+            r = self.client.transliterate(text, language, "native")
+        elif kind == "bare":                # roman → native, `language` field only
+            r = self.client.raw_chat(text, language=language, script="native")
+        elif kind == "roman-instructed":    # native → roman, with the instruction
+            r = self.client.transliterate(text, language, "roman")
+        elif kind == "roman-bare":          # native → roman, `language`/`script` fields only
+            r = self.client.raw_chat(text, language=language, script="roman")
+        else:
+            raise ValueError(f"unknown request kind {kind!r}")
+        return {"text": r.text, "latency_ms": r.latency_ms, "kind": kind, "route": r.route}
+
 
 class CacheClient(Client):
     """Feeds the app's Converter from CachedCaller, so the eval runs the app's own code."""
@@ -163,13 +170,15 @@ class CacheClient(Client):
 
     def transliterate(self, text: str, language: str, script: str = "native") -> Result:
         e = self.caller.get("instructed", text, language)
+        if not e["text"]:   # mirror the real client, which raises on an empty answer
+            raise BodhanError(502, "empty_answer", "the API returned an empty answer")
         return Result(e["text"], e["latency_ms"], "cache", False)
 
 
 # ---- one sentence ------------------------------------------------------------------
 
 
-def run_item(caller: CachedCaller, item: dict, repeats: int) -> dict:
+def run_item(caller: CachedCaller, conv: Converter, item: dict, repeats: int) -> dict:
     lang, roman, refs = item["language"], item["roman"], item["native"]
     row = {"split": item.get("split", "dev"), "language": lang, "roman": roman, "references": refs}
 
@@ -178,8 +187,9 @@ def run_item(caller: CachedCaller, item: dict, repeats: int) -> dict:
     # latency reported is the slowest single word.
     words = sorted({word_key(p) for p, is_word in tokenize(roman) if is_word})
     per_word = {w: caller.get("instructed", w, lang) for w in words}
-    conv = Converter(CacheClient(caller)).word(roman, lang)
-    row["word"] = {"text": conv.text, "calls": conv.calls,
+    conv.cache = LRU()                      # each sentence starts with an empty word cache
+    word = conv.word(roman, lang)
+    row["word"] = {"text": word.text, "calls": word.calls,
                    "latency_ms": max(a["latency_ms"] for a in per_word.values()),
                    "per_word": {w: a["text"] for w, a in per_word.items()}}
 
@@ -197,14 +207,14 @@ def run_item(caller: CachedCaller, item: dict, repeats: int) -> dict:
     return row
 
 
-def replay_hybrid(caller: CachedCaller, rows: list[dict]) -> dict:
+def replay_hybrid(conv: Converter, rows: list[dict]) -> dict:
     """Hybrid mode as the app runs it: per language, one conversation in test-set order.
     Before each sentence pass, record what the free cache-only draft could already show;
     then the (cached) sentence answer is sent and seeds the word cache."""
     known = total = right = 0
     per_language = {}
     for lang in sorted({r["language"] for r in rows}):
-        conv = Converter(CacheClient(caller))
+        conv.cache = LRU()                  # each language is a new conversation
         k = t = 0
         for r in (r for r in rows if r["language"] == lang):
             draft = conv.convert(r["roman"], lang, "draft")
@@ -261,20 +271,20 @@ def main() -> int:
     caller = CachedCaller(client, args.offline)
     items = json.loads(TEST_SET.read_text(encoding="utf-8"))
 
+    conv = Converter(CacheClient(caller))   # the app's own code, fed from the saved answers
     rows = []
     for item in items:
         try:
-            rows.append(run_item(caller, item, args.repeats))
-        except BodhanError as exc:
-            print(f"Stopped at {item['roman']!r}: {exc}. Finished rows are cached; rerun later to continue.")
-            break
-        except LookupError as exc:
-            print(f"Skipping {item['roman']!r} ({exc}).")
-
-    if not rows:
-        return 1
+            rows.append(run_item(caller, conv, item, args.repeats))
+        except (BodhanError, LookupError) as exc:
+            # Never overwrite the committed report with a partial one.
+            print(f"Stopped at {item['roman']!r}: {exc}. Answers so far are cached; rerun to continue. "
+                  f"{REPORT.name} not updated.")
+            conv.close()
+            return 1
     summary = summarize(rows)
-    summary["hybrid"] = replay_hybrid(caller, rows)
+    summary["hybrid"] = replay_hybrid(conv, rows)
+    conv.close()
     REPORT.parent.mkdir(exist_ok=True)
     REPORT.write_text(json.dumps({"summary": summary, "rows": rows}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 

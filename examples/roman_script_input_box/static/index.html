@@ -10,12 +10,16 @@
     --bg: #efeae2; --panel: #f0f2f5; --header: #075e54; --header-text: #fff;
     --mine: #d9fdd3; --text: #111b21; --muted: #54656f; --input: #fff;   /* muted: ≥ 5:1 on every light background */
     --accent: #00a884; --border: #d1d7db; --warn: #b3261e; --accent-text: #00664f;
+    --mine-muted: #54656f;   /* text on a sent bubble */
+    --send-bg: #008069; --send-fg: #fff;   /* 4.9:1 */
   }
   @media (prefers-color-scheme: dark) {
     :root {
       --bg: #0b141a; --panel: #202c33; --header: #202c33; --header-text: #e9edef;
       --mine: #005c4b; --text: #e9edef; --muted: #8696a0; --input: #2a3942;
       --accent: #00a884; --border: #2a3942; --warn: #f2b8b5; --accent-text: #b8f0e0;
+      --mine-muted: #c2d1d6;   /* 5.1:1 on the dark bubble */
+      --send-bg: #00a884; --send-fg: #0b141a;
     }
   }
   * { box-sizing: border-box; }
@@ -45,7 +49,7 @@
     max-width: 85%; box-shadow: 0 1px 0.5px rgba(0,0,0,.13); overflow-wrap: anywhere;
   }
   .bubble .native { font-size: 17px; }
-  .bubble .meta { color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .bubble .meta { color: var(--mine-muted); font-size: 12px; margin-top: 2px; }
   footer { background: var(--panel); padding: 8px 12px 12px; }
   #preview {
     min-height: 28px; padding: 4px 10px; margin-bottom: 6px; border-radius: 8px;
@@ -62,8 +66,8 @@
     border: none; background: var(--input); color: var(--text); min-width: 0;
   }
   #send {
-    width: 44px; height: 44px; border-radius: 50%; border: none; background: var(--accent);
-    color: #fff; font-size: 18px; cursor: pointer; flex: none;
+    width: 44px; height: 44px; border-radius: 50%; border: none; background: var(--send-bg);
+    color: var(--send-fg); font-size: 18px; cursor: pointer; flex: none;
   }
   #send:disabled { opacity: .5; cursor: default; }
   .copy {

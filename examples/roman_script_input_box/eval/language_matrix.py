@@ -64,7 +64,9 @@ def main() -> int:
                             "instructed": instructed["text"], "instructed_latin": is_latin(instructed["text"]),
                             "bare": bare["text"], "bare_unchanged": bare["text"].strip() == text})
     except (BodhanError, LookupError) as exc:
-        print(f"Stopped: {exc}. Finished answers are cached; rerun to continue.")
+        # Never overwrite the committed table with a partial one.
+        print(f"Stopped: {exc}. Finished answers are cached; rerun to continue. {OUT.name} not updated.")
+        return 1
 
     OUT.write_text(json.dumps({"roman_to_native": rows, "native_to_roman": reverse}, ensure_ascii=False, indent=2) + "\n",
                    encoding="utf-8")

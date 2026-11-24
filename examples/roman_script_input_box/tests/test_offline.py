@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import contextlib
 import http.client
+import io
 import json
 import os
 import subprocess
 import sys
+import tempfile
 import threading
 import unittest
 from datetime import datetime, timedelta, timezone
@@ -19,6 +22,7 @@ RECIPE = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RECIPE))
 sys.path.insert(0, str(RECIPE / "eval"))
 
+import compare_modes  # noqa: E402
 from compare_modes import cer, normalize  # noqa: E402
 
 import app  # noqa: E402
@@ -253,6 +257,52 @@ class ReviewRegressions(unittest.TestCase):
         run = subprocess.run([sys.executable, str(RECIPE / "app.py")], env=env, capture_output=True, text=True, timeout=20)
         self.assertEqual(run.returncode, 1)
         self.assertIn("127.0.0.1 only", run.stderr)
+
+
+class SecondReviewRegressions(unittest.TestCase):
+    """Bugs found in the second review; each test fails on the code before its fix."""
+
+    def test_empty_word_answer_leaves_that_word_in_roman(self):
+        class EmptyFor(FakeClient):
+            def transliterate(self, text, language, script="native"):
+                if text == "hai":
+                    raise BodhanError(502, "empty_answer", "empty")
+                return super().transliterate(text, language, script)
+        conv = Converter(EmptyFor({"kal": "कल", "meeting": "मीटिंग"}))
+        self.assertEqual(conv.word("kal meeting hai", "hi").text, "कल मीटिंग hai")
+
+    def test_caps_lock_is_not_a_row_of_acronyms(self):
+        fake = FakeClient({"kal": "कल", "hai": "है", "US": "यूएस", "visa": "वीज़ा"})
+        conv = Converter(fake)
+        conv.word("kal hai", "hi")
+        self.assertEqual(conv.word("KAL HAI", "hi").text, "कल है")       # served from the lowercase cache
+        self.assertEqual(sorted(fake.calls), ["hai", "kal"])
+        self.assertEqual(conv.word("US visa", "hi").text, "यूएस वीज़ा")     # a real acronym keeps its case
+
+    def test_seeding_keeps_apostrophes_and_skips_punctuation_tokens(self):
+        fake = FakeClient({"don't worry": "डोंट वरी", "kal ... milte hain": "कल ... मिलते हैं"})
+        conv = Converter(fake)
+        conv.sentence("don't worry", "hi")
+        conv.sentence("kal ... milte hain", "hi")
+        self.assertEqual(conv.convert("don't milte", "hi", "draft").text, "डोंट मिलते")
+
+    def test_zero_width_joiner_words_are_cached(self):
+        conv = Converter(FakeClient({}))
+        conv._remember("bn", "native", "rab", "র\u200d্যাব")
+        self.assertEqual(conv.convert("rab", "bn", "draft").text, "র\u200d্যাব")
+
+    def test_partial_eval_run_does_not_overwrite_the_report(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            test_set, report = Path(tmp) / "set.json", Path(tmp) / "report.json"
+            # One sentence whose answers are saved, then one that isn't: the old code wrote a
+            # 1-row report over the committed one.
+            test_set.write_text(json.dumps([{"language": "hi", "roman": "aap kaise hain", "native": ["आप कैसे हैं"]},
+                                            {"language": "hi", "roman": "never asked before", "native": ["x"]}]))
+            report.write_text("committed")
+            with mock.patch.object(compare_modes, "TEST_SET", test_set), mock.patch.object(compare_modes, "REPORT", report), \
+                 mock.patch.object(sys, "argv", ["compare_modes.py", "--offline"]), contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(compare_modes.main(), 1)
+            self.assertEqual(report.read_text(), "committed")
 
 
 # ---- app.py HTTP server ------------------------------------------------------------

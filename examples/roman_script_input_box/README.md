@@ -31,7 +31,10 @@ def transliterate(text: str, language_name: str) -> str:
         timeout=30,
     )
     resp.raise_for_status()   # 429: wait for Retry-After; see "Rate limits"
-    return resp.json()["choices"][0]["message"]["content"].strip()
+    choice = resp.json()["choices"][0]
+    if choice.get("finish_reason") == "length":
+        raise ValueError("answer was cut off; send shorter text")
+    return (choice["message"].get("content") or "").strip()
 ```
 
 `bodhan_client.py` is the production version of this. It adds a connection pool, one short retry on a 429, clear error types, and a switch to the documented `POST /transliterate` for when that route is live.
@@ -85,7 +88,7 @@ static/index.html ──POST /api/transliterate──▶ app.py ──▶ conver
 | `converter.py` | The conversion modes and a word cache. |
 | `bodhan_client.py` | The only code that talks to Bodhan: route, request body, connection pool, 429 handling. |
 | `eval/` | `compare_modes.py`, `language_matrix.py`, the test set, the committed results, and the API probes. |
-| `tests/test_offline.py` | 38 offline tests with a fake API. |
+| `tests/test_offline.py` | 43 offline tests with a fake API. |
 
 The modes in `converter.py`:
 

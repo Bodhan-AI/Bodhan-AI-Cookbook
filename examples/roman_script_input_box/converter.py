@@ -21,13 +21,14 @@ from collections import OrderedDict
 from concurrent.futures import FIRST_EXCEPTION, ThreadPoolExecutor, wait
 from dataclasses import dataclass, field
 
-from bodhan_client import Client
+from bodhan_client import BodhanError, Client
 
 # A "word" is a run of ASCII letters (plus inner apostrophes: "don't"). Everything else,
 # including text already in an Indic script, is passed through untouched.
 WORD = re.compile(r"[A-Za-z]+(?:'[A-Za-z]+)*")
 MAX_PARALLEL = 4     # the key allows 10 in flight; leave room for the sentence call
 MAX_NEW_WORDS = 20   # API calls one word-mode request may make (the key's quota is ~120)
+ZERO_WIDTH_JOINERS = {"\u200c", "\u200d"}   # ZWNJ, ZWJ
 
 # The Unicode script each language is written in, as the first word of the characters'
 # Unicode names. Used to keep wrong-script answers out of the cache.
@@ -57,6 +58,17 @@ def tokenize(text: str) -> list[tuple[str, bool]]:
     return out
 
 
+def split_edges(chunk: str) -> tuple[str, str, str]:
+    """Split punctuation off both ends: ``"hai,"`` → ``("", "hai", ",")``. Inner
+    punctuation (``don't``) stays."""
+    start, end = 0, len(chunk)
+    while start < end and unicodedata.category(chunk[start]).startswith("P"):
+        start += 1
+    while end > start and unicodedata.category(chunk[end - 1]).startswith("P"):
+        end -= 1
+    return chunk[:start], chunk[start:end], chunk[end:]
+
+
 def tokenize_native(text: str) -> list[tuple[str, bool]]:
     """For native → roman: words are runs of non-space characters, with punctuation at
     either end split off so it is kept (``नमस्ते,`` → ``नमस्ते`` + ``,``)."""
@@ -67,20 +79,24 @@ def tokenize_native(text: str) -> list[tuple[str, bool]]:
         if chunk.isspace():
             out.append((chunk, False))
             continue
-        start, end = 0, len(chunk)
-        while start < end and unicodedata.category(chunk[start]).startswith("P"):
-            start += 1
-        while end > start and unicodedata.category(chunk[end - 1]).startswith("P"):
-            end -= 1
-        for piece, is_word in ((chunk[:start], False), (chunk[start:end], True), (chunk[end:], False)):
+        head, core, tail = split_edges(chunk)
+        for piece, is_word in ((head, False), (core, True), (tail, False)):
             if piece:
                 out.append((piece, is_word))
     return out
 
 
-def word_key(word: str) -> str:
-    """Cache/API form of a typed word: lower case, except acronyms ("US" is not "us")."""
-    return word if len(word) > 1 and word.isupper() else word.lower()
+def word_key(word: str, all_caps: bool = False) -> str:
+    """Cache/API form of a typed word: lower case, except acronyms ("US" is not "us").
+    ``all_caps`` means the whole message is in capitals (caps lock), so no word in it is
+    treated as an acronym."""
+    return word if not all_caps and len(word) > 1 and word.isupper() else word.lower()
+
+
+def is_all_caps(text: str) -> bool:
+    """True for caps-lock text with at least two words ("KAL MEETING HAI")."""
+    words = WORD.findall(text)
+    return len(words) > 1 and all(w.isupper() for w in words)
 
 
 def strip_punct(word: str) -> str:
@@ -135,17 +151,23 @@ class Converter:
         self.cache = cache or LRU()
         self._pool = ThreadPoolExecutor(max_workers=MAX_PARALLEL)
 
-    def _remember(self, language: str, script: str, roman: str, answer: str) -> None:
-        """Cache one word, but only if the answer is plausibly right: for native script,
-        a single word in the target script (not a phrase, not another script)."""
-        answer = strip_punct(answer).strip()
+    def close(self) -> None:
+        """Stop the worker threads (the app's Converter lives as long as the server)."""
+        self._pool.shutdown(wait=False, cancel_futures=True)
+
+    def _remember(self, language: str, script: str, key: str, answer: str) -> None:
+        """Cache one word under ``key`` (a ``word_key``), but only if the answer is plausibly
+        right: for native script, a single word in the target script."""
+        answer = split_edges(answer.strip())[1]
         if not answer:
             return
         if script == "native":
-            # Letters and vowel signs only: no digits ("5पीएम"), no spaces, right script.
-            if any(unicodedata.category(ch)[0] not in "LM" for ch in answer) or not in_script(answer, language):
+            # Letters, vowel signs and zero-width joiners (part of many Bengali, Urdu and
+            # Malayalam words) only: no digits ("5पीएम"), no spaces, right script.
+            if any(unicodedata.category(ch)[0] not in "LM" and ch not in ZERO_WIDTH_JOINERS for ch in answer) \
+                    or not in_script(answer, language):
                 return
-        self.cache.put((language, script, word_key(roman)), answer)
+        self.cache.put((language, script, key), answer)
 
     def sentence(self, text: str, language: str, script: str = "native") -> Conversion:
         r = self.client.transliterate(text, language, script)
@@ -155,24 +177,28 @@ class Converter:
         return Conversion(r.text, "sentence", r.latency_ms, calls=calls, truncated=r.truncated)
 
     def _seed_cache(self, roman: str, native: str, language: str) -> None:
-        """Pair input words with answer words when the counts line up. Only when every
-        space-separated input token is a plain word (punctuation at its edges allowed), so
-        "5pm" or "e-mail" never misalign the pairs; each pair still has to pass
-        ``_remember``'s checks. Words learnt in context beat words asked one at a time."""
-        words = [strip_punct(t) for t in roman.split()]
+        """Pair input words with answer words when the counts line up. Punctuation at a
+        token's edges is ignored and punctuation-only tokens ("...") are skipped. If any
+        token is not a plain word ("5pm", "e-mail"), nothing is learnt, so pairs can't
+        misalign. Each pair still has to pass ``_remember``'s checks. Words learnt in
+        context beat words asked one at a time (see the eval)."""
+        words = [core for core in (split_edges(t)[1] for t in roman.split()) if core]
         if not words or not all(WORD.fullmatch(w) for w in words):
             return
-        out = [w for w in (strip_punct(t) for t in native.split()) if w]
+        out = [core for core in (split_edges(t)[1] for t in native.split()) if core]
         if len(words) == len(out):
+            caps = is_all_caps(roman)
             for w, n in zip(words, out, strict=True):
-                self._remember(language, "native", w, n)
+                self._remember(language, "native", word_key(w, caps), n)
 
     def word(self, text: str, language: str, script: str = "native", cache_only: bool = False) -> Conversion:
         """Convert word by word. With ``cache_only``, unknown words stay in roman and no
         API call is made (the app's typing draft)."""
         started = time.perf_counter()
         pieces = tokenize(text) if script == "native" else tokenize_native(text)
-        missing = sorted({word_key(p) for p, is_word in pieces if is_word and self.cache.get((language, script, word_key(p))) is None})
+        caps = script == "native" and is_all_caps(text)
+        missing = sorted({word_key(p, caps) for p, is_word in pieces
+                          if is_word and self.cache.get((language, script, word_key(p, caps))) is None})
         todo = [] if cache_only else missing
         if len(todo) > MAX_NEW_WORDS:
             raise TooManyWords(f"{len(todo)} new words; word mode converts at most {MAX_NEW_WORDS} per message")
@@ -189,17 +215,20 @@ class Converter:
                     answers[futures[f]] = f.result().text
                     self._remember(language, script, futures[f], f.result().text)
             for f in done:
-                if f.exception() is not None:
-                    raise f.exception()
+                exc = f.exception()
+                # An empty answer for one word just leaves that word in roman; anything
+                # else (429, network) fails the message.
+                if exc is not None and not (isinstance(exc, BodhanError) and exc.code == "empty_answer"):
+                    raise exc
 
         out, words, cached = [], [], 0
         for piece, is_word in pieces:
             if not is_word:
                 out.append(piece)
                 continue
-            key = word_key(piece)
+            key = word_key(piece, caps)
             # Prefer the cache (validated); fall back to this call's raw answer, then roman.
-            native = self.cache.get((language, script, key)) or strip_punct(answers.get(key, "")).strip() or piece
+            native = self.cache.get((language, script, key)) or split_edges(answers.get(key, "").strip())[1] or piece
             if key not in missing:
                 cached += 1
             out.append(native)
