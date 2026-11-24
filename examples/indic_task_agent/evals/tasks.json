@@ -1,0 +1,138 @@
+[
+  {
+    "id": "tamil_audio_summary",
+    "task": "Make a two-minute Tamil audio summary of this chapter",
+    "files": [
+      "sample_data/chapter_scanned.pdf"
+    ],
+    "expect": {
+      "status": [
+        "completed",
+        "completed_with_warnings"
+      ],
+      "artifacts": [
+        {
+          "kind": "audio",
+          "language": "ta"
+        }
+      ]
+    }
+  },
+  {
+    "id": "hindi_voice_note_english_srt",
+    "task": "Transcribe this Hindi voice note and give me English subtitles",
+    "files": [
+      "sample_data/hindi_voice_note.wav"
+    ],
+    "expect": {
+      "status": [
+        "completed",
+        "completed_with_warnings"
+      ],
+      "artifacts": [
+        {
+          "kind": "subtitles"
+        }
+      ]
+    }
+  },
+  {
+    "id": "worksheet_marathi_table",
+    "task": "Translate this worksheet into Marathi and keep the table",
+    "files": [
+      "sample_data/worksheet_photo.jpg"
+    ],
+    "expect": {
+      "status": [
+        "completed",
+        "completed_with_warnings"
+      ],
+      "artifacts": [
+        {
+          "kind": "markdown",
+          "language": "mr"
+        }
+      ]
+    }
+  },
+  {
+    "id": "telugu_clips",
+    "task": "Which of these clips are in Telugu? Translate those into English",
+    "files": [
+      "sample_data/clips"
+    ],
+    "expect": {
+      "status": [
+        "completed",
+        "completed_with_warnings"
+      ],
+      "answer_contains": [
+        "clip2",
+        "clip4"
+      ]
+    }
+  },
+  {
+    "id": "bengali_female_reading",
+    "task": "Read this paragraph aloud in Bengali with a female voice",
+    "files": [
+      "sample_data/paragraph.txt"
+    ],
+    "expect": {
+      "status": [
+        "completed",
+        "completed_with_warnings"
+      ],
+      "artifacts": [
+        {
+          "kind": "audio",
+          "language": "bn"
+        }
+      ]
+    }
+  },
+  {
+    "id": "impossible_french_video",
+    "task": "Translate this video into French",
+    "files": [
+      "sample_data/video.mp4"
+    ],
+    "expect": {
+      "status": [
+        "refused"
+      ],
+      "no_artifacts": true
+    }
+  },
+  {
+    "id": "impossible_missing_file",
+    "task": "Transcribe this recording and summarise it in English",
+    "files": [
+      "sample_data/does_not_exist.wav"
+    ],
+    "expect": {
+      "status": [
+        "refused"
+      ],
+      "no_artifacts": true
+    }
+  },
+  {
+    "id": "impossible_tiny_budget",
+    "task": "Read this paragraph aloud in Bengali with a female voice",
+    "files": [
+      "sample_data/paragraph.txt"
+    ],
+    "args": [
+      "--max-cost-inr",
+      "0.01"
+    ],
+    "expect": {
+      "status": [
+        "refused",
+        "budget_exhausted"
+      ],
+      "no_artifacts": true
+    }
+  }
+]

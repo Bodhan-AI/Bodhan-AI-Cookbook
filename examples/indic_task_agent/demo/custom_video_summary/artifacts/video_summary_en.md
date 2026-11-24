@@ -1,0 +1,1 @@
+The video recommends three audiobooks for ambitious people: one about building wealth, one about influencing others and understanding human psychology, and one about finding engaging, challenging work. The speaker shares how audiobooks help avoid boredom and burnout, then promotes Audible’s two-month free trial.

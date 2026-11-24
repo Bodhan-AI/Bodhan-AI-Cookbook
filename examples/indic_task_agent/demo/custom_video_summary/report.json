@@ -1,0 +1,258 @@
+{
+  "task": "What is this video about? Give me a short English summary and read it aloud in Telugu",
+  "status": "completed",
+  "status_reason": "All requested outputs were produced; checks passed where applicable.",
+  "finished_at": "2026-11-22T10:15:32+00:00",
+  "elapsed_s": 47.25,
+  "answer": "The video is about three recommended audiobooks covering wealth-building, influence and psychology, and finding engaging work, followed by a promotion for Audible. I saved a short English summary and its Telugu spoken version.",
+  "refusal": null,
+  "stop_reason": null,
+  "plan": {
+    "intent": "Summarize what the video is about in short English and provide a Telugu spoken version of the summary.",
+    "output_languages": [
+      "en",
+      "te"
+    ],
+    "expected_outputs": [
+      {
+        "kind": "text",
+        "language": "en",
+        "description": "Short English summary of the video content"
+      },
+      {
+        "kind": "audio",
+        "language": "te",
+        "description": "Telugu spoken version of the summary"
+      }
+    ],
+    "steps": [
+      "Transcribe the video's audio and detect its language.",
+      "Summarize the transcribed content briefly in English.",
+      "Translate the English summary into Telugu.",
+      "Synthesize the Telugu translation as speech."
+    ]
+  },
+  "llm": {
+    "model": "gpt-6-luna",
+    "calls": 9,
+    "prompt_tokens": 46283,
+    "completion_tokens": 592,
+    "note": "LLM token cost is not included in cost_inr (provider pricing varies)"
+  },
+  "budgets": {
+    "max_steps": 30,
+    "steps_used": 7,
+    "max_cost_inr": 20.0,
+    "max_seconds": 600.0,
+    "call_timeout_s": 180.0
+  },
+  "cost": {
+    "total_inr": 0.38642,
+    "verification_inr": 0.05386,
+    "by_tool_inr": {
+      "transcribe_audio": 0.09822,
+      "translate_text": 0.00694,
+      "read_text": 0.0,
+      "write_text_artifact": 0.0,
+      "synthesize_speech": 0.2274,
+      "save_artifact": 0.0
+    },
+    "min_estimate_inr": 0.2782,
+    "note": "Bodhan model spend only"
+  },
+  "steps": [
+    {
+      "step": 1,
+      "tool": "transcribe_audio",
+      "ok": true,
+      "cost_inr": 0.09822,
+      "cached": false,
+      "reused": false,
+      "latency_ms": 4396
+    },
+    {
+      "step": 2,
+      "tool": "translate_text",
+      "ok": true,
+      "cost_inr": 0.0043,
+      "cached": false,
+      "reused": false,
+      "latency_ms": 1193
+    },
+    {
+      "step": 3,
+      "tool": "read_text",
+      "ok": true,
+      "cost_inr": 0.0,
+      "cached": false,
+      "reused": false,
+      "latency_ms": 19
+    },
+    {
+      "step": 4,
+      "tool": "write_text_artifact",
+      "ok": true,
+      "cost_inr": 0.0,
+      "cached": false,
+      "reused": false,
+      "latency_ms": 0
+    },
+    {
+      "step": 5,
+      "tool": "translate_text",
+      "ok": true,
+      "cost_inr": 0.00264,
+      "cached": false,
+      "reused": false,
+      "latency_ms": 1211
+    },
+    {
+      "step": 6,
+      "tool": "synthesize_speech",
+      "ok": true,
+      "cost_inr": 0.2274,
+      "cached": false,
+      "reused": false,
+      "latency_ms": 17324
+    },
+    {
+      "step": 7,
+      "tool": "save_artifact",
+      "ok": true,
+      "cost_inr": 0.0,
+      "cached": false,
+      "reused": false,
+      "latency_ms": 0
+    }
+  ],
+  "artifacts": [
+    {
+      "file": "video_summary_en.md",
+      "kind": "markdown",
+      "language": "en",
+      "tool": "llm",
+      "description": "Short English summary of the video.",
+      "bytes": 317,
+      "verification": {
+        "check": "english_only",
+        "passed": true
+      }
+    },
+    {
+      "file": "video_summary_te.mp3",
+      "kind": "audio",
+      "language": "te",
+      "tool": "synthesize_speech",
+      "description": "Telugu spoken version of the short video summary.",
+      "bytes": 242213,
+      "verification": {
+        "check": "speech_back_transcription",
+        "passed": true,
+        "similarity": 0.994,
+        "duration_ratio": 1.02,
+        "problems": [],
+        "cost_inr": 0.05386,
+        "repairable": true
+      }
+    },
+    {
+      "file": "video_summary_te_text.txt",
+      "kind": "text",
+      "language": "te",
+      "tool": "speech_text",
+      "description": "The text spoken in video_summary_te.mp3.",
+      "bytes": 1034,
+      "verification": {
+        "check": "spoken_text",
+        "passed": null,
+        "skipped": "checked through its audio's back-transcription"
+      }
+    }
+  ],
+  "verification": [
+    {
+      "file": "video_summary_en.md",
+      "round": 1,
+      "check": "english_only",
+      "passed": true
+    },
+    {
+      "file": "video_summary_te.mp3",
+      "round": 1,
+      "check": "speech_back_transcription",
+      "passed": true,
+      "similarity": 0.994,
+      "duration_ratio": 1.02,
+      "problems": [],
+      "cost_inr": 0.05386,
+      "repairable": true
+    },
+    {
+      "file": "video_summary_te_text.txt",
+      "round": 1,
+      "check": "spoken_text",
+      "passed": null,
+      "skipped": "checked through its audio's back-transcription"
+    },
+    {
+      "file": "video.73581b.en.txt",
+      "round": 1,
+      "intermediate": true,
+      "check": "translation_coverage",
+      "passed": true,
+      "length_ratio": 1.013,
+      "target_script_fraction": 1.0,
+      "problems": []
+    },
+    {
+      "file": "text.7ea358.te.txt",
+      "round": 1,
+      "intermediate": true,
+      "check": "translation_coverage",
+      "passed": true,
+      "length_ratio": 1.214,
+      "target_script_fraction": 1.0,
+      "problems": []
+    }
+  ],
+  "assumptions": [
+    "The video’s spoken audio is sufficient to identify its subject; if visuals provide essential context not present in audio, the summary will be based on available speech.",
+    "The summary is based on the video's spoken audio, as planned."
+  ],
+  "warnings": [],
+  "injection_flags": [],
+  "missing_inputs": [],
+  "quality_targets": {
+    "task_completion": {
+      "met": true,
+      "status": "completed"
+    },
+    "honest_failure": {
+      "met": true,
+      "why": "no artifacts are produced for refused/failed tasks"
+    },
+    "verification": {
+      "met": true,
+      "checked": 4,
+      "passed": 4,
+      "why": ""
+    },
+    "no_waste": {
+      "met": true,
+      "reused_duplicate_calls": 0,
+      "why": "identical tool calls are reused; the server cache never resends the same input"
+    },
+    "budget": {
+      "met": true,
+      "cost_inr": 0.3864,
+      "max_cost_inr": 20.0
+    },
+    "latency": {
+      "met": true,
+      "elapsed_s": 47.3,
+      "target_s": 300,
+      "why": ""
+    }
+  },
+  "failed_checks": 0
+}

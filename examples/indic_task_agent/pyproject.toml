@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "indic-task-agent"
+version = "0.1.0"
+description = "MCP tool server for Bodhan's Indic models, plus a LangGraph task agent that uses it."
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.11"
+dependencies = [
+    "mcp==2.3.0",
+    "langgraph==1.2.24",
+    "openai==3.57.0",
+    "httpx==0.28.1",
+    "tenacity==9.2.1",
+    "pydantic==2.14.4",
+    "pypdfium2==5.15.2",
+    "pillow==13.0.0",
+    "python-dotenv==1.2.4",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==9.2.0",
+    "pytest-asyncio==1.5.0",
+    "respx==0.23.1",
+    "ruff==0.17.6",
+]
+
+[project.scripts]
+bodhan-mcp = "bodhan_mcp.server:main"
+bodhan-agent = "bodhan_agent.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+bodhan_mcp = ["data/*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+
+[tool.ruff]
+line-length = 120
+src = ["src", "tests"]
+extend-exclude = ["probes"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+ignore = ["E501"]

@@ -1,0 +1,11 @@
+{
+  "_source": "Recorded from live Bodhan API responses (probes/, 2026-11-20). Indian-language strings here were produced by Bodhan models, not written by hand.",
+  "english": "The school will remain closed tomorrow because of heavy rain. Classes will resume on Monday at nine in the morning.",
+  "hi_transcript": "नमस्ते आज हम गणित की कक्षा शुरू करेंगे कृपया अपनी पुस्तकें खोलिए और पहला पाथ पढ़िए",
+  "ta_translation": "கனமழை காரணமாக நாளை பள்ளிக்கு விடுமுறை. திங்கட்கிழமை காலை ஒன்பது மணிக்கு வகுப்புகள் தொடங்கும்.",
+  "hi_translation": "भारी बारिश के कारण कल स्कूल बंद रहेगा। सोमवार को सुबह नौ बजे से कक्षाएं फिर शुरू होंगी।",
+  "en_from_hi": "School will be closed tomorrow due to heavy rain. Classes will resume on Monday at 9 am.",
+  "mr_table_markdown": "# साप्ताहिक कार्यपत्रिका\n\nशुक्रवारपूर्वी सर्व प्रश्नांची उत्तरे द्या.\n\n| विषय | प्रकरण | गुण |\n|---|---|---|\n| विज्ञान | प्रकाशसंश्लेषण | १० |\n| इतिहास | मुघल साम्राज्य | १५ |",
+  "te_truncated": "భారీ వర్షం కారణంగా రేపు",
+  "ta_roman": "Kanamazhai kaaranamaaga naalai pallikku vidumurai. Thingatkilamai kaalai onpathu manikku vaguppukal thodangum."
+}

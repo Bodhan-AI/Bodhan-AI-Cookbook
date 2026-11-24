@@ -1,0 +1,822 @@
+[
+  {
+    "page": 1,
+    "blocks": [
+      {
+        "order": 0,
+        "label": "Paragraph",
+        "type": "Text",
+        "bbox_xyxy": [
+          287.1,
+          147.3,
+          1195.0,
+          286.7
+        ],
+        "conf": 0.923,
+        "text": "became more complex, and so did the processes to make them. Workers had to special-\nize in their tasks. Rather than overseeing the fabrication of the entire product, they were\nresponsible for only a small part of the total work. More up-front planning was required,\nand more coordination of the operations was needed to keep track of the work flow in the\nfactories. Slowly but surely, the systems of production were being developed."
+      },
+      {
+        "order": 1,
+        "label": "Paragraph",
+        "type": "Text",
+        "bbox_xyxy": [
+          286.5,
+          290.0,
+          1194.8,
+          344.5
+        ],
+        "conf": 0.876,
+        "text": "The systems of production are essential in modern manufacturing. This book is all\nabout these production systems and how they are sometimes automated and computerized."
+      },
+      {
+        "order": 2,
+        "label": "Section-title",
+        "type": "SectionHeader",
+        "bbox_xyxy": [
+          90.4,
+          387.1,
+          425.2,
+          413.5
+        ],
+        "conf": 0.867,
+        "text": "1.1 PRODUCTION SYSTEMS"
+      },
+      {
+        "order": 3,
+        "label": "Paragraph",
+        "type": "Text",
+        "bbox_xyxy": [
+          286.7,
+          445.1,
+          1194.7,
+          528.4
+        ],
+        "conf": 0.931,
+        "text": "A production system is a collection of people, equipment, and procedures organized to\nperform the manufacturing operations of a company. It consists of two major compo-\nnents as indicated in Figure 1.1:"
+      },
+      {
+        "order": 4,
+        "label": "List",
+        "type": "Text",
+        "bbox_xyxy": [
+          314.2,
+          553.7,
+          1195.1,
+          754.4
+        ],
+        "conf": 0.961,
+        "text": "1. *Facilities.* The physical facilities of the production system include the equipment,\nthe way the equipment is laid out, and the factory in which the equipment is located.\n2. *Manufacturing support systems.* These are the procedures used by the company to\nmanage production and to solve the technical and logistics problems encountered\nin ordering materials, moving the work through the factory, and ensuring that prod-\nucts meet quality standards. Product design and certain business functions are\nincluded in the manufacturing support systems."
+      },
+      {
+        "order": 5,
+        "label": "Paragraph",
+        "type": "Text",
+        "bbox_xyxy": [
+          287.4,
+          781.9,
+          1195.4,
+          864.4
+        ],
+        "conf": 0.917,
+        "text": "In modern manufacturing operations, portions of the production system are\nautomated and/or computerized. In addition, production systems include people.\nPeople make these systems work. In general, direct labor people (blue-collar workers)"
+      },
+      {
+        "order": 6,
+        "label": "Diagram",
+        "type": "Figure",
+        "bbox_xyxy": [
+          464.4,
+          921.4,
+          1017.4,
+          1430.0
+        ],
+        "conf": 0.966,
+        "text": ""
+      },
+      {
+        "order": 7,
+        "label": "Image-caption",
+        "type": "Caption",
+        "bbox_xyxy": [
+          502.1,
+          1463.4,
+          978.6,
+          1517.0
+        ],
+        "conf": 0.909,
+        "text": "**Figure 1.1** The production system consists of\nfacilities and manufacturing support systems."
+      }
+    ]
+  },
+  {
+    "page": 2,
+    "blocks": [
+      {
+        "order": 0,
+        "label": "Paragraph",
+        "type": "Text",
+        "bbox_xyxy": [
+          287.0,
+          146.5,
+          1194.1,
+          202.2
+        ],
+        "conf": 0.93,
+        "text": "are responsible for operating the facilities, and professional staff people (white-collar\nworkers) are responsible for the manufacturing support systems."
+      },
+      {
+        "order": 1,
+        "label": "Sub-section-title",
+        "type": "SectionHeader",
+        "bbox_xyxy": [
+          286.7,
+          231.4,
+          462.2,
+          258.6
+        ],
+        "conf": 0.794,
+        "text": "1.1.1 Facilities"
+      },
+      {
+        "order": 2,
+        "label": "Paragraph",
+        "type": "Text",
+        "bbox_xyxy": [
+          287.0,
+          288.5,
+          1195.4,
+          598.0
+        ],
+        "conf": 0.955,
+        "text": "The facilities in the production system consist of the factory, production machines and\ntooling, material handling equipment, inspection equipment, and computer systems that\ncontrol the manufacturing operations. Facilities also include the \\textit{\\textbf{plant layout}}, which is\nthe way the equipment is physically arranged in the factory. The equipment is usually\norganized into \\textit{\\textbf{manufacturing systems}}, which are the logical groupings of equipment and\nworkers that accomplish the processing and assembly operations on parts and products\nmade by the factory. Manufacturing systems can be individual work cells consisting of a\nsingle production machine and a worker assigned to that machine. More complex manu-\nfacturing systems consist of collections of machines and workers, for example, a produc-\ntion line. The manufacturing systems come in direct physical contact with the parts and/or\nassemblies being made. They “touch” the product."
+      },
+      {
+        "order": 3,
+        "label": "Paragraph",
+        "type": "Text",
+        "bbox_xyxy": [
+          287.0,
+          602.4,
+          1194.8,
+          684.7
+        ],
+        "conf": 0.898,
+        "text": "In terms of human participation in the processes performed by the manufacturing\nsystems, three basic categories can be distinguished, as portrayed in Figure 1.2: (a) man-\nual work systems, (b) worker-machine systems, and (c) automated systems."
+      },
+      {
+        "order": 4,
+        "label": "Paragraph",
+        "type": "Text",
+        "bbox_xyxy": [
+          287.0,
+          710.5,
+          1194.7,
+          877.9
+        ],
+        "conf": 0.955,
+        "text": "**Manual Work Systems.** A manual work system consists of one or more workers\nperforming one or more tasks without the aid of powered tools. Manual material handling\ntasks are common activities in manual work systems. Production tasks commonly require\nthe use of hand tools, such as screwdrivers and hammers. When using hand tools, a work-\nholder is often employed to grasp the work part and position it securely for processing.\nExamples of production-related manual tasks involving the use of hand tools include"
+      },
+      {
+        "order": 5,
+        "label": "List",
+        "type": "Text",
+        "bbox_xyxy": [
+          320.7,
+          896.8,
+          1195.7,
+          1050.3
+        ],
+        "conf": 0.957,
+        "text": "• A machinist using a file to round the edges of a rectangular part that has just been\nmilled\n• A quality control inspector using a micrometer to measure the diameter of a shaft\n• A material handling worker using a dolly to move cartons in a warehouse\n• A team of assembly workers putting together a piece of machinery using hand tools."
+      },
+      {
+        "order": 6,
+        "label": "Paragraph",
+        "type": "Text",
+        "bbox_xyxy": [
+          287.1,
+          1069.7,
+          1195.0,
+          1153.6
+        ],
+        "conf": 0.925,
+        "text": "**Worker-Machine Systems.** In a worker-machine system, a human worker oper-\nates powered equipment, such as a machine tool or other production machine. This is\none of the most widely used manufacturing systems. Worker-machine systems include"
+      },
+      {
+        "order": 7,
+        "label": "Diagram",
+        "type": "Figure",
+        "bbox_xyxy": [
+          352.5,
+          1214.1,
+          1129.3,
+          1432.0
+        ],
+        "conf": 0.963,
+        "text": ""
+      },
+      {
+        "order": 8,
+        "label": "Image-caption",
+        "type": "Caption",
+        "bbox_xyxy": [
+          374.3,
+          1463.6,
+          1109.5,
+          1517.6
+        ],
+        "conf": 0.895,
+        "text": "**Figure 1.2** Three categories of manufacturing systems: (a) manual work\nsystem, (b) worker-machine system, and (c) fully automated system."
+      }
+    ]
+  },
+  {
+    "page": 3,
+    "blocks": [
+      {
+        "order": 0,
+        "label": "Paragraph",
+        "type": "Text",
+        "bbox_xyxy": [
+          287.1,
+          147.7,
+          1195.5,
+          230.4
+        ],
+        "conf": 0.932,
+        "text": "combinations of one or more workers and one or more pieces of equipment. The workers\nand machines are combined to take advantage of their relative strengths and attributes,\nwhich are listed in Table 1.1. Examples of worker-machine systems include the following:"
+      },
+      {
+        "order": 1,
+        "label": "List",
+        "type": "Text",
+        "bbox_xyxy": [
+          321.3,
+          261.6,
+          1195.2,
+          442.7
+        ],
+        "conf": 0.963,
+        "text": "$\\bullet$ A machinist operating an engine lathe to fabricate a part for a product\n$\\bullet$ A fitter and an industrial robot working together in an arc–welding work cell\n$\\bullet$ A crew of workers operating a rolling mill that converts hot steel slabs into flat plates\n$\\bullet$ A production line in which the products are moved by mechanized conveyor and\nthe workers at some of the stations use power tools to accomplish their processing\nor assembly tasks."
+      },
+      {
+        "order": 2,
+        "label": "Paragraph",
+        "type": "Text",
+        "bbox_xyxy": [
+          286.8,
+          473.7,
+          1195.1,
+          612.9
+        ],
+        "conf": 0.938,
+        "text": "**Automated Systems.** An automated system is one in which a process is per-\nformed by a machine without the direct participation of a human worker. Automation\nis implemented using a program of instructions combined with a control system that\nexecutes the instructions. Power is required to drive the process and to operate the pro-\ngram and control system (these terms are defined more completely in Chapter 4)."
+      },
+      {
+        "order": 3,
+        "label": "Paragraph",
+        "type": "Text",
+        "bbox_xyxy": [
+          286.7,
+          616.3,
+          1195.7,
+          1009.9
+        ],
+        "conf": 0.967,
+        "text": "There is not always a clear distinction between worker-machine systems and\nautomated systems, because many worker-machine systems operate with some degree\nof automation. Two levels of automation can be identified: semiautomated and fully\nautomated. A semiautomated machine performs a portion of the work cycle under some\nform of program control, and a human worker tends to the machine for the remainder\nof the cycle, by loading and unloading it, or by performing some other task each cycle.\nA fully automated machine is distinguished from its semiautomated counterpart by its\ncapacity to operate for an extended period of time with no human attention. Extended\nperiod of time means longer than one work cycle; a worker is not required to be present\nduring each cycle. Instead, the worker may need to tend the machine every tenth cycle,\nor every hundredth cycle. An example of this type of operation is found in many injection\nmolding plants, where the molding machines run on automatic cycles, but periodically the\nmolded parts at the machine must be collected by a worker. Figure 1.2(c) depicts a fully\nautomated system. The semiautomated system is best portrayed by Figure 1.2(b)."
+      },
+      {
+        "order": 4,
+        "label": "Paragraph",
+        "type": "Text",
+        "bbox_xyxy": [
+          287.1,
+          1014.7,
+          1194.8,
+          1095.8
+        ],
+        "conf": 0.907,
+        "text": "In certain fully automated processes, one or more workers are required to be present\nto continuously monitor the operation, and make sure that it performs according to the\nintended specifications. Examples of these kinds of automated processes include complex"
+      },
+      {
+        "order": 5,
+        "label": "Table-caption",
+        "type": "Caption",
+        "bbox_xyxy": [
+          338.7,
+          1158.0,
+          1056.3,
+          1182.9
+        ],
+        "conf": 0.845,
+        "text": "TABLE 1.1 Relative Strengths and Attributes of Humans and Machines"
+      },
+      {
+        "order": 6,
+        "label": "Table",
+        "type": "Table",
+        "bbox_xyxy": [
+          338.3,
+          1194.0,
+          1159.8,
+          1512.9
+        ],
+        "conf": 0.967,
+        "text": "| Humans | Machines |\n| :--- | :--- |\n| Sense unexpected stimuli | Perform repetitive tasks consistently |\n| Develop new solutions to problems | Store large amounts of data |\n| Cope with abstract problems | Retrieve data from memory reliably |\n| Adapt to change | Perform multiple tasks simultaneously |\n| Generalize from observations | Apply high forces and power |\n| Learn from experience | Perform simple computations quickly |\n| Make decisions based on incomplete data | Make routine decisions quickly |"
+      }
+    ]
+  },
+  {
+    "page": 4,
+    "blocks": [
+      {
+        "order": 0,
+        "label": "Paragraph",
+        "type": "Text",
+        "bbox_xyxy": [
+          286.8,
+          147.1,
+          1194.7,
+          231.6
+        ],
+        "conf": 0.932,
+        "text": "chemical processes, oil refineries, and nuclear power plants. The workers do not actively\nparticipate in the process except to make occasional adjustments in the equipment set-\ntings, perform periodic maintenance, and spring into action if something goes wrong."
+      },
+      {
+        "order": 1,
+        "label": "Sub-section-title",
+        "type": "SectionHeader",
+        "bbox_xyxy": [
+          286.8,
+          260.2,
+          730.8,
+          287.5
+        ],
+        "conf": 0.79,
+        "text": "1.1.2 Manufacturing Support Systems"
+      },
+      {
+        "order": 2,
+        "label": "Paragraph",
+        "type": "Text",
+        "bbox_xyxy": [
+          286.7,
+          316.7,
+          1194.5,
+          485.3
+        ],
+        "conf": 0.903,
+        "text": "To operate the production facilities efficiently, a company must organize itself to design\nthe processes and equipment, plan and control the production orders, and satisfy prod-\nuct quality requirements. These functions are accomplished by manufacturing support\nsystems—people and procedures by which a company manages its production operations.\nMost of these support systems do not directly contact the product, but they plan and\ncontrol its progress through the factory."
+      },
+      {
+        "order": 3,
+        "label": "Paragraph",
+        "type": "Text",
+        "bbox_xyxy": [
+          287.0,
+          488.1,
+          1195.2,
+          599.2
+        ],
+        "conf": 0.887,
+        "text": "Manufacturing support involves a sequence of activities, as depicted in Figure 1.3.\nThe activities consist of four functions that include much information flow and data\nprocessing: (1) business functions, (2) product design, (3) manufacturing planning, and\n(4) manufacturing control."
+      },
+      {
+        "order": 4,
+        "label": "Paragraph",
+        "type": "Text",
+        "bbox_xyxy": [
+          287.5,
+          628.8,
+          1194.1,
+          740.5
+        ],
+        "conf": 0.878,
+        "text": "**Business Functions.** The business functions are the principal means by which the\ncompany communicates with the customer. They are, therefore, the beginning and the\nend of the information-processing sequence. Included in this category are sales and mar-\nketing, sales forecasting, order entry, and customer billing."
+      },
+      {
+        "order": 5,
+        "label": "Paragraph",
+        "type": "Text",
+        "bbox_xyxy": [
+          287.2,
+          743.1,
+          1195.0,
+          910.3
+        ],
+        "conf": 0.894,
+        "text": "The order to produce a product typically originates from the customer and proceeds\ninto the company through the sales department of the firm. The production order will be in\none of the following forms: (1) an order to manufacture an item to the customer's specification,\n(2) a customer order to buy one or more of the manufacturer's proprietary products,\nor (3) an internal company order based on a forecast of future demand for a proprietary\nproduct."
+      },
+      {
+        "order": 6,
+        "label": "Paragraph",
+        "type": "Text",
+        "bbox_xyxy": [
+          287.1,
+          941.1,
+          1194.7,
+          1079.7
+        ],
+        "conf": 0.881,
+        "text": "**Product Design.** If the product is manufactured to customer design, the design\nhas been provided by the customer, and the manufacturer's product design department is\nnot involved. If the product is to be produced to customer specifications, the manufacturer's\nproduct design department may be contracted to do the design work for the product\nas well as to manufacture it."
+      },
+      {
+        "order": 7,
+        "label": "Paragraph",
+        "type": "Text",
+        "bbox_xyxy": [
+          286.1,
+          1082.5,
+          1195.1,
+          1223.6
+        ],
+        "conf": 0.859,
+        "text": "If the product is proprietary, the manufacturing firm is responsible for its develop-\nment and design. The sequence of events that initiates a new product design often origi-\nnates in the sales department; the direction of information flow is indicated in Figure 1.3.\nThe departments of the firm that are organized to accomplish product design might include\nresearch and development, design engineering, and perhaps a prototype shop."
+      },
+      {
+        "order": 8,
+        "label": "Diagram",
+        "type": "Figure",
+        "bbox_xyxy": [
+          146.5,
+          1267.5,
+          1136.9,
+          1430.2
+        ],
+        "conf": 0.936,
+        "text": ""
+      },
+      {
+        "order": 9,
+        "label": "Image-caption",
+        "type": "Caption",
+        "bbox_xyxy": [
+          288.5,
+          1463.0,
+          994.5,
+          1516.6
+        ],
+        "conf": 0.893,
+        "text": "**Figure 1.3** Sequence of information-processing activities in a typical\nmanufacturing firm."
+      }
+    ]
+  },
+  {
+    "page": 5,
+    "blocks": [
+      {
+        "order": 0,
+        "label": "Paragraph",
+        "type": "Text",
+        "bbox_xyxy": [
+          286.4,
+          146.7,
+          1195.5,
+          259.2
+        ],
+        "conf": 0.947,
+        "text": "**Manufacturing Planning.** The information and documentation that constitute the\nproduct design flows into the manufacturing planning function. The information-processing\nactivities in manufacturing planning include process planning, master scheduling, material\nrequirements planning, and capacity planning."
+      },
+      {
+        "order": 1,
+        "label": "Paragraph",
+        "type": "Text",
+        "bbox_xyxy": [
+          286.0,
+          262.0,
+          1196.5,
+          684.5
+        ],
+        "conf": 0.977,
+        "text": "\\textbf{\\textit{Process planning}} consists of determining the sequence of individual processing and\nassembly operations needed to produce the part. The manufacturing engineering depart-\nment is responsible for planning the processes and related technical details such as tool-\ning. Manufacturing planning includes logistics issues, commonly known as production\nplanning. The authorization to produce the product must be translated into the \\textbf{\\textit{master}}\n\\textbf{\\textit{production schedule}}, which is a listing of the products to be made, the dates on which\nthey are to be delivered, and the quantities of each. Based on this master schedule, the\nindividual components and subassemblies that make up each product must be scheduled.\nRaw materials must be purchased or requisitioned from storage, parts must be ordered\nfrom suppliers, and all of these items must be planned so they are available when needed.\nThe computations for this planning are made by \\textbf{\\textit{material requirements planning}}. In\naddition, the master schedule must not list more quantities of products than the factory\nis capable of producing each month with its given number of machines and manpower.\n\\textbf{\\textit{Capacity planning}} is concerned with determining the human and equipment resources\nof the firm and checking to make sure that the production plan is feasible."
+      },
+      {
+        "order": 2,
+        "label": "Paragraph",
+        "type": "Text",
+        "bbox_xyxy": [
+          286.7,
+          720.6,
+          1195.2,
+          859.6
+        ],
+        "conf": 0.945,
+        "text": "**Manufacturing Control.** Manufacturing control is concerned with managing and\ncontrolling the physical operations in the factory to implement the manufacturing plans.\nThe flow of information is from planning to control as indicated in Figure 1.3. Information\nalso flows back and forth between manufacturing control and the factory operations.\nIncluded in this function are shop floor control, inventory control, and quality control."
+      },
+      {
+        "order": 3,
+        "label": "Paragraph",
+        "type": "Text",
+        "bbox_xyxy": [
+          286.5,
+          863.4,
+          1195.9,
+          1313.9
+        ],
+        "conf": 0.977,
+        "text": "\\textbf{\\textit{Shop floor control}} deals with the problem of monitoring the progress of the prod-\nuct as it is being processed, assembled, moved, and inspected in the factory. Shop floor\ncontrol is concerned with inventory in the sense that the materials being processed in\nthe factory are work-in-process inventory. Thus, shop floor control and inventory control\noverlap to some extent. \\textbf{\\textit{Inventory control}} attempts to strike a proper balance between\nthe risk of too little inventory (with possible stock-outs of materials) and the carrying cost\nof too much inventory. It deals with such issues as deciding the right quantities of materi-\nals to order and when to reorder a given item when stock is low. The function of \\textbf{\\textit{quality}}\n\\textbf{\\textit{control}} is to ensure that the quality of the product and its components meet the standards\nspecified by the product designer. To accomplish its mission, quality control depends on\ninspection activities performed in the factory at various times during the manufacture of\nthe product. Also, raw materials and component parts from outside sources are some-\ntimes inspected when they are received, and final inspection and testing of the finished\nproduct is performed to ensure functional quality and appearance. Quality control also\nincludes data collection and problem-solving approaches to address process problems re-\nlated to quality, such as statistical process control (SPC) and Six Sigma."
+      },
+      {
+        "order": 4,
+        "label": "Section-title",
+        "type": "SectionHeader",
+        "bbox_xyxy": [
+          90.0,
+          1376.7,
+          628.5,
+          1403.9
+        ],
+        "conf": 0.837,
+        "text": "1.2 AUTOMATION IN PRODUCTION SYSTEMS"
+      },
+      {
+        "order": 5,
+        "label": "Paragraph",
+        "type": "Text",
+        "bbox_xyxy": [
+          286.8,
+          1434.1,
+          1195.4,
+          1518.0
+        ],
+        "conf": 0.934,
+        "text": "Some components of the firm's production system are likely to be automated, whereas\nothers will be operated manually or clerically. The automated elements of the produc-\ntion system can be separated into two categories: (1) automation of the manufacturing"
+      }
+    ]
+  },
+  {
+    "page": 6,
+    "blocks": [
+      {
+        "order": 0,
+        "label": "Diagram",
+        "type": "Figure",
+        "bbox_xyxy": [
+          334.2,
+          150.3,
+          1150.1,
+          681.7
+        ],
+        "conf": 0.978,
+        "text": ""
+      },
+      {
+        "order": 1,
+        "label": "Image-caption",
+        "type": "Caption",
+        "bbox_xyxy": [
+          423.3,
+          714.3,
+          1059.7,
+          768.2
+        ],
+        "conf": 0.935,
+        "text": "**Figure 1.4** Opportunities for automation and computerization\nin a production system."
+      },
+      {
+        "order": 2,
+        "label": "Paragraph",
+        "type": "Text",
+        "bbox_xyxy": [
+          287.2,
+          795.8,
+          1195.5,
+          963.0
+        ],
+        "conf": 0.97,
+        "text": "systems in the factory, and (2) computerization of the manufacturing support systems.\nIn modern production systems, the two categories are closely related, because the auto-\nmated manufacturing systems on the factory floor are themselves usually implemented\nby computer systems that are integrated with the manufacturing support systems and\nmanagement information system operating at the plant and enterprise levels. The two\ncategories of automation are shown in Figure 1.4 as an overlay on Figure 1.1."
+      },
+      {
+        "order": 3,
+        "label": "Sub-section-title",
+        "type": "SectionHeader",
+        "bbox_xyxy": [
+          287.1,
+          994.0,
+          766.4,
+          1020.2
+        ],
+        "conf": 0.83,
+        "text": "1.2.1 Automated Manufacturing Systems"
+      },
+      {
+        "order": 4,
+        "label": "Paragraph",
+        "type": "Text",
+        "bbox_xyxy": [
+          287.0,
+          1050.1,
+          1195.1,
+          1246.3
+        ],
+        "conf": 0.972,
+        "text": "Automated manufacturing systems operate in the factory on the physical product. They\nperform operations such as processing, assembly, inspection, and material handling, in\nmany cases accomplishing more than one of these operations in the same system. They\nare called automated because they perform their operations with a reduced level of human\nparticipation compared with the corresponding manual process. In some highly automated\nsystems, there is virtually no human participation. Examples of automated manufacturing\nsystems include:"
+      },
+      {
+        "order": 5,
+        "label": "List",
+        "type": "Text",
+        "bbox_xyxy": [
+          320.3,
+          1270.9,
+          1195.0,
+          1515.3
+        ],
+        "conf": 0.971,
+        "text": "$\\bullet$ Automated machine tools that process parts\n$\\bullet$ Transfer lines that perform a series of machining operations\n$\\bullet$ Automated assembly systems\n$\\bullet$ Manufacturing systems that use industrial robots to perform processing or assembly\noperations\n$\\bullet$ Automatic material handling and storage systems to integrate manufacturing\noperations\n$\\bullet$ Automatic inspection systems for quality control."
+      }
+    ]
+  },
+  {
+    "page": 7,
+    "blocks": [
+      {
+        "order": 0,
+        "label": "Header",
+        "type": "PageHeader",
+        "bbox_xyxy": [
+          69.5,
+          73.4,
+          1225.8,
+          129.4
+        ],
+        "conf": 0.748,
+        "text": ""
+      },
+      {
+        "order": 1,
+        "label": "Page-number",
+        "type": "PageNumber",
+        "bbox_xyxy": [
+          83.7,
+          87.1,
+          104.9,
+          112.3
+        ],
+        "conf": 0.698,
+        "text": "$$8$$"
+      },
+      {
+        "order": 2,
+        "label": "Folio",
+        "type": "PageNumber",
+        "bbox_xyxy": [
+          955.2,
+          80.7,
+          1208.9,
+          121.9
+        ],
+        "conf": 0.609,
+        "text": "Chap. 1 / Introduction"
+      },
+      {
+        "order": 3,
+        "label": "Chart",
+        "type": "Figure",
+        "bbox_xyxy": [
+          460.0,
+          145.9,
+          1021.6,
+          523.4
+        ],
+        "conf": 0.946,
+        "text": ""
+      },
+      {
+        "order": 4,
+        "label": "Image-caption",
+        "type": "Caption",
+        "bbox_xyxy": [
+          501.1,
+          551.9,
+          983.5,
+          609.5
+        ],
+        "conf": 0.913,
+        "text": "**Figure 1.5** Three types of automation relative\nto production quantity and product variety."
+      },
+      {
+        "order": 5,
+        "label": "Paragraph",
+        "type": "Text",
+        "bbox_xyxy": [
+          277.8,
+          661.0,
+          1204.5,
+          806.1
+        ],
+        "conf": 0.943,
+        "text": "Automated manufacturing systems can be classified into three basic types: (1) fixed\nautomation, (2) programmable automation, and (3) flexible automation. They generally\noperate as fully automated systems although semiautomated systems are common in\nprogrammable automation. The relative positions of the three types of automation for\ndifferent production volumes and product varieties are depicted in Figure 1.5."
+      },
+      {
+        "order": 6,
+        "label": "Paragraph",
+        "type": "Text",
+        "bbox_xyxy": [
+          279.1,
+          827.8,
+          1200.7,
+          1055.4
+        ],
+        "conf": 0.948,
+        "text": "**Fixed Automation.** Fixed automation is a system in which the sequence of pro-\ncessing (or assembly) operations is fixed by the equipment configuration. Each operation\nin the sequence is usually simple, involving perhaps a plain linear or rotational motion or\nan uncomplicated combination of the two, such as feeding a rotating spindle. It is the inte-\ngration and coordination of many such operations in one piece of equipment that makes\nthe system complex. Typical features of fixed automation are (1) high initial investment\nfor custom-engineered equipment, (2) high production rates, and (3) inflexibility of the\nequipment to accommodate product variety."
+      },
+      {
+        "order": 7,
+        "label": "Paragraph",
+        "type": "Text",
+        "bbox_xyxy": [
+          278.8,
+          1057.0,
+          1202.0,
+          1201.0
+        ],
+        "conf": 0.923,
+        "text": "The economic justification for fixed automation is found in products that are made\nin very large quantities and at high production rates. The high initial cost of the equipment\ncan be spread over a very large number of units, thus minimizing the unit cost relative\nto alternative methods of production. Examples of fixed automation include machining\ntransfer lines and automated assembly machines."
+      },
+      {
+        "order": 8,
+        "label": "Paragraph",
+        "type": "Text",
+        "bbox_xyxy": [
+          278.7,
+          1222.0,
+          1202.3,
+          1481.5
+        ],
+        "conf": 0.959,
+        "text": "**Programmable Automation.** In programmable automation, the production\nequipment is designed with the capability to change the sequence of operations to ac-\ncommodate different product configurations. The operation sequence is controlled by a\n**program**, which is a set of instructions coded so that they can be read and interpreted by\nthe system. New programs can be prepared and entered into the equipment to produce\nnew products. Some of the features that characterize programmable automation include\n(1) high investment in general-purpose equipment, (2) lower production rates than fixed\nautomation, (3) flexibility to deal with variations and changes in product configuration,\nand (4) high suitability for batch production."
+      }
+    ]
+  },
+  {
+    "page": 8,
+    "blocks": [
+      {
+        "order": 0,
+        "label": "Paragraph",
+        "type": "Text",
+        "bbox_xyxy": [
+          285.6,
+          147.3,
+          1195.8,
+          429.2
+        ],
+        "conf": 0.973,
+        "text": "Programmable automated systems are used in low- and medium-volume production. The parts or products are typically made in batches. To produce each new batch of a different item, the system must be reprogrammed with the set of machine instructions that correspond to the new item. The physical setup of the machine must also be changed: Tools must be loaded, fixtures must be attached to the machine table, and any required machine settings must be entered. This changeover takes time. Consequently, the typical cycle for a given batch includes a period during which the setup and reprogramming take place, followed by a period in which the parts are produced. Examples of programmable automation include numerically controlled (NC) machine tools, industrial robots, and programmable logic controllers."
+      },
+      {
+        "order": 1,
+        "label": "Paragraph",
+        "type": "Text",
+        "bbox_xyxy": [
+          285.6,
+          459.0,
+          1195.8,
+          826.4
+        ],
+        "conf": 0.975,
+        "text": "**Flexible Automation.** Flexible automation is an extension of programmable\nautomation. A flexible automated system is capable of producing a variety of parts or\nproducts with virtually no time lost for changeovers from one design to the next. There\nis no lost production time while reprogramming the system and altering the physical\nsetup (tooling, fixtures, machine settings). Accordingly, the system can produce vari-\nous mixes and schedules of parts or products instead of requiring that they be made\nin batches. What makes flexible automation possible is that the differences between\nparts processed by the system are not significant, so the amount of changeover between\ndesigns is minimal. Features of flexible automation include (1) high investment for a\ncustom-engineered system, (2) continuous production of variable mixtures of parts or\nproducts, (3) medium production rates, and (4) flexibility to deal with product design\nvariations. Examples of flexible automation are flexible manufacturing systems that\nperform machining processes."
+      },
+      {
+        "order": 2,
+        "label": "Sub-section-title",
+        "type": "SectionHeader",
+        "bbox_xyxy": [
+          286.7,
+          856.6,
+          897.0,
+          884.5
+        ],
+        "conf": 0.728,
+        "text": "1.2.2 Computerized Manufacturing Support Systems"
+      },
+      {
+        "order": 3,
+        "label": "Paragraph",
+        "type": "Text",
+        "bbox_xyxy": [
+          285.8,
+          913.7,
+          1195.9,
+          1333.4
+        ],
+        "conf": 0.971,
+        "text": "Automation of the manufacturing support systems is aimed at reducing the amount of\nmanual and clerical effort in product design, manufacturing planning and control, and\nthe business functions of the firm. Nearly all modern manufacturing support systems are\nimplemented using computers. Indeed, computer technology is used to implement auto-\nmation of the manufacturing systems in the factory as well. \\textbf{\\textit{Computer-integrated manu-}}\n\\textbf{\\textit{ufacturing}} (CIM) denotes the pervasive use of computer systems to design the products,\nplan the production, control the operations, and perform the various information-\nprocessing functions needed in a manufacturing firm. True CIM involves integrating all\nof these functions in one system that operates throughout the enterprise. Other terms\nare used to identify specific elements of the CIM system; for example, \\textbf{\\textit{computer-aided}}\n\\textbf{\\textit{design}} (CAD) supports the product design function. \\textbf{\\textit{Computer-aided manufacturing}}\n(CAM) is used for functions related to manufacturing engineering, such as process plan-\nning and numerical control part programming. Some computer systems perform both\nCAD and CAM, and so the term \\textbf{\\textit{CAD/CAM}} is used to indicate the integration of the\ntwo into one system."
+      },
+      {
+        "order": 4,
+        "label": "Paragraph",
+        "type": "Text",
+        "bbox_xyxy": [
+          287.5,
+          1339.3,
+          1195.5,
+          1478.9
+        ],
+        "conf": 0.921,
+        "text": "Computer-integrated manufacturing involves the information-processing activities\nthat provide the data and knowledge required to successfully produce the product. These\nactivities are accomplished to implement the four basic manufacturing support functions\nidentified earlier: (1) business functions, (2) product design, (3) manufacturing planning,\nand (4) manufacturing control."
+      }
+    ]
+  }
+]
