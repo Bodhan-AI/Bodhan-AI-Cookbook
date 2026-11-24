@@ -8,7 +8,7 @@
 
 ![Samjhao start screen](screenshots/start.png)
 
-**Contents:** [In one minute](#in-one-minute) · [Using the app](#using-the-app-step-by-step) · [Setup](#setup) · [Run](#run) · [How it works](#how-it-works) · [Files](#every-file-and-what-it-does) · [Evaluation](#evaluation) · [Related work](#related-work) · [Bodhan API notes](#bodhan-api-notes) · [Limitations](#limitations)
+**Contents:** [In one minute](#in-one-minute) · [Using the app](#using-the-app-step-by-step) · [Setup](#setup) · [Run](#run) · [How it works](#how-it-works) · [Files](#every-file-and-what-it-does) · [Evaluation](#evaluation) · [Research](#research-behind-it) · [Bodhan API notes](#bodhan-api-notes) · [Limitations](#limitations)
 
 ## In one minute
 
@@ -356,13 +356,25 @@ Running all of the above against free tiers broke things a real classroom would 
 - **Bodhan rate limits short bursts** (`429 Maximum rate limit reached`, seen with 9 parallel OCR calls); `bodhan.py` now backs off and retries.
 - **Budgets run out mid-run** (the Bodhan account's ₹10 budget, Groq's 200,000 tokens a day). The evaluation scripts save after every item and resume where they stopped, and every result records the model that produced it.
 
-## Related work
+## Research behind it
 
-- **Feynman Bot** (Rajesh & Khan, IEEE TALE 2024, [arXiv 2506.09055](https://arxiv.org/abs/2506.09055)). An LLM+RAG bot the learner explains lecture material to; 14 adults, higher learning gain (post − pre) than passive review (3.83 vs 2.17), and learners preferred typing to speech. We borrow the learning-gain measure. We differ in that our classmate *pretends not to know* and plants checkable mistakes, grading is grounded in page quotes, the policy is deterministic and tested, and it runs for school students in Indian languages.
-- **AlgoBo / TeachYou** (Jin et al., CHI 2024, [arXiv 2309.14534](https://arxiv.org/abs/2309.14534)). An LLM teachable agent for programming; found that LLM tutees "know too much", and proposed Reflect-Respond: keep an explicit knowledge state and answer only from it. Our notebook and leaked-word check implement that idea, and our simulated-student results show the same "knows too much" drift (see above), also reported in reviews of LLM-simulated students ([arXiv 2511.06078](https://arxiv.org/abs/2511.06078)).
-- **Chain-of-Verification** (Dhuliawala et al., Findings of ACL 2024, [arXiv 2309.11495](https://arxiv.org/abs/2309.11495)). Draft, plan verification questions, answer them independently, revise. We use the factored variant on every classmate line and on every quiz question, with the page as the only source and Python making the final decision.
-- **LLM-as-a-judge** (Zheng et al., NeurIPS 2023, [arXiv 2306.05685](https://arxiv.org/abs/2306.05685)). Using an LLM as a grader is only credible once checked against human labels, which `evaluate_judges.py` does for both of our judges.
-- **Self-consistency** (Wang et al., ICLR 2023, [arXiv 2203.11171](https://arxiv.org/abs/2203.11171)). Sample several reasoning paths and take the majority answer. Homework mode uses it for the answer key, and abstains (does not grade) when there is no majority.
+Samjhao is built from five published ideas. For each one: what the paper found, what we took from it, where it lives in the code, and why it matters here.
+
+| Paper | What it found | What we took | Where in the code | Why we need it |
+|---|---|---|---|---|
+| **Feynman Bot**: Rajesh & Khan, IEEE TALE 2024 ([arXiv 2506.09055](https://arxiv.org/abs/2506.09055)) | Learners who explained material to an LLM bot gained more (post − pre test: 3.83 vs 2.17) than with passive review; they preferred typing to speaking | Learning by explaining as the core activity, and **learning gain = score after − score before** as the measure | Teach mode (`tutor.py`); the quick check before and after (`quiz.py`) | Gives an objective number for "did the student learn", not just a feeling |
+| **AlgoBo / TeachYou**: Jin et al., CHI 2024 ([arXiv 2309.14534](https://arxiv.org/abs/2309.14534)) | An LLM playing a learner "knows too much" and gives away answers it was never taught; fix: keep an explicit knowledge state and answer only from it (Reflect-Respond) | The classmate's **notebook**: it writes every reply only from what the student has taught it, plus a check that blocks lesson words the student has not said yet | `tutor.py` (notebook, `PERSONA_PROMPT`), `verify.py` (leaked-word check) | Without it the classmate would explain the page itself, and the student would stop teaching |
+| **Chain-of-Verification (CoVe)**: Dhuliawala et al., Findings of ACL 2024 ([arXiv 2309.11495](https://arxiv.org/abs/2309.11495)) | An LLM catches its own errors better if it plans check questions and answers them **independently** of its draft, then revises | The factored variant on **every classmate line and every quiz question**, with the page as the only source and Python making the final call | `verify.py`, `quiz.py` | A tutor that says something false to a child is worse than no tutor; the classmate only lies when it is a planned, checkable trick |
+| **LLM-as-a-judge**: Zheng et al., NeurIPS 2023 ([arXiv 2306.05685](https://arxiv.org/abs/2306.05685)) | LLMs can grade well, but only trust them after measuring agreement with human labels | Our grader and fact-checker are measured against hand labels and against experts' grades of real students' answers | `evaluate_judges.py`, `evaluate_public.py` | The student's score comes from an LLM; this is the evidence that the score means something |
+| **Self-consistency**: Wang et al., ICLR 2023 ([arXiv 2203.11171](https://arxiv.org/abs/2203.11171)) | Sampling several reasoning paths and taking the majority answer is more accurate than one answer | The homework answer key: solve **3 times independently**, use the answer only if a majority agree, otherwise do not grade | `exercise.py` (`solve`) | Exercise answers are not printed in the book, so the key must be checked before the student is graded against it |
+
+**Datasets used for evaluation** (downloaded by the script, not committed):
+
+- **SciEntsBank** (SemEval-2013 Task 7, Student Response Analysis; Dzikovska et al., 2013): real school students' answers to science questions, graded by experts as correct, partially correct, contradictory or irrelevant. Used to check our grader against people other than us (`evaluate_public.py`).
+- **GSM8K** (Cobbe et al., 2021, [arXiv 2110.14168](https://arxiv.org/abs/2110.14168)): grade-school maths word problems with verified answers, the benchmark the self-consistency paper used. Supported by `evaluate_public.py --gsm8k`; not yet run (see Evaluation, section 3).
+- ***Introduction to Political Science*** (OpenStax, CC BY 4.0): the PDF book used for the damaged-page and multi-page tests; its embedded text is the answer key for OCR.
+
+**How Samjhao differs from these:** the classmate *pretends not to know* and plants checkable mistakes (Feynman Bot's bot simply listens); every grade is grounded in quotes from the student's own page; the teaching policy is plain, tested Python rather than a prompt; and it runs for school students in Indian languages, typed or spoken, through Bodhan. The "knows too much" problem AlgoBo describes showed up in our own simulated students too (see Evaluation), as reviews of LLM-simulated learners also report ([arXiv 2511.06078](https://arxiv.org/abs/2511.06078)).
 
 ## Future work
 
