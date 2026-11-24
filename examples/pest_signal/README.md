@@ -1,4 +1,4 @@
-# pest_signal
+# Summary
 
 CropShield is a multilingual crop-reporting app that helps farmers submit crop symptoms in their native language and enables NGOs to monitor emerging regional agricultural signals. It also helps farmers identify a pest which which they haven't encountered before.
 
