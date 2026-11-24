@@ -6,7 +6,7 @@
 **Languages shown:** Hindi, Tamil, Marathi, Telugu, Bengali (any language the models support)
 **Format:** CLI agent + MCP server (stdio)
 
-> **Status:** the MCP server, its tools and the task agent work end to end against the live Bodhan API, with a self-evaluation suite. The demo video is next; see [Roadmap](#roadmap).
+> **Status:** the MCP server, its tools and the task agent work end to end against the live Bodhan API, with a self-evaluation suite. **[Demo video](https://youtu.be/-rgdoaa_wak)** (3 min 47 s).
 
 ## What it does
 
@@ -82,6 +82,18 @@ out/
   trace.jsonl      # one line per step: plan, tool, arguments, result summary, latency, cost
   report.json      # status, steps, verification results, total cost and time
 ```
+
+## Demo video
+
+**[Watch on YouTube](https://youtu.be/-rgdoaa_wak)** (3 min 47 s). Every run is live against the Bodhan API, with `qwen/qwen3.8-27b` on Groq as the LLM. Long waits for the LLM or Bodhan are shortened and labelled on screen. It shows:
+
+- Hindi voice note → English subtitles;
+- Bengali read-aloud with a female voice, with the audio played and the back-transcription check passing;
+- the Telugu clips task;
+- three impossible tasks: French, a missing file and a budget too small;
+- a prompt-injection notice that the agent ignores;
+- Claude Code using the server as an MCP client;
+- the test suite and the self-evaluation results.
 
 ## How it works
 
@@ -214,7 +226,7 @@ That is 10 of 10 cases passing across the three models, for about ₹0.02 of Bod
 - [x] Agent loop: plan, act, verify, retry, budgets
 - [x] All six demo tasks from the brief, run live
 - [x] Self-evaluation suite (deterministic graders, live results above)
-- [ ] Demo video
+- [x] [Demo video](https://youtu.be/-rgdoaa_wak)
 
 ## Limitations
 
