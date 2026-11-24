@@ -1,0 +1,7 @@
+# Voice choice per language (--voices). Without this file the pipeline clusters speakers by
+# pitch and gives each speaker one consistent voice from Indic-Speak's library.
+hi: Kavya                        # one voice for every speaker
+ta: {male: Arun, female: Anitha} # or one per speaker gender
+bn: [Sourav, Ishita]             # a list: each voice's gender comes from the library
+default: Amit                    # any language not listed (any voice can read any language)
+style: educational lecture       # optional Indic-Speak style for every language

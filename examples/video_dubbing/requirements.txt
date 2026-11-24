@@ -1,0 +1,8 @@
+# Pin every dependency: name==version. Mirrors pyproject.toml; uv.lock pins the full tree.
+numpy==2.5.5
+openai==3.57.0
+python-dotenv==1.2.4
+pyyaml==6.0.4
+requests==2.34.2
+silero-vad-lite==0.4.0; sys_platform == "darwin" or platform_machine == "x86_64" or platform_machine == "AMD64"
+tenacity==9.2.1
