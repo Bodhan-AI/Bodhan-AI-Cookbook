@@ -196,11 +196,11 @@ Every LLM decision in this recipe is checked, and so is the Bodhan path around i
 | The grader on public data | SciEntsBank: 20 real students' science answers, graded by experts | 70% agree (3-way); 0 of 10 wrong answers given credit |
 | The fact-checker (Chain-of-Verification) | 27 labelled statements, 7 held out | 100% precision and recall |
 | Homework answer key (self-consistency) | 10 labelled exercises | 10/10 |
-| Grading in Hindi (all five Bodhan models) | The 16 labelled turns, typed as Hinglish and spoken in Hindi | same scores as English |
+| Grading in Hindi (all five Bodhan models) | 15 of the 16 labelled turns, typed as Hinglish and spoken in Hindi | same scores as English |
 | indic-ocr on damaged photos | One book page blurred, hazed, shrunk, tilted, compressed; the PDF's own text is the answer key | 88-99.8% word recall |
-| Real pages | 11 photos and PDF pages, incl. hazy, handwritten, 300-year-old print | 10/11 start a session; 2 misreads now flagged |
+| Real pages | 10 different photos and PDF pages, incl. hazy, handwritten, 300-year-old print | 9/10 read; the 2 misread ones are now flagged; 1600s handwriting unreadable |
 | A 4-page lesson from a PDF book | OCR per page vs the PDF text; which pages the lesson card draws on | 99.3-100% recall per page |
-| The whole tutor | Simulated strong / partial / confused students | ranked correctly; wrong claims and leaks blocked live |
+| The whole tutor | Simulated strong / partial / confused students | confused student scored lowest (60% vs 100%); partial tied with strong because the LLM "knows too much" (section 6); wrong claims and leaks blocked live |
 | Homework mode | Simulated students who can solve, are stuck, or slip | 6/6 solved; 0 answers leaked; 1 give-away draft blocked |
 
 **How to reproduce each result**, and where its data comes from:
@@ -218,9 +218,9 @@ Every LLM decision in this recipe is checked, and so is the Bodhan path around i
 
 The labelled sets in `eval/` were written by the recipe author, so they are small (one page, 16 turns, 27 statements, 10 exercises) and worth an independent review; that is why the grader is also checked on a public dataset of real students' answers labelled by experts.
 
-### 1. The grader vs a teacher's labels
+### 1. The grader vs hand labels
 
-`python evaluate_judges.py`: 16 student turns with 20 concept labels, including agreeing, echoing, off-topic, mis-heard speech, and caught or missed planted mistakes.
+`python evaluate_judges.py`: 16 student turns with 20 concept labels, written by the author, including agreeing, echoing, off-topic, mis-heard speech, and caught or missed planted mistakes. *Concept credit* = the grader gave the labelled level for an idea the turn talks about. *Over-credit* = the grader marked an idea "explained" that the turn never mentioned (the error we most want to avoid).
 
 | Grader version | Concept credit | Planted mistake caught/missed | Quality 0-3 in expected range | Over-credits |
 |---|---|---|---|---|
@@ -250,7 +250,7 @@ Each statement is said by the classmate; false ones must be blocked, true ones m
 | v1 | 100% | 80% | - |
 | v2 (quantity words kept in the check questions) | 100% | 100% | 100% (7 statements written after the fix) |
 
-v1 missed "plants need *only* water": the planning step asked "do plants need water?", which the page answers yes. v2 tells the planner to keep words like *only / all / none* in the check question; the held-out statements were written afterwards to test that the fix generalises rather than fits the 20. Reviewing v1 also found one wrong label (turn 14; corrected and noted in `eval/judge_labels.json`) and one metric bug (agreeing with a planted mistake is recorded as a missed plant by design, not as a student error). The second run reproduced 100% / 100%.
+v1 missed "plants need *only* water": the planning step asked "do plants need water?", which the page answers yes. v2 tells the planner to keep words like *only / all / none* in the check question; the held-out statements were written afterwards to test that the fix generalises rather than fits the 20. Reviewing v1 also found one wrong label in the grader's set (turn 14; corrected and noted in `eval/judge_labels.json`) and one metric bug (agreeing with a planted mistake is recorded as a missed plant by design, not as a student error). The second run reproduced 100% / 100%.
 
 ### 3. Homework mode's answer key
 
@@ -269,7 +269,7 @@ Against 10 exercises with known answers (`eval/exercise_labels.json`: 4 arithmet
 | Typed Hinglish | 94% | 0 | 100% | 100% |
 | Spoken Hindi | 94% | 0 | 100% | 87% |
 
-The language round trip costs the student nothing. (The 16th turn was not run: the Bodhan account's budget ran out mid-test; see Bodhan API notes.)
+The language round trip costs the student nothing. The English baseline here is the same 15 turns, which is why it reads 94% / 87% rather than section 1's 95% / 88% on 16. (The 16th turn was not run: the Bodhan account's budget ran out mid-test; see Bodhan API notes.)
 
 ### 5. Pages: damaged, real, and a multi-page book lesson
 
@@ -286,7 +286,7 @@ The language round trip costs the student nothing. (The 16th turn was not run: t
 | hazy + blur + low resolution | 99.2% |
 | heavy blur | 88.3% |
 
-**Real pages**, end to end (OCR → lesson card → exercise finder). Test photos are not committed (textbook copyright); the results are in `eval/pages.json`.
+**Real pages**, end to end (OCR → lesson card → exercise finder). Test photos are not committed (textbook copyright); the results are in `eval/pages.json`, which has 11 entries because the sample lesson page was run twice (identical results).
 
 | Page | Size | Words read | Card items grounded | Exercise questions | What the app does |
 |---|---|---|---|---|---|
@@ -301,7 +301,7 @@ The language round trip costs the student nothing. (The 16th turn was not run: t
 | Dutch handwritten letter, 1600s | 682×1000 | - | - | - | indic-ocr cannot read it; the app says so |
 | Political Science PDF, p. 20 | 1275×1651 | 608 | 7/7 | 0 | Teach session |
 
-The most useful finding: the tiny atom scan was read as *"In Clavier X, we have learnt that assume and monokles are the fundamental building blocks of reason"* (the page says "In Chapter 3 … atoms and molecules … of matter"), and its lesson card still passed the grounding check, because grounding compares the card with the OCR text, and that text was itself wrong. indic-ocr gives no confidence score, so the app now measures **image pixels per word read**: the two misread photos had 246 and 440, every clean page 850 or more. Below 500 the student is told the text may be misread and to retake the photo closer. The threshold is calibrated on these 11 pages only. The handwritten letter used to surface as a raw `502 BadGateway`; the app now explains it in plain words.
+The most useful finding: the tiny atom scan was read as *"In Clavier X, we have learnt that assume and monokles are the fundamental building blocks of reason"* (the page says "In Chapter 3 … atoms and molecules … of matter"), and its lesson card still passed the grounding check, because grounding compares the card with the OCR text, and that text was itself wrong. indic-ocr gives no confidence score, so the app now measures **image pixels per word read**: the two misread photos had 246 and 440, every clean page 850 or more. Below 500 the student is told the text may be misread and to retake the photo closer. The threshold is calibrated on these 10 pages only. The handwritten letter used to surface as a raw `502 BadGateway`; the app now explains it in plain words.
 
 **A 4-page lesson from a PDF book** (pages 16-19, section 1.5 "Empirical Political Science", about 2,300 words):
 
@@ -324,7 +324,7 @@ Latest run (tutor and students `openai/gpt-oss-20b`, class 6-8, fact-check on):
 |---|---|---|---|---|---|
 | strong (has read the page) | 100% | 2/2 on their own | 0 / 1 | 1 | 5 |
 | partial (remembers half) | 100% | 2/2 on their own | 1 / 1 | 3 | 8 |
-| confused (thinks plants eat soil) | 60% | 0/1 (agreed "plants get most of their food from the soil") | 2 / 4 | 6 | 13 |
+| confused (thinks plants eat soil) | 60% (before the credit fix below) | 0/1 (agreed "plants get most of their food from the soil") | 2 / 4 | 6 | 13 |
 
 What it showed:
 
