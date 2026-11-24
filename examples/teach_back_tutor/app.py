@@ -261,18 +261,24 @@ if "session" not in ss:
     with st.container(border=True):
         left, right = st.columns([3, 2], gap="large")
         with left:
-            upload = st.file_uploader("Upload a photo of your textbook page", type=["png", "jpg", "jpeg"])
-            ui('<div class="muted"><b>Tips for a good photo</b><br>Hold the phone flat above the page, in good '
-               'light. A page with a few paragraphs of text works best; one page is one lesson.</div>')
+            uploads = st.file_uploader(f"Upload photos of your textbook pages (up to {lesson.MAX_PAGES})",
+                                       type=["png", "jpg", "jpeg"], accept_multiple_files=True)
+            ui('<div class="muted"><b>Tips for good photos</b><br>Hold the phone flat above the page, in good '
+               'light. Pages from one lesson work best; add them in reading order.</div>')
+            start = st.button("Start teaching", icon=":material/play_arrow:", type="primary", width="stretch",
+                              disabled=not uploads)
         with right:
             st.image(str(SAMPLE), width="stretch")
-            use_sample = st.button("Try the sample page", icon=":material/auto_stories:", type="primary",
-                                   width="stretch")
-    if upload or use_sample:
-        image, name = (upload.getvalue(), upload.name) if upload else (SAMPLE.read_bytes(), SAMPLE.name)
-        with st.spinner("Reading the page with indic-ocr and preparing the lesson..."):
+            use_sample = st.button("Try the sample page", icon=":material/auto_stories:", width="stretch")
+    if uploads and len(uploads) > lesson.MAX_PAGES:
+        st.warning(f"Only the first {lesson.MAX_PAGES} pages will be used, to keep one lesson to one session.")
+    if (uploads and start) or use_sample:
+        pages = ([(u.getvalue(), u.name) for u in uploads[:lesson.MAX_PAGES]] if uploads and start
+                 else [(SAMPLE.read_bytes(), SAMPLE.name)])
+        label = "the page" if len(pages) == 1 else f"{len(pages)} pages"
+        with st.spinner(f"Reading {label} with indic-ocr and preparing the lesson..."):
             try:
-                ss.page_text, card = lesson.card_from_image(image, name)
+                ss.page_text, card = lesson.card_from_images(pages)
             except (bodhan.BodhanError, ValueError) as err:
                 st.error(str(err))
                 st.stop()

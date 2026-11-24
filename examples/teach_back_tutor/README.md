@@ -10,7 +10,7 @@
 
 Explaining an idea to someone else is one of the best tests of understanding (the Feynman technique). Most study apps ask the student questions; here the student does the explaining, in their own language, by typing or speaking:
 
-1. **Photo → lesson.** `indic-ocr` reads the textbook page. An LLM drafts a *lesson card*: the key concepts the student should explain and the misconceptions the classmate can plant. Every item must quote the page, or it is dropped.
+1. **Photo → lesson.** `indic-ocr` reads the textbook page (or up to 4 pages of one lesson, read in parallel). An LLM drafts a *lesson card*: the key concepts the student should explain and the misconceptions the classmate can plant. Every item must quote the page, or it is dropped.
 2. **Teach the classmate.** The classmate (Chintu, Riya or Arjun, by age group) asks about gaps, asks for examples, pushes for "why", and plants a wrong idea to see if the student catches it. A missed mistake gets a hint, then is revealed and explained; the student never leaves with the wrong idea.
 3. **Honest report.** What the student explained, what they missed, which tricks they caught (on their own or after a hint), and any wrong ideas they still hold.
 4. **Memory.** The tutor remembers each student. Next session it starts at the level they reached, asks about their weak spots first, and re-plants the mistakes they missed to check the correction stuck.
@@ -126,7 +126,7 @@ Things we ran into, and what the recipe does about them:
 
 ## Limitations
 
-- One page at a time; there is no chapter- or book-level view yet.
+- Up to 4 pages per lesson, so one lesson fits one session; there is no whole-chapter or book-level view yet.
 - The lesson card is cached per image file. A new photo of the same page builds a new card, so memory carries over by topic and concept name only.
 - A turn in the app takes several seconds (transcribe → translate → grade → reply → translate → speak). Free LLM tiers add rate-limit waits; Groq's free tier allows about 1,000 output tokens per minute for this model, enough for one student at a time.
 - "Ideas mastered" is per lesson page: an idea stays mastered once explained (unless the student later states a wrong idea about it). There is no shared skill taxonomy across subjects, and no question bank or past papers; practice comes from re-teaching the weak ideas on the same page.

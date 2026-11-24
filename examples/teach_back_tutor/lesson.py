@@ -13,20 +13,22 @@ import hashlib
 import json
 import re
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import bodhan
 import llm
 
 CARD_PROMPT = """You prepare a "lesson card" for a study buddy app. A school student will explain this \
-textbook page out loud to an AI classmate, and the AI will check their explanation against the card.
+textbook lesson (one or more pages) out loud to an AI classmate, and the AI will check their explanation \
+against the card.
 
 Use ONLY what the page says. Do not add facts that are not on the page.
 
 Return a JSON object with exactly these keys:
-- "topic": short title of the page.
+- "topic": short title of the lesson.
 - "summary": one or two simple sentences a 10-year-old could follow.
-- "concepts": 3 to 5 key ideas the student should be able to explain. Each item:
+- "concepts": 3 to 5 of the most important ideas the student should be able to explain. Each item:
     {{"id": "c1", "name": "<2-5 words>", "explanation": "<one simple sentence>",
       "evidence": "<a short phrase copied word for word from the page that supports it>"}}
 - "misconceptions": 3 or 4 believable WRONG statements a confused classmate might say about this page. \
@@ -80,20 +82,32 @@ def build_card(page_text: str) -> dict:
 
 
 CARDS_DIR = Path(__file__).resolve().parent / "outputs" / "cards"
+MAX_PAGES = 4  # one lesson card per session; more pages would not fit in a 12-turn conversation
 
 
-def card_from_image(image_bytes: bytes, filename: str = "page.png") -> tuple[str, dict]:
-    """Cached per image, so the same page always gets the same card: student memory refers to its
-    concept names, and a rebuilt card could name them differently."""
-    cached = CARDS_DIR / f"{hashlib.sha256(image_bytes).hexdigest()[:16]}.json"
+def card_from_images(pages: list[tuple[bytes, str]]) -> tuple[str, dict]:
+    """One lesson card for one or more page photos ([(image_bytes, filename), ...]).
+
+    Cached per set of images, so the same pages always get the same card: student memory refers to
+    its concept names, and a rebuilt card could name them differently."""
+    pages = pages[:MAX_PAGES]
+    digest = hashlib.sha256(b"".join(hashlib.sha256(img).digest() for img, _ in pages)).hexdigest()[:16]
+    cached = CARDS_DIR / f"{digest}.json"
     if cached.exists():
         data = json.loads(cached.read_text(encoding="utf-8"))
         return data["page_text"], data["card"]
-    page_text = bodhan.ocr_page(image_bytes, filename)
+    with ThreadPoolExecutor(max_workers=MAX_PAGES) as pool:  # pages are independent; keep their order
+        texts = list(pool.map(lambda page: bodhan.ocr_page(*page), pages))
+    page_text = "\n\n".join(texts) if len(texts) == 1 else "\n\n".join(
+        f"--- Page {i} ---\n{t}" for i, t in enumerate(texts, 1))
     card = build_card(page_text)
     CARDS_DIR.mkdir(parents=True, exist_ok=True)
     cached.write_text(json.dumps({"page_text": page_text, "card": card}, ensure_ascii=False, indent=2), encoding="utf-8")
     return page_text, card
+
+
+def card_from_image(image_bytes: bytes, filename: str = "page.png") -> tuple[str, dict]:
+    return card_from_images([(image_bytes, filename)])
 
 
 if __name__ == "__main__":
