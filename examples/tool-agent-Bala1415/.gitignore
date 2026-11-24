@@ -1,0 +1,58 @@
+# Environment & secrets
+.env
+.env.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test & coverage
+.pytest_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# Type checking
+.mypy_cache/
+
+# Media files (keep out of git — link from README)
+*.wav
+*.mp3
+*.flac
+*.ogg
+*.mp4
+*.avi
+*.mov
+test_data/*.png
+test_data/*.jpg
+test_data/*.jpeg
+test_data/*.pdf
+
+# Task outputs
+out/
+
+# Cache
+.bodhan_cache/
