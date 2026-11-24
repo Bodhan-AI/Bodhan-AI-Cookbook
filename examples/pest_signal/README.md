@@ -41,9 +41,7 @@ cd examples/pest_signal
 python -m venv .venv
 .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-Copy-Item .env
 ```
-
 Open `.env` and add your API credentials from [Bodhan](https://console.bodhan.ai) and your Groq API key, as required by the configuration.
 
 ### Linux/macOS
