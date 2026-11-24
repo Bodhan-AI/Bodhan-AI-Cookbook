@@ -14,7 +14,7 @@ The application pipelines four core Bodhan AI models:
 
 ### Dual-Input Book Mode (PDFs & Physical Photography)
 The Book Reader module accepts both **digital multi-page PDFs** and **physical book photography / camera scans**:
-- **Digital PDFs:** Ingests e-books, academic notes, and PDF documents. If the PDF contains embedded digital text, it extracts it cleanly; if the PDF consists of scanned pages, it automatically invokes `indic-ocr` for layout-aware parsing.
+- **Digital PDFs:** Ingests e-books, academic notes, and PDF documents. If the PDF contains embedded digital text, it extracts it cleanly; if the PDF consists of scanned pages, it automatically invokes `indic-ocr` for layout aware parsing.
 - **Physical Page Images & Camera Scans:** Readers can take photos of real physical book pages using their phone or webcam. Each photo is parsed for paragraphs and chapter titles, translated into the user's preferred Indian language, and stitched into a seamless audiobook.
 
 
@@ -50,8 +50,6 @@ BODHAN_API_KEY_TRANSLATE=your_indic_translate_key
 BODHAN_API_KEY_TTS=your_indic_speak_key
 BODHAN_API_KEY_STT=your_indic_transcribe_key
 ```
-
-*(Note: Never commit your `.env` file to git. It is ignored by `.gitignore`)*.
 
 ---
 
