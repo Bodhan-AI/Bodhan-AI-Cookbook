@@ -165,3 +165,12 @@ def test_malformed_batch_recovers_missing_back_translations(tmp_path, monkeypatc
     results = checks.assess_pairs(items, None, None, None, tmp_path)
     assert calls == [['a', 'b'], ['b']]
     assert all(result['ok'] for result in results.values())
+
+
+def test_review_batches_preserve_order_and_bound_large_inputs():
+    from bodhan_dub.meaning_checks import review_batches
+    rows = [{'id': str(i), 'original': 'short'} for i in range(14)]
+    rows.append({'id': 'long', 'original': 'x' * 6200})
+    groups = list(review_batches(rows))
+    assert [len(group) for group in groups] == [12, 2, 1]
+    assert [row for group in groups for row in group] == rows

@@ -87,7 +87,7 @@ def http_transport(request: Request) -> Response:
         raise AmbiguousCall('Transport failed after possible provider processing.') from exc
 
 
-_DEFAULT_PACER = RequestPacer(10)
+_DEFAULT_PACER = RequestPacer(20)
 
 def paced_http_transport(request):
     return PacedTransport(http_transport,_DEFAULT_PACER)(request)

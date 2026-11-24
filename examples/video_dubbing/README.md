@@ -34,7 +34,7 @@ Docker setup is verified on Linux ARM64: the image builds, dependency consistenc
 python -m bodhan_dub --input /path/to/English.mp4 --langs hi,ta,bn --out ./out
 ```
 
-This command makes paid Bodhan calls. `--max-cost-inr 50` is the default conservative whole-run ceiling; set it explicitly for your budget. Calls reserve their maximum estimated charge before starting. Unknown outcomes retain the reservation and are not retried automatically. Known temporary failures use bounded retries/backoff; request pacing and concurrency are bounded. Successful provider outputs are cached and stage journals are retained.
+This command makes paid Bodhan calls. The default run tracks estimated spend throughout. Pass `--max-cost-inr` with a rupee amount if you want a spending limit. Calls reserve their maximum estimated charge before starting. Unknown outcomes retain the reservation and are not retried automatically. Known temporary failures use bounded retries/backoff; request pacing and concurrency are bounded. Successful provider outputs are cached and stage journals are retained.
 
 Input: MP4/MOV/MKV/WebM, 1–15 minutes. The first usable video and first audio stream are selected. Use `--allow-short-input` only for synthetic smoke fixtures. Supported production targets: `en,hi,bn,mr,te,ta,gu,kn,ml,or,pa,as,ur`. Unknown/duplicate codes fail before API calls.
 
@@ -54,6 +54,8 @@ out/
 ```
 
 Exit status is nonzero if any requested language fails. Complete languages retain their videos and subtitles. A language with unfitted narration is reported as failed rather than finalized with missing speech. Choose a fresh output folder; existing results are not overwritten.
+
+Hosted calls require available provider quota even when the local spending limit is unset. If transcription returns HTTP 429 repeatedly, check the Bodhan quota before starting another paid run. Translation meaning checks are batched by input size, and English planning retries temporary provider errors.
 
 ### Configuration
 
@@ -98,7 +100,7 @@ The live-validation fixes add bounded recovery for unusable source text, budgete
 
 ## Validation and demo status
 
-**507 recipe tests passed**, including the thirty-second smoke and failure-isolation tests. The recipe validator and dependency consistency checks pass.
+**512 recipe tests passed locally and 2 were skipped.** The suite includes a thirty-second smoke test and checks that one language can fail independently. The recipe validator and dependency consistency checks pass.
 
 The demo uses the supplied mathematics lesson. All 36 narration groups rendered, with zero skips.
 
@@ -108,7 +110,7 @@ The demo uses the supplied mathematics lesson. All 36 narration groups rendered,
 | Tamil | 12 | 53 | 5:29 | −16.15 LUFS |
 | Bengali | 12 | 40 | 5:29 | −16.28 LUFS |
 
-Playback speeds stayed between 1.0× and 1.2×. The report has character error rates for all 36 groups, with six warnings. The demo completed through hosted stages and automatic fitting continuations. Exact acoustic sync and fresh hosted runtime are unverified.
+Playback speeds stayed between 1.0× and 1.2×. The report has character error rates for all 36 groups, with six warnings. The demo completed through hosted stages and automatic fitting continuations. The latest fresh run received HTTP 429 from Bodhan during English transcription. A complete three-language run from an empty cache in under 25 minutes is still unverified. Exact acoustic sync also remains unverified.
 
 [Open the Hindi, Tamil, and Bengali dubs, subtitles, and reports](https://drive.google.com/drive/folders/1w0TS-eCZH6u00KkhyyKf5epPGO1QRk8y?usp=share_link)
 

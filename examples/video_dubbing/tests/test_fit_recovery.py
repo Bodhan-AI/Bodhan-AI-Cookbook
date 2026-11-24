@@ -147,3 +147,11 @@ def test_concurrent_budget_reservations_cannot_overspend(tmp_path):
 
     assert sorted(accepted) == [0, 1, 2, 3]
     assert Decimal(json.loads(budget.path.read_text())['conservative_spent_inr']) == 1
+
+
+def test_uncapped_run_records_cost_above_reservation(tmp_path):
+    path = tmp_path / 'budget.json'
+    ledger = Budget(path, None)
+    entry = ledger.reserve('fit', Decimal('.01'))
+    ledger.settle(entry, Decimal('60'))
+    assert Budget(path, None).spent == Decimal('60')

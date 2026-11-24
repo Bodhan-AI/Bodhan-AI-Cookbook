@@ -52,7 +52,15 @@ def measure_loudness(path,ffmpeg):
         data=json.loads(chunks[-1]);values={k:float(data[k]) for k in ['input_i','input_tp','input_lra','input_thresh','target_offset']}
         if not all(math.isfinite(v) for v in values.values()):raise ValueError
         return values
-    except (ValueError,KeyError,IndexError) as exc:raise MediaError('invalid_loudness_measurement','Cannot obtain finite speech loudness.') from exc
+    except (ValueError,KeyError,IndexError):
+        try:
+            result=command([ffmpeg,'-nostdin','-hide_banner','-i',str(path),'-af','apad=pad_dur=2,loudnorm=I=-16:TP=-1.5:LRA=11:print_format=json','-f','null','-'])
+            chunks=re.findall(r'\{[^{}]+\}',result.stderr)
+            data=json.loads(chunks[-1]);values={k:float(data[k]) for k in ['input_i','input_tp','input_lra','input_thresh','target_offset']}
+            if not all(math.isfinite(v) for v in values.values()):raise ValueError
+            return values
+        except (ValueError,KeyError,IndexError) as exc:
+            raise MediaError('invalid_loudness_measurement','Cannot obtain finite speech loudness.') from exc
 
 
 def process_clip(source,folder,available,ffmpeg):

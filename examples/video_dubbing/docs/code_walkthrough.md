@@ -1555,3 +1555,7 @@ units in that language pass, the command queues synthesis on a background
 worker and reviews the next language. Each language has its own review and
 speech journals. The shared speech client and budget still govern every
 request. A failed language is recorded while accepted languages can continue.
+
+### Cost reporting during a normal run
+
+The default command records estimated API costs and includes them in the final report. In Python, `limit=None` means the caller left the spending limit unset. Fitting inherits that setting, so a revision to a cost estimate can be recorded while the job continues. Passing `--max-cost-inr` explicitly enables the spending limit.

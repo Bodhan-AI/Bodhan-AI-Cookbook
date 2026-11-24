@@ -31,7 +31,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument('--glossary',type=Path,help='YAML English term to language/preferred-term mapping.')
     parser.add_argument('--voices',type=Path,help='YAML language to documented voice name mapping.')
     parser.add_argument('--code-mixed',action='store_true',help='Use Bodhan documented code-mixed translation mode.')
-    parser.add_argument('--max-cost-inr',default='50',help='Conservative total paid-call ceiling; default 50 rupees.')
+    parser.add_argument('--max-cost-inr',help='Optional spending ceiling in rupees. The default run only records costs.')
     parser.add_argument('--from-run',type=Path,help='Render saved stage artifacts offline; requires --fit-manifest.')
     parser.add_argument('--fit-manifest',type=Path,help='Validated fit manifest for --from-run.')
     parser.add_argument('--cache-dir',type=Path,help='Optional persistent content cache shared across fresh output folders; never overwrites reports.')
@@ -49,8 +49,9 @@ def main(argv: list[str] | None = None) -> int:
         from .pipeline import run_pipeline
         from decimal import Decimal,InvalidOperation
         try:
-            amount=Decimal(args.max_cost_inr)
-            if not amount.is_finite() or amount<=0:raise InvalidOperation
+            if args.max_cost_inr is not None:
+                amount=Decimal(args.max_cost_inr)
+                if not amount.is_finite() or amount<=0:raise InvalidOperation
             result=run_pipeline(args)
         except (InvalidOperation,MediaError,OSError) as exc:
             print(json.dumps({'status':'failed','code':getattr(exc,'code','invalid_run_configuration'),

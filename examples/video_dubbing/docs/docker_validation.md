@@ -34,7 +34,7 @@ docker run --rm \
   --env-file /run/secrets/bodhan.env
 ```
 
-The output directory `run` must be new or empty. The media mount is read-only. Never copy the private `.env` into the image or repository. Set the run budget explicitly with `--max-cost-inr` when it differs from the documented ₹50 default.
+The output directory `run` must be new or empty. The media mount is read-only. Never copy the private `.env` into the image or repository. The default run tracks costs. Supply `--max-cost-inr` only if you want an explicit spending limit.
 
 To rerun container tests without hosted access, mount only the tests and an authorized speech fixture:
 

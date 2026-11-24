@@ -535,7 +535,7 @@ def sdk_completion(settings,messages,reasoning_effort=None):
     from openai import OpenAI
     # A single portable chat call: no provider-only structured-output feature,
     # SDK retries, tools, web, audio, or alternate model fallback.
-    with OpenAI(base_url=settings.base_url,api_key=settings.key,max_retries=0,timeout=60) as client:
+    with OpenAI(base_url=settings.base_url,api_key=settings.key,max_retries=0,timeout=120) as client:
         if reasoning_effort is None and re.search(r'(^|/)gpt-oss-(?:20b|120b)$',settings.model):reasoning_effort='low'
         options={'reasoning_effort':reasoning_effort} if reasoning_effort is not None else {}
         for attempt in range(3):
@@ -549,11 +549,15 @@ def sdk_completion(settings,messages,reasoning_effort=None):
                     response=client.chat.completions.create(model=settings.model,messages=messages,max_tokens=settings.max_output_tokens)
                 break
             except Exception as exc:
-                if getattr(exc,'status_code',None)!=429:raise
+                status = getattr(exc, 'status_code', None)
+                is_retryable = status in (429, 500, 502, 503, 504) or 'overload' in str(exc).lower() or 'timeout' in str(exc).lower() or 'timed out' in str(exc).lower() or 'connection' in str(exc).lower() or isinstance(exc, (TimeoutError, urllib.error.URLError, OSError))
+                if not is_retryable:raise
                 if attempt==2:
                     exc.retry_budget_exhausted=True
                     raise
-                _SDK_PACER.observe(Response(429,b'',dict(getattr(getattr(exc,'response',None),'headers',{}))))
+                if status == 429:
+                    _SDK_PACER.observe(Response(429,b'',dict(getattr(getattr(exc,'response',None),'headers',{}))))
+                time.sleep(2 * (attempt + 1))
     choice=response.choices[0]
     if choice.finish_reason!='stop' or not isinstance(choice.message.content,str) or choice.message.tool_calls:
         error=MediaError('invalid_llm_response','Incomplete or non-text LLM response; no reconstruction accepted.')
@@ -601,7 +605,8 @@ def reconcile(windows, settings, cache, completion=sdk_completion):
                 content,usage=completion(settings,[{'role':'system','content':DIRECT_SYSTEM},{'role':'user','content':json.dumps({'windows':[{'id':w['id'],'start_seconds':w['start_seconds'],'end_seconds':w['end_seconds'],'text':' '.join(w['tokens'])} for w in windows],'validation_feedback':feedback[-1:]},ensure_ascii=False)}])
                 if len(content)>200_000:
                     fail('Oversized LLM plan.')
-                candidate=json.loads(content)
+                fenced=re.search(r'```(?:json)?\s*(.*?)\s*```',content.strip(),re.DOTALL|re.IGNORECASE)
+                candidate=json.loads(fenced.group(1).strip() if fenced else content)
                 plan,result=source_checked_reconstruction(windows,candidate)
             except Exception as exc:
                 atomic_json(state_path,{'state':'invalid_or_unknown','version':VERSION,'error_code':getattr(exc,'code','llm_call_failed'),'validation_message':str(exc) if isinstance(exc,MediaError) else 'LLM/JSON failure; provider details omitted.','untrusted_candidate_plan':plan,'untrusted_compact_proposal':candidate,'response_metadata':getattr(exc,'response_metadata',None)})

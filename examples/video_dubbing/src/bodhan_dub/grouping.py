@@ -127,7 +127,8 @@ def _llm_plan(rows,settings,llm,cache,completion=sdk_completion):
                                                                                    'limits':asdict(settings)},ensure_ascii=False)}]
         content,usage=completion(llm,messages)
         if not isinstance(content,str) or len(content)>50000:raise ValueError
-        proposal=json.loads(content)
+        fenced=re.search(r'```(?:json)?\s*(.*?)\s*```',content.strip(),re.DOTALL|re.IGNORECASE)
+        proposal=json.loads(fenced.group(1).strip() if fenced else content)
         validate_groups(rows,proposal,settings)
     except Exception:
         atomic_json(path,{'status':'invalid_or_unknown'})

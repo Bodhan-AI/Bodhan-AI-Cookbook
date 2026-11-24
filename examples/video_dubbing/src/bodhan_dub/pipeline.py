@@ -116,7 +116,7 @@ def run_pipeline(args):
             # Validate all credentials/config before the first paid request. Never print them.
             keys=(asr.load_key(args.env_file),mt.load_key(args.env_file),tts.load_key(args.env_file))
             llm=rec.load_settings(args.env_file)
-            budget=Budget(out/'budget.json',Decimal(args.max_cost_inr))
+            budget=Budget(out/'budget.json',args.max_cost_inr)
             stages=out/'_stages';run=stages/'run';run.mkdir(parents=True)
             extract_audio(info,stages/'source_audio.wav',ffmpeg,args.media_timeout)
             detector=detect_speech(stages/'source_audio.wav',VADSettings(args.vad_threshold,args.vad_min_speech_ms,args.vad_min_silence_ms,args.vad_pad_ms))
@@ -163,14 +163,14 @@ def run_pipeline(args):
             atomic_json(out/'transcript.en.json',{'segments':grouped['units'],'timing_resolution':'source_envelopes_not_word_aligned'})
             save('source_transcription_and_grouping')
             atomic_json(run/'translation_policy.json',{'glossary':glossary,'code_mixed':args.code_mixed})
-            settings=mt.TranslationSettings(attempts=3,max_output_tokens=8192)
+            settings=mt.TranslationSettings(attempts=3,max_output_tokens=8192,requests_per_minute=20)
             translator=mt.TranslationClient(keys[1],cache/'translation',settings,glossary=glossary,code_mixed=args.code_mixed)
             translated=stage_call(budget,'translation',Decimal(len(langs)*settings.max_output_tokens*3)*mt.RATE,
                 lambda:mt.translate_run([{**u,'text':normal_source(u['text'])} for u in grouped['units']],langs,run/'translations',translator),
                 lambda r:r['known_new_cost_inr'] if all(x.get('known_new_cost_inr') is not None for x in r['languages'].values()) else r['conservative_new_cost_upper_bound_inr'])
             save('translation')
             translated=recover_translation_units(grouped['units'],translated,translator,budget,run/'translations')
-            speech=tts.SpeechClient(keys[2],cache/'speech',ffmpeg,tts.SpeechSettings(attempts=3,workers=2),budget=budget)
+            speech=tts.SpeechClient(keys[2],cache/'speech',ffmpeg,tts.SpeechSettings(attempts=3,workers=1,requests_per_minute=20,timeout_seconds=60),budget=budget)
             timeline = source_timeline(grouped['units'], corrected['source_windows'], detector)
             timings = {unit['id']: unit for unit in timeline['units']}
             recognizer = asr.TranscriptionClient(keys[0], cache/'asr',
@@ -211,7 +211,7 @@ def run_pipeline(args):
             eligible = {}
             synthesis_tasks = {}
             translation_dir = run/'translations'
-            with ThreadPoolExecutor(max_workers=1) as verification_pool, ThreadPoolExecutor(max_workers=1) as speech_pool:
+            with ThreadPoolExecutor(max_workers=2) as verification_pool, ThreadPoolExecutor(max_workers=1) as speech_pool:
                 for lang in langs:
                     language_report = {**translated, 'languages': {lang: translated['languages'][lang]}}
                     try:
@@ -273,8 +273,8 @@ def run_pipeline(args):
             checks['status'] = 'pass' if all(unit['status'] == 'pass' for data in checks['languages'].values() for unit in data['units']) else 'needs_recovery'
             atomic_json(run/'verification/verification_report.json', checks)
             save('content_verification')
-            remaining=budget.limit-budget.spent
-            if remaining<=0:raise MediaError('fit_budget_exceeded','No allowance remains for fitting recovery.')
+            remaining=budget.limit-budget.spent if budget.limit is not None else None
+            if remaining is not None and remaining<=0:raise MediaError('fit_budget_exceeded','No allowance remains for fitting recovery.')
             fitted=run_fit(run,out/'_fit',args.env_file,remaining,ffmpeg=ffmpeg,provider_cache=cache,early_fits=early_fits)
             # Separate fitting ledger is included once in the total budget.
             index=budget.reserve('fit_recovery',fitted['new_estimated_cost_inr']);budget.settle(index,fitted['new_estimated_cost_inr'])
@@ -297,7 +297,7 @@ def run_pipeline(args):
             render_report=str(out/'_render/report.json'))
         if any(v['status']=='failed' for v in report['languages'].values()):report.update(status='partial_failure',dubbing_complete=False)
         save('videos_and_subtitles')
-    except (MediaError,OSError,ValueError,KeyError,TypeError,ArithmeticError) as exc:
+    except (MediaError,OSError,ValueError,KeyError,TypeError,ArithmeticError,AttributeError) as exc:
         report.update(status='failed',dubbing_complete=False,error={'code':getattr(exc,'code','pipeline_stage_failed'),
             'message':str(exc) if isinstance(exc,MediaError) else 'A stage failed; inspect saved journals. No silent provider fallback.'})
         save('failure_recorded')

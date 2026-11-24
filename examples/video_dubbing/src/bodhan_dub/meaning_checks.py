@@ -103,7 +103,10 @@ def llm_json(settings,messages,path,pacer,completion=sdk_completion):
                     if getattr(exc,'status_code',None)!=400:raise
                     content,usage=completion(active,messages)
             else:content,usage=completion(active,messages)
-            result=object_result(json.loads(content));atomic_json(path,result);return result
+            fenced = re.fullmatch(r'```(?:json)?\s*(.*?)\s*```', content.strip(), re.DOTALL | re.IGNORECASE)
+            result = object_result(json.loads(fenced.group(1) if fenced else content))
+            atomic_json(path, result)
+            return result
         except Exception as exc:
             errors.append({'attempt':attempt+1,'error_type':type(exc).__name__,'http_status':getattr(exc,'status_code',None),
                 'code':getattr(exc,'code',None),'response_metadata':getattr(exc,'response_metadata',None)})
@@ -115,6 +118,22 @@ def llm_json(settings,messages,path,pacer,completion=sdk_completion):
                 continue
             if isinstance(exc,MediaError):raise
             raise MediaError('translation_meaning_judge_failed','English meaning judgment did not complete; no unchecked correction accepted.') from exc
+
+
+def review_batches(rows):
+    """Bound serialized English input size and leave room for every verdict."""
+    batch = []
+    size = 0
+    for row in rows:
+        row_size = len(json.dumps(row, ensure_ascii=True))
+        if batch and (size + row_size > 6000 or len(batch) >= 12):
+            yield batch
+            batch = []
+            size = 0
+        batch.append(row)
+        size += row_size
+    if batch:
+        yield batch
 
 
 def judge(rows,settings,folder,completion=sdk_completion):
@@ -130,8 +149,8 @@ def judge(rows,settings,folder,completion=sdk_completion):
         'An optional validated_native_glossary_order field is deterministic evidence that the configured native technical names are present and in their source order. In that case, do not infer swapped definitions just because the BACK translator mislabeled their English names. Compare the definitions, numeric values, relationships and instructions in order; if all remain correct, accept with category term_uncertainty. Any incorrect number, negation, relation or missing instruction remains factual_error even with glossary evidence. '
         'If review_only_nonlabel_facts is true, perform ONLY the non-terminology check: the exact native terminology has already been checked separately. Treat the first/second/etc named concept in the back-translation as the corresponding concept in validated_native_glossary_order, ignoring its corrupted English NAME. Check EVERY numeric value, formula, diagram label, geometric relation, condition, negation, instruction and order. Do not reject merely because an English concept NAME differs, and do not ignore other factual changes. '
         'Reject an unsupported change in mathematical meaning. Use category term_uncertainty only for a technical English NAME mismatch with ALL other facts preserved; otherwise use factual_error. Issues must be concise English explanations. Do not produce any Indian-language text or corrected translation.')
-    for start in range(0,len(rows),6):
-        batch=rows[start:start+6];digest=hashlib.sha256(json.dumps({'schema':'meaning-v2','rows':batch,'model':settings.model,'system':system},sort_keys=True).encode()).hexdigest()
+    for batch in review_batches(rows):
+        digest=hashlib.sha256(json.dumps({'schema':'meaning-v2','rows':batch,'model':settings.model,'system':system},sort_keys=True).encode()).hexdigest()
         result=llm_json(replace(settings,max_output_tokens=1536),[{'role':'system','content':system},{'role':'user','content':json.dumps(batch)}],folder/(digest+'.json'),pacer,completion)
         seen=set();expected={r['id'] for r in batch}
         for check in result.get('checks',[]):
