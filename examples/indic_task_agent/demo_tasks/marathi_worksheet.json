@@ -1,0 +1,14 @@
+{
+  "id": "marathi_worksheet",
+  "title": "Marathi worksheet photo to Markdown with the table intact",
+  "task": "OCR this worksheet, translate it into Marathi and keep the table as a table. Produce a Marathi Markdown file.",
+  "files": ["media/worksheet.jpg"],
+  "args": ["--max-cost-inr", "1.5"],
+  "expect": {
+    "status": ["completed"],
+    "artifacts": ["*.md"],
+    "checks": ["non_empty"],
+    "max_cost_inr": 1.5
+  },
+  "notes": "One image, table_format html by default; the agent should ask for a Markdown table and keep row and column counts consistent."
+}

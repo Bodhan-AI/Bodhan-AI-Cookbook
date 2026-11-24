@@ -1,0 +1,5 @@
+This chapter is called Water and Our Village. It explains how every village depends on water for drinking and for growing food. When rain is scarce, the whole village must share it carefully.
+
+The chapter makes several key points. First, it explains where rain comes from. Water vapor from the sea forms clouds. When the clouds cool down, it rains. The rain fills the rivers and soaks into the ground. Second, it stresses keeping water clean. Dirty water spreads disease. Wells should be covered, hands should be washed, and waste should not be thrown into ponds. Boiling water makes it safe to drink. Third, it teaches us to save every drop. A dripping faucet can waste hundreds of liters a month. Turning off taps, reusing water for plants, and collecting rainwater from roofs all help the village. Fourth, it looks at farmers and water. Rice needs more water, while millet needs very little. Choosing the right crop helps save water. It also warns about river floods. Villages near rivers should watch the water level and move to higher ground when the river floods.
+
+In conclusion, water is precious. We learned where it comes from, how to keep it clean, and how to save it.

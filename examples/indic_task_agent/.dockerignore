@@ -1,0 +1,9 @@
+.venv
+.env
+out
+.bodhan-cache
+.bodhan_out
+__pycache__
+.pytest_cache
+sample_data
+outputs

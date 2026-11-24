@@ -1,0 +1,14 @@
+{
+  "id": "bengali_paragraph",
+  "title": "Read a Bengali paragraph aloud in a female voice",
+  "task": "Read this paragraph aloud in Bengali with a female voice.",
+  "files": ["media/paragraph.txt"],
+  "args": ["--max-cost-inr", "1.0"],
+  "expect": {
+    "status": ["completed"],
+    "artifacts": ["*.wav"],
+    "checks": ["back_transcription"],
+    "max_cost_inr": 1.0
+  },
+  "notes": "Bengali is shared by bn and as in script, so the task wording picks Bengali; one clip, female voice."
+}

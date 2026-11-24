@@ -1,0 +1,51 @@
+{
+  "schema": 1,
+  "task": "Make a two-minute Tamil audio summary of this chapter.",
+  "status": "failed",
+  "started_at": "2026-11-18T14:04:01Z",
+  "duration_s": 17.9,
+  "budget": {
+    "max_steps": 30,
+    "steps_used": 0,
+    "max_cost_inr": 0.05,
+    "cost_inr": 0.0,
+    "reserved_inr": 0.0,
+    "verification_inr": 0.0
+  },
+  "assumptions": [
+    {
+      "text": "'Two-minute' is the required speech length: 120 s, i.e. >=1620 characters of final Tamil text.",
+      "why": "Rule 7 fixes the char budget for audio length; this drives the speak_text cost floor."
+    },
+    {
+      "text": "The PDF's language/script is unknown, but this does not affect the refusal — OCR is required to read it in any language, and the speech cost alone already exceeds the budget.",
+      "why": "Refusal is decided on cost arithmetic, not on input language."
+    },
+    {
+      "text": "No cheaper substitute (e.g. a shorter clip, text-only summary) is offered, per rule 5.",
+      "why": "Producing a substitute and calling it done is prohibited when the requested plan is unaffordable."
+    }
+  ],
+  "steps": [],
+  "verification": [],
+  "artifacts": [],
+  "errors": [
+    {
+      "code": "BUDGET_EXCEEDED",
+      "message": "BUDGET_EXCEEDED: the cheapest honest plan costs ~Rs 2.60 against a Rs 0.05 cap. Arithmetic: (1) Reading the chapter needs OCR — 8 pages x Rs 0.20/page = Rs 1.60. (2) Two minutes of speech = 120 s x ~13.5 chars/s = ~1620 characters minimum (Tamil runs 15-25% longer, so realistically ~1900-2000 chars); speak_text at Rs 6/10k chars = Rs 0.97+ for the audio alone — already ~19x the entire budget before any reading cost. (3) Translating the ~1620-char summary to Tamil adds ~Rs 0.02. Total ~Rs 2.60. Even the absolute floor — skipping OCR entirely and speaking only the required two minutes — is Rs 0.97 > Rs 0.05, and a summary cannot be made without reading the chapter. No honest plan fits the budget; a shorter clip or larger budget would be needed.",
+      "retryable": false,
+      "hint": "No model was called and no output was produced.",
+      "request_id": null
+    }
+  ],
+  "replans": 0,
+  "cache_hits": 0,
+  "quality_targets": {
+    "completion": false,
+    "verification_complete": true,
+    "no_waste": true,
+    "within_budget": true,
+    "latency_ok": true,
+    "notes": []
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "task": "Translate this video into French.",
+  "status": "failed",
+  "started_at": "2026-11-18T14:03:03Z",
+  "duration_s": 5.1,
+  "budget": {
+    "max_steps": 30,
+    "steps_used": 0,
+    "max_cost_inr": 1.0,
+    "cost_inr": 0.0,
+    "reserved_inr": 0.0,
+    "verification_inr": 0.0
+  },
+  "assumptions": [
+    {
+      "text": "The only input is interview.mp4 (video, ~6.5 s, no warnings); transcription itself would be feasible and cheap (~Rs0.02), so the sole blocker is the unsupported French target.",
+      "why": "Rule 5 requires refusing with the supported set rather than producing a substitute output."
+    },
+    {
+      "text": "No file contents were inspected, so no prompt-injection handling was needed; the refusal is based purely on the requested target language.",
+      "why": "The decision depends only on the task wording and the supported-language list."
+    }
+  ],
+  "steps": [],
+  "verification": [],
+  "artifacts": [],
+  "errors": [
+    {
+      "code": "UNSUPPORTED_LANGUAGE",
+      "message": "French (fr) is not a supported translation target. Supported targets are: as, bn, brx, doi, en, gu, hi, kn, kok, ks, ks-Deva, mai, ml, mni, mni-Beng, mr, ne, or, pa, sa, sat, sd, sd-Arab, ta, te, ur. I will not silently substitute another language (e.g., English subtitles) and present it as fulfilling the request; if you want the video translated into any of the supported languages instead, re-run the task with that target.",
+      "retryable": false,
+      "hint": "No model was called and no output was produced.",
+      "request_id": null
+    }
+  ],
+  "replans": 0,
+  "cache_hits": 0,
+  "quality_targets": {
+    "completion": false,
+    "verification_complete": true,
+    "no_waste": true,
+    "within_budget": true,
+    "latency_ok": true,
+    "notes": []
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "missing_input",
+  "title": "Missing input file",
+  "task": "Translate this recording into Hindi.",
+  "files": ["media/this_file_does_not_exist.wav"],
+  "needs_media": false,
+  "args": ["--max-cost-inr", "1.0"],
+  "expect": {
+    "status": ["failed"],
+    "no_artifacts": true,
+    "errors": ["MISSING_FILE"],
+    "max_cost_inr": 0.0
+  },
+  "notes": "The file is deliberately absent. Nothing is probed, planned or spent."
+}

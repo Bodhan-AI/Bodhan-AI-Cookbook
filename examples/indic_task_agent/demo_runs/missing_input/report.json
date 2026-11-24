@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "task": "Translate this recording into Hindi.",
+  "status": "failed",
+  "started_at": "2026-11-18T14:03:59Z",
+  "duration_s": 0.0,
+  "budget": {
+    "max_steps": 30,
+    "steps_used": 0,
+    "max_cost_inr": 1.0,
+    "cost_inr": 0.0,
+    "reserved_inr": 0.0,
+    "verification_inr": 0.0
+  },
+  "assumptions": [],
+  "steps": [],
+  "verification": [],
+  "artifacts": [],
+  "errors": [
+    {
+      "code": "MISSING_FILE",
+      "message": "None of the paths in '<recipe>/demo_tasks/media/this_file_does_not_exist.wav' exist or can be read.",
+      "retryable": false,
+      "hint": "Check the paths; nothing was called.",
+      "request_id": null
+    }
+  ],
+  "replans": 0,
+  "cache_hits": 0,
+  "quality_targets": {
+    "completion": false,
+    "verification_complete": true,
+    "no_waste": true,
+    "within_budget": true,
+    "latency_ok": true,
+    "notes": []
+  }
+}

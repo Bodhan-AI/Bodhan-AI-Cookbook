@@ -1,0 +1,14 @@
+{
+  "id": "hindi_note_srt",
+  "title": "Hindi voice note to English subtitles",
+  "task": "Transcribe this Hindi voice note and give me English subtitles as an SRT file.",
+  "files": ["media/note.wav"],
+  "args": ["--max-cost-inr", "1.0"],
+  "expect": {
+    "status": ["completed"],
+    "artifacts": ["*.srt", "*.txt"],
+    "checks": ["cues", "monotonic"],
+    "max_cost_inr": 1.0
+  },
+  "notes": "Three minutes of Hindi speech. Timing inside each 25-30 s window is interpolated; stated in result.md."
+}

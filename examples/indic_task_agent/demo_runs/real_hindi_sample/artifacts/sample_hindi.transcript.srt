@@ -1,0 +1,8 @@
+1
+00:00:00,000 --> 00:00:02,993
+Hello, today we will start our math class.
+
+2
+00:00:02,993 --> 00:00:06,485
+Please open your books and read the first
+lesson.

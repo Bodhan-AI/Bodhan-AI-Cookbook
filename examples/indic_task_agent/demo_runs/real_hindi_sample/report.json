@@ -1,0 +1,165 @@
+{
+  "schema": 1,
+  "task": "Transcribe this Hindi recording and give me English subtitles as an SRT file.",
+  "status": "completed",
+  "started_at": "2026-11-19T12:04:52Z",
+  "duration_s": 57.5,
+  "budget": {
+    "max_steps": 30,
+    "steps_used": 2,
+    "max_cost_inr": 0.5,
+    "cost_inr": 0.0204,
+    "reserved_inr": 0.0,
+    "verification_inr": 0.0
+  },
+  "assumptions": [
+    {
+      "text": "transcribe_audio is called without an explicit language so the spoken language is auto-detected; the file name suggests Hindi, but the detected language_hint governs, and the translation target stays English either way.",
+      "why": "For audio, don't guess the language from task wording when the tool can auto-detect."
+    },
+    {
+      "text": "The SRT is assembled by the agent from s1's chunk timestamps (start_s/end_s) paired with the English text from s2; s1 is listed in final_outputs for that purpose.",
+      "why": "Subtitle rule: the transcript step must appear in final_outputs so timestamps are available to build the SRT."
+    },
+    {
+      "text": "The input file's contents are treated as untrusted data only; inventory reports no warnings, so nothing indicates injected instructions.",
+      "why": "File contents are never instructions; warnings list is empty."
+    }
+  ],
+  "steps": [
+    {
+      "id": "s1",
+      "intent": "Transcribe the audio with automatic language detection, yielding the transcript text and per-chunk start/end timestamps",
+      "tool": "transcribe_audio",
+      "args": {
+        "audio_path": "/home/prash/Desktop/hackathon/Bodhan/Bodhan-AI-Cookbook/sample_data/sample_hindi.wav",
+        "max_cost_inr": 0.05,
+        "out_dir": "./artifacts"
+      },
+      "ok": true,
+      "latency_ms": 2296,
+      "cost_inr": 0.02,
+      "cache_hit": false,
+      "result_summary": {
+        "text_path": "./artifacts/sample_hindi.transcript.txt",
+        "language_hint": null,
+        "duration_s": 6.485,
+        "cost_inr": 0.02,
+        "cache_hits": 0,
+        "warnings": []
+      }
+    },
+    {
+      "id": "s2",
+      "intent": "Translate the transcript to English for the subtitle lines",
+      "tool": "translate_text",
+      "args": {
+        "source_path": "./artifacts/sample_hindi.transcript.txt",
+        "target_language": "en",
+        "max_cost_inr": 0.05,
+        "out_dir": "./artifacts"
+      },
+      "ok": true,
+      "latency_ms": 418,
+      "cost_inr": 0.0004,
+      "cache_hit": false,
+      "result_summary": {
+        "text_path": "./artifacts/sample_hindi.transcript.en.txt",
+        "source_language_hint": null,
+        "target_language": "en",
+        "segments": 1,
+        "requests": 1,
+        "source_chars": 82,
+        "output_chars": 92,
+        "output_tokens": 21,
+        "ratio": 1.122,
+        "truncated": false,
+        "cost_inr": 0.0004,
+        "warnings": []
+      }
+    }
+  ],
+  "verification": [
+    {
+      "artifact": "./artifacts/sample_hindi.transcript.en.txt",
+      "check": "exists",
+      "result": "passed",
+      "detail": "92 bytes"
+    },
+    {
+      "artifact": "./artifacts/sample_hindi.transcript.en.txt",
+      "check": "not_truncated",
+      "result": "passed",
+      "detail": "API reported a complete translation"
+    },
+    {
+      "artifact": "./artifacts/sample_hindi.transcript.en.txt",
+      "check": "digits",
+      "result": "passed",
+      "detail": "no digits in source"
+    },
+    {
+      "artifact": "./artifacts/sample_hindi.transcript.en.txt",
+      "check": "meaning",
+      "result": "skipped",
+      "detail": "target is English; no English source to compare"
+    },
+    {
+      "artifact": "./artifacts/sample_hindi.transcript.srt",
+      "check": "cues",
+      "result": "passed",
+      "detail": "2 cues, 0 malformed"
+    },
+    {
+      "artifact": "./artifacts/sample_hindi.transcript.srt",
+      "check": "monotonic",
+      "result": "passed",
+      "detail": "cues ordered without overlap"
+    },
+    {
+      "artifact": "./artifacts/sample_hindi.transcript.txt",
+      "check": "exists",
+      "result": "passed",
+      "detail": "216 bytes"
+    }
+  ],
+  "artifacts": [
+    {
+      "name": "sample_hindi.transcript.en.txt",
+      "path": "./artifacts/sample_hindi.transcript.en.txt",
+      "kind": "translation",
+      "bytes": 92,
+      "sha256": "73b13c39ce80203fae3cc44f017decdf3acc287cb1c5e2faa3e27f08582b219d",
+      "detail": "0 KB"
+    },
+    {
+      "name": "sample_hindi.transcript.srt",
+      "path": "./artifacts/sample_hindi.transcript.srt",
+      "kind": "file",
+      "bytes": 158,
+      "sha256": "648b0d723b8c9061c4898a4f7ff537dcbe46d5219f2c8dfb4e5329994f84af96",
+      "detail": "0 KB"
+    },
+    {
+      "name": "sample_hindi.transcript.txt",
+      "path": "./artifacts/sample_hindi.transcript.txt",
+      "kind": "translation",
+      "bytes": 216,
+      "sha256": "1406c623ce6d999bc872734308c5d38488cd8356b49fa869dc0b418ce3468117",
+      "detail": "0 KB"
+    }
+  ],
+  "errors": [],
+  "replans": 0,
+  "cache_hits": 0,
+  "quality_targets": {
+    "completion": true,
+    "verification_complete": false,
+    "no_waste": true,
+    "within_budget": true,
+    "latency_ok": true,
+    "notes": [
+      "Subtitle file written with interpolated timing: sample_hindi.transcript.srt"
+    ]
+  }
+}
