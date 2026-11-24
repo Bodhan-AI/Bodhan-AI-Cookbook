@@ -1,0 +1,13 @@
+{
+  "source_file": "/Users/rajesh07/Downloads/iitm/demos/inputs/five_audio_clips/clip_02.wav",
+  "language": "hi",
+  "language_name": "Hindi",
+  "duration_sec": 3.0,
+  "segments": [
+    {
+      "start": 0.0,
+      "end": 3.0,
+      "text": "नमस्ते विद्यार्थियों, आज हम भौतिक विज्ञान का पहला अध्याय पढ़ेंगे।"
+    }
+  ]
+}

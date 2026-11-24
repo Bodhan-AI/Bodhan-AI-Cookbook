@@ -1,0 +1,13 @@
+{
+  "ai_generated": true,
+  "label": "AI-Generated Audio (Synthesized by Bodhan AI Indic-Speak)",
+  "model": "indic-speak",
+  "language": "bn",
+  "language_name": "Bengali",
+  "voice": "Ishita",
+  "gender": "female",
+  "style": "narration",
+  "duration_sec": 9.222,
+  "chunks_synthesized": 1,
+  "total_characters": 166
+}

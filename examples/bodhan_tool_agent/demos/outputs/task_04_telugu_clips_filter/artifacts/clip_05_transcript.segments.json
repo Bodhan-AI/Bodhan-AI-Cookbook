@@ -1,0 +1,13 @@
+{
+  "source_file": "/Users/rajesh07/Downloads/iitm/demos/inputs/five_audio_clips/clip_05.wav",
+  "language": "bn",
+  "language_name": "Bengali",
+  "duration_sec": 3.0,
+  "segments": [
+    {
+      "start": 0.0,
+      "end": 3.0,
+      "text": "আজকে আমরা বাংলার ইতিহাস ও সংস্কৃতি সম্পর্কে আলোচনা করব।"
+    }
+  ]
+}

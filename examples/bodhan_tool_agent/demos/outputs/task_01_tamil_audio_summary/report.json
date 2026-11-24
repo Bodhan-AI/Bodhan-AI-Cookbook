@@ -1,0 +1,94 @@
+{
+  "status": "completed",
+  "task": "Make a two-minute Tamil audio summary of this chapter",
+  "input_path": "./demos/inputs/chapter_lines_angles.pdf",
+  "steps_taken": 6,
+  "max_steps": 30,
+  "total_cost_inr": 1.085183,
+  "max_cost_inr": 20.0,
+  "total_time_sec": 141.891,
+  "total_latency_ms": 141891.16,
+  "assumptions": [
+    "Voice gender was not explicitly specified; defaulted to 'female' voice from the Indic-Speak library.",
+    "The task requires creating a summary in Tamil, which implies the need for audio output in that language."
+  ],
+  "artifacts": [
+    "/Users/rajesh07/Downloads/iitm/out/tamil_summary/artifacts/chapter_lines_angles_ocr.md",
+    "/Users/rajesh07/Downloads/iitm/out/tamil_summary/artifacts/summary_en.md",
+    "/Users/rajesh07/Downloads/iitm/out/tamil_summary/artifacts/summary_en_ta.md",
+    "/Users/rajesh07/Downloads/iitm/out/tamil_summary/artifacts/summary_en_ta.mp3"
+  ],
+  "verification_results": [
+    {
+      "status": "ok",
+      "passed": true,
+      "target_language": "ta",
+      "detected_script": "Tamil",
+      "checks": {
+        "non_empty": true,
+        "script_valid": true,
+        "coverage_ratio_valid": true,
+        "length_ratio": 1.107,
+        "numbers_preserved": true,
+        "missing_numbers": [],
+        "tables_preserved": true,
+        "source_table_rows": 0,
+        "translated_table_rows": 0
+      },
+      "back_translation_sample": null,
+      "issues": [],
+      "cost_inr": 0.0,
+      "latency_ms": 1.86,
+      "translated_path": "/Users/rajesh07/Downloads/iitm/out/tamil_summary/artifacts/summary_en_ta.md"
+    },
+    {
+      "status": "ok",
+      "passed": true,
+      "audio_path": "/Users/rajesh07/Downloads/iitm/out/tamil_summary/artifacts/summary_en_ta.mp3",
+      "metrics": {
+        "duration_sec": 121.519,
+        "sample_rate": 16000,
+        "channels": 1,
+        "rms": 2645.12,
+        "silence_ratio": 0.187,
+        "clipping_ratio": 0.0
+      },
+      "checks": {
+        "non_empty_duration": true,
+        "not_silent": true,
+        "duration_target_ok": true,
+        "repetition_detected": false,
+        "word_overlap_ratio": 0.979
+      },
+      "back_transcript_sample": "அத்தியாயம் சிக்ஸ் வடிவியலில் கோடுகள் மற்றும் கோணங்களின் அடிப்படைக் கருத்துகளை மையமாகக் கொண்டுள்ளது வெட்டும் கோடுகள் மற்றும் முக்கோணங்களால் உருவாகும் கோணங்களுக்கிடையேயான தொடர்புகளைப் புரிந்துகொள்வதற்கு அவசியமான மூன்று முக்கிய தேற்றங்களை இது அறிமுகப்படுத்துகிறது முதல் தேற்றம் என்னவென்றால் இரண்டு கோடுகள் வெட்டும்போது ஒன்றுக்கொன்று எதிரே இருக்கும் கோணங்கள் அதாவது செங்குத்து எதிர் கோணங்கள் சமமாக இருக்கும்",
+      "issues": [],
+      "cost_inr": 0.046083,
+      "latency_ms": 2913.35
+    }
+  ],
+  "security_alerts": [],
+  "failure_reason": null,
+  "cost_breakdown": {
+    "total_cost_inr": 1.085183,
+    "max_cost_inr": 20.0,
+    "remaining_cost_inr": 18.914817,
+    "steps_taken": 6,
+    "max_steps": 30,
+    "api_calls": 10,
+    "cache_hits": 8,
+    "cost_by_model_inr": {
+      "indic-ocr": 0.0,
+      "indic-translate": 0.0083,
+      "indic-speak": 1.0308,
+      "indic-transcribe": 0.046083
+    }
+  },
+  "quality_targets": {
+    "completed_or_honest_failure": true,
+    "all_outputs_verified": true,
+    "verifications_passed": true,
+    "no_duplicate_model_calls": true,
+    "within_cost_budget": true,
+    "latency_within_target": true
+  }
+}

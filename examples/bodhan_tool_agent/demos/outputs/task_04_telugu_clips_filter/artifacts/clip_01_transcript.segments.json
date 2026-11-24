@@ -1,0 +1,18 @@
+{
+  "source_file": "/Users/rajesh07/Downloads/iitm/demos/inputs/five_audio_clips/clip_01.wav",
+  "language": "te",
+  "language_name": "Telugu",
+  "duration_sec": 3.0,
+  "segments": [
+    {
+      "start": 0.0,
+      "end": 0.818,
+      "text": "গणिత తరగతికి స్వాగతం."
+    },
+    {
+      "start": 0.818,
+      "end": 3.0,
+      "text": "ఈరోజు మనం బీజగణితం மற்றும் రేఖీయ సమీకరణాలు నేర్చుకుందాం."
+    }
+  ]
+}

@@ -1,0 +1,88 @@
+{
+  "status": "completed",
+  "task": "Read this paragraph aloud in Bengali with a female voice",
+  "input_path": "demos/inputs/paragraph.txt",
+  "steps_taken": 5,
+  "max_steps": 30,
+  "total_cost_inr": 0.11607,
+  "max_cost_inr": 20.0,
+  "total_time_sec": 0.181,
+  "total_latency_ms": 180.75,
+  "assumptions": [],
+  "artifacts": [
+    "/Users/rajesh07/Downloads/iitm/demos/outputs/task_05_bengali_female_tts/artifacts/paragraph_bn.md",
+    "/Users/rajesh07/Downloads/iitm/demos/outputs/task_05_bengali_female_tts/artifacts/paragraph_bn.mp3"
+  ],
+  "verification_results": [
+    {
+      "status": "ok",
+      "passed": true,
+      "target_language": "bn",
+      "detected_script": "Bengali",
+      "checks": {
+        "non_empty": true,
+        "script_valid": true,
+        "coverage_ratio_valid": true,
+        "length_ratio": 0.748,
+        "numbers_preserved": true,
+        "missing_numbers": [],
+        "tables_preserved": true,
+        "source_table_rows": 0,
+        "translated_table_rows": 0
+      },
+      "back_translation_sample": null,
+      "issues": [],
+      "cost_inr": 0.0,
+      "latency_ms": 0.21,
+      "translated_path": "/Users/rajesh07/Downloads/iitm/demos/outputs/task_05_bengali_female_tts/artifacts/paragraph_bn.md"
+    },
+    {
+      "status": "ok",
+      "passed": true,
+      "audio_path": "/Users/rajesh07/Downloads/iitm/demos/outputs/task_05_bengali_female_tts/artifacts/paragraph_bn.mp3",
+      "metrics": {
+        "duration_sec": 9.222,
+        "sample_rate": 16000,
+        "channels": 1,
+        "rms": 2996.34,
+        "silence_ratio": 0.027,
+        "clipping_ratio": 0.0
+      },
+      "checks": {
+        "non_empty_duration": true,
+        "not_silent": true,
+        "duration_target_ok": true,
+        "repetition_detected": false,
+        "word_overlap_ratio": 1.0
+      },
+      "back_transcript_sample": "সৌরজগৎ সূর্য এবং তাকে কেন্দ্র করে আবর্তনশীল গ্রহ, উপগ্রহ, গ্রহাণু ও ধূমকেতু নিয়ে গঠিত। পৃথিবী সূর্যের তৃতীয় নিকটতম গ্রহ এবং এখানে জীবন ধারণের উপযুক্ত পরিবেশ রয়েছে।",
+      "issues": [],
+      "cost_inr": 0.01537,
+      "latency_ms": 37.64
+    }
+  ],
+  "security_alerts": [],
+  "failure_reason": null,
+  "cost_breakdown": {
+    "total_cost_inr": 0.11607,
+    "max_cost_inr": 20.0,
+    "remaining_cost_inr": 19.88393,
+    "steps_taken": 5,
+    "max_steps": 30,
+    "api_calls": 3,
+    "cache_hits": 0,
+    "cost_by_model_inr": {
+      "indic-translate": 0.0011,
+      "indic-speak": 0.0996,
+      "indic-transcribe": 0.01537
+    }
+  },
+  "quality_targets": {
+    "completed_or_honest_failure": true,
+    "all_outputs_verified": true,
+    "verifications_passed": true,
+    "no_duplicate_model_calls": true,
+    "within_cost_budget": true,
+    "latency_within_target": true
+  }
+}
