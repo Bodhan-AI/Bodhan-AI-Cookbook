@@ -12,7 +12,11 @@ The application pipelines four core Bodhan AI models:
 - `indic-transliterate`: Phonetic Roman script generation for non-native readers.
 - `indic-speak`: Continuous multi-chunk WAV synthesis that stitches sentence frames to bypass the 30-second server limit for full audiobook generation.
 
-Designed with **Minimalism & Swiss Style** architecture (Light Mode, 0px sharp geometry, high contrast) and dynamic UI localization across 10 Indian languages (`i18n`).
+### Dual-Input Book Mode (PDFs & Physical Photography)
+The Book Reader module accepts both **digital multi-page PDFs** and **physical book photography / camera scans**:
+- **Digital PDFs:** Ingests e-books, academic notes, and PDF documents. If the PDF contains embedded digital text, it extracts it cleanly; if the PDF consists of scanned pages, it automatically invokes `indic-ocr` for layout-aware parsing.
+- **Physical Page Images & Camera Scans:** Readers can take photos of real physical book pages using their phone or webcam. Each photo is parsed for paragraphs and chapter titles, translated into the user's preferred Indian language, and stitched into a seamless audiobook.
+
 
 ---
 
@@ -65,7 +69,7 @@ The app will open automatically in your browser at `http://localhost:8501`.
 2. **Step 2:** Choose a module from the dashboard:
    - **Camera Reader (`pages/1_Camera_Reader.py`):** Upload or snap a document photo to view side-by-side translated layout blocks and hear full-page audio narration.
    - **Quick Translate (`pages/2_Quick_Translate.py`):** Type or paste text to get native script, Romanized phonetics, and speech playback.
-   - **Book Mode (`pages/3_Book_Mode.py`):** Ingest multi-page PDFs or photographic pages, select page ranges, and generate continuous multi-page audiobooks.
+   - **Book Mode (`pages/3_Book_Mode.py`):** Ingest both digital multi-page PDF documents and physical photographic page scans. The app automatically extracts text, translates across chapters into your preferred Indian language, and synthesizes continuous, full-length audiobooks with background processing.
 
 ---
 
