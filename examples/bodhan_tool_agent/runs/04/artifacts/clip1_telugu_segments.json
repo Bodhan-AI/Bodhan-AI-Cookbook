@@ -1,0 +1,15 @@
+{
+ "language": "te",
+ "source": "D:\\bodhan-tool-agent\\bodhan-tool-agent\\demo_inputs\\clip1_telugu.wav",
+ "duration_s": 3.58,
+ "segments": [
+  {
+   "id": 0,
+   "start": 0.0,
+   "end": 3.58,
+   "text": "నమస్కారం ఈరోజు వాతావరణం చాలా బాగుంది",
+   "cached": false
+  }
+ ],
+ "skipped": []
+}

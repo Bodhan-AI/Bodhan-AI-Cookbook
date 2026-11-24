@@ -1,0 +1,163 @@
+[
+ {
+  "page": 1,
+  "markdown": "## Chapter 6: Lines and Angles\n\n### 6.1 Introduction\n\nA line has length but no breadth. A point has no dimensions.\nTwo lines that never meet are called parallel lines.",
+  "blocks": [
+   {
+    "order": 0,
+    "label": "Header",
+    "type": "PageHeader",
+    "bbox_xyxy": [
+     82.0,
+     95.3,
+     1164.3,
+     220.3
+    ],
+    "conf": 0.573,
+    "text": ""
+   },
+   {
+    "order": 1,
+    "label": "Section-title",
+    "type": "SectionHeader",
+    "bbox_xyxy": [
+     100.4,
+     115.2,
+     1143.0,
+     211.9
+    ],
+    "conf": 0.78,
+    "text": "Chapter 6: Lines and Angles"
+   },
+   {
+    "order": 2,
+    "label": "Sub-section-title",
+    "type": "SectionHeader",
+    "bbox_xyxy": [
+     100.4,
+     240.7,
+     571.9,
+     315.6
+    ],
+    "conf": 0.683,
+    "text": "6.1 Introduction"
+   },
+   {
+    "order": 3,
+    "label": "Paragraph",
+    "type": "Text",
+    "bbox_xyxy": [
+     96.2,
+     341.8,
+     1528.9,
+     515.3
+    ],
+    "conf": 0.597,
+    "text": "A line has length but no breadth. A point has no dimensions.\nTwo lines that never meet are called parallel lines."
+   }
+  ]
+ },
+ {
+  "page": 2,
+  "markdown": "## 6.2 Angles\n\nAn angle is formed when two rays share an end point.\n\nA right angle measures 90 degrees. A straight angle measures 180 degrees",
+  "blocks": [
+   {
+    "order": 0,
+    "label": "Section-title",
+    "type": "SectionHeader",
+    "bbox_xyxy": [
+     101.5,
+     115.7,
+     418.5,
+     191.5
+    ],
+    "conf": 0.812,
+    "text": "6.2 Angles"
+   },
+   {
+    "order": 1,
+    "label": "Paragraph",
+    "type": "Text",
+    "bbox_xyxy": [
+     100.4,
+     219.4,
+     1368.3,
+     292.1
+    ],
+    "conf": 0.857,
+    "text": "An angle is formed when two rays share an end point."
+   },
+   {
+    "order": 2,
+    "label": "Paragraph",
+    "type": "Text",
+    "bbox_xyxy": [
+     101.3,
+     314.4,
+     1846.0,
+     390.0
+    ],
+    "conf": 0.859,
+    "text": "A right angle measures 90 degrees. A straight angle measures 180 degrees"
+   }
+  ]
+ },
+ {
+  "page": 3,
+  "markdown": "## 6.3 Summary\n\nVertically opposite angles are equal.\n\nThe angles of a linear pair add up to 180 degrees.",
+  "blocks": [
+   {
+    "order": 0,
+    "label": "Header",
+    "type": "PageHeader",
+    "bbox_xyxy": [
+     89.0,
+     109.9,
+     501.7,
+     198.2
+    ],
+    "conf": 0.629,
+    "text": ""
+   },
+   {
+    "order": 1,
+    "label": "Section-title",
+    "type": "SectionHeader",
+    "bbox_xyxy": [
+     89.7,
+     109.4,
+     500.6,
+     198.5
+    ],
+    "conf": 0.834,
+    "text": "6.3 Summary"
+   },
+   {
+    "order": 2,
+    "label": "Paragraph",
+    "type": "Text",
+    "bbox_xyxy": [
+     90.8,
+     215.5,
+     973.0,
+     295.4
+    ],
+    "conf": 0.857,
+    "text": "Vertically opposite angles are equal."
+   },
+   {
+    "order": 3,
+    "label": "Paragraph",
+    "type": "Text",
+    "bbox_xyxy": [
+     93.6,
+     310.8,
+     1280.0,
+     391.4
+    ],
+    "conf": 0.861,
+    "text": "The angles of a linear pair add up to 180 degrees."
+   }
+  ]
+ }
+]
