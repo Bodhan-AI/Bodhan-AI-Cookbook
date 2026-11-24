@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>CropShield</title>
+
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+<header>
+    <div class="brand">CropShield</div>
+    <p>Community-powered crop observations and regional early warnings</p>
+
+    <nav>
+        <button data-tab="report" class="active">Submit report</button>
+        <button data-tab="explore">Explore reports</button>
+        <button data-tab="alerts">NGO dashboard</button>
+    </nav>
+</header>
+
+<main>
+    <section id="report" class="tab active">
+
+        <div class="language-control">
+            <label for="reportLang" id="reportLangLabel">
+                Page language
+            </label>
+
+            <select id="reportLang">
+                <option value="en">English</option>
+                <option value="ta">தமிழ்</option>
+                <option value="te">తెలుగు</option>
+                <option value="hi">हिन्दी</option>
+            </select>
+        </div>
+
+        <h1 id="reportTitle">Report a crop issue</h1>
+
+        <p class="muted" id="reportDescription">
+            Describe what you observe. Reports are observations,
+            not confirmed diagnoses.
+        </p>
+
+        <div class="card">
+
+            <label for="audio" id="audioLabel">
+                Upload farmer voice recording
+            </label>
+
+            <input
+                id="audio"
+                type="file"
+                accept=".wav,.flac,.ogg,.mp3,audio/*"
+            >
+
+            <label for="audioLang" id="audioLangLabel">
+                Audio language
+            </label>
+
+            <select id="audioLang">
+                <option value="">Auto-detect</option>
+                <option value="ta">தமிழ்</option>
+                <option value="te">తెలుగు</option>
+                <option value="hi">हिन्दी</option>
+                <option value="en">English</option>
+            </select>
+
+            <button id="transcribeBtn" class="secondary">
+                Transcribe audio
+            </button>
+
+            <div id="audioMsg" class="muted message"></div>
+
+            <label for="original" id="originalLabel">
+                Original observation / transcript
+            </label>
+
+            <textarea
+                id="original"
+                rows="4"
+                placeholder="The transcribed observation will appear here"
+            ></textarea>
+
+            <button id="listenTranscriptBtn" class="secondary">
+                Listen to transcription
+            </button>
+
+            <audio
+                id="transcriptAudio"
+                controls
+                style="display:none;width:100%;margin-top:10px;"
+            ></audio>
+            <label for="language" id="languageLabel">
+                Original language
+            </label>
+
+            <select id="language">
+                <option value="ta">தமிழ்</option>
+                <option value="te">తెలుగు</option>
+                <option value="hi">हिन्दी</option>
+                <option value="en">English</option>
+            </select>
+            <button id="translateBtn" class="secondary">
+                Translate and extract report details
+            </button>
+
+            <label for="translated" id="translatedLabel">
+                English translation
+            </label>
+
+            <textarea
+                id="translated"
+                rows="4"
+                placeholder="English translation will appear here"
+            ></textarea>
+            <div class="extraction-section">
+
+                <h3 id="extractionTitle">
+                    Extracted report details
+                </h3>
+
+                <p class="muted" id="extractionDescription">
+                    These fields are automatically extracted from the English
+                    translation. Review and correct them before submitting.
+                </p>
+
+                <div class="grid">
+
+                    <div>
+                        <label for="crop" id="cropLabel">Crop</label>
+
+                        <input
+                            id="crop"
+                            placeholder="Automatically extracted"
+                        >
+                    </div>
+
+                    <div>
+                        <label for="disease" id="diseaseLabel">
+                            Suspected disease / pest
+                        </label>
+
+                        <input
+                            id="disease"
+                            placeholder="Automatically extracted"
+                        >
+                    </div>
+
+                </div>
+
+                <label for="symptoms" id="symptomsLabel">
+                    Symptoms / observations
+                </label>
+
+                <textarea
+                    id="symptoms"
+                    rows="3"
+                    placeholder="Automatically extracted"
+                ></textarea>
+
+                <label for="location" id="locationLabel">
+                    Region / village
+                </label>
+
+                <input
+                    id="location"
+                    placeholder="Automatically extracted"
+                >
+
+            </div>
+            <label for="date" id="dateLabel">Report date</label>
+
+            <input id="date" type="date">
+
+            <button id="submitBtn" class="primary">
+                Save report
+            </button>
+
+            <div id="submitMsg" class="message"></div>
+
+        </div>
+
+    </section>
+
+    <section id="explore" class="tab">
+
+        <div class="language-control">
+
+            <label for="exploreLang" id="exploreLangLabel">
+                Page language
+            </label>
+
+            <select id="exploreLang">
+                <option value="en">English</option>
+                <option value="ta">தமிழ்</option>
+                <option value="te">తెలుగు</option>
+                <option value="hi">हिन्दी</option>
+            </select>
+
+        </div>
+
+        <h1 id="exploreTitle">Explore community reports</h1>
+
+        <div class="card filters">
+
+            <div class="grid">
+
+                <div>
+                    <label for="fCrop" id="fCropLabel">Crop</label>
+                    <input id="fCrop" placeholder="Filter crop">
+                </div>
+
+                <div>
+                    <label for="fLocation" id="fLocationLabel">Region</label>
+                    <input id="fLocation" placeholder="Filter region">
+                </div>
+
+            </div>
+
+            <label for="fSymptoms" id="fSymptomsLabel">
+                Symptoms
+            </label>
+
+            <input id="fSymptoms" placeholder="Filter symptoms">
+
+            <button id="searchBtn" class="primary">
+                Search
+            </button>
+
+            <button id="clearBtn" class="secondary">
+                Clear filters
+            </button>
+
+        </div>
+
+        <div id="reports"></div>
+
+    </section>
+
+    <section id="alerts" class="tab">
+
+        <h1>Regional alert dashboard</h1>
+
+        <p class="muted">
+            Alerts are rule-based signals for expert review,
+            not verified outbreaks.
+        </p>
+
+        <button id="refreshAlerts" class="secondary">
+            Refresh alerts
+        </button>
+
+        <div id="alertList"></div>
+
+    </section>
+
+</main>
+
+<script src="/static/app.js"></script>
+
+</body>
+</html>
