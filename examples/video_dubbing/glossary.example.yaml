@@ -1,0 +1,24 @@
+# Example Custom Glossary for bodhan_dub
+# User-defined canonical translations for names, technical terms, and entities.
+# Terms are matched case-insensitively and protected during translation.
+
+terms:
+  - source: "Quantum Computing"
+    hi: "क्वांटम कंप्यूटिंग"
+    ta: "குவாண்டம் கம்ப்யூட்டிங்"
+    bn: "কোয়ান্টাম কম্পিউটিং"
+
+  - source: "Neural Network"
+    hi: "न्यूरल नेटवर्क"
+    ta: "நியூரல் நெட்வொர்க்"
+    bn: "নিউরাল নেটওয়ার্ক"
+
+  - source: "Bodhan AI"
+    hi: "बोधन एआई"
+    ta: "போதன் ஏஐ"
+    bn: "বোধন এআই"
+
+  - source: "IIT Madras"
+    hi: "आईआईटी मद्रास"
+    ta: "ஐஐடி மெட்ராஸ்"
+    bn: "আইআইটি মাদ্রাজ"

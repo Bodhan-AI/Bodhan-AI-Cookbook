@@ -1,0 +1,13 @@
+{
+  "status_code": 200,
+  "body_keys": [
+    "text",
+    "usage",
+    "language",
+    "duration",
+    "words",
+    "segments"
+  ],
+  "has_segments": true,
+  "has_words": true
+}

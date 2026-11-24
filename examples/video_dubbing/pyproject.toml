@@ -1,0 +1,57 @@
+[build-system]
+requires = ["setuptools>=68.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bodhan_dub"
+version = "0.1.0"
+description = "Agentic pipeline that dubs English videos into Indian languages using Bodhan Indic models"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+    { name = "Bodhan Dubbing Pipeline Engineer" }
+]
+dependencies = [
+    "httpx==0.28.1",
+    "tenacity==9.2.1",
+    "pydantic==2.14.1",
+    "pydantic-settings==2.16.1",
+    "python-dotenv==1.2.4",
+    "numpy==2.4.6",
+    "soundfile==0.14.0",
+    "scipy==1.17.1",
+    "pyloudnorm==0.2.0",
+    "rapidfuzz==3.14.6",
+    "regex==2026.9.29",
+    "pyyaml==6.0.3",
+    "openai==2.54.0",
+    "onnxruntime==1.31.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==9.1.1",
+    "ruff==0.17.2",
+]
+music = [
+    "demucs==4.0.1",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E402"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+asyncio_mode = "auto"

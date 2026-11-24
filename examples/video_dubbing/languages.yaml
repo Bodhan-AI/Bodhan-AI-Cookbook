@@ -1,0 +1,166 @@
+# Bodhan Video Dubbing — Languages Registry
+# Verified against Bodhan API probe (November 2026)
+# Supported codes from API: as, bn, brx, doi, en, gu, hi, kn, kok, ks, ks-Deva, mai, ml, mni, mni-Beng, mr, ne, or, pa, sa, sat, sd, sd-Arab, ta, te, ur
+
+production_tier:
+  en:
+    name: English
+    script: Latin
+    code: en
+    tts_voices:
+      female: [Kavya, Suhani]
+      male: [Amit]
+    code_mixed_target: null
+    unicode_range: null
+
+  hi:
+    name: Hindi
+    script: Devanagari
+    code: hi
+    tts_voices:
+      female: [Kavya, Suhani]
+      male: [Amit]
+    code_mixed_target: hi
+    unicode_range: [0x0900, 0x097F]
+
+  bn:
+    name: Bengali
+    script: Bengali
+    code: bn
+    tts_voices:
+      female: [Ishita]
+      male: [Sourav]
+    code_mixed_target: bn
+    unicode_range: [0x0980, 0x09FF]
+
+  te:
+    name: Telugu
+    script: Telugu
+    code: te
+    tts_voices:
+      female: [Kavya]
+      male: [Amit]
+    code_mixed_target: te
+    unicode_range: [0x0C00, 0x0C7F]
+
+  ta:
+    name: Tamil
+    script: Tamil
+    code: ta
+    tts_voices:
+      female: [Kavya]
+      male: [Amit]
+    code_mixed_target: ta
+    unicode_range: [0x0B80, 0x0BFF]
+
+  mr:
+    name: Marathi
+    script: Devanagari
+    code: mr
+    tts_voices:
+      female: [Kavya]
+      male: [Amit]
+    code_mixed_target: mr
+    unicode_range: [0x0900, 0x097F]
+
+  gu:
+    name: Gujarati
+    script: Gujarati
+    code: gu
+    tts_voices:
+      female: [Kavya]
+      male: [Amit]
+    code_mixed_target: gu
+    unicode_range: [0x0A80, 0x0AFF]
+
+  kn:
+    name: Kannada
+    script: Kannada
+    code: kn
+    tts_voices:
+      female: [Kavya]
+      male: [Amit]
+    code_mixed_target: kn
+    unicode_range: [0x0C80, 0x0CFF]
+
+  ml:
+    name: Malayalam
+    script: Malayalam
+    code: ml
+    tts_voices:
+      female: [Kavya]
+      male: [Amit]
+    code_mixed_target: ml
+    unicode_range: [0x0D00, 0x0D7F]
+
+  pa:
+    name: Punjabi
+    script: Gurmukhi
+    code: pa
+    tts_voices:
+      female: [Kavya]
+      male: [Amit]
+    code_mixed_target: pa
+    unicode_range: [0x0A00, 0x0A7F]
+
+  or:
+    name: Odia
+    script: Odia
+    code: or
+    tts_voices:
+      female: [Kavya]
+      male: [Amit]
+    code_mixed_target: or
+    unicode_range: [0x0B00, 0x0B7F]
+
+  as:
+    name: Assamese
+    script: Assamese
+    code: as
+    tts_voices:
+      female: [Prastuti]
+      male: [Ankur]
+    code_mixed_target: as
+    unicode_range: [0x0980, 0x09FF]
+
+  ur:
+    name: Urdu
+    script: Nastaliq
+    code: ur
+    tts_voices:
+      female: [Kavya]
+      male: [Amit]
+    code_mixed_target: ur
+    unicode_range: [0x0600, 0x06FF]
+
+preview_tier:
+  brx: { name: Bodo, script: Devanagari, code: brx }
+  doi: { name: Dogri, script: Devanagari, code: doi }
+  kok: { name: Konkani, script: Devanagari, code: kok }
+  ks:  { name: Kashmiri, script: "Arabic", code: ks }
+  ks-Deva: { name: "Kashmiri (Devanagari)", script: Devanagari, code: ks-Deva }
+  mai: { name: Maithili, script: Devanagari, code: mai }
+  mni: { name: Manipuri, script: "Meetei Mayek", code: mni }
+  mni-Beng: { name: "Manipuri (Bengali script)", script: Bengali, code: mni-Beng }
+  ne:  { name: Nepali, script: Devanagari, code: ne }
+  sa:  { name: Sanskrit, script: Devanagari, code: sa }
+  sat: { name: Santali, script: "Ol Chiki", code: sat }
+  sd:  { name: Sindhi, script: "Arabic", code: sd }
+  sd-Arab: { name: "Sindhi (Arabic script)", script: Arabic, code: sd-Arab }
+
+# Indic script guard: Unicode ranges for LLM output validation
+# Any LLM response containing characters in these ranges is structurally rejected
+indic_script_ranges:
+  - [0x0600, 0x06FF]   # Arabic (Urdu, Sindhi, Kashmiri)
+  - [0x08A0, 0x08FF]   # Arabic Extended-A
+  - [0x0900, 0x097F]   # Devanagari (Hindi, Marathi, Sanskrit, Konkani, Bodo, Dogri, Maithili, Nepali)
+  - [0x0980, 0x09FF]   # Bengali & Assamese
+  - [0x0A00, 0x0A7F]   # Gurmukhi (Punjabi)
+  - [0x0A80, 0x0AFF]   # Gujarati
+  - [0x0B00, 0x0B7F]   # Odia
+  - [0x0B80, 0x0BFF]   # Tamil
+  - [0x0C00, 0x0C7F]   # Telugu
+  - [0x0C80, 0x0CFF]   # Kannada
+  - [0x0D00, 0x0D7F]   # Malayalam
+  - [0x1C50, 0x1C7F]   # Ol Chiki (Santali)
+  - [0xABC0, 0xABFF]   # Meetei Mayek (Manipuri)
