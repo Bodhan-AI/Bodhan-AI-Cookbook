@@ -1,0 +1,1497 @@
+{
+  "calibration": {
+    "category_accuracy": 1.0,
+    "category_only_detections": 10,
+    "clean_false_alarms": 0,
+    "comparable_detections": 22,
+    "correct_categories": 29,
+    "detected_errors": 29,
+    "false_alarm_rate": null,
+    "incomplete_clean_items": 0,
+    "labelled_errors": 32,
+    "labelled_items": 32,
+    "localization": 0.86364,
+    "localized_detections": 19,
+    "per_category": {
+      "addition": {
+        "fn": 0,
+        "fp": 0,
+        "precision": null,
+        "recall": null,
+        "tp": 0
+      },
+      "entity": {
+        "fn": 3,
+        "fp": 0,
+        "precision": null,
+        "recall": 0.0,
+        "tp": 0
+      },
+      "format": {
+        "fn": 0,
+        "fp": 0,
+        "precision": null,
+        "recall": null,
+        "tp": 0
+      },
+      "garbled_audio": {
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 6
+      },
+      "mistranslation": {
+        "fn": 0,
+        "fp": 2,
+        "precision": 0.66667,
+        "recall": 1.0,
+        "tp": 4
+      },
+      "number": {
+        "fn": 0,
+        "fp": 0,
+        "precision": null,
+        "recall": null,
+        "tp": 0
+      },
+      "omission": {
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 3
+      },
+      "speech_omission": {
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 7
+      },
+      "speech_repetition": {
+        "fn": 3,
+        "fp": 3,
+        "precision": 0.5,
+        "recall": 0.5,
+        "tp": 3
+      },
+      "wrong_language": {
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 3
+      }
+    },
+    "recall": 0.90625,
+    "reviewed_clean_items": 0
+  },
+  "heldout": {
+    "category_accuracy": 1.0,
+    "category_only_detections": 9,
+    "clean_false_alarms": 0,
+    "comparable_detections": 79,
+    "correct_categories": 87,
+    "detected_errors": 87,
+    "false_alarm_rate": 0.0,
+    "incomplete_clean_items": 0,
+    "labelled_errors": 91,
+    "labelled_items": 93,
+    "localization": 0.98734,
+    "localized_detections": 78,
+    "per_category": {
+      "addition": {
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 12
+      },
+      "entity": {
+        "fn": 4,
+        "fp": 2,
+        "precision": 0.71429,
+        "recall": 0.55556,
+        "tp": 5
+      },
+      "format": {
+        "fn": 0,
+        "fp": 8,
+        "precision": 0.6,
+        "recall": 1.0,
+        "tp": 12
+      },
+      "garbled_audio": {
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 6
+      },
+      "mistranslation": {
+        "fn": 1,
+        "fp": 4,
+        "precision": 0.66667,
+        "recall": 0.88889,
+        "tp": 8
+      },
+      "number": {
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 13
+      },
+      "omission": {
+        "fn": 0,
+        "fp": 4,
+        "precision": 0.69231,
+        "recall": 1.0,
+        "tp": 9
+      },
+      "speech_omission": {
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 6
+      },
+      "speech_repetition": {
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 6
+      },
+      "wrong_language": {
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 9
+      }
+    },
+    "recall": 0.95604,
+    "reviewed_clean_items": 2
+  },
+  "heldout_by_language": {
+    "bn": {
+      "category_accuracy": 1.0,
+      "category_only_detections": 4,
+      "clean_false_alarms": 0,
+      "comparable_detections": 26,
+      "correct_categories": 29,
+      "detected_errors": 29,
+      "false_alarm_rate": null,
+      "incomplete_clean_items": 0,
+      "labelled_errors": 30,
+      "labelled_items": 30,
+      "localization": 0.96154,
+      "localized_detections": 25,
+      "per_category": {
+        "addition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 4
+        },
+        "entity": {
+          "fn": 2,
+          "fp": 1,
+          "precision": 0.5,
+          "recall": 0.33333,
+          "tp": 1
+        },
+        "format": {
+          "fn": 0,
+          "fp": 3,
+          "precision": 0.57143,
+          "recall": 1.0,
+          "tp": 4
+        },
+        "garbled_audio": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 2
+        },
+        "mistranslation": {
+          "fn": 0,
+          "fp": 2,
+          "precision": 0.6,
+          "recall": 1.0,
+          "tp": 3
+        },
+        "number": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 4
+        },
+        "omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 3
+        },
+        "speech_omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 2
+        },
+        "speech_repetition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 2
+        },
+        "wrong_language": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 3
+        }
+      },
+      "recall": 0.96667,
+      "reviewed_clean_items": 0
+    },
+    "hi": {
+      "category_accuracy": 1.0,
+      "category_only_detections": 3,
+      "clean_false_alarms": 0,
+      "comparable_detections": 27,
+      "correct_categories": 30,
+      "detected_errors": 30,
+      "false_alarm_rate": 0.0,
+      "incomplete_clean_items": 0,
+      "labelled_errors": 31,
+      "labelled_items": 33,
+      "localization": 1.0,
+      "localized_detections": 27,
+      "per_category": {
+        "addition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 4
+        },
+        "entity": {
+          "fn": 1,
+          "fp": 1,
+          "precision": 0.66667,
+          "recall": 0.66667,
+          "tp": 2
+        },
+        "format": {
+          "fn": 0,
+          "fp": 2,
+          "precision": 0.66667,
+          "recall": 1.0,
+          "tp": 4
+        },
+        "garbled_audio": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 2
+        },
+        "mistranslation": {
+          "fn": 0,
+          "fp": 1,
+          "precision": 0.75,
+          "recall": 1.0,
+          "tp": 3
+        },
+        "number": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 5
+        },
+        "omission": {
+          "fn": 0,
+          "fp": 1,
+          "precision": 0.75,
+          "recall": 1.0,
+          "tp": 3
+        },
+        "speech_omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 2
+        },
+        "speech_repetition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 2
+        },
+        "wrong_language": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 3
+        }
+      },
+      "recall": 0.96774,
+      "reviewed_clean_items": 2
+    },
+    "ta": {
+      "category_accuracy": 1.0,
+      "category_only_detections": 2,
+      "clean_false_alarms": 0,
+      "comparable_detections": 26,
+      "correct_categories": 28,
+      "detected_errors": 28,
+      "false_alarm_rate": null,
+      "incomplete_clean_items": 0,
+      "labelled_errors": 30,
+      "labelled_items": 30,
+      "localization": 1.0,
+      "localized_detections": 26,
+      "per_category": {
+        "addition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 4
+        },
+        "entity": {
+          "fn": 1,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 0.66667,
+          "tp": 2
+        },
+        "format": {
+          "fn": 0,
+          "fp": 3,
+          "precision": 0.57143,
+          "recall": 1.0,
+          "tp": 4
+        },
+        "garbled_audio": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 2
+        },
+        "mistranslation": {
+          "fn": 1,
+          "fp": 1,
+          "precision": 0.66667,
+          "recall": 0.66667,
+          "tp": 2
+        },
+        "number": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 4
+        },
+        "omission": {
+          "fn": 0,
+          "fp": 3,
+          "precision": 0.5,
+          "recall": 1.0,
+          "tp": 3
+        },
+        "speech_omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 2
+        },
+        "speech_repetition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 2
+        },
+        "wrong_language": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 3
+        }
+      },
+      "recall": 0.93333,
+      "reviewed_clean_items": 0
+    }
+  },
+  "human_heldout_by_check": {
+    "entities": {
+      "category_accuracy": null,
+      "category_only_detections": 0,
+      "clean_false_alarms": 0,
+      "comparable_detections": 0,
+      "correct_categories": 0,
+      "detected_errors": 0,
+      "false_alarm_rate": 0.0,
+      "incomplete_clean_items": 0,
+      "labelled_errors": 2,
+      "labelled_items": 4,
+      "localization": null,
+      "localized_detections": 0,
+      "per_category": {
+        "addition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "entity": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "format": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "garbled_audio": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "mistranslation": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "number": {
+          "fn": 1,
+          "fp": 0,
+          "precision": null,
+          "recall": 0.0,
+          "tp": 0
+        },
+        "omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "speech_omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "speech_repetition": {
+          "fn": 1,
+          "fp": 0,
+          "precision": null,
+          "recall": 0.0,
+          "tp": 0
+        },
+        "wrong_language": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        }
+      },
+      "recall": 0.0,
+      "reviewed_clean_items": 2
+    },
+    "judge": {
+      "category_accuracy": 1.0,
+      "category_only_detections": 0,
+      "clean_false_alarms": 0,
+      "comparable_detections": 1,
+      "correct_categories": 1,
+      "detected_errors": 1,
+      "false_alarm_rate": 0.0,
+      "incomplete_clean_items": 0,
+      "labelled_errors": 2,
+      "labelled_items": 4,
+      "localization": 1.0,
+      "localized_detections": 1,
+      "per_category": {
+        "addition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "entity": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "format": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "garbled_audio": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "mistranslation": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "number": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 1
+        },
+        "omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "speech_omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "speech_repetition": {
+          "fn": 1,
+          "fp": 0,
+          "precision": null,
+          "recall": 0.0,
+          "tp": 0
+        },
+        "wrong_language": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        }
+      },
+      "recall": 0.5,
+      "reviewed_clean_items": 2
+    },
+    "latex": {
+      "category_accuracy": null,
+      "category_only_detections": 0,
+      "clean_false_alarms": 0,
+      "comparable_detections": 0,
+      "correct_categories": 0,
+      "detected_errors": 0,
+      "false_alarm_rate": 0.0,
+      "incomplete_clean_items": 0,
+      "labelled_errors": 2,
+      "labelled_items": 4,
+      "localization": null,
+      "localized_detections": 0,
+      "per_category": {
+        "addition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "entity": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "format": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "garbled_audio": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "mistranslation": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "number": {
+          "fn": 1,
+          "fp": 0,
+          "precision": null,
+          "recall": 0.0,
+          "tp": 0
+        },
+        "omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "speech_omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "speech_repetition": {
+          "fn": 1,
+          "fp": 0,
+          "precision": null,
+          "recall": 0.0,
+          "tp": 0
+        },
+        "wrong_language": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        }
+      },
+      "recall": 0.0,
+      "reviewed_clean_items": 2
+    },
+    "markdown": {
+      "category_accuracy": null,
+      "category_only_detections": 0,
+      "clean_false_alarms": 0,
+      "comparable_detections": 0,
+      "correct_categories": 0,
+      "detected_errors": 0,
+      "false_alarm_rate": 0.0,
+      "incomplete_clean_items": 0,
+      "labelled_errors": 2,
+      "labelled_items": 4,
+      "localization": null,
+      "localized_detections": 0,
+      "per_category": {
+        "addition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "entity": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "format": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "garbled_audio": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "mistranslation": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "number": {
+          "fn": 1,
+          "fp": 0,
+          "precision": null,
+          "recall": 0.0,
+          "tp": 0
+        },
+        "omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "speech_omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "speech_repetition": {
+          "fn": 1,
+          "fp": 0,
+          "precision": null,
+          "recall": 0.0,
+          "tp": 0
+        },
+        "wrong_language": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        }
+      },
+      "recall": 0.0,
+      "reviewed_clean_items": 2
+    },
+    "numbers": {
+      "category_accuracy": 1.0,
+      "category_only_detections": 0,
+      "clean_false_alarms": 0,
+      "comparable_detections": 1,
+      "correct_categories": 1,
+      "detected_errors": 1,
+      "false_alarm_rate": 0.0,
+      "incomplete_clean_items": 0,
+      "labelled_errors": 2,
+      "labelled_items": 4,
+      "localization": 1.0,
+      "localized_detections": 1,
+      "per_category": {
+        "addition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "entity": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "format": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "garbled_audio": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "mistranslation": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "number": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 1
+        },
+        "omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "speech_omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "speech_repetition": {
+          "fn": 1,
+          "fp": 0,
+          "precision": null,
+          "recall": 0.0,
+          "tp": 0
+        },
+        "wrong_language": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        }
+      },
+      "recall": 0.5,
+      "reviewed_clean_items": 2
+    },
+    "silence": {
+      "category_accuracy": null,
+      "category_only_detections": 0,
+      "clean_false_alarms": 0,
+      "comparable_detections": 0,
+      "correct_categories": 0,
+      "detected_errors": 0,
+      "false_alarm_rate": 0.0,
+      "incomplete_clean_items": 0,
+      "labelled_errors": 2,
+      "labelled_items": 4,
+      "localization": null,
+      "localized_detections": 0,
+      "per_category": {
+        "addition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "entity": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "format": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "garbled_audio": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "mistranslation": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "number": {
+          "fn": 1,
+          "fp": 0,
+          "precision": null,
+          "recall": 0.0,
+          "tp": 0
+        },
+        "omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "speech_omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "speech_repetition": {
+          "fn": 1,
+          "fp": 0,
+          "precision": null,
+          "recall": 0.0,
+          "tp": 0
+        },
+        "wrong_language": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        }
+      },
+      "recall": 0.0,
+      "reviewed_clean_items": 2
+    },
+    "transcript_alignment": {
+      "category_accuracy": 1.0,
+      "category_only_detections": 1,
+      "clean_false_alarms": 0,
+      "comparable_detections": 0,
+      "correct_categories": 1,
+      "detected_errors": 1,
+      "false_alarm_rate": 0.0,
+      "incomplete_clean_items": 0,
+      "labelled_errors": 2,
+      "labelled_items": 4,
+      "localization": null,
+      "localized_detections": 0,
+      "per_category": {
+        "addition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "entity": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "format": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "garbled_audio": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "mistranslation": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "number": {
+          "fn": 1,
+          "fp": 0,
+          "precision": null,
+          "recall": 0.0,
+          "tp": 0
+        },
+        "omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "speech_omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "speech_repetition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 1
+        },
+        "wrong_language": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        }
+      },
+      "recall": 0.5,
+      "reviewed_clean_items": 2
+    }
+  },
+  "injected_holdout": {
+    "category_accuracy": 1.0,
+    "category_only_detections": 8,
+    "clean_false_alarms": 0,
+    "comparable_detections": 80,
+    "correct_categories": 87,
+    "detected_errors": 87,
+    "false_alarm_rate": 0.0,
+    "incomplete_clean_items": 0,
+    "labelled_errors": 91,
+    "labelled_items": 92,
+    "localization": 0.9875,
+    "localized_detections": 79,
+    "per_category": {
+      "addition": {
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 12
+      },
+      "entity": {
+        "fn": 4,
+        "fp": 2,
+        "precision": 0.71429,
+        "recall": 0.55556,
+        "tp": 5
+      },
+      "format": {
+        "fn": 0,
+        "fp": 8,
+        "precision": 0.6,
+        "recall": 1.0,
+        "tp": 12
+      },
+      "garbled_audio": {
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 6
+      },
+      "mistranslation": {
+        "fn": 1,
+        "fp": 4,
+        "precision": 0.66667,
+        "recall": 0.88889,
+        "tp": 8
+      },
+      "number": {
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 13
+      },
+      "omission": {
+        "fn": 0,
+        "fp": 4,
+        "precision": 0.69231,
+        "recall": 1.0,
+        "tp": 9
+      },
+      "speech_omission": {
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 6
+      },
+      "speech_repetition": {
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 6
+      },
+      "wrong_language": {
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 9
+      }
+    },
+    "recall": 0.95604,
+    "reviewed_clean_items": 1
+  },
+  "injected_holdout_by_language": {
+    "bn": {
+      "category_accuracy": 1.0,
+      "category_only_detections": 4,
+      "clean_false_alarms": 0,
+      "comparable_detections": 26,
+      "correct_categories": 29,
+      "detected_errors": 29,
+      "false_alarm_rate": null,
+      "incomplete_clean_items": 0,
+      "labelled_errors": 30,
+      "labelled_items": 30,
+      "localization": 0.96154,
+      "localized_detections": 25,
+      "per_category": {
+        "addition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 4
+        },
+        "entity": {
+          "fn": 2,
+          "fp": 1,
+          "precision": 0.5,
+          "recall": 0.33333,
+          "tp": 1
+        },
+        "format": {
+          "fn": 0,
+          "fp": 3,
+          "precision": 0.57143,
+          "recall": 1.0,
+          "tp": 4
+        },
+        "garbled_audio": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 2
+        },
+        "mistranslation": {
+          "fn": 0,
+          "fp": 2,
+          "precision": 0.6,
+          "recall": 1.0,
+          "tp": 3
+        },
+        "number": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 4
+        },
+        "omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 3
+        },
+        "speech_omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 2
+        },
+        "speech_repetition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 2
+        },
+        "wrong_language": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 3
+        }
+      },
+      "recall": 0.96667,
+      "reviewed_clean_items": 0
+    },
+    "hi": {
+      "category_accuracy": 1.0,
+      "category_only_detections": 2,
+      "clean_false_alarms": 0,
+      "comparable_detections": 28,
+      "correct_categories": 30,
+      "detected_errors": 30,
+      "false_alarm_rate": 0.0,
+      "incomplete_clean_items": 0,
+      "labelled_errors": 31,
+      "labelled_items": 32,
+      "localization": 1.0,
+      "localized_detections": 28,
+      "per_category": {
+        "addition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 4
+        },
+        "entity": {
+          "fn": 1,
+          "fp": 1,
+          "precision": 0.66667,
+          "recall": 0.66667,
+          "tp": 2
+        },
+        "format": {
+          "fn": 0,
+          "fp": 2,
+          "precision": 0.66667,
+          "recall": 1.0,
+          "tp": 4
+        },
+        "garbled_audio": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 2
+        },
+        "mistranslation": {
+          "fn": 0,
+          "fp": 1,
+          "precision": 0.75,
+          "recall": 1.0,
+          "tp": 3
+        },
+        "number": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 5
+        },
+        "omission": {
+          "fn": 0,
+          "fp": 1,
+          "precision": 0.75,
+          "recall": 1.0,
+          "tp": 3
+        },
+        "speech_omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 2
+        },
+        "speech_repetition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 2
+        },
+        "wrong_language": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 3
+        }
+      },
+      "recall": 0.96774,
+      "reviewed_clean_items": 1
+    },
+    "ta": {
+      "category_accuracy": 1.0,
+      "category_only_detections": 2,
+      "clean_false_alarms": 0,
+      "comparable_detections": 26,
+      "correct_categories": 28,
+      "detected_errors": 28,
+      "false_alarm_rate": null,
+      "incomplete_clean_items": 0,
+      "labelled_errors": 30,
+      "labelled_items": 30,
+      "localization": 1.0,
+      "localized_detections": 26,
+      "per_category": {
+        "addition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 4
+        },
+        "entity": {
+          "fn": 1,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 0.66667,
+          "tp": 2
+        },
+        "format": {
+          "fn": 0,
+          "fp": 3,
+          "precision": 0.57143,
+          "recall": 1.0,
+          "tp": 4
+        },
+        "garbled_audio": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 2
+        },
+        "mistranslation": {
+          "fn": 1,
+          "fp": 1,
+          "precision": 0.66667,
+          "recall": 0.66667,
+          "tp": 2
+        },
+        "number": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 4
+        },
+        "omission": {
+          "fn": 0,
+          "fp": 3,
+          "precision": 0.5,
+          "recall": 1.0,
+          "tp": 3
+        },
+        "speech_omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 2
+        },
+        "speech_repetition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 2
+        },
+        "wrong_language": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 3
+        }
+      },
+      "recall": 0.93333,
+      "reviewed_clean_items": 0
+    }
+  },
+  "invalid_rows": [],
+  "judge_repeat": {
+    "agreement": 1.0,
+    "agreements": 10,
+    "compared": 10
+  },
+  "thresholds": {
+    "addition": 0.72,
+    "entity": 0.72,
+    "format": 0.72,
+    "garbled_audio": 0.72,
+    "mistranslation": 0.72,
+    "number": 0.72,
+    "omission": 0.72,
+    "speech_omission": 0.72,
+    "speech_repetition": 0.72,
+    "wrong_language": 0.72
+  },
+  "tuning_support": {
+    "addition": {
+      "fitted": false,
+      "negative_items": 2,
+      "positive_items": 0
+    },
+    "entity": {
+      "fitted": false,
+      "negative_items": 2,
+      "positive_items": 0
+    },
+    "format": {
+      "fitted": false,
+      "negative_items": 2,
+      "positive_items": 0
+    },
+    "garbled_audio": {
+      "fitted": false,
+      "negative_items": 1,
+      "positive_items": 0
+    },
+    "mistranslation": {
+      "fitted": false,
+      "negative_items": 1,
+      "positive_items": 1
+    },
+    "number": {
+      "fitted": false,
+      "negative_items": 2,
+      "positive_items": 0
+    },
+    "omission": {
+      "fitted": false,
+      "negative_items": 2,
+      "positive_items": 0
+    },
+    "speech_omission": {
+      "fitted": false,
+      "negative_items": 0,
+      "positive_items": 1
+    },
+    "speech_repetition": {
+      "fitted": false,
+      "negative_items": 1,
+      "positive_items": 0
+    },
+    "wrong_language": {
+      "fitted": false,
+      "negative_items": 2,
+      "positive_items": 0
+    }
+  },
+  "unmutated_controls": {
+    "flag_rate": 0.09589,
+    "flagged_items": 7,
+    "flags_by_category": {
+      "format": 2,
+      "mistranslation": 2,
+      "omission": 2,
+      "wrong_language": 1
+    },
+    "items": 73
+  }
+}

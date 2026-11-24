@@ -1,0 +1,19 @@
+.env
+.env.*
+!.env.example
+.venv/
+__pycache__/
+*.egg-info/
+build/
+.pytest_cache/
+.ruff_cache/
+.bodhan-cache/
+report*/
+outputs/*
+!outputs/.gitkeep
+sample_data/*
+!sample_data/.gitkeep
+
+# Generated demo audio is distributed as a separate bundle, never committed.
+data/audio/
+*.wav

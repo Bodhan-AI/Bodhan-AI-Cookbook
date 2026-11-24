@@ -1,0 +1,61 @@
+{
+  "runs": [
+    "Kavya (hi=Kavya)",
+    "Suhani (hi=Suhani)",
+    "Amit (hi=Amit)"
+  ],
+  "languages": {
+    "Kavya (hi=Kavya)": {
+      "hi": {
+        "clips": 10,
+        "aligned": 10,
+        "mean_cer": 0.0446,
+        "mean_repeat_adjusted_cer": 0.0446,
+        "mean_duration_s": 7.3987,
+        "mean_script_chars_per_s": 12.137,
+        "mean_silence_ratio": 0.0807,
+        "clips_with_speech_flags": 0,
+        "flags_by_category": {
+          "speech_omission": 0,
+          "speech_repetition": 0,
+          "garbled_audio": 0
+        }
+      }
+    },
+    "Suhani (hi=Suhani)": {
+      "hi": {
+        "clips": 10,
+        "aligned": 10,
+        "mean_cer": 0.0389,
+        "mean_repeat_adjusted_cer": 0.0389,
+        "mean_duration_s": 8.1751,
+        "mean_script_chars_per_s": 11.0488,
+        "mean_silence_ratio": 0.1514,
+        "clips_with_speech_flags": 0,
+        "flags_by_category": {
+          "speech_omission": 0,
+          "speech_repetition": 0,
+          "garbled_audio": 0
+        }
+      }
+    },
+    "Amit (hi=Amit)": {
+      "hi": {
+        "clips": 10,
+        "aligned": 10,
+        "mean_cer": 0.0386,
+        "mean_repeat_adjusted_cer": 0.0386,
+        "mean_duration_s": 7.4243,
+        "mean_script_chars_per_s": 12.0583,
+        "mean_silence_ratio": 0.1017,
+        "clips_with_speech_flags": 0,
+        "flags_by_category": {
+          "speech_omission": 0,
+          "speech_repetition": 0,
+          "garbled_audio": 0
+        }
+      }
+    }
+  },
+  "disagreements": 0
+}

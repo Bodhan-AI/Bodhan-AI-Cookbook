@@ -1,0 +1,1295 @@
+{
+  "baseline": {
+    "added_flags": 113,
+    "incomparable_coverage": 25,
+    "persistent_flags": 15,
+    "resolved_flags": 1,
+    "severity_changes": 1
+  },
+  "check_failures": {
+    "judge: http_402": 18
+  },
+  "configuration": {
+    "finding_policy_version": 2,
+    "judge_endpoint_sha256": "8afc95df9dd8c03932a43b51fa38e01be18cd433b41e5ae5fb1096176a4e188c",
+    "judge_model": "qwen-3.8-27b",
+    "rubric_sha256": "a46832a9feea73569cdd7c8f9b243d6c5a9a8d6e3faac35d35d221589aa45120",
+    "speech_checks_enabled": true,
+    "speech_style": null,
+    "thresholds": {
+      "addition": 0.72,
+      "entity": 0.72,
+      "format": 0.72,
+      "garbled_audio": 0.72,
+      "mistranslation": 0.72,
+      "number": 0.72,
+      "omission": 0.72,
+      "speech_omission": 0.72,
+      "speech_repetition": 0.72,
+      "wrong_language": 0.72
+    },
+    "voices": {
+      "bn": "Ishita",
+      "hi": "Kavya",
+      "ta": "Anitha"
+    }
+  },
+  "cost": {
+    "bodhan_inr": 2.575185,
+    "calls_by_operation": {
+      "judge": 190,
+      "transcribe": 203,
+      "translate": 194
+    },
+    "judge_calls_with_usage": 190,
+    "judge_input_tokens": 201018,
+    "judge_output_tokens": 265330
+  },
+  "counts": {
+    "invalid": 0,
+    "partial": 18,
+    "scored": 213
+  },
+  "findings": {
+    "addition": 12,
+    "entity": 7,
+    "format": 22,
+    "garbled_audio": 12,
+    "mistranslation": 20,
+    "number": 13,
+    "omission": 19,
+    "speech_omission": 13,
+    "speech_repetition": 12,
+    "wrong_language": 13
+  },
+  "invalid_calibration_rows": [],
+  "invalid_rows": [],
+  "languages": {
+    "bn": {
+      "findings": {
+        "addition": 4,
+        "entity": 2,
+        "format": 8,
+        "garbled_audio": 4,
+        "mistranslation": 8,
+        "number": 4,
+        "omission": 5,
+        "speech_omission": 4,
+        "speech_repetition": 4,
+        "wrong_language": 5
+      },
+      "flagged_items": 42,
+      "items": 76
+    },
+    "hi": {
+      "findings": {
+        "addition": 4,
+        "entity": 3,
+        "format": 6,
+        "garbled_audio": 4,
+        "mistranslation": 8,
+        "number": 5,
+        "omission": 5,
+        "speech_omission": 5,
+        "speech_repetition": 4,
+        "wrong_language": 4
+      },
+      "flagged_items": 42,
+      "items": 79
+    },
+    "ta": {
+      "findings": {
+        "addition": 4,
+        "entity": 2,
+        "format": 8,
+        "garbled_audio": 4,
+        "mistranslation": 4,
+        "number": 4,
+        "omission": 9,
+        "speech_omission": 4,
+        "speech_repetition": 4,
+        "wrong_language": 4
+      },
+      "flagged_items": 40,
+      "items": 76
+    }
+  },
+  "mqm": {
+    "bn": {
+      "penalty": 243,
+      "score": 81.44,
+      "words": 1309
+    },
+    "hi": {
+      "penalty": 243,
+      "score": 82.11,
+      "words": 1358
+    },
+    "ta": {
+      "penalty": 221,
+      "score": 83.12,
+      "words": 1309
+    }
+  },
+  "quality": {
+    "calibration": {
+      "category_accuracy": 1.0,
+      "category_only_detections": 10,
+      "clean_false_alarms": 0,
+      "comparable_detections": 22,
+      "correct_categories": 29,
+      "detected_errors": 29,
+      "false_alarm_rate": null,
+      "incomplete_clean_items": 0,
+      "labelled_errors": 32,
+      "labelled_items": 32,
+      "localization": 0.86364,
+      "localized_detections": 19,
+      "per_category": {
+        "addition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "entity": {
+          "fn": 3,
+          "fp": 0,
+          "precision": null,
+          "recall": 0.0,
+          "tp": 0
+        },
+        "format": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "garbled_audio": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 6
+        },
+        "mistranslation": {
+          "fn": 0,
+          "fp": 2,
+          "precision": 0.66667,
+          "recall": 1.0,
+          "tp": 4
+        },
+        "number": {
+          "fn": 0,
+          "fp": 0,
+          "precision": null,
+          "recall": null,
+          "tp": 0
+        },
+        "omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 3
+        },
+        "speech_omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 7
+        },
+        "speech_repetition": {
+          "fn": 3,
+          "fp": 3,
+          "precision": 0.5,
+          "recall": 0.5,
+          "tp": 3
+        },
+        "wrong_language": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 3
+        }
+      },
+      "recall": 0.90625,
+      "reviewed_clean_items": 0
+    },
+    "heldout": {
+      "category_accuracy": 1.0,
+      "category_only_detections": 9,
+      "clean_false_alarms": 0,
+      "comparable_detections": 79,
+      "correct_categories": 87,
+      "detected_errors": 87,
+      "false_alarm_rate": 0.0,
+      "incomplete_clean_items": 0,
+      "labelled_errors": 91,
+      "labelled_items": 93,
+      "localization": 0.98734,
+      "localized_detections": 78,
+      "per_category": {
+        "addition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 12
+        },
+        "entity": {
+          "fn": 4,
+          "fp": 2,
+          "precision": 0.71429,
+          "recall": 0.55556,
+          "tp": 5
+        },
+        "format": {
+          "fn": 0,
+          "fp": 8,
+          "precision": 0.6,
+          "recall": 1.0,
+          "tp": 12
+        },
+        "garbled_audio": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 6
+        },
+        "mistranslation": {
+          "fn": 1,
+          "fp": 4,
+          "precision": 0.66667,
+          "recall": 0.88889,
+          "tp": 8
+        },
+        "number": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 13
+        },
+        "omission": {
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.69231,
+          "recall": 1.0,
+          "tp": 9
+        },
+        "speech_omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 6
+        },
+        "speech_repetition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 6
+        },
+        "wrong_language": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 9
+        }
+      },
+      "recall": 0.95604,
+      "reviewed_clean_items": 2
+    },
+    "heldout_by_language": {
+      "bn": {
+        "category_accuracy": 1.0,
+        "category_only_detections": 4,
+        "clean_false_alarms": 0,
+        "comparable_detections": 26,
+        "correct_categories": 29,
+        "detected_errors": 29,
+        "false_alarm_rate": null,
+        "incomplete_clean_items": 0,
+        "labelled_errors": 30,
+        "labelled_items": 30,
+        "localization": 0.96154,
+        "localized_detections": 25,
+        "per_category": {
+          "addition": {
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 4
+          },
+          "entity": {
+            "fn": 2,
+            "fp": 1,
+            "precision": 0.5,
+            "recall": 0.33333,
+            "tp": 1
+          },
+          "format": {
+            "fn": 0,
+            "fp": 3,
+            "precision": 0.57143,
+            "recall": 1.0,
+            "tp": 4
+          },
+          "garbled_audio": {
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 2
+          },
+          "mistranslation": {
+            "fn": 0,
+            "fp": 2,
+            "precision": 0.6,
+            "recall": 1.0,
+            "tp": 3
+          },
+          "number": {
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 4
+          },
+          "omission": {
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 3
+          },
+          "speech_omission": {
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 2
+          },
+          "speech_repetition": {
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 2
+          },
+          "wrong_language": {
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 3
+          }
+        },
+        "recall": 0.96667,
+        "reviewed_clean_items": 0
+      },
+      "hi": {
+        "category_accuracy": 1.0,
+        "category_only_detections": 3,
+        "clean_false_alarms": 0,
+        "comparable_detections": 27,
+        "correct_categories": 30,
+        "detected_errors": 30,
+        "false_alarm_rate": 0.0,
+        "incomplete_clean_items": 0,
+        "labelled_errors": 31,
+        "labelled_items": 33,
+        "localization": 1.0,
+        "localized_detections": 27,
+        "per_category": {
+          "addition": {
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 4
+          },
+          "entity": {
+            "fn": 1,
+            "fp": 1,
+            "precision": 0.66667,
+            "recall": 0.66667,
+            "tp": 2
+          },
+          "format": {
+            "fn": 0,
+            "fp": 2,
+            "precision": 0.66667,
+            "recall": 1.0,
+            "tp": 4
+          },
+          "garbled_audio": {
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 2
+          },
+          "mistranslation": {
+            "fn": 0,
+            "fp": 1,
+            "precision": 0.75,
+            "recall": 1.0,
+            "tp": 3
+          },
+          "number": {
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 5
+          },
+          "omission": {
+            "fn": 0,
+            "fp": 1,
+            "precision": 0.75,
+            "recall": 1.0,
+            "tp": 3
+          },
+          "speech_omission": {
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 2
+          },
+          "speech_repetition": {
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 2
+          },
+          "wrong_language": {
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 3
+          }
+        },
+        "recall": 0.96774,
+        "reviewed_clean_items": 2
+      },
+      "ta": {
+        "category_accuracy": 1.0,
+        "category_only_detections": 2,
+        "clean_false_alarms": 0,
+        "comparable_detections": 26,
+        "correct_categories": 28,
+        "detected_errors": 28,
+        "false_alarm_rate": null,
+        "incomplete_clean_items": 0,
+        "labelled_errors": 30,
+        "labelled_items": 30,
+        "localization": 1.0,
+        "localized_detections": 26,
+        "per_category": {
+          "addition": {
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 4
+          },
+          "entity": {
+            "fn": 1,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 0.66667,
+            "tp": 2
+          },
+          "format": {
+            "fn": 0,
+            "fp": 3,
+            "precision": 0.57143,
+            "recall": 1.0,
+            "tp": 4
+          },
+          "garbled_audio": {
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 2
+          },
+          "mistranslation": {
+            "fn": 1,
+            "fp": 1,
+            "precision": 0.66667,
+            "recall": 0.66667,
+            "tp": 2
+          },
+          "number": {
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 4
+          },
+          "omission": {
+            "fn": 0,
+            "fp": 3,
+            "precision": 0.5,
+            "recall": 1.0,
+            "tp": 3
+          },
+          "speech_omission": {
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 2
+          },
+          "speech_repetition": {
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 2
+          },
+          "wrong_language": {
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 3
+          }
+        },
+        "recall": 0.93333,
+        "reviewed_clean_items": 0
+      }
+    },
+    "injected_holdout": {
+      "category_accuracy": 1.0,
+      "category_only_detections": 8,
+      "clean_false_alarms": 0,
+      "comparable_detections": 80,
+      "correct_categories": 87,
+      "detected_errors": 87,
+      "false_alarm_rate": 0.0,
+      "incomplete_clean_items": 0,
+      "labelled_errors": 91,
+      "labelled_items": 92,
+      "localization": 0.9875,
+      "localized_detections": 79,
+      "per_category": {
+        "addition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 12
+        },
+        "entity": {
+          "fn": 4,
+          "fp": 2,
+          "precision": 0.71429,
+          "recall": 0.55556,
+          "tp": 5
+        },
+        "format": {
+          "fn": 0,
+          "fp": 8,
+          "precision": 0.6,
+          "recall": 1.0,
+          "tp": 12
+        },
+        "garbled_audio": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 6
+        },
+        "mistranslation": {
+          "fn": 1,
+          "fp": 4,
+          "precision": 0.66667,
+          "recall": 0.88889,
+          "tp": 8
+        },
+        "number": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 13
+        },
+        "omission": {
+          "fn": 0,
+          "fp": 4,
+          "precision": 0.69231,
+          "recall": 1.0,
+          "tp": 9
+        },
+        "speech_omission": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 6
+        },
+        "speech_repetition": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 6
+        },
+        "wrong_language": {
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 9
+        }
+      },
+      "recall": 0.95604,
+      "reviewed_clean_items": 1
+    },
+    "injected_holdout_by_language": {
+      "bn": {
+        "category_accuracy": 1.0,
+        "category_only_detections": 4,
+        "clean_false_alarms": 0,
+        "comparable_detections": 26,
+        "correct_categories": 29,
+        "detected_errors": 29,
+        "false_alarm_rate": null,
+        "incomplete_clean_items": 0,
+        "labelled_errors": 30,
+        "labelled_items": 30,
+        "localization": 0.96154,
+        "localized_detections": 25,
+        "per_category": {
+          "addition": {
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 4
+          },
+          "entity": {
+            "fn": 2,
+            "fp": 1,
+            "precision": 0.5,
+            "recall": 0.33333,
+            "tp": 1
+          },
+          "format": {
+            "fn": 0,
+            "fp": 3,
+            "precision": 0.57143,
+            "recall": 1.0,
+            "tp": 4
+          },
+          "garbled_audio": {
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 2
+          },
+          "mistranslation": {
+            "fn": 0,
+            "fp": 2,
+            "precision": 0.6,
+            "recall": 1.0,
+            "tp": 3
+          },
+          "number": {
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 4
+          },
+          "omission": {
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 3
+          },
+          "speech_omission": {
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 2
+          },
+          "speech_repetition": {
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 2
+          },
+          "wrong_language": {
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 3
+          }
+        },
+        "recall": 0.96667,
+        "reviewed_clean_items": 0
+      },
+      "hi": {
+        "category_accuracy": 1.0,
+        "category_only_detections": 2,
+        "clean_false_alarms": 0,
+        "comparable_detections": 28,
+        "correct_categories": 30,
+        "detected_errors": 30,
+        "false_alarm_rate": 0.0,
+        "incomplete_clean_items": 0,
+        "labelled_errors": 31,
+        "labelled_items": 32,
+        "localization": 1.0,
+        "localized_detections": 28,
+        "per_category": {
+          "addition": {
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 4
+          },
+          "entity": {
+            "fn": 1,
+            "fp": 1,
+            "precision": 0.66667,
+            "recall": 0.66667,
+            "tp": 2
+          },
+          "format": {
+            "fn": 0,
+            "fp": 2,
+            "precision": 0.66667,
+            "recall": 1.0,
+            "tp": 4
+          },
+          "garbled_audio": {
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 2
+          },
+          "mistranslation": {
+            "fn": 0,
+            "fp": 1,
+            "precision": 0.75,
+            "recall": 1.0,
+            "tp": 3
+          },
+          "number": {
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 5
+          },
+          "omission": {
+            "fn": 0,
+            "fp": 1,
+            "precision": 0.75,
+            "recall": 1.0,
+            "tp": 3
+          },
+          "speech_omission": {
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 2
+          },
+          "speech_repetition": {
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 2
+          },
+          "wrong_language": {
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 3
+          }
+        },
+        "recall": 0.96774,
+        "reviewed_clean_items": 1
+      },
+      "ta": {
+        "category_accuracy": 1.0,
+        "category_only_detections": 2,
+        "clean_false_alarms": 0,
+        "comparable_detections": 26,
+        "correct_categories": 28,
+        "detected_errors": 28,
+        "false_alarm_rate": null,
+        "incomplete_clean_items": 0,
+        "labelled_errors": 30,
+        "labelled_items": 30,
+        "localization": 1.0,
+        "localized_detections": 26,
+        "per_category": {
+          "addition": {
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 4
+          },
+          "entity": {
+            "fn": 1,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 0.66667,
+            "tp": 2
+          },
+          "format": {
+            "fn": 0,
+            "fp": 3,
+            "precision": 0.57143,
+            "recall": 1.0,
+            "tp": 4
+          },
+          "garbled_audio": {
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 2
+          },
+          "mistranslation": {
+            "fn": 1,
+            "fp": 1,
+            "precision": 0.66667,
+            "recall": 0.66667,
+            "tp": 2
+          },
+          "number": {
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 4
+          },
+          "omission": {
+            "fn": 0,
+            "fp": 3,
+            "precision": 0.5,
+            "recall": 1.0,
+            "tp": 3
+          },
+          "speech_omission": {
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 2
+          },
+          "speech_repetition": {
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 2
+          },
+          "wrong_language": {
+            "fn": 0,
+            "fp": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "tp": 3
+          }
+        },
+        "recall": 0.93333,
+        "reviewed_clean_items": 0
+      }
+    },
+    "judge_repeat": {
+      "agreement": 1.0,
+      "agreements": 10,
+      "compared": 10
+    },
+    "unmutated_controls": {
+      "flag_rate": 0.09589,
+      "flagged_items": 7,
+      "flags_by_category": {
+        "format": 2,
+        "mistranslation": 2,
+        "omission": 2,
+        "wrong_language": 1
+      },
+      "items": 73
+    }
+  },
+  "schema_version": 1,
+  "top_findings": [
+    {
+      "anchor": null,
+      "category": "mistranslation",
+      "check": "judge",
+      "detail": "Says unequal sides where the source says equal sides.",
+      "evidence": "অসম",
+      "id": "edu-009-mistranslation",
+      "lang": "bn",
+      "severity": "critical",
+      "span": {
+        "end": 28,
+        "field": "translation",
+        "start": 25
+      },
+      "strength": 0.85
+    },
+    {
+      "anchor": null,
+      "category": "mistranslation",
+      "check": "judge",
+      "detail": "Says clockwise (direction of the clock hand) where the source says counterclockwise.",
+      "evidence": "ঘড়ির কাঁটার দিকে",
+      "id": "edu-028-mistranslation",
+      "lang": "bn",
+      "severity": "critical",
+      "span": {
+        "end": 26,
+        "field": "translation",
+        "start": 9
+      },
+      "strength": 0.85
+    },
+    {
+      "anchor": null,
+      "category": "garbled_audio",
+      "check": "silence",
+      "detail": "Inspect the measured interval.",
+      "evidence": "Internal quiet signal for 2.90 s, from 3.90 s to 6.80 s (no frame above -90 dBFS).",
+      "id": "edu-020-garbled_audio",
+      "lang": "bn",
+      "severity": "major",
+      "span": {
+        "end": 6800,
+        "field": "audio_ms",
+        "start": 3900
+      },
+      "strength": 0.99
+    },
+    {
+      "anchor": null,
+      "category": "garbled_audio",
+      "check": "silence",
+      "detail": "Inspect the measured interval.",
+      "evidence": "Internal quiet signal for 2.90 s, from 4.20 s to 7.10 s (no frame above -90 dBFS).",
+      "id": "edu-029-garbled_audio",
+      "lang": "hi",
+      "severity": "major",
+      "span": {
+        "end": 7100,
+        "field": "audio_ms",
+        "start": 4200
+      },
+      "strength": 0.99
+    },
+    {
+      "anchor": {
+        "end": 13,
+        "field": "source",
+        "start": 4
+      },
+      "category": "format",
+      "check": "latex",
+      "detail": "The math delimiters of '$v = d/t$' are broken or missing.",
+      "evidence": "v = d/t$",
+      "id": "edu-015-format",
+      "lang": "bn",
+      "severity": "major",
+      "span": {
+        "end": 17,
+        "field": "translation",
+        "start": 9
+      },
+      "strength": 0.98
+    },
+    {
+      "anchor": {
+        "end": 22,
+        "field": "source",
+        "start": 0
+      },
+      "category": "format",
+      "check": "markdown",
+      "detail": "Markdown headings, list items, code fences, or table shape changed.",
+      "evidence": "- সকাল ০৮:০০ টায় গেজটি পড়ুন। - সেতু থেকে বেরোনোর আগে ফলাফলটি লিখে রাখুন।",
+      "id": "edu-022-format",
+      "lang": "bn",
+      "severity": "major",
+      "span": {
+        "end": 91,
+        "field": "translation",
+        "start": 17
+      },
+      "strength": 0.98
+    },
+    {
+      "anchor": null,
+      "category": "wrong_language",
+      "check": "script",
+      "detail": "The candidate reproduces the English source.",
+      "evidence": "Rotate the paper counterclockwise by 90 degrees. The center of the paper stays in place",
+      "id": "edu-028-wrong_language",
+      "lang": "bn",
+      "severity": "major",
+      "span": {
+        "end": 87,
+        "field": "translation",
+        "start": 0
+      },
+      "strength": 0.97
+    },
+    {
+      "anchor": null,
+      "category": "wrong_language",
+      "check": "script",
+      "detail": "The candidate reproduces the English source.",
+      "evidence": "Rotate the paper counterclockwise by 90 degrees. The center of the paper stays in place",
+      "id": "edu-028-wrong_language",
+      "lang": "hi",
+      "severity": "major",
+      "span": {
+        "end": 87,
+        "field": "translation",
+        "start": 0
+      },
+      "strength": 0.97
+    },
+    {
+      "anchor": null,
+      "category": "speech_omission",
+      "check": "transcript_alignment",
+      "detail": "A sustained script span is missing from the back-transcript.",
+      "evidence": "किसी रिकॉर्डिंग का पुन: उपयोग करने से पहले स्रोत की जाँच करें",
+      "id": "edu-025-speech_omission",
+      "lang": "hi",
+      "severity": "major",
+      "span": {
+        "end": 120,
+        "field": "translation",
+        "start": 59
+      },
+      "strength": 0.89
+    },
+    {
+      "anchor": null,
+      "category": "speech_omission",
+      "check": "transcript_alignment",
+      "detail": "A sustained script span is missing from the back-transcript. Observed again after re-segmenting the same audio.",
+      "evidence": "இணைப்பியின் வடிவம் மட்டுமே அதன் தரவு விகிதத்தை அடையாளம் காணாது",
+      "id": "edu-026-speech_omission",
+      "lang": "ta",
+      "severity": "major",
+      "span": {
+        "end": 130,
+        "field": "translation",
+        "start": 68
+      },
+      "strength": 0.89
+    },
+    {
+      "anchor": {
+        "end": 24,
+        "field": "source",
+        "start": 19
+      },
+      "category": "number",
+      "check": "numbers",
+      "detail": "Unmatched candidate quantity. Comparison against source found '40 cm'.",
+      "evidence": "৫০",
+      "id": "edu-012-number",
+      "lang": "bn",
+      "severity": "major",
+      "span": {
+        "end": 24,
+        "field": "translation",
+        "start": 22
+      },
+      "strength": 0.88
+    },
+    {
+      "anchor": {
+        "end": 80,
+        "field": "source",
+        "start": 78
+      },
+      "category": "number",
+      "check": "numbers",
+      "detail": "Unmatched candidate quantity. Comparison against source found '20'.",
+      "evidence": "৩০",
+      "id": "edu-019-number",
+      "lang": "bn",
+      "severity": "major",
+      "span": {
+        "end": 63,
+        "field": "translation",
+        "start": 61
+      },
+      "strength": 0.88
+    },
+    {
+      "anchor": {
+        "end": 160,
+        "field": "transcript",
+        "start": 72
+      },
+      "category": "speech_repetition",
+      "check": "transcript_alignment",
+      "detail": "The back-transcript re-speaks script text already heard: 11 whole words, 96% of a clause. Time is estimated from the transcript position. Observed again after re-segmenting the same audio.",
+      "evidence": "মিনিট পর আবার দেখুন ক্লাসরুমের থার্মোমিটার চব্বিশ ডিগ্রি সেলসিয়াস দেখাচ্ছে জানালা খোলার",
+      "id": "edu-003-speech_repetition",
+      "lang": "bn",
+      "severity": "major",
+      "span": {
+        "end": 13878,
+        "field": "audio_ms",
+        "start": 6244
+      },
+      "strength": 0.87
+    },
+    {
+      "anchor": {
+        "end": 76,
+        "field": "transcript",
+        "start": 21
+      },
+      "category": "speech_repetition",
+      "check": "transcript_alignment",
+      "detail": "The back-transcript re-speaks script text already heard: 8 whole words, 59% of a clause. Time is estimated from the transcript position. Observed again after re-segmenting the same audio.",
+      "evidence": "দিকে বিদ্যুৎ পরিবহন করে তারের প্রান্তগুলো অদলবদল করুন এ",
+      "id": "edu-008-speech_repetition",
+      "lang": "bn",
+      "severity": "major",
+      "span": {
+        "end": 6716,
+        "field": "audio_ms",
+        "start": 1855
+      },
+      "strength": 0.87
+    },
+    {
+      "anchor": null,
+      "category": "addition",
+      "check": "judge",
+      "detail": "The candidate adds a sentence about students finding the step difficult, which is not in the source.",
+      "evidence": "কিছু শিক্ষার্থী এই ধাপটি কঠিন মনে করে।",
+      "id": "edu-001-addition",
+      "lang": "bn",
+      "severity": "major",
+      "span": {
+        "end": 126,
+        "field": "translation",
+        "start": 88
+      },
+      "strength": 0.85
+    },
+    {
+      "anchor": null,
+      "category": "omission",
+      "check": "judge",
+      "detail": "The candidate omits the first source sentence about an LED conducting in one direction.",
+      "evidence": "An LED usually conducts in one direction.",
+      "id": "edu-008-omission",
+      "lang": "bn",
+      "severity": "major",
+      "span": {
+        "end": 41,
+        "field": "source",
+        "start": 0
+      },
+      "strength": 0.85
+    },
+    {
+      "anchor": null,
+      "category": "addition",
+      "check": "judge",
+      "detail": "Adds the instruction to wear gloves, which is not present in the source.",
+      "evidence": "এটি করার সময় গ্লাভস পরুন।",
+      "id": "edu-016-addition",
+      "lang": "bn",
+      "severity": "major",
+      "span": {
+        "end": 129,
+        "field": "translation",
+        "start": 103
+      },
+      "strength": 0.85
+    },
+    {
+      "anchor": null,
+      "category": "omission",
+      "check": "judge",
+      "detail": "The candidate omits the entire first sentence about the speed of sound in dry air near room temperature being about 343 m/s.",
+      "evidence": "The speed of sound in dry air near room temperature is about 343 m/s.",
+      "id": "edu-016-omission",
+      "lang": "bn",
+      "severity": "major",
+      "span": {
+        "end": 69,
+        "field": "source",
+        "start": 0
+      },
+      "strength": 0.85
+    },
+    {
+      "anchor": null,
+      "category": "entity",
+      "check": "judge",
+      "detail": "The source subject is NASA, but the candidate uses a different name.",
+      "evidence": "কুরি",
+      "id": "edu-025-entity",
+      "lang": "bn",
+      "severity": "major",
+      "span": {
+        "end": 4,
+        "field": "translation",
+        "start": 0
+      },
+      "strength": 0.85
+    },
+    {
+      "anchor": null,
+      "category": "entity",
+      "check": "judge",
+      "detail": "Renders the source “USB cable” as “copper wire,” changing the technical term and object.",
+      "evidence": "কুরি তার",
+      "id": "edu-026-entity",
+      "lang": "bn",
+      "severity": "major",
+      "span": {
+        "end": 13,
+        "field": "translation",
+        "start": 5
+      },
+      "strength": 0.85
+    }
+  ]
+}
