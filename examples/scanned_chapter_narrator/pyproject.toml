@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bodhan_lesson"
+version = "0.1.0"
+description = "Autonomous Scanned Chapter to Translated, Narrated Audio Lesson Pipeline."
+authors = [{ name = "Sasidharan V", email = "sasidharan@example.com" }]
+requires-python = ">=3.10"
+dependencies = [
+    "pydantic>=2.10.0",
+    "httpx>=0.28.0",
+    "python-dotenv>=1.2.4",
+    "pypdfium2>=5.0.0",
+    "Pillow>=13.0.0",
+    "pyloudnorm>=0.1.1",
+    "scipy>=1.14.0",
+    "imageio-ffmpeg>=0.5.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "ruff>=0.6.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

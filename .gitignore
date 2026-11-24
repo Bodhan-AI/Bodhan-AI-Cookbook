@@ -15,6 +15,7 @@ venv/
 *.egg-info/
 build/
 dist/
+.bodhan_cache/
 
 # Jupyter
 .ipynb_checkpoints/
