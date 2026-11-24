@@ -1,0 +1,74 @@
+{
+  "status": "completed",
+  "stop_reason": null,
+  "task": "Transcribe this Hindi voice note and give me English subtitles",
+  "steps_used": 6,
+  "max_steps": 30,
+  "llm_calls": 11,
+  "llm_tokens": {
+    "prompt": 33503,
+    "completion": 1349
+  },
+  "llm_models": {
+    "main:openai/gpt-oss-120b": {
+      "calls": 11,
+      "failures": 0
+    }
+  },
+  "tool_calls": 4,
+  "duration_s": 4.6,
+  "cost": {
+    "spent_inr": 0.0,
+    "max_cost_inr": 2.0,
+    "paid_calls": 0,
+    "cache_hits": 6,
+    "by_model": {
+      "transcribe": {
+        "calls": 0,
+        "cache_hits": 3,
+        "cost_inr": 0.0
+      },
+      "translate": {
+        "calls": 0,
+        "cache_hits": 3,
+        "cost_inr": 0.0
+      }
+    }
+  },
+  "budget_respected": true,
+  "answer": "The Hindi voice note was transcribed, translated to English, and English subtitles were generated.",
+  "assumptions": [
+    "The voice note is in Hindi."
+  ],
+  "plan": [
+    "inspect_files to confirm file path",
+    "transcribe_audio with language Hindi",
+    "translate_text the segments JSON to English",
+    "make_subtitles from translated segments to SRT",
+    "finish with completed status"
+  ],
+  "final_artifacts": [
+    {
+      "path": "artifacts/english_subtitles.srt",
+      "kind": "subtitles",
+      "check": "passed",
+      "details": {
+        "cues": 10,
+        "timestamps_in_order": true
+      }
+    }
+  ],
+  "intermediate_files": [
+    "artifacts/transcript.txt",
+    "artifacts/transcript.segments.json",
+    "artifacts/translated_segments.segments.json"
+  ],
+  "verification": {
+    "outputs_checked": 2,
+    "outputs_failed": [],
+    "all_final_outputs_passed": true,
+    "finish_rejections": 0
+  },
+  "notes": [],
+  "injection_warnings": 0
+}
