@@ -1,0 +1,7 @@
+1
+00:00:00,000 --> 00:00:27,000
+Hello, today an information program on health and education is being held in our town library. The program will start at ten o'clock in the morning and end at twelve o'clock in the afternoon. Participants can write their questions in advance. If they need help with Kannada or English, please inform the organizers of the program for a personal platform.
+
+2
+00:00:27,000 --> 00:00:41,771
+Do not share information publicly. If you have doubts about the time or location of an event, check the details on the library's sign board.
