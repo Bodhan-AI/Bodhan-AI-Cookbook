@@ -15,6 +15,7 @@ Explaining an idea to someone else is one of the best tests of understanding (th
 3. **Honest report.** What the student explained, what they missed, which tricks they caught (on their own or after a hint), and any wrong ideas they still hold.
 4. **Memory.** The tutor remembers each student. Next session it starts at the level they reached, asks about their weak spots first, and re-plants the mistakes they missed to check the correction stuck.
 5. **Parent note.** A short, honest summary in the parent's language, written and spoken.
+6. **Progress dashboard** (switch to **My progress** in the sidebar). Ideas mastered per topic, three thinking skills (explaining in your own words, spotting mistakes, thinking deeper) with the change since earlier sessions, understanding over time, and what to practise next. It is computed from the saved sessions in plain Python, so it is instant and works offline.
 
 ![Architecture](architecture.png)
 
@@ -78,7 +79,7 @@ Design choices worth knowing:
 | `llm.py` | Companion LLM client: JSON repair, retries that honour `retry-after` |
 | `lesson.py` | Page → grounded lesson card (cached per image) |
 | `tutor.py` | The teach-back engine: evaluate, update, choose_move, respond, report |
-| `memory.py` | Cross-session student memory (one JSON file per student in `profiles/`) |
+| `memory.py` | Cross-session student memory (one JSON file per student in `profiles/`) and the numbers behind the dashboard |
 | `parent.py` | Parent note: facts → LLM wording → translate → speak |
 | `app.py` | Streamlit app |
 | `simulate.py` | Evaluation harness with simulated students |
@@ -122,5 +123,7 @@ Things we ran into, and what the recipe does about them:
 - One page at a time; there is no chapter- or book-level view yet.
 - The lesson card is cached per image file. A new photo of the same page builds a new card, so memory carries over by topic and concept name only.
 - A turn in the app takes several seconds (transcribe → translate → grade → reply → translate → speak). Free LLM tiers add rate-limit waits; Groq's free tier allows about 1,000 output tokens per minute for this model, enough for one student at a time.
+- "Ideas mastered" is per lesson page: an idea stays mastered once explained (unless the student later states a wrong idea about it). There is no shared skill taxonomy across subjects, and no question bank or past papers; practice comes from re-teaching the weak ideas on the same page.
+- Voice is push-to-record, one answer at a time, not live streaming; `indic-transcribe` takes about 30 seconds of audio per request.
 - Scores come from an LLM grader. The simulation shows they track real understanding, but they are a guide for the student and parent, not an exam mark.
 - Student profiles are local JSON files with no accounts or access control. Do not use real children's names in a shared deployment.

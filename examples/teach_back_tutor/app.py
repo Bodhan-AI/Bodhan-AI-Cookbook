@@ -32,6 +32,7 @@ st.set_page_config(page_title="Teach-Back Tutor", layout="centered")
 ss = st.session_state
 
 with st.sidebar:
+    view = st.radio("View", ["Teach", "My progress"], horizontal=True)
     st.header("Settings")
     student = st.text_input("Student name", "Aarav", help="The tutor remembers each student between sessions.")
     band = st.selectbox("Class", list(tutor.BANDS), index=1, format_func=lambda b: tutor.BANDS[b]["label"])
@@ -66,6 +67,44 @@ def finish() -> None:
     ss.report = tutor.report(ss.session)
     memory.save(memory.record(ss.profile, ss.session, ss.report))
 
+
+def show_progress(name: str) -> None:
+    data = memory.skills(memory.load(name))
+    st.title(f"{name}'s progress")
+    if not data["sessions"]:
+        st.info("No sessions yet. Teach a page to the classmate and your progress will show up here.")
+        return
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Sessions", data["sessions"])
+    c2.metric("Level", data["level"])
+    c3.metric("Ideas mastered", f"{data['mastered_total']}/{data['concepts_total']}")
+
+    st.subheader("Thinking skills")
+    for skill in data["skills"]:
+        if skill["value"] is None:
+            st.progress(0.0, text=f"{skill['name']}: not tested yet")
+            continue
+        trend = "" if skill["trend"] is None else f" ({skill['trend']:+d} vs before)"
+        st.progress(skill["value"] / 100, text=f"{skill['name']}: {skill['value']}%{trend}")
+
+    st.subheader("Ideas you have mastered")
+    for t in data["topics"]:
+        with st.expander(f"{t['topic']}: {t['mastery']}% last time", expanded=True):
+            st.write("Mastered: " + (", ".join(t["mastered"]) or "none yet"))
+            st.write("Still to practise: " + (", ".join(t["to_practice"]) or "nothing, well done!"))
+
+    if len(data["history"]) > 1:
+        st.subheader("Understanding over sessions")
+        st.line_chart({"Understanding %": [h["mastery"] for h in data["history"]]})
+
+    st.subheader("Practise next")
+    for step in data["next_steps"]:
+        st.write(f"- {step}")
+
+
+if view == "My progress":
+    show_progress(student)
+    st.stop()
 
 # ------------------------------------------------------------------ 1. the page
 

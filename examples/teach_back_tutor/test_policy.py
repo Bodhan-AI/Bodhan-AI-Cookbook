@@ -125,6 +125,37 @@ def test_parent_facts_never_turn_a_miss_into_praise():
     assert "did NOT notice" in text
 
 
+def test_dashboard_mastery_is_sticky_and_skills_are_cumulative(tmp_path, monkeypatch):
+    monkeypatch.setattr(memory, "PROFILES_DIR", tmp_path)
+    profile = memory.load("Aarav")
+    s1 = tutor.Session(card=CARD, band="middle")
+    s1.concepts["c1"]["status"] = "explained"
+    s1.quality = [2, 2]
+    s1.plants["m1"]["status"], s1.plants["m2"]["status"] = "caught", "revealed"
+    memory.record(profile, s1, tutor.report(s1))
+
+    s2 = tutor.Session(card=CARD, band="middle", memory=memory.for_session(profile, "Photosynthesis"))
+    s2.concepts["c2"]["status"] = "explained"  # c1 is not touched this time
+    s2.quality = [3]
+    memory.record(profile, s2, tutor.report(s2))
+
+    d = memory.skills(profile)
+    topic = d["topics"][0]
+    assert topic["mastered"] == ["Leaves make food", "Ingredients"]  # c1 stays mastered
+    assert topic["to_practice"] == ["Chlorophyll"]
+    assert (d["mastered_total"], d["concepts_total"], d["sessions"]) == (2, 3, 2)
+    by_name = {s["name"]: s for s in d["skills"]}
+    assert by_name["Spotting mistakes"]["value"] == 50  # 1 of 2 tricks over all sessions
+    assert by_name["Thinking deeper (why / what if)"]["value"] is None  # never tested
+    assert by_name["Explaining in your own words"]["trend"] == 33  # session 2 (100%) vs session 1 (67%)
+    assert any("Chlorophyll" in step for step in d["next_steps"])
+
+
+def test_dashboard_for_a_new_student_is_empty():
+    d = memory.skills({"student": "x", "level": None, "topics": {}, "sessions": []})
+    assert d["sessions"] == 0 and d["mastered_total"] == 0
+
+
 def test_grounding_rejects_quotes_not_on_the_page():
     page = set(lesson._words("Green plants make their own food using sunlight, water and carbon dioxide."))
     assert lesson.is_grounded("plants make their own food", page)
