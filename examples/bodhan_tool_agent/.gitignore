@@ -1,0 +1,60 @@
+# .gitignore — Bodhan Tool Server & Task Agent
+
+# Environment / secrets — NEVER commit
+.env
+*.key
+keys.txt
+
+# Output directories (media files must not be in git)
+out/
+outputs/
+examples/inputs/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+*.xml
+
+# Type checking
+.mypy_cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Audio/image media (link from README, don't commit)
+*.mp3
+*.wav
+*.mp4
+*.png
+*.jpg
+*.jpeg
+*.pdf
+
+# Caches
+cache.db
+*.db-shm
+*.db-wal
