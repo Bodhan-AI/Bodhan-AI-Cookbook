@@ -224,3 +224,30 @@ def test_independent_tool_calls_in_one_turn_run_concurrently(tmp_path, fake_bodh
     assert mock.count("/v1/audio/transcriptions") == 2 and rep["steps"]["tool_calls"] == 2
     tool_msgs = [m for m in llm.seen[-1] if m["role"] == "tool"]
     assert len(tool_msgs) == 3  # plan + two parallel calls, each answered
+
+
+def test_unjustified_refusal_is_challenged_then_the_task_is_done(tmp_path, fake_bodhan_server):
+    url, mock = fake_bodhan_server
+    note = tone_wav(tmp_path / "n.wav", [(5, True)])
+    out = tmp_path / "out"
+    llm = ScriptedLLM([
+        lambda m: ("", [("write_plan", {"feasible": False, "plan": "unsure", "estimated_cost_inr": 0.2, "reason_if_infeasible": "cost might be high, to be safe refuse"})]),
+        lambda m: ("", [("write_plan", {"feasible": True, "plan": "transcribe", "estimated_cost_inr": 0.05, "replan_reason": "budget is Rs 20, plenty"})]),
+        lambda m: ("", [("transcribe_audio", {"audio_path": str(note), "language": "hi"})]),
+        lambda m: ("", [("finish", {"status": "success", "summary": "Transcribed.", "artifacts": []})]),
+    ])
+    rep = run(RunConfig("Transcribe this", [str(note)], out, cache_dir=tmp_path / "c"), llm, server_env(url))
+    assert rep["status"] == "success" and mock.count("/v1/audio/transcriptions") == 1
+    assert "REFUSAL_NEEDS_JUSTIFICATION" in [m for m in llm.seen[1] if m["role"] == "tool"][-1]["content"]
+    assert "refusal_challenge" in (out / "trace.jsonl").read_text(encoding="utf-8")
+
+
+def test_a_concrete_refusal_is_accepted_after_the_challenge(tmp_path, fake_bodhan_server):
+    url, mock = fake_bodhan_server
+    doc = tmp_path / "letter.docx"
+    doc.write_bytes(b"PK\x03\x04" + b"\x00" * 32)
+    out = tmp_path / "out"
+    refuse = ("finish", {"status": "refused", "summary": "The input is a .docx file; no tool reads Word documents.", "artifacts": []})
+    llm = ScriptedLLM([lambda m: ("", [("write_plan", {"feasible": True, "plan": "p", "estimated_cost_inr": 0.1})]), lambda m: ("", [refuse]), lambda m: ("", [refuse])])
+    rep = run(RunConfig("Translate this document into Hindi", [str(doc)], out, cache_dir=tmp_path / "c"), llm, server_env(url))
+    assert rep["status"] == "refused" and rep["artifacts"] == [] and mock.calls == []
