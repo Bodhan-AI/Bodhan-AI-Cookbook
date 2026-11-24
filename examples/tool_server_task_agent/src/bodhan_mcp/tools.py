@@ -75,7 +75,7 @@ _NAME_TO_CODE: dict[str, str] = {}
 
 
 def normalize_language(value: str, model: str, *, allow_auto: bool = False, role: str = "language") -> str:
-    """Accept 'ta', 'ta-IN', 'Tamil'; return the Bodhan code or raise UNSUPPORTED_LANGUAGE with the supported list."""
+    """Accept a code ('ta'), a regional spelling with a hyphen suffix, or a language name ('Tamil'); return the Bodhan code or raise UNSUPPORTED_LANGUAGE."""
     if not _NAME_TO_CODE:
         for code, name in config.language_names().items():
             _NAME_TO_CODE[name.lower()] = code

@@ -15,7 +15,7 @@ python -m bodhan_agent --task "Make a two-minute Tamil audio summary of this cha
 # the MCP server on its own (stdio)
 python -m bodhan_mcp
 ```
-Tests (no keys needed): `pytest tests` (65 tests). Live suite: `python scripts/eval_suite.py`. Docker: `docker build -t bodhan-tool-agent .` (built and smoke-tested).
+Tests (no keys needed): `pytest tests` (67 tests). Live suite: `python scripts/eval_suite.py`. Docker: `docker build -t bodhan-tool-agent .` (built and smoke-tested).
 
 ## Architecture
 ```mermaid
@@ -187,7 +187,7 @@ No run missed a quality target (`quality_targets_missed` is empty in each report
 
 Edge cases covered: empty audio file, audio hiding behind a `.txt` name, ~65,000-character text, missing input, unsupported output language (Spanish), unsupported file type (`.docx`), `--max-cost-inr 0.05` on a PDF task, no input files at all, and text already in the target language. (Suite costs are small because it reuses the on-disk cache; the table above has the cold-run costs.) Earlier full runs of the suite scored 15/17 and 16/17. The failures were two over-strict checks of mine (since corrected) and two real weaknesses, both fixed in the code and covered by tests: (1) the LLM "translated" Bengali into Bengali and the gate rightly refused to call it verified, so same-language translation is now a free no-op; (2) the small planner refused a feasible PDF task citing cost "uncertainty", so a first self-judged refusal is now challenged with the hard facts (budget, its own estimate, valid grounds).
 
-Unit tests: 65 (chunking and limits for every tool, structured errors, config fallback, retries/backoff, cache, budget, injection guard, Indic-text rule, verification gate, bearer-token auth) plus end-to-end tests that run the **real MCP server over stdio** with a fake Bodhan API and a scripted LLM. Off-the-shelf client: the official **MCP Inspector CLI**; the session is in `examples/tool_server_task_agent/docs/inspector_session.md`.
+Unit tests: 67 (chunking and limits for every tool, structured errors, config fallback, retries/backoff, cache, budget, injection guard, Indic-text rule, verification gate, bearer-token auth) plus end-to-end tests that run the **real MCP server over stdio** with a fake Bodhan API and a scripted LLM. Off-the-shelf client: the official **MCP Inspector CLI**; the session is in `examples/tool_server_task_agent/docs/inspector_session.md`.
 
 ## Demo video
 <!-- TODO(author): replace the placeholder with the public link to the recording (5 minutes or less; several tasks end to end, including the impossible one). -->
@@ -201,6 +201,7 @@ VIDEO_LINK_PLACEHOLDER
 * **Speech is slow and the priciest model:** 10 to 35 s per request for a sentence or two, Rs 6 per 10,000 characters; the one-minute PDF task is the slowest at about two minutes.
 * Not done: a web UI, resumable runs, `.docx`/`.xlsx` input, quality scoring of translations, self-hosted weights. Only audio/video, images, PDFs and text are handled.
 * The optional streamable-HTTP transport (stretch goal) refuses to start without `BODHAN_MCP_TOKEN`, so there is no unauthenticated network listener.
+* **CI note for reviewers:** `tests/test_checks.py::test_all_shipped_recipes_pass` already fails on `main` because of `examples/AndroidSpeak` (no source file, no `.env.example`); this PR does not touch that folder. `python scripts/validate_recipe.py examples/tool_server_task_agent` passes, as do ruff, the rules check and `ci_validate.py`.
 * Developed and tested on Windows 11 with Python 3.11; the Docker image (Debian, ffmpeg 7.1, poppler 25.03) was built and smoke-tested.
 
 ## Cost and runtime

@@ -138,7 +138,7 @@ The self-evaluation suite (`scripts/eval_suite.py`, 8 demo + 9 edge-case tasks w
 
 ```bash
 pip install -r requirements-dev.txt
-pytest tests                       # 65 tests, about 30 s; the Bodhan HTTP layer is mocked, no keys or credit needed
+pytest tests                       # 67 tests, about 30 s; the Bodhan HTTP layer is mocked, no keys or credit needed
 python scripts/eval_suite.py       # live suite: 8 demo + 9 edge-case tasks with expectations and a pass rate (17/17 on the final code; uses keys and a little credit)
 ```
 
