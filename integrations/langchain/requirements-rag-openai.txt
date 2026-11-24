@@ -1,0 +1,2 @@
+# Optional OpenAI embedding dependencies for Bodhan x LangChain RAG
+langchain-openai>=0.1.0

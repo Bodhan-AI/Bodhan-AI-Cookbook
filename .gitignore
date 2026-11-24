@@ -29,6 +29,10 @@ examples/*/outputs/*
 examples/*/sample_data/*
 !examples/*/sample_data/.gitkeep
 
+# Vector store persistence
+.chroma/
+**/.chroma/
+
 # OS / IDE
 .DS_Store
 .vscode/

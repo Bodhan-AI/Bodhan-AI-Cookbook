@@ -1,0 +1,7 @@
+# Offline test dependencies for integration tests
+httpx==0.28.1
+pymupdf>=1.24.0
+pillow>=10.0.0
+langchain-core==1.7.0
+langchain-text-splitters==1.1.3
+pytest-asyncio==1.4.0
