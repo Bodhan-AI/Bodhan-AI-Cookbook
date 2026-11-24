@@ -1,0 +1,184 @@
+{
+  "status": "completed",
+  "task": "Translate this English community-library notice into Hindi and show the Hindi text in your reply. Do not claim a download location; just provide the translated text.",
+  "started_at": "2026-11-21T16:44:36.962697+00:00",
+  "duration_seconds": 15.568,
+  "steps": 4,
+  "max_steps": 12,
+  "max_parallel_tools": 1,
+  "dry_run_only": false,
+  "max_cost_inr": 0.05,
+  "bodhan_cost_inr": 0.0,
+  "dry_run_estimated_cost_inr": 0.0,
+  "llm_cost_inr": null,
+  "stop_reason": null,
+  "assumptions": [],
+  "verifications": [
+    {
+      "tool": "translate_text",
+      "check": "translation_completeness_and_meaning",
+      "verdict": "pass",
+      "coverage": 1,
+      "meaning_preserved": true,
+      "issues": [],
+      "method": "LLM review; advisory, not native-speaker verification"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "artifacts/01-899c0fd1-translation-b55280e1da66a6b6.txt",
+      "size_bytes": 404,
+      "media_type": "text/plain"
+    }
+  ],
+  "tool_events": [
+    {
+      "type": "tool_call",
+      "step": 1,
+      "tool": "get_file",
+      "arguments": {
+        "file_ref": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/text/notice_01.txt"
+      },
+      "origin": "llm_tool_call",
+      "parent_call_id": "call_ep89uwvu",
+      "result": {
+        "file_ref": "setu:=vcncWrngfXQUydCoSBZO-dFa",
+        "media_type": "text/plain",
+        "size_bytes": 138,
+        "is_text": null,
+        "download_url": "http://127.0.0.1:59094/files/vcncWrngfXQUydCoSBZO-dFa",
+        "note": null,
+        "total_characters": 138,
+        "offset": 0,
+        "content": "The community library opens at eight and closes at six. Students may borrow books Monday through Friday. Please return each book on time.\n",
+        "has_more": false
+      },
+      "is_error": false,
+      "latency_seconds": 0.028,
+      "cost_inr": null,
+      "total_bodhan_cost_inr": 0.0
+    },
+    {
+      "type": "tool_call",
+      "step": 2,
+      "tool": "translate_text",
+      "arguments": {
+        "text": "The community library opens at eight and closes at six. Students may borrow books Monday through Friday. Please return each book on time.",
+        "target_language": "hi",
+        "dry_run": true
+      },
+      "origin": "agent_preflight",
+      "parent_call_id": "call_89f3s85y",
+      "result": {
+        "dry_run": true,
+        "will_call_api": false,
+        "model": null,
+        "estimated_cost_inr": 0.0,
+        "quantity": 137.0,
+        "unit": "output_token",
+        "rate": null,
+        "quantity_basis": "exact model request is already cached",
+        "chunk_count": 1,
+        "cost_inr": null,
+        "cost_note": null,
+        "cache_hit": true,
+        "translation": null,
+        "target_language": null,
+        "script": null,
+        "truncated": null,
+        "source_language_mode": null,
+        "chunk_limit_chars": 8000,
+        "translated_chunks": null,
+        "file_id": null,
+        "media_type": null,
+        "size_bytes": null,
+        "expires_in_seconds": null,
+        "translation_truncated": null,
+        "translation_total_characters": null
+      },
+      "is_error": false,
+      "latency_seconds": 0.036,
+      "cost_inr": null,
+      "total_bodhan_cost_inr": 0.0
+    },
+    {
+      "type": "tool_call",
+      "step": 3,
+      "tool": "translate_text",
+      "arguments": {
+        "text": "The community library opens at eight and closes at six. Students may borrow books Monday through Friday. Please return each book on time.",
+        "target_language": "hi"
+      },
+      "origin": "agent_paid_call",
+      "parent_call_id": "call_89f3s85y",
+      "result": {
+        "dry_run": null,
+        "will_call_api": null,
+        "model": "indic-translate",
+        "estimated_cost_inr": null,
+        "quantity": null,
+        "unit": null,
+        "rate": null,
+        "quantity_basis": null,
+        "chunk_count": 1,
+        "cost_inr": 0.0,
+        "cost_note": null,
+        "cache_hit": true,
+        "translation": "सामुदायिक पुस्तकालय आठ बजे खुलता है और छह बजे बंद हो जाता है। छात्र सोमवार से शुक्रवार तक किताबें उधार ले सकते हैं। कृपया प्रत्येक पुस्तक समय पर लौटा दें।",
+        "target_language": "hi",
+        "script": "native",
+        "truncated": false,
+        "source_language_mode": "vendor_auto_detect",
+        "chunk_limit_chars": null,
+        "translated_chunks": 1,
+        "file_id": "setu:=rywe_GIddMJSpgWR5geRJNtY",
+        "media_type": "text/plain; charset=utf-8",
+        "size_bytes": 404,
+        "expires_in_seconds": null,
+        "translation_truncated": null,
+        "translation_total_characters": null
+      },
+      "is_error": false,
+      "latency_seconds": 0.023,
+      "cost_inr": 0.0,
+      "total_bodhan_cost_inr": 0.0
+    },
+    {
+      "type": "tool_call",
+      "step": 4,
+      "tool": "get_file",
+      "arguments": {
+        "file_ref": "setu:=rywe_GIddMJSpgWR5geRJNtY",
+        "max_chars": 1000
+      },
+      "origin": "agent_internal",
+      "parent_call_id": null,
+      "result": {
+        "file_ref": "setu:=rywe_GIddMJSpgWR5geRJNtY",
+        "media_type": "text/plain; charset=utf-8",
+        "size_bytes": 404,
+        "is_text": null,
+        "download_url": "http://127.0.0.1:59094/files/rywe_GIddMJSpgWR5geRJNtY",
+        "note": null,
+        "total_characters": 154,
+        "offset": 0,
+        "content": "सामुदायिक पुस्तकालय आठ बजे खुलता है और छह बजे बंद हो जाता है। छात्र सोमवार से शुक्रवार तक किताबें उधार ले सकते हैं। कृपया प्रत्येक पुस्तक समय पर लौटा दें।",
+        "has_more": false
+      },
+      "is_error": false,
+      "latency_seconds": 0.012,
+      "cost_inr": null,
+      "total_bodhan_cost_inr": 0.0
+    },
+    {
+      "type": "artifact_download",
+      "step": 4,
+      "file_id": "setu:=rywe_GIddMJSpgWR5geRJNtY",
+      "path": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/demos/runs/09-notice-translation-inline/20261121-221436-translate-this-english-community-library-notice--f99975/artifacts/01-899c0fd1-translation-b55280e1da66a6b6.txt",
+      "media_type": "text/plain; charset=utf-8",
+      "size_bytes": 404,
+      "latency_seconds": 0.002,
+      "cost_inr": 0.0
+    }
+  ]
+}

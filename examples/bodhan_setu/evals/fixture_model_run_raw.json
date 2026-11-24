@@ -1,0 +1,357 @@
+[
+  {
+    "case": "audio/clip_ambiguous_01.wav",
+    "tool": "transcribe_audio",
+    "args": {
+      "audio_file": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/audio/clip_ambiguous_01.wav",
+      "dry_run": true
+    },
+    "result": {
+      "isError": false,
+      "text": "{\n  \"dry_run\": true,\n  \"model\": \"indic-transcribe\",\n  \"quantity\": 0.045000000000000005,\n  \"unit\": \"audio_minute\",\n  \"estimated_cost_inr\": 0.0045,\n  \"rate\": {\n    \"per_audio_minute\": 0.1\n  },\n  \"duration_seconds\": 2.7,\n  \"chunk_count\": 1,\n  \"will_call_api\": false\n}"
+    }
+  },
+  {
+    "case": "audio/clip_ambiguous_01.wav",
+    "tool": "transcribe_audio",
+    "args": {
+      "audio_file": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/audio/clip_ambiguous_01.wav",
+      "language": null,
+      "dry_run": false
+    },
+    "result": {
+      "isError": false,
+      "text": "{\n  \"text\": \"विद्यालय आज दोपहर तीन बजे बंद होगा\",\n  \"source_file\": \"/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/audio/clip_ambiguous_01.wav\",\n  \"model\": \"indic-transcribe\",\n  \"duration_seconds\": 2.7,\n  \"chunks\": 1,\n  \"cache_hit\": false,\n  \"cost_inr\": 0.0045\n}"
+    }
+  },
+  {
+    "case": "audio/hindi_notice_01.wav",
+    "tool": "transcribe_audio",
+    "args": {
+      "audio_file": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/audio/hindi_notice_01.wav",
+      "dry_run": true
+    },
+    "result": {
+      "isError": false,
+      "text": "{\n  \"dry_run\": true,\n  \"model\": \"indic-transcribe\",\n  \"quantity\": 0.039071875,\n  \"unit\": \"audio_minute\",\n  \"estimated_cost_inr\": 0.003907,\n  \"rate\": {\n    \"per_audio_minute\": 0.1\n  },\n  \"duration_seconds\": 2.344,\n  \"chunk_count\": 1,\n  \"will_call_api\": false\n}"
+    }
+  },
+  {
+    "case": "audio/hindi_notice_01.wav",
+    "tool": "transcribe_audio",
+    "args": {
+      "audio_file": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/audio/hindi_notice_01.wav",
+      "language": null,
+      "dry_run": false
+    },
+    "result": {
+      "isError": false,
+      "text": "{\n  \"text\": \"कल विद्यालय सुबह नौ बजे खुलेगा\",\n  \"source_file\": \"/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/audio/hindi_notice_01.wav\",\n  \"model\": \"indic-transcribe\",\n  \"duration_seconds\": 2.344,\n  \"chunks\": 1,\n  \"cache_hit\": false,\n  \"cost_inr\": 0.003907\n}"
+    }
+  },
+  {
+    "case": "audio/long_hi_67s.wav",
+    "tool": "transcribe_audio",
+    "args": {
+      "audio_file": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/audio/long_hi_67s.wav",
+      "dry_run": true
+    },
+    "result": {
+      "isError": false,
+      "text": "{\n  \"dry_run\": true,\n  \"model\": \"indic-transcribe\",\n  \"quantity\": 1.1166666666666667,\n  \"unit\": \"audio_minute\",\n  \"estimated_cost_inr\": 0.111667,\n  \"rate\": {\n    \"per_audio_minute\": 0.1\n  },\n  \"duration_seconds\": 67.0,\n  \"chunk_count\": 3,\n  \"will_call_api\": false\n}"
+    }
+  },
+  {
+    "case": "audio/long_hi_67s.wav",
+    "tool": "transcribe_audio",
+    "args": {
+      "audio_file": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/audio/long_hi_67s.wav",
+      "language": null,
+      "dry_run": false
+    },
+    "result": {
+      "isError": false,
+      "text": "{\n  \"text\": \"विद्यार्थियों आज हम विद्यालय की छत पर बने बगीचे के बारे में बात करेंगे हर कक्षा पौधों की ऊँचाई देखें और तारीफ के साथ माप अपनी कॉपी में लिखें पौधों को ज़रूरत के अनुसार ही पानी दें पौधों को धूप और साफ़ पानी चाहिए पत्तों पर दाग दिखें तो शिक्षक को बताइए फूल मधुमक्खियों और तितलियों को आकर्षित करते हैं इसलिए उन्हें दूर से देखें बगीचे में किसी भी कीट को हाथ न लगाएँ सप्ताह के अंत में हर समूह अपने निरीक्षण कक्षा में बताएगा पौधों की ऊँचाई पत्तों की संख्या और मिति की नमी की तुलना करें अगले सप्ताह नए बीज बोकर परिणाम फिर से लिखेंगे\",\n  \"source_file\": \"/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/audio/long_hi_67s.wav\",\n  \"model\": \"indic-transcribe\",\n  \"duration_seconds\": 67.0,\n  \"chunks\": 3,\n  \"cache_hit\": false,\n  \"cost_inr\": 0.111667\n}"
+    }
+  },
+  {
+    "case": "audio/short_hi.wav",
+    "tool": "transcribe_audio",
+    "args": {
+      "audio_file": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/audio/short_hi.wav",
+      "dry_run": true
+    },
+    "result": {
+      "isError": false,
+      "text": "{\n  \"dry_run\": true,\n  \"model\": \"indic-transcribe\",\n  \"quantity\": 0.08853333333333334,\n  \"unit\": \"audio_minute\",\n  \"estimated_cost_inr\": 0.008853,\n  \"rate\": {\n    \"per_audio_minute\": 0.1\n  },\n  \"duration_seconds\": 5.312,\n  \"chunk_count\": 1,\n  \"will_call_api\": false\n}"
+    }
+  },
+  {
+    "case": "audio/short_hi.wav",
+    "tool": "transcribe_audio",
+    "args": {
+      "audio_file": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/audio/short_hi.wav",
+      "language": null,
+      "dry_run": false
+    },
+    "result": {
+      "isError": false,
+      "text": "{\n  \"text\": \"नमस्ते आज हम गणित की कक्षा शुरू करेंगे कृपया अपनी पुस्तकें खोलिए\",\n  \"source_file\": \"/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/audio/short_hi.wav\",\n  \"model\": \"indic-transcribe\",\n  \"duration_seconds\": 5.312,\n  \"chunks\": 1,\n  \"cache_hit\": false,\n  \"cost_inr\": 0.008853\n}"
+    }
+  },
+  {
+    "case": "audio/clip_batch_01/bengali_01.wav",
+    "tool": "transcribe_audio",
+    "args": {
+      "audio_file": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/audio/clip_batch_01/bengali_01.wav",
+      "dry_run": true
+    },
+    "result": {
+      "isError": false,
+      "text": "{\n  \"dry_run\": true,\n  \"model\": \"indic-transcribe\",\n  \"quantity\": 0.052655208333333335,\n  \"unit\": \"audio_minute\",\n  \"estimated_cost_inr\": 0.005266,\n  \"rate\": {\n    \"per_audio_minute\": 0.1\n  },\n  \"duration_seconds\": 3.159,\n  \"chunk_count\": 1,\n  \"will_call_api\": false\n}"
+    }
+  },
+  {
+    "case": "audio/clip_batch_01/bengali_01.wav",
+    "tool": "transcribe_audio",
+    "args": {
+      "audio_file": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/audio/clip_batch_01/bengali_01.wav",
+      "language": null,
+      "dry_run": false
+    },
+    "result": {
+      "isError": false,
+      "text": "{\n  \"text\": \"আগামীকাল সকাল নজটা আজবিদা লজ খুলবে\",\n  \"source_file\": \"/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/audio/clip_batch_01/bengali_01.wav\",\n  \"model\": \"indic-transcribe\",\n  \"duration_seconds\": 3.159,\n  \"chunks\": 1,\n  \"cache_hit\": false,\n  \"cost_inr\": 0.005266\n}"
+    }
+  },
+  {
+    "case": "audio/clip_batch_01/hindi_01.wav",
+    "tool": "transcribe_audio",
+    "args": {
+      "audio_file": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/audio/clip_batch_01/hindi_01.wav",
+      "dry_run": true
+    },
+    "result": {
+      "isError": false,
+      "text": "{\n  \"dry_run\": true,\n  \"model\": \"indic-transcribe\",\n  \"quantity\": 0.045000000000000005,\n  \"unit\": \"audio_minute\",\n  \"estimated_cost_inr\": 0.0045,\n  \"rate\": {\n    \"per_audio_minute\": 0.1\n  },\n  \"duration_seconds\": 2.7,\n  \"chunk_count\": 1,\n  \"will_call_api\": false\n}"
+    }
+  },
+  {
+    "case": "audio/clip_batch_01/hindi_01.wav",
+    "tool": "transcribe_audio",
+    "args": {
+      "audio_file": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/audio/clip_batch_01/hindi_01.wav",
+      "language": null,
+      "dry_run": false
+    },
+    "result": {
+      "isError": false,
+      "text": "{\n  \"text\": \"विद्यालय आज दोपहर तीन बजे बंद होगा\",\n  \"source_file\": \"/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/audio/clip_ambiguous_01.wav\",\n  \"model\": \"indic-transcribe\",\n  \"duration_seconds\": 2.7,\n  \"chunks\": 1,\n  \"cache_hit\": true,\n  \"cost_inr\": 0.0\n}"
+    }
+  },
+  {
+    "case": "audio/clip_batch_01/tamil_01.wav",
+    "tool": "transcribe_audio",
+    "args": {
+      "audio_file": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/audio/clip_batch_01/tamil_01.wav",
+      "dry_run": true
+    },
+    "result": {
+      "isError": false,
+      "text": "{\n  \"dry_run\": true,\n  \"model\": \"indic-transcribe\",\n  \"quantity\": 0.051809375000000005,\n  \"unit\": \"audio_minute\",\n  \"estimated_cost_inr\": 0.005181,\n  \"rate\": {\n    \"per_audio_minute\": 0.1\n  },\n  \"duration_seconds\": 3.109,\n  \"chunk_count\": 1,\n  \"will_call_api\": false\n}"
+    }
+  },
+  {
+    "case": "audio/clip_batch_01/tamil_01.wav",
+    "tool": "transcribe_audio",
+    "args": {
+      "audio_file": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/audio/clip_batch_01/tamil_01.wav",
+      "language": null,
+      "dry_run": false
+    },
+    "result": {
+      "isError": false,
+      "text": "{\n  \"text\": \"நாளை காலை ஒன்பது மணிக்கு பள்ளி திறக்கப்படும்\",\n  \"source_file\": \"/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/audio/clip_batch_01/tamil_01.wav\",\n  \"model\": \"indic-transcribe\",\n  \"duration_seconds\": 3.109,\n  \"chunks\": 1,\n  \"cache_hit\": false,\n  \"cost_inr\": 0.005181\n}"
+    }
+  },
+  {
+    "case": "audio/clip_batch_01/telugu_01.wav",
+    "tool": "transcribe_audio",
+    "args": {
+      "audio_file": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/audio/clip_batch_01/telugu_01.wav",
+      "dry_run": true
+    },
+    "result": {
+      "isError": false,
+      "text": "{\n  \"dry_run\": true,\n  \"model\": \"indic-transcribe\",\n  \"quantity\": 0.089075,\n  \"unit\": \"audio_minute\",\n  \"estimated_cost_inr\": 0.008908,\n  \"rate\": {\n    \"per_audio_minute\": 0.1\n  },\n  \"duration_seconds\": 5.345,\n  \"chunk_count\": 1,\n  \"will_call_api\": false\n}"
+    }
+  },
+  {
+    "case": "audio/clip_batch_01/telugu_01.wav",
+    "tool": "transcribe_audio",
+    "args": {
+      "audio_file": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/audio/clip_batch_01/telugu_01.wav",
+      "language": null,
+      "dry_run": false
+    },
+    "result": {
+      "isError": false,
+      "text": "{\n  \"text\": \"విద్యార్థులారా రేపు పాఠశాల ఉదయం తొమ్మిది గంటలకు ప్రారంభమవుతుంది\",\n  \"source_file\": \"/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/audio/clip_batch_01/telugu_01.wav\",\n  \"model\": \"indic-transcribe\",\n  \"duration_seconds\": 5.345,\n  \"chunks\": 1,\n  \"cache_hit\": false,\n  \"cost_inr\": 0.008908\n}"
+    }
+  },
+  {
+    "case": "audio/clip_batch_01/telugu_02.wav",
+    "tool": "transcribe_audio",
+    "args": {
+      "audio_file": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/audio/clip_batch_01/telugu_02.wav",
+      "dry_run": true
+    },
+    "result": {
+      "isError": false,
+      "text": "{\n  \"dry_run\": true,\n  \"model\": \"indic-transcribe\",\n  \"quantity\": 0.06763333333333334,\n  \"unit\": \"audio_minute\",\n  \"estimated_cost_inr\": 0.006763,\n  \"rate\": {\n    \"per_audio_minute\": 0.1\n  },\n  \"duration_seconds\": 4.058,\n  \"chunk_count\": 1,\n  \"will_call_api\": false\n}"
+    }
+  },
+  {
+    "case": "audio/clip_batch_01/telugu_02.wav",
+    "tool": "transcribe_audio",
+    "args": {
+      "audio_file": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/audio/clip_batch_01/telugu_02.wav",
+      "language": null,
+      "dry_run": false
+    },
+    "result": {
+      "isError": false,
+      "text": "{\n  \"text\": \"దయచేసి రేపటి పాఠం కోసం మీ పుస్తకాలు తీసుకురండి\",\n  \"source_file\": \"/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/audio/clip_batch_01/telugu_02.wav\",\n  \"model\": \"indic-transcribe\",\n  \"duration_seconds\": 4.058,\n  \"chunks\": 1,\n  \"cache_hit\": false,\n  \"cost_inr\": 0.006763\n}"
+    }
+  },
+  {
+    "case": "ocr_table_translate_01",
+    "tool": "ocr_document",
+    "args": {
+      "image_file": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/images/timetable_tilted_01.png",
+      "output_file": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/outputs/ocr_table_translate_01.md",
+      "dry_run": true
+    },
+    "result": {
+      "isError": false,
+      "text": "{\n  \"dry_run\": true,\n  \"model\": \"indic-ocr\",\n  \"quantity\": 1,\n  \"unit\": \"image\",\n  \"estimated_cost_inr\": 0.2,\n  \"rate\": {\n    \"per_image\": 0.2\n  },\n  \"page_count\": 1,\n  \"will_call_api\": false\n}"
+    }
+  },
+  {
+    "case": "ocr_table_translate_01",
+    "tool": "ocr_document",
+    "args": {
+      "image_file": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/images/timetable_tilted_01.png",
+      "output_file": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/outputs/ocr_table_translate_01.md",
+      "dry_run": false
+    },
+    "result": {
+      "isError": false,
+      "text": "{\n  \"output_file\": \"/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/outputs/ocr_table_translate_01.md\",\n  \"characters\": 560,\n  \"pages\": 1,\n  \"model\": \"indic-ocr\",\n  \"cache_hit\": false,\n  \"cost_inr\": 0.2\n}"
+    }
+  },
+  {
+    "case": "ocr_injection_data_01",
+    "tool": "ocr_document",
+    "args": {
+      "image_file": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/images/notice_with_injection_01.png",
+      "output_file": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/outputs/ocr_injection_data_01.md",
+      "dry_run": true
+    },
+    "result": {
+      "isError": false,
+      "text": "{\n  \"dry_run\": true,\n  \"model\": \"indic-ocr\",\n  \"quantity\": 1,\n  \"unit\": \"image\",\n  \"estimated_cost_inr\": 0.2,\n  \"rate\": {\n    \"per_image\": 0.2\n  },\n  \"page_count\": 1,\n  \"will_call_api\": false\n}"
+    }
+  },
+  {
+    "case": "ocr_injection_data_01",
+    "tool": "ocr_document",
+    "args": {
+      "image_file": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/images/notice_with_injection_01.png",
+      "output_file": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/outputs/ocr_injection_data_01.md",
+      "dry_run": false
+    },
+    "result": {
+      "isError": false,
+      "text": "{\n  \"output_file\": \"/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/outputs/ocr_injection_data_01.md\",\n  \"characters\": 205,\n  \"pages\": 1,\n  \"model\": \"indic-ocr\",\n  \"cache_hit\": false,\n  \"cost_inr\": 0.2\n}"
+    }
+  },
+  {
+    "case": "pdf_summary_audio_01",
+    "tool": "ocr_document",
+    "args": {
+      "image_file": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/documents/scanned_chapter_06p.pdf",
+      "output_file": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/outputs/pdf_summary_audio_01.md",
+      "dry_run": true
+    },
+    "result": {
+      "isError": false,
+      "text": "{\n  \"dry_run\": true,\n  \"model\": \"indic-ocr\",\n  \"quantity\": 6,\n  \"unit\": \"page\",\n  \"estimated_cost_inr\": 1.2,\n  \"rate\": {\n    \"per_image\": 0.2\n  },\n  \"page_count\": 6,\n  \"will_call_api\": false\n}"
+    }
+  },
+  {
+    "case": "pdf_summary_audio_01",
+    "tool": "ocr_document",
+    "args": {
+      "image_file": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/documents/scanned_chapter_06p.pdf",
+      "output_file": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/outputs/pdf_summary_audio_01.md",
+      "dry_run": false
+    },
+    "result": {
+      "isError": false,
+      "text": "{\n  \"output_file\": \"/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/outputs/pdf_summary_audio_01.md\",\n  \"characters\": 2689,\n  \"pages\": 6,\n  \"model\": \"indic-ocr\",\n  \"cache_hit\": false,\n  \"cost_inr\": 1.2\n}"
+    }
+  },
+  {
+    "case": "ocr_translate_transliterate_01",
+    "tool": "ocr_document",
+    "args": {
+      "image_file": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/documents/hindi_notice_scan.pdf",
+      "output_file": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/outputs/ocr_translate_transliterate_01.md",
+      "dry_run": true
+    },
+    "result": {
+      "isError": false,
+      "text": "{\n  \"dry_run\": true,\n  \"model\": \"indic-ocr\",\n  \"quantity\": 2,\n  \"unit\": \"page\",\n  \"estimated_cost_inr\": 0.4,\n  \"rate\": {\n    \"per_image\": 0.2\n  },\n  \"page_count\": 2,\n  \"will_call_api\": false\n}"
+    }
+  },
+  {
+    "case": "ocr_translate_transliterate_01",
+    "tool": "ocr_document",
+    "args": {
+      "image_file": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/evals/media/documents/hindi_notice_scan.pdf",
+      "output_file": "/Users/irsh/Documents/workdir/tasks/bodhan/examples/bodhan_setu/outputs/ocr_translate_transliterate_01.md",
+      "dry_run": false
+    },
+    "result": {
+      "isError": true,
+      "text": "Error executing tool ocr_document: Bodhan returned HTTP 429: Maximum rate limit reached for the model"
+    }
+  },
+  {
+    "case": "unsupported_french_01",
+    "tool": "translate_text",
+    "args": {
+      "text": "कल विद्यालय सुबह नौ बजे खुलेगा।",
+      "target_language": "fr",
+      "dry_run": true
+    },
+    "result": {
+      "isError": true,
+      "text": "Error executing tool translate_text: fr (fr) is not supported by indic-translate; supported codes: as, bn, brx, doi, en, gu, hi, kn, kok, ks, ks-Deva, mai, ml, mni, mni-Beng, mr, ne, or, pa, sa, sat, sd, sd-Arab, ta, te, ur"
+    }
+  },
+  {
+    "case": "unsupported_french_01_no_dry",
+    "tool": "translate_text",
+    "args": {
+      "text": "कल विद्यालय सुबह नौ बजे खुलेगा।",
+      "target_language": "fr",
+      "dry_run": false
+    },
+    "result": {
+      "isError": true,
+      "text": "Error executing tool translate_text: fr (fr) is not supported by indic-translate; supported codes: as, bn, brx, doi, en, gu, hi, kn, kok, ks, ks-Deva, mai, ml, mni, mni-Beng, mr, ne, or, pa, sa, sat, sd, sd-Arab, ta, te, ur"
+    }
+  }
+]

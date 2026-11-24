@@ -1,0 +1,2 @@
+{"timestamp": "2026-11-21T16:43:56.832601+00:00", "type": "unsupported_target_preflight", "message": "French (fr) is not supported by indic-translate. No Bodhan model operation was run.", "bodhan_cost_inr": 0.0}
+{"timestamp": "2026-11-21T16:43:56.832913+00:00", "type": "final", "status": "completed", "summary": "French (fr) is not supported by indic-translate. No Bodhan model operation was run.", "steps": 0, "bodhan_cost_inr": 0.0}

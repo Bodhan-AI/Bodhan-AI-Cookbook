@@ -14,7 +14,7 @@
       "endpoint": "POST /v1/audio/transcriptions",
       "content_type": "multipart/form-data",
       "openai_compatible": true,
-      "notes": "Audio up to ~30 seconds per request. Billed per second of audio.",
+      "notes": "Audio up to ~30 seconds per request. Billed per second of audio. The language field is optional; omitting it asks the vendor to auto-detect. Supplying a known language can improve non-English transcription. The response contains transcript text, not a detected-language code or confidence.",
       "languages": ["as", "bhb", "bho", "bn", "brx", "doi", "en", "gu", "hi", "kn", "kok", "ks", "mai", "ml", "mni", "mr", "ne", "or", "pa", "sa", "sat", "sd", "ta", "te", "ur"]
     },
     "indic-translate": {
@@ -23,7 +23,7 @@
       "endpoint": "POST /translate",
       "content_type": "application/json",
       "openai_compatible": false,
-      "notes": "Source language is auto-detected. Input tokens are free; output tokens are billed.",
+      "notes": "Source language is auto-detected; there is no source-language request field. Target language is required. Input tokens are free; output tokens are billed.",
       "scripts": ["native", "roman", "codemix"],
       "languages": ["as", "bn", "brx", "doi", "en", "gu", "hi", "kn", "kok", "ks", "ks-Deva", "mai", "ml", "mni", "mni-Beng", "mr", "ne", "or", "pa", "sa", "sat", "sd", "sd-Arab", "ta", "te", "ur"]
     },
@@ -33,7 +33,7 @@
       "endpoint": "POST /transliterate",
       "content_type": "application/json",
       "openai_compatible": false,
-      "notes": "Converts between native script and roman script while preserving pronunciation.",
+      "notes": "Converts between native script and roman script while preserving pronunciation. The source language is required; this endpoint does not auto-detect it.",
       "scripts": ["roman", "native"],
       "languages": ["as", "bn", "brx", "doi", "gu", "hi", "kn", "kok", "ks", "ks-Deva", "mai", "ml", "mni", "mni-Beng", "mr", "ne", "or", "pa", "sa", "sat", "sd", "sd-Arab", "ta", "te", "ur"]
     },
@@ -43,7 +43,7 @@
       "endpoint": "POST /v1/audio/speech",
       "content_type": "application/json",
       "openai_compatible": true,
-      "notes": "Returns audio/wav (PCM16, 24 kHz, mono). Keep each request to a sentence or two (~30 seconds of speech). `instructions` is a JSON string with `lang` and optional `style`.",
+      "notes": "Returns audio/wav (PCM16, 24 kHz, mono). Language is required in `instructions.lang`; the endpoint does not infer it. Keep each request to a sentence or two (~30 seconds of speech).",
       "languages": ["as", "bn", "brx", "doi", "en", "gu", "hi", "kn", "kok", "ks", "mai", "ml", "mni", "mr", "ne", "or", "pa", "sa", "sat", "sd", "ta", "te", "ur"],
       "voices": {
         "as": {"female": ["Prastuti"], "male": ["Ankur"]},
@@ -77,7 +77,7 @@
       "endpoint": "POST /v1/chat/completions",
       "content_type": "application/json",
       "openai_compatible": true,
-      "notes": "Send one PNG or JPEG page as a base64 data URL in an image_url content part. Returns Markdown plus layout `blocks` with bounding boxes. Billed per page.",
+      "notes": "Send one PNG or JPEG page as a base64 data URL in an image_url content part. The model infers script and returns text in that script; it does not return a separate language code or confidence. Returns Markdown plus layout `blocks` with bounding boxes. Billed per page.",
       "table_formats": ["html", "markdown"]
     }
   },
