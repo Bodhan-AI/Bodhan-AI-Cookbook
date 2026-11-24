@@ -1,0 +1,34 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+.bodhan_cache/
+bodhan_mcp_outputs/
+out/
+runs/
+sample_data/*
+!sample_data/.gitkeep
+outputs/*
+!outputs/.gitkeep
+# Keep media out of git: link it from the README instead.
+*.wav
+*.mp3
+*.mp4
+*.m4a
+*.ogg
+*.flac
+*.pdf
+*.png
+*.jpg
+*.jpeg
+!docs/**/*.png
+# Demo runs: commit result.md / report.json / trace.jsonl / text artifacts; never intermediates or media.
+demo_runs/*/work/
+sample_data/demo/
+evals/results.json

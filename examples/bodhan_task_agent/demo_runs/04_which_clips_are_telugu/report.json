@@ -1,0 +1,154 @@
+{
+  "status": "completed",
+  "agent_claimed_status": "completed",
+  "stop_reason": "finished",
+  "task": "Which of these clips are in Telugu? Translate those into English",
+  "input_files": [
+    "sample_data/demo/clips/"
+  ],
+  "answer": "Two of the five clips are in Telugu:\n\n**Telugu clips (translated to English):**\n1. **clip_1.wav** - \"what time does the train to new york leave from platform three\"\n2. **clip_4.wav** - \"take an umbrella because it will rain tomorrow evening\"\n\n**Non-Telugu clips (identified by script/language detection):**\n- clip_2.wav - Hindi (Devanagari script)\n- clip_3.wav - Tamil\n- clip_5.wav - Bengali\n\nLanguage detection was done via auto-detection in transcribe_audio, which identified Telugu script for clips 1 and 4 with language_candidates = [\"te\"]. The English translations are saved as artifact files.",
+  "artifacts": [
+    {
+      "file": "artifacts/clip_1.auto.transcript.en.txt",
+      "description": "English translation of clip_1.wav (Telugu)",
+      "produced_by": "translate_text",
+      "bytes": 63,
+      "ai_generated_audio": false
+    },
+    {
+      "file": "artifacts/clip_4.auto.transcript.en.txt",
+      "description": "English translation of clip_4.wav (Telugu)",
+      "produced_by": "translate_text",
+      "bytes": 55,
+      "ai_generated_audio": false
+    }
+  ],
+  "assumptions": [
+    "All 5 clips are short (1.9-5.2 seconds each), so transcription will be fast and cheap.",
+    "Language detection via transcribe_audio will reliably identify Telugu (te) among the supported languages."
+  ],
+  "plan": {
+    "understanding": "The user wants to identify which of the 5 audio clips are in Telugu, then translate those Telugu clips into English.",
+    "feasible": true,
+    "source_languages": [
+      "unknown"
+    ],
+    "target_languages": [
+      "en"
+    ],
+    "assumptions": [
+      "All 5 clips are short (1.9-5.2 seconds each), so transcription will be fast and cheap.",
+      "Language detection via transcribe_audio will reliably identify Telugu (te) among the supported languages."
+    ],
+    "deliverables": [
+      "English translations of any clips detected as Telugu",
+      "List of which clips are in Telugu"
+    ],
+    "steps": [
+      "Transcribe all 5 clips with auto-detection to identify languages",
+      "For clips detected as Telugu, translate the transcripts to English",
+      "Report results"
+    ]
+  },
+  "steps": {
+    "used": 5,
+    "max": 30,
+    "tool_calls": 7,
+    "llm_calls": 5
+  },
+  "cost_inr": {
+    "total": 0.029,
+    "max": 20.0,
+    "by_tool": {
+      "transcribe_audio": 0.028586,
+      "translate_text": 0.00046
+    },
+    "by_model": {
+      "indic-transcribe": 0.028586,
+      "indic-translate": 0.00046
+    }
+  },
+  "time_s": 71.61,
+  "llm_tokens": {
+    "prompt_tokens": 37112,
+    "completion_tokens": 1967
+  },
+  "verification": {
+    "passed": true,
+    "checks": [
+      {
+        "name": "translation_checks",
+        "passed": true,
+        "severity": "error",
+        "detail": "length, script, numbers and structure checks passed",
+        "file": "clip_4.auto.transcript.en.txt"
+      },
+      {
+        "name": "translation_checks",
+        "passed": true,
+        "severity": "error",
+        "detail": "length, script, numbers and structure checks passed",
+        "file": "clip_1.auto.transcript.en.txt"
+      },
+      {
+        "name": "artifact_non_empty",
+        "passed": true,
+        "severity": "error",
+        "detail": "63 bytes",
+        "file": "clip_1.auto.transcript.en.txt"
+      },
+      {
+        "name": "text_non_blank",
+        "passed": true,
+        "severity": "error",
+        "detail": "63 chars",
+        "file": "clip_1.auto.transcript.en.txt"
+      },
+      {
+        "name": "artifact_non_empty",
+        "passed": true,
+        "severity": "error",
+        "detail": "55 bytes",
+        "file": "clip_4.auto.transcript.en.txt"
+      },
+      {
+        "name": "text_non_blank",
+        "passed": true,
+        "severity": "error",
+        "detail": "55 chars",
+        "file": "clip_4.auto.transcript.en.txt"
+      }
+    ],
+    "failed": 0,
+    "warnings": 0
+  },
+  "quality_targets": {
+    "honest_failure": {
+      "met": true,
+      "detail": "status decided from verification and budgets, not from the LLM's claim"
+    },
+    "verification": {
+      "met": true,
+      "detail": "every generated audio file and translation checked"
+    },
+    "no_waste": {
+      "met": true,
+      "detail": "7 model requests, 0 served from cache; identical tool calls are memoised and model calls are content-cached"
+    },
+    "budget": {
+      "met": true,
+      "detail": "₹0.0290 of ₹20.00"
+    },
+    "latency": {
+      "met": true,
+      "detail": "71.6s (multi-step target 300s)"
+    }
+  },
+  "missed_targets": {},
+  "model_requests": 7,
+  "cache_hits": 0,
+  "errors": [],
+  "prompt_injection": [],
+  "finished_at": "2026-11-16T11:53:12+00:00",
+  "agent_version": "1.0.0"
+}

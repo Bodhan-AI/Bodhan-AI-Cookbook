@@ -1,0 +1,148 @@
+{
+  "status": "completed",
+  "agent_claimed_status": "completed",
+  "stop_reason": "finished",
+  "task": "What language is this announcement in, and what does it say? Answer in English.",
+  "input_files": [
+    "sample_data/demo/announcement.mp4"
+  ],
+  "answer": "The announcement is in **Hindi** (detected via Devanagari script; Hindi is the most likely language among the candidates hi, mr, ne, mai).\n\n**Content summary (translated to English):**\nMeera from the school office reminds parents about a parent-teacher meeting next Tuesday at 4 PM in the main hall. Parents should bring their child's report card. If Tuesday doesn't work, they can meet the class teacher on Thursday between 9 AM and 11 AM. The school will also discuss an annual trip to the Science Museum costing ₹200 per student; fee payment is due by the 20th of this month. Students must wear school uniform and bring a lunch box. The bus departs from the school gate at 7:30 AM and returns by 5 PM. For questions, call the office.",
+  "artifacts": [
+    {
+      "file": "artifacts/announcement.auto.transcript.txt",
+      "description": "Original Hindi transcript (Devanagari)",
+      "produced_by": "transcribe_audio",
+      "bytes": 1814,
+      "ai_generated_audio": false
+    },
+    {
+      "file": "artifacts/announcement.auto.transcript.en.txt",
+      "description": "English translation of the announcement",
+      "produced_by": "translate_text",
+      "bytes": 680,
+      "ai_generated_audio": false
+    }
+  ],
+  "assumptions": [
+    "The video contains clear speech in one of the supported Indian languages or English.",
+    "The audio quality is sufficient for transcription.",
+    "The Devanagari script detection with candidates hi, mr, ne, mai indicates Hindi as the most probable language for a school announcement in India.",
+    "The transcription and translation are accurate as verified by the tool's checks."
+  ],
+  "plan": {
+    "understanding": "The user wants to identify the language of the announcement in the video file and understand its content, with the answer provided in English.",
+    "feasible": true,
+    "source_languages": [
+      "unknown"
+    ],
+    "target_languages": [
+      "en"
+    ],
+    "assumptions": [
+      "The video contains clear speech in one of the supported Indian languages or English.",
+      "The audio quality is sufficient for transcription."
+    ],
+    "deliverables": [
+      "English answer stating the detected language and a summary/translation of the announcement."
+    ],
+    "steps": [
+      "Transcribe the audio from announcement.mp4 to detect language and get transcript.",
+      "If the transcript is not in English, translate it to English.",
+      "Provide the final answer in English."
+    ]
+  },
+  "steps": {
+    "used": 4,
+    "max": 30,
+    "tool_calls": 2,
+    "llm_calls": 4
+  },
+  "cost_inr": {
+    "total": 0.0983,
+    "max": 20.0,
+    "by_tool": {
+      "transcribe_audio": 0.094895,
+      "translate_text": 0.0034
+    },
+    "by_model": {
+      "indic-transcribe": 0.094895,
+      "indic-translate": 0.0034
+    }
+  },
+  "time_s": 28.25,
+  "llm_tokens": {
+    "prompt_tokens": 24295,
+    "completion_tokens": 994
+  },
+  "verification": {
+    "passed": true,
+    "checks": [
+      {
+        "name": "translation_checks",
+        "passed": true,
+        "severity": "error",
+        "detail": "length, script, numbers and structure checks passed",
+        "file": "announcement.auto.transcript.en.txt"
+      },
+      {
+        "name": "artifact_non_empty",
+        "passed": true,
+        "severity": "error",
+        "detail": "1814 bytes",
+        "file": "announcement.auto.transcript.txt"
+      },
+      {
+        "name": "text_non_blank",
+        "passed": true,
+        "severity": "error",
+        "detail": "700 chars",
+        "file": "announcement.auto.transcript.txt"
+      },
+      {
+        "name": "artifact_non_empty",
+        "passed": true,
+        "severity": "error",
+        "detail": "680 bytes",
+        "file": "announcement.auto.transcript.en.txt"
+      },
+      {
+        "name": "text_non_blank",
+        "passed": true,
+        "severity": "error",
+        "detail": "680 chars",
+        "file": "announcement.auto.transcript.en.txt"
+      }
+    ],
+    "failed": 0,
+    "warnings": 0
+  },
+  "quality_targets": {
+    "honest_failure": {
+      "met": true,
+      "detail": "status decided from verification and budgets, not from the LLM's claim"
+    },
+    "verification": {
+      "met": true,
+      "detail": "every generated audio file and translation checked"
+    },
+    "no_waste": {
+      "met": true,
+      "detail": "6 model requests, 0 served from cache; identical tool calls are memoised and model calls are content-cached"
+    },
+    "budget": {
+      "met": true,
+      "detail": "₹0.0983 of ₹20.00"
+    },
+    "latency": {
+      "met": true,
+      "detail": "28.2s (multi-step target 300s)"
+    }
+  },
+  "missed_targets": {},
+  "model_requests": 6,
+  "cache_hits": 0,
+  "errors": [],
+  "prompt_injection": [],
+  "finished_at": "2026-11-16T11:55:16+00:00",
+  "agent_version": "1.0.0"
+}

@@ -1,0 +1,126 @@
+{
+  "status": "completed",
+  "agent_claimed_status": "completed",
+  "stop_reason": "finished",
+  "task": "Transcribe this Hindi voice note and give me English subtitles",
+  "input_files": [
+    "sample_data/demo/voice_note_hi.wav"
+  ],
+  "answer": "Successfully transcribed the Hindi voice note and generated English subtitles in SRT format. The voice note is from Mira at the school office reminding parents about a parent-teacher meeting on Tuesday at 4 PM, an alternative meeting on Thursday 9-11 AM, and an annual Science Museum trip costing ₹200 per student with payment due by the 20th of the month.",
+  "artifacts": [
+    {
+      "file": "artifacts/voice_note_hi.hi.en.srt",
+      "description": "English subtitles (SRT) for the Hindi voice note",
+      "produced_by": "make_subtitles",
+      "bytes": 1153,
+      "ai_generated_audio": false
+    }
+  ],
+  "assumptions": [
+    "The audio is in Hindi as indicated by the filename and task description.",
+    "English subtitles should be in SRT format (default)."
+  ],
+  "plan": {
+    "understanding": "Transcribe the Hindi voice note (voice_note_hi.wav) and produce English subtitles (SRT format).",
+    "feasible": true,
+    "source_languages": [
+      "hi"
+    ],
+    "target_languages": [
+      "en"
+    ],
+    "assumptions": [
+      "The audio is in Hindi as indicated by the filename and task description.",
+      "English subtitles should be in SRT format (default)."
+    ],
+    "deliverables": [
+      "English subtitle file (.srt) for the voice note"
+    ],
+    "steps": [
+      "transcribe_audio on voice_note_hi.wav with language=hi",
+      "translate_text on the resulting segments_file to English",
+      "make_subtitles on the translated segments_file to produce SRT"
+    ]
+  },
+  "steps": {
+    "used": 5,
+    "max": 30,
+    "tool_calls": 3,
+    "llm_calls": 5
+  },
+  "cost_inr": {
+    "total": 0.0983,
+    "max": 20.0,
+    "by_tool": {
+      "transcribe_audio": 0.09487,
+      "translate_text": 0.0034,
+      "make_subtitles": 0.0
+    },
+    "by_model": {
+      "indic-transcribe": 0.09487,
+      "indic-translate": 0.0034
+    }
+  },
+  "time_s": 19.41,
+  "llm_tokens": {
+    "prompt_tokens": 31739,
+    "completion_tokens": 839
+  },
+  "verification": {
+    "passed": true,
+    "checks": [
+      {
+        "name": "translation_checks",
+        "passed": true,
+        "severity": "error",
+        "detail": "length, script, numbers and structure checks passed",
+        "file": "voice_note_hi.hi.en.txt"
+      },
+      {
+        "name": "artifact_non_empty",
+        "passed": true,
+        "severity": "error",
+        "detail": "1153 bytes",
+        "file": "voice_note_hi.hi.en.srt"
+      },
+      {
+        "name": "subtitles_parse",
+        "passed": true,
+        "severity": "error",
+        "detail": "13 cues, timestamps monotonic",
+        "file": "voice_note_hi.hi.en.srt"
+      }
+    ],
+    "failed": 0,
+    "warnings": 0
+  },
+  "quality_targets": {
+    "honest_failure": {
+      "met": true,
+      "detail": "status decided from verification and budgets, not from the LLM's claim"
+    },
+    "verification": {
+      "met": true,
+      "detail": "every generated audio file and translation checked"
+    },
+    "no_waste": {
+      "met": true,
+      "detail": "10 model requests, 0 served from cache; identical tool calls are memoised and model calls are content-cached"
+    },
+    "budget": {
+      "met": true,
+      "detail": "₹0.0983 of ₹20.00"
+    },
+    "latency": {
+      "met": true,
+      "detail": "19.4s (multi-step target 300s)"
+    }
+  },
+  "missed_targets": {},
+  "model_requests": 10,
+  "cache_hits": 0,
+  "errors": [],
+  "prompt_injection": [],
+  "finished_at": "2026-11-16T11:51:42+00:00",
+  "agent_version": "1.0.0"
+}

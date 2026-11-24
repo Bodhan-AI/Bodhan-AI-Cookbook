@@ -1,0 +1,82 @@
+{
+  "status": "infeasible",
+  "agent_claimed_status": "infeasible",
+  "stop_reason": "finished",
+  "task": "Summarise this report in Hindi",
+  "input_files": [
+    "sample_data/demo/does_not_exist.pdf"
+  ],
+  "answer": "The required input PDF file does not exist. No other input files were provided or found.",
+  "artifacts": [],
+  "assumptions": [
+    "The task cannot proceed without a valid input file containing the report to summarize."
+  ],
+  "plan": {
+    "understanding": "The user wants a Hindi summary of a report, but the input file 'sample_data/demo/does_not_exist.pdf' is missing and no other input files are available.",
+    "feasible": false,
+    "infeasible_reason": "The required input PDF file does not exist. No other input files were provided or found.",
+    "source_languages": [
+      "unknown"
+    ],
+    "target_languages": [
+      "hi"
+    ],
+    "assumptions": [
+      "The task cannot proceed without a valid input file containing the report to summarize."
+    ],
+    "deliverables": [],
+    "steps": []
+  },
+  "steps": {
+    "used": 1,
+    "max": 30,
+    "tool_calls": 0,
+    "llm_calls": 1
+  },
+  "cost_inr": {
+    "total": 0.0,
+    "max": 20.0,
+    "by_tool": {},
+    "by_model": {}
+  },
+  "time_s": 4.81,
+  "llm_tokens": {
+    "prompt_tokens": 5265,
+    "completion_tokens": 219
+  },
+  "verification": {
+    "passed": true,
+    "checks": [],
+    "failed": 0,
+    "warnings": 0
+  },
+  "quality_targets": {
+    "honest_failure": {
+      "met": true,
+      "detail": "status decided from verification and budgets, not from the LLM's claim"
+    },
+    "verification": {
+      "met": true,
+      "detail": "every generated audio file and translation checked"
+    },
+    "no_waste": {
+      "met": true,
+      "detail": "0 model requests, 0 served from cache; identical tool calls are memoised and model calls are content-cached"
+    },
+    "budget": {
+      "met": true,
+      "detail": "₹0.0000 of ₹20.00"
+    },
+    "latency": {
+      "met": true,
+      "detail": "4.8s (single-step target 30s)"
+    }
+  },
+  "missed_targets": {},
+  "model_requests": 0,
+  "cache_hits": 0,
+  "errors": [],
+  "prompt_injection": [],
+  "finished_at": "2026-11-16T11:54:06+00:00",
+  "agent_version": "1.0.0"
+}

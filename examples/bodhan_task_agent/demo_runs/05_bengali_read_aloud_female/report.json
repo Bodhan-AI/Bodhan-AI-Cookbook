@@ -1,0 +1,155 @@
+{
+  "status": "completed",
+  "agent_claimed_status": "completed",
+  "stop_reason": "finished",
+  "task": "Read this paragraph aloud in Bengali with a female voice",
+  "input_files": [
+    "sample_data/demo/library_paragraph.txt"
+  ],
+  "answer": "Successfully read the paragraph aloud in Bengali with a female voice. The English text was translated to Bengali and synthesized using the Ishita voice (female Bengali voice). The audio file is 17.9 seconds long and has been verified with a low character error rate (1.26%).",
+  "artifacts": [
+    {
+      "file": "artifacts/text-c2a4dfc7.bn.bn.ishita.mp3",
+      "description": "Bengali audio file (MP3) of the translated paragraph spoken by female voice Ishita",
+      "produced_by": "synthesize_speech",
+      "bytes": 150799,
+      "ai_generated_audio": true
+    },
+    {
+      "file": "artifacts/text-c2a4dfc7.bn.txt",
+      "description": "Text spoken in text-c2a4dfc7.bn.bn.ishita.mp3",
+      "produced_by": "translate_text",
+      "bytes": 521,
+      "ai_generated_audio": false
+    }
+  ],
+  "assumptions": [
+    "The input text file contains the paragraph to be read aloud.",
+    "A female Bengali voice is available for speech synthesis."
+  ],
+  "plan": {
+    "understanding": "The user wants the English paragraph from the input text file translated to Bengali and then spoken aloud using a female Bengali voice.",
+    "feasible": true,
+    "source_languages": [
+      "en"
+    ],
+    "target_languages": [
+      "bn"
+    ],
+    "assumptions": [
+      "The input text file contains the paragraph to be read aloud.",
+      "A female Bengali voice is available for speech synthesis."
+    ],
+    "deliverables": [
+      "Bengali audio file (MP3) of the translated paragraph"
+    ],
+    "steps": [
+      "Read the English text from the input file",
+      "Translate the English text to Bengali",
+      "Synthesize Bengali speech with a female voice"
+    ]
+  },
+  "steps": {
+    "used": 5,
+    "max": 30,
+    "tool_calls": 3,
+    "llm_calls": 5
+  },
+  "cost_inr": {
+    "total": 0.1485,
+    "max": 20.0,
+    "by_tool": {
+      "read_text_file": 0.0,
+      "translate_text": 0.00104,
+      "synthesize_speech": 0.147467
+    },
+    "by_model": {
+      "indic-translate": 0.00104,
+      "indic-speak": 0.1176,
+      "indic-transcribe": 0.029867
+    }
+  },
+  "time_s": 42.45,
+  "llm_tokens": {
+    "prompt_tokens": 30268,
+    "completion_tokens": 847
+  },
+  "verification": {
+    "passed": true,
+    "checks": [
+      {
+        "name": "translation_checks",
+        "passed": true,
+        "severity": "error",
+        "detail": "length, script, numbers and structure checks passed",
+        "file": "text-c2a4dfc7.bn.txt"
+      },
+      {
+        "name": "speech_back_transcription",
+        "passed": true,
+        "severity": "error",
+        "detail": "mean CER 0.0126, all pieces ok",
+        "file": "text-c2a4dfc7.bn.bn.ishita.mp3"
+      },
+      {
+        "name": "artifact_non_empty",
+        "passed": true,
+        "severity": "error",
+        "detail": "150799 bytes",
+        "file": "text-c2a4dfc7.bn.bn.ishita.mp3"
+      },
+      {
+        "name": "audio_decodes",
+        "passed": true,
+        "severity": "error",
+        "detail": "duration 18.0s",
+        "file": "text-c2a4dfc7.bn.bn.ishita.mp3"
+      },
+      {
+        "name": "artifact_non_empty",
+        "passed": true,
+        "severity": "error",
+        "detail": "521 bytes",
+        "file": "text-c2a4dfc7.bn.txt"
+      },
+      {
+        "name": "text_non_blank",
+        "passed": true,
+        "severity": "error",
+        "detail": "197 chars",
+        "file": "text-c2a4dfc7.bn.txt"
+      }
+    ],
+    "failed": 0,
+    "warnings": 0
+  },
+  "quality_targets": {
+    "honest_failure": {
+      "met": true,
+      "detail": "status decided from verification and budgets, not from the LLM's claim"
+    },
+    "verification": {
+      "met": true,
+      "detail": "every generated audio file and translation checked"
+    },
+    "no_waste": {
+      "met": true,
+      "detail": "3 model requests, 0 served from cache; identical tool calls are memoised and model calls are content-cached"
+    },
+    "budget": {
+      "met": true,
+      "detail": "₹0.1485 of ₹20.00"
+    },
+    "latency": {
+      "met": true,
+      "detail": "42.5s (multi-step target 300s)"
+    }
+  },
+  "missed_targets": {},
+  "model_requests": 3,
+  "cache_hits": 0,
+  "errors": [],
+  "prompt_injection": [],
+  "finished_at": "2026-11-19T15:32:23+00:00",
+  "agent_version": "1.0.0"
+}

@@ -1,0 +1,14 @@
+.env
+.venv
+**/__pycache__
+.pytest_cache
+.ruff_cache
+*.egg-info
+out
+demo_runs
+sample_data
+outputs
+bodhan_mcp_outputs
+tests
+docs
+evals
