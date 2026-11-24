@@ -1,0 +1,55 @@
+{
+  "expo": {
+    "name": "Bodhan Reader",
+    "slug": "bodhan-reader",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "bodhanreader",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1a1a2e"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.bodhan.reader",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Bodhan Reader needs camera access to scan book pages and documents for translation.",
+        "NSMicrophoneUsageDescription": "Bodhan Reader needs microphone access to listen and translate speech in real-time."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1a1a2e"
+      },
+      "package": "com.bodhan.reader",
+      "permissions": [
+        "CAMERA",
+        "RECORD_AUDIO"
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Bodhan Reader to access your camera to scan pages."
+        }
+      ],
+      [
+        "expo-av",
+        {
+          "microphonePermission": "Allow Bodhan Reader to access your microphone for speech translation."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
+
