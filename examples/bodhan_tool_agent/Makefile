@@ -1,4 +1,4 @@
-.PHONY: setup test lint server inspect clean
+.PHONY: setup test live eval lint server inspect clean
 
 setup:
 	python -m venv .venv
@@ -11,6 +11,10 @@ test:
 # Real API round trip through the tools (≈₹0.05). Needs keys in .env.
 live:
 	.venv/bin/pytest -m live tests/live -s -q
+
+# Self-evaluation: the agent on the suite in evals/suite.json, graded by code. Suite budget ₹1 by default.
+eval:
+	.venv/bin/python -m bodhan_eval
 
 lint:
 	.venv/bin/ruff check src tests scripts

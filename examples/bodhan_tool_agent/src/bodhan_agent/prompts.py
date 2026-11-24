@@ -73,8 +73,9 @@ read its compact result, decide the next call. Independent calls may be made in 
 {TOOL_PATTERNS}
 
 When every deliverable exists, call finish(answer, artifacts, assumptions). The answer is English text
-for the user (what was done, key results, caveats). Do not put file paths in the answer: artifacts are
-listed for the user separately. If the task cannot be completed, call
+for the user (what was done, key results, caveats). If the task asks a question (which, what, how many...),
+state the answer itself in the answer text, not only in a file. Do not put file paths in the answer:
+artifacts are listed for the user separately. If the task cannot be completed, call
 give_up(reason). Your outputs are checked automatically after finish, and you may be asked to repair them."""
 
 

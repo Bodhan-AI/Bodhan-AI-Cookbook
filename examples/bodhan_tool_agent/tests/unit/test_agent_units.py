@@ -146,3 +146,163 @@ async def test_rate_limit_is_waited_out():
     with FakeLLM(brain) as f:
         reply, llm = await _chat(f.url)
     assert reply.tool_calls and reply.waited_s == pytest.approx(0.05) and calls["n"] == 2
+
+
+@pytest.mark.parametrize("message", [
+    "tool_use_failed: Failed to call a function",
+    "Parsing failed. The model generated output that could not be parsed. See 'failed_generation' for more details.",
+    "Tool choice is none, but model called a tool",
+])
+async def test_malformed_generation_is_asked_again(message):
+    calls = {"n": 0}
+
+    def brain(req):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            return {"status": 400, "message": message}
+        return {"tool_calls": [("inspect_media", {"path": "/c"})]}
+
+    with FakeLLM(brain) as f:
+        reply, llm = await _chat(f.url)
+    assert reply.tool_calls and calls["n"] == 2 and llm.native_tools  # retried; tool calling not switched off
+    assert [r["temperature"] for r in f.requests] == [0.0, 0.7]  # the retry samples instead of repeating
+
+
+def test_bare_finish_json_is_read_as_a_finish_call():
+    from bodhan_agent.llm import _text_tool_call
+
+    text = '{"answer": "Translated.", "artifacts": [{"path": "/w/a.hi.md", "kind": "text"}], "assumptions": ["x"]}'
+    call = _text_tool_call(text, {"finish", "give_up", "read_text"})
+    assert call.name == "finish" and call.arguments["answer"] == "Translated."
+    assert _text_tool_call(text, {"read_text"}) is None  # only when finish is offered
+    assert _text_tool_call('{"note": "hi"}', {"finish"}) is None
+
+
+async def test_every_llm_call_caps_output_tokens():
+    from bodhan_agent.llm import DEFAULT_MAX_TOKENS
+
+    with FakeLLM(lambda req: {"tool_calls": [("inspect_media", {"path": "/c"})]}) as f:
+        await _chat(f.url)
+    assert f.requests[0]["max_tokens"] == DEFAULT_MAX_TOKENS
+
+
+
+async def test_trickling_llm_response_hits_a_hard_deadline():
+    """A server that keeps the response alive one byte at a time never trips a per-read timeout."""
+    import socket
+    import threading
+    import time as _time
+
+    from bodhan_agent.llm import LLMError
+
+    srv = socket.socket()
+    srv.bind(("127.0.0.1", 0))
+    srv.listen()
+    stop = threading.Event()
+
+    def serve():
+        srv.settimeout(0.2)
+        while not stop.is_set():
+            try:
+                conn, _ = srv.accept()
+            except OSError:
+                continue
+
+            def trickle(c=conn):
+                try:
+                    c.recv(65536)
+                    c.sendall(b"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: 100000\r\n\r\n")
+                    while not stop.is_set():
+                        c.sendall(b" ")
+                        _time.sleep(0.05)
+                except OSError:
+                    pass
+                finally:
+                    c.close()
+
+            threading.Thread(target=trickle, daemon=True).start()
+
+    threading.Thread(target=serve, daemon=True).start()
+
+    async def no_sleep(_s):
+        return None
+
+    started = _time.monotonic()
+    try:
+        with pytest.raises(LLMError, match="after 2 attempts"):
+            await _chat(f"http://127.0.0.1:{srv.getsockname()[1]}/v1", timeout_s=0.5, max_attempts=2, sleep=no_sleep)
+    finally:
+        stop.set()
+        srv.close()
+    assert _time.monotonic() - started < 4
+
+
+async def test_daily_quota_429_fails_fast_with_a_clear_reason():
+    from bodhan_agent.llm import LLMError
+
+    calls = {"n": 0}
+
+    def brain(req):
+        calls["n"] += 1
+        return {"status": 429, "message": "Rate limit reached on tokens per day (TPD). Please try again in 11m53.2s."}
+
+    with FakeLLM(brain) as f:
+        with pytest.raises(LLMError, match="quota exhausted.*12 min"):
+            await _chat(f.url)
+    assert calls["n"] == 1
+
+
+async def test_request_too_large_shrinks_the_output_cap_and_retries():
+    from bodhan_agent.llm import DEFAULT_MAX_TOKENS
+
+    def brain(req):
+        if req["max_tokens"] == DEFAULT_MAX_TOKENS:
+            return {"status": 413, "message": "Request too large on tokens per minute (TPM): Limit 8000, Requested 8554"}
+        return {"tool_calls": [("inspect_media", {"path": "/c"})]}
+
+    with FakeLLM(brain) as f:
+        reply, _ = await _chat(f.url)
+    assert reply.tool_calls
+    assert [r["max_tokens"] for r in f.requests] == [DEFAULT_MAX_TOKENS, DEFAULT_MAX_TOKENS - 554 - 64]
+
+
+async def test_repeated_malformed_native_calls_fall_back_to_text_tools_for_that_call():
+    def brain(req):
+        if req.get("tools"):
+            return {"status": 400, "message": "Tool choice is none, but model called a tool"}
+        assert "reply with ONLY a JSON object" in req["messages"][0]["content"]
+        return {"content": '{"tool": "inspect_media", "arguments": {"path": "/a.wav"}}'}
+
+    with FakeLLM(brain) as f:
+        reply, llm = await _chat(f.url)
+    assert reply.tool_calls[0].name == "inspect_media" and reply.fallback == "text-tools-after-malformed"
+    assert [bool(r.get("tools")) for r in f.requests] == [True, True, True, False]
+    assert llm.native_tools  # only that one reply used text tools; the next call tries native again
+
+
+async def test_malformed_output_in_text_mode_still_gives_up():
+    from bodhan_agent.llm import LLMError
+
+    with FakeLLM(lambda req: {"status": 400, "message": "Parsing failed: failed_generation"}) as f:
+        with pytest.raises(LLMError, match="malformed"):
+            await _chat(f.url)
+    assert len(f.requests) == 5  # 3 native + 2 text attempts
+
+
+async def test_rate_limit_waits_do_not_use_up_the_malformed_retry_budget():
+    calls = {"n": 0}
+
+    def brain(req):
+        calls["n"] += 1
+        if calls["n"] <= 2:
+            return {"status": 400, "message": "Parsing failed: failed_generation"}
+        if calls["n"] <= 7:
+            return {"status": 429, "message": "Rate limit reached. Please try again in 0.01s."}
+        return {"tool_calls": [("inspect_media", {"path": "/c"})]}
+
+    async def no_sleep(_s):
+        return None
+
+    with FakeLLM(brain) as f:
+        reply, _ = await _chat(f.url, sleep=no_sleep)
+    assert reply.tool_calls and calls["n"] == 8

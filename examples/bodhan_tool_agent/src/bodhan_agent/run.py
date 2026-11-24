@@ -155,6 +155,7 @@ def _finalize(cfg: RunConfig, trace: Trace, st: _State, work: Path, started: flo
         "status": st.status,
         "task": cfg.task,
         "reason": st.reason or None,
+        "answer": st.answer or None,
         "steps": st.steps,
         "trace_entries": trace.step,
         "tool_calls": outcome.calls if outcome else [],

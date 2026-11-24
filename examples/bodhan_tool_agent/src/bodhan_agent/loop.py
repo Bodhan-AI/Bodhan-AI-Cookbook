@@ -211,7 +211,10 @@ class ActLoop:
         if violation:
             answer = "(The agent's answer contained Indian-language text it wrote itself and was withheld; " \
                      "see the artifacts produced by the Bodhan tools.)"
-        artifacts = [str(a) for a in (args.get("artifacts") or []) if isinstance(a, str)]
+        # Models sometimes list artifacts as {"path": ..., "description": ...} objects instead of strings.
+        raw = args.get("artifacts") or []
+        artifacts = [str(a.get("path") if isinstance(a, dict) else a) for a in (raw if isinstance(raw, list) else [])
+                     if isinstance(a, str) or (isinstance(a, dict) and isinstance(a.get("path"), str))]
         self.trace.log("finish", answer=answer[:800], artifacts=artifacts, assumptions=args.get("assumptions"))
         self.outcome.status = "finished"
         self.outcome.answer = answer

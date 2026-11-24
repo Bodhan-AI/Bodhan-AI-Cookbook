@@ -6,7 +6,7 @@
 **Languages shown:** Hindi, Tamil, Marathi, Telugu, Bengali (any language the models support)
 **Format:** CLI agent + MCP server (stdio)
 
-> **Status:** the MCP server, its tools and the task agent work end to end against the live Bodhan API. Demo video and self-evaluation suite are next; see [Roadmap](#roadmap).
+> **Status:** the MCP server, its tools and the task agent work end to end against the live Bodhan API, with a self-evaluation suite. The demo video is next; see [Roadmap](#roadmap).
 
 ## What it does
 
@@ -98,8 +98,9 @@ What the live API actually returns, and why the tools are shaped this way: [docs
 ## Tests
 
 ```bash
-make test        # 100+ unit and end-to-end tests; no keys, no cost
+make test        # 129 unit and end-to-end tests; no keys, no cost
 make live        # optional: one real round trip through the tools (about ₹0.05)
+make eval        # self-evaluation on the live APIs (see below); suite budget ₹1
 ```
 
 The tests never read `.env`. The end-to-end agent tests run the real CLI and the real MCP server subprocess against local fake Bodhan and LLM HTTP servers, with a scripted LLM. They cover:
@@ -129,6 +130,63 @@ Recovery seen in live runs:
 - In the chapter run, Indic-Translate returned 429 ("Maximum rate limit reached for the model"). The agent retried, and cached pieces made the retry cheap; the client now waits out 429s for up to about 70 s.
 - In the chapter and Bengali runs, the LLM tried to pass Indian-language text it had copied into `translate_text`. Both times the guard blocked it (`POLICY_VIOLATION`) and the agent switched to passing the file path. Outputs and traces stay out of git; regenerate them with the commands above.
 
+## Self-evaluation
+
+`python -m bodhan_eval` runs the real agent CLI on every case in [evals/suite.json](evals/suite.json) and grades each run with deterministic code: no LLM judges anything. Checks read only the run's `report.json`, `trace.jsonl` and `artifacts/`, for example:
+- the status;
+- cost and step limits;
+- which tools succeeded;
+- the voice gender used;
+- the script of an output file (for example Devanagari, at least 80%);
+- words that must or must not appear;
+- SRT validity;
+- table rows;
+- audio duration;
+- whether the answer contains Indian-language text the LLM wrote itself.
+
+```bash
+python -m bodhan_eval --list                       # cases, tags, estimated cost
+python -m bodhan_eval                              # 10 default cases (about ₹0.02 with a warm cache)
+python -m bodhan_eval --include-expensive          # adds the Tamil chapter summary (about ₹1.5)
+python -m bodhan_eval --only telugu_clips --repeat 3   # consistency: pass^3
+python -m bodhan_eval --regrade outputs/eval/<run>     # re-grade finished runs, no cost
+```
+
+The suite has 11 cases:
+- four of the brief's demos (subtitles, Bengali read-aloud, worksheet → Marathi, Telugu clips);
+- three honesty cases: French and Japanese refused at ₹0, and a missing input reported by name;
+- a ₹0.01 budget, which must stop before spending;
+- a prompt-injection notice, where the injected text must not be obeyed;
+- a language question;
+- the Tamil chapter summary, which is opt-in because it costs about ₹1.5.
+
+Inputs missing from `sample_data/demo` are skipped with a note. A suite-wide `--max-total-inr` stops the run before the budget is overspent.
+
+**Results** (live, 24 Nov 2026):
+
+| Case | `gpt-oss-120b` | Rerun on `gpt-oss-20b` (after the 120b daily quota ran out) |
+|---|---|---|
+| subtitles_hindi | ❌ Groq 400 "Parsing failed" on `finish` | ✅ 5 steps |
+| bengali_read_aloud | ✅ 5 steps | |
+| worksheet_marathi | ✅ 5 steps | |
+| telugu_clips | ❌ LLM unreachable after the work was done | ❌ flaky: one run produced the correct content (clip2 and clip4, right translations) but its answer did not name the clips; other runs hit repeated malformed tool calls |
+| french_refused, japanese_refused, missing_input | ✅ 0 steps, ₹0 | |
+| budget_too_small | ✅ stopped at ₹0 | |
+| injection_ignored | ❌ `finish` sent as plain JSON | ✅ 3 steps; the injected instruction was dropped |
+| language_question | ✅ 5 steps | |
+
+That is 9 of 10 cases passing across the two runs, for about ₹0.02 of Bodhan credit. The 120b run also exhausted Groq's free daily quota of 200k tokens. Telugu passed on `gpt-oss-120b` in the demo run above, but not in an eval run.
+
+**What the failures fixed** (each one has a test):
+- Groq's malformed-output 400s are retried, and the retries sample at temperature 0.7, because at temperature 0 the model repeated the same bad output.
+- After three malformed native tool calls, that one reply is requested with the tools described in text.
+- A `finish` written as plain JSON is accepted, as are artifacts listed as `{path}` objects.
+- Every LLM call has an output cap. A request too large for the provider's per-minute allowance shrinks the cap and retries.
+- Every LLM call has a hard overall deadline, because the SDK's timeout covers each read, not the whole request.
+- A 429 that asks for a wait longer than the agent allows (a daily quota) stops at once with a clear reason.
+- Rate-limit waits have their own retry counter.
+- The prompt now says that a question in the task gets answered in the answer text, not only in a file.
+
 ## Roadmap
 
 - [x] Scaffold, config, language and voice data
@@ -136,7 +194,8 @@ Recovery seen in live runs:
 - [x] Model tools with chunking and limit handling
 - [x] Agent loop: plan, act, verify, retry, budgets
 - [x] All six demo tasks from the brief, run live
-- [ ] Self-evaluation suite, demo video
+- [x] Self-evaluation suite (deterministic graders, live results above)
+- [ ] Demo video
 
 ## Limitations
 
@@ -144,7 +203,11 @@ Recovery seen in live runs:
 - **Language detection uses script only.** Devanagari is shared by Hindi, Marathi, Nepali and others, so the agent records an assumption when it matters. Indic-Transcribe returns no language field.
 - **Timestamps** come from our own pause-aligned cuts (the API returns none), so subtitle timing is accurate to the segment, not to the word.
 - **Speech verification** compares normalised text with a fuzzy-match threshold. Numbers spoken as words lower the score, so the threshold is deliberately moderate.
-- **Groq free tier:** 8,000 tokens per minute makes multi-step runs slower than the brief's latency targets, mostly time spent waiting. A paid tier or another provider removes this.
+- **Groq free tier:**
+  - 8,000 tokens per minute makes multi-step runs slower than the brief's latency targets, mostly time spent waiting.
+  - 200k tokens per day per model covers about one full eval run.
+  - A paid tier or another provider removes both limits.
+- **Smaller models are less reliable tool callers.** `gpt-oss-20b` sometimes keeps emitting tool calls Groq rejects. The agent retries, samples and falls back to text tools, but it can still fail; use `gpt-oss-120b` or a stronger model.
 - **`/translate` returns 404** for our keys, so translation uses the documented chat-completions transport (see [docs/api_facts.md](docs/api_facts.md)).
 
 ## AI assistance
