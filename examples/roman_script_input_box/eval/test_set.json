@@ -1,0 +1,14 @@
+[
+  {"language": "hi", "roman": "kal meeting hai please time pe aana", "native": ["कल मीटिंग है प्लीज़ टाइम पे आना", "कल मीटिंग है प्लीज टाइम पे आना"]},
+  {"language": "hi", "roman": "main ghar ja raha hoon", "native": ["मैं घर जा रहा हूँ", "मैं घर जा रहा हूं"]},
+  {"language": "hi", "roman": "aap kaise hain", "native": ["आप कैसे हैं"]},
+  {"language": "gu", "roman": "tame kem cho", "native": ["તમે કેમ છો"]},
+  {"language": "gu", "roman": "hu kale office aavish", "native": ["હું કાલે ઑફિસ આવીશ", "હું કાલે ઓફિસ આવીશ"]},
+  {"language": "gu", "roman": "maru naam ravi che", "native": ["મારું નામ રવિ છે", "મારુ નામ રવિ છે"]},
+  {"language": "bn", "roman": "ami bhalo achi", "native": ["আমি ভালো আছি", "আমি ভাল আছি"]},
+  {"language": "bn", "roman": "tumi kothay jaccho", "native": ["তুমি কোথায় যাচ্ছ", "তুমি কোথায় যাচ্ছো"]},
+  {"language": "bn", "roman": "aaj amar meeting ache", "native": ["আজ আমার মিটিং আছে"]},
+  {"language": "ta", "roman": "vanakkam eppadi irukkeenga", "native": ["வணக்கம் எப்படி இருக்கீங்க"]},
+  {"language": "ta", "roman": "naan naalai varuven", "native": ["நான் நாளை வருவேன்"]},
+  {"language": "ta", "roman": "enakku romba pasikkuthu", "native": ["எனக்கு ரொம்ப பசிக்குது"]}
+]

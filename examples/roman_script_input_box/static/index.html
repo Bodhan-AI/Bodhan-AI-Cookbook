@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Roman-script input box</title>
+<link rel="icon" href="data:,">
+<style>
+  :root {
+    --bg: #efeae2; --panel: #f0f2f5; --header: #075e54; --header-text: #fff;
+    --mine: #d9fdd3; --text: #111b21; --muted: #667781; --input: #fff;
+    --accent: #00a884; --border: #d1d7db; --warn: #b3261e;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0b141a; --panel: #202c33; --header: #202c33; --header-text: #e9edef;
+      --mine: #005c4b; --text: #e9edef; --muted: #8696a0; --input: #2a3942;
+      --accent: #00a884; --border: #2a3942; --warn: #f2b8b5;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font: 15px/1.4 system-ui, -apple-system, "Segoe UI", "Noto Sans", "Noto Sans Devanagari",
+          "Noto Sans Gujarati", "Noto Sans Bengali", "Noto Sans Tamil", sans-serif;
+    background: var(--bg); color: var(--text);
+    display: flex; flex-direction: column; max-width: 760px; margin: 0 auto;
+  }
+  header {
+    background: var(--header); color: var(--header-text);
+    padding: 10px 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+  }
+  header h1 { font-size: 16px; margin: 0; flex: 1; min-width: 160px; }
+  header label { font-size: 13px; display: flex; gap: 6px; align-items: center; }
+  select {
+    font: inherit; font-size: 13px; padding: 4px 6px; border-radius: 6px;
+    border: 1px solid var(--border); background: var(--input); color: var(--text);
+  }
+  #chat { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 6px; }
+  .empty { color: var(--muted); text-align: center; margin: auto; max-width: 420px; }
+  .empty code { background: var(--panel); padding: 1px 4px; border-radius: 4px; }
+  .bubble {
+    align-self: flex-end; background: var(--mine); padding: 6px 10px 4px; border-radius: 8px;
+    max-width: 85%; box-shadow: 0 1px 0.5px rgba(0,0,0,.13); overflow-wrap: anywhere;
+  }
+  .bubble .native { font-size: 17px; }
+  .bubble .meta { color: var(--muted); font-size: 12px; margin-top: 2px; }
+  footer { background: var(--panel); padding: 8px 12px 12px; }
+  #preview {
+    min-height: 28px; padding: 4px 10px; margin-bottom: 6px; border-radius: 8px;
+    background: var(--input); font-size: 17px; overflow-wrap: anywhere;
+    border-left: 3px solid var(--border); transition: border-color .15s;
+  }
+  #preview.draft { border-left-color: #f5b400; }
+  #preview.checked { border-left-color: var(--accent); }
+  #preview.error { border-left-color: var(--warn); color: var(--warn); font-size: 13px; }
+  #status { color: var(--muted); font-size: 12px; min-height: 16px; margin: 0 2px 6px; }
+  .row { display: flex; gap: 8px; }
+  #box {
+    flex: 1; font: inherit; font-size: 16px; padding: 10px 14px; border-radius: 22px;
+    border: none; outline: none; background: var(--input); color: var(--text); min-width: 0;
+  }
+  #send {
+    width: 44px; height: 44px; border-radius: 50%; border: none; background: var(--accent);
+    color: #fff; font-size: 18px; cursor: pointer; flex: none;
+  }
+  #send:disabled { opacity: .5; cursor: default; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Roman-script input box</h1>
+  <label>Language <select id="lang"></select></label>
+  <label>Mode
+    <select id="mode">
+      <option value="hybrid" selected>Hybrid (1 call per pause)</option>
+      <option value="word">Word by word (1 call per new word)</option>
+      <option value="sentence">Whole sentence (1 call per pause)</option>
+    </select>
+  </label>
+</header>
+
+<main id="chat">
+  <p class="empty" id="empty">
+    Type the way you text, in English letters: <code>kal meeting hai, time pe aana</code>.
+    The line above the box shows it in your language's script. Press Enter to send.
+  </p>
+</main>
+
+<footer>
+  <div id="preview" aria-live="polite"></div>
+  <div id="status"></div>
+  <form class="row" id="form">
+    <input id="box" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="500"
+           placeholder="Type in English letters…" aria-label="Message in roman script">
+    <button id="send" type="submit" aria-label="Send">➤</button>
+  </form>
+</footer>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const box = $("box"), preview = $("preview"), status = $("status"), chat = $("chat");
+  const langSel = $("lang"), modeSel = $("mode"), sendBtn = $("send");
+  const PAUSE_MS = 700;           // how long a pause triggers the whole-sentence pass
+  const tested = ["hi", "gu", "bn", "ta"];
+
+  let pauseTimer = null;
+  let lastSentence = { key: "", text: "" };   // the latest whole-sentence result
+  let shownKey = "";                          // which (lang, text) the preview shows now
+  let shownRank = 0;                          // 1 = word draft, 2 = sentence pass
+
+  const key = (text) => langSel.value + "\u0000" + text;
+
+  async function api(text, mode) {
+    const res = await fetch("/api/transliterate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text, language: langSel.value, mode }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.error || `HTTP ${res.status}`);
+    return body;
+  }
+
+  function show(text, rank, result) {
+    // Ignore answers for text the user has since changed, and never let a slower
+    // word draft overwrite a sentence pass for the same text.
+    const k = key(text);
+    if (text !== box.value.trim()) return;
+    if (k === shownKey && rank < shownRank) return;
+    shownKey = k; shownRank = rank;
+    preview.className = rank === 2 ? "checked" : "draft";
+    preview.textContent = result.text;
+    const what = rank === 2 ? "sentence pass" : "word draft";
+    const calls = result.mode !== "sentence" ? ` · ${result.calls} API call(s), ${result.cached} word(s) from cache` : "";
+    status.textContent = `${what} · ${Math.round(result.latency_ms)} ms${calls}` +
+      (result.truncated ? " · cut off, shorten the message" : "");
+  }
+
+  function fail(err) {
+    preview.className = "error";
+    preview.textContent = err.message;
+    status.textContent = "";
+  }
+
+  async function wordPass() {
+    // Hybrid asks for a cache-only draft (free); word mode really calls the API per word.
+    const text = box.value.trim();
+    if (!text) return;
+    try { show(text, 1, await api(text, modeSel.value === "word" ? "word" : "draft")); } catch (e) { fail(e); }
+  }
+
+  async function sentencePass() {
+    const text = box.value.trim();
+    if (!text) return null;
+    if (lastSentence.key === key(text)) { show(text, 2, lastSentence.result); return lastSentence.result.text; }
+    try {
+      const result = await api(text, "sentence");
+      lastSentence = { key: key(text), result };
+      show(text, 2, result);
+      return result.text;
+    } catch (e) { fail(e); return null; }
+  }
+
+  box.addEventListener("input", () => {
+    const text = box.value.trim();
+    clearTimeout(pauseTimer);
+    if (!text) { preview.textContent = ""; preview.className = ""; status.textContent = ""; shownKey = ""; return; }
+    const mode = modeSel.value;
+    // A word just ended (space or punctuation typed): refresh the cheap word draft.
+    if (mode !== "sentence" && /[\s,.!?;:]$/.test(box.value)) wordPass();
+    // A pause: run the slower, context-aware pass (or a final word pass in word mode).
+    pauseTimer = setTimeout(mode === "word" ? wordPass : sentencePass, PAUSE_MS);
+  });
+
+  $("form").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const roman = box.value.trim();
+    if (!roman) return;
+    clearTimeout(pauseTimer);
+    sendBtn.disabled = true;
+    let native;
+    if (modeSel.value === "word") {
+      try { native = (await api(roman, "word")).text; } catch (e) { fail(e); }
+    } else {
+      native = await sentencePass();
+    }
+    sendBtn.disabled = false;
+    if (!native) return;   // keep the text in the box so nothing is lost
+    addBubble(native, roman);
+    box.value = ""; preview.textContent = ""; preview.className = ""; status.textContent = ""; shownKey = "";
+    box.focus();
+  });
+
+  function addBubble(native, roman) {
+    $("empty")?.remove();
+    const b = document.createElement("div");
+    b.className = "bubble";
+    const n = document.createElement("div"); n.className = "native"; n.textContent = native;
+    const m = document.createElement("div"); m.className = "meta";
+    m.textContent = `${roman} · ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+    b.append(n, m);
+    chat.append(b);
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  langSel.addEventListener("change", () => { shownKey = ""; box.dispatchEvent(new Event("input")); box.focus(); });
+  modeSel.addEventListener("change", () => { shownKey = ""; box.dispatchEvent(new Event("input")); box.focus(); });
+
+  fetch("/api/languages").then((r) => r.json()).then(({ languages }) => {
+    const codes = Object.keys(languages).sort((a, b) =>
+      (tested.indexOf(b) >= 0) - (tested.indexOf(a) >= 0) || languages[a].localeCompare(languages[b]));
+    for (const code of codes) {
+      const o = document.createElement("option");
+      o.value = code; o.textContent = languages[code] + (tested.includes(code) ? "" : " (untested)");
+      langSel.append(o);
+    }
+    langSel.value = "hi";
+  }).catch(() => fail(new Error("Could not reach the local server.")));
+  box.focus();
+})();
+</script>
+</body>
+</html>
