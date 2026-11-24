@@ -1,0 +1,17 @@
+# Packaging only. Pinned runtime dependencies live in requirements.txt,
+# so `pip install -r requirements.txt` is the single setup command.
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "indic-task-agent"
+version = "0.1.0"
+description = "MCP server exposing Bodhan's Indic models as tools, plus a task agent that uses them."
+requires-python = ">=3.10"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
