@@ -1,0 +1,26 @@
+{
+  "status": "completed",
+  "steps": 8,
+  "verification_results": [
+    {
+      "type": "speech",
+      "ok": true,
+      "ratio": 1.0,
+      "length_ratio": 1.0,
+      "issues": []
+    }
+  ],
+  "unresolved_tool_failures": [],
+  "total_cost_inr": 0.071956,
+  "cost_basis": "Conservative preflight upper-bound estimates; see trace.jsonl per step.",
+  "elapsed_seconds": 107.593,
+  "final_answer": "Synthesized Hindi speech from text returned by Bodhan transcription; back-transcription verification passed with similarity 1.000. The audio file is omitted from Git.",
+  "artifacts": [
+    "artifacts/transcript-002.txt"
+  ],
+  "source_run": "03-hindi-speech-bodhan-source",
+  "omitted_artifacts": [
+    "speech-004.wav"
+  ],
+  "evidence_note": "Sanitized text-only evidence; generated media is not included."
+}

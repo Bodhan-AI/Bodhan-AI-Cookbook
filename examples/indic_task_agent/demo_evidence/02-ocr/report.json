@@ -1,0 +1,16 @@
+{
+  "status": "completed",
+  "steps": 3,
+  "verification_results": [],
+  "unresolved_tool_failures": [],
+  "total_cost_inr": 0.2,
+  "cost_basis": "Conservative preflight upper-bound estimates; see trace.jsonl per step.",
+  "elapsed_seconds": 18.953,
+  "final_answer": "OCR succeeded for one user-provided image. Extracted text and the source image are intentionally withheld from public evidence.",
+  "artifacts": [],
+  "source_run": "02-ocr-extraction-final",
+  "omitted_artifacts": [
+    "ocr-001.md"
+  ],
+  "evidence_note": "OCR text and source image are withheld because the user-provided image contains third-party contact details."
+}

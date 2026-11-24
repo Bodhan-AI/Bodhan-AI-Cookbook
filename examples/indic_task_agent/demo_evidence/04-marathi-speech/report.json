@@ -1,0 +1,39 @@
+{
+  "status": "completed",
+  "steps": 10,
+  "verification_results": [
+    {
+      "type": "translation",
+      "source_id": "57b632d8435afa66ba35cd29363084f688474f0c335aae62cfdf58f5f81e34cc",
+      "ok": true,
+      "issues": []
+    },
+    {
+      "type": "speech",
+      "ok": true,
+      "ratio": 0.978,
+      "length_ratio": 1.0,
+      "issues": []
+    },
+    {
+      "type": "translation",
+      "source_id": "f1e58ea783986fa6ea4192d576b3ff498182fb315478c8767f20cd5a92c8c1bf",
+      "ok": true,
+      "issues": []
+    }
+  ],
+  "unresolved_tool_failures": [],
+  "total_cost_inr": 0.075022,
+  "cost_basis": "Conservative preflight upper-bound estimates; see trace.jsonl per step.",
+  "elapsed_seconds": 81.375,
+  "final_answer": "Translated English to Marathi, synthesized Marathi speech, and verified the result with similarity 0.978. The audio file is omitted from Git.",
+  "artifacts": [
+    "artifacts/translation-001.txt",
+    "artifacts/translation-003.txt"
+  ],
+  "source_run": "04-marathi-translation-speech",
+  "omitted_artifacts": [
+    "speech-006.wav"
+  ],
+  "evidence_note": "Sanitized text-only evidence; generated media is not included."
+}
