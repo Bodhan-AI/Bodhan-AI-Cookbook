@@ -1,0 +1,64 @@
+{
+  "ran": true,
+  "items": 11,
+  "repeats": 3,
+  "verdict_agreement": 1.0,
+  "flag_agreement": 0.9091,
+  "per_item": {
+    "demo-bn-md-020": {
+      "runs": 3,
+      "verdict": 1.0,
+      "flags": 0.3333
+    },
+    "demo-bn-para-002__wrong_language": {
+      "runs": 3,
+      "verdict": 1.0,
+      "flags": 1.0
+    },
+    "demo-bn-para-011": {
+      "runs": 3,
+      "verdict": 1.0,
+      "flags": 1.0
+    },
+    "demo-bn-para-023": {
+      "runs": 3,
+      "verdict": 1.0,
+      "flags": 1.0
+    },
+    "demo-bn-para-035__addition": {
+      "runs": 3,
+      "verdict": 1.0,
+      "flags": 0.6667
+    },
+    "demo-bn-short-017": {
+      "runs": 3,
+      "verdict": 1.0,
+      "flags": 1.0
+    },
+    "demo-bn-short-029__repeat": {
+      "runs": 3,
+      "verdict": 1.0,
+      "flags": 1.0
+    },
+    "demo-hi-para-024__term": {
+      "runs": 3,
+      "verdict": 1.0,
+      "flags": 1.0
+    },
+    "demo-hi-short-027": {
+      "runs": 3,
+      "verdict": 1.0,
+      "flags": 1.0
+    },
+    "demo-ta-short-010": {
+      "runs": 3,
+      "verdict": 1.0,
+      "flags": 1.0
+    },
+    "demo-ta-short-034__repeat": {
+      "runs": 3,
+      "verdict": 1.0,
+      "flags": 1.0
+    }
+  }
+}

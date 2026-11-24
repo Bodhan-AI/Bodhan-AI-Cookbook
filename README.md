@@ -83,6 +83,7 @@ Base URL `https://api.bodhan.ai`, header `Authorization: Bearer $BODHAN_API_KEY`
 | Project | Description |
 |---|---|
 | [Voice Notice Translator](examples/voice_notice_translator/) | Transcribes a spoken announcement, translates it into five languages, and reads each one aloud in a native voice |
+| [Translation & Speech Quality Harness](examples/translation_speech_quality_harness/) | Finds and locates errors in Indic-Translate and Indic-Speak outputs (omissions, wrong numbers, untranslated text, cut-off or garbled audio) with free checks, back-translation, back-transcription and an LLM judge, calibrated on planted errors |
 | [TEMPLATE](examples/TEMPLATE/) | Starting point for new recipes: README skeleton, notebook, pinned requirements, `.env.example` |
 
 Ideas waiting for a contributor: exam paper reader (OCR → translate), multilingual customer-feedback analyser, WhatsApp-style roman-script input box, lecture subtitler, government-scheme summariser, IVR voice agent. Open a [recipe proposal](https://github.com/Bodhan-AI/Bodhan-AI-Cookbook/issues/new?template=recipe_proposal.md) to claim one.
