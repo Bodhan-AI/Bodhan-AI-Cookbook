@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
 import wave
 from pathlib import Path
 
@@ -19,7 +18,7 @@ from pydantic import BaseModel
 from bodhan_core.audio import load_wav, split_wav_timed
 from bodhan_core.cache import ResultCache
 from bodhan_core.client import post
-from bodhan_core.config import section
+from bodhan_core.config import api_key, section
 from bodhan_core.errors import ToolError, check_input_file
 from bodhan_core.langid import describe
 from bodhan_core.runtime import BACKOFF_S, make_client
@@ -78,9 +77,9 @@ async def transcribe(
         return TranscribeResult(ok=False, error=err)
     if language is not None and language not in TRANSCRIBE_LANGUAGES:
         return _fail("unsupported_language", f"`{language}` is not supported. Use one of: {', '.join(sorted(TRANSCRIBE_LANGUAGES))}, or omit it.")
-    key = os.environ.get("BODHAN_TRANSCRIBE_KEY")
+    key = api_key("BODHAN_TRANSCRIBE_KEY")
     if not key:
-        return _fail("missing_api_key", "BODHAN_TRANSCRIBE_KEY is not set in the server environment.")
+        return _fail("missing_api_key", "BODHAN_TRANSCRIBE_KEY (or BODHAN_API_KEY) is not set in the server environment.")
 
     wav = load_wav(path)
     if isinstance(wav, ToolError):

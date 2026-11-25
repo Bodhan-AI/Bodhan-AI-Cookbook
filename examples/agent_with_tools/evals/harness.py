@@ -18,7 +18,7 @@ from langchain_openai import ChatOpenAI
 
 from bodhan_agent.config import load_llm_settings
 from bodhan_agent.graph import FINISH, build_graph, initial_state
-from bodhan_agent.inputs import build_inventory, task_message
+from bodhan_agent.inputs import build_inventory, inventory_flags, task_message
 from bodhan_agent.mcp_client import mcp_tools
 from bodhan_agent.trace import RunRecorder
 from evals import cassettes
@@ -58,7 +58,8 @@ class CaseRun:
 
     @property
     def rate_limited(self) -> bool:
-        return bool(self.error) and "rate limit" in self.error.lower()
+        e = (self.error or "").lower()
+        return any(t in e for t in ("rate limit", "request too large", "tokens per minute", "tokens per day"))  # provider limits, not agent behaviour
 
     def summary(self) -> dict:
         """Small JSON-safe view, used as the experiment output in Langfuse."""
@@ -108,7 +109,9 @@ async def run_case(case: dict, defaults: dict, fixtures: dict, mode: str, work_d
     out_dir = work_dir / "out"
     rec = RunRecorder(out_dir)
     os.environ["BODHAN_WORK_DIR"] = str(out_dir / "work")  # the MCP server child inherits this
-    message = task_message(case["task"], build_inventory(files), rec.artifacts_dir, max_steps, max_cost)
+    inventory = build_inventory(files)
+    input_flags = inventory_flags(inventory)  # same up-front screening as the CLI: a flagged input file halts the run
+    message = task_message(case["task"], inventory, rec.artifacts_dir, max_steps, max_cost)
     config: dict = {"run_name": f"eval-{case['id']}", "recursion_limit": 4 * max_steps + 10}
     if callbacks:
         config["callbacks"] = callbacks
@@ -119,7 +122,7 @@ async def run_case(case: dict, defaults: dict, fixtures: dict, mode: str, work_d
                 backend = StubBackend(case.get("stubs", {}), work_dir, cassettes.load(case["id"]))
                 tools = with_stubs(tools, backend)
             graph = build_graph(llm, tools, rec, max_steps=max_steps, max_cost_inr=max_cost, call_timeout_s=120.0)
-            final = await graph.ainvoke(initial_state(message), config)
+            final = await graph.ainvoke(initial_state(message, input_flags), config)
     except Exception as exc:  # a crashed run is a failed case, not a crashed eval session
         while isinstance(exc, BaseExceptionGroup):  # the MCP client wraps failures in a TaskGroup: show the real one
             exc = exc.exceptions[0]

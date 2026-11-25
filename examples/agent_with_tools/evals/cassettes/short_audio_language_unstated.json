@@ -12,5 +12,12 @@
         }
       ]
     }
+  ],
+  "translate_text": [
+    {
+      "source": "वेट्समैन क्लिफ के पिता उन्हें हैरी पॉटर पढ़कर सुनाते थे क्योंकि वह खुद ऐसा नहीं कर पाते थे क्लिफ के पिता उनके हीरो थे",
+      "target": "en",
+      "translation": "Clive's father used to read Harry Potter to him because he couldn't do it himself. Clive's father was his hero."
+    }
   ]
 }

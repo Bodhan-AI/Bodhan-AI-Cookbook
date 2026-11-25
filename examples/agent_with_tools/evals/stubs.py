@@ -210,7 +210,8 @@ class StubBackend:
             return self._outside(args["output_path"])
         o = self.spec.get("ocr_document", {})
         lines = o.get("lines") or [SAMPLE.get(o.get("lang", "hi"), SAMPLE["hi"])] * o.get("line_count", 3)
-        markdown = "\n".join(lines)
+        recorded = self._lookup(cassettes.find_file, "ocr_document", path.name, path.name)
+        markdown = recorded["markdown"] if recorded else "\n".join(lines)
         pages = 1
         if path.suffix.lower() == ".pdf":
             from bodhan_core import media

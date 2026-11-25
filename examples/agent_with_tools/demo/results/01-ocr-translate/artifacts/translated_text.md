@@ -1,0 +1,3 @@
+Hindi is constitutionally a language of India and is the most widely spoken and understood language in India. After Chinese, it is the most widely spoken language in the world. 
+
+Hindi and its dialects are spoken in various states of North and Central India. More than 600 million people speak Hindi in India and other countries, with most of the population in Fiji, Mauritius, Guyana, Suriname speaking Hindi, as well as some people in the Terai region of Nepal.

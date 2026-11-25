@@ -1,0 +1,49 @@
+{
+  "status": "completed",
+  "stop_reason": null,
+  "steps": 14,
+  "llm_turns": 6,
+  "total_cost_inr": 0.510538,
+  "total_time_s": 64.07,
+  "budgets": {
+    "max_steps": 30,
+    "max_cost_inr": 3.0,
+    "call_timeout_s": 180.0
+  },
+  "verification": [
+    {
+      "kind": "translation",
+      "subject": "translation to ta",
+      "status": "passed",
+      "problems": []
+    },
+    {
+      "kind": "audio",
+      "subject": "F:\\git-projects\\Bodhan-AI-Cookbook\\examples\\agent_with_tools\\outputs\\demo\\04-tamil-audio-summary\\artifacts\\summary_ta.wav",
+      "status": "passed",
+      "problems": [],
+      "similarity": 0.983,
+      "length_ratio": 1.013
+    }
+  ],
+  "verification_summary": {
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0
+  },
+  "assumptions": [
+    "The source text in the PDF was identified as Hindi/Maithili and summarized accordingly.",
+    "The summary was first written in English and then translated to Tamil to ensure accuracy."
+  ],
+  "security_flags": [],
+  "artifacts": [
+    "artifacts/chapter_pages_1_2.md",
+    "artifacts/summary_en.txt",
+    "artifacts/summary_ta.txt",
+    "artifacts/summary_ta.wav"
+  ],
+  "langfuse_trace_url": null,
+  "notes": [
+    "Cost counts Bodhan tool calls only; LLM token cost is not included."
+  ]
+}

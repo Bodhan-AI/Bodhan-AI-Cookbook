@@ -1,0 +1,16 @@
+# Pinned runtime dependencies (same as pyproject.toml). Install the package itself with: pip install -e ".[dev]"
+langgraph==1.2.24
+langchain-core==1.8.4
+langchain-openai==1.8.5
+langchain-mcp-adapters==0.3.2
+mcp==1.30.0
+httpx==0.28.1
+python-dotenv==1.2.4
+langfuse==5.2.0
+pyyaml==6.0.4
+pypdfium2==5.15.2
+pillow==13.0.0
+
+# dev / tests
+pytest==9.2.0
+pytest-asyncio==1.5.0

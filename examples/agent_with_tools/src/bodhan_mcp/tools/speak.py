@@ -18,7 +18,7 @@ from bodhan_core.audio import join_wavs
 from bodhan_core.cache import ResultCache
 from bodhan_core.chunking import split_text
 from bodhan_core.client import post
-from bodhan_core.config import section
+from bodhan_core.config import api_key, section
 from bodhan_core.errors import ToolError
 from bodhan_core.langid import detect_language
 from bodhan_core.runtime import BACKOFF_S, make_client
@@ -113,9 +113,9 @@ async def speak(
     voice = voice or pick_voice(language, gender)
     if not voice:
         return _fail("no_voice", f"No `{gender}` voice is listed for `{language}`. Pass `voice` explicitly or try the other gender.")
-    key = os.environ.get("BODHAN_SPEAK_KEY")
+    key = api_key("BODHAN_SPEAK_KEY")
     if not key:
-        return _fail("missing_api_key", "BODHAN_SPEAK_KEY is not set in the server environment.")
+        return _fail("missing_api_key", "BODHAN_SPEAK_KEY (or BODHAN_API_KEY) is not set in the server environment.")
 
     instructions: dict = {"lang": language}
     if style:

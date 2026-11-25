@@ -30,3 +30,8 @@ def load() -> dict:
 
 def section(name: str) -> dict:
     return load()[name]
+
+
+def api_key(name: str) -> str | None:
+    """The per-model key (e.g. BODHAN_OCR_KEY); falls back to a single BODHAN_API_KEY when that one is empty."""
+    return (os.environ.get(name) or os.environ.get("BODHAN_API_KEY") or "").strip() or None

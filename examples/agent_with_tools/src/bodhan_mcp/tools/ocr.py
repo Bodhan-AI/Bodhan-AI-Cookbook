@@ -9,7 +9,6 @@ from __future__ import annotations
 import base64
 import hashlib
 import io
-import os
 from pathlib import Path
 
 import httpx
@@ -17,7 +16,7 @@ from pydantic import BaseModel
 
 from bodhan_core.cache import ResultCache
 from bodhan_core.client import post
-from bodhan_core.config import section
+from bodhan_core.config import api_key, section
 from bodhan_core.errors import ToolError, check_input_file
 from bodhan_core.langid import describe
 from bodhan_core.runtime import BACKOFF_S, make_client
@@ -121,9 +120,9 @@ async def ocr_document(
     data = path.read_bytes()
     if suffix != ".pdf" and len(data) > MAX_IMAGE_BYTES:
         return _fail("file_too_large", f"Image is {len(data):,} bytes; the limit is {MAX_IMAGE_BYTES:,}. Downscale or recompress the image, or crop it, and call again.")
-    key = os.environ.get("BODHAN_OCR_KEY")
+    key = api_key("BODHAN_OCR_KEY")
     if not key:
-        return _fail("missing_api_key", "BODHAN_OCR_KEY is not set in the server environment.")
+        return _fail("missing_api_key", "BODHAN_OCR_KEY (or BODHAN_API_KEY) is not set in the server environment.")
 
     if suffix == ".pdf":
         rendered = _render_pdf(data, first_page, last_page)

@@ -17,7 +17,8 @@ from langchain_openai import ChatOpenAI  # noqa: E402
 
 from bodhan_agent.config import load_llm_settings  # noqa: E402
 from bodhan_agent.graph import build_graph, initial_state  # noqa: E402
-from bodhan_agent.inputs import build_inventory, task_message  # noqa: E402
+from bodhan_agent.llm_compat import async_client as llm_async_client  # noqa: E402
+from bodhan_agent.inputs import build_inventory, inventory_flags, task_message  # noqa: E402
 from bodhan_agent.mcp_client import mcp_tools  # noqa: E402
 from bodhan_agent.trace import RunRecorder  # noqa: E402
 
@@ -35,12 +36,37 @@ def _args() -> argparse.Namespace:
 
 
 async def run(args: argparse.Namespace) -> int:
+    """Run the task; an unexpected failure (LLM provider down, MCP server crash) still ends with a trace, report.json and result.md."""
     settings = load_llm_settings()
     out_dir = Path(args.out).absolute()
     rec = RunRecorder(out_dir)
+    inventory = build_inventory(args.files)
+    input_flags = inventory_flags(inventory)  # instruction-like text in text input files: the graph halts before any LLM call
+    for flag in input_flags:
+        rec.step(kind="security", tool=flag["tool"], result_summary=f"instruction-like text in {flag['tool']}: {flag['snippets']}; run halted", latency_s=0.0, cost_inr=0.0)
+    try:
+        return await _run(args, settings, out_dir, rec, inventory, input_flags)
+    except BaseException as exc:  # includes ExceptionGroup from the MCP task group
+        if isinstance(exc, (KeyboardInterrupt, SystemExit)):
+            raise
+        leaf = exc
+        while getattr(leaf, "exceptions", None):  # ExceptionGroup (Python 3.11+)
+            leaf = leaf.exceptions[0]
+        reason = f"{type(leaf).__name__}: {str(leaf)[:300]}"
+        answer = f"The run stopped on an unexpected error before the task was finished: {reason}\nNothing further was done; see trace.jsonl for the steps that ran. Outputs already written to artifacts/ were not verified."
+        rec.step(kind="error", result_summary=reason, latency_s=0.0, cost_inr=0.0)
+        rec.finish(status="error", task=args.task, answer=answer, trace_url=None, max_steps=args.max_steps, max_cost_inr=args.max_cost_inr,
+                   stop_reason=reason, call_timeout_s=args.call_timeout_s, security_flags=input_flags)
+        print(answer)
+        print(f"\n[status=error steps={rec.steps} cost=Rs {rec.cost_inr:.4f}]")
+        return 1
+
+
+async def _run(args: argparse.Namespace, settings, out_dir: Path, rec: RunRecorder, inventory: list[dict], input_flags: list[dict]) -> int:
     os.environ["BODHAN_WORK_DIR"] = str(out_dir / "work")  # intermediate text/segment files; inherited by the MCP server child
-    message = task_message(args.task, build_inventory(args.files), rec.artifacts_dir, args.max_steps, args.max_cost_inr)
-    llm = ChatOpenAI(base_url=settings.base_url, api_key=settings.api_key, model=settings.model, temperature=0)
+    message = task_message(args.task, inventory, rec.artifacts_dir, args.max_steps, args.max_cost_inr)
+    llm = ChatOpenAI(base_url=settings.base_url, api_key=settings.api_key, model=settings.model, temperature=0,
+                     max_retries=int(os.environ.get("LLM_MAX_RETRIES", "6")), http_async_client=llm_async_client(120.0))  # provider 429/503: SDK retries with backoff
 
     # Langfuse tracing is optional: enabled only when both keys are present.
     lf, handler = None, None
@@ -50,7 +76,7 @@ async def run(args: argparse.Namespace) -> int:
 
         lf, handler = get_client(), CallbackHandler()
 
-    initial = initial_state(message)
+    initial = initial_state(message, input_flags)
     config: dict = {"run_name": "task-agent", "recursion_limit": 4 * args.max_steps + 10}
     trace_url = None
 
@@ -92,7 +118,7 @@ async def run(args: argparse.Namespace) -> int:
     print(f"\n[status={final['status']} steps={rec.steps} cost=Rs {rec.cost_inr:.4f}]" + (f"\n[langfuse] {trace_url}" if trace_url else ""))
     if lf is not None:
         lf.shutdown()  # short-lived process: flush queued events before exit
-    return 0 if final["status"] in ("completed", "impossible") else 1  # an honest "impossible" is the correct outcome, not a failure
+    return 0 if final["status"] in ("completed", "impossible", "blocked") else 1  # an honest "impossible" or an injection halt is the correct outcome, not a failure
 
 
 def main() -> None:

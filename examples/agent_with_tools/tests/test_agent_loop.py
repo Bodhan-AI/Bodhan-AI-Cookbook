@@ -193,3 +193,19 @@ async def test_no_llm_call_after_the_step_budget_even_from_finish_task(tmp_path)
     bad = AIMessage(content="", tool_calls=[{"name": "finish_task", "id": "x", "type": "tool_call", "args": {"status": "great"}}])
     final, _, llm = await run_graph(tmp_path, [bad, finish()], [], max_steps=1)
     assert final["status"] == "budget_exhausted" and len(llm.seen) == 1
+
+
+async def test_failed_check_is_not_cleared_by_a_later_round_with_nothing_new_to_check(tmp_path):
+    """Repair round used, planner then finishes without producing a new output: the failure must still downgrade the status."""
+    tools, _ = make_tools(transcript="कुछ और")
+    speak = call("speak_text", text=HINDI, output_path="a.wav", language="hi")
+    final, _, _ = await run_graph(tmp_path, [speak, finish(), finish("completed", "All good")], tools)
+    assert final["verifications"][-1]["status"] == "failed"
+    assert final["status"] == "partial" and "verification" in final["stop_reason"]
+
+
+def test_hard_wrapped_ocr_lines_are_not_treated_as_structure():
+    src = "Hindi is a language of India and is\nspoken by many people in the world.\n\nIt is also spoken in\nFiji and Nepal."
+    assert check_translation(src, "हिन्दी भारत की भाषा है। इसे दुनिया में कई लोग बोलते हैं।\n\nइसे फिजी और नेपाल में भी बोला जाता है।", "hi", truncated=False)["passed"]
+    assert any("paragraphs" in p for p in check_translation(src, "हिन्दी भारत की भाषा है। इसे फिजी और नेपाल में भी बोला जाता है।", "hi", truncated=False)["problems"])
+    assert any("list lines" in p for p in check_translation("- a\n- b", "- क", "hi", truncated=False)["problems"])

@@ -17,7 +17,7 @@ from pydantic import BaseModel
 from bodhan_core.cache import ResultCache
 from bodhan_core.chunking import split_text
 from bodhan_core.client import retry_delay
-from bodhan_core.config import section
+from bodhan_core.config import api_key, section
 from bodhan_core.errors import ToolError
 from bodhan_core.langid import describe
 from bodhan_core.runtime import API_SLOTS, BACKOFF_S, base_url, make_client
@@ -182,9 +182,9 @@ async def translate(
         )
     if len(text) > MAX_TOTAL_CHARS:
         return _fail("text_too_long", f"Input has {len(text)} characters; the limit per call is {MAX_TOTAL_CHARS}. Split the text and call again.")
-    key = os.environ.get("BODHAN_TRANSLATE_KEY")
+    key = api_key("BODHAN_TRANSLATE_KEY")
     if not key:
-        return _fail("missing_api_key", "BODHAN_TRANSLATE_KEY is not set in the server environment.")
+        return _fail("missing_api_key", "BODHAN_TRANSLATE_KEY (or BODHAN_API_KEY) is not set in the server environment.")
 
     limit = max_chars or int(os.environ.get("TRANSLATE_MAX_CHARS", DEFAULT_MAX_CHARS))
     pieces = split_text(text, limit)

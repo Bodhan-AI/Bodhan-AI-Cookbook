@@ -74,8 +74,12 @@ def plan_case(case: dict, fixtures: dict, work: Path, existing: dict, force: boo
             src = inputs[item["input"]].read_text(encoding="utf-8")
         elif item.get("source") == "stub_ocr":
             src = "\n".join(case["stubs"]["ocr_document"]["lines"])
-        elif item.get("source") == "ocr":
-            src = None  # filled from this case's OCR recording at run time
+        elif item.get("source") in ("ocr", "transcript"):
+            # Source is this case's own OCR / transcript recording: use the stored one to decide whether to skip,
+            # otherwise it is filled in at run time once that recording exists.
+            kind = "ocr_document" if item["source"] == "ocr" else "transcribe_audio"
+            stored = (existing or {}).get(kind) or []
+            src = (stored[-1].get("markdown") or stored[-1].get("text")) if stored else None
         if src is not None and not force and cassettes.find_translation(existing, src, item["target"]):
             continue
         todo.append({"tool": "translate_text", "source": src, "target": item["target"], "key": ("tr", src and cassettes.norm(src), item["target"]), "est": EST_TRANSLATE_INR})
@@ -87,7 +91,12 @@ async def execute(call: dict, cassette: dict, cache: dict, work: Path) -> float:
     tool, key = call["tool"], call["key"]
     cost = 0.0
     if tool == "translate_text":
-        src = call["source"] if call["source"] is not None else cassette["ocr_document"][-1]["markdown"]
+        if call["source"] is not None:
+            src = call["source"]
+        elif cassette.get("ocr_document"):
+            src = cassette["ocr_document"][-1]["markdown"]
+        else:
+            src = cassette["transcribe_audio"][-1]["text"]
         key = ("tr", cassettes.norm(src), call["target"])
         if key not in cache:
             res = await translate(src, call["target"])

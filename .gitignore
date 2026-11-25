@@ -37,4 +37,12 @@ examples/*/sample_data/*
 .vscode/
 .idea/
 CLAUDE.md
-examples/agent_with_tools/docs
+examples/agent_with_tools/docs/*
+!examples/agent_with_tools/docs/architecture.md
+!examples/agent_with_tools/docs/design-notes.md
+!examples/agent_with_tools/docs/agent-flow.md
+examples/agent_with_tools/demo/results/**/*.wav
+examples/agent_with_tools/demo/results/**/*.mp3
+
+# Private notes kept out of the PR
+.tmp/

@@ -66,7 +66,8 @@ class RunRecorder:
         if assumptions:
             md.append("## Assumptions\n\n" + "\n".join(f"- {a}" for a in assumptions) + "\n")
         if security_flags:
-            md.append("## Security notes\n\nInstruction-like text was found inside input content and treated as data, not followed:\n\n"
+            md.append("## Security notes\n\nInstruction-like text (possible prompt injection) was found inside input content. "
+                      "It was not followed and the run was halted:\n\n"
                       + "\n".join(f"- `{f['tool']}`: {'; '.join(f['snippets'])}" for f in security_flags) + "\n")
         if checks:
             lines = [f"- **{c['status']}** · {c['kind']} · {c['subject']}" + (f" — {'; '.join(c['problems'])}" if c["problems"] else "") for c in checks]

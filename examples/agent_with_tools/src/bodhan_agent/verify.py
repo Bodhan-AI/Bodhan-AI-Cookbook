@@ -41,8 +41,17 @@ def compare_spoken(spoken_text: str, transcript: str) -> dict:
     return {"passed": not problems, "similarity": round(similarity, 3), "length_ratio": round(ratio, 3), "problems": problems}
 
 
-def _blocks(text: str) -> int:
-    return len([ln for ln in text.splitlines() if ln.strip()])
+def _paragraphs(text: str) -> int:
+    """Blank-line separated paragraphs. Hard-wrapped lines inside a paragraph (typical OCR output) do not count."""
+    return len([p for p in re.split(r"\n\s*\n", text) if p.strip()])
+
+
+_STRUCTURAL = re.compile(r"\s*(#{1,6}\s|[-*+]\s|\d+[.)]\s)")
+
+
+def _list_lines(text: str) -> int:
+    """Headings and list items: lines whose count a translation must preserve."""
+    return len([ln for ln in text.splitlines() if _STRUCTURAL.match(ln)])
 
 
 def _table_rows(text: str) -> int:
@@ -61,8 +70,10 @@ def check_translation(source: str, translation: str, target_language: str, *, tr
         ratio = len(translation) / len(source)
         if not TRANSLATION_LENGTH_RATIO[0] <= ratio <= TRANSLATION_LENGTH_RATIO[1]:
             problems.append(f"translation length is {ratio:.2f}x the source: content may be missing or duplicated")
-        if _blocks(translation) != _blocks(source):
-            problems.append(f"source has {_blocks(source)} non-empty lines but the translation has {_blocks(translation)}")
+        if _paragraphs(translation) != _paragraphs(source):
+            problems.append(f"source has {_paragraphs(source)} paragraphs but the translation has {_paragraphs(translation)}")
+        if _list_lines(translation) != _list_lines(source):
+            problems.append(f"source has {_list_lines(source)} heading/list lines but the translation has {_list_lines(translation)}")
         if _table_rows(source) != _table_rows(translation):
             problems.append(f"source has {_table_rows(source)} table rows but the translation has {_table_rows(translation)}")
     if script in (None, "native"):

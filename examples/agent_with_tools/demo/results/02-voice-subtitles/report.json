@@ -1,0 +1,38 @@
+{
+  "status": "completed",
+  "stop_reason": null,
+  "steps": 9,
+  "llm_turns": 4,
+  "total_cost_inr": 0.01814,
+  "total_time_s": 24.99,
+  "budgets": {
+    "max_steps": 30,
+    "max_cost_inr": 1.0,
+    "call_timeout_s": 180.0
+  },
+  "verification": [
+    {
+      "kind": "subtitles",
+      "subject": "F:\\git-projects\\Bodhan-AI-Cookbook\\examples\\agent_with_tools\\outputs\\demo\\02-voice-subtitles\\artifacts\\subtitles.srt",
+      "status": "passed",
+      "problems": []
+    }
+  ],
+  "verification_summary": {
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0
+  },
+  "assumptions": [
+    "The detected language of the audio is Hindi."
+  ],
+  "security_flags": [],
+  "artifacts": [
+    "artifacts/subtitles.srt",
+    "artifacts/transcript.txt"
+  ],
+  "langfuse_trace_url": null,
+  "notes": [
+    "Cost counts Bodhan tool calls only; LLM token cost is not included."
+  ]
+}
