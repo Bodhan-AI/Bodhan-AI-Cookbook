@@ -136,8 +136,7 @@ The self-evaluation suite (`scripts/eval_suite.py`, 8 demo + 9 edge-case tasks w
 
 ## Demo video
 
-<!-- TODO(author): replace with the public link (5 minutes or less; several tasks end to end, including the impossible one) -->
-VIDEO_LINK_PLACEHOLDER
+[Demo video (about 2.5 min, narrated)](https://youtu.be/mj8hlxRkwrc): nine MCP tools, then five agent tasks end to end, including the impossible one (French video) and a prompt-injection image, and a budget stop.
 
 ## Tests
 

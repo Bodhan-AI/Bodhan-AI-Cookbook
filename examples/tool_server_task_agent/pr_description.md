@@ -190,8 +190,7 @@ Edge cases covered: empty audio file, audio hiding behind a `.txt` name, ~65,000
 Unit tests: 67 (chunking and limits for every tool, structured errors, config fallback, retries/backoff, cache, budget, injection guard, Indic-text rule, verification gate, bearer-token auth) plus end-to-end tests that run the **real MCP server over stdio** with a fake Bodhan API and a scripted LLM. Off-the-shelf client: the official **MCP Inspector CLI**; the session is in `examples/tool_server_task_agent/docs/inspector_session.md`.
 
 ## Demo video
-<!-- TODO(author): replace the placeholder with the public link to the recording (5 minutes or less; several tasks end to end, including the impossible one). -->
-VIDEO_LINK_PLACEHOLDER
+[Demo video (about 2.5 min, narrated)](https://youtu.be/mj8hlxRkwrc): nine MCP tools, then five agent tasks end to end, including the impossible one (French video) and a prompt-injection image, and a budget stop.
 
 ## Trade-offs and known limitations
 * **API deviations found:** `POST /translate` returned 404 (the chat-completions route is used instead); speech responses are labelled `audio/mpeg` but contain WAV; Indic-Speak occasionally stalls instead of returning (handled by timeout-and-split, which costs time).
