@@ -83,9 +83,16 @@ Base URL `https://api.bodhan.ai`, header `Authorization: Bearer $BODHAN_API_KEY`
 | Project | Description |
 |---|---|
 | [Voice Notice Translator](examples/voice_notice_translator/) | Transcribes a spoken announcement, translates it into five languages, and reads each one aloud in a native voice |
+| [BhashaVoice](examples/bhasha_voice/) | Next.js app and React SDK: dictate, review the transcript and insert it into a text field, then translate selected text across Indian languages |
+| [BoardVaani street sign reader](examples/street_sign_reader/) | React web app: photograph a street sign or shop board, then read and hear it in your own language (OCR → translate → speech), with an optional third-party LLM summary |
+| [Book/Article Narrator](examples/book_article_narrator/) | Streamlit app: paste text or upload a text PDF, see it translated side by side and hear it read aloud in any of 22 Indian languages or English |
+| [Saathi (AndroidSpeak)](examples/AndroidSpeak/) | Android app for two-way spoken conversations (English ⇄ Tamil by default): each side speaks, and the app transcribes, translates and reads the translation aloud |
+| [Subtitle generator](examples/subtitle_generator/) | FastAPI + React app: upload a video (or, if enabled, paste a direct link to a video file) and get timed SRT subtitles in the spoken language, with an optional translation into another |
+| [Support Call Summarizer](examples/support_call_summarizer/) | FastAPI + React app and CLI: turn a recorded support call into a timestamped transcript in the original language and English, exportable as JSON or CSV, with an optional AI summary and sentiment from a third-party LLM |
+| [Translate extension](examples/translate_extension/) | Chrome/Edge extension (no server or build step): translate selected text on any page into an Indian language or English and listen to it |
 | [TEMPLATE](examples/TEMPLATE/) | Starting point for new recipes: README skeleton, notebook, pinned requirements, `.env.example` |
 
-Ideas waiting for a contributor: exam paper reader (OCR → translate), multilingual customer-feedback analyser, WhatsApp-style roman-script input box, lecture subtitler, government-scheme summariser, IVR voice agent. Open a [recipe proposal](https://github.com/Bodhan-AI/Bodhan-AI-Cookbook/issues/new?template=recipe_proposal.md) to claim one.
+Ideas waiting for a contributor: multilingual customer-feedback analyser, WhatsApp-style roman-script input box, IVR voice agent. Open a [recipe proposal](https://github.com/Bodhan-AI/Bodhan-AI-Cookbook/issues/new?template=recipe_proposal.md) to claim one.
 
 ## Integrations
 
