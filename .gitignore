@@ -28,8 +28,21 @@ examples/*/outputs/*
 !examples/*/outputs/.gitkeep
 examples/*/sample_data/*
 !examples/*/sample_data/.gitkeep
+!examples/agent_with_tools/sample_data/generated-audio.wav
+!examples/agent_with_tools/sample_data/img with hindi text.png
+!examples/agent_with_tools/sample_data/chapter.pdf
 
 # OS / IDE
 .DS_Store
 .vscode/
 .idea/
+CLAUDE.md
+examples/agent_with_tools/docs/*
+!examples/agent_with_tools/docs/architecture.md
+!examples/agent_with_tools/docs/design-notes.md
+!examples/agent_with_tools/docs/agent-flow.md
+examples/agent_with_tools/demo/results/**/*.wav
+examples/agent_with_tools/demo/results/**/*.mp3
+
+# Private notes kept out of the PR
+.tmp/

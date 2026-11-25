@@ -1,0 +1,7 @@
+1
+00:00:00,000 --> 00:00:09,012
+Clive's father used to read Harry Potter to him because he couldn't do it himself.
+
+2
+00:00:09,012 --> 00:00:10,560
+father was his hero

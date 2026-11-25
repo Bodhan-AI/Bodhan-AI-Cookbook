@@ -1,0 +1,14 @@
+# Secrets: ship .env.example only
+.env
+.venv/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+
+# Run outputs (keep the folder)
+outputs/*
+!outputs/.gitkeep
+
+# Generated media stays out of git
+demo/results/**/*.wav
+demo/results/**/*.mp3

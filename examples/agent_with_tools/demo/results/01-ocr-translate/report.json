@@ -1,0 +1,38 @@
+{
+  "status": "completed",
+  "stop_reason": null,
+  "steps": 7,
+  "llm_turns": 3,
+  "total_cost_inr": 0.20194,
+  "total_time_s": 31.63,
+  "budgets": {
+    "max_steps": 30,
+    "max_cost_inr": 1.0,
+    "call_timeout_s": 180.0
+  },
+  "verification": [
+    {
+      "kind": "translation",
+      "subject": "translation to en",
+      "status": "passed",
+      "problems": []
+    }
+  ],
+  "verification_summary": {
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0
+  },
+  "assumptions": [
+    "The source language was detected as Hindi (hi) by the OCR tool, although the text contains Maithili features. I proceeded with the detected language for translation."
+  ],
+  "security_flags": [],
+  "artifacts": [
+    "artifacts/extracted_text.md",
+    "artifacts/translated_text.md"
+  ],
+  "langfuse_trace_url": null,
+  "notes": [
+    "Cost counts Bodhan tool calls only; LLM token cost is not included."
+  ]
+}

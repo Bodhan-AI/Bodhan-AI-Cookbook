@@ -1,0 +1,46 @@
+{
+  "status": "completed",
+  "stop_reason": null,
+  "steps": 10,
+  "llm_turns": 4,
+  "total_cost_inr": 0.076827,
+  "total_time_s": 27.31,
+  "budgets": {
+    "max_steps": 30,
+    "max_cost_inr": 1.5,
+    "call_timeout_s": 180.0
+  },
+  "verification": [
+    {
+      "kind": "translation",
+      "subject": "translation to bn",
+      "status": "passed",
+      "problems": []
+    },
+    {
+      "kind": "audio",
+      "subject": "F:\\git-projects\\Bodhan-AI-Cookbook\\examples\\agent_with_tools\\outputs\\demo\\03-bengali-read-aloud\\artifacts\\bengali_audio.wav",
+      "status": "passed",
+      "problems": [],
+      "similarity": 1.0,
+      "length_ratio": 1.0
+    }
+  ],
+  "verification_summary": {
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0
+  },
+  "assumptions": [
+    "The source text was in English.",
+    "The target language for 'read aloud' was Bengali as requested."
+  ],
+  "security_flags": [],
+  "artifacts": [
+    "artifacts/bengali_audio.wav"
+  ],
+  "langfuse_trace_url": null,
+  "notes": [
+    "Cost counts Bodhan tool calls only; LLM token cost is not included."
+  ]
+}

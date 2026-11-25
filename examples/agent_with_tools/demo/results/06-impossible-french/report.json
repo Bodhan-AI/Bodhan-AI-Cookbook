@@ -1,0 +1,26 @@
+{
+  "status": "impossible",
+  "stop_reason": null,
+  "steps": 2,
+  "llm_turns": 1,
+  "total_cost_inr": 0.0,
+  "total_time_s": 6.12,
+  "budgets": {
+    "max_steps": 30,
+    "max_cost_inr": 1.0,
+    "call_timeout_s": 180.0
+  },
+  "verification": [],
+  "verification_summary": {
+    "passed": 0,
+    "failed": 0,
+    "skipped": 0
+  },
+  "assumptions": [],
+  "security_flags": [],
+  "artifacts": [],
+  "langfuse_trace_url": null,
+  "notes": [
+    "Cost counts Bodhan tool calls only; LLM token cost is not included."
+  ]
+}
