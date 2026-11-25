@@ -1,0 +1,30 @@
+.env
+.env.*
+!.env.example
+.venv/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+# runtime state
+.bodhan_cache/
+.bodhan_work/
+out/
+# demo media: generated locally, documented in the README, never committed
+demo_runs/*/artifacts/
+demo_runs/*/work/
+*.wav
+*.mp3
+*.mp4
+*.png
+*.jpg
+*.jpeg
+*.pdf
+!docs/*.png
+demo_inputs/edge/
+eval_runs/
+eval_results.json
+.bodhan_cache_fresh/
+.bodhan_work_x/
+.bodhan_cache_x/
+demo_runs/*/artifacts/

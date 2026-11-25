@@ -1,0 +1,78 @@
+{
+  "status": "success",
+  "exit_code": 0,
+  "task": "Transcribe this Hindi voice note and give me English subtitles as an SRT file",
+  "summary": "Transcribed the provided Hindi voice note and generated a verified English subtitles SRT.",
+  "steps": {
+    "tool_calls": 3,
+    "budgeted_steps_used": 3,
+    "max_steps": 30,
+    "trace_entries": 8
+  },
+  "total_cost_inr": 0.01671,
+  "max_cost_inr": 20.0,
+  "total_time_s": 27.06,
+  "cache_hits": 0,
+  "verification": {
+    "all_passed": true,
+    "results": {
+      "translated_97d87c7ec8.srt": {
+        "path": "d:\\backup\\myfiles\\github\\bodhan-ai-cookbook\\examples\\tool_server_task_agent\\demo_runs\\hindi_voice_note_to_english_srt\\work\\artifacts\\translated_97d87c7ec8.srt",
+        "kind": "translation",
+        "passed": true,
+        "detail": {
+          "failed_checks": []
+        },
+        "attempts": 1
+      }
+    },
+    "unverified": [],
+    "superseded_attempts": []
+  },
+  "assumptions": [
+    "Same input audio as originally provided."
+  ],
+  "artifacts": [
+    {
+      "name": "english_subtitles_srt.srt",
+      "bytes": 183,
+      "kind": "srt"
+    }
+  ],
+  "plan": {
+    "feasible": true,
+    "plan": "1) Call transcribe_audio on the provided WAV to get an Indic transcript and a Hindi-timed SRT (cost based on ~0.16 audio minutes). 2) Call translate_text on the generated Hindi SRT to English to create an English SRT with the same timing. 3) Call verify_translation to ensure the English SRT structurally matches the Hindi source.",
+    "assumptions": [
+      "The audio is indeed Hindi; if language detection is uncertain, the tool will auto-detect and still produce an SRT in the detected language.",
+      "The user wants literal English subtitle translation (not a separate narration)."
+    ],
+    "estimated_cost_inr": 0.2,
+    "reason_if_infeasible": null,
+    "replan_reason": null
+  },
+  "guards": {
+    "violations": {
+      "indic_text": 0,
+      "no_plan": 0,
+      "bad_args": 0,
+      "budget_refusals": 0,
+      "no_tool_call": 1
+    },
+    "injection_flags": [],
+    "injection_notes": ""
+  },
+  "quality_targets": {
+    "honest_failure_no_fabricated_output": null,
+    "verification_every_output": true,
+    "budget_respected": true,
+    "latency_target_s": 300,
+    "latency_met": true,
+    "cache_hits_used": false
+  },
+  "quality_targets_missed": [],
+  "llm": {
+    "model": "gpt-5.4-nano",
+    "prompt_tokens": 37037,
+    "completion_tokens": 1013
+  }
+}

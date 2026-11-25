@@ -1,0 +1,50 @@
+{
+  "status": "refused",
+  "exit_code": 0,
+  "task": "Translate this video into French",
+  "summary": "The task asks for output in French, which none of the Bodhan models support (speech-to-text, translation, speech synthesis and OCR cover English and 22 Indian languages only). Nothing was produced, and no substitute language or external service was used.",
+  "steps": {
+    "tool_calls": 0,
+    "budgeted_steps_used": 0,
+    "max_steps": 30,
+    "trace_entries": 2
+  },
+  "total_cost_inr": 0.0,
+  "max_cost_inr": 20.0,
+  "total_time_s": 0.02,
+  "cache_hits": 0,
+  "verification": {
+    "all_passed": true,
+    "results": {},
+    "unverified": [],
+    "superseded_attempts": []
+  },
+  "assumptions": [],
+  "artifacts": [],
+  "plan": null,
+  "guards": {
+    "violations": {
+      "indic_text": 0,
+      "no_plan": 0,
+      "bad_args": 0,
+      "budget_refusals": 0,
+      "no_tool_call": 0
+    },
+    "injection_flags": [],
+    "injection_notes": ""
+  },
+  "quality_targets": {
+    "honest_failure_no_fabricated_output": true,
+    "verification_every_output": true,
+    "budget_respected": true,
+    "latency_target_s": 30,
+    "latency_met": true,
+    "cache_hits_used": false
+  },
+  "quality_targets_missed": [],
+  "llm": {
+    "model": "gpt-5.4-nano",
+    "prompt_tokens": 0,
+    "completion_tokens": 0
+  }
+}

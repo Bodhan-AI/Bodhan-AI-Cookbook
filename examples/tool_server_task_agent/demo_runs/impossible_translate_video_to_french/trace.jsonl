@@ -1,0 +1,2 @@
+{"seq": 1, "ts": 1795554658.605, "type": "start", "task": "Translate this video into French", "files": ["<recipe>\\demo_inputs\\06_video"], "max_steps": 30, "max_cost_inr": 20.0, "llm_model": "gpt-5.4-nano"}
+{"seq": 2, "ts": 1795554658.606, "type": "guard", "guard": "unsupported_target_language", "language": "French", "action": "refuse before any spend"}

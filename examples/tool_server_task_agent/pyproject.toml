@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bodhan-tool-server-task-agent"
+version = "0.1.0"
+description = "MCP server exposing Bodhan's Indic models as tools, plus a budget-aware task agent."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "mcp==1.27.0",
+  "pydantic==2.14.4",
+  "httpx==0.28.1",
+  "openai==3.58.0",
+  "python-dotenv==1.2.4",
+  "pypdf==7.1.1",
+  "pdf2image==1.17.0",
+  "pillow==13.0.0",
+  "rapidfuzz==3.14.6",
+]
+
+[project.optional-dependencies]
+dev = ["pytest==9.2.0", "ruff==0.17.6"]
+
+[project.scripts]
+bodhan-mcp = "bodhan_mcp.__main__:main"
+bodhan-agent = "bodhan_agent.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+bodhan_mcp = ["data/*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 140
+target-version = "py310"

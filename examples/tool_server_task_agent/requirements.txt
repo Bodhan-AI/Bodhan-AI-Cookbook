@@ -1,0 +1,11 @@
+# Pinned runtime dependencies (also mirrored in pyproject.toml).
+# System dependencies (not pip): ffmpeg + ffprobe, poppler-utils (pdftoppm).
+mcp==1.27.0
+pydantic==2.14.4
+httpx==0.28.1
+openai==3.58.0
+python-dotenv==1.2.4
+pypdf==7.1.1
+pdf2image==1.17.0
+pillow==13.0.0
+rapidfuzz==3.14.6

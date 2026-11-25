@@ -1,0 +1,78 @@
+{
+  "status": "success",
+  "exit_code": 0,
+  "task": "Translate this worksheet into Marathi and keep the table",
+  "summary": "Translated the worksheet photo into Marathi while preserving the table structure. OCR extracted the worksheet, then it was translated to Marathi and verified for coverage and table rows/columns.",
+  "steps": {
+    "tool_calls": 3,
+    "budgeted_steps_used": 3,
+    "max_steps": 30,
+    "trace_entries": 7
+  },
+  "total_cost_inr": 0.2021,
+  "max_cost_inr": 20.0,
+  "total_time_s": 42.59,
+  "cache_hits": 0,
+  "verification": {
+    "all_passed": true,
+    "results": {
+      "translated_4297b7811b.md": {
+        "path": "d:\\backup\\myfiles\\github\\bodhan-ai-cookbook\\examples\\tool_server_task_agent\\demo_runs\\worksheet_to_marathi_markdown\\work\\artifacts\\translated_4297b7811b.md",
+        "kind": "translation",
+        "passed": true,
+        "detail": {
+          "failed_checks": []
+        },
+        "attempts": 1
+      }
+    },
+    "unverified": [],
+    "superseded_attempts": []
+  },
+  "assumptions": [
+    "Output should be a Markdown worksheet with the table kept (not an image)."
+  ],
+  "artifacts": [
+    {
+      "name": "worksheet_marathi_markdown_with_table.md",
+      "bytes": 621,
+      "kind": "md"
+    }
+  ],
+  "plan": {
+    "feasible": true,
+    "plan": "1) Use inspect_media on the provided worksheet image to confirm it’s an image and determine basic properties.\n2) Run ocr_document on the image to extract the worksheet as Markdown with tables preserved.\n3) Translate the OCR-produced Markdown to Marathi (target_lang 'mr') using translate_text, keeping tables row/column structure.\n4) Run verify_translation to ensure the translation covers the full source and preserves structure (especially tables).\n5) Deliver the Marathi Markdown translation file as the requested worksheet with table.",
+    "assumptions": [
+      "The worksheet photo is clear enough for OCR to extract the table and text reliably.",
+      "User wants the output as a Markdown file containing the table in Marathi (not spoken audio)."
+    ],
+    "estimated_cost_inr": 0.6,
+    "reason_if_infeasible": null,
+    "replan_reason": null
+  },
+  "guards": {
+    "violations": {
+      "indic_text": 0,
+      "no_plan": 0,
+      "bad_args": 0,
+      "budget_refusals": 0,
+      "no_tool_call": 0
+    },
+    "injection_flags": [],
+    "injection_notes": ""
+  },
+  "quality_targets": {
+    "honest_failure_no_fabricated_output": null,
+    "verification_every_output": true,
+    "budget_respected": true,
+    "latency_target_s": 300,
+    "latency_met": true,
+    "cache_hits_used": false
+  },
+  "quality_targets_missed": [],
+  "llm": {
+    "model": "gpt-5.4-nano",
+    "prompt_tokens": 24789,
+    "completion_tokens": 758
+  }
+}
