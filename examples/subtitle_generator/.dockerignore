@@ -1,0 +1,23 @@
+# Keep the image small and free of secrets and local data
+.env
+.env.*
+**/.env
+**/.env.*
+!**/.env.example
+**/venv
+**/.venv
+**/__pycache__
+**/.ruff_cache
+**/node_modules
+frontend/dist
+backend/data
+backend/tests
+outputs
+sample_data
+docs
+.git
+.vscode
+scripts
+*.mp4
+*.wav
+*.srt

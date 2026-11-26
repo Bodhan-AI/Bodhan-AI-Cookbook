@@ -1,0 +1,23 @@
+[project]
+name = "support-call-summarizer-backend"
+version = "0.1.0"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+markers = [
+    "live: calls the real Bodhan or Sarvam API (needs BODHAN_API_KEY or SARVAM_API_KEY)",
+    "gpu: runs the real speaker model on a local NVIDIA GPU (needs requirements-diarization.txt)",
+]
+filterwarnings = ["ignore:Using `httpx` with `starlette.testclient`"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM"]
+
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "fastapi.File", "fastapi.Form"]

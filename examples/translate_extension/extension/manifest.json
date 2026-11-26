@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "Bodhan Translate",
+  "short_name": "Bodhan",
+  "version": "0.1.0",
+  "description": "Translation extension by Bodhan AI: translate any text on any webpage into Indian languages.",
+  "minimum_chrome_version": "116",
+  "permissions": ["storage", "contextMenus", "scripting", "activeTab"],
+  "host_permissions": ["https://api.bodhan.ai/*"],
+  "optional_host_permissions": ["https://*/*", "http://localhost/*", "http://127.0.0.1/*"],
+  "background": {
+    "service_worker": "src/background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content/content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_title": "Bodhan Translate",
+    "default_popup": "src/popup/popup.html"
+  },
+  "options_ui": {
+    "page": "src/options/options.html",
+    "open_in_tab": true
+  }
+}
