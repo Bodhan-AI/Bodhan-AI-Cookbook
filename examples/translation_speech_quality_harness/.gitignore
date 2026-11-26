@@ -1,0 +1,13 @@
+.venv/
+.env
+.cache/
+__pycache__/
+*.egg-info/
+audio/
+*.wav
+report*/
+smoke*/
+*.zip
+.pytest_cache/
+outputs/*
+!outputs/.gitkeep

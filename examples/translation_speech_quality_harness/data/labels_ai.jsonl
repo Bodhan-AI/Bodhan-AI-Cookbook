@@ -1,0 +1,20 @@
+{"id": "s13-bn", "labels": [{"type": "omission", "severity": "major", "span": null, "label_source": "ai:claude"}]}
+{"id": "s02-hi", "labels": []}
+{"id": "s35-bn", "labels": []}
+{"id": "s23-hi", "labels": []}
+{"id": "s10-bn", "labels": [{"type": "term", "severity": "major", "span": null, "label_source": "ai:claude"}]}
+{"id": "s34-hi", "labels": [{"type": "omission", "severity": "major", "span": null, "label_source": "ai:claude"}]}
+{"id": "s07-hi", "labels": [{"type": "term", "severity": "major", "span": null, "label_source": "ai:claude"}]}
+{"id": "s35-ta", "labels": [{"type": "number", "severity": "major", "span": null, "label_source": "ai:claude"}]}
+{"id": "s19-hi", "labels": []}
+{"id": "s37-hi", "labels": []}
+{"id": "s26-bn", "labels": []}
+{"id": "s08-bn", "labels": []}
+{"id": "s20-hi", "labels": [{"type": "number", "severity": "major", "span": null, "label_source": "ai:claude"}]}
+{"id": "s31-hi", "labels": [{"type": "mistranslation", "severity": "major", "span": null, "label_source": "ai:claude"}]}
+{"id": "s05-hi", "labels": []}
+{"id": "s25-ta", "labels": [{"type": "format", "severity": "major", "span": null, "label_source": "ai:claude"}]}
+{"id": "s02-bn", "labels": []}
+{"id": "s15-ta", "labels": []}
+{"id": "s24-bn", "labels": []}
+{"id": "s24-hi", "labels": []}
