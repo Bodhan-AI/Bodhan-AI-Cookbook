@@ -1,0 +1,10 @@
+# Optional: local Indic-Transcribe on an NVIDIA GPU (ASR_BACKEND=local).
+# Install the CUDA build of torch first (see README), then: pip install -r requirements-local-asr.txt
+# Pinned to the versions tested (torch 2.14.1+cu126, Nov 2026).
+transformers==4.57.6     # must stay < 5: 5.x breaks the model's decoder cache (output derails after the first word)
+sentencepiece==0.2.3
+soundfile==0.14.0
+huggingface_hub==0.36.2  # provides `hf download` for the gated weights
+# torchaudio's last release is 2.11, but the model only uses its pure-Python resampler, which works
+# with torch 2.14. Install it WITHOUT deps so it can't replace torch:
+#   pip install --no-deps torchaudio==2.11.0 --index-url https://download.pytorch.org/whl/cu126

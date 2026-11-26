@@ -1,0 +1,10 @@
+# Install PyTorch FIRST (see README: CUDA or CPU build), then: pip install -r requirements.txt
+# Pinned to the versions this app was tested with (Python 3.12, Windows 11, Nov 2026).
+httpx==0.28.1
+python-dotenv==1.2.4
+numpy==2.5.5
+soxr==1.1.0
+PyAudioWPatch==0.2.12.9 ; sys_platform == "win32"
+pynput==1.8.2
+silero-vad==6.3
+pytest==9.2.0
