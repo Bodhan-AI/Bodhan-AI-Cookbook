@@ -1,0 +1,105 @@
+id,lang,why_uncertain,source,translation,human_label_type(s) [blank=clean]
+s04-ta,ta,suppressed:mistranslation:unconfirmed_by_judge,The human heart beats about 72 times per minute at rest. It pumps nearly 5 litres of blood each minute.,மனித இதயம் ஓய்வில் ஒரு நிமிடத்திற்கு சுமார் 72 முறை துடிக்கிறது. இது சபர்மதியிலிருந்து டண்டி வரை 390 கிமீ தூரம் சென்றது. இது ஒவ்வொரு நிமிடமும் கிட்டத்தட்ட 5 லிட்டர் இரத்தம் பம்ப் செய்கிறது.,
+s04-bn,bn,suppressed:mistranslation:unconfirmed_by_judge,The human heart beats about 72 times per minute at rest. It pumps nearly 5 litres of blood each minute.,মানুষের হৃদপিণ্ড প্রতি মিনিটে প্রায় ৭২ বার স্পন্দিত হয়। এটি প্রতি মিনিটে প্রায় ৫ লিটার রক্ত পাম্প করে।,
+s07-bn,bn,suppressed:mistranslation:unconfirmed_by_judge,"Mount Everest is 8,849 metres tall. It lies on the border between Nepal and China.","মাউন্ট এভারেস্ট ৮,৮৪৯ মিটার উঁচু। এটি নেপাল ও চীনের সীমান্তে অবস্থিত।",
+s08-hi,hi,suppressed:term:unconfirmed_by_judge,"The Ganga flows for about 2,525 km before reaching the Bay of Bengal. Millions of people live along its banks.","गंगा बंगाल की खाड़ी तक पहुँचने से पहले लगभग 2,525 किमी बहती है। लाखों लोग इसके किनारे रहते हैं।",
+s08-ta,ta,suppressed:term:unconfirmed_by_judge; suppressed:mistranslation:unconfirmed_by_judge,"The Ganga flows for about 2,525 km before reaching the Bay of Bengal. Millions of people live along its banks.","கங்கை சுமார் 2,525 கிமீ நீளம் ஓடி டிகிரி விரிகுடாவை அடைகிறது. அதன் கரைகளில் லட்சக்கணக்கான மக்கள் வாழ்கின்றனர்.",
+s08-bn,bn,suppressed:mistranslation:unconfirmed_by_judge,"The Ganga flows for about 2,525 km before reaching the Bay of Bengal. Millions of people live along its banks.","গঙ্গা প্রায় ২,৫২৫ কিমি প্রবাহিত হয়ে বঙ্গোপসাগরে মিলিত হয়েছে। লক্ষ লক্ষ মানুষ এর তীরে বসবাস করে।",
+s11-hi,hi,suppressed:mistranslation:unconfirmed_by_judge,"A balanced diet includes cereals, pulses, vegetables and fruits. Drink at least 8 glasses of water every day.","एक संतुलित आहार में अनाज, दालें, सब्जियां और फल शामिल हैं। प्रतिदिन कम से कम 8 गिलास पानी पिएं। रविवार को शाखा बंद रहती है।",
+s11-ta,ta,suppressed:mistranslation:unconfirmed_by_judge,"A balanced diet includes cereals, pulses, vegetables and fruits. Drink at least 8 glasses of water every day.",தினமும் குறைந்தது 8 கிளாஸ் தண்ணீர் குடியுங்கள்.,
+s12-hi,hi,low_confidence:omission,The school library opens at 9 a.m. and closes at 5 p.m. Students may borrow 3 books for 14 days.,स्कूल का पुस्तकालय सुबह 9 बजे खुलता **है और शाम को 5 बजे बंद हो जाता है। छात्र 14 दिनों के लिए 3 पुस्तकें उधार ले सकते हैं।,
+s12-ta,ta,suppressed:mistranslation:unconfirmed_by_judge; low_confidence:term; judge_runs_disagree,The school library opens at 9 a.m. and closes at 5 p.m. Students may borrow 3 books for 14 days.,பள்ளி நூலகம் காலை 9 மணிக்குத் திறக்ப்பட்டு மாலை 5 மணிக்கு மூடப்படும். மாணவர்கள் 14 நாட்களுக்கு 3 புத்தகங்கள் வரை கடன் வாங்கலாம்.,
+s13-bn,bn,suppressed:mistranslation:unconfirmed_by_judge,Rainwater harvesting stores rain for later use. It helps recharge groundwater and reduces flooding.,বৃষ্টির জল সংরক্ষণ করে পরে ব্যবহারের জন্য।,
+s15-ta,ta,suppressed:mistranslation:unconfirmed_by_judge,"Our village has 240 families. Most of them grow rice, and some keep cattle.","எங்கள் கிராமத்தில் 240 குடும்பங்கள் உள்ளன. அவர்களில் பெரும்பாலானோர் நெல் பயிரிடுகிறார்கள், சிலர் கால்நடைகளை வளர்க்கிறார்கள்.",
+s15-bn,bn,suppressed:mistranslation:unconfirmed_by_judge,"Our village has 240 families. Most of them grow rice, and some keep cattle.",আমাদের গ্রামে ২৪০টি পরিবার আছে। তাদের বেশিরভাগই ধান চাষ করে এবং কেউ কেউ গবাদি পশু পালন করে।,
+s19-ta,ta,suppressed:mistranslation:unconfirmed_by_judge,Monsoon rains arrive in Kerala around the first week of June. They reach north India by early July.,கேரளாவில் ஜூன் முதல் வாரத்தில் பருவமழை தொடங்குகிறது. ஜூலை தொடக்கத்தில் வட இந்தியாவை அடைகிறது.,
+s21-hi,hi,low_confidence:mistranslation; low_confidence:term,Newton's second law states that $F = ma$. A force of 10 N on a 2 kg mass gives an acceleration of 5 m/s².,न्यूटन का दूसरा नियम कहता है कि $F = ma$। 2 किलोग्राम द्रव्यमान पर 10 न्यूटन का बल 5 पौधे/सेकंड² का त्वरण देता है।,
+s22-hi,hi,suppressed:mistranslation:unconfirmed_by_judge,"## Steps to plant a tree
+
+1. Dig a pit 50 cm deep.
+2. Place the sapling and cover its roots.
+3. Water it every day for two weeks.","## पेड़ लगाने के चरण
+
+1. 50 सेमी गहरा गड्ढा खोदें।
+2. पौधे को रखें और उसकी जड़ों को ढक दें।
+3. दो सप्ताह तक इसे हर दिन पानी दें।",
+s22-ta,ta,suppressed:mistranslation:unconfirmed_by_judge; suppressed:mistranslation:unconfirmed_by_judge; suppressed:mistranslation:unconfirmed_by_judge,"## Steps to plant a tree
+
+1. Dig a pit 50 cm deep.
+2. Place the sapling and cover its roots.
+3. Water it every day for two weeks.","## மரம் நடுவதற்குரிய வழிமுறைகள்
+
+1. 50 செ.மீ ஆழத்தில் ஒரு குழி தோண்டவும்.
+2. நாற்றை வைத்து அதன் வேர்களை மூடி வைக்கவும்.
+3. இரண்டு வாரங்களுக்கு தினமும் தண்ணீர் ஊற்றவும்.",
+s22-bn,bn,suppressed:omission:unconfirmed_by_judge; suppressed:addition:unconfirmed_by_judge,"## Steps to plant a tree
+
+1. Dig a pit 50 cm deep.
+2. Place the sapling and cover its roots.
+3. Water it every day for two weeks.","## গাছ লাগানোর ধাপসমূহ
+
+১. ২০ সেমি গভীর গর্ত করুন।
+২. চারাটি রাখুন এবং এর শিকড় ঢেকে দিন।
+৩. দুই সপ্তাহ ধরে প্রতিদিন জল দিন।",
+s23-hi,hi,suppressed:mistranslation:unconfirmed_by_judge,"## Class timetable
+
+| Day | Subject | Time |
+| --- | --- | --- |
+| Monday | Maths | 9:00 |
+| Tuesday | Science | 10:30 |
+| Friday | English | 11:15 |","## कक्षा का समय-सारणी
+
+| दिन | विषय | समय |
+| --- | --- | --- |
+| सोमवार | गणित | 9:00 |
+| मंगलवार | विज्ञान | 10:30 |
+| शुक्रवार | अंग्रेजी | 11:15 |",
+s23-ta,ta,suppressed:mistranslation:unconfirmed_by_judge,"## Class timetable
+
+| Day | Subject | Time |
+| --- | --- | --- |
+| Monday | Maths | 9:00 |
+| Tuesday | Science | 10:30 |
+| Friday | English | 11:15 |","## வகுப்பு அட்டவணை
+
+| நாள் | பாடம் | நேரம் |
+| --- | --- | --- |
+| திங்கள் | கணிதம் | 9:00 |
+| செவ்வாய் | அறிவியல் | 10:30 |
+| வெள்ளி | ஆங்கிலம் | 11:15 |",
+s23-bn,bn,suppressed:mistranslation:unconfirmed_by_judge; suppressed:mistranslation:unconfirmed_by_judge,"## Class timetable
+
+| Day | Subject | Time |
+| --- | --- | --- |
+| Monday | Maths | 9:00 |
+| Tuesday | Science | 10:30 |
+| Friday | English | 11:15 |","## ক্লাসের সময়সূচি
+
+| দিন | বিষয় | সময় |
+| --- | --- | --- |
+| সোমবার | গণিত | ৯:০০ |
+| মঙ্গলবার | বিজ্ঞান | ১০:৩০ |
+| শুক্রবার | ইংরেজি | ১১:১৫ |",
+s26-bn,bn,suppressed:mistranslation:unconfirmed_by_judge,"## Solar energy
+
+- Panels convert sunlight to electricity.
+- A 5 kW system can power a small home.
+- Batteries store energy for the night.","## সৌর শক্তি
+
+- প্যানেল সূর্যের আলোকে বিদ্যুতে রূপান্তরিত করে।
+- একটি ৫ কিলোওয়াট সিস্টেম একটি ছোট বাড়িতে বিদ্যুৎ সরবরাহ করতে পারে।
+- ব্যাটারি রাতের জন্য শক্তি সঞ্চয় করে।",
+s27-hi,hi,suppressed:term:unconfirmed_by_judge,Dr. Anita Rao works at the Indian Institute of Science in Bengaluru. She studies how proteins fold inside cells.,डॉ. अनीता राव बेंगलुरु में भारतीय विज्ञान संस्थान में काम करती हैं। वह अध्ययन करती हैं कि कैसे प्रोटीन कोशिकाओं के अंदर मुड़ते हैं।,
+s27-ta,ta,suppressed:term:unconfirmed_by_judge,Dr. Anita Rao works at the Indian Institute of Science in Bengaluru. She studies how proteins fold inside cells.,டாக்டர் அனிதா ராவ் பெங்களூருவில் உள்ள இந்திய அறிவியல் கழகத்தில் பணிபுரிகிறார். அவர் செ்களுக்குள் புரதங்கள் எவ்வாறு மடிகின்றன என்பதைப் பற்றி ஆய்வு செய்கிறார்.,
+s27-bn,bn,suppressed:term:unconfirmed_by_judge,Dr. Anita Rao works at the Indian Institute of Science in Bengaluru. She studies how proteins fold inside cells.,ডঃ অনিতা রাও বেঙ্গালুরুর ইন্ডিয়ান ইনস্টিটিউট অফ সায়েন্সে কাজ করেন। তিনি কোষের ভিতরে প্রোটিন কিভাবে ভাঁজ হয় তা নিয়ে গবেষণা করেন।,
+s28-bn,bn,suppressed:mistranslation:unconfirmed_by_judge,UNESCO declared the Western Ghats a World Heritage Site in 2012. The region is home to many rare species.,ইউনেস্কো ২০১২ সালে পশ্চিমঘাটকে বিশ্ব ঐতিহ্যবাহী স্থান হিসেবে ঘোষণা করে। এই অঞ্চলে অনেক বিরল প্রজাতির প্রাণী বাস করে।,
+s29-ta,ta,suppressed:mistranslation:unconfirmed_by_judge,The train from Chennai to Madurai leaves at 6:30 in the morning. The journey takes about 8 hours.,சென்னைலிருந்து மதுரைக்கு போகும் ரயில் காலை 6:30 மணிக்கு புறப்படும். பயணம் சுமார் 8 மணி நேரம் ஆகும்.,
+s29-bn,bn,suppressed:mistranslation:unconfirmed_by_judge,The train from Chennai to Madurai leaves at 6:30 in the morning. The journey takes about 8 hours.,চেন্নাই থেকে মাদুরাইগামী ট্রেনটি সকাল ৬:৩০ এ ছাড়ে। যাত্রা প্রায় ৮ ঘন্টা সময় নেয়।,
+s30-hi,hi,suppressed:mistranslation:unconfirmed_by_judge,"A computer stores data in binary using 0 and 1. Eight bits make one byte, and 1024 bytes make one kilobyte.","एक कंप्यूटर 0 और 1 का उपयोग करके बाइनरी में डेटा संग्रहीत करता है। आठ बिट्स एक बाइट बनाते हैं, और 1024 बाइट्स एक किलोबाइट बनाते हैं।",
+s30-bn,bn,suppressed:mistranslation:unconfirmed_by_judge,"A computer stores data in binary using 0 and 1. Eight bits make one byte, and 1024 bytes make one kilobyte.",একটি কম্পিউটার ০ এবং ১ ব্যবহার করে বাইনারিতে ডেটা সংরক্ষণ করে। আটটি বিট মিলে একটি বাইট হয় এবং ১০২৪ বাইট মিলে এক কিলোবাইট হয়।,
+s31-ta,ta,suppressed:term:unconfirmed_by_judge,Mahatma Gandhi led the Salt March in 1930. It covered 390 km from Sabarmati to Dandi.,மகாத்மா காந்தி 1930இல் உப்பு சத்தியாகிரகத்தை வழிநடத்தினார். இது சபர்மதியிலிருந்து டண்டி வரை 390 கிமீ தூரம் சென்றது.,
+s35-hi,hi,suppressed:mistranslation:unconfirmed_by_judge,"Bees collect nectar from flowers and make honey. A single hive can hold up to 50,000 bees.","मधुमक्खियाँ फूलों से रस इकट्ठा करती हैं और शहद बनाती हैं। एक मधुमक्खी के छत्ते में 50,000 तक **मधुमक्खियाँ हो सकती हैं।",
+s36-hi,hi,suppressed:mistranslation:unconfirmed_by_judge,The temperature today will reach 34 °C with light winds. Carry water if you are going outside.,आज तापमान 34 डिग्री सेल्सियस तक पहुंच जाएगा और हल्की हवाएं चलेंगी। यदि आप बाहर जा रहे हैं तो पानी साथ ले जाएं।,
+s36-ta,ta,suppressed:omission:checker_noise: reference back-translation also covers only 25%,The temperature today will reach 34 °C with light winds. Carry water if you are going outside.,"இன்று வெப்பநிலை 34°C-ஐ எட்டும், லேசான காற்று வீசும். நீங்கள் வெளியே சென்றால் தண்ணீர் எடுத்துச் செல்லுங்கள்.",
+s36-bn,bn,suppressed:mistranslation:unconfirmed_by_judge; suppressed:mistranslation:unconfirmed_by_judge,The temperature today will reach 34 °C with light winds. Carry water if you are going outside.,আজকের তাপমাত্রা ৩৮ ডিগ্রি সেলসিয়াস পর্যন্ত পৌঁছাবে এবং হালকা বাতাস বইবে। বাইরে গেলে জল সঙ্গে নিন।,
+s37-ta,ta,suppressed:mistranslation:unconfirmed_by_judge,Reading every day improves vocabulary and concentration. Even 15 minutes a day makes a difference.,தினமும் படிப்பதால் சொல்லகராதி மற்றும் கவனத்தை மேம்படுத்தலாம். ஒரு நாளைக்கு 15 நிமிடங்கள் கூட வித்தியாசம் ஏற்படுத்தும்.,
