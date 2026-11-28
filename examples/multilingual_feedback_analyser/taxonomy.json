@@ -1,0 +1,161 @@
+{
+  "themes": {
+    "delivery": {
+      "label": "Delivery",
+      "keywords": [
+        "deliver*",
+        "late",
+        "delay*",
+        "courier",
+        "shipping",
+        "shipment",
+        "arriv*",
+        "dispatch*",
+        "on time",
+        "rider",
+        "wait*"
+      ],
+      "reply": "We are sorry that your order did not reach you on time. We have shared this with our delivery team and will make sure your next order arrives when promised."
+    },
+    "quality": {
+      "label": "Product quality",
+      "keywords": [
+        "quality",
+        "fresh",
+        "stale",
+        "rotten",
+        "spoil*",
+        "expir*",
+        "damag*",
+        "broken",
+        "cold",
+        "tast*",
+        "delicious",
+        "smell*",
+        "leak*",
+        "defect*",
+        "pack*"
+      ],
+      "reply": "We are sorry that the item you received was not up to our standard. Please share your order number and we will replace it or refund you."
+    },
+    "order_accuracy": {
+      "label": "Wrong or missing items",
+      "keywords": [
+        "wrong",
+        "missing",
+        "incomplete",
+        "not received",
+        "did not receive",
+        "didn't receive",
+        "never received",
+        "different item",
+        "instead of"
+      ],
+      "reply": "We are sorry that your order was not correct. Please share your order number and we will send the right items or refund you."
+    },
+    "price": {
+      "label": "Price and billing",
+      "keywords": [
+        "price*",
+        "pricing",
+        "expensive",
+        "costly",
+        "cheap",
+        "overcharg*",
+        "charged",
+        "refund*",
+        "bill",
+        "billed",
+        "billing",
+        "discount*",
+        "offer*",
+        "money",
+        "rupee*",
+        "payment*",
+        "paid"
+      ],
+      "reply": "We are sorry about the problem with your bill. Our accounts team will check your order and correct any wrong charge within two working days."
+    },
+    "staff": {
+      "label": "Staff and service",
+      "keywords": [
+        "staff",
+        "rude*",
+        "polite*",
+        "behav*",
+        "helpful",
+        "customer care",
+        "customer service",
+        "support",
+        "employee*",
+        "shopkeeper",
+        "manager",
+        "service"
+      ],
+      "reply": "We are sorry that our team did not treat you well. This is not the service we want to give, and we will speak to the staff involved."
+    },
+    "app": {
+      "label": "App and website",
+      "keywords": [
+        "app",
+        "apps",
+        "application",
+        "website",
+        "login",
+        "log in",
+        "otp",
+        "crash*",
+        "hang*",
+        "slow*",
+        "update*",
+        "screen",
+        "online"
+      ],
+      "reply": "We are sorry that the app gave you trouble. Our technical team is looking into it. Please update the app and try again."
+    }
+  },
+  "default_reply": "Thank you for telling us. We are sorry about your experience. Our team will look into this and contact you within two working days.",
+  "sentiment_words": {
+    "late": -1.8,
+    "delay": -1.8,
+    "delayed": -1.8,
+    "cold": -1.3,
+    "stale": -2.2,
+    "rotten": -2.6,
+    "spoiled": -2.3,
+    "spoilt": -2.3,
+    "expired": -2.2,
+    "damaged": -2.0,
+    "broken": -1.9,
+    "leaking": -1.8,
+    "missing": -1.6,
+    "wrong": -1.7,
+    "incomplete": -1.5,
+    "overcharged": -2.2,
+    "expensive": -1.3,
+    "costly": -1.3,
+    "refund": -1.0,
+    "slow": -1.3,
+    "crashes": -1.9,
+    "crashed": -1.9,
+    "crashing": -1.9,
+    "hangs": -1.5,
+    "waiting": -1.0,
+    "waited": -1.0,
+    "never": -0.8,
+    "fresh": 1.6,
+    "tasty": 2.0,
+    "delicious": 2.4,
+    "quick": 1.4,
+    "quickly": 1.4,
+    "fast": 1.4,
+    "polite": 1.8,
+    "helpful": 1.9,
+    "affordable": 1.5,
+    "reasonable": 1.3,
+    "on time": 1.8,
+    "please": 0.0,
+    "torn": -1.8,
+    "incorrect": -1.7
+  }
+}

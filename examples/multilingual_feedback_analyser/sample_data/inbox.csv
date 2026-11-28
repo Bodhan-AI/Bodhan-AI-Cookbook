@@ -1,0 +1,27 @@
+id,channel,text,file,language
+t01,text,खाना ठंडा था और डिलीवरी दो घंटे देर से आई।,,
+t02,text,"सब्ज़ियाँ बहुत ताज़ी थीं, धन्यवाद!",,
+t03,text,"मुझसे दो बार पैसे काट लिए गए, कृपया रिफंड करें। मेरा नंबर 9876543210 है।",,
+t04,text,"டெலிவரி மிகவும் தாமதமாக வந்தது, மூன்று மணி நேரம் காத்திருந்தேன்.",,
+t05,text,ஊழியர்கள் மிகவும் மரியாதையாக நடந்துகொண்டார்கள். நல்ல சேவை.,,
+t06,text,"অ্যাপটি বারবার ক্র্যাশ করছে, পেমেন্ট করতে পারছি না।",,
+t07,text,খাবার খুব সুস্বাদু ছিল এবং সময়মতো পৌঁছেছে।,,
+t08,text,ऑर्डरमध्ये चुकीचे सामान आले आणि दूध गायब होते.,,
+t09,text,किंमत थोडी जास्त आहे पण दर्जा चांगला आहे.,,
+t10,text,"డెలివరీ బాయ్ చాలా మర్యాదగా మాట్లాడాడు, ఆర్డర్ సమయానికి వచ్చింది.",,
+t11,text,દૂધનું પેકેટ લીક થતું હતું અને શાકભાજી વાસી હતી.,,
+t12,text,ಅಂಗಡಿ ಬೆಳಿಗ್ಗೆ ಎಷ್ಟು ಗಂಟೆಗೆ ತೆರೆಯುತ್ತದೆ?,,
+t13,text,bhai delivery bahut late thi aur khana bhi thanda tha,,
+t14,text,"staff ka behaviour bahut accha tha, maza aa gaya",,
+t15,text,"app romba slow ah irukku, order panna mudiyala",,ta
+t16,text,Great prices and the rider was very polite.,,
+t17,text,I received a broken jar and nobody answered my calls.,,
+t18,text,Order तो time पर आया लेकिन packing बहुत खराब थी।,,
+t19,text,"ഭക്ഷണം വളരെ നല്ലതായിരുന്നു, നന്ദി.",,
+t20,text,آپ کی سروس بہت خراب ہے، کسی نے فون نہیں اٹھایا۔,,
+v01,voice,,voice/v01_hi.wav,hi
+v02,voice,,voice/v02_ta.wav,
+v03,voice,,voice/v03_bn.wav,bn
+c01,card,,cards/c01_hi.png,
+c02,card,,cards/c02_ta.png,
+c03,card,,cards/c03_bn.png,
