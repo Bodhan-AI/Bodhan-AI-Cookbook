@@ -1,0 +1,2045 @@
+{
+ "Company Overview": {
+  "Profile and Mission": [
+   "Helios Dynamics Group is a FICTIONAL diversified technology conglomerate; all figures in this knowledge graph are synthetic demo data.",
+   "Founded: 1987 in Austin, Texas. Headquarters: Austin, Texas, USA. Listed on NASDAQ under ticker HLDX since 1996.",
+   "Mission: build intelligent, sustainable infrastructure for people, businesses and the planet.",
+   "Five business segments: Cloud & AI Services, Consumer Devices, Renewable Energy, Healthcare Technology, Mobility & Logistics.",
+   "Operates in 24 reporting markets across 5 regions with 14 manufacturing plants and 62 R&D labs.",
+   "FY2025 revenue $57.8B; net income $6.38B; employees 83,400."
+  ],
+  "Key Figures FY2019-FY2025": [
+   "Revenue ($M): FY2019 28,419.5 | FY2020 30,983.8 | FY2021 35,276.3 | FY2022 38,921.6 | FY2023 43,502.7 | FY2024 49,699.4 | FY2025 57,798.8",
+   "Net income ($M): FY2019 2,054.5 | FY2020 2,135.5 | FY2021 2,928.9 | FY2022 3,368.8 | FY2023 4,123.5 | FY2024 5,080.1 | FY2025 6,380.3",
+   "Employees: FY2019 61,200 | FY2020 63,800 | FY2021 68,900 | FY2022 74,100 | FY2023 76,300 | FY2024 79,800 | FY2025 83,400",
+   "Customers (thousands): FY2019 410 | FY2020 452 | FY2021 497 | FY2022 541 | FY2023 590 | FY2024 648 | FY2025 712",
+   "Countries served: FY2019 41 | FY2020 44 | FY2021 47 | FY2022 52 | FY2023 55 | FY2024 58 | FY2025 61",
+   "Patents held: FY2019 8,120 | FY2020 8,890 | FY2021 9,740 | FY2022 10,650 | FY2023 11,480 | FY2024 12,390 | FY2025 13,410"
+  ],
+  "Corporate Milestones Timeline": [
+   "1987-03-14 Company founded as Helios Microsystems.",
+   "1996-06-20 IPO on NASDAQ at $14 per share.",
+   "2004-09-01 Entered consumer devices with the first Nova phone.",
+   "2011-02-15 Launched Helios Cloud.",
+   "2016-11-08 Acquired SunGrid Renewables for $2.4B.",
+   "2019-05-21 Formed Healthcare Technology segment.",
+   "2021-10-04 Opened Gigafactory Monterrey (battery storage).",
+   "2023-04-12 Launched AI Model Services.",
+   "2025-01-30 Announced net-zero operations target for 2035."
+  ],
+  "Leadership Team": [
+   "CEO: Maya Okafor (since 2018). CFO: Daniel Reyes (since 2020). CTO: Priya Raman (since 2019).",
+   "COO: Lars Henriksen. Chief Sustainability Officer: Aiko Tanaka. General Counsel: Robert Mbeki.",
+   "Board: 11 directors, 9 independent, 5 women; average tenure 6.2 years; board meetings in FY2025: 9, attendance 97%."
+  ]
+ },
+ "Financial Performance": {
+  "Annual Income Statement FY2019-FY2025": [
+   "Revenue ($M): FY2019 28,419.5 | FY2020 30,983.8 | FY2021 35,276.3 | FY2022 38,921.6 | FY2023 43,502.7 | FY2024 49,699.4 | FY2025 57,798.8",
+   "Cost of goods sold ($M): FY2019 16,625.4 | FY2020 18,249.5 | FY2021 20,319.1 | FY2022 22,224.2 | FY2023 24,448.5 | FY2024 27,533.5 | FY2025 31,558.1",
+   "Gross profit ($M): FY2019 11,794.1 | FY2020 12,734.3 | FY2021 14,957.2 | FY2022 16,697.4 | FY2023 19,054.2 | FY2024 22,165.9 | FY2025 26,240.7",
+   "Gross margin (%): FY2019 41.5 | FY2020 41.1 | FY2021 42.4 | FY2022 42.9 | FY2023 43.8 | FY2024 44.6 | FY2025 45.4",
+   "R&D expense ($M): FY2019 2,586.2 | FY2020 2,974.4 | FY2021 3,457.1 | FY2022 3,970.0 | FY2023 4,611.3 | FY2024 5,466.9 | FY2025 6,531.3",
+   "Sales & marketing expense ($M): FY2019 3,353.5 | FY2020 3,470.2 | FY2021 3,880.4 | FY2022 4,242.5 | FY2023 4,611.3 | FY2024 5,119.0 | FY2025 5,779.9",
+   "General & administrative expense ($M): FY2019 1,762.0 | FY2020 1,983.0 | FY2021 2,116.6 | FY2022 2,257.5 | FY2023 2,436.2 | FY2024 2,683.8 | FY2025 3,005.5",
+   "EBITDA ($M): FY2019 4,092.4 | FY2020 4,306.7 | FY2021 5,503.1 | FY2022 6,227.5 | FY2023 7,395.5 | FY2024 8,896.2 | FY2025 10,924.0",
+   "Depreciation & amortization ($M): FY2019 1,165.2 | FY2020 1,301.3 | FY2021 1,516.9 | FY2022 1,712.6 | FY2023 1,957.6 | FY2024 2,286.2 | FY2025 2,716.5",
+   "Operating income / EBIT ($M): FY2019 2,927.2 | FY2020 3,005.4 | FY2021 3,986.2 | FY2022 4,514.9 | FY2023 5,437.8 | FY2024 6,610.0 | FY2025 8,207.4",
+   "Net interest expense ($M): FY2019 310.0 | FY2020 292.0 | FY2021 274.0 | FY2022 256.0 | FY2023 238.0 | FY2024 220.0 | FY2025 202.0",
+   "Income tax ($M): FY2019 562.7 | FY2020 578.0 | FY2021 783.3 | FY2022 890.1 | FY2023 1,076.4 | FY2024 1,310.0 | FY2025 1,625.1",
+   "Net income ($M): FY2019 2,054.5 | FY2020 2,135.5 | FY2021 2,928.9 | FY2022 3,368.8 | FY2023 4,123.5 | FY2024 5,080.1 | FY2025 6,380.3",
+   "Diluted EPS ($): FY2019 1.45 | FY2020 1.50 | FY2021 2.06 | FY2022 2.37 | FY2023 2.90 | FY2024 3.58 | FY2025 4.49"
+  ],
+  "FY2025 Net Income Bridge from FY2024": [
+   "Waterfall of drivers from FY2024 net income ($5,080.1M) to FY2025 net income ($6,380.3M), all in $M:",
+   "Starting point FY2024 net income: 5,080.1",
+   "Higher gross profit: +4,074.7",
+   "Higher R&D spend: -1,064.3",
+   "Higher sales & marketing: -660.8",
+   "Higher G&A: -321.8",
+   "Higher depreciation & amortization: -430.4",
+   "Lower interest expense: +18.0",
+   "Higher income tax: -315.1",
+   "Ending point FY2025 net income: 6,380.3"
+  ],
+  "FY2025 Revenue to Net Income Breakdown": [
+   "FY2025 revenue 57,798.8 $M flows to: cost of goods sold 31,558.1, R&D 6,531.3, sales & marketing 5,779.9, G&A 3,005.5, depreciation & amortization 2,716.5, interest 202.0, tax 1,625.1, net income 6,380.3.",
+   "Use as a waterfall (revenue minus each cost) or as a sankey (revenue -> cost buckets)."
+  ],
+  "Quarterly Revenue by Segment FY2023-FY2025": [
+   "Quarterly revenue in $M; quarters of each fiscal year sum to the segment's annual revenue.",
+   "Cloud & AI Services: Q1 FY2023 3,267.2 | Q2 FY2023 3,359.2 | Q3 FY2023 3,651.6 | Q4 FY2023 4,014.7 | Q1 FY2024 4,206.2 | Q2 FY2024 4,218.5 | Q3 FY2024 4,438.0 | Q4 FY2024 5,111.4 | Q1 FY2025 5,228.6 | Q2 FY2025 5,558.4 | Q3 FY2025 5,820.4 | Q4 FY2025 6,419.5",
+   "Consumer Devices: Q1 FY2023 2,350.8 | Q2 FY2023 2,232.0 | Q3 FY2023 2,477.7 | Q4 FY2023 3,690.8 | Q1 FY2024 2,518.2 | Q2 FY2024 2,310.9 | Q3 FY2024 2,572.0 | Q4 FY2024 3,818.9 | Q1 FY2025 2,521.9 | Q2 FY2025 2,430.9 | Q3 FY2025 2,673.5 | Q4 FY2025 3,961.6",
+   "Renewable Energy: Q1 FY2023 1,299.2 | Q2 FY2023 1,622.4 | Q3 FY2023 1,753.8 | Q4 FY2023 1,451.3 | Q1 FY2024 1,532.5 | Q2 FY2024 1,823.8 | Q3 FY2024 2,068.2 | Q4 FY2024 1,764.1 | Q1 FY2025 1,806.4 | Q2 FY2025 2,269.7 | Q3 FY2025 2,477.8 | Q4 FY2025 2,055.9",
+   "Healthcare Technology: Q1 FY2023 1,514.9 | Q2 FY2023 1,563.1 | Q3 FY2023 1,495.6 | Q4 FY2023 1,669.4 | Q1 FY2024 1,635.1 | Q2 FY2024 1,692.0 | Q3 FY2024 1,633.2 | Q4 FY2024 1,854.1 | Q1 FY2025 1,793.0 | Q2 FY2025 1,867.6 | Q3 FY2025 1,783.9 | Q4 FY2025 2,056.4",
+   "Mobility & Logistics: Q1 FY2023 1,421.1 | Q2 FY2023 1,568.2 | Q3 FY2023 1,506.0 | Q4 FY2023 1,593.7 | Q1 FY2024 1,534.2 | Q2 FY2024 1,616.4 | Q3 FY2024 1,609.3 | Q4 FY2024 1,742.4 | Q1 FY2025 1,630.9 | Q2 FY2025 1,779.8 | Q3 FY2025 1,713.8 | Q4 FY2025 1,948.8",
+   "Total company: Q1 FY2023 9,853.2 | Q2 FY2023 10,344.9 | Q3 FY2023 10,884.7 | Q4 FY2023 12,419.9 | Q1 FY2024 11,426.2 | Q2 FY2024 11,661.6 | Q3 FY2024 12,320.7 | Q4 FY2024 14,290.9 | Q1 FY2025 12,980.8 | Q2 FY2025 13,906.4 | Q3 FY2025 14,469.4 | Q4 FY2025 16,442.2"
+  ],
+  "Revenue by Segment FY2019-FY2025": [
+   "Cloud & AI Services revenue ($M): FY2019 6,205.7 | FY2020 7,709.6 | FY2021 9,788.4 | FY2022 11,890.7 | FY2023 14,292.7 | FY2024 17,974.1 | FY2025 23,026.9",
+   "Consumer Devices revenue ($M): FY2019 9,731.9 | FY2020 10,397.7 | FY2021 10,737.7 | FY2022 10,461.4 | FY2023 10,751.3 | FY2024 11,220.0 | FY2025 11,587.9",
+   "Renewable Energy revenue ($M): FY2019 3,076.6 | FY2020 3,446.3 | FY2021 4,116.4 | FY2022 5,084.3 | FY2023 6,126.7 | FY2024 7,188.6 | FY2025 8,609.8",
+   "Healthcare Technology revenue ($M): FY2019 4,229.6 | FY2020 5,000.3 | FY2021 5,484.0 | FY2022 5,745.5 | FY2023 6,243.0 | FY2024 6,814.4 | FY2025 7,500.9",
+   "Mobility & Logistics revenue ($M): FY2019 5,175.7 | FY2020 4,429.9 | FY2021 5,149.8 | FY2022 5,739.7 | FY2023 6,089.0 | FY2024 6,502.3 | FY2025 7,073.3",
+   "Total revenue ($M): FY2019 28,419.5 | FY2020 30,983.8 | FY2021 35,276.3 | FY2022 38,921.6 | FY2023 43,502.7 | FY2024 49,699.4 | FY2025 57,798.8",
+   "Segment share of FY2025 revenue (%): Cloud & AI Services 39.8, Consumer Devices 20.0, Renewable Energy 14.9, Healthcare Technology 13.0, Mobility & Logistics 12.2"
+  ],
+  "Revenue by Region FY2019-FY2025": [
+   "North America revenue ($M): FY2019 10,799.4 | FY2020 11,688.4 | FY2021 13,211.1 | FY2022 14,470.3 | FY2023 16,055.9 | FY2024 18,209.4 | FY2025 21,022.7",
+   "Europe revenue ($M): FY2019 7,673.3 | FY2020 8,338.3 | FY2021 9,462.5 | FY2022 10,406.4 | FY2023 11,593.6 | FY2024 13,202.3 | FY2025 15,304.5",
+   "Asia-Pacific revenue ($M): FY2019 6,820.7 | FY2020 7,560.0 | FY2021 8,747.6 | FY2022 9,805.2 | FY2023 11,129.9 | FY2024 12,908.9 | FY2025 15,236.5",
+   "Latin America revenue ($M): FY2019 1,705.2 | FY2020 1,853.0 | FY2021 2,102.8 | FY2022 2,312.5 | FY2023 2,576.4 | FY2024 2,933.8 | FY2025 3,401.0",
+   "Middle East & Africa revenue ($M): FY2019 1,420.9 | FY2020 1,544.1 | FY2021 1,752.3 | FY2022 1,927.2 | FY2023 2,146.9 | FY2024 2,445.0 | FY2025 2,834.1"
+  ],
+  "Balance Sheet Highlights": [
+   "Total assets ($M): FY2019 38,082 | FY2020 41,518 | FY2021 47,270 | FY2022 52,155 | FY2023 58,294 | FY2024 66,597 | FY2025 77,450",
+   "Cash & equivalents ($M): FY2019 4,570 | FY2020 4,982 | FY2021 5,672 | FY2022 6,259 | FY2023 6,995 | FY2024 7,992 | FY2025 9,294",
+   "Total debt ($M): FY2019 9,800 | FY2020 10,400 | FY2021 9,900 | FY2022 9,300 | FY2023 8,700 | FY2024 8,100 | FY2025 7,600",
+   "Shareholders' equity ($M): FY2019 15,994 | FY2020 17,936 | FY2021 20,988 | FY2022 23,783 | FY2023 27,281 | FY2024 31,967 | FY2025 38,106",
+   "Debt-to-equity ratio: FY2019 0.61 | FY2020 0.58 | FY2021 0.47 | FY2022 0.39 | FY2023 0.32 | FY2024 0.25 | FY2025 0.20"
+  ],
+  "Cash Flow Statement Highlights": [
+   "Operating cash flow ($M): FY2019 3,192 | FY2020 3,359 | FY2021 4,292 | FY2022 4,857 | FY2023 5,768 | FY2024 6,939 | FY2025 8,521",
+   "Capital expenditure ($M): FY2019 2,018 | FY2020 2,262 | FY2021 2,646 | FY2022 2,997 | FY2023 3,437 | FY2024 4,026 | FY2025 4,797",
+   "Free cash flow ($M): FY2019 1,174 | FY2020 1,097 | FY2021 1,647 | FY2022 1,860 | FY2023 2,332 | FY2024 2,913 | FY2025 3,723",
+   "Dividends paid ($M): FY2019 610 | FY2020 640 | FY2021 690 | FY2022 760 | FY2023 830 | FY2024 910 | FY2025 1,010",
+   "Share buybacks ($M): FY2019 500 | FY2020 200 | FY2021 900 | FY2022 1,200 | FY2023 1,100 | FY2024 1,500 | FY2025 1,800"
+  ],
+  "Financial Ratios and Margins": [
+   "Gross margin %: FY2019 41.5 | FY2020 41.1 | FY2021 42.4 | FY2022 42.9 | FY2023 43.8 | FY2024 44.6 | FY2025 45.4",
+   "EBITDA margin %: FY2019 14.4 | FY2020 13.9 | FY2021 15.6 | FY2022 16.0 | FY2023 17.0 | FY2024 17.9 | FY2025 18.9",
+   "Operating margin %: FY2019 10.3 | FY2020 9.7 | FY2021 11.3 | FY2022 11.6 | FY2023 12.5 | FY2024 13.3 | FY2025 14.2",
+   "Net margin %: FY2019 7.2 | FY2020 6.9 | FY2021 8.3 | FY2022 8.7 | FY2023 9.5 | FY2024 10.2 | FY2025 11.0",
+   "Return on equity %: FY2019 11.2 | FY2020 9.4 | FY2021 12.1 | FY2022 12.8 | FY2023 13.9 | FY2024 15.2 | FY2025 16.4",
+   "Revenue growth %: FY2020 9.0 | FY2021 13.9 | FY2022 10.3 | FY2023 11.8 | FY2024 14.2 | FY2025 16.3"
+  ]
+ },
+ "Business Segments": {
+  "Cloud & AI Services": {
+   "Segment Overview": [
+    "Cloud & AI Services is one of five Helios segments; FY2025 revenue $23,026.9M (39.8% of group), operating margin 25%, 6-year revenue CAGR 24.4%.",
+    "Product lines: Helios Cloud Compute, Data Platform & Analytics, AI Model Services, Cybersecurity Suite, Enterprise SaaS Apps.",
+    "Segment headcount FY2025: 15,012."
+   ],
+   "Segment Financials FY2019-FY2025": [
+    "Revenue ($M): FY2019 6,205.7 | FY2020 7,709.6 | FY2021 9,788.4 | FY2022 11,890.7 | FY2023 14,292.7 | FY2024 17,974.1 | FY2025 23,026.9",
+    "Operating margin (%): FY2019 14.0 | FY2020 16.0 | FY2021 18.0 | FY2022 19.0 | FY2023 21.0 | FY2024 23.0 | FY2025 25.0",
+    "Operating income ($M): FY2019 868.8 | FY2020 1,233.5 | FY2021 1,761.9 | FY2022 2,259.2 | FY2023 3,001.5 | FY2024 4,134.0 | FY2025 5,756.7",
+    "Revenue growth (%): FY2020 24.2 | FY2021 27.0 | FY2022 21.5 | FY2023 20.2 | FY2024 25.8 | FY2025 28.1",
+    "Capex ($M): FY2019 310.3 | FY2020 385.5 | FY2021 489.4 | FY2022 594.5 | FY2023 714.6 | FY2024 898.7 | FY2025 1,151.3",
+    "R&D spend ($M): FY2019 682.6 | FY2020 848.1 | FY2021 1,076.7 | FY2022 1,308.0 | FY2023 1,572.2 | FY2024 1,977.2 | FY2025 2,533.0"
+   ],
+   "Quarterly Revenue FY2023-FY2025": [
+    "FY2023 quarterly revenue ($M): Q1 3,267.2 | Q2 3,359.2 | Q3 3,651.6 | Q4 4,014.7",
+    "FY2024 quarterly revenue ($M): Q1 4,206.2 | Q2 4,218.5 | Q3 4,438.0 | Q4 5,111.4",
+    "FY2025 quarterly revenue ($M): Q1 5,228.6 | Q2 5,558.4 | Q3 5,820.4 | Q4 6,419.5"
+   ],
+   "Product Lines": {
+    "Helios Cloud Compute": {
+     "Financial History": [
+      "Helios Cloud Compute revenue ($M): FY2019 2,041.9 | FY2020 2,704.4 | FY2021 3,482.4 | FY2022 3,919.8 | FY2023 5,214.6 | FY2024 5,987.7 | FY2025 8,202.5",
+      "Helios Cloud Compute units / contracts sold: FY2019 8,042 | FY2020 5,433 | FY2021 11,063 | FY2022 9,601 | FY2023 15,282 | FY2024 23,704 | FY2025 32,504",
+      "Helios Cloud Compute gross margin (%): FY2019 22.2 | FY2020 21.9 | FY2021 27.0 | FY2022 29.4 | FY2023 30.0 | FY2024 30.1 | FY2025 23.2",
+      "Helios Cloud Compute average selling price ($): FY2019 253,902 | FY2020 497,769 | FY2021 314,780 | FY2022 408,273 | FY2023 341,228 | FY2024 252,604 | FY2025 252,354"
+     ],
+     "Monthly Sales FY2025": [
+      "Helios Cloud Compute monthly revenue FY2025 ($M): Jan 667.5 | Feb 795.8 | Mar 834.2 | Apr 836.6 | May 827.3 | Jun 737.5 | Jul 633.6 | Aug 636.4 | Sep 517.3 | Oct 513.3 | Nov 548.0 | Dec 614.2",
+      "Helios Cloud Compute monthly units FY2025: Jan 2,645 | Feb 3,153 | Mar 3,306 | Apr 3,315 | May 3,279 | Jun 2,922 | Jul 2,511 | Aug 2,522 | Sep 2,050 | Oct 2,034 | Nov 2,172 | Dec 2,434"
+     ],
+     "Variants and Pricing": [
+      "Helios Cloud Compute FY2025 revenue by variant ($M): Starter 2,962.7, Professional 2,490.7, Enterprise 1,583.7, Sovereign 1,165.4",
+      "List price index by variant (Starter=100): Starter 100, Professional 156, Enterprise 198, Sovereign 232",
+      "Price index vs. market average: 1.08; discount rate 6.7%."
+     ],
+     "Customer Reviews and Market Position": [
+      "Helios Cloud Compute average rating 4.36/5 from 13,549 reviews.",
+      "Star rating distribution (count of reviews): 5 stars 12334, 4 stars 9004, 3 stars 2575, 2 stars 1117, 1 stars 422",
+      "Category market share 27.3%; rank #1 of 11 vendors; repeat purchase rate 61.7%.",
+      "Feature scores (0-10): Performance 8.0, Design 9.4, Reliability 8.7, Value 6.7, Support 6.8, Integration 6.8"
+     ]
+    },
+    "Data Platform & Analytics": {
+     "Financial History": [
+      "Data Platform & Analytics revenue ($M): FY2019 1,346.4 | FY2020 1,675.5 | FY2021 2,101.6 | FY2022 2,512.8 | FY2023 3,153.6 | FY2024 3,861.5 | FY2025 5,012.8",
+      "Data Platform & Analytics units / contracts sold: FY2019 3,144 | FY2020 4,268 | FY2021 7,329 | FY2022 8,853 | FY2023 11,264 | FY2024 10,678 | FY2025 19,226",
+      "Data Platform & Analytics gross margin (%): FY2019 30.2 | FY2020 26.8 | FY2021 27.1 | FY2022 26.5 | FY2023 24.3 | FY2024 25.1 | FY2025 31.8",
+      "Data Platform & Analytics average selling price ($): FY2019 428,253 | FY2020 392,567 | FY2021 286,747 | FY2022 283,832 | FY2023 279,973 | FY2024 361,630 | FY2025 260,728"
+     ],
+     "Monthly Sales FY2025": [
+      "Data Platform & Analytics monthly revenue FY2025 ($M): Jan 430.9 | Feb 485.5 | Mar 475.9 | Apr 535.4 | May 498.7 | Jun 502.1 | Jul 410.5 | Aug 389.5 | Sep 345.8 | Oct 327.4 | Nov 307.1 | Dec 344.7",
+      "Data Platform & Analytics monthly units FY2025: Jan 1,653 | Feb 1,862 | Mar 1,825 | Apr 2,054 | May 1,913 | Jun 1,926 | Jul 1,575 | Aug 1,494 | Sep 1,326 | Oct 1,256 | Nov 1,178 | Dec 1,322"
+     ],
+     "Variants and Pricing": [
+      "Data Platform & Analytics FY2025 revenue by variant ($M): Starter 1,697.2, Professional 1,676.6, Enterprise 1,099.1, Sovereign 539.9",
+      "List price index by variant (Starter=100): Starter 100, Professional 136, Enterprise 186, Sovereign 307",
+      "Price index vs. market average: 1.19; discount rate 17.7%."
+     ],
+     "Customer Reviews and Market Position": [
+      "Data Platform & Analytics average rating 4.00/5 from 37,765 reviews.",
+      "Star rating distribution (count of reviews): 5 stars 17502, 4 stars 8042, 3 stars 4261, 2 stars 1400, 1 stars 302",
+      "Category market share 24.0%; rank #3 of 17 vendors; repeat purchase rate 53.8%.",
+      "Feature scores (0-10): Performance 6.0, Design 8.3, Reliability 9.5, Value 7.0, Support 8.3, Integration 5.9"
+     ]
+    },
+    "AI Model Services": {
+     "Financial History": [
+      "AI Model Services revenue ($M): FY2019 1,185.2 | FY2020 1,385.6 | FY2021 1,901.0 | FY2022 2,125.4 | FY2023 2,562.6 | FY2024 3,130.0 | FY2025 4,011.2",
+      "AI Model Services units / contracts sold: FY2019 4,093 | FY2020 3,371 | FY2021 3,565 | FY2022 6,685 | FY2023 7,909 | FY2024 13,852 | FY2025 9,401",
+      "AI Model Services gross margin (%): FY2019 27.2 | FY2020 29.5 | FY2021 29.1 | FY2022 26.3 | FY2023 29.4 | FY2024 27.2 | FY2025 31.1",
+      "AI Model Services average selling price ($): FY2019 289,562 | FY2020 411,034 | FY2021 533,232 | FY2022 317,933 | FY2023 324,015 | FY2024 225,963 | FY2025 426,679"
+     ],
+     "Monthly Sales FY2025": [
+      "AI Model Services monthly revenue FY2025 ($M): Jan 315.4 | Feb 387.4 | Mar 427.9 | Apr 400.4 | May 400.9 | Jun 376.9 | Jul 313.4 | Aug 298.1 | Sep 269.5 | Oct 239.0 | Nov 263.7 | Dec 309.6",
+      "AI Model Services monthly units FY2025: Jan 739 | Feb 908 | Mar 1,003 | Apr 938 | May 940 | Jun 883 | Jul 734 | Aug 699 | Sep 632 | Oct 560 | Nov 618 | Dec 726"
+     ],
+     "Variants and Pricing": [
+      "AI Model Services FY2025 revenue by variant ($M): Starter 1,290.1, Professional 1,379.2, Enterprise 809.8, Sovereign 532.1",
+      "List price index by variant (Starter=100): Starter 100, Professional 152, Enterprise 206, Sovereign 325",
+      "Price index vs. market average: 0.83; discount rate 18.6%."
+     ],
+     "Customer Reviews and Market Position": [
+      "AI Model Services average rating 4.73/5 from 5,271 reviews.",
+      "Star rating distribution (count of reviews): 5 stars 13562, 4 stars 9509, 3 stars 2129, 2 stars 1393, 1 stars 1497",
+      "Category market share 29.5%; rank #1 of 25 vendors; repeat purchase rate 24.5%.",
+      "Feature scores (0-10): Performance 8.7, Design 9.5, Reliability 6.4, Value 6.2, Support 8.7, Integration 6.6"
+     ]
+    },
+    "Cybersecurity Suite": {
+     "Financial History": [
+      "Cybersecurity Suite revenue ($M): FY2019 865.5 | FY2020 1,064.5 | FY2021 1,459.5 | FY2022 1,700.9 | FY2023 1,916.1 | FY2024 2,756.5 | FY2025 3,104.0",
+      "Cybersecurity Suite units / contracts sold: FY2019 2,070 | FY2020 3,464 | FY2021 3,834 | FY2022 7,578 | FY2023 6,754 | FY2024 9,178 | FY2025 13,608",
+      "Cybersecurity Suite gross margin (%): FY2019 34.8 | FY2020 30.8 | FY2021 29.5 | FY2022 30.0 | FY2023 31.1 | FY2024 37.9 | FY2025 31.7",
+      "Cybersecurity Suite average selling price ($): FY2019 418,124 | FY2020 307,290 | FY2021 380,684 | FY2022 224,459 | FY2023 283,695 | FY2024 300,333 | FY2025 228,098"
+     ],
+     "Monthly Sales FY2025": [
+      "Cybersecurity Suite monthly revenue FY2025 ($M): Jan 264.3 | Feb 311.7 | Mar 292.1 | Apr 314.9 | May 334.6 | Jun 273.4 | Jul 265.9 | Aug 214.6 | Sep 202.2 | Oct 193.0 | Nov 207.1 | Dec 214.0",
+      "Cybersecurity Suite monthly units FY2025: Jan 1,159 | Feb 1,367 | Mar 1,280 | Apr 1,381 | May 1,467 | Jun 1,199 | Jul 1,166 | Aug 941 | Sep 886 | Oct 846 | Nov 908 | Dec 938"
+     ],
+     "Variants and Pricing": [
+      "Cybersecurity Suite FY2025 revenue by variant ($M): Starter 951.3, Professional 943.2, Enterprise 768.7, Sovereign 440.8",
+      "List price index by variant (Starter=100): Starter 100, Professional 172, Enterprise 212, Sovereign 223",
+      "Price index vs. market average: 1.13; discount rate 13.7%."
+     ],
+     "Customer Reviews and Market Position": [
+      "Cybersecurity Suite average rating 4.13/5 from 44,789 reviews.",
+      "Star rating distribution (count of reviews): 5 stars 18509, 4 stars 11192, 3 stars 2058, 2 stars 409, 1 stars 1228",
+      "Category market share 18.9%; rank #1 of 14 vendors; repeat purchase rate 51.3%.",
+      "Feature scores (0-10): Performance 7.1, Design 6.3, Reliability 8.5, Value 7.1, Support 8.3, Integration 8.3"
+     ]
+    },
+    "Enterprise SaaS Apps": {
+     "Financial History": [
+      "Enterprise SaaS Apps revenue ($M): FY2019 798.7 | FY2020 1,034.6 | FY2021 1,225.4 | FY2022 1,652.8 | FY2023 1,763.2 | FY2024 2,372.1 | FY2025 2,877.5",
+      "Enterprise SaaS Apps units / contracts sold: FY2019 3,527 | FY2020 3,930 | FY2021 3,230 | FY2022 6,537 | FY2023 7,040 | FY2024 5,191 | FY2025 12,335",
+      "Enterprise SaaS Apps gross margin (%): FY2019 31.0 | FY2020 38.1 | FY2021 37.1 | FY2022 36.6 | FY2023 33.7 | FY2024 36.1 | FY2025 35.2",
+      "Enterprise SaaS Apps average selling price ($): FY2019 226,453 | FY2020 263,247 | FY2021 379,385 | FY2022 252,841 | FY2023 250,450 | FY2024 456,956 | FY2025 233,280"
+     ],
+     "Monthly Sales FY2025": [
+      "Enterprise SaaS Apps monthly revenue FY2025 ($M): Jan 239.2 | Feb 260.5 | Mar 303.8 | Apr 284.8 | May 275.8 | Jun 272.8 | Jul 244.1 | Aug 194.1 | Sep 173.4 | Oct 186.0 | Nov 192.8 | Dec 199.3",
+      "Enterprise SaaS Apps monthly units FY2025: Jan 1,025 | Feb 1,117 | Mar 1,302 | Apr 1,221 | May 1,182 | Jun 1,169 | Jul 1,046 | Aug 832 | Sep 743 | Oct 797 | Nov 827 | Dec 854"
+     ],
+     "Variants and Pricing": [
+      "Enterprise SaaS Apps FY2025 revenue by variant ($M): Starter 893.9, Professional 1,017.4, Enterprise 679.9, Sovereign 286.3",
+      "List price index by variant (Starter=100): Starter 100, Professional 152, Enterprise 176, Sovereign 334",
+      "Price index vs. market average: 1.14; discount rate 12.6%."
+     ],
+     "Customer Reviews and Market Position": [
+      "Enterprise SaaS Apps average rating 4.22/5 from 44,216 reviews.",
+      "Star rating distribution (count of reviews): 5 stars 16952, 4 stars 13193, 3 stars 3302, 2 stars 987, 1 stars 1449",
+      "Category market share 23.2%; rank #2 of 22 vendors; repeat purchase rate 61.0%.",
+      "Feature scores (0-10): Performance 6.7, Design 6.6, Reliability 6.4, Value 6.9, Support 9.1, Integration 9.3"
+     ]
+    }
+   },
+   "Revenue by Region FY2025": [
+    "FY2025 Cloud & AI Services revenue by region ($M): North America 9,894.5, Europe 6,113.3, Asia-Pacific 5,162.4, Latin America 951.0, Middle East & Africa 905.7"
+   ],
+   "Sales Funnel FY2025": [
+    "Stages (top to bottom) with counts: Website visitors 1,000,000, Qualified leads 190,652, Product demos / trials 74,511, Proposals / carts 31,473, Closed deals / purchases 10,653",
+    "Overall conversion 1.07%; average deal size $720,514."
+   ],
+   "Competitive Benchmark Scores": [
+    "Analyst benchmark scores (0-10) on six criteria: Performance, Price value, Reliability, Innovation, Support, Ecosystem.",
+    "Helios: Performance 8.0, Price value 7.7, Reliability 8.4, Innovation 5.8, Support 7.8, Ecosystem 6.7",
+    "Competitor A: Performance 7.9, Price value 7.7, Reliability 5.6, Innovation 6.8, Support 5.8, Ecosystem 6.9",
+    "Competitor B: Performance 7.9, Price value 7.9, Reliability 5.5, Innovation 6.6, Support 7.4, Ecosystem 7.3",
+    "Competitor C: Performance 5.7, Price value 7.5, Reliability 7.6, Innovation 8.6, Support 6.9, Ecosystem 7.7",
+    "Market share FY2025 (%): Helios 18.0, Competitor A 22.0, Competitor B 15.0, Competitor C 11.0, others 34.0."
+   ],
+   "Quality Issues and Defects FY2025": [
+    "Customer-reported issues by root cause (count): Configuration errors 638, Capacity shortfalls 567, Software regressions 465, Network outages 444, Third-party API failures 139, Security incidents 48",
+    "Defect rate (ppm): FY2019 527 | FY2020 393 | FY2021 711 | FY2022 608 | FY2023 625 | FY2024 651 | FY2025 620"
+   ],
+   "2025-2026 Flagship Project Roadmap": [
+    "Flagship program: Helios Cloud Compute next generation.",
+    "Discovery & research: start 2025-01-06, end 2025-02-24, team Product",
+    "Design: start 2025-02-21, end 2025-04-12, team Design",
+    "Prototype: start 2025-04-04, end 2025-04-24, team Engineering",
+    "Engineering build: start 2025-04-21, end 2025-05-25, team Engineering",
+    "Pilot with customers: start 2025-05-25, end 2025-07-15, team Sales",
+    "Certification: start 2025-07-08, end 2025-07-29, team Compliance",
+    "Launch: start 2025-07-19, end 2025-09-22, team Marketing",
+    "Scale-up: start 2025-09-22, end 2025-11-15, team Operations"
+   ],
+   "Customer Satisfaction": [
+    "Net Promoter Score: FY2019 21 | FY2020 27 | FY2021 24 | FY2022 32 | FY2023 36 | FY2024 43 | FY2025 45",
+    "CSAT (%): FY2019 78.3 | FY2020 80.9 | FY2021 84.4 | FY2022 84.7 | FY2023 82.0 | FY2024 83.5 | FY2025 85.2",
+    "Survey sample of 60 satisfaction scores (0-100) FY2025: 88, 73, 47, 69, 67, 86, 83, 92, 65, 85, 70, 77, 70, 75, 77, 85, 53, 83, 72, 69, 85, 94, 63, 83, 72, 81, 91, 81, 87, 82, 85, 91, 70, 56, 68, 76, 80, 69, 73, 100, 85, 84, 66, 68, 73, 86, 84, 75, 73, 90, 74, 69, 62, 62, 96, 87, 88, 96, 91, 92",
+    "Churn rate by quarter FY2025 (%): Q1 3.20, Q2 3.29, Q3 3.35, Q4 2.12"
+   ]
+  },
+  "Consumer Devices": {
+   "Segment Overview": [
+    "Consumer Devices is one of five Helios segments; FY2025 revenue $11,587.9M (20.0% of group), operating margin 10.5%, 6-year revenue CAGR 3.0%.",
+    "Product lines: Nova Smartphones, Aero Laptops, Pulse Wearables, Halo Smart Home, Accessories.",
+    "Segment headcount FY2025: 25,854."
+   ],
+   "Segment Financials FY2019-FY2025": [
+    "Revenue ($M): FY2019 9,731.9 | FY2020 10,397.7 | FY2021 10,737.7 | FY2022 10,461.4 | FY2023 10,751.3 | FY2024 11,220.0 | FY2025 11,587.9",
+    "Operating margin (%): FY2019 9.0 | FY2020 10.0 | FY2021 11.0 | FY2022 8.0 | FY2023 9.0 | FY2024 10.0 | FY2025 10.5",
+    "Operating income ($M): FY2019 875.9 | FY2020 1,039.8 | FY2021 1,181.1 | FY2022 836.9 | FY2023 967.6 | FY2024 1,122.0 | FY2025 1,216.7",
+    "Revenue growth (%): FY2020 6.8 | FY2021 3.3 | FY2022 -2.6 | FY2023 2.8 | FY2024 4.4 | FY2025 3.3",
+    "Capex ($M): FY2019 486.6 | FY2020 519.9 | FY2021 536.9 | FY2022 523.1 | FY2023 537.6 | FY2024 561.0 | FY2025 579.4",
+    "R&D spend ($M): FY2019 583.9 | FY2020 623.9 | FY2021 644.3 | FY2022 627.7 | FY2023 645.1 | FY2024 673.2 | FY2025 695.3"
+   ],
+   "Quarterly Revenue FY2023-FY2025": [
+    "FY2023 quarterly revenue ($M): Q1 2,350.8 | Q2 2,232.0 | Q3 2,477.7 | Q4 3,690.8",
+    "FY2024 quarterly revenue ($M): Q1 2,518.2 | Q2 2,310.9 | Q3 2,572.0 | Q4 3,818.9",
+    "FY2025 quarterly revenue ($M): Q1 2,521.9 | Q2 2,430.9 | Q3 2,673.5 | Q4 3,961.6"
+   ],
+   "Product Lines": {
+    "Nova Smartphones": {
+     "Financial History": [
+      "Nova Smartphones revenue ($M): FY2019 3,898.6 | FY2020 4,532.3 | FY2021 4,665.2 | FY2022 4,154.1 | FY2023 4,256.5 | FY2024 4,438.6 | FY2025 4,709.6",
+      "Nova Smartphones units / contracts sold: FY2019 331,613 | FY2020 598,127 | FY2021 390,524 | FY2022 393,491 | FY2023 722,417 | FY2024 406,840 | FY2025 558,615",
+      "Nova Smartphones gross margin (%): FY2019 24.0 | FY2020 21.4 | FY2021 20.4 | FY2022 28.4 | FY2023 26.4 | FY2024 25.0 | FY2025 24.3",
+      "Nova Smartphones average selling price ($): FY2019 11,756 | FY2020 7,578 | FY2021 11,946 | FY2022 10,557 | FY2023 5,892 | FY2024 10,910 | FY2025 8,431"
+     ],
+     "Monthly Sales FY2025": [
+      "Nova Smartphones monthly revenue FY2025 ($M): Jan 408.1 | Feb 467.1 | Mar 514.4 | Apr 455.1 | May 435.8 | Jun 366.1 | Jul 364.9 | Aug 288.3 | Sep 308.6 | Oct 320.6 | Nov 338.6 | Dec 391.8",
+      "Nova Smartphones monthly units FY2025: Jan 48,408 | Feb 55,404 | Mar 61,009 | Apr 53,984 | May 51,694 | Jun 43,427 | Jul 43,279 | Aug 34,193 | Sep 36,599 | Oct 38,022 | Nov 40,162 | Dec 46,472"
+     ],
+     "Variants and Pricing": [
+      "Nova Smartphones FY2025 revenue by variant ($M): Lite 1,375.0, Standard 1,408.3, Pro 1,320.7, Ultra 605.6",
+      "List price index by variant (Starter=100): Lite 100, Standard 168, Pro 176, Ultra 223",
+      "Price index vs. market average: 0.91; discount rate 14.6%."
+     ],
+     "Customer Reviews and Market Position": [
+      "Nova Smartphones average rating 4.26/5 from 48,759 reviews.",
+      "Star rating distribution (count of reviews): 5 stars 13336, 4 stars 13026, 3 stars 2187, 2 stars 1504, 1 stars 1118",
+      "Category market share 6.4%; rank #4 of 9 vendors; repeat purchase rate 45.0%.",
+      "Feature scores (0-10): Performance 7.9, Design 8.1, Reliability 6.3, Value 6.9, Support 6.9, Integration 8.7"
+     ]
+    },
+    "Aero Laptops": {
+     "Financial History": [
+      "Aero Laptops revenue ($M): FY2019 2,307.9 | FY2020 2,373.5 | FY2021 2,323.4 | FY2022 2,279.9 | FY2023 2,505.6 | FY2024 2,368.0 | FY2025 2,605.6",
+      "Aero Laptops units / contracts sold: FY2019 200,111 | FY2020 293,939 | FY2021 330,064 | FY2022 283,711 | FY2023 429,732 | FY2024 294,883 | FY2025 363,859",
+      "Aero Laptops gross margin (%): FY2019 21.4 | FY2020 26.2 | FY2021 27.9 | FY2022 24.2 | FY2023 23.5 | FY2024 32.4 | FY2025 32.0",
+      "Aero Laptops average selling price ($): FY2019 11,533 | FY2020 8,075 | FY2021 7,039 | FY2022 8,036 | FY2023 5,831 | FY2024 8,030 | FY2025 7,161"
+     ],
+     "Monthly Sales FY2025": [
+      "Aero Laptops monthly revenue FY2025 ($M): Jan 251.8 | Feb 275.4 | Mar 259.8 | Apr 244.3 | May 260.9 | Jun 224.1 | Jul 183.0 | Aug 174.0 | Sep 170.8 | Oct 158.5 | Nov 192.5 | Dec 218.1",
+      "Aero Laptops monthly units FY2025: Jan 35,162 | Feb 38,463 | Mar 36,276 | Apr 34,109 | May 36,435 | Jun 31,298 | Jul 25,553 | Aug 24,304 | Sep 23,848 | Oct 22,133 | Nov 26,875 | Dec 30,459"
+     ],
+     "Variants and Pricing": [
+      "Aero Laptops FY2025 revenue by variant ($M): Lite 1,126.3, Standard 609.7, Pro 549.4, Ultra 320.2",
+      "List price index by variant (Starter=100): Lite 100, Standard 168, Pro 246, Ultra 232",
+      "Price index vs. market average: 1.07; discount rate 5.3%."
+     ],
+     "Customer Reviews and Market Position": [
+      "Aero Laptops average rating 4.58/5 from 37,187 reviews.",
+      "Star rating distribution (count of reviews): 5 stars 15847, 4 stars 13096, 3 stars 2184, 2 stars 1255, 1 stars 306",
+      "Category market share 15.7%; rank #4 of 9 vendors; repeat purchase rate 36.4%.",
+      "Feature scores (0-10): Performance 7.9, Design 8.2, Reliability 6.5, Value 6.1, Support 9.5, Integration 6.2"
+     ]
+    },
+    "Pulse Wearables": {
+     "Financial History": [
+      "Pulse Wearables revenue ($M): FY2019 1,442.2 | FY2020 1,500.4 | FY2021 1,449.2 | FY2022 1,434.6 | FY2023 1,513.8 | FY2024 1,575.2 | FY2025 1,619.6",
+      "Pulse Wearables units / contracts sold: FY2019 241,512 | FY2020 198,335 | FY2021 149,715 | FY2022 225,177 | FY2023 266,554 | FY2024 115,250 | FY2025 122,149",
+      "Pulse Wearables gross margin (%): FY2019 26.2 | FY2020 25.5 | FY2021 27.5 | FY2022 33.6 | FY2023 32.0 | FY2024 35.6 | FY2025 28.0",
+      "Pulse Wearables average selling price ($): FY2019 5,972 | FY2020 7,565 | FY2021 9,680 | FY2022 6,371 | FY2023 5,679 | FY2024 13,667 | FY2025 13,259"
+     ],
+     "Monthly Sales FY2025": [
+      "Pulse Wearables monthly revenue FY2025 ($M): Jan 151.0 | Feb 159.6 | Mar 162.0 | Apr 155.5 | May 151.3 | Jun 137.8 | Jul 113.6 | Aug 99.0 | Sep 97.9 | Oct 99.1 | Nov 111.4 | Dec 137.2",
+      "Pulse Wearables monthly units FY2025: Jan 11,387 | Feb 12,041 | Mar 12,220 | Apr 11,727 | May 11,408 | Jun 10,390 | Jul 8,571 | Aug 7,470 | Sep 7,382 | Oct 7,474 | Nov 8,404 | Dec 10,345"
+     ],
+     "Variants and Pricing": [
+      "Pulse Wearables FY2025 revenue by variant ($M): Lite 498.3, Standard 409.0, Pro 450.8, Ultra 261.5",
+      "List price index by variant (Starter=100): Lite 100, Standard 180, Pro 250, Ultra 307",
+      "Price index vs. market average: 1.30; discount rate 9.9%."
+     ],
+     "Customer Reviews and Market Position": [
+      "Pulse Wearables average rating 4.34/5 from 45,897 reviews.",
+      "Star rating distribution (count of reviews): 5 stars 13879, 4 stars 9373, 3 stars 4333, 2 stars 1415, 1 stars 887",
+      "Category market share 12.1%; rank #2 of 8 vendors; repeat purchase rate 22.0%.",
+      "Feature scores (0-10): Performance 8.5, Design 7.0, Reliability 6.5, Value 8.6, Support 6.0, Integration 8.2"
+     ]
+    },
+    "Halo Smart Home": {
+     "Financial History": [
+      "Halo Smart Home revenue ($M): FY2019 1,244.0 | FY2020 1,332.4 | FY2021 1,334.4 | FY2022 1,170.8 | FY2023 1,353.8 | FY2024 1,380.7 | FY2025 1,319.2",
+      "Halo Smart Home units / contracts sold: FY2019 90,122 | FY2020 222,715 | FY2021 120,809 | FY2022 144,630 | FY2023 116,015 | FY2024 118,128 | FY2025 125,031",
+      "Halo Smart Home gross margin (%): FY2019 34.5 | FY2020 37.3 | FY2021 34.3 | FY2022 32.2 | FY2023 31.4 | FY2024 33.8 | FY2025 36.2",
+      "Halo Smart Home average selling price ($): FY2019 13,804 | FY2020 5,983 | FY2021 11,045 | FY2022 8,095 | FY2023 11,669 | FY2024 11,689 | FY2025 10,551"
+     ],
+     "Monthly Sales FY2025": [
+      "Halo Smart Home monthly revenue FY2025 ($M): Jan 116.1 | Feb 128.7 | Mar 144.4 | Apr 143.0 | May 117.7 | Jun 101.2 | Jul 92.3 | Aug 79.9 | Sep 87.1 | Oct 85.3 | Nov 89.6 | Dec 119.5",
+      "Halo Smart Home monthly units FY2025: Jan 11,007 | Feb 12,196 | Mar 13,689 | Apr 13,549 | May 11,154 | Jun 9,592 | Jul 8,748 | Aug 7,568 | Sep 8,258 | Oct 8,088 | Nov 8,492 | Dec 11,325"
+     ],
+     "Variants and Pricing": [
+      "Halo Smart Home FY2025 revenue by variant ($M): Lite 478.0, Standard 372.1, Pro 324.9, Ultra 144.2",
+      "List price index by variant (Starter=100): Lite 100, Standard 144, Pro 226, Ultra 220",
+      "Price index vs. market average: 1.01; discount rate 6.4%."
+     ],
+     "Customer Reviews and Market Position": [
+      "Halo Smart Home average rating 4.02/5 from 47,471 reviews.",
+      "Star rating distribution (count of reviews): 5 stars 18734, 4 stars 6085, 3 stars 2514, 2 stars 968, 1 stars 653",
+      "Category market share 10.7%; rank #2 of 20 vendors; repeat purchase rate 49.9%.",
+      "Feature scores (0-10): Performance 8.8, Design 7.2, Reliability 8.6, Value 7.3, Support 8.2, Integration 8.5"
+     ]
+    },
+    "Accessories": {
+     "Financial History": [
+      "Accessories revenue ($M): FY2019 1,177.9 | FY2020 1,168.0 | FY2021 1,225.5 | FY2022 1,094.5 | FY2023 1,125.9 | FY2024 1,220.9 | FY2025 1,342.4",
+      "Accessories units / contracts sold: FY2019 194,177 | FY2020 178,567 | FY2021 98,196 | FY2022 156,104 | FY2023 164,256 | FY2024 203,161 | FY2025 126,483",
+      "Accessories gross margin (%): FY2019 35.0 | FY2020 34.6 | FY2021 38.4 | FY2022 34.1 | FY2023 32.6 | FY2024 38.7 | FY2025 40.0",
+      "Accessories average selling price ($): FY2019 6,066 | FY2020 6,541 | FY2021 12,480 | FY2022 7,012 | FY2023 6,855 | FY2024 6,009 | FY2025 10,613"
+     ],
+     "Monthly Sales FY2025": [
+      "Accessories monthly revenue FY2025 ($M): Jan 116.5 | Feb 128.1 | Mar 135.9 | Apr 141.6 | May 132.4 | Jun 118.4 | Jul 102.2 | Aug 89.4 | Sep 77.6 | Oct 94.0 | Nov 104.1 | Dec 104.5",
+      "Accessories monthly units FY2025: Jan 10,973 | Feb 12,068 | Mar 12,803 | Apr 13,342 | May 12,477 | Jun 11,155 | Jul 9,629 | Aug 8,426 | Sep 7,314 | Oct 8,854 | Nov 9,806 | Dec 9,846"
+     ],
+     "Variants and Pricing": [
+      "Accessories FY2025 revenue by variant ($M): Lite 413.3, Standard 390.6, Pro 417.9, Ultra 120.6",
+      "List price index by variant (Starter=100): Lite 100, Standard 176, Pro 258, Ultra 316",
+      "Price index vs. market average: 1.27; discount rate 13.0%."
+     ],
+     "Customer Reviews and Market Position": [
+      "Accessories average rating 3.91/5 from 9,628 reviews.",
+      "Star rating distribution (count of reviews): 5 stars 21081, 4 stars 14703, 3 stars 4753, 2 stars 752, 1 stars 431",
+      "Category market share 28.7%; rank #1 of 23 vendors; repeat purchase rate 47.0%.",
+      "Feature scores (0-10): Performance 7.0, Design 8.7, Reliability 7.5, Value 9.3, Support 7.0, Integration 7.5"
+     ]
+    }
+   },
+   "Revenue by Region FY2025": [
+    "FY2025 Consumer Devices revenue by region ($M): North America 4,095.2, Europe 2,909.7, Asia-Pacific 3,267.1, Latin America 748.7, Middle East & Africa 567.2"
+   ],
+   "Sales Funnel FY2025": [
+    "Stages (top to bottom) with counts: Website visitors 1,000,000, Qualified leads 201,234, Product demos / trials 75,832, Proposals / carts 30,662, Closed deals / purchases 10,346",
+    "Overall conversion 1.03%; average deal size $1,120,037."
+   ],
+   "Competitive Benchmark Scores": [
+    "Analyst benchmark scores (0-10) on six criteria: Performance, Price value, Reliability, Innovation, Support, Ecosystem.",
+    "Helios: Performance 8.3, Price value 9.7, Reliability 7.6, Innovation 5.9, Support 7.3, Ecosystem 9.4",
+    "Competitor A: Performance 4.5, Price value 9.7, Reliability 7.1, Innovation 6.9, Support 6.0, Ecosystem 6.7",
+    "Competitor B: Performance 8.6, Price value 7.0, Reliability 7.0, Innovation 5.5, Support 6.1, Ecosystem 5.2",
+    "Competitor C: Performance 6.8, Price value 6.0, Reliability 6.0, Innovation 6.0, Support 6.4, Ecosystem 5.9",
+    "Market share FY2025 (%): Helios 20.5, Competitor A 21.0, Competitor B 16.0, Competitor C 11.0, others 31.5."
+   ],
+   "Quality Issues and Defects FY2025": [
+    "Customer-reported issues by root cause (count): Battery defects 888, Screen damage 866, Software crashes 496, Charging port faults 457, Speaker issues 232, Packaging damage 82",
+    "Defect rate (ppm): FY2019 498 | FY2020 696 | FY2021 510 | FY2022 721 | FY2023 541 | FY2024 293 | FY2025 532"
+   ],
+   "2025-2026 Flagship Project Roadmap": [
+    "Flagship program: Nova Smartphones next generation.",
+    "Discovery & research: start 2025-01-15, end 2025-02-16, team Product",
+    "Design: start 2025-02-08, end 2025-04-02, team Design",
+    "Prototype: start 2025-03-28, end 2025-05-17, team Engineering",
+    "Engineering build: start 2025-05-06, end 2025-06-12, team Engineering",
+    "Pilot with customers: start 2025-06-11, end 2025-08-06, team Sales",
+    "Certification: start 2025-07-27, end 2025-10-01, team Compliance",
+    "Launch: start 2025-09-24, end 2025-10-15, team Marketing",
+    "Scale-up: start 2025-10-06, end 2025-12-02, team Operations"
+   ],
+   "Customer Satisfaction": [
+    "Net Promoter Score: FY2019 21 | FY2020 26 | FY2021 27 | FY2022 34 | FY2023 38 | FY2024 32 | FY2025 44",
+    "CSAT (%): FY2019 79.8 | FY2020 78.8 | FY2021 84.5 | FY2022 84.5 | FY2023 82.0 | FY2024 85.3 | FY2025 86.8",
+    "Survey sample of 60 satisfaction scores (0-100) FY2025: 64, 77, 71, 72, 82, 67, 64, 100, 80, 95, 80, 64, 68, 73, 75, 70, 93, 80, 63, 58, 87, 86, 90, 95, 82, 92, 94, 81, 76, 88, 76, 73, 56, 73, 92, 83, 80, 100, 77, 70, 78, 76, 80, 70, 97, 58, 92, 67, 78, 69, 64, 80, 78, 78, 85, 65, 68, 69, 69, 78",
+    "Churn rate by quarter FY2025 (%): Q1 2.02, Q2 2.07, Q3 2.17, Q4 2.58"
+   ]
+  },
+  "Renewable Energy": {
+   "Segment Overview": [
+    "Renewable Energy is one of five Helios segments; FY2025 revenue $8,609.8M (14.9% of group), operating margin 13%, 6-year revenue CAGR 18.7%.",
+    "Product lines: Utility-Scale Solar, Onshore Wind, Battery Storage, EV Charging Networks, Green Hydrogen Pilots.",
+    "Segment headcount FY2025: 10,008."
+   ],
+   "Segment Financials FY2019-FY2025": [
+    "Revenue ($M): FY2019 3,076.6 | FY2020 3,446.3 | FY2021 4,116.4 | FY2022 5,084.3 | FY2023 6,126.7 | FY2024 7,188.6 | FY2025 8,609.8",
+    "Operating margin (%): FY2019 6.0 | FY2020 7.0 | FY2021 8.0 | FY2022 10.0 | FY2023 11.0 | FY2024 12.0 | FY2025 13.0",
+    "Operating income ($M): FY2019 184.6 | FY2020 241.2 | FY2021 329.3 | FY2022 508.4 | FY2023 673.9 | FY2024 862.6 | FY2025 1,119.3",
+    "Revenue growth (%): FY2020 12.0 | FY2021 19.4 | FY2022 23.5 | FY2023 20.5 | FY2024 17.3 | FY2025 19.8",
+    "Capex ($M): FY2019 246.1 | FY2020 275.7 | FY2021 329.3 | FY2022 406.7 | FY2023 490.1 | FY2024 575.1 | FY2025 688.8",
+    "R&D spend ($M): FY2019 184.6 | FY2020 206.8 | FY2021 247.0 | FY2022 305.1 | FY2023 367.6 | FY2024 431.3 | FY2025 516.6"
+   ],
+   "Quarterly Revenue FY2023-FY2025": [
+    "FY2023 quarterly revenue ($M): Q1 1,299.2 | Q2 1,622.4 | Q3 1,753.8 | Q4 1,451.3",
+    "FY2024 quarterly revenue ($M): Q1 1,532.5 | Q2 1,823.8 | Q3 2,068.2 | Q4 1,764.1",
+    "FY2025 quarterly revenue ($M): Q1 1,806.4 | Q2 2,269.7 | Q3 2,477.8 | Q4 2,055.9"
+   ],
+   "Product Lines": {
+    "Utility-Scale Solar": {
+     "Financial History": [
+      "Utility-Scale Solar revenue ($M): FY2019 1,213.5 | FY2020 1,363.8 | FY2021 1,491.4 | FY2022 1,968.0 | FY2023 2,329.5 | FY2024 2,625.2 | FY2025 3,132.5",
+      "Utility-Scale Solar units / contracts sold: FY2019 2,433 | FY2020 5,079 | FY2021 3,684 | FY2022 8,797 | FY2023 4,390 | FY2024 9,686 | FY2025 5,823",
+      "Utility-Scale Solar gross margin (%): FY2019 26.8 | FY2020 19.6 | FY2021 25.5 | FY2022 29.2 | FY2023 22.9 | FY2024 24.0 | FY2025 23.6",
+      "Utility-Scale Solar average selling price ($): FY2019 498,776 | FY2020 268,509 | FY2021 404,829 | FY2022 223,708 | FY2023 530,636 | FY2024 271,027 | FY2025 537,948"
+     ],
+     "Monthly Sales FY2025": [
+      "Utility-Scale Solar monthly revenue FY2025 ($M): Jan 306.6 | Feb 352.1 | Mar 308.0 | Apr 290.6 | May 240.3 | Jun 222.2 | Jul 197.7 | Aug 202.5 | Sep 216.8 | Oct 233.5 | Nov 249.9 | Dec 292.1",
+      "Utility-Scale Solar monthly units FY2025: Jan 570 | Feb 655 | Mar 572 | Apr 540 | May 447 | Jun 413 | Jul 368 | Aug 377 | Sep 403 | Oct 434 | Nov 465 | Dec 543"
+     ],
+     "Variants and Pricing": [
+      "Utility-Scale Solar FY2025 revenue by variant ($M): Residential 949.5, Commercial 859.7, Utility 952.6, Microgrid 370.7",
+      "List price index by variant (Starter=100): Residential 100, Commercial 178, Utility 216, Microgrid 310",
+      "Price index vs. market average: 1.08; discount rate 10.4%."
+     ],
+     "Customer Reviews and Market Position": [
+      "Utility-Scale Solar average rating 4.54/5 from 39,589 reviews.",
+      "Star rating distribution (count of reviews): 5 stars 17960, 4 stars 10651, 3 stars 3384, 2 stars 611, 1 stars 1184",
+      "Category market share 25.5%; rank #1 of 16 vendors; repeat purchase rate 36.0%.",
+      "Feature scores (0-10): Performance 6.6, Design 6.4, Reliability 9.2, Value 7.9, Support 7.1, Integration 6.6"
+     ]
+    },
+    "Onshore Wind": {
+     "Financial History": [
+      "Onshore Wind revenue ($M): FY2019 702.4 | FY2020 838.6 | FY2021 1,024.0 | FY2022 1,241.4 | FY2023 1,512.7 | FY2024 1,756.2 | FY2025 2,054.0",
+      "Onshore Wind units / contracts sold: FY2019 1,325 | FY2020 2,996 | FY2021 1,934 | FY2022 4,010 | FY2023 4,195 | FY2024 5,351 | FY2025 7,191",
+      "Onshore Wind gross margin (%): FY2019 25.3 | FY2020 28.8 | FY2021 27.4 | FY2022 28.8 | FY2023 30.9 | FY2024 28.0 | FY2025 33.0",
+      "Onshore Wind average selling price ($): FY2019 530,142 | FY2020 279,898 | FY2021 529,452 | FY2022 309,571 | FY2023 360,590 | FY2024 328,204 | FY2025 285,637"
+     ],
+     "Monthly Sales FY2025": [
+      "Onshore Wind monthly revenue FY2025 ($M): Jan 220.0 | Feb 215.9 | Mar 203.8 | Apr 182.2 | May 169.6 | Jun 146.6 | Jul 123.6 | Aug 118.1 | Sep 132.0 | Oct 147.9 | Nov 165.6 | Dec 185.1",
+      "Onshore Wind monthly units FY2025: Jan 770 | Feb 756 | Mar 714 | Apr 638 | May 594 | Jun 513 | Jul 433 | Aug 414 | Sep 462 | Oct 518 | Nov 580 | Dec 648"
+     ],
+     "Variants and Pricing": [
+      "Onshore Wind FY2025 revenue by variant ($M): Residential 709.2, Commercial 622.1, Utility 525.4, Microgrid 197.3",
+      "List price index by variant (Starter=100): Residential 100, Commercial 163, Utility 222, Microgrid 331",
+      "Price index vs. market average: 0.95; discount rate 7.8%."
+     ],
+     "Customer Reviews and Market Position": [
+      "Onshore Wind average rating 4.49/5 from 44,376 reviews.",
+      "Star rating distribution (count of reviews): 5 stars 16041, 4 stars 6711, 3 stars 2435, 2 stars 1285, 1 stars 1104",
+      "Category market share 30.9%; rank #5 of 21 vendors; repeat purchase rate 58.4%.",
+      "Feature scores (0-10): Performance 6.1, Design 8.5, Reliability 6.2, Value 8.8, Support 6.2, Integration 7.4"
+     ]
+    },
+    "Battery Storage": {
+     "Financial History": [
+      "Battery Storage revenue ($M): FY2019 646.7 | FY2020 677.9 | FY2021 829.9 | FY2022 1,004.4 | FY2023 1,251.5 | FY2024 1,476.1 | FY2025 1,704.1",
+      "Battery Storage units / contracts sold: FY2019 1,952 | FY2020 1,727 | FY2021 3,730 | FY2022 2,270 | FY2023 2,757 | FY2024 6,494 | FY2025 3,796",
+      "Battery Storage gross margin (%): FY2019 31.1 | FY2020 32.1 | FY2021 32.5 | FY2022 35.5 | FY2023 30.1 | FY2024 32.5 | FY2025 30.4",
+      "Battery Storage average selling price ($): FY2019 331,298 | FY2020 392,533 | FY2021 222,489 | FY2022 442,464 | FY2023 453,938 | FY2024 227,295 | FY2025 448,922"
+     ],
+     "Monthly Sales FY2025": [
+      "Battery Storage monthly revenue FY2025 ($M): Jan 171.1 | Feb 166.4 | Mar 183.5 | Apr 168.0 | May 140.0 | Jun 121.7 | Jul 119.3 | Aug 112.7 | Sep 110.2 | Oct 134.7 | Nov 136.0 | Dec 148.0",
+      "Battery Storage monthly units FY2025: Jan 381 | Feb 371 | Mar 409 | Apr 374 | May 312 | Jun 271 | Jul 266 | Aug 251 | Sep 245 | Oct 300 | Nov 303 | Dec 330"
+     ],
+     "Variants and Pricing": [
+      "Battery Storage FY2025 revenue by variant ($M): Residential 598.6, Commercial 419.9, Utility 434.1, Microgrid 251.5",
+      "List price index by variant (Starter=100): Residential 100, Commercial 147, Utility 246, Microgrid 295",
+      "Price index vs. market average: 1.14; discount rate 11.5%."
+     ],
+     "Customer Reviews and Market Position": [
+      "Battery Storage average rating 4.02/5 from 43,338 reviews.",
+      "Star rating distribution (count of reviews): 5 stars 16758, 4 stars 6165, 3 stars 3539, 2 stars 1615, 1 stars 337",
+      "Category market share 21.3%; rank #5 of 15 vendors; repeat purchase rate 29.0%.",
+      "Feature scores (0-10): Performance 6.9, Design 9.6, Reliability 8.6, Value 7.3, Support 7.8, Integration 8.4"
+     ]
+    },
+    "EV Charging Networks": {
+     "Financial History": [
+      "EV Charging Networks revenue ($M): FY2019 343.2 | FY2020 423.7 | FY2021 449.2 | FY2022 579.6 | FY2023 678.2 | FY2024 877.8 | FY2025 900.2",
+      "EV Charging Networks units / contracts sold: FY2019 1,043 | FY2020 1,096 | FY2021 1,820 | FY2022 2,449 | FY2023 2,261 | FY2024 2,867 | FY2025 2,031",
+      "EV Charging Networks gross margin (%): FY2019 28.7 | FY2020 31.5 | FY2021 37.9 | FY2022 34.6 | FY2023 34.6 | FY2024 31.2 | FY2025 38.8",
+      "EV Charging Networks average selling price ($): FY2019 329,089 | FY2020 386,627 | FY2021 246,801 | FY2022 236,655 | FY2023 299,934 | FY2024 306,167 | FY2025 443,210"
+     ],
+     "Monthly Sales FY2025": [
+      "EV Charging Networks monthly revenue FY2025 ($M): Jan 87.4 | Feb 93.6 | Mar 95.1 | Apr 80.2 | May 75.3 | Jun 63.8 | Jul 62.4 | Aug 55.8 | Sep 56.6 | Oct 60.9 | Nov 73.8 | Dec 88.7",
+      "EV Charging Networks monthly units FY2025: Jan 197 | Feb 211 | Mar 215 | Apr 181 | May 170 | Jun 144 | Jul 141 | Aug 126 | Sep 128 | Oct 137 | Nov 167 | Dec 200"
+     ],
+     "Variants and Pricing": [
+      "EV Charging Networks FY2025 revenue by variant ($M): Residential 302.3, Commercial 227.5, Utility 252.2, Microgrid 118.2",
+      "List price index by variant (Starter=100): Residential 100, Commercial 170, Utility 198, Microgrid 280",
+      "Price index vs. market average: 1.30; discount rate 13.1%."
+     ],
+     "Customer Reviews and Market Position": [
+      "EV Charging Networks average rating 4.05/5 from 13,749 reviews.",
+      "Star rating distribution (count of reviews): 5 stars 11528, 4 stars 12735, 3 stars 3232, 2 stars 1247, 1 stars 317",
+      "Category market share 10.7%; rank #4 of 20 vendors; repeat purchase rate 45.8%.",
+      "Feature scores (0-10): Performance 7.2, Design 8.3, Reliability 7.7, Value 6.8, Support 9.4, Integration 8.3"
+     ]
+    },
+    "Green Hydrogen Pilots": {
+     "Financial History": [
+      "Green Hydrogen Pilots revenue ($M): FY2019 211.4 | FY2020 225.2 | FY2021 307.4 | FY2022 380.4 | FY2023 474.4 | FY2024 483.1 | FY2025 629.9",
+      "Green Hydrogen Pilots units / contracts sold: FY2019 514 | FY2020 933 | FY2021 1,379 | FY2022 1,407 | FY2023 898 | FY2024 2,080 | FY2025 1,461",
+      "Green Hydrogen Pilots gross margin (%): FY2019 32.3 | FY2020 35.6 | FY2021 32.7 | FY2022 41.3 | FY2023 40.5 | FY2024 42.6 | FY2025 35.6",
+      "Green Hydrogen Pilots average selling price ($): FY2019 411,262 | FY2020 241,421 | FY2021 222,932 | FY2022 270,391 | FY2023 528,294 | FY2024 232,269 | FY2025 431,126"
+     ],
+     "Monthly Sales FY2025": [
+      "Green Hydrogen Pilots monthly revenue FY2025 ($M): Jan 63.3 | Feb 65.0 | Mar 66.3 | Apr 59.6 | May 54.7 | Jun 47.1 | Jul 38.0 | Aug 39.0 | Sep 40.8 | Oct 45.7 | Nov 56.0 | Dec 58.8",
+      "Green Hydrogen Pilots monthly units FY2025: Jan 147 | Feb 151 | Mar 154 | Apr 138 | May 127 | Jun 109 | Jul 88 | Aug 90 | Sep 95 | Oct 106 | Nov 130 | Dec 136"
+     ],
+     "Variants and Pricing": [
+      "Green Hydrogen Pilots FY2025 revenue by variant ($M): Residential 211.2, Commercial 199.5, Utility 131.2, Microgrid 88.0",
+      "List price index by variant (Starter=100): Residential 100, Commercial 162, Utility 260, Microgrid 226",
+      "Price index vs. market average: 0.98; discount rate 18.4%."
+     ],
+     "Customer Reviews and Market Position": [
+      "Green Hydrogen Pilots average rating 4.76/5 from 79,218 reviews.",
+      "Star rating distribution (count of reviews): 5 stars 23213, 4 stars 13654, 3 stars 4567, 2 stars 1237, 1 stars 1482",
+      "Category market share 22.6%; rank #1 of 18 vendors; repeat purchase rate 61.9%.",
+      "Feature scores (0-10): Performance 6.7, Design 7.5, Reliability 6.3, Value 8.0, Support 9.1, Integration 7.0"
+     ]
+    }
+   },
+   "Revenue by Region FY2025": [
+    "FY2025 Renewable Energy revenue by region ($M): North America 2,850.5, Europe 2,925.5, Asia-Pacific 1,700.3, Latin America 550.1, Middle East & Africa 583.4"
+   ],
+   "Sales Funnel FY2025": [
+    "Stages (top to bottom) with counts: Website visitors 120,000, Qualified leads 23,193, Product demos / trials 9,043, Proposals / carts 3,826, Closed deals / purchases 1,196",
+    "Overall conversion 1.00%; average deal size $7,198,829."
+   ],
+   "Competitive Benchmark Scores": [
+    "Analyst benchmark scores (0-10) on six criteria: Performance, Price value, Reliability, Innovation, Support, Ecosystem.",
+    "Helios: Performance 8.2, Price value 7.3, Reliability 7.3, Innovation 8.2, Support 7.8, Ecosystem 7.1",
+    "Competitor A: Performance 7.3, Price value 5.8, Reliability 6.6, Innovation 8.6, Support 6.4, Ecosystem 6.1",
+    "Competitor B: Performance 6.7, Price value 8.4, Reliability 9.9, Innovation 6.7, Support 5.3, Ecosystem 8.9",
+    "Competitor C: Performance 6.8, Price value 6.4, Reliability 6.0, Innovation 6.3, Support 6.2, Ecosystem 4.4",
+    "Market share FY2025 (%): Helios 23.0, Competitor A 20.0, Competitor B 17.0, Competitor C 11.0, others 29.0."
+   ],
+   "Quality Issues and Defects FY2025": [
+    "Customer-reported issues by root cause (count): Inverter failures 712, Panel micro-cracks 532, Gearbox wear 165, Grid curtailment 164, Sensor faults 134, Corrosion 69",
+    "Defect rate (ppm): FY2019 717 | FY2020 851 | FY2021 762 | FY2022 296 | FY2023 668 | FY2024 617 | FY2025 236"
+   ],
+   "2025-2026 Flagship Project Roadmap": [
+    "Flagship program: Utility-Scale Solar next generation.",
+    "Discovery & research: start 2025-01-24, end 2025-03-14, team Product",
+    "Design: start 2025-03-13, end 2025-04-06, team Design",
+    "Prototype: start 2025-04-06, end 2025-05-21, team Engineering",
+    "Engineering build: start 2025-05-18, end 2025-07-12, team Engineering",
+    "Pilot with customers: start 2025-07-09, end 2025-08-11, team Sales",
+    "Certification: start 2025-08-07, end 2025-09-04, team Compliance",
+    "Launch: start 2025-08-30, end 2025-09-24, team Marketing",
+    "Scale-up: start 2025-09-22, end 2025-10-19, team Operations"
+   ],
+   "Customer Satisfaction": [
+    "Net Promoter Score: FY2019 29 | FY2020 27 | FY2021 36 | FY2022 40 | FY2023 28 | FY2024 40 | FY2025 41",
+    "CSAT (%): FY2019 78.2 | FY2020 78.9 | FY2021 85.3 | FY2022 81.9 | FY2023 86.8 | FY2024 83.2 | FY2025 83.6",
+    "Survey sample of 60 satisfaction scores (0-100) FY2025: 62, 95, 86, 95, 78, 82, 64, 83, 72, 100, 63, 91, 87, 81, 75, 86, 78, 89, 77, 81, 75, 73, 83, 94, 82, 84, 79, 73, 95, 71, 57, 76, 67, 84, 68, 53, 75, 62, 80, 99, 100, 93, 86, 79, 83, 83, 92, 75, 93, 82, 74, 59, 90, 80, 76, 88, 75, 85, 69, 89",
+    "Churn rate by quarter FY2025 (%): Q1 3.19, Q2 2.22, Q3 2.66, Q4 2.43"
+   ]
+  },
+  "Healthcare Technology": {
+   "Segment Overview": [
+    "Healthcare Technology is one of five Helios segments; FY2025 revenue $7,500.9M (13.0% of group), operating margin 19%, 6-year revenue CAGR 10.0%.",
+    "Product lines: Diagnostic Imaging, Remote Patient Monitoring, Clinical Software, Lab Automation, Genomics Services.",
+    "Segment headcount FY2025: 13,344."
+   ],
+   "Segment Financials FY2019-FY2025": [
+    "Revenue ($M): FY2019 4,229.6 | FY2020 5,000.3 | FY2021 5,484.0 | FY2022 5,745.5 | FY2023 6,243.0 | FY2024 6,814.4 | FY2025 7,500.9",
+    "Operating margin (%): FY2019 15.0 | FY2020 19.0 | FY2021 18.0 | FY2022 16.0 | FY2023 17.0 | FY2024 18.0 | FY2025 19.0",
+    "Operating income ($M): FY2019 634.4 | FY2020 950.1 | FY2021 987.1 | FY2022 919.3 | FY2023 1,061.3 | FY2024 1,226.6 | FY2025 1,425.2",
+    "Revenue growth (%): FY2020 18.2 | FY2021 9.7 | FY2022 4.8 | FY2023 8.7 | FY2024 9.2 | FY2025 10.1",
+    "Capex ($M): FY2019 211.5 | FY2020 250.0 | FY2021 274.2 | FY2022 287.3 | FY2023 312.2 | FY2024 340.7 | FY2025 375.0",
+    "R&D spend ($M): FY2019 423.0 | FY2020 500.0 | FY2021 548.4 | FY2022 574.6 | FY2023 624.3 | FY2024 681.4 | FY2025 750.1"
+   ],
+   "Quarterly Revenue FY2023-FY2025": [
+    "FY2023 quarterly revenue ($M): Q1 1,514.9 | Q2 1,563.1 | Q3 1,495.6 | Q4 1,669.4",
+    "FY2024 quarterly revenue ($M): Q1 1,635.1 | Q2 1,692.0 | Q3 1,633.2 | Q4 1,854.1",
+    "FY2025 quarterly revenue ($M): Q1 1,793.0 | Q2 1,867.6 | Q3 1,783.9 | Q4 2,056.4"
+   ],
+   "Product Lines": {
+    "Diagnostic Imaging": {
+     "Financial History": [
+      "Diagnostic Imaging revenue ($M): FY2019 1,249.7 | FY2020 1,501.5 | FY2021 1,822.3 | FY2022 1,847.9 | FY2023 2,058.5 | FY2024 2,112.8 | FY2025 2,439.1",
+      "Diagnostic Imaging units / contracts sold: FY2019 5,462 | FY2020 2,850 | FY2021 3,614 | FY2022 6,080 | FY2023 3,806 | FY2024 5,967 | FY2025 8,598",
+      "Diagnostic Imaging gross margin (%): FY2019 24.1 | FY2020 21.9 | FY2021 24.7 | FY2022 27.7 | FY2023 21.1 | FY2024 28.4 | FY2025 23.5",
+      "Diagnostic Imaging average selling price ($): FY2019 228,806 | FY2020 526,846 | FY2021 504,236 | FY2022 303,924 | FY2023 540,867 | FY2024 354,074 | FY2025 283,677"
+     ],
+     "Monthly Sales FY2025": [
+      "Diagnostic Imaging monthly revenue FY2025 ($M): Jan 265.9 | Feb 249.3 | Mar 218.2 | Apr 209.6 | May 183.5 | Jun 168.3 | Jul 141.6 | Aug 163.8 | Sep 178.5 | Oct 201.9 | Nov 241.3 | Dec 259.3",
+      "Diagnostic Imaging monthly units FY2025: Jan 937 | Feb 879 | Mar 769 | Apr 739 | May 647 | Jun 593 | Jul 499 | Aug 577 | Sep 629 | Oct 712 | Nov 851 | Dec 914"
+     ],
+     "Variants and Pricing": [
+      "Diagnostic Imaging FY2025 revenue by variant ($M): Clinic 982.6, Hospital 580.2, Research 611.7, Home care 264.6",
+      "List price index by variant (Starter=100): Clinic 100, Hospital 144, Research 226, Home care 292",
+      "Price index vs. market average: 0.84; discount rate 18.5%."
+     ],
+     "Customer Reviews and Market Position": [
+      "Diagnostic Imaging average rating 4.29/5 from 41,234 reviews.",
+      "Star rating distribution (count of reviews): 5 stars 23213, 4 stars 11364, 3 stars 4556, 2 stars 1043, 1 stars 651",
+      "Category market share 25.0%; rank #1 of 17 vendors; repeat purchase rate 42.6%.",
+      "Feature scores (0-10): Performance 7.2, Design 8.3, Reliability 7.5, Value 8.4, Support 7.3, Integration 7.4"
+     ]
+    },
+    "Remote Patient Monitoring": {
+     "Financial History": [
+      "Remote Patient Monitoring revenue ($M): FY2019 981.3 | FY2020 1,255.3 | FY2021 1,291.9 | FY2022 1,400.6 | FY2023 1,577.5 | FY2024 1,579.9 | FY2025 1,761.2",
+      "Remote Patient Monitoring units / contracts sold: FY2019 4,295 | FY2020 2,987 | FY2021 2,489 | FY2022 6,289 | FY2023 4,965 | FY2024 4,500 | FY2025 4,989",
+      "Remote Patient Monitoring gross margin (%): FY2019 22.6 | FY2020 26.3 | FY2021 28.2 | FY2022 27.5 | FY2023 29.9 | FY2024 29.0 | FY2025 31.2",
+      "Remote Patient Monitoring average selling price ($): FY2019 228,484 | FY2020 420,247 | FY2021 519,040 | FY2022 222,708 | FY2023 317,731 | FY2024 351,082 | FY2025 353,016"
+     ],
+     "Monthly Sales FY2025": [
+      "Remote Patient Monitoring monthly revenue FY2025 ($M): Jan 169.8 | Feb 174.6 | Mar 167.5 | Apr 140.6 | May 125.6 | Jun 115.0 | Jul 105.2 | Aug 124.0 | Sep 139.2 | Oct 144.4 | Nov 162.4 | Dec 179.0",
+      "Remote Patient Monitoring monthly units FY2025: Jan 481 | Feb 495 | Mar 474 | Apr 398 | May 356 | Jun 326 | Jul 298 | Aug 351 | Sep 394 | Oct 409 | Nov 460 | Dec 507"
+     ],
+     "Variants and Pricing": [
+      "Remote Patient Monitoring FY2025 revenue by variant ($M): Clinic 708.1, Hospital 451.7, Research 454.2, Home care 147.2",
+      "List price index by variant (Starter=100): Clinic 100, Hospital 146, Research 174, Home care 235",
+      "Price index vs. market average: 0.95; discount rate 7.9%."
+     ],
+     "Customer Reviews and Market Position": [
+      "Remote Patient Monitoring average rating 4.55/5 from 19,841 reviews.",
+      "Star rating distribution (count of reviews): 5 stars 20612, 4 stars 13458, 3 stars 3270, 2 stars 514, 1 stars 1120",
+      "Category market share 21.8%; rank #5 of 11 vendors; repeat purchase rate 43.0%.",
+      "Feature scores (0-10): Performance 8.6, Design 7.5, Reliability 6.1, Value 9.0, Support 6.8, Integration 9.5"
+     ]
+    },
+    "Clinical Software": {
+     "Financial History": [
+      "Clinical Software revenue ($M): FY2019 991.6 | FY2020 1,185.5 | FY2021 1,300.7 | FY2022 1,358.6 | FY2023 1,312.7 | FY2024 1,499.6 | FY2025 1,666.2",
+      "Clinical Software units / contracts sold: FY2019 1,863 | FY2020 3,626 | FY2021 2,848 | FY2022 3,274 | FY2023 3,080 | FY2024 6,287 | FY2025 3,121",
+      "Clinical Software gross margin (%): FY2019 26.9 | FY2020 32.6 | FY2021 33.9 | FY2022 31.7 | FY2023 30.3 | FY2024 27.3 | FY2025 30.5",
+      "Clinical Software average selling price ($): FY2019 532,255 | FY2020 326,952 | FY2021 456,719 | FY2022 414,975 | FY2023 426,185 | FY2024 238,517 | FY2025 533,851"
+     ],
+     "Monthly Sales FY2025": [
+      "Clinical Software monthly revenue FY2025 ($M): Jan 168.1 | Feb 170.8 | Mar 153.7 | Apr 128.9 | May 113.3 | Jun 106.5 | Jul 96.4 | Aug 113.8 | Sep 129.0 | Oct 137.1 | Nov 162.4 | Dec 166.9",
+      "Clinical Software monthly units FY2025: Jan 315 | Feb 320 | Mar 288 | Apr 241 | May 212 | Jun 199 | Jul 180 | Aug 213 | Sep 242 | Oct 257 | Nov 304 | Dec 313"
+     ],
+     "Variants and Pricing": [
+      "Clinical Software FY2025 revenue by variant ($M): Clinic 576.3, Hospital 493.7, Research 385.0, Home care 211.2",
+      "List price index by variant (Starter=100): Clinic 100, Hospital 162, Research 176, Home care 298",
+      "Price index vs. market average: 1.16; discount rate 12.1%."
+     ],
+     "Customer Reviews and Market Position": [
+      "Clinical Software average rating 4.08/5 from 4,669 reviews.",
+      "Star rating distribution (count of reviews): 5 stars 16566, 4 stars 9539, 3 stars 2880, 2 stars 818, 1 stars 1088",
+      "Category market share 21.4%; rank #2 of 14 vendors; repeat purchase rate 31.5%.",
+      "Feature scores (0-10): Performance 6.0, Design 6.3, Reliability 6.6, Value 7.1, Support 8.0, Integration 8.9"
+     ]
+    },
+    "Lab Automation": {
+     "Financial History": [
+      "Lab Automation revenue ($M): FY2019 680.5 | FY2020 744.1 | FY2021 875.0 | FY2022 859.4 | FY2023 879.0 | FY2024 1,054.7 | FY2025 1,259.6",
+      "Lab Automation units / contracts sold: FY2019 1,924 | FY2020 2,770 | FY2021 2,418 | FY2022 1,994 | FY2023 1,786 | FY2024 3,207 | FY2025 3,947",
+      "Lab Automation gross margin (%): FY2019 32.0 | FY2020 33.8 | FY2021 34.7 | FY2022 36.8 | FY2023 35.0 | FY2024 38.2 | FY2025 33.4",
+      "Lab Automation average selling price ($): FY2019 353,700 | FY2020 268,614 | FY2021 361,867 | FY2022 430,985 | FY2023 492,173 | FY2024 328,876 | FY2025 319,119"
+     ],
+     "Monthly Sales FY2025": [
+      "Lab Automation monthly revenue FY2025 ($M): Jan 124.7 | Feb 132.1 | Mar 108.6 | Apr 105.6 | May 86.2 | Jun 83.0 | Jul 79.1 | Aug 81.7 | Sep 89.7 | Oct 112.2 | Nov 110.8 | Dec 137.5",
+      "Lab Automation monthly units FY2025: Jan 391 | Feb 414 | Mar 340 | Apr 331 | May 270 | Jun 260 | Jul 248 | Aug 256 | Sep 281 | Oct 352 | Nov 347 | Dec 431"
+     ],
+     "Variants and Pricing": [
+      "Lab Automation FY2025 revenue by variant ($M): Clinic 356.9, Hospital 444.5, Research 286.9, Home care 171.3",
+      "List price index by variant (Starter=100): Clinic 100, Hospital 160, Research 186, Home care 229",
+      "Price index vs. market average: 1.35; discount rate 13.7%."
+     ],
+     "Customer Reviews and Market Position": [
+      "Lab Automation average rating 4.27/5 from 84,319 reviews.",
+      "Star rating distribution (count of reviews): 5 stars 26283, 4 stars 14764, 3 stars 4616, 2 stars 1209, 1 stars 581",
+      "Category market share 28.9%; rank #5 of 11 vendors; repeat purchase rate 27.8%.",
+      "Feature scores (0-10): Performance 6.9, Design 8.6, Reliability 7.6, Value 8.3, Support 6.2, Integration 8.0"
+     ]
+    },
+    "Genomics Services": {
+     "Financial History": [
+      "Genomics Services revenue ($M): FY2019 357.7 | FY2020 430.4 | FY2021 472.5 | FY2022 492.8 | FY2023 480.2 | FY2024 577.9 | FY2025 568.4",
+      "Genomics Services units / contracts sold: FY2019 1,221 | FY2020 1,346 | FY2021 1,011 | FY2022 1,738 | FY2023 1,158 | FY2024 2,401 | FY2025 1,550",
+      "Genomics Services gross margin (%): FY2019 36.7 | FY2020 37.6 | FY2021 37.7 | FY2022 36.9 | FY2023 39.5 | FY2024 38.6 | FY2025 36.7",
+      "Genomics Services average selling price ($): FY2019 292,962 | FY2020 319,734 | FY2021 467,347 | FY2022 283,520 | FY2023 414,704 | FY2024 240,687 | FY2025 366,723"
+     ],
+     "Monthly Sales FY2025": [
+      "Genomics Services monthly revenue FY2025 ($M): Jan 60.3 | Feb 55.3 | Mar 56.9 | Apr 47.3 | May 40.9 | Jun 38.9 | Jul 33.9 | Aug 37.5 | Sep 41.5 | Oct 47.4 | Nov 57.6 | Dec 58.4",
+      "Genomics Services monthly units FY2025: Jan 164 | Feb 151 | Mar 155 | Apr 129 | May 111 | Jun 106 | Jul 92 | Aug 102 | Sep 113 | Oct 129 | Nov 157 | Dec 159"
+     ],
+     "Variants and Pricing": [
+      "Genomics Services FY2025 revenue by variant ($M): Clinic 202.0, Hospital 177.9, Research 139.8, Home care 48.7",
+      "List price index by variant (Starter=100): Clinic 100, Hospital 148, Research 226, Home care 271",
+      "Price index vs. market average: 0.94; discount rate 17.1%."
+     ],
+     "Customer Reviews and Market Position": [
+      "Genomics Services average rating 4.80/5 from 15,498 reviews.",
+      "Star rating distribution (count of reviews): 5 stars 23978, 4 stars 6885, 3 stars 3461, 2 stars 1202, 1 stars 800",
+      "Category market share 30.3%; rank #4 of 14 vendors; repeat purchase rate 32.6%.",
+      "Feature scores (0-10): Performance 6.7, Design 5.9, Reliability 7.6, Value 7.4, Support 6.7, Integration 6.0"
+     ]
+    }
+   },
+   "Revenue by Region FY2025": [
+    "FY2025 Healthcare Technology revenue by region ($M): North America 3,508.5, Europe 2,094.0, Asia-Pacific 1,329.6, Latin America 310.2, Middle East & Africa 258.6"
+   ],
+   "Sales Funnel FY2025": [
+    "Stages (top to bottom) with counts: Website visitors 1,000,000, Qualified leads 215,756, Product demos / trials 84,873, Proposals / carts 34,723, Closed deals / purchases 11,597",
+    "Overall conversion 1.16%; average deal size $646,797."
+   ],
+   "Competitive Benchmark Scores": [
+    "Analyst benchmark scores (0-10) on six criteria: Performance, Price value, Reliability, Innovation, Support, Ecosystem.",
+    "Helios: Performance 6.1, Price value 8.1, Reliability 7.2, Innovation 6.7, Support 7.6, Ecosystem 5.5",
+    "Competitor A: Performance 6.2, Price value 7.7, Reliability 7.9, Innovation 7.4, Support 6.0, Ecosystem 6.1",
+    "Competitor B: Performance 5.4, Price value 6.1, Reliability 5.7, Innovation 6.5, Support 6.8, Ecosystem 6.3",
+    "Competitor C: Performance 6.2, Price value 5.8, Reliability 7.1, Innovation 6.3, Support 7.2, Ecosystem 6.8",
+    "Market share FY2025 (%): Helios 25.5, Competitor A 19.0, Competitor B 18.0, Competitor C 11.0, others 26.5."
+   ],
+   "Quality Issues and Defects FY2025": [
+    "Customer-reported issues by root cause (count): Calibration drift 896, Software bugs 690, Sensor failures 449, Data sync errors 350, User errors 350, Power faults 94",
+    "Defect rate (ppm): FY2019 480 | FY2020 736 | FY2021 569 | FY2022 640 | FY2023 727 | FY2024 262 | FY2025 541"
+   ],
+   "2025-2026 Flagship Project Roadmap": [
+    "Flagship program: Diagnostic Imaging next generation.",
+    "Discovery & research: start 2025-02-02, end 2025-02-28, team Product",
+    "Design: start 2025-02-19, end 2025-03-19, team Design",
+    "Prototype: start 2025-03-05, end 2025-05-13, team Engineering",
+    "Engineering build: start 2025-05-10, end 2025-06-17, team Engineering",
+    "Pilot with customers: start 2025-06-12, end 2025-08-15, team Sales",
+    "Certification: start 2025-08-12, end 2025-09-19, team Compliance",
+    "Launch: start 2025-09-16, end 2025-10-26, team Marketing",
+    "Scale-up: start 2025-10-19, end 2025-11-13, team Operations"
+   ],
+   "Customer Satisfaction": [
+    "Net Promoter Score: FY2019 34 | FY2020 32 | FY2021 27 | FY2022 36 | FY2023 26 | FY2024 32 | FY2025 44",
+    "CSAT (%): FY2019 81.5 | FY2020 84.5 | FY2021 85.3 | FY2022 84.2 | FY2023 83.2 | FY2024 83.6 | FY2025 83.7",
+    "Survey sample of 60 satisfaction scores (0-100) FY2025: 99, 98, 55, 84, 100, 57, 79, 77, 73, 68, 80, 89, 100, 78, 79, 59, 65, 80, 90, 67, 77, 82, 92, 75, 93, 91, 64, 80, 66, 80, 90, 55, 72, 74, 74, 74, 70, 78, 78, 100, 100, 89, 100, 68, 77, 96, 100, 78, 58, 83, 85, 94, 68, 100, 91, 87, 90, 82, 87, 87",
+    "Churn rate by quarter FY2025 (%): Q1 2.62, Q2 3.24, Q3 3.40, Q4 1.98"
+   ]
+  },
+  "Mobility & Logistics": {
+   "Segment Overview": [
+    "Mobility & Logistics is one of five Helios segments; FY2025 revenue $7,073.3M (12.2% of group), operating margin 10%, 6-year revenue CAGR 5.3%.",
+    "Product lines: Fleet Telematics, Autonomous Freight, Last-Mile Delivery, Warehouse Robotics, Mobility Apps.",
+    "Segment headcount FY2025: 19,182."
+   ],
+   "Segment Financials FY2019-FY2025": [
+    "Revenue ($M): FY2019 5,175.7 | FY2020 4,429.9 | FY2021 5,149.8 | FY2022 5,739.7 | FY2023 6,089.0 | FY2024 6,502.3 | FY2025 7,073.3",
+    "Operating margin (%): FY2019 8.0 | FY2020 3.0 | FY2021 7.0 | FY2022 8.5 | FY2023 9.0 | FY2024 9.5 | FY2025 10.0",
+    "Operating income ($M): FY2019 414.1 | FY2020 132.9 | FY2021 360.5 | FY2022 487.9 | FY2023 548.0 | FY2024 617.7 | FY2025 707.3",
+    "Revenue growth (%): FY2020 -14.4 | FY2021 16.3 | FY2022 11.5 | FY2023 6.1 | FY2024 6.8 | FY2025 8.8",
+    "Capex ($M): FY2019 258.8 | FY2020 221.5 | FY2021 257.5 | FY2022 287.0 | FY2023 304.4 | FY2024 325.1 | FY2025 353.7",
+    "R&D spend ($M): FY2019 310.5 | FY2020 265.8 | FY2021 309.0 | FY2022 344.4 | FY2023 365.3 | FY2024 390.1 | FY2025 424.4"
+   ],
+   "Quarterly Revenue FY2023-FY2025": [
+    "FY2023 quarterly revenue ($M): Q1 1,421.1 | Q2 1,568.2 | Q3 1,506.0 | Q4 1,593.7",
+    "FY2024 quarterly revenue ($M): Q1 1,534.2 | Q2 1,616.4 | Q3 1,609.3 | Q4 1,742.4",
+    "FY2025 quarterly revenue ($M): Q1 1,630.9 | Q2 1,779.8 | Q3 1,713.8 | Q4 1,948.8"
+   ],
+   "Product Lines": {
+    "Fleet Telematics": {
+     "Financial History": [
+      "Fleet Telematics revenue ($M): FY2019 1,607.2 | FY2020 1,257.8 | FY2021 1,498.1 | FY2022 1,676.4 | FY2023 1,819.6 | FY2024 1,818.7 | FY2025 2,199.3",
+      "Fleet Telematics units / contracts sold: FY2019 5,372 | FY2020 4,063 | FY2021 6,510 | FY2022 7,072 | FY2023 6,145 | FY2024 7,569 | FY2025 4,841",
+      "Fleet Telematics gross margin (%): FY2019 23.2 | FY2020 28.4 | FY2021 22.7 | FY2022 28.8 | FY2023 21.7 | FY2024 30.1 | FY2025 22.5",
+      "Fleet Telematics average selling price ($): FY2019 299,174 | FY2020 309,582 | FY2021 230,119 | FY2022 237,046 | FY2023 296,109 | FY2024 240,286 | FY2025 454,308"
+     ],
+     "Monthly Sales FY2025": [
+      "Fleet Telematics monthly revenue FY2025 ($M): Jan 236.8 | Feb 208.9 | Mar 195.2 | Apr 166.9 | May 149.0 | Jun 130.6 | Jul 142.9 | Aug 168.2 | Sep 194.0 | Oct 198.7 | Nov 211.6 | Dec 226.2",
+      "Fleet Telematics monthly units FY2025: Jan 521 | Feb 460 | Mar 430 | Apr 367 | May 328 | Jun 288 | Jul 314 | Aug 370 | Sep 427 | Oct 437 | Nov 466 | Dec 498"
+     ],
+     "Variants and Pricing": [
+      "Fleet Telematics FY2025 revenue by variant ($M): SMB fleets 662.3, Enterprise fleets 700.5, Public sector 542.3, Marketplace 294.2",
+      "List price index by variant (Starter=100): SMB fleets 100, Enterprise fleets 152, Public sector 200, Marketplace 259",
+      "Price index vs. market average: 1.12; discount rate 8.3%."
+     ],
+     "Customer Reviews and Market Position": [
+      "Fleet Telematics average rating 4.38/5 from 86,296 reviews.",
+      "Star rating distribution (count of reviews): 5 stars 20777, 4 stars 13687, 3 stars 2766, 2 stars 731, 1 stars 439",
+      "Category market share 14.3%; rank #4 of 20 vendors; repeat purchase rate 59.9%.",
+      "Feature scores (0-10): Performance 6.7, Design 8.2, Reliability 8.6, Value 9.2, Support 7.9, Integration 9.2"
+     ]
+    },
+    "Autonomous Freight": {
+     "Financial History": [
+      "Autonomous Freight revenue ($M): FY2019 844.8 | FY2020 718.0 | FY2021 887.6 | FY2022 957.4 | FY2023 1,035.9 | FY2024 1,166.7 | FY2025 1,143.6",
+      "Autonomous Freight units / contracts sold: FY2019 2,202 | FY2020 1,638 | FY2021 3,672 | FY2022 2,910 | FY2023 3,625 | FY2024 4,479 | FY2025 3,278",
+      "Autonomous Freight gross margin (%): FY2019 28.1 | FY2020 30.8 | FY2021 23.0 | FY2022 29.8 | FY2023 27.8 | FY2024 27.2 | FY2025 27.9",
+      "Autonomous Freight average selling price ($): FY2019 383,663 | FY2020 438,343 | FY2021 241,734 | FY2022 328,999 | FY2023 285,767 | FY2024 260,472 | FY2025 348,869"
+     ],
+     "Monthly Sales FY2025": [
+      "Autonomous Freight monthly revenue FY2025 ($M): Jan 123.4 | Feb 110.4 | Mar 91.1 | Apr 89.6 | May 71.5 | Jun 69.4 | Jul 78.5 | Aug 89.7 | Sep 94.8 | Oct 113.4 | Nov 119.5 | Dec 122.8",
+      "Autonomous Freight monthly units FY2025: Jan 354 | Feb 316 | Mar 261 | Apr 257 | May 205 | Jun 199 | Jul 225 | Aug 257 | Sep 272 | Oct 325 | Nov 343 | Dec 352"
+     ],
+     "Variants and Pricing": [
+      "Autonomous Freight FY2025 revenue by variant ($M): SMB fleets 438.9, Enterprise fleets 342.7, Public sector 266.5, Marketplace 95.5",
+      "List price index by variant (Starter=100): SMB fleets 100, Enterprise fleets 162, Public sector 246, Marketplace 235",
+      "Price index vs. market average: 1.10; discount rate 5.7%."
+     ],
+     "Customer Reviews and Market Position": [
+      "Autonomous Freight average rating 4.32/5 from 66,560 reviews.",
+      "Star rating distribution (count of reviews): 5 stars 19933, 4 stars 12274, 3 stars 2847, 2 stars 1202, 1 stars 957",
+      "Category market share 12.3%; rank #3 of 23 vendors; repeat purchase rate 29.9%.",
+      "Feature scores (0-10): Performance 6.9, Design 6.0, Reliability 8.9, Value 6.2, Support 8.3, Integration 6.4"
+     ]
+    },
+    "Last-Mile Delivery": {
+     "Financial History": [
+      "Last-Mile Delivery revenue ($M): FY2019 1,289.7 | FY2020 1,098.7 | FY2021 1,329.1 | FY2022 1,515.3 | FY2023 1,536.3 | FY2024 1,768.4 | FY2025 1,862.6",
+      "Last-Mile Delivery units / contracts sold: FY2019 2,891 | FY2020 3,217 | FY2021 4,869 | FY2022 4,901 | FY2023 6,449 | FY2024 3,452 | FY2025 8,069",
+      "Last-Mile Delivery gross margin (%): FY2019 27.9 | FY2020 30.3 | FY2021 34.9 | FY2022 27.2 | FY2023 29.9 | FY2024 32.6 | FY2025 32.7",
+      "Last-Mile Delivery average selling price ($): FY2019 446,126 | FY2020 341,533 | FY2021 272,975 | FY2022 309,178 | FY2023 238,223 | FY2024 512,284 | FY2025 230,837"
+     ],
+     "Monthly Sales FY2025": [
+      "Last-Mile Delivery monthly revenue FY2025 ($M): Jan 176.1 | Feb 183.1 | Mar 147.1 | Apr 130.3 | May 129.9 | Jun 115.0 | Jul 119.2 | Aug 131.4 | Sep 168.2 | Oct 174.2 | Nov 190.8 | Dec 180.3",
+      "Last-Mile Delivery monthly units FY2025: Jan 763 | Feb 793 | Mar 637 | Apr 565 | May 563 | Jun 498 | Jul 516 | Aug 569 | Sep 729 | Oct 755 | Nov 827 | Dec 781"
+     ],
+     "Variants and Pricing": [
+      "Last-Mile Delivery FY2025 revenue by variant ($M): SMB fleets 540.5, Enterprise fleets 706.3, Public sector 400.1, Marketplace 215.7",
+      "List price index by variant (Starter=100): SMB fleets 100, Enterprise fleets 151, Public sector 176, Marketplace 277",
+      "Price index vs. market average: 1.30; discount rate 6.1%."
+     ],
+     "Customer Reviews and Market Position": [
+      "Last-Mile Delivery average rating 4.72/5 from 5,157 reviews.",
+      "Star rating distribution (count of reviews): 5 stars 16238, 4 stars 8034, 3 stars 4138, 2 stars 1044, 1 stars 835",
+      "Category market share 30.4%; rank #4 of 24 vendors; repeat purchase rate 30.8%.",
+      "Feature scores (0-10): Performance 5.9, Design 6.4, Reliability 6.1, Value 7.9, Support 6.0, Integration 7.3"
+     ]
+    },
+    "Warehouse Robotics": {
+     "Financial History": [
+      "Warehouse Robotics revenue ($M): FY2019 869.1 | FY2020 759.9 | FY2021 1,010.9 | FY2022 966.9 | FY2023 1,052.1 | FY2024 1,242.8 | FY2025 1,274.5",
+      "Warehouse Robotics units / contracts sold: FY2019 3,546 | FY2020 1,398 | FY2021 3,422 | FY2022 2,658 | FY2023 4,011 | FY2024 4,356 | FY2025 4,232",
+      "Warehouse Robotics gross margin (%): FY2019 35.4 | FY2020 34.3 | FY2021 37.1 | FY2022 37.7 | FY2023 36.5 | FY2024 38.2 | FY2025 39.6",
+      "Warehouse Robotics average selling price ($): FY2019 245,094 | FY2020 543,527 | FY2021 295,422 | FY2022 363,782 | FY2023 262,295 | FY2024 285,309 | FY2025 301,148"
+     ],
+     "Monthly Sales FY2025": [
+      "Warehouse Robotics monthly revenue FY2025 ($M): Jan 128.5 | Feb 123.4 | Mar 104.9 | Apr 90.1 | May 77.0 | Jun 75.3 | Jul 87.6 | Aug 97.8 | Sep 115.4 | Oct 119.6 | Nov 135.3 | Dec 129.3",
+      "Warehouse Robotics monthly units FY2025: Jan 427 | Feb 410 | Mar 348 | Apr 299 | May 256 | Jun 250 | Jul 291 | Aug 325 | Sep 383 | Oct 397 | Nov 449 | Dec 430"
+     ],
+     "Variants and Pricing": [
+      "Warehouse Robotics FY2025 revenue by variant ($M): SMB fleets 466.3, Enterprise fleets 359.9, Public sector 299.0, Marketplace 149.3",
+      "List price index by variant (Starter=100): SMB fleets 100, Enterprise fleets 176, Public sector 174, Marketplace 331",
+      "Price index vs. market average: 1.08; discount rate 6.3%."
+     ],
+     "Customer Reviews and Market Position": [
+      "Warehouse Robotics average rating 4.60/5 from 35,630 reviews.",
+      "Star rating distribution (count of reviews): 5 stars 18546, 4 stars 9122, 3 stars 4600, 2 stars 776, 1 stars 590",
+      "Category market share 28.9%; rank #2 of 12 vendors; repeat purchase rate 66.8%.",
+      "Feature scores (0-10): Performance 7.4, Design 6.4, Reliability 8.7, Value 6.4, Support 6.3, Integration 8.7"
+     ]
+    },
+    "Mobility Apps": {
+     "Financial History": [
+      "Mobility Apps revenue ($M): FY2019 484.6 | FY2020 482.0 | FY2021 537.7 | FY2022 610.1 | FY2023 667.6 | FY2024 699.9 | FY2025 717.0",
+      "Mobility Apps units / contracts sold: FY2019 1,504 | FY2020 1,910 | FY2021 1,949 | FY2022 1,423 | FY2023 2,899 | FY2024 2,182 | FY2025 1,533",
+      "Mobility Apps gross margin (%): FY2019 32.1 | FY2020 40.3 | FY2021 31.7 | FY2022 39.2 | FY2023 40.4 | FY2024 37.4 | FY2025 36.1",
+      "Mobility Apps average selling price ($): FY2019 322,227 | FY2020 252,368 | FY2021 275,906 | FY2022 428,775 | FY2023 230,289 | FY2024 320,740 | FY2025 467,707"
+     ],
+     "Monthly Sales FY2025": [
+      "Mobility Apps monthly revenue FY2025 ($M): Jan 72.4 | Feb 70.4 | Mar 59.4 | Apr 53.6 | May 47.7 | Jun 44.1 | Jul 44.8 | Aug 55.3 | Sep 56.8 | Oct 63.3 | Nov 74.0 | Dec 73.6",
+      "Mobility Apps monthly units FY2025: Jan 155 | Feb 150 | Mar 127 | Apr 115 | May 102 | Jun 94 | Jul 96 | Aug 118 | Sep 121 | Oct 135 | Nov 158 | Dec 157"
+     ],
+     "Variants and Pricing": [
+      "Mobility Apps FY2025 revenue by variant ($M): SMB fleets 195.0, Enterprise fleets 234.5, Public sector 219.1, Marketplace 68.4",
+      "List price index by variant (Starter=100): SMB fleets 100, Enterprise fleets 149, Public sector 186, Marketplace 328",
+      "Price index vs. market average: 1.31; discount rate 6.9%."
+     ],
+     "Customer Reviews and Market Position": [
+      "Mobility Apps average rating 4.22/5 from 24,020 reviews.",
+      "Star rating distribution (count of reviews): 5 stars 12488, 4 stars 6203, 3 stars 3902, 2 stars 985, 1 stars 714",
+      "Category market share 23.9%; rank #3 of 23 vendors; repeat purchase rate 41.2%.",
+      "Feature scores (0-10): Performance 8.7, Design 9.3, Reliability 8.9, Value 6.8, Support 7.0, Integration 7.0"
+     ]
+    }
+   },
+   "Revenue by Region FY2025": [
+    "FY2025 Mobility & Logistics revenue by region ($M): North America 2,662.6, Europe 1,891.8, Asia-Pacific 1,765.7, Latin America 420.4, Middle East & Africa 332.8"
+   ],
+   "Sales Funnel FY2025": [
+    "Stages (top to bottom) with counts: Website visitors 1,000,000, Qualified leads 189,098, Product demos / trials 66,316, Proposals / carts 27,630, Closed deals / purchases 8,506",
+    "Overall conversion 0.85%; average deal size $831,566."
+   ],
+   "Competitive Benchmark Scores": [
+    "Analyst benchmark scores (0-10) on six criteria: Performance, Price value, Reliability, Innovation, Support, Ecosystem.",
+    "Helios: Performance 7.7, Price value 8.4, Reliability 6.3, Innovation 9.3, Support 7.8, Ecosystem 4.7",
+    "Competitor A: Performance 7.9, Price value 4.2, Reliability 6.1, Innovation 6.4, Support 6.3, Ecosystem 5.8",
+    "Competitor B: Performance 6.3, Price value 7.5, Reliability 6.2, Innovation 6.8, Support 6.9, Ecosystem 6.2",
+    "Competitor C: Performance 6.1, Price value 7.1, Reliability 6.1, Innovation 6.0, Support 6.9, Ecosystem 7.3",
+    "Market share FY2025 (%): Helios 28.0, Competitor A 18.0, Competitor B 19.0, Competitor C 11.0, others 24.0."
+   ],
+   "Quality Issues and Defects FY2025": [
+    "Customer-reported issues by root cause (count): GPS dropouts 899, Late deliveries 332, Vehicle breakdowns 312, Routing errors 215, Damaged parcels 204, Driver shortages 142",
+    "Defect rate (ppm): FY2019 845 | FY2020 759 | FY2021 510 | FY2022 535 | FY2023 700 | FY2024 663 | FY2025 347"
+   ],
+   "2025-2026 Flagship Project Roadmap": [
+    "Flagship program: Fleet Telematics next generation.",
+    "Discovery & research: start 2025-02-11, end 2025-04-18, team Product",
+    "Design: start 2025-04-13, end 2025-06-16, team Design",
+    "Prototype: start 2025-06-11, end 2025-07-28, team Engineering",
+    "Engineering build: start 2025-07-24, end 2025-09-15, team Engineering",
+    "Pilot with customers: start 2025-09-11, end 2025-10-18, team Sales",
+    "Certification: start 2025-10-13, end 2025-11-02, team Compliance",
+    "Launch: start 2025-10-21, end 2025-11-16, team Marketing",
+    "Scale-up: start 2025-11-06, end 2026-01-05, team Operations"
+   ],
+   "Customer Satisfaction": [
+    "Net Promoter Score: FY2019 20 | FY2020 31 | FY2021 37 | FY2022 26 | FY2023 27 | FY2024 40 | FY2025 37",
+    "CSAT (%): FY2019 79.8 | FY2020 78.9 | FY2021 84.3 | FY2022 82.5 | FY2023 85.4 | FY2024 87.6 | FY2025 86.2",
+    "Survey sample of 60 satisfaction scores (0-100) FY2025: 100, 78, 85, 87, 79, 55, 85, 95, 89, 79, 81, 98, 72, 81, 90, 87, 62, 100, 89, 69, 86, 60, 100, 64, 83, 86, 75, 72, 71, 86, 70, 84, 93, 100, 78, 84, 84, 100, 81, 78, 94, 84, 76, 100, 79, 73, 74, 98, 81, 78, 92, 87, 85, 82, 84, 84, 100, 76, 83, 100",
+    "Churn rate by quarter FY2025 (%): Q1 2.04, Q2 2.57, Q3 2.91, Q4 3.19"
+   ]
+  }
+ },
+ "Regions and Markets": {
+  "North America": {
+   "Regional Summary": [
+    "North America FY2025 revenue $21,022.7M (36.4% of group).",
+    "Revenue ($M): FY2019 10,799.4 | FY2020 11,688.4 | FY2021 13,211.1 | FY2022 14,470.3 | FY2023 16,055.9 | FY2024 18,209.4 | FY2025 21,022.7",
+    "FY2025 revenue by country ($M): United States 17,238.6, Canada 2,522.7, Mexico 1,261.4",
+    "Regional headquarters: Austin."
+   ],
+   "Countries": {
+    "United States": {
+     "Country Summary": [
+      "United States FY2025 revenue $17,238.6M (82.0% of North America); YoY growth 2.1%.",
+      "Employees 26,858; offices 25; retail/partner locations 907; active customers 111,512.",
+      "Revenue trend ($M): FY2019 9,491.3 | FY2020 11,150.7 | FY2021 12,608.9 | FY2022 13,935.6 | FY2023 13,994.7 | FY2024 16,060.7 | FY2025 16,711.7",
+      "Market share in core categories 18.7%; brand awareness 76%; NPS 16."
+     ],
+     "Revenue by Segment FY2025": [
+      "United States FY2025 revenue by segment ($M): Cloud & AI Services 8,109.6, Consumer Devices 2,822.4, Renewable Energy 2,353.4, Healthcare Technology 1,442.1, Mobility & Logistics 2,511.1"
+     ],
+     "Cities and Offices": [
+      "United States FY2025 revenue by city ($M): Austin 4,706.5, San Jose 3,615.1, Seattle 3,045.0, New York 2,749.0, Chicago 2,037.3, Atlanta 1,085.7",
+      "United States employees by city: Austin 8,072, San Jose 6,322, Seattle 4,399, New York 3,899, Chicago 2,916, Atlanta 1,250"
+     ],
+     "Sales Channels and Customers": [
+      "United States revenue by channel FY2025 (%): Direct sales 44, Online store 20, Partners & resellers 21, Marketplaces 12.",
+      "United States customers by type (%): Enterprise 14, Mid-market 25, Small business 16, Public sector 6, Consumers 32.",
+      "United States quarterly new customers FY2025: Q1 8,926, Q2 10,832, Q3 8,752, Q4 7,548"
+     ]
+    },
+    "Canada": {
+     "Country Summary": [
+      "Canada FY2025 revenue $2,522.7M (12.0% of North America); YoY growth 16.1%.",
+      "Employees 3,825; offices 40; retail/partner locations 134; active customers 81,378.",
+      "Revenue trend ($M): FY2019 1,390.3 | FY2020 1,578.6 | FY2021 1,781.9 | FY2022 1,943.1 | FY2023 2,107.6 | FY2024 2,319.2 | FY2025 2,425.1",
+      "Market share in core categories 9.2%; brand awareness 48%; NPS 43."
+     ],
+     "Revenue by Segment FY2025": [
+      "Canada FY2025 revenue by segment ($M): Cloud & AI Services 1,163.9, Consumer Devices 392.4, Renewable Energy 296.3, Healthcare Technology 322.0, Mobility & Logistics 348.1"
+     ],
+     "Cities and Offices": [
+      "Canada FY2025 revenue by city ($M): Toronto 1,289.0, Vancouver 818.4, Montreal 415.3",
+      "Canada employees by city: Toronto 1,731, Vancouver 1,527, Montreal 567"
+     ],
+     "Sales Channels and Customers": [
+      "Canada revenue by channel FY2025 (%): Direct sales 46, Online store 18, Partners & resellers 28, Marketplaces 10.",
+      "Canada customers by type (%): Enterprise 15, Mid-market 25, Small business 24, Public sector 5, Consumers 21.",
+      "Canada quarterly new customers FY2025: Q1 4,023, Q2 12,165, Q3 7,884, Q4 2,970"
+     ]
+    },
+    "Mexico": {
+     "Country Summary": [
+      "Mexico FY2025 revenue $1,261.4M (6.0% of North America); YoY growth 15.8%.",
+      "Employees 1,929; offices 10; retail/partner locations 484; active customers 92,633.",
+      "Revenue trend ($M): FY2019 682.3 | FY2020 769.9 | FY2021 925.5 | FY2022 987.9 | FY2023 1,094.4 | FY2024 1,114.7 | FY2025 1,297.9",
+      "Market share in core categories 23.8%; brand awareness 46%; NPS 39."
+     ],
+     "Revenue by Segment FY2025": [
+      "Mexico FY2025 revenue by segment ($M): Cloud & AI Services 528.0, Consumer Devices 176.5, Renewable Energy 231.6, Healthcare Technology 187.6, Mobility & Logistics 137.7"
+     ],
+     "Cities and Offices": [
+      "Mexico FY2025 revenue by city ($M): Monterrey 643.3, Mexico City 425.4, Guadalajara 192.7",
+      "Mexico employees by city: Monterrey 1,089, Mexico City 571, Guadalajara 269"
+     ],
+     "Sales Channels and Customers": [
+      "Mexico revenue by channel FY2025 (%): Direct sales 40, Online store 12, Partners & resellers 17, Marketplaces 8.",
+      "Mexico customers by type (%): Enterprise 19, Mid-market 28, Small business 15, Public sector 6, Consumers 29.",
+      "Mexico quarterly new customers FY2025: Q1 8,439, Q2 1,175, Q3 8,478, Q4 9,567"
+     ]
+    }
+   }
+  },
+  "Europe": {
+   "Regional Summary": [
+    "Europe FY2025 revenue $15,304.5M (26.5% of group).",
+    "Revenue ($M): FY2019 7,673.3 | FY2020 8,338.3 | FY2021 9,462.5 | FY2022 10,406.4 | FY2023 11,593.6 | FY2024 13,202.3 | FY2025 15,304.5",
+    "FY2025 revenue by country ($M): Germany 3,673.1, United Kingdom 3,213.9, France 2,601.8, Netherlands 1,530.5, Spain 1,377.4, Italy 1,530.5, Nordics 1,377.3",
+    "Regional headquarters: Munich."
+   ],
+   "Countries": {
+    "Germany": {
+     "Country Summary": [
+      "Germany FY2025 revenue $3,673.1M (24.0% of Europe); YoY growth 2.8%.",
+      "Employees 6,122; offices 5; retail/partner locations 1128; active customers 58,462.",
+      "Revenue trend ($M): FY2019 2,039.3 | FY2020 2,346.5 | FY2021 2,589.5 | FY2022 2,962.9 | FY2023 3,071.9 | FY2024 3,289.2 | FY2025 3,855.6",
+      "Market share in core categories 6.8%; brand awareness 42%; NPS 31."
+     ],
+     "Revenue by Segment FY2025": [
+      "Germany FY2025 revenue by segment ($M): Cloud & AI Services 1,539.8, Consumer Devices 794.3, Renewable Energy 417.0, Healthcare Technology 559.8, Mobility & Logistics 362.2"
+     ],
+     "Cities and Offices": [
+      "Germany FY2025 revenue by city ($M): Munich 1,661.0, Berlin 943.7, Dresden 774.2, Hamburg 294.2",
+      "Germany employees by city: Munich 2,793, Berlin 1,893, Dresden 952, Hamburg 484"
+     ],
+     "Sales Channels and Customers": [
+      "Germany revenue by channel FY2025 (%): Direct sales 47, Online store 16, Partners & resellers 24, Marketplaces 8.",
+      "Germany customers by type (%): Enterprise 17, Mid-market 19, Small business 17, Public sector 14, Consumers 22.",
+      "Germany quarterly new customers FY2025: Q1 12,383, Q2 5,317, Q3 13,558, Q4 9,962"
+     ]
+    },
+    "United Kingdom": {
+     "Country Summary": [
+      "United Kingdom FY2025 revenue $3,213.9M (21.0% of Europe); YoY growth -0.6%.",
+      "Employees 4,383; offices 36; retail/partner locations 920; active customers 151,794.",
+      "Revenue trend ($M): FY2019 1,796.2 | FY2020 2,033.4 | FY2021 2,293.1 | FY2022 2,563.3 | FY2023 2,612.5 | FY2024 2,913.0 | FY2025 3,118.1",
+      "Market share in core categories 19.1%; brand awareness 55%; NPS 50."
+     ],
+     "Revenue by Segment FY2025": [
+      "United Kingdom FY2025 revenue by segment ($M): Cloud & AI Services 1,522.0, Consumer Devices 514.3, Renewable Energy 533.9, Healthcare Technology 342.2, Mobility & Logistics 301.5"
+     ],
+     "Cities and Offices": [
+      "United Kingdom FY2025 revenue by city ($M): London 1,638.8, Manchester 1,080.4, Edinburgh 494.7",
+      "United Kingdom employees by city: London 2,438, Manchester 1,186, Edinburgh 759"
+     ],
+     "Sales Channels and Customers": [
+      "United Kingdom revenue by channel FY2025 (%): Direct sales 45, Online store 16, Partners & resellers 17, Marketplaces 10.",
+      "United Kingdom customers by type (%): Enterprise 13, Mid-market 29, Small business 23, Public sector 14, Consumers 19.",
+      "United Kingdom quarterly new customers FY2025: Q1 8,745, Q2 2,378, Q3 11,999, Q4 12,659"
+     ]
+    },
+    "France": {
+     "Country Summary": [
+      "France FY2025 revenue $2,601.8M (17.0% of Europe); YoY growth 1.8%.",
+      "Employees 3,338; offices 21; retail/partner locations 474; active customers 136,492.",
+      "Revenue trend ($M): FY2019 1,368.8 | FY2020 1,579.1 | FY2021 1,890.2 | FY2022 2,093.0 | FY2023 2,169.3 | FY2024 2,435.8 | FY2025 2,641.7",
+      "Market share in core categories 8.5%; brand awareness 87%; NPS 34."
+     ],
+     "Revenue by Segment FY2025": [
+      "France FY2025 revenue by segment ($M): Cloud & AI Services 975.8, Consumer Devices 536.8, Renewable Energy 316.2, Healthcare Technology 338.4, Mobility & Logistics 434.6"
+     ],
+     "Cities and Offices": [
+      "France FY2025 revenue by city ($M): Paris 1,212.2, Lyon 1,002.5, Toulouse 387.1",
+      "France employees by city: Paris 1,390, Lyon 1,423, Toulouse 525"
+     ],
+     "Sales Channels and Customers": [
+      "France revenue by channel FY2025 (%): Direct sales 39, Online store 24, Partners & resellers 16, Marketplaces 6.",
+      "France customers by type (%): Enterprise 10, Mid-market 25, Small business 17, Public sector 11, Consumers 27.",
+      "France quarterly new customers FY2025: Q1 9,511, Q2 8,789, Q3 6,282, Q4 10,942"
+     ]
+    },
+    "Netherlands": {
+     "Country Summary": [
+      "Netherlands FY2025 revenue $1,530.5M (10.0% of Europe); YoY growth 18.8%.",
+      "Employees 2,204; offices 40; retail/partner locations 399; active customers 128,548.",
+      "Revenue trend ($M): FY2019 840.8 | FY2020 986.4 | FY2021 1,087.6 | FY2022 1,138.0 | FY2023 1,352.1 | FY2024 1,450.1 | FY2025 1,511.5",
+      "Market share in core categories 18.4%; brand awareness 78%; NPS 50."
+     ],
+     "Revenue by Segment FY2025": [
+      "Netherlands FY2025 revenue by segment ($M): Cloud & AI Services 628.5, Consumer Devices 281.1, Renewable Energy 232.8, Healthcare Technology 184.8, Mobility & Logistics 203.3"
+     ],
+     "Cities and Offices": [
+      "Netherlands FY2025 revenue by city ($M): Amsterdam 841.8, Rotterdam 450.2, Eindhoven 238.5",
+      "Netherlands employees by city: Amsterdam 1,176, Rotterdam 629, Eindhoven 399"
+     ],
+     "Sales Channels and Customers": [
+      "Netherlands revenue by channel FY2025 (%): Direct sales 34, Online store 13, Partners & resellers 24, Marketplaces 11.",
+      "Netherlands customers by type (%): Enterprise 24, Mid-market 18, Small business 20, Public sector 10, Consumers 32.",
+      "Netherlands quarterly new customers FY2025: Q1 2,891, Q2 12,105, Q3 7,966, Q4 10,869"
+     ]
+    },
+    "Spain": {
+     "Country Summary": [
+      "Spain FY2025 revenue $1,377.4M (9.0% of Europe); YoY growth 18.3%.",
+      "Employees 1,979; offices 7; retail/partner locations 36; active customers 13,529.",
+      "Revenue trend ($M): FY2019 736.5 | FY2020 837.0 | FY2021 925.9 | FY2022 1,033.3 | FY2023 1,175.8 | FY2024 1,322.3 | FY2025 1,428.9",
+      "Market share in core categories 8.1%; brand awareness 76%; NPS 37."
+     ],
+     "Revenue by Segment FY2025": [
+      "Spain FY2025 revenue by segment ($M): Cloud & AI Services 470.4, Consumer Devices 369.6, Renewable Energy 208.4, Healthcare Technology 142.3, Mobility & Logistics 186.7"
+     ],
+     "Cities and Offices": [
+      "Spain FY2025 revenue by city ($M): Madrid 662.1, Barcelona 458.8, Valencia 256.5",
+      "Spain employees by city: Madrid 1,018, Barcelona 548, Valencia 413"
+     ],
+     "Sales Channels and Customers": [
+      "Spain revenue by channel FY2025 (%): Direct sales 31, Online store 21, Partners & resellers 25, Marketplaces 9.",
+      "Spain customers by type (%): Enterprise 18, Mid-market 28, Small business 19, Public sector 9, Consumers 17.",
+      "Spain quarterly new customers FY2025: Q1 960, Q2 9,145, Q3 9,715, Q4 8,930"
+     ]
+    },
+    "Italy": {
+     "Country Summary": [
+      "Italy FY2025 revenue $1,530.5M (10.0% of Europe); YoY growth 7.2%.",
+      "Employees 2,083; offices 37; retail/partner locations 959; active customers 132,252.",
+      "Revenue trend ($M): FY2019 863.9 | FY2020 910.7 | FY2021 1,100.6 | FY2022 1,204.9 | FY2023 1,341.7 | FY2024 1,481.9 | FY2025 1,455.8",
+      "Market share in core categories 15.7%; brand awareness 44%; NPS 46."
+     ],
+     "Revenue by Segment FY2025": [
+      "Italy FY2025 revenue by segment ($M): Cloud & AI Services 563.5, Consumer Devices 347.1, Renewable Energy 183.9, Healthcare Technology 211.2, Mobility & Logistics 224.8"
+     ],
+     "Cities and Offices": [
+      "Italy FY2025 revenue by city ($M): Milan 880.1, Rome 406.4, Turin 244.0",
+      "Italy employees by city: Milan 981, Rome 798, Turin 304"
+     ],
+     "Sales Channels and Customers": [
+      "Italy revenue by channel FY2025 (%): Direct sales 33, Online store 23, Partners & resellers 17, Marketplaces 6.",
+      "Italy customers by type (%): Enterprise 16, Mid-market 24, Small business 19, Public sector 12, Consumers 15.",
+      "Italy quarterly new customers FY2025: Q1 11,289, Q2 5,060, Q3 11,814, Q4 12,281"
+     ]
+    },
+    "Nordics": {
+     "Country Summary": [
+      "Nordics FY2025 revenue $1,377.3M (9.0% of Europe); YoY growth 5.1%.",
+      "Employees 1,786; offices 30; retail/partner locations 1390; active customers 109,373.",
+      "Revenue trend ($M): FY2019 753.4 | FY2020 901.2 | FY2021 979.0 | FY2022 1,071.6 | FY2023 1,121.9 | FY2024 1,331.1 | FY2025 1,436.7",
+      "Market share in core categories 18.2%; brand awareness 48%; NPS 57."
+     ],
+     "Revenue by Segment FY2025": [
+      "Nordics FY2025 revenue by segment ($M): Cloud & AI Services 572.1, Consumer Devices 226.7, Renewable Energy 145.0, Healthcare Technology 228.5, Mobility & Logistics 205.0"
+     ],
+     "Cities and Offices": [
+      "Nordics FY2025 revenue by city ($M): Stockholm 615.0, Copenhagen 361.1, Oslo 259.3, Helsinki 141.9",
+      "Nordics employees by city: Stockholm 757, Copenhagen 566, Oslo 283, Helsinki 180"
+     ],
+     "Sales Channels and Customers": [
+      "Nordics revenue by channel FY2025 (%): Direct sales 45, Online store 15, Partners & resellers 25, Marketplaces 10.",
+      "Nordics customers by type (%): Enterprise 25, Mid-market 24, Small business 22, Public sector 12, Consumers 34.",
+      "Nordics quarterly new customers FY2025: Q1 13,731, Q2 3,160, Q3 1,859, Q4 12,952"
+     ]
+    }
+   }
+  },
+  "Asia-Pacific": {
+   "Regional Summary": [
+    "Asia-Pacific FY2025 revenue $15,236.5M (26.4% of group).",
+    "Revenue ($M): FY2019 6,820.7 | FY2020 7,560.0 | FY2021 8,747.6 | FY2022 9,805.2 | FY2023 11,129.9 | FY2024 12,908.9 | FY2025 15,236.5",
+    "FY2025 revenue by country ($M): Japan 3,961.5, China 3,352.0, India 2,590.2, Australia 1,828.4, South Korea 1,980.7, Singapore 1,523.7",
+    "Regional headquarters: Singapore."
+   ],
+   "Countries": {
+    "Japan": {
+     "Country Summary": [
+      "Japan FY2025 revenue $3,961.5M (26.0% of Asia-Pacific); YoY growth 15.1%.",
+      "Employees 6,292; offices 31; retail/partner locations 1186; active customers 68,885.",
+      "Revenue trend ($M): FY2019 2,227.1 | FY2020 2,372.4 | FY2021 2,853.1 | FY2022 3,024.1 | FY2023 3,406.8 | FY2024 3,680.6 | FY2025 3,826.5",
+      "Market share in core categories 10.8%; brand awareness 89%; NPS 54."
+     ],
+     "Revenue by Segment FY2025": [
+      "Japan FY2025 revenue by segment ($M): Cloud & AI Services 1,681.4, Consumer Devices 891.2, Renewable Energy 643.9, Healthcare Technology 416.9, Mobility & Logistics 328.1"
+     ],
+     "Cities and Offices": [
+      "Japan FY2025 revenue by city ($M): Tokyo 2,141.5, Osaka 1,036.7, Nagoya 783.3",
+      "Japan employees by city: Tokyo 2,916, Osaka 2,430, Nagoya 946"
+     ],
+     "Sales Channels and Customers": [
+      "Japan revenue by channel FY2025 (%): Direct sales 38, Online store 14, Partners & resellers 18, Marketplaces 7.",
+      "Japan customers by type (%): Enterprise 18, Mid-market 18, Small business 17, Public sector 10, Consumers 28.",
+      "Japan quarterly new customers FY2025: Q1 2,374, Q2 12,705, Q3 1,587, Q4 5,201"
+     ]
+    },
+    "China": {
+     "Country Summary": [
+      "China FY2025 revenue $3,352.0M (22.0% of Asia-Pacific); YoY growth 13.5%.",
+      "Employees 5,349; offices 35; retail/partner locations 426; active customers 132,951.",
+      "Revenue trend ($M): FY2019 1,793.6 | FY2020 2,090.9 | FY2021 2,430.8 | FY2022 2,475.3 | FY2023 2,966.0 | FY2024 3,086.7 | FY2025 3,315.5",
+      "Market share in core categories 14.8%; brand awareness 65%; NPS 25."
+     ],
+     "Revenue by Segment FY2025": [
+      "China FY2025 revenue by segment ($M): Cloud & AI Services 1,690.9, Consumer Devices 526.2, Renewable Energy 409.9, Healthcare Technology 311.6, Mobility & Logistics 413.4"
+     ],
+     "Cities and Offices": [
+      "China FY2025 revenue by city ($M): Shenzhen 1,415.7, Shanghai 953.0, Beijing 663.4, Chengdu 319.9",
+      "China employees by city: Shenzhen 2,159, Shanghai 1,773, Beijing 1,015, Chengdu 402"
+     ],
+     "Sales Channels and Customers": [
+      "China revenue by channel FY2025 (%): Direct sales 47, Online store 14, Partners & resellers 29, Marketplaces 9.",
+      "China customers by type (%): Enterprise 25, Mid-market 19, Small business 19, Public sector 5, Consumers 31.",
+      "China quarterly new customers FY2025: Q1 11,910, Q2 2,712, Q3 12,537, Q4 2,809"
+     ]
+    },
+    "India": {
+     "Country Summary": [
+      "India FY2025 revenue $2,590.2M (17.0% of Asia-Pacific); YoY growth 14.9%.",
+      "Employees 3,287; offices 21; retail/partner locations 1122; active customers 103,096.",
+      "Revenue trend ($M): FY2019 1,422.2 | FY2020 1,678.9 | FY2021 1,746.5 | FY2022 2,074.6 | FY2023 2,164.9 | FY2024 2,376.7 | FY2025 2,612.3",
+      "Market share in core categories 21.5%; brand awareness 69%; NPS 49."
+     ],
+     "Revenue by Segment FY2025": [
+      "India FY2025 revenue by segment ($M): Cloud & AI Services 916.0, Consumer Devices 536.3, Renewable Energy 381.2, Healthcare Technology 317.5, Mobility & Logistics 439.2"
+     ],
+     "Cities and Offices": [
+      "India FY2025 revenue by city ($M): Pune 1,063.0, Bengaluru 753.1, Hyderabad 506.8, Delhi 267.3",
+      "India employees by city: Pune 1,085, Bengaluru 1,163, Hyderabad 754, Delhi 285"
+     ],
+     "Sales Channels and Customers": [
+      "India revenue by channel FY2025 (%): Direct sales 47, Online store 12, Partners & resellers 30, Marketplaces 9.",
+      "India customers by type (%): Enterprise 14, Mid-market 19, Small business 19, Public sector 5, Consumers 33.",
+      "India quarterly new customers FY2025: Q1 10,100, Q2 4,737, Q3 7,737, Q4 4,625"
+     ]
+    },
+    "Australia": {
+     "Country Summary": [
+      "Australia FY2025 revenue $1,828.4M (12.0% of Asia-Pacific); YoY growth 16.8%.",
+      "Employees 2,606; offices 16; retail/partner locations 389; active customers 157,481.",
+      "Revenue trend ($M): FY2019 1,013.7 | FY2020 1,125.7 | FY2021 1,223.0 | FY2022 1,347.4 | FY2023 1,522.4 | FY2024 1,772.4 | FY2025 1,854.8",
+      "Market share in core categories 20.8%; brand awareness 85%; NPS 49."
+     ],
+     "Revenue by Segment FY2025": [
+      "Australia FY2025 revenue by segment ($M): Cloud & AI Services 766.5, Consumer Devices 284.5, Renewable Energy 209.6, Healthcare Technology 277.5, Mobility & Logistics 290.3"
+     ],
+     "Cities and Offices": [
+      "Australia FY2025 revenue by city ($M): Sydney 853.4, Melbourne 708.2, Perth 266.8",
+      "Australia employees by city: Sydney 1,338, Melbourne 819, Perth 449"
+     ],
+     "Sales Channels and Customers": [
+      "Australia revenue by channel FY2025 (%): Direct sales 39, Online store 24, Partners & resellers 21, Marketplaces 8.",
+      "Australia customers by type (%): Enterprise 21, Mid-market 24, Small business 20, Public sector 5, Consumers 32.",
+      "Australia quarterly new customers FY2025: Q1 13,201, Q2 13,230, Q3 2,560, Q4 9,178"
+     ]
+    },
+    "South Korea": {
+     "Country Summary": [
+      "South Korea FY2025 revenue $1,980.7M (13.0% of Asia-Pacific); YoY growth 6.6%.",
+      "Employees 2,769; offices 40; retail/partner locations 1156; active customers 95,190.",
+      "Revenue trend ($M): FY2019 1,126.6 | FY2020 1,286.9 | FY2021 1,415.2 | FY2022 1,598.1 | FY2023 1,723.7 | FY2024 1,788.6 | FY2025 1,915.9",
+      "Market share in core categories 4.1%; brand awareness 87%; NPS 49."
+     ],
+     "Revenue by Segment FY2025": [
+      "South Korea FY2025 revenue by segment ($M): Cloud & AI Services 851.2, Consumer Devices 357.1, Renewable Energy 348.3, Healthcare Technology 214.7, Mobility & Logistics 209.4"
+     ],
+     "Cities and Offices": [
+      "South Korea FY2025 revenue by city ($M): Seoul 937.0, Busan 693.7, Incheon 350.0",
+      "South Korea employees by city: Seoul 1,263, Busan 1,140, Incheon 366"
+     ],
+     "Sales Channels and Customers": [
+      "South Korea revenue by channel FY2025 (%): Direct sales 30, Online store 16, Partners & resellers 20, Marketplaces 3.",
+      "South Korea customers by type (%): Enterprise 16, Mid-market 24, Small business 15, Public sector 11, Consumers 30.",
+      "South Korea quarterly new customers FY2025: Q1 6,585, Q2 9,038, Q3 2,659, Q4 8,073"
+     ]
+    },
+    "Singapore": {
+     "Country Summary": [
+      "Singapore FY2025 revenue $1,523.7M (10.0% of Asia-Pacific); YoY growth 12.6%.",
+      "Employees 2,631; offices 10; retail/partner locations 1129; active customers 54,080.",
+      "Revenue trend ($M): FY2019 808.1 | FY2020 904.7 | FY2021 1,014.7 | FY2022 1,226.0 | FY2023 1,259.9 | FY2024 1,422.2 | FY2025 1,475.8",
+      "Market share in core categories 8.5%; brand awareness 44%; NPS 42."
+     ],
+     "Revenue by Segment FY2025": [
+      "Singapore FY2025 revenue by segment ($M): Cloud & AI Services 586.1, Consumer Devices 319.3, Renewable Energy 221.5, Healthcare Technology 198.7, Mobility & Logistics 198.1"
+     ],
+     "Cities and Offices": [
+      "Singapore FY2025 revenue by city ($M): Singapore 1,523.7",
+      "Singapore employees by city: Singapore 2,631"
+     ],
+     "Sales Channels and Customers": [
+      "Singapore revenue by channel FY2025 (%): Direct sales 35, Online store 16, Partners & resellers 15, Marketplaces 9.",
+      "Singapore customers by type (%): Enterprise 14, Mid-market 22, Small business 16, Public sector 13, Consumers 25.",
+      "Singapore quarterly new customers FY2025: Q1 2,464, Q2 10,475, Q3 13,657, Q4 2,700"
+     ]
+    }
+   }
+  },
+  "Latin America": {
+   "Regional Summary": [
+    "Latin America FY2025 revenue $3,401.0M (5.9% of group).",
+    "Revenue ($M): FY2019 1,705.2 | FY2020 1,853.0 | FY2021 2,102.8 | FY2022 2,312.5 | FY2023 2,576.4 | FY2024 2,933.8 | FY2025 3,401.0",
+    "FY2025 revenue by country ($M): Brazil 1,632.5, Chile 612.2, Colombia 544.2, Argentina 612.1",
+    "Regional headquarters: São Paulo."
+   ],
+   "Countries": {
+    "Brazil": {
+     "Country Summary": [
+      "Brazil FY2025 revenue $1,632.5M (48.0% of Latin America); YoY growth 18.5%.",
+      "Employees 2,111; offices 27; retail/partner locations 896; active customers 68,854.",
+      "Revenue trend ($M): FY2019 859.5 | FY2020 1,004.9 | FY2021 1,199.7 | FY2022 1,217.9 | FY2023 1,321.8 | FY2024 1,526.3 | FY2025 1,556.5",
+      "Market share in core categories 16.4%; brand awareness 66%; NPS 57."
+     ],
+     "Revenue by Segment FY2025": [
+      "Brazil FY2025 revenue by segment ($M): Cloud & AI Services 657.9, Consumer Devices 342.8, Renewable Energy 224.4, Healthcare Technology 191.8, Mobility & Logistics 215.6"
+     ],
+     "Cities and Offices": [
+      "Brazil FY2025 revenue by city ($M): São Paulo 866.6, Campinas 515.5, Rio de Janeiro 250.4",
+      "Brazil employees by city: São Paulo 1,172, Campinas 567, Rio de Janeiro 372"
+     ],
+     "Sales Channels and Customers": [
+      "Brazil revenue by channel FY2025 (%): Direct sales 45, Online store 18, Partners & resellers 24, Marketplaces 9.",
+      "Brazil customers by type (%): Enterprise 15, Mid-market 19, Small business 21, Public sector 14, Consumers 21.",
+      "Brazil quarterly new customers FY2025: Q1 2,311, Q2 8,781, Q3 9,583, Q4 7,299"
+     ]
+    },
+    "Chile": {
+     "Country Summary": [
+      "Chile FY2025 revenue $612.2M (18.0% of Latin America); YoY growth 8.0%.",
+      "Employees 833; offices 7; retail/partner locations 850; active customers 65,113.",
+      "Revenue trend ($M): FY2019 337.1 | FY2020 367.1 | FY2021 428.0 | FY2022 473.4 | FY2023 495.5 | FY2024 573.2 | FY2025 609.5",
+      "Market share in core categories 23.3%; brand awareness 71%; NPS 15."
+     ],
+     "Revenue by Segment FY2025": [
+      "Chile FY2025 revenue by segment ($M): Cloud & AI Services 206.8, Consumer Devices 125.7, Renewable Energy 100.4, Healthcare Technology 102.4, Mobility & Logistics 76.9"
+     ],
+     "Cities and Offices": [
+      "Chile FY2025 revenue by city ($M): Santiago 356.1, Antofagasta 256.1",
+      "Chile employees by city: Santiago 549, Antofagasta 284"
+     ],
+     "Sales Channels and Customers": [
+      "Chile revenue by channel FY2025 (%): Direct sales 31, Online store 13, Partners & resellers 29, Marketplaces 5.",
+      "Chile customers by type (%): Enterprise 22, Mid-market 27, Small business 25, Public sector 9, Consumers 18.",
+      "Chile quarterly new customers FY2025: Q1 12,229, Q2 1,762, Q3 4,442, Q4 11,139"
+     ]
+    },
+    "Colombia": {
+     "Country Summary": [
+      "Colombia FY2025 revenue $544.2M (16.0% of Latin America); YoY growth 2.0%.",
+      "Employees 864; offices 20; retail/partner locations 1271; active customers 132,948.",
+      "Revenue trend ($M): FY2019 309.7 | FY2020 339.3 | FY2021 376.3 | FY2022 434.3 | FY2023 481.4 | FY2024 515.7 | FY2025 552.1",
+      "Market share in core categories 5.7%; brand awareness 44%; NPS 23."
+     ],
+     "Revenue by Segment FY2025": [
+      "Colombia FY2025 revenue by segment ($M): Cloud & AI Services 222.5, Consumer Devices 117.1, Renewable Energy 74.1, Healthcare Technology 73.7, Mobility & Logistics 56.8"
+     ],
+     "Cities and Offices": [
+      "Colombia FY2025 revenue by city ($M): Bogotá 395.3, Medellín 148.9",
+      "Colombia employees by city: Bogotá 533, Medellín 331"
+     ],
+     "Sales Channels and Customers": [
+      "Colombia revenue by channel FY2025 (%): Direct sales 50, Online store 16, Partners & resellers 23, Marketplaces 12.",
+      "Colombia customers by type (%): Enterprise 10, Mid-market 28, Small business 15, Public sector 7, Consumers 24.",
+      "Colombia quarterly new customers FY2025: Q1 8,709, Q2 3,219, Q3 4,269, Q4 12,045"
+     ]
+    },
+    "Argentina": {
+     "Country Summary": [
+      "Argentina FY2025 revenue $612.1M (18.0% of Latin America); YoY growth 9.9%.",
+      "Employees 726; offices 3; retail/partner locations 1212; active customers 5,350.",
+      "Revenue trend ($M): FY2019 342.7 | FY2020 384.2 | FY2021 425.6 | FY2022 495.9 | FY2023 509.5 | FY2024 594.2 | FY2025 618.4",
+      "Market share in core categories 16.0%; brand awareness 73%; NPS 46."
+     ],
+     "Revenue by Segment FY2025": [
+      "Argentina FY2025 revenue by segment ($M): Cloud & AI Services 205.2, Consumer Devices 135.4, Renewable Energy 98.3, Healthcare Technology 85.3, Mobility & Logistics 87.9"
+     ],
+     "Cities and Offices": [
+      "Argentina FY2025 revenue by city ($M): Buenos Aires 422.2, Córdoba 189.9",
+      "Argentina employees by city: Buenos Aires 527, Córdoba 199"
+     ],
+     "Sales Channels and Customers": [
+      "Argentina revenue by channel FY2025 (%): Direct sales 35, Online store 17, Partners & resellers 16, Marketplaces 10.",
+      "Argentina customers by type (%): Enterprise 21, Mid-market 30, Small business 22, Public sector 11, Consumers 15.",
+      "Argentina quarterly new customers FY2025: Q1 8,794, Q2 10,502, Q3 2,031, Q4 3,439"
+     ]
+    }
+   }
+  },
+  "Middle East & Africa": {
+   "Regional Summary": [
+    "Middle East & Africa FY2025 revenue $2,834.1M (4.9% of group).",
+    "Revenue ($M): FY2019 1,420.9 | FY2020 1,544.1 | FY2021 1,752.3 | FY2022 1,927.2 | FY2023 2,146.9 | FY2024 2,445.0 | FY2025 2,834.1",
+    "FY2025 revenue by country ($M): United Arab Emirates 963.6, Saudi Arabia 793.5, South Africa 623.5, Egypt 453.5",
+    "Regional headquarters: Dubai."
+   ],
+   "Countries": {
+    "United Arab Emirates": {
+     "Country Summary": [
+      "United Arab Emirates FY2025 revenue $963.6M (34.0% of Middle East & Africa); YoY growth 17.0%.",
+      "Employees 1,267; offices 31; retail/partner locations 564; active customers 126,304.",
+      "Revenue trend ($M): FY2019 553.7 | FY2020 593.2 | FY2021 707.2 | FY2022 762.1 | FY2023 819.3 | FY2024 930.8 | FY2025 928.6",
+      "Market share in core categories 8.7%; brand awareness 92%; NPS 27."
+     ],
+     "Revenue by Segment FY2025": [
+      "United Arab Emirates FY2025 revenue by segment ($M): Cloud & AI Services 388.2, Consumer Devices 197.6, Renewable Energy 138.7, Healthcare Technology 122.9, Mobility & Logistics 116.2"
+     ],
+     "Cities and Offices": [
+      "United Arab Emirates FY2025 revenue by city ($M): Dubai 655.6, Abu Dhabi 308.0",
+      "United Arab Emirates employees by city: Dubai 844, Abu Dhabi 423"
+     ],
+     "Sales Channels and Customers": [
+      "United Arab Emirates revenue by channel FY2025 (%): Direct sales 48, Online store 20, Partners & resellers 20, Marketplaces 3.",
+      "United Arab Emirates customers by type (%): Enterprise 20, Mid-market 28, Small business 21, Public sector 10, Consumers 28.",
+      "United Arab Emirates quarterly new customers FY2025: Q1 11,844, Q2 8,224, Q3 6,609, Q4 3,708"
+     ]
+    },
+    "Saudi Arabia": {
+     "Country Summary": [
+      "Saudi Arabia FY2025 revenue $793.5M (28.0% of Middle East & Africa); YoY growth 5.9%.",
+      "Employees 1,201; offices 26; retail/partner locations 708; active customers 154,347.",
+      "Revenue trend ($M): FY2019 417.2 | FY2020 471.9 | FY2021 557.1 | FY2022 584.5 | FY2023 669.6 | FY2024 712.6 | FY2025 779.1",
+      "Market share in core categories 15.6%; brand awareness 43%; NPS 45."
+     ],
+     "Revenue by Segment FY2025": [
+      "Saudi Arabia FY2025 revenue by segment ($M): Cloud & AI Services 262.2, Consumer Devices 215.4, Renewable Energy 102.3, Healthcare Technology 87.4, Mobility & Logistics 126.2"
+     ],
+     "Cities and Offices": [
+      "Saudi Arabia FY2025 revenue by city ($M): Riyadh 323.4, Jeddah 309.2, NEOM 160.9",
+      "Saudi Arabia employees by city: Riyadh 626, Jeddah 379, NEOM 196"
+     ],
+     "Sales Channels and Customers": [
+      "Saudi Arabia revenue by channel FY2025 (%): Direct sales 34, Online store 22, Partners & resellers 17, Marketplaces 11.",
+      "Saudi Arabia customers by type (%): Enterprise 14, Mid-market 22, Small business 23, Public sector 10, Consumers 34.",
+      "Saudi Arabia quarterly new customers FY2025: Q1 6,302, Q2 5,375, Q3 10,433, Q4 1,342"
+     ]
+    },
+    "South Africa": {
+     "Country Summary": [
+      "South Africa FY2025 revenue $623.5M (22.0% of Middle East & Africa); YoY growth -2.0%.",
+      "Employees 814; offices 34; retail/partner locations 639; active customers 91,206.",
+      "Revenue trend ($M): FY2019 338.1 | FY2020 379.7 | FY2021 449.6 | FY2022 493.8 | FY2023 521.3 | FY2024 581.3 | FY2025 651.2",
+      "Market share in core categories 26.6%; brand awareness 92%; NPS 43."
+     ],
+     "Revenue by Segment FY2025": [
+      "South Africa FY2025 revenue by segment ($M): Cloud & AI Services 297.5, Consumer Devices 118.6, Renewable Energy 78.3, Healthcare Technology 69.8, Mobility & Logistics 59.3"
+     ],
+     "Cities and Offices": [
+      "South Africa FY2025 revenue by city ($M): Cape Town 353.4, Johannesburg 270.1",
+      "South Africa employees by city: Cape Town 553, Johannesburg 261"
+     ],
+     "Sales Channels and Customers": [
+      "South Africa revenue by channel FY2025 (%): Direct sales 30, Online store 19, Partners & resellers 20, Marketplaces 8.",
+      "South Africa customers by type (%): Enterprise 11, Mid-market 19, Small business 23, Public sector 10, Consumers 31.",
+      "South Africa quarterly new customers FY2025: Q1 10,930, Q2 11,851, Q3 4,917, Q4 12,429"
+     ]
+    },
+    "Egypt": {
+     "Country Summary": [
+      "Egypt FY2025 revenue $453.5M (16.0% of Middle East & Africa); YoY growth 2.6%.",
+      "Employees 755; offices 39; retail/partner locations 1085; active customers 83,116.",
+      "Revenue trend ($M): FY2019 241.1 | FY2020 289.0 | FY2021 306.1 | FY2022 336.3 | FY2023 399.0 | FY2024 400.8 | FY2025 461.6",
+      "Market share in core categories 15.8%; brand awareness 85%; NPS 28."
+     ],
+     "Revenue by Segment FY2025": [
+      "Egypt FY2025 revenue by segment ($M): Cloud & AI Services 141.5, Consumer Devices 128.9, Renewable Energy 74.2, Healthcare Technology 66.3, Mobility & Logistics 42.6"
+     ],
+     "Cities and Offices": [
+      "Egypt FY2025 revenue by city ($M): Cairo 257.7, Alexandria 195.8",
+      "Egypt employees by city: Cairo 550, Alexandria 205"
+     ],
+     "Sales Channels and Customers": [
+      "Egypt revenue by channel FY2025 (%): Direct sales 40, Online store 20, Partners & resellers 23, Marketplaces 8.",
+      "Egypt customers by type (%): Enterprise 13, Mid-market 26, Small business 18, Public sector 13, Consumers 16.",
+      "Egypt quarterly new customers FY2025: Q1 12,465, Q2 11,950, Q3 1,903, Q4 5,617"
+     ]
+    }
+   }
+  }
+ },
+ "Stock and Investor Data": {
+  "Daily Share Price Sep-Nov 2025 (OHLC)": [
+   "HLDX daily prices in USD for 60 trading days; format date: open/high/low/close, volume (shares).",
+   "2025-09-01: open 182.00, high 187.67, low 181.71, close 187.61, volume 7,822,234",
+   "2025-09-02: open 187.61, high 194.68, low 187.19, close 193.16, volume 7,857,402",
+   "2025-09-03: open 193.16, high 195.13, low 189.30, close 189.56, volume 5,012,081",
+   "2025-09-04: open 189.56, high 189.85, low 188.58, close 189.09, volume 6,207,507",
+   "2025-09-05: open 189.09, high 191.51, low 188.51, close 189.99, volume 6,972,326",
+   "2025-09-08: open 189.99, high 191.45, low 189.22, close 189.80, volume 7,799,475",
+   "2025-09-09: open 189.80, high 191.99, low 189.43, close 191.11, volume 5,561,190",
+   "2025-09-10: open 191.11, high 191.40, low 185.81, close 186.81, volume 7,570,239",
+   "2025-09-11: open 186.81, high 187.98, low 183.06, close 184.67, volume 3,562,495",
+   "2025-09-12: open 184.67, high 191.93, low 184.04, close 191.78, volume 6,004,119",
+   "2025-09-15: open 191.78, high 198.79, low 191.69, close 197.27, volume 4,263,295",
+   "2025-09-16: open 197.27, high 202.76, low 195.74, close 199.15, volume 3,532,428",
+   "2025-09-17: open 199.15, high 199.77, low 196.88, close 198.23, volume 7,489,315",
+   "2025-09-18: open 198.23, high 203.80, low 198.00, close 203.35, volume 3,658,647",
+   "2025-09-19: open 203.35, high 211.47, low 202.89, close 209.58, volume 7,052,060",
+   "2025-09-22: open 209.58, high 210.60, low 207.55, close 208.62, volume 4,275,523",
+   "2025-09-23: open 208.62, high 209.84, low 206.72, close 207.34, volume 5,741,198",
+   "2025-09-24: open 207.34, high 209.19, low 204.49, close 208.95, volume 6,518,386",
+   "2025-09-25: open 208.95, high 214.33, low 207.89, close 212.69, volume 3,582,571",
+   "2025-09-26: open 212.69, high 214.65, low 210.04, close 211.15, volume 7,202,684",
+   "2025-09-29: open 211.15, high 212.82, low 210.45, close 211.54, volume 3,809,613",
+   "2025-09-30: open 211.54, high 211.91, low 210.27, close 210.91, volume 3,272,963",
+   "2025-10-01: open 210.91, high 211.86, low 203.28, close 204.53, volume 6,169,100",
+   "2025-10-02: open 204.53, high 208.63, low 204.23, close 208.44, volume 5,427,466",
+   "2025-10-03: open 208.44, high 212.10, low 205.73, close 211.52, volume 3,582,605",
+   "2025-10-06: open 211.52, high 211.70, low 207.81, close 208.19, volume 7,891,496",
+   "2025-10-07: open 208.19, high 209.65, low 205.83, close 207.77, volume 7,275,947",
+   "2025-10-08: open 207.77, high 211.03, low 206.78, close 209.56, volume 7,059,180",
+   "2025-10-09: open 209.56, high 217.23, low 209.53, close 215.20, volume 5,583,721",
+   "2025-10-10: open 215.20, high 216.28, low 214.97, close 215.44, volume 5,616,890",
+   "2025-10-13: open 215.44, high 216.46, low 213.20, close 214.23, volume 5,638,216",
+   "2025-10-14: open 214.23, high 214.78, low 212.37, close 213.15, volume 3,302,642",
+   "2025-10-15: open 213.15, high 214.81, low 210.86, close 211.64, volume 6,996,788",
+   "2025-10-16: open 211.64, high 217.46, low 211.48, close 215.92, volume 4,589,763",
+   "2025-10-17: open 215.92, high 217.35, low 214.11, close 214.12, volume 5,138,275",
+   "2025-10-20: open 214.12, high 215.43, low 213.79, close 215.20, volume 5,035,739",
+   "2025-10-21: open 215.20, high 215.92, low 206.14, close 206.85, volume 7,256,512",
+   "2025-10-22: open 206.85, high 212.78, low 205.86, close 211.42, volume 7,877,814",
+   "2025-10-23: open 211.42, high 212.40, low 209.23, close 211.18, volume 5,753,523",
+   "2025-10-24: open 211.18, high 211.40, low 208.23, close 210.70, volume 5,056,573",
+   "2025-10-27: open 210.70, high 211.41, low 207.50, close 207.56, volume 5,230,178",
+   "2025-10-28: open 207.56, high 208.28, low 207.35, close 207.62, volume 3,520,969",
+   "2025-10-29: open 207.62, high 208.74, low 203.22, close 204.30, volume 7,204,448",
+   "2025-10-30: open 204.30, high 205.93, low 200.91, close 202.01, volume 7,596,054",
+   "2025-10-31: open 202.01, high 202.27, low 202.00, close 202.19, volume 7,771,851",
+   "2025-11-03: open 202.19, high 202.86, low 201.21, close 201.75, volume 3,424,647",
+   "2025-11-04: open 201.75, high 210.35, low 201.38, close 209.53, volume 3,816,738",
+   "2025-11-05: open 209.53, high 210.48, low 208.02, close 208.60, volume 4,644,007",
+   "2025-11-06: open 208.60, high 211.45, low 205.67, close 209.16, volume 3,841,800",
+   "2025-11-07: open 209.16, high 210.67, low 207.82, close 209.76, volume 4,265,858",
+   "2025-11-10: open 209.76, high 210.52, low 204.82, close 205.72, volume 7,820,462",
+   "2025-11-11: open 205.72, high 212.63, low 203.87, close 211.59, volume 5,437,279",
+   "2025-11-12: open 211.59, high 213.85, low 211.15, close 212.36, volume 7,047,817",
+   "2025-11-13: open 212.36, high 219.54, low 210.59, close 218.69, volume 7,519,688",
+   "2025-11-14: open 218.69, high 230.17, low 217.32, close 228.17, volume 8,412,606",
+   "2025-11-17: open 228.17, high 232.73, low 227.61, close 232.58, volume 4,699,339",
+   "2025-11-18: open 232.58, high 232.71, low 230.03, close 230.99, volume 4,443,852",
+   "2025-11-19: open 230.99, high 231.86, low 226.58, close 228.01, volume 5,175,212",
+   "2025-11-20: open 228.01, high 229.21, low 224.56, close 225.22, volume 7,608,296",
+   "2025-11-21: open 225.22, high 231.99, low 224.43, close 230.02, volume 7,960,720"
+  ],
+  "Annual Share Price and Dividends": [
+   "Year-end share price ($): FY2019 61.40 | FY2020 74.90 | FY2021 103.20 | FY2022 88.60 | FY2023 121.70 | FY2024 158.30 | FY2025 196.80",
+   "Dividend per share ($): FY2019 0.43 | FY2020 0.45 | FY2021 0.49 | FY2022 0.54 | FY2023 0.59 | FY2024 0.65 | FY2025 0.72",
+   "Market capitalisation ($B): FY2019 87.2 | FY2020 106.4 | FY2021 146.5 | FY2022 125.8 | FY2023 172.8 | FY2024 224.8 | FY2025 279.5",
+   "Price-to-earnings ratio: FY2019 19.8 | FY2020 27.4 | FY2021 24.1 | FY2022 18.2 | FY2023 21.6 | FY2024 24.9 | FY2025 26.3"
+  ],
+  "Shareholder Structure": [
+   "Ownership as of Nov 2025 (%): Institutional investors 61.4, Index funds 17.8, Retail investors 12.3, Founders & insiders 5.1, Employee stock plans 3.4.",
+   "Top holders (%): Vanguard-like Fund A 8.2, BlackRock-like Fund B 7.1, State Street-like Fund C 4.4, Founder trust 3.9, Norway-style sovereign fund 2.6."
+  ],
+  "Analyst Ratings": [
+   "Analyst recommendations (count) Nov 2025: Strong buy 11, Buy 14, Hold 7, Sell 2, Strong sell 0.",
+   "12-month price targets ($): low 165, median 228, high 275; consensus FY2026 revenue estimate $66.8B."
+  ]
+ },
+ "Workforce and People": {
+  "Headcount by Department FY2019-FY2025": [
+   "Engineering headcount: FY2019 14,076 | FY2020 14,674 | FY2021 15,847 | FY2022 17,043 | FY2023 17,549 | FY2024 18,354 | FY2025 19,182",
+   "Sales headcount: FY2019 9,792 | FY2020 10,208 | FY2021 11,024 | FY2022 11,856 | FY2023 12,208 | FY2024 12,768 | FY2025 13,344",
+   "Operations & Manufacturing headcount: FY2019 14,688 | FY2020 15,312 | FY2021 16,536 | FY2022 17,784 | FY2023 18,312 | FY2024 19,152 | FY2025 20,016",
+   "Customer Support headcount: FY2019 6,732 | FY2020 7,018 | FY2021 7,579 | FY2022 8,151 | FY2023 8,393 | FY2024 8,778 | FY2025 9,174",
+   "Research & Development headcount: FY2019 5,508 | FY2020 5,742 | FY2021 6,201 | FY2022 6,669 | FY2023 6,867 | FY2024 7,182 | FY2025 7,506",
+   "Marketing headcount: FY2019 3,060 | FY2020 3,190 | FY2021 3,445 | FY2022 3,705 | FY2023 3,815 | FY2024 3,990 | FY2025 4,170",
+   "Finance headcount: FY2019 2,448 | FY2020 2,552 | FY2021 2,756 | FY2022 2,964 | FY2023 3,052 | FY2024 3,192 | FY2025 3,336",
+   "Human Resources headcount: FY2019 1,836 | FY2020 1,914 | FY2021 2,067 | FY2022 2,223 | FY2023 2,289 | FY2024 2,394 | FY2025 2,502",
+   "Legal & Compliance headcount: FY2019 1,224 | FY2020 1,276 | FY2021 1,378 | FY2022 1,482 | FY2023 1,526 | FY2024 1,596 | FY2025 1,668",
+   "IT & Security headcount: FY2019 1,836 | FY2020 1,914 | FY2021 2,067 | FY2022 2,223 | FY2023 2,289 | FY2024 2,394 | FY2025 2,502",
+   "Total headcount: FY2019 61,200 | FY2020 63,800 | FY2021 68,900 | FY2022 74,100 | FY2023 76,300 | FY2024 79,800 | FY2025 83,400"
+  ],
+  "Salary Distributions by Department": {
+   "Engineering": [
+    "Sample of 50 annual base salaries in Engineering (USD thousands), FY2025: 176, 183, 162, 142, 147, 88, 132, 131, 168, 148, 184, 175, 185, 131, 138, 145, 120, 137, 202, 114, 141, 151, 117, 197, 143, 157, 150, 188, 144, 122, 166, 161, 143, 143, 145, 138, 128, 153, 178, 169, 96, 168, 158, 157, 155, 131, 183, 116, 95, 193",
+    "Engineering median salary $148K, 90th percentile $189K, average bonus 18.5% of base."
+   ],
+   "Sales": [
+    "Sample of 50 annual base salaries in Sales (USD thousands), FY2025: 147, 97, 36, 73, 127, 70, 104, 74, 32, 62, 122, 119, 130, 95, 86, 168, 168, 117, 61, 62, 92, 99, 104, 82, 170, 117, 32, 147, 71, 137, 109, 109, 184, 85, 98, 72, 128, 63, 102, 69, 104, 99, 63, 128, 87, 130, 74, 114, 115, 46",
+    "Sales median salary $112K, 90th percentile $161K, average bonus 17.5% of base."
+   ],
+   "Operations & Manufacturing": [
+    "Sample of 50 annual base salaries in Operations & Manufacturing (USD thousands), FY2025: 32, 60, 95, 79, 44, 85, 47, 61, 75, 76, 85, 82, 83, 64, 66, 32, 110, 55, 58, 77, 52, 69, 62, 55, 80, 99, 61, 99, 71, 96, 67, 84, 87, 85, 83, 56, 91, 54, 58, 49, 85, 53, 91, 74, 66, 63, 100, 67, 83, 62",
+    "Operations & Manufacturing median salary $74K, 90th percentile $97K, average bonus 13.8% of base."
+   ],
+   "Customer Support": [
+    "Sample of 50 annual base salaries in Customer Support (USD thousands), FY2025: 62, 62, 65, 48, 91, 32, 59, 74, 47, 75, 56, 88, 59, 32, 67, 54, 74, 52, 52, 82, 55, 68, 44, 66, 58, 77, 52, 53, 54, 45, 56, 53, 48, 68, 86, 61, 46, 54, 36, 44, 43, 74, 77, 53, 60, 48, 72, 74, 50, 63",
+    "Customer Support median salary $58K, 90th percentile $73K, average bonus 18.0% of base."
+   ],
+   "Research & Development": [
+    "Sample of 50 annual base salaries in Research & Development (USD thousands), FY2025: 93, 145, 134, 235, 156, 133, 146, 201, 217, 179, 144, 137, 167, 164, 225, 141, 181, 167, 156, 141, 105, 153, 88, 140, 195, 215, 176, 160, 128, 122, 211, 230, 197, 166, 180, 160, 133, 125, 174, 170, 175, 134, 174, 168, 178, 108, 93, 158, 117, 156",
+    "Research & Development median salary $156K, 90th percentile $200K, average bonus 13.6% of base."
+   ],
+   "Marketing": [
+    "Sample of 50 annual base salaries in Marketing (USD thousands), FY2025: 99, 131, 123, 116, 120, 106, 137, 77, 94, 95, 143, 109, 120, 189, 71, 137, 106, 90, 85, 98, 90, 96, 104, 109, 110, 105, 76, 79, 109, 130, 115, 85, 112, 98, 122, 106, 140, 131, 68, 58, 156, 160, 86, 78, 66, 97, 107, 112, 76, 89",
+    "Marketing median salary $104K, 90th percentile $137K, average bonus 9.0% of base."
+   ],
+   "Finance": [
+    "Sample of 50 annual base salaries in Finance (USD thousands), FY2025: 153, 104, 113, 113, 91, 141, 106, 76, 164, 104, 112, 93, 144, 92, 141, 158, 104, 106, 130, 99, 124, 154, 115, 84, 98, 131, 109, 91, 126, 146, 156, 138, 126, 93, 123, 149, 124, 107, 102, 148, 134, 109, 92, 130, 132, 104, 74, 122, 145, 120",
+    "Finance median salary $118K, 90th percentile $154K, average bonus 15.0% of base."
+   ],
+   "Human Resources": [
+    "Sample of 50 annual base salaries in Human Resources (USD thousands), FY2025: 79, 84, 104, 114, 79, 87, 103, 51, 121, 59, 99, 88, 60, 100, 88, 59, 105, 84, 83, 91, 111, 126, 115, 59, 88, 97, 88, 112, 129, 133, 82, 105, 113, 89, 82, 115, 98, 84, 68, 101, 65, 97, 79, 40, 89, 94, 75, 84, 110, 99",
+    "Human Resources median salary $92K, 90th percentile $118K, average bonus 11.7% of base."
+   ],
+   "Legal & Compliance": [
+    "Sample of 50 annual base salaries in Legal & Compliance (USD thousands), FY2025: 105, 178, 175, 124, 124, 95, 133, 201, 161, 127, 112, 106, 170, 196, 185, 202, 223, 189, 215, 177, 123, 117, 167, 148, 114, 135, 97, 167, 159, 153, 48, 162, 140, 130, 162, 93, 139, 32, 159, 182, 103, 108, 140, 148, 189, 198, 151, 158, 187, 121",
+    "Legal & Compliance median salary $141K, 90th percentile $187K, average bonus 11.6% of base."
+   ],
+   "IT & Security": [
+    "Sample of 50 annual base salaries in IT & Security (USD thousands), FY2025: 92, 165, 150, 104, 144, 147, 127, 93, 113, 87, 102, 106, 127, 129, 84, 126, 129, 170, 98, 159, 92, 157, 92, 131, 154, 153, 176, 86, 100, 132, 154, 134, 139, 195, 155, 113, 125, 82, 138, 118, 109, 137, 151, 82, 115, 156, 109, 157, 115, 119",
+    "IT & Security median salary $128K, 90th percentile $163K, average bonus 6.7% of base."
+   ]
+  },
+  "Employee Engagement Survey": [
+   "Engagement score (0-100) by department FY2025: Engineering 67, Sales 77, Operations & Manufacturing 81, Customer Support 74, Research & Development 76, Marketing 77, Finance 69, Human Resources 73, Legal & Compliance 79, IT & Security 72",
+   "Company engagement score: FY2019 68 | FY2020 71 | FY2021 66 | FY2022 70 | FY2023 73 | FY2024 75 | FY2025 77",
+   "Survey drivers score (1-5): Career growth 3.8, Manager support 4.1, Compensation 3.5, Work-life balance 3.9, Mission & purpose 4.4, Tools & resources 3.7.",
+   "Response distribution to 'I would recommend Helios as a place to work' (count): Strongly agree 21430, Agree 31220, Neutral 14110, Disagree 6280, Strongly disagree 2150."
+  ],
+  "Attrition and Hiring": [
+   "Voluntary attrition rate (%): FY2019 11.2 | FY2020 8.4 | FY2021 14.9 | FY2022 13.1 | FY2023 10.7 | FY2024 9.8 | FY2025 9.1",
+   "Attrition by department FY2025 (%): Engineering 7.1, Sales 13.1, Operations & Manufacturing 7.4, Customer Support 10.0, Research & Development 15.6, Marketing 10.0, Finance 8.1, Human Resources 11.1, Legal & Compliance 14.6, IT & Security 11.3",
+   "Hiring funnel FY2025: Applications 612400, Recruiter screens 88300, Interviews 31650, Offers 9840, Accepted offers 8120, Hires started 7960.",
+   "New hires: FY2019 7,100 | FY2020 5,200 | FY2021 10,400 | FY2022 11,300 | FY2023 7,900 | FY2024 8,800 | FY2025 7,960",
+   "Average time to hire (days) by department FY2025: Engineering 36, Sales 56, Operations & Manufacturing 35, Customer Support 40, Research & Development 27, Marketing 36, Finance 28, Human Resources 42, Legal & Compliance 55, IT & Security 31"
+  ],
+  "Diversity and Inclusion": [
+   "Women in workforce (%): FY2019 31.2 | FY2020 32.0 | FY2021 33.1 | FY2022 34.4 | FY2023 35.6 | FY2024 36.5 | FY2025 37.4",
+   "Women in leadership (%): FY2019 22.5 | FY2020 24.1 | FY2021 25.9 | FY2022 27.2 | FY2023 29.0 | FY2024 30.8 | FY2025 32.1",
+   "Workforce by age band FY2025 (%): under 25: 9.4, 25-34: 33.8, 35-44: 29.6, 45-54: 18.1, 55+: 9.1.",
+   "Workforce by region FY2025 (%): North America 41, Europe 24, Asia-Pacific 26, Latin America 5, Middle East & Africa 4."
+  ],
+  "Training and Development": [
+   "Average training hours per employee: FY2019 22 | FY2020 19 | FY2021 26 | FY2022 29 | FY2023 33 | FY2024 36 | FY2025 39",
+   "Training hours by program FY2025 (thousands): Technical skills 1240, Leadership 410, Compliance 380, Safety 520, AI literacy 690, Sales enablement 300.",
+   "Internal promotion rate (%): FY2019 8.1 | FY2020 6.9 | FY2021 9.4 | FY2022 10.2 | FY2023 10.8 | FY2024 11.3 | FY2025 11.9"
+  ]
+ },
+ "Operations and Supply Chain": {
+  "Manufacturing Plants": {
+   "Austin TX": [
+    "Austin TX plant: primary segment Consumer Devices; annual capacity 4.2 million units; FY2025 output 3.89 million units; utilization 92.6%; OEE 77.3%; employees 6,281.",
+    "Defects 389 ppm; safety incidents (TRIR) 1.03; energy use 275 GWh; renewable share 46%.",
+    "Monthly output FY2025 (thousand units): Jan 301 | Feb 338 | Mar 340 | Apr 316 | May 303 | Jun 314 | Jul 306 | Aug 348 | Sep 349 | Oct 345 | Nov 318 | Dec 316"
+   ],
+   "Monterrey MX": [
+    "Monterrey MX plant: primary segment Renewable Energy; annual capacity 3.1 million units; FY2025 output 2.24 million units; utilization 72.2%; OEE 82.8%; employees 7,752.",
+    "Defects 452 ppm; safety incidents (TRIR) 1.02; energy use 187 GWh; renewable share 53%.",
+    "Monthly output FY2025 (thousand units): Jan 195 | Feb 189 | Mar 186 | Apr 182 | May 198 | Jun 214 | Jul 162 | Aug 207 | Sep 173 | Oct 202 | Nov 209 | Dec 159"
+   ],
+   "Dresden DE": [
+    "Dresden DE plant: primary segment Healthcare Technology; annual capacity 1.4 million units; FY2025 output 0.99 million units; utilization 71.0%; OEE 63.8%; employees 2,837.",
+    "Defects 654 ppm; safety incidents (TRIR) 0.71; energy use 118 GWh; renewable share 60%.",
+    "Monthly output FY2025 (thousand units): Jan 90 | Feb 79 | Mar 78 | Apr 77 | May 74 | Jun 78 | Jul 93 | Aug 89 | Sep 83 | Oct 76 | Nov 95 | Dec 92"
+   ],
+   "Shenzhen CN": [
+    "Shenzhen CN plant: primary segment Consumer Devices; annual capacity 6.8 million units; FY2025 output 5.48 million units; utilization 80.6%; OEE 69.8%; employees 3,375.",
+    "Defects 832 ppm; safety incidents (TRIR) 0.53; energy use 300 GWh; renewable share 73%.",
+    "Monthly output FY2025 (thousand units): Jan 485 | Feb 458 | Mar 523 | Apr 467 | May 400 | Jun 475 | Jul 510 | Aug 517 | Sep 449 | Oct 483 | Nov 448 | Dec 452"
+   ],
+   "Pune IN": [
+    "Pune IN plant: primary segment Mobility & Logistics; annual capacity 2.2 million units; FY2025 output 1.72 million units; utilization 78.4%; OEE 73.3%; employees 7,031.",
+    "Defects 639 ppm; safety incidents (TRIR) 0.37; energy use 124 GWh; renewable share 41%.",
+    "Monthly output FY2025 (thousand units): Jan 133 | Feb 161 | Mar 143 | Apr 124 | May 162 | Jun 125 | Jul 154 | Aug 134 | Sep 130 | Oct 159 | Nov 155 | Dec 143"
+   ],
+   "Osaka JP": [
+    "Osaka JP plant: primary segment Healthcare Technology; annual capacity 1.1 million units; FY2025 output 0.79 million units; utilization 71.4%; OEE 72.5%; employees 1,211.",
+    "Defects 491 ppm; safety incidents (TRIR) 0.67; energy use 99 GWh; renewable share 96%.",
+    "Monthly output FY2025 (thousand units): Jan 57 | Feb 70 | Mar 59 | Apr 70 | May 70 | Jun 65 | Jul 66 | Aug 72 | Sep 57 | Oct 70 | Nov 66 | Dec 72"
+   ],
+   "Gdansk PL": [
+    "Gdansk PL plant: primary segment Renewable Energy; annual capacity 2.6 million units; FY2025 output 2.28 million units; utilization 87.8%; OEE 79.5%; employees 4,177.",
+    "Defects 357 ppm; safety incidents (TRIR) 0.65; energy use 109 GWh; renewable share 96%.",
+    "Monthly output FY2025 (thousand units): Jan 193 | Feb 174 | Mar 207 | Apr 200 | May 213 | Jun 208 | Jul 188 | Aug 166 | Sep 185 | Oct 193 | Nov 179 | Dec 217"
+   ],
+   "Campinas BR": [
+    "Campinas BR plant: primary segment Mobility & Logistics; annual capacity 1.3 million units; FY2025 output 1.12 million units; utilization 85.8%; OEE 73.5%; employees 6,188.",
+    "Defects 311 ppm; safety incidents (TRIR) 0.36; energy use 78 GWh; renewable share 57%.",
+    "Monthly output FY2025 (thousand units): Jan 98 | Feb 105 | Mar 97 | Apr 87 | May 100 | Jun 90 | Jul 84 | Aug 85 | Sep 102 | Oct 96 | Nov 93 | Dec 101"
+   ],
+   "Penang MY": [
+    "Penang MY plant: primary segment Consumer Devices; annual capacity 3.9 million units; FY2025 output 3.56 million units; utilization 91.2%; OEE 84.8%; employees 5,128.",
+    "Defects 710 ppm; safety incidents (TRIR) 1.37; energy use 303 GWh; renewable share 89%.",
+    "Monthly output FY2025 (thousand units): Jan 319 | Feb 310 | Mar 332 | Apr 339 | May 284 | Jun 262 | Jul 341 | Aug 340 | Sep 322 | Oct 310 | Nov 305 | Dec 293"
+   ],
+   "Reno NV": [
+    "Reno NV plant: primary segment Renewable Energy; annual capacity 2.9 million units; FY2025 output 2.31 million units; utilization 79.7%; OEE 85.0%; employees 1,646.",
+    "Defects 519 ppm; safety incidents (TRIR) 1.60; energy use 186 GWh; renewable share 94%.",
+    "Monthly output FY2025 (thousand units): Jan 196 | Feb 221 | Mar 217 | Apr 203 | May 186 | Jun 219 | Jul 175 | Aug 214 | Sep 218 | Oct 171 | Nov 221 | Dec 184"
+   ],
+   "Lyon FR": [
+    "Lyon FR plant: primary segment Healthcare Technology; annual capacity 0.9 million units; FY2025 output 0.69 million units; utilization 76.5%; OEE 82.8%; employees 1,176.",
+    "Defects 897 ppm; safety incidents (TRIR) 1.34; energy use 43 GWh; renewable share 64%.",
+    "Monthly output FY2025 (thousand units): Jan 53 | Feb 59 | Mar 62 | Apr 62 | May 51 | Jun 62 | Jul 50 | Aug 61 | Sep 60 | Oct 55 | Nov 56 | Dec 65"
+   ],
+   "Ostrava CZ": [
+    "Ostrava CZ plant: primary segment Mobility & Logistics; annual capacity 1.6 million units; FY2025 output 1.11 million units; utilization 69.3%; OEE 65.4%; employees 2,068.",
+    "Defects 769 ppm; safety incidents (TRIR) 1.35; energy use 112 GWh; renewable share 89%.",
+    "Monthly output FY2025 (thousand units): Jan 87 | Feb 81 | Mar 83 | Apr 102 | May 98 | Jun 99 | Jul 92 | Aug 91 | Sep 102 | Oct 82 | Nov 80 | Dec 97"
+   ],
+   "Ho Chi Minh VN": [
+    "Ho Chi Minh VN plant: primary segment Consumer Devices; annual capacity 2.7 million units; FY2025 output 2.10 million units; utilization 77.6%; OEE 71.6%; employees 4,617.",
+    "Defects 765 ppm; safety incidents (TRIR) 1.04; energy use 215 GWh; renewable share 53%.",
+    "Monthly output FY2025 (thousand units): Jan 185 | Feb 197 | Mar 172 | Apr 166 | May 176 | Jun 172 | Jul 162 | Aug 178 | Sep 156 | Oct 181 | Nov 169 | Dec 187"
+   ],
+   "Cape Town ZA": [
+    "Cape Town ZA plant: primary segment Renewable Energy; annual capacity 0.8 million units; FY2025 output 0.61 million units; utilization 76.0%; OEE 73.3%; employees 2,076.",
+    "Defects 492 ppm; safety incidents (TRIR) 0.56; energy use 53 GWh; renewable share 84%.",
+    "Monthly output FY2025 (thousand units): Jan 55 | Feb 50 | Mar 49 | Apr 57 | May 46 | Jun 53 | Jul 43 | Aug 50 | Sep 44 | Oct 46 | Nov 49 | Dec 46"
+   ]
+  },
+  "Supply Chain Material Flows FY2025": [
+   "Material flows in thousand tonnes (total 1000); three stages: supplier regions -> plant groups -> distribution hubs -> market regions. Inflows equal outflows at every node.",
+   "East Asia suppliers -> Asian plants: 239.2",
+   "East Asia suppliers -> European plants: 96.6",
+   "East Asia suppliers -> Americas plants: 124.2",
+   "Southeast Asia suppliers -> Asian plants: 109.2",
+   "Southeast Asia suppliers -> European plants: 44.1",
+   "Southeast Asia suppliers -> Americas plants: 56.7",
+   "European suppliers -> Asian plants: 83.2",
+   "European suppliers -> European plants: 33.6",
+   "European suppliers -> Americas plants: 43.2",
+   "North American suppliers -> Asian plants: 62.4",
+   "North American suppliers -> European plants: 25.2",
+   "North American suppliers -> Americas plants: 32.4",
+   "Latin American suppliers -> Asian plants: 26.0",
+   "Latin American suppliers -> European plants: 10.5",
+   "Latin American suppliers -> Americas plants: 13.5",
+   "Asian plants -> Rotterdam hub: 140.4",
+   "Asian plants -> Singapore hub: 161.2",
+   "Asian plants -> Memphis hub: 156.0",
+   "Asian plants -> Dubai hub: 62.4",
+   "European plants -> Rotterdam hub: 56.7",
+   "European plants -> Singapore hub: 65.1",
+   "European plants -> Memphis hub: 63.0",
+   "European plants -> Dubai hub: 25.2",
+   "Americas plants -> Rotterdam hub: 72.9",
+   "Americas plants -> Singapore hub: 83.7",
+   "Americas plants -> Memphis hub: 81.0",
+   "Americas plants -> Dubai hub: 32.4",
+   "Rotterdam hub -> North America: 102.6",
+   "Rotterdam hub -> Europe: 72.9",
+   "Rotterdam hub -> Asia-Pacific: 64.8",
+   "Rotterdam hub -> Latin America: 16.2",
+   "Rotterdam hub -> Middle East & Africa: 13.5",
+   "Singapore hub -> North America: 117.8",
+   "Singapore hub -> Europe: 83.7",
+   "Singapore hub -> Asia-Pacific: 74.4",
+   "Singapore hub -> Latin America: 18.6",
+   "Singapore hub -> Middle East & Africa: 15.5",
+   "Memphis hub -> North America: 114.0",
+   "Memphis hub -> Europe: 81.0",
+   "Memphis hub -> Asia-Pacific: 72.0",
+   "Memphis hub -> Latin America: 18.0",
+   "Memphis hub -> Middle East & Africa: 15.0",
+   "Dubai hub -> North America: 45.6",
+   "Dubai hub -> Europe: 32.4",
+   "Dubai hub -> Asia-Pacific: 28.8",
+   "Dubai hub -> Latin America: 7.2",
+   "Dubai hub -> Middle East & Africa: 6.0"
+  ],
+  "Logistics Lead Times": {
+   "Ocean freight": [
+    "Sample of 40 shipment lead times by Ocean freight (days), FY2025: 30.2, 25.7, 30.1, 29.7, 37.9, 32.8, 31.3, 40.7, 27.3, 31.3, 25.9, 37.0, 27.8, 25.5, 31.3, 26.0, 22.9, 31.7, 45.2, 28.9, 28.9, 39.5, 29.4, 28.7, 32.7, 23.5, 37.3, 28.0, 36.3, 27.6, 30.5, 39.9, 22.8, 28.7, 21.9, 19.8, 18.2, 30.8, 20.1, 30.1",
+    "Ocean freight: on-time rate 86.7%; cost per kg $0.21; share of volume 58%."
+   ],
+   "Air freight": [
+    "Sample of 40 shipment lead times by Air freight (days), FY2025: 5.5, 4.3, 2.0, 4.7, 4.1, 4.7, 3.7, 4.5, 3.0, 3.0, 4.5, 3.6, 1.8, 4.0, 3.8, 2.8, 3.7, 4.6, 3.3, 4.1, 6.3, 1.9, 4.3, 1, 5.8, 3.1, 5.6, 4.1, 4.6, 5.2, 2.1, 4.0, 4.9, 1.4, 7.6, 1.7, 1.6, 4.1, 3.8, 3.0",
+    "Air freight: on-time rate 91.4%; cost per kg $3.85; share of volume 9%."
+   ],
+   "Rail": [
+    "Sample of 40 shipment lead times by Rail (days), FY2025: 13.3, 15.4, 19.2, 17.4, 20.7, 20.1, 20.6, 17.6, 16.1, 16.4, 19.4, 19.8, 21.7, 17.3, 9.8, 13.8, 16.2, 11.9, 17.0, 23.4, 17.9, 18.0, 19.0, 11.8, 11.5, 10.7, 18.5, 18.3, 21.4, 13.3, 17.0, 12.8, 16.9, 12.4, 19.9, 15.6, 19.1, 12.2, 13.4, 13.8",
+    "Rail: on-time rate 88.0%; cost per kg $0.48; share of volume 14%."
+   ],
+   "Road": [
+    "Sample of 40 shipment lead times by Road (days), FY2025: 2.3, 1, 3.2, 3.8, 3.6, 2.8, 3.1, 3.1, 1.9, 4.8, 4.4, 2.2, 3.5, 1.4, 2.2, 1, 4.3, 4.0, 2.2, 3.8, 3.1, 5.2, 3.0, 1, 4.9, 3.8, 1, 2.9, 5.8, 3.0, 1.8, 4.0, 3.9, 1.6, 2.6, 1.7, 2.7, 5.3, 4.8, 2.6",
+    "Road: on-time rate 82.1%; cost per kg $0.62; share of volume 19%."
+   ]
+  },
+  "Inventory and Working Capital": [
+   "Cloud & AI Services inventory turns: FY2019 8.1 | FY2020 7.7 | FY2021 6.3 | FY2022 11.4 | FY2023 6.6 | FY2024 6.7 | FY2025 9.5",
+   "Consumer Devices inventory turns: FY2019 5.5 | FY2020 11.2 | FY2021 11.4 | FY2022 10.4 | FY2023 11.7 | FY2024 9.2 | FY2025 11.4",
+   "Renewable Energy inventory turns: FY2019 5.9 | FY2020 6.0 | FY2021 5.6 | FY2022 5.3 | FY2023 5.0 | FY2024 5.8 | FY2025 6.5",
+   "Healthcare Technology inventory turns: FY2019 4.1 | FY2020 5.8 | FY2021 9.2 | FY2022 10.7 | FY2023 9.8 | FY2024 7.0 | FY2025 9.7",
+   "Mobility & Logistics inventory turns: FY2019 6.8 | FY2020 8.9 | FY2021 9.1 | FY2022 6.3 | FY2023 11.3 | FY2024 6.2 | FY2025 11.3",
+   "Days sales outstanding: FY2019 54 | FY2020 58 | FY2021 52 | FY2022 50 | FY2023 48 | FY2024 47 | FY2025 45",
+   "Days inventory outstanding: FY2019 71 | FY2020 79 | FY2021 68 | FY2022 74 | FY2023 66 | FY2024 61 | FY2025 58"
+  ],
+  "Supplier Performance Scorecard": [
+   "Kaito Components: on-time delivery 96.0%, quality acceptance 98.10%, cost competitiveness 9.1/10, sustainability score 8.4/10, annual spend $675M",
+   "Rhein Precision: on-time delivery 89.5%, quality acceptance 98.27%, cost competitiveness 8.6/10, sustainability score 5.6/10, annual spend $1,825M",
+   "Sunward Cells: on-time delivery 89.6%, quality acceptance 95.32%, cost competitiveness 8.0/10, sustainability score 7.2/10, annual spend $647M",
+   "Andes Metals: on-time delivery 96.8%, quality acceptance 99.44%, cost competitiveness 6.6/10, sustainability score 8.4/10, annual spend $423M",
+   "Pacific Semis: on-time delivery 90.9%, quality acceptance 96.03%, cost competitiveness 7.0/10, sustainability score 6.7/10, annual spend $205M",
+   "Nordic Polymers: on-time delivery 96.4%, quality acceptance 99.80%, cost competitiveness 9.1/10, sustainability score 5.8/10, annual spend $868M",
+   "Delta Logistics: on-time delivery 94.8%, quality acceptance 96.52%, cost competitiveness 8.8/10, sustainability score 6.3/10, annual spend $1,767M",
+   "Indus Electronics: on-time delivery 87.1%, quality acceptance 99.47%, cost competitiveness 7.9/10, sustainability score 7.2/10, annual spend $813M"
+  ]
+ },
+ "Energy and Sustainability": {
+  "Energy Consumption by Source FY2019-FY2025": [
+   "Total energy consumption (GWh): FY2019 2,410 | FY2020 2,380 | FY2021 2,520 | FY2022 2,610 | FY2023 2,680 | FY2024 2,740 | FY2025 2,800",
+   "Solar PPAs (GWh): FY2019 193 | FY2020 262 | FY2021 378 | FY2022 496 | FY2023 643 | FY2024 795 | FY2025 952",
+   "Wind PPAs (GWh): FY2019 217 | FY2020 262 | FY2021 328 | FY2022 418 | FY2023 482 | FY2024 575 | FY2025 644",
+   "Grid electricity (GWh): FY2019 1,253 | FY2020 1,166 | FY2021 1,134 | FY2022 1,044 | FY2023 938 | FY2024 822 | FY2025 728",
+   "Natural gas (GWh): FY2019 578 | FY2020 524 | FY2021 529 | FY2022 496 | FY2023 456 | FY2024 411 | FY2025 364",
+   "On-site generation (GWh): FY2019 169 | FY2020 167 | FY2021 151 | FY2022 157 | FY2023 161 | FY2024 137 | FY2025 112"
+  ],
+  "Energy Flow FY2025 Sources to Uses": [
+   "Energy flows in GWh from sources to end uses (proportional allocation): ",
+   "Solar PPAs -> Manufacturing: 514.1",
+   "Solar PPAs -> Data centers: 257.0",
+   "Solar PPAs -> Offices: 76.2",
+   "Solar PPAs -> Logistics fleet: 85.7",
+   "Solar PPAs -> R&D labs: 19.0",
+   "Wind PPAs -> Manufacturing: 347.8",
+   "Wind PPAs -> Data centers: 173.9",
+   "Wind PPAs -> Offices: 51.5",
+   "Wind PPAs -> Logistics fleet: 58.0",
+   "Wind PPAs -> R&D labs: 12.9",
+   "Grid electricity -> Manufacturing: 393.1",
+   "Grid electricity -> Data centers: 196.6",
+   "Grid electricity -> Offices: 58.2",
+   "Grid electricity -> Logistics fleet: 65.5",
+   "Grid electricity -> R&D labs: 14.6",
+   "Natural gas -> Manufacturing: 196.6",
+   "Natural gas -> Data centers: 98.3",
+   "Natural gas -> Offices: 29.1",
+   "Natural gas -> Logistics fleet: 32.8",
+   "Natural gas -> R&D labs: 7.3",
+   "On-site generation -> Manufacturing: 60.5",
+   "On-site generation -> Data centers: 30.2",
+   "On-site generation -> Offices: 9.0",
+   "On-site generation -> Logistics fleet: 10.1",
+   "On-site generation -> R&D labs: 2.2"
+  ],
+  "Greenhouse Gas Emissions": [
+   "Scope 1 emissions (million tCO2e): FY2019 1.42 | FY2020 1.31 | FY2021 1.33 | FY2022 1.27 | FY2023 1.16 | FY2024 1.04 | FY2025 0.93",
+   "Scope 2 emissions (million tCO2e): FY2019 2.10 | FY2020 1.98 | FY2021 1.86 | FY2022 1.62 | FY2023 1.39 | FY2024 1.15 | FY2025 0.96",
+   "Scope 3 emissions (million tCO2e): FY2019 11.8 | FY2020 11.1 | FY2021 11.9 | FY2022 12.2 | FY2023 11.7 | FY2024 11.2 | FY2025 10.6",
+   "Scope 3 FY2025 by category (million tCO2e): Purchased goods 5.1, Use of sold products 2.9, Transportation 1.2, Capital goods 0.7, Business travel 0.2, Waste 0.1, Other 0.4.",
+   "Carbon intensity (tCO2e per $M revenue): FY2019 539.1 | FY2020 464.4 | FY2021 427.8 | FY2022 387.7 | FY2023 327.6 | FY2024 269.4 | FY2025 216.1"
+  ],
+  "Sustainability Targets and Progress": [
+   "Renewable electricity: target 80% by 2030, current FY2025 57% (progress gauge 57 of 100, target 80).",
+   "Scope 1+2 reduction vs 2019 baseline: target 70% by 2030; achieved 46% in FY2025.",
+   "Water reduction vs 2019: target 30% by 2030; achieved 18%. Waste diverted from landfill: target 95%; achieved 88%.",
+   "Sustainable sourcing of critical minerals: target 100% audited suppliers; achieved 76%."
+  ],
+  "Water and Waste by Plant FY2025": [
+   "Austin TX: water withdrawal 0.68 million m3, waste 31.4 thousand tonnes, diverted 78.0%",
+   "Monterrey MX: water withdrawal 2.01 million m3, waste 35.2 thousand tonnes, diverted 88.0%",
+   "Dresden DE: water withdrawal 2.43 million m3, waste 18.5 thousand tonnes, diverted 91.6%",
+   "Shenzhen CN: water withdrawal 1.46 million m3, waste 25.4 thousand tonnes, diverted 79.0%",
+   "Pune IN: water withdrawal 1.63 million m3, waste 22.4 thousand tonnes, diverted 87.5%",
+   "Osaka JP: water withdrawal 2.88 million m3, waste 6.2 thousand tonnes, diverted 77.4%",
+   "Gdansk PL: water withdrawal 1.61 million m3, waste 30.1 thousand tonnes, diverted 83.9%",
+   "Campinas BR: water withdrawal 0.30 million m3, waste 29.0 thousand tonnes, diverted 84.6%",
+   "Penang MY: water withdrawal 2.40 million m3, waste 14.5 thousand tonnes, diverted 74.1%",
+   "Reno NV: water withdrawal 2.74 million m3, waste 3.1 thousand tonnes, diverted 77.6%",
+   "Lyon FR: water withdrawal 0.73 million m3, waste 26.1 thousand tonnes, diverted 78.8%",
+   "Ostrava CZ: water withdrawal 1.04 million m3, waste 29.1 thousand tonnes, diverted 90.4%",
+   "Ho Chi Minh VN: water withdrawal 1.00 million m3, waste 32.9 thousand tonnes, diverted 95.2%",
+   "Cape Town ZA: water withdrawal 1.00 million m3, waste 8.3 thousand tonnes, diverted 85.1%"
+  ]
+ },
+ "Customers and Marketing": {
+  "Marketing Channel Performance FY2025": [
+   "Paid search: spend $182M, impressions 112.4M, clicks 4.85M, conversions 280,382, CAC $649, ROAS 4.8x, revenue attributed $874M",
+   "Social ads: spend $141M, impressions 162.7M, clicks 4.22M, conversions 201,643, CAC $699, ROAS 3.1x, revenue attributed $437M",
+   "Display: spend $66M, impressions 49.8M, clicks 1.04M, conversions 47,475, CAC $1,390, ROAS 1.6x, revenue attributed $106M",
+   "Email: spend $22M, impressions 14.1M, clicks 0.66M, conversions 11,036, CAC $1,993, ROAS 7.4x, revenue attributed $163M",
+   "Affiliates: spend $48M, impressions 23.5M, clicks 1.29M, conversions 22,543, CAC $2,129, ROAS 4.1x, revenue attributed $197M",
+   "Events & trade shows: spend $95M, impressions 53.1M, clicks 1.19M, conversions 46,650, CAC $2,036, ROAS 2.6x, revenue attributed $247M",
+   "TV & streaming: spend $210M, impressions 113.6M, clicks 3.05M, conversions 51,878, CAC $4,048, ROAS 1.9x, revenue attributed $399M",
+   "Partner co-marketing: spend $57M, impressions 31.6M, clicks 0.64M, conversions 26,477, CAC $2,153, ROAS 3.8x, revenue attributed $217M",
+   "Content & SEO: spend $39M, impressions 45.3M, clicks 0.96M, conversions 22,248, CAC $1,753, ROAS 6.2x, revenue attributed $242M"
+  ],
+  "Monthly Marketing Metrics FY2025": [
+   "Monthly marketing spend ($M): Jan 73.1 | Feb 76.9 | Mar 85.5 | Apr 86.1 | May 86.7 | Jun 73.2 | Jul 69.7 | Aug 58.6 | Sep 49.1 | Oct 53.2 | Nov 80.0 | Dec 91.9",
+   "Monthly website sessions (millions): Jan 41.9 | Feb 40.8 | Mar 42.5 | Apr 42.9 | May 44.8 | Jun 48.7 | Jul 46.9 | Aug 51.5 | Sep 51.2 | Oct 53.6 | Nov 64.7 | Dec 63.3",
+   "Monthly leads (thousands): Jan 298 | Feb 301 | Mar 345 | Apr 352 | May 358 | Jun 363 | Jul 362 | Aug 356 | Sep 389 | Oct 382 | Nov 393 | Dec 394"
+  ],
+  "Brand Health": [
+   "Aided brand awareness (%): FY2019 71 | FY2020 73 | FY2021 76 | FY2022 78 | FY2023 80 | FY2024 82 | FY2025 84",
+   "Brand consideration (%): FY2019 38 | FY2020 40 | FY2021 43 | FY2022 44 | FY2023 47 | FY2024 49 | FY2025 52",
+   "Brand attributes score (0-10) vs. peer average: Innovative 8.4 vs 7.1, Trustworthy 7.8 vs 7.3, Sustainable 7.2 vs 6.4, Good value 6.9 vs 7.0, Premium 7.6 vs 6.8, Easy to use 7.4 vs 7.2."
+  ],
+  "Customer Base Composition": [
+   "Customers by type FY2025 (%): Large enterprise 18, Mid-market 27, Small business 21, Public sector 9, Consumers 25.",
+   "Revenue by customer type FY2025 ($M): Large enterprise 19,651.6, Mid-market 12,715.7, Small business 5,201.9, Public sector 6,357.9, Consumers 13,871.7",
+   "Customer retention rate (%): FY2019 86.1 | FY2020 85.4 | FY2021 87.2 | FY2022 88.0 | FY2023 88.9 | FY2024 89.6 | FY2025 90.3",
+   "Customer lifetime value by segment ($K): Cloud & AI Services 266.0, Consumer Devices 53.8, Renewable Energy 297.7, Healthcare Technology 152.8, Mobility & Logistics 253.5"
+  ]
+ },
+ "Research and Development": {
+  "R&D Investment by Area FY2019-FY2025": [
+   "Artificial intelligence R&D spend ($M): FY2019 517.2 | FY2020 664.5 | FY2021 846.6 | FY2022 1,050.9 | FY2023 1,305.1 | FY2024 1,640.1 | FY2025 2,062.5",
+   "Semiconductors R&D spend ($M): FY2019 459.8 | FY2020 506.3 | FY2021 564.4 | FY2022 622.7 | FY2023 696.0 | FY2024 795.2 | FY2025 916.7",
+   "Energy storage R&D spend ($M): FY2019 344.8 | FY2020 411.4 | FY2021 493.9 | FY2022 583.8 | FY2023 696.0 | FY2024 844.9 | FY2025 1,031.3",
+   "Medical imaging R&D spend ($M): FY2019 402.3 | FY2020 443.0 | FY2021 493.9 | FY2022 544.9 | FY2023 609.0 | FY2024 695.8 | FY2025 802.1",
+   "Autonomy & robotics R&D spend ($M): FY2019 373.6 | FY2020 411.4 | FY2021 458.6 | FY2022 506.0 | FY2023 565.5 | FY2024 646.1 | FY2025 744.8",
+   "Materials science R&D spend ($M): FY2019 258.6 | FY2020 284.8 | FY2021 317.5 | FY2022 350.3 | FY2023 391.5 | FY2024 447.3 | FY2025 515.6",
+   "Cybersecurity R&D spend ($M): FY2019 229.9 | FY2020 253.0 | FY2021 282.2 | FY2022 311.4 | FY2023 348.2 | FY2024 397.5 | FY2025 458.3",
+   "Total R&D ($M): FY2019 2,586.2 | FY2020 2,974.4 | FY2021 3,457.1 | FY2022 3,970.0 | FY2023 4,611.3 | FY2024 5,466.9 | FY2025 6,531.3"
+  ],
+  "Patents by Technology Field": [
+   "Artificial intelligence patents granted: FY2019 141 | FY2020 347 | FY2021 187 | FY2022 370 | FY2023 471 | FY2024 436 | FY2025 561",
+   "Semiconductors patents granted: FY2019 149 | FY2020 151 | FY2021 140 | FY2022 315 | FY2023 222 | FY2024 281 | FY2025 337",
+   "Energy storage patents granted: FY2019 165 | FY2020 158 | FY2021 165 | FY2022 122 | FY2023 313 | FY2024 371 | FY2025 226",
+   "Medical imaging patents granted: FY2019 105 | FY2020 93 | FY2021 194 | FY2022 168 | FY2023 124 | FY2024 226 | FY2025 171",
+   "Autonomy & robotics patents granted: FY2019 142 | FY2020 229 | FY2021 177 | FY2022 300 | FY2023 280 | FY2024 215 | FY2025 204",
+   "Materials science patents granted: FY2019 148 | FY2020 275 | FY2021 155 | FY2022 201 | FY2023 258 | FY2024 180 | FY2025 184",
+   "Cybersecurity patents granted: FY2019 208 | FY2020 283 | FY2021 245 | FY2022 117 | FY2023 125 | FY2024 161 | FY2025 143"
+  ],
+  "Innovation Pipeline": [
+   "Ideas to market funnel FY2025: Ideas submitted 14200, Concepts approved 2310, Prototypes built 640, Pilots 188, Products launched 47.",
+   "Pipeline projects by stage and field (count): AI 41, Semiconductors 18, Energy storage 26, Medical imaging 22, Autonomy 29, Materials 14, Cybersecurity 17.",
+   "Average time from concept to launch (months) by field: AI 11, Semiconductors 34, Energy storage 27, Medical imaging 31, Autonomy 29, Materials 38, Cybersecurity 9."
+  ],
+  "Major Research Programs 2025-2027": [
+   "Solid-state battery cells: start 2025-01-15, end 2026-09-30, budget $420M, lead lab Reno, TRL now 5",
+   "Edge AI accelerator chip: start 2025-03-01, end 2026-06-30, budget $610M, lead lab Austin, TRL now 6",
+   "Autonomous yard trucks: start 2025-02-10, end 2027-03-31, budget $280M, lead lab Pune, TRL now 4",
+   "Low-dose CT imaging: start 2025-05-05, end 2026-12-15, budget $190M, lead lab Dresden, TRL now 6",
+   "Perovskite solar tandem: start 2025-06-01, end 2027-06-30, budget $240M, lead lab Gdansk, TRL now 3",
+   "Post-quantum crypto suite: start 2025-04-14, end 2026-03-31, budget $95M, lead lab Singapore, TRL now 7",
+   "Green hydrogen electrolyzer: start 2025-08-01, end 2027-12-31, budget $330M, lead lab Monterrey, TRL now 3"
+  ],
+  "Lab Benchmark Results": [
+   "AI model benchmark scores (0-100) Helios-Titan vs. peers: Reasoning 84 vs 79, Coding 81 vs 77, Vision 88 vs 83, Speech 79 vs 80, Efficiency 91 vs 72, Safety 86 vs 78.",
+   "Battery cell benchmark: energy density 312 Wh/kg (industry avg 255), cycle life 4200 (avg 3000), charge time 18 min (avg 31), cost $82/kWh (avg $108)."
+  ]
+ },
+ "Digital Products and Analytics": {
+  "App Activity Heatmap by Weekday and Hour": [
+   "Average active users (thousands) in the Helios app per hour of day (00-23), one row per weekday:",
+   "Mon: 50, 49, 53, 49, 54, 54, 64, 74, 88, 99, 100, 93, 89, 73, 64, 61, 60, 53, 64, 68, 76, 66, 59, 54",
+   "Tue: 53, 55, 55, 52, 55, 63, 65, 73, 88, 96, 94, 95, 89, 79, 64, 64, 54, 57, 59, 69, 70, 68, 64, 54",
+   "Wed: 51, 51, 47, 49, 57, 63, 64, 78, 85, 97, 94, 97, 86, 75, 63, 60, 55, 57, 62, 71, 70, 73, 64, 53",
+   "Thu: 52, 55, 53, 52, 59, 57, 71, 77, 89, 90, 93, 97, 84, 80, 64, 64, 54, 56, 68, 66, 76, 70, 59, 60",
+   "Fri: 53, 56, 53, 49, 52, 62, 65, 79, 89, 91, 95, 96, 85, 71, 70, 56, 52, 58, 63, 66, 77, 71, 58, 60",
+   "Sat: 36, 37, 37, 35, 34, 34, 38, 35, 33, 37, 41, 48, 54, 63, 75, 79, 74, 77, 67, 65, 67, 56, 46, 39",
+   "Sun: 35, 35, 31, 38, 35, 29, 35, 31, 36, 37, 44, 48, 57, 64, 74, 78, 74, 71, 68, 64, 65, 56, 48, 37"
+  ],
+  "Monthly User Retention Cohorts 2025": [
+   "Percent of each monthly sign-up cohort still active N months later (month 0 = 100):",
+   "Jan 2025 cohort: M0 100.0, M1 85.6, M2 83.1, M3 80.7, M4 76.4, M5 73.2, M6 68.4, M7 66.8, M8 63.2, M9 59.8, M10 57.3, M11 56.1",
+   "Feb 2025 cohort: M0 100.0, M1 86.7, M2 83.1, M3 81.1, M4 79.0, M5 73.9, M6 71.6, M7 69.5, M8 66.8, M9 63.0, M10 59.3",
+   "Mar 2025 cohort: M0 100.0, M1 83.9, M2 81.2, M3 77.9, M4 73.7, M5 71.1, M6 66.8, M7 63.1, M8 61.1, M9 57.0",
+   "Apr 2025 cohort: M0 100.0, M1 82.0, M2 77.5, M3 76.3, M4 71.1, M5 69.5, M6 68.3, M7 64.3, M8 61.9",
+   "May 2025 cohort: M0 100.0, M1 87.1, M2 85.0, M3 83.3, M4 79.4, M5 75.3, M6 73.6, M7 71.0",
+   "Jun 2025 cohort: M0 100.0, M1 87.4, M2 83.1, M3 81.6, M4 77.8, M5 74.1, M6 70.1",
+   "Jul 2025 cohort: M0 100.0, M1 82.5, M2 77.9, M3 73.9, M4 72.2, M5 68.3",
+   "Aug 2025 cohort: M0 100.0, M1 82.6, M2 79.9, M3 77.8, M4 75.4",
+   "Sep 2025 cohort: M0 100.0, M1 82.3, M2 77.4, M3 74.6",
+   "Oct 2025 cohort: M0 100.0, M1 88.8, M2 85.6",
+   "Nov 2025 cohort: M0 100.0, M1 83.0",
+   "Dec 2025 cohort: M0 100.0"
+  ],
+  "Daily and Monthly Active Users": [
+   "Average daily active users FY2025: Jan 4,126,686 | Feb 4,305,895 | Mar 4,327,969 | Apr 4,349,407 | May 4,480,351 | Jun 4,491,809 | Jul 4,652,867 | Aug 4,950,849 | Sep 4,897,430 | Oct 5,103,261 | Nov 5,126,508 | Dec 5,080,739",
+   "Monthly active users FY2025: Jan 10,988,389 | Feb 12,139,962 | Mar 11,580,382 | Apr 12,405,325 | May 12,900,417 | Jun 12,628,948 | Jul 13,222,803 | Aug 13,000,672 | Sep 13,758,821 | Oct 14,053,649 | Nov 14,146,455 | Dec 14,482,260",
+   "Annual average DAU (millions): FY2019 1.2 | FY2020 1.9 | FY2021 2.4 | FY2022 2.9 | FY2023 3.4 | FY2024 3.9 | FY2025 4.6"
+  ],
+  "Feature Adoption and Devices": [
+   "Feature adoption among active users FY2025 (%): Dashboard 92, Notifications 81, AI assistant 64, Payments 58, Device pairing 47, Sharing 39, Offline mode 22, Developer API 9.",
+   "Sessions by device FY2025 (%): iOS 44, Android 38, Web desktop 14, Tablet 4.",
+   "Checkout funnel FY2025 (sessions): Product page 9800000, Add to cart 2350000, Checkout started 1180000, Payment entered 820000, Order completed 705000.",
+   "Average session length (minutes) by device: iOS 7.8, Android 6.9, Web desktop 11.4, Tablet 9.2."
+  ]
+ },
+ "Risk and Compliance": {
+  "Compliance Incidents by Category": [
+   "Data privacy incidents: FY2019 30 | FY2020 20 | FY2021 43 | FY2022 41 | FY2023 12 | FY2024 8 | FY2025 45",
+   "Cybersecurity incidents: FY2019 20 | FY2020 8 | FY2021 24 | FY2022 37 | FY2023 37 | FY2024 38 | FY2025 59",
+   "Product safety incidents: FY2019 22 | FY2020 20 | FY2021 45 | FY2022 46 | FY2023 39 | FY2024 55 | FY2025 58",
+   "Environmental incidents: FY2019 52 | FY2020 54 | FY2021 4 | FY2022 18 | FY2023 43 | FY2024 54 | FY2025 45",
+   "Anti-corruption incidents: FY2019 30 | FY2020 7 | FY2021 3 | FY2022 39 | FY2023 33 | FY2024 56 | FY2025 35",
+   "Labor practices incidents: FY2019 59 | FY2020 26 | FY2021 28 | FY2022 14 | FY2023 41 | FY2024 42 | FY2025 14",
+   "Export controls incidents: FY2019 43 | FY2020 48 | FY2021 39 | FY2022 21 | FY2023 25 | FY2024 50 | FY2025 55"
+  ],
+  "Internal Audit Findings by Region": [
+   "Audit findings FY2025 (count) — matrix of regions (rows) x categories (columns: Data privacy, Cybersecurity, Product safety, Environmental, Anti-corruption, Labor practices, Export controls):",
+   "North America: 1, 8, 2, 8, 13, 4, 3",
+   "Europe: 0, 4, 7, 15, 0, 4, 3",
+   "Asia-Pacific: 6, 15, 6, 0, 6, 14, 4",
+   "Latin America: 7, 10, 3, 16, 0, 17, 7",
+   "Middle East & Africa: 0, 14, 1, 3, 3, 9, 14"
+  ],
+  "Cybersecurity Metrics": [
+   "Phishing simulation click rate FY2025 (%): Jan 9.5 | Feb 9.3 | Mar 8.2 | Apr 8.1 | May 7.3 | Jun 6.3 | Jul 5.4 | Aug 5.3 | Sep 4.8 | Oct 3.7 | Nov 3.3 | Dec 2.5",
+   "Mean time to detect threats (hours): FY2019 41 | FY2020 36 | FY2021 30 | FY2022 22 | FY2023 17 | FY2024 12 | FY2025 9",
+   "Mean time to respond (hours): FY2019 72 | FY2020 64 | FY2021 51 | FY2022 40 | FY2023 31 | FY2024 24 | FY2025 18",
+   "Security alerts triaged FY2025: Total alerts 2840000, Escalated 61200, Confirmed incidents 1840, Major incidents 21, Breaches 0."
+  ],
+  "Enterprise Risk Register Top Risks": [
+   "Semiconductor supply disruption: likelihood 4/5, impact 5/5, risk score 20, trend rising",
+   "Cyber attack on cloud platform: likelihood 3/5, impact 5/5, risk score 15, trend stable",
+   "Regulatory change in AI: likelihood 4/5, impact 3/5, risk score 12, trend rising",
+   "Energy price volatility: likelihood 3/5, impact 3/5, risk score 9, trend falling",
+   "Talent shortage in AI: likelihood 4/5, impact 4/5, risk score 16, trend rising",
+   "Currency fluctuations: likelihood 3/5, impact 2/5, risk score 6, trend stable",
+   "Product recall: likelihood 2/5, impact 4/5, risk score 8, trend stable",
+   "Climate physical risk at plants: likelihood 2/5, impact 4/5, risk score 8, trend rising"
+  ]
+ }
+}

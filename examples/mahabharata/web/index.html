@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>JARVIS · Visual Intelligence</title>
+  <meta name="color-scheme" content="light">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='28' fill='none' stroke='%231D1D1F' stroke-width='4' stroke-dasharray='10 6'/%3E%3Ccircle cx='32' cy='32' r='12' fill='%231D1D1F'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  
+</head>
+<body>
+  <canvas id="bg" aria-hidden="true"></canvas>
+  <div class="aurora" aria-hidden="true"></div>
+  <div class="grid-overlay" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="JARVIS home">
+      <span class="reactor reactor-sm" data-reactor></span>
+      <span class="brand-text">
+        <span class="brand-name">J.A.R.V.I.S</span>
+        <span class="brand-sub">Visual Intelligence</span>
+      </span>
+    </a>
+    <div class="top-actions">
+      <span class="pill" id="model-pill" title="Language model choosing the chart tools"><span class="status-dot"></span><span id="model-name">connecting…</span></span>
+      <button class="icon-btn" id="btn-new" title="New session (clears the feed)" aria-label="New session">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+      <button class="icon-btn" id="btn-graph" title="Knowledge-graph traversal panel" aria-label="Toggle graph panel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4.5" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="12" cy="19" r="2"/><circle cx="19" cy="19" r="2"/><path d="M12 6.5v10.5M12 11l-7 6M12 11l7 6"/></svg>
+      </button>
+      <button class="icon-btn" id="btn-gallery" title="Chart gallery & history (G)" aria-label="Open gallery">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main id="feed" aria-live="polite">
+    <section id="hero" class="hero">
+      <div class="reactor reactor-xl" data-reactor></div>
+      <h1 class="hero-title"><span id="greeting"></span><span class="caret"></span></h1>
+      <p class="hero-sub">Describe any chart in plain language. I'll pick from <b>24 chart tools</b>, fill in the data, and render it live.</p>
+      <div class="suggestions" id="suggestions"></div>
+      <button class="link-btn" id="hero-gallery">or browse the chart gallery →</button>
+    </section>
+  </main>
+
+  <footer class="composer-wrap">
+    <form id="composer" class="composer" autocomplete="off">
+      <span class="composer-ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg>
+      </span>
+      <textarea id="q" rows="1" placeholder="Ask JARVIS to visualize anything…" aria-label="Chart request"></textarea>
+      <button type="button" class="icon-btn ghost" id="btn-mic" title="Voice input" aria-label="Voice input" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+        <span class="mic-wave"><i></i><i></i><i></i><i></i></span>
+      </button>
+      <button type="submit" class="send-btn" id="btn-send" aria-label="Send">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+    </form>
+    <div class="composer-hint"><kbd>Enter</kbd> send · <kbd>Shift</kbd>+<kbd>Enter</kbd> new line · <kbd>↑</kbd> last prompt · <kbd>/</kbd> focus · <kbd>G</kbd> gallery</div>
+  </footer>
+
+  <aside id="drawer" class="drawer" aria-hidden="true">
+    <div class="drawer-head">
+      <div class="tabs" role="tablist">
+        <button class="tab active" data-tab="gallery" role="tab">Gallery</button>
+        <button class="tab" data-tab="history" role="tab">History</button>
+      </div>
+      <button class="icon-btn" id="drawer-close" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="drawer-body">
+      <div class="tab-panel" data-panel="gallery">
+        <p class="drawer-note">Instant demos — rendered through the same chart tools, no LLM call.</p>
+        <div id="gallery"></div>
+      </div>
+      <div class="tab-panel" data-panel="history" hidden>
+        <div id="history"></div>
+      </div>
+    </div>
+  </aside>
+  <div id="scrim" class="scrim"></div>
+
+  <aside id="gpanel" class="gpanel" aria-label="Knowledge graph traversal">
+    <div class="gp-head">
+      <div>
+        <div class="gp-title">Knowledge Graph</div>
+        <div class="gp-sub">helios_group.json · vectorless retrieval</div>
+      </div>
+      <button class="icon-btn" id="gp-close" aria-label="Close panel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="gp-stats">
+      <div class="gp-stat"><span data-stat="time">00:00.0</span><label>elapsed</label></div>
+      <div class="gp-stat"><span data-stat="nodes">0</span><label>nodes visited</label></div>
+      <div class="gp-stat"><span data-stat="ctx">0</span><label>contexts</label></div>
+    </div>
+    <div class="gp-status"><span class="gp-pulse"></span><span class="gp-status-text"></span></div>
+    <div class="gp-query"></div>
+    <div class="gp-scroll">
+      <div class="gp-empty">
+        <svg viewBox="0 0 120 80" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="60" cy="12" r="6"/><circle cx="24" cy="44" r="5"/><circle cx="60" cy="44" r="5"/><circle cx="96" cy="44" r="5"/><circle cx="12" cy="72" r="4"/><circle cx="36" cy="72" r="4"/><circle cx="84" cy="72" r="4"/><path d="M60 18v21M56 16 27 40M64 16l29 24M22 49l-8 19M26 49l8 19M94 49l-8 19"/></svg>
+        <p>Every question first walks the Helios Group graph. The branches the model chooses, and the text it retrieves, appear here.</p>
+      </div>
+      <div class="gp-tree"></div>
+      <div class="gp-ctx-head" hidden>Retrieved context</div>
+      <div class="gp-ctx"></div>
+    </div>
+  </aside>
+
+  <div id="modal" class="modal" aria-hidden="true">
+    <div class="modal-panel">
+      <div class="modal-head"><h3 id="modal-title"></h3><button class="icon-btn" id="modal-close" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+      <div id="modal-chart" class="modal-chart"></div>
+    </div>
+  </div>
+
+  <div id="toasts" class="toasts"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+  <script src="/js/renderers.js"></script>
+  <script src="/js/catalog.js"></script>
+  <script src="/js/background.js"></script>
+  <script src="/js/graph.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+/* ==========================================================================
+   Hotspots — gold markers projected from the 3D scene
+   ========================================================================== */
+
+#hotspots {
+  position: fixed; inset: 0; z-index: 10;
+  pointer-events: none;
+  overflow: hidden;
+  transition: opacity .5s var(--ease);
+}
+body:not(.view-journey) #hotspots,
+body.research-focus #hotspots,
+body.no-webgl #hotspots { opacity: 0; visibility: hidden; }
+
+.hs {
+  --c: var(--gold);
+  position: absolute; left: 0; top: 0;
+  display: block; width: 22px; height: 22px;
+  margin: -11px 0 0 -11px;           /* centre the 22px marker on the projected point */
+  padding: 0;
+  pointer-events: auto;
+  color: var(--ivory);
+  opacity: 0;
+  transition: transform .11s linear, opacity .4s var(--ease);
+  will-change: transform;
+}
+.hs.is-in { opacity: 1; }
+.hs.is-hidden { opacity: 0 !important; pointer-events: none; }
+.hs.is-occluded { opacity: .0; pointer-events: none; }
+.hs:focus-visible { outline: none; }
+
+.hs[data-type="location"] { --c: var(--forest-light); }
+.hs[data-type="event"] { --c: var(--vermilion); }
+.hs[data-type="question"] { --c: var(--gold-soft); }
+.hs[data-type="discovery"] { --c: var(--celestial); }
+
+.hs-mark { position: relative; width: 22px; height: 22px; flex: none; display: grid; place-items: center; }
+.hs-core {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, var(--ivory), var(--c) 60%);
+  box-shadow: 0 0 0 1.5px rgba(11,14,34,.6), 0 0 12px var(--c), 0 0 26px color-mix(in srgb, var(--c) 60%, transparent);
+  transition: transform .35s var(--ease-out);
+}
+.hs-mark::before {             /* fine outer ring */
+  content: ""; position: absolute; inset: 0; border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--c) 70%, transparent);
+  transition: transform .35s var(--ease-out), border-color .3s var(--ease);
+}
+.hs-pulse {
+  position: absolute; inset: 0; border-radius: 50%;
+  border: 1px solid var(--c);
+  animation: hs-pulse 2.6s var(--ease) infinite;
+}
+@keyframes hs-pulse {
+  0% { transform: scale(.6); opacity: .9; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+
+.hs-label {
+  position: absolute; left: 32px; top: calc(50% + var(--hs-dy, 0px)); /* --hs-dy: hotspots.js spreads crowded labels */
+  display: flex; flex-direction: column; line-height: 1.15;
+  padding: 6px 12px 7px;
+  border-radius: 10px;
+  background: rgba(10,12,30,.62);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  border: 1px solid var(--gold-faint);
+  box-shadow: 0 8px 24px rgba(0,0,0,.35);
+  white-space: nowrap;
+  max-width: 220px;
+  transform: translate(-4px, -50%);
+  transition: transform .35s var(--ease-out), border-color .3s var(--ease), background .3s var(--ease);
+}
+.hs-type {
+  font-size: 9.5px; font-weight: 600; letter-spacing: .22em; text-transform: uppercase;
+  color: var(--c);
+  max-height: 0; opacity: 0; overflow: hidden;
+  transition: max-height .3s var(--ease), opacity .3s var(--ease), margin .3s var(--ease);
+}
+.hs-name { font-family: var(--serif); font-size: 16px; color: var(--ivory); overflow: hidden; text-overflow: ellipsis; }
+
+.hs:hover .hs-core, .hs:focus-visible .hs-core { transform: scale(1.25); }
+.hs:hover .hs-mark::before, .hs:focus-visible .hs-mark::before { transform: scale(1.3); border-color: var(--c); }
+.hs:hover .hs-label, .hs:focus-visible .hs-label { transform: translate(0, -50%); border-color: var(--gold-line); background: rgba(10,12,30,.82); }
+.hs:hover .hs-type, .hs:focus-visible .hs-type { max-height: 14px; opacity: 1; margin-bottom: 2px; }
+.hs:focus-visible .hs-label { box-shadow: 0 0 0 2px var(--night), 0 0 0 4px var(--gold-soft); }
+
+/* label on the left near the right edge */
+.hs.is-flip .hs-label { left: auto; right: 32px; transform: translate(4px, -50%); text-align: right; align-items: flex-end; }
+.hs.is-flip:hover .hs-label, .hs.is-flip:focus-visible .hs-label { transform: translate(0, -50%); }
+
+/* Under reduced motion the markers stay still and glide instantly */
+body.reduced-motion .hs-pulse { animation: none !important; opacity: .5; transform: scale(1.5); }
+body.reduced-motion .hs { transition: opacity .2s var(--ease) !important; }
+
+@media (max-width: 760px) {
+  .hs-name { font-size: 14px; }
+  .hs-label { padding: 5px 10px; max-width: 160px; }
+}

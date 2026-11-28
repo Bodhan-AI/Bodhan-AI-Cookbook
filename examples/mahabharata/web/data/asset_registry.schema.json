@@ -1,0 +1,144 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "asset_registry.schema.json",
+  "title": "Mahabharata Voyage asset registry",
+  "description": "Schema for web/data/asset_registry.json (DATA_CONTRACT section 3.2). Keys must be canonical asset ids from section 1; fallback.factory must be one of the factories the engine implements. glb is null unless a model file really exists.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "assets"],
+  "properties": {
+    "version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "assets": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {"$ref": "mahabharata_voyage.schema.json#/$defs/asset_id"},
+      "additionalProperties": {"$ref": "#/$defs/asset"}
+    }
+  },
+  "$defs": {
+    "hex_color": {"type": "string", "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"},
+    "unit_interval": {"type": "number", "minimum": 0, "maximum": 1},
+    "factory": {
+      "type": "string",
+      "enum": [
+        "palace", "hall", "corridor", "gate", "walls", "courtyard", "temple", "hermitage", "camp", "shelter", "balcony",
+        "arena", "city", "altar", "figure", "chariot", "horse", "bow", "chakra", "conch", "crown", "scroll", "dice",
+        "throne", "weapon", "banner", "shield", "arrows", "drum", "door", "lamp", "tree", "target", "arrow_bed", "mace",
+        "vessel", "pyre", "dog", "mountains", "river", "water", "forest", "grove", "road", "skyline", "garden", "terrain",
+        "army", "clouds", "mist", "dust", "rain", "fire", "stars", "sky", "mandala", "snow", "lake"
+      ]
+    },
+    "figure_params": {
+      "description": "Params for the 'figure' factory (char.* assets). params is open, so extra keys are allowed; listed keys are type-checked.",
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "height": {"type": "number", "minimum": 0.3, "maximum": 4},
+        "robe": {"$ref": "#/$defs/hex_color"},
+        "sash": {"$ref": "#/$defs/hex_color"},
+        "skin": {"$ref": "#/$defs/hex_color"},
+        "crown": {"type": "boolean"},
+        "attribute": {
+          "oneOf": [{"$ref": "mahabharata_voyage.schema.json#/$defs/asset_id"}, {"type": "null"}]
+        },
+        "pose": {
+          "type": "string",
+          "enum": ["standing", "seated", "archer", "charioteer", "mace", "kneeling", "lying", "walking", "blessing"]
+        }
+      }
+    },
+    "asset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "display_name", "family", "glb", "bounds", "scale", "orientation", "materials", "animations", "fallback",
+        "provenance", "load_status", "instancing"
+      ],
+      "properties": {
+        "display_name": {"type": "string", "minLength": 1},
+        "family": {"type": "string", "enum": ["architecture", "character", "object", "environment"]},
+        "glb": {
+          "oneOf": [{"type": "string", "pattern": "^assets/models/[A-Za-z0-9_./-]+\\.glb$"}, {"type": "null"}]
+        },
+        "bounds": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["size"],
+          "properties": {
+            "size": {"type": "array", "items": {"type": "number", "minimum": 0}, "minItems": 3, "maxItems": 3}
+          }
+        },
+        "scale": {"type": "number", "exclusiveMinimum": 0},
+        "orientation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["forward", "up"],
+          "properties": {
+            "forward": {"type": "string", "pattern": "^[+-][xyz]$"},
+            "up": {"type": "string", "pattern": "^[+-][xyz]$"}
+          }
+        },
+        "materials": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["base", "accent", "emissive", "roughness", "metalness"],
+          "properties": {
+            "base": {"$ref": "#/$defs/hex_color"},
+            "accent": {"$ref": "#/$defs/hex_color"},
+            "emissive": {"oneOf": [{"$ref": "#/$defs/hex_color"}, {"type": "null"}]},
+            "roughness": {"$ref": "#/$defs/unit_interval"},
+            "metalness": {"$ref": "#/$defs/unit_interval"}
+          }
+        },
+        "animations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "procedural"],
+            "properties": {
+              "name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+              "procedural": {"type": "boolean"}
+            }
+          }
+        },
+        "fallback": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["factory", "params"],
+          "properties": {
+            "factory": {"$ref": "#/$defs/factory"},
+            "params": {"type": "object", "additionalProperties": true}
+          }
+        },
+        "provenance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["source", "author", "license"],
+          "properties": {
+            "source": {"type": "string", "minLength": 1},
+            "author": {"type": "string", "minLength": 1},
+            "license": {"type": "string", "minLength": 1}
+          }
+        },
+        "load_status": {"type": "string", "enum": ["procedural"]},
+        "instancing": {"type": "boolean"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"family": {"const": "character"}}, "required": ["family"]},
+          "then": {
+            "properties": {
+              "fallback": {
+                "properties": {
+                  "factory": {"const": "figure"},
+                  "params": {"$ref": "#/$defs/figure_params"}
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

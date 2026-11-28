@@ -1,0 +1,18 @@
+.bodhan-lang {
+  flex: 0 0 auto; max-width: 110px; padding: 0 8px; border-radius: 10px; cursor: pointer;
+  font: inherit; font-size: 14px; color: var(--ivory, #f3ecda);
+  background: var(--night-3, #161a35); border: 1px solid var(--gold-line, rgba(201,162,75,.4));
+}
+.bodhan-lang:focus-visible, .bodhan-mic:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--gold-faint, rgba(201,162,75,.25)); }
+.bodhan-lang option { background: #161a35; color: #f3ecda; }
+.bodhan-mic {
+  flex: 0 0 auto; width: 40px; display: grid; place-items: center; padding: 0; cursor: pointer; border-radius: 10px;
+  background: var(--night-3, #161a35); border: 1px solid var(--gold-line, rgba(201,162,75,.4)); color: var(--gold-soft, #e3c47a);
+}
+.bodhan-mic svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
+.bodhan-mic:hover { filter: brightness(1.15); }
+.bodhan-mic.is-rec { color: #fff; background: #b3261e; border-color: #b3261e; animation: bodhan-pulse 1.1s infinite; }
+.bodhan-mic.is-busy { opacity: .5; pointer-events: none; }
+@keyframes bodhan-pulse { 50% { box-shadow: 0 0 0 6px rgba(179,38,30,.3); } }
+.bodhan-toast { margin-top: 8px; padding: 10px 14px; border-radius: 10px; background: #2a1a1a; color: #f3ecda; border: 1px solid #b3261e; }
+@media (prefers-reduced-motion: reduce) { .bodhan-mic.is-rec { animation: none; } }

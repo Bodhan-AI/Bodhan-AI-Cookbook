@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Mahabharata · The Living Epic</title>
+  <meta name="description" content="A cinematic voyage through the Mahabharata. Every question opens another chapter; every answer is researched live from a curated knowledge graph.">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0B0E22">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230B0E22'/%3E%3Cg fill='none' stroke='%23C9A24B' stroke-width='2.4'%3E%3Ccircle cx='32' cy='32' r='22'/%3E%3Ccircle cx='32' cy='32' r='8'/%3E%3Cpath d='M32 10v44M10 32h44M16.4 16.4l31.2 31.2M47.6 16.4 16.4 47.6'/%3E%3C/g%3E%3C/svg%3E">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/css/voyage/base.css">
+  <link rel="stylesheet" href="/css/voyage/opening.css">
+  <link rel="stylesheet" href="/css/voyage/nav.css">
+  <link rel="stylesheet" href="/css/voyage/chapter.css">
+  <link rel="stylesheet" href="/css/voyage/hotspots.css">
+  <link rel="stylesheet" href="/css/voyage/views.css">
+  <link rel="stylesheet" href="/css/voyage/research.css">
+
+  <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+  "three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
+</head>
+<body class="is-opening view-journey">
+  <a class="skip-link" href="#stage-ui">Skip to the chapter</a>
+
+  <!-- World: WebGL canvas, 2D fallback backdrop and the scene-transition veil -->
+  <canvas id="world-canvas" aria-label="Three-dimensional scene of the current chapter" role="img"></canvas>
+  <div id="world-fallback" aria-hidden="true">
+    <div class="wf-sky"></div>
+    <div class="wf-stars"></div>
+    <div class="wf-sun"></div>
+    <svg class="wf-hills wf-hills--far" viewBox="0 0 1440 320" preserveAspectRatio="none"><path d="M0 220 C120 170 220 150 340 180 S560 120 700 150 S940 110 1080 160 S1320 140 1440 170 V320 H0Z"/></svg>
+    <svg class="wf-hills wf-hills--mid" viewBox="0 0 1440 320" preserveAspectRatio="none"><path d="M0 250 C160 200 300 230 460 205 S720 240 880 210 S1180 230 1300 205 S1400 215 1440 220 V320 H0Z"/></svg>
+    <svg class="wf-hills wf-hills--near" viewBox="0 0 1440 320" preserveAspectRatio="none"><path d="M0 290 C200 260 380 280 560 268 S900 290 1100 272 S1360 284 1440 278 V320 H0Z"/></svg>
+    <div class="wf-mist"></div>
+  </div>
+  <div id="transition-veil" aria-hidden="true"></div>
+
+  <!-- 3D-projected labels -->
+  <div id="hotspots" role="group" aria-label="Points of interest in the scene"></div>
+
+  <!-- Chrome -->
+  <header id="topnav" aria-label="Voyage navigation">
+    <div id="audio-controls"></div>
+  </header>
+  <nav id="chapter-rail" aria-label="Chapters of the voyage"></nav>
+  <section id="stage-ui" aria-label="Current chapter" tabindex="-1"></section>
+  <aside id="research" aria-label="Research"></aside>
+
+  <section id="views" aria-label="Explore the epic">
+    <section id="view-map" aria-label="Epic map"></section>
+    <section id="view-characters" aria-label="Characters"></section>
+    <section id="view-knowledge" aria-label="Knowledge"></section>
+    <section id="view-timeline" aria-label="Timeline"></section>
+  </section>
+
+  <!-- Opening sequence (also hosts the loading + data-error states) -->
+  <div id="opening" role="dialog" aria-modal="true" aria-label="Mahabharata — The Living Epic">
+    <div class="op-loading" role="status">
+      <span class="op-loading-mark" aria-hidden="true"></span>
+      <span class="op-loading-text">Unrolling the manuscript…</span>
+    </div>
+  </div>
+
+  <div id="modal-root"></div>
+  <div id="toast-root" role="status" aria-live="polite"></div>
+
+  <noscript>
+    <div class="noscript">This voyage needs JavaScript. The <a href="/classic">classic JARVIS interface</a> is also available.</div>
+  </noscript>
+
+  <!-- Charts (classic scripts, ordered before the module entry) -->
+  <script defer src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+  <script defer src="/js/renderers.js"></script>
+  <link rel="stylesheet" href="/bodhan/bodhan.css">
+  <script src="/bodhan/bodhan.js"></script>
+  <script type="module" src="/js/voyage/main.js"></script>
+</body>
+</html>

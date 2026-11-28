@@ -1,0 +1,583 @@
+{
+  "About This Knowledge Graph": {
+    "Purpose and Scope of This Graph": [
+      "This knowledge graph is a curated summary of the Sanskrit Mahabharata written for the Living Epic voyage; it is intended as the grounding the app uses when answering questions about the epic.",
+      "Every fact in this graph is a paraphrase and summary written for this app, not a quotation from any translation or edition of the Mahabharata.",
+      "The graph is organised in two levels: a top-level theme (for example 'Kuru Dynasty and Lineage') and descriptive subtopics, each holding short self-contained facts.",
+      "Where the Mahabharata's manuscript traditions disagree, this graph tries to say so explicitly with phrases such as 'in some versions', 'the Critical Edition omits' or 'popular retellings add'.",
+      "The graph describes what the epic narrates; it does not claim that the events, people or battles of the Mahabharata are historically verified.",
+      "Places are described 'as described in the epic'; modern locations are given only as traditional identifications, never as proven sites.",
+      "Interpretive and devotional readings (for example Krishna as an avatar of Vishnu) are reported as what the text or a tradition says, not as settled fact."
+    ],
+    "Provenance and Honesty Policy": [
+      "Provenance: the content of this graph is a summary compiled from general scholarly knowledge of the Mahabharata, chiefly the narrative as preserved in the Pune Critical Edition, with differences in other recensions and popular retellings flagged where known.",
+      "No quotation in this graph is presented as a verbatim translation; short Sanskrit terms (such as dharma, niyoga, akshauhini) are used as vocabulary only.",
+      "Numbers in this graph are only those widely reported for the text; where a number differs between editions or recensions, the variants are stated rather than one figure being chosen silently.",
+      "When a widely known story (for example Ganesha writing down the epic) is absent from the Critical Edition, this graph labels it as a later or variant addition rather than omitting it.",
+      "Users should treat this graph as a guide, and consult a full translation (for example of the Critical Edition) for exact wording."
+    ],
+    "Recensions and Manuscript Traditions": [
+      "The Mahabharata survives in many manuscripts that scholars group into two main recensions: a Northern recension and a Southern recension.",
+      "The Northern recension includes versions in the Sharada (Kashmiri), Nepali, Maithili, Bengali and Devanagari scripts.",
+      "The Southern recension includes versions in the Telugu, Grantha and Malayalam scripts and is generally fuller, with more added passages.",
+      "The 'vulgate' text familiar from older translations is essentially the Devanagari version transmitted with the late-17th-century commentary of Nilakantha Chaturdhara; vulgate-type texts were printed in 19th-century Calcutta and Bombay editions (the Bombay editions with Nilakantha's commentary).",
+      "The English translation by Kisari Mohan Ganguli (published 1883–1896) follows a vulgate-type Northern text, so it contains passages that the Critical Edition omits.",
+      "A Southern-recension edition was printed at Kumbakonam in the early 20th century and is larger than the Northern vulgate.",
+      "Because recensions add, omit and reorder passages, verse and chapter numbers differ between editions, and the same episode can have different details in different manuscripts.",
+      "Regional-language retellings (Tamil, Telugu, Kannada, Bengali, Odia, Javanese and others) are separate literary works that often add episodes not found in any Sanskrit manuscript."
+    ],
+    "The Critical Edition (BORI, Pune)": [
+      "The Critical Edition of the Mahabharata was produced by the Bhandarkar Oriental Research Institute (BORI) in Pune, India.",
+      "Critical Edition timeline: work begun 1919 | critical text completed 1966 | Harivamsha critical edition published 1969–1971.",
+      "V. S. Sukthankar is usually named as the first general editor of the Critical Edition, serving until his death in 1943; S. K. Belvalkar succeeded him, and P. L. Vaidya later became general editor and also edited the Harivamsha volumes.",
+      "The Critical Edition editors collated well over 1,000 manuscripts (a figure of about 1,200 or more is commonly reported) to reconstruct the oldest text recoverable from the surviving manuscripts.",
+      "The Critical Edition keeps in its main text only passages supported across the manuscript traditions; passages found in only some manuscripts were moved to footnotes and appendices.",
+      "The Critical Edition does not claim to recover an 'original' authorial Mahabharata; its editors described it as the oldest form reachable from the manuscript evidence.",
+      "The Critical Edition's text of the 18 parvas is commonly described as filling 19 volumes, published together with a large critical apparatus; the Harivamsha was edited separately, and index volumes followed.",
+      "Several modern English translations follow the Critical Edition, including the unfinished University of Chicago translation begun by J. A. B. van Buitenen and Bibek Debroy's complete translation."
+    ],
+    "Dating and Composition (Scholarly View)": [
+      "Most scholars think the Mahabharata grew over several centuries, with a commonly cited composition range of roughly 400 BCE to 400 CE.",
+      "Many scholars think the text reached something close to its present form by around the Gupta period (c. 4th–5th century CE), though precise dates are debated.",
+      "Panini's Sanskrit grammar (usually dated c. 5th–4th century BCE) mentions devotees of Vasudeva and Arjuna, which is often cited as early evidence for the epic's heroes being known.",
+      "An early 6th-century CE copper-plate inscription refers to the Mahabharata as a collection of 100,000 verses, showing that the large form was established by then.",
+      "Vedic texts mention Kuru kings named Parikshit and Janamejaya, but whether these are the same figures as the epic's Parikshit and Janamejaya is debated.",
+      "Traditional Indian chronology places the Kurukshetra war just before the start of the Kali Yuga, conventionally reckoned as 3102 BCE; this is a traditional reckoning, not a historically established date.",
+      "Some 19th- and 20th-century scholars proposed that a short core poem called 'Jaya' grew into a 'Bharata' and then the 'Mahabharata'; this layered model is a hypothesis built partly on statements in the Adi Parva, not a documented history.",
+      "Dating ranges: commonly cited composition window c. 400 BCE – c. 400 CE | traditional war date c. 3102 BCE (Kali Yuga reckoning, not historical consensus)."
+    ],
+    "Later Additions and Popular Variants to Watch For": [
+      "Ganesha as scribe: the story that Ganesha wrote the epic as Vyasa dictated is absent from the Critical Edition and appears only in some manuscripts; it is treated as a later addition.",
+      "Draupadi's sari: the Critical Edition keeps the miracle of Draupadi's garment being endlessly replaced during the dice-hall assault, but her explicit prayer to Krishna and Krishna's direct intervention appear in other manuscripts and in popular retellings, not in the Critical Edition text.",
+      "Barbarika, the warrior who watches the whole war as a severed head, is not in the Sanskrit Mahabharata; his story comes from the Skanda Purana and regional folk traditions.",
+      "Karna's natural armour and earrings (kavacha and kundala) are part of the epic's core story, but many details about them, and Karna's curses, are elaborated differently in different versions and retellings.",
+      "The Jaimini Ashvamedha is a separate Sanskrit work attributed to Vyasa's disciple Jaimini that retells the horse sacrifice with many episodes not found in the Mahabharata.",
+      "Popular television and comic-book retellings often merge Puranic, regional and modern invented material with the Sanskrit epic; this graph flags such material where known.",
+      "Some versions say Gandhari's boon of a hundred sons came from Shiva; in the Critical Edition the boon is granted by Vyasa.",
+      "Accounts of Bhishma being bound by oath to serve the throne of Hastinapura itself are a popular (especially television) framing; in the epic his vows are to renounce the kingship and to remain celibate, and his loyalty to the throne is presented as duty rather than a sworn third vow.",
+      "Draupadi's taunt at the Maya Sabha that 'the son of a blind man is also blind' is a popular addition; the Critical Edition describes Bhima and others laughing at Duryodhana's mishaps in the hall but does not contain that taunt.",
+      "Popular retellings describe the svayamvara target as a revolving fish that Arjuna shoots while watching its reflection in water; the Critical Edition speaks of a target set high behind a mechanical device, and the fish-and-reflection details belong to other versions."
+    ],
+    "Retellings Beyond the Sanskrit Text": [
+      "The Telugu Andhra Mahabharatam was composed by three poets (the Kavitraya): Nannaya (11th century), Tikkana (13th century) and Errana (14th century).",
+      "The Kannada poet Pampa composed the Vikramarjuna Vijaya (also called Pampa Bharata) in the 10th century, presenting Arjuna as its hero.",
+      "The Tamil Villi Bharatam of Villiputturar (c. 14th century) is a major Tamil retelling with its own episodes and emphases.",
+      "The Odia Mahabharata of Sarala Das (15th century) and the Bengali Mahabharata of Kashiram Das (usually dated to the late 16th or early 17th century) are major regional-language retellings.",
+      "The Mughal emperor Akbar commissioned a Persian translation called the Razmnama ('Book of War') in the 1580s.",
+      "Javanese and Balinese traditions, including wayang shadow puppetry, retell the Mahabharata with distinct characters such as the comic Punakawan servants not found in the Sanskrit text."
+    ],
+    "Key Terms and Spelling Conventions": [
+      "Parva means 'book' or 'section'; the Mahabharata has 18 major parvas, traditionally subdivided into 100 sub-parvas (upaparvas).",
+      "Adhyaya means 'chapter'; shloka refers to a verse, especially the 32-syllable anushtubh verse that makes up most of the epic.",
+      "Itihasa ('thus indeed it was') is the traditional genre label of the Mahabharata and the Ramayana, usually rendered 'history' or 'traditional narrative'.",
+      "Names are spelled here in simplified English transliteration (for example Yudhishthira, Duhshasana or Dushasana, Draupadi); scholarly IAST spellings use diacritics such as Yudhiṣṭhira.",
+      "The Kauravas are, strictly, all descendants of Kuru, which includes the Pandavas; in common usage 'Kauravas' means the hundred sons of Dhritarashtra.",
+      "The Pandavas are the five sons of Pandu (legally), fathered by gods through Kunti and Madri.",
+      "Niyoga is the ancient custom described in the epic by which a widow or the wife of an incapable husband could bear a son by an appointed man so that the lineage continued."
+    ],
+    "How to Read Numbers in This Graph": [
+      "Numeric facts use the compact form 'Label: A n | B m | ...' so that a chart model can read them directly.",
+      "Counts that differ between editions are given with each variant named, for example 'Verse count: Critical Edition n | vulgate m'.",
+      "Traditional figures (such as 100,000 verses or 100 sub-parvas) are labelled traditional; they are not exact counts of any surviving edition.",
+      "Chapter counts in this graph follow the Critical Edition unless stated otherwise.",
+      "Durations in the story (such as 13 years of exile or 18 days of war) are narrative durations stated by the epic, not historical measurements."
+    ],
+    "Map of This Graph's Top-Level Themes": [
+      "Foundational themes: About This Knowledge Graph | Structure of the Epic | Frame Narratives and Narrators | Kuru Dynasty and Lineage | Places of the Epic.",
+      "Character themes: Characters — Pandava Side | Characters — Kaurava Side | Characters — Elders, Teachers and Others | Krishna and the Yadavas.",
+      "Story themes in order: Youth, Education and Rivalry | Draupadi and the Swayamvara | Indraprastha and the Rajasuya | The Dice Game | Exile in the Forest | The Year in Virata | Diplomacy and the Road to War.",
+      "War themes: Armies and Alliances | The Bhagavad Gita | The Kurukshetra War — Day by Day | Battle Formations and Strategy | Deaths of the Great Warriors.",
+      "After-war themes: Aftermath of the War | Teachings After the War | The Final Journey.",
+      "Reflective themes: Concepts and Themes | Interpretations, Traditions and Debates."
+    ]
+  },
+  "Structure of the Epic": {
+    "The 18 Parvas in Order (Overview)": [
+      "The Mahabharata is divided into 18 major books called parvas.",
+      "Parva order: 1 Adi | 2 Sabha | 3 Vana (Aranyaka) | 4 Virata | 5 Udyoga | 6 Bhishma | 7 Drona | 8 Karna | 9 Shalya | 10 Sauptika | 11 Stri | 12 Shanti | 13 Anushasana | 14 Ashvamedhika | 15 Ashramavasika | 16 Mausala | 17 Mahaprasthanika | 18 Svargarohana.",
+      "Parva name meanings: Adi 'the beginning' | Sabha 'the assembly hall' | Vana or Aranyaka 'the forest' | Virata 'King Virata' | Udyoga 'the effort or preparation' | Bhishma, Drona, Karna, Shalya named after successive Kaurava commanders | Sauptika 'the sleepers' | Stri 'the women' | Shanti 'peace' | Anushasana 'instruction' | Ashvamedhika 'the horse sacrifice' | Ashramavasika 'the hermitage dwelling' | Mausala 'the clubs' | Mahaprasthanika 'the great departure' | Svargarohana 'ascent to heaven'.",
+      "Parvas by narrative phase: origins and youth (Adi) | rise, fall and exile (Sabha, Vana) | hidden year (Virata) | diplomacy (Udyoga) | war (Bhishma, Drona, Karna, Shalya, Sauptika) | grief and instruction (Stri, Shanti, Anushasana) | restoration and old age (Ashvamedhika, Ashramavasika) | endings (Mausala, Mahaprasthanika, Svargarohana).",
+      "Number of parvas per phase: Pre-war 5 | War 5 | Post-war 8 (the Sauptika, counted here among the war books, narrates the night attack after the 18th day of battle).",
+      "The Shanti Parva is the longest parva and the Mahaprasthanika Parva is the shortest in the Critical Edition.",
+      "The Harivamsha ('lineage of Hari', i.e. Krishna) is not counted among the 18 parvas; it is treated as a khila, a supplement or appendix to the Mahabharata."
+    ],
+    "Sub-parvas: The Traditional 100": [
+      "Tradition divides the 18 parvas into 100 sub-parvas (upaparvas); the list of 100 is given in the Parvasamgraha, the second chapter of the Adi Parva.",
+      "The traditional list of 100 sub-parvas is usually understood to end with the Harivamsha (including its Bhavishya section), which is one reason the Harivamsha is regarded as belonging to the larger Mahabharata.",
+      "Modern Critical-Edition-based listings of the 18 parvas give 98 sub-parvas, with the Harivamsha counted separately to complete the traditional 100.",
+      "Sub-parvas per parva (Critical-Edition-based listing totalling 98): Adi 19 | Sabha 9 | Vana 16 | Virata 4 | Udyoga 11 | Bhishma 5 | Drona 8 | Karna 1 | Shalya 4 | Sauptika 3 | Stri 5 | Shanti 3 | Anushasana 2 | Ashvamedhika 2 | Ashramavasika 3 | Mausala 1 | Mahaprasthanika 1 | Svargarohana 1.",
+      "The sub-parva divisions in printed editions do not always match the Parvasamgraha list exactly, so counts other than 100 or 98 may be found in different editions.",
+      "Examples of named sub-parvas: the Bhagavad Gita Parva lies within the Bhishma Parva; the Rajadharma, Apaddharma and Mokshadharma sub-parvas make up the Shanti Parva; the Anugita Parva lies within the Ashvamedhika Parva."
+    ],
+    "Size and Length of the Epic": [
+      "The Mahabharata is traditionally called the shatasahasri samhita, the 'collection of one hundred thousand verses'.",
+      "Size estimates: traditional figure roughly 100,000 shlokas | Critical Edition about 75,000–90,000 verses depending on how verses and prose are counted | Bharata 'without the subsidiary tales' 24,000 verses (as the Adi Parva itself states).",
+      "The longest versions of the Mahabharata are commonly said to total about 1.8 million words, which is why the epic is often described as roughly ten times the length of the Iliad and the Odyssey combined; such comparisons are approximate.",
+      "The Mahabharata is usually described as the longest epic poem known; its exact length depends on which recension and which counting method is used.",
+      "Critical Edition chapters (adhyayas) per parva: Adi 225 | Sabha 72 | Vana 299 | Virata 67 | Udyoga 197 | Bhishma 117 | Drona 173 | Karna 69 | Shalya 64 | Sauptika 18 | Stri 27 | Shanti 353 | Anushasana 154 | Ashvamedhika 96 | Ashramavasika 47 | Mausala 9 | Mahaprasthanika 3 | Svargarohana 5.",
+      "Critical Edition total chapters: 1,995 across the 18 parvas (the sum of the per-parva figures); vulgate editions divide the text into somewhat more chapters, so chapter numbers differ between editions.",
+      "The Adi Parva states that Vyasa took three years to compose the epic.",
+      "Passages in the opening chapter of vulgate texts make a mythic claim that Vyasa composed a far larger version for gods, ancestors and celestial beings, of which only 100,000 verses circulate among humans; this is a statement of cosmic scale, not a textual fact, and such passages are not uniform across manuscripts."
+    ],
+    "Parvas 1–5: From Origins to the Eve of War": [
+      "Adi Parva (Book 1): the frame stories, the origins of the Kuru dynasty, Shantanu and Bhishma, the births of the Pandavas, Kauravas and Karna, the princes' education under Drona, the lac-house plot, Draupadi's swayamvara, the founding of Indraprastha and the burning of the Khandava forest; it also contains tales such as Shakuntala, Yayati, Garuda, the churning of the ocean and Astika.",
+      "Sabha Parva (Book 2): the assembly hall built by the demon architect Maya, the killing of Jarasandha, Yudhishthira's Rajasuya sacrifice, the killing of Shishupala, the dice game, Draupadi's humiliation, the second dice game and the sentence of exile.",
+      "Vana or Aranyaka Parva (Book 3): the twelve years of forest exile, Arjuna's quest for divine weapons including the Pashupata, the long pilgrimage to sacred fords, embedded tales such as Nala and Damayanti, Savitri and Satyavan and the Ramopakhyana, Jayadratha's attempted abduction of Draupadi, Karna's gift of his armour to Indra and the Yaksha's questions.",
+      "Virata Parva (Book 4): the thirteenth year spent in disguise at King Virata's court in Matsya, Bhima's killing of Kichaka, the Kaurava cattle raid repelled by Arjuna as Brihannala, and the marriage of Uttara to Abhimanyu.",
+      "Udyoga Parva (Book 5): preparations for war, Duryodhana and Arjuna seeking Krishna's help, embassies of peace including Sanjaya's and Krishna's, Vidura's counsel, Krishna's and Kunti's meetings with Karna, Bhishma's account of Amba, and the assembly of the armies at Kurukshetra."
+    ],
+    "Parvas 6–10: The War Books": [
+      "Bhishma Parva (Book 6): the opening ten days of the Kurukshetra war under Bhishma's command, including the Bhagavad Gita before the fighting and Bhishma's fall onto a bed of arrows.",
+      "Drona Parva (Book 7): days 11–15 under Drona's command, including Abhimanyu's death in the chakravyuha formation, Arjuna's killing of Jayadratha, Karna's killing of Ghatotkacha in a night battle, and Drona's death after hearing the half-true report of Ashvatthama's death.",
+      "Karna Parva (Book 8): days 16–17 under Karna's command, with Shalya as his charioteer, Bhima's killing of Duhshasana and Arjuna's killing of Karna when Karna's chariot wheel is stuck.",
+      "Shalya Parva (Book 9): day 18 under Shalya's command, the deaths of Shalya and Shakuni, Duryodhana's hiding in a lake, Balarama's pilgrimage along the Sarasvati, and the mace duel in which Bhima breaks Duryodhana's thigh.",
+      "Sauptika Parva (Book 10): Ashvatthama's night attack on the sleeping Pandava camp with Kripa and Kritavarma, the deaths of Dhrishtadyumna and Draupadi's five sons, and the clash of divine weapons that ends with Krishna's curse on Ashvatthama.",
+      "War days per parva: Bhishma 10 | Drona 5 | Karna 2 | Shalya 1 | Sauptika 0 (the night after day 18).",
+      "Kaurava commanders and days of command: Bhishma 10 (days 1–10) | Drona 5 (days 11–15) | Karna 2 (days 16–17) | Shalya 1 (day 18); after Duryodhana's defeat, the dying Duryodhana appoints Ashvatthama commander for the night attack.",
+      "The Pandava army's supreme commander throughout the war is Dhrishtadyumna, proposed by Arjuna and endorsed by Krishna in the Udyoga Parva, with seven generals leading the seven Pandava akshauhinis.",
+      "The Bhagavad Gita occupies chapters 23–40 of the Bhishma Parva in the Critical Edition (chapters 25–42 in the vulgate numbering)."
+    ],
+    "Parvas 11–18: Aftermath and Endings": [
+      "Stri Parva (Book 11): the women of both sides lament on the battlefield, Gandhari curses Krishna, the funeral rites are performed, and Kunti reveals that Karna was her son.",
+      "Shanti Parva (Book 12): the grieving Yudhishthira is instructed by Bhishma on the duties of kings (Rajadharma), conduct in emergencies (Apaddharma) and liberation (Mokshadharma).",
+      "Anushasana Parva (Book 13): Bhishma's further instruction on gifts, duties and devotion, including the Vishnu Sahasranama (thousand names of Vishnu), followed by Bhishma's death.",
+      "Ashvamedhika Parva (Book 14): Yudhishthira's horse sacrifice, Krishna's further teaching to Arjuna known as the Anugita, Krishna's revival of the stillborn Parikshit, and Arjuna's campaign following the sacrificial horse.",
+      "Ashramavasika Parva (Book 15): Dhritarashtra, Gandhari, Kunti and Vidura retire to the forest; Vyasa makes the dead warriors appear for one night; the three elders later die in a forest fire.",
+      "Mausala Parva (Book 16): the Yadavas destroy one another in a drunken brawl at Prabhasa, Balarama and Krishna depart from the world, and Dwaraka is swallowed by the sea.",
+      "Mahaprasthanika Parva (Book 17): the Pandavas and Draupadi renounce the kingdom and walk toward the Himalaya; all fall on the way except Yudhishthira and the dog that follows him.",
+      "Svargarohana Parva (Book 18): Yudhishthira reaches heaven, is shown a vision of his brothers in hell and Duryodhana in heaven, passes this final test and is united with his family in a divine form; the frame narration then closes."
+    ],
+    "Time Spans Within the Story": [
+      "Story durations: exile in the forest 12 years | incognito year 1 | total exile 13 years | Kurukshetra war 18 days.",
+      "Bhishma lies on his bed of arrows for 58 nights before choosing to die, according to the Anushasana Parva.",
+      "The Mausala Parva opens in the 36th year after the war, fulfilling Gandhari's curse that the Yadavas would perish after 36 years.",
+      "Dhritarashtra lives in Hastinapura under Yudhishthira's rule for about 15 years after the war before retiring to the forest.",
+      "Gandhari's pregnancy lasts two years in the epic's account before she delivers a mass of flesh that Vyasa divides into her children.",
+      "When Arjuna was recognised during the cattle raid, Duryodhana claimed the thirteenth year was not yet over; in the Virata Parva Bhishma calculates, allowing for intercalary months, that the full term had already been completed.",
+      "Post-war milestones: Yudhishthira's coronation | Bhishma's death after 58 nights | horse sacrifice | elders' retirement after about 15 years | Yadava destruction in year 36 | final journey."
+    ],
+    "The Recurring Number Eighteen": [
+      "The number eighteen recurs in the Mahabharata's structure and story, a pattern often noted by commentators.",
+      "Eighteen in the epic: parvas 18 | days of war 18 | akshauhinis (army divisions) 18 | chapters of the Bhagavad Gita 18.",
+      "Armies at Kurukshetra: Kaurava 11 akshauhinis | Pandava 7 akshauhinis | total 18.",
+      "One akshauhini as defined in the Adi Parva: chariots 21,870 | elephants 21,870 | horses 65,610 | foot soldiers 109,350.",
+      "Units in one akshauhini (sum of the Adi Parva figures): 218,700 | in 18 akshauhinis by simple multiplication: 3,936,600; the multiplied total is arithmetic, not a figure the epic states, and these numbers are traditional and symbolic rather than historical.",
+      "Whether the recurrence of eighteen is deliberate symbolism or a product of later editorial arrangement is a matter of interpretation."
+    ],
+    "Didactic and Philosophical Sections": [
+      "The Bhagavad Gita, Krishna's teaching to Arjuna before the war, is part of the Bhishma Parva; both the vulgate and the Critical Edition give it 700 verses in 18 chapters (a verse found in some manuscripts and later tradition speaks of 745 verses).",
+      "The Viduraniti, Vidura's counsel on statecraft and ethics to Dhritarashtra, and the Sanatsujatiya, a dialogue on death and the self, are in the Udyoga Parva.",
+      "The Yaksha Prashna, a riddle-dialogue between Yudhishthira and a yaksha (later revealed as the god Dharma), is near the end of the Vana Parva.",
+      "The Shanti and Anushasana Parvas together form the largest body of instruction in the epic, delivered mainly by Bhishma from his bed of arrows.",
+      "The Anugita in the Ashvamedhika Parva is a later teaching by Krishna to Arjuna after Arjuna says he has forgotten the Gita.",
+      "Large didactic sections are often considered by scholars to be among the later layers of the text, though this is debated."
+    ],
+    "Embedded Tales (Upakhyanas)": [
+      "The Mahabharata contains many embedded stories called upakhyanas, told to characters by sages and elders.",
+      "Shakuntala and Dushyanta, whose son Bharata gives his name to the Bharata lineage, is told in the Adi Parva.",
+      "Nala and Damayanti is told to the exiled Yudhishthira in the Vana Parva by the sage Brihadashva, as the story of another king who lost his kingdom at dice.",
+      "Savitri and Satyavan, the story of a wife who wins back her husband's life from Yama, is told by Markandeya in the Vana Parva.",
+      "The Ramopakhyana, a shorter version of the story of Rama, is told by Markandeya in the Vana Parva.",
+      "Other notable embedded tales include Yayati, Garuda, the churning of the ocean, Astika and the snake sacrifice, Rishyashringa, Shibi and the dove, and the flood story of Manu and the fish.",
+      "The Adi Parva notes that the Bharata core is 24,000 verses 'without the subsidiary tales', implying that the upakhyanas account for much of the epic's size."
+    ],
+    "Verse Form and Style": [
+      "Most of the Mahabharata is composed in the anushtubh shloka metre of four eight-syllable quarters (32 syllables per verse).",
+      "Longer trishtubh verses (four eleven-syllable quarters) appear especially in older-sounding narrative and battle passages.",
+      "The epic includes some prose passages, notably in the Adi Parva genealogies and some didactic sections.",
+      "The Mahabharata is largely dialogue: nearly every passage is framed as one character speaking to another, beginning with formulas such as 'Vaishampayana said' or 'Sanjaya said'."
+    ],
+    "Harivamsha: The Appendix (Khila)": [
+      "The Harivamsha is regarded as a khila (supplement or appendix) of the Mahabharata, not one of its 18 parvas.",
+      "The Harivamsha narrates the genealogy of the Yadavas and the life of Krishna, including his childhood among the cowherds of Vraja, which the main Mahabharata hardly covers.",
+      "Vulgate editions divide the Harivamsha into three parts: Harivamsha Parva, Vishnu Parva and Bhavishya Parva.",
+      "Harivamsha size: vulgate about 16,000 verses (a figure of 16,374 is commonly given) | Critical Edition about 6,000 verses (about 6,073 commonly given).",
+      "The Harivamsha Critical Edition was edited by P. L. Vaidya and published by BORI in 1969–1971.",
+      "Scholars generally consider the Harivamsha to be later than much of the Mahabharata, though parts of it are old."
+    ],
+    "The Epic's Description of Itself": [
+      "The Mahabharata calls itself an itihasa, a traditional narrative of what happened, and also a treatise on dharma, artha (prosperity), kama (desire) and moksha (liberation).",
+      "The Mahabharata is often called the 'fifth Veda'; the Adi Parva describes Vyasa teaching the Vedas with the Mahabharata as the fifth, and the title is often explained by the epic being open to listeners excluded from Vedic study.",
+      "The epic claims a comprehensive scope: in paraphrase, whatever is found here may be found elsewhere, but what is not found here is found nowhere.",
+      "The Adi Parva opens with two summaries of the whole work: the Anukramanika (table of contents, chapter 1) and the Parvasamgraha (summary of the books, chapter 2).",
+      "The title 'Mahabharata' is explained in the text as 'the great (story of the) Bharatas', and also, by a playful etymology, as great in size and weight.",
+      "The epic is also traditionally called 'Jaya' ('victory'), a name used at the start of many recitations."
+    ]
+  },
+  "Frame Narratives and Narrators": {
+    "Overview of the Nested Frames": [
+      "The Mahabharata is told as a story within a story within a story; each layer has its own narrator and listener.",
+      "Outer frame: the bard Ugrashravas (called Sauti, 'son of the charioteer-bard') tells the epic to the sage Shaunaka and other sages at a twelve-year sacrifice in the Naimisha forest.",
+      "Middle frame: Ugrashravas repeats what he heard Vaishampayana recite to King Janamejaya during Janamejaya's snake sacrifice.",
+      "Inner frames: within Vaishampayana's narration, characters such as Sanjaya, Markandeya, Bhishma and many sages narrate further stories to other characters.",
+      "Narration layers: author Vyasa | Vaishampayana to Janamejaya | Ugrashravas to Shaunaka at Naimisharanya | Sanjaya to Dhritarashtra for the war | many embedded narrators.",
+      "Because of the frames, the epic is presented as an oral recitation passed from teller to teller, not as a written book.",
+      "The frames make Vyasa both the author of the epic and a participant in its story, since he is the biological grandfather of the Pandavas and Kauravas."
+    ],
+    "Vyasa: Author and Participant": [
+      "Vyasa, called Krishna Dvaipayana, is traditionally the composer of the Mahabharata; 'Krishna' refers to his dark complexion and 'Dvaipayana' to his birth on an island in the Yamuna river.",
+      "Vyasa is the son of the sage Parashara and Satyavati, born before Satyavati's marriage to King Shantanu.",
+      "Vyasa is also called Veda Vyasa ('arranger of the Vedas') because tradition credits him with dividing the Veda into its branches.",
+      "At his mother Satyavati's request, Vyasa fathered Dhritarashtra, Pandu and Vidura by niyoga, making him the biological grandfather of the Pandavas and Kauravas.",
+      "Vyasa appears repeatedly in the story to advise, console and warn the characters, for example dividing Gandhari's embryo into a hundred and one parts and granting Sanjaya divine sight.",
+      "Vyasa teaches the Mahabharata to his disciples and his son Shuka, and at Janamejaya's snake sacrifice he asks his disciple Vaishampayana to recite it.",
+      "The Adi Parva says Vyasa took three years to compose the epic.",
+      "In later (largely post-epic, Puranic and popular) tradition, Vyasa is counted among the chiranjivins, beings who live on through the ages."
+    ],
+    "Janamejaya and the Snake Sacrifice": [
+      "Janamejaya is a Kuru king, the son of Parikshit, grandson of Abhimanyu and great-grandson of Arjuna.",
+      "Janamejaya's father Parikshit died from the bite of the serpent king Takshaka, fulfilling a curse laid on him by Shringin, son of the sage Shamika, after Parikshit insulted Shamika by draping a dead snake over his shoulders.",
+      "Urged on by the sage Utanka, who had his own grievance against Takshaka, Janamejaya performed a snake sacrifice (sarpa-sattra) designed to draw all serpents into the fire.",
+      "The snake sacrifice was halted by the young sage Astika, son of the sage Jaratkaru and the naga woman Jaratkaru (sister of the serpent king Vasuki), who won a boon from Janamejaya to stop it.",
+      "Vyasa came to Janamejaya's sacrifice with his disciples, and Janamejaya asked to hear the story of his ancestors, the Pandavas and Kauravas.",
+      "Vaishampayana recited the Mahabharata to Janamejaya in the intervals of the sacrificial rite.",
+      "Janamejaya repeatedly interrupts Vaishampayana with questions, which gives the epic its dialogue form ('Janamejaya said ... Vaishampayana said ...').",
+      "The background to the snake sacrifice (Utanka's grievance, the origin of the serpents, Parikshit's death and Astika's intervention) is told directly by Ugrashravas to the sages in the opening sub-parvas of the Adi Parva (the Paushya, Pauloma and Astika sub-parvas), before Vaishampayana's recitation begins."
+    ],
+    "Vaishampayana: Vyasa's Disciple and Reciter": [
+      "Vaishampayana is a disciple of Vyasa who recites the Mahabharata to King Janamejaya at the snake sacrifice.",
+      "Most of the Mahabharata as we have it is formally Vaishampayana's narration, introduced by the formula 'Vaishampayana said'.",
+      "Vaishampayana is also associated in Vedic tradition with the Black Yajurveda (Krishna Yajurveda) as its teacher.",
+      "Vaishampayana's recitation follows the order of events from the Kuru origins to the Pandavas' ascent to heaven.",
+      "Within Vaishampayana's telling, the war books are largely given as Sanjaya's report to Dhritarashtra, so the listener hears the war through two narrators at once."
+    ],
+    "Ugrashravas Sauti at Naimisharanya": [
+      "Ugrashravas is a bard (suta), son of Lomaharshana, and is often called Sauti; he is the narrator of the outermost frame.",
+      "Ugrashravas arrives at the Naimisha forest (Naimisharanya), where the sage Shaunaka and other sages are performing a twelve-year sacrifice (sattra).",
+      "Ugrashravas tells the sages that he heard the Mahabharata recited by Vaishampayana at Janamejaya's snake sacrifice, and then retells it for them.",
+      "The Adi Parva begins with Ugrashravas greeting the sages and summarising the work, before the narration passes to Vaishampayana's telling.",
+      "The Naimisha forest frame with Ugrashravas and Shaunaka is also used by several Puranas, which present themselves as told by Lomaharshana or Ugrashravas to the same sages.",
+      "Some scholars see the Ugrashravas-Shaunaka frame as a later Bhargava (descendants of Bhrigu) layer added around the older Vaishampayana-Janamejaya frame; this is a scholarly hypothesis."
+    ],
+    "Sanjaya and the Narration of the War": [
+      "Sanjaya is the charioteer and counsellor of the blind king Dhritarashtra.",
+      "Vyasa offered Dhritarashtra sight to watch the war; Dhritarashtra declined, and Vyasa instead granted Sanjaya divine sight so he could see and report all events of the battle.",
+      "In the Bhishma Parva, Sanjaya first reports to Dhritarashtra that Bhishma has fallen (on day 10) and then narrates the first ten days of the war in flashback.",
+      "The Bhagavad Gita is presented as Sanjaya reporting to Dhritarashtra the conversation between Krishna and Arjuna.",
+      "Sanjaya's narration of the war continues through the Drona, Karna and Shalya Parvas into the Sauptika Parva; according to the Sauptika Parva, his divine sight leaves him when Duryodhana dies.",
+      "Sanjaya survives the war and later accompanies Dhritarashtra, Gandhari and Kunti to the forest; he escapes the forest fire that kills them, according to the Ashramavasika Parva.",
+      "Sanjaya frequently speaks frankly to Dhritarashtra, telling him that his own indulgence of Duryodhana caused the disaster."
+    ],
+    "Ganesha as Scribe — a Later Addition": [
+      "A popular story says that Vyasa dictated the Mahabharata and the elephant-headed god Ganesha wrote it down.",
+      "In this story Ganesha agrees on condition that Vyasa never pauses, and Vyasa counters that Ganesha must understand every verse before writing it, so Vyasa composes difficult verses to gain time.",
+      "The Ganesha-as-scribe episode is absent from the Critical Edition; it appears only in some manuscripts of the Adi Parva and was relegated by the editors to the critical apparatus.",
+      "Scholars consider the Ganesha episode a later addition; it conflicts with the epic's own presentation of itself as an oral recitation passed from teller to teller.",
+      "The Ganesha story is nonetheless widely known in India and appears in most popular retellings, art and television adaptations.",
+      "The idea of Vyasa's deliberately difficult verses connects to a statement in the vulgate Adi Parva about 8,800 riddling verses (kuta-shlokas) that only Vyasa, his son Shuka and perhaps Sanjaya understand; in vulgate texts this statement sits beside the Ganesha passage."
+    ],
+    "Vyasa's Disciples and Parallel Transmissions": [
+      "Vyasa's disciples in the Mahabharata tradition include Sumantu, Jaimini, Paila, Vaishampayana and his son Shuka.",
+      "The epic says Vyasa taught the Mahabharata to these disciples; passages (notably in vulgate texts) add that other reciters told it to gods, ancestors and celestial beings, while Vaishampayana's version is the one told among humans.",
+      "The Jaimini Bharata is attributed to Vyasa's disciple Jaimini, but only its Ashvamedha portion (the Jaimini Ashvamedha) survives as a separate later work.",
+      "Shuka, Vyasa's son, is famed as a renunciant and is the traditional narrator of the Bhagavata Purana, a separate text.",
+      "The Adi Parva notes that some begin the story with Manu, some with Astika and some with Uparichara Vasu, which suggests that several recitation traditions existed."
+    ],
+    "Other Narrators Within the Epic": [
+      "Markandeya, an ancient long-lived sage, narrates many stories to the exiled Pandavas in the Vana Parva, including Savitri, the Ramopakhyana and the fish who saved Manu.",
+      "Brihadashva tells Yudhishthira the story of Nala and Damayanti in the Vana Parva.",
+      "Lomasha, a sage who accompanies the Pandavas on their pilgrimage, tells the stories of the holy places they visit, including Rishyashringa.",
+      "Narada, the travelling divine sage, visits the Pandavas several times and tells stories such as the account of Sunda and Upasunda to warn them about quarrelling over Draupadi.",
+      "Bhishma narrates most of the Shanti and Anushasana Parvas, answering Yudhishthira's questions from his bed of arrows.",
+      "Krishna is the speaker of the Bhagavad Gita and the Anugita.",
+      "Vidura counsels Dhritarashtra in the Viduraniti, and the sage Sanatsujata teaches him about death and the self."
+    ],
+    "Three Beginnings and Self-Referential Claims": [
+      "The Adi Parva itself says the Bharata may begin in three places: with Manu, with Astika, or with Uparichara Vasu.",
+      "The Adi Parva distinguishes a 24,000-verse Bharata without the subsidiary tales from the larger work with them.",
+      "The vulgate Adi Parva mentions 8,800 riddling verses (kuta-shlokas) whose meaning is hard to grasp; some modern writers have taken this number as the size of an original 'Jaya' poem, but that reading is speculative and not supported by the text.",
+      "Epic size statements (Adi Parva; the 8,800 figure from the vulgate): riddling verses 8,800 | Bharata core 24,000 verses | full work about 100,000 verses.",
+      "The epic describes the merit gained by hearing it recited, a common feature of texts intended for public recitation.",
+      "At the end of the Svargarohana Parva the narration returns to Janamejaya's sacrifice and to Ugrashravas and the sages, closing the frames."
+    ]
+  },
+  "Kuru Dynasty and Lineage": {
+    "Lunar Dynasty Ancestry: From Soma to Kuru": [
+      "The Kurus belong to the lunar dynasty (Chandravamsha), which traces descent from Soma, the Moon.",
+      "Lunar dynasty outline: Soma (Moon) → Budha (with Ila) → Pururavas (with the apsara Urvashi) → Ayu → Nahusha → Yayati → Puru → ... → Dushyanta → Bharata → ... → Hastin → ... → Kuru → ... → Pratipa → Shantanu.",
+      "Yayati had five sons: Yadu and Turvasu by Devayani, and Druhyu, Anu and Puru by Sharmishtha.",
+      "Puru, Yayati's youngest son, took on his father's old age and was rewarded with the kingdom; his line, the Pauravas, leads to the Kurus.",
+      "Yadu, Yayati's eldest son, founded the Yadava line into which Krishna and Kunti were born, so the Kurus and Yadavas share descent from Yayati.",
+      "Bharata, son of King Dushyanta and Shakuntala, gives his name to the Bharata lineage; the epic's title means 'the great (tale of the) Bharatas'.",
+      "Hastin, a later descendant, is traditionally said to have founded Hastinapura, which takes his name.",
+      "The Adi Parva gives two genealogies of the Puru-Kuru line (one in verse, one in prose) that do not fully agree, so the names between Bharata and Shantanu vary."
+    ],
+    "Kuru, Pratipa and the Kings Before Shantanu": [
+      "Kuru, son of King Samvarana and Tapati (a daughter of the Sun), is the ancestor from whom the Kuru dynasty takes its name.",
+      "Kuru is said to have tilled and sanctified the field that became Kurukshetra, 'the field of Kuru'.",
+      "King Pratipa, a later Kuru, had three sons: Devapi, Bahlika and Shantanu.",
+      "Devapi, Pratipa's eldest son, was set aside from the throne because of a skin disease and became an ascetic.",
+      "Bahlika, Pratipa's second son, went to live with his mother's kin; his son Somadatta and grandson Bhurishravas later fight for the Kauravas.",
+      "Shantanu, Pratipa's youngest son, inherited the throne of Hastinapura.",
+      "Bahlika survives into the Kurukshetra war as the eldest warrior on the field and is killed by Bhima.",
+      "In the Adi Parva, Shantanu is the rebirth of King Mahabhisha, who was cursed by Brahma to be born as a mortal for gazing at the river goddess Ganga in heaven."
+    ],
+    "Shantanu, Ganga and the Eight Vasus": [
+      "King Shantanu met the goddess Ganga in human form beside the river and asked her to marry him.",
+      "Ganga agreed to marry Shantanu on condition that he never question or oppose anything she did; if he did, she would leave.",
+      "Ganga drowned each of their first seven sons in the river at birth, and Shantanu kept silent to honour the promise.",
+      "When Ganga was about to drown the eighth son, Shantanu protested; Ganga then revealed that the sons were the eight Vasus under a curse, and she departed with the child.",
+      "Ganga's sons: born 8 | returned to heaven by drowning 7 | survived 1 (Devavrata, later Bhishma).",
+      "Years later, Ganga returned the grown son, Devavrata, to Shantanu as a prince trained in scripture and arms.",
+      "Shantanu made Devavrata heir apparent (yuvaraja) before meeting Satyavati.",
+      "The Vasus are a group of eight gods; in the Mahabharata they are listed as Dhara, Dhruva, Soma, Ahah, Anila, Anala, Pratyusha and Prabhasa.",
+      "The Vasus stole the wish-granting cow Nandini from the sage Vasishtha, prompted by the wife of one of the Vasus who wanted the cow.",
+      "Vasishtha cursed all eight Vasus to be born as mortals.",
+      "Vasishtha softened the curse: seven Vasus would be freed at birth, but the Vasu who actually seized the cow would live a long life on earth, have no offspring and be renowned for virtue.",
+      "The Vasus asked Ganga to be their mortal mother and to free them by drowning them at birth, which explains her actions as Shantanu's wife.",
+      "The Vasu who took Nandini is named Dyaus (Dyu) in the epic's story of the theft (some retellings instead name Prabhasa); he was born as Devavrata (Bhishma)."
+    ],
+    "Devavrata Becomes Bhishma — the Vow": [
+      "According to the Adi Parva, Devavrata, son of Shantanu and Ganga, learned the Vedas from the sage Vasishtha, mastered the political sciences associated with Brihaspati and Shukra (Ushanas), and learned arms from Parashurama (Rama Jamadagnya).",
+      "Shantanu fell in love with Satyavati, but her father, the fisher chief, demanded that Satyavati's son inherit the throne.",
+      "Devavrata renounced his own claim to the throne so that Satyavati's sons could rule.",
+      "When the fisher chief objected that Devavrata's future sons might still claim the throne, Devavrata vowed lifelong celibacy (brahmacharya).",
+      "Because of this terrible vow, the gods and sages called him Bhishma, 'the one of the terrible (vow)'.",
+      "Shantanu granted Bhishma the boon of dying only when he himself chose (iccha-mrityu, death at will).",
+      "Bhishma's two vows: renounce the throne | never marry or father children.",
+      "Bhishma serves as protector and regent of the Kuru throne through several generations and commands the Kaurava army for the first ten days of the war.",
+      "Bhishma is also called Gangeya (son of Ganga), Shantanava (son of Shantanu) and Pitamaha (grandfather), the last as an honorific from the Pandavas and Kauravas."
+    ],
+    "Satyavati and Her Sons": [
+      "Satyavati was raised by the chief of the fishermen; the Adi Parva says she was actually born from the seed of King Uparichara Vasu and a fish who was the cursed apsara Adrika.",
+      "Satyavati was first called Matsyagandha ('fish-scented'); the sage Parashara gave her a fragrance that earned her the name Yojanagandha ('fragrant for a yojana').",
+      "Before her marriage, Satyavati bore the sage Parashara a son, Krishna Dvaipayana (Vyasa), on an island in the Yamuna; her virginity was restored by Parashara's boon.",
+      "Satyavati married King Shantanu after Bhishma's vow; they had two sons, Chitrangada and Vichitravirya.",
+      "Satyavati's sons: Vyasa (by Parashara, before marriage) | Chitrangada (by Shantanu) | Vichitravirya (by Shantanu).",
+      "After Shantanu's death, Chitrangada became king but was killed by a gandharva of the same name, Chitrangada, in battle.",
+      "Vichitravirya then became king while still young, with Bhishma as regent.",
+      "Vichitravirya died young of consumption (a wasting disease) without children, leaving the Kuru line without an heir.",
+      "After the line's crisis, Satyavati first asked Bhishma to father heirs or take the throne; he refused because of his vow, and she then summoned her elder son Vyasa.",
+      "After Pandu's death, on Vyasa's advice, Satyavati withdrew to the forest with her daughters-in-law Ambika and Ambalika, where the three queens died, according to the Adi Parva."
+    ],
+    "The Princesses of Kashi: Amba, Ambika, Ambalika": [
+      "Bhishma carried off the three daughters of the king of Kashi, Amba, Ambika and Ambalika, from their svayamvara (bride-choice ceremony) to marry Vichitravirya, defeating the assembled kings.",
+      "Amba, the eldest princess, told Bhishma she had already chosen King Shalva; Bhishma released her, but Shalva rejected her because she had been carried off.",
+      "Amba held Bhishma responsible for her ruin; when Bhishma refused to marry her because of his vow, she sought revenge.",
+      "The Udyoga Parva says Bhishma's teacher Parashurama fought Bhishma on Amba's behalf in a duel that lasted 23 days and ended without victory.",
+      "Amba performed austerities, received a boon from Shiva that she would cause Bhishma's death in another life, and entered a fire.",
+      "Amba was reborn as Shikhandini, daughter of King Drupada of Panchala, who later became the male warrior Shikhandi; Arjuna fights from behind Shikhandi when Bhishma falls.",
+      "Ambika and Ambalika married Vichitravirya, who died childless.",
+      "Kashi princesses: Amba (refused marriage, reborn as Shikhandi) | Ambika (mother of Dhritarashtra) | Ambalika (mother of Pandu)."
+    ],
+    "Niyoga by Vyasa: Dhritarashtra, Pandu and Vidura": [
+      "To continue the Kuru line after Vichitravirya's death, Satyavati asked her son Vyasa to father children with the widowed queens through niyoga.",
+      "Ambika closed her eyes in fear of Vyasa's ascetic appearance, so her son Dhritarashtra was born blind.",
+      "Ambalika turned pale at the sight of Vyasa, so her son Pandu ('the pale one') was born pale.",
+      "When Satyavati asked for another son, Ambika sent a maidservant in her place; the maid received Vyasa calmly and bore Vidura, wise and healthy.",
+      "Vidura is said to be an incarnation of the god Dharma (Yama), born as the son of a servant because of a curse by the sage Mandavya.",
+      "Sons of Vyasa by niyoga: Dhritarashtra (Ambika, born blind) | Pandu (Ambalika, born pale) | Vidura (a maidservant, wise).",
+      "Legally the three sons counted as heirs of Vichitravirya; biologically they were sons of Vyasa, so Vyasa is the grandfather of both the Pandavas and the Kauravas.",
+      "Dhritarashtra was the eldest son but was passed over for kingship because of his blindness; Pandu was crowned king of Hastinapura.",
+      "Vidura was ineligible for the throne because of his mother's servant status and served as minister and adviser, known for his wisdom and his loyalty to dharma.",
+      "Pandu conquered many neighbouring kingdoms and enlarged the Kuru realm before retiring to the forest.",
+      "Dhritarashtra married Gandhari, princess of Gandhara; Pandu married Kunti at her svayamvara and Madri of Madra, for whom Bhishma paid a bride-price to her brother Shalya.",
+      "After Pandu retired to the forest, Dhritarashtra governed in Hastinapura and later held the throne as king.",
+      "Vidura repeatedly warns Dhritarashtra against Duryodhana's schemes, most famously the dice game, and secretly helps the Pandavas escape the lac house at Varanavata."
+    ],
+    "Pandu's Curse, Kunti, Madri and the Divine Fathers": [
+      "While hunting, Pandu shot the sage Kindama and his wife while they were mating in the form of deer.",
+      "The dying sage Kindama cursed Pandu to die if he ever approached his wife in love.",
+      "Pandu renounced the kingship and went to live as an ascetic with Kunti and Madri on the Shatashringa mountain in the Himalaya.",
+      "Kunti revealed that the sage Durvasa had given her a mantra to summon any god and bear his child.",
+      "At Pandu's request, Kunti summoned Dharma and bore Yudhishthira, summoned Vayu (the wind) and bore Bhima, and summoned Indra and bore Arjuna.",
+      "Kunti shared the mantra with Madri, who summoned the twin Ashvins and bore the twins Nakula and Sahadeva.",
+      "Divine fathers of the Pandavas: Yudhishthira — Dharma | Bhima — Vayu | Arjuna — Indra | Nakula — Ashvins | Sahadeva — Ashvins.",
+      "Pandu later died when he embraced Madri, fulfilling Kindama's curse; Madri joined him on the funeral pyre, and Kunti returned with the five boys to Hastinapura.",
+      "Sons by mother: Kunti 3 Pandavas (plus Karna before marriage) | Madri 2 Pandavas (twins).",
+      "Kunti, also called Pritha, was the daughter of the Yadava chief Shura and sister of Vasudeva (Krishna's father); she was given in adoption to her father's cousin King Kuntibhoja, from whom she took her name.",
+      "Madri was a princess of Madra and sister of King Shalya, who later fights for the Kauravas as Karna's charioteer.",
+      "Yudhishthira was the eldest of the Pandavas and was born before Duryodhana, which became central to the succession dispute.",
+      "The Adi Parva says Bhima and Duryodhana were born on the same day.",
+      "Krishna is the Pandavas' maternal cousin, since his father Vasudeva is Kunti's brother."
+    ],
+    "Gandhari and the Hundred Kauravas": [
+      "Gandhari, daughter of King Subala of Gandhara and sister of Shakuni, married the blind Dhritarashtra and bound her own eyes with a cloth for life to share his condition.",
+      "In the Critical Edition, Vyasa granted Gandhari a boon of a hundred sons; some versions and retellings attribute the boon to Shiva.",
+      "Gandhari's pregnancy lasted two years; hearing that Kunti had already borne a son, she struck her womb and delivered a hard mass of flesh.",
+      "Vyasa divided the mass into 101 parts, placed them in pots of clarified butter, and from them were born 100 sons and one daughter.",
+      "Duryodhana, the eldest Kaurava, was born first; his birth was accompanied by ill omens, and Vidura and others advised Dhritarashtra to abandon him, which Dhritarashtra refused to do.",
+      "Dushala, the only daughter of Dhritarashtra and Gandhari, married Jayadratha, king of Sindhu.",
+      "Yuyutsu was born to Dhritarashtra by a vaishya maidservant who attended him during Gandhari's long pregnancy; he joined the Pandava side just before the war and survived it.",
+      "Prominent Kauravas include Duryodhana (also called Suyodhana in some passages), Duhshasana (the second son), Vikarna (who protested Draupadi's treatment) and Chitrasena; the Adi Parva lists all hundred names, with variations between manuscripts.",
+      "Dhritarashtra's offspring: sons by Gandhari 100 | daughter by Gandhari 1 | son by a maid 1 | total 102.",
+      "Of Dhritarashtra's sons, only Yuyutsu survives the Kurukshetra war; all hundred sons of Gandhari are killed."
+    ],
+    "Karna's Birth and Adoption": [
+      "Before her marriage, Kunti tested Durvasa's mantra by summoning the sun god Surya, who gave her a son despite her fear.",
+      "Karna was born with natural armour (kavacha) and earrings (kundala), according to the epic; later versions elaborate these details differently.",
+      "Afraid of scandal, Kunti placed the infant in a basket and set him adrift on a river; the Vana Parva traces the basket's journey from the Ashva river to the Charmanvati, the Yamuna and the Ganga.",
+      "The charioteer Adhiratha and his wife Radha found the baby near Champa in the land of Anga and raised him as their own; he was called Vasushena and Radheya ('son of Radha').",
+      "Karna, as the son of Kunti born before her marriage, was by birth the eldest of Kunti's sons and so the elder brother of the Pandavas.",
+      "Karna's true parentage was known before the war to Kunti, Surya and Krishna, and also to Bhishma, who tells Karna so from his bed of arrows; the Pandavas learn it only when Kunti publicly reveals it after Karna's death, in the Stri Parva.",
+      "Karna became Duryodhana's close friend after Duryodhana made him king of Anga at the princes' tournament.",
+      "Kunti's sons: Karna (Surya, before marriage) | Yudhishthira (Dharma) | Bhima (Vayu) | Arjuna (Indra) — 4 in all."
+    ],
+    "The Succession Dispute": [
+      "The rival claims to Hastinapura arise from a double ambiguity: Dhritarashtra was the elder son but blind, while Pandu was the younger son but was crowned king.",
+      "The Pandava claim: Pandu was the crowned king, and Yudhishthira, his eldest son, was also the eldest of all the princes of his generation, born before Duryodhana.",
+      "The Kaurava claim: Dhritarashtra was the elder brother and the ruling king, so Duryodhana as his eldest son should inherit.",
+      "Yudhishthira was named crown prince (yuvaraja) in Hastinapura, which intensified Duryodhana's jealousy; Duryodhana had already tried to poison and drown Bhima in their youth, and the lac-house plot followed.",
+      "After the Pandavas' marriage to Draupadi revealed that they were alive, Dhritarashtra, to ease the conflict, gave them half the kingdom, the forested region of Khandavaprastha, where they built Indraprastha.",
+      "Had Karna's birth been known, he would have been the eldest claimant of the Pandava line; Krishna offers him this position before the war, and Karna refuses out of loyalty to Duryodhana and his adoptive parents.",
+      "Bhishma's renunciation of the throne is often seen as a root of the dispute, since it handed the succession to Satyavati's line, which then had to be continued through niyoga; this is an interpretive reading rather than a claim the epic makes in these words."
+    ],
+    "Next Generations: To Parikshit and Janamejaya": [
+      "Draupadi bore one son to each Pandava, known as the Upapandavas: Prativindhya (by Yudhishthira), Sutasoma (by Bhima), Shrutakarman (by Arjuna), Shatanika (by Nakula) and Shrutasena (by Sahadeva); name spellings vary between manuscripts.",
+      "All five sons of Draupadi were killed by Ashvatthama in the night attack described in the Sauptika Parva.",
+      "Bhima's son by the rakshasi Hidimbi was Ghatotkacha, who is killed by Karna during the night battle of the 14th day.",
+      "Arjuna's sons were Shrutakarman (by Draupadi), Iravan (by the naga princess Ulupi), Babhruvahana (by Chitrangada of Manipura) and Abhimanyu (by Subhadra, Krishna's sister).",
+      "The Adi Parva also lists sons by other wives: Yaudheya (Yudhishthira by Devika), Sarvaga (Bhima by Balandhara of Kashi), Niramitra (Nakula by Karenumati of Chedi) and Suhotra (Sahadeva by Vijaya of Madra).",
+      "Abhimanyu married Uttara, daughter of King Virata; he was killed on the 13th day of the war, and their son Parikshit was born after his death.",
+      "Parikshit was stillborn after Ashvatthama aimed a divine weapon at the wombs of the Pandava women; Krishna revived him, and he became the sole heir of the Kuru line.",
+      "Before the Pandavas' final journey, Yudhishthira crowned Parikshit king at Hastinapura, with Yuyutsu and Kripa to guide him, and installed Krishna's great-grandson Vajra at Indraprastha.",
+      "Parikshit's son Janamejaya is the king who hears the Mahabharata recited by Vaishampayana at his snake sacrifice."
+    ],
+    "Generation Count and Family Numbers": [
+      "Generations from Shantanu to Janamejaya: Shantanu 1 | Bhishma, Chitrangada, Vichitravirya 2 | Dhritarashtra, Pandu, Vidura 3 | Pandavas, Kauravas, Karna 4 | Abhimanyu, Upapandavas, Ghatotkacha 5 | Parikshit 6 | Janamejaya 7.",
+      "Generation detail: Gen 1 Shantanu with Ganga and Satyavati | Gen 2 Bhishma (son of Ganga), Chitrangada and Vichitravirya (sons of Satyavati), plus Vyasa (Satyavati's son by Parashara) | Gen 3 Dhritarashtra, Pandu, Vidura (fathered by Vyasa) | Gen 4 the five Pandavas, the hundred Kauravas, Dushala, Yuyutsu, Karna | Gen 5 Abhimanyu, the five Upapandavas, Ghatotkacha, Iravan, Babhruvahana | Gen 6 Parikshit | Gen 7 Janamejaya.",
+      "Bhishma's life touches five generations: he is son of Shantanu (generation 1), regent for his half-brothers, guardian of his nephews Dhritarashtra, Pandu and Vidura, guardian and elder of his grand-nephews the Pandavas and Kauravas (whose formal weapons teachers were Kripa and Drona), and an opponent in battle of his great-grand-nephew Abhimanyu.",
+      "Children: Dhritarashtra 100 sons + 1 daughter (+ Yuyutsu by a maid) | Pandu 5 sons (via divine fathers).",
+      "Wives: Shantanu 2 (Ganga, Satyavati) | Vichitravirya 2 (Ambika, Ambalika) | Pandu 2 (Kunti, Madri) | Dhritarashtra 1 chief queen (Gandhari) plus a vaishya maid who bore Yuyutsu.",
+      "Sons of Vyasa by niyoga: 3 (Dhritarashtra, Pandu, Vidura).",
+      "Sons of Draupadi: 5 (one by each Pandava).",
+      "Kuru heirs surviving the war: Parikshit (born after the war, revived by Krishna) | Yuyutsu (Dhritarashtra's son by a maid) | the five Pandavas.",
+      "Janamejaya is Arjuna's great-grandson: Arjuna → Abhimanyu → Parikshit → Janamejaya."
+    ],
+    "Marriage Alliances Linking Dynasties": [
+      "The Kuru line is linked to the Yadavas through Kunti (Krishna's aunt) and through Arjuna's marriage to Subhadra (Krishna's sister).",
+      "The Kurus are linked to Gandhara through Gandhari, which brings her brother Shakuni to Hastinapura.",
+      "The Kurus are linked to Madra through Madri, whose brother Shalya is maternal uncle of Nakula and Sahadeva (and an uncle-figure to all five Pandavas) but fights for Duryodhana after being tricked into accepting his hospitality.",
+      "The Pandavas are linked to Panchala through Draupadi, daughter of King Drupada, which makes Drupada and his son Dhrishtadyumna key Pandava allies.",
+      "The Pandavas are linked to Matsya through Abhimanyu's marriage to Uttara, daughter of King Virata.",
+      "The Kauravas are linked to Sindhu through Dushala's marriage to Jayadratha."
+    ]
+  },
+  "Places of the Epic": {
+    "How Places Are Described Here": [
+      "Places in this graph are described as the Mahabharata describes them; their real-world locations are not proven.",
+      "Modern sites are mentioned only as traditional identifications, often supported by local tradition, place names or archaeology, but none confirms that the epic's events happened there.",
+      "The epic's geography centres on the upper Ganga-Yamuna plain (the Kuru-Panchala region), with journeys reaching the Himalaya, the western coast at Dwaraka, and eastern kingdoms such as Magadha and Anga.",
+      "Epic regions (approximate): north — Himalaya, Gandhara, Madra | upper Ganga plain — Hastinapura, Indraprastha, Kurukshetra, Panchala, Naimisharanya, Varanavata | west — Dwaraka, Prabhasa, Matsya, Sindhu | east — Magadha, Anga, Kashi, and (by some local traditions; location uncertain) Ekachakra.",
+      "Many places in the epic, especially sacred fords (tirthas) on the pilgrimage of the Vana Parva, have several competing local claimants."
+    ],
+    "Hastinapura": [
+      "Hastinapura is the capital of the Kuru kingdom in the epic, on the bank of the Ganga, and is traditionally said to be named after King Hastin.",
+      "Hastinapura is where the Kuru princes grow up, where Drona trains them, where the princes' tournament takes place and where the dice game is held in an assembly hall that Dhritarashtra had built for the occasion.",
+      "After the war, Yudhishthira is crowned king at Hastinapura, and later Parikshit is crowned there before the Pandavas' final journey.",
+      "Hastinapura is traditionally identified with Hastinapur in Meerut district, Uttar Pradesh, India.",
+      "Excavations at Hastinapur in the 1950s led by B. B. Lal found Painted Grey Ware settlement layers and evidence of a major flood, which Lal linked to a Puranic account (not the Mahabharata itself) that a later king moved the capital to Kaushambi after the Ganga washed Hastinapura away; this link is debated.",
+      "Story locations within Hastinapura: royal palace | assembly hall (sabha) | training ground of Drona | tournament arena | the dice hall."
+    ],
+    "Indraprastha and Khandavaprastha": [
+      "Indraprastha is the city the Pandavas build on the Yamuna after Dhritarashtra gives them half the kingdom, the wild region of Khandavaprastha.",
+      "Arjuna and Krishna help the fire god Agni burn the Khandava forest, sparing the demon architect Maya, who in gratitude builds a magnificent assembly hall (the Maya Sabha) for Yudhishthira.",
+      "Yudhishthira performs the Rajasuya sacrifice at Indraprastha, where Shishupala is killed; Duryodhana, envious of the Pandavas' wealth and humiliated when the hall's illusions make him mistake floor for water and water for floor, returns home resentful (the popular line in which Draupadi mocks him as a blind man's son is not in the Critical Edition).",
+      "Indraprastha is traditionally identified with the area of the Purana Qila (Old Fort) in Delhi, India, where excavations found Painted Grey Ware sherds; whether this identification is correct is debated.",
+      "After the Yadava destruction, Arjuna brings the surviving Yadavas to Indraprastha, and Krishna's great-grandson Vajra is made its king.",
+      "Story events at Indraprastha: Khandava burning | founding of the city | Maya Sabha | Jarasandha's killing planned | Rajasuya | Shishupala's death."
+    ],
+    "Kurukshetra": [
+      "Kurukshetra ('the field of Kuru') is the plain where the 18-day war is fought; the first verse of the Bhagavad Gita calls it dharmakshetra, 'the field of dharma'.",
+      "Kurukshetra was sacred long before the war: Vedic texts describe it as a place of sacrifice, and the epic says King Kuru tilled it to make it holy.",
+      "The epic associates Kurukshetra with Samantapanchaka, the five lakes that Parashurama filled with the blood of the kshatriyas he slew, according to the Adi Parva.",
+      "The epic places Kurukshetra in the region between the Sarasvati and Drishadvati rivers; the Pandava army camps near the river Hiranvati.",
+      "Armies gathered on the field of Kurukshetra: Kaurava 11 akshauhinis | Pandava 7 akshauhinis | total 18.",
+      "On the 18th day, after his army is destroyed, Duryodhana hides in a lake near the battlefield, called Dvaipayana in the Shalya Parva, before the mace duel with Bhima.",
+      "Kurukshetra is traditionally identified with the Kurukshetra region (around Thanesar) in Haryana, India, which has many pilgrimage sites linked by local tradition to the war.",
+      "Story events at Kurukshetra: the Bhagavad Gita | all 18 days of battle | Bhishma's bed of arrows | the mace duel | the night attack on the camp | the women's lament and funeral rites."
+    ],
+    "Naimisharanya": [
+      "Naimisharanya (the Naimisha forest) is the sacred forest where the sage Shaunaka and other sages hold a twelve-year sacrifice, and where Ugrashravas Sauti recites the Mahabharata to them.",
+      "Naimisharanya is the setting of the outermost frame of the epic, and also the frame setting of several Puranas.",
+      "The Mahabharata also mentions Naimisha as a holy place visited on pilgrimage.",
+      "Naimisharanya is traditionally identified with Nimsar (Naimisharanya) in Sitapur district, Uttar Pradesh, India, on the Gomti river.",
+      "Naimisharanya's role: it is not a site of the main story's action, but the place where the story is told."
+    ],
+    "Dwaraka and Prabhasa": [
+      "Dwaraka is the fortified city of the Yadavas on the western sea, ruled by Krishna's clan; the epic and the Harivamsha say Krishna led the Yadavas there from Mathura to escape repeated attacks by Jarasandha of Magadha.",
+      "Near Dwaraka stands Mount Raivataka, where Arjuna carries off Subhadra during a festival with Krishna's approval.",
+      "In the Mausala Parva, after Krishna's departure, the sea floods and swallows Dwaraka, as Arjuna leads the survivors away.",
+      "Prabhasa, a sacred ford on the western coast, is where the Yadavas go on pilgrimage and destroy one another in a drunken brawl, and near where Krishna is struck by the hunter Jara's arrow.",
+      "Dwaraka is traditionally identified with Dwarka in Gujarat, India; underwater surveys off Dwarka and Bet Dwarka from the 1980s reported submerged structures, but their date and significance are disputed.",
+      "Prabhasa is traditionally identified with Prabhas Patan near Somnath in Gujarat, India.",
+      "Mount Raivataka is often identified with Girnar in Gujarat, though this is a traditional identification."
+    ],
+    "Panchala: Kampilya and Ahichchhatra": [
+      "Panchala is the kingdom of King Drupada, east of the Kurus, divided by the Ganga into northern and southern halves.",
+      "After the Kuru princes captured Drupada as Drona's tuition fee, Drona kept northern Panchala with its capital Ahichchhatra and returned southern Panchala, with its capital Kampilya, to Drupada.",
+      "Drupada performed a sacrifice to obtain a son who could kill Drona; from it emerged Dhrishtadyumna and Draupadi.",
+      "Draupadi's svayamvara, where Arjuna wins her by hitting the target, takes place in Drupada's capital in Panchala.",
+      "Kampilya is traditionally identified with Kampil in Farrukhabad district, Uttar Pradesh, India.",
+      "Ahichchhatra is traditionally identified with the ruins near Ramnagar in Bareilly district, Uttar Pradesh, India.",
+      "Panchala division: northern half (Ahichchhatra) to Drona | southern half (Kampilya) kept by Drupada."
+    ],
+    "Matsya Kingdom: Virata and Upaplavya": [
+      "Matsya is the kingdom of King Virata, where the Pandavas and Draupadi spend the thirteenth year of exile in disguise.",
+      "Pandava disguises at Virata's court: Yudhishthira as Kanka, a dice-playing courtier | Bhima as Ballava, a cook | Arjuna as Brihannala, a dance teacher living as a eunuch | Nakula as a horse-keeper (Granthika) | Sahadeva as a cowherd (Tantipala) | Draupadi as Sairandhri, a maid to Queen Sudeshna; the twins' names vary between versions.",
+      "At Virata's capital, Bhima kills Kichaka, the queen's brother and army commander, who had harassed Draupadi.",
+      "At the end of the hidden year, King Susharman of Trigarta raids Matsya's cattle from one side while the Kauravas raid from the other; Virata, aided by the disguised Pandavas, repels the Trigartas, and Arjuna, with Prince Uttara as his charioteer, defeats the Kaurava host.",
+      "Upaplavya is a town in the Matsya kingdom where the Pandavas settle after revealing themselves, where Abhimanyu marries Uttara, and from where the Pandavas conduct the peace negotiations and set out for war.",
+      "Virata's capital is traditionally identified with Bairat (Viratnagar) in northeastern Rajasthan, India (historically part of Jaipur district); the location of Upaplavya is uncertain.",
+      "Matsya is traditionally placed in the region of present-day northeastern Rajasthan (around Jaipur, Alwar and Bharatpur)."
+    ],
+    "Kamyaka and Dwaita Forests": [
+      "Kamyaka is a forest where the Pandavas spend much of their twelve-year exile; the epic places it near the Sarasvati river, at the edge of the desert.",
+      "Bhima kills the rakshasa Kirmira at the entrance to the Kamyaka forest early in the exile.",
+      "Jayadratha's attempt to abduct Draupadi takes place while the Pandavas are living in the Kamyaka forest.",
+      "Dwaitavana (the Dwaita forest) is a forest with a lake where the Pandavas also live during the exile, moving between it and Kamyaka.",
+      "Duryodhana's 'cattle expedition' (ghosha-yatra) to Dwaitavana, meant to flaunt his wealth before the exiled Pandavas, ends with his capture by the gandharva Chitrasena and his rescue by the Pandavas.",
+      "The Yaksha's questions to Yudhishthira take place at a lake in the forest while the Pandavas are chasing a deer that carried off a Brahmin's fire-sticks, near the end of the forest years.",
+      "Kamyaka and Dwaitavana are traditionally associated with sites in the Kurukshetra region of Haryana, though identifications are uncertain.",
+      "Forest exile locations: Kamyaka | Dwaitavana | the pilgrimage circuit of sacred fords | the Himalayan region (Gandhamadana, Badari)."
+    ],
+    "Varanavata and Ekachakra": [
+      "Varanavata is the town where Duryodhana's agent Purochana builds a house of lac and other flammable materials to burn the Pandavas and Kunti alive.",
+      "Warned by Vidura in veiled language, the Pandavas escape through a tunnel dug by a miner Vidura sends; they set the fire themselves, and Purochana dies in it.",
+      "A Nishada woman and her five sons who were sleeping in the house die in the fire, so the Kauravas believe the Pandavas and Kunti are dead.",
+      "Varanavata is traditionally identified with Barnawa in Baghpat district, Uttar Pradesh, India.",
+      "After the lac house, the Pandavas wander in the forest, where Bhima kills Hidimba and marries Hidimbi, and then live disguised as Brahmins in the town of Ekachakra.",
+      "At Ekachakra, Bhima kills the demon Baka (Bakasura), who demanded a human victim and food from the townspeople.",
+      "Several places, in Bihar and in West Bengal, claim to be Ekachakra in local tradition; no identification is settled."
+    ],
+    "Himalaya and the Northern Journeys": [
+      "Pandu retires with Kunti and Madri to the Shatashringa ('hundred-peaked') mountain in the Himalaya, where the Pandavas are born.",
+      "During the exile, Arjuna performs austerities in the Himalaya, fights Shiva disguised as a hunter (Kirata), and receives the Pashupata weapon.",
+      "Arjuna then visits Indra's heaven, where he gains divine weapons and spends about five years, according to the Vana Parva.",
+      "On their pilgrimage the Pandavas reach the Gandhamadana mountain and the hermitage of Badari, where Bhima meets Hanuman while seeking the Saugandhika flowers for Draupadi.",
+      "In the Mahaprasthanika Parva, the Pandavas and Draupadi travel east, south and west (seeing the drowned Dwaraka) and then north into the Himalaya toward Mount Meru.",
+      "On the final Himalayan journey, Draupadi falls first, then Sahadeva, Nakula, Arjuna and Bhima; only Yudhishthira and the dog reach Indra's chariot.",
+      "Order of falling on the final journey: 1 Draupadi | 2 Sahadeva | 3 Nakula | 4 Arjuna | 5 Bhima | survives Yudhishthira (with the dog).",
+      "Badari is traditionally identified with Badrinath in Uttarakhand, India."
+    ],
+    "Rivers of the Epic": [
+      "The Ganga is both a river and a goddess in the epic; as the goddess Ganga she is Bhishma's mother, and Hastinapura stands on her bank.",
+      "The Yamuna flows past Indraprastha and is where Vyasa was born on an island; Satyavati ferried travellers across it.",
+      "Karna's basket floats from the Ashva river to the Charmanvati, the Yamuna and the Ganga before he is found near Champa.",
+      "The Sarasvati river flows near the Kamyaka forest and Kurukshetra; in the Shalya Parva Balarama makes a pilgrimage along its sacred fords during the war.",
+      "The Drishadvati river, with the Sarasvati, bounds the sacred land of Kurukshetra in the epic's description.",
+      "The Hiranvati river flows near the Pandava camp at Kurukshetra.",
+      "In the Ashramavasika Parva, Vyasa makes the warriors killed in the war rise from the Ganga for one night to meet their families.",
+      "The Sarasvati is often identified with the Ghaggar-Hakra river system, a long-debated identification; the epic describes it as disappearing into the desert."
+    ],
+    "Other Kingdoms and Allied Realms": [
+      "Magadha is the eastern kingdom of Jarasandha, whose capital is Girivraja; Bhima kills Jarasandha in a wrestling duel there, with Krishna and Arjuna present. Girivraja is traditionally identified with Rajgir in Bihar, India.",
+      "Anga is the eastern kingdom Duryodhana gives to Karna at the princes' tournament; its capital Champa is traditionally identified with a site near Bhagalpur in Bihar, India.",
+      "Gandhara is the north-western kingdom of Gandhari and Shakuni, traditionally identified with the region around the Peshawar valley in present-day Pakistan and eastern Afghanistan.",
+      "Madra is the north-western kingdom of Madri and Shalya, with its capital at Shakala, traditionally identified with Sialkot in present-day Pakistan.",
+      "Kashi is the kingdom of Amba, Ambika and Ambalika, with its capital at Varanasi.",
+      "Chedi is the kingdom of Shishupala, whom Krishna kills at Yudhishthira's Rajasuya.",
+      "Sindhu (Sindhu-Sauvira) is the kingdom of Jayadratha, husband of Dushala.",
+      "Mathura is the Yadava city where Krishna kills Kamsa (told mainly in the Harivamsha) before the Yadavas move to Dwaraka.",
+      "Manipura is the kingdom of Chitrangada and her son Babhruvahana; its location is disputed, and its common identification with modern Manipur is a tradition rather than an established fact."
+    ],
+    "Archaeology and Identification Debates": [
+      "Many sites traditionally linked to the Mahabharata (Hastinapur, Purana Qila in Delhi, Kurukshetra, Ahichchhatra, Kampil, Mathura, Bairat) have yielded Painted Grey Ware, a pottery culture dated roughly to the late 2nd and early-to-mid 1st millennium BCE.",
+      "B. B. Lal's mid-20th-century project on 'Mahabharata sites' proposed links between Painted Grey Ware settlements and the epic's Kuru-Panchala geography; critics note that the pottery shows settlement at those places, not that the epic's events happened.",
+      "No archaeological find has been accepted by scholars as confirming any specific event, person or battle of the Mahabharata.",
+      "Proposed dates for a historical Kurukshetra war range widely, from traditional reckonings near 3102 BCE to scholarly suggestions in the early 1st millennium BCE; none is established.",
+      "The marine explorations off Dwarka reported structures and artefacts whose age and connection to the epic's Dwaraka are disputed.",
+      "Local traditions across India and beyond claim many places associated with the Pandavas, such as caves, lakes and temples said to have been visited during the exile; these are living traditions rather than historical identifications."
+    ]
+  }
+}

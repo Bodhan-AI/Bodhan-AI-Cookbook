@@ -1,0 +1,2 @@
+plotly>=5.24
+kaleido  # optional, only for saving .png/.svg/.pdf

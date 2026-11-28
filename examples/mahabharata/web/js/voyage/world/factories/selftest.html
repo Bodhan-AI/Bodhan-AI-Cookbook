@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Factory Self-Test</title>
+<!-- Manual QA for world/factories: builds every procedural factory with {} params in a grid and orbits it.
+     Serve the web/ folder (server.py) and open /js/voyage/world/factories/selftest.html. Click a name to focus it;
+     edit the JSON params to try variants. Hash: #focus=<name>&q=<low|medium|high>&p=<url-encoded JSON params> -->
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
+<style>
+  :root { --night:#0B0E22; --night-2:#12152E; --gold:#C9A24B; --gold-soft:#E3C77E; --gold-line:rgba(201,162,75,.38);
+    --ivory:#F3EAD7; --ivory-dim:#CFC4AE; --vermilion:#B5452F; --forest-light:#6E9C7E; --glass:rgba(14,17,40,.78);
+    --sans:'DM Sans', system-ui, sans-serif; --serif:'Cormorant Garamond', Georgia, serif; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--night); color: var(--ivory); font: 14px/1.45 var(--sans); overflow: hidden; }
+  canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+  #panel { position: fixed; top: 12px; left: 12px; bottom: 12px; width: 300px; z-index: 5; background: var(--glass);
+    border: 1px solid var(--gold-line); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 10px;
+    backdrop-filter: blur(10px); }
+  h1 { margin: 0; font: 600 22px/1.1 var(--serif); color: var(--gold-soft); letter-spacing: .02em; }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  select, button, textarea { font: inherit; color: var(--ivory); background: var(--night-2); border: 1px solid var(--gold-line);
+    border-radius: 8px; padding: 5px 9px; }
+  button { cursor: pointer; } button:hover { border-color: var(--gold); }
+  :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+  #summary { color: var(--ivory-dim); font-size: 12px; }
+  #list { list-style: none; margin: 0; padding: 0; overflow: auto; flex: 1; border-top: 1px solid var(--gold-line); }
+  #list button { width: 100%; text-align: left; display: grid; grid-template-columns: 10px 1fr auto; gap: 8px; align-items: center;
+    border: 0; border-bottom: 1px solid rgba(201,162,75,.12); border-radius: 0; background: transparent; padding: 6px 4px; }
+  #list button[aria-current="true"] { background: rgba(201,162,75,.14); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--forest-light); }
+  .dot.err { background: var(--vermilion); }
+  .meta { color: var(--ivory-dim); font-size: 11px; font-variant-numeric: tabular-nums; }
+  #focus-ui[hidden] { display: none; }
+  #focus-ui { display: flex; flex-direction: column; gap: 6px; }
+  textarea { width: 100%; height: 90px; resize: vertical; font: 12px/1.4 ui-monospace, monospace; }
+  #err { color: #f0a090; font-size: 12px; margin: 0; min-height: 1em; }
+  #labels { position: fixed; inset: 0; pointer-events: none; z-index: 2; }
+  .lbl { position: absolute; transform: translate(-50%, -100%); font-size: 11px; padding: 2px 7px; border-radius: 999px; white-space: nowrap;
+    background: rgba(11,14,34,.72); border: 1px solid var(--gold-line); color: var(--ivory); }
+  .lbl.err { border-color: var(--vermilion); color: #f0a090; }
+  @media (max-width: 760px) { #panel { width: auto; right: 12px; bottom: auto; max-height: 46vh; } }
+</style>
+</head>
+<body>
+<canvas id="c" aria-label="Factory preview"></canvas>
+<div id="labels" aria-hidden="true"></div>
+<aside id="panel">
+  <h1>Procedural factories</h1>
+  <div class="row">
+    <label>Quality <select id="q"><option>low</option><option selected>medium</option><option>high</option></select></label>
+    <button id="mode" type="button">Show grid</button>
+  </div>
+  <div id="summary">Building…</div>
+  <ul id="list"></ul>
+  <div id="focus-ui" hidden>
+    <label for="params" class="meta">Params (JSON) for the focused factory</label>
+    <textarea id="params" spellcheck="false">{}</textarea>
+    <button id="apply" type="button">Rebuild with params</button>
+    <p id="err" role="status"></p>
+  </div>
+</aside>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { FACTORIES, FACTORY_NAMES } from './index.js';
+
+const BACKDROPS = new Set(['sky', 'stars']); // these follow the camera instead of sitting in a cell
+const CELL = 14;
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.setClearColor('#0B0E22');
+const scene = new THREE.Scene();
+scene.fog = new THREE.Fog('#0B0E22', 260, 1400);
+const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 3000);
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true;
+scene.add(new THREE.HemisphereLight('#cfd8ff', '#3a2e22', 0.9));
+const sun = new THREE.DirectionalLight('#ffe2b8', 2.4);
+sun.position.set(60, 90, 40);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -120, right: 120, top: 120, bottom: -120, near: 1, far: 400 });
+scene.add(sun, sun.target);
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000), new THREE.MeshStandardMaterial({ color: '#1A1D3A', roughness: 1 }));
+ground.rotation.x = -Math.PI / 2; ground.position.y = -0.02; ground.receiveShadow = true;
+scene.add(ground);
+
+// Minimal caches matching the contract: get(key, make)
+class Cache {
+  constructor() { this.map = new Map(); }
+  get(key, make) { if (!this.map.has(key)) this.map.set(key, make()); return this.map.get(key); }
+  dispose() { for (const v of this.map.values()) { if (v && v.map && v.map.isTexture) v.map.dispose(); v?.dispose?.(); } this.map.clear(); }
+}
+let ctx = null;
+const items = new Map(); // name -> {holder, obj, stats, error, cellPos}
+let mode = 'grid', focused = null;
+
+function statsOf(obj) {
+  let tris = 0, draws = 0;
+  obj.traverse((c) => {
+    if (!(c.isMesh || c.isPoints || c.isLine || c.isSprite)) return;
+    draws++;
+    if (c.isMesh && c.geometry) { const g = c.geometry, n = g.index ? g.index.count : g.attributes.position.count; tris += (n / 3) * (c.isInstancedMesh ? c.count : 1); }
+  });
+  return { tris: Math.round(tris), draws };
+}
+function disposeObject(obj) {
+  obj.traverse((c) => {
+    if (c.geometry) c.geometry.dispose();
+    for (const m of [].concat(c.material || [])) { for (const k of ['map', 'alphaMap', 'normalMap']) m[k]?.dispose?.(); m.dispose?.(); }
+  });
+}
+function clearAll() {
+  for (const it of items.values()) { scene.remove(it.holder); disposeObject(it.holder); }
+  items.clear();
+  ctx?.materials.dispose(); ctx?.geometries.dispose();
+}
+function build(name, params = {}) {
+  const t0 = performance.now();
+  const obj = FACTORIES[name](params, ctx);
+  const ms = performance.now() - t0;
+  const holder = new THREE.Group(); holder.name = 'holder:' + name;
+  holder.add(obj);
+  return { holder, obj, ms, stats: statsOf(obj), error: obj.userData.error || null };
+}
+function fitScale(obj) {
+  const box = new THREE.Box3().setFromObject(obj), size = box.getSize(new THREE.Vector3());
+  const m = Math.max(size.x, size.z, size.y * 0.7, 1e-3);
+  return { s: Math.min(8, (CELL * 0.78) / m), box };
+}
+function buildGrid() {
+  clearAll();
+  ctx = { THREE, materials: new Cache(), geometries: new Cache(), quality: document.getElementById('q').value };
+  const names = FACTORY_NAMES.filter((n) => !BACKDROPS.has(n));
+  const cols = Math.ceil(Math.sqrt(names.length));
+  names.forEach((name, i) => {
+    const it = build(name);
+    const { s, box } = fitScale(it.obj);
+    const x = (i % cols - (cols - 1) / 2) * CELL, z = (Math.floor(i / cols) - (cols - 1) / 2) * CELL;
+    it.obj.scale.setScalar(s); it.fit = s;
+    it.holder.position.set(x, 0, z);
+    it.cellPos = new THREE.Vector3(x, Math.min(CELL * 0.8, (box.max.y > 0 ? box.max.y : 1) * s) + 0.8, z);
+    items.set(name, it); scene.add(it.holder);
+  });
+  for (const name of BACKDROPS) { const it = build(name); it.cellPos = null; items.set(name, it); scene.add(it.holder); }
+  renderList();
+  setMode(focused ? 'focus' : 'grid');
+}
+function frame(obj) {
+  if (BACKDROPS.has(obj.userData.factory)) { camera.position.set(0, 8, 30); controls.target.set(0, 6, 0); return; }
+  const sph = new THREE.Box3().setFromObject(obj).getBoundingSphere(new THREE.Sphere());
+  const r = Math.min(Math.max(sph.radius, 0.6), 260);
+  controls.target.copy(sph.center);
+  camera.position.copy(sph.center).add(new THREE.Vector3(0.9, 0.55, 1.25).normalize().multiplyScalar(r * 2.3));
+}
+function setMode(m) {
+  mode = m;
+  document.getElementById('mode').textContent = m === 'grid' ? 'Show grid ✓' : 'Show grid';
+  document.getElementById('focus-ui').hidden = m !== 'focus';
+  for (const [name, it] of items) {
+    const isBackdrop = BACKDROPS.has(name);
+    it.holder.visible = m === 'grid' ? !isBackdrop || name === 'sky' : name === focused;
+    if (m === 'focus' && name === focused && !isBackdrop) { it.obj.scale.setScalar(1); it.holder.position.set(0, 0, 0); }
+    else if (it.cellPos) { it.holder.position.set(it.cellPos.x, 0, it.cellPos.z); it.obj.scale.setScalar(fitScaleCached(it)); }
+  }
+  ground.visible = !(m === 'focus' && BACKDROPS.has(focused));
+  controls.autoRotate = m === 'grid'; controls.autoRotateSpeed = 0.5;
+  if (m === 'grid') { const n = Math.ceil(Math.sqrt(items.size)); camera.position.set(0, n * CELL * 0.8, n * CELL * 1.0); controls.target.set(0, 0, 0); }
+  else if (focused && items.get(focused)) frame(items.get(focused).obj);
+  document.querySelectorAll('#list button').forEach((b) => b.setAttribute('aria-current', String(b.dataset.name === focused && m === 'focus')));
+  const pj = (document.getElementById('params').value || '{}').trim();
+  history.replaceState(null, '', '#' + (m === 'focus' && focused ? `focus=${focused}&q=${ctx.quality}${pj !== '{}' ? '&p=' + encodeURIComponent(pj) : ''}` : `q=${ctx.quality}`));
+}
+function fitScaleCached(it) { if (it.fit === undefined) { const prev = it.obj.scale.x; it.obj.scale.setScalar(1); it.obj.updateMatrixWorld(true); it.fit = fitScale(it.obj).s; it.obj.scale.setScalar(prev); } return it.fit; }
+function renderList() {
+  const ul = document.getElementById('list'); ul.innerHTML = '';
+  let tris = 0, draws = 0, errors = 0;
+  for (const [name, it] of items) {
+    tris += it.stats.tris; draws += it.stats.draws; if (it.error) errors++;
+    const li = document.createElement('li'), b = document.createElement('button');
+    b.type = 'button'; b.dataset.name = name;
+    b.innerHTML = `<span class="dot${it.error ? ' err' : ''}"></span><span>${name}</span><span class="meta">${(it.stats.tris / 1000).toFixed(1)}k · ${it.stats.draws}dc · ${it.ms.toFixed(0)}ms</span>`;
+    b.title = it.error ? 'Error: ' + it.error : `${it.stats.tris} triangles, ${it.stats.draws} draw calls`;
+    b.addEventListener('click', () => { focused = name; document.getElementById('params').value = '{}'; document.getElementById('err').textContent = ''; setMode('focus'); });
+    li.appendChild(b); ul.appendChild(li);
+  }
+  document.getElementById('summary').textContent = `${items.size} factories · quality ${ctx.quality} · ${(tris / 1000).toFixed(0)}k tris · ${draws} draw calls · ${errors} errors`;
+}
+function rebuildFocused() {
+  const errEl = document.getElementById('err');
+  let params;
+  try { params = JSON.parse(document.getElementById('params').value || '{}'); } catch (e) { errEl.textContent = 'Invalid JSON: ' + e.message; return; }
+  const old = items.get(focused); if (!old) return;
+  scene.remove(old.holder); disposeObject(old.holder);
+  const it = build(focused, params); it.cellPos = old.cellPos;
+  items.set(focused, it); scene.add(it.holder);
+  errEl.textContent = it.error ? 'Factory error: ' + it.error : `${it.stats.tris} tris · ${it.stats.draws} draw calls · built in ${it.ms.toFixed(1)} ms`;
+  setMode('focus'); renderList();
+}
+
+// labels for grid mode
+const labelsEl = document.getElementById('labels');
+const labelEls = new Map();
+function updateLabels() {
+  const w = canvas.clientWidth, h = canvas.clientHeight, v = new THREE.Vector3();
+  for (const [name, it] of items) {
+    let el = labelEls.get(name);
+    if (!el) { el = document.createElement('div'); el.className = 'lbl'; el.textContent = name; labelsEl.appendChild(el); labelEls.set(name, el); }
+    el.classList.toggle('err', !!it.error);
+    const show = mode === 'grid' && it.cellPos;
+    if (!show) { el.style.display = 'none'; continue; }
+    v.copy(it.cellPos).project(camera);
+    if (v.z > 1 || Math.abs(v.x) > 1.1 || Math.abs(v.y) > 1.1) { el.style.display = 'none'; continue; }
+    el.style.display = ''; el.style.left = ((v.x + 1) / 2) * w + 'px'; el.style.top = ((1 - v.y) / 2) * h + 'px';
+  }
+}
+
+function resize() { const w = window.innerWidth, h = window.innerHeight; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
+window.addEventListener('resize', resize); resize();
+document.getElementById('q').addEventListener('change', () => { for (const el of labelEls.values()) el.remove(); labelEls.clear(); buildGrid(); });
+document.getElementById('mode').addEventListener('click', () => { focused = null; setMode('grid'); });
+document.getElementById('apply').addEventListener('click', rebuildFocused);
+addEventListener('keydown', (e) => { if (e.key === 'Escape') { focused = null; setMode('grid'); } });
+
+const hp = new URLSearchParams(location.hash.slice(1));
+if (['low', 'medium', 'high'].includes(hp.get('q'))) document.getElementById('q').value = hp.get('q');
+if (hp.get('focus') && FACTORIES[hp.get('focus')]) focused = hp.get('focus');
+buildGrid();
+if (focused && hp.get('p')) { document.getElementById('params').value = hp.get('p'); rebuildFocused(); }
+
+const clock = new THREE.Clock();
+let t = 0;
+renderer.setAnimationLoop(() => {
+  const dt = Math.min(clock.getDelta(), 0.1); t += dt;
+  for (const it of items.values()) if (it.holder.visible) it.obj.userData.update?.(dt, t);
+  controls.update();
+  renderer.render(scene, camera);
+  updateLabels();
+});
+window.__selftest = { items, scene, camera, renderer, FACTORIES };
+</script>
+</body>
+</html>

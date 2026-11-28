@@ -1,0 +1,644 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mahabharata_voyage.schema.json",
+  "title": "Mahabharata Voyage (merged)",
+  "description": "Schema for web/data/mahabharata_voyage.json, the merged output of tools/merge_voyage.py. Mirrors voyage_docs/DATA_CONTRACT.md sections 1, 2, 3.1 and 3.3. Referential integrity (ids resolving, canonical ids present, asset registry membership, graph keys) is checked by tools/validate_voyage.py, which also reads the canonical id lists from the $defs below.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["meta", "locations", "characters", "relationships", "events", "chapters"],
+  "properties": {
+    "meta": {"$ref": "#/$defs/meta"},
+    "locations": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/location"}},
+    "characters": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/character"}},
+    "relationships": {"type": "array", "items": {"$ref": "#/$defs/relationship"}},
+    "events": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/event"}},
+    "chapters": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/chapter"}}
+  },
+  "$defs": {
+    "non_empty_string": {"type": "string", "minLength": 1},
+    "nullable_string": {"type": ["string", "null"]},
+    "snake_id": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+    "hex_color": {"type": "string", "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"},
+    "vec3": {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
+    "path3": {"type": "array", "items": {"$ref": "#/$defs/vec3"}, "minItems": 2},
+    "scale": {
+      "oneOf": [
+        {"type": "number", "exclusiveMinimum": 0},
+        {"type": "array", "items": {"type": "number", "exclusiveMinimum": 0}, "minItems": 3, "maxItems": 3}
+      ]
+    },
+    "unit_interval": {"type": "number", "minimum": 0, "maximum": 1},
+    "intensity": {"type": "number", "minimum": 0, "maximum": 2},
+    "seconds": {"type": "number", "minimum": 0},
+
+    "chapter_id": {"type": "string", "pattern": "^ch[0-9]{2,3}[a-z]?$"},
+    "nullable_chapter_id": {"oneOf": [{"$ref": "#/$defs/chapter_id"}, {"type": "null"}]},
+    "question_id": {"type": "string", "pattern": "^q_ch[0-9]{2,3}[a-z]?_[a-z0-9_]+$"},
+    "shot_id": {"type": "string", "pattern": "^sh_ch[0-9]{2,3}[a-z]?_[a-z0-9_]+$"},
+    "staging_id": {"type": "string", "pattern": "^stg_[a-z0-9_]+$"},
+    "discovery_id": {"type": "string", "pattern": "^disc_[a-z0-9_]+$"},
+    "hotspot_id": {"type": "string", "pattern": "^hs_[a-z0-9_]+$"},
+    "event_id": {
+      "description": "Canonical event ids (see canonical_event_id) or new ids added by chapter parts via extra_events. Lowercase snake_case; the validator warns when a new id lacks the ev_ prefix.",
+      "$ref": "#/$defs/snake_id"
+    },
+
+    "canonical_event_id": {
+      "description": "Reference list (DATA_CONTRACT section 1). Every one of these must be defined in events[]; enforced by validate_voyage.py.",
+      "type": "string",
+      "enum": [
+        "ev_narration_naimisharanya", "ev_janamejaya_sacrifice", "ev_shantanu_ganga", "ev_bhishma_vow",
+        "ev_amba_abduction", "ev_niyoga_births", "ev_pandu_curse", "ev_pandavas_birth", "ev_kauravas_birth",
+        "ev_karna_birth", "ev_drona_gurukul", "ev_ekalavya_thumb", "ev_tournament_karna", "ev_lac_house",
+        "ev_hidimba_bakasura", "ev_draupadi_swayamvara", "ev_shared_marriage", "ev_khandava_burning",
+        "ev_indraprastha_founded", "ev_maya_sabha", "ev_jarasandha_slain", "ev_rajasuya", "ev_shishupala_slain",
+        "ev_dice_game", "ev_draupadi_humiliation", "ev_exile_begins", "ev_kirmira_jatasura", "ev_kirata_pashupata",
+        "ev_yaksha_prashna", "ev_karna_armour_gift", "ev_virata_incognito", "ev_kichaka_slain", "ev_cattle_raid",
+        "ev_peace_embassy", "ev_krishna_karna_meeting", "ev_kunti_karna_meeting", "ev_armies_assemble",
+        "ev_bhagavad_gita", "ev_war_day_1", "ev_bhishma_falls", "ev_chakravyuha_abhimanyu", "ev_jayadratha_slain",
+        "ev_ghatotkacha_slain", "ev_drona_slain", "ev_karna_slain", "ev_shalya_slain", "ev_duryodhana_mace_duel",
+        "ev_night_massacre", "ev_stri_parva_lament", "ev_yudhishthira_coronation", "ev_bhishma_teachings",
+        "ev_ashvamedha", "ev_elders_forest_death", "ev_yadava_destruction", "ev_krishna_departs",
+        "ev_mahaprasthana", "ev_svargarohana"
+      ]
+    },
+    "location_id": {
+      "type": "string",
+      "enum": [
+        "naimisharanya", "hastinapura", "ganga", "gurukul", "varanavata", "panchala", "indraprastha", "rajasuya_sabha",
+        "dyuta_sabha", "kamyaka_forest", "dwaita_forest", "virata", "upaplavya", "dwaraka", "kurukshetra",
+        "bhishma_battlefield", "drona_battlefield", "karna_battlefield", "hastinapura_postwar", "himalaya"
+      ]
+    },
+    "character_id": {
+      "type": "string",
+      "enum": [
+        "krishna", "arjuna", "bhima", "yudhishthira", "nakula", "sahadeva", "draupadi", "bhishma", "drona", "karna", "duryodhana",
+        "shakuni", "kunti", "gandhari", "abhimanyu", "vidura", "dhritarashtra", "pandu", "madri", "shantanu", "ganga_devi",
+        "satyavati", "vyasa", "vaishampayana", "ugrashravas", "janamejaya", "ashwatthama", "kripa", "drupada", "dhrishtadyumna",
+        "shikhandi", "amba", "virata_king", "uttara", "uttara_kumari", "shalya", "sanjaya", "ekalavya", "jayadratha", "dushasana",
+        "ghatotkacha", "balarama", "subhadra", "vikarna", "yuyutsu", "kichaka", "parikshit", "hidimbi", "ulupi", "chitrangada"
+      ]
+    },
+    "asset_id": {
+      "description": "Every asset id allowed by DATA_CONTRACT section 1 (asset registry keys).",
+      "type": "string",
+      "enum": [
+        "arch.hastinapura_palace", "arch.throne_room", "arch.pillared_corridor", "arch.sabha_hall",
+        "arch.indraprastha_palace", "arch.maya_sabha", "arch.dice_hall", "arch.gurukul", "arch.hermitage",
+        "arch.city_gate", "arch.royal_courtyard", "arch.temple", "arch.battle_camp", "arch.chariot_shelter",
+        "arch.royal_balcony", "arch.lac_house", "arch.swayamvara_arena", "arch.dwaraka_city", "arch.yajna_altar",
+        "arch.city_walls",
+        "char.krishna", "char.arjuna", "char.bhima", "char.yudhishthira", "char.nakula", "char.sahadeva", "char.draupadi",
+        "char.bhishma", "char.drona", "char.karna", "char.duryodhana", "char.shakuni", "char.kunti", "char.gandhari",
+        "char.abhimanyu", "char.vidura", "char.dhritarashtra", "char.pandu", "char.madri", "char.shantanu", "char.ganga_devi",
+        "char.satyavati", "char.vyasa", "char.vaishampayana", "char.ugrashravas", "char.janamejaya", "char.ashwatthama",
+        "char.kripa", "char.drupada", "char.dhrishtadyumna", "char.shikhandi", "char.amba", "char.virata_king", "char.uttara",
+        "char.uttara_kumari", "char.shalya", "char.sanjaya", "char.ekalavya", "char.jayadratha", "char.dushasana",
+        "char.ghatotkacha", "char.balarama", "char.subhadra", "char.vikarna", "char.yuyutsu", "char.kichaka", "char.parikshit",
+        "char.hidimbi", "char.ulupi", "char.chitrangada",
+        "char.sage_generic", "char.soldier_generic", "char.courtier_generic", "char.archer_generic", "char.yaksha",
+        "obj.krishna_chariot", "obj.chariot_generic", "obj.horse", "obj.gandiva", "obj.sudarshana",
+        "obj.panchajanya", "obj.crown", "obj.manuscript", "obj.palm_leaf", "obj.dice", "obj.throne",
+        "obj.divine_weapon", "obj.banner", "obj.kapidhvaja_banner", "obj.shield", "obj.arrows", "obj.war_drum",
+        "obj.palace_door", "obj.lamp", "obj.sacred_tree", "obj.fish_target", "obj.bed_of_arrows", "obj.mace",
+        "obj.conch_generic", "obj.water_vessel", "obj.funeral_pyre", "obj.dog",
+        "env.mountains", "env.himalaya_peaks", "env.river", "env.ganga_water", "env.forest",
+        "env.sacred_grove", "env.road", "env.city_skyline", "env.palace_garden", "env.battlefield_terrain",
+        "env.army_formation", "env.clouds", "env.mist", "env.dust", "env.rain", "env.fire", "env.stars", "env.sky_dawn",
+        "env.sky_day", "env.sky_dusk", "env.sky_night", "env.cosmic_mandala", "env.snow", "env.lake"
+      ]
+    },
+    "env_asset_id": {
+      "type": "string",
+      "enum": [
+        "env.mountains", "env.himalaya_peaks", "env.river", "env.ganga_water", "env.forest",
+        "env.sacred_grove", "env.road", "env.city_skyline", "env.palace_garden", "env.battlefield_terrain",
+        "env.army_formation", "env.clouds", "env.mist", "env.dust", "env.rain", "env.fire", "env.stars", "env.sky_dawn",
+        "env.sky_day", "env.sky_dusk", "env.sky_night", "env.cosmic_mandala", "env.snow", "env.lake"
+      ]
+    },
+    "sky_asset_id": {"type": "string", "enum": ["env.sky_dawn", "env.sky_day", "env.sky_dusk", "env.sky_night"]},
+    "character_asset_id": {
+      "allOf": [{"$ref": "#/$defs/asset_id"}, {"type": "string", "pattern": "^char\\.[a-z0-9_]+$"}]
+    },
+
+    "parva": {
+      "type": "string",
+      "enum": [
+        "Adi", "Sabha", "Vana", "Virata", "Udyoga", "Bhishma", "Drona", "Karna", "Shalya", "Sauptika", "Stri", "Shanti",
+        "Anushasana", "Ashvamedhika", "Ashramavasika", "Mausala", "Mahaprasthanika", "Svargarohana"
+      ]
+    },
+    "hint_kind": {
+      "type": "string",
+      "enum": [
+        "lineage_tree", "relationship_map", "alliance_sankey", "timeline", "army_comparison", "mandala_share",
+        "narrative_path", "balance_scale", "evidence_manuscript", "epic_map", "formation_diagram", "heat_of_conflict"
+      ]
+    },
+    "chart_tool": {
+      "type": "string",
+      "enum": [
+        "line", "area", "band", "bar", "lollipop", "waterfall", "pareto", "histogram", "box", "violin", "scatter", "bubble",
+        "heatmap", "correlation", "pie", "donut", "treemap", "sunburst", "funnel", "candlestick", "gauge", "radar", "sankey", "gantt"
+      ]
+    },
+    "ambient_bed": {
+      "type": "string",
+      "enum": [
+        "forest", "river", "palace", "wind", "battlefield_distant", "battlefield_near", "celestial", "rain", "fire_crackle",
+        "assembly_murmur", "mountain_wind", "silence"
+      ]
+    },
+    "sound_cue_name": {
+      "type": "string",
+      "enum": [
+        "conch", "war_drum", "chariot_roll", "bell", "dice_roll", "bowstring", "gong", "wind_gust", "water_flow",
+        "crowd_gasp", "heartbeat", "choir_drone", "thunder", "footsteps"
+      ]
+    },
+    "camera_movement": {
+      "type": "string",
+      "enum": ["establishing", "tracking", "dolly", "orbit", "crane", "close_up", "reveal", "transition", "static"]
+    },
+    "transition_type": {
+      "type": "string",
+      "enum": [
+        "fade_black", "fade_gold", "cloud_pass", "manuscript_turn", "door_open", "mandala_iris", "river_flow", "path_glow",
+        "dust_wipe", "cut"
+      ]
+    },
+    "particle_type": {
+      "type": "string",
+      "enum": ["dust", "embers", "petals", "fireflies", "mist", "rain", "snow", "stars", "gold_motes", "sparks"]
+    },
+    "lighting_preset": {
+      "type": "string",
+      "enum": ["dawn", "day", "golden_hour", "dusk", "night", "torchlit", "storm", "celestial", "overcast"]
+    },
+    "graph_top_level_key": {
+      "description": "Reference list (DATA_CONTRACT section 4): top-level keys of mahabharata_graph.json. Used by validate_voyage.py when the graph file is absent.",
+      "type": "string",
+      "enum": [
+        "About This Knowledge Graph", "Structure of the Epic", "Frame Narratives and Narrators",
+        "Kuru Dynasty and Lineage", "Characters — Pandava Side", "Characters — Kaurava Side",
+        "Characters — Elders, Teachers and Others", "Krishna and the Yadavas",
+        "Youth, Education and Rivalry", "Draupadi and the Swayamvara", "Indraprastha and the Rajasuya",
+        "The Dice Game", "Exile in the Forest", "The Year in Virata", "Diplomacy and the Road to War",
+        "Armies and Alliances", "The Bhagavad Gita", "The Kurukshetra War — Day by Day",
+        "Battle Formations and Strategy", "Deaths of the Great Warriors", "Aftermath of the War",
+        "Teachings After the War", "The Final Journey", "Places of the Epic", "Concepts and Themes",
+        "Interpretations, Traditions and Debates"
+      ]
+    },
+
+    "visualization_hint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "suggested_tools", "note"],
+      "properties": {
+        "kind": {"$ref": "#/$defs/hint_kind"},
+        "suggested_tools": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/chart_tool"}},
+        "note": {"type": "string"}
+      }
+    },
+
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "version", "subtitle", "tagline", "content_note", "start_chapter"],
+      "properties": {
+        "title": {"$ref": "#/$defs/non_empty_string"},
+        "version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+        "subtitle": {"type": "string"},
+        "tagline": {"type": "string"},
+        "content_note": {"$ref": "#/$defs/non_empty_string"},
+        "start_chapter": {"$ref": "#/$defs/chapter_id"}
+      }
+    },
+
+    "map_position": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y", "region", "icon"],
+      "properties": {
+        "x": {"type": "number", "minimum": 0, "maximum": 1000},
+        "y": {"type": "number", "minimum": 0, "maximum": 700},
+        "region": {"type": "string", "enum": ["north", "ganga_plain", "west", "east", "south", "himalaya"]},
+        "icon": {"type": "string", "enum": ["palace", "forest", "river", "battlefield", "assembly", "mountain", "hermitage", "city"]}
+      }
+    },
+    "palette": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sky", "fog", "ground", "accent", "light"],
+      "properties": {
+        "sky": {"$ref": "#/$defs/hex_color"},
+        "fog": {"$ref": "#/$defs/hex_color"},
+        "ground": {"$ref": "#/$defs/hex_color"},
+        "accent": {"$ref": "#/$defs/hex_color"},
+        "light": {"$ref": "#/$defs/hex_color"}
+      }
+    },
+    "layout_item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["asset", "position", "rotation", "scale"],
+      "properties": {
+        "asset": {"$ref": "#/$defs/asset_id"},
+        "position": {"$ref": "#/$defs/vec3"},
+        "rotation": {"$ref": "#/$defs/vec3"},
+        "scale": {"$ref": "#/$defs/scale"},
+        "instances": {"type": "integer", "minimum": 1},
+        "scatter_radius": {"type": "number", "minimum": 0}
+      }
+    },
+    "default_lighting": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["preset", "intensity", "color"],
+      "properties": {
+        "preset": {"$ref": "#/$defs/lighting_preset"},
+        "intensity": {"$ref": "#/$defs/intensity"},
+        "color": {"$ref": "#/$defs/hex_color"}
+      }
+    },
+    "location_ambient_audio": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bed", "volume"],
+      "properties": {
+        "bed": {"$ref": "#/$defs/ambient_bed"},
+        "volume": {"$ref": "#/$defs/unit_interval"}
+      }
+    },
+    "location": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id", "name", "kind", "description", "traditional_identification", "map", "palette", "theme",
+        "base_layout", "default_lighting", "ambient_audio", "chapters", "paths_to"
+      ],
+      "properties": {
+        "id": {"$ref": "#/$defs/location_id"},
+        "name": {"$ref": "#/$defs/non_empty_string"},
+        "sanskrit_name": {"$ref": "#/$defs/nullable_string"},
+        "kind": {"type": "string", "enum": ["forest", "city", "palace", "river", "assembly", "battlefield", "mountain", "hermitage", "kingdom"]},
+        "description": {"$ref": "#/$defs/non_empty_string"},
+        "traditional_identification": {"$ref": "#/$defs/nullable_string"},
+        "map": {"$ref": "#/$defs/map_position"},
+        "palette": {"$ref": "#/$defs/palette"},
+        "theme": {"type": "string", "enum": ["royal", "wilderness", "divine", "conflict", "sacred", "aftermath"]},
+        "base_layout": {"type": "array", "items": {"$ref": "#/$defs/layout_item"}},
+        "default_lighting": {"$ref": "#/$defs/default_lighting"},
+        "ambient_audio": {"$ref": "#/$defs/location_ambient_audio"},
+        "chapters": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/chapter_id"}},
+        "paths_to": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/location_id"}}
+      }
+    },
+
+    "visual_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["primary", "secondary", "silhouette", "attributes", "height"],
+      "properties": {
+        "primary": {"$ref": "#/$defs/hex_color"},
+        "secondary": {"$ref": "#/$defs/hex_color"},
+        "silhouette": {"$ref": "#/$defs/non_empty_string"},
+        "attributes": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/asset_id"}},
+        "height": {"type": "number", "minimum": 1.6, "maximum": 2.1}
+      }
+    },
+    "character": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "epithets", "role", "faction", "summary", "first_chapter", "visual_identity", "asset"],
+      "properties": {
+        "id": {"$ref": "#/$defs/character_id"},
+        "name": {"$ref": "#/$defs/non_empty_string"},
+        "epithets": {"type": "array", "items": {"$ref": "#/$defs/non_empty_string"}},
+        "role": {"$ref": "#/$defs/non_empty_string"},
+        "faction": {"type": "string", "enum": ["pandava", "kaurava", "neutral", "divine", "narrator"]},
+        "summary": {"$ref": "#/$defs/non_empty_string"},
+        "first_chapter": {"$ref": "#/$defs/chapter_id"},
+        "visual_identity": {"$ref": "#/$defs/visual_identity"},
+        "asset": {"$ref": "#/$defs/character_asset_id"}
+      }
+    },
+
+    "relationship": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to", "type", "label"],
+      "properties": {
+        "from": {"$ref": "#/$defs/character_id"},
+        "to": {"$ref": "#/$defs/character_id"},
+        "type": {
+          "type": "string",
+          "enum": ["parent", "sibling", "half_sibling", "spouse", "teacher", "ally", "rival", "charioteer", "friend", "guardian", "adoptive_parent"]
+        },
+        "label": {"$ref": "#/$defs/non_empty_string"},
+        "note": {"$ref": "#/$defs/nullable_string"}
+      }
+    },
+
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "summary", "chapter", "location_id", "characters", "order", "parva"],
+      "properties": {
+        "id": {"$ref": "#/$defs/event_id"},
+        "title": {"$ref": "#/$defs/non_empty_string"},
+        "summary": {"$ref": "#/$defs/non_empty_string"},
+        "chapter": {"$ref": "#/$defs/chapter_id"},
+        "location_id": {"$ref": "#/$defs/location_id"},
+        "characters": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/character_id"}},
+        "order": {"type": "integer", "minimum": 1},
+        "parva": {"$ref": "#/$defs/parva"},
+        "uncertainty": {"$ref": "#/$defs/nullable_string"}
+      }
+    },
+
+    "related_entities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["characters", "locations", "events"],
+      "properties": {
+        "characters": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/character_id"}},
+        "locations": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/location_id"}},
+        "events": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/event_id"}}
+      }
+    },
+    "next_stage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "target"],
+      "properties": {
+        "type": {"type": "string", "enum": ["chapter", "discovery", "question"]},
+        "target": {"$ref": "#/$defs/non_empty_string"}
+      }
+    },
+    "branching_option": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "target_type", "target"],
+      "properties": {
+        "label": {"$ref": "#/$defs/non_empty_string"},
+        "target_type": {"type": "string", "enum": ["chapter", "question", "discovery"]},
+        "target": {"$ref": "#/$defs/non_empty_string"}
+      }
+    },
+    "question": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id", "question", "deeper_context", "search_query", "expected_topics", "related_entities",
+        "visualization_hints", "next_stage", "branching_options"
+      ],
+      "properties": {
+        "id": {"$ref": "#/$defs/question_id"},
+        "question": {"$ref": "#/$defs/non_empty_string"},
+        "deeper_context": {"$ref": "#/$defs/non_empty_string"},
+        "search_query": {"$ref": "#/$defs/non_empty_string"},
+        "expected_topics": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/non_empty_string"}},
+        "related_entities": {"$ref": "#/$defs/related_entities"},
+        "visualization_hints": {"type": "array", "items": {"$ref": "#/$defs/visualization_hint"}},
+        "next_stage": {"$ref": "#/$defs/next_stage"},
+        "branching_options": {"type": "array", "items": {"$ref": "#/$defs/branching_option"}}
+      }
+    },
+
+    "staging_item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "asset", "position", "rotation", "scale"],
+      "properties": {
+        "id": {"$ref": "#/$defs/staging_id"},
+        "asset": {"$ref": "#/$defs/asset_id"},
+        "position": {"$ref": "#/$defs/vec3"},
+        "rotation": {"$ref": "#/$defs/vec3"},
+        "scale": {"$ref": "#/$defs/scale"},
+        "pose": {
+          "type": "string",
+          "enum": ["standing", "seated", "archer", "charioteer", "mace", "kneeling", "lying", "walking", "blessing"]
+        }
+      }
+    },
+
+    "shot_environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sky", "fog_density", "elements"],
+      "properties": {
+        "sky": {"$ref": "#/$defs/sky_asset_id"},
+        "fog_density": {"type": "number", "minimum": 0, "maximum": 0.05},
+        "elements": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/env_asset_id"}}
+      }
+    },
+    "shot_lighting": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["preset", "intensity", "color", "key_direction"],
+      "properties": {
+        "preset": {"$ref": "#/$defs/lighting_preset"},
+        "intensity": {"$ref": "#/$defs/intensity"},
+        "color": {"$ref": "#/$defs/hex_color"},
+        "key_direction": {"$ref": "#/$defs/vec3"}
+      }
+    },
+    "animation_cue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["at", "target", "action"],
+      "properties": {
+        "at": {"$ref": "#/$defs/seconds"},
+        "target": {"$ref": "#/$defs/non_empty_string"},
+        "action": {
+          "type": "string",
+          "enum": ["appear", "fade_in", "fade_out", "rise", "turn_to_camera", "glow", "flutter", "roll", "draw_bow", "walk_to", "kneel", "fall", "pulse"]
+        },
+        "params": {"type": "object", "additionalProperties": true}
+      }
+    },
+    "particle_effect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "density", "color", "area"],
+      "properties": {
+        "type": {"$ref": "#/$defs/particle_type"},
+        "density": {"$ref": "#/$defs/unit_interval"},
+        "color": {"$ref": "#/$defs/hex_color"},
+        "area": {"$ref": "#/$defs/vec3"}
+      }
+    },
+    "shot_sound_cue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cue", "at", "volume"],
+      "properties": {
+        "cue": {"$ref": "#/$defs/sound_cue_name"},
+        "at": {"$ref": "#/$defs/seconds"},
+        "volume": {"$ref": "#/$defs/unit_interval"}
+      }
+    },
+    "hotspot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "position", "target_type", "target"],
+      "properties": {
+        "id": {"$ref": "#/$defs/hotspot_id"},
+        "label": {"$ref": "#/$defs/non_empty_string"},
+        "position": {"$ref": "#/$defs/vec3"},
+        "target_type": {"type": "string", "enum": ["character", "location", "event", "question", "discovery"]},
+        "target": {"$ref": "#/$defs/non_empty_string"}
+      }
+    },
+    "shot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "shot_id", "shot_name", "duration", "camera_movement", "camera_position", "camera_target", "camera_path",
+        "environment", "lighting", "animation_cues", "particle_effects", "sound_cues", "transition_type",
+        "interactive_hotspots"
+      ],
+      "properties": {
+        "shot_id": {"$ref": "#/$defs/shot_id"},
+        "shot_name": {"$ref": "#/$defs/non_empty_string"},
+        "duration": {"type": "number", "minimum": 4, "maximum": 14},
+        "camera_movement": {"$ref": "#/$defs/camera_movement"},
+        "camera_position": {"$ref": "#/$defs/vec3"},
+        "camera_target": {"$ref": "#/$defs/vec3"},
+        "camera_path": {"$ref": "#/$defs/path3"},
+        "target_path": {"$ref": "#/$defs/path3"},
+        "fov": {"type": "number", "exclusiveMinimum": 0, "maximum": 120},
+        "environment": {"$ref": "#/$defs/shot_environment"},
+        "lighting": {"$ref": "#/$defs/shot_lighting"},
+        "animation_cues": {"type": "array", "items": {"$ref": "#/$defs/animation_cue"}},
+        "particle_effects": {"type": "array", "items": {"$ref": "#/$defs/particle_effect"}},
+        "sound_cues": {"type": "array", "items": {"$ref": "#/$defs/shot_sound_cue"}},
+        "transition_type": {"$ref": "#/$defs/transition_type"},
+        "interactive_hotspots": {"type": "array", "items": {"$ref": "#/$defs/hotspot"}}
+      }
+    },
+
+    "story_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["parva", "when", "previously", "sources_note"],
+      "properties": {
+        "parva": {"$ref": "#/$defs/non_empty_string"},
+        "when": {"$ref": "#/$defs/non_empty_string"},
+        "previously": {"type": "string"},
+        "sources_note": {"$ref": "#/$defs/nullable_string"}
+      }
+    },
+    "navigation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["map_focus", "timeline_anchor", "breadcrumbs"],
+      "properties": {
+        "map_focus": {"$ref": "#/$defs/location_id"},
+        "timeline_anchor": {"$ref": "#/$defs/event_id"},
+        "breadcrumbs": {"type": "array", "items": {"$ref": "#/$defs/non_empty_string"}}
+      }
+    },
+    "unlock_conditions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "chapters", "questions"],
+      "properties": {
+        "type": {"type": "string", "enum": ["always", "chapter_visited", "question_answered", "any_of"]},
+        "chapters": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/chapter_id"}},
+        "questions": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/question_id"}}
+      }
+    },
+    "discovery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "teaser", "type", "target"],
+      "properties": {
+        "id": {"$ref": "#/$defs/discovery_id"},
+        "title": {"$ref": "#/$defs/non_empty_string"},
+        "teaser": {"$ref": "#/$defs/non_empty_string"},
+        "type": {"type": "string", "enum": ["character", "location", "event", "question", "chapter"]},
+        "target": {"$ref": "#/$defs/non_empty_string"}
+      }
+    },
+    "chapter_ambient_audio": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bed", "volume", "cues"],
+      "properties": {
+        "bed": {"$ref": "#/$defs/ambient_bed"},
+        "volume": {"$ref": "#/$defs/unit_interval"},
+        "cues": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["cue", "at"],
+            "properties": {
+              "cue": {"$ref": "#/$defs/sound_cue_name"},
+              "at": {"$ref": "#/$defs/seconds"}
+            }
+          }
+        }
+      }
+    },
+    "transition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["in", "out", "duration", "color"],
+      "properties": {
+        "in": {"$ref": "#/$defs/transition_type"},
+        "out": {"$ref": "#/$defs/transition_type"},
+        "duration": {"$ref": "#/$defs/seconds"},
+        "color": {"$ref": "#/$defs/hex_color"}
+      }
+    },
+
+    "chapter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id", "chapter_order", "kind", "title", "subtitle", "location_id", "narrative", "story_context",
+        "central_question", "questions", "related_characters", "related_locations", "related_events",
+        "staging", "shots", "assets", "visualization_hints", "navigation", "unlock_conditions",
+        "previous_chapter", "next_chapters", "optional_discoveries", "ambient_audio", "transition"
+      ],
+      "properties": {
+        "id": {"$ref": "#/$defs/chapter_id"},
+        "chapter_order": {"type": "number", "exclusiveMinimum": 0},
+        "kind": {"type": "string", "enum": ["main", "sub"]},
+        "title": {"$ref": "#/$defs/non_empty_string"},
+        "subtitle": {"type": "string"},
+        "location_id": {"$ref": "#/$defs/location_id"},
+        "narrative": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/non_empty_string"}},
+        "story_context": {"$ref": "#/$defs/story_context"},
+        "central_question": {"$ref": "#/$defs/question"},
+        "questions": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/question"}},
+        "related_characters": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/character_id"}},
+        "related_locations": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/location_id"}},
+        "related_events": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/event_id"}},
+        "staging": {"type": "array", "items": {"$ref": "#/$defs/staging_item"}},
+        "shots": {"type": "array", "minItems": 2, "items": {"$ref": "#/$defs/shot"}},
+        "assets": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/asset_id"}},
+        "visualization_hints": {"type": "array", "items": {"$ref": "#/$defs/visualization_hint"}},
+        "navigation": {"$ref": "#/$defs/navigation"},
+        "unlock_conditions": {"$ref": "#/$defs/unlock_conditions"},
+        "previous_chapter": {"$ref": "#/$defs/nullable_chapter_id"},
+        "next_chapters": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/chapter_id"}},
+        "optional_discoveries": {"type": "array", "items": {"$ref": "#/$defs/discovery"}},
+        "ambient_audio": {"$ref": "#/$defs/chapter_ambient_audio"},
+        "transition": {"$ref": "#/$defs/transition"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"kind": {"const": "main"}}, "required": ["kind"]},
+          "then": {"properties": {"shots": {"minItems": 3}}}
+        }
+      ]
+    }
+  }
+}
