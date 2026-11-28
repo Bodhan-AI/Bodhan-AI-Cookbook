@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Transcribe, translate and export recorded customer support calls." />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="/brand/bodhan-favicon.ico" />
+    <link rel="preload" href="/fonts/poppins-latin-600.woff2" as="font" type="font/woff2" crossorigin />
+    <script>
+      // Stamp the theme before first paint: the stored choice, else the OS setting.
+      (function () {
+        var theme = null;
+        try { theme = localStorage.getItem("bodhan-theme"); } catch (e) { /* storage blocked */ }
+        if (theme !== "light" && theme !== "dark") {
+          theme = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        }
+        document.documentElement.setAttribute("data-theme", theme);
+      })();
+    </script>
+    <title>Support Call Summarizer · Bodhan.AI</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
